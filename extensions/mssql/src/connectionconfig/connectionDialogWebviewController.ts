@@ -196,13 +196,24 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         connectionToEdit: IConnectionInfo,
         initialConnectionGroup?: IConnectionGroup,
     ): Promise<void> {
+        const useVscodeAccounts = previewService.isFeatureEnabled(
+            PreviewFeature.UseVscodeAccountsForEntraMFA,
+        );
+
         // Load connection form components
         this.state.formComponents = await generateConnectionComponents(
             this._mainController.connectionManager,
-            this.getEntraMfaAccountOptions(),
+            useVscodeAccounts ? Promise.resolve([]) : this.getEntraMfaAccountOptions(),
             this.getAzureActionButtons(),
             this.getConnectionGroups(this._mainController),
         );
+
+        if (useVscodeAccounts) {
+            const accountComponent = this.getFormComponent(this.state, "accountId");
+            if (accountComponent) {
+                accountComponent.loading = true;
+            }
+        }
 
         this.state.connectionComponents = {
             mainOptions: [...ConnectionDialogWebviewController.mainOptions],
@@ -222,6 +233,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         this.loadEmptyConnection();
         await this.updateItemVisibility();
         this.updateState();
+
+        // Load VS Code Entra accounts in the background after the initial render
+        if (useVscodeAccounts) {
+            void this.loadVscodeEntraAccountsAsync();
+        }
 
         // Load saved/recent connections
         try {
@@ -1491,6 +1507,33 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
     //#region Azure helpers
 
+    /**
+     * Loads VS Code Entra MFA account options asynchronously and updates the
+     * account dropdown when done. Shows a loading spinner on the dropdown
+     * while the accounts are being fetched.
+     */
+    private async loadVscodeEntraAccountsAsync(): Promise<void> {
+        try {
+            const options = await getVscodeEntraAccountOptions();
+
+            const accountComponent = this.getFormComponent(this.state, "accountId");
+            if (accountComponent) {
+                accountComponent.options = options;
+                accountComponent.loading = false;
+            }
+
+            this.updateState();
+        } catch (err) {
+            const accountComponent = this.getFormComponent(this.state, "accountId");
+            if (accountComponent) {
+                accountComponent.loading = false;
+            }
+
+            this.updateState();
+            this.logger.error(`Error loading VS Code Entra accounts: ${getErrorMessage(err)}`);
+        }
+    }
+
     private async getConnectionGroups(mainController: MainController): Promise<FormItemOptions[]> {
         return mainController.connectionManager.connectionUI.getConnectionGroupOptions();
     }
@@ -1677,67 +1720,87 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return;
         }
 
-        accountComponent.options = await this.getEntraMfaAccountOptions();
+        const tenantComponent = this.getFormComponent(this.state, "tenantId");
+        const useVscodeAccounts = previewService.isFeatureEnabled(
+            PreviewFeature.UseVscodeAccountsForEntraMFA,
+        );
 
-        if (
-            previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA) &&
-            this.state.connectionProfile.accountId
-        ) {
-            const normalizedAccountId = await normalizeVscodeEntraAccountId(
-                this.state.connectionProfile.accountId,
-            );
-
-            if (normalizedAccountId) {
-                this.state.connectionProfile.accountId = normalizedAccountId;
-            } else {
-                this.state.connectionProfile.accountId = undefined;
-                this.state.connectionProfile.tenantId = undefined;
+        // Show loading spinners on account/tenant dropdowns before async fetches
+        if (useVscodeAccounts) {
+            accountComponent.loading = true;
+            if (tenantComponent && propertyName !== "tenantId") {
+                tenantComponent.loading = true;
             }
+            this.updateState();
         }
 
-        const tenantComponent = this.getFormComponent(this.state, "tenantId");
-        let tenants: FormItemOptions[] = [];
+        try {
+            accountComponent.options = await this.getEntraMfaAccountOptions();
 
-        switch (propertyName) {
-            case "accountId":
-                tenants = await this.getEntraMfaTenantOptions(
+            if (useVscodeAccounts && this.state.connectionProfile.accountId) {
+                const normalizedAccountId = await normalizeVscodeEntraAccountId(
                     this.state.connectionProfile.accountId,
                 );
-                if (tenantComponent) {
-                    tenantComponent.options = tenants;
-                    if (
-                        tenants.length > 0 &&
-                        !tenants.find((t) => t.value === this.state.connectionProfile.tenantId)
-                    ) {
-                        // if expected tenantId is not in the list of tenants, set it to the first tenant
-                        this.state.connectionProfile.tenantId = tenants[0].value;
-                        await this.validateForm(this.state.formState, "tenantId");
-                    }
-                }
 
-                accountComponent.actionButtons = await this.getAzureActionButtons();
-                break;
-            case "tenantId":
-                break;
-            case "authenticationType":
-                const firstOption = accountComponent.options[0];
-                if (firstOption) {
-                    this.state.connectionProfile.accountId = firstOption.value;
+                if (normalizedAccountId) {
+                    this.state.connectionProfile.accountId = normalizedAccountId;
+                } else {
+                    this.state.connectionProfile.accountId = undefined;
+                    this.state.connectionProfile.tenantId = undefined;
                 }
-                if (this.state.connectionProfile.accountId) {
+            }
+
+            let tenants: FormItemOptions[] = [];
+
+            switch (propertyName) {
+                case "accountId":
                     tenants = await this.getEntraMfaTenantOptions(
                         this.state.connectionProfile.accountId,
                     );
                     if (tenantComponent) {
                         tenantComponent.options = tenants;
-                        if (tenants && tenants.length > 0) {
+                        if (
+                            tenants.length > 0 &&
+                            !tenants.find((t) => t.value === this.state.connectionProfile.tenantId)
+                        ) {
+                            // if expected tenantId is not in the list of tenants, set it to the first tenant
                             this.state.connectionProfile.tenantId = tenants[0].value;
+                            await this.validateForm(this.state.formState, "tenantId");
                         }
                     }
-                }
 
-                accountComponent.actionButtons = await this.getAzureActionButtons();
-                break;
+                    accountComponent.actionButtons = await this.getAzureActionButtons();
+                    break;
+                case "tenantId":
+                    break;
+                case "authenticationType":
+                    const firstOption = accountComponent.options[0];
+                    if (firstOption) {
+                        this.state.connectionProfile.accountId = firstOption.value;
+                    }
+                    if (this.state.connectionProfile.accountId) {
+                        tenants = await this.getEntraMfaTenantOptions(
+                            this.state.connectionProfile.accountId,
+                        );
+                        if (tenantComponent) {
+                            tenantComponent.options = tenants;
+                            if (tenants && tenants.length > 0) {
+                                this.state.connectionProfile.tenantId = tenants[0].value;
+                            }
+                        }
+                    }
+
+                    accountComponent.actionButtons = await this.getAzureActionButtons();
+                    break;
+            }
+        } finally {
+            // Clear loading state on both dropdowns
+            if (useVscodeAccounts) {
+                accountComponent.loading = false;
+                if (tenantComponent) {
+                    tenantComponent.loading = false;
+                }
+            }
         }
     }
 
