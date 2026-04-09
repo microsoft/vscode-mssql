@@ -164,6 +164,44 @@ export const TableExplorerPage: React.FC = () => {
                     editor.trigger("keyboard", "type", { text });
                 });
             });
+
+            // Intercept Tab at the window level (capture phase) before Fluent UI
+            // Tabster's document-level handler can steal focus from the editor.
+            const editorDomNode = editor.getDomNode();
+            const tabHandler = (e: KeyboardEvent) => {
+                if (e.key !== "Tab") {
+                    return;
+                }
+                // hasTextFocus() is true only when Monaco's hidden textarea is active.
+                // Also check whether any element inside the editor container is focused
+                // (e.g. suggestion widget, hover widget) so we never miss a Tab press.
+                const hasEditorFocus =
+                    editor.hasTextFocus() ||
+                    (editorDomNode !== null &&
+                        (editorDomNode?.contains(document.activeElement) ?? false));
+                if (!hasEditorFocus) {
+                    return;
+                }
+                e.preventDefault();
+                e.stopImmediatePropagation();
+
+                if (e.shiftKey) {
+                    editor.trigger("keyboard", "outdent", undefined);
+                    return;
+                }
+
+                // If the suggest widget is visible, accept the selected suggestion
+                const suggestWidget = document.querySelector(".suggest-widget");
+                if (suggestWidget && suggestWidget.classList.contains("visible")) {
+                    editor.trigger("keyboard", "acceptSelectedSuggestion", undefined);
+                } else {
+                    editor.trigger("keyboard", "tab", undefined);
+                }
+            };
+            window.addEventListener("keydown", tabHandler, true);
+            editor.onDidDispose(() => {
+                window.removeEventListener("keydown", tabHandler, true);
+            });
         },
         [],
     );
@@ -279,6 +317,7 @@ export const TableExplorerPage: React.FC = () => {
                                                 options={{
                                                     readOnly: false,
                                                     fixedOverflowWidgets: true,
+                                                    tabFocusMode: false,
                                                 }}
                                                 onChange={(value) => {
                                                     const text = value ?? "";
