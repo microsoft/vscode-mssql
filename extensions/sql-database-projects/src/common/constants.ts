@@ -637,9 +637,17 @@ export const tasksJsonFriendlyName = l10n.t("Tasks.json");
 // These follow SSDT conventions for folder structure
 export const securityFolderName = "Security";
 export const functionsFolderName = "Functions";
+export const tablesFolderName = "Tables";
+export const viewsFolderName = "Views";
+export const storedProceduresFolderName = "StoredProcedures";
+export const triggersFolderName = "Triggers";
 export const databaseTriggersFolderName = "DatabaseTriggers";
 export const sequencesFolderName = "Sequences";
 export const defaultSchemaName = "dbo";
+//#endregion
+
+//#region Extension settings
+export const autoCreateFoldersSetting = "sqlDatabaseProjects.autoCreateFolders";
 //#endregion
 
 //#endregion
