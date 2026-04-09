@@ -7,12 +7,12 @@ import * as sinon from "sinon";
 import * as Constants from "../../src/constants/constants";
 import * as stubs from "./stubs";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
-import { AuthenticationTypes } from "../../src/models/interfaces";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 
 import { expect } from "chai";
 import { ConnectionDetails, IConnectionInfo } from "vscode-mssql";
 import { stubVscodeWrapper } from "./utils";
+import { AuthenticationType } from "../../src/sharedInterfaces/connectionDialog";
 
 suite("ConnectionCredentials Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -80,7 +80,7 @@ suite("ConnectionCredentials Tests", () => {
                 accountId: "testAccountid",
                 tenantId: "testTenantId",
                 port: 1234,
-                authenticationType: AuthenticationTypes[AuthenticationTypes.SqlLogin],
+                authenticationType: AuthenticationType.SqlLogin,
                 azureAccountToken: "testToken",
                 expiresOn: 5678,
                 encrypt: "Strict",
@@ -129,15 +129,12 @@ suite("ConnectionCredentials Tests", () => {
             const connDetails: ConnectionDetails = {
                 options: {
                     server: "someServer",
-                    authenticationType:
-                        AuthenticationTypes[AuthenticationTypes.ActiveDirectoryDefault],
+                    authenticationType: AuthenticationType.ActiveDirectoryDefault,
                 },
             };
 
             const connInfo = ConnectionCredentials.createConnectionInfo(connDetails);
-            expect(connInfo.authenticationType).to.equal(
-                AuthenticationTypes[AuthenticationTypes.ActiveDirectoryDefault],
-            );
+            expect(connInfo.authenticationType).to.equal(AuthenticationType.ActiveDirectoryDefault);
         });
     });
 });

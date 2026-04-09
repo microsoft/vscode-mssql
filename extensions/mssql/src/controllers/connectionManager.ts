@@ -29,7 +29,7 @@ import {
 import * as ConnectionContracts from "../models/contracts/connection";
 import { ClearPooledConnectionsRequest, ConnectionSummary } from "../models/contracts/connection";
 import * as LanguageServiceContracts from "../models/contracts/languageService";
-import { AuthenticationTypes, EncryptOptions, IConnectionProfile } from "../models/interfaces";
+import { EncryptOptions, IConnectionProfile } from "../models/interfaces";
 import { PlatformInformation } from "../models/platform";
 import * as Utils from "../models/utils";
 import { IPrompter, IQuestion, QuestionTypes } from "../prompts/question";
@@ -55,6 +55,7 @@ import * as AzureConstants from "../azure/constants";
 import { ChangePasswordService } from "../services/changePasswordService";
 import { checkIfConnectionIsDockerContainer } from "../docker/dockerUtils";
 import { PreviewFeature, previewService } from "../previews/previewService";
+import { AuthenticationType } from "../sharedInterfaces/connectionDialog";
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -1569,10 +1570,7 @@ export default class ConnectionManager {
             credentials.connectionString = connectionString;
         }
 
-        if (
-            credentials.authenticationType ===
-            Utils.authTypeToString(AuthenticationTypes.Integrated)
-        ) {
+        if (credentials.authenticationType === AuthenticationType.Integrated) {
             credentials.azureAccountToken = undefined;
         }
 

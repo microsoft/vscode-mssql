@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as LocalizedConstants from "../constants/locConstants";
-import { IConnectionProfile, AuthenticationTypes } from "./interfaces";
+import { IConnectionProfile } from "./interfaces";
 import * as utils from "./utils";
-import { INameValueChoice } from "../prompts/question";
+import { AuthenticationType } from "../sharedInterfaces/connectionDialog";
 import { ConnectionDetails, IConnectionInfo } from "vscode-mssql";
 
 // Concrete implementation of the IConnectionInfo interface
@@ -203,9 +203,9 @@ export class ConnectionCredentials implements IConnectionInfo {
         // TODO consider enum based verification and handling of AD auth here in the future
         let authenticationType = credentials.authenticationType;
         if (typeof credentials.authenticationType === "undefined") {
-            authenticationType = utils.authTypeToString(AuthenticationTypes.SqlLogin);
+            authenticationType = AuthenticationType.SqlLogin;
         }
-        return authenticationType === utils.authTypeToString(AuthenticationTypes.SqlLogin);
+        return authenticationType === AuthenticationType.SqlLogin;
     }
 
     public static isPasswordBasedConnectionString(connectionString: string): boolean {
@@ -227,28 +227,5 @@ export class ConnectionCredentials implements IConnectionInfo {
             return property + LocalizedConstants.msgIsRequired;
         }
         return undefined;
-    }
-
-    public static getAuthenticationTypesChoice(): INameValueChoice[] {
-        let choices: INameValueChoice[] = [
-            {
-                name: LocalizedConstants.authTypeSql,
-                value: utils.authTypeToString(AuthenticationTypes.SqlLogin),
-            },
-            {
-                name: LocalizedConstants.authTypeIntegrated,
-                value: utils.authTypeToString(AuthenticationTypes.Integrated),
-            },
-            {
-                name: LocalizedConstants.authTypeAzureActiveDirectory,
-                value: utils.authTypeToString(AuthenticationTypes.AzureMFA),
-            },
-            {
-                name: LocalizedConstants.authTypeAzureActiveDirectoryDefault,
-                value: utils.authTypeToString(AuthenticationTypes.ActiveDirectoryDefault),
-            },
-        ];
-
-        return choices;
     }
 }

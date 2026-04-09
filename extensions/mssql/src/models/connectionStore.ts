@@ -14,7 +14,6 @@ import {
     IConnectionProfile,
     IConnectionCredentialsQuickPickItem,
     CredentialsQuickPickItemType,
-    AuthenticationTypes,
     IConnectionProfileWithSource,
     IConnectionGroup,
 } from "./interfaces";
@@ -27,6 +26,7 @@ import { Deferred } from "../protocol";
 import { ConnectionMatcher, MatchScore } from "./utils";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { AuthenticationType } from "../sharedInterfaces/connectionDialog";
 
 /**
  * Manages the connections list including saved profiles and the most recently used connections
@@ -367,7 +367,7 @@ export class ConnectionStore {
 
         // Add the profile to the saved list, taking care to clear out the password field if necessary
         let savedProfile: IConnectionProfile;
-        if (profile.authenticationType === Utils.authTypeToString(AuthenticationTypes.AzureMFA)) {
+        if (profile.authenticationType === AuthenticationType.AzureMFA) {
             savedProfile = Object.assign({}, profile, {
                 azureAccountToken: "",
             });

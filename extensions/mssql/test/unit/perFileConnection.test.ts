@@ -21,7 +21,7 @@ import { ConnectionStore } from "../../src/models/connectionStore";
 import * as ConnectionContracts from "../../src/models/contracts/connection";
 import * as LanguageServiceContracts from "../../src/models/contracts/languageService";
 import * as Interfaces from "../../src/models/interfaces";
-import { AuthenticationTypes } from "../../src/models/interfaces";
+import { AuthenticationType } from "../../src/sharedInterfaces/connectionDialog";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import StatusView from "../../src/views/statusView";
 import { uuid } from "../../src/utils/utils";
@@ -555,7 +555,7 @@ function createTestCredentials(): IConnectionInfo {
         accountId: "test-account-id",
         tenantId: "test-tenant-id",
         port: 1234,
-        authenticationType: AuthenticationTypes[AuthenticationTypes.SqlLogin],
+        authenticationType: AuthenticationType.SqlLogin,
         azureAccountToken: "",
         expiresOn: 0,
         encrypt: "Optional",

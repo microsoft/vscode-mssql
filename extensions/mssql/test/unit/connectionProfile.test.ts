@@ -7,7 +7,7 @@ import * as sinon from "sinon";
 import { IConnectionInfo } from "vscode-mssql";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
 import { ConnectionProfile } from "../../src/models/connectionProfile";
-import { AuthenticationTypes } from "../../src/models/interfaces";
+import { AuthenticationType } from "../../src/sharedInterfaces/connectionDialog";
 import { expect } from "chai";
 
 function createTestCredentials(): IConnectionInfo {
@@ -20,7 +20,7 @@ function createTestCredentials(): IConnectionInfo {
         accountId: "test-account-id",
         tenantId: "test-tenant-id",
         port: 1234,
-        authenticationType: AuthenticationTypes[AuthenticationTypes.SqlLogin],
+        authenticationType: AuthenticationType.SqlLogin,
         azureAccountToken: "",
         expiresOn: 0,
         encrypt: "Optional",
@@ -120,8 +120,7 @@ suite("Connection Profile tests", () => {
     test("ActiveDirectoryDefault profile only requires server", () => {
         const profile = new ConnectionProfile();
         profile.server = "my-server";
-        profile.authenticationType =
-            AuthenticationTypes[AuthenticationTypes.ActiveDirectoryDefault];
+        profile.authenticationType = AuthenticationType.ActiveDirectoryDefault;
 
         expect(profile.isValidProfile()).to.be.true;
     });

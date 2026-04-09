@@ -8,7 +8,7 @@ import * as path from "path";
 import findRemoveSync from "find-remove";
 import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
-import { IAzureSignInQuickPickItem, IConnectionProfile, AuthenticationTypes } from "./interfaces";
+import { IAzureSignInQuickPickItem, IConnectionProfile } from "./interfaces";
 import * as LocalizedConstants from "../constants/locConstants";
 import * as fs from "fs";
 import { AzureAuthType } from "./contracts/azure";
@@ -99,10 +99,6 @@ export function isEmpty(str: any): boolean {
 
 export function isNotEmpty(str: any): boolean {
     return <boolean>(str && "" !== str);
-}
-
-export function authTypeToString(value: AuthenticationTypes): string {
-    return AuthenticationTypes[value];
 }
 
 export function azureAuthTypeToString(value: AzureAuthType): string {

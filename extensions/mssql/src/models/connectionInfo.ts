@@ -204,10 +204,7 @@ export function getUserNameOrDomainLogin(creds: IConnectionInfo, defaultValue?: 
         defaultValue = "";
     }
 
-    if (
-        creds.authenticationType ===
-        Interfaces.AuthenticationTypes[Interfaces.AuthenticationTypes.Integrated]
-    ) {
+    if (creds.authenticationType === AuthenticationType.Integrated) {
         return process.platform === "win32"
             ? process.env.USERDOMAIN + "\\" + process.env.USERNAME
             : "";

@@ -4,7 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as LocalizedConstants from "../constants/locConstants";
-import { IConnectionProfile, AuthenticationTypes } from "./interfaces";
+import { IConnectionProfile } from "./interfaces";
+import { AuthenticationType } from "../sharedInterfaces/connectionDialog";
 import { ConnectionCredentials } from "./connectionCredentials";
 import { INameValueChoice } from "../prompts/question";
 import * as utils from "./utils";
@@ -65,10 +66,9 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 
         if (this.authenticationType) {
             if (
-                this.authenticationType === AuthenticationTypes[AuthenticationTypes.Integrated] ||
-                this.authenticationType === AuthenticationTypes[AuthenticationTypes.AzureMFA] ||
-                this.authenticationType ===
-                    AuthenticationTypes[AuthenticationTypes.ActiveDirectoryDefault]
+                this.authenticationType === AuthenticationType.Integrated ||
+                this.authenticationType === AuthenticationType.AzureMFA ||
+                this.authenticationType === AuthenticationType.ActiveDirectoryDefault
             ) {
                 return utils.isNotEmpty(this.server);
             } else {
@@ -79,7 +79,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
     }
 
     public isAzureActiveDirectory(): boolean {
-        return this.authenticationType === AuthenticationTypes[AuthenticationTypes.AzureMFA];
+        return this.authenticationType === AuthenticationType.AzureMFA;
     }
 
     public static getAzureAuthChoices(): INameValueChoice[] {

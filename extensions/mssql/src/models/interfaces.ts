@@ -27,13 +27,6 @@ export enum ContentType {
     LocalizedTexts = 12,
 }
 
-export enum AuthenticationTypes {
-    Integrated = 1,
-    SqlLogin = 2,
-    AzureMFA = 3,
-    ActiveDirectoryDefault = 4,
-}
-
 export enum EncryptOptions {
     Optional = "Optional",
     Mandatory = "Mandatory",

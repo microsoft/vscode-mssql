@@ -79,6 +79,7 @@ export const enum AuthenticationType {
     SqlLogin = "SqlLogin",
     Integrated = "Integrated",
     AzureMFA = "AzureMFA",
+    ActiveDirectoryDefault = "ActiveDirectoryDefault",
     AzureMFAAndUser = "AzureMFAAndUser",
     DSTSAuth = "dstsAuth",
     None = "None",
