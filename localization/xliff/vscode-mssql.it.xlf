@@ -751,10 +751,10 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Backup</source>
         <target state="translated">Backup</target>
       </trans-unit>
-      <trans-unit id="++CODE++131339547c38a888800811c65663ba4a48be297f76a3ffdf6075afd06b591df8">
-        <source xml:lang="en">Backup Database (Preview) - {0}</source>
+      <trans-unit id="++CODE++094e437cda5fd692838cc9472b78f0b56bb8696e37f931d0dceb816443bb0e87">
+        <source xml:lang="en">Backup Database - {0}</source>
         <note>{0} is the database name</note>
-        <target state="translated">Esegui backup di database (anteprima) - {0}</target>
+        <target state="new">Backup Database - {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++55e3ec5a66490b401352f97b8c81d967c3e0f06782815833b8ebef7c4113a1f3">
         <source xml:lang="en">Backup File</source>
@@ -4251,13 +4251,13 @@ Errore:
         <source xml:lang="en">Import Data</source>
         <target state="translated">Importa dati</target>
       </trans-unit>
-      <trans-unit id="++CODE++70c983cad7df6201df65d920d2483db7e1c8e824fe563943b0280ac5d11b5f2c">
-        <source xml:lang="en">Import File (Preview)</source>
-        <target state="translated">Importa file (anteprima)</target>
+      <trans-unit id="++CODE++ac684565c2b14138e810a13adaad5c47b8fcfe81d7a11738202d806cac32acb3">
+        <source xml:lang="en">Import File</source>
+        <target state="new">Import File</target>
       </trans-unit>
-      <trans-unit id="++CODE++9afac530f969aee3a096a2d27abc3c44acfa31d1533b1e73eecb9faac48bc09b">
-        <source xml:lang="en">Import Flat File (Preview)</source>
-        <target state="translated">Importazione file flat (anteprima)</target>
+      <trans-unit id="++CODE++1b0fa08e0bb59b85ed1ee40df41e8a237133736b10ed5e19ca6b8934b0b46bf6">
+        <source xml:lang="en">Import Flat File</source>
+        <target state="new">Import Flat File</target>
       </trans-unit>
       <trans-unit id="++CODE++d059247bec8b508bc7b25a4d371433db929d754ac010d5347a67a0b5701dddc8">
         <source xml:lang="en">Import Information</source>
@@ -6589,9 +6589,9 @@ Errore:
         <note>{0} is the keyboard shortcut for restoring the grid</note>
         <target state="translated">Ripristina ({0})</target>
       </trans-unit>
-      <trans-unit id="++CODE++5b7f462ae3c2f088449521a194e6c2b8833bd4acd5c877f6e13f55681d4d931d">
-        <source xml:lang="en">Restore Database (Preview)</source>
-        <target state="translated">Ripristina database (anteprima)</target>
+      <trans-unit id="++CODE++fcc2107b5a260d3c07480870a91a7634f1520f7d2afa98f70ff1ce21e36132b1">
+        <source xml:lang="en">Restore Database</source>
+        <target state="new">Restore Database</target>
       </trans-unit>
       <trans-unit id="++CODE++08a1e27d6e3c46f5a5b553a82a39ac2d0e89f6b37a9f57269532ed172d6d2de8">
         <source xml:lang="en">Restore Panel Size</source>
@@ -9364,8 +9364,8 @@ Query: {2}</target>
         <target state="new">Background Tasks</target>
       </trans-unit>
       <trans-unit id="mssql.backupDatabase">
-        <source xml:lang="en">Backup Database (Preview)...</source>
-        <target state="translated">Esegui backup di database (anteprima)...</target>
+        <source xml:lang="en">Backup Database...</source>
+        <target state="new">Backup Database...</target>
       </trans-unit>
       <trans-unit id="mssql.buildDataApi">
         <source xml:lang="en">Build Data API (Preview)...</source>
@@ -9758,8 +9758,8 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
         <target state="translated">Importa BACPAC</target>
       </trans-unit>
       <trans-unit id="mssql.flatFileImport">
-        <source xml:lang="en">Import Data (Preview)...</source>
-        <target state="translated">Importa dati (anteprima)...</target>
+        <source xml:lang="en">Import Data...</source>
+        <target state="new">Import Data...</target>
       </trans-unit>
       <trans-unit id="mssql.profiler.launchFromObjectExplorer">
         <source xml:lang="en">Launch Query Profiler (Preview)...</source>
@@ -9948,8 +9948,8 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
         <target state="translated">Replica</target>
       </trans-unit>
       <trans-unit id="mssql.restoreDatabase">
-        <source xml:lang="en">Restore Database (Preview)...</source>
-        <target state="translated">Ripristina database (anteprima)...</target>
+        <source xml:lang="en">Restore Database...</source>
+        <target state="new">Restore Database...</target>
       </trans-unit>
       <trans-unit id="mssql.revealQueryResult">
         <source xml:lang="en">Reveal Query Result (MSSQL)</source>
