@@ -487,7 +487,7 @@ suite("ProjectsController", function (): void {
                 ).to.be.true;
             });
 
-            test("resolveItemFolder: Returns basePath unchanged for non-schema-dependent types when added from a folder node (auto-create ON)", async function (): Promise<void> {
+            test("resolveItemFolder: Does not create spurious nested folders for any ObjectType basePath (regression)", async function (): Promise<void> {
                 const projController = new ProjectsController(testContext.outputChannel);
                 const project = await testUtils.createTestProject(
                     this.test,
@@ -495,11 +495,15 @@ suite("ProjectsController", function (): void {
                 );
                 stubAutoCreate(true);
 
+                // Pre-populate folders that cover all edge cases
                 await project.addFolder("dbo");
-                await project.addFolder("DatabaseTriggers");
+                await project.addFolder("DatabaseTriggers"); // root-level non-schema-dep folder
+                await project.addFolder("Tables"); // root-level ObjectType folder (e.g. old project layout)
+                await project.addFolder(path.join("dbo", "Tables")); // already in Schema/ObjectType
                 const foldersBefore = project.folders.length;
+                const dboTablesPath = utils.convertSlashesForSqlProj(path.join("dbo", "Tables"));
 
-                // Adding a non-schema-dependent type from a schema folder must NOT create dbo/DatabaseTriggers
+                // 1. Non-schema-dependent type from a schema folder: must NOT create dbo/DatabaseTriggers
                 expect(
                     await projController.resolveItemFolder(
                         ItemType.databaseTrigger,
@@ -507,10 +511,10 @@ suite("ProjectsController", function (): void {
                         "",
                         "dbo",
                     ),
-                    "Should return dbo unchanged — non-schema-dependent types don't nest under schema folders",
+                    "Non-schema-dep from schema folder: should return dbo unchanged",
                 ).to.equal("dbo");
 
-                // Adding a non-schema-dependent type from its own root folder must NOT create DatabaseTriggers/DatabaseTriggers
+                // 2. Non-schema-dependent type from its own ObjectType folder: must NOT create DatabaseTriggers/DatabaseTriggers
                 expect(
                     await projController.resolveItemFolder(
                         ItemType.databaseTrigger,
@@ -518,42 +522,31 @@ suite("ProjectsController", function (): void {
                         "",
                         "DatabaseTriggers",
                     ),
-                    "Should return DatabaseTriggers unchanged — already in the right folder",
+                    "Non-schema-dep from its own folder: should return DatabaseTriggers unchanged",
                 ).to.equal("DatabaseTriggers");
 
-                const reloaded = await Project.openProject(project.projectFilePath);
-                expect(reloaded.folders.length, "No additional folders should be created").to.equal(
-                    foldersBefore,
-                );
-            });
-
-            test("resolveItemFolder: Places file directly in current folder when already inside an ObjectType folder (auto-create ON)", async function (): Promise<void> {
-                const projController = new ProjectsController(testContext.outputChannel);
-                const project = await testUtils.createTestProject(
-                    this.test,
-                    templates.newSqlProjectTemplate,
-                );
-                stubAutoCreate(true);
-
-                await project.addFolder("dbo");
-                await project.addFolder(path.join("dbo", "Tables"));
-                const foldersBefore = project.folders.length;
-                const tablesPath = utils.convertSlashesForSqlProj(path.join("dbo", "Tables"));
-
+                // 3. Same-type from a 2-segment path: Table from dbo/Tables must NOT create dbo/Tables/Tables
                 expect(
                     await projController.resolveItemFolder(
                         ItemType.table,
                         project,
                         "dbo",
-                        tablesPath,
+                        dboTablesPath,
                     ),
-                    "Should stay in dbo/Tables — no double-nesting",
-                ).to.equal(tablesPath);
+                    "Same-type from 2-segment path: should stay in dbo/Tables",
+                ).to.equal(dboTablesPath);
+
+                // 4. Cross-type from root ObjectType folder: View from Tables must NOT create Tables/Views
+                expect(
+                    await projController.resolveItemFolder(ItemType.view, project, "dbo", "Tables"),
+                    "Cross-type from ObjectType folder: should return Tables unchanged",
+                ).to.equal("Tables");
 
                 const reloaded = await Project.openProject(project.projectFilePath);
-                expect(reloaded.folders.length, "No additional folders should be created").to.equal(
-                    foldersBefore,
-                );
+                expect(
+                    reloaded.folders.length,
+                    "No extra folders should be created by any resolveItemFolder call",
+                ).to.equal(foldersBefore);
             });
 
             test("Should parse schema and object name from user input", function (): void {

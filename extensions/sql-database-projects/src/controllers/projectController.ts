@@ -842,9 +842,14 @@ export class ProjectsController {
                 return basePath;
             }
 
-            // Short-circuit if the user is already inside the target ObjectType folder
-            // (e.g. basePath="Tables", folderName="Tables") to prevent double-nesting.
-            if (basePath.toLowerCase() === folderName.toLowerCase()) {
+            // Short-circuit if basePath is already any known ObjectType folder
+            // (e.g. user is in "Tables" and adds a View → don't create "Tables/Views").
+            // Files must only be nested under schema folders (single-segment, non-ObjectType),
+            // so if basePath matches any folderName in the map we place the file directly there.
+            const isObjectTypeFolder = [...templates.itemTypeToFolderMap.values()].some(
+                (cfg) => cfg.folderName.toLowerCase() === basePath.toLowerCase(),
+            );
+            if (isObjectTypeFolder) {
                 return basePath;
             }
 
