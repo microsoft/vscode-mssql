@@ -1998,6 +1998,9 @@
       <note>{0} is the database name
 {1} is the server name</note>
     </trans-unit>
+    <trans-unit id="++CODE++090015e97e08461a02b0915ed446e955928a4686cdc839c66bd9f7781b81d8fb">
+      <source xml:lang="en">Drop Database</source>
+    </trans-unit>
     <trans-unit id="++CODE++a9c46777591fc96ccc6c8317280d36c4b68bc04298439cc0e6837ec2ae4bf49c">
       <source xml:lang="en">Drop Database (Preview)</source>
     </trans-unit>
@@ -4975,8 +4978,8 @@
       <source xml:lang="en">Remove {0}</source>
       <note>{0} is the object type</note>
     </trans-unit>
-    <trans-unit id="++CODE++9f7b45b322d217b0cee6325963502b5a13eb8aa00e3b6330b7099f868f73782f">
-      <source xml:lang="en">Rename Database (Preview)</source>
+    <trans-unit id="++CODE++90d9ab3255a92db5b378418ece6b230df904cb32837a59f146c96966f659a683">
+      <source xml:lang="en">Rename Database</source>
     </trans-unit>
     <trans-unit id="++CODE++3426e6a23fe6e9ab8ec4d59a46f5e26596e94b9712da61c7a323e0cb0a6ecd25">
       <source xml:lang="en">Renaming database &apos;{0}&apos; to &apos;{1}&apos;...</source>
@@ -7296,7 +7299,7 @@
       <source xml:lang="en">Do not show prompts to display query results in a new tab.</source>
     </trans-unit>
     <trans-unit id="mssql.dropDatabase">
-      <source xml:lang="en">Drop Database (Preview)...</source>
+      <source xml:lang="en">Drop Database...</source>
     </trans-unit>
     <trans-unit id="mssql.connectionGroups.edit">
       <source xml:lang="en">Edit Connection Group</source>
@@ -7482,7 +7485,7 @@
       <source xml:lang="en">Modify Table Structure...</source>
     </trans-unit>
     <trans-unit id="mssql.createDatabase">
-      <source xml:lang="en">New Database (Preview)...</source>
+      <source xml:lang="en">New Database...</source>
     </trans-unit>
     <trans-unit id="mssql.newDeployment">
       <source xml:lang="en">New Deployment</source>
@@ -7572,7 +7575,7 @@
       <source xml:lang="en">Remove Microsoft Entra Account</source>
     </trans-unit>
     <trans-unit id="mssql.renameDatabase">
-      <source xml:lang="en">Rename Database (Preview)...</source>
+      <source xml:lang="en">Rename Database...</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
       <source xml:lang="en">Replication</source>
