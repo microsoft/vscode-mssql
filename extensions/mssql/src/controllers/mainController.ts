@@ -2319,7 +2319,7 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdCancelBackgroundTask,
                 async (node: BackgroundTaskNode) => {
-                    await this._backgroundTasksProvider.cancelTask(node.taskId);
+                    await this.confirmAndCancelBackgroundTask(node);
                 },
             ),
         );
@@ -2349,6 +2349,41 @@ export default class MainController implements vscode.Disposable {
             this._lastBackgroundTaskId = node.taskId;
             this._lastBackgroundTaskClickTime = currentTime;
         }
+    }
+
+    private async confirmAndCancelBackgroundTask(
+        node: BackgroundTaskNode | undefined,
+    ): Promise<void> {
+        if (!node) {
+            return;
+        }
+
+        const detail = this.getBackgroundTaskCancelConfirmationDetail(node);
+
+        const confirmation = await vscode.window.showWarningMessage(
+            LocalizedConstants.backgroundTaskCancelConfirmation,
+            {
+                modal: true,
+                detail,
+            },
+            LocalizedConstants.backgroundTaskCancelConfirm,
+        );
+
+        if (confirmation !== LocalizedConstants.backgroundTaskCancelConfirm) {
+            return;
+        }
+
+        await this._backgroundTasksProvider.cancelTask(node.taskId);
+    }
+
+    private getBackgroundTaskCancelConfirmationDetail(
+        node: BackgroundTaskNode,
+    ): string | undefined {
+        const label = typeof node.label === "string" ? node.label : node.label?.label;
+        const description = typeof node.description === "string" ? node.description : undefined;
+        const sections = [label, description].filter((value): value is string => Boolean(value));
+
+        return sections.length > 0 ? sections.join("\n") : undefined;
     }
 
     /**

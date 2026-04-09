@@ -886,14 +886,19 @@
                     "group": "MS_SQL@3"
                 },
                 {
+                    "command": "mssql.openBackgroundTask",
+                    "when": "view == backgroundTasks && viewItem =~ /\\bactionable=true\\b/",
+                    "group": "inline@1"
+                },
+                {
                     "command": "mssql.viewBackgroundTaskLogs",
                     "when": "view == backgroundTasks && viewItem =~ /\\bbackgroundTaskNode\\b/",
-                    "group": "inline@1"
+                    "group": "inline@2"
                 },
                 {
                     "command": "mssql.cancelBackgroundTask",
                     "when": "view == backgroundTasks && viewItem =~ /\\bcancelable=true\\b/",
-                    "group": "inline@2"
+                    "group": "inline@3"
                 }
             ],
             "commandPalette": [
@@ -1385,7 +1390,8 @@
             {
                 "command": "mssql.openBackgroundTask",
                 "title": "%mssql.openBackgroundTask%",
-                "category": "MS SQL"
+                "category": "MS SQL",
+                "icon": "$(go-to-file)"
             },
             {
                 "command": "mssql.viewBackgroundTaskLogs",

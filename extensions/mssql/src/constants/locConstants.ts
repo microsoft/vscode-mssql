@@ -606,6 +606,10 @@ export function backgroundTaskElapsedTime(elapsedTime: string) {
 export let backgroundTaskLogsHeader = l10n.t("Logs");
 export let backgroundTaskNoLogEntries = l10n.t("No log entries yet.");
 export let backgroundTaskLogUnavailable = l10n.t("Task log is unavailable.");
+export let backgroundTaskCancelConfirmation = l10n.t(
+    "Are you sure you want to cancel this background task?",
+);
+export let backgroundTaskCancelConfirm = l10n.t("Cancel Task");
 export function backgroundTaskLogLine(timestamp: string, entry: string) {
     return l10n.t({
         message: "[{0}] {1}",
