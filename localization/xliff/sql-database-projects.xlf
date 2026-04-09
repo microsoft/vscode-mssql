@@ -1002,6 +1002,9 @@
     <trans-unit id="sqlDatabaseProjects.newView">
       <source xml:lang="en">Add View</source>
     </trans-unit>
+    <trans-unit id="sqlDatabaseProjects.autoCreateFolderStructure">
+      <source xml:lang="en">Automatically create schema and object type folders (e.g., dbo/Tables) when adding SQL objects to a project at the root level.</source>
+    </trans-unit>
     <trans-unit id="sqlDatabaseProjects.build">
       <source xml:lang="en">Build</source>
     </trans-unit>
