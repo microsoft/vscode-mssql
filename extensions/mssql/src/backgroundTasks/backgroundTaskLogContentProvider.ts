@@ -8,8 +8,8 @@ import * as Constants from "../constants/constants";
 import * as localizedConstants from "../constants/locConstants";
 import { getEditorEOL } from "../utils/utils";
 import {
-    BackgroundTaskLogEntry,
     BackgroundTaskLog,
+    BackgroundTaskLogEntry,
     BackgroundTasksService,
     toBackgroundTaskStateDisplayString,
 } from "./backgroundTasksService";
@@ -19,31 +19,44 @@ export class BackgroundTaskLogContentProvider
 {
     private readonly _onDidChange = new vscode.EventEmitter<vscode.Uri>();
     private readonly _logSubscription: vscode.Disposable;
+    private readonly _uris = new Map<string, vscode.Uri>();
 
     constructor(private readonly _backgroundTasksService: BackgroundTasksService) {
         this._logSubscription = this._backgroundTasksService.onDidChangeTaskLog((taskId) => {
             const uri = this.getUri(taskId);
             this._onDidChange.fire(uri);
-            void this.revealLatestVisibleLogEntry(uri);
+
+            const taskLog = this._backgroundTasksService.getTaskLog(taskId);
+            if (taskLog?.entries.length) {
+                void this.revealLatestVisibleLogEntry(uri);
+            }
         });
     }
 
     public readonly onDidChange = this._onDidChange.event;
 
     public getUri(taskId: string): vscode.Uri {
+        const existingUri = this._uris.get(taskId);
+        if (existingUri) {
+            return existingUri;
+        }
+
         const taskLog = this._backgroundTasksService.getTaskLog(taskId);
-        const documentName = taskLog?.documentName ?? taskId;
-        return vscode.Uri.from({
+        const documentName = sanitizeDocumentName(taskLog?.displayText ?? taskId);
+        const uri = vscode.Uri.from({
             scheme: Constants.backgroundTaskLogUriScheme,
             path: `/${documentName}.log`,
             query: `taskId=${encodeURIComponent(taskId)}`,
         });
+
+        this._uris.set(taskId, uri);
+        return uri;
     }
 
     public async showTaskLog(taskId: string): Promise<void> {
         const document = await vscode.workspace.openTextDocument(this.getUri(taskId));
         const editor = await vscode.window.showTextDocument(document, { preview: false });
-        this.revealLatestLine(editor);
+        this.revealLatestLogEntry(editor);
     }
 
     public provideTextDocumentContent(uri: vscode.Uri): string {
@@ -63,22 +76,30 @@ export class BackgroundTaskLogContentProvider
     public dispose(): void {
         this._logSubscription.dispose();
         this._onDidChange.dispose();
+        this._uris.clear();
     }
 
     private async revealLatestVisibleLogEntry(uri: vscode.Uri): Promise<void> {
-        const document = await vscode.workspace.openTextDocument(uri);
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
         for (const editor of vscode.window.visibleTextEditors) {
-            if (editor.document.uri.toString() === document.uri.toString()) {
-                this.revealLatestLine(editor);
+            if (editor.document.uri.toString() === uri.toString()) {
+                this.revealLatestLogEntry(editor);
             }
         }
     }
 
-    private revealLatestLine(editor: vscode.TextEditor): void {
-        const lastLine = Math.max(0, editor.document.lineCount - 1);
-        const lastCharacter = editor.document.lineAt(lastLine).text.length;
-        const range = new vscode.Range(lastLine, lastCharacter, lastLine, lastCharacter);
-        editor.revealRange(range, vscode.TextEditorRevealType.Default);
+    private revealLatestLogEntry(editor: vscode.TextEditor): void {
+        const lastLine = editor.document.lineCount - 1;
+        if (lastLine < 0) {
+            return;
+        }
+
+        const position = new vscode.Position(lastLine, 0);
+        editor.revealRange(
+            new vscode.Range(position, position),
+            vscode.TextEditorRevealType.Default,
+        );
     }
 }
 
@@ -163,4 +184,9 @@ function padClockSegment(value: number): string {
 
 function padMilliseconds(value: number): string {
     return value.toString().padStart(3, "0");
+}
+
+function sanitizeDocumentName(name: string): string {
+    const sanitizedName = name.replace(/[\\/:*?"<>|]/g, "-").trim();
+    return sanitizedName || "background-task-log";
 }

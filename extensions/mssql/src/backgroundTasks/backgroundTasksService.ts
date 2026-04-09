@@ -91,8 +91,6 @@ export interface BackgroundTaskLogEntry {
 }
 
 export interface BackgroundTaskLog {
-    id: string;
-    documentName: string;
     displayText: string;
     description?: string;
     details?: string;
@@ -100,7 +98,6 @@ export interface BackgroundTaskLog {
     source?: string;
     state: BackgroundTaskState;
     createdAt: number;
-    updatedAt: number;
     completedAt?: number;
     entries: BackgroundTaskLogEntry[];
 }
@@ -178,6 +175,7 @@ export class BackgroundTasksService {
         let changed = false;
         for (const [id, task] of this._tasks.entries()) {
             if (isBackgroundTaskCompleted(task.state)) {
+                this.deleteTaskLog(id);
                 this._tasks.delete(id);
                 changed = true;
             }
@@ -300,6 +298,7 @@ export class BackgroundTasksService {
 
     private removeTask(taskId: string): void {
         if (this._tasks.delete(taskId)) {
+            this.deleteTaskLog(taskId);
             this._refreshCallback();
         }
     }
@@ -316,7 +315,6 @@ export class BackgroundTasksService {
         taskLog.target = task.target;
         taskLog.source = task.source;
         taskLog.state = task.state;
-        taskLog.updatedAt = task.updatedAt;
         taskLog.completedAt = task.completedAt;
     }
 
@@ -354,7 +352,15 @@ export class BackgroundTasksService {
         );
 
         for (const task of tasksToRemove) {
+            this.deleteTaskLog(task.id);
             this._tasks.delete(task.id);
+        }
+    }
+
+    private deleteTaskLog(taskId: string): void {
+        if (this._taskLogs.has(taskId)) {
+            this._taskLogs.delete(taskId);
+            this._onDidChangeTaskLog.fire(taskId);
         }
     }
 }
@@ -445,8 +451,6 @@ function snapshotTask(task: BackgroundTaskEntry): BackgroundTaskProgressSnapshot
 
 function createTaskLog(task: BackgroundTaskEntry): BackgroundTaskLog {
     return {
-        id: task.id,
-        documentName: sanitizeTaskLogDocumentName(task.displayText),
         displayText: task.displayText,
         description: task.description,
         details: task.details,
@@ -454,15 +458,9 @@ function createTaskLog(task: BackgroundTaskEntry): BackgroundTaskLog {
         source: task.source,
         state: task.state,
         createdAt: task.createdAt,
-        updatedAt: task.updatedAt,
         completedAt: task.completedAt,
         entries: [],
     };
-}
-
-function sanitizeTaskLogDocumentName(displayText: string): string {
-    const sanitized = displayText.replace(/[<>:"/\\|?*\u0000-\u001F]/g, "-").trim();
-    return sanitized || "background-task";
 }
 
 function shouldAppendTaskLogEntry(

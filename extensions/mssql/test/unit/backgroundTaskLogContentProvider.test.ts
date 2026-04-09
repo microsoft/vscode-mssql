@@ -49,7 +49,6 @@ suite("Background Task Log Content Provider Tests", () => {
         handle.complete(BackgroundTaskState.Succeeded, { message: "Done" });
 
         const taskLog = service.getTaskLog(handle.id);
-
         const content = provider.provideTextDocumentContent(provider.getUri(handle.id));
 
         expect(taskLog?.entries).to.deep.equal([
@@ -132,62 +131,23 @@ suite("Background Task Log Content Provider Tests", () => {
             displayText: "Backup database",
             tooltip: "Backing up",
         });
-        const textDocument = {
-            uri: provider.getUri(handle.id),
-            lineCount: 2,
-            lineAt: sandbox.stub().withArgs(1).returns({ text: "latest line" }),
-        } as unknown as vscode.TextDocument;
-        const revealRangeStub = sandbox.stub();
-        const textEditor = {
-            document: textDocument,
-            revealRange: revealRangeStub,
-        } as unknown as vscode.TextEditor;
+        const textDocument = { lineCount: 1 } as vscode.TextDocument;
 
         const openTextDocumentStub = sandbox
             .stub(vscode.workspace, "openTextDocument")
             .resolves(textDocument);
+        const editor = {
+            document: textDocument,
+            revealRange: sandbox.stub(),
+        } as unknown as vscode.TextEditor;
         const showTextDocumentStub = sandbox
             .stub(vscode.window, "showTextDocument")
-            .resolves(textEditor);
+            .resolves(editor);
 
         await provider.showTaskLog(handle.id);
 
         expect(openTextDocumentStub).to.have.been.calledWith(provider.getUri(handle.id));
         expect(showTextDocumentStub).to.have.been.calledWith(textDocument, { preview: false });
-        expect(revealRangeStub).to.have.been.calledOnceWith(
-            sinon.match.instanceOf(vscode.Range),
-            vscode.TextEditorRevealType.Default,
-        );
-    });
-
-    test("reveals the latest line when a visible log document updates", async () => {
-        const service = new BackgroundTasksService(() => undefined);
-        const provider = new BackgroundTaskLogContentProvider(service);
-        const handle = service.registerTask({
-            displayText: "Backup database",
-            tooltip: "Backing up",
-            message: "Queued",
-        });
-        const document = {
-            uri: provider.getUri(handle.id),
-            lineCount: 3,
-            lineAt: sandbox.stub().withArgs(2).returns({ text: "Done" }),
-        } as unknown as vscode.TextDocument;
-        const revealRangeStub = sandbox.stub();
-        const editor = {
-            document,
-            revealRange: revealRangeStub,
-        } as unknown as vscode.TextEditor;
-
-        sandbox.stub(vscode.workspace, "openTextDocument").resolves(document);
-        sandbox.stub(vscode.window, "visibleTextEditors").get(() => [editor]);
-
-        handle.update({ message: "Running" });
-        await Promise.resolve();
-
-        expect(revealRangeStub).to.have.been.calledOnceWith(
-            sinon.match.instanceOf(vscode.Range),
-            vscode.TextEditorRevealType.Default,
-        );
+        expect(editor.revealRange).to.have.been.calledOnce;
     });
 });

@@ -121,9 +121,9 @@ import { AzureBlobService } from "../services/azureBlobService";
 import { FlatFileImportWebviewController } from "./flatFileImportWebviewController";
 import { RestoreDatabaseWebviewController } from "./restoreDatabaseWebviewController";
 import { CopilotChat } from "../sharedInterfaces/copilotChat";
-import { BackgroundTaskLogContentProvider } from "../backgroundTasks/backgroundTaskLogContentProvider";
 import { BackgroundTasksProvider } from "../backgroundTasks/backgroundTasksProvider";
 import { BackgroundTaskNode } from "../backgroundTasks/backgroundTaskNode";
+import { BackgroundTaskLogContentProvider } from "../backgroundTasks/backgroundTaskLogContentProvider";
 import { BackgroundTasksService } from "../backgroundTasks/backgroundTasksService";
 
 /**
@@ -2278,13 +2278,13 @@ export default class MainController implements vscode.Disposable {
 
         this._backgroundTasksProvider.treeView = treeView;
 
-        this._context.subscriptions.push(this._backgroundTaskLogContentProvider);
         this._context.subscriptions.push(
             vscode.workspace.registerTextDocumentContentProvider(
                 Constants.backgroundTaskLogUriScheme,
                 this._backgroundTaskLogContentProvider,
             ),
         );
+        this._context.subscriptions.push(this._backgroundTaskLogContentProvider);
         this._context.subscriptions.push(this._backgroundTasksProvider);
         this._context.subscriptions.push(treeView);
 
@@ -2307,6 +2307,9 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdViewBackgroundTaskLogs,
                 async (node: BackgroundTaskNode) => {
+                    if (!node) {
+                        return;
+                    }
                     await this._backgroundTaskLogContentProvider.showTaskLog(node.taskId);
                 },
             ),

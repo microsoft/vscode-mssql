@@ -898,6 +898,10 @@
             ],
             "commandPalette": [
                 {
+                    "command": "mssql.viewBackgroundTaskLogs",
+                    "when": "false"
+                },
+                {
                     "command": "mssql.runQueryWithUriOwnership",
                     "when": "false"
                 },
