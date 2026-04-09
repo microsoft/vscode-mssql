@@ -2001,6 +2001,18 @@
     "Azure: Sign In to Azure Cloud": "Azure: Sign In to Azure Cloud",
     "Sign in to your Azure subscription in one of the sovereign clouds.": "Sign in to your Azure subscription in one of the sovereign clouds.",
     "No background tasks": "No background tasks",
+    "Task: {0}/{0} is the task name": {
+        "message": "Task: {0}",
+        "comment": ["{0} is the task name"]
+    },
+    "Description: {0}/{0} is the task description": {
+        "message": "Description: {0}",
+        "comment": ["{0} is the task description"]
+    },
+    "Status: {0}/{0} is the task status": {
+        "message": "Status: {0}",
+        "comment": ["{0} is the task status"]
+    },
     "Source: {0}/{0} is the task source": {
         "message": "Source: {0}",
         "comment": ["{0} is the task source"]
@@ -2016,6 +2028,31 @@
     "Elapsed time: {0}/{0} is the task elapsed time": {
         "message": "Elapsed time: {0}",
         "comment": ["{0} is the task elapsed time"]
+    },
+    "Logs": "Logs",
+    "No log entries yet.": "No log entries yet.",
+    "Task log is unavailable.": "Task log is unavailable.",
+    "Are you sure you want to cancel this background task?": "Are you sure you want to cancel this background task?",
+    "Cancel Task": "Cancel Task",
+    "[{0}] {1}/{0} is the timestamp{1} is the log entry text": {
+        "message": "[{0}] {1}",
+        "comment": ["{0} is the timestamp", "{1} is the log entry text"]
+    },
+    "{0}: {1}/{0} is the task status{1} is the task message": {
+        "message": "{0}: {1}",
+        "comment": ["{0} is the task status", "{1} is the task message"]
+    },
+    "{0} ({1}%)/{0} is the task status{1} is the completion percent": {
+        "message": "{0} ({1}%)",
+        "comment": ["{0} is the task status", "{1} is the completion percent"]
+    },
+    "{0} ({1}%): {2}/{0} is the task status{1} is the completion percent{2} is the task message": {
+        "message": "{0} ({1}%): {2}",
+        "comment": [
+            "{0} is the task status",
+            "{1} is the completion percent",
+            "{2} is the task message"
+        ]
     },
     "{0}ms/{0} is the elapsed time in milliseconds": {
         "message": "{0}ms",

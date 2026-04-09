@@ -123,6 +123,7 @@ import { RestoreDatabaseWebviewController } from "./restoreDatabaseWebviewContro
 import { CopilotChat } from "../sharedInterfaces/copilotChat";
 import { BackgroundTasksProvider } from "../backgroundTasks/backgroundTasksProvider";
 import { BackgroundTaskNode } from "../backgroundTasks/backgroundTaskNode";
+import { BackgroundTaskLogContentProvider } from "../backgroundTasks/backgroundTaskLogContentProvider";
 import { BackgroundTasksService } from "../backgroundTasks/backgroundTasksService";
 
 /**
@@ -140,6 +141,7 @@ export default class MainController implements vscode.Disposable {
     private _sqlDocumentService: SqlDocumentService;
     private _objectExplorerProvider: ObjectExplorerProvider;
     private _queryHistoryProvider: QueryHistoryProvider;
+    private _backgroundTaskLogContentProvider: BackgroundTaskLogContentProvider;
     private _backgroundTasksProvider: BackgroundTasksProvider;
     private _scriptingService: ScriptingService;
     private _queryHistoryRegistered: boolean = false;
@@ -2266,6 +2268,9 @@ export default class MainController implements vscode.Disposable {
     private initializeBackgroundTasks(): void {
         this._backgroundTasksProvider = new BackgroundTasksProvider();
         this.backgroundTasksService = this._backgroundTasksProvider.backgroundTasksService;
+        this._backgroundTaskLogContentProvider = new BackgroundTaskLogContentProvider(
+            this.backgroundTasksService,
+        );
 
         const treeView = vscode.window.createTreeView(Constants.backgroundTasks, {
             treeDataProvider: this._backgroundTasksProvider,
@@ -2273,6 +2278,13 @@ export default class MainController implements vscode.Disposable {
 
         this._backgroundTasksProvider.treeView = treeView;
 
+        this._context.subscriptions.push(
+            vscode.workspace.registerTextDocumentContentProvider(
+                Constants.backgroundTaskLogUriScheme,
+                this._backgroundTaskLogContentProvider,
+            ),
+        );
+        this._context.subscriptions.push(this._backgroundTaskLogContentProvider);
         this._context.subscriptions.push(this._backgroundTasksProvider);
         this._context.subscriptions.push(treeView);
 
@@ -2293,9 +2305,21 @@ export default class MainController implements vscode.Disposable {
 
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
+                Constants.cmdViewBackgroundTaskLogs,
+                async (node: BackgroundTaskNode) => {
+                    if (!node) {
+                        return;
+                    }
+                    await this._backgroundTaskLogContentProvider.showTaskLog(node.taskId);
+                },
+            ),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
                 Constants.cmdCancelBackgroundTask,
                 async (node: BackgroundTaskNode) => {
-                    await this._backgroundTasksProvider.cancelTask(node.taskId);
+                    await this.confirmAndCancelBackgroundTask(node);
                 },
             ),
         );
@@ -2325,6 +2349,41 @@ export default class MainController implements vscode.Disposable {
             this._lastBackgroundTaskId = node.taskId;
             this._lastBackgroundTaskClickTime = currentTime;
         }
+    }
+
+    private async confirmAndCancelBackgroundTask(
+        node: BackgroundTaskNode | undefined,
+    ): Promise<void> {
+        if (!node) {
+            return;
+        }
+
+        const detail = this.getBackgroundTaskCancelConfirmationDetail(node);
+
+        const confirmation = await vscode.window.showWarningMessage(
+            LocalizedConstants.backgroundTaskCancelConfirmation,
+            {
+                modal: true,
+                detail,
+            },
+            LocalizedConstants.backgroundTaskCancelConfirm,
+        );
+
+        if (confirmation !== LocalizedConstants.backgroundTaskCancelConfirm) {
+            return;
+        }
+
+        await this._backgroundTasksProvider.cancelTask(node.taskId);
+    }
+
+    private getBackgroundTaskCancelConfirmationDetail(
+        node: BackgroundTaskNode,
+    ): string | undefined {
+        const label = typeof node.label === "string" ? node.label : node.label?.label;
+        const description = typeof node.description === "string" ? node.description : undefined;
+        const sections = [label, description].filter((value): value is string => Boolean(value));
+
+        return sections.length > 0 ? sections.join("\n") : undefined;
     }
 
     /**
