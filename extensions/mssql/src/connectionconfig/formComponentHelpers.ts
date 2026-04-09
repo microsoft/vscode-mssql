@@ -280,9 +280,6 @@ export async function completeFormComponents(
         isAdvancedOption: false,
     };
 
-    // TODO: TEMPORARY - hardcode loading spinner for visual testing
-    components["authenticationType"].loading = true;
-
     // add missing validation functions for generated components
     components["server"].validate = (state: ConnectionDialogWebviewState, value: string) => {
         if (!value) {
