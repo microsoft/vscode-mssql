@@ -213,6 +213,10 @@ export enum AuthenticationType {
      */
     AzureMFA = "AzureMFA",
     /**
+     * Microsoft Entra Id - Default
+     */
+    ActiveDirectoryDefault = "ActiveDirectoryDefault",
+    /**
      * Microsoft Entra Id - Password
      */
     AzureMFAAndUser = "AzureMFAAndUser",

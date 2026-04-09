@@ -1783,6 +1783,7 @@
     "Integrated": "Integrated",
     "SQL Login": "SQL Login",
     "Microsoft Entra Id - Universal w/ MFA Support": "Microsoft Entra Id - Universal w/ MFA Support",
+    "Microsoft Entra Id - Default": "Microsoft Entra Id - Default",
     "Azure Code Grant": "Azure Code Grant",
     "Azure Device Code": "Azure Device Code",
     "MSSQL - Azure Auth Logs": "MSSQL - Azure Auth Logs",
@@ -2267,8 +2268,8 @@
     "Clear cache and refresh token": "Clear cache and refresh token",
     "Clear token cache": "Clear token cache",
     "No workspaces found. Please change Fabric account or tenant to view available workspaces.": "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
-    "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported./{0} is the authentication type": {
-        "message": "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported.",
+    "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported./{0} is the authentication type": {
+        "message": "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported.",
         "comment": ["{0} is the authentication type"]
     },
     "Add Firewall Rule to {0}/{0} is the server name": {

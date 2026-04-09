@@ -243,6 +243,10 @@ export class ConnectionCredentials implements IConnectionInfo {
                 name: LocalizedConstants.authTypeAzureActiveDirectory,
                 value: utils.authTypeToString(AuthenticationTypes.AzureMFA),
             },
+            {
+                name: LocalizedConstants.authTypeAzureActiveDirectoryDefault,
+                value: utils.authTypeToString(AuthenticationTypes.ActiveDirectoryDefault),
+            },
         ];
 
         return choices;
