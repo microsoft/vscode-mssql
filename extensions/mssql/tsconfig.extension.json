@@ -17,5 +17,5 @@
         "types": ["node", "mocha"]
     },
     "include": ["src", "test", "typings"],
-    "exclude": ["node_modules", "src/webviews", "samples"]
+    "exclude": ["node_modules", "src/webviews"]
 }
