@@ -417,6 +417,39 @@ suite("ProjectsController", function (): void {
                 ).to.be.true;
             });
 
+            test("resolveItemFolder: Uses existing root-level Sequences folder before creating schema/Sequences (backward compat)", async function (): Promise<void> {
+                const projController = new ProjectsController(testContext.outputChannel);
+                const project = await testUtils.createTestProject(
+                    this.test,
+                    templates.newSqlProjectTemplate,
+                );
+                stubAutoCreate(true);
+
+                // Simulate a pre-existing project that has Sequences at the root (old layout)
+                await project.addFolder(constants.sequencesFolderName);
+                const foldersBefore = project.folders.length;
+
+                expect(
+                    await projController.resolveItemFolder(ItemType.sequence, project, "dbo"),
+                    "Should return root Sequences/ — not create dbo/Sequences/",
+                ).to.equal(constants.sequencesFolderName);
+
+                const reloaded = await Project.openProject(project.projectFilePath);
+                expect(reloaded.folders.length, "No new folders should be created").to.equal(
+                    foldersBefore,
+                );
+                expect(
+                    reloaded.folders.some(
+                        (f) =>
+                            f.relativePath.toLowerCase() ===
+                            utils
+                                .convertSlashesForSqlProj(path.join("dbo", "Sequences"))
+                                .toLowerCase(),
+                    ),
+                    "dbo/Sequences should NOT have been created",
+                ).to.be.false;
+            });
+
             test("resolveItemFolder: Creates ObjectType subfolder under schema node when missing (auto-create ON)", async function (): Promise<void> {
                 const projController = new ProjectsController(testContext.outputChannel);
                 const project = await testUtils.createTestProject(
@@ -452,6 +485,46 @@ suite("ProjectsController", function (): void {
                     ),
                     "dbo/StoredProcedures folder should exist",
                 ).to.be.true;
+            });
+
+            test("resolveItemFolder: Returns basePath unchanged for non-schema-dependent types when added from a folder node (auto-create ON)", async function (): Promise<void> {
+                const projController = new ProjectsController(testContext.outputChannel);
+                const project = await testUtils.createTestProject(
+                    this.test,
+                    templates.newSqlProjectTemplate,
+                );
+                stubAutoCreate(true);
+
+                await project.addFolder("dbo");
+                await project.addFolder("DatabaseTriggers");
+                const foldersBefore = project.folders.length;
+
+                // Adding a non-schema-dependent type from a schema folder must NOT create dbo/DatabaseTriggers
+                expect(
+                    await projController.resolveItemFolder(
+                        ItemType.databaseTrigger,
+                        project,
+                        "",
+                        "dbo",
+                    ),
+                    "Should return dbo unchanged — non-schema-dependent types don't nest under schema folders",
+                ).to.equal("dbo");
+
+                // Adding a non-schema-dependent type from its own root folder must NOT create DatabaseTriggers/DatabaseTriggers
+                expect(
+                    await projController.resolveItemFolder(
+                        ItemType.databaseTrigger,
+                        project,
+                        "",
+                        "DatabaseTriggers",
+                    ),
+                    "Should return DatabaseTriggers unchanged — already in the right folder",
+                ).to.equal("DatabaseTriggers");
+
+                const reloaded = await Project.openProject(project.projectFilePath);
+                expect(reloaded.folders.length, "No additional folders should be created").to.equal(
+                    foldersBefore,
+                );
             });
 
             test("resolveItemFolder: Places file directly in current folder when already inside an ObjectType folder (auto-create ON)", async function (): Promise<void> {

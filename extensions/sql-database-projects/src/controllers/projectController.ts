@@ -828,13 +828,23 @@ export class ProjectsController {
 
         // Non-root path: user invoked from an existing folder node
         if (basePath) {
-            const segments = basePath.replace(/\\/g, "/").split("/").filter(Boolean);
+            const segments = basePath.split(/[\\/]/).filter(Boolean);
 
-            // Only attempt subfolder logic when the user is exactly at the schema level
-            // (single segment, e.g. "dbo").  If they're already inside a schema/ObjectType
-            // folder (2+ segments, e.g. "dbo/Functions") we place the file directly there —
-            // Tables and Functions are siblings, not parents/children of each other.
+            // Already inside a Schema/ObjectType folder (2+ segments, e.g. "dbo/Functions") —
+            // place the file directly there; Tables and Functions are siblings, not nested.
             if (segments.length >= 2) {
+                return basePath;
+            }
+
+            // Non-schema-dependent types (e.g. DatabaseTriggers, Security) live at the project
+            // root and must not be nested under a schema folder or themselves.
+            if (!schemaDependent) {
+                return basePath;
+            }
+
+            // Short-circuit if the user is already inside the target ObjectType folder
+            // (e.g. basePath="Tables", folderName="Tables") to prevent double-nesting.
+            if (basePath.toLowerCase() === folderName.toLowerCase()) {
                 return basePath;
             }
 
@@ -868,6 +878,18 @@ export class ProjectsController {
                 return folderName;
             }
             return "";
+        }
+
+        // Backward compat: if a root-level Sequences folder already exists, prefer it
+        // over creating schema/Sequences (mirrors behavior on projects created before
+        // the auto-create-folders feature where sequences lived at the project root).
+        if (itemType === ItemType.sequence) {
+            const rootSeqFolder = project.folders.find(
+                (f) => f.relativePath.toLowerCase() === folderName.toLowerCase(),
+            );
+            if (rootSeqFolder) {
+                return rootSeqFolder.relativePath;
+            }
         }
 
         // Schema-dependent items (e.g. dbo/Tables/, sales/StoredProcedures/)
