@@ -5013,6 +5013,10 @@ Error:
         <source xml:lang="en">Microsoft Entra Id</source>
         <target state="translated">Microsoft Entra ID</target>
       </trans-unit>
+      <trans-unit id="++CODE++585389836e18976b372ada3cfd7a57608ccff88fc27ade1458fd968b3c089ff5">
+        <source xml:lang="en">Microsoft Entra Id - Default</source>
+        <target state="new">Microsoft Entra Id - Default</target>
+      </trans-unit>
       <trans-unit id="++CODE++d24b24ff2640e9b5731d40ac97ea534034176c1478b681eca122262c4d98a8a2">
         <source xml:lang="en">Microsoft Entra Id - Universal w/ MFA Support</source>
         <target state="translated">Microsoft Entra ID - MFA 지원 포함 유니버설</target>
@@ -8483,10 +8487,10 @@ Query: {2}</source>
         <note>{0} is the architecture name of the machine</note>
         <target state="translated">{0}은(는) Docker에 대해 지원되지 않는 아키텍처입니다.</target>
       </trans-unit>
-      <trans-unit id="++CODE++0fca84e49ac02af373521c99fb0ff436c7908bd09697d4ff09b570441e3d81d5">
-        <source xml:lang="en">Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported.</source>
+      <trans-unit id="++CODE++3bd96350b569900406d2b6fcd6d41c1083c5dec9bd6052587c0a4657f831fe33">
+        <source xml:lang="en">Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported.</source>
         <note>{0} is the authentication type</note>
-        <target state="translated">연결 문자열에서 지원되지 않는 인증 유형: {0}. SQL 로그인, 통합 및 Azure MFA 인증만 지원됩니다.</target>
+        <target state="new">Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported.</target>
       </trans-unit>
       <trans-unit id="++CODE++59925dabae7544939136767d732ce4bd853e6a3822324777eb3615b997680c05">
         <source xml:lang="en">Unsupported data types detected</source>
