@@ -26,12 +26,19 @@ export class BackgroundTaskLogContentProvider
      */
     constructor(private readonly _backgroundTasksService: BackgroundTasksService) {
         this._logSubscription = this._backgroundTasksService.onDidChangeTaskLog((taskId) => {
-            const uri = this.getUri(taskId);
-            this._onDidChange.fire(uri);
-
             const taskLog = this._backgroundTasksService.getTaskLog(taskId);
-            if (taskLog?.entries.length) {
-                void this.revealLatestVisibleLogEntry(uri);
+            const uri = this._uris.get(taskId);
+
+            if (!taskLog) {
+                if (uri) {
+                    this._uris.delete(taskId);
+                    this._onDidChange.fire(uri);
+                }
+                return;
+            }
+
+            if (uri) {
+                this._onDidChange.fire(uri);
             }
         });
     }
@@ -92,19 +99,6 @@ export class BackgroundTaskLogContentProvider
         this._logSubscription.dispose();
         this._onDidChange.dispose();
         this._uris.clear();
-    }
-
-    /**
-     * Scrolls any visible editor for the task log to the most recent entry after the document updates.
-     */
-    private async revealLatestVisibleLogEntry(uri: vscode.Uri): Promise<void> {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-
-        for (const editor of vscode.window.visibleTextEditors) {
-            if (editor.document.uri.toString() === uri.toString()) {
-                this.revealLatestLogEntry(editor);
-            }
-        }
     }
 
     /**

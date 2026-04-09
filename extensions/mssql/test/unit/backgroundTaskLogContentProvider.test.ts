@@ -103,7 +103,7 @@ suite("Background Task Log Content Provider Tests", () => {
         expect(content).to.match(/\[\d{2}:\d{2}:\d{2}\.123\] In progress: Running/);
     });
 
-    test("fires change events as task logs update", () => {
+    test("fires change events for opened task logs as task logs update", () => {
         const service = new BackgroundTasksService(() => undefined);
         const provider = new BackgroundTaskLogContentProvider(service);
         const changeSpy = sandbox.spy();
@@ -114,14 +114,36 @@ suite("Background Task Log Content Provider Tests", () => {
             tooltip: "Importing",
             message: "Queued",
         });
+        const uri = provider.getUri(handle.id);
 
         handle.update({ message: "Running" });
 
         const taskLog = service.getTaskLog(handle.id);
 
-        expect(changeSpy.callCount).to.equal(2);
-        expect(changeSpy.firstCall.args[0]).to.deep.equal(provider.getUri(handle.id));
+        expect(changeSpy).to.have.been.calledWith(uri);
         expect(taskLog?.entries.map((entry) => entry.message)).to.deep.equal(["Queued", "Running"]);
+    });
+
+    test("evicts cached URIs when a task log is removed", () => {
+        const service = new BackgroundTasksService(() => undefined);
+        const provider = new BackgroundTaskLogContentProvider(service);
+
+        const handle = service.registerTask({
+            displayText: "Import data",
+            tooltip: "Importing",
+            message: "Queued",
+        });
+
+        const originalUri = provider.getUri(handle.id);
+
+        handle.remove();
+
+        const recreatedUri = provider.getUri(handle.id);
+
+        expect(recreatedUri.toString()).to.not.equal(originalUri.toString());
+        expect(provider.provideTextDocumentContent(originalUri)).to.equal(
+            "Task log is unavailable.",
+        );
     });
 
     test("uses contextual information in the document file name", () => {
@@ -141,6 +163,30 @@ suite("Background Task Log Content Provider Tests", () => {
         expect(uri.path).to.contain("localhost-AdventureWorks2022");
         expect(uri.path).to.contain("AdventureWorks2022-export.bacpac");
         expect(uri.path).to.contain(handle.id.slice(0, 8));
+    });
+
+    test("does not auto-scroll visible editors when task logs update", () => {
+        const service = new BackgroundTasksService(() => undefined);
+        const provider = new BackgroundTaskLogContentProvider(service);
+        const handle = service.registerTask({
+            displayText: "Backup database",
+            tooltip: "Backing up",
+            message: "Queued",
+        });
+        const uri = provider.getUri(handle.id);
+        const editor = {
+            document: {
+                uri,
+                lineCount: 10,
+            } as vscode.TextDocument,
+            revealRange: sandbox.stub(),
+        } as unknown as vscode.TextEditor;
+
+        sandbox.stub(vscode.window, "visibleTextEditors").value([editor]);
+
+        handle.update({ message: "Running" });
+
+        expect(editor.revealRange).to.not.have.been.called;
     });
 
     test("opens the task log in a text editor", async () => {
@@ -167,6 +213,9 @@ suite("Background Task Log Content Provider Tests", () => {
 
         expect(openTextDocumentStub).to.have.been.calledWith(provider.getUri(handle.id));
         expect(showTextDocumentStub).to.have.been.calledWith(textDocument, { preview: false });
-        expect(editor.revealRange).to.have.been.calledOnce;
+        expect(editor.revealRange).to.have.been.calledWithMatch(
+            sinon.match.instanceOf(vscode.Range),
+            vscode.TextEditorRevealType.Default,
+        );
     });
 });
