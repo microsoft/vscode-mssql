@@ -48,7 +48,7 @@ export class BackgroundTaskLogContentProvider
         }
 
         const taskLog = this._backgroundTasksService.getTaskLog(taskId);
-        const documentName = sanitizeDocumentName(taskLog?.displayText ?? taskId);
+        const documentName = buildDocumentName(taskLog, taskId);
         const uri = vscode.Uri.from({
             scheme: Constants.backgroundTaskLogUriScheme,
             path: `/${documentName}.log`,
@@ -228,4 +228,39 @@ function padMilliseconds(value: number): string {
 function sanitizeDocumentName(name: string): string {
     const sanitizedName = name.replace(/[\\/:*?"<>|]/g, "-").trim();
     return sanitizedName || "background-task-log";
+}
+
+function buildDocumentName(taskLog: BackgroundTaskLog | undefined, taskId: string): string {
+    if (!taskLog) {
+        return sanitizeDocumentName(taskId);
+    }
+
+    const segments = [
+        taskLog.displayText,
+        taskLog.details,
+        getTargetFileName(taskLog.target),
+        getShortTaskId(taskId),
+    ]
+        .filter((segment): segment is string => Boolean(segment))
+        .map((segment) => sanitizeDocumentName(truncateDocumentSegment(segment)));
+
+    return segments.join(" - ");
+}
+
+function getTargetFileName(target: string | undefined): string | undefined {
+    if (!target) {
+        return undefined;
+    }
+
+    const parts = target.split(/[\\/]/).filter(Boolean);
+    return parts.length ? parts[parts.length - 1] : target;
+}
+
+function truncateDocumentSegment(segment: string): string {
+    const maxLength = 48;
+    return segment.length <= maxLength ? segment : `${segment.slice(0, maxLength - 1).trimEnd()}…`;
+}
+
+function getShortTaskId(taskId: string): string {
+    return taskId.slice(0, 8);
 }

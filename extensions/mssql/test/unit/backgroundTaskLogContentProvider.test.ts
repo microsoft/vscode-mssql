@@ -124,6 +124,25 @@ suite("Background Task Log Content Provider Tests", () => {
         expect(taskLog?.entries.map((entry) => entry.message)).to.deep.equal(["Queued", "Running"]);
     });
 
+    test("uses contextual information in the document file name", () => {
+        const service = new BackgroundTasksService(() => undefined);
+        const provider = new BackgroundTaskLogContentProvider(service);
+
+        const handle = service.registerTask({
+            displayText: "Export bacpac",
+            details: "localhost/AdventureWorks2022",
+            target: "/tmp/AdventureWorks2022-export.bacpac",
+            tooltip: "Exporting",
+        });
+
+        const uri = provider.getUri(handle.id);
+
+        expect(uri.path).to.contain("Export bacpac");
+        expect(uri.path).to.contain("localhost-AdventureWorks2022");
+        expect(uri.path).to.contain("AdventureWorks2022-export.bacpac");
+        expect(uri.path).to.contain(handle.id.slice(0, 8));
+    });
+
     test("opens the task log in a text editor", async () => {
         const service = new BackgroundTasksService(() => undefined);
         const provider = new BackgroundTaskLogContentProvider(service);
