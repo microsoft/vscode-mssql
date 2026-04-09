@@ -1534,10 +1534,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         const accountComponent = this.getFormComponent(this.state, "accountId");
 
         try {
-            // TODO: TEMPORARY - simulate slow account loading for UI testing
-            await new Promise((resolve) => setTimeout(resolve, 10000));
-
             const accountOptions = await this.getEntraMfaAccountOptions();
+
             if (accountComponent) {
                 accountComponent.options = accountOptions;
             }
@@ -1564,6 +1562,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             if (accountComponent) {
                 accountComponent.loading = false;
             }
+
             await this.updateItemVisibility();
             this.updateState();
         }
@@ -1675,7 +1674,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
                     this.updateState();
                     await this.handleAzureMFAEdits("accountId");
-                    return;
                 } else {
                     const account = await this._mainController.azureAccountService.addAccount();
                     this.logger.verbose(
@@ -1721,6 +1719,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             );
             if (account) {
                 let isTokenExpired = false;
+
                 try {
                     const session =
                         await this._mainController.azureAccountService.getAccountSecurityToken(
@@ -1807,10 +1806,13 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         // changes so account/tenant fields become visible before pushing state.
         if (useVscodeAccounts && !this._entraDataReady) {
             accountComponent.loading = true;
+
             if (propertyName === "authenticationType") {
                 await this.updateItemVisibility();
             }
+
             this.updateState();
+
             if (this._entraDataLoaded) {
                 await this._entraDataLoaded.promise;
             }
@@ -1841,6 +1843,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     );
                     if (tenantComponent) {
                         tenantComponent.options = tenants;
+
                         if (
                             tenants.length > 0 &&
                             !tenants.find((t) => t.value === this.state.connectionProfile.tenantId)

@@ -762,7 +762,7 @@ export class ObjectExplorerService {
                 );
                 if (choice === LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorSignIn) {
                     try {
-                        await VsCodeAzureHelper.signIn(); // User chose to sign in to the missing account; try again.
+                        await VsCodeAzureHelper.signIn(true /* forceSignInPrompt */); // User chose to sign in to the missing account; try again.
                         return await prepareConnectionProfile();
                     } catch (retryError) {
                         this._logger.error(
