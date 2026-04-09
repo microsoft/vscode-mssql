@@ -3324,7 +3324,7 @@ export class Proxy {
 export class BackupDatabase {
     public static backupDatabaseTitle = (databaseName: string) =>
         l10n.t({
-            message: "Backup Database (Preview) - {0}",
+            message: "Backup Database - {0}",
             args: [databaseName],
             comment: ["{0} is the database name"],
         });
@@ -3429,7 +3429,7 @@ export class FlatFileImport {
             args: [serviceName, errorMessage],
             comment: ["{0} is the service name", "{1} is the error message"],
         });
-    public static flatFileImportTitle = l10n.t("Import Flat File (Preview)");
+    public static flatFileImportTitle = l10n.t("Import Flat File");
     public static databaseTheTableIsCreatedIn = l10n.t("Database the table is created in");
     public static locationOfTheFileToBeImported = l10n.t("Location of the file to be imported");
     public static newTableName = l10n.t("New Table Name");
@@ -3452,7 +3452,7 @@ export class FlatFileImport {
 }
 
 export class RestoreDatabase {
-    public static restoreDatabaseTitle = l10n.t("Restore Database (Preview)");
+    public static restoreDatabaseTitle = l10n.t("Restore Database");
     public static sourceDatabase = l10n.t("Source Database");
     public static targetDatabase = l10n.t("Target Database");
     public static files = l10n.t("Files");

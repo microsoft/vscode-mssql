@@ -1442,8 +1442,8 @@
     "Files of Type": "Files of Type",
     "File path": "File path",
     "Folder path": "Folder path",
-    "Backup Database (Preview) - {0}/{0} is the database name": {
-        "message": "Backup Database (Preview) - {0}",
+    "Backup Database - {0}/{0} is the database name": {
+        "message": "Backup Database - {0}",
         "comment": ["{0} is the database name"]
     },
     "Loading backup database...": "Loading backup database...",
@@ -1597,7 +1597,7 @@
     "Export all captured events to a CSV file": "Export all captured events to a CSV file",
     "No events to export": "No events to export",
     "profiler_events": "profiler_events",
-    "Import File (Preview)": "Import File (Preview)",
+    "Import File": "Import File",
     "Specify Input File": "Specify Input File",
     "Loading flat file import...": "Loading flat file import...",
     "Loading table preview...": "Loading table preview...",
@@ -1618,7 +1618,7 @@
     "File imported successfully": "File imported successfully",
     "Import New File": "Import New File",
     "Loading restore database...": "Loading restore database...",
-    "Restore Database (Preview)": "Restore Database (Preview)",
+    "Restore Database": "Restore Database",
     "Backup File": "Backup File",
     "URL": "URL",
     "Browse files": "Browse files",
@@ -3431,7 +3431,7 @@
         "message": "Failed to start '{0}': {1}",
         "comment": ["{0} is the service name", "{1} is the error message"]
     },
-    "Import Flat File (Preview)": "Import Flat File (Preview)",
+    "Import Flat File": "Import Flat File",
     "Database the table is created in": "Database the table is created in",
     "Location of the file to be imported": "Location of the file to be imported",
     "New Table Name": "New Table Name",
