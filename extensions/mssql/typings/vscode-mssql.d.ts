@@ -2708,6 +2708,7 @@ declare module "vscode-mssql" {
         dataType: string;
         isXml?: boolean;
         isJson?: boolean;
+        isVector?: boolean;
         isLong?: boolean;
         isReadOnly?: boolean;
         isUnique?: boolean;

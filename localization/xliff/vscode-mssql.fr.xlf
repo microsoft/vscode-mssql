@@ -1788,6 +1788,11 @@ Sélectionnez « {0} » pour établir une connexion.</target>
 {1} is the connection ID</note>
         <target state="translated">Une connexion portant le même ID est déjà importée : {0} (ID : {1})</target>
       </trans-unit>
+      <trans-unit id="++CODE++deba39e2531aa2d4ef487b5740425abeedf2ea1de021e46347bfba33105643b3">
+        <source xml:lang="en">Connection: {0}</source>
+        <note>{0} is the task connection label</note>
+        <target state="new">Connection: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++b08ee8f8534ee808b03d2a6534a0f3988a149469b487454af076faf4a3b98a3d">
         <source xml:lang="en">Connections in groups that are not selected will be moved under the root.</source>
         <target state="translated">Les connexions dans les groupes non sélectionnés seront déplacées sous la racine.</target>
@@ -2667,6 +2672,11 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       <trans-unit id="++CODE++7df64a9f48aa848c4d73ffa6d0d63511e082d0b8a592b9d6880d3988fb4006a7">
         <source xml:lang="en">Either profileId or serverName must be provided.</source>
         <target state="translated">ProfileId ou serverName doit être fourni.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e451b91d33132634ff0a558d8d40b0e2daa3e392c45f0b75591924534362255d">
+        <source xml:lang="en">Elapsed time: {0}</source>
+        <note>{0} is the task elapsed time</note>
+        <target state="new">Elapsed time: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++1e71b5c8f3211f1f01b27341d3ddc6a2ad651800264b495c12b50867f998662c">
         <source xml:lang="en">Enable 'Trust Server Certificate'</source>
@@ -5311,6 +5321,10 @@ Erreur :
         <source xml:lang="en">No authentication required</source>
         <target state="translated">Aucune authentification obligatoire</target>
       </trans-unit>
+      <trans-unit id="++CODE++ff68b3be0cbfce8037b00dfd3f0edcddfd195bd62aeced39845063dd40d8af10">
+        <source xml:lang="en">No background tasks</source>
+        <target state="new">No background tasks</target>
+      </trans-unit>
       <trans-unit id="++CODE++8dc89c7190143e4d1630ac2bbd2eb03c2f94480f7d5511fb638179da5c0cab43">
         <source xml:lang="en">No backup sets found in the restore plan</source>
         <target state="translated">Aucun jeu de sauvegarde trouvé dans le plan de restauration</target>
@@ -7643,6 +7657,11 @@ Requête : {2}</target>
         <source xml:lang="en">Source Table</source>
         <target state="translated">Table source</target>
       </trans-unit>
+      <trans-unit id="++CODE++30ecb608c5cff9e821a41d28312d0070cbeb3901bc8e32ecefd17171f87dc53a">
+        <source xml:lang="en">Source: {0}</source>
+        <note>{0} is the task source</note>
+        <target state="new">Source: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++1e49ea47266ab1130ffc9be417fa6eb62da7299641f30a76e728fe983c25f29d">
         <source xml:lang="en">Specifies whether the column is included in the primary key for the table.</source>
         <target state="translated">Spécifie si la colonne est incluse dans la clé primaire de la table.</target>
@@ -7988,6 +8007,11 @@ Requête : {2}</target>
       <trans-unit id="++CODE++feeb64acb5e0f4ebba723e99d26d741bd2621988c8d355449bfddeafc8ef59e2">
         <source xml:lang="en">Target Table</source>
         <target state="translated">Table cible</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6e7235c51cdbf5d78d6d31be6dab659515a42b307648229060b6afecb346f1be">
+        <source xml:lang="en">Target: {0}</source>
+        <note>{0} is the task target location</note>
+        <target state="new">Target: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++e23969d284c3424c8014c6e5b1b85ebc275bc5c74321e7677a21d023e6ea154c">
         <source xml:lang="en">Tenant</source>
@@ -9171,6 +9195,34 @@ Requête : {2}</target>
 {2} is the message</note>
         <target state="translated">{0} : {1}. {2}</target>
       </trans-unit>
+      <trans-unit id="++CODE++2fd557cb0d0dc9fb91362ad40c6d256d2f0651acde628b9e27152c331f6af0a8">
+        <source xml:lang="en">{0}d {1}h</source>
+        <note>{0} is the elapsed time in days
+{1} is the remaining elapsed time in hours</note>
+        <target state="new">{0}d {1}h</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ef2447cbc8c31cb68e92410fbddc126ba7a4d3b2448d8b55891fd110f2629c4d">
+        <source xml:lang="en">{0}h {1}m</source>
+        <note>{0} is the elapsed time in hours
+{1} is the remaining elapsed time in minutes</note>
+        <target state="new">{0}h {1}m</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b61200fec7f541d54e2092ce39398345e943a9190baac3c9191b540fb359fc41">
+        <source xml:lang="en">{0}m {1}s</source>
+        <note>{0} is the elapsed time in minutes
+{1} is the remaining elapsed time in seconds</note>
+        <target state="new">{0}m {1}s</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7225167ed5e4103e8208032eadc0cd8c8a50960a1d64a94da29046dc04100582">
+        <source xml:lang="en">{0}ms</source>
+        <note>{0} is the elapsed time in milliseconds</note>
+        <target state="new">{0}ms</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6798a9a353a86e591c7e67d0de13cc1b13216c95a1d38821b319d1f21823e3b1">
+        <source xml:lang="en">{0}s</source>
+        <note>{0} is the elapsed time in seconds</note>
+        <target state="new">{0}s</target>
+      </trans-unit>
       <trans-unit id="++CODE++c7c45c2f2ad470c2dc1a35bf3320d977e49bd4f4c804d9bf347d009669e5ebae">
         <source xml:lang="en">{{put-server-name-here}}</source>
         <target state="translated">{{put-server-name-here}}</target>
@@ -9243,6 +9295,10 @@ Requête : {2}</target>
         <source xml:lang="en">Azure MFA</source>
         <target state="translated">Authentification multifacteur Azure</target>
       </trans-unit>
+      <trans-unit id="extension.backgroundTasks">
+        <source xml:lang="en">Background Tasks</source>
+        <target state="new">Background Tasks</target>
+      </trans-unit>
       <trans-unit id="mssql.backupDatabase">
         <source xml:lang="en">Backup Database (Preview)...</source>
         <target state="translated">Base de données de Sauvegarde Azure (Aperçu)...</target>
@@ -9258,6 +9314,10 @@ Requête : {2}</target>
       <trans-unit id="mssql.cancelQuery">
         <source xml:lang="en">Cancel Query (MSSQL)</source>
         <target state="translated">Annuler une requête (MSSQL)</target>
+      </trans-unit>
+      <trans-unit id="mssql.cancelBackgroundTask">
+        <source xml:lang="en">Cancel Task</source>
+        <target state="new">Cancel Task</target>
       </trans-unit>
       <trans-unit id="mssql.changeConnection">
         <source xml:lang="en">Change Connection (MSSQL)</source>
@@ -9298,6 +9358,10 @@ Requête : {2}</target>
       <trans-unit id="mssql.clearFilters">
         <source xml:lang="en">Clear Filters</source>
         <target state="translated">Effacer les filtres</target>
+      </trans-unit>
+      <trans-unit id="mssql.clearFinishedBackgroundTasks">
+        <source xml:lang="en">Clear Finished Tasks</source>
+        <target state="new">Clear Finished Tasks</target>
       </trans-unit>
       <trans-unit id="mssql.clearAzureAccountTokenCache">
         <source xml:lang="en">Clear Microsoft Entra account token cache</source>
@@ -9755,6 +9819,10 @@ Commencez par cliquer sur le bouton de filtre à côté de la plupart des dossie
         <source xml:lang="en">Open Query Profiler (Preview) XEL File</source>
         <target state="translated">Ouvrir le fichier XEL du profileur de requête (préversion)</target>
       </trans-unit>
+      <trans-unit id="mssql.openBackgroundTask">
+        <source xml:lang="en">Open Task Result</source>
+        <target state="new">Open Task Result</target>
+      </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
         <source xml:lang="en">Open in GitHub Copilot Agent</source>
         <target state="translated">Ouvrir dans GitHub Copilot Agent</target>
@@ -10119,7 +10187,7 @@ Consultez le plan estimé sans exécuter la requête, ou consultez le plan de re
       </trans-unit>
       <trans-unit id="mssql.preview.useVscodeAccountsForEntraMFA.description">
         <source xml:lang="en">Uses VS Code signed-in accounts for Microsoft Entra ID MFA authentication to SQL. Restart Visual Studio Code after changing this setting.</source>
-        <target state="new">Uses VS Code signed-in accounts for Microsoft Entra ID MFA authentication to SQL. Restart Visual Studio Code after changing this setting.</target>
+        <target state="translated">Utilise les comptes connectés de VS Code pour l'authentification MFA Microsoft Entra ID auprès de SQL. Redémarrez Visual Studio Code après avoir modifié ce paramètre.</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>
