@@ -165,43 +165,54 @@ export const TableExplorerPage: React.FC = () => {
                 });
             });
 
-            // Intercept Tab at the window level (capture phase) before Fluent UI
-            // Tabster's document-level handler can steal focus from the editor.
+            // Handle Tab at window capture phase — this fires BEFORE document capture,
+            // which is where Fluent UI's Tabster registers. Using stopImmediatePropagation
+            // here prevents the event from ever reaching Tabster, so focus stays in the
+            // editor and Monaco's context keys remain correct.
             const editorDomNode = editor.getDomNode();
             const tabHandler = (e: KeyboardEvent) => {
                 if (e.key !== "Tab") {
                     return;
                 }
-                // hasTextFocus() is true only when Monaco's hidden textarea is active.
-                // Also check whether any element inside the editor container is focused
-                // (e.g. suggestion widget, hover widget) so we never miss a Tab press.
-                const hasEditorFocus =
+                // Check suggest widget visibility first — when fixedOverflowWidgets is true,
+                // Monaco renders the suggest widget in document.body (outside editorDomNode).
+                // Keyboard navigation can move DOM focus into that widget, making both
+                // editor.hasTextFocus() and editorDomNode.contains(activeElement) return
+                // false, which would cause the guard below to exit early and let Tabster
+                // steal focus instead of accepting the suggestion.
+                const suggestWidget = document.querySelector(".suggest-widget");
+                const isSuggestWidgetVisible =
+                    suggestWidget !== null && suggestWidget.classList.contains("visible");
+                const isMonacoFocused =
+                    isSuggestWidgetVisible ||
                     editor.hasTextFocus() ||
                     (editorDomNode !== null &&
                         (editorDomNode?.contains(document.activeElement) ?? false));
-                if (!hasEditorFocus) {
+                if (!isMonacoFocused) {
                     return;
                 }
+
+                // Stop Tabster (document capture) and the browser default from running.
                 e.preventDefault();
                 e.stopImmediatePropagation();
 
-                if (e.shiftKey) {
-                    editor.trigger("keyboard", "outdent", undefined);
-                    return;
-                }
-
-                // If the suggest widget is visible, accept the selected suggestion
-                const suggestWidget = document.querySelector(".suggest-widget");
-                if (suggestWidget && suggestWidget.classList.contains("visible")) {
+                if (isSuggestWidgetVisible) {
+                    // Restore editor text focus before triggering acceptSelectedSuggestion.
+                    // The textInputFocus context key must be true for the command to execute,
+                    // but if the suggest widget DOM node (in document.body) has focus,
+                    // that key is false. Calling editor.focus() returns focus to the
+                    // textarea without dismissing the widget.
+                    editor.focus();
                     editor.trigger("keyboard", "acceptSelectedSuggestion", undefined);
+                } else if (e.shiftKey) {
+                    editor.trigger("keyboard", "outdent", undefined);
                 } else {
                     editor.trigger("keyboard", "tab", undefined);
                 }
+                queueMicrotask(() => editor.focus());
             };
             window.addEventListener("keydown", tabHandler, true);
-            editor.onDidDispose(() => {
-                window.removeEventListener("keydown", tabHandler, true);
-            });
+            editor.onDidDispose(() => window.removeEventListener("keydown", tabHandler, true));
         },
         [],
     );
@@ -307,7 +318,9 @@ export const TableExplorerPage: React.FC = () => {
                                     id: "tableQuery" as const,
                                     label: loc.tableExplorer.tableQuery,
                                     content: (
-                                        <div className={classes.editorPane}>
+                                        <div
+                                            className={classes.editorPane}
+                                            data-tabster='{"focusable": {"ignoreKeydown": {"Tab": true}}, "uncontrolled": {}}'>
                                             <VscodeEditor
                                                 height={"100%"}
                                                 width={"100%"}
