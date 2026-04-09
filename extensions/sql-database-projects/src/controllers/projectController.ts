@@ -851,6 +851,9 @@ export class ProjectsController {
 
         // Non-root path: user invoked from an existing folder node
         if (basePath) {
+            // Use /[\\/]/ instead of path.sep: basePath comes from trimUri which always
+            // joins with '/' on all platforms, so on Windows path.sep ('\') would never split "dbo/Tables"
+            // correctly. The regex handles both separators defensively.
             const segments = basePath.split(/[\\/]/).filter(Boolean);
 
             // Already inside a Schema/ObjectType folder (2+ segments, e.g. "dbo/Functions") —
@@ -903,23 +906,28 @@ export class ProjectsController {
         const resolvedSchema = schemaName ?? constants.defaultSchemaName;
         const nestedPath = utils.convertSlashesForSqlProj(path.join(resolvedSchema, folderName));
 
-        // When auto-creating, ensure the parent schema folder exists first.
-        // Skip this check when nestedPath already exists to avoid an unnecessary scan.
-        if (autoCreate) {
-            const nestedExists = project.folders.some(
-                (f) => f.relativePath.toLowerCase() === nestedPath.toLowerCase(),
-            );
-            if (
-                !nestedExists &&
-                !project.folders.some(
-                    (f) => f.relativePath.toLowerCase() === resolvedSchema.toLowerCase(),
-                )
-            ) {
-                await project.addFolder(resolvedSchema);
-            }
+        // Single scan for nestedPath — avoids a second scan inside findOrAddFolder.
+        const existingNested = project.folders.find(
+            (f) => f.relativePath.toLowerCase() === nestedPath.toLowerCase(),
+        );
+        if (existingNested) {
+            return existingNested.relativePath;
         }
 
-        return this.findOrAddFolder(project, nestedPath, "", autoCreate);
+        if (!autoCreate) {
+            return "";
+        }
+
+        // Auto-create: ensure the parent schema folder exists before adding the nested path.
+        if (
+            !project.folders.some(
+                (f) => f.relativePath.toLowerCase() === resolvedSchema.toLowerCase(),
+            )
+        ) {
+            await project.addFolder(resolvedSchema);
+        }
+        await project.addFolder(nestedPath);
+        return nestedPath;
     }
 
     public async addItemPromptFromNode(
