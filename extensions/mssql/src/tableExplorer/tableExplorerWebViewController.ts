@@ -216,7 +216,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             await this._tableExplorerService.initialize(
                 ownerUri,
                 objectName,
-                schemaName,
+                schemaName ?? "",
                 objectType,
                 undefined,
             );
@@ -1482,7 +1482,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 await this._tableExplorerService.initialize(
                     state.ownerUri,
                     objectName,
-                    schemaName,
+                    schemaName ?? "",
                     objectType,
                     payload.queryString,
                 );
@@ -1509,7 +1509,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     await this._tableExplorerService.initialize(
                         state.ownerUri,
                         objectName,
-                        schemaName,
+                        schemaName ?? "",
                         objectType,
                         undefined,
                     );
@@ -1863,10 +1863,13 @@ export class TableExplorerWebViewController extends WebviewPanelController<
      * Prompts the user to save or discard changes, then allows disposal to continue.
      * Always returns undefined to allow the close to proceed after handling the user's choice.
      */
-    protected override async showRestorePrompt(): Promise<{
-        title: string;
-        run: () => Promise<void>;
-    }> {
+    protected override async showRestorePrompt(): Promise<
+        | {
+              title: string;
+              run: () => Promise<void>;
+          }
+        | undefined
+    > {
         const result = await vscode.window.showWarningMessage(
             LocConstants.TableExplorer.unsavedChangesPrompt(this.state.tableName),
             {
