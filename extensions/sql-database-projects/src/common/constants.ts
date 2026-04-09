@@ -647,7 +647,7 @@ export const defaultSchemaName = "dbo";
 //#endregion
 
 //#region Extension settings
-export const autoCreateFolderStructureSetting = "sqlDatabaseProjects.autoCreateFolderStructure";
+export const autoCreateFoldersSetting = "sqlDatabaseProjects.autoCreateFolders";
 //#endregion
 
 //#endregion

@@ -285,7 +285,8 @@ suite("ProjectsController", function (): void {
 
             function stubAutoCreate(enabled: boolean): void {
                 sandbox.stub(vscode.workspace, "getConfiguration").returns({
-                    get: (_k: string, _d?: unknown) => enabled,
+                    get: (key: string, defaultValue?: unknown) =>
+                        key === constants.autoCreateFoldersSetting ? enabled : defaultValue,
                 } as unknown as vscode.WorkspaceConfiguration);
             }
 

@@ -786,10 +786,10 @@ export class ProjectsController {
      * Returns whether the auto-create folder structure setting is enabled.
      * Defaults to true if not set.
      */
-    private isAutoCreateFolderStructureEnabled(): boolean {
+    private isAutoCreateFoldersEnabled(): boolean {
         return vscode.workspace
             .getConfiguration()
-            .get<boolean>(constants.autoCreateFolderStructureSetting, true);
+            .get<boolean>(constants.autoCreateFoldersSetting, true);
     }
 
     /**
@@ -824,7 +824,7 @@ export class ProjectsController {
         }
 
         const { folderName, schemaDependent } = folderConfig;
-        const autoCreate = this.isAutoCreateFolderStructureEnabled();
+        const autoCreate = this.isAutoCreateFoldersEnabled();
 
         // Non-root path: user invoked from an existing folder node
         if (basePath) {
