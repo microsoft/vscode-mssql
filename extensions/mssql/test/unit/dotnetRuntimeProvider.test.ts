@@ -13,6 +13,7 @@ import * as Constants from "../../src/constants/constants";
 import { config } from "../../src/configurations/config";
 import { ILogger } from "../../src/models/interfaces";
 import { ServiceClient } from "../../src/constants/locConstants";
+import { stubILogger } from "./utils";
 
 chai.use(sinonChai);
 
@@ -26,17 +27,7 @@ suite("DotnetRuntimeProvider tests", () => {
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        logger = {
-            logDebug: sandbox.stub(),
-            verbose: sandbox.stub(),
-            warn: sandbox.stub(),
-            error: sandbox.stub(),
-            piiSanitized: sandbox.stub(),
-            increaseIndent: sandbox.stub(),
-            decreaseIndent: sandbox.stub(),
-            append: sandbox.stub(),
-            appendLine: sandbox.stub(),
-        };
+        logger = stubILogger(sandbox);
         executeCommandStub = sandbox.stub(vscode.commands, "executeCommand");
         activateExtensionStub = sandbox.stub().resolves(undefined);
         getExtensionStub = sandbox

@@ -109,7 +109,7 @@ export default class DownloadHelper {
             // Emit a readable progress update every 5%.
             let newDots = Math.ceil(progress.downloadPercentage / 5);
             if (newDots > progress.dots) {
-                logger.verbose(this.formatProgressMessage(progress));
+                logger.info(this.formatProgressMessage(progress));
                 progress.dots = newDots;
             }
         }

@@ -1390,7 +1390,7 @@ Projects:
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.openDocumentation">
         <source xml:lang="en">Documentation</source>
-        <target state="new">Documentation</target>
+        <target state="translated">文档</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.edit">
         <source xml:lang="en">Edit</source>

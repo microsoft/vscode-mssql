@@ -362,6 +362,12 @@ function getColumnFormatter(columnInfo: qr.IDbColumn): (
         return hyperLinkFormatter;
     }
 
+    // VECTOR columns display as plain text. Their [n,n,n] format looks like a JSON array
+    // but must never be formatted as a JSON hyperlink or opened in the JSON viewer.
+    if (columnInfo.isVector) {
+        return textFormatter;
+    }
+
     // Avoid expensive XML/JSON parsing on every cell render for plain-text columns.
     // Track which rows we've already sampled so SlickGrid re-renders don't
     // exhaust the budget.

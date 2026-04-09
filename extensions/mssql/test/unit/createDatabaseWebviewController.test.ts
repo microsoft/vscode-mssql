@@ -12,6 +12,7 @@ import { ObjectManagementService } from "../../src/services/objectManagementServ
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import {
     stubTelemetry,
+    stubLogger,
     stubVscodeWrapper,
     stubWebviewConnectionRpc,
     stubWebviewPanel,
@@ -21,7 +22,6 @@ import {
     ObjectManagementScriptRequest,
     ObjectManagementDialogType,
 } from "../../src/sharedInterfaces/objectManagement";
-import { Logger } from "../../src/models/logger";
 import * as utils from "../../src/utils/utils";
 
 suite("CreateDatabaseWebviewController Tests", () => {
@@ -39,8 +39,7 @@ suite("CreateDatabaseWebviewController Tests", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
         stubTelemetry(sandbox);
-        const loggerStub = sandbox.createStubInstance(Logger);
-        sandbox.stub(Logger, "create").returns(loggerStub);
+        stubLogger(sandbox);
         sandbox.stub(utils, "getNonce").returns("test-nonce");
 
         const connection = stubWebviewConnectionRpc(sandbox);

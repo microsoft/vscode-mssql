@@ -3,11 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as path from "path";
 import { Runtime } from "../models/platform";
 import ServiceDownloadProvider from "./serviceDownloadProvider";
 import { IStatusView } from "./interfaces";
 import * as fs from "fs/promises";
+import { getServiceExecutablePath, ServiceExecutable } from "./serviceExecutablePaths";
 
 /*
  * Service Provider class finds the SQL tools service executable file or downloads it if doesn't exist.
@@ -28,17 +28,9 @@ export default class ServerProvider {
     public async tryGetExecutablePathInFolder(
         folderPath: string,
         runtime: Runtime,
-        filePrefix: string,
+        filePrefix: ServiceExecutable,
     ): Promise<string | undefined> {
-        let fileName;
-        if (runtime === Runtime.Portable) {
-            fileName = `${filePrefix}.dll`;
-        } else if (runtime === Runtime.Windows_64 || runtime === Runtime.Windows_ARM64) {
-            fileName = `${filePrefix}.exe`;
-        } else {
-            fileName = filePrefix;
-        }
-        const resolvedPath = path.join(folderPath, fileName);
+        const resolvedPath = getServiceExecutablePath(folderPath, runtime, filePrefix);
         const stats = await fs.stat(resolvedPath).catch(() => undefined);
         if (!stats?.isFile()) {
             return undefined;

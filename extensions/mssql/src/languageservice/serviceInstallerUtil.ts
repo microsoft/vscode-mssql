@@ -74,6 +74,9 @@ export class StubLogger implements ILogger {
     appendLine(message?: string): void {
         this._log(message);
     }
+    info(msg: any, ...vals: any[]): void {
+        this._log(msg);
+    }
 }
 
 const config = new ConfigUtils();

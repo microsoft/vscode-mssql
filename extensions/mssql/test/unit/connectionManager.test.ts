@@ -29,7 +29,12 @@ import { azureCloudProviderId } from "../../src/azure/providerSettings";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import { AccountStore } from "../../src/azure/accountStore";
 import { TestPrompter } from "./stubs";
-import { stubExtensionContext, stubPreviewService, stubVscodeWrapper } from "./utils";
+import {
+    stubExtensionContext,
+    stubPreviewService,
+    stubVscodeWrapper,
+    createStubLogger,
+} from "./utils";
 import { Deferred } from "../../src/protocol";
 import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
 import * as LocalizedConstants from "../../src/constants/locConstants";
@@ -56,7 +61,7 @@ suite("ConnectionManager Tests", () => {
         sandbox = sinon.createSandbox();
         mockContext = stubExtensionContext(sandbox);
         mockVscodeWrapper = stubVscodeWrapper(sandbox);
-        mockLogger = sandbox.createStubInstance(Logger);
+        mockLogger = createStubLogger(sandbox);
         mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
         mockCredentialStore = sandbox.createStubInstance(CredentialStore);
         mockServiceClient = sandbox.createStubInstance(SqlToolsServerClient);
