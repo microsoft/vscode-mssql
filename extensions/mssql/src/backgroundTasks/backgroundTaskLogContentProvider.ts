@@ -21,6 +21,9 @@ export class BackgroundTaskLogContentProvider
     private readonly _logSubscription: vscode.Disposable;
     private readonly _uris = new Map<string, vscode.Uri>();
 
+    /**
+     * Creates a content provider that renders background task logs into virtual documents.
+     */
     constructor(private readonly _backgroundTasksService: BackgroundTasksService) {
         this._logSubscription = this._backgroundTasksService.onDidChangeTaskLog((taskId) => {
             const uri = this.getUri(taskId);
@@ -35,6 +38,9 @@ export class BackgroundTaskLogContentProvider
 
     public readonly onDidChange = this._onDidChange.event;
 
+    /**
+     * Returns the stable virtual document URI for a background task log.
+     */
     public getUri(taskId: string): vscode.Uri {
         const existingUri = this._uris.get(taskId);
         if (existingUri) {
@@ -53,12 +59,18 @@ export class BackgroundTaskLogContentProvider
         return uri;
     }
 
+    /**
+     * Opens the log document for a background task and scrolls the editor to the newest entry.
+     */
     public async showTaskLog(taskId: string): Promise<void> {
         const document = await vscode.workspace.openTextDocument(this.getUri(taskId));
         const editor = await vscode.window.showTextDocument(document, { preview: false });
         this.revealLatestLogEntry(editor);
     }
 
+    /**
+     * Provides the rendered contents of a background task log virtual document.
+     */
     public provideTextDocumentContent(uri: vscode.Uri): string {
         const taskId = new URLSearchParams(uri.query).get("taskId");
         if (!taskId) {
@@ -73,12 +85,18 @@ export class BackgroundTaskLogContentProvider
         return renderTaskLog(taskLog);
     }
 
+    /**
+     * Releases event subscriptions and cached URIs held by the provider.
+     */
     public dispose(): void {
         this._logSubscription.dispose();
         this._onDidChange.dispose();
         this._uris.clear();
     }
 
+    /**
+     * Scrolls any visible editor for the task log to the most recent entry after the document updates.
+     */
     private async revealLatestVisibleLogEntry(uri: vscode.Uri): Promise<void> {
         await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -89,6 +107,9 @@ export class BackgroundTaskLogContentProvider
         }
     }
 
+    /**
+     * Reveals the last line in the given task log editor.
+     */
     private revealLatestLogEntry(editor: vscode.TextEditor): void {
         const lastLine = editor.document.lineCount - 1;
         if (lastLine < 0) {
@@ -103,6 +124,9 @@ export class BackgroundTaskLogContentProvider
     }
 }
 
+/**
+ * Renders a background task log into the text shown by the virtual document.
+ */
 function renderTaskLog(taskLog: BackgroundTaskLog): string {
     const editorEOL = getEditorEOL();
     const sections = [
@@ -145,6 +169,9 @@ function renderTaskLog(taskLog: BackgroundTaskLog): string {
     return sections.join(editorEOL);
 }
 
+/**
+ * Formats a single task log entry for display in the log document.
+ */
 function renderTaskLogEntry(entry: BackgroundTaskLogEntry): string {
     const status = toBackgroundTaskStateDisplayString(entry.state);
 
@@ -167,6 +194,9 @@ function renderTaskLogEntry(entry: BackgroundTaskLogEntry): string {
     return status;
 }
 
+/**
+ * Formats a log entry timestamp as a zero-padded local time string.
+ */
 function formatTaskLogTimestamp(timestamp: number): string {
     const date = new Date(timestamp);
     return (
@@ -178,14 +208,23 @@ function formatTaskLogTimestamp(timestamp: number): string {
     );
 }
 
+/**
+ * Zero-pads an hours, minutes, or seconds value to two digits.
+ */
 function padClockSegment(value: number): string {
     return value.toString().padStart(2, "0");
 }
 
+/**
+ * Zero-pads a millisecond value to three digits.
+ */
 function padMilliseconds(value: number): string {
     return value.toString().padStart(3, "0");
 }
 
+/**
+ * Replaces characters that are invalid in document names with hyphens.
+ */
 function sanitizeDocumentName(name: string): string {
     const sanitizedName = name.replace(/[\\/:*?"<>|]/g, "-").trim();
     return sanitizedName || "background-task-log";
