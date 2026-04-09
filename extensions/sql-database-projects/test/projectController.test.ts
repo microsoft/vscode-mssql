@@ -290,7 +290,7 @@ suite("ProjectsController", function (): void {
                 } as unknown as vscode.WorkspaceConfiguration);
             }
 
-            test("resolveItemFolder: Returns empty string for all types when target folders are missing (auto-create OFF)", async function (): Promise<void> {
+            test("resolveItemFolder: Returns empty string when target folder does not exist (auto-create OFF)", async function (): Promise<void> {
                 const projController = new ProjectsController(testContext.outputChannel);
                 const project = await testUtils.createTestProject(
                     this.test,

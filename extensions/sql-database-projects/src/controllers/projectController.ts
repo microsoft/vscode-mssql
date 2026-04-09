@@ -783,6 +783,29 @@ export class ProjectsController {
     }
 
     /**
+     * Finds an existing folder in the project by path (case-insensitive). If it does not exist
+     * and `autoCreate` is true, adds it. Otherwise returns `fallback`.
+     */
+    private async findOrAddFolder(
+        project: ISqlProject,
+        targetPath: string,
+        fallback: string,
+        autoCreate: boolean,
+    ): Promise<string> {
+        const existing = project.folders.find(
+            (f) => f.relativePath.toLowerCase() === targetPath.toLowerCase(),
+        );
+        if (existing) {
+            return existing.relativePath;
+        }
+        if (autoCreate) {
+            await project.addFolder(targetPath);
+            return targetPath;
+        }
+        return fallback;
+    }
+
+    /**
      * Returns whether the auto-create folder structure setting is enabled.
      * Defaults to true if not set.
      */
@@ -856,33 +879,12 @@ export class ProjectsController {
             // basePath is a single-segment schema folder (e.g. "dbo").
             // Check for / create the ObjectType subfolder under it.
             const subfolderPath = utils.convertSlashesForSqlProj(path.join(basePath, folderName));
-            const existing = project.folders.find(
-                (f) => f.relativePath.toLowerCase() === subfolderPath.toLowerCase(),
-            );
-            if (existing) {
-                return existing.relativePath;
-            }
-            if (autoCreate) {
-                await project.addFolder(subfolderPath);
-                return subfolderPath;
-            }
-            // Auto-create off — stay in the schema folder the user explicitly chose
-            return basePath;
+            return this.findOrAddFolder(project, subfolderPath, basePath, autoCreate);
         }
 
         // Non-schema-dependent items (e.g. Security/, DatabaseTriggers/) → root-level folder
         if (!schemaDependent) {
-            const existing = project.folders.find(
-                (f) => f.relativePath.toLowerCase() === folderName.toLowerCase(),
-            );
-            if (existing) {
-                return existing.relativePath;
-            }
-            if (autoCreate) {
-                await project.addFolder(folderName);
-                return folderName;
-            }
-            return "";
+            return this.findOrAddFolder(project, folderName, "", autoCreate);
         }
 
         // Backward compat: if a root-level Sequences folder already exists, prefer it
@@ -901,28 +903,23 @@ export class ProjectsController {
         const resolvedSchema = schemaName ?? constants.defaultSchemaName;
         const nestedPath = utils.convertSlashesForSqlProj(path.join(resolvedSchema, folderName));
 
-        // Check if the full Schema/ObjectType folder already exists
-        const nestedFolder = project.folders.find(
-            (f) => f.relativePath.toLowerCase() === nestedPath.toLowerCase(),
-        );
-        if (nestedFolder) {
-            return nestedFolder.relativePath;
-        }
-
+        // When auto-creating, ensure the parent schema folder exists first.
+        // Skip this check when nestedPath already exists to avoid an unnecessary scan.
         if (autoCreate) {
-            // Create schema folder if missing
-            const schemaFolderExists = project.folders.some(
-                (f) => f.relativePath.toLowerCase() === resolvedSchema.toLowerCase(),
+            const nestedExists = project.folders.some(
+                (f) => f.relativePath.toLowerCase() === nestedPath.toLowerCase(),
             );
-            if (!schemaFolderExists) {
+            if (
+                !nestedExists &&
+                !project.folders.some(
+                    (f) => f.relativePath.toLowerCase() === resolvedSchema.toLowerCase(),
+                )
+            ) {
                 await project.addFolder(resolvedSchema);
             }
-            await project.addFolder(nestedPath);
-            return nestedPath;
         }
 
-        // Auto-create is off and folder doesn't exist → place at root
-        return "";
+        return this.findOrAddFolder(project, nestedPath, "", autoCreate);
     }
 
     public async addItemPromptFromNode(
