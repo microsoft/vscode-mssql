@@ -103,7 +103,7 @@ suite("QueryHistoryProvider persistence", () => {
             tooltip,
             queryString,
             ownerUri,
-            undefined,
+            {} as unknown as IConnectionInfo,
             timeStamp,
             connectionLabel,
             isSuccess,
@@ -251,9 +251,7 @@ suite("QueryHistoryProvider persistence", () => {
         readEncryptedPersistedQueryHistoryStub.callsFake(readEncryptedPersistedHistoryContent);
         sandbox
             .stub(queryHistoryProviderPrototype, "writePersistedQueryHistoryContent")
-            .callsFake(async (serializedHistory: string) =>
-                writePersistedHistoryContent(serializedHistory),
-            );
+            .callsFake(async (...args: unknown[]) => writePersistedHistoryContent(String(args[0])));
         sandbox
             .stub(queryHistoryProviderPrototype, "clearPersistedQueryHistoryContent")
             .callsFake(async () => clearPersistedHistoryContent());
@@ -386,6 +384,20 @@ suite("QueryHistoryProvider persistence", () => {
         const children = provider.getChildren();
         expect(children).to.have.lengthOf(1);
         expect(children[0]).to.be.instanceOf(EmptyHistoryNode);
+    });
+
+    test("uses a distinct success theme icon from background tasks", () => {
+        const node = createTestNode("SELECT 1", "(localhost|master)", new Date(), true);
+
+        expect((node.iconPath as vscode.ThemeIcon).id).to.equal("check");
+        expect((node.iconPath as vscode.ThemeIcon).color?.id).to.equal("testing.iconPassed");
+    });
+
+    test("uses a distinct failure theme icon from background tasks", () => {
+        const node = createTestNode("SELECT 1", "(localhost|master)", new Date(), false);
+
+        expect((node.iconPath as vscode.ThemeIcon).id).to.equal("close");
+        expect((node.iconPath as vscode.ThemeIcon).color?.id).to.equal("testing.iconFailed");
     });
 
     test("stores history nodes in encrypted global storage", async () => {

@@ -127,6 +127,7 @@ export interface IDbColumn {
     dataType: string;
     isXml?: boolean;
     isJson?: boolean;
+    isVector?: boolean;
     isLong?: boolean;
     isReadOnly?: boolean;
     isUnique?: boolean;

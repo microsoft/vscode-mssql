@@ -121,6 +121,9 @@ import { AzureBlobService } from "../services/azureBlobService";
 import { FlatFileImportWebviewController } from "./flatFileImportWebviewController";
 import { RestoreDatabaseWebviewController } from "./restoreDatabaseWebviewController";
 import { CopilotChat } from "../sharedInterfaces/copilotChat";
+import { BackgroundTasksProvider } from "../backgroundTasks/backgroundTasksProvider";
+import { BackgroundTaskNode } from "../backgroundTasks/backgroundTaskNode";
+import { BackgroundTasksService } from "../backgroundTasks/backgroundTasksService";
 
 /**
  * The main controller class that initializes the extension
@@ -137,12 +140,16 @@ export default class MainController implements vscode.Disposable {
     private _sqlDocumentService: SqlDocumentService;
     private _objectExplorerProvider: ObjectExplorerProvider;
     private _queryHistoryProvider: QueryHistoryProvider;
+    private _backgroundTasksProvider: BackgroundTasksProvider;
     private _scriptingService: ScriptingService;
     private _queryHistoryRegistered: boolean = false;
     private _availableCommands: string[] | undefined;
     private _logger: Logger;
+    private _lastBackgroundTaskClickTime = 0;
+    private _lastBackgroundTaskId: string | undefined;
 
     public sqlTasksService: SqlTasksService;
+    public backgroundTasksService: BackgroundTasksService;
     public dacFxService: DacFxService;
     public objectManagementService: ObjectManagementService;
     public schemaCompareService: SchemaCompareService;
@@ -276,7 +283,7 @@ export default class MainController implements vscode.Disposable {
             });
             this.registerCommandWithArgs(Constants.cmdDeployNewDatabase);
             this._event.on(Constants.cmdDeployNewDatabase, (args?: any) => {
-                let initialConnectionGroup: string;
+                let initialConnectionGroup: string | undefined;
                 if (args && args instanceof ConnectionGroupNode) {
                     initialConnectionGroup = args.connectionGroup?.id;
                 }
@@ -616,11 +623,13 @@ export default class MainController implements vscode.Disposable {
             );
 
             this.initializeQueryHistory();
+            this.initializeBackgroundTasks();
 
             this.sqlTasksService = new SqlTasksService(
                 SqlToolsServerClient.instance,
                 this._sqlDocumentService,
                 this._vscodeWrapper,
+                this.backgroundTasksService,
             );
             this.dacFxService = new DacFxService(
                 SqlToolsServerClient.instance,
@@ -2249,6 +2258,73 @@ export default class MainController implements vscode.Disposable {
                 },
             ),
         );
+    }
+
+    /**
+     * Initializes the Background Tasks commands
+     */
+    private initializeBackgroundTasks(): void {
+        this._backgroundTasksProvider = new BackgroundTasksProvider();
+        this.backgroundTasksService = this._backgroundTasksProvider.backgroundTasksService;
+
+        const treeView = vscode.window.createTreeView(Constants.backgroundTasks, {
+            treeDataProvider: this._backgroundTasksProvider,
+        });
+
+        this._backgroundTasksProvider.treeView = treeView;
+
+        this._context.subscriptions.push(this._backgroundTasksProvider);
+        this._context.subscriptions.push(treeView);
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(Constants.cmdClearFinishedBackgroundTasks, () => {
+                this._backgroundTasksProvider.clearFinished();
+            }),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdOpenBackgroundTask,
+                async (node: BackgroundTaskNode) => {
+                    await this._backgroundTasksProvider.openTask(node.taskId);
+                },
+            ),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdCancelBackgroundTask,
+                async (node: BackgroundTaskNode) => {
+                    await this._backgroundTasksProvider.cancelTask(node.taskId);
+                },
+            ),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdBackgroundTaskAction,
+                async (node: BackgroundTaskNode) => {
+                    await this.handleBackgroundTaskNodeAction(node);
+                },
+            ),
+        );
+    }
+
+    private async handleBackgroundTaskNodeAction(node: BackgroundTaskNode): Promise<void> {
+        const currentTime = Date.now();
+        const doubleClickThreshold = 500;
+
+        if (
+            this._lastBackgroundTaskId === node.taskId &&
+            currentTime - this._lastBackgroundTaskClickTime < doubleClickThreshold
+        ) {
+            await this._backgroundTasksProvider.openTask(node.taskId);
+            this._lastBackgroundTaskId = undefined;
+            this._lastBackgroundTaskClickTime = 0;
+        } else {
+            this._lastBackgroundTaskId = node.taskId;
+            this._lastBackgroundTaskClickTime = currentTime;
+        }
     }
 
     /**
