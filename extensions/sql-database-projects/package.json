@@ -83,6 +83,11 @@
                         "type": "string",
                         "default": "2.1.0",
                         "description": "%sqlDatabaseProjects.microsoftBuildSqlVersion%"
+                    },
+                    "sqlDatabaseProjects.autoCreateFolderStructure": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "%sqlDatabaseProjects.autoCreateFolderStructure%"
                     }
                 }
             }

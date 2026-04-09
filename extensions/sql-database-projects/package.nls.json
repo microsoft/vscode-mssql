@@ -52,5 +52,6 @@
     "sqlDatabaseProjects.collapseProjectNodes": "Whether project nodes start collapsed",
     "sqlDatabaseProjects.microsoftBuildSqlVersion": "Which version of Microsoft.Build.Sql SDK to use for building legacy sql projects. Example: 0.1.7-preview",
     "sqlDatabaseProjects.enablePreviewFeatures": "Enable preview SQL Database Projects features",
+    "sqlDatabaseProjects.autoCreateFolderStructure": "Automatically create schema and object type folders (e.g., dbo/Tables) when adding SQL objects to a project at the root level.",
     "sqlDatabaseProjects.welcome": "No database projects currently open.\n[New Project](command:sqlDatabaseProjects.new)\n[Open Project](command:sqlDatabaseProjects.open)\n[Create Project From Database](command:sqlDatabaseProjects.importDatabase)"
 }

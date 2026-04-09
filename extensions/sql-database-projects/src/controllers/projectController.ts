@@ -783,76 +783,119 @@ export class ProjectsController {
     }
 
     /**
-     * Gets the default folder path for a given item type when creating at project root.
-     * For schema-dependent items: Checks Schema/ObjectType/ (e.g., Sales/Functions/)
-     * For non-schema items (like Database Trigger): Checks root-level ObjectType folder (e.g., DatabaseTriggers/)
-     * @param itemType The type of item being created
-     * @param project The project to check for existing folders
-     * @param schemaName Optional schema name to look for schema-named folders
-     * @returns The default folder path if it exists, or empty string otherwise
+     * Returns whether the auto-create folder structure setting is enabled.
+     * Defaults to true if not set.
      */
-    public getDefaultFolderForItemType(
+    private isAutoCreateFolderStructureEnabled(): boolean {
+        return vscode.workspace
+            .getConfiguration()
+            .get<boolean>(constants.autoCreateFolderStructureSetting, true);
+    }
+
+    /**
+     * Resolves the folder path for the item being created.
+     *
+     * When called from the project root (basePath is empty):
+     * - Schema-dependent items build `Schema/ObjectType` (e.g. `dbo/Tables`)
+     * - Non-schema-dependent items build a root-level `ObjectType` folder (e.g. `DatabaseTriggers`)
+     *
+     * When called from an existing folder node (basePath is non-empty, e.g. user right-clicked `dbo`):
+     * - Checks whether `basePath/ObjectTypeFolder` exists and uses it if so
+     * - If it doesn't exist and auto-create is ON, creates `basePath/ObjectTypeFolder`
+     * - If it doesn't exist and auto-create is OFF, returns `basePath` unchanged
+     * - If the last path component already equals the ObjectTypeFolder name (user is already
+     *   inside e.g. `dbo/Tables`), returns `basePath` unchanged to avoid double-nesting
+     *
+     * @param itemType The type of item being created
+     * @param project The project to check / add folders to
+     * @param schemaName The schema name parsed from user input (e.g. "dbo", "sales")
+     * @param basePath The folder the user invoked the command from; empty string means project root
+     * @returns The relative folder path the item should be placed in
+     */
+    public async resolveItemFolder(
         itemType: ItemType,
         project: ISqlProject,
         schemaName?: string,
-    ): string {
-        let relativePath = "";
-
-        // Get the folder config for this item type (defaults to schema-dependent if not in map)
+        basePath?: string,
+    ): Promise<string> {
         const folderConfig = templates.itemTypeToFolderMap.get(itemType);
-        const isSchemaDependent = folderConfig?.schemaDependent ?? true;
-        const folderName = folderConfig?.folderName;
+        if (!folderConfig) {
+            return basePath ?? "";
+        }
 
-        // Non-schema-dependent items - check root-level folder only
-        if (!isSchemaDependent && folderName) {
-            const rootFolder = project.folders.find(
+        const { folderName, schemaDependent } = folderConfig;
+        const autoCreate = this.isAutoCreateFolderStructureEnabled();
+
+        // Non-root path: user invoked from an existing folder node
+        if (basePath) {
+            const segments = basePath.replace(/\\/g, "/").split("/").filter(Boolean);
+
+            // Only attempt subfolder logic when the user is exactly at the schema level
+            // (single segment, e.g. "dbo").  If they're already inside a schema/ObjectType
+            // folder (2+ segments, e.g. "dbo/Functions") we place the file directly there —
+            // Tables and Functions are siblings, not parents/children of each other.
+            if (segments.length >= 2) {
+                return basePath;
+            }
+
+            // basePath is a single-segment schema folder (e.g. "dbo").
+            // Check for / create the ObjectType subfolder under it.
+            const subfolderPath = utils.convertSlashesForSqlProj(path.join(basePath, folderName));
+            const existing = project.folders.find(
+                (f) => f.relativePath.toLowerCase() === subfolderPath.toLowerCase(),
+            );
+            if (existing) {
+                return existing.relativePath;
+            }
+            if (autoCreate) {
+                await project.addFolder(subfolderPath);
+                return subfolderPath;
+            }
+            // Auto-create off — stay in the schema folder the user explicitly chose
+            return basePath;
+        }
+
+        // Non-schema-dependent items (e.g. Security/, DatabaseTriggers/) → root-level folder
+        if (!schemaDependent) {
+            const existing = project.folders.find(
                 (f) => f.relativePath.toLowerCase() === folderName.toLowerCase(),
             );
-            if (rootFolder) {
-                relativePath = rootFolder.relativePath;
+            if (existing) {
+                return existing.relativePath;
             }
-            return relativePath;
+            if (autoCreate) {
+                await project.addFolder(folderName);
+                return folderName;
+            }
+            return "";
         }
 
-        // Case for Sequence: Check root-level Sequences folder first
-        if (itemType === ItemType.sequence && folderName) {
-            const rootObjectFolder = project.folders.find(
-                (f) => f.relativePath.toLowerCase() === folderName.toLowerCase(),
+        // Schema-dependent items (e.g. dbo/Tables/, sales/StoredProcedures/)
+        const resolvedSchema = schemaName ?? constants.defaultSchemaName;
+        const nestedPath = utils.convertSlashesForSqlProj(path.join(resolvedSchema, folderName));
+
+        // Check if the full Schema/ObjectType folder already exists
+        const nestedFolder = project.folders.find(
+            (f) => f.relativePath.toLowerCase() === nestedPath.toLowerCase(),
+        );
+        if (nestedFolder) {
+            return nestedFolder.relativePath;
+        }
+
+        if (autoCreate) {
+            // Create schema folder if missing
+            const schemaFolderExists = project.folders.some(
+                (f) => f.relativePath.toLowerCase() === resolvedSchema.toLowerCase(),
             );
-
-            if (rootObjectFolder) {
-                return rootObjectFolder.relativePath;
+            if (!schemaFolderExists) {
+                await project.addFolder(resolvedSchema);
             }
+            await project.addFolder(nestedPath);
+            return nestedPath;
         }
 
-        // For schema-dependent items, check schema folders
-        if (schemaName) {
-            // Case 1: Check for schema folder (e.g., "Sales", "dbo") - case-insensitive
-            const schemaFolder = project.folders.find(
-                (f) => f.relativePath.toLowerCase() === schemaName.toLowerCase(),
-            );
-
-            if (schemaFolder) {
-                relativePath = schemaFolder.relativePath;
-
-                // Case 2: Check for nested object type folder (e.g., "Sales/Functions")
-                if (folderName) {
-                    const nestedPath = utils.convertSlashesForSqlProj(
-                        path.join(schemaFolder.relativePath, folderName),
-                    );
-                    const nestedFolder = project.folders.find(
-                        (f) => f.relativePath.toLowerCase() === nestedPath.toLowerCase(),
-                    );
-
-                    if (nestedFolder) {
-                        relativePath = nestedFolder.relativePath;
-                    }
-                }
-            }
-        }
-
-        // Case 3: If no schema folder found, return empty string (place at root)
-        return relativePath;
+        // Auto-create is off and folder doesn't exist → place at root
+        return "";
     }
 
     public async addItemPromptFromNode(
@@ -931,11 +974,16 @@ export class ProjectsController {
         // Parse schema and object name from input (e.g., "sales.MyFunction" -> schema="sales", objectName="MyFunction")
         const { schemaName, objectName } = this.parseSchemaAndObjectName(itemObjectName);
 
-        // Determine the folder for this item when creating at project root
-        // Checks: Schema folder -> Schema/ObjectType folder -> root
-        if (relativePath === "") {
-            relativePath = this.getDefaultFolderForItemType(itemType.type, project, schemaName);
-        }
+        // Resolve the best folder for this item type, whether adding from root or from
+        // an existing folder node (e.g. user right-clicked the dbo/ schema folder).
+        // resolveItemFolder handles both cases: creates missing subfolders when auto-create
+        // is ON, or returns the existing folder / falls back to the current path when OFF.
+        relativePath = await this.resolveItemFolder(
+            itemType.type,
+            project,
+            schemaName,
+            relativePath || undefined,
+        );
 
         const relativeFilePath = path.join(relativePath, objectName + fileExtension);
 
