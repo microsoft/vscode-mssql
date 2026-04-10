@@ -396,20 +396,6 @@ jobs:
           files: ./extensions/mssql/coverage/cobertura-coverage.xml
           flags: mssql
 
-      - name: SqlProj - Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./extensions/sql-database-projects/coverage/cobertura-coverage.xml
-          flags: sqlproj
-
-      - name: DataWorkspace - Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./extensions/data-workspace/coverage/cobertura-coverage.xml
-          flags: data-workspace
-
       - name: Write PR results to markdown
         if: env.should_compare_baseline == 'true'
         run: |
@@ -449,6 +435,13 @@ jobs:
           UNIT_EXIT_CODE=$?
           echo "sqlproj_unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
 
+      - name: SqlProj - Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./extensions/sql-database-projects/coverage/cobertura-coverage.xml
+          flags: sqlproj
+
       - name: DataWorkspace - Run unit tests
         continue-on-error: true
         run: |
@@ -456,6 +449,13 @@ jobs:
           DISPLAY=:10 npm run test -- --target data-workspace
           UNIT_EXIT_CODE=$?
           echo "dataworkspace_unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
+
+      - name: DataWorkspace - Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./extensions/data-workspace/coverage/cobertura-coverage.xml
+          flags: data-workspace
 
       - name: Generate xliff files
         run: |

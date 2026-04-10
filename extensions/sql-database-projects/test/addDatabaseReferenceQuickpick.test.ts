@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
+import * as os from "os";
+import * as path from "path";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
 import * as constants from "../src/common/constants";
@@ -31,9 +33,11 @@ const ShowErrorMessage = "showErrorMessage" as const;
 /** utils method name used with sandbox.stub() */
 const GetSqlProjectsInWorkspace = "getSqlProjectsInWorkspace" as const;
 
-/** Repeated path / URI fixtures */
-const defaultProjectPath = "C:\\projects\\MyProj\\MyProj.sqlproj";
-const otherProjectUri = vscode.Uri.file("C:\\other\\OtherProj\\OtherProj.sqlproj");
+/** Repeated path / URI fixtures — use os.tmpdir() for cross-platform absolute paths */
+const defaultProjectPath = path.join(os.tmpdir(), "projects", "MyProj", "MyProj.sqlproj");
+const otherProjectUri = vscode.Uri.file(
+    path.join(os.tmpdir(), "other", "OtherProj", "OtherProj.sqlproj"),
+);
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -321,6 +325,15 @@ suite("addDatabaseReferenceQuickpick", function (): void {
         });
 
         test("Shows error and re-prompts when dacpac is on a different drive", async function (): Promise<void> {
+            // The "different drive" check compares path.parse(...).root, which is only
+            // meaningful on Windows (e.g. "C:\" vs "D:\"). On POSIX all paths share "/"
+            // as root so this branch is unreachable — skip the test on non-Windows.
+            if (process.platform !== "win32") {
+                this.skip();
+            }
+
+            const winProjectPath = "C:\\projects\\MyProj\\MyProj.sqlproj";
+
             sandbox.stub(utils, GetSqlProjectsInWorkspace).resolves([]);
             const showQuickPick: sinon.SinonStub = sandbox.stub(vscode.window, ShowQuickPick);
             showQuickPick.onFirstCall().resolves(constants.dacpacText);
@@ -336,7 +349,7 @@ suite("addDatabaseReferenceQuickpick", function (): void {
                 .resolves(undefined);
 
             const result = await addDatabaseReferenceQuickpick(
-                makeProject({ projectFilePath: defaultProjectPath }),
+                makeProject({ projectFilePath: winProjectPath }),
             );
 
             expect(showOpenDialog.calledOnce).to.be.true;
@@ -345,7 +358,7 @@ suite("addDatabaseReferenceQuickpick", function (): void {
         });
 
         test("Returns IDacpacReferenceSettings for happy path", async function (): Promise<void> {
-            const dacpacUri = vscode.Uri.file("C:\\dacpacs\\MyDep.dacpac");
+            const dacpacUri = vscode.Uri.file(path.join(os.tmpdir(), "dacpacs", "MyDep.dacpac"));
 
             sandbox.stub(utils, GetSqlProjectsInWorkspace).resolves([]);
             const showQuickPick: sinon.SinonStub = sandbox.stub(vscode.window, ShowQuickPick);
