@@ -934,12 +934,13 @@ export class SqlNotebookController implements vscode.Disposable {
             notebookData,
         );
 
-        await vscode.window.showNotebookDocument(notebook);
+        const notebookEditor = await vscode.window.showNotebookDocument(notebook);
 
         this.controller.updateNotebookAffinity(
             notebook,
             vscode.NotebookControllerAffinity.Preferred,
         );
+        await this.selectController(notebookEditor);
 
         if (connectionInfo) {
             const connMgr = this.getConnectionManager(notebook);
@@ -954,6 +955,14 @@ export class SqlNotebookController implements vscode.Disposable {
                 LocalizedConstants.Notebooks.notebookConnectedTo(label),
             );
         }
+    }
+
+    private async selectController(notebookEditor: vscode.NotebookEditor): Promise<void> {
+        await vscode.commands.executeCommand("notebook.selectKernel", {
+            notebookEditor,
+            id: this.controller.id,
+            extension: Constants.extensionId,
+        });
     }
 
     dispose(): void {
