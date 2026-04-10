@@ -10,6 +10,31 @@
     font-size: var(--vscode-editor-font-size, 12px);
 }
 
+.notebook-result-grid-container-spaced {
+    margin-bottom: 12px;
+}
+
+.notebook-results-output {
+    width: 100%;
+}
+
+.notebook-results-output > :not(:last-child) {
+    margin-bottom: 8px;
+}
+
+.notebook-result-text {
+    margin: 0;
+    white-space: pre-wrap;
+    color: var(--vscode-foreground, inherit);
+    font-family: var(--vscode-editor-font-family, monospace);
+    font-size: var(--vscode-editor-font-size, 12px);
+    line-height: 1.5;
+}
+
+.notebook-result-text-error {
+    color: var(--vscode-errorForeground, inherit);
+}
+
 .notebook-result-grid-container .grid-panel {
     width: 100%;
     height: 100%;

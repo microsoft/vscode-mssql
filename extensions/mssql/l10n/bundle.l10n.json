@@ -25,6 +25,7 @@
     "Copy with Headers": "Copy with Headers",
     "Copy Headers": "Copy Headers",
     "Error: Failed to parse query result data.": "Error: Failed to parse query result data.",
+    "Error: Unrecognized query result data.": "Error: Unrecognized query result data.",
     "Cancel": "Cancel",
     "Are you sure?": "Are you sure?",
     "Are you sure you want to {0}?/{0} is the action being confirmed": {
@@ -1704,7 +1705,8 @@
     "Public": "Public",
     "Private": "Private",
     "Remove": "Remove",
-    "Rename Database (Preview)": "Rename Database (Preview)",
+    "Drop Database": "Drop Database",
+    "Rename Database": "Rename Database",
     "Enter the new database name": "Enter the new database name",
     "Please select a server node in Object Explorer to create a database.": "Please select a server node in Object Explorer to create a database.",
     "Please select a database node in Object Explorer to drop.": "Please select a database node in Object Explorer to drop.",

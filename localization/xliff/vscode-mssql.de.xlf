@@ -1799,7 +1799,7 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++deba39e2531aa2d4ef487b5740425abeedf2ea1de021e46347bfba33105643b3">
         <source xml:lang="en">Connection: {0}</source>
         <note>{0} is the task connection label</note>
-        <target state="new">Connection: {0}</target>
+        <target state="translated">Verbindung: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++b08ee8f8534ee808b03d2a6534a0f3988a149469b487454af076faf4a3b98a3d">
         <source xml:lang="en">Connections in groups that are not selected will be moved under the root.</source>
@@ -2622,6 +2622,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
 {1} is the server name</note>
         <target state="translated">„{0}“ aus „{1}“ löschen. Diese Aktion kann nicht rückgängig gemacht werden.</target>
       </trans-unit>
+      <trans-unit id="++CODE++090015e97e08461a02b0915ed446e955928a4686cdc839c66bd9f7781b81d8fb">
+        <source xml:lang="en">Drop Database</source>
+        <target state="new">Drop Database</target>
+      </trans-unit>
       <trans-unit id="++CODE++a9c46777591fc96ccc6c8317280d36c4b68bc04298439cc0e6837ec2ae4bf49c">
         <source xml:lang="en">Drop Database (Preview)</source>
         <target state="translated">Datenbank löschen (Vorschau)</target>
@@ -2689,7 +2693,7 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++e451b91d33132634ff0a558d8d40b0e2daa3e392c45f0b75591924534362255d">
         <source xml:lang="en">Elapsed time: {0}</source>
         <note>{0} is the task elapsed time</note>
-        <target state="new">Elapsed time: {0}</target>
+        <target state="translated">Verstrichene Zeit: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++1e71b5c8f3211f1f01b27341d3ddc6a2ad651800264b495c12b50867f998662c">
         <source xml:lang="en">Enable 'Trust Server Certificate'</source>
@@ -3039,6 +3043,10 @@ Fehler:
       <trans-unit id="++CODE++9d8c40f184be0169233d713fa64128ca200db300743a2adbb700912c74b5620d">
         <source xml:lang="en">Error: Unable to connect using the connection information provided. Retry profile creation?</source>
         <target state="translated">Fehler: Es konnte mit den angegebenen Verbindungsinformationen keine Verbindung hergestellt werden. Profilerstellung wiederholen?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++321ab91cb44c0a39cbf56a5f42f87fdc7fc2d00e29e2df5619d3e436f20dddc4">
+        <source xml:lang="en">Error: Unrecognized query result data.</source>
+        <target state="new">Error: Unrecognized query result data.</target>
       </trans-unit>
       <trans-unit id="++CODE++beab8d6b59ef40883dd9887fd21f67e4716b5d4581461c3eae2825e09b698ad0">
         <source xml:lang="en">Error: {0}</source>
@@ -5344,7 +5352,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++ff68b3be0cbfce8037b00dfd3f0edcddfd195bd62aeced39845063dd40d8af10">
         <source xml:lang="en">No background tasks</source>
-        <target state="new">No background tasks</target>
+        <target state="translated">Keine Hintergrundaufgaben</target>
       </trans-unit>
       <trans-unit id="++CODE++8dc89c7190143e4d1630ac2bbd2eb03c2f94480f7d5511fb638179da5c0cab43">
         <source xml:lang="en">No backup sets found in the restore plan</source>
@@ -6525,9 +6533,9 @@ Fehler:
         <note>{0} is the object type</note>
         <target state="translated">{0} entfernen</target>
       </trans-unit>
-      <trans-unit id="++CODE++9f7b45b322d217b0cee6325963502b5a13eb8aa00e3b6330b7099f868f73782f">
-        <source xml:lang="en">Rename Database (Preview)</source>
-        <target state="translated">Datenbank umbenennen (Vorschau)</target>
+      <trans-unit id="++CODE++90d9ab3255a92db5b378418ece6b230df904cb32837a59f146c96966f659a683">
+        <source xml:lang="en">Rename Database</source>
+        <target state="new">Rename Database</target>
       </trans-unit>
       <trans-unit id="++CODE++3426e6a23fe6e9ab8ec4d59a46f5e26596e94b9712da61c7a323e0cb0a6ecd25">
         <source xml:lang="en">Renaming database '{0}' to '{1}'...</source>
@@ -7685,7 +7693,7 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++30ecb608c5cff9e821a41d28312d0070cbeb3901bc8e32ecefd17171f87dc53a">
         <source xml:lang="en">Source: {0}</source>
         <note>{0} is the task source</note>
-        <target state="new">Source: {0}</target>
+        <target state="translated">Quelle: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++1e49ea47266ab1130ffc9be417fa6eb62da7299641f30a76e728fe983c25f29d">
         <source xml:lang="en">Specifies whether the column is included in the primary key for the table.</source>
@@ -8041,7 +8049,7 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++6e7235c51cdbf5d78d6d31be6dab659515a42b307648229060b6afecb346f1be">
         <source xml:lang="en">Target: {0}</source>
         <note>{0} is the task target location</note>
-        <target state="new">Target: {0}</target>
+        <target state="translated">Ziel: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++ce802c2881fc734c4e0eff3836c5cb3a775844c1c34faabf5d0ff3bd8687b262">
         <source xml:lang="en">Task log is unavailable.</source>
@@ -9263,29 +9271,29 @@ Abfrage: {2}</target>
         <source xml:lang="en">{0}d {1}h</source>
         <note>{0} is the elapsed time in days
 {1} is the remaining elapsed time in hours</note>
-        <target state="new">{0}d {1}h</target>
+        <target state="translated">{0} Tag {1} Std.</target>
       </trans-unit>
       <trans-unit id="++CODE++ef2447cbc8c31cb68e92410fbddc126ba7a4d3b2448d8b55891fd110f2629c4d">
         <source xml:lang="en">{0}h {1}m</source>
         <note>{0} is the elapsed time in hours
 {1} is the remaining elapsed time in minutes</note>
-        <target state="new">{0}h {1}m</target>
+        <target state="translated">{0} Std. {1} Min.</target>
       </trans-unit>
       <trans-unit id="++CODE++b61200fec7f541d54e2092ce39398345e943a9190baac3c9191b540fb359fc41">
         <source xml:lang="en">{0}m {1}s</source>
         <note>{0} is the elapsed time in minutes
 {1} is the remaining elapsed time in seconds</note>
-        <target state="new">{0}m {1}s</target>
+        <target state="translated">{0} Min. {1} Sek.</target>
       </trans-unit>
       <trans-unit id="++CODE++7225167ed5e4103e8208032eadc0cd8c8a50960a1d64a94da29046dc04100582">
         <source xml:lang="en">{0}ms</source>
         <note>{0} is the elapsed time in milliseconds</note>
-        <target state="new">{0}ms</target>
+        <target state="translated">{0} ms</target>
       </trans-unit>
       <trans-unit id="++CODE++6798a9a353a86e591c7e67d0de13cc1b13216c95a1d38821b319d1f21823e3b1">
         <source xml:lang="en">{0}s</source>
         <note>{0} is the elapsed time in seconds</note>
-        <target state="new">{0}s</target>
+        <target state="translated">{0}</target>
       </trans-unit>
       <trans-unit id="++CODE++c7c45c2f2ad470c2dc1a35bf3320d977e49bd4f4c804d9bf347d009669e5ebae">
         <source xml:lang="en">{{put-server-name-here}}</source>
@@ -9361,7 +9369,7 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="extension.backgroundTasks">
         <source xml:lang="en">Background Tasks</source>
-        <target state="new">Background Tasks</target>
+        <target state="translated">Hintergrundaufgaben</target>
       </trans-unit>
       <trans-unit id="mssql.backupDatabase">
         <source xml:lang="en">Backup Database...</source>
@@ -9381,7 +9389,7 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="mssql.cancelBackgroundTask">
         <source xml:lang="en">Cancel Task</source>
-        <target state="new">Cancel Task</target>
+        <target state="translated">Aufgabe abbrechen</target>
       </trans-unit>
       <trans-unit id="mssql.changeConnection">
         <source xml:lang="en">Change Connection (MSSQL)</source>
@@ -9425,7 +9433,7 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="mssql.clearFinishedBackgroundTasks">
         <source xml:lang="en">Clear Finished Tasks</source>
-        <target state="new">Clear Finished Tasks</target>
+        <target state="translated">Abgeschlossene Aufgaben löschen</target>
       </trans-unit>
       <trans-unit id="mssql.clearAzureAccountTokenCache">
         <source xml:lang="en">Clear Microsoft Entra account token cache</source>
@@ -9566,8 +9574,8 @@ Nachdem Sie Ihre Änderungen vorgenommen haben, klicken Sie auf die Schaltfläch
         <target state="translated">Keine Eingabeaufforderungen zum Anzeigen von Abfrageergebnissen auf einer neuen Registerkarte anzeigen.</target>
       </trans-unit>
       <trans-unit id="mssql.dropDatabase">
-        <source xml:lang="en">Drop Database (Preview)...</source>
-        <target state="translated">Datenbank löschen (Vorschau) ...</target>
+        <source xml:lang="en">Drop Database...</source>
+        <target state="new">Drop Database...</target>
       </trans-unit>
       <trans-unit id="mssql.connectionGroups.edit">
         <source xml:lang="en">Edit Connection Group</source>
@@ -9818,8 +9826,8 @@ Sie können eine Verbindung mit einer Datenbank herstellen, indem Sie Ihre Verbi
         <target state="translated">Tabellenstruktur ändern ...</target>
       </trans-unit>
       <trans-unit id="mssql.createDatabase">
-        <source xml:lang="en">New Database (Preview)...</source>
-        <target state="translated">Neue Datenbank (Vorschau) ...</target>
+        <source xml:lang="en">New Database...</source>
+        <target state="new">New Database...</target>
       </trans-unit>
       <trans-unit id="mssql.newDeployment">
         <source xml:lang="en">New Deployment</source>
@@ -9885,7 +9893,7 @@ Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in d
       </trans-unit>
       <trans-unit id="mssql.openBackgroundTask">
         <source xml:lang="en">Open Task Result</source>
-        <target state="new">Open Task Result</target>
+        <target state="translated">Aufgabenergebnis öffnen</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
         <source xml:lang="en">Open in GitHub Copilot Agent</source>
@@ -9940,8 +9948,8 @@ Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in d
         <target state="translated">Microsoft Entra-Konto entfernen</target>
       </trans-unit>
       <trans-unit id="mssql.renameDatabase">
-        <source xml:lang="en">Rename Database (Preview)...</source>
-        <target state="translated">Datenbank umbenennen (Vorschau) ...</target>
+        <source xml:lang="en">Rename Database...</source>
+        <target state="new">Rename Database...</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
         <source xml:lang="en">Replication</source>

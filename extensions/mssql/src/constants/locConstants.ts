@@ -27,11 +27,11 @@ export class Common {
     public static remove = l10n.t("Remove");
 }
 
-export let createDatabaseDialogTitle = l10n.t("Create Database (Preview)");
-export let dropDatabaseDialogTitle = l10n.t("Drop Database (Preview)");
-export let renameDatabaseDialogTitle = l10n.t("Rename Database (Preview)");
-export let createDatabaseWebviewTitle = l10n.t("Create Database (Preview)");
-export let dropDatabaseWebviewTitle = l10n.t("Drop Database (Preview)");
+export let createDatabaseDialogTitle = l10n.t("Create Database");
+export let dropDatabaseDialogTitle = l10n.t("Drop Database");
+export let renameDatabaseDialogTitle = l10n.t("Rename Database");
+export let createDatabaseWebviewTitle = l10n.t("Create Database");
+export let dropDatabaseWebviewTitle = l10n.t("Drop Database");
 export let renameDatabaseInputPlaceholder = l10n.t("Enter the new database name");
 export let databaseNameRequired = l10n.t("Database name is required");
 export let msgSelectServerNodeToCreateDatabase = l10n.t(
