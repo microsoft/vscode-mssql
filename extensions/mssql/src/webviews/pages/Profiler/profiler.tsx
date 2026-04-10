@@ -44,7 +44,7 @@ import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { locConstants } from "../../common/locConstants";
 import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-fluent.css";
 import "./profiler.css";
-import { baseFluentGridOption } from "../../base-fluent-grid-options";
+import { baseFluentGridOption } from "../base-fluent-grid-options";
 
 /** Number of rows to fetch per request */
 const FETCH_SIZE = 100;
