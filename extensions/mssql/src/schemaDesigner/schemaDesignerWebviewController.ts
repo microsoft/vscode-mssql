@@ -331,7 +331,27 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             await vscode.window.showInformationMessage(LocConstants.scriptCopiedToClipboard);
         });
 
-        this.onNotification(SchemaDesigner.OpenInEditorNotification.type, async () => {
+        this.onNotification(SchemaDesigner.OpenInEditorNotification.type, async (params) => {
+            const content = params?.text;
+            const language = params?.language;
+
+            if (content !== undefined) {
+                if (!language || language === "sql") {
+                    await this.mainController.sqlDocumentService.newQuery({
+                        content,
+                        connectionStrategy: ConnectionStrategy.DoNotConnect,
+                    });
+                    return;
+                }
+
+                const document = await vscode.workspace.openTextDocument({
+                    content,
+                    language,
+                });
+                await vscode.window.showTextDocument(document, { preview: false });
+                return;
+            }
+
             const definition = await this.schemaDesignerService.getDefinition({
                 updatedSchema: this.schemaDesignerDetails!.schema,
                 sessionId: this._sessionId,

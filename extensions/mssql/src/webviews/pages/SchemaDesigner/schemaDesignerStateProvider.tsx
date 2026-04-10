@@ -44,7 +44,7 @@ export interface SchemaDesignerContextProps extends CoreRPCs {
     }>;
     saveAsFile: (fileProps: SchemaDesigner.ExportFileOptions) => void;
     getReport: () => Promise<SchemaDesigner.GetReportWebviewResponse | undefined>;
-    openInEditor: (text: string) => void;
+    openInEditor: (options: SchemaDesigner.OpenInEditorOptions) => void;
     openInEditorWithConnection: () => void;
     copyToClipboard: (text: string) => void;
     extractSchema: () => SchemaDesigner.Schema;
@@ -327,8 +327,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         });
     };
 
-    const openInEditor = () => {
-        void extensionRpc.sendNotification(SchemaDesigner.OpenInEditorNotification.type);
+    const openInEditor = (options: SchemaDesigner.OpenInEditorOptions) => {
+        void extensionRpc.sendNotification(SchemaDesigner.OpenInEditorNotification.type, options);
     };
 
     const openInEditorWithConnection = () => {

@@ -15,6 +15,7 @@ import { useSchemaDesignerCopilotChangesCustomTab } from "./copilot/schemaDesign
 import { useSchemaDesignerScriptTab } from "./schemaDesignerScriptTab";
 import { useSchemaDesignerChangeContext } from "./changes/schemaDesignerChangeContext";
 import { useCopilotChangesContext } from "./copilot/copilotChangesContext";
+import { SchemaDesignerDefinitionFormat } from "./schemaDesignerDefinitionFormats";
 
 export const SchemaDesignerDefinitionsPanel = () => {
     const {
@@ -27,7 +28,7 @@ export const SchemaDesignerDefinitionsPanel = () => {
     const { setShowChangesHighlight, setHighlightOverride } = useSchemaDesignerChangeContext();
     const { copilotHighlightOverride } = useCopilotChangesContext();
     const {
-        setCode,
+        setCurrentTsqlDefinition,
         initializeBaselineDefinition,
         definitionPaneRef,
         isDefinitionPanelVisible,
@@ -35,6 +36,7 @@ export const SchemaDesignerDefinitionsPanel = () => {
         setIsChangesPanelVisible,
         activeTab,
         setActiveTab,
+        selectedDefinitionFormat,
     } = useSchemaDesignerDefinitionPanelContext();
     const scriptTab = useSchemaDesignerScriptTab();
     const changesCustomTab = useSchemaDesignerChangesCustomTab();
@@ -58,7 +60,7 @@ export const SchemaDesignerDefinitionsPanel = () => {
                     getBaselineDefinition(),
                 ]);
                 initializeBaselineDefinition(baselineScript);
-                setCode(script);
+                setCurrentTsqlDefinition(script);
             })();
         });
 
@@ -72,7 +74,7 @@ export const SchemaDesignerDefinitionsPanel = () => {
         initializeBaselineDefinition,
         isInitialized,
         schemaRevision,
-        setCode,
+        setCurrentTsqlDefinition,
     ]);
 
     useEffect(() => {
@@ -84,43 +86,50 @@ export const SchemaDesignerDefinitionsPanel = () => {
     useEffect(() => {
         const panel = definitionPaneRef.current;
         const isPanelVisible = panel ? !panel.isCollapsed() : isDefinitionPanelVisible;
+        let refreshHandle: number | undefined;
 
-        if (activeTab === SchemaDesignerDefinitionPanelTab.Script && isPanelVisible) {
-            setTimeout(async () => {
-                const script = await getDefinition();
-                setCode(script);
-            }, 0);
+        if (
+            activeTab === SchemaDesignerDefinitionPanelTab.Script &&
+            isPanelVisible &&
+            selectedDefinitionFormat === SchemaDesignerDefinitionFormat.TSql
+        ) {
+            refreshHandle = requestAnimationFrame(() => {
+                void (async () => {
+                    const script = await getDefinition();
+                    setCurrentTsqlDefinition(script);
+                })();
+            });
         }
 
         if (!isPanelVisible) {
             setShowChangesHighlight(false);
             setHighlightOverride(null);
-            return;
-        }
-
-        if (activeTab === SchemaDesignerDefinitionPanelTab.Changes) {
+        } else if (activeTab === SchemaDesignerDefinitionPanelTab.Changes) {
             setHighlightOverride(null);
             setShowChangesHighlight(true);
-            return;
-        }
-
-        if (activeTab === SchemaDesignerDefinitionPanelTab.CopilotChanges) {
+        } else if (activeTab === SchemaDesignerDefinitionPanelTab.CopilotChanges) {
             setHighlightOverride(copilotHighlightOverride);
             setShowChangesHighlight(true);
-            return;
+        } else {
+            setShowChangesHighlight(false);
+            setHighlightOverride(null);
         }
 
-        setShowChangesHighlight(false);
-        setHighlightOverride(null);
+        return () => {
+            if (refreshHandle !== undefined) {
+                cancelAnimationFrame(refreshHandle);
+            }
+        };
     }, [
         activeTab,
         copilotHighlightOverride,
         definitionPaneRef,
         getDefinition,
         isDefinitionPanelVisible,
-        setCode,
+        setCurrentTsqlDefinition,
         setHighlightOverride,
         setShowChangesHighlight,
+        selectedDefinitionFormat,
     ]);
 
     return (

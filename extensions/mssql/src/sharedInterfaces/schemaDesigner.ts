@@ -360,6 +360,7 @@ export namespace SchemaDesigner {
 
     export interface OpenInEditorOptions {
         text: string;
+        language?: string;
     }
 
     export interface SchemaDesignerReducers {

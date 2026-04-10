@@ -20,7 +20,7 @@ const useStyles = makeStyles({
 
 export const SchemaDesignerChangesDiffView = () => {
     const classes = useStyles();
-    const { baselineDefinition, code } = useSchemaDesignerDefinitionPanelContext();
+    const { baselineDefinition, currentTsqlDefinition } = useSchemaDesignerDefinitionPanelContext();
     const { themeKind } = useVscodeWebview<
         SchemaDesigner.SchemaDesignerWebviewState,
         SchemaDesigner.SchemaDesignerReducers
@@ -32,7 +32,7 @@ export const SchemaDesignerChangesDiffView = () => {
                 height="100%"
                 language="sql"
                 original={baselineDefinition}
-                modified={code}
+                modified={currentTsqlDefinition}
                 themeKind={themeKind}
                 options={{
                     readOnly: true,

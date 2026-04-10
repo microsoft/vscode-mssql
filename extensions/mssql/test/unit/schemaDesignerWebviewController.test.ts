@@ -21,6 +21,7 @@ import * as copilotUtils from "../../src/copilot/copilotUtils";
 import { DefaultSqlPortNumber } from "../../src/constants/constants";
 import {
     stubExtensionContext,
+    stubLogger,
     stubUserSurvey,
     stubWebviewPanel,
     stubWebviewConnectionRpc,
@@ -85,6 +86,7 @@ suite("SchemaDesignerWebviewController tests", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
         mockContext = stubExtensionContext(sandbox);
+        stubLogger(sandbox);
         stubUserSurvey(sandbox);
 
         mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
@@ -504,8 +506,72 @@ suite("SchemaDesignerWebviewController tests", () => {
     });
 
     suite("OpenInEditorNotification handler", () => {
-        test("should open script in editor without connection", async () => {
+        test("should fall back to generating T-SQL when no payload text is provided", async () => {
             mockSchemaDesignerService.getDefinition.resolves({ script: "CREATE TABLE Test;" });
+
+            const ctrl = createController();
+            ctrl.schemaDesignerDetails = mockCreateSessionResponse;
+            (ctrl as any)._sessionId = "test-session-id";
+
+            const handler = notificationHandlers.get(
+                SchemaDesigner.OpenInEditorNotification.type.method,
+            );
+            expect(handler).to.be.a("function");
+
+            await handler({});
+
+            expect(mockSchemaDesignerService.getDefinition).to.have.been.calledWithMatch({
+                updatedSchema: mockCreateSessionResponse.schema,
+                sessionId: "test-session-id",
+            });
+            expect(mockMainController.sqlDocumentService.newQuery).to.have.been.calledWithMatch({
+                content: "CREATE TABLE Test;",
+                connectionStrategy: sinon.match.any,
+            });
+        });
+
+        test("should open provided SQL content through the SQL document service", async () => {
+            const ctrl = createController();
+            ctrl.schemaDesignerDetails = mockCreateSessionResponse;
+
+            const handler = notificationHandlers.get(
+                SchemaDesigner.OpenInEditorNotification.type.method,
+            );
+            expect(handler).to.be.a("function");
+
+            await handler({ text: "SELECT 1;", language: "sql" });
+
+            expect(mockSchemaDesignerService.getDefinition).to.not.have.been.called;
+            expect(mockMainController.sqlDocumentService.newQuery).to.have.been.calledWithMatch({
+                content: "SELECT 1;",
+                connectionStrategy: sinon.match.any,
+            });
+        });
+
+        test("should treat empty SQL content as explicit content instead of regenerating T-SQL", async () => {
+            const ctrl = createController();
+            ctrl.schemaDesignerDetails = mockCreateSessionResponse;
+
+            const handler = notificationHandlers.get(
+                SchemaDesigner.OpenInEditorNotification.type.method,
+            );
+            expect(handler).to.be.a("function");
+
+            await handler({ text: "", language: "sql" });
+
+            expect(mockSchemaDesignerService.getDefinition).to.not.have.been.called;
+            expect(mockMainController.sqlDocumentService.newQuery).to.have.been.calledWithMatch({
+                content: "",
+                connectionStrategy: sinon.match.any,
+            });
+        });
+
+        test("should open provided non-SQL content in a text editor", async () => {
+            const mockDocument = { uri: { fsPath: "schema.cs" } };
+            const openTextDocumentStub = sandbox
+                .stub(vscode.workspace, "openTextDocument")
+                .resolves(mockDocument as any);
+            const showTextDocumentStub = sandbox.stub(vscode.window, "showTextDocument").resolves();
 
             const ctrl = createController();
             ctrl.schemaDesignerDetails = mockCreateSessionResponse;
@@ -515,12 +581,16 @@ suite("SchemaDesignerWebviewController tests", () => {
             );
             expect(handler).to.be.a("function");
 
-            await handler({});
+            await handler({ text: "public class User {}", language: "csharp" });
 
-            expect(mockSchemaDesignerService.getDefinition).to.have.been.calledOnce;
-            expect(mockMainController.sqlDocumentService.newQuery).to.have.been.calledWith({
-                content: "CREATE TABLE Test;",
-                connectionStrategy: sinon.match.any,
+            expect(mockSchemaDesignerService.getDefinition).to.not.have.been.called;
+            expect(mockMainController.sqlDocumentService.newQuery).to.not.have.been.called;
+            expect(openTextDocumentStub).to.have.been.calledWithMatch({
+                content: "public class User {}",
+                language: "csharp",
+            });
+            expect(showTextDocumentStub).to.have.been.calledWithMatch(mockDocument, {
+                preview: false,
             });
         });
     });

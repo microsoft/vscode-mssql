@@ -86,6 +86,7 @@ export interface ScriptTabProps {
     value: string;
     themeKind: ColorThemeKind;
     language?: string;
+    headerActions?: ReactNode;
     openInEditor: (script: string) => void;
     copyToClipboard: (script: string) => void;
 }
@@ -103,15 +104,18 @@ function getScriptTab(
     props: ScriptTabProps,
     scriptPaneClassName: string,
 ): DefinitionPanelCustomTab<DefinitionBuiltInTabIdentifier> {
+    const language = props.language ?? "sql";
+
     return {
         id: SCRIPT_TAB_ID,
         label: locConstants.schemaDesigner.definition,
         content: (
             <div className={scriptPaneClassName}>
                 <VscodeEditor
+                    key={getReadonlyEditorInstanceKey(language)}
                     height={"100%"}
                     width={"100%"}
-                    language={props.language ?? "sql"}
+                    language={language}
                     themeKind={props.themeKind}
                     value={props.value}
                     options={{
@@ -122,6 +126,7 @@ function getScriptTab(
         ),
         headerActions: (
             <>
+                {props.headerActions}
                 <Button
                     size="small"
                     appearance="subtle"
@@ -140,6 +145,10 @@ function getScriptTab(
             </>
         ),
     };
+}
+
+function getReadonlyEditorInstanceKey(language: string): string {
+    return `readonly-script:${language}`;
 }
 
 type DefinitionPanelComponent = <TCustomTabId extends string = never>(

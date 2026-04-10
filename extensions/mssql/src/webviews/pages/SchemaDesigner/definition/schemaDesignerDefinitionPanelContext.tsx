@@ -5,6 +5,7 @@
 
 import { createContext, useCallback, useContext, useRef, useState } from "react";
 import { DefinitionPanelController } from "../../../common/definitionPanel";
+import { SchemaDesignerDefinitionFormat } from "./schemaDesignerDefinitionFormats";
 
 export enum SchemaDesignerDefinitionPanelTab {
     Script = "script",
@@ -18,10 +19,14 @@ export enum SchemaDesignerChangesViewMode {
 }
 
 interface SchemaDesignerDefinitionPanelContextProps {
-    code: string;
-    setCode: React.Dispatch<React.SetStateAction<string>>;
+    currentTsqlDefinition: string;
+    setCurrentTsqlDefinition: React.Dispatch<React.SetStateAction<string>>;
     baselineDefinition: string;
     initializeBaselineDefinition: (value: string) => void;
+    selectedDefinitionFormat: SchemaDesignerDefinitionFormat;
+    setSelectedDefinitionFormat: React.Dispatch<
+        React.SetStateAction<SchemaDesignerDefinitionFormat>
+    >;
     changesViewMode: SchemaDesignerChangesViewMode;
     setChangesViewMode: React.Dispatch<React.SetStateAction<SchemaDesignerChangesViewMode>>;
     activeTab: SchemaDesignerDefinitionPanelTab;
@@ -52,8 +57,10 @@ interface SchemaDesignerDefinitionPanelProviderProps {
 export const SchemaDesignerDefinitionPanelProvider: React.FC<
     SchemaDesignerDefinitionPanelProviderProps
 > = ({ children }) => {
-    const [code, setCode] = useState<string>("");
+    const [currentTsqlDefinition, setCurrentTsqlDefinition] = useState<string>("");
     const [baselineDefinition, setBaselineDefinition] = useState<string>("");
+    const [selectedDefinitionFormat, setSelectedDefinitionFormat] =
+        useState<SchemaDesignerDefinitionFormat>(SchemaDesignerDefinitionFormat.TSql);
     const [changesViewMode, setChangesViewMode] = useState<SchemaDesignerChangesViewMode>(
         SchemaDesignerChangesViewMode.SchemaChanges,
     );
@@ -99,10 +106,12 @@ export const SchemaDesignerDefinitionPanelProvider: React.FC<
     return (
         <SchemaDesignerDefinitionPanelContext.Provider
             value={{
-                code,
-                setCode,
+                currentTsqlDefinition,
+                setCurrentTsqlDefinition,
                 baselineDefinition,
                 initializeBaselineDefinition,
+                selectedDefinitionFormat,
+                setSelectedDefinitionFormat,
                 changesViewMode,
                 setChangesViewMode,
                 activeTab,
