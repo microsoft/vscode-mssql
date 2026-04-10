@@ -111,11 +111,36 @@ export const TableExplorerPage: React.FC = () => {
 
     const { beforeMount, onContentChange } = useMonacoSqlIntellisense(ownerUri, extensionRpc);
 
+    // Track the editor's current text in a ref so React state changes never
+    // round-trip through Monaco's `value` prop. The @monaco-editor/react value
+    // sync calls executeEdits with forceMoveMarkers on any prop/model mismatch,
+    // which slams the cursor to the end of the document — using a ref keeps
+    // Monaco fully uncontrolled while typing.
+    const editableQueryRef = useRef<string>("");
+    const lastSyncedTableQueryRef = useRef<string | undefined>(undefined);
+    const editorRef = useRef<import("monaco-editor").editor.IStandaloneCodeEditor | null>(null);
+    const shouldFocusEditorRef = useRef(false);
+    const [isQueryEmpty, setIsQueryEmpty] = useState(true);
+
     const handleEditorMount = useCallback(
         (
             editor: import("monaco-editor").editor.IStandaloneCodeEditor,
             monaco: typeof import("monaco-editor"),
         ) => {
+            editorRef.current = editor;
+            editor.onDidDispose(() => {
+                if (editorRef.current === editor) {
+                    editorRef.current = null;
+                }
+            });
+
+            // If the pane became active before the editor finished mounting,
+            // honour the deferred focus request now.
+            if (shouldFocusEditorRef.current) {
+                shouldFocusEditorRef.current = false;
+                editor.focus();
+            }
+
             // Register clipboard keybindings so copy/cut/paste work in VS Code webviews
             editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyC, () => {
                 const selection = editor.getSelection();
@@ -224,14 +249,40 @@ export const TableExplorerPage: React.FC = () => {
         [],
     );
 
-    const [editableQuery, setEditableQuery] = useState("");
-
-    // Sync editableQuery when tableQuery from state changes
+    // Sync editor content from tableQuery only when the reducer updates it
+    // externally (initial data load, running a custom query). Imperative
+    // setValue keeps the editor uncontrolled during normal typing.
     useEffect(() => {
-        if (tableQuery !== undefined) {
-            setEditableQuery(tableQuery);
+        if (tableQuery === undefined) {
+            return;
+        }
+        if (tableQuery === lastSyncedTableQueryRef.current) {
+            return;
+        }
+        lastSyncedTableQueryRef.current = tableQuery;
+        editableQueryRef.current = tableQuery;
+        setIsQueryEmpty(!tableQuery.trim());
+
+        const editor = editorRef.current;
+        if (editor && editor.getValue() !== tableQuery) {
+            editor.setValue(tableQuery);
         }
     }, [tableQuery]);
+
+    // Focus the Monaco editor whenever the Table Query tab becomes active so
+    // the user can start editing without an extra click. The editor may not be
+    // mounted yet on the first activation, so we retry once it's available.
+    useEffect(() => {
+        if (!showScriptPane || sqlPaneMode !== SqlPaneMode.TableQuery) {
+            return;
+        }
+        const editor = editorRef.current;
+        if (editor) {
+            editor.focus();
+        } else {
+            shouldFocusEditorRef.current = true;
+        }
+    }, [showScriptPane, sqlPaneMode]);
 
     const gridRef = useRef<TableDataGridRef>(null);
     const [cellChangeCount, setCellChangeCount] = React.useState(0);
@@ -333,7 +384,7 @@ export const TableExplorerPage: React.FC = () => {
                                                 width={"100%"}
                                                 language="sql"
                                                 themeKind={themeKind}
-                                                value={editableQuery}
+                                                defaultValue={editableQueryRef.current}
                                                 options={{
                                                     readOnly: false,
                                                     fixedOverflowWidgets: true,
@@ -341,7 +392,8 @@ export const TableExplorerPage: React.FC = () => {
                                                 }}
                                                 onChange={(value) => {
                                                     const text = value ?? "";
-                                                    setEditableQuery(text);
+                                                    editableQueryRef.current = text;
+                                                    setIsQueryEmpty(!text.trim());
                                                     onContentChange(text);
                                                 }}
                                                 onMount={handleEditorMount}
@@ -355,8 +407,10 @@ export const TableExplorerPage: React.FC = () => {
                                                 size="small"
                                                 appearance="primary"
                                                 icon={<PlayRegular />}
-                                                onClick={() => context.runTableQuery(editableQuery)}
-                                                disabled={!editableQuery.trim() || isLoading}>
+                                                onClick={() =>
+                                                    context.runTableQuery(editableQueryRef.current)
+                                                }
+                                                disabled={isQueryEmpty || isLoading}>
                                                 {loc.tableExplorer.runQuery}
                                             </Button>
                                             <Button
