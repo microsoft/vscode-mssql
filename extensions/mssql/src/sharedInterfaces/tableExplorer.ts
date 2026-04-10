@@ -205,6 +205,7 @@ export interface TableExplorerWebViewState {
     showScriptPane: boolean; // Whether to show the script pane
     sqlPaneMode: SqlPaneMode; // Which mode the SQL pane is showing
     tableQuery?: string; // The default SELECT query (constructed after data loads)
+    isCustomQueryRunning: boolean; // True only while a user-initiated runTableQuery is in flight
     currentPage?: number; // Track the current page number in the data grid
     failedCells?: string[]; // Track cells that failed to update (format: "rowId-columnId")
     originalCellValues?: Map<string, DbCellValue>; // Cache original cell values for reliable revert (key: "rowId-columnId")

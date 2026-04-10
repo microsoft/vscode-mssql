@@ -177,19 +177,12 @@ suite("TableExplorerWebViewController - Reducers", () => {
             mockTargetNode,
         );
 
-        // Simulate edit session ready
-        // Set _expectedOwnerUri to match the notification (in production this is set by initialize())
+        // Simulate edit session ready by setting _expectedOwnerUri (production sets this
+        // in initialize()) and invoking the new instance method directly. The shared
+        // notification dispatcher is registered once at the class level, so we can't
+        // rely on capturing the per-instance handler from the onNotification stub.
         controller["_expectedOwnerUri"] = "test-owner-uri";
-        const onNotificationStub = mockTableExplorerService.sqlToolsClient
-            .onNotification as sinon.SinonStub;
-        const notificationCall = onNotificationStub
-            .getCalls()
-            .find((call) => typeof call.args[1] === "function");
-        expect(notificationCall).to.not.be.undefined;
-        const notificationHandler = notificationCall!.args[1] as (
-            params: EditSessionReadyParams,
-        ) => void;
-        notificationHandler({
+        controller["onEditSessionReady"]({
             ownerUri: "test-owner-uri",
             success: true,
             message: "",

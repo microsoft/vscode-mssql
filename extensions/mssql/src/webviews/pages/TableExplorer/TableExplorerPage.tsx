@@ -105,6 +105,7 @@ export const TableExplorerPage: React.FC = () => {
     const sqlPaneMode = useTableExplorerSelector((s) => s.sqlPaneMode);
     const tableQuery = useTableExplorerSelector((s) => s.tableQuery);
     const ownerUri = useTableExplorerSelector((s) => s.ownerUri);
+    const isCustomQueryRunning = useTableExplorerSelector((s) => s.isCustomQueryRunning);
 
     const isLoading = loadStatus === ApiStatus.Loading;
 
@@ -160,9 +161,15 @@ export const TableExplorerPage: React.FC = () => {
             });
 
             editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyV, () => {
-                void navigator.clipboard.readText().then((text) => {
-                    editor.trigger("keyboard", "type", { text });
-                });
+                void navigator.clipboard
+                    .readText()
+                    .then((text) => {
+                        editor.trigger("keyboard", "type", { text });
+                    })
+                    .catch(() => {
+                        // Swallow clipboard read failures (e.g. permission denied) so
+                        // they don't surface as unhandled promise rejections.
+                    });
             });
 
             // Handle Tab at window capture phase — this fires BEFORE document capture,
@@ -357,7 +364,7 @@ export const TableExplorerPage: React.FC = () => {
                                                 appearance="subtle"
                                                 icon={<StopRegular />}
                                                 onClick={() => context.cancelTableQuery()}
-                                                disabled={!isLoading}>
+                                                disabled={!isCustomQueryRunning}>
                                                 {loc.tableExplorer.cancelQuery}
                                             </Button>
                                         </>

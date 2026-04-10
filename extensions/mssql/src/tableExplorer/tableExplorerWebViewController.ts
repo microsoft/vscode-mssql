@@ -23,8 +23,8 @@ import {
     DidChangeTextDocumentNotification,
     DidCloseTextDocumentNotification,
     DidOpenTextDocumentNotification,
-    NotificationHandler,
 } from "vscode-languageclient";
+import SqlToolsServiceClient from "../languageservice/serviceclient";
 import * as LocConstants from "../constants/locConstants";
 import { getErrorMessage, uuid } from "../utils/utils";
 import { bracketEscapeSqlIdentifier } from "../models/utils";
@@ -55,6 +55,35 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     private _expectedOwnerUri: string = "";
     private _documentVersions = new Map<string, number>();
     private _documentEndPosition = new Map<string, { line: number; character: number }>();
+    private _rebuildTimer: ReturnType<typeof setTimeout> | undefined;
+
+    // Shared dispatcher state. vscode-languageclient 5.2.1's onNotification can't
+    // return a Disposable, so registering one handler per controller would leak.
+    // Instead we register at the class level once and dispatch to live instances
+    // via _liveInstances. Each controller adds itself on initialize() and removes
+    // itself on dispose().
+    private static _sharedNotificationsRegistered = false;
+    private static _liveInstances = new Map<string, TableExplorerWebViewController>();
+
+    private static ensureSharedNotificationHandlers(client: SqlToolsServiceClient): void {
+        if (TableExplorerWebViewController._sharedNotificationsRegistered) {
+            return;
+        }
+        TableExplorerWebViewController._sharedNotificationsRegistered = true;
+
+        client.onNotification(
+            EditSessionReadyNotification.type,
+            (params: EditSessionReadyParams) => {
+                const instance = TableExplorerWebViewController._liveInstances.get(params.ownerUri);
+                instance?.onEditSessionReady(params);
+            },
+        );
+
+        client.onNotification(IntelliSenseReadyNotification.type, (params) => {
+            const instance = TableExplorerWebViewController._liveInstances.get(params.ownerUri);
+            instance?.onIntelliSenseReady(params);
+        });
+    }
 
     constructor(
         context: vscode.ExtensionContext,
@@ -90,6 +119,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 showScriptPane: false, // Script pane hidden by default
                 sqlPaneMode: SqlPaneMode.ScriptChanges, // Default to script changes mode
                 tableQuery: undefined, // Populated after data loads
+                isCustomQueryRunning: false, // Set true only while runTableQuery is in flight
                 currentPage: 1, // Start on page 1
                 failedCells: [], // Track cells that failed to update
                 originalCellValues: new Map<string, DbCellValue>(), // Cache original values for reliable revert
@@ -120,26 +150,51 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             `TableExplorerWebViewController created for table: ${tableName} in database: ${databaseName} - OperationId: ${this.operationId}`,
         );
 
-        this._tableExplorerService.sqlToolsClient.onNotification(
-            EditSessionReadyNotification.type,
-            this.handleEditSessionReadyNotification(),
-        );
-
-        // Listen for IntelliSense ready notifications so we know when the STS
-        // has finished loading metadata for our ownerUri.
-        this._tableExplorerService.sqlToolsClient.onNotification(
-            IntelliSenseReadyNotification.type,
-            (params) => {
-                if (params.ownerUri === this._expectedOwnerUri) {
-                    console.log(
-                        `[IntelliSense] IntelliSenseReady received for "${params.ownerUri}"`,
-                    );
-                }
-            },
+        TableExplorerWebViewController.ensureSharedNotificationHandlers(
+            this._tableExplorerService.sqlToolsClient,
         );
 
         void this.initialize();
         this.registerRpcHandlers();
+    }
+
+    /**
+     * Invoked by the shared dispatcher when an EditSessionReady notification arrives
+     * for this controller's ownerUri.
+     */
+    private onEditSessionReady(result: EditSessionReadyParams): void {
+        if (result.success) {
+            this.state.ownerUri = result.ownerUri;
+            this.state.loadStatus = ApiStatus.Loading;
+            // The server has finished executing the (possibly long-running) query —
+            // clear the in-flight flag so the Cancel button disables and Run re-enables
+            // even before loadResultSet finishes pulling the rows down.
+            this.state.isCustomQueryRunning = false;
+            this.updateState();
+
+            void this.loadResultSet();
+        } else if (this._queryCancelled) {
+            // Query was cancelled by the user - treat as "no results"
+            this._queryCancelled = false;
+            this.state.loadStatus = ApiStatus.Loaded;
+            this.state.resultSet = undefined;
+            this.state.isCustomQueryRunning = false;
+            this._preserveTableQuery = false;
+            this.updateState();
+        } else {
+            // Server reported the session failed without a user cancel (e.g. a runtime
+            // error in the custom query). Clear the in-flight flag so the UI can recover.
+            this.state.isCustomQueryRunning = false;
+            this.updateState();
+        }
+    }
+
+    /**
+     * Invoked by the shared dispatcher when an IntelliSenseReady notification
+     * arrives for this controller's ownerUri.
+     */
+    private onIntelliSenseReady(params: { ownerUri: string }): void {
+        this.logger.verbose(`[IntelliSense] IntelliSenseReady received for "${params.ownerUri}"`);
     }
 
     /**
@@ -187,9 +242,11 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
             const objectType = this._targetNode.metadata.metadataTypeName.toUpperCase();
 
-            // Track the expected ownerUri up-front so the notification handler can filter
-            // against it even before the first notification sets state.ownerUri.
+            // Track the expected ownerUri up-front so the shared notification dispatcher
+            // can route notifications to this controller as soon as they start arriving,
+            // even before EditSessionReady sets state.ownerUri.
             this._expectedOwnerUri = ownerUri;
+            TableExplorerWebViewController._liveInstances.set(ownerUri, this);
 
             let connectionCreds = Object.assign({}, this._targetNode.connectionProfile);
             const databaseName = ObjectExplorerUtils.getDatabaseName(this._targetNode);
@@ -247,31 +304,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             );
             throw error;
         }
-    }
-
-    private handleEditSessionReadyNotification(): NotificationHandler<EditSessionReadyParams> {
-        const self = this;
-        return (result: EditSessionReadyParams): void => {
-            // Only handle notifications matching this controller's expected ownerUri
-            if (result.ownerUri !== self._expectedOwnerUri) {
-                return;
-            }
-
-            if (result.success) {
-                self.state.ownerUri = result.ownerUri;
-                self.state.loadStatus = ApiStatus.Loading;
-                self.updateState();
-
-                void self.loadResultSet();
-            } else if (self._queryCancelled) {
-                // Query was cancelled by the user - treat as "no results"
-                self._queryCancelled = false;
-                self.state.loadStatus = ApiStatus.Loaded;
-                self.state.resultSet = undefined;
-                self._preserveTableQuery = false;
-                self.updateState();
-            }
-        };
     }
 
     private async loadResultSet(): Promise<void> {
@@ -340,17 +372,13 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     }
 
     private registerRpcHandlers(): void {
-        console.log(`[IntelliSense] registerRpcHandlers called`);
-
         this.onRequest(WebviewCompletionRequest.type, async (params) => {
-            console.log(`[IntelliSense] completion request received`);
             return await this.handleCompletionRequest(params);
         });
 
         // Sync document content on every editor change so the STS always has
         // up-to-date text before completion requests arrive.
         this.onNotification(WebviewDocumentSyncNotification.type, (params) => {
-            console.log(`[IntelliSense] document sync notification received`);
             if (params.ownerUri) {
                 this.syncDocumentContent(params.ownerUri, params.fullText);
             }
@@ -1450,6 +1478,14 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             }
 
             state.loadStatus = ApiStatus.Loading;
+            // Mark a custom query as in flight so the Cancel button is enabled and the
+            // cancelTableQuery reducer is allowed to run. Other Loading states (e.g.
+            // loadSubset) leave this false so Cancel can't tear down the edit session.
+            // The flag is cleared by onEditSessionReady when the server signals that the
+            // query has finished executing — NOT when the initialize() RPC returns,
+            // since that returns as soon as the session is kicked off and long-running
+            // statements (e.g. WAITFOR DELAY) are still pending at that point.
+            state.isCustomQueryRunning = true;
             // Clear the stale result set so the frontend transitions from undefined → new data,
             // guaranteeing a full grid re-initialization (Scenario 1) rather than an incremental
             // update (Scenario 3) when the new result set arrives via loadResultSet().
@@ -1478,7 +1514,9 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             const objectType = this._targetNode.metadata.metadataTypeName.toUpperCase();
 
             try {
-                // Re-initialize with the custom query
+                // Re-initialize with the custom query. This kicks off the session;
+                // the actual query execution completes asynchronously and is signalled
+                // by EditSessionReady, which clears isCustomQueryRunning.
                 await this._tableExplorerService.initialize(
                     state.ownerUri,
                     objectName,
@@ -1520,8 +1558,12 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                         `Failed to restore original session: ${getErrorMessage(restoreError)}`,
                     );
                     state.loadStatus = ApiStatus.Error;
-                    this.updateState();
                 }
+
+                // initialize() threw synchronously — no EditSessionReady will arrive,
+                // so clear the in-flight flag here so the UI can recover.
+                state.isCustomQueryRunning = false;
+                this.updateState();
 
                 endActivity.endFailed(
                     new Error("Failed to run custom table query"),
@@ -1545,7 +1587,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         this.registerReducer("cancelTableQuery", async (state, _payload) => {
             this.logger.verbose(`Cancelling table query - OperationId: ${this.operationId}`);
 
-            if (state.loadStatus !== ApiStatus.Loading || !state.ownerUri) {
+            // Only allow cancelling when a user-initiated custom query is in flight.
+            // Other Loading states (e.g. loadSubset) must not be cancelled here, since
+            // cancelQuery + dispose would tear down the underlying edit session.
+            if (!state.isCustomQueryRunning || !state.ownerUri) {
                 return state;
             }
 
@@ -1691,24 +1736,22 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         const ownerUri = params.ownerUri;
         const client = this._tableExplorerService.sqlToolsClient;
 
-        console.log(
-            `[IntelliSense] handleCompletionRequest – ownerUri: "${ownerUri}", ` +
-                `pos: (${params.position.lineNumber},${params.position.column}), ` +
-                `textUntilPosition: "${params.textUntilPosition}", ` +
-                `fullText length: ${params.fullText.length}, ` +
-                `docVersion: ${this._documentVersions.get(ownerUri ?? "") ?? "NOT_FOUND"}, ` +
-                `isConnected: ${ownerUri ? this._connectionManager.isConnected(ownerUri) : "N/A"}`,
-        );
-
         if (!ownerUri) {
-            console.log(`[IntelliSense] BAIL: no ownerUri`);
             return { suggestions: [] };
         }
 
         if (!this._connectionManager.isConnected(ownerUri)) {
-            console.log(`[IntelliSense] BAIL: not connected`);
             return { suggestions: [] };
         }
+
+        // Diagnostic trace at verbose level. Intentionally excludes textUntilPosition /
+        // fullText so we never log user-entered SQL into the extension host log.
+        this.logger.verbose(
+            `[IntelliSense] handleCompletionRequest ownerUri: "${ownerUri}", ` +
+                `pos: (${params.position.lineNumber},${params.position.column}), ` +
+                `fullText length: ${params.fullText.length}, ` +
+                `docVersion: ${this._documentVersions.get(ownerUri) ?? "NOT_FOUND"}`,
+        );
 
         try {
             this.syncDocumentContent(ownerUri, params.fullText);
@@ -1718,16 +1761,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 character: params.position.column - 1,
             };
 
-            console.log(`[IntelliSense] sending textDocument/completion to STS...`);
-
             const completionResult = await client.sendRequest(CompletionRequest.type, {
                 textDocument: { uri: ownerUri },
                 position: lspPosition,
             });
-
-            console.log(
-                `[IntelliSense] STS responded: ${completionResult == null ? "null" : "has data"}`,
-            );
 
             if (!completionResult) {
                 return { suggestions: [] };
@@ -1737,8 +1774,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             const items: any[] = Array.isArray(completionResult)
                 ? completionResult
                 : ((completionResult as any).items ?? []);
-
-            console.log(`[IntelliSense] STS returned ${items.length} items`);
 
             const suggestions = items.map((item) => ({
                 label: typeof item.label === "string" ? item.label : item.label.label,
@@ -1756,10 +1791,11 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 preselect: item.preselect,
             }));
 
-            console.log(`[IntelliSense] returning ${suggestions.length} suggestions`);
             return { suggestions };
         } catch (error) {
-            console.log(`[IntelliSense] ERROR: ${error}`);
+            this.logger.error(
+                `[IntelliSense] handleCompletionRequest failed: ${getErrorMessage(error)}`,
+            );
             return { suggestions: [] };
         }
     }
@@ -1773,13 +1809,12 @@ export class TableExplorerWebViewController extends WebviewPanelController<
      * so the STS's UpdateLanguageServiceOnConnection callback finds the ScriptFile.
      */
     private openLanguageServiceDocument(ownerUri: string): void {
-        console.log(`[IntelliSense] openLanguageServiceDocument called for "${ownerUri}"`);
         const client = this._tableExplorerService.sqlToolsClient;
         const version = 1;
         this._documentVersions.set(ownerUri, version);
 
         this.logger.verbose(
-            `[IntelliSense] ── openLanguageServiceDocument ── uri: "${ownerUri}", version: ${version}`,
+            `[IntelliSense] openLanguageServiceDocument uri: "${ownerUri}", version: ${version}`,
         );
 
         client.sendNotification(DidOpenTextDocumentNotification.type, {
@@ -1797,11 +1832,16 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             flavor: "MSSQL",
         });
 
-        // Send an explicit rebuild after a delay to ensure the STS has had time
-        // to process the connection callback (UpdateLanguageServiceOnConnection)
-        // which creates the ScriptParseInfo and binding context.
-        setTimeout(() => {
-            console.log(`[IntelliSense] Sending RebuildIntelliSense for "${ownerUri}"`);
+        // Send an explicit rebuild after a delay so the STS has time to process the
+        // connection callback (UpdateLanguageServiceOnConnection) which creates the
+        // ScriptParseInfo and binding context. The handle is tracked so dispose()
+        // can clear it — otherwise a fast close-then-fire would push a rebuild for
+        // a document that's already been closed.
+        if (this._rebuildTimer !== undefined) {
+            clearTimeout(this._rebuildTimer);
+        }
+        this._rebuildTimer = setTimeout(() => {
+            this._rebuildTimer = undefined;
             client.sendNotification(RebuildIntelliSenseNotification.type, {
                 ownerUri,
             });
@@ -1855,6 +1895,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this._documentVersions.delete(ownerUri);
+        this._documentEndPosition.delete(ownerUri);
     }
 
     /**
@@ -1911,13 +1952,26 @@ export class TableExplorerWebViewController extends WebviewPanelController<
      * This is called when the webview tab is closed (after any prompts are handled).
      */
     public override dispose(): void {
+        // Clear the rebuild timer first so a delayed RebuildIntelliSense never fires
+        // against a closed document.
+        if (this._rebuildTimer !== undefined) {
+            clearTimeout(this._rebuildTimer);
+            this._rebuildTimer = undefined;
+        }
+
+        // Clean up the language service document using _expectedOwnerUri rather than
+        // state.ownerUri. openLanguageServiceDocument() runs against _expectedOwnerUri
+        // before EditSessionReady ever fires, so a fast close would otherwise leak the
+        // ScriptFile and the _documentVersions / _documentEndPosition entries.
+        if (this._expectedOwnerUri) {
+            this.disposeLanguageServiceDocument(this._expectedOwnerUri);
+            TableExplorerWebViewController._liveInstances.delete(this._expectedOwnerUri);
+        }
+
         if (this.state.ownerUri) {
             this.logger.verbose(
                 `Disposing Table Explorer resources for ownerUri: ${this.state.ownerUri}`,
             );
-
-            // Clean up the language service document to prevent ScriptFile buffer leaks
-            this.disposeLanguageServiceDocument(this.state.ownerUri);
 
             void this._tableExplorerService.dispose(this.state.ownerUri).catch((error) => {
                 this.logger.error(

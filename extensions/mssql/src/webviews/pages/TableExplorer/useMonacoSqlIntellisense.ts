@@ -22,6 +22,8 @@ import { WebviewRpc } from "../../common/rpc";
  * @returns An object containing a `beforeMount` callback for the VscodeEditor component
  *          and an `onContentChange` callback to sync editor content with the STS.
  */
+const DOCUMENT_SYNC_DEBOUNCE_MS = 300;
+
 export function useMonacoSqlIntellisense(
     ownerUri: string,
     extensionRpc: WebviewRpc<unknown>,
@@ -35,28 +37,40 @@ export function useMonacoSqlIntellisense(
         ownerUriRef.current = ownerUri;
     }, [ownerUri]);
 
+    const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
     // Cleanup on unmount to prevent provider accumulation when the script pane is toggled
     useEffect(() => {
         return () => {
             disposablesRef.current.forEach((d) => d.dispose());
             disposablesRef.current = [];
+            if (syncTimeoutRef.current !== null) {
+                clearTimeout(syncTimeoutRef.current);
+                syncTimeoutRef.current = null;
+            }
         };
     }, []);
 
-    // Send document content changes to the extension host so the STS always has
-    // up-to-date text. This fires on every editor change, independently of
-    // completion requests, ensuring the STS's ScriptFile content is current
-    // before any completion request is processed.
+    // Debounce document sync notifications so we don't fire an RPC on every keystroke.
+    // Completion requests carry the latest fullText and trigger their own sync on the
+    // extension host side, so debouncing here is safe — STS still sees fresh text when
+    // it actually matters for IntelliSense.
     const onContentChange = useCallback(
         (value: string) => {
-            const currentUri = ownerUriRef.current;
-            if (!currentUri) {
-                return;
+            if (syncTimeoutRef.current !== null) {
+                clearTimeout(syncTimeoutRef.current);
             }
-            void extensionRpc.sendNotification(WebviewDocumentSyncNotification.type, {
-                ownerUri: currentUri,
-                fullText: value,
-            });
+            syncTimeoutRef.current = setTimeout(() => {
+                syncTimeoutRef.current = null;
+                const currentUri = ownerUriRef.current;
+                if (!currentUri) {
+                    return;
+                }
+                void extensionRpc.sendNotification(WebviewDocumentSyncNotification.type, {
+                    ownerUri: currentUri,
+                    fullText: value,
+                });
+            }, DOCUMENT_SYNC_DEBOUNCE_MS);
         },
         [extensionRpc],
     );
@@ -68,7 +82,10 @@ export function useMonacoSqlIntellisense(
             disposablesRef.current = [];
 
             const completionProvider = monaco.languages.registerCompletionItemProvider("sql", {
-                triggerCharacters: [".", " "],
+                // Only "." triggers automatic completions — matches SSMS/ADS behavior and
+                // avoids firing a request after every space in normal SQL typing. Users can
+                // still invoke completions manually via Ctrl+Space.
+                triggerCharacters: ["."],
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 provideCompletionItems: async function (
                     model: any,
