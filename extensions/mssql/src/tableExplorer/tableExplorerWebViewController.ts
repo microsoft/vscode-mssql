@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as os from "os";
 import * as vscode from "vscode";
 import { WebviewPanelController } from "../controllers/webviewPanelController";
 import {
@@ -326,7 +327,12 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
     /**
      * Builds a default SELECT query based on the current result set columns and table metadata.
-     * Format: SELECT TOP {currentRowCount} [col1], [col2], ... FROM [schema].[table]
+     * Format:
+     *   SELECT TOP {currentRowCount}
+     *       [col1],
+     *       [col2],
+     *       ...
+     *   FROM [schema].[table]
      */
     private buildDefaultSelectQuery(): string {
         const columns = this.state.resultSet?.columnInfo;
@@ -334,7 +340,9 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             return "";
         }
 
-        const columnList = columns.map((col) => bracketEscapeSqlIdentifier(col.name)).join(", ");
+        const columnList = columns
+            .map((col) => `    ${bracketEscapeSqlIdentifier(col.name)}`)
+            .join("," + os.EOL);
         const schemaName = this.state.schemaName;
         const tableName = this.state.tableName;
         const escapedTable = bracketEscapeSqlIdentifier(tableName);
@@ -342,7 +350,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             ? `${bracketEscapeSqlIdentifier(schemaName)}.${escapedTable}`
             : escapedTable;
 
-        return `SELECT TOP ${this.state.currentRowCount} ${columnList}\nFROM ${qualifiedName}`;
+        return `SELECT TOP ${this.state.currentRowCount}${os.EOL}${columnList}${os.EOL}FROM ${qualifiedName}`;
     }
 
     /**
@@ -352,7 +360,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     private async regenerateScript(state: TableExplorerWebViewState): Promise<void> {
         try {
             const scriptResult = await this._tableExplorerService.generateScripts(state.ownerUri);
-            const combinedScript = scriptResult.scripts?.join("\n") || "";
+            const combinedScript = scriptResult.scripts?.join(os.EOL) || "";
             state.updateScript = combinedScript;
             this.updateState();
             this.logger.verbose("Script regenerated successfully in real-time");
@@ -1155,7 +1163,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 );
 
                 // Combine script array into single string
-                const combinedScript = scriptResult.scripts?.join("\n") || "";
+                const combinedScript = scriptResult.scripts?.join(os.EOL) || "";
                 this.logger.verbose(
                     `Script result received: ${scriptResult.scripts?.length} script(s), combined length: ${combinedScript.length} - OperationId: ${this.operationId}`,
                 );
@@ -1861,7 +1869,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         const prevEnd = this._documentEndPosition.get(ownerUri) ?? { line: 0, character: 0 };
 
         // Track the new content's end position for the next change
-        const lines = text.split("\n");
+        const lines = text.split(os.EOL);
         this._documentEndPosition.set(ownerUri, {
             line: lines.length - 1,
             character: lines[lines.length - 1].length,
