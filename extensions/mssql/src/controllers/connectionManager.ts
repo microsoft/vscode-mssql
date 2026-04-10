@@ -1333,6 +1333,8 @@ export default class ConnectionManager {
                 connectionSource: connectionSource,
             },
             undefined,
+            credentials,
+            undefined,
             true, // include call stack
         );
 
@@ -1404,7 +1406,7 @@ export default class ConnectionManager {
              */
             connectionActivity.endFailed(
                 error,
-                false, // Do not include error message as it might contain sensitive info
+                false, // includeErrorMessage
             );
             return false;
         }

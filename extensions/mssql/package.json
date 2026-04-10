@@ -224,6 +224,11 @@
                     "name": "%extension.queryHistory%",
                     "when": "config.mssql.enableQueryHistoryFeature",
                     "icon": "media/objectTypes/StoredProcedure.svg"
+                },
+                {
+                    "id": "backgroundTasks",
+                    "name": "%extension.backgroundTasks%",
+                    "icon": "media/objectTypes/Queue.svg"
                 }
             ]
         },
@@ -526,6 +531,12 @@
                     "when": "view == queryHistory",
                     "title": "%mssql.clearAllQueryHistory%",
                     "group": "secondary"
+                },
+                {
+                    "command": "mssql.clearFinishedBackgroundTasks",
+                    "when": "view == backgroundTasks",
+                    "title": "%mssql.clearFinishedBackgroundTasks%",
+                    "group": "navigation"
                 },
                 {
                     "command": "mssql.objectExplorer.enableGroupBySchema",
@@ -858,9 +869,43 @@
                     "command": "mssql.startContainer",
                     "when": "view == objectExplorer && viewItem =~ /\\bsubType=(disconnectedDockerContainer|DockerContainerDatabase)\\b/",
                     "group": "9_MSSQL_container@3"
+                },
+                {
+                    "command": "mssql.openBackgroundTask",
+                    "when": "view == backgroundTasks && viewItem =~ /\\bactionable=true\\b/",
+                    "group": "MS_SQL@1"
+                },
+                {
+                    "command": "mssql.viewBackgroundTaskLogs",
+                    "when": "view == backgroundTasks && viewItem =~ /\\bbackgroundTaskNode\\b/",
+                    "group": "MS_SQL@2"
+                },
+                {
+                    "command": "mssql.cancelBackgroundTask",
+                    "when": "view == backgroundTasks && viewItem =~ /\\bcancelable=true\\b/",
+                    "group": "MS_SQL@3"
+                },
+                {
+                    "command": "mssql.openBackgroundTask",
+                    "when": "view == backgroundTasks && viewItem =~ /\\bactionable=true\\b/",
+                    "group": "inline@1"
+                },
+                {
+                    "command": "mssql.viewBackgroundTaskLogs",
+                    "when": "view == backgroundTasks && viewItem =~ /\\bbackgroundTaskNode\\b/",
+                    "group": "inline@2"
+                },
+                {
+                    "command": "mssql.cancelBackgroundTask",
+                    "when": "view == backgroundTasks && viewItem =~ /\\bcancelable=true\\b/",
+                    "group": "inline@3"
                 }
             ],
             "commandPalette": [
+                {
+                    "command": "mssql.viewBackgroundTaskLogs",
+                    "when": "false"
+                },
                 {
                     "command": "mssql.runQueryWithUriOwnership",
                     "when": "false"
@@ -1335,6 +1380,30 @@
                 "command": "mssql.clearAllQueryHistory",
                 "title": "%mssql.clearAllQueryHistory%",
                 "category": "MS SQL"
+            },
+            {
+                "command": "mssql.clearFinishedBackgroundTasks",
+                "title": "%mssql.clearFinishedBackgroundTasks%",
+                "category": "MS SQL",
+                "icon": "$(trash)"
+            },
+            {
+                "command": "mssql.openBackgroundTask",
+                "title": "%mssql.openBackgroundTask%",
+                "category": "MS SQL",
+                "icon": "$(go-to-file)"
+            },
+            {
+                "command": "mssql.viewBackgroundTaskLogs",
+                "title": "%mssql.viewBackgroundTaskLogs%",
+                "category": "MS SQL",
+                "icon": "$(output)"
+            },
+            {
+                "command": "mssql.cancelBackgroundTask",
+                "title": "%mssql.cancelBackgroundTask%",
+                "category": "MS SQL",
+                "icon": "$(debug-stop)"
             },
             {
                 "command": "mssql.startQueryHistoryCapture",

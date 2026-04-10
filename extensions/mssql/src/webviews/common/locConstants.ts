@@ -2291,7 +2291,7 @@ export class LocConstants {
         return {
             backupDatabaseTitle: (databaseName: string) =>
                 l10n.t({
-                    message: "Backup Database (Preview) - {0}",
+                    message: "Backup Database - {0}",
                     args: [databaseName],
                     comment: ["{0} is the database name"],
                 }),
@@ -2527,7 +2527,7 @@ export class LocConstants {
 
     public get flatFileImport() {
         return {
-            importFile: l10n.t("Import File (Preview)"),
+            importFile: l10n.t("Import File"),
             stepOne: l10n.t("Specify Input File"),
             loadingFlatFileImport: l10n.t("Loading flat file import..."),
             loadingTablePreview: l10n.t("Loading table preview..."),
@@ -2564,7 +2564,7 @@ export class LocConstants {
         return {
             loadingRestoreDatabase: l10n.t("Loading restore database..."),
             restore: l10n.t("Restore"),
-            restoreDatabase: l10n.t("Restore Database (Preview)"),
+            restoreDatabase: l10n.t("Restore Database"),
             database: l10n.t("Database"),
             backupFile: l10n.t("Backup File"),
             url: l10n.t("URL"),

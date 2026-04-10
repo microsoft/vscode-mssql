@@ -8,7 +8,6 @@ localization
 ! localization/l10n
 out/test
 packages
-samples
 src
 tasks
 test

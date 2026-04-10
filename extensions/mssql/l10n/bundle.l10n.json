@@ -1447,8 +1447,8 @@
     "Files of Type": "Files of Type",
     "File path": "File path",
     "Folder path": "Folder path",
-    "Backup Database (Preview) - {0}/{0} is the database name": {
-        "message": "Backup Database (Preview) - {0}",
+    "Backup Database - {0}/{0} is the database name": {
+        "message": "Backup Database - {0}",
         "comment": ["{0} is the database name"]
     },
     "Loading backup database...": "Loading backup database...",
@@ -1602,7 +1602,7 @@
     "Export all captured events to a CSV file": "Export all captured events to a CSV file",
     "No events to export": "No events to export",
     "profiler_events": "profiler_events",
-    "Import File (Preview)": "Import File (Preview)",
+    "Import File": "Import File",
     "Specify Input File": "Specify Input File",
     "Loading flat file import...": "Loading flat file import...",
     "Loading table preview...": "Loading table preview...",
@@ -1623,7 +1623,7 @@
     "File imported successfully": "File imported successfully",
     "Import New File": "Import New File",
     "Loading restore database...": "Loading restore database...",
-    "Restore Database (Preview)": "Restore Database (Preview)",
+    "Restore Database": "Restore Database",
     "Backup File": "Backup File",
     "URL": "URL",
     "Browse files": "Browse files",
@@ -1788,6 +1788,7 @@
     "Integrated": "Integrated",
     "SQL Login": "SQL Login",
     "Microsoft Entra Id - Universal w/ MFA Support": "Microsoft Entra Id - Universal w/ MFA Support",
+    "Microsoft Entra Id - Default": "Microsoft Entra Id - Default",
     "Azure Code Grant": "Azure Code Grant",
     "Azure Device Code": "Azure Device Code",
     "MSSQL - Azure Auth Logs": "MSSQL - Azure Auth Logs",
@@ -2005,6 +2006,86 @@
     "Sign in to your Azure subscription with a device code. Use this in setups where the Sign In command does not work": "Sign in to your Azure subscription with a device code. Use this in setups where the Sign In command does not work",
     "Azure: Sign In to Azure Cloud": "Azure: Sign In to Azure Cloud",
     "Sign in to your Azure subscription in one of the sovereign clouds.": "Sign in to your Azure subscription in one of the sovereign clouds.",
+    "No background tasks": "No background tasks",
+    "Task: {0}/{0} is the task name": {
+        "message": "Task: {0}",
+        "comment": ["{0} is the task name"]
+    },
+    "Description: {0}/{0} is the task description": {
+        "message": "Description: {0}",
+        "comment": ["{0} is the task description"]
+    },
+    "Status: {0}/{0} is the task status": {
+        "message": "Status: {0}",
+        "comment": ["{0} is the task status"]
+    },
+    "Source: {0}/{0} is the task source": {
+        "message": "Source: {0}",
+        "comment": ["{0} is the task source"]
+    },
+    "Connection: {0}/{0} is the task connection label": {
+        "message": "Connection: {0}",
+        "comment": ["{0} is the task connection label"]
+    },
+    "Target: {0}/{0} is the task target location": {
+        "message": "Target: {0}",
+        "comment": ["{0} is the task target location"]
+    },
+    "Elapsed time: {0}/{0} is the task elapsed time": {
+        "message": "Elapsed time: {0}",
+        "comment": ["{0} is the task elapsed time"]
+    },
+    "Logs": "Logs",
+    "No log entries yet.": "No log entries yet.",
+    "Task log is unavailable.": "Task log is unavailable.",
+    "Are you sure you want to cancel this background task?": "Are you sure you want to cancel this background task?",
+    "Cancel Task": "Cancel Task",
+    "[{0}] {1}/{0} is the timestamp{1} is the log entry text": {
+        "message": "[{0}] {1}",
+        "comment": ["{0} is the timestamp", "{1} is the log entry text"]
+    },
+    "{0}: {1}/{0} is the task status{1} is the task message": {
+        "message": "{0}: {1}",
+        "comment": ["{0} is the task status", "{1} is the task message"]
+    },
+    "{0} ({1}%)/{0} is the task status{1} is the completion percent": {
+        "message": "{0} ({1}%)",
+        "comment": ["{0} is the task status", "{1} is the completion percent"]
+    },
+    "{0} ({1}%): {2}/{0} is the task status{1} is the completion percent{2} is the task message": {
+        "message": "{0} ({1}%): {2}",
+        "comment": [
+            "{0} is the task status",
+            "{1} is the completion percent",
+            "{2} is the task message"
+        ]
+    },
+    "{0}ms/{0} is the elapsed time in milliseconds": {
+        "message": "{0}ms",
+        "comment": ["{0} is the elapsed time in milliseconds"]
+    },
+    "{0}s/{0} is the elapsed time in seconds": {
+        "message": "{0}s",
+        "comment": ["{0} is the elapsed time in seconds"]
+    },
+    "{0}m {1}s/{0} is the elapsed time in minutes{1} is the remaining elapsed time in seconds": {
+        "message": "{0}m {1}s",
+        "comment": [
+            "{0} is the elapsed time in minutes",
+            "{1} is the remaining elapsed time in seconds"
+        ]
+    },
+    "{0}h {1}m/{0} is the elapsed time in hours{1} is the remaining elapsed time in minutes": {
+        "message": "{0}h {1}m",
+        "comment": [
+            "{0} is the elapsed time in hours",
+            "{1} is the remaining elapsed time in minutes"
+        ]
+    },
+    "{0}d {1}h/{0} is the elapsed time in days{1} is the remaining elapsed time in hours": {
+        "message": "{0}d {1}h",
+        "comment": ["{0} is the elapsed time in days", "{1} is the remaining elapsed time in hours"]
+    },
     "{0}: {1}/{0} is the task name{1} is the status": {
         "message": "{0}: {1}",
         "comment": ["{0} is the task name", "{1} is the status"]
@@ -2192,8 +2273,8 @@
     "Clear cache and refresh token": "Clear cache and refresh token",
     "Clear token cache": "Clear token cache",
     "No workspaces found. Please change Fabric account or tenant to view available workspaces.": "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
-    "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported./{0} is the authentication type": {
-        "message": "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported.",
+    "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported./{0} is the authentication type": {
+        "message": "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported.",
         "comment": ["{0} is the authentication type"]
     },
     "Add Firewall Rule to {0}/{0} is the server name": {
@@ -3361,7 +3442,7 @@
         "message": "Failed to start '{0}': {1}",
         "comment": ["{0} is the service name", "{1} is the error message"]
     },
-    "Import Flat File (Preview)": "Import Flat File (Preview)",
+    "Import Flat File": "Import Flat File",
     "Database the table is created in": "Database the table is created in",
     "Location of the file to be imported": "Location of the file to be imported",
     "New Table Name": "New Table Name",

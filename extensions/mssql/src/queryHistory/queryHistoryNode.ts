@@ -6,18 +6,17 @@
 import * as vscode from "vscode";
 import * as os from "os";
 import * as LocalizedConstants from "../constants/locConstants";
-import { IconUtils } from "../utils/iconUtils";
 import * as vscodeMssql from "vscode-mssql";
 
 /**
  * Empty Node shown when no queries are available
  */
 export class EmptyHistoryNode extends vscode.TreeItem {
-    private static readonly contextValue = "emptyHistoryNode";
+    private static readonly _contextValue = "emptyHistoryNode";
 
     constructor() {
         super(LocalizedConstants.msgNoQueriesAvailable, vscode.TreeItemCollapsibleState.None);
-        this.contextValue = EmptyHistoryNode.contextValue;
+        this.contextValue = EmptyHistoryNode._contextValue;
     }
 }
 
@@ -55,19 +54,14 @@ export class QueryHistoryNode extends vscode.TreeItem {
             : LocalizedConstants.queryFailed;
         this.tooltip = `${tooltip}${os.EOL}${os.EOL}${queryStatusLabel}`;
         this.contextValue = QueryHistoryNode._contextValue;
-        this.initializeIcons();
-    }
-
-    private initializeIcons(): void {
-        this.iconPath = IconUtils.getIcon(
-            "queryHistory",
-            this._isSuccess ? "status_success.svg" : "status_error.svg",
-        );
+        this.iconPath = this._isSuccess
+            ? new vscode.ThemeIcon("check", new vscode.ThemeColor("testing.iconPassed"))
+            : new vscode.ThemeIcon("close", new vscode.ThemeColor("testing.iconFailed"));
     }
 
     /** Getters */
     public get historyNodeLabel(): string {
-        const label = typeof this.label === "string" ? this.label : this.label.label;
+        const label = typeof this.label === "string" ? this.label : (this.label?.label ?? "");
         return label;
     }
 

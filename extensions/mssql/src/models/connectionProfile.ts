@@ -66,7 +66,9 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
         if (this.authenticationType) {
             if (
                 this.authenticationType === AuthenticationTypes[AuthenticationTypes.Integrated] ||
-                this.authenticationType === AuthenticationTypes[AuthenticationTypes.AzureMFA]
+                this.authenticationType === AuthenticationTypes[AuthenticationTypes.AzureMFA] ||
+                this.authenticationType ===
+                    AuthenticationTypes[AuthenticationTypes.ActiveDirectoryDefault]
             ) {
                 return utils.isNotEmpty(this.server);
             } else {
