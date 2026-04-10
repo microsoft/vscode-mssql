@@ -161,7 +161,9 @@ export const TableExplorerPage: React.FC = () => {
                     const text = selection.isEmpty()
                         ? model.getLineContent(selection.startLineNumber) + model.getEOL()
                         : model.getValueInRange(selection);
-                    void navigator.clipboard.writeText(text);
+                    navigator.clipboard.writeText(text).catch(() => {
+                        // Clipboard access may be denied; swallow the error
+                    });
                 }
             });
 
@@ -192,7 +194,9 @@ export const TableExplorerPage: React.FC = () => {
                         text = model.getValueInRange(selection);
                         range = selection;
                     }
-                    void navigator.clipboard.writeText(text);
+                    navigator.clipboard.writeText(text).catch(() => {
+                        // Clipboard access may be denied; swallow the error
+                    });
                     editor.executeEdits("cut", [{ range, text: "" }]);
                 }
             });

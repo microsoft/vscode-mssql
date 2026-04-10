@@ -416,7 +416,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         // TOP clause doesn't leak through.
         const stripped = query.replace(/--[^\n\r]*/g, "").replace(/\/\*[\s\S]*?\*\//g, "");
         const match =
-            /\bSELECT\b(?:\s+(?:ALL|DISTINCT))?\s+TOP\s*\(?\s*(\d+)\s*\)?(?!\s*PERCENT)/i.exec(
+            /\bSELECT\b(?:\s+(?:ALL|DISTINCT))?\s+TOP\s*\(?\s*(\d+)\s*\)?(?!\s*(?:PERCENT|WITH\s+TIES))/i.exec(
                 stripped,
             );
         if (!match) {
@@ -2138,7 +2138,8 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         const prevEnd = this._documentEndPosition.get(ownerUri) ?? { line: 0, character: 0 };
 
         // Track the new content's end position for the next change
-        const lines = text.split(os.EOL);
+        // Monaco always uses \n for line breaks regardless of platform
+        const lines = text.split(/\r?\n/);
         this._documentEndPosition.set(ownerUri, {
             line: lines.length - 1,
             character: lines[lines.length - 1].length,

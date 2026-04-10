@@ -48,6 +48,11 @@ export function useMonacoSqlIntellisense(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const monacoRef = useRef<any | null>(null);
 
+    // Track the specific model instance for the table query editor so diagnostics
+    // don't bleed into other SQL editors (e.g., Script Changes viewer)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const modelRef = useRef<any | null>(null);
+
     const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Cleanup on unmount to prevent provider accumulation when the script pane is toggled
@@ -72,14 +77,8 @@ export function useMonacoSqlIntellisense(
                 return;
             }
             const monaco = monacoRef.current;
-            if (!monaco) {
-                return;
-            }
-            const sqlModels = monaco.editor
-                .getModels()
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                .filter((m: any) => m.getLanguageId?.() === "sql");
-            if (sqlModels.length === 0) {
+            const model = modelRef.current;
+            if (!monaco || !model) {
                 return;
             }
             const markers = params.diagnostics.map((d) => ({
@@ -92,10 +91,7 @@ export function useMonacoSqlIntellisense(
                 source: d.source,
                 code: d.code,
             }));
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            sqlModels.forEach((model: any) =>
-                monaco.editor.setModelMarkers(model, MONACO_MARKER_OWNER, markers),
-            );
+            monaco.editor.setModelMarkers(model, MONACO_MARKER_OWNER, markers);
         });
     }, [extensionRpc]);
 
@@ -145,6 +141,11 @@ export function useMonacoSqlIntellisense(
                     _context: any,
                     token: any,
                 ) {
+                    // Cache the model reference on first use so diagnostics can target this specific editor
+                    if (!modelRef.current) {
+                        modelRef.current = model;
+                    }
+
                     const currentUri = ownerUriRef.current;
                     if (!currentUri) {
                         return { suggestions: [] };
