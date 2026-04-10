@@ -582,6 +582,170 @@ suite("SqlNotebookController", () => {
             expect(mockExecution.end).to.have.been.calledWith(true, sinon.match.number);
         });
 
+        test("shows error message for batch with isError=true messages (regardless of batch.hasError)", async () => {
+            mockNotebookConnMgr.executeQueryString.resolves(
+                makeQueryResult({
+                    batches: [
+                        {
+                            batchSummary: makeBatchSummary({ hasError: false }), // hasError=false even though there's an error message
+                            messages: [
+                                {
+                                    batchId: 0,
+                                    isError: true,
+                                    time: "",
+                                    message: "Incorrect syntax near 'SELEC'.",
+                                },
+                            ],
+                            resultSets: [],
+                            hasError: false,
+                        },
+                    ],
+                }),
+            );
+
+            const notebook = makeNotebook([{ text: "SELEC 1" }]);
+            const cells = notebook.getCells();
+
+            await mockController.executeHandler(cells, notebook, mockController);
+
+            const outputs = mockExecution.replaceOutput.firstCall.args[0];
+            // Should have one error output, not "Commands completed successfully"
+            expect(outputs).to.have.lengthOf(1);
+            // Error output uses stderr mime type
+            expect(outputs[0].items[0].mime).to.equal("application/vnd.code.notebook.stderr");
+            const errorText = new TextDecoder().decode(outputs[0].items[0].data);
+            expect(errorText).to.include("Incorrect syntax near 'SELEC'.");
+            // Cell should be marked as failed
+            expect(mockExecution.end).to.have.been.calledWith(false, sinon.match.number);
+        });
+
+        test("does not show 'Commands completed successfully' when error messages exist", async () => {
+            mockNotebookConnMgr.executeQueryString.resolves(
+                makeQueryResult({
+                    batches: [
+                        {
+                            batchSummary: makeBatchSummary({ hasError: true }),
+                            messages: [
+                                {
+                                    batchId: 0,
+                                    isError: true,
+                                    time: "",
+                                    message: "Divide by zero error encountered.",
+                                },
+                            ],
+                            resultSets: [],
+                            hasError: true,
+                        },
+                    ],
+                }),
+            );
+
+            const notebook = makeNotebook([{ text: "SELECT 1/0" }]);
+            const cells = notebook.getCells();
+
+            await mockController.executeHandler(cells, notebook, mockController);
+
+            const outputs = mockExecution.replaceOutput.firstCall.args[0];
+            expect(outputs).to.have.lengthOf(1);
+            const text = new TextDecoder().decode(outputs[0].items[0].data);
+            expect(text).to.not.include("Command completed successfully");
+            expect(text).to.include("Divide by zero error encountered.");
+        });
+
+        test("shows PRINT messages as plain text output", async () => {
+            mockNotebookConnMgr.executeQueryString.resolves(
+                makeQueryResult({
+                    batches: [
+                        {
+                            batchSummary: makeBatchSummary(),
+                            messages: [
+                                {
+                                    batchId: 0,
+                                    isError: false,
+                                    time: "",
+                                    message: "hello world",
+                                },
+                            ],
+                            resultSets: [],
+                            hasError: false,
+                        },
+                    ],
+                }),
+            );
+
+            const notebook = makeNotebook([{ text: "PRINT 'hello world'" }]);
+            const cells = notebook.getCells();
+
+            await mockController.executeHandler(cells, notebook, mockController);
+
+            const outputs = mockExecution.replaceOutput.firstCall.args[0];
+            expect(outputs).to.have.lengthOf(1);
+            expect(outputs[0].items[0].mime).to.equal("text/plain");
+            const text = new TextDecoder().decode(outputs[0].items[0].data);
+            expect(text).to.equal("hello world");
+            expect(mockExecution.end).to.have.been.calledWith(true, sinon.match.number);
+        });
+
+        test("multi-batch: shows grid, error, grid in order", async () => {
+            mockNotebookConnMgr.executeQueryString.resolves(
+                makeQueryResult({
+                    batches: [
+                        {
+                            batchSummary: makeBatchSummary({ id: 0 }),
+                            messages: [],
+                            resultSets: [
+                                {
+                                    columnInfo: [makeColumn("n", "int")],
+                                    rows: [[{ displayValue: "1", isNull: false }]],
+                                    rowCount: 1,
+                                },
+                            ],
+                            hasError: false,
+                        },
+                        {
+                            batchSummary: makeBatchSummary({ id: 1, hasError: true }),
+                            messages: [
+                                {
+                                    batchId: 1,
+                                    isError: true,
+                                    time: "",
+                                    message: "Divide by zero error encountered.",
+                                },
+                            ],
+                            resultSets: [],
+                            hasError: true,
+                        },
+                        {
+                            batchSummary: makeBatchSummary({ id: 2 }),
+                            messages: [],
+                            resultSets: [
+                                {
+                                    columnInfo: [makeColumn("n", "int")],
+                                    rows: [[{ displayValue: "2", isNull: false }]],
+                                    rowCount: 1,
+                                },
+                            ],
+                            hasError: false,
+                        },
+                    ],
+                }),
+            );
+
+            const notebook = makeNotebook([{ text: "SELECT 1\nGO\nSELECT 1/0\nGO\nSELECT 2" }]);
+            const cells = notebook.getCells();
+
+            await mockController.executeHandler(cells, notebook, mockController);
+
+            const outputs = mockExecution.replaceOutput.firstCall.args[0];
+            // Expected: result grid (batch 0), error message (batch 1), result grid (batch 2)
+            expect(outputs).to.have.lengthOf(3);
+            expect(outputs[0].items[0].mime).to.equal("application/vnd.mssql.query-result");
+            expect(outputs[1].items[0].mime).to.equal("application/vnd.code.notebook.stderr");
+            expect(outputs[2].items[0].mime).to.equal("application/vnd.mssql.query-result");
+            // Cell should be marked failed because one batch had an error
+            expect(mockExecution.end).to.have.been.calledWith(false, sinon.match.number);
+        });
+
         test("does not show truncation warning when result set is complete", async () => {
             mockNotebookConnMgr.executeQueryString.resolves(
                 makeQueryResult({
