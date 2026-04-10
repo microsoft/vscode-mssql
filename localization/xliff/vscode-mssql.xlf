@@ -7250,9 +7250,6 @@
     <trans-unit id="mssql.createAzureFunction">
       <source xml:lang="en">Create Azure Function with SQL binding</source>
     </trans-unit>
-    <trans-unit id="mssql.notebooks.createNotebook">
-      <source xml:lang="en">Create SQL Notebook (Preview)</source>
-    </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.title">
       <source xml:lang="en">Create a Table with Table Designer</source>
     </trans-unit>
@@ -7498,6 +7495,9 @@
     </trans-unit>
     <trans-unit id="mssql.newQuery">
       <source xml:lang="en">New Query</source>
+    </trans-unit>
+    <trans-unit id="mssql.notebooks.createNotebook">
+      <source xml:lang="en">New SQL Notebook (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.newTable">
       <source xml:lang="en">New Table</source>
