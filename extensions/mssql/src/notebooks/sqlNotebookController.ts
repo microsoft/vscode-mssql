@@ -10,6 +10,7 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import ConnectionManager from "../controllers/connectionManager";
 import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
+import * as Utils from "../models/utils";
 import { NotebookConnectionManager } from "./notebookConnectionManager";
 import { NotebookCodeLensProvider } from "./notebookCodeLensProvider";
 import { NotebookBatchResult } from "./notebookQueryExecutor";
@@ -461,10 +462,12 @@ export class SqlNotebookController implements vscode.Disposable {
                         ),
                     ]),
                 );
+                this.appendExecutionTimeOutput(outputs, result.batches);
                 execution.replaceOutput(outputs);
                 execution.end(false, Date.now());
                 activity.end(ActivityStatus.Canceled);
             } else {
+                this.appendExecutionTimeOutput(outputs, result.batches);
                 execution.replaceOutput(outputs);
                 execution.end(true, Date.now());
                 activity.end(ActivityStatus.Succeeded);
@@ -487,6 +490,12 @@ export class SqlNotebookController implements vscode.Disposable {
 
     private buildBatchOutputs(batches: NotebookBatchResult[]): vscode.NotebookCellOutput[] {
         const outputs: vscode.NotebookCellOutput[] = [];
+        const renderableResultSetCount = batches.reduce(
+            (count, batch) =>
+                count + batch.resultSets.filter((rs) => rs.columnInfo.length > 0).length,
+            0,
+        );
+        let renderedResultSetIndex = 0;
 
         for (const batch of batches) {
             const messages = (batch.messages ?? []).filter((m) => !m.isError).map((m) => m.message);
@@ -534,6 +543,10 @@ export class SqlNotebookController implements vscode.Disposable {
                 }
 
                 const plain = formatter.toPlain(rs.columnInfo, rs.rows);
+                const addBottomSpacing =
+                    renderableResultSetCount > 1 &&
+                    renderedResultSetIndex < renderableResultSetCount - 1;
+                renderedResultSetIndex++;
                 outputs.push(
                     new vscode.NotebookCellOutput([
                         vscode.NotebookCellOutputItem.json(
@@ -541,6 +554,7 @@ export class SqlNotebookController implements vscode.Disposable {
                                 columnInfo: rs.columnInfo,
                                 rows: rs.rows,
                                 rowCount: rs.rowCount,
+                                addBottomSpacing,
                             },
                             "application/vnd.mssql.query-result",
                         ),
@@ -563,6 +577,45 @@ export class SqlNotebookController implements vscode.Disposable {
         }
 
         return outputs;
+    }
+
+    private appendExecutionTimeOutput(
+        outputs: vscode.NotebookCellOutput[],
+        batches: NotebookBatchResult[],
+    ): void {
+        const executionElapsed = this.getExecutionElapsed(batches);
+        if (!executionElapsed) {
+            return;
+        }
+
+        const executionTimeLine = LocalizedConstants.elapsedTimeLabel(executionElapsed);
+        const hasExecutionTimeMessage = batches.some((batch) =>
+            (batch.messages ?? []).some((message) => message.message === executionTimeLine),
+        );
+        if (hasExecutionTimeMessage) {
+            return;
+        }
+
+        outputs.push(
+            new vscode.NotebookCellOutput([
+                vscode.NotebookCellOutputItem.text(executionTimeLine, MIME_TEXT_PLAIN),
+            ]),
+        );
+    }
+
+    private getExecutionElapsed(batches: NotebookBatchResult[]): string | undefined {
+        const batchExecutionElapsed = batches
+            .map((batch) => batch.batchSummary.executionElapsed)
+            .filter((elapsedTime): elapsedTime is string => !!elapsedTime);
+        if (batchExecutionElapsed.length === 0) {
+            return undefined;
+        }
+
+        const totalMilliseconds = batchExecutionElapsed.reduce((total, elapsedTime) => {
+            const parsedElapsed = Utils.parseTimeString(elapsedTime);
+            return total + (typeof parsedElapsed === "number" ? parsedElapsed : 0);
+        }, 0);
+        return Utils.parseNumAsTimeString(totalMilliseconds);
     }
 
     private async handleMagic(

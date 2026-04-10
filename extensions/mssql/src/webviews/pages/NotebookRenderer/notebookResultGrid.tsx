@@ -21,6 +21,7 @@ export interface NotebookResultGridProps {
     columnInfo: IDbColumn[];
     rows: DbCellValue[][];
     rowCount: number;
+    addBottomSpacing?: boolean;
 }
 
 const ROW_HEIGHT = 24;
@@ -100,7 +101,11 @@ function getColumnFormatter(
     };
 }
 
-export function NotebookResultGrid({ columnInfo, rows }: NotebookResultGridProps) {
+export function NotebookResultGrid({
+    columnInfo,
+    rows,
+    addBottomSpacing,
+}: NotebookResultGridProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const gridRef = useRef<Slick.Grid<Slick.SlickData> | null>(null);
     const dataViewRef = useRef<TableDataView<Slick.SlickData> | null>(null);
@@ -292,5 +297,9 @@ export function NotebookResultGrid({ columnInfo, rows }: NotebookResultGridProps
         };
     }, [columnInfo, rows]);
 
-    return <div className="notebook-result-grid-container" ref={containerRef}></div>;
+    const className = addBottomSpacing
+        ? "notebook-result-grid-container notebook-result-grid-container-spaced"
+        : "notebook-result-grid-container";
+
+    return <div className={className} ref={containerRef}></div>;
 }

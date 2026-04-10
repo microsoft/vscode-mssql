@@ -68,6 +68,7 @@ export const activate: ActivationFunction = (_context: RendererContext) => {
                     columnInfo: parsed.columnInfo,
                     rows: parsed.rows,
                     rowCount: parsed.rowCount,
+                    addBottomSpacing: parsed.addBottomSpacing,
                 };
             } catch {
                 element.textContent = l10n.t("Error: Failed to parse query result data.");
