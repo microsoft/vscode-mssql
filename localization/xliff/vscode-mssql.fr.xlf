@@ -2622,6 +2622,10 @@ Sélectionnez « {0} » pour établir une connexion.</target>
 {1} is the server name</note>
         <target state="translated">Supprimez « {0} » de « {1} ». Cette action ne peut pas être annulée.</target>
       </trans-unit>
+      <trans-unit id="++CODE++090015e97e08461a02b0915ed446e955928a4686cdc839c66bd9f7781b81d8fb">
+        <source xml:lang="en">Drop Database</source>
+        <target state="new">Drop Database</target>
+      </trans-unit>
       <trans-unit id="++CODE++a9c46777591fc96ccc6c8317280d36c4b68bc04298439cc0e6837ec2ae4bf49c">
         <source xml:lang="en">Drop Database (Preview)</source>
         <target state="translated">Supprimer la base de données (préversion)</target>
@@ -6525,9 +6529,9 @@ Erreur :
         <note>{0} is the object type</note>
         <target state="translated">Supprimer {0}</target>
       </trans-unit>
-      <trans-unit id="++CODE++9f7b45b322d217b0cee6325963502b5a13eb8aa00e3b6330b7099f868f73782f">
-        <source xml:lang="en">Rename Database (Preview)</source>
-        <target state="translated">Créer une base de données (préversion)</target>
+      <trans-unit id="++CODE++90d9ab3255a92db5b378418ece6b230df904cb32837a59f146c96966f659a683">
+        <source xml:lang="en">Rename Database</source>
+        <target state="new">Rename Database</target>
       </trans-unit>
       <trans-unit id="++CODE++3426e6a23fe6e9ab8ec4d59a46f5e26596e94b9712da61c7a323e0cb0a6ecd25">
         <source xml:lang="en">Renaming database '{0}' to '{1}'...</source>
@@ -9566,8 +9570,8 @@ Une fois vos modifications terminées, cliquez sur le bouton « Publier » pou
         <target state="translated">Ne pas afficher les invites pour afficher les résultats de la requête dans un nouvel onglet.</target>
       </trans-unit>
       <trans-unit id="mssql.dropDatabase">
-        <source xml:lang="en">Drop Database (Preview)...</source>
-        <target state="translated">Suppression de la base de données (Aperçu)...</target>
+        <source xml:lang="en">Drop Database...</source>
+        <target state="new">Drop Database...</target>
       </trans-unit>
       <trans-unit id="mssql.connectionGroups.edit">
         <source xml:lang="en">Edit Connection Group</source>
@@ -9818,8 +9822,8 @@ Vous pouvez vous connecter à une base de données en entrant vos informations d
         <target state="translated">Modifier la structure du tableau...</target>
       </trans-unit>
       <trans-unit id="mssql.createDatabase">
-        <source xml:lang="en">New Database (Preview)...</source>
-        <target state="translated">Nouvelle base de données (Aperçu)...</target>
+        <source xml:lang="en">New Database...</source>
+        <target state="new">New Database...</target>
       </trans-unit>
       <trans-unit id="mssql.newDeployment">
         <source xml:lang="en">New Deployment</source>
@@ -9940,8 +9944,8 @@ Commencez par cliquer sur le bouton de filtre à côté de la plupart des dossie
         <target state="translated">Supprimer le compte Microsoft Entra</target>
       </trans-unit>
       <trans-unit id="mssql.renameDatabase">
-        <source xml:lang="en">Rename Database (Preview)...</source>
-        <target state="translated">Renommer la base de données (Aperçu)...</target>
+        <source xml:lang="en">Rename Database...</source>
+        <target state="new">Rename Database...</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
         <source xml:lang="en">Replication</source>
