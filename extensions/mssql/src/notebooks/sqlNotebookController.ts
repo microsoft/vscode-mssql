@@ -465,9 +465,16 @@ export class SqlNotebookController implements vscode.Disposable {
                 execution.end(false, Date.now());
                 activity.end(ActivityStatus.Canceled);
             } else {
+                const hasErrors = result.batches.some(
+                    (b) => b.hasError || b.messages.some((m) => m.isError),
+                );
                 execution.replaceOutput(outputs);
-                execution.end(true, Date.now());
-                activity.end(ActivityStatus.Succeeded);
+                execution.end(!hasErrors, Date.now());
+                if (hasErrors) {
+                    activity.endFailed(new Error("Query returned errors"));
+                } else {
+                    activity.end(ActivityStatus.Succeeded);
+                }
             }
         } catch (err: any) {
             execution.replaceOutput([
@@ -494,18 +501,18 @@ export class SqlNotebookController implements vscode.Disposable {
                 .filter((m) => m.isError)
                 .map((m) => m.message);
 
-            if (batch.hasError && errorMessages.length > 0) {
+            // Show error messages when present. We intentionally do NOT gate on
+            // batch.hasError because STS can omit that flag for parse/syntax errors
+            // while still sending error messages with isError=true.
+            if (errorMessages.length > 0) {
                 outputs.push(
                     new vscode.NotebookCellOutput([
-                        vscode.NotebookCellOutputItem.text(
-                            LocalizedConstants.Notebooks.errorPrefix(errorMessages.join(os.EOL)),
-                            MIME_TEXT_PLAIN,
-                        ),
+                        vscode.NotebookCellOutputItem.stderr(errorMessages.join(os.EOL)),
                     ]),
                 );
             }
 
-            // Show non-error messages (PRINT, info, row counts) once before result sets
+            // Show non-error messages (PRINT, info, row counts) before result sets
             if (messages.length > 0) {
                 outputs.push(
                     new vscode.NotebookCellOutput([
@@ -549,8 +556,13 @@ export class SqlNotebookController implements vscode.Disposable {
                 );
             }
 
-            // If no result sets and no messages and no errors, show a generic success message
-            if (batch.resultSets.length === 0 && messages.length === 0 && !batch.hasError) {
+            // Show a generic success message only when the batch produced no
+            // result sets, no informational messages, and no error messages.
+            if (
+                batch.resultSets.length === 0 &&
+                messages.length === 0 &&
+                errorMessages.length === 0
+            ) {
                 outputs.push(
                     new vscode.NotebookCellOutput([
                         vscode.NotebookCellOutputItem.text(
