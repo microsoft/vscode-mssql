@@ -42,8 +42,9 @@ import {
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { locConstants } from "../../common/locConstants";
-import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-default.css";
+import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-fluent.css";
 import "./profiler.css";
+import { baseFluentGridOption } from "../../base-fluent-grid-options";
 
 /** Number of rows to fetch per request */
 const FETCH_SIZE = 100;
@@ -784,6 +785,7 @@ export const Profiler: React.FC = () => {
     // Grid options
     const gridOptions: GridOption = useMemo(
         () => ({
+            ...baseFluentGridOption,
             autoResize: {
                 container: "#profilerGridContainer",
                 calculateAvailableSizeBy: "container",
