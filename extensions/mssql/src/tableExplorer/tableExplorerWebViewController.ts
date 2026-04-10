@@ -39,6 +39,8 @@ import {
     WebviewCompletionRequest,
     WebviewCompletionParams,
     WebviewCompletionResult,
+    WebviewDiagnostic,
+    WebviewDiagnosticsNotification,
     WebviewDocumentSyncNotification,
     WebviewFormatDocumentRequest,
     WebviewFormatDocumentParams,
@@ -479,6 +481,37 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 this.syncDocumentContent(params.ownerUri, params.fullText);
             }
         });
+
+        // Forward LSP diagnostics from STS (delivered via the language client's
+        // DiagnosticCollection) into the webview so the Monaco editor can draw
+        // syntax/semantic squiggles. STS publishes these automatically ~750ms
+        // after each didChange, and the language client feature populates the
+        // collection, which fires onDidChangeDiagnostics. We filter to our
+        // ownerUri and push the full replacement set on every change.
+        this.registerDisposable(
+            vscode.languages.onDidChangeDiagnostics((event) => {
+                const ownerUri = this.state.ownerUri;
+                if (!ownerUri) {
+                    return;
+                }
+                // Compare using the normalized Uri form — vscode's Uri.toString()
+                // canonicalizes scheme, authority, and path encoding, so the raw
+                // input string we stashed in state may not be byte-identical to
+                // the event URI even though they point at the same document.
+                let expected: vscode.Uri;
+                try {
+                    expected = vscode.Uri.parse(ownerUri);
+                } catch {
+                    return;
+                }
+                const expectedKey = expected.toString();
+                const affected = event.uris.some((u) => u.toString() === expectedKey);
+                if (!affected) {
+                    return;
+                }
+                this.publishDiagnosticsToWebview(ownerUri);
+            }),
+        );
 
         this.registerReducer("commitChanges", async (state) => {
             this.logger.verbose(
@@ -2042,6 +2075,54 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 ownerUri,
             });
         }, 2000);
+    }
+
+    /**
+     * Reads the current LSP diagnostics for the Table Explorer's document from
+     * the language client's collection, maps them to Monaco's marker format,
+     * and pushes the full replacement set to the webview. Called in response to
+     * vscode.languages.onDidChangeDiagnostics events filtered by ownerUri.
+     */
+    private publishDiagnosticsToWebview(ownerUri: string): void {
+        let vscodeDiagnostics: readonly vscode.Diagnostic[];
+        try {
+            vscodeDiagnostics = vscode.languages.getDiagnostics(vscode.Uri.parse(ownerUri));
+        } catch (error) {
+            this.logger.verbose(
+                `[Diagnostics] getDiagnostics failed for ${ownerUri}: ${getErrorMessage(error)}`,
+            );
+            return;
+        }
+
+        const mapped: WebviewDiagnostic[] = vscodeDiagnostics.map((d) => ({
+            startLineNumber: d.range.start.line + 1,
+            startColumn: d.range.start.character + 1,
+            endLineNumber: d.range.end.line + 1,
+            endColumn: d.range.end.character + 1,
+            message: d.message,
+            // vscode.DiagnosticSeverity (Error=0, Warning=1, Information=2, Hint=3)
+            // → Monaco MarkerSeverity (Error=8, Warning=4, Info=2, Hint=1).
+            severity:
+                d.severity === vscode.DiagnosticSeverity.Error
+                    ? 8
+                    : d.severity === vscode.DiagnosticSeverity.Warning
+                      ? 4
+                      : d.severity === vscode.DiagnosticSeverity.Information
+                        ? 2
+                        : 1,
+            source: d.source,
+            code:
+                typeof d.code === "string" || typeof d.code === "number"
+                    ? String(d.code)
+                    : d.code?.value !== undefined
+                      ? String(d.code.value)
+                      : undefined,
+        }));
+
+        void this.sendNotification(WebviewDiagnosticsNotification.type, {
+            ownerUri,
+            diagnostics: mapped,
+        });
     }
 
     /**
