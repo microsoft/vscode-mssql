@@ -189,10 +189,33 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             this._preserveTableQuery = false;
             this.updateState();
         } else {
-            // Server reported the session failed without a user cancel (e.g. a runtime
-            // error in the custom query). Clear the in-flight flag so the UI can recover.
+            // Server reported the session failed without a user cancel (e.g. a syntax
+            // error, multi-table/duplicate-column query, or missing object). Surface the
+            // failure to the user and flip the grid out of its Loading state so the
+            // custom query editor can be fixed and re-run. Leave tableQuery intact so
+            // the user's typed text isn't lost.
+            // STS's EditSession surfaces human-readable messages for the cases we
+            // care about here ("EditData queries targeting multiple tables are not
+            // supported", "EditData queries with duplicate columns are not
+            // supported", syntax errors, missing object, etc.). Pass the server
+            // message through verbatim so the user sees the same text STS intended,
+            // and only fall back to our generic wrapper when the server didn't
+            // supply one.
+            const serverMessage = result.message?.trim() ?? "";
+            const toastMessage =
+                serverMessage.length > 0
+                    ? serverMessage
+                    : LocConstants.TableExplorer.failedToRunTableQuery("");
+            this.logger.error(
+                `Edit session failed to initialize: ${toastMessage} - OperationId: ${this.operationId}`,
+            );
+            this.state.loadStatus = ApiStatus.Error;
+            this.state.resultSet = undefined;
             this.state.isCustomQueryRunning = false;
+            this._preserveTableQuery = false;
             this.updateState();
+
+            void vscode.window.showErrorMessage(toastMessage);
         }
     }
 
@@ -314,21 +337,39 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     }
 
     private async loadResultSet(): Promise<void> {
-        const subsetResult = await this._tableExplorerService.subset(
-            this.state.ownerUri,
-            0,
-            this.state.currentRowCount,
-        );
-        this.state.resultSet = subsetResult;
-        this.state.loadStatus = ApiStatus.Loaded;
+        try {
+            const subsetResult = await this._tableExplorerService.subset(
+                this.state.ownerUri,
+                0,
+                this.state.currentRowCount,
+            );
+            this.state.resultSet = subsetResult;
+            this.state.loadStatus = ApiStatus.Loaded;
 
-        if (this._preserveTableQuery) {
+            if (this._preserveTableQuery) {
+                this._preserveTableQuery = false;
+            } else {
+                this.state.tableQuery = this.buildDefaultSelectQuery();
+            }
+
+            this.updateState();
+        } catch (error) {
+            // subset() is invoked fire-and-forget from onEditSessionReady, so an
+            // unhandled rejection here would leave the grid stuck in the Loading
+            // overlay forever. Surface the failure and drop the stale result set
+            // so the UI can transition to the error state.
+            this.logger.error(
+                `Error loading result set: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+            );
+            this.state.loadStatus = ApiStatus.Error;
+            this.state.resultSet = undefined;
             this._preserveTableQuery = false;
-        } else {
-            this.state.tableQuery = this.buildDefaultSelectQuery();
-        }
+            this.updateState();
 
-        this.updateState();
+            void vscode.window.showErrorMessage(
+                LocConstants.TableExplorer.failedToLoadData(getErrorMessage(error)),
+            );
+        }
     }
 
     /**
