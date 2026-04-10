@@ -86,6 +86,18 @@ const useStyles = makeStyles({
     },
 });
 
+/**
+ * Rewrites the numeric operand of an existing `SELECT TOP N` / `TOP (N)` clause.
+ * Returns the original string unchanged when no rewritable TOP clause is present.
+ */
+const rewriteTopRowCount = (query: string, newCount: number): string => {
+    return query.replace(
+        /(\bSELECT\b(?:\s+(?:ALL|DISTINCT))?\s+TOP\s*\(?\s*)(\d+)(\s*\)?)(?!\s*PERCENT)/i,
+        (_match: string, prefix: string, _oldCount: string, suffix: string) =>
+            `${prefix}${newCount}${suffix}`,
+    );
+};
+
 export const TableExplorerPage: React.FC = () => {
     const classes = useStyles();
     const context = useTableExplorerContext();
@@ -111,11 +123,36 @@ export const TableExplorerPage: React.FC = () => {
 
     const { beforeMount, onContentChange } = useMonacoSqlIntellisense(ownerUri, extensionRpc);
 
+    // Track the editor's current text in a ref so React state changes never
+    // round-trip through Monaco's `value` prop. The @monaco-editor/react value
+    // sync calls executeEdits with forceMoveMarkers on any prop/model mismatch,
+    // which slams the cursor to the end of the document — using a ref keeps
+    // Monaco fully uncontrolled while typing.
+    const editableQueryRef = useRef<string>("");
+    const lastSyncedTableQueryRef = useRef<string | undefined>(undefined);
+    const editorRef = useRef<import("monaco-editor").editor.IStandaloneCodeEditor | null>(null);
+    const shouldFocusEditorRef = useRef(false);
+    const [isQueryEmpty, setIsQueryEmpty] = useState(true);
+
     const handleEditorMount = useCallback(
         (
             editor: import("monaco-editor").editor.IStandaloneCodeEditor,
             monaco: typeof import("monaco-editor"),
         ) => {
+            editorRef.current = editor;
+            editor.onDidDispose(() => {
+                if (editorRef.current === editor) {
+                    editorRef.current = null;
+                }
+            });
+
+            // If the pane became active before the editor finished mounting,
+            // honour the deferred focus request now.
+            if (shouldFocusEditorRef.current) {
+                shouldFocusEditorRef.current = false;
+                editor.focus();
+            }
+
             // Register clipboard keybindings so copy/cut/paste work in VS Code webviews
             editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyC, () => {
                 const selection = editor.getSelection();
@@ -160,16 +197,112 @@ export const TableExplorerPage: React.FC = () => {
                 }
             });
 
-            editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyV, () => {
-                void navigator.clipboard
+            // Shared paste implementation — used by the Ctrl+V action, the
+            // context-menu click interceptor, and the execCommand override
+            // further down. Reads from navigator.clipboard (which works in
+            // webviews, unlike document.execCommand("paste")) and types the
+            // text into the editor at the current cursor / replaces the
+            // current selection.
+            const pasteFromClipboard = () => {
+                return navigator.clipboard
                     .readText()
                     .then((text) => {
+                        if (!text) {
+                            return;
+                        }
+                        editor.focus();
                         editor.trigger("keyboard", "type", { text });
                     })
                     .catch(() => {
-                        // Swallow clipboard read failures (e.g. permission denied) so
-                        // they don't surface as unhandled promise rejections.
+                        // Swallow clipboard read failures (e.g. permission
+                        // denied) so they don't surface as unhandled promise
+                        // rejections.
                     });
+            };
+
+            // Keep the Ctrl+V keybinding wired to pasteFromClipboard. We
+            // deliberately do NOT pass contextMenuGroupId here — Monaco's
+            // built-in Paste entry already appears in the context menu, and
+            // adding a second one would render a duplicate that's painful to
+            // reliably remove across Monaco DOM shapes. The click interceptor
+            // below redirects clicks on the built-in menu item to our handler
+            // instead.
+            editor.addAction({
+                id: "mssql.tableExplorer.pasteOverride",
+                label: "Paste",
+                keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyV],
+                run: () => pasteFromClipboard(),
+            });
+
+            // Redirect Monaco's built-in Paste action to our clipboard-based
+            // implementation by intercepting the one call it ultimately makes:
+            // document.execCommand("paste"). Browsers block that command in
+            // webview sandboxes, so the built-in menu item and palette entry
+            // silently fail. Every other code path for pasting in this webview
+            // goes through our own Ctrl+V action, so the only caller we expect
+            // to see for the "paste" command is Monaco itself — hijacking it
+            // is safe and class-name-agnostic (previous attempts at DOM
+            // selectors kept drifting across Monaco versions).
+            //
+            // We stash the original so onDidDispose can restore it if the
+            // editor is ever torn down while the webview stays alive.
+            const originalExecCommand = document.execCommand.bind(document);
+            const interceptedExecCommand = function (
+                this: Document,
+                commandId: string,
+                showUI?: boolean,
+                value?: string,
+            ): boolean {
+                if (commandId === "paste") {
+                    void pasteFromClipboard();
+                    // Return true so Monaco thinks the paste succeeded and
+                    // doesn't try any fallback behaviour.
+                    return true;
+                }
+                return originalExecCommand(commandId, showUI, value);
+            };
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (document as any).execCommand = interceptedExecCommand;
+            editor.onDidDispose(() => {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (document as any).execCommand = originalExecCommand;
+            });
+
+            // Monaco in this webview renders the context menu inside an OPEN
+            // Shadow DOM attached to a <div class="shadow-root-host">. When a
+            // click happens inside an open shadow root, the event.target seen
+            // from listeners outside the shadow boundary is retargeted to the
+            // host element — so document.querySelector / closest() against
+            // ".context-view" or "[role=menuitem]" can't see the menu items.
+            // event.composedPath() is the one API that returns the full path
+            // through shadow roots, which is how we find the actual clicked
+            // menu item and match it by label.
+            const pasteClickInterceptor = (evt: MouseEvent) => {
+                const path = evt.composedPath();
+                for (const node of path) {
+                    if (!(node instanceof Element)) {
+                        continue;
+                    }
+                    const role = node.getAttribute?.("role");
+                    const hasMenuItemClass =
+                        node.classList?.contains("action-menu-item") ||
+                        node.classList?.contains("action-item") ||
+                        node.classList?.contains("action-label");
+                    if (role !== "menuitem" && !hasMenuItemClass) {
+                        continue;
+                    }
+                    const label =
+                        node.querySelector?.(".action-label")?.textContent?.trim() ??
+                        node.textContent?.trim();
+                    if (label === "Paste") {
+                        void pasteFromClipboard();
+                        return;
+                    }
+                }
+            };
+            document.addEventListener("click", pasteClickInterceptor, true);
+            editor.onDidDispose(() => {
+                document.removeEventListener("click", pasteClickInterceptor, true);
             });
 
             // Handle Tab at window capture phase — this fires BEFORE document capture,
@@ -224,18 +357,63 @@ export const TableExplorerPage: React.FC = () => {
         [],
     );
 
-    const [editableQuery, setEditableQuery] = useState("");
-
-    // Sync editableQuery when tableQuery from state changes
+    // Sync editor content from tableQuery only when the reducer updates it
+    // externally (initial data load, running a custom query). Imperative
+    // setValue keeps the editor uncontrolled during normal typing.
     useEffect(() => {
-        if (tableQuery !== undefined) {
-            setEditableQuery(tableQuery);
+        if (tableQuery === undefined) {
+            return;
+        }
+        if (tableQuery === lastSyncedTableQueryRef.current) {
+            return;
+        }
+        lastSyncedTableQueryRef.current = tableQuery;
+        editableQueryRef.current = tableQuery;
+        setIsQueryEmpty(!tableQuery.trim());
+
+        const editor = editorRef.current;
+        if (editor && editor.getValue() !== tableQuery) {
+            editor.setValue(tableQuery);
         }
     }, [tableQuery]);
+
+    // Focus the Monaco editor whenever the Table Query tab becomes active so
+    // the user can start editing without an extra click. The editor may not be
+    // mounted yet on the first activation, so we retry once it's available.
+    useEffect(() => {
+        if (!showScriptPane || sqlPaneMode !== SqlPaneMode.TableQuery) {
+            return;
+        }
+        const editor = editorRef.current;
+        if (editor) {
+            editor.focus();
+        } else {
+            shouldFocusEditorRef.current = true;
+        }
+    }, [showScriptPane, sqlPaneMode]);
 
     const gridRef = useRef<TableDataGridRef>(null);
     const [cellChangeCount, setCellChangeCount] = React.useState(0);
     const [deletionCount, setDeletionCount] = React.useState(0);
+
+    // When a TOP clause is present in the current query, rewrite it with the new
+    // count and re-execute via runTableQuery so the underlying edit session is
+    // re-initialized (the existing session is limited to the rows returned by the
+    // original query and cannot supply additional rows). Fall back to loadSubset
+    // when no TOP clause is detected.
+    const handleLoadSubset = useCallback(
+        (rowCount: number) => {
+            if (tableQuery) {
+                const updatedQuery = rewriteTopRowCount(tableQuery, rowCount);
+                if (updatedQuery !== tableQuery) {
+                    context.runTableQuery(updatedQuery);
+                    return;
+                }
+            }
+            context.loadSubset(rowCount);
+        },
+        [tableQuery, context],
+    );
 
     // Clear cell highlights when the query changes (pending changes are stale)
     useEffect(() => {
@@ -265,7 +443,7 @@ export const TableExplorerPage: React.FC = () => {
                             cellChangeCount={cellChangeCount}
                             deletionCount={deletionCount}
                             currentRowCount={currentRowCount}
-                            onLoadSubset={context?.loadSubset}
+                            onLoadSubset={handleLoadSubset}
                         />
                         {resultSet ? (
                             <div className={classes.dataGridContainer}>
@@ -333,7 +511,7 @@ export const TableExplorerPage: React.FC = () => {
                                                 width={"100%"}
                                                 language="sql"
                                                 themeKind={themeKind}
-                                                value={editableQuery}
+                                                defaultValue={editableQueryRef.current}
                                                 options={{
                                                     readOnly: false,
                                                     fixedOverflowWidgets: true,
@@ -341,7 +519,8 @@ export const TableExplorerPage: React.FC = () => {
                                                 }}
                                                 onChange={(value) => {
                                                     const text = value ?? "";
-                                                    setEditableQuery(text);
+                                                    editableQueryRef.current = text;
+                                                    setIsQueryEmpty(!text.trim());
                                                     onContentChange(text);
                                                 }}
                                                 onMount={handleEditorMount}
@@ -355,8 +534,10 @@ export const TableExplorerPage: React.FC = () => {
                                                 size="small"
                                                 appearance="primary"
                                                 icon={<PlayRegular />}
-                                                onClick={() => context.runTableQuery(editableQuery)}
-                                                disabled={!editableQuery.trim() || isLoading}>
+                                                onClick={() =>
+                                                    context.runTableQuery(editableQueryRef.current)
+                                                }
+                                                disabled={isQueryEmpty || isLoading}>
                                                 {loc.tableExplorer.runQuery}
                                             </Button>
                                             <Button

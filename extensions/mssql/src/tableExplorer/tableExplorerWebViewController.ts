@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as os from "os";
 import * as vscode from "vscode";
 import { WebviewPanelController } from "../controllers/webviewPanelController";
 import {
@@ -23,6 +24,8 @@ import {
     DidChangeTextDocumentNotification,
     DidCloseTextDocumentNotification,
     DidOpenTextDocumentNotification,
+    DocumentFormattingRequest,
+    DocumentRangeFormattingRequest,
 } from "vscode-languageclient";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import * as LocConstants from "../constants/locConstants";
@@ -36,7 +39,13 @@ import {
     WebviewCompletionRequest,
     WebviewCompletionParams,
     WebviewCompletionResult,
+    WebviewDiagnostic,
+    WebviewDiagnosticsNotification,
     WebviewDocumentSyncNotification,
+    WebviewFormatDocumentRequest,
+    WebviewFormatDocumentParams,
+    WebviewFormatDocumentResult,
+    WebviewFormatTextEdit,
     mapLspKindToMonaco,
 } from "../sharedInterfaces/webviewLanguageService";
 import {
@@ -182,10 +191,33 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             this._preserveTableQuery = false;
             this.updateState();
         } else {
-            // Server reported the session failed without a user cancel (e.g. a runtime
-            // error in the custom query). Clear the in-flight flag so the UI can recover.
+            // Server reported the session failed without a user cancel (e.g. a syntax
+            // error, multi-table/duplicate-column query, or missing object). Surface the
+            // failure to the user and flip the grid out of its Loading state so the
+            // custom query editor can be fixed and re-run. Leave tableQuery intact so
+            // the user's typed text isn't lost.
+            // STS's EditSession surfaces human-readable messages for the cases we
+            // care about here ("EditData queries targeting multiple tables are not
+            // supported", "EditData queries with duplicate columns are not
+            // supported", syntax errors, missing object, etc.). Pass the server
+            // message through verbatim so the user sees the same text STS intended,
+            // and only fall back to our generic wrapper when the server didn't
+            // supply one.
+            const serverMessage = result.message?.trim() ?? "";
+            const toastMessage =
+                serverMessage.length > 0
+                    ? serverMessage
+                    : LocConstants.TableExplorer.failedToRunTableQuery("");
+            this.logger.error(
+                `Edit session failed to initialize: ${toastMessage} - OperationId: ${this.operationId}`,
+            );
+            this.state.loadStatus = ApiStatus.Error;
+            this.state.resultSet = undefined;
             this.state.isCustomQueryRunning = false;
+            this._preserveTableQuery = false;
             this.updateState();
+
+            void vscode.window.showErrorMessage(toastMessage);
         }
     }
 
@@ -307,26 +339,49 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     }
 
     private async loadResultSet(): Promise<void> {
-        const subsetResult = await this._tableExplorerService.subset(
-            this.state.ownerUri,
-            0,
-            this.state.currentRowCount,
-        );
-        this.state.resultSet = subsetResult;
-        this.state.loadStatus = ApiStatus.Loaded;
+        try {
+            const subsetResult = await this._tableExplorerService.subset(
+                this.state.ownerUri,
+                0,
+                this.state.currentRowCount,
+            );
+            this.state.resultSet = subsetResult;
+            this.state.loadStatus = ApiStatus.Loaded;
 
-        if (this._preserveTableQuery) {
+            if (this._preserveTableQuery) {
+                this._preserveTableQuery = false;
+            } else {
+                this.state.tableQuery = this.buildDefaultSelectQuery();
+            }
+
+            this.updateState();
+        } catch (error) {
+            // subset() is invoked fire-and-forget from onEditSessionReady, so an
+            // unhandled rejection here would leave the grid stuck in the Loading
+            // overlay forever. Surface the failure and drop the stale result set
+            // so the UI can transition to the error state.
+            this.logger.error(
+                `Error loading result set: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+            );
+            this.state.loadStatus = ApiStatus.Error;
+            this.state.resultSet = undefined;
             this._preserveTableQuery = false;
-        } else {
-            this.state.tableQuery = this.buildDefaultSelectQuery();
-        }
+            this.updateState();
 
-        this.updateState();
+            void vscode.window.showErrorMessage(
+                LocConstants.TableExplorer.failedToLoadData(getErrorMessage(error)),
+            );
+        }
     }
 
     /**
      * Builds a default SELECT query based on the current result set columns and table metadata.
-     * Format: SELECT TOP {currentRowCount} [col1], [col2], ... FROM [schema].[table]
+     * Format:
+     *   SELECT TOP {currentRowCount}
+     *       [col1],
+     *       [col2],
+     *       ...
+     *   FROM [schema].[table]
      */
     private buildDefaultSelectQuery(): string {
         const columns = this.state.resultSet?.columnInfo;
@@ -334,7 +389,9 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             return "";
         }
 
-        const columnList = columns.map((col) => bracketEscapeSqlIdentifier(col.name)).join(", ");
+        const columnList = columns
+            .map((col) => `    ${bracketEscapeSqlIdentifier(col.name)}`)
+            .join("," + os.EOL);
         const schemaName = this.state.schemaName;
         const tableName = this.state.tableName;
         const escapedTable = bracketEscapeSqlIdentifier(tableName);
@@ -342,7 +399,44 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             ? `${bracketEscapeSqlIdentifier(schemaName)}.${escapedTable}`
             : escapedTable;
 
-        return `SELECT TOP ${this.state.currentRowCount} ${columnList}\nFROM ${qualifiedName}`;
+        return `SELECT TOP ${this.state.currentRowCount}${os.EOL}${columnList}${os.EOL}FROM ${qualifiedName}`;
+    }
+
+    /**
+     * Extracts the numeric row count from a `SELECT TOP N` / `SELECT TOP (N)`
+     * clause. Returns undefined when no TOP is present, when PERCENT/WITH TIES
+     * are used, or when the count isn't a plain integer — those cases can't be
+     * meaningfully mirrored into the toolbar's "Total rows to fetch" field.
+     */
+    private static parseTopRowCount(query: string | undefined): number | undefined {
+        if (!query) {
+            return undefined;
+        }
+        // Strip -- line comments and /* ... */ block comments so a commented-out
+        // TOP clause doesn't leak through.
+        const stripped = query.replace(/--[^\n\r]*/g, "").replace(/\/\*[\s\S]*?\*\//g, "");
+        const match =
+            /\bSELECT\b(?:\s+(?:ALL|DISTINCT))?\s+TOP\s*\(?\s*(\d+)\s*\)?(?!\s*PERCENT)/i.exec(
+                stripped,
+            );
+        if (!match) {
+            return undefined;
+        }
+        const value = parseInt(match[1], 10);
+        return Number.isFinite(value) && value > 0 ? value : undefined;
+    }
+
+    /**
+     * Rewrites the numeric operand of an existing `SELECT TOP N` / `TOP (N)`
+     * clause without disturbing the rest of the query. Returns the original
+     * string unchanged if no rewritable TOP clause is present.
+     */
+    private static rewriteTopRowCount(query: string, newCount: number): string {
+        return query.replace(
+            /(\bSELECT\b(?:\s+(?:ALL|DISTINCT))?\s+TOP\s*\(?\s*)(\d+)(\s*\)?)(?!\s*PERCENT)/i,
+            (_match, prefix: string, _oldCount: string, suffix: string) =>
+                `${prefix}${newCount}${suffix}`,
+        );
     }
 
     /**
@@ -352,7 +446,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     private async regenerateScript(state: TableExplorerWebViewState): Promise<void> {
         try {
             const scriptResult = await this._tableExplorerService.generateScripts(state.ownerUri);
-            const combinedScript = scriptResult.scripts?.join("\n") || "";
+            const combinedScript = scriptResult.scripts?.join(os.EOL) || "";
             state.updateScript = combinedScript;
             this.updateState();
             this.logger.verbose("Script regenerated successfully in real-time");
@@ -376,6 +470,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             return await this.handleCompletionRequest(params);
         });
 
+        this.onRequest(WebviewFormatDocumentRequest.type, async (params) => {
+            return await this.handleFormatDocumentRequest(params);
+        });
+
         // Sync document content on every editor change so the STS always has
         // up-to-date text before completion requests arrive.
         this.onNotification(WebviewDocumentSyncNotification.type, (params) => {
@@ -383,6 +481,37 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 this.syncDocumentContent(params.ownerUri, params.fullText);
             }
         });
+
+        // Forward LSP diagnostics from STS (delivered via the language client's
+        // DiagnosticCollection) into the webview so the Monaco editor can draw
+        // syntax/semantic squiggles. STS publishes these automatically ~750ms
+        // after each didChange, and the language client feature populates the
+        // collection, which fires onDidChangeDiagnostics. We filter to our
+        // ownerUri and push the full replacement set on every change.
+        this.registerDisposable(
+            vscode.languages.onDidChangeDiagnostics((event) => {
+                const ownerUri = this.state.ownerUri;
+                if (!ownerUri) {
+                    return;
+                }
+                // Compare using the normalized Uri form — vscode's Uri.toString()
+                // canonicalizes scheme, authority, and path encoding, so the raw
+                // input string we stashed in state may not be byte-identical to
+                // the event URI even though they point at the same document.
+                let expected: vscode.Uri;
+                try {
+                    expected = vscode.Uri.parse(ownerUri);
+                } catch {
+                    return;
+                }
+                const expectedKey = expected.toString();
+                const affected = event.uris.some((u) => u.toString() === expectedKey);
+                if (!affected) {
+                    return;
+                }
+                this.publishDiagnosticsToWebview(ownerUri);
+            }),
+        );
 
         this.registerReducer("commitChanges", async (state) => {
             this.logger.verbose(
@@ -492,6 +621,21 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
                 state.currentRowCount = payload.rowCount;
                 state.loadStatus = ApiStatus.Loaded;
+
+                // Mirror the new row count into the query's TOP clause so the
+                // editor stays in sync with the toolbar. We only rewrite when a
+                // TOP clause is already present — injecting one into a custom
+                // query that intentionally omitted it would silently change the
+                // user's intent.
+                if (state.tableQuery) {
+                    const updatedQuery = TableExplorerWebViewController.rewriteTopRowCount(
+                        state.tableQuery,
+                        payload.rowCount,
+                    );
+                    if (updatedQuery !== state.tableQuery) {
+                        state.tableQuery = updatedQuery;
+                    }
+                }
 
                 this.updateState();
 
@@ -1155,7 +1299,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 );
 
                 // Combine script array into single string
-                const combinedScript = scriptResult.scripts?.join("\n") || "";
+                const combinedScript = scriptResult.scripts?.join(os.EOL) || "";
                 this.logger.verbose(
                     `Script result received: ${scriptResult.scripts?.length} script(s), combined length: ${combinedScript.length} - OperationId: ${this.operationId}`,
                 );
@@ -1529,6 +1673,17 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 state.tableQuery = payload.queryString;
                 this._preserveTableQuery = true;
 
+                // Mirror the query's TOP N into the toolbar's "Total rows to fetch"
+                // so the two stay visually in sync after a custom query runs. Only
+                // applies when the query exposes a plain integer TOP count — see
+                // parseTopRowCount for the cases we deliberately ignore.
+                const parsedTop = TableExplorerWebViewController.parseTopRowCount(
+                    payload.queryString,
+                );
+                if (parsedTop !== undefined) {
+                    state.currentRowCount = parsedTop;
+                }
+
                 this.logger.verbose(
                     `Custom query session re-initialized successfully - OperationId: ${this.operationId}`,
                 );
@@ -1801,6 +1956,80 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     }
 
     /**
+     * Handles a document/range formatting request from the webview Monaco editor
+     * by forwarding it to the SQL Tools Service and mapping the results back to
+     * Monaco's 1-based range convention.
+     */
+    private async handleFormatDocumentRequest(
+        params: WebviewFormatDocumentParams,
+    ): Promise<WebviewFormatDocumentResult> {
+        const ownerUri = params.ownerUri;
+        const client = this._tableExplorerService.sqlToolsClient;
+
+        if (!ownerUri) {
+            return { edits: [] };
+        }
+
+        if (!this._connectionManager.isConnected(ownerUri)) {
+            return { edits: [] };
+        }
+
+        try {
+            this.syncDocumentContent(ownerUri, params.fullText);
+
+            const lspOptions = {
+                tabSize: params.options.tabSize,
+                insertSpaces: params.options.insertSpaces,
+            };
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            let lspEdits: any[] | null;
+            if (params.range) {
+                lspEdits = await client.sendRequest(DocumentRangeFormattingRequest.type, {
+                    textDocument: { uri: ownerUri },
+                    options: lspOptions,
+                    range: {
+                        start: {
+                            line: params.range.startLineNumber - 1,
+                            character: params.range.startColumn - 1,
+                        },
+                        end: {
+                            line: params.range.endLineNumber - 1,
+                            character: params.range.endColumn - 1,
+                        },
+                    },
+                });
+            } else {
+                lspEdits = await client.sendRequest(DocumentFormattingRequest.type, {
+                    textDocument: { uri: ownerUri },
+                    options: lspOptions,
+                });
+            }
+
+            if (!lspEdits || lspEdits.length === 0) {
+                return { edits: [] };
+            }
+
+            const edits: WebviewFormatTextEdit[] = lspEdits.map((edit) => ({
+                range: {
+                    startLineNumber: edit.range.start.line + 1,
+                    startColumn: edit.range.start.character + 1,
+                    endLineNumber: edit.range.end.line + 1,
+                    endColumn: edit.range.end.character + 1,
+                },
+                text: edit.newText ?? "",
+            }));
+
+            return { edits };
+        } catch (error) {
+            this.logger.error(
+                `[Formatter] handleFormatDocumentRequest failed: ${getErrorMessage(error)}`,
+            );
+            return { edits: [] };
+        }
+    }
+
+    /**
      * Opens the language service document in the STS workspace so that
      * PrepopulateCommonMetadata can find the ScriptFile and pre-load
      * table/column metadata when the connection is established.
@@ -1849,6 +2078,54 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     }
 
     /**
+     * Reads the current LSP diagnostics for the Table Explorer's document from
+     * the language client's collection, maps them to Monaco's marker format,
+     * and pushes the full replacement set to the webview. Called in response to
+     * vscode.languages.onDidChangeDiagnostics events filtered by ownerUri.
+     */
+    private publishDiagnosticsToWebview(ownerUri: string): void {
+        let vscodeDiagnostics: readonly vscode.Diagnostic[];
+        try {
+            vscodeDiagnostics = vscode.languages.getDiagnostics(vscode.Uri.parse(ownerUri));
+        } catch (error) {
+            this.logger.verbose(
+                `[Diagnostics] getDiagnostics failed for ${ownerUri}: ${getErrorMessage(error)}`,
+            );
+            return;
+        }
+
+        const mapped: WebviewDiagnostic[] = vscodeDiagnostics.map((d) => ({
+            startLineNumber: d.range.start.line + 1,
+            startColumn: d.range.start.character + 1,
+            endLineNumber: d.range.end.line + 1,
+            endColumn: d.range.end.character + 1,
+            message: d.message,
+            // vscode.DiagnosticSeverity (Error=0, Warning=1, Information=2, Hint=3)
+            // → Monaco MarkerSeverity (Error=8, Warning=4, Info=2, Hint=1).
+            severity:
+                d.severity === vscode.DiagnosticSeverity.Error
+                    ? 8
+                    : d.severity === vscode.DiagnosticSeverity.Warning
+                      ? 4
+                      : d.severity === vscode.DiagnosticSeverity.Information
+                        ? 2
+                        : 1,
+            source: d.source,
+            code:
+                typeof d.code === "string" || typeof d.code === "number"
+                    ? String(d.code)
+                    : d.code?.value !== undefined
+                      ? String(d.code.value)
+                      : undefined,
+        }));
+
+        void this.sendNotification(WebviewDiagnosticsNotification.type, {
+            ownerUri,
+            diagnostics: mapped,
+        });
+    }
+
+    /**
      * Syncs the editor document content with the SQL Tools Service.
      * Sends a didChange with a range covering the entire previous document.
      */
@@ -1861,7 +2138,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         const prevEnd = this._documentEndPosition.get(ownerUri) ?? { line: 0, character: 0 };
 
         // Track the new content's end position for the next change
-        const lines = text.split("\n");
+        const lines = text.split(os.EOL);
         this._documentEndPosition.set(ownerUri, {
             line: lines.length - 1,
             character: lines[lines.length - 1].length,

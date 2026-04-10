@@ -57,6 +57,100 @@ export namespace WebviewCompletionRequest {
     );
 }
 
+// ------------------------------- < Webview Format Document > ------------------------------------
+
+/**
+ * A text edit returned by the SQL Tools Service formatter, in Monaco's
+ * 1-based range convention.
+ */
+export interface WebviewFormatTextEdit {
+    range: {
+        startLineNumber: number;
+        startColumn: number;
+        endLineNumber: number;
+        endColumn: number;
+    };
+    text: string;
+}
+
+/**
+ * Parameters for a document/range formatting request from a webview Monaco editor.
+ */
+export interface WebviewFormatDocumentParams {
+    /** The ownerUri identifying the connection/session context */
+    ownerUri: string;
+    /** Full editor content — synced to the STS before the formatter runs */
+    fullText: string;
+    /** Formatting options, matching Monaco/LSP FormattingOptions */
+    options: {
+        tabSize: number;
+        insertSpaces: boolean;
+    };
+    /**
+     * Optional selection range for "Format Selection". Monaco 1-based line/column.
+     * When omitted, the whole document is formatted.
+     */
+    range?: {
+        startLineNumber: number;
+        startColumn: number;
+        endLineNumber: number;
+        endColumn: number;
+    };
+}
+
+/**
+ * Result of a webview format request.
+ */
+export interface WebviewFormatDocumentResult {
+    edits: WebviewFormatTextEdit[];
+}
+
+/**
+ * Request type for document formatting from webview Monaco editors.
+ */
+export namespace WebviewFormatDocumentRequest {
+    export const type = new RequestType<
+        WebviewFormatDocumentParams,
+        WebviewFormatDocumentResult,
+        void
+    >("webview/formatDocument");
+}
+
+// ------------------------------- < Webview Diagnostics > ------------------------------------
+
+/**
+ * A single diagnostic produced by the SQL Tools Service, already mapped to
+ * Monaco's 1-based line/column convention and MarkerSeverity scale.
+ */
+export interface WebviewDiagnostic {
+    startLineNumber: number;
+    startColumn: number;
+    endLineNumber: number;
+    endColumn: number;
+    message: string;
+    /** Monaco MarkerSeverity — Error=8, Warning=4, Info=2, Hint=1 */
+    severity: number;
+    source?: string;
+    code?: string;
+}
+
+/**
+ * Parameters for a diagnostics notification pushed from the extension host to
+ * a webview's embedded Monaco editor. The full current set replaces any
+ * previously-applied markers for the same ownerUri.
+ */
+export interface WebviewDiagnosticsParams {
+    ownerUri: string;
+    diagnostics: WebviewDiagnostic[];
+}
+
+/**
+ * Notification type for publishing diagnostics to webview Monaco editors.
+ */
+export namespace WebviewDiagnosticsNotification {
+    export const type = new NotificationType<WebviewDiagnosticsParams>("webview/diagnostics");
+}
+
 // ------------------------------- < Webview Document Sync > ------------------------------------
 
 /**

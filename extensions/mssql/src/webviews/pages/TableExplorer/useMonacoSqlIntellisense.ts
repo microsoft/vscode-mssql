@@ -8,9 +8,14 @@ import { useRef, useCallback, useEffect } from "react";
 import {
     WebviewCompletionRequest,
     WebviewCompletionResult,
+    WebviewDiagnosticsNotification,
     WebviewDocumentSyncNotification,
+    WebviewFormatDocumentRequest,
+    WebviewFormatDocumentResult,
 } from "../../../sharedInterfaces/webviewLanguageService";
 import { WebviewRpc } from "../../common/rpc";
+
+const MONACO_MARKER_OWNER = "mssql-sql-diagnostics";
 
 /**
  * Hook that registers a Monaco SQL completion provider which proxies requests
@@ -37,6 +42,12 @@ export function useMonacoSqlIntellisense(
         ownerUriRef.current = ownerUri;
     }, [ownerUri]);
 
+    // Track the Monaco global so the diagnostics listener (wired via the
+    // webview RPC outside the beforeMount callback) can reach setModelMarkers
+    // without having to re-import monaco-editor.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const monacoRef = useRef<any | null>(null);
+
     const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Cleanup on unmount to prevent provider accumulation when the script pane is toggled
@@ -50,6 +61,43 @@ export function useMonacoSqlIntellisense(
             }
         };
     }, []);
+
+    // Subscribe to diagnostics notifications pushed by the extension host and
+    // apply them as Monaco model markers. STS publishes automatically ~750ms
+    // after each didChange (see DiagnosticsHelper.PublishScriptDiagnostics),
+    // so the squiggles update as the user types without any pull on our side.
+    useEffect(() => {
+        extensionRpc.onNotification(WebviewDiagnosticsNotification.type, (params) => {
+            if (!params || params.ownerUri !== ownerUriRef.current) {
+                return;
+            }
+            const monaco = monacoRef.current;
+            if (!monaco) {
+                return;
+            }
+            const sqlModels = monaco.editor
+                .getModels()
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .filter((m: any) => m.getLanguageId?.() === "sql");
+            if (sqlModels.length === 0) {
+                return;
+            }
+            const markers = params.diagnostics.map((d) => ({
+                startLineNumber: d.startLineNumber,
+                startColumn: d.startColumn,
+                endLineNumber: d.endLineNumber,
+                endColumn: d.endColumn,
+                message: d.message,
+                severity: d.severity,
+                source: d.source,
+                code: d.code,
+            }));
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            sqlModels.forEach((model: any) =>
+                monaco.editor.setModelMarkers(model, MONACO_MARKER_OWNER, markers),
+            );
+        });
+    }, [extensionRpc]);
 
     // Debounce document sync notifications so we don't fire an RPC on every keystroke.
     // Completion requests carry the latest fullText and trigger their own sync on the
@@ -77,6 +125,10 @@ export function useMonacoSqlIntellisense(
 
     const beforeMount: BeforeMount = useCallback(
         (monaco) => {
+            // Cache the Monaco global so the diagnostics subscription can call
+            // setModelMarkers without needing the mount callback to run first.
+            monacoRef.current = monaco;
+
             // Dispose previous providers if re-mounting
             disposablesRef.current.forEach((d) => d.dispose());
             disposablesRef.current = [];
@@ -150,6 +202,104 @@ export function useMonacoSqlIntellisense(
             });
 
             disposablesRef.current.push(completionProvider);
+
+            // Format Document / Format Selection — proxied to STS so the
+            // command palette surfaces these actions for the embedded editor
+            // and the output matches what the main SQL editor produces.
+            const documentFormattingProvider =
+                monaco.languages.registerDocumentFormattingEditProvider("sql", {
+                    displayName: "SQL Tools Service",
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    provideDocumentFormattingEdits: async (
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        model: any,
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        options: any,
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        token: any,
+                    ) => {
+                        const currentUri = ownerUriRef.current;
+                        if (!currentUri) {
+                            return [];
+                        }
+                        try {
+                            const result: WebviewFormatDocumentResult =
+                                await extensionRpc.sendRequest(
+                                    WebviewFormatDocumentRequest.type,
+                                    {
+                                        ownerUri: currentUri,
+                                        fullText: model.getValue(),
+                                        options: {
+                                            tabSize: options.tabSize,
+                                            insertSpaces: options.insertSpaces,
+                                        },
+                                    },
+                                    token,
+                                );
+                            return result.edits.map((edit) => ({
+                                range: edit.range,
+                                text: edit.text,
+                            }));
+                        } catch (error) {
+                            console.error(`[Formatter] provideDocumentFormattingEdits:`, error);
+                            return [];
+                        }
+                    },
+                });
+            disposablesRef.current.push(documentFormattingProvider);
+
+            const rangeFormattingProvider =
+                monaco.languages.registerDocumentRangeFormattingEditProvider("sql", {
+                    displayName: "SQL Tools Service",
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    provideDocumentRangeFormattingEdits: async (
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        model: any,
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        range: any,
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        options: any,
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        token: any,
+                    ) => {
+                        const currentUri = ownerUriRef.current;
+                        if (!currentUri) {
+                            return [];
+                        }
+                        try {
+                            const result: WebviewFormatDocumentResult =
+                                await extensionRpc.sendRequest(
+                                    WebviewFormatDocumentRequest.type,
+                                    {
+                                        ownerUri: currentUri,
+                                        fullText: model.getValue(),
+                                        options: {
+                                            tabSize: options.tabSize,
+                                            insertSpaces: options.insertSpaces,
+                                        },
+                                        range: {
+                                            startLineNumber: range.startLineNumber,
+                                            startColumn: range.startColumn,
+                                            endLineNumber: range.endLineNumber,
+                                            endColumn: range.endColumn,
+                                        },
+                                    },
+                                    token,
+                                );
+                            return result.edits.map((edit) => ({
+                                range: edit.range,
+                                text: edit.text,
+                            }));
+                        } catch (error) {
+                            console.error(
+                                `[Formatter] provideDocumentRangeFormattingEdits:`,
+                                error,
+                            );
+                            return [];
+                        }
+                    },
+                });
+            disposablesRef.current.push(rangeFormattingProvider);
         },
         [extensionRpc],
     );
