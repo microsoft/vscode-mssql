@@ -86,6 +86,18 @@ const useStyles = makeStyles({
     },
 });
 
+/**
+ * Rewrites the numeric operand of an existing `SELECT TOP N` / `TOP (N)` clause.
+ * Returns the original string unchanged when no rewritable TOP clause is present.
+ */
+const rewriteTopRowCount = (query: string, newCount: number): string => {
+    return query.replace(
+        /(\bSELECT\b(?:\s+(?:ALL|DISTINCT))?\s+TOP\s*\(?\s*)(\d+)(\s*\)?)(?!\s*PERCENT)/i,
+        (_match: string, prefix: string, _oldCount: string, suffix: string) =>
+            `${prefix}${newCount}${suffix}`,
+    );
+};
+
 export const TableExplorerPage: React.FC = () => {
     const classes = useStyles();
     const context = useTableExplorerContext();
@@ -288,6 +300,25 @@ export const TableExplorerPage: React.FC = () => {
     const [cellChangeCount, setCellChangeCount] = React.useState(0);
     const [deletionCount, setDeletionCount] = React.useState(0);
 
+    // When a TOP clause is present in the current query, rewrite it with the new
+    // count and re-execute via runTableQuery so the underlying edit session is
+    // re-initialized (the existing session is limited to the rows returned by the
+    // original query and cannot supply additional rows). Fall back to loadSubset
+    // when no TOP clause is detected.
+    const handleLoadSubset = useCallback(
+        (rowCount: number) => {
+            if (tableQuery) {
+                const updatedQuery = rewriteTopRowCount(tableQuery, rowCount);
+                if (updatedQuery !== tableQuery) {
+                    context.runTableQuery(updatedQuery);
+                    return;
+                }
+            }
+            context.loadSubset(rowCount);
+        },
+        [tableQuery, context],
+    );
+
     // Clear cell highlights when the query changes (pending changes are stale)
     useEffect(() => {
         gridRef.current?.clearAllChangeTracking();
@@ -316,7 +347,7 @@ export const TableExplorerPage: React.FC = () => {
                             cellChangeCount={cellChangeCount}
                             deletionCount={deletionCount}
                             currentRowCount={currentRowCount}
-                            onLoadSubset={context?.loadSubset}
+                            onLoadSubset={handleLoadSubset}
                         />
                         {resultSet ? (
                             <div className={classes.dataGridContainer}>
