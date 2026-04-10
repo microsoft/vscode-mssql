@@ -1799,7 +1799,7 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++deba39e2531aa2d4ef487b5740425abeedf2ea1de021e46347bfba33105643b3">
         <source xml:lang="en">Connection: {0}</source>
         <note>{0} is the task connection label</note>
-        <target state="new">Connection: {0}</target>
+        <target state="translated">連接: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++b08ee8f8534ee808b03d2a6534a0f3988a149469b487454af076faf4a3b98a3d">
         <source xml:lang="en">Connections in groups that are not selected will be moved under the root.</source>
@@ -2693,7 +2693,7 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++e451b91d33132634ff0a558d8d40b0e2daa3e392c45f0b75591924534362255d">
         <source xml:lang="en">Elapsed time: {0}</source>
         <note>{0} is the task elapsed time</note>
-        <target state="new">Elapsed time: {0}</target>
+        <target state="translated">經過時間：{0}</target>
       </trans-unit>
       <trans-unit id="++CODE++1e71b5c8f3211f1f01b27341d3ddc6a2ad651800264b495c12b50867f998662c">
         <source xml:lang="en">Enable 'Trust Server Certificate'</source>
@@ -5348,7 +5348,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++ff68b3be0cbfce8037b00dfd3f0edcddfd195bd62aeced39845063dd40d8af10">
         <source xml:lang="en">No background tasks</source>
-        <target state="new">No background tasks</target>
+        <target state="translated">沒有背景工作</target>
       </trans-unit>
       <trans-unit id="++CODE++8dc89c7190143e4d1630ac2bbd2eb03c2f94480f7d5511fb638179da5c0cab43">
         <source xml:lang="en">No backup sets found in the restore plan</source>
@@ -7689,7 +7689,7 @@ Query: {2}</source>
       <trans-unit id="++CODE++30ecb608c5cff9e821a41d28312d0070cbeb3901bc8e32ecefd17171f87dc53a">
         <source xml:lang="en">Source: {0}</source>
         <note>{0} is the task source</note>
-        <target state="new">Source: {0}</target>
+        <target state="translated">來源: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++1e49ea47266ab1130ffc9be417fa6eb62da7299641f30a76e728fe983c25f29d">
         <source xml:lang="en">Specifies whether the column is included in the primary key for the table.</source>
@@ -8045,7 +8045,7 @@ Query: {2}</source>
       <trans-unit id="++CODE++6e7235c51cdbf5d78d6d31be6dab659515a42b307648229060b6afecb346f1be">
         <source xml:lang="en">Target: {0}</source>
         <note>{0} is the task target location</note>
-        <target state="new">Target: {0}</target>
+        <target state="translated">目標: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++ce802c2881fc734c4e0eff3836c5cb3a775844c1c34faabf5d0ff3bd8687b262">
         <source xml:lang="en">Task log is unavailable.</source>
@@ -9267,29 +9267,29 @@ Query: {2}</source>
         <source xml:lang="en">{0}d {1}h</source>
         <note>{0} is the elapsed time in days
 {1} is the remaining elapsed time in hours</note>
-        <target state="new">{0}d {1}h</target>
+        <target state="translated">{0} 天 {1} 小時</target>
       </trans-unit>
       <trans-unit id="++CODE++ef2447cbc8c31cb68e92410fbddc126ba7a4d3b2448d8b55891fd110f2629c4d">
         <source xml:lang="en">{0}h {1}m</source>
         <note>{0} is the elapsed time in hours
 {1} is the remaining elapsed time in minutes</note>
-        <target state="new">{0}h {1}m</target>
+        <target state="translated">{0} 小時 {1} 分鐘</target>
       </trans-unit>
       <trans-unit id="++CODE++b61200fec7f541d54e2092ce39398345e943a9190baac3c9191b540fb359fc41">
         <source xml:lang="en">{0}m {1}s</source>
         <note>{0} is the elapsed time in minutes
 {1} is the remaining elapsed time in seconds</note>
-        <target state="new">{0}m {1}s</target>
+        <target state="translated">{0} 分鐘 {1} 秒</target>
       </trans-unit>
       <trans-unit id="++CODE++7225167ed5e4103e8208032eadc0cd8c8a50960a1d64a94da29046dc04100582">
         <source xml:lang="en">{0}ms</source>
         <note>{0} is the elapsed time in milliseconds</note>
-        <target state="new">{0}ms</target>
+        <target state="translated">{0} 毫秒</target>
       </trans-unit>
       <trans-unit id="++CODE++6798a9a353a86e591c7e67d0de13cc1b13216c95a1d38821b319d1f21823e3b1">
         <source xml:lang="en">{0}s</source>
         <note>{0} is the elapsed time in seconds</note>
-        <target state="new">{0}s</target>
+        <target state="translated">{0} 秒</target>
       </trans-unit>
       <trans-unit id="++CODE++c7c45c2f2ad470c2dc1a35bf3320d977e49bd4f4c804d9bf347d009669e5ebae">
         <source xml:lang="en">{{put-server-name-here}}</source>
@@ -9365,7 +9365,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="extension.backgroundTasks">
         <source xml:lang="en">Background Tasks</source>
-        <target state="new">Background Tasks</target>
+        <target state="translated">背景工作</target>
       </trans-unit>
       <trans-unit id="mssql.backupDatabase">
         <source xml:lang="en">Backup Database...</source>
@@ -9385,7 +9385,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="mssql.cancelBackgroundTask">
         <source xml:lang="en">Cancel Task</source>
-        <target state="new">Cancel Task</target>
+        <target state="translated">取消工作</target>
       </trans-unit>
       <trans-unit id="mssql.changeConnection">
         <source xml:lang="en">Change Connection (MSSQL)</source>
@@ -9429,7 +9429,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="mssql.clearFinishedBackgroundTasks">
         <source xml:lang="en">Clear Finished Tasks</source>
-        <target state="new">Clear Finished Tasks</target>
+        <target state="translated">清除已完成的工作</target>
       </trans-unit>
       <trans-unit id="mssql.clearAzureAccountTokenCache">
         <source xml:lang="en">Clear Microsoft Entra account token cache</source>
@@ -9889,7 +9889,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.openBackgroundTask">
         <source xml:lang="en">Open Task Result</source>
-        <target state="new">Open Task Result</target>
+        <target state="translated">開啟工作結果</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
         <source xml:lang="en">Open in GitHub Copilot Agent</source>
