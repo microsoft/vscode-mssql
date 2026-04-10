@@ -3044,6 +3044,10 @@ Errore:
         <source xml:lang="en">Error: Unable to connect using the connection information provided. Retry profile creation?</source>
         <target state="translated">Errore: non è possibile connettersi usando le informazioni di connessione fornite. Ripetere la creazione del profilo?</target>
       </trans-unit>
+      <trans-unit id="++CODE++321ab91cb44c0a39cbf56a5f42f87fdc7fc2d00e29e2df5619d3e436f20dddc4">
+        <source xml:lang="en">Error: Unrecognized query result data.</source>
+        <target state="new">Error: Unrecognized query result data.</target>
+      </trans-unit>
       <trans-unit id="++CODE++beab8d6b59ef40883dd9887fd21f67e4716b5d4581461c3eae2825e09b698ad0">
         <source xml:lang="en">Error: {0}</source>
         <note>{0} is the error message</note>
