@@ -360,6 +360,43 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     }
 
     /**
+     * Extracts the numeric row count from a `SELECT TOP N` / `SELECT TOP (N)`
+     * clause. Returns undefined when no TOP is present, when PERCENT/WITH TIES
+     * are used, or when the count isn't a plain integer — those cases can't be
+     * meaningfully mirrored into the toolbar's "Total rows to fetch" field.
+     */
+    private static parseTopRowCount(query: string | undefined): number | undefined {
+        if (!query) {
+            return undefined;
+        }
+        // Strip -- line comments and /* ... */ block comments so a commented-out
+        // TOP clause doesn't leak through.
+        const stripped = query.replace(/--[^\n\r]*/g, "").replace(/\/\*[\s\S]*?\*\//g, "");
+        const match =
+            /\bSELECT\b(?:\s+(?:ALL|DISTINCT))?\s+TOP\s*\(?\s*(\d+)\s*\)?(?!\s*PERCENT)/i.exec(
+                stripped,
+            );
+        if (!match) {
+            return undefined;
+        }
+        const value = parseInt(match[1], 10);
+        return Number.isFinite(value) && value > 0 ? value : undefined;
+    }
+
+    /**
+     * Rewrites the numeric operand of an existing `SELECT TOP N` / `TOP (N)`
+     * clause without disturbing the rest of the query. Returns the original
+     * string unchanged if no rewritable TOP clause is present.
+     */
+    private static rewriteTopRowCount(query: string, newCount: number): string {
+        return query.replace(
+            /(\bSELECT\b(?:\s+(?:ALL|DISTINCT))?\s+TOP\s*\(?\s*)(\d+)(\s*\)?)(?!\s*PERCENT)/i,
+            (_match, prefix: string, _oldCount: string, suffix: string) =>
+                `${prefix}${newCount}${suffix}`,
+        );
+    }
+
+    /**
      * Helper method to regenerate the script and update state.
      * Used when script pane is visible and data changes occur.
      */
@@ -510,6 +547,21 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
                 state.currentRowCount = payload.rowCount;
                 state.loadStatus = ApiStatus.Loaded;
+
+                // Mirror the new row count into the query's TOP clause so the
+                // editor stays in sync with the toolbar. We only rewrite when a
+                // TOP clause is already present — injecting one into a custom
+                // query that intentionally omitted it would silently change the
+                // user's intent.
+                if (state.tableQuery) {
+                    const updatedQuery = TableExplorerWebViewController.rewriteTopRowCount(
+                        state.tableQuery,
+                        payload.rowCount,
+                    );
+                    if (updatedQuery !== state.tableQuery) {
+                        state.tableQuery = updatedQuery;
+                    }
+                }
 
                 this.updateState();
 
@@ -1546,6 +1598,17 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 // Persist the custom query so loadResultSet won't overwrite it with the default
                 state.tableQuery = payload.queryString;
                 this._preserveTableQuery = true;
+
+                // Mirror the query's TOP N into the toolbar's "Total rows to fetch"
+                // so the two stay visually in sync after a custom query runs. Only
+                // applies when the query exposes a plain integer TOP count — see
+                // parseTopRowCount for the cases we deliberately ignore.
+                const parsedTop = TableExplorerWebViewController.parseTopRowCount(
+                    payload.queryString,
+                );
+                if (parsedTop !== undefined) {
+                    state.currentRowCount = parsedTop;
+                }
 
                 this.logger.verbose(
                     `Custom query session re-initialized successfully - OperationId: ${this.operationId}`,
