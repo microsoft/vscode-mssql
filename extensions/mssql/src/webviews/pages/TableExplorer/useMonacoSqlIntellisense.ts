@@ -9,6 +9,8 @@ import {
     WebviewCompletionRequest,
     WebviewCompletionResult,
     WebviewDocumentSyncNotification,
+    WebviewFormatDocumentRequest,
+    WebviewFormatDocumentResult,
 } from "../../../sharedInterfaces/webviewLanguageService";
 import { WebviewRpc } from "../../common/rpc";
 
@@ -150,6 +152,104 @@ export function useMonacoSqlIntellisense(
             });
 
             disposablesRef.current.push(completionProvider);
+
+            // Format Document / Format Selection — proxied to STS so the
+            // command palette surfaces these actions for the embedded editor
+            // and the output matches what the main SQL editor produces.
+            const documentFormattingProvider =
+                monaco.languages.registerDocumentFormattingEditProvider("sql", {
+                    displayName: "SQL Tools Service",
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    provideDocumentFormattingEdits: async (
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        model: any,
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        options: any,
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        token: any,
+                    ) => {
+                        const currentUri = ownerUriRef.current;
+                        if (!currentUri) {
+                            return [];
+                        }
+                        try {
+                            const result: WebviewFormatDocumentResult =
+                                await extensionRpc.sendRequest(
+                                    WebviewFormatDocumentRequest.type,
+                                    {
+                                        ownerUri: currentUri,
+                                        fullText: model.getValue(),
+                                        options: {
+                                            tabSize: options.tabSize,
+                                            insertSpaces: options.insertSpaces,
+                                        },
+                                    },
+                                    token,
+                                );
+                            return result.edits.map((edit) => ({
+                                range: edit.range,
+                                text: edit.text,
+                            }));
+                        } catch (error) {
+                            console.error(`[Formatter] provideDocumentFormattingEdits:`, error);
+                            return [];
+                        }
+                    },
+                });
+            disposablesRef.current.push(documentFormattingProvider);
+
+            const rangeFormattingProvider =
+                monaco.languages.registerDocumentRangeFormattingEditProvider("sql", {
+                    displayName: "SQL Tools Service",
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    provideDocumentRangeFormattingEdits: async (
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        model: any,
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        range: any,
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        options: any,
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        token: any,
+                    ) => {
+                        const currentUri = ownerUriRef.current;
+                        if (!currentUri) {
+                            return [];
+                        }
+                        try {
+                            const result: WebviewFormatDocumentResult =
+                                await extensionRpc.sendRequest(
+                                    WebviewFormatDocumentRequest.type,
+                                    {
+                                        ownerUri: currentUri,
+                                        fullText: model.getValue(),
+                                        options: {
+                                            tabSize: options.tabSize,
+                                            insertSpaces: options.insertSpaces,
+                                        },
+                                        range: {
+                                            startLineNumber: range.startLineNumber,
+                                            startColumn: range.startColumn,
+                                            endLineNumber: range.endLineNumber,
+                                            endColumn: range.endColumn,
+                                        },
+                                    },
+                                    token,
+                                );
+                            return result.edits.map((edit) => ({
+                                range: edit.range,
+                                text: edit.text,
+                            }));
+                        } catch (error) {
+                            console.error(
+                                `[Formatter] provideDocumentRangeFormattingEdits:`,
+                                error,
+                            );
+                            return [];
+                        }
+                    },
+                });
+            disposablesRef.current.push(rangeFormattingProvider);
         },
         [extensionRpc],
     );

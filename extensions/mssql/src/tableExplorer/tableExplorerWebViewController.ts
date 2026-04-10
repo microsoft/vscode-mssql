@@ -24,6 +24,8 @@ import {
     DidChangeTextDocumentNotification,
     DidCloseTextDocumentNotification,
     DidOpenTextDocumentNotification,
+    DocumentFormattingRequest,
+    DocumentRangeFormattingRequest,
 } from "vscode-languageclient";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import * as LocConstants from "../constants/locConstants";
@@ -38,6 +40,10 @@ import {
     WebviewCompletionParams,
     WebviewCompletionResult,
     WebviewDocumentSyncNotification,
+    WebviewFormatDocumentRequest,
+    WebviewFormatDocumentParams,
+    WebviewFormatDocumentResult,
+    WebviewFormatTextEdit,
     mapLspKindToMonaco,
 } from "../sharedInterfaces/webviewLanguageService";
 import {
@@ -382,6 +388,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     private registerRpcHandlers(): void {
         this.onRequest(WebviewCompletionRequest.type, async (params) => {
             return await this.handleCompletionRequest(params);
+        });
+
+        this.onRequest(WebviewFormatDocumentRequest.type, async (params) => {
+            return await this.handleFormatDocumentRequest(params);
         });
 
         // Sync document content on every editor change so the STS always has
@@ -1805,6 +1815,80 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 `[IntelliSense] handleCompletionRequest failed: ${getErrorMessage(error)}`,
             );
             return { suggestions: [] };
+        }
+    }
+
+    /**
+     * Handles a document/range formatting request from the webview Monaco editor
+     * by forwarding it to the SQL Tools Service and mapping the results back to
+     * Monaco's 1-based range convention.
+     */
+    private async handleFormatDocumentRequest(
+        params: WebviewFormatDocumentParams,
+    ): Promise<WebviewFormatDocumentResult> {
+        const ownerUri = params.ownerUri;
+        const client = this._tableExplorerService.sqlToolsClient;
+
+        if (!ownerUri) {
+            return { edits: [] };
+        }
+
+        if (!this._connectionManager.isConnected(ownerUri)) {
+            return { edits: [] };
+        }
+
+        try {
+            this.syncDocumentContent(ownerUri, params.fullText);
+
+            const lspOptions = {
+                tabSize: params.options.tabSize,
+                insertSpaces: params.options.insertSpaces,
+            };
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            let lspEdits: any[] | null;
+            if (params.range) {
+                lspEdits = await client.sendRequest(DocumentRangeFormattingRequest.type, {
+                    textDocument: { uri: ownerUri },
+                    options: lspOptions,
+                    range: {
+                        start: {
+                            line: params.range.startLineNumber - 1,
+                            character: params.range.startColumn - 1,
+                        },
+                        end: {
+                            line: params.range.endLineNumber - 1,
+                            character: params.range.endColumn - 1,
+                        },
+                    },
+                });
+            } else {
+                lspEdits = await client.sendRequest(DocumentFormattingRequest.type, {
+                    textDocument: { uri: ownerUri },
+                    options: lspOptions,
+                });
+            }
+
+            if (!lspEdits || lspEdits.length === 0) {
+                return { edits: [] };
+            }
+
+            const edits: WebviewFormatTextEdit[] = lspEdits.map((edit) => ({
+                range: {
+                    startLineNumber: edit.range.start.line + 1,
+                    startColumn: edit.range.start.character + 1,
+                    endLineNumber: edit.range.end.line + 1,
+                    endColumn: edit.range.end.character + 1,
+                },
+                text: edit.newText ?? "",
+            }));
+
+            return { edits };
+        } catch (error) {
+            this.logger.error(
+                `[Formatter] handleFormatDocumentRequest failed: ${getErrorMessage(error)}`,
+            );
+            return { edits: [] };
         }
     }
 
