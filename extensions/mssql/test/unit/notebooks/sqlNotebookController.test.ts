@@ -19,6 +19,7 @@ import type { NotebookQueryResult } from "../../../src/notebooks/notebookQueryEx
 import { NotebookConnectionManager } from "../../../src/notebooks/notebookConnectionManager";
 import { IDbColumn } from "../../../src/models/interfaces";
 import { BatchSummary } from "../../../src/models/contracts/queryExecute";
+import type { NotebookQueryResultOutputData } from "../../../src/sharedInterfaces/notebookQueryResult";
 
 function makeQueryResult(overrides?: Partial<NotebookQueryResult>): NotebookQueryResult {
     return {
@@ -406,9 +407,15 @@ suite("SqlNotebookController", () => {
 
             const outputs = mockExecution.replaceOutput.firstCall
                 .args[0] as vscode.NotebookCellOutput[];
-            expect(outputs).to.have.lengthOf(2);
+            expect(outputs).to.have.lengthOf(1);
             expect(outputs[0].items[0].mime).to.equal("application/vnd.mssql.query-result");
-            expect(getOutputText(outputs[1])).to.equal(
+            const output = getJsonOutput<NotebookQueryResultOutputData>(outputs[0]);
+            expect(output.blocks.map((block) => block.type)).to.deep.equal(["resultSet", "text"]);
+            expect(output.blocks[1]).to.deep.equal({
+                type: "text",
+                text: LocalizedConstants.elapsedTimeLabel("00:00:01.234"),
+            });
+            expect(getOutputText(outputs[0], 1)).to.include(
                 LocalizedConstants.elapsedTimeLabel("00:00:01.234"),
             );
         });
@@ -445,21 +452,20 @@ suite("SqlNotebookController", () => {
 
             const outputs = mockExecution.replaceOutput.firstCall
                 .args[0] as vscode.NotebookCellOutput[];
-            expect(outputs).to.have.lengthOf(3);
+            expect(outputs).to.have.lengthOf(1);
 
-            const firstGrid = getJsonOutput<{ addBottomSpacing?: boolean }>(outputs[0]);
-            const secondGrid = getJsonOutput<{ addBottomSpacing?: boolean }>(outputs[1]);
-            expect(firstGrid.addBottomSpacing).to.be.true;
-            expect(secondGrid.addBottomSpacing).to.be.false;
+            const output = getJsonOutput<NotebookQueryResultOutputData>(outputs[0]);
+            expect(output.blocks.map((block) => block.type)).to.deep.equal([
+                "resultSet",
+                "resultSet",
+                "text",
+            ]);
 
-            const executionTimeOutputs = outputs.filter(
-                (output) =>
-                    getOutputText(output) === LocalizedConstants.elapsedTimeLabel("00:00:02"),
-            );
-            expect(executionTimeOutputs).to.have.lengthOf(1);
-            expect(getOutputText(outputs[2])).to.equal(
-                LocalizedConstants.elapsedTimeLabel("00:00:02"),
-            );
+            const executionTimeBlock = output.blocks[2];
+            expect(executionTimeBlock).to.deep.equal({
+                type: "text",
+                text: LocalizedConstants.elapsedTimeLabel("00:00:02"),
+            });
         });
 
         test("shows total execution time after message-only execution", async () => {
@@ -569,15 +575,17 @@ suite("SqlNotebookController", () => {
 
             expect(mockExecution.replaceOutput).to.have.been.calledOnce;
             const outputs = mockExecution.replaceOutput.firstCall.args[0];
-            expect(outputs).to.have.lengthOf(2);
+            expect(outputs).to.have.lengthOf(1);
 
-            // First output should be the truncation warning
-            const warningOutput = outputs[0];
-            expect(warningOutput.items[0].mime).to.equal("text/plain");
-            const warningText = getOutputText(warningOutput);
-            expect(warningText).to.include("Warning: Result set is incomplete");
-            expect(warningText).to.include("2"); // Actual rows returned
-            expect(warningText).to.include("1000"); // Total rows available
+            const output = getJsonOutput<NotebookQueryResultOutputData>(outputs[0]);
+            expect(output.blocks.map((block) => block.type)).to.deep.equal(["text", "resultSet"]);
+            const warningBlock = output.blocks[0];
+            expect(warningBlock.type).to.equal("text");
+            if (warningBlock.type === "text") {
+                expect(warningBlock.text).to.include("Warning: Result set is incomplete");
+                expect(warningBlock.text).to.include("2");
+                expect(warningBlock.text).to.include("1000");
+            }
 
             expect(mockExecution.end).to.have.been.calledWith(true, sinon.match.number);
         });
@@ -737,11 +745,14 @@ suite("SqlNotebookController", () => {
             await mockController.executeHandler(cells, notebook, mockController);
 
             const outputs = mockExecution.replaceOutput.firstCall.args[0];
-            // Expected: result grid (batch 0), error message (batch 1), result grid (batch 2)
-            expect(outputs).to.have.lengthOf(3);
+            expect(outputs).to.have.lengthOf(1);
             expect(outputs[0].items[0].mime).to.equal("application/vnd.mssql.query-result");
-            expect(outputs[1].items[0].mime).to.equal("application/vnd.code.notebook.stderr");
-            expect(outputs[2].items[0].mime).to.equal("application/vnd.mssql.query-result");
+            const output = getJsonOutput<NotebookQueryResultOutputData>(outputs[0]);
+            expect(output.blocks.map((block) => block.type)).to.deep.equal([
+                "resultSet",
+                "error",
+                "resultSet",
+            ]);
             // Cell should be marked failed because one batch had an error
             expect(mockExecution.end).to.have.been.calledWith(false, sinon.match.number);
         });

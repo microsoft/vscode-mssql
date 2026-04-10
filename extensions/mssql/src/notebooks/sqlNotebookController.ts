@@ -15,10 +15,17 @@ import { NotebookConnectionManager } from "./notebookConnectionManager";
 import { NotebookCodeLensProvider } from "./notebookCodeLensProvider";
 import { NotebookBatchResult } from "./notebookQueryExecutor";
 import * as formatter from "./resultFormatter";
+import type {
+    NotebookQueryResultBlock,
+    NotebookQueryResultGridBlock,
+    NotebookQueryResultOutputData,
+} from "../sharedInterfaces/notebookQueryResult";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions, ActivityStatus } from "../sharedInterfaces/telemetry";
 
 const MIME_TEXT_PLAIN = "text/plain";
+const MIME_NOTEBOOK_QUERY_RESULT = "application/vnd.mssql.query-result";
+type NotebookTextualResultBlock = Exclude<NotebookQueryResultBlock, NotebookQueryResultGridBlock>;
 
 export class SqlNotebookController implements vscode.Disposable {
     private readonly controller: vscode.NotebookController;
@@ -451,7 +458,7 @@ export class SqlNotebookController implements vscode.Disposable {
 
         try {
             const result = await connMgr.executeQueryString(code, execution.token);
-            const outputs = this.buildBatchOutputs(result.batches);
+            const outputs = this.buildBatchOutputs(result.batches, !result.canceled);
 
             if (result.canceled) {
                 outputs.push(
@@ -467,7 +474,6 @@ export class SqlNotebookController implements vscode.Disposable {
                 execution.end(false, Date.now());
                 activity.end(ActivityStatus.Canceled);
             } else {
-                this.appendExecutionTimeOutput(outputs, result.batches);
                 const hasErrors = result.batches.some(
                     (b) => b.hasError || b.messages.some((m) => m.isError),
                 );
@@ -495,14 +501,27 @@ export class SqlNotebookController implements vscode.Disposable {
         }
     }
 
-    private buildBatchOutputs(batches: NotebookBatchResult[]): vscode.NotebookCellOutput[] {
-        const outputs: vscode.NotebookCellOutput[] = [];
-        const renderableResultSetCount = batches.reduce(
-            (count, batch) =>
-                count + batch.resultSets.filter((rs) => rs.columnInfo.length > 0).length,
-            0,
+    private buildBatchOutputs(
+        batches: NotebookBatchResult[],
+        includeExecutionTime = true,
+    ): vscode.NotebookCellOutput[] {
+        const blocks = this.buildBatchOutputBlocks(batches, includeExecutionTime);
+        if (this.hasResultSetBlock(blocks)) {
+            return [this.buildRichBatchOutput(blocks)];
+        }
+
+        return this.buildPlainBatchOutputs(
+            blocks.filter(
+                (block): block is NotebookTextualResultBlock => block.type !== "resultSet",
+            ),
         );
-        let renderedResultSetIndex = 0;
+    }
+
+    private buildBatchOutputBlocks(
+        batches: NotebookBatchResult[],
+        includeExecutionTime: boolean,
+    ): NotebookQueryResultBlock[] {
+        const blocks: NotebookQueryResultBlock[] = [];
 
         for (const batch of batches) {
             const messages = (batch.messages ?? []).filter((m) => !m.isError).map((m) => m.message);
@@ -510,24 +529,18 @@ export class SqlNotebookController implements vscode.Disposable {
                 .filter((m) => m.isError)
                 .map((m) => m.message);
 
-            // Show error messages when present. We intentionally do NOT gate on
-            // batch.hasError because STS can omit that flag for parse/syntax errors
-            // while still sending error messages with isError=true.
             if (errorMessages.length > 0) {
-                outputs.push(
-                    new vscode.NotebookCellOutput([
-                        vscode.NotebookCellOutputItem.stderr(errorMessages.join(os.EOL)),
-                    ]),
-                );
+                blocks.push({
+                    type: "error",
+                    text: errorMessages.join(os.EOL),
+                });
             }
 
-            // Show non-error messages (PRINT, info, row counts) before result sets
             if (messages.length > 0) {
-                outputs.push(
-                    new vscode.NotebookCellOutput([
-                        vscode.NotebookCellOutputItem.text(messages.join(os.EOL), MIME_TEXT_PLAIN),
-                    ]),
-                );
+                blocks.push({
+                    type: "text",
+                    text: messages.join(os.EOL),
+                });
             }
 
             for (const rs of batch.resultSets) {
@@ -536,75 +549,102 @@ export class SqlNotebookController implements vscode.Disposable {
                 }
 
                 if (rs.rows.length < rs.rowCount) {
-                    outputs.push(
-                        new vscode.NotebookCellOutput([
-                            vscode.NotebookCellOutputItem.text(
-                                LocalizedConstants.Notebooks.resultSetTruncated(
-                                    rs.rows.length,
-                                    rs.rowCount,
-                                ),
-                                MIME_TEXT_PLAIN,
-                            ),
-                        ]),
-                    );
+                    blocks.push({
+                        type: "text",
+                        text: LocalizedConstants.Notebooks.resultSetTruncated(
+                            rs.rows.length,
+                            rs.rowCount,
+                        ),
+                    });
                 }
 
-                const plain = formatter.toPlain(rs.columnInfo, rs.rows);
-                const addBottomSpacing =
-                    renderableResultSetCount > 1 &&
-                    renderedResultSetIndex < renderableResultSetCount - 1;
-                renderedResultSetIndex++;
-                outputs.push(
-                    new vscode.NotebookCellOutput([
-                        vscode.NotebookCellOutputItem.json(
-                            {
-                                columnInfo: rs.columnInfo,
-                                rows: rs.rows,
-                                rowCount: rs.rowCount,
-                                addBottomSpacing,
-                            },
-                            "application/vnd.mssql.query-result",
-                        ),
-                        vscode.NotebookCellOutputItem.text(plain, MIME_TEXT_PLAIN),
-                    ]),
-                );
+                blocks.push({
+                    type: "resultSet",
+                    columnInfo: rs.columnInfo,
+                    rows: rs.rows,
+                    rowCount: rs.rowCount,
+                });
             }
 
-            // Show a generic success message only when the batch produced no
-            // result sets, no informational messages, and no error messages.
             if (
                 batch.resultSets.length === 0 &&
                 messages.length === 0 &&
                 errorMessages.length === 0
             ) {
-                outputs.push(
-                    new vscode.NotebookCellOutput([
-                        vscode.NotebookCellOutputItem.text(
-                            LocalizedConstants.Notebooks.commandCompletedSuccessfully,
-                            MIME_TEXT_PLAIN,
-                        ),
-                    ]),
-                );
+                blocks.push({
+                    type: "text",
+                    text: LocalizedConstants.Notebooks.commandCompletedSuccessfully,
+                });
             }
         }
 
-        return outputs;
+        const executionTimeLine = this.getExecutionTimeLine(batches);
+        if (
+            includeExecutionTime &&
+            executionTimeLine &&
+            !this.hasExecutionTimeMessage(batches, executionTimeLine)
+        ) {
+            blocks.push({
+                type: "text",
+                text: executionTimeLine,
+            });
+        }
+
+        return blocks;
+    }
+
+    private buildRichBatchOutput(blocks: NotebookQueryResultBlock[]): vscode.NotebookCellOutput {
+        const plain = blocks
+            .map((block) =>
+                block.type === "resultSet"
+                    ? formatter.toPlain(block.columnInfo, block.rows)
+                    : block.text,
+            )
+            .join(`${os.EOL}${os.EOL}`);
+        const data: NotebookQueryResultOutputData = {
+            version: 1,
+            blocks,
+        };
+
+        return new vscode.NotebookCellOutput([
+            vscode.NotebookCellOutputItem.json(data, MIME_NOTEBOOK_QUERY_RESULT),
+            vscode.NotebookCellOutputItem.text(plain, MIME_TEXT_PLAIN),
+        ]);
+    }
+
+    private buildPlainBatchOutputs(
+        blocks: NotebookTextualResultBlock[],
+    ): vscode.NotebookCellOutput[] {
+        return blocks.map((block) => {
+            switch (block.type) {
+                case "error":
+                    return new vscode.NotebookCellOutput([
+                        vscode.NotebookCellOutputItem.stderr(block.text),
+                    ]);
+                case "text":
+                    return new vscode.NotebookCellOutput([
+                        vscode.NotebookCellOutputItem.text(block.text, MIME_TEXT_PLAIN),
+                    ]);
+            }
+        });
+    }
+
+    private hasResultSetBlock(blocks: NotebookQueryResultBlock[]): boolean {
+        return blocks.some(
+            (block): block is NotebookQueryResultGridBlock => block.type === "resultSet",
+        );
     }
 
     private appendExecutionTimeOutput(
         outputs: vscode.NotebookCellOutput[],
         batches: NotebookBatchResult[],
     ): void {
-        const executionElapsed = this.getExecutionElapsed(batches);
-        if (!executionElapsed) {
+        const executionTimeLine = this.getExecutionTimeLine(batches);
+        if (!executionTimeLine) {
             return;
         }
 
-        const executionTimeLine = LocalizedConstants.elapsedTimeLabel(executionElapsed);
-        const hasExecutionTimeMessage = batches.some((batch) =>
-            (batch.messages ?? []).some((message) => message.message === executionTimeLine),
-        );
-        if (hasExecutionTimeMessage) {
+        if (this.hasExecutionTimeMessage(batches, executionTimeLine)) {
             return;
         }
 
@@ -612,6 +652,20 @@ export class SqlNotebookController implements vscode.Disposable {
             new vscode.NotebookCellOutput([
                 vscode.NotebookCellOutputItem.text(executionTimeLine, MIME_TEXT_PLAIN),
             ]),
+        );
+    }
+
+    private getExecutionTimeLine(batches: NotebookBatchResult[]): string | undefined {
+        const executionElapsed = this.getExecutionElapsed(batches);
+        return executionElapsed ? LocalizedConstants.elapsedTimeLabel(executionElapsed) : undefined;
+    }
+
+    private hasExecutionTimeMessage(
+        batches: NotebookBatchResult[],
+        executionTimeLine: string,
+    ): boolean {
+        return batches.some((batch) =>
+            (batch.messages ?? []).some((message) => message.message === executionTimeLine),
         );
     }
 
