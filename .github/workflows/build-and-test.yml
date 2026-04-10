@@ -389,12 +389,26 @@ jobs:
           name: CoverageReport
           path: coveragereport
 
-      - name: Upload coverage to Codecov
+      - name: MSSQL - Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          directory: "./extensions/mssql/coverage"
-          exclude: "coverage-e2e"
+          files: ./extensions/mssql/coverage/cobertura-coverage.xml
+          flags: mssql
+
+      - name: SqlProj - Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./extensions/sql-database-projects/coverage/cobertura-coverage.xml
+          flags: sqlproj
+
+      - name: DataWorkspace - Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./extensions/data-workspace/coverage/cobertura-coverage.xml
+          flags: data-workspace
 
       - name: Write PR results to markdown
         if: env.should_compare_baseline == 'true'
