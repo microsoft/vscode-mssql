@@ -25,6 +25,7 @@
     "Copy with Headers": "Copy with Headers",
     "Copy Headers": "Copy Headers",
     "Error: Failed to parse query result data.": "Error: Failed to parse query result data.",
+    "Error: Unrecognized query result data.": "Error: Unrecognized query result data.",
     "Cancel": "Cancel",
     "Are you sure?": "Are you sure?",
     "Are you sure you want to {0}?/{0} is the action being confirmed": {
