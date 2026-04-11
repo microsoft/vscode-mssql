@@ -61,6 +61,7 @@
     "Warning": "Warning",
     "Sign In": "Sign In",
     "Loading": "Loading",
+    "Loading...": "Loading...",
     "General": "General",
     "Previous": "Previous",
     "OK": "OK",
@@ -208,6 +209,7 @@
         "comment": ["{0} is the IP address of the client"]
     },
     "Add my subnet IP range": "Add my subnet IP range",
+    "IP address range": "IP address range",
     "From/Label for the start IP address in the firewall rule IP range": {
         "message": "From",
         "comment": ["Label for the start IP address in the firewall rule IP range"]
@@ -884,7 +886,6 @@
     "Custom GraphQL Type": "Custom GraphQL Type",
     "Optional - Override default GraphQL type name": "Optional - Override default GraphQL type name",
     "Source Table": "Source Table",
-    "Loading...": "Loading...",
     "Initializing DAB configuration...": "Initializing DAB configuration...",
     "No entities found": "No entities found",
     "Toggle all entities in {0}/{0} is the schema name": {
