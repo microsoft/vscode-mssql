@@ -1396,6 +1396,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 accounts: [],
                 tenants: {},
                 isSignedIn: true,
+                loadingAccounts: false,
                 serverName: this.state.connectionProfile.server,
                 addFirewallRuleStatus: ApiStatus.NotStarted,
             };
