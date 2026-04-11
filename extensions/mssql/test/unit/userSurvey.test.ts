@@ -10,8 +10,8 @@ import sinonChai from "sinon-chai";
 import { expect } from "chai";
 import * as chai from "chai";
 
+import { setTimeout } from "timers/promises";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
-
 import {
     FunnelSteps,
     NEVER_KEY,
@@ -19,9 +19,18 @@ import {
     SKIP_VERSION_KEY,
     UserSurvey,
     UserSurveyWebviewController,
+    getGithubIssueText,
 } from "../../src/nps/userSurvey";
-import { stubExtensionContext, stubTelemetry, stubVscodeWrapper } from "./utils";
-import { setTimeout } from "timers/promises";
+import {
+    TestFeature,
+    TestFeatureTwo,
+    stubExtensionContext,
+    stubPreviewService,
+    stubTelemetry,
+    stubVscodeWrapper,
+} from "./utils";
+import * as constants from "../../src/constants/constants";
+import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 
 chai.use(sinonChai);
 
@@ -31,12 +40,15 @@ suite("UserSurvey Tests", () => {
     let context: vscode.ExtensionContext;
     let showInformationMessageStub: sinon.SinonStub;
     let sendActionEvent: sinon.SinonStub;
+    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+
+    const mockVersion = "1.2.3";
 
     setup(() => {
         sandbox = sinon.createSandbox();
 
-        const vscodeWrapper = stubVscodeWrapper(sandbox);
-        context = stubExtensionContext(sandbox);
+        vscodeWrapper = stubVscodeWrapper(sandbox);
+        context = stubExtensionContext(sandbox, { version: mockVersion });
         globalState = context.globalState;
 
         UserSurvey.createInstance(context, vscodeWrapper);
@@ -107,6 +119,11 @@ suite("UserSurvey Tests", () => {
             onSubmit: onSubmitStub,
             onCancel: onCancelStub,
         };
+        const previewOverrides: Record<string, boolean> = {};
+        previewOverrides[TestFeature] = true;
+        previewOverrides[TestFeatureTwo] = true;
+
+        stubPreviewService(sandbox, previewOverrides);
 
         // Use callsFake to simulate onSubmit getting triggered when it's called
         onSubmitStub.callsFake((callback) => {
@@ -118,7 +135,7 @@ suite("UserSurvey Tests", () => {
         });
 
         userSurvey["_webviewController"] =
-            mockWebviewController as undefined as UserSurveyWebviewController;
+            mockWebviewController as unknown as UserSurveyWebviewController;
 
         await userSurvey["promptUserForNPSFeedbackAsync"]("testSource");
 
@@ -131,8 +148,9 @@ suite("UserSurvey Tests", () => {
                 surveyId: "nps",
                 q1: "answer1",
                 q2: "answer2",
-                experimentalFeaturesEnabled: false,
+                experimentalFeaturesEnabled: "false",
                 surveySource: "testSource",
+                previewFeatureOverrides: JSON.stringify(previewOverrides),
             },
             {
                 q3: 3,
@@ -194,6 +212,62 @@ suite("UserSurvey Tests", () => {
 
         // Verify that no eligibility checks were performed
         expect(eligibilitySpy).to.not.have.been.calledWith("nps/never");
+    });
+
+    suite("Reducers", () => {
+        let sandbox: sinon.SinonSandbox;
+        let controller: UserSurveyWebviewController;
+
+        const mockState = {
+            questions: [],
+        };
+
+        setup(() => {
+            sandbox = sinon.createSandbox();
+            controller = new UserSurveyWebviewController(context, vscodeWrapper, mockState);
+        });
+
+        teardown(() => {
+            sandbox.restore();
+        });
+
+        test("should open GitHub issue when NPS is below 7", async () => {
+            const openExternalStub = sandbox.stub(vscode.env, "openExternal").resolves(true);
+            const expectedIssueBody = encodeURIComponent(
+                getGithubIssueText("this feature has issues", mockVersion),
+            );
+            const expectedIssueUrl = `https://github.com/microsoft/vscode-mssql/issues/new?labels=User-filed,Triage:%20Needed&body=${expectedIssueBody}`;
+
+            showInformationMessageStub.resolves(locConstants.UserSurvey.submitIssue);
+
+            await controller["_reducerHandlers"].get("submit")(mockState, {
+                answers: { nps: 2, comments: "this feature has issues" },
+            });
+
+            expect(openExternalStub.calledOnce).to.be.true;
+            expect(openExternalStub.firstCall.args[0].toString()).to.equal(
+                vscode.Uri.parse(expectedIssueUrl).toString(),
+            );
+        });
+
+        test("should open Marketplace review when NPS is 7 or higher", async () => {
+            const openExternalStub = sandbox.stub(vscode.env, "openExternal").resolves(true);
+            const expectedReviewUrl =
+                `https://marketplace.visualstudio.com/items?` +
+                encodeURIComponent(`itemName=${constants.extensionId}&ssr=false`) +
+                "#review-details";
+
+            showInformationMessageStub.resolves(locConstants.UserSurvey.writeReview);
+
+            await controller["_reducerHandlers"].get("submit")(mockState, {
+                answers: { nps: 10, comments: "love this" },
+            });
+
+            expect(openExternalStub.calledOnce).to.be.true;
+            expect(openExternalStub.firstCall.args[0].toString()).to.equal(
+                vscode.Uri.parse(expectedReviewUrl).toString(),
+            );
+        });
     });
 
     suite("Eligibility checks", () => {

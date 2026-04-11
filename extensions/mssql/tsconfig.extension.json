@@ -13,8 +13,9 @@
         "jsx": "react-jsx",
         "rootDir": ".",
         "noUnusedLocals": true,
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "types": ["node", "mocha"]
     },
     "include": ["src", "test", "typings"],
-    "exclude": ["node_modules", "src/reactviews", "samples"]
+    "exclude": ["node_modules", "src/webviews"]
 }

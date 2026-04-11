@@ -12,13 +12,13 @@ import ConnectionManager from "./connectionManager";
 import { DacFxService } from "../services/dacFxService";
 import { IConnectionProfile } from "../models/interfaces";
 import * as vscodeMssql from "vscode-mssql";
-import { ReactWebviewPanelController } from "./reactWebviewPanelController";
+import { WebviewPanelController } from "./webviewPanelController";
 import VscodeWrapper from "./vscodeWrapper";
 import * as LocConstants from "../constants/locConstants";
 import { startActivity } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions, ActivityStatus } from "../sharedInterfaces/telemetry";
 import * as dacpacDialog from "../sharedInterfaces/dacpacDialog";
-import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
+import { TaskExecutionMode } from "../enums";
 import { ListDatabasesRequest } from "../models/contracts/connection";
 import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { getConnectionDisplayName, getServerTypes, ServerType } from "../models/connectionInfo";
@@ -41,7 +41,7 @@ const DACPAC_DIALOG_VIEW_ID = "DacpacDialog";
  * Controller for the DacpacDialog webview.
  * Manages DACPAC and BACPAC operations (Deploy, Extract, Import, Export) using the Data-tier Application Framework (DacFx).
  */
-export class DacpacDialogWebviewController extends ReactWebviewPanelController<
+export class DacpacDialogWebviewController extends WebviewPanelController<
     dacpacDialog.DacpacDialogWebviewState,
     void,
     dacpacDialog.DacpacDialogResult
@@ -60,8 +60,8 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
             title: LocConstants.DacpacDialog.Title,
             viewColumn: vscode.ViewColumn.Active,
             iconPath: {
-                dark: vscode.Uri.joinPath(context.extensionUri, "media", "database_dark.svg"),
-                light: vscode.Uri.joinPath(context.extensionUri, "media", "database_light.svg"),
+                dark: vscode.Uri.joinPath(context.extensionUri, "media", "dacpacDialog_dark.svg"),
+                light: vscode.Uri.joinPath(context.extensionUri, "media", "dacpacDialog_light.svg"),
             },
             preserveFocus: true,
         });

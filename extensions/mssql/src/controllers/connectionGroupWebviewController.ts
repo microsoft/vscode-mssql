@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { ReactWebviewPanelController } from "./reactWebviewPanelController";
+import { WebviewPanelController } from "./webviewPanelController";
 import VscodeWrapper from "./vscodeWrapper";
 import {
     ConnectionGroupState,
@@ -24,7 +24,7 @@ import ConnectionManager from "./connectionManager";
 /**
  * Controller for the Add Firewall Rule dialog
  */
-export class ConnectionGroupWebviewController extends ReactWebviewPanelController<
+export class ConnectionGroupWebviewController extends WebviewPanelController<
     ConnectionGroupState,
     ConnectionGroupReducers,
     boolean
@@ -55,8 +55,16 @@ export class ConnectionGroupWebviewController extends ReactWebviewPanelControlle
                     : Loc.ConnectionGroup.createNewGroup,
                 viewColumn: vscode.ViewColumn.One,
                 iconPath: {
-                    light: vscode.Uri.joinPath(context.extensionUri, "media", "database_light.svg"),
-                    dark: vscode.Uri.joinPath(context.extensionUri, "media", "database_dark.svg"),
+                    light: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "connectionGroup_light.svg",
+                    ),
+                    dark: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "connectionGroup_dark.svg",
+                    ),
                 },
             },
         );

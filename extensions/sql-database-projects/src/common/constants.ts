@@ -126,6 +126,7 @@ export const location = l10n.t("Location");
 export const reloadProject = l10n.t("Would you like to reload your database project?");
 export const learnMore = l10n.t("Learn More");
 export const sdkLearnMoreUrl = "https://aka.ms/sqlprojsdk";
+export const documentationUrl = "https://aka.ms/sqlprojects";
 export const azureDevOpsLink =
     "https://docs.microsoft.com/azure/azure-sql/database/local-dev-experience-overview?view=azuresql";
 export function newObjectNamePrompt(objectType: string) {
@@ -175,6 +176,21 @@ export function updatedToSdkStyleError(projectName: string) {
     );
 }
 export const enterNewName = l10n.t("Enter new name");
+export const addProjectGuidLabel = l10n.t("Add ProjectGuid");
+export const nullProjectGuid = "{00000000-0000-0000-0000-000000000000}";
+export function missingProjectGuids(count: number, projectNames: string[]): string {
+    if (count === 1) {
+        return l10n.t(
+            "Project '{0}' is missing a ProjectGuid. A unique ProjectGuid helps identify the project for cross-project references. Would you like one to be added?",
+            projectNames[0],
+        );
+    }
+    return l10n.t(
+        "{0} projects in this workspace are missing a ProjectGuid. A unique ProjectGuid helps identify projects for cross-project references. Would you like one to be added to each project?\n\nProjects:\n{1}",
+        count,
+        projectNames.map((n) => `'${n}'`).join(", "),
+    );
+}
 //#endregion
 
 export const illegalSqlCmdChars = ["$", "@", "#", '"', "'", "-"];
@@ -621,9 +637,17 @@ export const tasksJsonFriendlyName = l10n.t("Tasks.json");
 // These follow SSDT conventions for folder structure
 export const securityFolderName = "Security";
 export const functionsFolderName = "Functions";
+export const tablesFolderName = "Tables";
+export const viewsFolderName = "Views";
+export const storedProceduresFolderName = "StoredProcedures";
+export const triggersFolderName = "Triggers";
 export const databaseTriggersFolderName = "DatabaseTriggers";
 export const sequencesFolderName = "Sequences";
 export const defaultSchemaName = "dbo";
+//#endregion
+
+//#region Extension settings
+export const autoCreateFoldersSetting = "sqlDatabaseProjects.autoCreateFolders";
 //#endregion
 
 //#endregion

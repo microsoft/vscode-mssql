@@ -18,6 +18,7 @@ import { ReducerRequest } from "../../src/sharedInterfaces/webview";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import MainController from "../../src/controllers/mainController";
 import * as copilotUtils from "../../src/copilot/copilotUtils";
+import { DefaultSqlPortNumber } from "../../src/constants/constants";
 import {
     stubExtensionContext,
     stubUserSurvey,
@@ -717,6 +718,7 @@ suite("SchemaDesignerWebviewController tests", () => {
                     tableName: "Users",
                     schemaName: "dbo",
                     isEnabled: true,
+                    isSupported: true,
                     enabledActions: [
                         Dab.EntityAction.Create,
                         Dab.EntityAction.Read,
@@ -764,9 +766,10 @@ suite("SchemaDesignerWebviewController tests", () => {
                 const result = await handler({ config: mockDabConfig });
 
                 const parsedConfig = JSON.parse(result.configContent);
-                // localhost is transformed to host.docker.internal for Docker container access
+                // localhost is transformed to host.docker.internal for Docker container access,
+                // with the default SQL Server port appended when not specified
                 expect(parsedConfig["data-source"]["connection-string"]).to.equal(
-                    "Server=host.docker.internal;Database=testdb;",
+                    `Server=host.docker.internal,${DefaultSqlPortNumber};Database=testdb;`,
                 );
             });
 
@@ -788,7 +791,7 @@ suite("SchemaDesignerWebviewController tests", () => {
 
                 const parsedConfig = JSON.parse(result.configContent);
                 expect(parsedConfig["data-source"]["connection-string"]).to.equal(
-                    "Server=host.docker.internal\\my-sql-container;Database=testdb;",
+                    `Server=host.docker.internal\\my-sql-container,${DefaultSqlPortNumber};Database=testdb;`,
                 );
             });
 
@@ -1139,6 +1142,184 @@ suite("SchemaDesignerWebviewController tests", () => {
                 expect(result.success).to.be.false;
                 expect(result.error).to.equal("No workspace folder is open.");
             });
+        });
+    });
+
+    suite("isDabDeploymentSupported", () => {
+        test("should set isDabDeploymentSupported to true when authenticationType is SqlLogin via treeNode", () => {
+            const ctrl = createController();
+            expect(ctrl.state.isDabDeploymentSupported).to.be.true;
+        });
+
+        test("should set isDabDeploymentSupported to false when authenticationType is AzureMFA via treeNode", () => {
+            sandbox.stub(treeNode, "connectionProfile").get(
+                () =>
+                    ({
+                        server: "myserver.database.windows.net",
+                        database: databaseName,
+                        authenticationType: "AzureMFA",
+                    }) as any,
+            );
+
+            const ctrl = createController();
+            expect(ctrl.state.isDabDeploymentSupported).to.be.false;
+        });
+
+        test("should set isDabDeploymentSupported to false when authenticationType is Integrated via treeNode", () => {
+            sandbox.stub(treeNode, "connectionProfile").get(
+                () =>
+                    ({
+                        server: "localhost",
+                        database: databaseName,
+                        authenticationType: "Integrated",
+                    }) as any,
+            );
+
+            const ctrl = createController();
+            expect(ctrl.state.isDabDeploymentSupported).to.be.false;
+        });
+
+        test("should resolve isDabDeploymentSupported from connectionUri when no treeNode", () => {
+            (mockMainController.connectionManager as any).getConnectionInfo = sandbox
+                .stub()
+                .returns({
+                    credentials: {
+                        server: "localhost",
+                        database: databaseName,
+                        authenticationType: "SqlLogin",
+                    },
+                });
+
+            const ctrl = new SchemaDesignerWebviewController(
+                mockContext,
+                mockVscodeWrapper,
+                mockMainController,
+                mockSchemaDesignerService,
+                connectionString,
+                accessToken,
+                databaseName,
+                schemaDesignerCache,
+                undefined, // no treeNode
+                connectionUri,
+            );
+
+            expect(ctrl.state.isDabDeploymentSupported).to.be.true;
+        });
+
+        test("should set isDabDeploymentSupported to false when connectionUri has non-SqlLogin auth", () => {
+            (mockMainController.connectionManager as any).getConnectionInfo = sandbox
+                .stub()
+                .returns({
+                    credentials: {
+                        server: "myserver.database.windows.net",
+                        database: databaseName,
+                        authenticationType: "AzureMFA",
+                    },
+                });
+
+            const ctrl = new SchemaDesignerWebviewController(
+                mockContext,
+                mockVscodeWrapper,
+                mockMainController,
+                mockSchemaDesignerService,
+                connectionString,
+                accessToken,
+                databaseName,
+                schemaDesignerCache,
+                undefined, // no treeNode
+                connectionUri,
+            );
+
+            expect(ctrl.state.isDabDeploymentSupported).to.be.false;
+        });
+
+        test("should set isDabDeploymentSupported to false when no treeNode and no connectionUri", () => {
+            const ctrl = new SchemaDesignerWebviewController(
+                mockContext,
+                mockVscodeWrapper,
+                mockMainController,
+                mockSchemaDesignerService,
+                connectionString,
+                accessToken,
+                databaseName,
+                schemaDesignerCache,
+                undefined, // no treeNode
+                undefined, // no connectionUri
+            );
+
+            expect(ctrl.state.isDabDeploymentSupported).to.be.false;
+        });
+    });
+
+    suite("RunDeploymentStepRequest deployment guard", () => {
+        test("should block deployment and return error when isDabDeploymentSupported is false", async () => {
+            sandbox.stub(treeNode, "connectionProfile").get(
+                () =>
+                    ({
+                        server: "myserver.database.windows.net",
+                        database: databaseName,
+                        authenticationType: "AzureMFA",
+                    }) as any,
+            );
+
+            const showErrorStub = sandbox.stub(vscode.window, "showErrorMessage").resolves();
+
+            createController();
+
+            const handler = requestHandlers.get(Dab.RunDeploymentStepRequest.type.method);
+            expect(handler).to.be.a("function");
+
+            const payload: Dab.RunDeploymentStepParams = {
+                step: Dab.DabDeploymentStepOrder.dockerInstallation,
+            };
+
+            const result = await handler(payload);
+
+            expect(result.success).to.be.false;
+            expect(result.error).to.be.a("string");
+            expect(showErrorStub).to.have.been.calledOnce;
+        });
+    });
+
+    suite("setInitialFilterTables", () => {
+        test("should update state with initial filter tables", () => {
+            const ctrl = createController();
+
+            ctrl.setInitialFilterTables(["dbo.Users", "dbo.Orders"]);
+
+            expect(ctrl.state.initialFilterTables).to.deep.equal(["dbo.Users", "dbo.Orders"]);
+        });
+
+        test("should update state with a single table", () => {
+            const ctrl = createController();
+
+            ctrl.setInitialFilterTables(["dbo.Students"]);
+
+            expect(ctrl.state.initialFilterTables).to.deep.equal(["dbo.Students"]);
+        });
+
+        test("should update state with empty array", () => {
+            const ctrl = createController();
+
+            ctrl.setInitialFilterTables([]);
+
+            expect(ctrl.state.initialFilterTables).to.deep.equal([]);
+        });
+
+        test("should overwrite previous filter tables when called again", () => {
+            const ctrl = createController();
+
+            ctrl.setInitialFilterTables(["dbo.Users"]);
+            expect(ctrl.state.initialFilterTables).to.deep.equal(["dbo.Users"]);
+
+            ctrl.setInitialFilterTables(["dbo.Orders", "dbo.Products"]);
+            expect(ctrl.state.initialFilterTables).to.deep.equal(["dbo.Orders", "dbo.Products"]);
+        });
+
+        test("should not have initialFilterTables in state before setInitialFilterTables is called", () => {
+            const ctrl = createController();
+
+            expect(ctrl.state.initialFilterTables).to.be.undefined;
         });
     });
 

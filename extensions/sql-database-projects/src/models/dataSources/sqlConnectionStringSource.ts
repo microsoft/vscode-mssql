@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscodeMssql from "vscode-mssql";
+import { AuthenticationType } from "../../common/enums";
 import { DataSource } from "./dataSources";
 import { DataSourceJson } from "./dataSourceJson";
 import * as constants from "../../common/constants";
@@ -47,9 +47,9 @@ export class SqlConnectionDataSource extends DataSource {
 
     public get authType(): string {
         if (this.azureMFA) {
-            return vscodeMssql.AuthenticationType.AzureMFA;
+            return AuthenticationType.AzureMFA;
         } else if (this.integratedSecurity) {
-            return vscodeMssql.AuthenticationType.Integrated;
+            return AuthenticationType.Integrated;
         } else {
             return "SqlAuth";
         }

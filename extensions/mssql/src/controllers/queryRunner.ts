@@ -238,10 +238,12 @@ export default class QueryRunner {
         const cancelQueryActivity = startActivity(
             TelemetryViews.QueryEditor,
             TelemetryActions.CancelQuery,
-            undefined,
-            undefined,
-            undefined,
-            true, // Include call stack
+            undefined, // correlationId
+            undefined, // startActivityAdditionalProps
+            undefined, // startActivityAdditionalMeasurements
+            undefined, // connectionInfo
+            undefined, // serverInfo
+            true, // include callstack in telemetry
         );
         const cancelParams: QueryCancelParams = { ownerUri: this._ownerUri };
         let cancelRequestCompleted = false;
@@ -316,12 +318,14 @@ export default class QueryRunner {
         const runStatementActivity = startActivity(
             TelemetryViews.QueryEditor,
             TelemetryActions.RunQuery,
-            undefined,
+            undefined, // correlationId
             {
                 executionType: "statement",
                 hasExecutionPlan: executionPlanOptions ? "true" : "false",
             },
-            undefined,
+            undefined, // startActivityAdditionalMeasurements
+            undefined, // connectionInfo
+            undefined, // serverInfo
             true, // Include call stack
         );
         let runStatementRequestCompleted = false;
@@ -392,7 +396,9 @@ export default class QueryRunner {
                 executionType: queryType,
                 hasExecutionPlan: executionPlanOptions ? "true" : "false",
             },
-            undefined,
+            undefined, // startActivityAdditionalMeasurements
+            undefined, // connectionInfo
+            undefined, // serverInfo
             true, // Include call stack
         );
 
@@ -629,11 +635,13 @@ export default class QueryRunner {
         const rowsFetchActivity = startActivity(
             TelemetryViews.QueryEditor,
             TelemetryActions.GetResultRowsSubset,
-            undefined,
-            undefined,
+            undefined, // correlationId
+            undefined, // startActivityAdditionalProps
             {
                 rowCount: bucketizeRowCount(numberOfRows),
             },
+            undefined, // connectionInfo
+            undefined, // serverInfo
             true, // Include call stack
         );
         try {
@@ -1373,8 +1381,6 @@ export default class QueryRunner {
     }
 
     private getTotalSelectedRows(selections: ISlickRange[]): number {
-        // Keep copy order deterministic
-        selections.sort((a, b) => a.fromRow - b.fromRow);
         let totalRows = 0;
         for (let range of selections) {
             totalRows += range.toRow - range.fromRow + 1;

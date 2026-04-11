@@ -20,13 +20,13 @@ import {
 } from "../../src/models/contracts/fileBrowser";
 import { Deferred } from "../../src/protocol";
 import { FileBrowserCloseResponse } from "azdata";
+import { stubLoggerGetter } from "./utils";
 
 suite("FileBrowserService Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let fileBrowserService: FileBrowserService;
     let sqlToolsClientStub: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
     let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
-    let loggerErrorStub: sinon.SinonStub;
     let mockFileTree: FileTree;
 
     setup(() => {
@@ -53,11 +53,7 @@ suite("FileBrowserService Tests", () => {
             selectedNode: undefined,
         };
 
-        // Stub logger - use defineProperty since logger is a getter
-        loggerErrorStub = sandbox.stub();
-        Object.defineProperty(sqlToolsClientStub, "logger", {
-            get: () => ({ error: loggerErrorStub }),
-        });
+        stubLoggerGetter(sandbox, sqlToolsClientStub);
 
         fileBrowserService = new FileBrowserService(vscodeWrapperStub, sqlToolsClientStub);
     });
@@ -98,8 +94,13 @@ suite("FileBrowserService Tests", () => {
         fileBrowserService.handleFileBrowserOpenNotification(errorResponse);
 
         // Verify that logger.error was called
-        expect(loggerStub.calledOnce).to.be.true;
-        expect(loggerStub.firstCall.args[0]).to.include(ownerUri);
+        expect(
+            loggerStub.calledWithMatch(
+                sinon.match(
+                    (value: unknown) => typeof value === "string" && value.includes(ownerUri),
+                ),
+            ),
+        ).to.be.true;
     });
 
     test("handleFileBrowserExpandNotification", async () => {
@@ -143,8 +144,13 @@ suite("FileBrowserService Tests", () => {
         fileBrowserService.handleFileBrowserExpandNotification(errorResponse);
 
         // Verify that logger.error was called
-        expect(loggerStub.calledOnce).to.be.true;
-        expect(loggerStub.firstCall.args[0]).to.include(ownerUri);
+        expect(
+            loggerStub.calledWithMatch(
+                sinon.match(
+                    (value: unknown) => typeof value === "string" && value.includes(ownerUri),
+                ),
+            ),
+        ).to.be.true;
     });
 
     test("openFileBrowser should handle successful open", async () => {

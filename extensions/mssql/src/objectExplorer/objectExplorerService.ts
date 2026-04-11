@@ -57,6 +57,9 @@ import { getConnectionDisplayName } from "../models/connectionInfo";
 import { NewDeploymentTreeNode } from "../deployment/newDeploymentTreeNode";
 import { getErrorMessage, uuid } from "../utils/utils";
 import { ConnectionConfig } from "../connectionconfig/connectionconfig";
+import { MissingVsCodeEntraAuthError } from "../azure/vscodeEntraMfaUtils";
+import { VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
+import { PreviewFeature, previewService } from "../previews/previewService";
 
 export interface CreateSessionResult {
     sessionId?: string;
@@ -733,17 +736,57 @@ export class ObjectExplorerService {
             }
         }
 
-        try {
-            connectionProfile = (await this._connectionManager.prepareConnectionInfo(
+        const self = this;
+        async function prepareConnectionProfile(): Promise<IConnectionProfile | undefined> {
+            return (await self._connectionManager.prepareConnectionInfo(
                 connectionProfile,
             )) as IConnectionProfile;
-        } catch (error) {
-            this._logger.error(
-                `Error when attempting to prepare connection profile.  Attempting to proceed normally.\n\nError:\n${getErrorMessage(error)}`,
-            );
-            return undefined;
         }
-        return connectionProfile;
+
+        try {
+            return await prepareConnectionProfile();
+        } catch (error) {
+            if (!previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+                this._logger.error(
+                    `Error when attempting to prepare connection profile.  Attempting to proceed normally.\n\nError:\n${getErrorMessage(error)}`,
+                );
+                return undefined;
+            }
+
+            // Handle case where the user isn't signed into VS Code with the necessary auth account
+            if (error instanceof MissingVsCodeEntraAuthError) {
+                const choice = await this._vscodeWrapper.showErrorMessage(
+                    getErrorMessage(error),
+                    LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorSignIn,
+                    LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorUpdate,
+                );
+                if (choice === LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorSignIn) {
+                    try {
+                        await VsCodeAzureHelper.signIn(true); // User chose to sign in to the missing account; try again.
+                        return await prepareConnectionProfile();
+                    } catch (retryError) {
+                        this._logger.error(
+                            `Error when signing in or attempting to prepare connection profile after VS Code sign-in.\n\nError:\n${getErrorMessage(retryError)}`,
+                        );
+                    }
+                } else if (
+                    choice === LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorUpdate
+                ) {
+                    // User chose to edit the connection profile; open in Connection Dialog
+                    await vscode.commands.executeCommand(
+                        Constants.cmdAddObjectExplorer,
+                        connectionInfo as IConnectionProfile,
+                    );
+                }
+
+                return undefined;
+            } else {
+                this._logger.error(
+                    `Error when attempting to prepare connection profile.  Attempting to proceed normally.\n\nError:\n${getErrorMessage(error)}`,
+                );
+                return undefined;
+            }
+        }
     }
 
     /**

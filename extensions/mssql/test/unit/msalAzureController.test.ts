@@ -32,6 +32,7 @@ import * as msalNode from "@azure/msal-node";
 import * as azureUtils from "../../src/azure/utils";
 import { CredentialStore } from "../../src/credentialstore/credentialstore";
 import CodeAdapter from "../../src/prompts/adapter";
+import { createStubLogger } from "./utils";
 
 chai.use(sinonChai);
 
@@ -50,7 +51,7 @@ suite("CloudAuthApplication Tests", () => {
 
         // Create stubs for dependencies
         mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        mockLogger = sandbox.createStubInstance(Logger);
+        mockLogger = createStubLogger(sandbox);
         mockCachePluginProvider = sandbox.createStubInstance(MsalCachePluginProvider);
 
         loggerCallback = sandbox.stub();
@@ -204,32 +205,6 @@ suite("MsalAzureController Tests", () => {
 
         // Assert
         expect(controller).to.exist;
-    });
-
-    test("init should enable SQL authentication provider only if config is true", () => {
-        // Arrange
-        const getEnableSqlAuthProviderConfigStub = sandbox
-            .stub(azureUtils, "getEnableSqlAuthenticationProviderConfig")
-            .returns(false);
-
-        const controller = new MsalAzureController(
-            mockContext,
-            mockPrompter,
-            mockCredentialStore,
-            mockSubscriptionClientFactory,
-        );
-
-        // Act
-        controller.init();
-
-        expect(controller["_isSqlAuthProviderEnabled"]).to.be.false;
-
-        getEnableSqlAuthProviderConfigStub.reset();
-        getEnableSqlAuthProviderConfigStub.returns(true);
-
-        controller.init();
-
-        expect(controller["_isSqlAuthProviderEnabled"]).to.be.true;
     });
 
     test("clearTokenCache should clear cache for all cloud auth mappings", async () => {

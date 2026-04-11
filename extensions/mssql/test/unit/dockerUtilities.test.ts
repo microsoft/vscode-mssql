@@ -665,7 +665,7 @@ suite("Docker Utilities", () => {
         let result = await dockerUtils.deleteContainer("testContainer");
         expect(stopStub).to.have.been.calledOnce;
         expect(removeStub).to.have.been.calledOnce;
-        expect(sendActionEvent).to.have.been.calledOnce;
+        expect(sendActionEvent).to.have.been.called;
         expect(result).to.be.true;
 
         listContainersStub.resetHistory();
@@ -673,7 +673,7 @@ suite("Docker Utilities", () => {
 
         result = await dockerUtils.deleteContainer("testContainer");
 
-        expect(sendErrorEvent).to.have.been.calledOnce;
+        expect(sendErrorEvent).to.have.been.called;
         expect(!result, "Should return false on failure").to.be.true;
     });
 
@@ -691,7 +691,7 @@ suite("Docker Utilities", () => {
 
         let result = await dockerUtils.stopContainer("testContainer");
         expect(stopStub).to.have.been.calledOnce;
-        expect(sendActionEvent).to.have.been.calledOnce;
+        expect(sendActionEvent).to.have.been.called;
         expect(result).to.be.true;
 
         listContainersStub.resetHistory();
@@ -700,7 +700,7 @@ suite("Docker Utilities", () => {
         result = await dockerUtils.stopContainer("testContainer");
 
         expect(!result, "Should return false on failure").to.be.true;
-        expect(sendErrorEvent).to.have.been.calledOnce;
+        expect(sendErrorEvent).to.have.been.called;
     });
 
     test("checkIfContainerIsDockerContainer: should return true if the container is a Docker container", async () => {

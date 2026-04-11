@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 import { Writable } from "stream";
-import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
+import { WebviewPanelController } from "../controllers/webviewPanelController";
 import {
     ProfilerWebviewState,
     ProfilerReducers,
@@ -24,7 +24,7 @@ import {
     ProfilerSelectedEventDetails,
 } from "../sharedInterfaces/profiler";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import { getProfilerConfigService } from "./profilerConfigService";
+import { getProfilerConfigService, FIELD_DATABASE_NAME } from "./profilerConfigService";
 import { ProfilerSessionManager } from "./profilerSessionManager";
 import { ProfilerSession } from "./profilerSession";
 import {
@@ -32,6 +32,7 @@ import {
     SessionState,
     TEMPLATE_ID_STANDARD_ONPREM,
     FilterState,
+    FilterOperator,
     ColumnDataType,
     XelFileInfo,
 } from "./profilerTypes";
@@ -61,7 +62,7 @@ export interface ProfilerWebviewEvents {
 /**
  * Controller for the profiler webview that displays profiler events
  */
-export class ProfilerWebviewController extends ReactWebviewPanelController<
+export class ProfilerWebviewController extends WebviewPanelController<
     ProfilerWebviewState,
     ProfilerReducers
 > {
@@ -72,6 +73,8 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
     private _statusBarItem: vscode.StatusBarItem;
     /** Persisted filter state per session (keyed by session ID) */
     private _sessionFilterState = new Map<string, FilterState>();
+    /** Database name to auto-apply as initial filter (set when launching from a database node) */
+    private _initialDatabaseFilter: string | undefined;
     private _isReadOnly: boolean;
     private _xelFileInfo: XelFileInfo | undefined;
 
@@ -361,10 +364,8 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
 
         // Handle session selection from webview
         this.registerReducer("selectSession", (state, payload: { sessionId: string }) => {
-            return {
-                ...state,
-                selectedSessionId: payload.sessionId,
-            };
+            state.selectedSessionId = payload.sessionId;
+            return state;
         });
 
         // Handle clear events request from webview (client-side clear)
@@ -391,11 +392,9 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
 
             // Update totalRowCount to reflect remaining events in buffer
             // and increment clearGeneration so webview resets its localRowCount to 0
-            return {
-                ...state,
-                totalRowCount: remainingEvents,
-                clearGeneration: (state.clearGeneration ?? 0) + 1,
-            };
+            state.totalRowCount = remainingEvents;
+            state.clearGeneration = (state.clearGeneration ?? 0) + 1;
+            return state;
         });
 
         // Handle view change request from webview
@@ -409,10 +408,8 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
 
         // Handle auto-scroll toggle from webview
         this.registerReducer("toggleAutoScroll", (state) => {
-            return {
-                ...state,
-                autoScroll: !state.autoScroll,
-            };
+            state.autoScroll = !state.autoScroll;
+            return state;
         });
 
         // Handle fetch rows request from webview (pull model for infinite scroll)
@@ -426,12 +423,9 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
 
                 // Update filtered count from actual fetch result when filter is active
                 if (this._currentSession?.events.isFilterActive) {
-                    this.state = {
-                        ...state,
-                        filteredRowCount: response.totalCount,
-                    };
+                    state.filteredRowCount = response.totalCount;
                     this.updateStatusBar();
-                    return this.state;
+                    return state;
                 }
 
                 return state;
@@ -461,16 +455,13 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                     } as NewEventsAvailableParams);
                 }, 0);
 
-                this.state = {
-                    ...state,
-                    filterState: {
-                        enabled: payload.clauses.length > 0,
-                        clauses: payload.clauses,
-                        quickFilter: this._currentSession.events.quickFilter,
-                    },
-                    totalRowCount: totalCount,
-                    filteredRowCount: filteredCount,
+                state.filterState = {
+                    enabled: payload.clauses.length > 0,
+                    clauses: payload.clauses,
+                    quickFilter: this._currentSession.events.quickFilter,
                 };
+                state.totalRowCount = totalCount;
+                state.filteredRowCount = filteredCount;
                 this.updateStatusBar();
 
                 // Telemetry: filter applied (column:operator pairs only, never values)
@@ -483,7 +474,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                     );
                 }
 
-                return this.state;
+                return state;
             }
         });
 
@@ -507,15 +498,12 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                     } as NewEventsAvailableParams);
                 }, 0);
 
-                this.state = {
-                    ...state,
-                    filterState: { enabled: false, clauses: [], quickFilter: undefined },
-                    totalRowCount: totalCount,
-                    filteredRowCount: totalCount,
-                };
+                state.filterState = { enabled: false, clauses: [], quickFilter: undefined };
+                state.totalRowCount = totalCount;
+                state.filteredRowCount = totalCount;
                 this.updateStatusBar();
 
-                return this.state;
+                return state;
             }
             return state;
         });
@@ -563,10 +551,8 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
 
         // Handle close details panel request
         this.registerReducer("closeDetailsPanel", (state) => {
-            return {
-                ...state,
-                selectedEvent: undefined,
-            };
+            state.selectedEvent = undefined;
+            return state;
         });
 
         // Handle export to CSV request from webview
@@ -648,19 +634,16 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                     } as NewEventsAvailableParams);
                 }, 0);
 
-                this.state = {
-                    ...state,
-                    filterState: {
-                        enabled: hasColumnFilters,
-                        clauses,
-                        quickFilter: hasQuickFilter ? quickFilter : undefined,
-                    },
-                    totalRowCount: totalCount,
-                    filteredRowCount: filteredCount,
+                state.filterState = {
+                    enabled: hasColumnFilters,
+                    clauses,
+                    quickFilter: hasQuickFilter ? quickFilter : undefined,
                 };
+                state.totalRowCount = totalCount;
+                state.filteredRowCount = filteredCount;
                 this.updateStatusBar();
 
-                return this.state;
+                return state;
             }
         });
     }
@@ -817,6 +800,30 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
     }
 
     /**
+     * Sets the initial database name filter to auto-apply when a session starts.
+     * Used when launching the profiler from a Database node in Object Explorer.
+     * @param databaseName - The database name to filter on
+     */
+    public setInitialDatabaseFilter(databaseName: string): void {
+        this._initialDatabaseFilter = databaseName;
+
+        // Also update the initial state so the UI shows filter is active from the start.
+        // Use FilterOperator.In (not Equals) because the DatabaseName column is Categorical,
+        // and the column filter popover only recognizes the In operator for Categorical columns.
+        this.state.filterState = {
+            enabled: true,
+            clauses: [
+                {
+                    field: FIELD_DATABASE_NAME,
+                    operator: FilterOperator.In,
+                    values: [databaseName],
+                },
+            ],
+        };
+        this.state = this.state;
+    }
+
+    /**
      * Set event handlers for webview actions
      */
     public setEventHandlers(handlers: ProfilerWebviewEvents): void {
@@ -879,7 +886,23 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             this.updateFilteredBufferConverter();
 
             // Restore persisted filter state for this session, if any
-            const savedFilterState = this._sessionFilterState.get(session.id);
+            let savedFilterState = this._sessionFilterState.get(session.id);
+
+            // If no saved filter and an initial database filter is set, apply it.
+            // Use FilterOperator.In (not Equals) because the DatabaseName column is Categorical,
+            // and the column filter popover only recognizes the In operator for Categorical columns.
+            if (!savedFilterState && this._initialDatabaseFilter) {
+                savedFilterState = {
+                    enabled: true,
+                    clauses: [
+                        {
+                            field: FIELD_DATABASE_NAME,
+                            operator: FilterOperator.In,
+                            values: [this._initialDatabaseFilter],
+                        },
+                    ],
+                };
+            }
 
             const sessionState = this.getSessionStateFromSession(session);
 
@@ -898,27 +921,23 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 session.events.applyFilter({ quickFilter: savedFilterState.quickFilter });
             }
 
-            this.state = {
-                ...this.state,
-                currentSessionId: session.id,
-                sessionState,
-                sessionName: session.sessionName,
-                totalRowCount: session.events.size,
-                filteredRowCount: savedFilterState?.enabled
-                    ? session.events.filteredCount
-                    : session.events.size,
-                filterState: savedFilterState ?? { enabled: false, clauses: [] },
-            };
+            this.state.currentSessionId = session.id;
+            this.state.sessionState = sessionState;
+            this.state.sessionName = session.sessionName;
+            this.state.totalRowCount = session.events.size;
+            this.state.filteredRowCount = savedFilterState?.enabled
+                ? session.events.filteredCount
+                : session.events.size;
+            this.state.filterState = savedFilterState ?? { enabled: false, clauses: [] };
+            this.state = this.state;
         } else {
-            this.state = {
-                ...this.state,
-                currentSessionId: undefined,
-                sessionState: SessionState.NotStarted,
-                sessionName: undefined,
-                totalRowCount: 0,
-                filteredRowCount: 0,
-                filterState: { enabled: false, clauses: [] },
-            };
+            this.state.currentSessionId = undefined;
+            this.state.sessionState = SessionState.NotStarted;
+            this.state.sessionName = undefined;
+            this.state.totalRowCount = 0;
+            this.state.filteredRowCount = 0;
+            this.state.filterState = { enabled: false, clauses: [] };
+            this.state = this.state;
         }
         this.updateStatusBar();
     }
@@ -949,11 +968,9 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             ? this._currentSession.events.getFilteredCount()
             : totalCount;
 
-        this.state = {
-            ...this.state,
-            totalRowCount: totalCount,
-            filteredRowCount: filteredCount,
-        };
+        this.state.totalRowCount = totalCount;
+        this.state.filteredRowCount = filteredCount;
+        this.state = this.state;
         this.updateStatusBar();
 
         // When filter is active, notify only about filtered count
@@ -990,10 +1007,8 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         });
 
         // Update totalRowCount to reflect current buffer size
-        this.state = {
-            ...this.state,
-            totalRowCount: this._currentSession.events.size,
-        };
+        this.state.totalRowCount = this._currentSession.events.size;
+        this.state = this.state;
         this.updateStatusBar();
 
         // Notify webview to remove these rows
@@ -1073,10 +1088,8 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
      * Clear all rows from the webview.
      */
     public clearRows(): void {
-        this.state = {
-            ...this.state,
-            totalRowCount: 0,
-        };
+        this.state.totalRowCount = 0;
+        this.state = this.state;
         this.updateStatusBar();
         // Notify webview to clear its DataView
         void this.sendNotification(ProfilerNotifications.ClearGrid, {});
@@ -1089,16 +1102,11 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         // If we have a current session, verify state from the session manager
         if (this._currentSession) {
             const actualState = this.getSessionStateFromSession(this._currentSession);
-            this.state = {
-                ...this.state,
-                sessionState: actualState,
-            };
+            this.state.sessionState = actualState;
         } else {
-            this.state = {
-                ...this.state,
-                sessionState,
-            };
+            this.state.sessionState = sessionState;
         }
+        this.state = this.state;
         this.updateStatusBar();
     }
 
@@ -1108,21 +1116,17 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
      * The close confirmation prompt remains active because the session is still running.
      */
     public setExportComplete(): void {
-        this.state = {
-            ...this.state,
-            hasUnexportedEvents: false,
-            lastExportTimestamp: Date.now(),
-        };
+        this.state.hasUnexportedEvents = false;
+        this.state.lastExportTimestamp = Date.now();
+        this.state = this.state;
     }
 
     /**
      * Set the session name
      */
     public setSessionName(sessionName: string): void {
-        this.state = {
-            ...this.state,
-            sessionName,
-        };
+        this.state.sessionName = sessionName;
+        this.state = this.state;
         this.updateStatusBar();
     }
 
@@ -1140,11 +1144,9 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         this._currentViewId = viewId;
         const viewConfig = ProfilerWebviewController.toViewConfig(viewId, view);
 
-        this.state = {
-            ...this.state,
-            viewId,
-            viewConfig,
-        };
+        this.state.viewId = viewId;
+        this.state.viewConfig = viewConfig;
+        this.state = this.state;
     }
 
     /**
@@ -1172,29 +1174,23 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
      * Set the creating session state (shows spinner in UI)
      */
     public setCreatingSession(isCreating: boolean): void {
-        this.state = {
-            ...this.state,
-            isCreatingSession: isCreating,
-        };
+        this.state.isCreatingSession = isCreating;
+        this.state = this.state;
     }
 
     /**
      * Update the available sessions list
      */
     public updateAvailableSessions(sessions: Array<{ id: string; name: string }>): void {
-        this.state = {
-            ...this.state,
-            availableSessions: sessions,
-        };
+        this.state.availableSessions = sessions;
+        this.state = this.state;
     }
 
     /**
      * Set the selected session ID and optionally auto-select it
      */
     public setSelectedSession(sessionId: string): void {
-        this.state = {
-            ...this.state,
-            selectedSessionId: sessionId,
-        };
+        this.state.selectedSessionId = sessionId;
+        this.state = this.state;
     }
 }

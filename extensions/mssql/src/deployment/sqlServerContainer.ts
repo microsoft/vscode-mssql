@@ -33,8 +33,8 @@ import {
     prepareForDockerContainerCommand,
     pullContainerImage,
     sanitizeContainerInput,
+    startContainerLogMonitor,
     startDocker,
-    waitForContainerReadyFromLogs,
 } from "../docker/dockerUtils";
 
 /**
@@ -46,12 +46,14 @@ const yearStringLength = 4;
  * SQL Server-specific commands.
  */
 export const SQL_SERVER_COMMANDS = {
-    CHECK_CONTAINER_READY: `Recovery is complete`,
+    CHECK_CONTAINER_READY: `SQL Server is now ready for client connections`,
     GET_SQL_SERVER_CONTAINER_VERSIONS: (): DockerCommand => ({
         command: "curl",
         args: ["-s", "https://mcr.microsoft.com/v2/mssql/server/tags/list"],
     }),
 };
+
+const sqlServerLogMonitorBufferLength = 32 * 1024;
 
 /**
  * The steps for the Docker container deployment process.
@@ -125,6 +127,19 @@ export function constructVersionTag(version: string): string {
 
 function getSqlServerImageName(versionTag: string): string {
     return `${sqlServerDockerRegistry}/${sqlServerDockerRepository}:${versionTag}`;
+}
+
+function getContainerStartTimestampSeconds(
+    containerInspectInfo: Dockerode.ContainerInspectInfo,
+): number {
+    const startedAt = containerInspectInfo.State?.StartedAt;
+    const startedAtMilliseconds = startedAt ? Date.parse(startedAt) : NaN;
+
+    if (Number.isNaN(startedAtMilliseconds)) {
+        return 0;
+    }
+
+    return Math.floor(startedAtMilliseconds / 1000);
 }
 
 /**
@@ -287,7 +302,6 @@ export async function checkIfSqlServerContainerIsReadyForConnections(
 ): Promise<DockerCommandParams> {
     const timeoutMs = 300_000; // 5 minutes
     const readyMessage = SQL_SERVER_COMMANDS.CHECK_CONTAINER_READY;
-    const startTimestampSeconds = Math.floor(Date.now() / 1000);
 
     dockerLogger.appendLine(`Checking if container ${containerName} is ready for connections...`);
 
@@ -300,12 +314,19 @@ export async function checkIfSqlServerContainerIsReadyForConnections(
             };
         }
 
-        const isReady = await waitForContainerReadyFromLogs(
-            container,
-            startTimestampSeconds,
-            timeoutMs,
-            readyMessage,
-        );
+        const containerInspectInfo = await container.inspect();
+        const startTimestampSeconds = getContainerStartTimestampSeconds(containerInspectInfo);
+
+        const logMonitor = await startContainerLogMonitor(container, {
+            since: startTimestampSeconds,
+            maxBufferLength: sqlServerLogMonitorBufferLength,
+        });
+        let isReady = false;
+        try {
+            isReady = await logMonitor.waitForMatch(readyMessage, timeoutMs);
+        } finally {
+            logMonitor.dispose();
+        }
         if (isReady) {
             dockerLogger.appendLine(`${containerName} is ready for connections!`);
             return { success: true };
@@ -347,13 +368,10 @@ export async function getSqlServerContainerVersions(): Promise<FormItemOptions[]
     try {
         const tags = await getAllSqlServerContainerTags();
 
-        const versions: string[] = [];
         const yearSet = new Set<string>();
 
         for (const tag of tags) {
             if (!tag) continue;
-
-            versions.push(tag);
 
             const year = tag.slice(0, 4);
             if (/^\d{4}$/.test(year)) {
@@ -361,20 +379,12 @@ export async function getSqlServerContainerVersions(): Promise<FormItemOptions[]
             }
         }
 
-        const uniqueYears = Array.from(yearSet);
-        const latestVersionIndex = versions.length - 4;
-        const latestImage = versions[latestVersionIndex];
-
-        const versionOptions = uniqueYears
+        return Array.from(yearSet)
+            .sort((left, right) => Number(right) - Number(left))
             .map((year) => ({
                 displayName: LocalContainers.sqlServerVersionImage(year),
                 value: year,
-            }))
-            .reverse();
-
-        versionOptions[0].value = latestImage; // Version options is guaranteed to have at least one element
-
-        return versionOptions;
+            }));
     } catch (e) {
         dockerLogger.appendLine(
             `Error parsing SQL Server container versions: ${getErrorMessage(e)}`,

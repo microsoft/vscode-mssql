@@ -216,6 +216,10 @@ export function registerCommonRequestHandlers(
             );
     });
 
+    webviewController.onRequest(qr.CopyColumnNameRequest.type, async (message) => {
+        await webviewViewController.getVsCodeWrapper().clipboardWriteText(message.columnName);
+    });
+
     // Register request handlers for query result filters
     webviewController.onRequest(qr.GetFiltersRequest.type, async (message) => {
         return store.gridState.gridColumnFilters.get(

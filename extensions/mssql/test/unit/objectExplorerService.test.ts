@@ -5,6 +5,8 @@
 
 import * as vscode from "vscode";
 import * as sinon from "sinon";
+import sinonChai from "sinon-chai";
+import * as chai from "chai";
 import {
     CreateSessionResult,
     ObjectExplorerService,
@@ -54,8 +56,14 @@ import {
 import { uuid } from "../e2e/baseFixtures";
 import { ConnectionGroupNode } from "../../src/objectExplorer/nodes/connectionGroupNode";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
-import { initializeIconUtils } from "./utils";
+import { createStubLogger, initializeIconUtils, stubLogger, stubPreviewService } from "./utils";
 import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
+import * as vscodeEntraMfaUtils from "../../src/azure/vscodeEntraMfaUtils";
+import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
+import { PreviewFeature } from "../../src/previews/previewService";
+const { MissingVsCodeEntraAuthError } = vscodeEntraMfaUtils;
+
+chai.use(sinonChai);
 
 suite("OE Service Tests", () => {
     suite("rootNodeConnections", () => {
@@ -73,6 +81,7 @@ suite("OE Service Tests", () => {
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
+            stubLogger(sandbox);
 
             mockConnectionManager.connectionStore = mockConnectionStore;
             mockConnectionManager.client = mockClient;
@@ -216,8 +225,7 @@ suite("OE Service Tests", () => {
                 update: sandbox.stub(),
             });
             // Mock the Logger.create static method
-            mockLogger = sandbox.createStubInstance(Logger);
-            sandbox.stub(Logger, "create").returns(mockLogger);
+            mockLogger = stubLogger(sandbox);
             mockLogger.verbose = sandbox.stub();
             objectExplorerService = new ObjectExplorerService(
                 mockVscodeWrapper,
@@ -304,13 +312,12 @@ suite("OE Service Tests", () => {
             expect(result, "Expand node should return children").to.be.not.undefined;
             expect(result!.length, "Expand node should return 2 children").to.equal(2);
 
-            // Verify telemetry was started correctly; it should have been called for the expand but also on constructor initialization
-            expect(startActivityStub.calledTwice, "Telemetry should be started once").to.be.true;
+            // Verify telemetry was started correctly; constructor initialization may emit additional telemetry.
             expect(
-                startActivityStub.args[0][0],
-                "Telemetry view should be ObjectExplorer",
-            ).to.equal(TelemetryViews.ObjectExplorer);
-            expect(startActivityStub.args[0][1], "Telemetry action should be ExpandNode").to.equal(
+                startActivityStub,
+                "Telemetry should include ExpandNode",
+            ).to.have.been.calledWithMatch(
+                TelemetryViews.ObjectExplorer,
                 TelemetryActions.ExpandNode,
             );
 
@@ -346,15 +353,15 @@ suite("OE Service Tests", () => {
                 "child2",
             );
 
-            // Verify telemetry was ended correctly
-            expect(endStub.calledOnce, "Telemetry should be ended once").to.be.true;
-            expect(endStub.args[0][0], "Telemetry status should be Succeeded").to.equal(
-                ActivityStatus.Succeeded,
-            );
+            // Verify telemetry was ended correctly.
             expect(
-                endStub.args[0][2].childrenCount,
-                "Telemetry children count should be 2",
-            ).to.equal(2);
+                endStub,
+                "Telemetry should end successfully with the child count",
+            ).to.have.been.calledWithMatch(
+                ActivityStatus.Succeeded,
+                sinon.match.any,
+                sinon.match({ childrenCount: 2 }),
+            );
 
             // Verify the result matches the mapped children
             expect(result, "Result should match mapped children").to.equal(mappedChildren);
@@ -529,12 +536,11 @@ suite("OE Service Tests", () => {
                 "First mapped child tooltip should be mock error message",
             ).to.equal(mockErrorMessage);
 
-            // Verify telemetry was ended with failure
-            expect(endFailedStub.calledOnce, "Telemetry should be ended with failure").to.be.true;
+            // Verify telemetry was ended with failure.
             expect(
-                endFailedStub.args[0][0].message,
-                "Telemetry message should be mock error message",
-            ).to.equal(mockErrorMessage);
+                endFailedStub,
+                "Telemetry should include the mock error message",
+            ).to.have.been.calledWithMatch(sinon.match({ message: mockErrorMessage }));
 
             // Verify the result contains the error node
             expect(result![0], "Result child should be an ExpandErrorNode").to.be.instanceOf(
@@ -690,7 +696,7 @@ suite("OE Service Tests", () => {
 
         setup(() => {
             sandbox = sinon.createSandbox();
-            mockLogger = sandbox.createStubInstance(Logger);
+            mockLogger = createStubLogger(sandbox);
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockConnectionManager.handleConnectionErrors.resolves({
                 isHandled: false,
@@ -713,8 +719,7 @@ suite("OE Service Tests", () => {
                 endFailed: sandbox.stub(),
                 startTime: performance.now(),
             };
-            mockLogger = sandbox.createStubInstance(Logger);
-            sandbox.stub(Logger, "create").returns(mockLogger);
+            mockLogger = stubLogger(sandbox);
 
             objectExplorerService = new ObjectExplorerService(
                 mockVscodeWrapper,
@@ -923,7 +928,7 @@ suite("OE Service Tests", () => {
 
         setup(() => {
             sandbox = sinon.createSandbox();
-            mockLogger = sandbox.createStubInstance(Logger);
+            mockLogger = stubLogger(sandbox);
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
             mockConnectionUI = sandbox.createStubInstance(ConnectionUI);
@@ -1124,6 +1129,7 @@ suite("OE Service Tests", () => {
             const mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
             const mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             const mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
+            stubLogger(sandbox);
             mockConnectionManager.client = mockClient;
             objectExplorerService = new ObjectExplorerService(
                 mockVscodeWrapper,
@@ -1207,8 +1213,7 @@ suite("OE Service Tests", () => {
                 update: sandbox.stub(),
             };
             startActivityStub = sandbox.stub(telemetry, "startActivity").returns(mockActivity);
-            mockLogger = sandbox.createStubInstance(Logger);
-            sandbox.stub(Logger, "create").returns(mockLogger);
+            mockLogger = stubLogger(sandbox);
             objectExplorerService = new ObjectExplorerService(
                 mockVscodeWrapper,
                 mockConnectionManager,
@@ -1254,18 +1259,16 @@ suite("OE Service Tests", () => {
                 "Prepare connection profile should be called with connection info",
             ).to.equal(connectionInfo);
 
-            // Verify telemetry was started, it should have been called twice because of getRootNodes is called in the initialization
-            expect(startActivityStub.calledTwice, "Telemetry should be started twice").to.be.true;
-            expect(startActivityStub.args[1][0], "Telemetry view should match").to.equal(
-                TelemetryViews.ObjectExplorer,
-            );
-            expect(startActivityStub.args[1][1], "Telemetry action should match").to.equal(
-                TelemetryActions.CreateSession,
-            );
+            // Verify telemetry was started; initialization may emit additional telemetry.
             expect(
-                startActivityStub.args[1][3].connectionType,
-                "Connection type should match",
-            ).to.equal("SqlLogin");
+                startActivityStub,
+                "Telemetry should include CreateSession for SqlLogin",
+            ).to.have.been.calledWithMatch(
+                TelemetryViews.ObjectExplorer,
+                TelemetryActions.CreateSession,
+                sinon.match.any,
+                sinon.match({ connectionType: "SqlLogin" }),
+            );
         });
 
         test("createSession should call client to get session ID and create session", async () => {
@@ -1329,14 +1332,22 @@ suite("OE Service Tests", () => {
                 sessionCreationSuccessResponse,
             );
 
-            // Verify telemetry was started and ended with success start should have been called twice because of getRootNodes is called in the initialization
-            expect(startActivityStub.calledTwice, "Telemetry should be started twice").to.be.true;
-            expect(endStub.calledOnce, "Telemetry should be ended once").to.be.true;
-            expect(endStub.args[0][0], "Telemetry status should be succeeded").to.equal(
-                ActivityStatus.Succeeded,
+            // Verify telemetry was started and ended with success; initialization may emit additional telemetry.
+            expect(
+                startActivityStub,
+                "Telemetry should include CreateSession",
+            ).to.have.been.calledWithMatch(
+                TelemetryViews.ObjectExplorer,
+                TelemetryActions.CreateSession,
+                sinon.match.any,
+                sinon.match({ connectionType: "newConnection" }),
             );
-            expect(endStub.args[0][1].connectionType, "Connection type should match").to.equal(
-                connectionProfile.authenticationType,
+            expect(
+                endStub,
+                "Telemetry should end successfully with the connection type",
+            ).to.have.been.calledWithMatch(
+                ActivityStatus.Succeeded,
+                sinon.match({ connectionType: connectionProfile.authenticationType }),
             );
 
             // Verify client requests were sent
@@ -1518,9 +1529,9 @@ suite("OE Service Tests", () => {
                 "Activity should match",
             ).to.equal(mockActivity);
 
-            // Verify telemetry recorded failure
-            expect(endFailedStub.calledOnce, "Telemetry should record session creation failure").to
-                .be.true;
+            // Verify telemetry recorded failure.
+            expect(endFailedStub.called, "Telemetry should record session creation failure").to.be
+                .true;
         });
 
         test("createSession should handle session creation failure without retry", async () => {
@@ -1641,15 +1652,16 @@ suite("OE Service Tests", () => {
             // Call the method
             await objectExplorerService.createSession(connectionInfo);
 
-            // Verify telemetry was started with correct connection type
+            // Verify telemetry was started with correct connection type.
             expect(
-                startActivityStub.calledTwice,
-                "Telemetry should be started with correct connection type",
-            ).to.be.true;
-            expect(
-                startActivityStub.args[1][3].connectionType,
-                "Connection type should match",
-            ).to.equal("AzureMFA");
+                startActivityStub,
+                "Telemetry should include CreateSession for AzureMFA",
+            ).to.have.been.calledWithMatch(
+                TelemetryViews.ObjectExplorer,
+                TelemetryActions.CreateSession,
+                sinon.match.any,
+                sinon.match({ connectionType: "AzureMFA" }),
+            );
 
             // Reset stubs
             startActivityStub.resetHistory();
@@ -1658,13 +1670,16 @@ suite("OE Service Tests", () => {
             // Test with undefined connection info (new connection)
             await objectExplorerService.createSession(undefined);
 
-            // Verify telemetry was started with 'newConnection'
-            expect(startActivityStub.calledOnce, "Telemetry should be started with 'newConnection'")
-                .to.be.true;
+            // Verify telemetry was started with 'newConnection'.
             expect(
-                startActivityStub.args[0][3].connectionType,
-                "Connection type should match",
-            ).to.equal("newConnection");
+                startActivityStub,
+                "Telemetry should include CreateSession for new connections",
+            ).to.have.been.calledWithMatch(
+                TelemetryViews.ObjectExplorer,
+                TelemetryActions.CreateSession,
+                sinon.match.any,
+                sinon.match({ connectionType: "newConnection" }),
+            );
         });
 
         test("createSession should handle client request errors gracefully", async () => {
@@ -1858,12 +1873,14 @@ suite("OE Service Tests", () => {
                 "Connection details should match new profile",
             ).to.equal(newConnectionProfile);
 
-            // Verify telemetry was updated with the new authentication type
-            expect(endStub.calledOnce, "Telemetry end should be called once").to.be.true;
+            // Verify telemetry was updated with the new authentication type.
             expect(
-                endStub.args[0][1].connectionType,
-                "Connection type should be SqlLogin",
-            ).to.equal("SqlLogin");
+                endStub,
+                "Telemetry should end with the updated connection type",
+            ).to.have.been.calledWithMatch(
+                ActivityStatus.Succeeded,
+                sinon.match({ connectionType: "SqlLogin" }),
+            );
         });
     });
 
@@ -1876,7 +1893,6 @@ suite("OE Service Tests", () => {
         let endStub: sinon.SinonStub;
         let endFailedStub: sinon.SinonStub;
         let startActivityStub: sinon.SinonStub;
-        let mockLogger: sinon.SinonStubbedInstance<Logger>;
         let objectExplorerService: ObjectExplorerService;
 
         setup(() => {
@@ -1897,8 +1913,7 @@ suite("OE Service Tests", () => {
                 startTime: 0,
                 update: sandbox.stub(),
             });
-            mockLogger = sandbox.createStubInstance(Logger);
-            sandbox.stub(Logger, "create").returns(mockLogger);
+            stubLogger(sandbox);
             objectExplorerService = new ObjectExplorerService(
                 mockVscodeWrapper,
                 mockConnectionManager,
@@ -1950,29 +1965,26 @@ suite("OE Service Tests", () => {
                 "getAddConnectionNodes should be called twice",
             ).to.be.true;
 
-            // Verify telemetry was tracked
-            expect(startActivityStub.calledThrice, "Telemetry start should be called 3 times").to.be
-                .true;
+            // Verify telemetry was tracked; setup may emit additional calls.
             expect(
-                startActivityStub.args[1][0],
-                "Telemetry view should be ObjectExplorer",
-            ).to.equal(TelemetryViews.ObjectExplorer);
-            expect(startActivityStub.args[1][1], "Telemetry action should be ExpandNode").to.equal(
+                startActivityStub,
+                "Telemetry should include ExpandNode for the root node",
+            ).to.have.been.calledWithMatch(
+                TelemetryViews.ObjectExplorer,
                 TelemetryActions.ExpandNode,
-            );
-            expect(startActivityStub.args[1][3].nodeType, "Node type should be root").to.equal(
-                "root",
+                sinon.match.any,
+                sinon.match({ nodeType: "root" }),
             );
 
-            // Verify activity ended with success
-            expect(endStub.calledTwice, "Telemetry end should be called twice").to.be.true;
-            expect(endStub.args[1][0], "Telemetry end status should be Succeeded").to.equal(
-                ActivityStatus.Succeeded,
-            );
+            // Verify activity ended with success.
             expect(
-                endStub.args[1][2].childrenCount,
-                "Telemetry end should have zero children",
-            ).to.equal(0);
+                endStub,
+                "Telemetry should end successfully with zero children",
+            ).to.have.been.calledWithMatch(
+                ActivityStatus.Succeeded,
+                sinon.match.any,
+                sinon.match({ childrenCount: 0 }),
+            );
         });
 
         test("getRootNodes should create connection nodes from saved profiles", async () => {
@@ -1999,10 +2011,11 @@ suite("OE Service Tests", () => {
                 "Connection store should be called twice",
             ).to.be.true;
 
-            // Verify telemetry ended with correct node count
-            expect(endStub.calledOnce, "Telemetry end should be called once").to.be.true;
-            expect(endStub.args[0][2].nodeCount, "Telemetry end node count should be 2").to.equal(
-                2,
+            // Verify telemetry ended with correct node count.
+            expect(endStub, "Telemetry should include the node count").to.have.been.calledWithMatch(
+                ActivityStatus.Succeeded,
+                sinon.match.any,
+                sinon.match({ nodeCount: 2 }),
             );
         });
 
@@ -2020,9 +2033,16 @@ suite("OE Service Tests", () => {
                 // Verify the error is passed through
                 expect(error, "Error should be passed through").to.equal(testError);
 
-                // Verify telemetry was started but not ended
-                expect(startActivityStub.calledTwice, "Telemetry start should be called twice").to
-                    .be.true;
+                // Verify telemetry was started but not ended.
+                expect(
+                    startActivityStub,
+                    "Telemetry should include ExpandNode for the root node",
+                ).to.have.been.calledWithMatch(
+                    TelemetryViews.ObjectExplorer,
+                    TelemetryActions.ExpandNode,
+                    sinon.match.any,
+                    sinon.match({ nodeType: "root" }),
+                );
                 expect(endStub.called, "Telemetry end should not be called").to.be.false;
                 expect(endFailedStub.called, "Telemetry end failed should not be called").to.be
                     .false; // We're letting the error propagate
@@ -2187,6 +2207,7 @@ suite("OE Service Tests", () => {
         let endFailedStub: sinon.SinonStub;
 
         setup(() => {
+            initializeIconUtils();
             sandbox = sinon.createSandbox();
             // Create stubs for dependencies
             mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
@@ -2205,7 +2226,6 @@ suite("OE Service Tests", () => {
             sandbox.stub(mockConnectionManager, "accountStore").get(() => mockAccountStore);
             mockAzureController = sandbox.createStubInstance(AzureController);
             mockAzureController.isAccountInCache = sandbox.stub();
-            mockAzureController.isSqlAuthProviderEnabled = sandbox.stub();
             mockAzureController.refreshAccessToken = sandbox.stub();
             mockAzureController.populateAccountProperties = sandbox.stub();
             mockConnectionManager.azureController = mockAzureController;
@@ -2237,8 +2257,7 @@ suite("OE Service Tests", () => {
             mockRefreshCallback = sandbox.stub();
 
             // Mock the Logger.create static method
-            mockLogger = sandbox.createStubInstance(Logger);
-            sandbox.stub(Logger, "create").returns(mockLogger);
+            mockLogger = stubLogger(sandbox);
             mockLogger.verbose = sandbox.stub();
             mockLogger.error = sandbox.stub();
 
@@ -2416,22 +2435,262 @@ suite("OE Service Tests", () => {
                 "Connection info should match",
             ).to.equal(connectionInfo);
 
-            // Verify telemetry was started
-            expect(startActivityStub.calledTwice, "Telemetry should be started twice").to.be.true;
+            // Verify telemetry was started; setup may emit additional calls.
             expect(
-                startActivityStub.args[1][0],
-                "First argument should be TelemetryViews.ObjectExplorer",
-            ).to.equal(TelemetryViews.ObjectExplorer);
-            expect(
-                startActivityStub.args[1][1],
-                "Second argument should be TelemetryActions.CreateSession",
-            ).to.equal(TelemetryActions.CreateSession);
-            expect(
-                startActivityStub.args[1][3].connectionType,
-                "Connection type should be SqlLogin",
-            ).to.equal("SqlLogin");
+                startActivityStub,
+                "Telemetry should include CreateSession for SqlLogin",
+            ).to.have.been.calledWithMatch(
+                TelemetryViews.ObjectExplorer,
+                TelemetryActions.CreateSession,
+                sinon.match.any,
+                sinon.match({ connectionType: "SqlLogin" }),
+            );
         });
     });
+
+    suite(
+        "ObjectExplorerService - prepareConnectionProfile MissingVsCodeEntraAuthError Tests",
+        () => {
+            let sandbox: sinon.SinonSandbox;
+            let objectExplorerService: ObjectExplorerService;
+            let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+            let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
+            let signInStub: sinon.SinonStub;
+            let executeCommandStub: sinon.SinonStub;
+
+            setup(() => {
+                initializeIconUtils();
+                sandbox = sinon.createSandbox();
+
+                mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+                mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
+                mockConnectionManager.connectionStore = sandbox.createStubInstance(ConnectionStore);
+                mockConnectionManager.client = sandbox.createStubInstance(SqlToolsServiceClient);
+
+                stubLogger(sandbox);
+
+                sandbox.stub(telemetry, "startActivity").returns({
+                    end: sandbox.stub(),
+                    endFailed: sandbox.stub(),
+                    correlationId: "",
+                    startTime: 0,
+                    update: sandbox.stub(),
+                });
+
+                // Stub VsCodeAzureHelper.signIn used by the "Sign In and Retry" path
+                signInStub = sandbox
+                    .stub(azureHelpers.VsCodeAzureHelper, "signIn")
+                    .resolves(undefined as any);
+
+                // Stub vscode.commands.executeCommand for the "Edit Connection Profile" path
+                executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
+
+                objectExplorerService = new ObjectExplorerService(
+                    mockVscodeWrapper,
+                    mockConnectionManager,
+                    () => {},
+                );
+                objectExplorerService.initialized.resolve();
+            });
+
+            teardown(() => {
+                sandbox.restore();
+            });
+
+            test("should prompt with Sign In and Edit options when MissingVsCodeEntraAuthError is thrown", async () => {
+                stubPreviewService(sandbox, {
+                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
+                });
+                const authError = new MissingVsCodeEntraAuthError("Account not available");
+                mockConnectionManager.prepareConnectionInfo.rejects(authError);
+                // User dismisses the dialog
+                mockVscodeWrapper.showErrorMessage.resolves(undefined);
+
+                const connectionProfile = createMockConnectionProfile({
+                    authenticationType: "AzureMFA",
+                });
+                const result = await (objectExplorerService as any).prepareConnectionProfile(
+                    connectionProfile,
+                );
+
+                expect(result, "Result should be undefined when user dismisses dialog").to.be
+                    .undefined;
+                expect(
+                    mockVscodeWrapper.showErrorMessage.calledOnce,
+                    "showErrorMessage should be called once",
+                ).to.be.true;
+
+                const [_msg, signInButton, editButton] = mockVscodeWrapper.showErrorMessage.args[0];
+                expect(signInButton, "First button should be Sign In and Retry").to.equal(
+                    LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorSignIn,
+                );
+                expect(editButton, "Second button should be Edit Connection Profile").to.equal(
+                    LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorUpdate,
+                );
+            });
+
+            test("should call signIn and retry prepareConnectionInfo when user chooses Sign In and Retry", async () => {
+                stubPreviewService(sandbox, {
+                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
+                });
+                const authError = new MissingVsCodeEntraAuthError("Account not available");
+                const connectionProfile = createMockConnectionProfile({
+                    authenticationType: "AzureMFA",
+                });
+                const preparedProfile = createMockConnectionProfile({
+                    id: "prepared-id",
+                    authenticationType: "AzureMFA",
+                });
+
+                // First call throws, second call (after sign-in) succeeds
+                mockConnectionManager.prepareConnectionInfo
+                    .onFirstCall()
+                    .rejects(authError)
+                    .onSecondCall()
+                    .resolves(preparedProfile);
+
+                mockVscodeWrapper.showErrorMessage.resolves(
+                    LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorSignIn,
+                );
+
+                const result = await (objectExplorerService as any).prepareConnectionProfile(
+                    connectionProfile,
+                );
+
+                expect(signInStub.calledOnce, "signIn should be called once").to.be.true;
+                expect(
+                    mockConnectionManager.prepareConnectionInfo.calledTwice,
+                    "prepareConnectionInfo should be called twice (initial + retry)",
+                ).to.be.true;
+                expect(result, "Result should be the prepared profile from retry").to.equal(
+                    preparedProfile,
+                );
+            });
+
+            test("should return undefined if retry after sign-in also fails", async () => {
+                stubPreviewService(sandbox, {
+                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
+                });
+                const authError = new MissingVsCodeEntraAuthError("Account not available");
+                const connectionProfile = createMockConnectionProfile({
+                    authenticationType: "AzureMFA",
+                });
+
+                // Both the initial call and the retry fail
+                mockConnectionManager.prepareConnectionInfo.rejects(authError);
+
+                mockVscodeWrapper.showErrorMessage.resolves(
+                    LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorSignIn,
+                );
+
+                const result = await (objectExplorerService as any).prepareConnectionProfile(
+                    connectionProfile,
+                );
+
+                expect(signInStub.calledOnce, "signIn should be called once").to.be.true;
+                expect(
+                    mockConnectionManager.prepareConnectionInfo.calledTwice,
+                    "prepareConnectionInfo should be called twice (initial + retry)",
+                ).to.be.true;
+                expect(result, "Result should be undefined when retry also fails").to.be.undefined;
+            });
+
+            test("should open connection dialog when user chooses Edit Connection Profile", async () => {
+                stubPreviewService(sandbox, {
+                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
+                });
+                const authError = new MissingVsCodeEntraAuthError("Account not available");
+                mockConnectionManager.prepareConnectionInfo.rejects(authError);
+
+                mockVscodeWrapper.showErrorMessage.resolves(
+                    LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorUpdate,
+                );
+
+                const connectionProfile = createMockConnectionProfile({
+                    authenticationType: "AzureMFA",
+                });
+                const result = await (objectExplorerService as any).prepareConnectionProfile(
+                    connectionProfile,
+                );
+
+                expect(result, "Result should be undefined after opening edit dialog").to.be
+                    .undefined;
+                expect(signInStub.called, "signIn should not be called").to.be.false;
+                expect(executeCommandStub.calledOnce, "executeCommand should be called once").to.be
+                    .true;
+                expect(
+                    executeCommandStub.calledWith(
+                        Constants.cmdAddObjectExplorer,
+                        connectionProfile,
+                    ),
+                    "executeCommand should open the connection dialog with the profile",
+                ).to.be.true;
+            });
+
+            test("should return undefined without prompting when user dismisses the error dialog", async () => {
+                stubPreviewService(sandbox, {
+                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
+                });
+                const authError = new MissingVsCodeEntraAuthError("Account not available");
+                mockConnectionManager.prepareConnectionInfo.rejects(authError);
+                mockVscodeWrapper.showErrorMessage.resolves(undefined);
+
+                const connectionProfile = createMockConnectionProfile({
+                    authenticationType: "AzureMFA",
+                });
+                const result = await (objectExplorerService as any).prepareConnectionProfile(
+                    connectionProfile,
+                );
+
+                expect(result, "Result should be undefined when dialog is dismissed").to.be
+                    .undefined;
+                expect(signInStub.called, "signIn should not be called").to.be.false;
+                expect(executeCommandStub.called, "executeCommand should not be called").to.be
+                    .false;
+            });
+
+            test("should log and return undefined for non-MissingVsCodeEntraAuthError errors when Entra MFA is enabled", async () => {
+                stubPreviewService(sandbox, {
+                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
+                });
+                const genericError = new Error("Some unexpected error");
+                mockConnectionManager.prepareConnectionInfo.rejects(genericError);
+
+                const connectionProfile = createMockConnectionProfile();
+                const result = await (objectExplorerService as any).prepareConnectionProfile(
+                    connectionProfile,
+                );
+
+                expect(result, "Result should be undefined for generic errors").to.be.undefined;
+                expect(
+                    mockVscodeWrapper.showErrorMessage.called,
+                    "showErrorMessage should not be called for generic errors",
+                ).to.be.false;
+            });
+
+            test("should log and return undefined immediately when useVscodeAccountsForEntraMfa is disabled", async () => {
+                stubPreviewService(sandbox, {
+                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: false,
+                });
+
+                const authError = new MissingVsCodeEntraAuthError("Account not available");
+                mockConnectionManager.prepareConnectionInfo.rejects(authError);
+
+                const connectionProfile = createMockConnectionProfile({
+                    authenticationType: "AzureMFA",
+                });
+                const result = await (objectExplorerService as any).prepareConnectionProfile(
+                    connectionProfile,
+                );
+
+                expect(result, "Result should be undefined").to.be.undefined;
+                expect(
+                    mockVscodeWrapper.showErrorMessage.called,
+                    "showErrorMessage should not be called when feature is disabled",
+                ).to.be.false;
+            });
+        },
+    );
 });
 
 function createMockConnectionProfiles(

@@ -4,16 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as Constants from "../constants/constants";
-import { DownloadType, IConfigUtils } from "../languageservice/interfaces";
+import { IConfigUtils } from "../languageservice/interfaces";
 import { config } from "./config";
-import { flatFileConfig } from "./flatFileConfig";
 
 /*
  * Config class handles getting values from config.json.
  */
 export default class ConfigUtils implements IConfigUtils {
     private _configJsonContent = undefined;
-    private _configJsonFlatFileContent = undefined;
     private _sqlToolsServiceConfigKey: string;
     private _version: number;
 
@@ -22,13 +20,6 @@ export default class ConfigUtils implements IConfigUtils {
             this._configJsonContent = config;
         }
         return this._configJsonContent;
-    }
-
-    public get configJsonFlatFileContent(): JSON {
-        if (this._configJsonFlatFileContent === undefined) {
-            this._configJsonFlatFileContent = flatFileConfig;
-        }
-        return this._configJsonFlatFileContent;
     }
 
     constructor() {
@@ -44,28 +35,8 @@ export default class ConfigUtils implements IConfigUtils {
         return this.getSqlToolsConfigValue(Constants.sqlToolsServiceInstallDirConfigKey);
     }
 
-    public getSqlToolsExecutableFiles(): string[] {
-        return this.getSqlToolsConfigValue(Constants.sqlToolsServiceExecutableFilesConfigKey);
-    }
-
     public getSqlToolsPackageVersion(): string {
         return this.getSqlToolsConfigValue(Constants.sqlToolsServiceVersionConfigKey);
-    }
-
-    public getFlatFileServiceDownloadUrl(): string {
-        return this.getFlatFileConfigValue(Constants.sqlToolsServiceDownloadUrlConfigKey);
-    }
-
-    public getFlatFileInstallDirectory(): string {
-        return this.getFlatFileConfigValue(Constants.sqlToolsServiceInstallDirConfigKey);
-    }
-
-    public getFlatFileExecutableFiles(): string[] {
-        return this.getFlatFileConfigValue(Constants.sqlToolsServiceExecutableFilesConfigKey);
-    }
-
-    public getFlatFilePackageVersion(): string {
-        return this.getFlatFileConfigValue(Constants.sqlToolsServiceVersionConfigKey);
     }
 
     public useServiceVersion(version: number): void {
@@ -93,26 +64,8 @@ export default class ConfigUtils implements IConfigUtils {
         return configValue;
     }
 
-    public getFlatFileConfigValue(configKey: string): any {
-        let json = this.configJsonFlatFileContent;
-        let flatFileConfig = json[this._sqlToolsServiceConfigKey];
-        let configValue: string = undefined;
-        if (flatFileConfig !== undefined) {
-            configValue = flatFileConfig[configKey];
-        }
-        return configValue;
-    }
-
-    public getExtensionConfig(key: string, type: DownloadType, defaultValue?: any): any {
-        let json: JSON;
-        if (type === DownloadType.SqlToolsService) {
-            json = this.configJsonContent;
-        } else if (type === DownloadType.FlatFileService) {
-            json = this.configJsonFlatFileContent;
-        } else {
-            return undefined;
-        }
-
+    public getExtensionConfig(key: string, defaultValue?: any): any {
+        let json: JSON = this.configJsonContent;
         let extensionConfig = json[Constants.extensionConfigSectionName];
         let configValue = extensionConfig[key];
         if (!configValue) {
@@ -121,16 +74,8 @@ export default class ConfigUtils implements IConfigUtils {
         return configValue;
     }
 
-    public getWorkspaceConfig(key: string, type: DownloadType, defaultValue?: any): any {
-        let json: JSON;
-        if (type === DownloadType.SqlToolsService) {
-            json = this.configJsonContent;
-        } else if (type === DownloadType.FlatFileService) {
-            json = this.configJsonFlatFileContent;
-        } else {
-            return undefined;
-        }
-
+    public getWorkspaceConfig(key: string, defaultValue?: any): any {
+        let json: JSON = this.configJsonContent;
         let configValue = json[key];
         if (!configValue) {
             configValue = defaultValue;

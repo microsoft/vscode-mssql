@@ -56,7 +56,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "22"
+          node-version: "24"
 
       - name: Setup .NET Core # Required to execute ReportGenerator
         uses: actions/setup-dotnet@v5
@@ -64,74 +64,29 @@ jobs:
           dotnet-version: 8.x
           dotnet-quality: "ga"
 
-      - name: Install tools
-        run: |
-          echo "Installing Yarn"
-          npm install --global yarn@1.22.19
-          echo "Installing VSCE"
-          npm install --global @vscode/vsce@3.7.1
-
       - name: Install root dependencies
         run: |
-          yarn install --frozen-lockfile
+          npm ci
 
       - name: MSSQL - Install dependencies and build
         uses: ./.github/actions/build-mssql
-        with:
-          source-dir: "./extensions/mssql"
 
       - name: SqlProj - Install dependencies and build
         uses: ./.github/actions/build-sqlproj
-        with:
-          source-dir: "./extensions/sql-database-projects"
 
       - name: DataWorkspace - Install dependencies and build
         uses: ./.github/actions/build-data-workspace
-        with:
-          source-dir: "./extensions/data-workspace"
 
-      - name: MSSQL - Run lint
+      - name: Run lint
         run: |
-          cd ./extensions/mssql
-          yarn lint src/ test/
-
-      - name: SqlProj - Run lint
-        continue-on-error: true
-        run: |
-          cd ./extensions/sql-database-projects
-          yarn lint src/ test/
-
-      - name: DataWorkspace - Run lint
-        run: |
-          cd ./extensions/data-workspace
-          yarn lint
+          npm run lint
 
       # Calculate sizes and package before testing;
       # Testing generates sourcemaps and instrumented code
       # that increase size
-      - name: MSSQL - Package extension
-        continue-on-error: true
+      - name: Package extensions
         run: |
-          cd extensions/mssql
-          vsce package
-
-      - name: SqlProj - Package extension
-        continue-on-error: true
-        run: |
-          cd extensions/sql-database-projects
-          vsce package
-
-      - name: DataWorkspace - Package extension
-        continue-on-error: true
-        run: |
-          cd extensions/data-workspace
-          vsce package
-
-      - name: Keymap - Package extension
-        continue-on-error: true
-        run: |
-          cd extensions/database-management-keymap
-          vsce package
+          npm run package
 
       - name: MSSQL - Upload VSIX files
         uses: actions/upload-artifact@v6
@@ -284,12 +239,51 @@ jobs:
             echo "dataworkspace_vsix_change_icon=$no_change_icon" >> $GITHUB_ENV
           fi
 
+      - name: Keymap - Calculate vsix file sizes
+        if: env.should_compare_baseline == 'true'
+        run: |
+          # Get baseline size from downloaded artifact or default to 0
+          if [ -f ./baseline/baseline-sizes.json ]; then
+            target_size=$(jq -r '.keymap.vsix_kb' ./baseline/baseline-sizes.json)
+          else
+            echo "⚠️ No baseline found, using 0 for comparison"
+            target_size=0
+          fi
+
+          pr_vsix=$(find ./extensions/database-management-keymap -name "*.vsix")
+          pr_size=$(stat -c%s "$pr_vsix")
+          pr_size=$((pr_size / 1024))
+
+          size_diff=$((pr_size - target_size))
+
+          if [ "$target_size" -gt 0 ]; then
+            percentage_change=$((100 * size_diff / target_size))
+          else
+            percentage_change=0
+          fi
+
+          echo "Baseline keymap VSIX size: $target_size KB"
+          echo "PR branch keymap VSIX size: $pr_size KB"
+          echo "Size difference: $size_diff KB"
+          echo "Percentage change: $percentage_change%"
+          echo "keymap_target_vsix_size=$target_size" >> $GITHUB_ENV
+          echo "keymap_pr_vsix_size=$pr_size" >> $GITHUB_ENV
+          echo "keymap_vsix_size_diff=$size_diff" >> $GITHUB_ENV
+          echo "keymap_vsix_percentage_change=$percentage_change" >> $GITHUB_ENV
+
+          if [ "$percentage_change" -gt 0 ]; then
+            echo "keymap_vsix_change_icon=$worse_change_icon" >> $GITHUB_ENV
+          elif [ "$percentage_change" -lt 0 ]; then
+            echo "keymap_vsix_change_icon=$better_change_icon" >> $GITHUB_ENV
+          else
+            echo "keymap_vsix_change_icon=$no_change_icon" >> $GITHUB_ENV
+          fi
+
       - name: MSSQL - Run unit tests
         continue-on-error: true
         run: |
           set +e  # Don't exit on errors
-          cd extensions/mssql
-          DISPLAY=:10 yarn test
+          DISPLAY=:10 npm run test -- --target mssql
           UNIT_EXIT_CODE=$?
           echo "mssql_unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
 
@@ -308,7 +302,7 @@ jobs:
         continue-on-error: true
         run: |
           cd ./extensions/mssql
-          yarn build:webviews-bundle
+          npm run build:webviews-bundle
 
       - name: Setup environment for smoke tests
         run: |
@@ -350,13 +344,12 @@ jobs:
           export PASSWORD=${{ env.PASSWORD }}
           export SAVE_PASSWORD=No
           export PROFILE_NAME=test-server
-          cd extensions/mssql
-          export BUILT_VSIX_PATH=$(find ./ -name "*.vsix" -exec realpath {} \; | head -n 1)
-          DISPLAY=:10 yarn smoketest
+          export BUILT_VSIX_PATH=$(find ./extensions/mssql -name "*.vsix" -exec realpath {} \; | head -n 1)
+          DISPLAY=:10 npm run smoketest -- --target mssql
           SMOKE_EXIT_CODE=$?
           echo "mssql_smoke_tests_pr_exit_code=$SMOKE_EXIT_CODE" >> $GITHUB_ENV
 
-      - name: Upload Smoke Test Screenshots
+      - name: Upload Smoke Test Screenshots and Videos
         uses: actions/upload-artifact@v6
         with:
           name: smoke-test-failure-screenshots
@@ -412,6 +405,7 @@ jobs:
           echo "| vscode-mssql VSIX            | ${{ env.mssql_target_vsix_size }} KB | ${{ env.mssql_pr_vsix_size }} KB | ${{ env.mssql_vsix_change_icon }} ${{ env.mssql_vsix_size_diff }} KB ( ${{ env.mssql_vsix_percentage_change }}% ) |" >> results.md
           echo "| sql-database-projects VSIX   | ${{ env.sqlproj_target_vsix_size }} KB | ${{ env.sqlproj_pr_vsix_size }} KB | ${{ env.sqlproj_vsix_change_icon }} ${{ env.sqlproj_vsix_size_diff }} KB ( ${{ env.sqlproj_vsix_percentage_change }}% ) |" >> results.md
           echo "| data-workspace VSIX          | ${{ env.dataworkspace_target_vsix_size }} KB | ${{ env.dataworkspace_pr_vsix_size }} KB | ${{ env.dataworkspace_vsix_change_icon }} ${{ env.dataworkspace_vsix_size_diff }} KB ( ${{ env.dataworkspace_vsix_percentage_change }}% ) |" >> results.md
+          echo "| keymap VSIX                 | ${{ env.keymap_target_vsix_size }} KB | ${{ env.keymap_pr_vsix_size }} KB | ${{ env.keymap_vsix_change_icon }} ${{ env.keymap_vsix_size_diff }} KB ( ${{ env.keymap_vsix_percentage_change }}% ) |" >> results.md
 
       - name: Find comment
         uses: peter-evans/find-comment@v3
@@ -437,8 +431,7 @@ jobs:
         continue-on-error: true
         run: |
           set +e  # Don't exit on errors
-          cd extensions/sql-database-projects
-          DISPLAY=:10 yarn test
+          DISPLAY=:10 npm run test -- --target sql-database-projects
           UNIT_EXIT_CODE=$?
           echo "sqlproj_unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
 
@@ -446,14 +439,13 @@ jobs:
         continue-on-error: true
         run: |
           set +e  # Don't exit on errors
-          cd extensions/data-workspace
-          DISPLAY=:10 yarn test
+          DISPLAY=:10 npm run test -- --target data-workspace
           UNIT_EXIT_CODE=$?
           echo "dataworkspace_unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
 
       - name: Generate xliff files
         run: |
-          yarn localization
+          npm run localization
 
       # Check if there are git changes in english xlf files
       - name: Check for changes in localization files
@@ -517,7 +509,7 @@ jobs:
           body: |
             # Updates to localized strings required
               Please update the localized strings in the PR with following steps:
-              1. Run `yarn localization` from the root directory of the PR branch.
+              1. Run `npm run localization` from the root directory of the PR branch.
               2. Commit the updated localization files:
                   * XLIFF files: `localization/xliff/*.xlf`
                   * Bundle files: `extensions/mssql/l10n/bundle.l10n.json` and `extensions/sql-database-projects/l10n/bundle.l10n.json`

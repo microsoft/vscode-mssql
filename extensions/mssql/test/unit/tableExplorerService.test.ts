@@ -34,6 +34,7 @@ import {
     EditUpdateCellResult,
 } from "../../src/sharedInterfaces/tableExplorer";
 import { Logger } from "../../src/models/logger";
+import { stubLoggerGetter } from "./utils";
 
 suite("TableExplorerService Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -44,9 +45,7 @@ suite("TableExplorerService Tests", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
         mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
-        mockLogger = sandbox.createStubInstance(Logger);
-
-        sandbox.stub(mockClient, "logger").get(() => mockLogger);
+        mockLogger = stubLoggerGetter(sandbox, mockClient);
 
         tableExplorerService = new TableExplorerService(mockClient);
     });
@@ -167,8 +166,7 @@ suite("TableExplorerService Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error.calledOnce).to.be.true;
-                expect(mockLogger.error.firstCall.args[0]).to.equal("Initialization failed");
+                expect(mockLogger.error).to.have.been.calledWith("Initialization failed");
             }
         });
     });
@@ -251,8 +249,7 @@ suite("TableExplorerService Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error.calledOnce).to.be.true;
-                expect(mockLogger.error.firstCall.args[0]).to.equal("Subset request failed");
+                expect(mockLogger.error).to.have.been.calledWith("Subset request failed");
             }
         });
     });
@@ -288,8 +285,7 @@ suite("TableExplorerService Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error.calledOnce).to.be.true;
-                expect(mockLogger.error.firstCall.args[0]).to.equal("Commit failed");
+                expect(mockLogger.error).to.have.been.calledWith("Commit failed");
             }
         });
     });
@@ -347,8 +343,7 @@ suite("TableExplorerService Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error.calledOnce).to.be.true;
-                expect(mockLogger.error.firstCall.args[0]).to.equal("Create row failed");
+                expect(mockLogger.error).to.have.been.calledWith("Create row failed");
             }
         });
     });
@@ -400,8 +395,7 @@ suite("TableExplorerService Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error.calledOnce).to.be.true;
-                expect(mockLogger.error.firstCall.args[0]).to.equal("Delete row failed");
+                expect(mockLogger.error).to.have.been.calledWith("Delete row failed");
             }
         });
     });
@@ -454,8 +448,7 @@ suite("TableExplorerService Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error.calledOnce).to.be.true;
-                expect(mockLogger.error.firstCall.args[0]).to.equal("Revert row failed");
+                expect(mockLogger.error).to.have.been.calledWith("Revert row failed");
             }
         });
     });
@@ -535,8 +528,7 @@ suite("TableExplorerService Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error.calledOnce).to.be.true;
-                expect(mockLogger.error.firstCall.args[0]).to.equal("Update cell failed");
+                expect(mockLogger.error).to.have.been.calledWith("Update cell failed");
             }
         });
     });
@@ -608,8 +600,7 @@ suite("TableExplorerService Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error.calledOnce).to.be.true;
-                expect(mockLogger.error.firstCall.args[0]).to.equal("Revert cell failed");
+                expect(mockLogger.error).to.have.been.calledWith("Revert cell failed");
             }
         });
     });
@@ -647,8 +638,7 @@ suite("TableExplorerService Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error.calledOnce).to.be.true;
-                expect(mockLogger.error.firstCall.args[0]).to.equal("Dispose failed");
+                expect(mockLogger.error).to.have.been.calledWith("Dispose failed");
             }
         });
     });
@@ -700,8 +690,7 @@ suite("TableExplorerService Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error.calledOnce).to.be.true;
-                expect(mockLogger.error.firstCall.args[0]).to.equal("Generate scripts failed");
+                expect(mockLogger.error).to.have.been.calledWith("Generate scripts failed");
             }
         });
     });
@@ -876,8 +865,9 @@ suite("TableExplorerService Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error.calledOnce, "Error should be logged").to.be.true;
-                expect(mockLogger.error.firstCall.args[0]).to.equal("Serialization failed");
+                expect(mockLogger.error, "Error should be logged").to.have.been.calledWith(
+                    "Serialization failed",
+                );
             }
         });
 
@@ -928,8 +918,12 @@ suite("TableExplorerService Tests", () => {
                 await tableExplorerService.initialize("uri", "table", "schema", "type", undefined);
                 expect.fail("Should have thrown an error");
             } catch (err) {
-                expect(mockLogger.error.calledOnce, "Error should be logged").to.be.true;
-                expect(mockLogger.error.firstCall.args[0]).to.contain(errorMessage);
+                expect(mockLogger.error, "Error should be logged").to.have.been.calledWithMatch(
+                    sinon.match(
+                        (value: unknown) =>
+                            typeof value === "string" && value.includes(errorMessage),
+                    ),
+                );
             }
         });
 
@@ -941,7 +935,7 @@ suite("TableExplorerService Tests", () => {
                 await tableExplorerService.commit("uri");
                 expect.fail("Should have thrown an error");
             } catch (err) {
-                expect(mockLogger.error.calledOnce, "Error should be logged").to.be.true;
+                expect(mockLogger.error, "Error should be logged").to.have.been.called;
             }
         });
     });

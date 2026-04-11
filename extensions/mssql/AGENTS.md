@@ -1,6 +1,6 @@
 # MSSQL Extension for Visual Studio Code
 
-The MSSQL Extension for Visual Studio Code is a TypeScript-based VS Code extension that provides database management capabilities for SQL Server, Azure SQL, and SQL Database in Fabric. The extension includes React-based webview components, AI-powered features with GitHub Copilot integration, and comprehensive SQL development tools.
+The MSSQL Extension for Visual Studio Code is a TypeScript-based VS Code extension that provides database management capabilities for SQL Server, Azure SQL, and SQL Database in Fabric. The extension includes webview components, AI-powered features with GitHub Copilot integration, and comprehensive SQL development tools.
 
 **Always reference these instructions first** and fallback to search or bash commands only when you encounter unexpected information that does not match the info here.
 
@@ -13,22 +13,21 @@ The MSSQL Extension for Visual Studio Code is a TypeScript-based VS Code extensi
 #### Initial Setup (Required once)
 
 ```bash
-# Ensure correct Node.js version (v20+)
-node --version  # Should be v20.19.4 or higher
-yarn --version  # Should be v1.22+
+# Ensure correct Node.js version (v24+)
+node --version  # Should be v24.0.0 or higher
 
 # Install dependencies - takes ~60 seconds initial, ~11 seconds subsequent. NEVER CANCEL. Set timeout to 120+ seconds.
-yarn install
+npm install
 ```
 
 #### Build Commands
 
 ```bash
 # Full build - takes ~19 seconds. NEVER CANCEL. Set timeout to 60+ seconds.
-yarn build
+npm run build -- --target mssql
 
 # Development watch mode (for active development)
-yarn watch
+npm run watch -- --target mssql
 # This runs continuous compilation and bundling. Leave running during development.
 # Includes: extension TypeScript, webview React/TypeScript, and asset bundling.
 ```
@@ -37,51 +36,53 @@ yarn watch
 
 ```bash
 # Prepare assets and localization (~2 seconds)
-yarn build:prepare
+npm run build:prepare
 
 # Compile extension TypeScript (~5 seconds)
-yarn build:extension
+npm run build:extension
 
 # Bundle extension (~1 second)
-yarn build:extension-bundle
+npm run build:extension-bundle
 
-# Compile React webviews (~8 seconds)
-yarn build:webviews
+# Compile webviews (~8 seconds)
+npm run build:webviews
 
 # Bundle webviews (~2 seconds)
-yarn build:webviews-bundle
+npm run build:webviews-bundle
 ```
 
 ### Linting and Code Quality
 
 ```bash
 # Lint source files only - takes ~1.5 seconds
-yarn lint src/ test/
+npm run lint -- --target mssql
 
-# DO NOT run 'yarn lint' without arguments - it will fail trying to lint build output
+# DO NOT run the workspace-local lint command without arguments against build output
 ```
 
 ### Testing
 
 #### Unit Tests
 
+See [test/unit/AGENTS.md](test/unit/AGENTS.md) for unit testing conventions and patterns.
+
 ```bash
 # Unit tests require VS Code download and cannot run in sandboxed environments
 # This is expected behavior - tests work in CI with proper VS Code setup
-yarn test
+npm run test -- --target mssql
 # Expected to fail with "ENOTFOUND update.code.visualstudio.com" in sandboxed environments
 
 # Run targeted unit tests using grep patterns
-yarn test --grep "ConnectionManager"          # Run tests matching "ConnectionManager"
-yarn test --pattern ".*service.*"             # Run tests matching service pattern
-yarn test --testPattern "QueryRunner"         # Alternative syntax for test filtering
+npm run test -- --target mssql --grep "ConnectionManager"          # Run tests matching "ConnectionManager"
+npm run test -- --target mssql --pattern ".*service.*"             # Run tests matching service pattern
+npm run test -- --target mssql --testPattern "QueryRunner"         # Alternative syntax for test filtering
 ```
 
 #### E2E Tests (Smoke Tests)
 
 ```bash
 # E2E tests also require VS Code and SQL Server setup
-yarn smoketest
+npm run smoketest -- --target mssql
 # Requires: SQL Server running, connection credentials, VS Code installation
 ```
 
@@ -92,8 +93,8 @@ yarn smoketest
 npm install -g vsce
 
 # Package extension - takes ~4.5 seconds. NEVER CANCEL. Set timeout to 60+ seconds.
-yarn package --online   # Creates ~12MB VSIX file for online distribution
-yarn package --offline  # Creates platform-specific packages with embedded services
+npm run package -- --target mssql --online   # Creates ~12MB VSIX file for online distribution
+npm run package -- --target mssql --offline  # Creates platform-specific packages with embedded services
 ```
 
 ## Validation Scenarios
@@ -102,15 +103,15 @@ yarn package --offline  # Creates platform-specific packages with embedded servi
 
 ### Complete Build Validation
 
-1. Clean install: `rm -rf node_modules && yarn install`
-2. Full build: `yarn build`
-3. Lint check: `yarn lint src/ test/`
-4. Package creation: `yarn package --online`
+1. Clean install: `rm -rf node_modules && npm install`
+2. Full build: `npm run build -- --target mssql`
+3. Lint check: `npm run lint -- --target mssql`
+4. Package creation: `npm run package -- --target mssql --online`
 5. Verify VSIX file is created (~12-15MB is normal)
 
 ### Development Workflow Validation
 
-1. Start watch mode: `yarn watch`
+1. Start watch mode: `npm run watch -- --target mssql`
 2. Make a small change to a TypeScript file in `src/`
 3. Verify automatic recompilation occurs
 4. Stop watch mode with Ctrl+C
@@ -119,15 +120,15 @@ yarn package --offline  # Creates platform-specific packages with embedded servi
 
 ```bash
 # Always run these commands before committing changes:
-yarn build                 # Ensure code compiles
-yarn lint src/ test/        # Ensure code meets style standards
-yarn package --online      # Ensure extension can be packaged
+npm run build -- --target mssql                 # Ensure code compiles
+npm run lint -- --target mssql                  # Ensure code meets style standards
+npm run package -- --target mssql --online      # Ensure extension can be packaged
 ```
 
 ### Code Quality Validation
 
-- Always run `yarn lint src/ test/` before committing
-- Check for TypeScript compilation errors: `yarn build:extension` and `yarn build:webviews`
+- Always run `npm run lint -- --target mssql` before committing
+- Check for TypeScript compilation errors: `npm run build:extension` and `npm run build:webviews`
 - Verify no new warnings are introduced during build
 
 ## Project Structure
@@ -137,7 +138,7 @@ yarn package --online      # Ensure extension can be packaged
 - `src/` - Main extension source code (TypeScript)
     - `copilot/` - GitHub Copilot integration features
     - `controllers/` - Extension controllers and logic
-    - `reactviews/` - React components for webviews
+    - `webviews/` - React components for webviews
     - `services/` - Core business logic services
 - `test/` - Unit and E2E tests
 - `scripts/` - Build and utility scripts
@@ -148,21 +149,21 @@ yarn package --online      # Ensure extension can be packaged
 
 - `package.json` - Extension manifest and build scripts
 - `tsconfig.extension.json` - TypeScript config for extension code
-- `tsconfig.react.json` - TypeScript config for React webviews
+- `tsconfig.webviews.json` - TypeScript config for webviews
 - `eslint.config.mjs` - Linting configuration
 - `prettier.config.mjs` - Code formatting rules
 
 ## Common Commands and Expected Times
 
-| Command                 | Expected Time                 | Timeout Setting | Description                             |
-| ----------------------- | ----------------------------- | --------------- | --------------------------------------- |
-| `yarn install`          | ~60s initial, ~11s subsequent | 120+ seconds    | NEVER CANCEL: Installs all dependencies |
-| `yarn build`            | ~19 seconds                   | 60+ seconds     | NEVER CANCEL: Complete build process    |
-| `yarn build:extension`  | ~5 seconds                    | 30+ seconds     | Compile extension TypeScript            |
-| `yarn build:webviews`   | ~8 seconds                    | 30+ seconds     | Compile React webviews                  |
-| `yarn lint src/ test/`  | ~1.5 seconds                  | 30+ seconds     | Lint source files only                  |
-| `yarn package --online` | ~4.5 seconds                  | 60+ seconds     | NEVER CANCEL: Create VSIX package       |
-| `yarn watch`            | Continuous                    | N/A             | Development watch mode                  |
+| Command                                      | Expected Time                 | Timeout Setting | Description                             |
+| -------------------------------------------- | ----------------------------- | --------------- | --------------------------------------- |
+| `npm install`                                | ~60s initial, ~11s subsequent | 120+ seconds    | NEVER CANCEL: Installs all dependencies |
+| `npm run build -- --target mssql`            | ~19 seconds                   | 60+ seconds     | NEVER CANCEL: Complete build process    |
+| `npm run build:extension`                    | ~5 seconds                    | 30+ seconds     | Compile extension TypeScript            |
+| `npm run build:webviews`                     | ~8 seconds                    | 30+ seconds     | Compile webviews                        |
+| `npm run lint -- --target mssql`             | ~1.5 seconds                  | 30+ seconds     | Lint source files only                  |
+| `npm run package -- --target mssql --online` | ~4.5 seconds                  | 60+ seconds     | NEVER CANCEL: Create VSIX package       |
+| `npm run watch -- --target mssql`            | Continuous                    | N/A             | Development watch mode                  |
 
 ## Build Troubleshooting
 
@@ -170,8 +171,8 @@ yarn package --online      # Ensure extension can be packaged
 
 #### Lint Failures
 
-- **Issue**: `yarn lint` fails with "Definition for rule not found"
-- **Solution**: Use `yarn lint src/ test/` to lint source files only, not build output
+- **Issue**: lint fails with "Definition for rule not found"
+- **Solution**: Use `npm run lint -- --target mssql` to lint the extension sources through the root runner
 
 #### VS Code Tests Failing
 
@@ -186,7 +187,7 @@ yarn package --online      # Ensure extension can be packaged
 #### Watch Mode Issues
 
 - **Issue**: Watch mode not detecting changes
-- **Solution**: Stop watch mode (Ctrl+C) and restart: `yarn watch`
+- **Solution**: Stop watch mode (Ctrl+C) and restart: `npm run watch -- --target mssql`
 
 ### CI/CD Expectations
 
@@ -214,7 +215,7 @@ yarn package --online      # Ensure extension can be packaged
 
 ### Development Patterns
 
-- Use `yarn watch` during development for live compilation
+- Use `npm run watch -- --target mssql` during development for live compilation
 - Always run linting before committing changes
 - Build and package extension to test full integration
 - Extension can be debugged by installing VSIX in VS Code
@@ -225,7 +226,7 @@ yarn package --online      # Ensure extension can be packaged
 
 ### Webview Code Review Checklist
 
-When reviewing PRs that touch webview code (especially in `src/reactviews/`), pay close attention to the following patterns:
+When reviewing PRs that touch webview code (especially in `src/webviews/`), pay close attention to the following patterns:
 
 #### Avoid `setTimeout()` in Webviews
 

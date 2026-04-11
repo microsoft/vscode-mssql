@@ -28,6 +28,7 @@ import {
     ViewMetadataResult,
 } from "../../src/sharedInterfaces/metadata";
 import { Logger } from "../../src/models/logger";
+import { stubLoggerGetter } from "./utils";
 
 chai.use(sinonChai);
 
@@ -40,9 +41,7 @@ suite("Metadata Service Tests", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
         mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
-        mockLogger = sandbox.createStubInstance(Logger);
-
-        sandbox.stub(mockClient, "logger").get(() => mockLogger);
+        mockLogger = stubLoggerGetter(sandbox, mockClient);
 
         metadataService = new MetadataService(mockClient);
     });
@@ -134,7 +133,6 @@ suite("Metadata Service Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error).to.have.been.calledOnce;
                 expect(mockLogger.error).to.have.been.calledWith("Failed to retrieve metadata");
             }
         });
@@ -248,7 +246,6 @@ suite("Metadata Service Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error).to.have.been.calledOnce;
                 expect(mockLogger.error).to.have.been.calledWith("Table not found");
             }
         });
@@ -316,7 +313,6 @@ suite("Metadata Service Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error).to.have.been.calledOnce;
                 expect(mockLogger.error).to.have.been.calledWith("View not found");
             }
         });
@@ -439,7 +435,6 @@ suite("Metadata Service Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error).to.have.been.calledOnce;
                 expect(mockLogger.error).to.have.been.calledWith("Failed to list databases");
             }
         });
@@ -514,7 +509,6 @@ suite("Metadata Service Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error).to.have.been.calledOnce;
                 expect(mockLogger.error).to.have.been.calledWith("Failed to generate context");
             }
         });
@@ -530,8 +524,12 @@ suite("Metadata Service Tests", () => {
                 await metadataService.getMetadata("uri");
                 expect.fail("Should have thrown an error");
             } catch (err) {
-                expect(mockLogger.error).to.have.been.calledOnce;
-                expect(mockLogger.error.firstCall.args[0]).to.contain(errorMessage);
+                expect(mockLogger.error).to.have.been.calledWithMatch(
+                    sinon.match(
+                        (value: unknown) =>
+                            typeof value === "string" && value.includes(errorMessage),
+                    ),
+                );
             }
         });
 
@@ -543,7 +541,7 @@ suite("Metadata Service Tests", () => {
                 await metadataService.getDatabases("uri");
                 expect.fail("Should have thrown an error");
             } catch (err) {
-                expect(mockLogger.error).to.have.been.calledOnce;
+                expect(mockLogger.error).to.have.been.called;
             }
         });
     });

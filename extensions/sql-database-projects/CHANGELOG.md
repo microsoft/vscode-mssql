@@ -6,6 +6,13 @@ _The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [1.5.9] - 2026-04-22
+
+- Added automatic folder creation (e.g. `dbo/Tables/`) when adding SQL objects to a project. Can be disabled via the `sqlDatabaseProjects.autoCreateFolders` setting.
+- Added quick access to the [SQL Database Projects documentation](https://aka.ms/sqlprojects) from the project context menu and panel toolbar.
+- Fixed an issue where SQL object templates (table, view, stored procedure) did not reflect the schema specified in the object name.
+- Fixed an issue where SQL projects with a missing `ProjectGuid` were silently modified on load with an invalid all-zeros GUID, causing unexpected git dirty state. The extension now prompts the user and generates a valid unique GUID only upon acceptance.
+
 ## [1.5.8] - 2026-03-18
 
 - Adds support for Microsoft.Build.Sql 2.1.0

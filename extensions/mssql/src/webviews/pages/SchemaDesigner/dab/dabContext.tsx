@@ -1,0 +1,443 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { Dab } from "../../../../sharedInterfaces/dab";
+import { ApiStatus } from "../../../../sharedInterfaces/webview";
+import { registerSchemaDesignerDabToolHandlers } from "../schemaDesignerRpcHandlers";
+import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
+import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
+
+interface DabContextProps {
+    isInitialized: boolean;
+    isDabDeploymentSupported: boolean;
+    copyToClipboard: (text: string, copyTextType: Dab.CopyTextType) => void;
+    openUrl: (url: string, apiType?: Dab.ApiType) => void;
+    openLogsInNewTab: (logsContent: string) => void;
+    dabConfig: Dab.DabConfig | null;
+    initializeDabConfig: () => void;
+    syncDabConfigWithSchema: () => void;
+    updateDabApiTypes: (apiTypes: Dab.ApiType[]) => void;
+    toggleDabEntity: (entityId: string, isEnabled: boolean) => void;
+    toggleDabEntityAction: (entityId: string, action: Dab.EntityAction, isEnabled: boolean) => void;
+    updateDabEntitySettings: (entityId: string, settings: Dab.EntityAdvancedSettings) => void;
+    dabTextFilter: string;
+    setDabTextFilter: (text: string) => void;
+    dabConfigTextFileContent: string;
+    openDabConfigInEditor: (configContent: string) => void;
+    dabDeploymentState: Dab.DabDeploymentState;
+    openDabDeploymentDialog: () => void;
+    closeDabDeploymentDialog: () => void;
+    setDabDeploymentDialogStep: (step: Dab.DabDeploymentDialogStep) => void;
+    updateDabDeploymentParams: (params: Partial<Dab.DabDeploymentParams>) => void;
+    validateDabDeploymentParams: (
+        containerName: string,
+        port: number,
+    ) => Promise<Dab.ValidateDeploymentParamsResponse>;
+    runDabDeploymentStep: (step: Dab.DabDeploymentStepOrder) => Promise<void>;
+    resetDabDeploymentState: () => void;
+    retryDabDeploymentSteps: () => Promise<void>;
+    addDabMcpServer: (serverUrl: string) => Promise<Dab.AddMcpServerResponse>;
+}
+
+const DabContext = createContext<DabContextProps | undefined>(undefined);
+
+interface DabProviderProps {
+    children: React.ReactNode;
+}
+
+export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
+    const schemaDesignerContext = useContext(SchemaDesignerContext);
+    const { extensionRpc, extractSchema, isInitialized, isInitializedRef, waitForInitialization } =
+        schemaDesignerContext;
+    const isDabDeploymentSupported =
+        useSchemaDesignerSelector((s) => s?.isDabDeploymentSupported) ?? false;
+
+    const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
+    const [dabTextFilter, setDabTextFilter] = useState<string>("");
+    const [dabConfigTextFileContent, setDabConfigTextFileContent] = useState<string>("");
+    const [dabDeploymentState, setDabDeploymentState] = useState<Dab.DabDeploymentState>(
+        Dab.createDefaultDeploymentState(),
+    );
+
+    const dabConfigRef = useRef<Dab.DabConfig | null>(dabConfig);
+    const extractSchemaRef = useRef<() => ReturnType<typeof extractSchema>>(extractSchema);
+
+    useEffect(() => {
+        dabConfigRef.current = dabConfig;
+    }, [dabConfig]);
+
+    useEffect(() => {
+        extractSchemaRef.current = extractSchema;
+    }, [extractSchema]);
+
+    useEffect(() => {
+        registerSchemaDesignerDabToolHandlers({
+            extensionRpc,
+            isInitializedRef,
+            waitForInitialization,
+            getCurrentDabConfig: () => dabConfigRef.current,
+            getCurrentSchemaTables: () => extractSchemaRef.current().tables,
+            commitDabConfig: (config) => {
+                setDabConfig(config);
+            },
+        });
+    }, [extensionRpc, waitForInitialization]);
+
+    const initializeDabConfig = useCallback(() => {
+        const schema = extractSchema();
+        const config = Dab.createDefaultConfig(schema.tables);
+        setDabConfig(config);
+    }, [extractSchema]);
+
+    const syncDabConfigWithSchema = useCallback(() => {
+        if (!dabConfig) {
+            return;
+        }
+
+        const synced = Dab.syncConfigWithSchema(dabConfig, extractSchema().tables);
+        if (synced.changed) {
+            setDabConfig(synced.config);
+        }
+    }, [dabConfig, extractSchema]);
+
+    const updateDabApiTypes = useCallback((apiTypes: Dab.ApiType[]) => {
+        setDabConfig((prev) => {
+            if (!prev) {
+                return prev;
+            }
+            return {
+                ...prev,
+                apiTypes,
+            };
+        });
+    }, []);
+
+    const toggleDabEntity = useCallback((entityId: string, isEnabled: boolean) => {
+        setDabConfig((prev) => {
+            if (!prev) {
+                return prev;
+            }
+            return {
+                ...prev,
+                entities: prev.entities.map((e) => (e.id === entityId ? { ...e, isEnabled } : e)),
+            };
+        });
+    }, []);
+
+    const toggleDabEntityAction = useCallback(
+        (entityId: string, action: Dab.EntityAction, isEnabled: boolean) => {
+            setDabConfig((prev) => {
+                if (!prev) {
+                    return prev;
+                }
+                return {
+                    ...prev,
+                    entities: prev.entities.map((e) => {
+                        if (e.id !== entityId) {
+                            return e;
+                        }
+                        const enabledActions = isEnabled
+                            ? [...e.enabledActions, action]
+                            : e.enabledActions.filter((a) => a !== action);
+                        return { ...e, enabledActions };
+                    }),
+                };
+            });
+        },
+        [],
+    );
+
+    const updateDabEntitySettings = useCallback(
+        (entityId: string, settings: Dab.EntityAdvancedSettings) => {
+            setDabConfig((prev) => {
+                if (!prev) {
+                    return prev;
+                }
+                return {
+                    ...prev,
+                    entities: prev.entities.map((e) =>
+                        e.id === entityId ? { ...e, advancedSettings: settings } : e,
+                    ),
+                };
+            });
+        },
+        [],
+    );
+
+    // Auto-generate text config whenever dabConfig changes
+    useEffect(() => {
+        if (!dabConfig) {
+            return;
+        }
+        void extensionRpc
+            .sendRequest(Dab.GenerateConfigRequest.type, { config: dabConfig })
+            .then((response) => {
+                if (response.success) {
+                    setDabConfigTextFileContent(response.configContent);
+                } else {
+                    console.error("Failed to generate DAB config:", response.error);
+                }
+            })
+            .catch((error) => {
+                console.error("Failed to generate DAB config:", error);
+            });
+    }, [dabConfig, extensionRpc]);
+
+    const copyToClipboard = useCallback(
+        (text: string, copyTextType: Dab.CopyTextType) => {
+            void extensionRpc.sendNotification(Dab.CopyTextNotification.type, {
+                text,
+                copyTextType,
+            });
+        },
+        [extensionRpc],
+    );
+
+    const openUrl = useCallback(
+        (url: string, apiType?: Dab.ApiType) => {
+            void extensionRpc.sendNotification(Dab.OpenUrlNotification.type, { url, apiType });
+        },
+        [extensionRpc],
+    );
+
+    const openDabConfigInEditor = useCallback(
+        (configContent: string) => {
+            void extensionRpc.sendNotification(Dab.OpenConfigInEditorNotification.type, {
+                configContent,
+            });
+        },
+        [extensionRpc],
+    );
+
+    const openLogsInNewTab = useCallback(
+        (logsContent: string) => {
+            void extensionRpc.sendNotification(Dab.OpenLogsInNewTabNotification.type, {
+                logsContent,
+            });
+        },
+        [extensionRpc],
+    );
+
+    const openDabDeploymentDialog = useCallback(() => {
+        setDabDeploymentState((prev) => ({
+            ...prev,
+            isDialogOpen: true,
+            dialogStep: Dab.DabDeploymentDialogStep.Confirmation,
+        }));
+    }, []);
+
+    const closeDabDeploymentDialog = useCallback(() => {
+        setDabDeploymentState((prev) => ({
+            ...prev,
+            isDialogOpen: false,
+        }));
+    }, []);
+
+    const setDabDeploymentDialogStep = useCallback((step: Dab.DabDeploymentDialogStep) => {
+        setDabDeploymentState((prev) => ({
+            ...prev,
+            dialogStep: step,
+        }));
+    }, []);
+
+    const updateDabDeploymentParams = useCallback((params: Partial<Dab.DabDeploymentParams>) => {
+        setDabDeploymentState((prev) => ({
+            ...prev,
+            params: {
+                ...prev.params,
+                ...params,
+            },
+        }));
+    }, []);
+
+    const validateDabDeploymentParams = useCallback(
+        async (
+            containerName: string,
+            port: number,
+        ): Promise<Dab.ValidateDeploymentParamsResponse> => {
+            return extensionRpc.sendRequest(Dab.ValidateDeploymentParamsRequest.type, {
+                containerName,
+                port,
+            });
+        },
+        [extensionRpc],
+    );
+
+    const updateDeploymentStepStatus = useCallback(
+        (
+            step: Dab.DabDeploymentStepOrder,
+            status: ApiStatus,
+            message?: string,
+            containerLogs?: string,
+            fullErrorText?: string,
+            errorLink?: string,
+            errorLinkText?: string,
+        ) => {
+            setDabDeploymentState((prev) => ({
+                ...prev,
+                stepStatuses: prev.stepStatuses.map((s) =>
+                    s.step === step
+                        ? {
+                              ...s,
+                              status,
+                              message,
+                              containerLogs,
+                              fullErrorText,
+                              errorLink,
+                              errorLinkText,
+                          }
+                        : s,
+                ),
+            }));
+        },
+        [],
+    );
+
+    const runDabDeploymentStep = useCallback(
+        async (step: Dab.DabDeploymentStepOrder) => {
+            updateDeploymentStepStatus(step, ApiStatus.Loading);
+
+            if (step === Dab.DabDeploymentStepOrder.startContainer && !dabConfig) {
+                updateDeploymentStepStatus(
+                    step,
+                    ApiStatus.Error,
+                    "DAB configuration is not available.",
+                    undefined,
+                );
+                return;
+            }
+
+            const response = await extensionRpc.sendRequest(Dab.RunDeploymentStepRequest.type, {
+                step,
+                params: dabDeploymentState.params,
+                config: dabConfig ?? undefined,
+            });
+
+            if (response.success) {
+                setDabDeploymentState((prev) => {
+                    const updatedStatuses = prev.stepStatuses.map((s) =>
+                        s.step === step ? { ...s, status: ApiStatus.Loaded } : s,
+                    );
+
+                    if (step === Dab.DabDeploymentStepOrder.checkContainer) {
+                        return {
+                            ...prev,
+                            stepStatuses: updatedStatuses,
+                            currentDeploymentStep: step + 1,
+                            isDeploying: false,
+                            apiUrl: response.apiUrl,
+                            dialogStep: Dab.DabDeploymentDialogStep.Complete,
+                        };
+                    }
+
+                    return {
+                        ...prev,
+                        stepStatuses: updatedStatuses,
+                        currentDeploymentStep: step + 1,
+                    };
+                });
+            } else {
+                updateDeploymentStepStatus(
+                    step,
+                    ApiStatus.Error,
+                    response.error,
+                    response.containerLogs,
+                    response.fullErrorText,
+                    response.errorLink,
+                    response.errorLinkText,
+                );
+            }
+        },
+        [dabConfig, dabDeploymentState.params, extensionRpc, updateDeploymentStepStatus],
+    );
+
+    const resetDabDeploymentState = useCallback(() => {
+        setDabDeploymentState(Dab.createDefaultDeploymentState());
+    }, []);
+
+    const retryDabDeploymentSteps = useCallback(async () => {
+        try {
+            await extensionRpc.sendRequest(Dab.StopDeploymentRequest.type, {
+                containerName: dabDeploymentState.params.containerName,
+            });
+        } catch (error) {
+            console.error("Failed to clean up DAB container before retry:", error);
+        }
+
+        setDabDeploymentState((prev) => ({
+            ...prev,
+            currentDeploymentStep: Dab.DabDeploymentStepOrder.pullImage,
+            stepStatuses: prev.stepStatuses.map((s) => {
+                if (s.step >= Dab.DabDeploymentStepOrder.pullImage) {
+                    return {
+                        ...s,
+                        status: ApiStatus.NotStarted,
+                        message: undefined,
+                        containerLogs: undefined,
+                        fullErrorText: undefined,
+                        errorLink: undefined,
+                        errorLinkText: undefined,
+                    };
+                }
+                return s;
+            }),
+            error: undefined,
+            apiUrl: undefined,
+        }));
+    }, [dabDeploymentState.params.containerName, extensionRpc]);
+
+    const addDabMcpServer = useCallback(
+        async (serverUrl: string): Promise<Dab.AddMcpServerResponse> => {
+            return extensionRpc.sendRequest(Dab.AddMcpServerRequest.type, {
+                serverName: `DabMcp-${dabDeploymentState.params.port}`,
+                serverUrl,
+            });
+        },
+        [extensionRpc, dabDeploymentState.params.port],
+    );
+
+    return (
+        <DabContext.Provider
+            value={{
+                isInitialized,
+                isDabDeploymentSupported,
+                copyToClipboard,
+                openUrl,
+                openLogsInNewTab,
+                dabConfig,
+                initializeDabConfig,
+                syncDabConfigWithSchema,
+                updateDabApiTypes,
+                toggleDabEntity,
+                toggleDabEntityAction,
+                updateDabEntitySettings,
+                dabTextFilter,
+                setDabTextFilter,
+                dabConfigTextFileContent,
+                openDabConfigInEditor,
+                dabDeploymentState,
+                openDabDeploymentDialog,
+                closeDabDeploymentDialog,
+                setDabDeploymentDialogStep,
+                updateDabDeploymentParams,
+                validateDabDeploymentParams,
+                runDabDeploymentStep,
+                resetDabDeploymentState,
+                retryDabDeploymentSteps,
+                addDabMcpServer,
+            }}>
+            {children}
+        </DabContext.Provider>
+    );
+};
+
+export const useDabContext = (): DabContextProps => {
+    const context = useContext(DabContext);
+    if (!context) {
+        throw new Error("useDabContext must be used within a DabProvider");
+    }
+    return context;
+};

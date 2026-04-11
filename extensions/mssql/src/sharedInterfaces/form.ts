@@ -105,7 +105,7 @@ export interface FormItemActionButton {
     label: string;
     id: string;
     hidden?: boolean;
-    callback: () => void;
+    callback: () => void | Promise<void>;
 }
 
 export interface FormItemOptions {

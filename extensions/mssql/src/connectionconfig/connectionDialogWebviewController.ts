@@ -28,6 +28,7 @@ import {
     IAzureAccount,
     GetSqlAnalyticsEndpointUriFromFabricRequest,
     ChangePasswordDialogProps,
+    ConnectionSubmitAction,
 } from "../sharedInterfaces/connectionDialog";
 import { FormItemActionButton, FormItemOptions } from "../sharedInterfaces/form";
 import {
@@ -82,7 +83,6 @@ import {
 } from "../controllers/connectionGroupWebviewController";
 import { populateAzureAccountInfo } from "../controllers/addFirewallRuleWebviewController";
 import { MssqlVSCodeAzureSubscriptionProvider } from "../azure/MssqlVSCodeAzureSubscriptionProvider";
-import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { FabricHelper } from "../fabric/fabricHelper";
 import { FabricSqlDbInfo, FabricWorkspaceInfo } from "../sharedInterfaces/fabric";
 import {
@@ -96,6 +96,13 @@ import {
 } from "../sharedInterfaces/changePassword";
 import { getCloudId } from "../azure/providerSettings";
 import { ConnectionConfig } from "./connectionconfig";
+import {
+    getVscodeEntraAccountOptions,
+    getVscodeEntraTenantOptions,
+    normalizeVscodeEntraAccountId,
+    resolveVscodeEntraAccount,
+} from "../azure/vscodeEntraMfaUtils";
+import { PreviewFeature, previewService } from "../previews/previewService";
 
 const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 10;
 export const CLEAR_TOKEN_CACHE = "clearTokenCache";
@@ -126,6 +133,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
     private _connectionBeingEdited: IConnectionDialogProfile | undefined;
     private _azureSubscriptions: Map<string, AzureSubscription>;
+    private _lastSubmittedAction: ConnectionSubmitAction = ConnectionSubmitAction.Connect;
 
     //#endregion
 
@@ -191,7 +199,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         // Load connection form components
         this.state.formComponents = await generateConnectionComponents(
             this._mainController.connectionManager,
-            getAccounts(this._mainController.azureAccountService, this.logger),
+            this.getEntraMfaAccountOptions(),
             this.getAzureActionButtons(),
             this.getConnectionGroups(this._mainController),
         );
@@ -329,25 +337,36 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return state;
         });
 
-        this.registerReducer("loadConnection", async (state, payload) => {
+        this.registerReducer("loadConnectionForEdit", async (state, payload) => {
             sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.LoadConnection);
+            await this.setConnectionForEdit(payload.connection);
 
-            this._connectionBeingEdited = structuredClone(payload.connection);
-            this.clearFormError();
-            this.state.connectionProfile = payload.connection;
-            this.state.selectedInputMode = ConnectionInputMode.Parameters;
+            return state;
+        });
 
-            await this.updateItemVisibility();
-            await this.handleAzureMFAEdits("azureAuthType");
-            await this.handleAzureMFAEdits("accountId");
-
-            await this.checkReadyToConnect();
+        this.registerReducer("loadConnectionAsNewDraft", async (state, payload) => {
+            sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.LoadConnection, {
+                mode: "newDraft",
+            });
+            await this.setConnectionAsNewDraft(payload.connection);
 
             return state;
         });
 
         this.registerReducer("connect", async (state) => {
-            return this.connectHelper(state);
+            return this.submitConnectionAction(state, ConnectionSubmitAction.Connect);
+        });
+
+        this.registerReducer("testConnection", async (state) => {
+            return this.submitConnectionAction(state, ConnectionSubmitAction.TestConnection);
+        });
+
+        this.registerReducer("saveWithoutConnecting", async (state) => {
+            return this.submitConnectionAction(state, ConnectionSubmitAction.SaveWithoutConnecting);
+        });
+
+        this.registerReducer("retryLastSubmitAction", async (state) => {
+            return this.submitConnectionAction(state, this._lastSubmittedAction);
         });
 
         this.registerReducer("loadAzureServers", async (state, payload) => {
@@ -392,7 +411,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             state.dialog = undefined;
             this.updateState(state);
 
-            return await this.connectHelper(state);
+            return await this.submitConnectionAction(state, this._lastSubmittedAction);
         });
 
         this.registerReducer("createConnectionGroup", async (state, payload) => {
@@ -417,7 +436,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             this.updateState(state);
 
-            return await this.connectHelper(state);
+            return await this.submitConnectionAction(state, this._lastSubmittedAction);
         });
 
         this.registerReducer("openCreateConnectionGroupDialog", async (state) => {
@@ -522,6 +541,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     AuthenticationType.SqlLogin,
                     AuthenticationType.Integrated,
                     AuthenticationType.AzureMFA,
+                    AuthenticationType.ActiveDirectoryDefault,
                 ];
 
                 if (
@@ -869,7 +889,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 this.state.dialog = undefined;
                 this.state.connectionProfile.password = newPassword;
                 this.updateState();
-                const state = await this.connectHelper(this.state);
+                const state = await this.submitConnectionAction(
+                    this.state,
+                    this._lastSubmittedAction,
+                );
                 this.updateState(state);
             } else {
                 return passwordChangeResponse;
@@ -884,6 +907,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     override async afterSetFormProperty(
         propertyName: keyof IConnectionDialogProfile,
     ): Promise<void> {
+        if (propertyName !== "profileName" && propertyName !== "groupId") {
+            this.state.testConnectionSucceeded = false;
+        }
         await this.handleAzureMFAEdits(propertyName);
     }
 
@@ -900,9 +926,24 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     async updateItemVisibility() {
         let hiddenProperties: (keyof IConnectionDialogProfile)[] = [];
 
-        if (this.state.connectionProfile.authenticationType !== AuthenticationType.SqlLogin) {
-            hiddenProperties.push("user", "password", "savePassword");
+        if (
+            this.state.connectionProfile.authenticationType !== AuthenticationType.SqlLogin &&
+            this.state.connectionProfile.authenticationType !==
+                AuthenticationType.ActiveDirectoryDefault
+        ) {
+            hiddenProperties.push("user");
         }
+        if (this.state.connectionProfile.authenticationType !== AuthenticationType.SqlLogin) {
+            hiddenProperties.push("password", "savePassword");
+        }
+
+        const userComponent = this.state.formComponents["user"];
+        if (userComponent) {
+            // userId is required for SQL Login, optional for AD Default, and hidden (above) for everything else
+            userComponent.required =
+                this.state.connectionProfile.authenticationType === AuthenticationType.SqlLogin;
+        }
+
         if (this.state.connectionProfile.authenticationType !== AuthenticationType.AzureMFA) {
             hiddenProperties.push("accountId", "tenantId");
         }
@@ -910,10 +951,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             let tenants = [];
 
             if (this.state.connectionProfile.accountId !== undefined) {
-                tenants = await getTenants(
-                    this._mainController.azureAccountService,
+                tenants = await this.getEntraMfaTenantOptions(
                     this.state.connectionProfile.accountId,
-                    this.logger,
                 );
             }
 
@@ -1046,74 +1085,58 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         return await this.validateForm(cleanedConnection);
     }
 
-    private async connectHelper(
+    private async submitConnectionAction(
         state: ConnectionDialogWebviewState,
+        action: ConnectionSubmitAction,
     ): Promise<ConnectionDialogWebviewState> {
-        this.clearFormError();
-        this.state.connectionStatus = ApiStatus.Loading;
-        this.updateState();
+        this._lastSubmittedAction = action;
+        this.state.connectionAction = action;
 
-        let cleanedConnection: IConnectionDialogProfile = this.cleanConnection(
-            this.state.connectionProfile,
-        );
-
-        const erroredInputs = await this.validateProfile(cleanedConnection);
-
-        if (erroredInputs.length > 0) {
-            this.state.connectionStatus = ApiStatus.Error;
-            this.logger.warn("One more more inputs have errors: " + erroredInputs.join(", "));
+        const cleanedConnection = await this.prepareConnectionForSubmit(state);
+        if (!cleanedConnection) {
             return state;
         }
 
         try {
-            try {
-                const tempConnectionUri = uuid();
-                const result = await this._mainController.connectionManager.connect(
-                    tempConnectionUri,
-                    cleanedConnection,
-                    {
-                        shouldHandleErrors: false, // Connect should not handle errors, as we want to handle them here
-                        connectionSource: CONNECTION_DIALOG_VIEW_ID,
-                    },
-                );
-
-                const connectionInfo =
-                    this._mainController.connectionManager?.getConnectionInfo(tempConnectionUri);
-
-                if (!result) {
-                    return await this.handleConnectionErrorCodes(connectionInfo, state);
-                }
-            } catch (error) {
-                this.state.formMessage = { message: getErrorMessage(error) };
-                this.state.connectionStatus = ApiStatus.Error;
-
-                if (
-                    getErrorMessage(error).includes(AzureConstants.multiple_matching_tokens_error)
-                ) {
-                    this.state.formMessage.buttons = [
-                        { id: CLEAR_TOKEN_CACHE, label: Loc.clearTokenCache },
-                    ];
+            if (action === ConnectionSubmitAction.TestConnection) {
+                const testSucceeded = await this.testConnectionStep(cleanedConnection, state);
+                if (!testSucceeded) {
+                    return state;
                 }
 
-                sendErrorEvent(
-                    TelemetryViews.ConnectionDialog,
-                    TelemetryActions.CreateConnection,
-                    error,
-                    false, // includeErrorMessage
-                    undefined, // errorCode
-                    undefined, // errorType
-                    {
-                        connectionInputType: this.state.selectedInputMode,
-                        authMode: this.state.connectionProfile.authenticationType,
-                        cloudType: getCloudId(),
-                    },
-                );
-
+                this.state.connectionStatus = ApiStatus.Loaded;
+                this.state.testConnectionSucceeded = true;
+                this.updateState();
                 return state;
             }
 
+            if (action === ConnectionSubmitAction.SaveWithoutConnecting) {
+                const preparedConnection = await this.prepareConnectionForSave(cleanedConnection);
+                await this.removeEditedConnectionIfNeeded();
+                await this.saveProfileStep(preparedConnection, state);
+                this.state.connectionStatus = ApiStatus.Loaded;
+                this.updateState();
+                await this.panel.dispose();
+                this.dispose();
+                return state;
+            }
+
+            const testSucceeded = await this.testConnectionStep(cleanedConnection, state);
+            if (!testSucceeded) {
+                return state;
+            }
+
+            const preparedConnection = await this.prepareConnectionForSave(cleanedConnection);
+            await this.removeEditedConnectionIfNeeded();
+            await this.saveProfileStep(preparedConnection, state);
+            await this.connectAndRevealStep(preparedConnection, state);
+
+            this.state.connectionStatus = ApiStatus.Loaded;
+            this.updateState();
+
             sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.CreateConnection, {
                 result: "success",
+                submitAction: action,
                 newOrEditedConnection: this._connectionBeingEdited ? "edited" : "new",
                 connectionInputType: this.state.selectedInputMode,
                 authMode: this.state.connectionProfile.authenticationType,
@@ -1121,77 +1144,13 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 cloudType: getCloudId(),
             });
 
-            if (this._connectionBeingEdited) {
-                this._mainController.connectionManager.getUriForConnection(
-                    this._connectionBeingEdited,
-                );
-                await this._objectExplorerProvider.removeConnectionNodes([
-                    this._connectionBeingEdited,
-                ]);
-
-                await this._mainController.connectionManager.connectionStore.removeProfile(
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    this._connectionBeingEdited as any,
-                );
-            }
-
-            // Prep connection for saving
-            // 1. Clean properties that are set to keep the config JSON clean
-            cleanedConnection = ConnectionCredentials.removeUndefinedProperties(
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                cleanedConnection as any,
-            );
-
-            // 2. Set the config source for serialization; use the group config source if not already set
-            if ((cleanedConnection as IConnectionProfile).configSource === undefined) {
-                const connectionGroup =
-                    this._mainController.connectionManager.connectionStore.connectionConfig.getGroupById(
-                        cleanedConnection.groupId,
-                    );
-                (cleanedConnection as IConnectionProfile).configSource =
-                    connectionGroup.configSource;
-            }
-
-            async function saveConnectionAndCreateSession(
-                self: ConnectionDialogWebviewController,
-            ): Promise<TreeNodeInfo> {
-                await self._mainController.connectionManager.connectionStore.saveProfile(
-                    cleanedConnection as IConnectionProfile,
-                );
-                const node =
-                    await self._mainController.createObjectExplorerSession(cleanedConnection);
-                await self.updateLoadedConnections(state);
-                self.updateState();
-
-                return node;
-            }
-
-            let node = await saveConnectionAndCreateSession(this);
-
-            this.state.connectionStatus = ApiStatus.Loaded;
-
-            try {
-                await this._mainController.objectExplorerTree.reveal(node, {
-                    focus: true,
-                    select: true,
-                    expand: true,
-                });
-            } catch {
-                // If revealing the node fails, we've hit an event-based race condition; re-saving and creating the profile should fix it.
-                node = await saveConnectionAndCreateSession(this);
-                await this._mainController.objectExplorerTree.reveal(node, {
-                    focus: true,
-                    select: true,
-                    expand: true,
-                });
-            }
-
             await this.panel.dispose();
             this.dispose();
             UserSurvey.getInstance().promptUserForNPSFeedback(CONNECTION_DIALOG_VIEW_ID);
         } catch (error) {
             this.state.connectionStatus = ApiStatus.Error;
             this.state.formMessage = { message: getErrorMessage(error) };
+            this.updateState();
 
             sendErrorEvent(
                 TelemetryViews.ConnectionDialog,
@@ -1201,6 +1160,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 undefined, // errorCode
                 undefined, // errorType
                 {
+                    submitAction: action,
                     connectionInputType: this.state.selectedInputMode,
                     authMode: this.state.connectionProfile.authenticationType,
                     cloudType: getCloudId(),
@@ -1210,6 +1170,161 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return state;
         }
         return state;
+    }
+
+    private async prepareConnectionForSubmit(
+        state: ConnectionDialogWebviewState,
+    ): Promise<IConnectionDialogProfile | undefined> {
+        this.clearFormError();
+        this.state.connectionStatus = ApiStatus.Loading;
+        this.updateState();
+
+        const cleanedConnection = this.cleanConnection(this.state.connectionProfile);
+        const erroredInputs = await this.validateProfile(cleanedConnection);
+
+        if (erroredInputs.length > 0) {
+            this.state.connectionStatus = ApiStatus.Error;
+            this.updateState(state);
+            this.logger.warn("One more more inputs have errors: " + erroredInputs.join(", "));
+            return undefined;
+        }
+
+        return cleanedConnection;
+    }
+
+    private async testConnectionStep(
+        connection: IConnectionDialogProfile,
+        state: ConnectionDialogWebviewState,
+    ): Promise<boolean> {
+        const tempConnectionUri = uuid();
+
+        try {
+            const result = await this._mainController.connectionManager.connect(
+                tempConnectionUri,
+                connection,
+                {
+                    shouldHandleErrors: false, // Connect should not handle errors, as we want to handle them here
+                    connectionSource: CONNECTION_DIALOG_VIEW_ID,
+                },
+            );
+
+            const connectionInfo =
+                this._mainController.connectionManager?.getConnectionInfo(tempConnectionUri);
+
+            if (!result) {
+                await this.handleConnectionErrorCodes(connectionInfo, state);
+                this.updateState(state);
+                return false;
+            }
+
+            return true;
+        } catch (error) {
+            this.state.formMessage = { message: getErrorMessage(error) };
+            this.state.connectionStatus = ApiStatus.Error;
+
+            if (getErrorMessage(error).includes(AzureConstants.multiple_matching_tokens_error)) {
+                this.state.formMessage.buttons = [
+                    { id: CLEAR_TOKEN_CACHE, label: Loc.clearTokenCache },
+                ];
+            }
+
+            this.updateState(state);
+
+            sendErrorEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.CreateConnection,
+                error,
+                false, // includeErrorMessage
+                undefined, // errorCode
+                undefined, // errorType
+                {
+                    submitAction: this._lastSubmittedAction,
+                    connectionInputType: this.state.selectedInputMode,
+                    authMode: this.state.connectionProfile.authenticationType,
+                    cloudType: getCloudId(),
+                },
+            );
+
+            return false;
+        } finally {
+            try {
+                await this._mainController.connectionManager.disconnect(tempConnectionUri);
+            } catch (err) {
+                this.logger.error(
+                    `Error disconnecting after connection test: ${getErrorMessage(err)}`,
+                );
+            }
+        }
+    }
+
+    private async prepareConnectionForSave(
+        connection: IConnectionDialogProfile,
+    ): Promise<IConnectionDialogProfile> {
+        const preparedConnection = ConnectionCredentials.removeUndefinedProperties(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            connection as any,
+        ) as IConnectionDialogProfile;
+
+        if ((preparedConnection as IConnectionProfile).configSource === undefined) {
+            const connectionGroup =
+                this._mainController.connectionManager.connectionStore.connectionConfig.getGroupById(
+                    preparedConnection.groupId,
+                );
+            (preparedConnection as IConnectionProfile).configSource = connectionGroup.configSource;
+        }
+
+        return preparedConnection;
+    }
+
+    private async removeEditedConnectionIfNeeded(): Promise<void> {
+        if (!this._connectionBeingEdited) {
+            return;
+        }
+
+        this._mainController.connectionManager.getUriForConnection(this._connectionBeingEdited);
+        await this._objectExplorerProvider.removeConnectionNodes([this._connectionBeingEdited]);
+
+        await this._mainController.connectionManager.connectionStore.removeProfile(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            this._connectionBeingEdited as any,
+        );
+
+        this._connectionBeingEdited = undefined;
+    }
+
+    private async saveProfileStep(
+        connection: IConnectionDialogProfile,
+        state: ConnectionDialogWebviewState,
+    ): Promise<void> {
+        await this._mainController.connectionManager.connectionStore.saveProfile(
+            connection as IConnectionProfile,
+        );
+        await this.updateLoadedConnections(state);
+        this.updateState(state);
+    }
+
+    private async connectAndRevealStep(
+        connection: IConnectionDialogProfile,
+        state: ConnectionDialogWebviewState,
+    ): Promise<void> {
+        let node = await this._mainController.createObjectExplorerSession(connection);
+
+        try {
+            await this._mainController.objectExplorerTree.reveal(node, {
+                focus: true,
+                select: true,
+                expand: true,
+            });
+        } catch {
+            // If revealing the node fails, we've hit an event-based race condition; re-saving and creating the profile should fix it.
+            await this.saveProfileStep(connection, state);
+            node = await this._mainController.createObjectExplorerSession(connection);
+            await this._mainController.objectExplorerTree.reveal(node, {
+                focus: true,
+                select: true,
+                expand: true,
+            });
+        }
     }
 
     private async handleConnectionErrorCodes(
@@ -1312,25 +1427,57 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
     private async loadConnectionToEdit(connectionToEdit: IConnectionInfo) {
         if (connectionToEdit) {
-            this._connectionBeingEdited = structuredClone(connectionToEdit);
-            const connection = await this.initializeConnectionForDialog(
-                this._connectionBeingEdited,
-            );
-            this.state.connectionProfile = connection;
-            this.state.selectedInputMode = ConnectionInputMode.Parameters;
-
-            if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA) {
-                await this.handleAzureMFAEdits("accountId");
-            }
-
-            await this.checkReadyToConnect();
-
+            await this.setConnectionForEdit(connectionToEdit);
             this.updateState();
         }
     }
 
     private loadEmptyConnection() {
         this.state.connectionProfile = getDefaultConnection();
+        this._connectionBeingEdited = undefined;
+        this.state.isEditingConnection = false;
+        this.state.editingConnectionDisplayName = undefined;
+    }
+
+    private async setConnectionForEdit(connectionToLoad: IConnectionInfo): Promise<void> {
+        this.clearFormError();
+        const initializedConnection = await this.initializeConnectionForDialog(
+            structuredClone(connectionToLoad),
+        );
+
+        this._connectionBeingEdited = structuredClone(initializedConnection);
+        this.state.connectionProfile = initializedConnection;
+        this.state.selectedInputMode = ConnectionInputMode.Parameters;
+        this.state.isEditingConnection = true;
+        this.state.editingConnectionDisplayName = getConnectionDisplayName(initializedConnection);
+
+        await this.updateItemVisibility();
+        await this.handleAzureMFAEdits("authenticationType");
+        await this.handleAzureMFAEdits("accountId");
+        await this.checkReadyToConnect();
+    }
+
+    private async setConnectionAsNewDraft(connectionToCopy: IConnectionInfo): Promise<void> {
+        this.clearFormError();
+        const initializedConnection = await this.initializeConnectionForDialog(
+            structuredClone(connectionToCopy),
+        );
+
+        const connectionDraft = structuredClone(initializedConnection) as IConnectionDialogProfile;
+        connectionDraft.id = undefined;
+        connectionDraft.profileName = undefined;
+        delete (connectionDraft as IConnectionProfileWithSource).configSource;
+
+        this._connectionBeingEdited = undefined;
+        this.state.connectionProfile = connectionDraft;
+        this.state.selectedInputMode = ConnectionInputMode.Parameters;
+        this.state.isEditingConnection = false;
+        this.state.editingConnectionDisplayName = undefined;
+
+        await this.updateItemVisibility();
+        await this.handleAzureMFAEdits("authenticationType");
+        await this.handleAzureMFAEdits("accountId");
+        await this.checkReadyToConnect();
     }
 
     private async initializeConnectionForDialog(
@@ -1364,41 +1511,102 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         return mainController.connectionManager.connectionUI.getConnectionGroupOptions();
     }
 
+    private async getEntraMfaAccountOptions(): Promise<FormItemOptions[]> {
+        if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+            return getVscodeEntraAccountOptions();
+        }
+
+        return getAccounts(this._mainController.azureAccountService, this.logger);
+    }
+
+    private async getEntraMfaTenantOptions(accountId?: string): Promise<FormItemOptions[]> {
+        if (!accountId) {
+            return [];
+        }
+
+        if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+            return getVscodeEntraTenantOptions(accountId);
+        }
+
+        return getTenants(this._mainController.azureAccountService, accountId, this.logger);
+    }
+
     private async getAzureActionButtons(): Promise<FormItemActionButton[]> {
         const actionButtons: FormItemActionButton[] = [];
         actionButtons.push({
             label: Loc.signIn,
             id: "azureSignIn",
             callback: async () => {
-                const account = await this._mainController.azureAccountService.addAccount();
-                this.logger.verbose(
-                    `Added Azure account '${account.displayInfo?.displayName}', ${account.key.id}`,
-                );
+                if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+                    const auth = MssqlVSCodeAzureSubscriptionProvider.getInstance();
+                    const existingAccountIds = new Set(
+                        (await VsCodeAzureHelper.getAccounts()).map((account) => account.id),
+                    );
+                    const signedIn = await auth.signIn();
 
-                const accountsComponent = this.getFormComponent(this.state, "accountId");
+                    if (!signedIn) {
+                        this.logger.warn("VS Code Azure sign-in was canceled or failed.");
+                        return;
+                    }
 
-                if (!accountsComponent) {
-                    this.logger.error("Account component not found");
+                    const accountsComponent = this.getFormComponent(this.state, "accountId");
+                    if (!accountsComponent) {
+                        this.logger.error("Account component not found");
+                        return;
+                    }
+
+                    accountsComponent.options = await this.getEntraMfaAccountOptions();
+
+                    const newlyAddedAccount = accountsComponent.options.find(
+                        (accountOption) => !existingAccountIds.has(accountOption.value),
+                    );
+
+                    if (newlyAddedAccount) {
+                        this.state.connectionProfile.accountId = newlyAddedAccount.value;
+                    }
+
+                    if (!this.state.connectionProfile.accountId && accountsComponent.options[0]) {
+                        this.state.connectionProfile.accountId = accountsComponent.options[0].value;
+                    }
+
+                    this.updateState();
+                    await this.handleAzureMFAEdits("accountId");
                     return;
+                } else {
+                    const account = await this._mainController.azureAccountService.addAccount();
+                    this.logger.verbose(
+                        `Added Azure account '${account.displayInfo?.displayName}', ${account.key.id}`,
+                    );
+
+                    const accountsComponent = this.getFormComponent(this.state, "accountId");
+
+                    if (!accountsComponent) {
+                        this.logger.error("Account component not found");
+                        return;
+                    }
+
+                    accountsComponent.options = await getAccounts(
+                        this._mainController.azureAccountService,
+                        this.logger,
+                    );
+
+                    this.logger.verbose(
+                        `Read ${accountsComponent.options.length} Azure accounts: ${accountsComponent.options.map((a) => a.value).join(", ")}`,
+                    );
+
+                    this.state.connectionProfile.accountId = account.key.id;
+
+                    this.logger.verbose(`Selecting '${account.key.id}'`);
+
+                    this.updateState();
+                    await this.handleAzureMFAEdits("accountId");
                 }
-
-                accountsComponent.options = await getAccounts(
-                    this._mainController.azureAccountService,
-                    this.logger,
-                );
-
-                this.logger.verbose(
-                    `Read ${accountsComponent.options.length} Azure accounts: ${accountsComponent.options.map((a) => a.value).join(", ")}`,
-                );
-
-                this.state.connectionProfile.accountId = account.key.id;
-
-                this.logger.verbose(`Selecting '${account.key.id}'`);
-
-                this.updateState();
-                await this.handleAzureMFAEdits("accountId");
             },
         });
+
+        if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+            return actionButtons;
+        }
 
         if (
             this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA &&
@@ -1480,14 +1688,36 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
 
         const accountComponent = this.getFormComponent(this.state, "accountId");
+
+        if (!accountComponent) {
+            return;
+        }
+
+        accountComponent.options = await this.getEntraMfaAccountOptions();
+
+        if (
+            previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA) &&
+            this.state.connectionProfile.accountId
+        ) {
+            const normalizedAccountId = await normalizeVscodeEntraAccountId(
+                this.state.connectionProfile.accountId,
+            );
+
+            if (normalizedAccountId) {
+                this.state.connectionProfile.accountId = normalizedAccountId;
+            } else {
+                this.state.connectionProfile.accountId = undefined;
+                this.state.connectionProfile.tenantId = undefined;
+            }
+        }
+
         const tenantComponent = this.getFormComponent(this.state, "tenantId");
         let tenants: FormItemOptions[] = [];
+
         switch (propertyName) {
             case "accountId":
-                tenants = await getTenants(
-                    this._mainController.azureAccountService,
+                tenants = await this.getEntraMfaTenantOptions(
                     this.state.connectionProfile.accountId,
-                    this.logger,
                 );
                 if (tenantComponent) {
                     tenantComponent.options = tenants;
@@ -1500,6 +1730,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         await this.validateForm(this.state.formState, "tenantId");
                     }
                 }
+
                 accountComponent.actionButtons = await this.getAzureActionButtons();
                 break;
             case "tenantId":
@@ -1510,10 +1741,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     this.state.connectionProfile.accountId = firstOption.value;
                 }
                 if (this.state.connectionProfile.accountId) {
-                    tenants = await getTenants(
-                        this._mainController.azureAccountService,
+                    tenants = await this.getEntraMfaTenantOptions(
                         this.state.connectionProfile.accountId,
-                        this.logger,
                     );
                     if (tenantComponent) {
                         tenantComponent.options = tenants;
@@ -2043,13 +2272,23 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             toProfile.authenticationType === AuthenticationType.AzureMFA &&
             toProfile.user !== undefined
         ) {
-            const accounts = await this._mainController.azureAccountService.getAccounts();
+            if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+                const matchingAccount = await resolveVscodeEntraAccount(undefined, toProfile.user);
+                if (matchingAccount) {
+                    toProfile.accountId = matchingAccount.id;
+                    toProfile.email = matchingAccount.label;
+                }
+            } else {
+                const accounts = await this._mainController.azureAccountService.getAccounts();
 
-            const matchingAccount = accounts.find((a) => a.displayInfo.email === toProfile.user);
+                const matchingAccount = accounts.find(
+                    (account) => account.displayInfo.email === toProfile.user,
+                );
 
-            if (matchingAccount) {
-                toProfile.accountId = matchingAccount.displayInfo.userId;
-                toProfile.email = matchingAccount.displayInfo.email;
+                if (matchingAccount) {
+                    toProfile.accountId = matchingAccount.displayInfo.userId;
+                    toProfile.email = matchingAccount.displayInfo.email;
+                }
             }
         }
 

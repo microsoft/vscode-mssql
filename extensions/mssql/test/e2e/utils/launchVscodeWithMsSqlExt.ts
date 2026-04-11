@@ -15,6 +15,8 @@ import { ElectronApplication, Page } from "@playwright/test";
 import { getVsCodeVersionName } from "./envConfigReader";
 import * as os from "os";
 
+export type VsCodeAppHandle = ElectronApplication;
+
 export type mssqlExtensionLaunchConfig = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     initialConfig?: any;
@@ -25,14 +27,43 @@ export const DEFAULT_USER_CONFIG = {
     "mssql.showChangelogOnUpdate": false,
 };
 
+const DOTNET_RUNTIME_EXTENSION_ID = "ms-dotnettools.vscode-dotnet-runtime";
+
+function installExtension(
+    cliPath: string,
+    extensionIdOrVsix: string,
+    userDataDir: string,
+    extensionsDir: string,
+): void {
+    const result = cp.spawnSync(
+        cliPath,
+        [
+            "--install-extension",
+            extensionIdOrVsix,
+            `--user-data-dir=${userDataDir}`,
+            `--extensions-dir=${extensionsDir}`,
+        ],
+        {
+            encoding: "utf-8",
+            stdio: "pipe",
+        },
+    );
+
+    console.log(`Extension install (${extensionIdOrVsix}) stdout:`, result.stdout);
+    console.log(`Extension install (${extensionIdOrVsix}) stderr:`, result.stderr);
+    if (result.status !== 0 || result.error) {
+        throw result.error || new Error(`Extension install failed with status ${result.status}`);
+    }
+}
+
 export async function launchVsCodeWithMssqlExtension(
     options: mssqlExtensionLaunchConfig = {},
 ): Promise<{
-    electronApp: ElectronApplication;
+    electronApp: VsCodeAppHandle;
     page: Page;
     userDataDir: string;
     extensionsDir: string;
-    nodePathDir?: string;
+    videoDir: string;
 }> {
     const config: mssqlExtensionLaunchConfig = {
         initialConfig: DEFAULT_USER_CONFIG,
@@ -42,15 +73,22 @@ export async function launchVsCodeWithMssqlExtension(
 
     const vsCodeVersion = getVsCodeVersionName();
     const vscodePath = await downloadAndUnzipVSCode(vsCodeVersion);
-    const [cliPath, extensionDir] = resolveCliArgsFromVSCodeExecutablePath(vscodePath);
-    const devExtensionPath = path.resolve(__dirname, "../../../");
+    const [cliPath] = resolveCliArgsFromVSCodeExecutablePath(vscodePath);
+    const devExtensionPath = findExtensionRoot(__dirname);
 
     const tmpRoot = path.join(os.tmpdir(), `vscode-mssql-test-${Date.now()}`);
     const userDataDir = path.join(tmpRoot, "user-data");
     const extensionsDir = path.join(tmpRoot, "extensions");
+    const videoDir = path.join(
+        process.cwd(),
+        "test-reports",
+        "videos",
+        `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+    );
 
     fs.mkdirSync(userDataDir, { recursive: true });
     fs.mkdirSync(extensionsDir, { recursive: true });
+    fs.mkdirSync(videoDir, { recursive: true });
 
     // Create initial settings.json
     const settingsPath = path.join(userDataDir, "User", "settings.json");
@@ -68,6 +106,9 @@ export async function launchVsCodeWithMssqlExtension(
         `--extensions-dir=${extensionsDir}`,
     ];
 
+    console.log(`Installing ${DOTNET_RUNTIME_EXTENSION_ID} before launch...`);
+    installExtension(cliPath, DOTNET_RUNTIME_EXTENSION_ID, userDataDir, extensionsDir);
+
     if (config.useVsix) {
         const vsixPath = process.env["BUILT_VSIX_PATH"];
         if (!vsixPath) throw new Error("BUILT_VSIX_PATH environment variable is not set.");
@@ -78,39 +119,29 @@ export async function launchVsCodeWithMssqlExtension(
          * in the codebase (as a dev dependency) but not in the vsix package. This can lead to false positives
          */
         console.log("Installing VSIX before launch...");
-        const result = cp.spawnSync(
-            cliPath,
-            [
-                "--install-extension",
-                vsixPath,
-                `--user-data-dir=${userDataDir}`,
-                `--extensions-dir=${extensionsDir}`,
-            ],
-            {
-                encoding: "utf-8",
-                stdio: "pipe",
-            },
-        );
-
-        console.log("VSIX install stdout:", result.stdout);
-        console.log("VSIX install stderr:", result.stderr);
-        if (result.status !== 0 || result.error) {
-            throw result.error || new Error(`VSIX install failed with status ${result.status}`);
-        }
+        installExtension(cliPath, vsixPath, userDataDir, extensionsDir);
     } else {
-        launchArgs.push(
-            "--temp-profile",
-            "--disable-extensions",
-            `--extensionDevelopmentPath=${devExtensionPath}`,
-            extensionDir,
-        );
+        launchArgs.push("--temp-profile");
     }
 
     console.log("Launching VS Code with:", vscodePath, launchArgs);
+    console.log("Staging Playwright videos in:", videoDir);
 
     const electronApp = await electron.launch({
         executablePath: vscodePath,
-        args: launchArgs,
+        args: config.useVsix
+            ? launchArgs
+            : [...launchArgs, `--extensionDevelopmentPath=${devExtensionPath}`],
+        // Video recording interferes with Playwright's window detection locally (causes a
+        // blank window to be captured instead of the VS Code workbench). Only enable in CI.
+        ...(process.env.CI
+            ? {
+                  recordVideo: {
+                      dir: videoDir,
+                      size: { width: 1920, height: 1080 },
+                  },
+              }
+            : {}),
     });
 
     const page = await electronApp.firstWindow({ timeout: 10_000 });
@@ -136,15 +167,38 @@ export async function launchVsCodeWithMssqlExtension(
         timeout: 30_000,
     });
 
-    return { electronApp, page, userDataDir, extensionsDir };
+    return { electronApp, page, userDataDir, extensionsDir, videoDir };
 }
 
-export async function cleanupDirectories(userDir: string, extDir: string, nodePathDir: string) {
+/**
+ * Walks up from startDir to find the nearest ancestor containing a package.json
+ * with a vscode engine entry, identifying it as the VS Code extension root.
+ */
+function findExtensionRoot(startDir: string): string {
+    let dir = path.resolve(startDir);
+    const root = path.parse(dir).root;
+
+    while (dir !== root) {
+        const pkgPath = path.join(dir, "package.json");
+        if (fs.existsSync(pkgPath)) {
+            const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
+            if (pkg.engines?.vscode) {
+                return dir;
+            }
+        }
+        dir = path.dirname(dir);
+    }
+
+    throw new Error(`Could not find VS Code extension root from ${startDir}`);
+}
+
+export async function cleanupDirectories(...directories: Array<string | undefined>) {
     try {
-        console.log("Cleaning up directories:", userDir, extDir, nodePathDir);
-        fs.rmSync(userDir, { recursive: true, force: true });
-        fs.rmSync(extDir, { recursive: true, force: true });
-        fs.rmSync(nodePathDir, { recursive: true, force: true });
+        const dirsToClean = directories.filter((directory): directory is string => !!directory);
+        console.log("Cleaning up directories:", dirsToClean);
+        for (const directory of dirsToClean) {
+            fs.rmSync(directory, { recursive: true, force: true });
+        }
     } catch (error) {
         console.error("Error cleaning up directories:", error);
     }

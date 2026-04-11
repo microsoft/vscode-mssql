@@ -134,6 +134,10 @@ declare module "vscode-mssql" {
          * APIs for working with mssql connections
          */
         connectionSharing: IConnectionSharingService;
+        /**
+         * APIs for coordinating URI ownership with other database extensions
+         */
+        uriOwnershipApi: UriOwnershipApi;
     }
 
     /**
@@ -417,6 +421,42 @@ declare module "vscode-mssql" {
          */
         containerName: string | undefined;
     }
+
+    /**
+     * Specifies the mode in which a task should be executed.
+     * Numeric values match the DacFx TaskExecutionMode enum.
+     */
+    export type TaskExecutionMode = number;
+
+    /**
+     * Specifies the target folder structure when extracting a project from a database.
+     * Numeric values match the DacFx ExtractTarget enum.
+     */
+    export type ExtractTarget = number;
+
+    /**
+     * Specifies the scenario for which to retrieve default deployment options.
+     * Numeric values match the DacFx DeploymentScenario enum.
+     */
+    export type DeploymentScenario = number;
+
+    /**
+     * Specifies the type of a schema compare endpoint.
+     * Numeric values match the DacFx SchemaCompareEndpointType enum.
+     */
+    export type SchemaCompareEndpointType = number;
+
+    /**
+     * Specifies the update action for a schema comparison difference entry.
+     * Numeric values match the DacFx SchemaUpdateAction enum.
+     */
+    export type SchemaUpdateAction = number;
+
+    /**
+     * Specifies the type of difference in a schema comparison.
+     * Numeric values match the DacFx SchemaDifferenceType enum.
+     */
+    export type SchemaDifferenceType = number;
 
     /**
      * WARNING: The methods in this interface may be used by the SQL Projects extension.
@@ -815,6 +855,16 @@ declare module "vscode-mssql" {
          * @param projectUri Absolute path of the project, including .sqlproj
          */
         getProjectProperties(projectUri: string): Promise<GetProjectPropertiesResult>;
+
+        /**
+         * Set one or more properties on a SQL project.
+         * @param projectUri Absolute path of the project, including .sqlproj
+         * @param properties Map of property names to their new values
+         */
+        setProjectProperties(
+            projectUri: string,
+            properties: { [key: string]: string },
+        ): Promise<ResultStatus>;
 
         /**
          * Add a SQLCMD variable to a project
@@ -1267,6 +1317,15 @@ declare module "vscode-mssql" {
         Masked = "Masked",
         Unmasked = "Unmasked",
     }
+
+    /** Diagnostics level for SqlPackage command-line operations. */
+    export type CommandLineDiagnosticsLevel = string;
+
+    /** Encryption option for SqlPackage source/target connections. */
+    export type EncryptOption = "Optional" | "Mandatory" | "Strict" | string;
+
+    /** Azure Key Vault authentication method for SqlPackage operations. */
+    export type KeyVaultAuthType = string;
 
     /**
      * Command-line arguments for SqlPackage operations - matches SqlPackageCommandLineArguments in SqlTools Service
@@ -1798,6 +1857,13 @@ declare module "vscode-mssql" {
         databaseSchemaProvider: string;
     }
 
+    export interface SetProjectPropertiesParams extends SqlProjectParams {
+        /**
+         * Map of property names to their new values
+         */
+        properties: { [key: string]: string };
+    }
+
     //#endregion
 
     //#region Results
@@ -2098,6 +2164,18 @@ declare module "vscode-mssql" {
 
         groupDisplayNames: { [groupId: string]: string };
     }
+
+    /** Type of value a service option accepts. */
+    export type ServiceOptionType = string;
+
+    /** A category value choice for a service option. */
+    export interface CategoryValue {
+        displayName: string;
+        name: string;
+    }
+
+    /** Identifies a special-purpose connection option. */
+    export type ConnectionOptionSpecialType = string;
 
     export interface ServiceOption {
         name: string;
@@ -2630,6 +2708,7 @@ declare module "vscode-mssql" {
         dataType: string;
         isXml?: boolean;
         isJson?: boolean;
+        isVector?: boolean;
         isLong?: boolean;
         isReadOnly?: boolean;
         isUnique?: boolean;
@@ -2692,6 +2771,25 @@ declare module "vscode-mssql" {
          */
         parentTypeName?: string;
     }
+
+    export interface UriOwnershipApi {
+        ownsUri(uri: vscode.Uri): boolean;
+        onDidChangeUriOwnership: vscode.Event<void>;
+    }
+
+    /** The scripting operation to perform on a database object. */
+    export enum ScriptOperation {
+        Select = 0,
+        Create = 1,
+        Insert = 2,
+        Update = 3,
+        Delete = 4,
+        Execute = 5,
+        Alter = 6,
+    }
+
+    /** Represents the approval status for connection sharing with an extension. */
+    export type ConnectionSharingApproval = "approved" | "denied";
 
     /**
      * Interface for connection sharing service

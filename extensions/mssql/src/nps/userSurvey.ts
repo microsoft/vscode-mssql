@@ -11,8 +11,9 @@ import * as os from "os";
 import { Answers, UserSurveyReducers, UserSurveyState } from "../sharedInterfaces/userSurvey";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
-import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
+import { WebviewPanelController } from "../controllers/webviewPanelController";
 import { sendActionEvent } from "../telemetry/telemetry";
+import { previewService } from "../previews/previewService";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 
 /** Likelihood that a user is prompted to take the survey, after they've already passed all other checks */
@@ -276,17 +277,16 @@ export function sendSurveyTelemetry(
         TelemetryActions.SurveySubmit,
         {
             surveyId: surveyId,
-            experimentalFeaturesEnabled: vscode.workspace
-                .getConfiguration()
-                .get(constants.configEnableExperimentalFeatures),
+            experimentalFeaturesEnabled: previewService.experimentalFeaturesEnabled.toString(),
             surveySource: surveySource,
             ...stringAnswers,
+            previewFeatureOverrides: JSON.stringify(previewService.getNonDefaultOverrides()),
         },
         numericalAnswers,
     );
 }
 
-export class UserSurveyWebviewController extends ReactWebviewPanelController<
+export class UserSurveyWebviewController extends WebviewPanelController<
     UserSurveyState,
     UserSurveyReducers
 > {
@@ -317,10 +317,7 @@ export class UserSurveyWebviewController extends ReactWebviewPanelController<
 
             this.panel.dispose();
 
-            if (
-                (payload.answers.nps as number) < 7 /* NPS detractor */ ||
-                (payload.answers.nsat as number) < 2 /* NSAT dissatisfied */
-            ) {
+            if ((payload.answers.nps as number) < 7 /* NPS detractor */) {
                 const response = await vscode.window.showInformationMessage(
                     Loc.UserSurvey.fileAnIssuePrompt,
                     Loc.UserSurvey.submitIssue,
@@ -343,6 +340,22 @@ export class UserSurveyWebviewController extends ReactWebviewPanelController<
                     );
                     const issueUrl = `https://github.com/microsoft/vscode-mssql/issues/new?labels=User-filed,Triage:%20Needed&body=${encodedIssueBody}`;
                     vscode.env.openExternal(vscode.Uri.parse(issueUrl));
+                }
+            } else {
+                const response = await vscode.window.showInformationMessage(
+                    Loc.UserSurvey.mssqlMarketplaceReviewPrompt,
+                    Loc.UserSurvey.writeReview,
+                    Loc.Common.cancel,
+                );
+
+                sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SubmitReview, {
+                    response:
+                        response === Loc.UserSurvey.writeReview ? "submitted" : "not submitted",
+                });
+
+                if (response === Loc.UserSurvey.writeReview) {
+                    const reviewUrl = `https://marketplace.visualstudio.com/items?itemName=${constants.extensionId}&ssr=false#review-details`;
+                    vscode.env.openExternal(vscode.Uri.parse(reviewUrl));
                 }
             }
 
@@ -399,6 +412,9 @@ export function getStandardNPSQuestions(featureName?: string): UserSurveyState {
                     : Loc.UserSurvey.howlikelyAreYouToRecommendMSSQLExtension,
                 type: "nps",
                 required: true,
+            },
+            {
+                type: "divider",
             },
             {
                 id: "nsat",

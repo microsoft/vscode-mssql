@@ -12,7 +12,7 @@ import {
     NODE_WIDTH,
     getTableHeight,
     getTableWidth,
-} from "../../src/reactviews/pages/SchemaDesigner/model";
+} from "../../src/webviews/pages/SchemaDesigner/model";
 
 suite("SchemaDesigner flow dimensions", () => {
     function createTable(columnCount: number): SchemaDesigner.Table {

@@ -28,9 +28,9 @@ export class Common {
 
 export let createDatabaseDialogTitle = l10n.t("Create Database");
 export let dropDatabaseDialogTitle = l10n.t("Drop Database");
-export let renameDatabaseDialogTitle = l10n.t("Rename Database (Preview)");
-export let createDatabaseWebviewTitle = l10n.t("Create Database (Preview)");
-export let dropDatabaseWebviewTitle = l10n.t("Drop Database (Preview)");
+export let renameDatabaseDialogTitle = l10n.t("Rename Database");
+export let createDatabaseWebviewTitle = l10n.t("Create Database");
+export let dropDatabaseWebviewTitle = l10n.t("Drop Database");
 export let renameDatabaseInputPlaceholder = l10n.t("Enter the new database name");
 export let databaseNameRequired = l10n.t("Database name is required");
 export let msgSelectServerNodeToCreateDatabase = l10n.t(
@@ -175,6 +175,7 @@ export let authTypeName = l10n.t("authenticationType");
 export let authTypeIntegrated = l10n.t("Integrated");
 export let authTypeSql = l10n.t("SQL Login");
 export let authTypeAzureActiveDirectory = l10n.t("Microsoft Entra Id - Universal w/ MFA Support");
+export let authTypeAzureActiveDirectoryDefault = l10n.t("Microsoft Entra Id - Default");
 export let azureAuthTypeCodeGrant = l10n.t("Azure Code Grant");
 export let azureAuthTypeDeviceCode = l10n.t("Azure Device Code");
 export let azureLogChannelName = l10n.t("MSSQL - Azure Auth Logs");
@@ -322,9 +323,20 @@ export function msgPromptRetryFirewallRuleSignedIn(clientIp: string, serverName:
 export let msgPromptRetryFirewallRuleAdded = l10n.t(
     "Firewall rule successfully added. Retry profile creation? ",
 );
-export let msgAccountRefreshFailed = l10n.t(
-    "Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.",
-);
+export function msgAccountRefreshFailed(error?: string) {
+    if (!error) {
+        return l10n.t(
+            "Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.",
+        );
+    } else {
+        return l10n.t({
+            message:
+                "Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate. Error: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+    }
+}
 export let msgPromptProfileUpdateFailed = l10n.t(
     "Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.",
 );
@@ -541,6 +553,140 @@ export let azureSignInToAzureCloud = l10n.t("Azure: Sign In to Azure Cloud");
 export let azureSignInToAzureCloudDescription = l10n.t(
     "Sign in to your Azure subscription in one of the sovereign clouds.",
 );
+export let noBackgroundTasks = l10n.t("No background tasks");
+export function backgroundTaskName(taskName: string) {
+    return l10n.t({
+        message: "Task: {0}",
+        args: [taskName],
+        comment: ["{0} is the task name"],
+    });
+}
+export function backgroundTaskDescription(description: string) {
+    return l10n.t({
+        message: "Description: {0}",
+        args: [description],
+        comment: ["{0} is the task description"],
+    });
+}
+export function backgroundTaskStatus(status: string) {
+    return l10n.t({
+        message: "Status: {0}",
+        args: [status],
+        comment: ["{0} is the task status"],
+    });
+}
+export function backgroundTaskSource(source: string) {
+    return l10n.t({
+        message: "Source: {0}",
+        args: [source],
+        comment: ["{0} is the task source"],
+    });
+}
+export function backgroundTaskConnection(connectionLabel: string) {
+    return l10n.t({
+        message: "Connection: {0}",
+        args: [connectionLabel],
+        comment: ["{0} is the task connection label"],
+    });
+}
+export function backgroundTaskTarget(targetLocation: string) {
+    return l10n.t({
+        message: "Target: {0}",
+        args: [targetLocation],
+        comment: ["{0} is the task target location"],
+    });
+}
+export function backgroundTaskElapsedTime(elapsedTime: string) {
+    return l10n.t({
+        message: "Elapsed time: {0}",
+        args: [elapsedTime],
+        comment: ["{0} is the task elapsed time"],
+    });
+}
+export let backgroundTaskLogsHeader = l10n.t("Logs");
+export let backgroundTaskNoLogEntries = l10n.t("No log entries yet.");
+export let backgroundTaskLogUnavailable = l10n.t("Task log is unavailable.");
+export let backgroundTaskCancelConfirmation = l10n.t(
+    "Are you sure you want to cancel this background task?",
+);
+export let backgroundTaskCancelConfirm = l10n.t("Cancel Task");
+export function backgroundTaskLogLine(timestamp: string, entry: string) {
+    return l10n.t({
+        message: "[{0}] {1}",
+        args: [timestamp, entry],
+        comment: ["{0} is the timestamp", "{1} is the log entry text"],
+    });
+}
+export function backgroundTaskLogStateWithMessage(status: string, message: string) {
+    return l10n.t({
+        message: "{0}: {1}",
+        args: [status, message],
+        comment: ["{0} is the task status", "{1} is the task message"],
+    });
+}
+export function backgroundTaskLogStateWithProgress(status: string, percent: number) {
+    return l10n.t({
+        message: "{0} ({1}%)",
+        args: [status, percent],
+        comment: ["{0} is the task status", "{1} is the completion percent"],
+    });
+}
+export function backgroundTaskLogStateWithProgressAndMessage(
+    status: string,
+    percent: number,
+    message: string,
+) {
+    return l10n.t({
+        message: "{0} ({1}%): {2}",
+        args: [status, percent, message],
+        comment: [
+            "{0} is the task status",
+            "{1} is the completion percent",
+            "{2} is the task message",
+        ],
+    });
+}
+export function backgroundTaskElapsedMilliseconds(milliseconds: number) {
+    return l10n.t({
+        message: "{0}ms",
+        args: [milliseconds],
+        comment: ["{0} is the elapsed time in milliseconds"],
+    });
+}
+export function backgroundTaskElapsedSeconds(seconds: number) {
+    return l10n.t({
+        message: "{0}s",
+        args: [seconds],
+        comment: ["{0} is the elapsed time in seconds"],
+    });
+}
+export function backgroundTaskElapsedMinutesAndSeconds(minutes: number, seconds: number) {
+    return l10n.t({
+        message: "{0}m {1}s",
+        args: [minutes, seconds],
+        comment: [
+            "{0} is the elapsed time in minutes",
+            "{1} is the remaining elapsed time in seconds",
+        ],
+    });
+}
+export function backgroundTaskElapsedHoursAndMinutes(hours: number, minutes: number) {
+    return l10n.t({
+        message: "{0}h {1}m",
+        args: [hours, minutes],
+        comment: [
+            "{0} is the elapsed time in hours",
+            "{1} is the remaining elapsed time in minutes",
+        ],
+    });
+}
+export function backgroundTaskElapsedDaysAndHours(days: number, hours: number) {
+    return l10n.t({
+        message: "{0}d {1}h",
+        args: [days, hours],
+        comment: ["{0} is the elapsed time in days", "{1} is the remaining elapsed time in hours"],
+    });
+}
 export function taskStatusWithName(taskName: string, status: string) {
     return l10n.t({
         message: "{0}: {1}",
@@ -766,7 +912,8 @@ export class ObjectExplorer {
         "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?",
     );
     public static FailedOEConnectionErrorRetry = l10n.t("Retry");
-    public static FailedOEConnectionErrorUpdate = l10n.t("Edit Connection Profile");
+    public static FailedOEConnectionErrorUpdate = l10n.t("Edit connection profile");
+    public static FailedOEConnectionErrorSignIn = l10n.t("Sign in and retry");
     public static Connecting = l10n.t("Connecting...");
     public static NodeDeletionConfirmation(nodeLabel: string) {
         return l10n.t({
@@ -793,7 +940,13 @@ export class ObjectExplorer {
     public static ScriptDeleteLabel = l10n.t("Delete");
     public static ScriptExecuteLabel = l10n.t("Execute");
     public static ScriptAlterLabel = l10n.t("Alter");
-    public static AzureSignInMessage = l10n.t("Signing in to Azure...");
+    public static AzureSignInMessage(accountName: string) {
+        return l10n.t({
+            message: "Signing in to Azure as {0}...",
+            args: [accountName],
+            comment: ["{0} is the account name"],
+        });
+    }
 
     public static ConnectionGroupDeletionConfirmationWithContents(groupName: string) {
         return l10n.t({
@@ -883,7 +1036,7 @@ export class ConnectionDialog {
     public static unsupportedAuthType(authenticationType: string) {
         return l10n.t({
             message:
-                "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported.",
+                "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported.",
             args: [authenticationType],
             comment: ["{0} is the authentication type"],
         });
@@ -902,10 +1055,28 @@ export class FirewallRule {
 }
 
 export class Azure {
-    public static errorSigningIntoAzure(arg0: string): string {
+    public static unableToAcquireEntraTokenFromVsCode(accountDisplayName: string): string {
+        return l10n.t({
+            message:
+                "Unable to acquire a Microsoft Entra token from VS Code for the selected account: {0}",
+            args: [accountDisplayName],
+            comment: ["{0} is the account label or ID"],
+        });
+    }
+
+    public static noSqlResourceConfiguredForCurrentCloud(cloudName: string): string {
+        return l10n.t({
+            message:
+                "No SQL resource is configured for the current cloud '{0}'. Please update your Azure account settings.",
+            args: [cloudName],
+            comment: ["{0} is the display name of the current cloud"],
+        });
+    }
+
+    public static errorSigningIntoAzure(errorMessage: string): string {
         return l10n.t({
             message: "Error signing into Azure: {0}",
-            args: [arg0],
+            args: [errorMessage],
             comment: ["{0} is the error message"],
         });
     }
@@ -1093,6 +1264,14 @@ export class Fabric {
 }
 
 export class Accounts {
+    static accountNotAvailableThroughVsCode(accountDisplayName: string, tenantId: string): string {
+        return l10n.t({
+            message:
+                "The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.",
+            args: [accountDisplayName, tenantId],
+            comment: ["{0} is the account ID or label", "{1} is the tenant ID"],
+        });
+    }
     public static invalidEntraAccountsRemoved = (numRemoved: number) => {
         return l10n.t({
             message:
@@ -1333,7 +1512,7 @@ export class LocalContainers {
     public static containerNamePlaceholder = l10n.t("Enter container name");
     public static portPlaceholder = l10n.t("Enter port");
     public static hostnamePlaceholder = l10n.t("Enter hostname");
-    // DAB (Data API Builder) deployment strings
+    // DAB (Data API builder) deployment strings
     public static dabContainerNameInvalidOrInUse = l10n.t(
         "Container name is invalid or already in use",
     );
@@ -1401,6 +1580,10 @@ export class UserSurvey {
         "Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!",
     );
     public static submitIssue = l10n.t("Submit an issue");
+    public static mssqlMarketplaceReviewPrompt = l10n.t(
+        "We're glad you're enjoying MSSQL for VS Code!  Please consider leaving a quick review on the VS Code Marketplace.",
+    );
+    public static writeReview = l10n.t("Write a review");
 }
 
 export class Webview {
@@ -1618,6 +1801,7 @@ export class SchemaCompare {
 
 export class SchemaDesigner {
     public static LoadingSchemaDesginerModel = l10n.t("Loading Schema Designer Model...");
+    public static PanelTitle = l10n.t("Visualize and Design Schema (Preview)");
     public static SchemaReady = l10n.t(
         "Schema Designer Model is ready. Changes can now be published.",
     );
@@ -1649,8 +1833,13 @@ export class SchemaDesigner {
     );
     public static configCopiedToClipboard = l10n.t("Config copied to clipboard");
     public static urlCopiedToClipboard = l10n.t("URL copied to clipboard");
+    public static logsCopiedToClipboard = l10n.t("Logs copied to clipboard");
+    public static dabLogsEditorTitle = l10n.t("DAB container logs");
     public static failedToOpenUrl = l10n.t(
         "Failed to open URL. The built-in Simple Browser may be disabled.",
+    );
+    public static dabDeploymentNotSupported = l10n.t(
+        "Local container deployment is currently only supported with SQL Authentication connections.",
     );
 }
 
@@ -1971,7 +2160,7 @@ export class MssqlChatAgent {
         ],
     });
     public static dabToolShowSuccessMessage = l10n.t({
-        message: "Data API Builder opened. Continue with {0} operations ({1}/{2}).",
+        message: "Data API builder opened. Continue with {0} operations ({1}/{2}).",
         args: ["mssql_dab", "get_state", "apply_changes"],
         comment: [
             "{0} is the command identifier 'mssql_dab' and must not be translated",
@@ -1994,26 +2183,26 @@ export class MssqlChatAgent {
             comment: ["{0} is the operation name"],
         });
     };
-    public static dabToolConfirmationTitle = l10n.t("Data API Builder");
+    public static dabToolConfirmationTitle = l10n.t("Data API builder");
     public static dabToolConfirmationMessage = (operation: string) => {
         return l10n.t({
-            message: "Execute '{0}' operation on Data API Builder?",
+            message: "Execute '{0}' operation on Data API builder?",
             args: [operation],
             comment: ["{0} is the operation name"],
         });
     };
     public static dabToolInvocationMessage = (operation: string) => {
         return l10n.t({
-            message: "Executing '{0}' operation on Data API Builder",
+            message: "Executing '{0}' operation on Data API builder",
             args: [operation],
             comment: ["{0} is the operation name"],
         });
     };
     public static dabToolNoActiveDesigner = l10n.t(
-        "No active schema designer found. Please open Data API Builder first using mssql_dab with operation 'show' or from the UI.",
+        "No active schema designer found. Please open Data API builder first using mssql_dab with operation 'show' or from the UI.",
     );
     public static dabToolMissingConnectionId = l10n.t(
-        "Missing connectionId. Please provide a connectionId to open Data API Builder.",
+        "Missing connectionId. Please provide a connectionId to open Data API builder.",
     );
     public static schemaDesignerNoActiveDesigner = l10n.t(
         "No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.",
@@ -2454,7 +2643,7 @@ export class ConnectionGroup {
 }
 
 export class DacpacDialog {
-    public static Title = l10n.t("Data-tier Application (Preview)");
+    public static Title = l10n.t("Data-tier Application");
     public static FilePathRequired = l10n.t("File path is required");
     public static FileNotFound = l10n.t("File not found");
     public static InvalidFileExtension = l10n.t(
@@ -2524,7 +2713,7 @@ export class DacpacDialog {
 export class SearchDatabase {
     public static title = (serverName: string) =>
         l10n.t({
-            message: "Search Database Objects - {0}",
+            message: "Search Database Objects (Preview) - {0}",
             args: [serverName],
             comment: ["{0} is the server name"],
         });
@@ -2574,13 +2763,6 @@ export class TableExplorer {
     public static rowCreatedSuccessfully = l10n.t("Row created.");
     public static rowMarkedForRemoval = l10n.t("Row marked for removal.");
     public static rowDeletedSuccessfully = l10n.t("Row deleted.");
-
-    public static title = (tableName: string) =>
-        l10n.t({
-            message: "{0} (Preview)",
-            args: [tableName],
-            comment: ["{0} is the table name"],
-        });
 
     public static failedToSaveChanges = (errorMessage: string) =>
         l10n.t({
@@ -2687,6 +2869,20 @@ export class TableExplorer {
             args: [errorMessage],
             comment: ["{0} is the error message"],
         });
+
+    public static failedToOpenTableDesigner = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to open Table Designer: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToOpenSchemaDesigner = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to open Schema Designer: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
 }
 
 export class AzureDataStudioMigration {
@@ -2748,7 +2944,6 @@ export class Changelog {
     public static tryIt = l10n.t("Try it");
     public static watchDemo = l10n.t("Watch demo");
     public static learnMore = l10n.t("Learn more");
-    public static readDocs = l10n.t("Read docs");
     public static watchDemosOnYoutube = l10n.t("Watch demos on YouTube");
     public static viewRoadmap = l10n.t("View roadmap");
     public static readTheDocumentation = l10n.t("Read docs on Microsoft Learn");
@@ -2757,41 +2952,35 @@ export class Changelog {
 
     // Main content
     public static mainContentTitle = l10n.t("Highlights");
+    public static schemaDesignerCopilotTitle = l10n.t("Schema Designer with GitHub Copilot");
+    public static schemaDesignerCopilotDescription = l10n.t(
+        "Use natural language to design database schemas directly within the visual Schema Designer. Create schemas from scratch, evolve existing designs, review changes through a diff view, and import external artifacts - all reflected live in the visual diagram and T-SQL script.",
+    );
+    public static dabTitle = l10n.t("Data API builder");
+    public static dabDescription = l10n.t(
+        "Create REST, GraphQL, and MCP endpoints for your SQL database tables from a visual interface within Visual Studio Code. Configure entities, permissions, and deployment settings — then deploy locally with Docker.",
+    );
+    public static dabCopilotTitle = l10n.t("GitHub Copilot integration in Data API builder");
+    public static dabCopilotDescription = l10n.t(
+        "Generate Data API builder configurations using natural language through GitHub Copilot chat and agent tools. Describe your API requirements and let GitHub Copilot scaffold the configuration for you.",
+    );
+    public static sqlNotebooksTitle = l10n.t("SQL Notebooks");
+    public static sqlNotebooksDescription = l10n.t(
+        "Write and run SQL queries in native Visual Studio Code Jupyter notebooks with interactive results, sorting, filtering, and Markdown documentation.",
+    );
+    public static fabricQueryProfilerTitle = l10n.t("Fabric databases in Query Profiler");
+    public static fabricQueryProfilerDescription = l10n.t(
+        "The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including {code-snippet-0} for lightweight T-SQL profiling.",
+    );
     public static adsMigrationTitle = l10n.t(
         "Azure Data Studio Migration Toolkit - Now Including Keymap!",
     );
     public static adsMigrationDescription = l10n.t(
         "Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.",
     );
-    public static editDataTitle = l10n.t("Edit Data (Preview)");
-    public static editDataDescription = l10n.t(
-        "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
-    );
-    public static globalObjectSearchTitle = l10n.t("Global Object Search");
-    public static globalObjectSearchDescription = l10n.t(
-        "Search for database objects — tables, views, stored procedures, and more — across your entire database.",
-    );
-    public static backupRestoreTitle = l10n.t("Backup/Restore Dialogs (Preview)");
-    public static backupRestoreDescription = l10n.t(
-        "Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.",
-    );
-    public static databaseManagementTitle = l10n.t("Database Management Dialogs (Preview)");
-    public static databaseManagementDescription = l10n.t(
-        "Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.",
-    );
-    public static queryProfilerTitle = l10n.t("Query Profiler (Preview)");
-    public static queryProfilerDescription = l10n.t(
-        "Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.",
-    );
-    public static dacpacTitle = l10n.t(
-        "Data-Tier Application (DACPAC / BACPAC) Import & Export (Preview)",
-    );
+    public static dacpacTitle = l10n.t("Data-Tier Application (DACPAC / BACPAC) Import & Export");
     public static dacpacDescription = l10n.t(
         "Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.",
-    );
-    public static sqlProjPublishTitle = l10n.t("SQL Database Projects – Publish Dialog");
-    public static sqlProjPublishDescription = l10n.t(
-        "Deploy database changes using a guided Publish Dialog in SQL Database Projects, with script preview for SQL Server and Azure SQL databases.",
     );
 
     // Secondary content
@@ -2799,21 +2988,17 @@ export class Changelog {
     public static secondaryContentDescription = l10n.t(
         "Previously released features you may not have explored yet.",
     );
-    public static schemaDesignerTitle = l10n.t("Schema Designer");
-    public static schemaDesignerDescription = l10n.t(
-        "Design, visualize, and evolve database schemas using an interactive diagram with synchronized SQL generation.",
+    public static editDataTitle = l10n.t("Edit Data");
+    public static editDataDescription = l10n.t(
+        "View, add, edit, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
     );
-    public static schemaCompareTitle = l10n.t("Schema Compare");
-    public static schemaCompareDescription = l10n.t(
-        "Compare database schemas across databases, DACPAC files, or SQL projects. Review differences and apply changes or generate deployment scripts to keep schemas in sync.",
+    public static fabricIntegrationTitle = l10n.t("Microsoft Fabric integration");
+    public static fabricIntegrationDescription = l10n.t(
+        "Browse Fabric workspaces and provision SQL databases in Fabric without leaving VS Code.",
     );
-    public static localContainerTitle = l10n.t("Local SQL Server Container");
-    public static localContainerDescription = l10n.t(
-        "Create and manage local SQL Server containers directly from VS Code for fast, consistent local development.",
-    );
-    public static copilotIntegrationTitle = l10n.t("GitHub Copilot integration");
-    public static copilotIntegrationDescription = l10n.t(
-        "Al-assisted SQL development with schema-aware query generation, ORM support, and natural language chat with @mssql in Ask or Agent Mode.",
+    public static sqlProjCodeAnalysisTitle = l10n.t("SQL Database Projects — Code Analysis");
+    public static sqlProjCodeAnalysisDescription = l10n.t(
+        "Analyze static code with customizable rulesets in SQL Database Projects.",
     );
 
     // Sidebar content
@@ -3027,9 +3212,6 @@ export class Profiler {
     public static noDatabasesFound = l10n.t(
         "No databases found on the server. Please check your connection.",
     );
-    public static profilerNotSupportedOnFabric = l10n.t(
-        "Profiler is not supported on Microsoft Fabric SQL databases.",
-    );
 }
 
 export class Proxy {
@@ -3160,7 +3342,7 @@ export class FlatFileImport {
             args: [serviceName, errorMessage],
             comment: ["{0} is the service name", "{1} is the error message"],
         });
-    public static flatFileImportTitle = l10n.t("Import Flat File (Preview)");
+    public static flatFileImportTitle = l10n.t("Import Flat File");
     public static databaseTheTableIsCreatedIn = l10n.t("Database the table is created in");
     public static locationOfTheFileToBeImported = l10n.t("Location of the file to be imported");
     public static newTableName = l10n.t("New Table Name");
@@ -3237,4 +3419,30 @@ export class RestoreDatabase {
     public static azureSqlDbNotSupported = l10n.t(
         "Azure SQL Database is not supported for restore.",
     );
+}
+
+export class ServiceClient {
+    public static runtimeNotFoundError = l10n.t(
+        "A required .NET runtime could not be found or installed.",
+    );
+    public static unableToStartService = (errorMessage: string) =>
+        l10n.t({
+            message:
+                "The SQL Server extension couldn't start because its required background service failed to launch. Install the offline VSIX for your operating system, or check your network connection and try again. Details: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+    public static downloadOfflineVsix = l10n.t("Download offline VSIX");
+    public static copyLinkToClipboard = l10n.t("Copy link");
+    public static linkCopiedToClipboard = l10n.t("Link copied to clipboard");
+
+    public static serviceCrashed = (name: string, error: string) =>
+        l10n.t({
+            message: "The {0} service has crashed. Details: {1}",
+            args: [name, error],
+            comment: ["{0} is the service name", "{1} is the error message"],
+        });
+    public static viewKnownIssues = l10n.t("View known issues");
+
+    public static installFailedStatusText = l10n.t("Service installation failed.");
 }

@@ -19,16 +19,31 @@ import { IPrompter } from "../prompts/question";
 import { QueryHistoryUI, QueryHistoryAction } from "../views/queryHistoryUI";
 import { getUriKey } from "../utils/utils";
 import { Deferred } from "../protocol";
+import * as vscodeMssql from "vscode-mssql";
+import {
+    decryptData,
+    type EncryptedData,
+    encryptData,
+    generateEncryptionKey,
+} from "../utils/encryptionUtils";
 
-export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
-    private _onDidChangeTreeData: vscode.EventEmitter<any | undefined> = new vscode.EventEmitter<
-        any | undefined
-    >();
-    readonly onDidChangeTreeData: vscode.Event<any | undefined> = this._onDidChangeTreeData.event;
+type QueryHistoryTreeNode = QueryHistoryNode | EmptyHistoryNode;
 
-    private _queryHistoryNodes: vscode.TreeItem[] = [new EmptyHistoryNode()];
+export class QueryHistoryProvider implements vscode.TreeDataProvider<QueryHistoryTreeNode> {
+    private _onDidChangeTreeData: vscode.EventEmitter<QueryHistoryTreeNode | undefined> =
+        new vscode.EventEmitter<QueryHistoryTreeNode | undefined>();
+    readonly onDidChangeTreeData: vscode.Event<QueryHistoryTreeNode | undefined> =
+        this._onDidChangeTreeData.event;
+
+    private _queryHistoryNodes: QueryHistoryTreeNode[] = [new EmptyHistoryNode()];
     private _queryHistoryLimit: number;
     private _queryHistoryUI: QueryHistoryUI;
+    private _queryHistoryMutationId = 0;
+
+    /**
+     * Version number for the persisted query history. Increment this if there are breaking changes to the persisted format to ensure old formats are not loaded.
+     */
+    private static readonly _queryHistoryStorageVersion = 1;
 
     constructor(
         private _connectionManager: ConnectionManager,
@@ -37,18 +52,22 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
         private _sqlDocumentService: SqlDocumentService,
         private _statusView: StatusView,
         private _prompter: IPrompter,
+        private _context: vscode.ExtensionContext,
     ) {
         const config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
         this._queryHistoryLimit = config.get(Constants.configQueryHistoryLimit);
         this._queryHistoryUI = new QueryHistoryUI(this._prompter);
+        void this.restoreQueryHistory();
     }
 
     clearAll(): void {
+        this._queryHistoryMutationId++;
         this._queryHistoryNodes = [new EmptyHistoryNode()];
         this._onDidChangeTreeData.fire(undefined);
+        void this.persistQueryHistory();
     }
 
-    refresh(ownerUri: string, timeStamp: Date, hasError): void {
+    refresh(ownerUri: string, timeStamp: Date, hasError: boolean): void {
         const timeStampString = timeStamp.toLocaleString();
         const historyNodeLabel = this.createHistoryNodeLabel(ownerUri);
         const tooltip = this.createHistoryNodeTooltip(ownerUri, timeStampString);
@@ -64,31 +83,32 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
             connectionLabel,
             !hasError,
         );
+
+        this._queryHistoryMutationId++;
         if (this._queryHistoryNodes.length === 1) {
             if (this._queryHistoryNodes[0] instanceof EmptyHistoryNode) {
                 this._queryHistoryNodes = [];
             }
         }
         this._queryHistoryNodes.push(node);
-        // sort the query history sorted by timestamp
         this._queryHistoryNodes.sort((a, b) => {
             return (
                 (b as QueryHistoryNode).timeStamp.getTime() -
                 (a as QueryHistoryNode).timeStamp.getTime()
             );
         });
-        // Remove old entries if we are over the limit.
         if (this._queryHistoryNodes.length > this._queryHistoryLimit) {
             this._queryHistoryNodes.pop();
         }
         this._onDidChangeTreeData.fire(undefined);
+        void this.persistQueryHistory();
     }
 
     getTreeItem(node: QueryHistoryNode): QueryHistoryNode {
         return node;
     }
 
-    getChildren(element?: any): vscode.TreeItem[] {
+    getChildren(_element?: QueryHistoryTreeNode): QueryHistoryTreeNode[] {
         if (this._queryHistoryNodes.length === 0) {
             this._queryHistoryNodes.push(new EmptyHistoryNode());
         }
@@ -191,8 +211,10 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
             let historyNode = n as QueryHistoryNode;
             return historyNode === node;
         });
+        this._queryHistoryMutationId++;
         this._queryHistoryNodes.splice(index, 1);
         this._onDidChangeTreeData.fire(undefined);
+        void this.persistQueryHistory();
     }
 
     /**
@@ -246,4 +268,222 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
         const connectionLabel = this.getConnectionLabel(ownerUri);
         return `${connectionLabel}${os.EOL}${os.EOL}${timeStamp}${os.EOL}${os.EOL}${queryString}`;
     }
+
+    private createPersistedHistoryNodeLabel(queryString: string, connectionLabel: string): string {
+        const limitedQueryString = Utils.limitStringSize(queryString).trim();
+        const limitedConnectionLabel = Utils.limitStringSize(connectionLabel).trim();
+        return `${limitedQueryString} : ${limitedConnectionLabel}`;
+    }
+
+    private createPersistedHistoryNodeTooltip(
+        queryString: string,
+        connectionLabel: string,
+        timeStamp: string,
+    ): string {
+        return `${connectionLabel}${os.EOL}${os.EOL}${timeStamp}${os.EOL}${os.EOL}${queryString}`;
+    }
+
+    private async restoreQueryHistory(): Promise<void> {
+        const restoreMutationId = this._queryHistoryMutationId;
+
+        try {
+            const serializedHistory = await this.readEncryptedPersistedQueryHistory();
+            if (!serializedHistory) {
+                return;
+            }
+
+            const persistedHistory = JSON.parse(serializedHistory) as PersistedQueryHistory;
+            if (
+                !persistedHistory ||
+                persistedHistory.version !== QueryHistoryProvider._queryHistoryStorageVersion ||
+                !Array.isArray(persistedHistory.nodes)
+            ) {
+                return;
+            }
+
+            const restoredNodes = persistedHistory.nodes
+                .map((node) => this.createNodeFromPersisted(node))
+                .filter((node): node is QueryHistoryNode => node !== undefined);
+
+            if (restoreMutationId !== this._queryHistoryMutationId) {
+                return;
+            }
+
+            if (restoredNodes.length === 0) {
+                this._queryHistoryNodes = [new EmptyHistoryNode()];
+            } else {
+                restoredNodes.sort((a, b) => b.timeStamp.getTime() - a.timeStamp.getTime());
+                this._queryHistoryNodes = restoredNodes.slice(0, this._queryHistoryLimit);
+            }
+
+            this._onDidChangeTreeData.fire(undefined);
+        } catch {
+            if (restoreMutationId === this._queryHistoryMutationId) {
+                this._queryHistoryNodes = [new EmptyHistoryNode()];
+            }
+        }
+    }
+
+    private createNodeFromPersisted(node: PersistedQueryHistoryNode): QueryHistoryNode | undefined {
+        if (
+            !node ||
+            typeof node.queryString !== "string" ||
+            typeof node.connectionLabel !== "string" ||
+            typeof node.timeStamp !== "number" ||
+            typeof node.isSuccess !== "boolean"
+        ) {
+            return undefined;
+        }
+
+        const restoredTimestamp = new Date(node.timeStamp);
+        if (Number.isNaN(restoredTimestamp.getTime())) {
+            return undefined;
+        }
+
+        const label = this.createPersistedHistoryNodeLabel(node.queryString, node.connectionLabel);
+        const tooltip = this.createPersistedHistoryNodeTooltip(
+            node.queryString,
+            node.connectionLabel,
+            restoredTimestamp.toLocaleString(),
+        );
+
+        return new QueryHistoryNode(
+            label,
+            tooltip,
+            node.queryString,
+            node.ownerUri ?? "",
+            node.credentials,
+            restoredTimestamp,
+            node.connectionLabel,
+            node.isSuccess,
+        );
+    }
+
+    private async persistQueryHistory(): Promise<void> {
+        const historyNodes = this._queryHistoryNodes.filter(
+            (node): node is QueryHistoryNode => node instanceof QueryHistoryNode,
+        );
+
+        if (historyNodes.length === 0) {
+            await this.clearPersistedQueryHistoryContent();
+            return;
+        }
+
+        const payload: PersistedQueryHistory = {
+            version: QueryHistoryProvider._queryHistoryStorageVersion,
+            nodes: historyNodes.slice(0, this._queryHistoryLimit).map((node) => ({
+                queryString: node.queryString,
+                ownerUri: node.ownerUri,
+                credentials: this.sanitizeCredentialsForPersistence(node.credentials),
+                timeStamp: node.timeStamp.getTime(),
+                connectionLabel: node.connectionLabel,
+                isSuccess: node.isSuccess,
+            })),
+        };
+
+        await this.writePersistedQueryHistoryContent(JSON.stringify(payload));
+    }
+
+    private sanitizeCredentialsForPersistence(
+        credentials?: vscodeMssql.IConnectionInfo,
+    ): vscodeMssql.IConnectionInfo | undefined {
+        if (!credentials) {
+            return undefined;
+        }
+
+        const persistedCredentials = { ...credentials };
+        if ((credentials as IConnectionProfile).savePassword === false) {
+            persistedCredentials.password = "";
+        }
+
+        return persistedCredentials;
+    }
+
+    private async readEncryptedPersistedQueryHistory(): Promise<string | undefined> {
+        const storageFileUri = this.getPersistedQueryHistoryFileUri();
+        if (!(await this.persistedQueryHistoryFileExists(storageFileUri))) {
+            return undefined;
+        }
+
+        const encryptionKey = await this._context.secrets.get(
+            Constants.queryHistoryEncryptionKeySecretStorageKey,
+        );
+        if (!encryptionKey) {
+            return undefined;
+        }
+
+        const encryptedFileContents = await vscode.workspace.fs.readFile(storageFileUri);
+        const encryptedData = JSON.parse(
+            new TextDecoder().decode(encryptedFileContents),
+        ) as EncryptedData;
+
+        return decryptData(encryptedData, encryptionKey);
+    }
+
+    private async writePersistedQueryHistoryContent(serializedHistory: string): Promise<void> {
+        const storageFileUri = this.getPersistedQueryHistoryFileUri();
+        const encryptionKey = await this.getOrCreateQueryHistoryEncryptionKey();
+        const encryptedData = encryptData(serializedHistory, encryptionKey);
+
+        await vscode.workspace.fs.createDirectory(this._context.globalStorageUri);
+        await vscode.workspace.fs.writeFile(
+            storageFileUri,
+            new TextEncoder().encode(JSON.stringify(encryptedData)),
+        );
+    }
+
+    private async clearPersistedQueryHistoryContent(): Promise<void> {
+        try {
+            await vscode.workspace.fs.delete(this.getPersistedQueryHistoryFileUri(), {
+                useTrash: false,
+            });
+        } catch {
+            // Ignore missing file errors when clearing persisted history.
+        }
+    }
+
+    private async getOrCreateQueryHistoryEncryptionKey(): Promise<string> {
+        let encryptionKey = await this._context.secrets.get(
+            Constants.queryHistoryEncryptionKeySecretStorageKey,
+        );
+        if (!encryptionKey) {
+            encryptionKey = generateEncryptionKey();
+            await this._context.secrets.store(
+                Constants.queryHistoryEncryptionKeySecretStorageKey,
+                encryptionKey,
+            );
+        }
+
+        return encryptionKey;
+    }
+
+    private async persistedQueryHistoryFileExists(storageFileUri: vscode.Uri): Promise<boolean> {
+        try {
+            await vscode.workspace.fs.stat(storageFileUri);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    private getPersistedQueryHistoryFileUri(): vscode.Uri {
+        return vscode.Uri.joinPath(
+            this._context.globalStorageUri,
+            Constants.queryHistoryGlobalStorageFileName,
+        );
+    }
+}
+
+interface PersistedQueryHistoryNode {
+    queryString: string;
+    ownerUri?: string;
+    credentials?: vscodeMssql.IConnectionInfo;
+    timeStamp: number;
+    connectionLabel: string;
+    isSuccess: boolean;
+}
+
+interface PersistedQueryHistory {
+    version: number;
+    nodes: PersistedQueryHistoryNode[];
 }
