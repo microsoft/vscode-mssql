@@ -75,8 +75,6 @@ export default class StatusView implements vscode.Disposable {
                         this.showStatusBarItem(fileUri, bar.statusChangeDatabase);
                         this.showStatusBarItem(fileUri, bar.statusLanguageService);
                         this.showStatusBarItem(fileUri, bar.sqlCmdMode);
-                        this.showStatusBarItem(fileUri, bar.rowCount);
-                        this.showStatusBarItem(fileUri, bar.executionTime);
                     }
                 }
             });
