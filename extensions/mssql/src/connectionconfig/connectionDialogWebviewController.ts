@@ -1578,16 +1578,24 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     }
 
     private async getEntraMfaAccountOptions(): Promise<FormItemOptions[]> {
-        if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
-            if (this._cachedEntraAccounts) {
-                return this._cachedEntraAccounts;
-            }
-            const accounts = await getVscodeEntraAccountOptions();
-            this._cachedEntraAccounts = accounts;
-            return accounts;
+        if (this._cachedEntraAccounts) {
+            return this._cachedEntraAccounts;
         }
 
-        return getAccounts(this._mainController.azureAccountService, this.logger);
+        if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+            this._cachedEntraAccounts = await getVscodeEntraAccountOptions();
+        } else {
+            this._cachedEntraAccounts = await getAccounts(
+                this._mainController.azureAccountService,
+                this.logger,
+            );
+        }
+
+        this.logger.verbose(
+            `Read ${this._cachedEntraAccounts.length} Azure accounts: ${this._cachedEntraAccounts.map((a) => a.value).join(", ")}`,
+        );
+
+        return this._cachedEntraAccounts;
     }
 
     private async getEntraMfaTenantOptions(accountId?: string): Promise<FormItemOptions[]> {
@@ -1595,17 +1603,25 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return [];
         }
 
-        if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
-            const cached = this._cachedEntraTenants.get(accountId);
-            if (cached) {
-                return cached;
+        if (!this._cachedEntraTenants.has(accountId)) {
+            if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+                this._cachedEntraTenants.set(
+                    accountId,
+                    await getVscodeEntraTenantOptions(accountId),
+                );
+            } else {
+                this._cachedEntraTenants.set(
+                    accountId,
+                    await getTenants(
+                        this._mainController.azureAccountService,
+                        accountId,
+                        this.logger,
+                    ),
+                );
             }
-            const tenants = await getVscodeEntraTenantOptions(accountId);
-            this._cachedEntraTenants.set(accountId, tenants);
-            return tenants;
         }
 
-        return getTenants(this._mainController.azureAccountService, accountId, this.logger);
+        return this._cachedEntraTenants.get(accountId) ?? [];
     }
 
     /** Clears cached VS Code Entra accounts and tenants, forcing a re-fetch on next access */
@@ -1685,21 +1701,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         `Added Azure account '${account.displayInfo?.displayName}', ${account.key.id}`,
                     );
 
-                    const accountsComponent = this.getFormComponent(this.state, "accountId");
-
-                    if (!accountsComponent) {
-                        this.logger.error("Account component not found");
-                        return;
-                    }
-
-                    accountsComponent.options = await getAccounts(
-                        this._mainController.azureAccountService,
-                        this.logger,
-                    );
-
-                    this.logger.verbose(
-                        `Read ${accountsComponent.options.length} Azure accounts: ${accountsComponent.options.map((a) => a.value).join(", ")}`,
-                    );
+                    this.clearEntraAccountCache();
 
                     this.state.connectionProfile.accountId = account.key.id;
 
@@ -1824,7 +1826,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         try {
             accountComponent.options = await this.getEntraMfaAccountOptions();
 
-            if (useVscodeAccounts && this.state.connectionProfile.accountId) {
+            if (this.state.connectionProfile.accountId) {
                 const originalAccountId = this.state.connectionProfile.accountId;
                 const cachedAccountId = this.normalizeAccountIdFromCache(originalAccountId);
 
