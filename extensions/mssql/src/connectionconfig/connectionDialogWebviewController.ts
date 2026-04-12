@@ -245,6 +245,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         // Load VS Code Entra accounts and tenants in the background after the initial render
         if (useVscodeAccounts) {
             void this.loadVscodeEntraDataAsync();
+        } else {
+            this._entraDataLoaded.resolve();
         }
 
         // Load saved/recent connections
@@ -1554,6 +1556,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
      */
     private async loadVscodeEntraDataAsync(): Promise<void> {
         this._entraDataLoaded = new Deferred<void>();
+        this._cachedEntraAccounts = undefined;
+        this._cachedEntraTenants.clear();
         const accountComponent = this.getFormComponent(this.state, "accountId");
 
         try {
