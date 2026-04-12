@@ -25,7 +25,9 @@ export type BackgroundTaskIcon =
 
 export interface BackgroundTaskRegistration {
     displayText: string;
+    description?: string;
     details?: string;
+    target?: string;
     tooltip: string | vscode.MarkdownString;
     icon?: BackgroundTaskIcon;
     percent?: number;
@@ -39,7 +41,9 @@ export interface BackgroundTaskRegistration {
 
 export interface BackgroundTaskUpdate {
     displayText?: string;
+    description?: string;
     details?: string;
+    target?: string;
     tooltip?: string | vscode.MarkdownString;
     icon?: BackgroundTaskIcon;
     percent?: number;
@@ -61,7 +65,9 @@ export interface BackgroundTaskHandle {
 export interface BackgroundTaskEntry {
     id: string;
     displayText: string;
+    description?: string;
     details?: string;
+    target?: string;
     tooltip: string | vscode.MarkdownString;
     icon?: BackgroundTaskIcon;
     percent?: number;
@@ -77,12 +83,33 @@ export interface BackgroundTaskEntry {
     updatedAt: number;
 }
 
+export interface BackgroundTaskLogEntry {
+    timestamp: number;
+    state: BackgroundTaskState;
+    percent?: number;
+    message?: string;
+}
+
+export interface BackgroundTaskLog {
+    displayText: string;
+    description?: string;
+    details?: string;
+    target?: string;
+    source?: string;
+    state: BackgroundTaskState;
+    createdAt: number;
+    completedAt?: number;
+    entries: BackgroundTaskLogEntry[];
+}
+
 export const DEFAULT_MAX_FINISHED_BACKGROUND_TASKS = 25;
 
 const logger = logger2.withPrefix("BackgroundTasksService");
 
 export class BackgroundTasksService {
     private _tasks = new Map<string, BackgroundTaskEntry>();
+    private _taskLogs = new Map<string, BackgroundTaskLog>();
+    private readonly _onDidChangeTaskLog = new vscode.EventEmitter<string>();
     private _nextSequence = 0;
 
     constructor(
@@ -91,13 +118,17 @@ export class BackgroundTasksService {
         private readonly _revealCallback?: () => void,
     ) {}
 
+    public readonly onDidChangeTaskLog = this._onDidChangeTaskLog.event;
+
     public registerTask(registration: BackgroundTaskRegistration): BackgroundTaskHandle {
         const id = uuid();
         const timestamp = Date.now();
         const entry: BackgroundTaskEntry = {
             id,
             displayText: registration.displayText,
+            description: registration.description,
             details: registration.details,
+            target: registration.target,
             tooltip: registration.tooltip,
             icon: registration.icon,
             percent: normalizePercent(registration.percent),
@@ -118,6 +149,8 @@ export class BackgroundTasksService {
         };
 
         this._tasks.set(id, entry);
+        this._taskLogs.set(id, createTaskLog(entry));
+        this.appendTaskLogEntry(id, entry, timestamp);
         this.trimFinishedTasks();
         this._refreshCallback();
         this._revealCallback?.();
@@ -134,10 +167,15 @@ export class BackgroundTasksService {
         return [...this._tasks.values()].sort(compareTasks);
     }
 
+    public getTaskLog(taskId: string): BackgroundTaskLog | undefined {
+        return this._taskLogs.get(taskId);
+    }
+
     public clearFinished(): void {
         let changed = false;
         for (const [id, task] of this._tasks.entries()) {
             if (isBackgroundTaskCompleted(task.state)) {
+                this.deleteTaskLog(id);
                 this._tasks.delete(id);
                 changed = true;
             }
@@ -178,10 +216,18 @@ export class BackgroundTasksService {
         } catch (error) {
             const currentTask = this._tasks.get(taskId);
             if (currentTask) {
+                const cancelingSnapshot = snapshotTask(currentTask);
                 currentTask.state = previousState;
                 currentTask.canCancel = Boolean(previousCanCancel && cancelCallback);
                 currentTask.cancel = cancelCallback;
                 currentTask.updatedAt = Date.now();
+                this.syncTaskLog(currentTask);
+                this.appendTaskLogEntry(
+                    taskId,
+                    currentTask,
+                    currentTask.updatedAt,
+                    cancelingSnapshot,
+                );
                 this.trimFinishedTasks();
                 this._refreshCallback();
             }
@@ -196,8 +242,10 @@ export class BackgroundTasksService {
             return;
         }
 
+        const previousTask = snapshotTask(task);
         applyTaskUpdate(task, update);
-        task.updatedAt = Date.now();
+        const timestamp = Date.now();
+        task.updatedAt = timestamp;
 
         if (isBackgroundTaskCompleted(task.state)) {
             task.canCancel = false;
@@ -205,6 +253,9 @@ export class BackgroundTasksService {
         } else if (!task.cancel) {
             task.canCancel = false;
         }
+
+        this.syncTaskLog(task);
+        this.appendTaskLogEntry(taskId, task, timestamp, previousTask);
 
         this.trimFinishedTasks();
         this._refreshCallback();
@@ -220,15 +271,26 @@ export class BackgroundTasksService {
             return;
         }
 
+        const previousTask = snapshotTask(task);
+        const hasFinalPercent = Boolean(
+            update && Object.prototype.hasOwnProperty.call(update, "percent"),
+        );
         if (update) {
             applyTaskUpdate(task, update);
         }
 
         task.state = finalState;
+        if (!hasFinalPercent) {
+            task.percent = undefined;
+        }
         task.canCancel = false;
         task.cancel = undefined;
-        task.completedAt = Date.now();
-        task.updatedAt = Date.now();
+        const timestamp = Date.now();
+        task.completedAt = timestamp;
+        task.updatedAt = timestamp;
+
+        this.syncTaskLog(task);
+        this.appendTaskLogEntry(taskId, task, timestamp, previousTask);
 
         this.trimFinishedTasks();
         this._refreshCallback();
@@ -236,8 +298,44 @@ export class BackgroundTasksService {
 
     private removeTask(taskId: string): void {
         if (this._tasks.delete(taskId)) {
+            this.deleteTaskLog(taskId);
             this._refreshCallback();
         }
+    }
+
+    private syncTaskLog(task: BackgroundTaskEntry): void {
+        const taskLog = this._taskLogs.get(task.id);
+        if (!taskLog) {
+            return;
+        }
+
+        taskLog.displayText = task.displayText;
+        taskLog.description = task.description;
+        taskLog.details = task.details;
+        taskLog.target = task.target;
+        taskLog.source = task.source;
+        taskLog.state = task.state;
+        taskLog.completedAt = task.completedAt;
+    }
+
+    private appendTaskLogEntry(
+        taskId: string,
+        task: BackgroundTaskEntry,
+        timestamp: number,
+        previousTask?: BackgroundTaskProgressSnapshot,
+    ): void {
+        const taskLog = this._taskLogs.get(taskId);
+        if (!taskLog || !shouldAppendTaskLogEntry(task, previousTask)) {
+            return;
+        }
+
+        taskLog.entries.push({
+            timestamp,
+            state: task.state,
+            percent: task.percent,
+            message: task.message,
+        });
+        this._onDidChangeTaskLog.fire(taskId);
     }
 
     private trimFinishedTasks(): void {
@@ -254,10 +352,24 @@ export class BackgroundTasksService {
         );
 
         for (const task of tasksToRemove) {
+            this.deleteTaskLog(task.id);
             this._tasks.delete(task.id);
         }
     }
+
+    private deleteTaskLog(taskId: string): void {
+        if (this._taskLogs.has(taskId)) {
+            this._taskLogs.delete(taskId);
+            this._onDidChangeTaskLog.fire(taskId);
+        }
+    }
 }
+
+type BackgroundTaskProgressSnapshot = {
+    state: BackgroundTaskState;
+    percent?: number;
+    message?: string;
+};
 
 export function isBackgroundTaskCompleted(state: BackgroundTaskState): boolean {
     return (
@@ -329,13 +441,59 @@ function normalizePercent(percent?: number): number | undefined {
     return Math.min(100, Math.max(0, Math.round(percent)));
 }
 
+function snapshotTask(task: BackgroundTaskEntry): BackgroundTaskProgressSnapshot {
+    return {
+        state: task.state,
+        percent: task.percent,
+        message: task.message,
+    };
+}
+
+function createTaskLog(task: BackgroundTaskEntry): BackgroundTaskLog {
+    return {
+        displayText: task.displayText,
+        description: task.description,
+        details: task.details,
+        target: task.target,
+        source: task.source,
+        state: task.state,
+        createdAt: task.createdAt,
+        completedAt: task.completedAt,
+        entries: [],
+    };
+}
+
+function shouldAppendTaskLogEntry(
+    task: BackgroundTaskEntry,
+    previousTask?: BackgroundTaskProgressSnapshot,
+): boolean {
+    if (
+        previousTask &&
+        previousTask.state === task.state &&
+        previousTask.percent === task.percent &&
+        previousTask.message === task.message
+    ) {
+        return false;
+    }
+
+    return true;
+}
+
 function applyTaskUpdate(task: BackgroundTaskEntry, update: BackgroundTaskUpdate): void {
     if (Object.prototype.hasOwnProperty.call(update, "displayText") && update.displayText) {
         task.displayText = update.displayText;
     }
 
+    if (Object.prototype.hasOwnProperty.call(update, "description")) {
+        task.description = update.description;
+    }
+
     if (Object.prototype.hasOwnProperty.call(update, "details")) {
         task.details = update.details;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(update, "target")) {
+        task.target = update.target;
     }
 
     if (Object.prototype.hasOwnProperty.call(update, "tooltip") && update.tooltip !== undefined) {

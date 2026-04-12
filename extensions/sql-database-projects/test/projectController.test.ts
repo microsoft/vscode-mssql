@@ -283,223 +283,270 @@ suite("ProjectsController", function (): void {
                 }
             });
 
-            test("Should return default folder for item type only when folder exists", async function (): Promise<void> {
+            function stubAutoCreate(enabled: boolean): void {
+                sandbox.stub(vscode.workspace, "getConfiguration").returns({
+                    get: (key: string, defaultValue?: unknown) =>
+                        key === constants.autoCreateFoldersSetting ? enabled : defaultValue,
+                } as unknown as vscode.WorkspaceConfiguration);
+            }
+
+            test("resolveItemFolder: Returns empty string when target folder does not exist (auto-create OFF)", async function (): Promise<void> {
                 const projController = new ProjectsController(testContext.outputChannel);
                 const project = await testUtils.createTestProject(
                     this.test,
                     templates.newSqlProjectTemplate,
                 );
+                stubAutoCreate(false);
 
-                // Without folders - all should return empty string (root level)
+                // One representative type is sufficient — the logic is identical for all types
                 expect(
-                    projController.getDefaultFolderForItemType(ItemType.schema, project),
-                    "Schema should return empty when Security folder does not exist",
+                    await projController.resolveItemFolder(ItemType.table, project, "dbo"),
+                    'Should return "" when target folder does not exist',
                 ).to.equal("");
-                expect(
-                    projController.getDefaultFolderForItemType(ItemType.table, project),
-                    "Table should not have a default folder",
-                ).to.equal("");
-                expect(
-                    projController.getDefaultFolderForItemType(ItemType.view, project),
-                    "View should not have a default folder",
-                ).to.equal("");
+            });
 
-                // Add Security folder to project
+            test("resolveItemFolder: Returns the existing folder path when target folders already exist (auto-create OFF)", async function (): Promise<void> {
+                const projController = new ProjectsController(testContext.outputChannel);
+                const project = await testUtils.createTestProject(
+                    this.test,
+                    templates.newSqlProjectTemplate,
+                );
+                stubAutoCreate(false);
+
+                // One non-schema-dependent type (schema → Security) and one schema-dependent
+                // type (table → dbo/Tables) cover both code paths
                 await project.addFolder(constants.securityFolderName);
+                await project.addFolder("dbo");
+                await project.addFolder(path.join("dbo", "Tables"));
 
-                // With Security folder - Schema should return Security, others unchanged
                 expect(
-                    projController.getDefaultFolderForItemType(ItemType.schema, project),
-                    "Schema should return Security folder when it exists",
+                    await projController.resolveItemFolder(ItemType.schema, project, undefined),
+                    "schema: should return Security/ when it exists",
+                ).to.equal(utils.convertSlashesForSqlProj(constants.securityFolderName));
+                expect(
+                    await projController.resolveItemFolder(ItemType.table, project, "dbo"),
+                    "table: should return dbo/Tables when it exists",
+                ).to.equal(utils.convertSlashesForSqlProj(path.join("dbo", "Tables")));
+            });
+
+            test("resolveItemFolder: Stays at basePath without creating folders when subfolder is missing (auto-create OFF)", async function (): Promise<void> {
+                const projController = new ProjectsController(testContext.outputChannel);
+                const project = await testUtils.createTestProject(
+                    this.test,
+                    templates.newSqlProjectTemplate,
+                );
+                stubAutoCreate(false);
+
+                await project.addFolder("dbo");
+                const foldersBefore = project.folders.length;
+
+                expect(
+                    await projController.resolveItemFolder(ItemType.view, project, "dbo", "dbo"),
+                    "Should stay at dbo when dbo/Views is missing and auto-create is OFF",
+                ).to.equal("dbo");
+                const reloaded = await Project.openProject(project.projectFilePath);
+                expect(reloaded.folders.length, "No folders should have been created").to.equal(
+                    foldersBefore,
+                );
+            });
+
+            test("resolveItemFolder: Creates root-level ObjectType folders for non-schema-dependent types (auto-create ON)", async function (): Promise<void> {
+                const projController = new ProjectsController(testContext.outputChannel);
+                const project = await testUtils.createTestProject(
+                    this.test,
+                    templates.newSqlProjectTemplate,
+                );
+                stubAutoCreate(true);
+
+                expect(
+                    await projController.resolveItemFolder(ItemType.schema, project),
+                    "Schema: creates and returns Security/",
                 ).to.equal(constants.securityFolderName);
-            });
-
-            test("Should return empty when no schema folder exists", async function (): Promise<void> {
-                const projController = new ProjectsController(testContext.outputChannel);
-                const project = await testUtils.createTestProject(
-                    this.test,
-                    templates.newSqlProjectTemplate,
-                );
-
-                // Without schema folder - should return empty string (root level)
                 expect(
-                    projController.getDefaultFolderForItemType(
-                        ItemType.tableValuedFunction,
-                        project,
-                        "dbo",
-                    ),
-                    "Should return empty when no dbo folder exists",
-                ).to.equal("");
-
-                // Add dbo folder to project
-                await project.addFolder("dbo");
-
-                // With dbo folder - should return dbo
-                expect(
-                    projController.getDefaultFolderForItemType(
-                        ItemType.tableValuedFunction,
-                        project,
-                        "dbo",
-                    ),
-                    "Should return dbo folder when it exists",
-                ).to.equal("dbo");
-            });
-
-            test("Should return nested schema/object-type folder when it exists", async function (): Promise<void> {
-                const projController = new ProjectsController(testContext.outputChannel);
-                const project = await testUtils.createTestProject(
-                    this.test,
-                    templates.newSqlProjectTemplate,
-                );
-
-                // No folders - should return empty
-                expect(
-                    projController.getDefaultFolderForItemType(
-                        ItemType.tableValuedFunction,
-                        project,
-                        "sales",
-                    ),
-                    "Should return empty when no Sales folder",
-                ).to.equal("");
-
-                // Add Sales folder to project
-                await project.addFolder("Sales");
-
-                // With Sales folder only - should return Sales folder
-                expect(
-                    projController.getDefaultFolderForItemType(
-                        ItemType.tableValuedFunction,
-                        project,
-                        "sales",
-                    ),
-                    "Should return Sales folder when no nested Functions folder",
-                ).to.equal("Sales");
-
-                // Add nested Sales/Functions folder
-                await project.addFolder("Sales/Functions");
-
-                // With Sales/Functions folder - should return nested path
-                expect(
-                    projController.getDefaultFolderForItemType(
-                        ItemType.tableValuedFunction,
-                        project,
-                        "sales",
-                    ),
-                    "Should return Sales/Functions when nested folder exists",
-                ).to.equal(utils.convertSlashesForSqlProj(path.join("Sales", "Functions")));
-
-                // With dbo schema and no dbo folder - should return empty (place at root)
-                expect(
-                    projController.getDefaultFolderForItemType(
-                        ItemType.tableValuedFunction,
-                        project,
-                        "dbo",
-                    ),
-                    "Should return empty when dbo folder does not exist",
-                ).to.equal("");
-
-                // Add dbo folder
-                await project.addFolder("dbo");
-
-                // With dbo folder and schema=dbo - should return dbo folder
-                expect(
-                    projController.getDefaultFolderForItemType(
-                        ItemType.tableValuedFunction,
-                        project,
-                        "dbo",
-                    ),
-                    "Should return dbo folder when it exists",
-                ).to.equal("dbo");
-            });
-
-            test("Should return DatabaseTriggers folder for database trigger regardless of schema", async function (): Promise<void> {
-                const projController = new ProjectsController(testContext.outputChannel);
-                const project = await testUtils.createTestProject(
-                    this.test,
-                    baselines.newSdkStyleProjectSdkNodeBaseline,
-                );
-
-                // Without DatabaseTriggers folder - should return empty
-                expect(
-                    projController.getDefaultFolderForItemType(
-                        ItemType.databaseTrigger,
-                        project,
-                        "",
-                    ),
-                    "Should return empty when DatabaseTriggers folder does not exist",
-                ).to.equal("");
-
-                // Add DatabaseTriggers folder at root
-                await project.addFolder("DatabaseTriggers");
-
-                // With DatabaseTriggers folder - should return it (schema is ignored for database triggers)
-                expect(
-                    projController.getDefaultFolderForItemType(
-                        ItemType.databaseTrigger,
-                        project,
-                        "",
-                    ),
-                    "Should return DatabaseTriggers folder",
+                    await projController.resolveItemFolder(ItemType.databaseTrigger, project, ""),
+                    "DatabaseTrigger: creates and returns DatabaseTriggers/",
                 ).to.equal("DatabaseTriggers");
+
+                const reloaded = await Project.openProject(project.projectFilePath);
+                expect(
+                    reloaded.folders.some(
+                        (f) =>
+                            f.relativePath.toLowerCase() ===
+                            constants.securityFolderName.toLowerCase(),
+                    ),
+                    "Security folder should exist",
+                ).to.be.true;
+                expect(
+                    reloaded.folders.some(
+                        (f) => f.relativePath.toLowerCase() === "databasetriggers",
+                    ),
+                    "DatabaseTriggers folder should exist",
+                ).to.be.true;
             });
 
-            test("Should return Sequences folder for sequence with root-first priority", async function (): Promise<void> {
+            test("resolveItemFolder: Creates Schema/ObjectType folder hierarchy from root for all schema-dependent types (auto-create ON)", async function (): Promise<void> {
                 const projController = new ProjectsController(testContext.outputChannel);
                 const project = await testUtils.createTestProject(
                     this.test,
-                    baselines.newSdkStyleProjectSdkNodeBaseline,
+                    templates.newSqlProjectTemplate,
+                );
+                stubAutoCreate(true);
+
+                // One representative schema-dependent type is sufficient to verify the hierarchy
+                const foldersBefore = project.folders.length;
+                const expectedPath = utils.convertSlashesForSqlProj(path.join("dbo", "Tables"));
+
+                expect(
+                    await projController.resolveItemFolder(ItemType.table, project, "dbo"),
+                    "table: returns dbo/Tables",
+                ).to.equal(expectedPath);
+
+                const reloaded = await Project.openProject(project.projectFilePath);
+                expect(reloaded.folders.length, "dbo/ and dbo/Tables should be created").to.equal(
+                    foldersBefore + 2,
+                );
+                expect(
+                    reloaded.folders.some((f) => f.relativePath.toLowerCase() === "dbo"),
+                    "dbo/ folder should exist",
+                ).to.be.true;
+                expect(
+                    reloaded.folders.some(
+                        (f) => f.relativePath.toLowerCase() === expectedPath.toLowerCase(),
+                    ),
+                    "dbo/Tables folder should exist",
+                ).to.be.true;
+            });
+
+            test("resolveItemFolder: Uses existing root-level Sequences folder before creating schema/Sequences (backward compat)", async function (): Promise<void> {
+                const projController = new ProjectsController(testContext.outputChannel);
+                const project = await testUtils.createTestProject(
+                    this.test,
+                    templates.newSqlProjectTemplate,
+                );
+                stubAutoCreate(true);
+
+                // Simulate a pre-existing project that has Sequences at the root (old layout)
+                await project.addFolder(constants.sequencesFolderName);
+                const foldersBefore = project.folders.length;
+
+                expect(
+                    await projController.resolveItemFolder(ItemType.sequence, project, "dbo"),
+                    "Should return root Sequences/ — not create dbo/Sequences/",
+                ).to.equal(constants.sequencesFolderName);
+
+                const reloaded = await Project.openProject(project.projectFilePath);
+                expect(reloaded.folders.length, "No new folders should be created").to.equal(
+                    foldersBefore,
+                );
+                expect(
+                    reloaded.folders.some(
+                        (f) =>
+                            f.relativePath.toLowerCase() ===
+                            utils
+                                .convertSlashesForSqlProj(path.join("dbo", "Sequences"))
+                                .toLowerCase(),
+                    ),
+                    "dbo/Sequences should NOT have been created",
+                ).to.be.false;
+            });
+
+            test("resolveItemFolder: Creates ObjectType subfolder under schema node when missing (auto-create ON)", async function (): Promise<void> {
+                const projController = new ProjectsController(testContext.outputChannel);
+                const project = await testUtils.createTestProject(
+                    this.test,
+                    templates.newSqlProjectTemplate,
+                );
+                stubAutoCreate(true);
+
+                await project.addFolder("dbo");
+                const foldersBefore = project.folders.length;
+                const expectedPath = utils.convertSlashesForSqlProj(
+                    path.join("dbo", "StoredProcedures"),
                 );
 
-                // Without any folders - should return empty (root level)
                 expect(
-                    projController.getDefaultFolderForItemType(ItemType.sequence, project, "dbo"),
-                    "Should return empty when no folders exist",
-                ).to.equal("");
+                    await projController.resolveItemFolder(
+                        ItemType.storedProcedure,
+                        project,
+                        "dbo",
+                        "dbo",
+                    ),
+                    "Should create and return dbo/StoredProcedures",
+                ).to.equal(expectedPath);
 
-                // Add dbo folder only (no Sequences folders)
+                const reloaded = await Project.openProject(project.projectFilePath);
+                expect(
+                    reloaded.folders.length,
+                    "Only dbo/StoredProcedures should be created (dbo already exists)",
+                ).to.equal(foldersBefore + 1);
+                expect(
+                    reloaded.folders.some(
+                        (f) => f.relativePath.toLowerCase() === expectedPath.toLowerCase(),
+                    ),
+                    "dbo/StoredProcedures folder should exist",
+                ).to.be.true;
+            });
+
+            test("resolveItemFolder: Does not create spurious nested folders for any ObjectType basePath (regression)", async function (): Promise<void> {
+                const projController = new ProjectsController(testContext.outputChannel);
+                const project = await testUtils.createTestProject(
+                    this.test,
+                    templates.newSqlProjectTemplate,
+                );
+                stubAutoCreate(true);
+
+                // Pre-populate folders that cover all edge cases
                 await project.addFolder("dbo");
+                await project.addFolder("DatabaseTriggers"); // root-level non-schema-dep folder
+                await project.addFolder("Tables"); // root-level ObjectType folder (e.g. old project layout)
+                await project.addFolder(path.join("dbo", "Tables")); // already in Schema/ObjectType
+                const foldersBefore = project.folders.length;
+                const dboTablesPath = utils.convertSlashesForSqlProj(path.join("dbo", "Tables"));
 
-                // With only dbo folder - should return dbo (schema folder)
+                // 1. Non-schema-dependent type from a schema folder: must NOT create dbo/DatabaseTriggers
                 expect(
-                    projController.getDefaultFolderForItemType(ItemType.sequence, project, "dbo"),
-                    "Should return dbo folder when it exists",
+                    await projController.resolveItemFolder(
+                        ItemType.databaseTrigger,
+                        project,
+                        "",
+                        "dbo",
+                    ),
+                    "Non-schema-dep from schema folder: should return dbo unchanged",
                 ).to.equal("dbo");
 
-                // Add root-level Sequences folder
-                await project.addFolder("Sequences");
-
-                // With root Sequences folder - should return it (root-level has priority for Sequence)
+                // 2. Non-schema-dependent type from its own ObjectType folder: must NOT create DatabaseTriggers/DatabaseTriggers
                 expect(
-                    projController.getDefaultFolderForItemType(ItemType.sequence, project, "dbo"),
-                    "Should return root Sequences folder",
-                ).to.equal("Sequences");
+                    await projController.resolveItemFolder(
+                        ItemType.databaseTrigger,
+                        project,
+                        "",
+                        "DatabaseTriggers",
+                    ),
+                    "Non-schema-dep from its own folder: should return DatabaseTriggers unchanged",
+                ).to.equal("DatabaseTriggers");
 
-                // Add nested dbo/Sequences folder
-                await project.addFolder("dbo/Sequences");
-
-                // With both folders - should still return root Sequences (root has higher priority)
+                // 3. Same-type from a 2-segment path: Table from dbo/Tables must NOT create dbo/Tables/Tables
                 expect(
-                    projController.getDefaultFolderForItemType(ItemType.sequence, project, "dbo"),
-                    "Should still return root Sequences even when dbo/Sequences exists",
-                ).to.equal("Sequences");
-            });
+                    await projController.resolveItemFolder(
+                        ItemType.table,
+                        project,
+                        "dbo",
+                        dboTablesPath,
+                    ),
+                    "Same-type from 2-segment path: should stay in dbo/Tables",
+                ).to.equal(dboTablesPath);
 
-            test("Should return schema/Sequences folder when only nested folder exists", async function (): Promise<void> {
-                const projController = new ProjectsController(testContext.outputChannel);
-                const project = await testUtils.createTestProject(
-                    this.test,
-                    baselines.newSdkStyleProjectSdkNodeBaseline,
-                );
-
-                // Add dbo folder and dbo/Sequences (but no root Sequences)
-                await project.addFolder("dbo");
-                await project.addFolder("dbo/Sequences");
-
-                // With only dbo/Sequences - should return it since no root Sequences exists
+                // 4. Cross-type from root ObjectType folder: View from Tables must NOT create Tables/Views
                 expect(
-                    projController.getDefaultFolderForItemType(ItemType.sequence, project, "dbo"),
-                    "Should return dbo/Sequences when no root Sequences exists",
-                ).to.equal(utils.convertSlashesForSqlProj(path.join("dbo", "Sequences")));
+                    await projController.resolveItemFolder(ItemType.view, project, "dbo", "Tables"),
+                    "Cross-type from ObjectType folder: should return Tables unchanged",
+                ).to.equal("Tables");
+
+                const reloaded = await Project.openProject(project.projectFilePath);
+                expect(
+                    reloaded.folders.length,
+                    "No extra folders should be created by any resolveItemFolder call",
+                ).to.equal(foldersBefore);
             });
 
             test("Should parse schema and object name from user input", function (): void {

@@ -565,6 +565,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     AuthenticationType.SqlLogin,
                     AuthenticationType.Integrated,
                     AuthenticationType.AzureMFA,
+                    AuthenticationType.ActiveDirectoryDefault,
                 ];
 
                 if (
@@ -958,9 +959,24 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     async updateItemVisibility() {
         let hiddenProperties: (keyof IConnectionDialogProfile)[] = [];
 
-        if (this.state.connectionProfile.authenticationType !== AuthenticationType.SqlLogin) {
-            hiddenProperties.push("user", "password", "savePassword");
+        if (
+            this.state.connectionProfile.authenticationType !== AuthenticationType.SqlLogin &&
+            this.state.connectionProfile.authenticationType !==
+                AuthenticationType.ActiveDirectoryDefault
+        ) {
+            hiddenProperties.push("user");
         }
+        if (this.state.connectionProfile.authenticationType !== AuthenticationType.SqlLogin) {
+            hiddenProperties.push("password", "savePassword");
+        }
+
+        const userComponent = this.state.formComponents["user"];
+        if (userComponent) {
+            // userId is required for SQL Login, optional for AD Default, and hidden (above) for everything else
+            userComponent.required =
+                this.state.connectionProfile.authenticationType === AuthenticationType.SqlLogin;
+        }
+
         if (this.state.connectionProfile.authenticationType !== AuthenticationType.AzureMFA) {
             hiddenProperties.push("accountId", "tenantId");
         }

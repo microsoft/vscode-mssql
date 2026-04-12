@@ -49,6 +49,7 @@ export function buildCapabilitiesResult(): CapabilitiesResult {
                             AuthenticationType.SqlLogin,
                             AuthenticationType.Integrated,
                             AuthenticationType.AzureMFA,
+                            AuthenticationType.ActiveDirectoryDefault,
                         ],
                     },
                     {

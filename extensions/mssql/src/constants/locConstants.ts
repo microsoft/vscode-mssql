@@ -27,11 +27,11 @@ export class Common {
     public static remove = l10n.t("Remove");
 }
 
-export let createDatabaseDialogTitle = l10n.t("Create Database (Preview)");
-export let dropDatabaseDialogTitle = l10n.t("Drop Database (Preview)");
-export let renameDatabaseDialogTitle = l10n.t("Rename Database (Preview)");
-export let createDatabaseWebviewTitle = l10n.t("Create Database (Preview)");
-export let dropDatabaseWebviewTitle = l10n.t("Drop Database (Preview)");
+export let createDatabaseDialogTitle = l10n.t("Create Database");
+export let dropDatabaseDialogTitle = l10n.t("Drop Database");
+export let renameDatabaseDialogTitle = l10n.t("Rename Database");
+export let createDatabaseWebviewTitle = l10n.t("Create Database");
+export let dropDatabaseWebviewTitle = l10n.t("Drop Database");
 export let renameDatabaseInputPlaceholder = l10n.t("Enter the new database name");
 export let databaseNameRequired = l10n.t("Database name is required");
 export let msgSelectServerNodeToCreateDatabase = l10n.t(
@@ -176,6 +176,7 @@ export let authTypeName = l10n.t("authenticationType");
 export let authTypeIntegrated = l10n.t("Integrated");
 export let authTypeSql = l10n.t("SQL Login");
 export let authTypeAzureActiveDirectory = l10n.t("Microsoft Entra Id - Universal w/ MFA Support");
+export let authTypeAzureActiveDirectoryDefault = l10n.t("Microsoft Entra Id - Default");
 export let azureAuthTypeCodeGrant = l10n.t("Azure Code Grant");
 export let azureAuthTypeDeviceCode = l10n.t("Azure Device Code");
 export let azureLogChannelName = l10n.t("MSSQL - Azure Auth Logs");
@@ -554,6 +555,27 @@ export let azureSignInToAzureCloudDescription = l10n.t(
     "Sign in to your Azure subscription in one of the sovereign clouds.",
 );
 export let noBackgroundTasks = l10n.t("No background tasks");
+export function backgroundTaskName(taskName: string) {
+    return l10n.t({
+        message: "Task: {0}",
+        args: [taskName],
+        comment: ["{0} is the task name"],
+    });
+}
+export function backgroundTaskDescription(description: string) {
+    return l10n.t({
+        message: "Description: {0}",
+        args: [description],
+        comment: ["{0} is the task description"],
+    });
+}
+export function backgroundTaskStatus(status: string) {
+    return l10n.t({
+        message: "Status: {0}",
+        args: [status],
+        comment: ["{0} is the task status"],
+    });
+}
 export function backgroundTaskSource(source: string) {
     return l10n.t({
         message: "Source: {0}",
@@ -580,6 +602,49 @@ export function backgroundTaskElapsedTime(elapsedTime: string) {
         message: "Elapsed time: {0}",
         args: [elapsedTime],
         comment: ["{0} is the task elapsed time"],
+    });
+}
+export let backgroundTaskLogsHeader = l10n.t("Logs");
+export let backgroundTaskNoLogEntries = l10n.t("No log entries yet.");
+export let backgroundTaskLogUnavailable = l10n.t("Task log is unavailable.");
+export let backgroundTaskCancelConfirmation = l10n.t(
+    "Are you sure you want to cancel this background task?",
+);
+export let backgroundTaskCancelConfirm = l10n.t("Cancel Task");
+export function backgroundTaskLogLine(timestamp: string, entry: string) {
+    return l10n.t({
+        message: "[{0}] {1}",
+        args: [timestamp, entry],
+        comment: ["{0} is the timestamp", "{1} is the log entry text"],
+    });
+}
+export function backgroundTaskLogStateWithMessage(status: string, message: string) {
+    return l10n.t({
+        message: "{0}: {1}",
+        args: [status, message],
+        comment: ["{0} is the task status", "{1} is the task message"],
+    });
+}
+export function backgroundTaskLogStateWithProgress(status: string, percent: number) {
+    return l10n.t({
+        message: "{0} ({1}%)",
+        args: [status, percent],
+        comment: ["{0} is the task status", "{1} is the completion percent"],
+    });
+}
+export function backgroundTaskLogStateWithProgressAndMessage(
+    status: string,
+    percent: number,
+    message: string,
+) {
+    return l10n.t({
+        message: "{0} ({1}%): {2}",
+        args: [status, percent, message],
+        comment: [
+            "{0} is the task status",
+            "{1} is the completion percent",
+            "{2} is the task message",
+        ],
     });
 }
 export function backgroundTaskElapsedMilliseconds(milliseconds: number) {
@@ -972,7 +1037,7 @@ export class ConnectionDialog {
     public static unsupportedAuthType(authenticationType: string) {
         return l10n.t({
             message:
-                "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported.",
+                "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported.",
             args: [authenticationType],
             comment: ["{0} is the authentication type"],
         });
@@ -3268,7 +3333,7 @@ export class Proxy {
 export class BackupDatabase {
     public static backupDatabaseTitle = (databaseName: string) =>
         l10n.t({
-            message: "Backup Database (Preview) - {0}",
+            message: "Backup Database - {0}",
             args: [databaseName],
             comment: ["{0} is the database name"],
         });
@@ -3373,7 +3438,7 @@ export class FlatFileImport {
             args: [serviceName, errorMessage],
             comment: ["{0} is the service name", "{1} is the error message"],
         });
-    public static flatFileImportTitle = l10n.t("Import Flat File (Preview)");
+    public static flatFileImportTitle = l10n.t("Import Flat File");
     public static databaseTheTableIsCreatedIn = l10n.t("Database the table is created in");
     public static locationOfTheFileToBeImported = l10n.t("Location of the file to be imported");
     public static newTableName = l10n.t("New Table Name");
@@ -3396,7 +3461,7 @@ export class FlatFileImport {
 }
 
 export class RestoreDatabase {
-    public static restoreDatabaseTitle = l10n.t("Restore Database (Preview)");
+    public static restoreDatabaseTitle = l10n.t("Restore Database");
     public static sourceDatabase = l10n.t("Source Database");
     public static targetDatabase = l10n.t("Target Database");
     public static files = l10n.t("Files");

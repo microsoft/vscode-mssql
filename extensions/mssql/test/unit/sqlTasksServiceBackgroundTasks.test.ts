@@ -94,10 +94,12 @@ suite("SqlTasksService Background Tasks Tests", () => {
         expect(backgroundTasksServiceStub.registerTask).to.have.been.calledOnce;
         expect(backgroundTasksServiceStub.registerTask.firstCall.args[0]).to.deep.include({
             displayText: "Export bacpac",
+            description: "Export operation",
             canCancel: true,
             source: "MSSQL",
             message: "Export operation",
             state: BackgroundTaskState.InProgress,
+            target: "/tmp/export.bacpac",
         });
     });
 

@@ -133,9 +133,11 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             const schemaDesignerInitActivity = startActivity(
                 TelemetryViews.SchemaDesigner,
                 TelemetryActions.Initialize,
-                undefined,
-                undefined,
-                undefined,
+                undefined, // correlationId
+                undefined, // startActivityAdditionalProps
+                undefined, // startActivityAdditionalMeasurements
+                undefined, // connectionInfo
+                undefined, // serverInfo
                 true, // include callstack in telemetry
             );
             try {
