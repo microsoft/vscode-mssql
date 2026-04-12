@@ -2247,6 +2247,10 @@
         "message": "No SQL resource is configured for the current cloud '{0}'. Please update your Azure account settings.",
         "comment": ["{0} is the display name of the current cloud"]
     },
+    "Azure account '{0}' was not found. Sign in with the correct account or select a different one./{0} is the display name or ID of the Azure account that was not found": {
+        "message": "Azure account '{0}' was not found. Sign in with the correct account or select a different one.",
+        "comment": ["{0} is the display name or ID of the Azure account that was not found"]
+    },
     "Error signing into Azure: {0}/{0} is the error message": {
         "message": "Error signing into Azure: {0}",
         "comment": ["{0} is the error message"]

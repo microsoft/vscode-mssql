@@ -1009,6 +1009,15 @@ export class Azure {
         });
     }
 
+    public static accountNotFound(accountDisplayName: string): string {
+        return l10n.t({
+            message:
+                "Azure account '{0}' was not found. Sign in with the correct account or select a different one.",
+            args: [accountDisplayName],
+            comment: ["{0} is the display name or ID of the Azure account that was not found"],
+        });
+    }
+
     public static errorSigningIntoAzure(errorMessage: string): string {
         return l10n.t({
             message: "Error signing into Azure: {0}",

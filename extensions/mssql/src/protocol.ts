@@ -8,10 +8,17 @@ export class Deferred<T> {
     promise: Promise<T>;
     resolve: (value?: T | PromiseLike<T>) => void;
     reject: (reason?: any) => void;
+    isCompleted = false;
     constructor() {
         this.promise = new Promise<T>((resolve, reject) => {
-            this.resolve = resolve;
-            this.reject = reject;
+            this.resolve = (value?: T | PromiseLike<T>) => {
+                this.isCompleted = true;
+                resolve(value);
+            };
+            this.reject = (reason?: any) => {
+                this.isCompleted = true;
+                reject(reason);
+            };
         });
     }
 

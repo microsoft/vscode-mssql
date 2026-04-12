@@ -106,6 +106,7 @@ import { PreviewFeature, previewService } from "../previews/previewService";
 
 const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 10;
 export const CLEAR_TOKEN_CACHE = "clearTokenCache";
+export const SIGN_IN_TO_AZURE = "signInToAzure";
 const CONNECTION_DIALOG_VIEW_ID = "connectionDialog";
 
 export class ConnectionDialogWebviewController extends FormWebviewController<
@@ -139,10 +140,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     private _cachedEntraAccounts: FormItemOptions[] | undefined;
     /** Cached VS Code Entra tenant options per account ID, invalidated on sign-in */
     private _cachedEntraTenants: Map<string, FormItemOptions[]> = new Map();
-    /** Deferred that resolves when background Entra account+tenant loading completes */
-    private _entraDataLoaded: Deferred<void> | undefined;
-    /** Whether background Entra data loading has completed */
-    private _entraDataReady = false;
+    /** Deferred that resolves when background Entra account+tenant loading completes. Check `isCompleted` for synchronous readiness. */
+    private _entraDataLoaded = new Deferred<void>();
 
     //#endregion
 
@@ -868,6 +867,15 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 this._mainController.connectionManager.azureController.clearTokenCache();
                 this.vscodeWrapper.showInformationMessage(LocAll.Accounts.clearedEntraTokenCache);
                 this.state.formMessage = undefined;
+            } else if (payload.buttonId === SIGN_IN_TO_AZURE) {
+                this.state.formMessage = undefined;
+                const signInButton = this.getFormComponent(
+                    this.state,
+                    "accountId",
+                )?.actionButtons?.find((b) => b.id === "azureSignIn");
+                if (signInButton) {
+                    await signInButton.callback();
+                }
             } else {
                 this.logger.error(`Unknown message button clicked: ${payload.buttonId}`);
             }
@@ -958,11 +966,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
         if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA) {
             if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
-                // Use cached tenants synchronously — never trigger an async fetch here
                 const accountId = this.state.connectionProfile.accountId;
                 const cachedTenants = accountId
                     ? this._cachedEntraTenants.get(accountId)
                     : undefined;
+
                 if (!cachedTenants || cachedTenants.length < 2) {
                     hiddenProperties.push("tenantId");
                 }
@@ -1526,9 +1534,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     //#region Azure helpers
 
     /**
-     * Loads VS Code Entra accounts and tenants for all accounts in the background,
-     * populating both caches. Shows a loading spinner on the account dropdown
-     * while loading. Resolves `_entraDataLoaded` when complete.
+     * Loads VS Code Entra accounts and tenants for all accounts in the background
      */
     private async loadVscodeEntraDataAsync(): Promise<void> {
         this._entraDataLoaded = new Deferred<void>();
@@ -1553,11 +1559,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 }),
             );
 
-            this._entraDataReady = true;
             this._entraDataLoaded.resolve();
         } catch (err) {
             this.logger.error(`Error loading VS Code Entra data: ${getErrorMessage(err)}`);
-            this._entraDataReady = true;
             this._entraDataLoaded.resolve();
         } finally {
             if (accountComponent) {
@@ -1608,7 +1612,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     private clearEntraAccountCache(): void {
         this._cachedEntraAccounts = undefined;
         this._cachedEntraTenants.clear();
-        this._entraDataReady = false;
+        this._entraDataLoaded = new Deferred<void>();
     }
 
     /**
@@ -1805,7 +1809,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         // If background loading hasn't finished, show spinner on account and
         // await the deferred. updateItemVisibility is called for authenticationType
         // changes so account/tenant fields become visible before pushing state.
-        if (useVscodeAccounts && !this._entraDataReady) {
+        if (useVscodeAccounts && !this._entraDataLoaded.isCompleted) {
             accountComponent.loading = true;
 
             if (propertyName === "authenticationType") {
@@ -1814,24 +1818,32 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             this.updateState();
 
-            if (this._entraDataLoaded) {
-                await this._entraDataLoaded.promise;
-            }
+            await this._entraDataLoaded.promise;
         }
 
         try {
             accountComponent.options = await this.getEntraMfaAccountOptions();
 
             if (useVscodeAccounts && this.state.connectionProfile.accountId) {
-                const normalizedAccountId = this.normalizeAccountIdFromCache(
-                    this.state.connectionProfile.accountId,
-                );
+                const originalAccountId = this.state.connectionProfile.accountId;
+                const cachedAccountId = this.normalizeAccountIdFromCache(originalAccountId);
 
-                if (normalizedAccountId) {
-                    this.state.connectionProfile.accountId = normalizedAccountId;
+                if (cachedAccountId) {
+                    this.state.connectionProfile.accountId = cachedAccountId;
                 } else {
+                    const accountDisplayString =
+                        this.state.connectionProfile.email ??
+                        this.state.connectionProfile.accountId;
+
                     this.state.connectionProfile.accountId = undefined;
                     this.state.connectionProfile.tenantId = undefined;
+                    this.state.connectionProfile.email = undefined;
+
+                    this.state.formMessage = {
+                        message: LocAzure.accountNotFound(accountDisplayString),
+                        intent: "error",
+                        buttons: [{ id: SIGN_IN_TO_AZURE, label: Loc.signIn }],
+                    };
                 }
             }
 
