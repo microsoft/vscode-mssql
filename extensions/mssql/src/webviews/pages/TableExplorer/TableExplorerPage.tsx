@@ -121,7 +121,11 @@ export const TableExplorerPage: React.FC = () => {
 
     const isLoading = loadStatus === ApiStatus.Loading;
 
-    const { beforeMount, onContentChange } = useMonacoSqlIntellisense(ownerUri, extensionRpc);
+    const {
+        beforeMount,
+        onContentChange,
+        onMount: onIntellisenseMount,
+    } = useMonacoSqlIntellisense(ownerUri, extensionRpc);
 
     // Track the editor's current text in a ref so React state changes never
     // round-trip through Monaco's `value` prop. The @monaco-editor/react value
@@ -132,7 +136,21 @@ export const TableExplorerPage: React.FC = () => {
     const lastSyncedTableQueryRef = useRef<string | undefined>(undefined);
     const editorRef = useRef<import("monaco-editor").editor.IStandaloneCodeEditor | null>(null);
     const shouldFocusEditorRef = useRef(false);
+    const runQueryRef = useRef<() => void>(() => {});
+    const cancelQueryRef = useRef<() => void>(() => {});
     const [isQueryEmpty, setIsQueryEmpty] = useState(true);
+
+    useEffect(() => {
+        runQueryRef.current = () => {
+            const text = editableQueryRef.current;
+            if (text.trim()) {
+                context.runTableQuery(text);
+            }
+        };
+        cancelQueryRef.current = () => {
+            context.cancelTableQuery();
+        };
+    });
 
     const handleEditorMount = useCallback(
         (
@@ -152,6 +170,8 @@ export const TableExplorerPage: React.FC = () => {
                 shouldFocusEditorRef.current = false;
                 editor.focus();
             }
+
+            onIntellisenseMount(editor, monaco);
 
             // Register clipboard keybindings so copy/cut/paste work in VS Code webviews
             editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyC, () => {
@@ -307,6 +327,32 @@ export const TableExplorerPage: React.FC = () => {
             document.addEventListener("click", pasteClickInterceptor, true);
             editor.onDidDispose(() => {
                 document.removeEventListener("click", pasteClickInterceptor, true);
+            });
+
+            // F5 — run query
+            editor.addCommand(monaco.KeyCode.F5, () => {
+                runQueryRef.current();
+            });
+
+            // Ctrl+Shift+E / Cmd+Shift+E — run query
+            editor.addCommand(
+                monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyE,
+                () => {
+                    runQueryRef.current();
+                },
+            );
+
+            // Ctrl+Shift+C / Cmd+Shift+C — cancel query
+            editor.addCommand(
+                monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyC,
+                () => {
+                    cancelQueryRef.current();
+                },
+            );
+
+            // Shift+Alt+F — format document (standard VS Code shortcut)
+            editor.addCommand(monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyF, () => {
+                editor.trigger("keyboard", "editor.action.formatDocument", undefined);
             });
 
             // Handle Tab at window capture phase — this fires BEFORE document capture,

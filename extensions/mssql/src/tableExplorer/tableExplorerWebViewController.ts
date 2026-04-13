@@ -3,7 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as fs from "fs";
 import * as os from "os";
+import * as path from "path";
 import * as vscode from "vscode";
 import { WebviewPanelController } from "../controllers/webviewPanelController";
 import {
@@ -21,11 +23,14 @@ import { ITableExplorerService } from "../services/tableExplorerService";
 import { EditSessionReadyNotification } from "../models/contracts/tableExplorer";
 import {
     CompletionRequest,
+    DefinitionRequest,
     DidChangeTextDocumentNotification,
     DidCloseTextDocumentNotification,
     DidOpenTextDocumentNotification,
     DocumentFormattingRequest,
     DocumentRangeFormattingRequest,
+    HoverRequest,
+    SignatureHelpRequest,
 } from "vscode-languageclient";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import * as LocConstants from "../constants/locConstants";
@@ -39,6 +44,11 @@ import {
     WebviewCompletionRequest,
     WebviewCompletionParams,
     WebviewCompletionResult,
+    WebviewDefinitionItem,
+    WebviewDefinitionRequest,
+    WebviewDefinitionParams,
+    WebviewDefinitionResult,
+    WebviewOpenDefinitionRequest,
     WebviewDiagnostic,
     WebviewDiagnosticsNotification,
     WebviewDocumentSyncNotification,
@@ -46,6 +56,12 @@ import {
     WebviewFormatDocumentParams,
     WebviewFormatDocumentResult,
     WebviewFormatTextEdit,
+    WebviewHoverRequest,
+    WebviewHoverParams,
+    WebviewHoverResult,
+    WebviewSignatureHelpRequest,
+    WebviewSignatureHelpParams,
+    WebviewSignatureHelpResult,
     mapLspKindToMonaco,
 } from "../sharedInterfaces/webviewLanguageService";
 import {
@@ -472,6 +488,22 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
         this.onRequest(WebviewFormatDocumentRequest.type, async (params) => {
             return await this.handleFormatDocumentRequest(params);
+        });
+
+        this.onRequest(WebviewDefinitionRequest.type, async (params) => {
+            return await this.handleDefinitionRequest(params);
+        });
+
+        this.onRequest(WebviewOpenDefinitionRequest.type, async (params) => {
+            return await this.handleOpenDefinitionRequest(params);
+        });
+
+        this.onRequest(WebviewHoverRequest.type, async (params) => {
+            return await this.handleHoverRequest(params);
+        });
+
+        this.onRequest(WebviewSignatureHelpRequest.type, async (params) => {
+            return await this.handleSignatureHelpRequest(params);
         });
 
         // Sync document content on every editor change so the STS always has
@@ -2026,6 +2058,238 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 `[Formatter] handleFormatDocumentRequest failed: ${getErrorMessage(error)}`,
             );
             return { edits: [] };
+        }
+    }
+
+    private async handleDefinitionRequest(
+        params: WebviewDefinitionParams,
+    ): Promise<WebviewDefinitionResult> {
+        const ownerUri = params.ownerUri;
+        const client = this._tableExplorerService.sqlToolsClient;
+
+        if (!ownerUri || !this._connectionManager.isConnected(ownerUri)) {
+            return { definitions: [] };
+        }
+
+        try {
+            this.syncDocumentContent(ownerUri, params.fullText);
+
+            const lspPosition = {
+                line: params.position.lineNumber - 1,
+                character: params.position.column - 1,
+            };
+
+            const result = await client.sendRequest(DefinitionRequest.type, {
+                textDocument: { uri: ownerUri },
+                position: lspPosition,
+            });
+
+            if (!result) {
+                return { definitions: [] };
+            }
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const lspLocations: any[] = Array.isArray(result) ? result : [result];
+
+            const definitions: WebviewDefinitionItem[] = [];
+            for (const loc of lspLocations) {
+                if (!loc.range || !loc.uri) {
+                    continue;
+                }
+
+                let content = "";
+                try {
+                    const filePath = loc.uri.startsWith("file:///")
+                        ? vscode.Uri.parse(loc.uri).fsPath
+                        : loc.uri.startsWith("file:")
+                          ? loc.uri.substring(5)
+                          : loc.uri;
+                    content = fs.readFileSync(filePath, "utf-8");
+                } catch {
+                    continue;
+                }
+
+                const name = path
+                    .basename(loc.uri, path.extname(loc.uri))
+                    .replace(/_[a-f0-9-]+$/i, "");
+
+                definitions.push({
+                    name,
+                    content,
+                    range: {
+                        startLineNumber: loc.range.start.line + 1,
+                        startColumn: loc.range.start.character + 1,
+                        endLineNumber: loc.range.end.line + 1,
+                        endColumn: loc.range.end.character + 1,
+                    },
+                });
+            }
+
+            return { definitions };
+        } catch (error) {
+            this.logger.error(
+                `[Definition] handleDefinitionRequest failed: ${getErrorMessage(error)}`,
+            );
+            return { definitions: [] };
+        }
+    }
+
+    private async handleOpenDefinitionRequest(params: WebviewDefinitionParams): Promise<void> {
+        const ownerUri = params.ownerUri;
+        const client = this._tableExplorerService.sqlToolsClient;
+
+        if (!ownerUri || !this._connectionManager.isConnected(ownerUri)) {
+            return;
+        }
+
+        try {
+            this.syncDocumentContent(ownerUri, params.fullText);
+
+            const lspPosition = {
+                line: params.position.lineNumber - 1,
+                character: params.position.column - 1,
+            };
+
+            const result = await client.sendRequest(DefinitionRequest.type, {
+                textDocument: { uri: ownerUri },
+                position: lspPosition,
+            });
+
+            if (!result) {
+                return;
+            }
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const lspLocations: any[] = Array.isArray(result) ? result : [result];
+            const loc = lspLocations.find((l) => l.range && l.uri);
+            if (!loc) {
+                return;
+            }
+
+            const fileUri = vscode.Uri.parse(loc.uri);
+            const startLine = Math.max(0, loc.range.start.line);
+            await vscode.window.showTextDocument(fileUri, {
+                selection: new vscode.Range(
+                    startLine,
+                    loc.range.start.character,
+                    loc.range.end.line,
+                    loc.range.end.character,
+                ),
+                preview: true,
+            });
+        } catch (error) {
+            this.logger.error(
+                `[Definition] handleOpenDefinitionRequest failed: ${getErrorMessage(error)}`,
+            );
+        }
+    }
+
+    private async handleHoverRequest(params: WebviewHoverParams): Promise<WebviewHoverResult> {
+        const ownerUri = params.ownerUri;
+        const client = this._tableExplorerService.sqlToolsClient;
+
+        if (!ownerUri || !this._connectionManager.isConnected(ownerUri)) {
+            return { contents: [] };
+        }
+
+        try {
+            this.syncDocumentContent(ownerUri, params.fullText);
+
+            const lspPosition = {
+                line: params.position.lineNumber - 1,
+                character: params.position.column - 1,
+            };
+
+            const result = await client.sendRequest(HoverRequest.type, {
+                textDocument: { uri: ownerUri },
+                position: lspPosition,
+            });
+
+            if (!result || !result.contents) {
+                return { contents: [] };
+            }
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const rawContents: any[] = Array.isArray(result.contents)
+                ? result.contents
+                : [result.contents];
+
+            const contents = rawContents.map((c) => ({
+                value: typeof c === "string" ? c : (c.value ?? ""),
+            }));
+
+            let range: WebviewHoverResult["range"];
+            if (result.range) {
+                range = {
+                    startLineNumber: result.range.start.line + 1,
+                    startColumn: result.range.start.character + 1,
+                    endLineNumber: result.range.end.line + 1,
+                    endColumn: result.range.end.character + 1,
+                };
+            }
+
+            return { contents, range };
+        } catch (error) {
+            this.logger.error(`[Hover] handleHoverRequest failed: ${getErrorMessage(error)}`);
+            return { contents: [] };
+        }
+    }
+
+    private async handleSignatureHelpRequest(
+        params: WebviewSignatureHelpParams,
+    ): Promise<WebviewSignatureHelpResult> {
+        const ownerUri = params.ownerUri;
+        const client = this._tableExplorerService.sqlToolsClient;
+
+        if (!ownerUri || !this._connectionManager.isConnected(ownerUri)) {
+            return { signatures: [], activeSignature: 0, activeParameter: 0 };
+        }
+
+        try {
+            this.syncDocumentContent(ownerUri, params.fullText);
+
+            const lspPosition = {
+                line: params.position.lineNumber - 1,
+                character: params.position.column - 1,
+            };
+
+            const result = await client.sendRequest(SignatureHelpRequest.type, {
+                textDocument: { uri: ownerUri },
+                position: lspPosition,
+            });
+
+            if (!result || !result.signatures || result.signatures.length === 0) {
+                return { signatures: [], activeSignature: 0, activeParameter: 0 };
+            }
+
+            const signatures = result.signatures.map((sig) => ({
+                label: sig.label,
+                documentation:
+                    typeof sig.documentation === "string"
+                        ? sig.documentation
+                        : sig.documentation?.value,
+                parameters: (sig.parameters ?? []).map((p) => ({
+                    label:
+                        typeof p.label === "string"
+                            ? p.label
+                            : sig.label.substring(p.label[0], p.label[1]),
+                    documentation:
+                        typeof p.documentation === "string"
+                            ? p.documentation
+                            : p.documentation?.value,
+                })),
+            }));
+
+            return {
+                signatures,
+                activeSignature: result.activeSignature ?? 0,
+                activeParameter: result.activeParameter ?? 0,
+            };
+        } catch (error) {
+            this.logger.error(
+                `[SignatureHelp] handleSignatureHelpRequest failed: ${getErrorMessage(error)}`,
+            );
+            return { signatures: [], activeSignature: 0, activeParameter: 0 };
         }
     }
 

@@ -8,10 +8,18 @@ import { useRef, useCallback, useEffect } from "react";
 import {
     WebviewCompletionRequest,
     WebviewCompletionResult,
+    WebviewDefinitionItem,
+    WebviewDefinitionRequest,
+    WebviewDefinitionResult,
+    WebviewOpenDefinitionRequest,
     WebviewDiagnosticsNotification,
     WebviewDocumentSyncNotification,
     WebviewFormatDocumentRequest,
     WebviewFormatDocumentResult,
+    WebviewHoverRequest,
+    WebviewHoverResult,
+    WebviewSignatureHelpRequest,
+    WebviewSignatureHelpResult,
 } from "../../../sharedInterfaces/webviewLanguageService";
 import { WebviewRpc } from "../../common/rpc";
 
@@ -32,7 +40,14 @@ const DOCUMENT_SYNC_DEBOUNCE_MS = 300;
 export function useMonacoSqlIntellisense(
     ownerUri: string,
     extensionRpc: WebviewRpc<unknown>,
-): { beforeMount: BeforeMount; onContentChange: (value: string) => void } {
+): {
+    beforeMount: BeforeMount;
+    onContentChange: (value: string) => void;
+    onMount: (
+        editor: import("monaco-editor").editor.IStandaloneCodeEditor,
+        monaco: typeof import("monaco-editor"),
+    ) => void;
+} {
     const disposablesRef = useRef<{ dispose(): void }[]>([]);
 
     // Use a ref so the completion provider closure always reads the latest ownerUri,
@@ -54,12 +69,16 @@ export function useMonacoSqlIntellisense(
     const modelRef = useRef<any | null>(null);
 
     const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const definitionModelsRef = useRef<Map<string, any>>(new Map());
 
     // Cleanup on unmount to prevent provider accumulation when the script pane is toggled
     useEffect(() => {
         return () => {
             disposablesRef.current.forEach((d) => d.dispose());
             disposablesRef.current = [];
+            definitionModelsRef.current.forEach((m) => m.dispose());
+            definitionModelsRef.current.clear();
             if (syncTimeoutRef.current !== null) {
                 clearTimeout(syncTimeoutRef.current);
                 syncTimeoutRef.current = null;
@@ -301,9 +320,216 @@ export function useMonacoSqlIntellisense(
                     },
                 });
             disposablesRef.current.push(rangeFormattingProvider);
+
+            const getOrCreateDefinitionModel = (def: WebviewDefinitionItem) => {
+                const key = def.name;
+                const existing = definitionModelsRef.current.get(key);
+                if (existing && !existing.isDisposed()) {
+                    existing.setValue(def.content);
+                    return existing;
+                }
+                const uri = monaco.Uri.parse(
+                    `mssql-definition://definition/${encodeURIComponent(def.name)}.sql`,
+                );
+                const existingModel = monaco.editor.getModel(uri);
+                if (existingModel) {
+                    existingModel.setValue(def.content);
+                    definitionModelsRef.current.set(key, existingModel);
+                    return existingModel;
+                }
+                const newModel = monaco.editor.createModel(def.content, "sql", uri);
+                definitionModelsRef.current.set(key, newModel);
+                return newModel;
+            };
+
+            const definitionProvider = monaco.languages.registerDefinitionProvider("sql", {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                provideDefinition: async (model: any, position: any, token: any) => {
+                    const currentUri = ownerUriRef.current;
+                    if (!currentUri) {
+                        return [];
+                    }
+                    try {
+                        const result: WebviewDefinitionResult = await extensionRpc.sendRequest(
+                            WebviewDefinitionRequest.type,
+                            {
+                                ownerUri: currentUri,
+                                position: {
+                                    lineNumber: position.lineNumber,
+                                    column: position.column,
+                                },
+                                fullText: model.getValue(),
+                            },
+                            token,
+                        );
+                        return result.definitions.map((def) => {
+                            const defModel = getOrCreateDefinitionModel(def);
+                            return {
+                                uri: defModel.uri,
+                                range: def.range,
+                            };
+                        });
+                    } catch (error) {
+                        console.error(`[Definition] Error in provideDefinition:`, error);
+                        return [];
+                    }
+                },
+            });
+            disposablesRef.current.push(definitionProvider);
+
+            const hoverProvider = monaco.languages.registerHoverProvider("sql", {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                provideHover: async (model: any, position: any, token: any) => {
+                    const currentUri = ownerUriRef.current;
+                    if (!currentUri) {
+                        return null;
+                    }
+                    try {
+                        const result: WebviewHoverResult = await extensionRpc.sendRequest(
+                            WebviewHoverRequest.type,
+                            {
+                                ownerUri: currentUri,
+                                position: {
+                                    lineNumber: position.lineNumber,
+                                    column: position.column,
+                                },
+                                fullText: model.getValue(),
+                            },
+                            token,
+                        );
+                        if (!result.contents || result.contents.length === 0) {
+                            return null;
+                        }
+                        return {
+                            contents: result.contents.map((c) => ({ value: c.value })),
+                            range: result.range,
+                        };
+                    } catch (error) {
+                        console.error(`[Hover] Error in provideHover:`, error);
+                        return null;
+                    }
+                },
+            });
+            disposablesRef.current.push(hoverProvider);
+
+            const signatureHelpProvider = monaco.languages.registerSignatureHelpProvider("sql", {
+                signatureHelpTriggerCharacters: ["(", ","],
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                provideSignatureHelp: async (model: any, position: any, token: any) => {
+                    const currentUri = ownerUriRef.current;
+                    if (!currentUri) {
+                        return null;
+                    }
+                    try {
+                        const result: WebviewSignatureHelpResult = await extensionRpc.sendRequest(
+                            WebviewSignatureHelpRequest.type,
+                            {
+                                ownerUri: currentUri,
+                                position: {
+                                    lineNumber: position.lineNumber,
+                                    column: position.column,
+                                },
+                                fullText: model.getValue(),
+                            },
+                            token,
+                        );
+                        if (!result.signatures || result.signatures.length === 0) {
+                            return null;
+                        }
+                        return {
+                            value: {
+                                signatures: result.signatures.map((sig) => ({
+                                    label: sig.label,
+                                    documentation: sig.documentation
+                                        ? { value: sig.documentation }
+                                        : undefined,
+                                    parameters: sig.parameters.map((p) => ({
+                                        label: p.label,
+                                        documentation: p.documentation
+                                            ? { value: p.documentation }
+                                            : undefined,
+                                    })),
+                                })),
+                                activeSignature: result.activeSignature,
+                                activeParameter: result.activeParameter,
+                            },
+                            dispose: () => {},
+                        };
+                    } catch (error) {
+                        console.error(`[SignatureHelp] Error in provideSignatureHelp:`, error);
+                        return null;
+                    }
+                },
+            });
+            disposablesRef.current.push(signatureHelpProvider);
         },
         [extensionRpc],
     );
 
-    return { beforeMount, onContentChange };
+    const onMount = useCallback(
+        (
+            editor: import("monaco-editor").editor.IStandaloneCodeEditor,
+            monaco: typeof import("monaco-editor"),
+        ) => {
+            const openDefinitionInEditor = async () => {
+                const position = editor.getPosition();
+                const model = editor.getModel();
+                const currentUri = ownerUriRef.current;
+                if (!position || !model || !currentUri) {
+                    return;
+                }
+                try {
+                    await extensionRpc.sendRequest(WebviewOpenDefinitionRequest.type, {
+                        ownerUri: currentUri,
+                        position: {
+                            lineNumber: position.lineNumber,
+                            column: position.column,
+                        },
+                        fullText: model.getValue(),
+                    });
+                } catch (error) {
+                    console.error(`[GoToDefinition] Error:`, error);
+                }
+            };
+
+            // Override F12 / Ctrl+F12 keybindings without adding a context
+            // menu entry — the built-in "Go to Definition" menu item is
+            // redirected via a click interceptor (same pattern as Paste).
+            editor.addCommand(monaco.KeyCode.F12, openDefinitionInEditor);
+            editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.F12, openDefinitionInEditor);
+
+            const goToDefClickInterceptor = (evt: MouseEvent) => {
+                const path = evt.composedPath();
+                for (const node of path) {
+                    if (!(node instanceof Element)) {
+                        continue;
+                    }
+                    const role = node.getAttribute?.("role");
+                    const hasMenuItemClass =
+                        node.classList?.contains("action-menu-item") ||
+                        node.classList?.contains("action-item") ||
+                        node.classList?.contains("action-label");
+                    if (role !== "menuitem" && !hasMenuItemClass) {
+                        continue;
+                    }
+                    const label =
+                        node.querySelector?.(".action-label")?.textContent?.trim() ??
+                        node.textContent?.trim();
+                    if (label === "Go to Definition") {
+                        evt.preventDefault();
+                        evt.stopPropagation();
+                        void openDefinitionInEditor();
+                        return;
+                    }
+                }
+            };
+            document.addEventListener("click", goToDefClickInterceptor, true);
+            editor.onDidDispose(() => {
+                document.removeEventListener("click", goToDefClickInterceptor, true);
+            });
+        },
+        [extensionRpc],
+    );
+
+    return { beforeMount, onContentChange, onMount };
 }
