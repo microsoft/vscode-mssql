@@ -21,7 +21,6 @@ import {
     CopyType,
 } from "../../src/models/contracts/queryExecute";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import StatusView from "../../src/views/statusView";
 import * as Constants from "../../src/constants/constants";
 import * as QueryExecuteContracts from "../../src/models/contracts/queryExecute";
 import * as QueryDisposeContracts from "../../src/models/contracts/queryDispose";
@@ -49,7 +48,6 @@ suite("Query Runner tests", () => {
     let testSqlToolsServerClient: sinon.SinonStubbedInstance<SqlToolsServerClient>;
     let testQueryNotificationHandler: sinon.SinonStubbedInstance<QueryNotificationHandler>;
     let testVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
-    let testStatusView: sinon.SinonStubbedInstance<StatusView>;
 
     function createQueryRunner(
         uri: string = standardUri,
@@ -58,7 +56,6 @@ suite("Query Runner tests", () => {
         return new QueryRunner(
             uri,
             title,
-            testStatusView,
             testSqlToolsServerClient,
             testQueryNotificationHandler,
             testVscodeWrapper,
@@ -70,7 +67,6 @@ suite("Query Runner tests", () => {
         testSqlToolsServerClient = sandbox.createStubInstance(SqlToolsServerClient);
         testQueryNotificationHandler = sandbox.createStubInstance(QueryNotificationHandler);
         testVscodeWrapper = stubVscodeWrapper(sandbox);
-        testStatusView = sandbox.createStubInstance(StatusView);
         QueryRunner["_runningQueries"] = [];
 
         (testVscodeWrapper.parseUri as sinon.SinonStub).callsFake((value: string) =>

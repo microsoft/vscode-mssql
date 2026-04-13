@@ -560,7 +560,7 @@ export class SqlOutputContentProvider {
         } else {
             // We do not have a query runner for this editor, so create a new one
             // and map it to the results uri
-            queryRunner = new QueryRunner(uri, title, statusView ? statusView : this._statusView);
+            queryRunner = new QueryRunner(uri, title);
 
             const startFailedListener = queryRunner.onStartFailed(async (error) => {
                 this.updateWebviewState(queryRunner.uri, {

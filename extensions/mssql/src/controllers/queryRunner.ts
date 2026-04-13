@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import StatusView from "../views/statusView";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import { QueryNotificationHandler } from "./queryNotificationHandler";
 import VscodeWrapper from "./vscodeWrapper";
@@ -154,7 +153,6 @@ export default class QueryRunner {
     constructor(
         private _ownerUri: string,
         private _editorTitle: string,
-        private _statusView: StatusView,
         private _client?: SqlToolsServerClient,
         private _notificationHandler?: QueryNotificationHandler,
         private _vscodeWrapper?: VscodeWrapper,
