@@ -708,7 +708,7 @@ export default class QueryRunner {
         batchId: number,
         resultId: number,
         selection: ISlickRange[],
-    ): Promise<void> {
+    ): Promise<boolean> {
         let copyString = "";
         let firstCol: number;
         let lastCol: number;
@@ -738,6 +738,8 @@ export default class QueryRunner {
         if (process.platform === "darwin") {
             process.env["LANG"] = oldLang;
         }
+
+        return true;
     }
 
     /**
@@ -752,8 +754,8 @@ export default class QueryRunner {
         batchId: number,
         resultId: number,
         includeHeaders?: boolean,
-    ): Promise<void> {
-        await this.copyResults2(selection, batchId, resultId, CopyType.Text, {
+    ): Promise<boolean> {
+        return await this.copyResults2(selection, batchId, resultId, CopyType.Text, {
             includeHeaders: includeHeaders ?? false,
         });
     }
@@ -774,7 +776,7 @@ export default class QueryRunner {
             textIdentifier?: string;
             encoding?: string;
         },
-    ): Promise<void> {
+    ): Promise<boolean> {
         // Cancel any in-progress copy operation
         if (this._copyOperationCancellation) {
             this._copyOperationCancellation.cancel();
@@ -792,23 +794,23 @@ export default class QueryRunner {
             _progress?: vscode.Progress<any>,
             token?: vscode.CancellationToken,
         ) => {
-            return new Promise<void>(async (resolve, reject) => {
+            return new Promise<boolean>(async (resolve, reject) => {
                 try {
                     // Handle cancellation from the progress dialog (user clicked cancel)
                     token?.onCancellationRequested(async () => {
                         await this._client.sendNotification(CancelCopy2Notification.type);
                         vscode.window.showInformationMessage("Copying results cancelled");
-                        resolve();
+                        resolve(false);
                     });
 
                     // Handle internal cancellation (new copy operation started) - no notification
                     copyToken.onCancellationRequested(async () => {
-                        resolve();
+                        resolve(false);
                     });
 
                     // Check if already cancelled before starting
                     if (copyToken.isCancellationRequested) {
-                        resolve();
+                        resolve(false);
                         return;
                     }
 
@@ -836,7 +838,7 @@ export default class QueryRunner {
 
                     // Check if cancelled while waiting for the request
                     if (copyToken.isCancellationRequested) {
-                        resolve();
+                        resolve(false);
                         return;
                     }
 
@@ -844,14 +846,11 @@ export default class QueryRunner {
                         await this.writeStringToClipboard(result.content);
                     }
 
-                    vscode.window.showInformationMessage(
-                        LocalizedConstants.resultsCopiedToClipboard,
-                    );
-                    resolve();
+                    resolve(true);
                 } catch (error) {
                     // Don't show error if cancelled
                     if (copyToken.isCancellationRequested) {
-                        resolve();
+                        resolve(false);
                         return;
                     }
                     vscode.window.showErrorMessage(
@@ -863,7 +862,7 @@ export default class QueryRunner {
         };
 
         if (showProgress) {
-            await vscode.window.withProgress(
+            return await vscode.window.withProgress(
                 {
                     location: vscode.ProgressLocation.Notification,
                     title: LocalizedConstants.copyingResults,
@@ -872,7 +871,7 @@ export default class QueryRunner {
                 executeCopy,
             );
         } else {
-            await executeCopy();
+            return await executeCopy();
         }
     }
 
@@ -936,7 +935,7 @@ export default class QueryRunner {
         selection: ISlickRange[],
         batchId: number,
         resultId: number,
-    ): Promise<void> {
+    ): Promise<boolean> {
         const config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
         const csvConfig = config[Constants.configSaveAsCsv] || {};
 
@@ -946,7 +945,7 @@ export default class QueryRunner {
         const encoding = csvConfig.encoding;
         const includeHeaders = csvConfig.includeHeaders;
 
-        await this.copyResults2(selection, batchId, resultId, CopyType.CSV, {
+        return await this.copyResults2(selection, batchId, resultId, CopyType.CSV, {
             includeHeaders: includeHeaders,
             delimiter,
             textIdentifier,
@@ -966,8 +965,8 @@ export default class QueryRunner {
         selection: ISlickRange[],
         batchId: number,
         resultId: number,
-    ): Promise<void> {
-        await this.copyResults2(selection, batchId, resultId, CopyType.JSON, {
+    ): Promise<boolean> {
+        return await this.copyResults2(selection, batchId, resultId, CopyType.JSON, {
             includeHeaders: true,
         });
     }
@@ -976,16 +975,16 @@ export default class QueryRunner {
         selection: ISlickRange[],
         batchId: number,
         resultId: number,
-    ): Promise<void> {
-        await this.copyResults2(selection, batchId, resultId, CopyType.IN);
+    ): Promise<boolean> {
+        return await this.copyResults2(selection, batchId, resultId, CopyType.IN);
     }
 
     public async copyResultsAsInsertInto(
         selection: ISlickRange[],
         batchId: number,
         resultId: number,
-    ): Promise<void> {
-        await this.copyResults2(selection, batchId, resultId, CopyType.INSERT, {
+    ): Promise<boolean> {
+        return await this.copyResults2(selection, batchId, resultId, CopyType.INSERT, {
             includeHeaders: true,
         });
     }

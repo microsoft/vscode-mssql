@@ -593,6 +593,28 @@ export class QueryResultWebviewController extends WebviewViewController<
 
         const messageText = messages.join("\n");
         await this.vscodeWrapper.clipboardWriteText(messageText);
+        void this.notifyCopySuccess(uri);
+    }
+
+    public async notifyCopySuccess(uri: string): Promise<void> {
+        if (!uri || !this._queryResultStateMap.has(uri)) {
+            return;
+        }
+
+        if (this.hasPanel(uri)) {
+            const panelController = this._queryResultWebviewPanelControllerMap.get(uri);
+            if (panelController) {
+                await panelController.sendNotification(
+                    qr.ShowCopySuccessNotification.type,
+                    undefined,
+                );
+            }
+            return;
+        }
+
+        if (this.state?.uri === uri) {
+            await this.sendNotification(qr.ShowCopySuccessNotification.type, undefined);
+        }
     }
 
     public getNumExecutionPlanResultSets(

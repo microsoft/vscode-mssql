@@ -364,6 +364,10 @@ export namespace SetSelectionSummaryRequest {
     export const type = new NotificationType<SetSelectionSummary>("setSelectionSummary");
 }
 
+export namespace ShowCopySuccessNotification {
+    export const type = new NotificationType<void>("showCopySuccess");
+}
+
 export interface OpenInNewTabParams {
     uri: string;
 }
