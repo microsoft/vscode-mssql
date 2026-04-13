@@ -701,6 +701,11 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Azure SQL Database is not supported for restore.</source>
         <target state="translated">不支持还原 Azure SQL 数据库。</target>
       </trans-unit>
+      <trans-unit id="++CODE++27dda4355b44df3f400de7845fe1bfc83a880707d4630f52be097d95625f7bfa">
+        <source xml:lang="en">Azure account '{0}' was not found. Sign in with the correct account or select a different one.</source>
+        <note>{0} is the display name or ID of the Azure account that was not found</note>
+        <target state="new">Azure account '{0}' was not found. Sign in with the correct account or select a different one.</target>
+      </trans-unit>
       <trans-unit id="++CODE++314afcc6e23d362133e764e1ebfacabe4d330308b528392570949a17270248b9">
         <source xml:lang="en">Azure sign in failed.</source>
         <target state="translated">Azure 登录失败。</target>
@@ -4238,6 +4243,10 @@ Error:
       <trans-unit id="++CODE++d8d462ddc91939459ae107d47fee7a34b3601b20fcd01615f98e1941674f14ea">
         <source xml:lang="en">I'm sorry, I can only assist with SQL-related questions.</source>
         <target state="translated">很抱歉，我只能协助处理与 SQL 相关的问题。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++be9ee0cf4e3d4fdd1af6d17852b5e7ef78069590b49fe086652744f0157aa268">
+        <source xml:lang="en">IP address range</source>
+        <target state="new">IP address range</target>
       </trans-unit>
       <trans-unit id="++CODE++b37cea142b959c4f6c75754d7b3d56bc41d1a2d6667600c748d7a168f10c8818">
         <source xml:lang="en">Ignore Options</source>
