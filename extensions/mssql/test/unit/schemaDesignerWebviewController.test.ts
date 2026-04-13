@@ -25,7 +25,6 @@ import {
     stubWebviewPanel,
     stubWebviewConnectionRpc,
 } from "./utils";
-import { mockManagedInstanceList } from "./azureHelperStubs";
 
 chai.use(sinonChai);
 
