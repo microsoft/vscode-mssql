@@ -754,7 +754,7 @@ Seleziona "{0}" per stabilire una connessione.</target>
       <trans-unit id="++CODE++094e437cda5fd692838cc9472b78f0b56bb8696e37f931d0dceb816443bb0e87">
         <source xml:lang="en">Backup Database - {0}</source>
         <note>{0} is the database name</note>
-        <target state="new">Backup Database - {0}</target>
+        <target state="translated">Backup database - {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++55e3ec5a66490b401352f97b8c81d967c3e0f06782815833b8ebef7c4113a1f3">
         <source xml:lang="en">Backup File</source>
@@ -4261,7 +4261,7 @@ Errore:
       </trans-unit>
       <trans-unit id="++CODE++ac684565c2b14138e810a13adaad5c47b8fcfe81d7a11738202d806cac32acb3">
         <source xml:lang="en">Import File</source>
-        <target state="new">Import File</target>
+        <target state="translated">Importa file</target>
       </trans-unit>
       <trans-unit id="++CODE++1b0fa08e0bb59b85ed1ee40df41e8a237133736b10ed5e19ca6b8934b0b46bf6">
         <source xml:lang="en">Import Flat File</source>
@@ -4857,7 +4857,7 @@ Errore:
       </trans-unit>
       <trans-unit id="++CODE++ea2100dc89ae9fe21fa9b08ab1bf18662dca1e53a3eebd7d03afebcaf5d57515">
         <source xml:lang="en">Logs</source>
-        <target state="new">Logs</target>
+        <target state="translated">Log</target>
       </trans-unit>
       <trans-unit id="++CODE++7c43051e3f634f58555893076bb62e8a1318044729feb100df57fa181835884f">
         <source xml:lang="en">Logs copied to clipboard</source>
@@ -6599,7 +6599,7 @@ Errore:
       </trans-unit>
       <trans-unit id="++CODE++fcc2107b5a260d3c07480870a91a7634f1520f7d2afa98f70ff1ce21e36132b1">
         <source xml:lang="en">Restore Database</source>
-        <target state="new">Restore Database</target>
+        <target state="translated">Ripristina database</target>
       </trans-unit>
       <trans-unit id="++CODE++08a1e27d6e3c46f5a5b553a82a39ac2d0e89f6b37a9f57269532ed172d6d2de8">
         <source xml:lang="en">Restore Panel Size</source>
