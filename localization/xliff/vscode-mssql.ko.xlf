@@ -498,7 +498,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++5a0515f60bd3693347830f37a0e69fa8477aa11b9fb3b0fef1a52e898ce46a76">
         <source xml:lang="en">Are you sure you want to cancel this background task?</source>
-        <target state="new">Are you sure you want to cancel this background task?</target>
+        <target state="translated">이 백그라운드 작업을 취소하시겠어요?</target>
       </trans-unit>
       <trans-unit id="++CODE++34ab1d94f3f0ea49596bfd3fdbba6358a366ecd259be4bf46543ee58caad0614">
         <source xml:lang="en">Are you sure you want to close the current session? All captured events will be lost. You can export events to CSV from the toolbar before closing.</source>
@@ -701,6 +701,11 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Azure SQL Database is not supported for restore.</source>
         <target state="translated">Azure SQL Database는 복원이 지원되지 않습니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++27dda4355b44df3f400de7845fe1bfc83a880707d4630f52be097d95625f7bfa">
+        <source xml:lang="en">Azure account '{0}' was not found. Sign in with the correct account or select a different one.</source>
+        <note>{0} is the display name or ID of the Azure account that was not found</note>
+        <target state="new">Azure account '{0}' was not found. Sign in with the correct account or select a different one.</target>
+      </trans-unit>
       <trans-unit id="++CODE++314afcc6e23d362133e764e1ebfacabe4d330308b528392570949a17270248b9">
         <source xml:lang="en">Azure sign in failed.</source>
         <target state="translated">Azure 로그인에 실패했습니다.</target>
@@ -754,7 +759,7 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++094e437cda5fd692838cc9472b78f0b56bb8696e37f931d0dceb816443bb0e87">
         <source xml:lang="en">Backup Database - {0}</source>
         <note>{0} is the database name</note>
-        <target state="new">Backup Database - {0}</target>
+        <target state="translated">데이터베이스 백업 - {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++55e3ec5a66490b401352f97b8c81d967c3e0f06782815833b8ebef7c4113a1f3">
         <source xml:lang="en">Backup File</source>
@@ -921,7 +926,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++baf083b029cb149c0220c5d92d030938620575f3da7f46af41f26b1db920bfdd">
         <source xml:lang="en">Cancel Task</source>
-        <target state="new">Cancel Task</target>
+        <target state="translated">작업 취소</target>
       </trans-unit>
       <trans-unit id="++CODE++a6dab3e65af40b4f3bca5c056278a22a48972adfa26a46fa3cc16aa4e07e86e0">
         <source xml:lang="en">Cancel failed: {0}</source>
@@ -2452,7 +2457,7 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++defd2829d94341dd9a553fb0272dd8d95fbfb3ba7f7450083039aeb221014b5a">
         <source xml:lang="en">Description: {0}</source>
         <note>{0} is the task description</note>
-        <target state="new">Description: {0}</target>
+        <target state="translated">설명: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++5cd261bcc680ffdaef07096b65379d9358316948ef7fddce644405f7e518c848">
         <source xml:lang="en">Deselect All</source>
@@ -4239,6 +4244,10 @@ Error:
         <source xml:lang="en">I'm sorry, I can only assist with SQL-related questions.</source>
         <target state="translated">죄송합니다. SQL 관련 질문만 도와드릴 수 있습니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++be9ee0cf4e3d4fdd1af6d17852b5e7ef78069590b49fe086652744f0157aa268">
+        <source xml:lang="en">IP address range</source>
+        <target state="new">IP address range</target>
+      </trans-unit>
       <trans-unit id="++CODE++b37cea142b959c4f6c75754d7b3d56bc41d1a2d6667600c748d7a168f10c8818">
         <source xml:lang="en">Ignore Options</source>
         <target state="translated">옵션 무시</target>
@@ -4261,11 +4270,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++ac684565c2b14138e810a13adaad5c47b8fcfe81d7a11738202d806cac32acb3">
         <source xml:lang="en">Import File</source>
-        <target state="new">Import File</target>
+        <target state="translated">파일 가져오기</target>
       </trans-unit>
       <trans-unit id="++CODE++1b0fa08e0bb59b85ed1ee40df41e8a237133736b10ed5e19ca6b8934b0b46bf6">
         <source xml:lang="en">Import Flat File</source>
-        <target state="new">Import Flat File</target>
+        <target state="translated">플랫 파일 가져오기</target>
       </trans-unit>
       <trans-unit id="++CODE++d059247bec8b508bc7b25a4d371433db929d754ac010d5347a67a0b5701dddc8">
         <source xml:lang="en">Import Information</source>
@@ -4857,7 +4866,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++ea2100dc89ae9fe21fa9b08ab1bf18662dca1e53a3eebd7d03afebcaf5d57515">
         <source xml:lang="en">Logs</source>
-        <target state="new">Logs</target>
+        <target state="translated">로그</target>
       </trans-unit>
       <trans-unit id="++CODE++7c43051e3f634f58555893076bb62e8a1318044729feb100df57fa181835884f">
         <source xml:lang="en">Logs copied to clipboard</source>
@@ -5023,7 +5032,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++585389836e18976b372ada3cfd7a57608ccff88fc27ade1458fd968b3c089ff5">
         <source xml:lang="en">Microsoft Entra Id - Default</source>
-        <target state="new">Microsoft Entra Id - Default</target>
+        <target state="translated">Microsoft Entra ID - 기본값</target>
       </trans-unit>
       <trans-unit id="++CODE++d24b24ff2640e9b5731d40ac97ea534034176c1478b681eca122262c4d98a8a2">
         <source xml:lang="en">Microsoft Entra Id - Universal w/ MFA Support</source>
@@ -5494,7 +5503,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++985ed9835264ebdfa8f578536196c1d3f0a23b500b824b417300dd7e954b0042">
         <source xml:lang="en">No log entries yet.</source>
-        <target state="new">No log entries yet.</target>
+        <target state="translated">아직 로그 항목이 없습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++4b4d7ac22cee34f92cd16fbe4193b0eb106e185100ea38f72b0190e1affaf933">
         <source xml:lang="en">No matches found</source>
@@ -6599,7 +6608,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++fcc2107b5a260d3c07480870a91a7634f1520f7d2afa98f70ff1ce21e36132b1">
         <source xml:lang="en">Restore Database</source>
-        <target state="new">Restore Database</target>
+        <target state="translated">데이터베이스 복원</target>
       </trans-unit>
       <trans-unit id="++CODE++08a1e27d6e3c46f5a5b553a82a39ac2d0e89f6b37a9f57269532ed172d6d2de8">
         <source xml:lang="en">Restore Panel Size</source>
@@ -7789,7 +7798,7 @@ Query: {2}</source>
       <trans-unit id="++CODE++5d22a056f5f5f92e185435b509187fc8e61f15a5b85e6b08cda8d8811880cfc3">
         <source xml:lang="en">Status: {0}</source>
         <note>{0} is the task status</note>
-        <target state="new">Status: {0}</target>
+        <target state="translated">상태: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++fcd9e926d4fdee12468ed2bada9c9a3836ffa503e8dd105ce430cb9dc77450df">
         <source xml:lang="en">Step {0} of {1}</source>
@@ -8053,12 +8062,12 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++ce802c2881fc734c4e0eff3836c5cb3a775844c1c34faabf5d0ff3bd8687b262">
         <source xml:lang="en">Task log is unavailable.</source>
-        <target state="new">Task log is unavailable.</target>
+        <target state="translated">작업 로그를 사용할 수 없습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++945322014369cb3209e969128e2294919076dc40a5005906320dd8a099cb418a">
         <source xml:lang="en">Task: {0}</source>
         <note>{0} is the task name</note>
-        <target state="new">Task: {0}</target>
+        <target state="translated">작업: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++e23969d284c3424c8014c6e5b1b85ebc275bc5c74321e7677a21d023e6ea154c">
         <source xml:lang="en">Tenant</source>
@@ -8498,7 +8507,7 @@ Query: {2}</source>
       <trans-unit id="++CODE++3bd96350b569900406d2b6fcd6d41c1083c5dec9bd6052587c0a4657f831fe33">
         <source xml:lang="en">Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported.</source>
         <note>{0} is the authentication type</note>
-        <target state="new">Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported.</target>
+        <target state="translated">연결 문자열에서 지원되지 않는 인증 유형: {0} SQL 로그인, 통합, Azure MFA, Active Directory 기본 인증만 지원됩니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++59925dabae7544939136767d732ce4bd853e6a3822324777eb3615b997680c05">
         <source xml:lang="en">Unsupported data types detected</source>
@@ -8896,7 +8905,7 @@ Query: {2}</source>
         <source xml:lang="en">[{0}] {1}</source>
         <note>{0} is the timestamp
 {1} is the log entry text</note>
-        <target state="new">[{0}] {1}</target>
+        <target state="translated">[{0}] {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++c1399614154a55dfb1fcb95e208ed1f0b1115b846d6150ded7c7b43fdf6cbc09">
         <source xml:lang="en">authenticationType</source>
@@ -9004,14 +9013,14 @@ Query: {2}</source>
         <source xml:lang="en">{0} ({1}%)</source>
         <note>{0} is the task status
 {1} is the completion percent</note>
-        <target state="new">{0} ({1}%)</target>
+        <target state="translated">{0}({1}%)</target>
       </trans-unit>
       <trans-unit id="++CODE++2156aca18e3ca2e3572d650a8071055ef5b50d81b043d68e994c6726c950da26">
         <source xml:lang="en">{0} ({1}%): {2}</source>
         <note>{0} is the task status
 {1} is the completion percent
 {2} is the task message</note>
-        <target state="new">{0} ({1}%): {2}</target>
+        <target state="translated">{0}({1}%): {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++d26e21ebdede152a58db3c9ae1c87fd29a87b97da434181f5617921d2ba4a284">
         <source xml:lang="en">{0} accounts</source>
@@ -9246,7 +9255,7 @@ Query: {2}</source>
         <source xml:lang="en">{0}: {1}</source>
         <note>{0} is the task status
 {1} is the task message</note>
-        <target state="new">{0}: {1}</target>
+        <target state="translated">{0}: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++a2d133c4fbcb2f605ecd460e6639e824d6bc388d75b5df672fd4cbf95d1e71f9">
         <source xml:lang="en">{0}: {1}</source>
@@ -9373,7 +9382,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="mssql.backupDatabase">
         <source xml:lang="en">Backup Database...</source>
-        <target state="new">Backup Database...</target>
+        <target state="translated">데이터베이스 백업...</target>
       </trans-unit>
       <trans-unit id="mssql.buildDataApi">
         <source xml:lang="en">Build Data API (Preview)...</source>
@@ -9767,7 +9776,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.flatFileImport">
         <source xml:lang="en">Import Data...</source>
-        <target state="new">Import Data...</target>
+        <target state="translated">데이터 가져오기...</target>
       </trans-unit>
       <trans-unit id="mssql.profiler.launchFromObjectExplorer">
         <source xml:lang="en">Launch Query Profiler (Preview)...</source>
@@ -9957,7 +9966,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.restoreDatabase">
         <source xml:lang="en">Restore Database...</source>
-        <target state="new">Restore Database...</target>
+        <target state="translated">데이터베이스 복원...</target>
       </trans-unit>
       <trans-unit id="mssql.revealQueryResult">
         <source xml:lang="en">Reveal Query Result (MSSQL)</source>
@@ -10263,7 +10272,7 @@ See the estimated plan without running the query, or view the actual query plan 
       </trans-unit>
       <trans-unit id="mssql.viewBackgroundTaskLogs">
         <source xml:lang="en">View Task Logs</source>
-        <target state="new">View Task Logs</target>
+        <target state="translated">작업 로그 보기</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>
