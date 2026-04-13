@@ -433,8 +433,6 @@ export default class QueryRunner {
         this._resultLineOffset = selection ? selection.startLine : 0;
         this._isExecuting = true;
         this._totalElapsedMilliseconds = 0;
-        // Update the status view to show that we're executing
-        this._statusView.executingQuery(this.uri);
 
         QueryRunner.addRunningQuery(this._ownerUri);
 
@@ -465,7 +463,6 @@ export default class QueryRunner {
             promise.resolve();
             this._uriToQueryPromiseMap.delete(result.ownerUri);
         }
-        this._statusView.executedQuery(result.ownerUri);
         let hasError = this._batchSets.some((batch) => batch.hasError === true);
         this.removeRunningQuery();
         this.unregisterAllNotificationUris();
@@ -614,8 +611,6 @@ export default class QueryRunner {
             totalMilliseconds: Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
             hasError: !!error,
         });
-        this._statusView.executedQuery(this._ownerUri);
-
         this.unregisterAllNotificationUris();
 
         if (errorMsg) {

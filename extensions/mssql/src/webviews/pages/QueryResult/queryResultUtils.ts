@@ -55,3 +55,73 @@ export const splitMessages = (messages: qr.IMessage[] | undefined | null): qr.IM
         });
     });
 };
+
+export function getTotalResultSetRowCount(
+    summaries: Record<number, Record<number, qr.ResultSetSummary>>,
+): number | undefined {
+    let total = 0;
+    let hasRowCount = false;
+
+    for (const batch of Object.values(summaries ?? {})) {
+        for (const result of Object.values(batch ?? {})) {
+            if (typeof result?.rowCount === "number") {
+                total += result.rowCount;
+                hasRowCount = true;
+            }
+        }
+    }
+
+    return hasRowCount ? total : undefined;
+}
+
+function getActiveResultSetRowCount(
+    summaries: Record<number, Record<number, qr.ResultSetSummary>>,
+    selectionSummary?: qr.SelectionSummary,
+): number | undefined {
+    if (
+        selectionSummary?.batchId !== undefined &&
+        selectionSummary?.resultId !== undefined &&
+        typeof summaries?.[selectionSummary.batchId]?.[selectionSummary.resultId]?.rowCount ===
+            "number"
+    ) {
+        return summaries[selectionSummary.batchId][selectionSummary.resultId].rowCount;
+    }
+
+    return undefined;
+}
+
+function getRowsAffectedFromMessages(messages: qr.IMessage[]): number | undefined {
+    const rowsAffectedRegex = /\(?\s*(\d+)\s+rows?\s+affected\s*\)?/i;
+    for (let i = messages.length - 1; i >= 0; i--) {
+        const text = messages[i]?.message;
+        if (!text) {
+            continue;
+        }
+        const match = text.match(rowsAffectedRegex);
+        if (match && match[1] !== undefined) {
+            const parsed = Number(match[1]);
+            if (!Number.isNaN(parsed)) {
+                return parsed;
+            }
+        }
+    }
+    return undefined;
+}
+
+export function getDisplayedRowsCount(
+    summaries: Record<number, Record<number, qr.ResultSetSummary>>,
+    selectionSummary: qr.SelectionSummary | undefined,
+    messages: qr.IMessage[],
+): number | undefined {
+    const activeResultRowCount = getActiveResultSetRowCount(summaries, selectionSummary);
+    if (typeof activeResultRowCount === "number") {
+        return activeResultRowCount;
+    }
+
+    const totalResultRowCount = getTotalResultSetRowCount(summaries);
+    if (typeof totalResultRowCount === "number") {
+        return totalResultRowCount;
+    }
+
+    return getRowsAffectedFromMessages(messages);
+}

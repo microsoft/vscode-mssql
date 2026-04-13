@@ -32,8 +32,8 @@
     padding: 4px;
     border-right: 1px solid silver;
     border-left: 0px !important;
-    border-top: 1px solid silver !important;
-    border-bottom: 1px solid silver !important;
+    border-top: 0px !important;
+    border-bottom: 2px solid #bbb;
     float: left;
     background-color: #eee;
     box-sizing: border-box;
@@ -89,14 +89,6 @@
     position: absolute;
     border: 0px;
     width: 100%;
-}
-
-.slick-row.even {
-    background-color: var(--vscode-editor-background);
-}
-
-.slick-row.odd {
-    background-color: var(--vscode-editorWidget-background);
 }
 
 .slick-cell,
@@ -159,11 +151,11 @@
 }
 
 .slick-cell > .row-number {
-    color: var(--vscode-editor-foreground);
-    background-color: var(--vscode-keybindingTable-headerBackground);
+    color: var(--color-content);
+    font-style: italic;
     font-weight: lighter;
     display: flex;
-    text-align: left;
+    justify-content: flex-end;
 }
 
 .slick-reorder-proxy {

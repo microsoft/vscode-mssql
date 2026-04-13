@@ -747,9 +747,6 @@ export class SqlOutputContentProvider {
             return;
         }
 
-        // Switch the spinner to canceling, which will be reset when the query execute sends back its completed event
-        this._statusView.cancelingQuery(queryRunner.uri);
-
         // Cancel the query
         try {
             await queryRunner.cancel();

@@ -24,17 +24,12 @@ class FileStatusBar {
     public statusConnection: vscode.StatusBarItem;
     // Item for the change database
     public statusChangeDatabase: vscode.StatusBarItem;
-    // Item for the query status
-    public statusQuery: vscode.StatusBarItem;
     // Item for language service status
     public statusLanguageService: vscode.StatusBarItem;
     // Item for SQLCMD Mode
     public sqlCmdMode: vscode.StatusBarItem;
 
-    // Timer used for displaying a progress indicator on queries
-    public progressTimerId: NodeJS.Timeout;
     public currentLanguageServiceStatus: string;
-    public queryTimer: NodeJS.Timeout;
     public connectionId: string;
 }
 
@@ -87,11 +82,8 @@ export default class StatusView implements vscode.Disposable {
                 this._statusBars[bar].statusLanguageFlavor.dispose();
                 this._statusBars[bar].statusConnection.dispose();
                 this._statusBars[bar].statusChangeDatabase.dispose();
-                this._statusBars[bar].statusQuery.dispose();
                 this._statusBars[bar].statusLanguageService.dispose();
                 this._statusBars[bar].sqlCmdMode.dispose();
-                clearInterval(this._statusBars[bar].progressTimerId);
-                clearInterval(this._statusBars[bar].queryTimer);
                 delete this._statusBars[bar];
             }
         }
@@ -114,8 +106,6 @@ export default class StatusView implements vscode.Disposable {
         bar.statusChangeDatabase = vscode.window.createStatusBarItem(
             vscode.StatusBarAlignment.Right,
         );
-        bar.statusQuery = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
-        bar.statusQuery.accessibilityInformation = { role: "alert", label: "" };
         bar.statusLanguageService = vscode.window.createStatusBarItem(
             vscode.StatusBarAlignment.Right,
         );
@@ -135,17 +125,8 @@ export default class StatusView implements vscode.Disposable {
             if (bar.statusChangeDatabase) {
                 bar.statusChangeDatabase.dispose();
             }
-            if (bar.statusQuery) {
-                bar.statusQuery.dispose();
-            }
             if (bar.statusLanguageService) {
                 bar.statusLanguageService.dispose();
-            }
-            if (bar.progressTimerId) {
-                clearInterval(bar.progressTimerId);
-            }
-            if (bar.queryTimer) {
-                clearInterval(bar.queryTimer);
             }
             if (bar.sqlCmdMode) {
                 bar.sqlCmdMode.dispose();
@@ -162,9 +143,6 @@ export default class StatusView implements vscode.Disposable {
         }
 
         let bar = this._statusBars[fileUri];
-        if (bar.progressTimerId) {
-            clearInterval(bar.progressTimerId);
-        }
         return bar;
     }
 
@@ -173,7 +151,6 @@ export default class StatusView implements vscode.Disposable {
         this.showStatusBarItem(fileUri, bar.statusLanguageFlavor);
         this.showStatusBarItem(fileUri, bar.statusConnection);
         this.showStatusBarItem(fileUri, bar.statusChangeDatabase);
-        this.showStatusBarItem(fileUri, bar.statusQuery);
         this.showStatusBarItem(fileUri, bar.statusLanguageService);
         this.showStatusBarItem(fileUri, bar.sqlCmdMode);
     }
@@ -194,8 +171,6 @@ export default class StatusView implements vscode.Disposable {
         this.showStatusBarItem(fileUri, bar.statusLanguageFlavor);
 
         this.hideStatusBarItem(fileUri, bar.statusChangeDatabase);
-        this.hideStatusBarItem(fileUri, bar.statusQuery);
-        clearInterval(bar.queryTimer);
     }
 
     public setConnecting(fileUri: string, connCreds: IConnectionInfo): void {
@@ -317,36 +292,6 @@ export default class StatusView implements vscode.Disposable {
         this.showStatusBarItem(fileUri, bar.statusConnection);
     }
 
-    public executingQuery(fileUri: string): void {
-        let bar = this.getStatusBar(fileUri);
-        bar.statusQuery.command = undefined;
-        bar.statusQuery.text = "";
-        bar.statusQuery.hide();
-        clearInterval(bar.queryTimer);
-    }
-
-    public executedQuery(fileUri: string): void {
-        let bar = this.getStatusBar(fileUri);
-        bar.statusQuery.text = "";
-        bar.statusQuery.hide();
-        clearInterval(bar.queryTimer);
-    }
-
-    /**
-     * Intentionally a no-op. Query execution time is now shown in the query results webview footer.
-     */
-    public setExecutionTime(_fileUri: string, _time: string): void {}
-
-    public cancelingQuery(fileUri: string): void {
-        let bar = this.getStatusBar(fileUri);
-        bar.statusQuery.hide();
-
-        bar.statusQuery.command = undefined;
-        bar.statusQuery.text = "";
-        bar.statusQuery.hide();
-        clearInterval(bar.queryTimer);
-    }
-
     public languageServiceStatusChanged(fileUri: string, status: string): void {
         let bar = this.getStatusBar(fileUri);
         bar.currentLanguageServiceStatus = status;
@@ -406,31 +351,11 @@ export default class StatusView implements vscode.Disposable {
         }
     }
 
-    /**
-     * Associate a new uri with an existing Uri's status bar
-     *
-     * @param existingUri The already existing URI's status bar you want to associated
-     * @param newUri The new URI you want to associate with the existing status bar
-     * @return True or False whether the association was able to be made. False indicated the exitingUri specified
-     * did not exist
-     */
-
-    public associateWithExisting(existingUri: string, newUri: string): boolean {
-        let bar = this.getStatusBar(existingUri);
-        if (bar) {
-            this._statusBars[newUri] = bar;
-            return true;
-        } else {
-            return false;
-        }
-    }
-
     public hideLastShownStatusBar(): void {
         if (typeof this._lastShownStatusBar !== "undefined") {
             this._lastShownStatusBar.statusLanguageFlavor.hide();
             this._lastShownStatusBar.statusConnection.hide();
             this._lastShownStatusBar.statusChangeDatabase.hide();
-            this._lastShownStatusBar.statusQuery.hide();
             this._lastShownStatusBar.statusLanguageService.hide();
             this._lastShownStatusBar.sqlCmdMode.hide();
         }

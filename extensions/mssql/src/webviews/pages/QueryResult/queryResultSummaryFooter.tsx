@@ -8,6 +8,7 @@ import { Fragment, useContext, useEffect, useMemo, useState } from "react";
 import { ExecuteCommandRequest } from "../../../sharedInterfaces/webview";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../common/locConstants";
+import { getDisplayedRowsCount } from "./queryResultUtils";
 import { useQueryResultSelector } from "./queryResultSelector";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 
@@ -47,8 +48,6 @@ const useStyles = makeStyles({
         flexShrink: 0,
         fontSize: "10px",
         color: "var(--vscode-descriptionForeground)",
-        textTransform: "uppercase",
-        letterSpacing: "0.08em",
     },
     value: {
         minWidth: 0,
@@ -132,53 +131,6 @@ const useStyles = makeStyles({
         color: "var(--vscode-foreground)",
     },
 });
-
-function getFirstResultSetRowCount(
-    summaries: Record<number, Record<number, qr.ResultSetSummary>>,
-): number | undefined {
-    for (const batch of Object.values(summaries ?? {})) {
-        for (const result of Object.values(batch ?? {})) {
-            if (typeof result?.rowCount === "number") {
-                return result.rowCount;
-            }
-        }
-    }
-    return undefined;
-}
-
-function getActiveResultSetRowCount(
-    summaries: Record<number, Record<number, qr.ResultSetSummary>>,
-    selectionSummary?: qr.SelectionSummary,
-): number | undefined {
-    if (
-        selectionSummary?.batchId !== undefined &&
-        selectionSummary?.resultId !== undefined &&
-        typeof summaries?.[selectionSummary.batchId]?.[selectionSummary.resultId]?.rowCount ===
-            "number"
-    ) {
-        return summaries[selectionSummary.batchId][selectionSummary.resultId].rowCount;
-    }
-
-    return getFirstResultSetRowCount(summaries);
-}
-
-function getRowsAffectedFromMessages(messages: qr.IMessage[]): number | undefined {
-    const rowsAffectedRegex = /\(?\s*(\d+)\s+rows?\s+affected\s*\)?/i;
-    for (let i = messages.length - 1; i >= 0; i--) {
-        const text = messages[i]?.message;
-        if (!text) {
-            continue;
-        }
-        const match = text.match(rowsAffectedRegex);
-        if (match && match[1] !== undefined) {
-            const parsed = Number(match[1]);
-            if (!Number.isNaN(parsed)) {
-                return parsed;
-            }
-        }
-    }
-    return undefined;
-}
 
 function getLatestExecutionTimeMessage(messages: qr.IMessage[]): string | undefined {
     const prefix = locConstants.queryResult.totalExecutionTimePrefix;
@@ -471,14 +423,7 @@ export const QueryResultSummaryFooter = ({
     }, [isExecuting, executionStartTime]);
 
     const rowsAffectedCount = useMemo(() => {
-        const activeResultRowCount = getActiveResultSetRowCount(
-            resultSetSummaries,
-            selectionSummary,
-        );
-        if (typeof activeResultRowCount === "number") {
-            return activeResultRowCount;
-        }
-        return getRowsAffectedFromMessages(messages);
+        return getDisplayedRowsCount(resultSetSummaries, selectionSummary, messages);
     }, [messages, resultSetSummaries, selectionSummary]);
 
     const rowsText =
