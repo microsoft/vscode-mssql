@@ -12,8 +12,10 @@ import {
     FieldProps,
     InfoLabel,
     Input,
+    Label,
     LabelProps,
     Option,
+    Spinner,
     Text,
     Textarea,
     makeStyles,
@@ -72,6 +74,11 @@ export const useFormStyles = makeStyles({
     formNavTrayRight: {
         display: "flex",
         marginLeft: "auto",
+    },
+    labelDecoration: {
+        display: "inline-flex",
+        alignItems: "center",
+        columnGap: "0px",
     },
 });
 
@@ -218,29 +225,29 @@ export const FormField = <
                 }
                 required={component.required}
                 // @ts-ignore there's a bug in the typings somewhere, so ignoring this line to avoid angering type-checker
-                label={
+                label={{
                     // The html here shouldn't need to be sanitized, and should be safe
                     // because it's only ever set by forms internal to the extension
-                    component.tooltip ? (
-                        {
-                            children: (_: unknown, slotProps: LabelProps) => (
-                                <InfoLabel {...slotProps} info={component.tooltip}>
-                                    <span
-                                        dangerouslySetInnerHTML={{
-                                            __html: component.label,
-                                        }}
-                                    />
-                                </InfoLabel>
-                            ),
-                        }
-                    ) : (
-                        <span
-                            dangerouslySetInnerHTML={{
-                                __html: component.label,
-                            }}
-                        />
-                    )
-                }
+                    children: (_: unknown, slotProps: LabelProps) => {
+                        const labelContent = (
+                            <span
+                                dangerouslySetInnerHTML={{
+                                    __html: component.label,
+                                }}
+                            />
+                        );
+                        const LabelComponent = component.tooltip ? InfoLabel : Label;
+                        const tooltipProps = component.tooltip ? { info: component.tooltip } : {};
+                        return (
+                            <span className={formStyles.labelDecoration}>
+                                <LabelComponent {...slotProps} {...tooltipProps}>
+                                    {labelContent}
+                                </LabelComponent>
+                                {component.loading && <Spinner size="extra-tiny" />}
+                            </span>
+                        );
+                    },
+                }}
                 {...props}
                 style={{ color: tokens.colorNeutralForeground1 }}>
                 {generateFormComponent<TForm, TState, TFormItemSpec, TContext>(

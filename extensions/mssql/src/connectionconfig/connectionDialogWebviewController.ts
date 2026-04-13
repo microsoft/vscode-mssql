@@ -97,15 +97,16 @@ import {
 import { getCloudId } from "../azure/providerSettings";
 import { ConnectionConfig } from "./connectionconfig";
 import {
+    areCompatibleEntraAccountIds,
     getVscodeEntraAccountOptions,
     getVscodeEntraTenantOptions,
-    normalizeVscodeEntraAccountId,
     resolveVscodeEntraAccount,
 } from "../azure/vscodeEntraMfaUtils";
 import { PreviewFeature, previewService } from "../previews/previewService";
 
 const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 10;
 export const CLEAR_TOKEN_CACHE = "clearTokenCache";
+export const SIGN_IN_TO_AZURE = "signInToAzure";
 const CONNECTION_DIALOG_VIEW_ID = "connectionDialog";
 
 export class ConnectionDialogWebviewController extends FormWebviewController<
@@ -134,6 +135,13 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     private _connectionBeingEdited: IConnectionDialogProfile | undefined;
     private _azureSubscriptions: Map<string, AzureSubscription>;
     private _lastSubmittedAction: ConnectionSubmitAction = ConnectionSubmitAction.Connect;
+
+    /** Cached VS Code Entra account options, invalidated on sign-in */
+    private _cachedEntraAccounts: FormItemOptions[] | undefined;
+    /** Cached VS Code Entra tenant options per account ID, invalidated on sign-in */
+    private _cachedEntraTenants: Map<string, FormItemOptions[]> = new Map();
+    /** Deferred that resolves when background Entra account+tenant loading completes. Check `isCompleted` for synchronous readiness. */
+    private _entraDataLoaded = new Deferred<void>();
 
     //#endregion
 
@@ -196,13 +204,24 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         connectionToEdit: IConnectionInfo,
         initialConnectionGroup?: IConnectionGroup,
     ): Promise<void> {
+        const useVscodeAccounts = previewService.isFeatureEnabled(
+            PreviewFeature.UseVscodeAccountsForEntraMFA,
+        );
+
         // Load connection form components
         this.state.formComponents = await generateConnectionComponents(
             this._mainController.connectionManager,
-            this.getEntraMfaAccountOptions(),
+            useVscodeAccounts ? Promise.resolve([]) : this.getEntraMfaAccountOptions(),
             this.getAzureActionButtons(),
             this.getConnectionGroups(this._mainController),
         );
+
+        if (useVscodeAccounts) {
+            const accountComponent = this.getFormComponent(this.state, "accountId");
+            if (accountComponent) {
+                accountComponent.loading = true;
+            }
+        }
 
         this.state.connectionComponents = {
             mainOptions: [...ConnectionDialogWebviewController.mainOptions],
@@ -222,6 +241,13 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         this.loadEmptyConnection();
         await this.updateItemVisibility();
         this.updateState();
+
+        // Load VS Code Entra accounts and tenants in the background after the initial render
+        if (useVscodeAccounts) {
+            void this.loadVscodeEntraDataAsync();
+        } else {
+            this._entraDataLoaded.resolve();
+        }
 
         // Load saved/recent connections
         try {
@@ -844,6 +870,15 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 this._mainController.connectionManager.azureController.clearTokenCache();
                 this.vscodeWrapper.showInformationMessage(LocAll.Accounts.clearedEntraTokenCache);
                 this.state.formMessage = undefined;
+            } else if (payload.buttonId === SIGN_IN_TO_AZURE) {
+                this.state.formMessage = undefined;
+                const signInButton = this.getFormComponent(
+                    this.state,
+                    "accountId",
+                )?.actionButtons?.find((b) => b.id === "azureSignIn");
+                if (signInButton) {
+                    await signInButton.callback();
+                }
             } else {
                 this.logger.error(`Unknown message button clicked: ${payload.buttonId}`);
             }
@@ -948,17 +983,25 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             hiddenProperties.push("accountId", "tenantId");
         }
         if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA) {
-            let tenants = [];
+            if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+                const accountId = this.state.connectionProfile.accountId;
+                const cachedTenants = accountId
+                    ? this._cachedEntraTenants.get(accountId)
+                    : undefined;
 
-            if (this.state.connectionProfile.accountId !== undefined) {
-                tenants = await this.getEntraMfaTenantOptions(
-                    this.state.connectionProfile.accountId,
-                );
-            }
-
-            // Hide tenantId if not signed in or accountId has only one tenant
-            if (tenants.length < 2) {
-                hiddenProperties.push("tenantId");
+                if (!cachedTenants || cachedTenants.length < 2) {
+                    hiddenProperties.push("tenantId");
+                }
+            } else {
+                let tenants = [];
+                if (this.state.connectionProfile.accountId !== undefined) {
+                    tenants = await this.getEntraMfaTenantOptions(
+                        this.state.connectionProfile.accountId,
+                    );
+                }
+                if (tenants.length < 2) {
+                    hiddenProperties.push("tenantId");
+                }
             }
         }
 
@@ -1379,6 +1422,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 accounts: [],
                 tenants: {},
                 isSignedIn: true,
+                loadingAccounts: false,
                 serverName: this.state.connectionProfile.server,
                 addFirewallRuleStatus: ApiStatus.NotStarted,
             };
@@ -1507,16 +1551,71 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
     //#region Azure helpers
 
+    /**
+     * Loads VS Code Entra accounts and tenants for all accounts in the background
+     */
+    private async loadVscodeEntraDataAsync(): Promise<void> {
+        this._entraDataLoaded = new Deferred<void>();
+        this._cachedEntraAccounts = undefined;
+        this._cachedEntraTenants.clear();
+        const accountComponent = this.getFormComponent(this.state, "accountId");
+
+        try {
+            const accountOptions = await this.getEntraMfaAccountOptions();
+
+            if (accountComponent) {
+                accountComponent.options = accountOptions;
+            }
+
+            await Promise.all(
+                accountOptions.map(async (account) => {
+                    try {
+                        await this.getEntraMfaTenantOptions(account.value);
+                    } catch (err) {
+                        this.logger.error(
+                            `Error loading tenants for account '${account.value}': ${getErrorMessage(err)}`,
+                        );
+                    }
+                }),
+            );
+
+            this._entraDataLoaded.resolve();
+        } catch (err) {
+            this.logger.error(`Error loading VS Code Entra data: ${getErrorMessage(err)}`);
+            this._entraDataLoaded.resolve();
+        } finally {
+            if (accountComponent) {
+                accountComponent.loading = false;
+            }
+
+            await this.updateItemVisibility();
+            this.updateState();
+        }
+    }
+
     private async getConnectionGroups(mainController: MainController): Promise<FormItemOptions[]> {
         return mainController.connectionManager.connectionUI.getConnectionGroupOptions();
     }
 
     private async getEntraMfaAccountOptions(): Promise<FormItemOptions[]> {
-        if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
-            return getVscodeEntraAccountOptions();
+        if (this._cachedEntraAccounts) {
+            return this._cachedEntraAccounts;
         }
 
-        return getAccounts(this._mainController.azureAccountService, this.logger);
+        if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+            this._cachedEntraAccounts = await getVscodeEntraAccountOptions();
+        } else {
+            this._cachedEntraAccounts = await getAccounts(
+                this._mainController.azureAccountService,
+                this.logger,
+            );
+        }
+
+        this.logger.verbose(
+            `Read ${this._cachedEntraAccounts.length} Azure accounts: ${this._cachedEntraAccounts.map((a) => a.value).join(", ")}`,
+        );
+
+        return this._cachedEntraAccounts;
     }
 
     private async getEntraMfaTenantOptions(accountId?: string): Promise<FormItemOptions[]> {
@@ -1524,11 +1623,50 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return [];
         }
 
-        if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
-            return getVscodeEntraTenantOptions(accountId);
+        if (!this._cachedEntraTenants.has(accountId)) {
+            if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+                this._cachedEntraTenants.set(
+                    accountId,
+                    await getVscodeEntraTenantOptions(accountId),
+                );
+            } else {
+                this._cachedEntraTenants.set(
+                    accountId,
+                    await getTenants(
+                        this._mainController.azureAccountService,
+                        accountId,
+                        this.logger,
+                    ),
+                );
+            }
         }
 
-        return getTenants(this._mainController.azureAccountService, accountId, this.logger);
+        return this._cachedEntraTenants.get(accountId) ?? [];
+    }
+
+    /** Clears cached VS Code Entra accounts and tenants, forcing a re-fetch on next access */
+    private clearEntraAccountCache(): void {
+        this._cachedEntraAccounts = undefined;
+        this._cachedEntraTenants.clear();
+        this._entraDataLoaded = new Deferred<void>();
+    }
+
+    /**
+     * Normalizes an account ID against the cached accounts list without making
+     * async VS Code API calls. Returns the canonical account ID if found.
+     */
+    private normalizeAccountIdFromCache(accountId?: string): string | undefined {
+        if (!accountId || !this._cachedEntraAccounts) {
+            return undefined;
+        }
+        const exact = this._cachedEntraAccounts.find((a) => a.value === accountId);
+        if (exact) {
+            return exact.value;
+        }
+        const compatible = this._cachedEntraAccounts.find((a) =>
+            areCompatibleEntraAccountIds(a.value, accountId),
+        );
+        return compatible?.value;
     }
 
     private async getAzureActionButtons(): Promise<FormItemActionButton[]> {
@@ -1538,10 +1676,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             id: "azureSignIn",
             callback: async () => {
                 if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
-                    const auth = MssqlVSCodeAzureSubscriptionProvider.getInstance();
                     const existingAccountIds = new Set(
-                        (await VsCodeAzureHelper.getAccounts()).map((account) => account.id),
+                        (this._cachedEntraAccounts ?? []).map((a) => a.value),
                     );
+
+                    const auth = MssqlVSCodeAzureSubscriptionProvider.getInstance();
                     const signedIn = await auth.signIn();
 
                     if (!signedIn) {
@@ -1555,7 +1694,12 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         return;
                     }
 
-                    accountsComponent.options = await this.getEntraMfaAccountOptions();
+                    // Invalidate cache and re-load all accounts + tenants
+                    this.clearEntraAccountCache();
+                    accountsComponent.loading = true;
+                    this.updateState();
+
+                    await this.loadVscodeEntraDataAsync();
 
                     const newlyAddedAccount = accountsComponent.options.find(
                         (accountOption) => !existingAccountIds.has(accountOption.value),
@@ -1571,28 +1715,13 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
                     this.updateState();
                     await this.handleAzureMFAEdits("accountId");
-                    return;
                 } else {
                     const account = await this._mainController.azureAccountService.addAccount();
                     this.logger.verbose(
                         `Added Azure account '${account.displayInfo?.displayName}', ${account.key.id}`,
                     );
 
-                    const accountsComponent = this.getFormComponent(this.state, "accountId");
-
-                    if (!accountsComponent) {
-                        this.logger.error("Account component not found");
-                        return;
-                    }
-
-                    accountsComponent.options = await getAccounts(
-                        this._mainController.azureAccountService,
-                        this.logger,
-                    );
-
-                    this.logger.verbose(
-                        `Read ${accountsComponent.options.length} Azure accounts: ${accountsComponent.options.map((a) => a.value).join(", ")}`,
-                    );
+                    this.clearEntraAccountCache();
 
                     this.state.connectionProfile.accountId = account.key.id;
 
@@ -1617,6 +1746,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             );
             if (account) {
                 let isTokenExpired = false;
+
                 try {
                     const session =
                         await this._mainController.azureAccountService.getAccountSecurityToken(
@@ -1693,67 +1823,111 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return;
         }
 
-        accountComponent.options = await this.getEntraMfaAccountOptions();
+        const tenantComponent = this.getFormComponent(this.state, "tenantId");
+        const useVscodeAccounts = previewService.isFeatureEnabled(
+            PreviewFeature.UseVscodeAccountsForEntraMFA,
+        );
 
-        if (
-            previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA) &&
-            this.state.connectionProfile.accountId
-        ) {
-            const normalizedAccountId = await normalizeVscodeEntraAccountId(
-                this.state.connectionProfile.accountId,
-            );
+        // If background loading hasn't finished, show spinner on account and
+        // await the deferred. updateItemVisibility is called for authenticationType
+        // changes so account/tenant fields become visible before pushing state.
+        if (useVscodeAccounts && !this._entraDataLoaded.isCompleted) {
+            accountComponent.loading = true;
 
-            if (normalizedAccountId) {
-                this.state.connectionProfile.accountId = normalizedAccountId;
-            } else {
-                this.state.connectionProfile.accountId = undefined;
-                this.state.connectionProfile.tenantId = undefined;
+            if (propertyName === "authenticationType") {
+                await this.updateItemVisibility();
             }
+
+            this.updateState();
+
+            await this._entraDataLoaded.promise;
         }
 
-        const tenantComponent = this.getFormComponent(this.state, "tenantId");
-        let tenants: FormItemOptions[] = [];
+        try {
+            accountComponent.options = await this.getEntraMfaAccountOptions();
 
-        switch (propertyName) {
-            case "accountId":
-                tenants = await this.getEntraMfaTenantOptions(
-                    this.state.connectionProfile.accountId,
-                );
-                if (tenantComponent) {
-                    tenantComponent.options = tenants;
-                    if (
-                        tenants.length > 0 &&
-                        !tenants.find((t) => t.value === this.state.connectionProfile.tenantId)
-                    ) {
-                        // if expected tenantId is not in the list of tenants, set it to the first tenant
-                        this.state.connectionProfile.tenantId = tenants[0].value;
-                        await this.validateForm(this.state.formState, "tenantId");
-                    }
-                }
+            if (this.state.connectionProfile.accountId) {
+                const originalAccountId = this.state.connectionProfile.accountId;
+                const cachedAccountId = this.normalizeAccountIdFromCache(originalAccountId);
 
-                accountComponent.actionButtons = await this.getAzureActionButtons();
-                break;
-            case "tenantId":
-                break;
-            case "authenticationType":
-                const firstOption = accountComponent.options[0];
-                if (firstOption) {
-                    this.state.connectionProfile.accountId = firstOption.value;
+                if (cachedAccountId) {
+                    this.state.connectionProfile.accountId = cachedAccountId;
+                } else {
+                    const accountDisplayString =
+                        this.state.connectionProfile.email ??
+                        this.state.connectionProfile.accountId;
+
+                    this.state.connectionProfile.accountId = undefined;
+                    this.state.connectionProfile.tenantId = undefined;
+                    this.state.connectionProfile.email = undefined;
+
+                    this.state.formMessage = {
+                        message: LocAzure.accountNotFound(accountDisplayString),
+                        intent: "error",
+                        buttons: [{ id: SIGN_IN_TO_AZURE, label: Loc.signIn }],
+                    };
                 }
-                if (this.state.connectionProfile.accountId) {
+            }
+
+            let tenants: FormItemOptions[] = [];
+
+            switch (propertyName) {
+                case "accountId":
                     tenants = await this.getEntraMfaTenantOptions(
                         this.state.connectionProfile.accountId,
                     );
                     if (tenantComponent) {
                         tenantComponent.options = tenants;
-                        if (tenants && tenants.length > 0) {
+
+                        if (
+                            tenants.length > 0 &&
+                            !tenants.find((t) => t.value === this.state.connectionProfile.tenantId)
+                        ) {
+                            // if expected tenantId is not in the list of tenants, set it to the first tenant
                             this.state.connectionProfile.tenantId = tenants[0].value;
+                            await this.validateForm(this.state.formState, "tenantId");
                         }
                     }
-                }
 
-                accountComponent.actionButtons = await this.getAzureActionButtons();
-                break;
+                    accountComponent.actionButtons = await this.getAzureActionButtons();
+                    break;
+                case "tenantId":
+                    break;
+                case "authenticationType":
+                    // Only default to first account if none is already selected
+                    // (e.g. when editing an existing profile that has an accountId)
+                    if (!this.state.connectionProfile.accountId) {
+                        const firstOption = accountComponent.options[0];
+                        if (firstOption) {
+                            this.state.connectionProfile.accountId = firstOption.value;
+                        }
+                    }
+                    if (this.state.connectionProfile.accountId) {
+                        tenants = await this.getEntraMfaTenantOptions(
+                            this.state.connectionProfile.accountId,
+                        );
+                        if (tenantComponent) {
+                            tenantComponent.options = tenants;
+                            if (
+                                tenants &&
+                                tenants.length > 0 &&
+                                !tenants.find(
+                                    (t) => t.value === this.state.connectionProfile.tenantId,
+                                )
+                            ) {
+                                this.state.connectionProfile.tenantId = tenants[0].value;
+                            }
+                        }
+                    }
+
+                    accountComponent.actionButtons = await this.getAzureActionButtons();
+                    break;
+            }
+        } finally {
+            if (useVscodeAccounts) {
+                accountComponent.loading = false;
+                await this.updateItemVisibility();
+            }
         }
     }
 

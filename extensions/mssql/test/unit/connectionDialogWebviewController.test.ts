@@ -510,6 +510,9 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 .stub(AzureHelpers.VsCodeAzureHelper, "getTenantsForAccount")
                 .resolves([mockTenants[0], mockTenants[1]]);
 
+            // Pre-populate the Entra account and tenant caches
+            await controller["loadVscodeEntraDataAsync"]();
+
             const testConnection = {
                 profileName: "Test Entra Connection",
                 server: "SavedServer",
