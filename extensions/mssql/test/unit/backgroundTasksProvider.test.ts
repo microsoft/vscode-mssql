@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as os from "os";
 import * as vscode from "vscode";
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
@@ -18,6 +19,10 @@ import {
 import { initializeIconUtils } from "./utils";
 
 chai.use(sinonChai);
+
+function normalizeLineEndings(value: string): string {
+    return value.replace(new RegExp(`\\${os.EOL}`, "g"), "\n");
+}
 
 suite("Background Tasks Provider Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -68,7 +73,7 @@ suite("Background Tasks Provider Tests", () => {
         expect(node).to.be.instanceOf(BackgroundTaskNode);
         expect(node.label).to.equal("Import complete");
         expect(node.description).to.equal("100% | localhost/AdventureWorks2022 | 5s");
-        expect(node.tooltip).to.equal(
+        expect(normalizeLineEndings(node.tooltip as string)).to.equal(
             "Import finished\n\nIn progress\n\nCompleted successfully\n\nElapsed time: 5s",
         );
         expect((node.iconPath as vscode.ThemeIcon).id).to.equal("pass");
@@ -91,7 +96,9 @@ suite("Background Tasks Provider Tests", () => {
         expect(nodes).to.have.length(1);
         expect(node.description).to.equal("3s");
         expect(node.contextValue).to.contain("completed=true");
-        expect(node.tooltip).to.equal("Exporting\n\nSucceeded\n\nDone\n\nElapsed time: 3s");
+        expect(normalizeLineEndings(node.tooltip as string)).to.equal(
+            "Exporting\n\nSucceeded\n\nDone\n\nElapsed time: 3s",
+        );
         expect((node.iconPath as vscode.ThemeIcon).id).to.equal("pass");
         expect((node.iconPath as vscode.ThemeIcon).color?.id).to.equal("testing.iconPassed");
     });
@@ -110,12 +117,15 @@ suite("Background Tasks Provider Tests", () => {
         const node = provider.getChildren()[0] as BackgroundTaskNode;
 
         expect(node.description).to.equal("250ms");
-        expect(node.tooltip).to.equal("Running\n\nFailed\n\nFailed badly\n\nElapsed time: 250ms");
+        expect(normalizeLineEndings(node.tooltip as string)).to.equal(
+            "Running\n\nFailed\n\nFailed badly\n\nElapsed time: 250ms",
+        );
         expect((node.iconPath as vscode.ThemeIcon).id).to.equal("error");
         expect((node.iconPath as vscode.ThemeIcon).color?.id).to.equal("testing.iconFailed");
     });
 
     test("canceled tasks use the canceled theme icon", () => {
+        sandbox.useFakeTimers();
         const provider = new BackgroundTasksProvider();
         const handle = provider.backgroundTasksService.registerTask({
             displayText: "Canceled task",
@@ -126,7 +136,7 @@ suite("Background Tasks Provider Tests", () => {
 
         const node = provider.getChildren()[0] as BackgroundTaskNode;
 
-        expect(node.tooltip).to.equal(
+        expect(normalizeLineEndings(node.tooltip as string)).to.equal(
             "Running\n\nCanceled\n\nStopped by user\n\nElapsed time: 0ms",
         );
         expect((node.iconPath as vscode.ThemeIcon).id).to.equal("circle-slash");
@@ -148,7 +158,9 @@ suite("Background Tasks Provider Tests", () => {
 
         node = provider.getChildren()[0] as BackgroundTaskNode;
         expect(node.description).to.equal("1m 5s");
-        expect(node.tooltip).to.equal("Working\n\nIn progress\n\nElapsed time: 01:05");
+        expect(normalizeLineEndings(node.tooltip as string)).to.equal(
+            "Working\n\nIn progress\n\nElapsed time: 01:05",
+        );
     });
 
     test("clearFinished removes only completed tasks", () => {
@@ -268,7 +280,7 @@ suite("Background Tasks Provider Tests", () => {
 
         expect(actualError).to.equal(cancelError);
         const refreshedNode = provider.getChildren()[0] as BackgroundTaskNode;
-        expect(refreshedNode.tooltip).to.match(
+        expect(normalizeLineEndings(refreshedNode.tooltip as string)).to.match(
             /^Cancelable\n\nIn progress\n\nElapsed time: \d+ms$/,
         );
         expect(refreshedNode.contextValue).to.contain("cancelable=true");
