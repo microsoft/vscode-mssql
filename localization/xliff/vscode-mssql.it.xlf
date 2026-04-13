@@ -498,7 +498,7 @@ Seleziona "{0}" per stabilire una connessione.</target>
       </trans-unit>
       <trans-unit id="++CODE++5a0515f60bd3693347830f37a0e69fa8477aa11b9fb3b0fef1a52e898ce46a76">
         <source xml:lang="en">Are you sure you want to cancel this background task?</source>
-        <target state="new">Are you sure you want to cancel this background task?</target>
+        <target state="translated">Annullare questa attività in background?</target>
       </trans-unit>
       <trans-unit id="++CODE++34ab1d94f3f0ea49596bfd3fdbba6358a366ecd259be4bf46543ee58caad0614">
         <source xml:lang="en">Are you sure you want to close the current session? All captured events will be lost. You can export events to CSV from the toolbar before closing.</source>
@@ -926,7 +926,7 @@ Seleziona "{0}" per stabilire una connessione.</target>
       </trans-unit>
       <trans-unit id="++CODE++baf083b029cb149c0220c5d92d030938620575f3da7f46af41f26b1db920bfdd">
         <source xml:lang="en">Cancel Task</source>
-        <target state="new">Cancel Task</target>
+        <target state="translated">Annullare attività</target>
       </trans-unit>
       <trans-unit id="++CODE++a6dab3e65af40b4f3bca5c056278a22a48972adfa26a46fa3cc16aa4e07e86e0">
         <source xml:lang="en">Cancel failed: {0}</source>
@@ -2457,7 +2457,7 @@ Seleziona "{0}" per stabilire una connessione.</target>
       <trans-unit id="++CODE++defd2829d94341dd9a553fb0272dd8d95fbfb3ba7f7450083039aeb221014b5a">
         <source xml:lang="en">Description: {0}</source>
         <note>{0} is the task description</note>
-        <target state="new">Description: {0}</target>
+        <target state="translated">Descrizione: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++5cd261bcc680ffdaef07096b65379d9358316948ef7fddce644405f7e518c848">
         <source xml:lang="en">Deselect All</source>
@@ -2629,7 +2629,7 @@ Seleziona "{0}" per stabilire una connessione.</target>
       </trans-unit>
       <trans-unit id="++CODE++090015e97e08461a02b0915ed446e955928a4686cdc839c66bd9f7781b81d8fb">
         <source xml:lang="en">Drop Database</source>
-        <target state="new">Drop Database</target>
+        <target state="translated">Rimuovi database</target>
       </trans-unit>
       <trans-unit id="++CODE++a9c46777591fc96ccc6c8317280d36c4b68bc04298439cc0e6837ec2ae4bf49c">
         <source xml:lang="en">Drop Database (Preview)</source>
@@ -3051,7 +3051,7 @@ Errore:
       </trans-unit>
       <trans-unit id="++CODE++321ab91cb44c0a39cbf56a5f42f87fdc7fc2d00e29e2df5619d3e436f20dddc4">
         <source xml:lang="en">Error: Unrecognized query result data.</source>
-        <target state="new">Error: Unrecognized query result data.</target>
+        <target state="translated">Errore: dati dei risultati della query non riconosciuti.</target>
       </trans-unit>
       <trans-unit id="++CODE++beab8d6b59ef40883dd9887fd21f67e4716b5d4581461c3eae2825e09b698ad0">
         <source xml:lang="en">Error: {0}</source>
@@ -4274,7 +4274,7 @@ Errore:
       </trans-unit>
       <trans-unit id="++CODE++1b0fa08e0bb59b85ed1ee40df41e8a237133736b10ed5e19ca6b8934b0b46bf6">
         <source xml:lang="en">Import Flat File</source>
-        <target state="new">Import Flat File</target>
+        <target state="translated">Importa file flat</target>
       </trans-unit>
       <trans-unit id="++CODE++d059247bec8b508bc7b25a4d371433db929d754ac010d5347a67a0b5701dddc8">
         <source xml:lang="en">Import Information</source>
@@ -5032,7 +5032,7 @@ Errore:
       </trans-unit>
       <trans-unit id="++CODE++585389836e18976b372ada3cfd7a57608ccff88fc27ade1458fd968b3c089ff5">
         <source xml:lang="en">Microsoft Entra Id - Default</source>
-        <target state="new">Microsoft Entra Id - Default</target>
+        <target state="translated">Microsoft Entra ID - Predefinito</target>
       </trans-unit>
       <trans-unit id="++CODE++d24b24ff2640e9b5731d40ac97ea534034176c1478b681eca122262c4d98a8a2">
         <source xml:lang="en">Microsoft Entra Id - Universal w/ MFA Support</source>
@@ -5503,7 +5503,7 @@ Errore:
       </trans-unit>
       <trans-unit id="++CODE++985ed9835264ebdfa8f578536196c1d3f0a23b500b824b417300dd7e954b0042">
         <source xml:lang="en">No log entries yet.</source>
-        <target state="new">No log entries yet.</target>
+        <target state="translated">Non sono ancora presenti voci di log.</target>
       </trans-unit>
       <trans-unit id="++CODE++4b4d7ac22cee34f92cd16fbe4193b0eb106e185100ea38f72b0190e1affaf933">
         <source xml:lang="en">No matches found</source>
@@ -6544,7 +6544,7 @@ Errore:
       </trans-unit>
       <trans-unit id="++CODE++90d9ab3255a92db5b378418ece6b230df904cb32837a59f146c96966f659a683">
         <source xml:lang="en">Rename Database</source>
-        <target state="new">Rename Database</target>
+        <target state="translated">Rinomina database</target>
       </trans-unit>
       <trans-unit id="++CODE++3426e6a23fe6e9ab8ec4d59a46f5e26596e94b9712da61c7a323e0cb0a6ecd25">
         <source xml:lang="en">Renaming database '{0}' to '{1}'...</source>
@@ -7798,7 +7798,7 @@ Query: {2}</target>
       <trans-unit id="++CODE++5d22a056f5f5f92e185435b509187fc8e61f15a5b85e6b08cda8d8811880cfc3">
         <source xml:lang="en">Status: {0}</source>
         <note>{0} is the task status</note>
-        <target state="new">Status: {0}</target>
+        <target state="translated">Stato: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++fcd9e926d4fdee12468ed2bada9c9a3836ffa503e8dd105ce430cb9dc77450df">
         <source xml:lang="en">Step {0} of {1}</source>
@@ -8062,12 +8062,12 @@ Query: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++ce802c2881fc734c4e0eff3836c5cb3a775844c1c34faabf5d0ff3bd8687b262">
         <source xml:lang="en">Task log is unavailable.</source>
-        <target state="new">Task log is unavailable.</target>
+        <target state="translated">Il log attività non è disponibile.</target>
       </trans-unit>
       <trans-unit id="++CODE++945322014369cb3209e969128e2294919076dc40a5005906320dd8a099cb418a">
         <source xml:lang="en">Task: {0}</source>
         <note>{0} is the task name</note>
-        <target state="new">Task: {0}</target>
+        <target state="translated">Attività: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++e23969d284c3424c8014c6e5b1b85ebc275bc5c74321e7677a21d023e6ea154c">
         <source xml:lang="en">Tenant</source>
@@ -8507,7 +8507,7 @@ Query: {2}</target>
       <trans-unit id="++CODE++3bd96350b569900406d2b6fcd6d41c1083c5dec9bd6052587c0a4657f831fe33">
         <source xml:lang="en">Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported.</source>
         <note>{0} is the authentication type</note>
-        <target state="new">Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported.</target>
+        <target state="translated">Tipo di autenticazione non supportato nella stringa di connessione: {0}. Sono supportati solo account di accesso SQL, autenticazione integrata, autenticazione a più fattori di Azure e autenticazione predefinita di Active Directory.</target>
       </trans-unit>
       <trans-unit id="++CODE++59925dabae7544939136767d732ce4bd853e6a3822324777eb3615b997680c05">
         <source xml:lang="en">Unsupported data types detected</source>
@@ -8905,7 +8905,7 @@ Query: {2}</target>
         <source xml:lang="en">[{0}] {1}</source>
         <note>{0} is the timestamp
 {1} is the log entry text</note>
-        <target state="new">[{0}] {1}</target>
+        <target state="translated">[{0}] {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++c1399614154a55dfb1fcb95e208ed1f0b1115b846d6150ded7c7b43fdf6cbc09">
         <source xml:lang="en">authenticationType</source>
@@ -9013,14 +9013,14 @@ Query: {2}</target>
         <source xml:lang="en">{0} ({1}%)</source>
         <note>{0} is the task status
 {1} is the completion percent</note>
-        <target state="new">{0} ({1}%)</target>
+        <target state="translated">{0} ({1}%)</target>
       </trans-unit>
       <trans-unit id="++CODE++2156aca18e3ca2e3572d650a8071055ef5b50d81b043d68e994c6726c950da26">
         <source xml:lang="en">{0} ({1}%): {2}</source>
         <note>{0} is the task status
 {1} is the completion percent
 {2} is the task message</note>
-        <target state="new">{0} ({1}%): {2}</target>
+        <target state="translated">{0} ({1}%): {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++d26e21ebdede152a58db3c9ae1c87fd29a87b97da434181f5617921d2ba4a284">
         <source xml:lang="en">{0} accounts</source>
@@ -9255,7 +9255,7 @@ Query: {2}</target>
         <source xml:lang="en">{0}: {1}</source>
         <note>{0} is the task status
 {1} is the task message</note>
-        <target state="new">{0}: {1}</target>
+        <target state="translated">{0}: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++a2d133c4fbcb2f605ecd460e6639e824d6bc388d75b5df672fd4cbf95d1e71f9">
         <source xml:lang="en">{0}: {1}</source>
@@ -9382,7 +9382,7 @@ Query: {2}</target>
       </trans-unit>
       <trans-unit id="mssql.backupDatabase">
         <source xml:lang="en">Backup Database...</source>
-        <target state="new">Backup Database...</target>
+        <target state="translated">Backup database...</target>
       </trans-unit>
       <trans-unit id="mssql.buildDataApi">
         <source xml:lang="en">Build Data API (Preview)...</source>
@@ -9584,7 +9584,7 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
       </trans-unit>
       <trans-unit id="mssql.dropDatabase">
         <source xml:lang="en">Drop Database...</source>
-        <target state="new">Drop Database...</target>
+        <target state="translated">Rimuovi database...</target>
       </trans-unit>
       <trans-unit id="mssql.connectionGroups.edit">
         <source xml:lang="en">Edit Connection Group</source>
@@ -9776,7 +9776,7 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
       </trans-unit>
       <trans-unit id="mssql.flatFileImport">
         <source xml:lang="en">Import Data...</source>
-        <target state="new">Import Data...</target>
+        <target state="translated">Importa dati...</target>
       </trans-unit>
       <trans-unit id="mssql.profiler.launchFromObjectExplorer">
         <source xml:lang="en">Launch Query Profiler (Preview)...</source>
@@ -9836,7 +9836,7 @@ Puoi connetterti a un database immettendo le informazioni di connessione, usando
       </trans-unit>
       <trans-unit id="mssql.createDatabase">
         <source xml:lang="en">New Database...</source>
-        <target state="new">New Database...</target>
+        <target state="translated">Nuovo database...</target>
       </trans-unit>
       <trans-unit id="mssql.newDeployment">
         <source xml:lang="en">New Deployment</source>
@@ -9958,7 +9958,7 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
       </trans-unit>
       <trans-unit id="mssql.renameDatabase">
         <source xml:lang="en">Rename Database...</source>
-        <target state="new">Rename Database...</target>
+        <target state="translated">Rinomina database...</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
         <source xml:lang="en">Replication</source>
@@ -9966,7 +9966,7 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
       </trans-unit>
       <trans-unit id="mssql.restoreDatabase">
         <source xml:lang="en">Restore Database...</source>
-        <target state="new">Restore Database...</target>
+        <target state="translated">Ripristina database...</target>
       </trans-unit>
       <trans-unit id="mssql.revealQueryResult">
         <source xml:lang="en">Reveal Query Result (MSSQL)</source>
@@ -10272,7 +10272,7 @@ Visualizza il piano stimato senza eseguire la query oppure visualizza il piano d
       </trans-unit>
       <trans-unit id="mssql.viewBackgroundTaskLogs">
         <source xml:lang="en">View Task Logs</source>
-        <target state="new">View Task Logs</target>
+        <target state="translated">Visualizza log attività</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>

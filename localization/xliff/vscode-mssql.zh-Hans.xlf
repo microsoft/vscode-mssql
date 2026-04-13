@@ -2629,7 +2629,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++090015e97e08461a02b0915ed446e955928a4686cdc839c66bd9f7781b81d8fb">
         <source xml:lang="en">Drop Database</source>
-        <target state="new">Drop Database</target>
+        <target state="translated">删除数据库</target>
       </trans-unit>
       <trans-unit id="++CODE++a9c46777591fc96ccc6c8317280d36c4b68bc04298439cc0e6837ec2ae4bf49c">
         <source xml:lang="en">Drop Database (Preview)</source>
@@ -3051,7 +3051,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++321ab91cb44c0a39cbf56a5f42f87fdc7fc2d00e29e2df5619d3e436f20dddc4">
         <source xml:lang="en">Error: Unrecognized query result data.</source>
-        <target state="new">Error: Unrecognized query result data.</target>
+        <target state="translated">错误: 无法识别查询结果数据。</target>
       </trans-unit>
       <trans-unit id="++CODE++beab8d6b59ef40883dd9887fd21f67e4716b5d4581461c3eae2825e09b698ad0">
         <source xml:lang="en">Error: {0}</source>
@@ -6544,7 +6544,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++90d9ab3255a92db5b378418ece6b230df904cb32837a59f146c96966f659a683">
         <source xml:lang="en">Rename Database</source>
-        <target state="new">Rename Database</target>
+        <target state="translated">重命名数据库</target>
       </trans-unit>
       <trans-unit id="++CODE++3426e6a23fe6e9ab8ec4d59a46f5e26596e94b9712da61c7a323e0cb0a6ecd25">
         <source xml:lang="en">Renaming database '{0}' to '{1}'...</source>
@@ -9584,7 +9584,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.dropDatabase">
         <source xml:lang="en">Drop Database...</source>
-        <target state="new">Drop Database...</target>
+        <target state="translated">删除数据库...</target>
       </trans-unit>
       <trans-unit id="mssql.connectionGroups.edit">
         <source xml:lang="en">Edit Connection Group</source>
@@ -9836,7 +9836,7 @@ You can connect to a database by entering your connection information, using a c
       </trans-unit>
       <trans-unit id="mssql.createDatabase">
         <source xml:lang="en">New Database...</source>
-        <target state="new">New Database...</target>
+        <target state="translated">新建数据库...</target>
       </trans-unit>
       <trans-unit id="mssql.newDeployment">
         <source xml:lang="en">New Deployment</source>
@@ -9958,7 +9958,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.renameDatabase">
         <source xml:lang="en">Rename Database...</source>
-        <target state="new">Rename Database...</target>
+        <target state="translated">重命名数据库...</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
         <source xml:lang="en">Replication</source>
