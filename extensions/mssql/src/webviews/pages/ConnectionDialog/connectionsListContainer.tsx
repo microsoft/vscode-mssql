@@ -7,6 +7,7 @@ import {
     ArrowClockwise16Filled,
     Copy16Regular,
     Delete16Regular,
+    Dismiss16Regular,
     ServerRegular,
 } from "@fluentui/react-icons";
 import {
@@ -115,12 +116,13 @@ const azureDataStudioIcon = require("../../media/azureDataStudio.svg");
 export const ConnectionsListContainer = () => {
     const styles = useStyles();
     const context = useContext(ConnectionDialogContext);
-    const savedConnections = useConnectionDialogSelector((s) => s.savedConnections);
-    const recentConnections = useConnectionDialogSelector((s) => s.recentConnections);
+    const savedConnections = useConnectionDialogSelector((s) => s.savedConnections) ?? [];
+    const recentConnections = useConnectionDialogSelector((s) => s.recentConnections) ?? [];
     const { extensionRpc } = useVscodeWebview<
         ConnectionDialogWebviewState,
         ConnectionDialogReducers
     >();
+    const hasRecentConnections = recentConnections.length > 0;
 
     if (context === undefined) {
         return undefined;
@@ -148,48 +150,54 @@ export const ConnectionsListContainer = () => {
                 </Button>
             </div>
             <div className={styles.listScrollArea}>
-                <div className={styles.paneTitle}>
-                    <Text weight="semibold" className={styles.paneTitle}>
-                        {locConstants.connectionDialog.recentConnections}
-                    </Text>
-                    <Button
-                        icon={<ArrowClockwise16Filled />}
-                        appearance="subtle"
-                        onClick={context.refreshConnectionsList}
-                        title={locConstants.common.refresh}
-                    />
-                </div>
-                <Tree>
-                    {// state may not be initialized yet due to async loading of context
-                    recentConnections?.map((connection, _index) => {
-                        return (
-                            <ConnectionCard
-                                connection={connection}
-                                key={
-                                    connection.id ??
-                                    `${connection.server}|${connection.database}|${connection.authenticationType}|${connection.profileName ?? ""}`
-                                }
-                                onSelect={() => context.loadConnectionAsNewDraft(connection)}
-                                actionButtons={[
-                                    {
-                                        icon: <Delete16Regular />,
-                                        onClick: (e) => {
-                                            context.removeRecentConnection(connection);
-                                            e.stopPropagation();
-                                        },
-                                        tooltip: () =>
-                                            locConstants.connectionDialog.removeRecentConnection,
-                                    },
-                                ]}
-                                primaryActionTooltip={(displayName) =>
-                                    locConstants.connectionDialog.createCopiedConnection(
-                                        displayName,
-                                    )
-                                }
+                {hasRecentConnections && (
+                    <>
+                        <div className={styles.paneTitle}>
+                            <Text weight="semibold" className={styles.paneTitle}>
+                                {locConstants.connectionDialog.recentConnections}
+                            </Text>
+                            <Button
+                                icon={<ArrowClockwise16Filled />}
+                                appearance="subtle"
+                                onClick={context.refreshConnectionsList}
+                                title={locConstants.common.refresh}
                             />
-                        );
-                    })}
-                </Tree>
+                        </div>
+                        <Tree>
+                            {recentConnections.map((connection, _index) => {
+                                return (
+                                    <ConnectionCard
+                                        connection={connection}
+                                        key={
+                                            connection.id ??
+                                            `${connection.server}|${connection.database}|${connection.authenticationType}|${connection.profileName ?? ""}`
+                                        }
+                                        onSelect={() =>
+                                            context.loadConnectionAsNewDraft(connection)
+                                        }
+                                        actionButtons={[
+                                            {
+                                                icon: <Dismiss16Regular />,
+                                                onClick: (e) => {
+                                                    context.removeRecentConnection(connection);
+                                                    e.stopPropagation();
+                                                },
+                                                tooltip: () =>
+                                                    locConstants.connectionDialog
+                                                        .removeRecentConnection,
+                                            },
+                                        ]}
+                                        primaryActionTooltip={(displayName) =>
+                                            locConstants.connectionDialog.createCopiedConnection(
+                                                displayName,
+                                            )
+                                        }
+                                    />
+                                );
+                            })}
+                        </Tree>
+                    </>
+                )}
                 <div className={styles.paneTitle}>
                     <Text weight="semibold" className={styles.paneTitle}>
                         {locConstants.connectionDialog.savedConnections}
@@ -202,7 +210,7 @@ export const ConnectionsListContainer = () => {
                     />
                 </div>
                 <div className={styles.main}>
-                    {savedConnections?.map((connection, _index) => {
+                    {savedConnections.map((connection, _index) => {
                         return (
                             <ConnectionCard
                                 connection={connection}

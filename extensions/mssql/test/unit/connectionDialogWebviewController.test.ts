@@ -140,6 +140,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
             configSource: vscode.ConfigurationTarget.Global,
         } as IConnectionGroup);
 
+        connectionStore.getMaxRecentConnectionsCount.returns(5);
         connectionStore.readAllConnections.resolves([testMruConnection, testSavedConnection]);
         connectionStore.readAllConnectionGroups.resolves([
             {
@@ -263,6 +264,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
             expect(controller.state.recentConnections).to.have.lengthOf(1);
             expect(controller.state.recentConnections).to.deep.include(testMruConnection);
+            expect(connectionStore.readAllConnections).to.have.been.calledWith(true, 5);
             expect(
                 controller.state.readyToConnect,
                 "Incomplete connection dialog should not be ready to connect",
@@ -348,6 +350,65 @@ suite("ConnectionDialogWebviewController Tests", () => {
     });
 
     suite("Reducers", () => {
+        test("refreshConnectionsList reloads connections using the configured MRU limit", async () => {
+            const refreshedMruConnection = {
+                ...testMruConnection,
+                server: "RefreshedMruServer",
+            };
+            const refreshedSavedConnection = {
+                ...testSavedConnection,
+                server: "RefreshedSavedServer",
+            };
+
+            connectionStore.readAllConnections.resetHistory();
+            connectionStore.readAllConnections.resolves([
+                refreshedMruConnection,
+                refreshedSavedConnection,
+            ]);
+
+            await controller["_reducerHandlers"].get("refreshConnectionsList")(
+                controller.state,
+                {},
+            );
+
+            expect(connectionStore.readAllConnections).to.have.been.calledWith(true, 5);
+            expect(controller.state.recentConnections).to.deep.include(refreshedMruConnection);
+            expect(controller.state.savedConnections).to.deep.include(refreshedSavedConnection);
+        });
+
+        test("removeRecentConnection clears only the MRU entry and reloads with the configured limit", async () => {
+            const sharedSavedConnection = {
+                ...testSavedConnection,
+                id: "shared-profile-id",
+                server: "SharedServer",
+                database: "SharedDatabase",
+            };
+            const sharedRecentConnection = {
+                ...testMruConnection,
+                id: "shared-profile-id",
+                server: "SharedServer",
+                database: "SharedDatabase",
+            };
+            let currentConnections = [sharedSavedConnection, sharedRecentConnection];
+
+            connectionStore.readAllConnections.resetHistory();
+            connectionStore.readAllConnections.callsFake(async () => currentConnections);
+            connectionStore.removeRecentlyUsed.callsFake(async () => {
+                currentConnections = [sharedSavedConnection];
+            });
+
+            await controller["_reducerHandlers"].get("removeRecentConnection")(controller.state, {
+                connection: sharedRecentConnection,
+            });
+
+            expect(connectionStore.removeRecentlyUsed).to.have.been.calledWith(
+                sharedRecentConnection,
+            );
+            expect(connectionStore.readAllConnections).to.have.been.calledWith(true, 5);
+            expect(controller.state.savedConnections).to.deep.include(sharedSavedConnection);
+            expect(controller.state.recentConnections).to.be.empty;
+        });
+
         suite("setConnectionInputType", () => {
             test("Should set connection input type correctly for Parameters", async () => {
                 stubVscodeAzureHelperGetAccounts(sandbox);

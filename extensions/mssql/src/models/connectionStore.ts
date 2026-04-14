@@ -393,13 +393,18 @@ export class ConnectionStore {
      *
      * @returns the array of connections, empty if none are found
      */
-    public getRecentlyUsedConnections(): IConnectionInfo[] {
+    public getRecentlyUsedConnections(limit?: number): IConnectionInfo[] {
         let configValues = this._context.globalState.get<IConnectionInfo[]>(
             Constants.configRecentConnections,
         );
         if (!configValues) {
             configValues = [];
         }
+
+        if (limit && limit > 0) {
+            return configValues.slice(0, limit);
+        }
+
         return configValues;
     }
 
@@ -665,6 +670,7 @@ export class ConnectionStore {
 
     public async readAllConnections(
         includeRecentConnections: boolean = false,
+        recentConnectionsLimit?: number,
     ): Promise<IConnectionProfileWithSource[]> {
         let connResults: IConnectionProfileWithSource[] = [];
 
@@ -680,23 +686,31 @@ export class ConnectionStore {
 
         // Include recent connections, if specified
         if (includeRecentConnections) {
-            const recentConnections = this.getRecentlyUsedConnections().map((c) => {
-                const conn = c as IConnectionProfileWithSource;
-                conn.profileSource = CredentialsQuickPickItemType.Mru;
-                return conn;
-            });
+            const recentConnections = this.getRecentlyUsedConnections(recentConnectionsLimit).map(
+                (c) => {
+                    const conn = c as IConnectionProfileWithSource;
+                    conn.profileSource = CredentialsQuickPickItemType.Mru;
+                    return conn;
+                },
+            );
 
             connResults = connResults.concat(recentConnections);
         }
 
-        // Deduplicate connections by ID and profile source.
-        const uniqueConnections = new Map<string, IConnectionProfileWithSource>();
+        // Deduplicate connections within the same source while allowing the same connection
+        // to appear in both the saved and MRU lists.
+        const uniqueConnections: IConnectionProfileWithSource[] = [];
         let dupeCount = 0;
 
         for (const conn of connResults) {
-            const key = `${conn.id}-${conn.profileSource}`; // Use both ID and source as key to allow same profile in both lists
-            if (!uniqueConnections.has(key)) {
-                uniqueConnections.set(key, conn);
+            const isDuplicate = uniqueConnections.some(
+                (existingConn) =>
+                    existingConn.profileSource === conn.profileSource &&
+                    Utils.isSameProfile(existingConn, conn),
+            );
+
+            if (!isDuplicate) {
+                uniqueConnections.push(conn);
             } else {
                 dupeCount++;
                 this._logger.verbose(
@@ -705,12 +719,16 @@ export class ConnectionStore {
             }
         }
 
-        connResults = Array.from(uniqueConnections.values());
+        connResults = uniqueConnections;
 
         let logMessage = `readAllConnections(): ${connResults.length} connections found`;
 
         if (includeRecentConnections) {
             logMessage += ` (${configConnections.length} from config, ${connResults.length - configConnections.length} from recent)`;
+
+            if (typeof recentConnectionsLimit === "number" && recentConnectionsLimit > 0) {
+                logMessage += `; recent limit ${recentConnectionsLimit}`;
+            }
         } else {
             logMessage += "; excluded recent";
         }
@@ -739,9 +757,13 @@ export class ConnectionStore {
 
     public async getConnectionQuickpickItems(
         includeRecentConnections: boolean = false,
+        recentConnectionsLimit?: number,
     ): Promise<IConnectionCredentialsQuickPickItem[]> {
         let output: IConnectionCredentialsQuickPickItem[] = [];
-        const connections = await this.readAllConnections(includeRecentConnections);
+        const connections = await this.readAllConnections(
+            includeRecentConnections,
+            recentConnectionsLimit,
+        );
 
         output = connections.map((c) => {
             return this.createQuickPickItem(c, c.profileSource);
@@ -758,7 +780,7 @@ export class ConnectionStore {
         return quickPickItems;
     }
 
-    private getMaxRecentConnectionsCount(): number {
+    public getMaxRecentConnectionsCount(): number {
         let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
 
         let maxConnections: number = config[Constants.configMaxRecentConnections];

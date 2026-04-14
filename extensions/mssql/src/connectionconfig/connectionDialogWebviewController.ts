@@ -1047,9 +1047,12 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         savedConnections: IConnectionDialogProfile[];
         recentConnections: IConnectionDialogProfile[];
     }> {
+        const recentConnectionsLimit =
+            this._mainController.connectionManager.connectionStore.getMaxRecentConnectionsCount();
         const unsortedConnections: IConnectionProfileWithSource[] =
             await this._mainController.connectionManager.connectionStore.readAllConnections(
                 true /* includeRecentConnections */,
+                recentConnectionsLimit,
             );
 
         const savedConnections = unsortedConnections.filter(
