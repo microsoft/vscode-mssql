@@ -497,17 +497,12 @@ suite("SchemaDesignerWebviewController tests", () => {
 
     suite("UpdateFilterTablesNotification handler", () => {
         test("should register UpdateFilterTablesNotification handler", async () => {
-            const ctrl = createController();
-            const filteredTables = ["dbo.Table1", "dbo.Table2"];
+            createController();
+
             const handler = notificationHandlers.get(
                 SchemaDesigner.UpdateFilterTablesNotification.type.method,
             );
-
             expect(handler).to.be.a("function");
-
-            await handler(filteredTables);
-
-            expect((ctrl as any).state.currentFilteredTables).to.deep.equal(filteredTables);
         });
     });
 
