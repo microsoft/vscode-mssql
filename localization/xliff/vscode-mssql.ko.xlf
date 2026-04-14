@@ -9779,8 +9779,8 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <target state="translated">데이터 가져오기...</target>
       </trans-unit>
       <trans-unit id="mssql.profiler.launchFromObjectExplorer">
-        <source xml:lang="en">Launch Query Profiler (Preview)...</source>
-        <target state="translated">쿼리 프로파일러 시작(미리 보기)...</target>
+        <source xml:lang="en">Launch Query Profiler...</source>
+        <target state="new">Launch Query Profiler...</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.editorSubmenu">
         <source xml:lang="en">MSSQL Copilot</source>
@@ -10013,8 +10013,8 @@ Start by clicking the filter button next to most folders in the Connections view
         <target state="translated">Execute로 스크립트</target>
       </trans-unit>
       <trans-unit id="mssql.searchDatabase">
-        <source xml:lang="en">Search Database Objects (Preview)...</source>
-        <target state="translated">데이터베이스 개체 검색(미리 보기)...</target>
+        <source xml:lang="en">Search Database Objects...</source>
+        <target state="new">Search Database Objects...</target>
       </trans-unit>
       <trans-unit id="mssql.scriptSelect">
         <source xml:lang="en">Select Top 1000</source>

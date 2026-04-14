@@ -9779,8 +9779,8 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <target state="translated">导入数据...</target>
       </trans-unit>
       <trans-unit id="mssql.profiler.launchFromObjectExplorer">
-        <source xml:lang="en">Launch Query Profiler (Preview)...</source>
-        <target state="translated">启动查询探查器(预览版)...</target>
+        <source xml:lang="en">Launch Query Profiler...</source>
+        <target state="new">Launch Query Profiler...</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.editorSubmenu">
         <source xml:lang="en">MSSQL Copilot</source>
@@ -10013,8 +10013,8 @@ Start by clicking the filter button next to most folders in the Connections view
         <target state="translated">撰写为 Execute 的脚本</target>
       </trans-unit>
       <trans-unit id="mssql.searchDatabase">
-        <source xml:lang="en">Search Database Objects (Preview)...</source>
-        <target state="translated">搜索数据库对象(预览版)...</target>
+        <source xml:lang="en">Search Database Objects...</source>
+        <target state="new">Search Database Objects...</target>
       </trans-unit>
       <trans-unit id="mssql.scriptSelect">
         <source xml:lang="en">Select Top 1000</source>

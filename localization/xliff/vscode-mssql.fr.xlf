@@ -9779,8 +9779,8 @@ Une fois vos modifications terminées, cliquez sur le bouton « Publier » pou
         <target state="translated">Importer des données...</target>
       </trans-unit>
       <trans-unit id="mssql.profiler.launchFromObjectExplorer">
-        <source xml:lang="en">Launch Query Profiler (Preview)...</source>
-        <target state="translated">Lancer le profileur de requêtes (Aperçu)...</target>
+        <source xml:lang="en">Launch Query Profiler...</source>
+        <target state="new">Launch Query Profiler...</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.editorSubmenu">
         <source xml:lang="en">MSSQL Copilot</source>
@@ -10013,8 +10013,8 @@ Commencez par cliquer sur le bouton de filtre à côté de la plupart des dossie
         <target state="translated">Script d’exécution</target>
       </trans-unit>
       <trans-unit id="mssql.searchDatabase">
-        <source xml:lang="en">Search Database Objects (Preview)...</source>
-        <target state="translated">Rechercher des objets de base de données (préversion)...</target>
+        <source xml:lang="en">Search Database Objects...</source>
+        <target state="new">Search Database Objects...</target>
       </trans-unit>
       <trans-unit id="mssql.scriptSelect">
         <source xml:lang="en">Select Top 1000</source>
