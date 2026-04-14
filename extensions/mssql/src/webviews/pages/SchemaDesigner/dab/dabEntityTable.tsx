@@ -166,11 +166,13 @@ export const DabEntityTable = () => {
 
     const [collapsedSchemas, setCollapsedSchemas] = useState<Set<string>>(new Set());
     const [settingsEntityId, setSettingsEntityId] = useState<string | null>(null);
+
+    const getEntityFullName = (entity: Dab.DabEntityConfig) =>
+        `${entity.schemaName}.${entity.tableName}`;
+
     const initialEnabledEntities = useRef<Set<string>>(
         new Set(
-            dabConfig?.entities
-                .filter((e) => e.isEnabled)
-                .map((e) => `${e.schemaName}.${e.tableName}`) ?? [],
+            dabConfig?.entities.filter((e) => e.isEnabled).map((e) => getEntityFullName(e)) ?? [],
         ),
     );
 
@@ -183,7 +185,7 @@ export const DabEntityTable = () => {
                 : initialEnabledEntities.current;
 
         dabConfig.entities.forEach((entity) => {
-            const fullName = `${entity.schemaName}.${entity.tableName}`;
+            const fullName = getEntityFullName(entity);
             const shouldCheck = tablesToCheck.has(fullName);
 
             if (initialEnabledEntities.current.has(fullName) && shouldCheck !== entity.isEnabled) {

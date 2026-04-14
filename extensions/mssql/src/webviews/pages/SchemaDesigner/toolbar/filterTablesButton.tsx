@@ -366,8 +366,11 @@ export function FilterTablesButton() {
                 }
             });
         }
-        context.updateFilterTables(selectedTables);
     }, [selectedTables, showTableRelationships]);
+
+    useEffect(() => {
+        context.updateFilterTables(selectedTables);
+    }, [selectedTables]);
 
     useEffect(() => {
         const rafId = requestAnimationFrame(() => {
