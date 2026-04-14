@@ -124,5 +124,20 @@ suite("ConnectionCredentials Tests", () => {
                 ).to.equal(originalConnInfo[key as keyof IConnectionInfo]);
             }
         });
+
+        test("createConnectionInfo preserves ActiveDirectoryDefault auth type", () => {
+            const connDetails: ConnectionDetails = {
+                options: {
+                    server: "someServer",
+                    authenticationType:
+                        AuthenticationTypes[AuthenticationTypes.ActiveDirectoryDefault],
+                },
+            };
+
+            const connInfo = ConnectionCredentials.createConnectionInfo(connDetails);
+            expect(connInfo.authenticationType).to.equal(
+                AuthenticationTypes[AuthenticationTypes.ActiveDirectoryDefault],
+            );
+        });
     });
 });

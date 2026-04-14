@@ -34,6 +34,7 @@ import {
     EditUpdateCellResult,
 } from "../../src/sharedInterfaces/tableExplorer";
 import { Logger } from "../../src/models/logger";
+import { stubLoggerGetter } from "./utils";
 
 suite("TableExplorerService Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -44,9 +45,7 @@ suite("TableExplorerService Tests", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
         mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
-        mockLogger = sandbox.createStubInstance(Logger);
-
-        sandbox.stub(mockClient, "logger").get(() => mockLogger);
+        mockLogger = stubLoggerGetter(sandbox, mockClient);
 
         tableExplorerService = new TableExplorerService(mockClient);
     });

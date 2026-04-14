@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
+import { WebviewPanelController } from "../controllers/webviewPanelController";
 import { SchemaDesigner } from "../sharedInterfaces/schemaDesigner";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as LocConstants from "../constants/locConstants";
@@ -48,7 +48,7 @@ function getCopilotChatDiscoveryDismissedState(
     };
 }
 
-export class SchemaDesignerWebviewController extends ReactWebviewPanelController<
+export class SchemaDesignerWebviewController extends WebviewPanelController<
     SchemaDesigner.SchemaDesignerWebviewState,
     SchemaDesigner.SchemaDesignerReducers
 > {
@@ -116,14 +116,28 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         this.setupConfigurationListener();
     }
 
+    /**
+     * Sets the initial filter tables for the Schema Designer.
+     * When set, the FilterTablesButton will apply this filter after initialization.
+     * @param tables Array of fully qualified table names (e.g., ["dbo.Students"])
+     */
+    public setInitialFilterTables(tables: string[]): void {
+        this.updateState({
+            ...this.state,
+            initialFilterTables: tables,
+        });
+    }
+
     private setupRequestHandlers() {
         this.onRequest(SchemaDesigner.InitializeSchemaDesignerRequest.type, async () => {
             const schemaDesignerInitActivity = startActivity(
                 TelemetryViews.SchemaDesigner,
                 TelemetryActions.Initialize,
-                undefined,
-                undefined,
-                undefined,
+                undefined, // correlationId
+                undefined, // startActivityAdditionalProps
+                undefined, // startActivityAdditionalMeasurements
+                undefined, // connectionInfo
+                undefined, // serverInfo
                 true, // include callstack in telemetry
             );
             try {
@@ -659,7 +673,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
     }
 
     /**
-     * Determines whether the DAB (Data API Builder) feature is supported for this connection.
+     * Determines whether the DAB (Data API builder) feature is supported for this connection.
      * Currently only SQL Login connections are supported because DAB runs in a local
      * Docker container that cannot perform interactive Azure AD authentication.
      */

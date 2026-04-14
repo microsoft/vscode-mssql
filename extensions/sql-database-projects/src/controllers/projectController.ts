@@ -47,7 +47,7 @@ import { addDatabaseReferenceQuickpick } from "../dialogs/addDatabaseReferenceQu
 import { FileProjectEntry, SqlProjectReferenceProjectEntry } from "../models/projectEntry";
 import { UpdateProjectAction, UpdateProjectDataModel } from "../models/api/updateProject";
 import { SqlCmdVariableTreeItem } from "../models/tree/sqlcmdVariableTreeItem";
-import { DeploymentScenario, TaskExecutionMode } from "../common/enums";
+import { DeploymentScenario, ExtractTarget, TaskExecutionMode } from "../common/enums";
 
 export type AddDatabaseReferenceSettings =
     | ISystemDatabaseReferenceSettings
@@ -783,76 +783,151 @@ export class ProjectsController {
     }
 
     /**
-     * Gets the default folder path for a given item type when creating at project root.
-     * For schema-dependent items: Checks Schema/ObjectType/ (e.g., Sales/Functions/)
-     * For non-schema items (like Database Trigger): Checks root-level ObjectType folder (e.g., DatabaseTriggers/)
-     * @param itemType The type of item being created
-     * @param project The project to check for existing folders
-     * @param schemaName Optional schema name to look for schema-named folders
-     * @returns The default folder path if it exists, or empty string otherwise
+     * Finds an existing folder in the project by path (case-insensitive). If it does not exist
+     * and `autoCreate` is true, adds it. Otherwise returns `fallback`.
      */
-    public getDefaultFolderForItemType(
+    private async findOrAddFolder(
+        project: ISqlProject,
+        targetPath: string,
+        fallback: string,
+        autoCreate: boolean,
+    ): Promise<string> {
+        const existing = project.folders.find(
+            (f) => f.relativePath.toLowerCase() === targetPath.toLowerCase(),
+        );
+        if (existing) {
+            return existing.relativePath;
+        }
+        if (autoCreate) {
+            await project.addFolder(targetPath);
+            return targetPath;
+        }
+        return fallback;
+    }
+
+    /**
+     * Returns whether the auto-create folder structure setting is enabled.
+     * Defaults to true if not set.
+     */
+    private isAutoCreateFoldersEnabled(): boolean {
+        return vscode.workspace
+            .getConfiguration()
+            .get<boolean>(constants.autoCreateFoldersSetting, true);
+    }
+
+    /**
+     * Resolves the folder path for the item being created.
+     *
+     * When called from the project root (basePath is empty):
+     * - Schema-dependent items build `Schema/ObjectType` (e.g. `dbo/Tables`)
+     * - Non-schema-dependent items build a root-level `ObjectType` folder (e.g. `DatabaseTriggers`)
+     *
+     * When called from an existing folder node (basePath is non-empty, e.g. user right-clicked `dbo`):
+     * - Checks whether `basePath/ObjectTypeFolder` exists and uses it if so
+     * - If it doesn't exist and auto-create is ON, creates `basePath/ObjectTypeFolder`
+     * - If it doesn't exist and auto-create is OFF, returns `basePath` unchanged
+     * - If the last path component already equals the ObjectTypeFolder name (user is already
+     *   inside e.g. `dbo/Tables`), returns `basePath` unchanged to avoid double-nesting
+     *
+     * @param itemType The type of item being created
+     * @param project The project to check / add folders to
+     * @param schemaName The schema name parsed from user input (e.g. "dbo", "sales")
+     * @param basePath The folder the user invoked the command from; empty string means project root
+     * @returns The relative folder path the item should be placed in
+     */
+    public async resolveItemFolder(
         itemType: ItemType,
         project: ISqlProject,
         schemaName?: string,
-    ): string {
-        let relativePath = "";
-
-        // Get the folder config for this item type (defaults to schema-dependent if not in map)
+        basePath?: string,
+    ): Promise<string> {
         const folderConfig = templates.itemTypeToFolderMap.get(itemType);
-        const isSchemaDependent = folderConfig?.schemaDependent ?? true;
-        const folderName = folderConfig?.folderName;
+        if (!folderConfig) {
+            return basePath ?? "";
+        }
 
-        // Non-schema-dependent items - check root-level folder only
-        if (!isSchemaDependent && folderName) {
-            const rootFolder = project.folders.find(
+        const { folderName, schemaDependent } = folderConfig;
+        const autoCreate = this.isAutoCreateFoldersEnabled();
+
+        // Non-root path: user invoked from an existing folder node
+        if (basePath) {
+            // Use /[\\/]/ instead of path.sep: basePath comes from trimUri which always
+            // joins with '/' on all platforms, so on Windows path.sep ('\') would never split "dbo/Tables"
+            // correctly. The regex handles both separators defensively.
+            const segments = basePath.split(/[\\/]/).filter(Boolean);
+
+            // Already inside a Schema/ObjectType folder (2+ segments, e.g. "dbo/Functions") —
+            // place the file directly there; Tables and Functions are siblings, not nested.
+            if (segments.length >= 2) {
+                return basePath;
+            }
+
+            // Non-schema-dependent types (e.g. DatabaseTriggers, Security) live at the project
+            // root and must not be nested under a schema folder or themselves.
+            if (!schemaDependent) {
+                return basePath;
+            }
+
+            // Short-circuit if basePath is already any known ObjectType folder
+            // (e.g. user is in "Tables" and adds a View → don't create "Tables/Views").
+            // Files must only be nested under schema folders (single-segment, non-ObjectType),
+            // so if basePath matches any folderName in the map we place the file directly there.
+            const isObjectTypeFolder = [...templates.itemTypeToFolderMap.values()].some(
+                (cfg) => cfg.folderName.toLowerCase() === basePath.toLowerCase(),
+            );
+            if (isObjectTypeFolder) {
+                return basePath;
+            }
+
+            // basePath is a single-segment schema folder (e.g. "dbo").
+            // Check for / create the ObjectType subfolder under it.
+            const subfolderPath = utils.convertSlashesForSqlProj(path.join(basePath, folderName));
+            return this.findOrAddFolder(project, subfolderPath, basePath, autoCreate);
+        }
+
+        // Non-schema-dependent items (e.g. Security/, DatabaseTriggers/) → root-level folder
+        if (!schemaDependent) {
+            return this.findOrAddFolder(project, folderName, "", autoCreate);
+        }
+
+        // Backward compat: if a root-level Sequences folder already exists, prefer it
+        // over creating schema/Sequences (mirrors behavior on projects created before
+        // the auto-create-folders feature where sequences lived at the project root).
+        if (itemType === ItemType.sequence) {
+            const rootSeqFolder = project.folders.find(
                 (f) => f.relativePath.toLowerCase() === folderName.toLowerCase(),
             );
-            if (rootFolder) {
-                relativePath = rootFolder.relativePath;
-            }
-            return relativePath;
-        }
-
-        // Case for Sequence: Check root-level Sequences folder first
-        if (itemType === ItemType.sequence && folderName) {
-            const rootObjectFolder = project.folders.find(
-                (f) => f.relativePath.toLowerCase() === folderName.toLowerCase(),
-            );
-
-            if (rootObjectFolder) {
-                return rootObjectFolder.relativePath;
+            if (rootSeqFolder) {
+                return rootSeqFolder.relativePath;
             }
         }
 
-        // For schema-dependent items, check schema folders
-        if (schemaName) {
-            // Case 1: Check for schema folder (e.g., "Sales", "dbo") - case-insensitive
-            const schemaFolder = project.folders.find(
-                (f) => f.relativePath.toLowerCase() === schemaName.toLowerCase(),
-            );
+        // Schema-dependent items (e.g. dbo/Tables/, sales/StoredProcedures/)
+        const resolvedSchema = schemaName ?? constants.defaultSchemaName;
+        const nestedPath = utils.convertSlashesForSqlProj(path.join(resolvedSchema, folderName));
 
-            if (schemaFolder) {
-                relativePath = schemaFolder.relativePath;
-
-                // Case 2: Check for nested object type folder (e.g., "Sales/Functions")
-                if (folderName) {
-                    const nestedPath = utils.convertSlashesForSqlProj(
-                        path.join(schemaFolder.relativePath, folderName),
-                    );
-                    const nestedFolder = project.folders.find(
-                        (f) => f.relativePath.toLowerCase() === nestedPath.toLowerCase(),
-                    );
-
-                    if (nestedFolder) {
-                        relativePath = nestedFolder.relativePath;
-                    }
-                }
-            }
+        // Single scan for nestedPath — avoids a second scan inside findOrAddFolder.
+        const existingNested = project.folders.find(
+            (f) => f.relativePath.toLowerCase() === nestedPath.toLowerCase(),
+        );
+        if (existingNested) {
+            return existingNested.relativePath;
         }
 
-        // Case 3: If no schema folder found, return empty string (place at root)
-        return relativePath;
+        if (!autoCreate) {
+            return "";
+        }
+
+        // Auto-create: ensure the parent schema folder exists before adding the nested path.
+        if (
+            !project.folders.some(
+                (f) => f.relativePath.toLowerCase() === resolvedSchema.toLowerCase(),
+            )
+        ) {
+            await project.addFolder(resolvedSchema);
+        }
+        await project.addFolder(nestedPath);
+        return nestedPath;
     }
 
     public async addItemPromptFromNode(
@@ -931,11 +1006,16 @@ export class ProjectsController {
         // Parse schema and object name from input (e.g., "sales.MyFunction" -> schema="sales", objectName="MyFunction")
         const { schemaName, objectName } = this.parseSchemaAndObjectName(itemObjectName);
 
-        // Determine the folder for this item when creating at project root
-        // Checks: Schema folder -> Schema/ObjectType folder -> root
-        if (relativePath === "") {
-            relativePath = this.getDefaultFolderForItemType(itemType.type, project, schemaName);
-        }
+        // Resolve the best folder for this item type, whether adding from root or from
+        // an existing folder node (e.g. user right-clicked the dbo/ schema folder).
+        // resolveItemFolder handles both cases: creates missing subfolders when auto-create
+        // is ON, or returns the existing folder / falls back to the current path when OFF.
+        relativePath = await this.resolveItemFolder(
+            itemType.type,
+            project,
+            schemaName,
+            relativePath || undefined,
+        );
 
         const relativeFilePath = path.join(relativePath, objectName + fileExtension);
 
@@ -1897,17 +1977,7 @@ export class ProjectsController {
     private getConnectionProfileFromContext(
         context: mssqlVscode.ITreeNodeInfo | undefined,
     ): mssqlVscode.IConnectionInfo | undefined {
-        if (!context) {
-            return undefined;
-        }
-
-        // depending on where import new project is launched from, the connection profile could be passed as just
-        // the profile or it could be wrapped in another object
-        return (
-            (<any>context)?.connectionProfile ??
-            (context as mssqlVscode.ITreeNodeInfo).connectionInfo ??
-            context
-        );
+        return context?.connectionProfile;
     }
 
     private refreshProjectsTree(workspaceTreeItem: dataworkspace.WorkspaceTreeItem): void {
@@ -2001,7 +2071,7 @@ export class ProjectsController {
                 .send();
 
             const scriptList: vscode.Uri[] =
-                model.extractTarget === mssqlVscode.ExtractTarget.file
+                model.extractTarget === ExtractTarget.file
                     ? [vscode.Uri.file(model.filePath)]
                     : await this.generateScriptList(model.filePath); // Create a list of all the files to be added to project
 
@@ -2043,7 +2113,7 @@ export class ProjectsController {
     }
 
     public setFilePath(model: ImportDataModel) {
-        if (model.extractTarget === mssqlVscode.ExtractTarget.file) {
+        if (model.extractTarget === ExtractTarget.file) {
             model.filePath = path.join(model.filePath, `${model.projName}.sql`); // File extractTarget specifies the exact file rather than the containing folder
         }
     }
@@ -2240,7 +2310,7 @@ export class ProjectsController {
             operationId,
             source as mssqlVscode.SchemaCompareEndpointInfo,
             target as mssqlVscode.SchemaCompareEndpointInfo,
-            mssqlVscode.TaskExecutionMode.execute,
+            TaskExecutionMode.execute as unknown as mssqlVscode.TaskExecutionMode,
             deploymentOptions.defaultDeploymentOptions,
         );
 
@@ -2321,7 +2391,7 @@ export class ProjectsController {
             operationId,
             projectPath,
             folderStructure as mssqlVscode.ExtractTarget,
-            mssqlVscode.TaskExecutionMode.execute as any,
+            TaskExecutionMode.execute as unknown as mssqlVscode.TaskExecutionMode,
         );
 
         if (!result.errorMessage) {

@@ -9,11 +9,12 @@ import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
 import * as fs from "fs";
-import { PassThrough } from "stream";
+import { PassThrough, Writable } from "stream";
 import axios, { AxiosResponse } from "axios";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import { HttpClient, HttpDownloadError } from "../../src/http/httpClient";
 import { Logger } from "../../src/models/logger";
+import { createStubLogger } from "./utils";
 
 chai.use(sinonChai);
 
@@ -25,7 +26,7 @@ suite("HttpClient tests", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
 
-        logger = sandbox.createStubInstance(Logger);
+        logger = createStubLogger(sandbox);
         httpClient = new HttpClient(logger);
     });
 
@@ -160,7 +161,17 @@ suite("HttpClient tests", () => {
             const headers = { "content-length": "5" };
 
             const responseStream = new PassThrough();
-            const tmpFileStream = new PassThrough();
+            const receivedChunkLengths: number[] = [];
+            let releaseWriteStream: (() => void) | undefined;
+            const tmpFileStream = new Writable({
+                write(chunk, _encoding, callback) {
+                    receivedChunkLengths.push((chunk as Buffer).length);
+                    callback();
+                },
+                final(callback) {
+                    releaseWriteStream = callback;
+                },
+            });
 
             sandbox
                 .stub(httpClient, "setupRequest")
@@ -181,24 +192,36 @@ suite("HttpClient tests", () => {
             sandbox.stub(axios, "get").resolves(mockResponse);
 
             const onHeaders = sandbox.spy();
-            const onData = sandbox.spy();
+            const onData = sandbox.spy((data: Buffer) => data.length);
+            let downloadCompleted = false;
 
-            const downloadPromise = httpClient.downloadFile(requestUrl, 123, {
-                onHeaders,
-                onData,
-            });
+            const downloadPromise = httpClient
+                .downloadFile(requestUrl, 123, {
+                    onHeaders,
+                    onData,
+                })
+                .then((result) => {
+                    downloadCompleted = true;
+                    return result;
+                });
 
             responseStream.write(Buffer.from([1, 2, 3]));
             responseStream.end(Buffer.from([4, 5]));
+
+            await new Promise<void>((resolve) => setImmediate(resolve));
+
+            expect(downloadCompleted).to.be.false;
+            expect(releaseWriteStream).to.not.be.undefined;
+
+            releaseWriteStream?.();
 
             const result = await downloadPromise;
 
             expect(result.status).to.equal(200);
             expect(result.headers).to.equal(headers);
-            expect(onHeaders).to.have.been.calledOnceWithExactly(headers);
-            expect(onData).to.have.callCount(2);
-            expect((onData.firstCall.args[0] as Buffer).length).to.equal(3);
-            expect((onData.secondCall.args[0] as Buffer).length).to.equal(2);
+            expect(onHeaders).to.have.been.calledWithExactly(headers);
+            expect(receivedChunkLengths).to.deep.equal([3, 2]);
+            expect(onData.args.map((args) => (args[0] as Buffer).length)).to.deep.equal([3, 2]);
             expect(axios.get).to.have.been.calledWith(
                 normalizedUrl,
                 sinon.match({ responseType: "stream" }),

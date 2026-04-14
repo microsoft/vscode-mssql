@@ -6,7 +6,7 @@
 import { expect } from "chai";
 import { MarkerType, type Edge, type Node } from "@xyflow/react";
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
-import { buildSchemaFromFlowState } from "../../src/reactviews/pages/SchemaDesigner/model";
+import { buildSchemaFromFlowState } from "../../src/webviews/pages/SchemaDesigner/model";
 
 type DeletedTable = SchemaDesigner.Table & { isDeleted: true };
 type DeletedForeignKey = SchemaDesigner.ForeignKey & { isDeleted: true };

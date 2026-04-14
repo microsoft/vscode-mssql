@@ -1,11 +1,11 @@
-const { execSync } = require("child_process");
+const { execFileSync } = require("child_process");
 
-const isProd = process.argv.includes("--prod");
-const prodArg = isProd ? "--prod" : "";
+const npmCommand = "npm";
+const execOptions = { stdio: "inherit", shell: process.platform === "win32" };
 
 try {
-    execSync("yarn build:prepare", { stdio: "inherit" });
-    execSync("yarn build:extension", { stdio: "inherit" });
+    execFileSync(npmCommand, ["run", "build:prepare"], execOptions);
+    execFileSync(npmCommand, ["run", "build:extension"], execOptions);
 } catch (error) {
     process.exit(1);
 }

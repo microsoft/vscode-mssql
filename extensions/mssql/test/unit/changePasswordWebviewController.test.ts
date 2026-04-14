@@ -21,13 +21,13 @@ import {
 import * as LocConstants from "../../src/constants/locConstants";
 import {
     stubTelemetry,
+    stubLogger,
     stubVscodeWrapper,
     stubWebviewConnectionRpc,
     stubWebviewPanel,
 } from "./utils";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { IConnectionInfo } from "vscode-mssql";
-import { Logger } from "../../src/models/logger";
 import * as utils from "../../src/utils/utils";
 
 chai.use(sinonChai);
@@ -49,8 +49,7 @@ suite("ChangePasswordWebviewController", () => {
         sandbox = sinon.createSandbox();
         stubTelemetry(sandbox);
 
-        const loggerStub = sandbox.createStubInstance(Logger);
-        sandbox.stub(Logger, "create").returns(loggerStub);
+        stubLogger(sandbox);
 
         sandbox.stub(utils, "getNonce").returns("test-nonce");
         sandbox.stub(LocConstants.Connection, "ChangePassword").value("Change Password");

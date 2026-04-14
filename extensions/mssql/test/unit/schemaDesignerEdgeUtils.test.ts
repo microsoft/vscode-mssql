@@ -10,7 +10,7 @@ import {
     buildForeignKeyEdgeId,
     removeEdgesForForeignKey,
     type ForeignKeyEdgeLike,
-} from "../../src/reactviews/pages/SchemaDesigner/schemaDesignerEdgeUtils";
+} from "../../src/webviews/pages/SchemaDesigner/schemaDesignerEdgeUtils";
 
 suite("SchemaDesigner FK edge utils", () => {
     test("buildForeignKeyEdgeId is stable and per-column", () => {

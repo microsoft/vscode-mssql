@@ -13,6 +13,11 @@ import { usePerTestVsCodeLifecycle } from "./utils/testLifecycle";
  * Since code-coverage is not supported for VSIX based tests, we are converting all tests to use the VSIX package.
  */
 test.describe("MSSQL Extension - VSIX Based tests", async () => {
+    test.skip(
+        !process.env["BUILT_VSIX_PATH"],
+        "Skipping VSIX-based tests because BUILT_VSIX_PATH is not set.",
+    );
+
     const getContext = usePerTestVsCodeLifecycle({
         launchOptions: {
             useVsix: true,

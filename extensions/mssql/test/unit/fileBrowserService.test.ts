@@ -20,13 +20,13 @@ import {
 } from "../../src/models/contracts/fileBrowser";
 import { Deferred } from "../../src/protocol";
 import { FileBrowserCloseResponse } from "azdata";
+import { stubLoggerGetter } from "./utils";
 
 suite("FileBrowserService Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let fileBrowserService: FileBrowserService;
     let sqlToolsClientStub: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
     let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
-    let loggerErrorStub: sinon.SinonStub;
     let mockFileTree: FileTree;
 
     setup(() => {
@@ -53,11 +53,7 @@ suite("FileBrowserService Tests", () => {
             selectedNode: undefined,
         };
 
-        // Stub logger - use defineProperty since logger is a getter
-        loggerErrorStub = sandbox.stub();
-        Object.defineProperty(sqlToolsClientStub, "logger", {
-            get: () => ({ error: loggerErrorStub }),
-        });
+        stubLoggerGetter(sandbox, sqlToolsClientStub);
 
         fileBrowserService = new FileBrowserService(vscodeWrapperStub, sqlToolsClientStub);
     });

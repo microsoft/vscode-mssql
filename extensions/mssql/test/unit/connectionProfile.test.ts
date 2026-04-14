@@ -6,6 +6,7 @@
 import * as sinon from "sinon";
 import { IConnectionInfo } from "vscode-mssql";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
+import { ConnectionProfile } from "../../src/models/connectionProfile";
 import { AuthenticationTypes } from "../../src/models/interfaces";
 import { expect } from "chai";
 
@@ -114,5 +115,14 @@ suite("Connection Profile tests", () => {
         expect(details.options["typeSystemVersion"]).to.not.be.undefined;
         expect(details.options["user"]).to.not.be.undefined;
         expect(details.options["workstationId"]).to.not.be.undefined;
+    });
+
+    test("ActiveDirectoryDefault profile only requires server", () => {
+        const profile = new ConnectionProfile();
+        profile.server = "my-server";
+        profile.authenticationType =
+            AuthenticationTypes[AuthenticationTypes.ActiveDirectoryDefault];
+
+        expect(profile.isValidProfile()).to.be.true;
     });
 });

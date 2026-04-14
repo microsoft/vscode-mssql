@@ -88,6 +88,11 @@ export interface FormItemSpec<
      * Whether the form item is an advanced option
      */
     isAdvancedOption?: boolean;
+
+    /**
+     * Whether the form item is currently loading its data (e.g. dropdown options)
+     */
+    loading?: boolean;
 }
 
 export interface FormItemValidationState {
@@ -105,7 +110,7 @@ export interface FormItemActionButton {
     label: string;
     id: string;
     hidden?: boolean;
-    callback: () => void;
+    callback: () => void | Promise<void>;
 }
 
 export interface FormItemOptions {

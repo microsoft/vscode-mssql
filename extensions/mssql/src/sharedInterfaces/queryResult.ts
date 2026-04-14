@@ -61,6 +61,14 @@ export interface FontSettings {
     fontFamily?: string;
 }
 
+export type GridLinesMode = "both" | "horizontal" | "vertical" | "none";
+
+export interface GridSettings {
+    alternatingRowColors?: boolean;
+    showGridLines?: GridLinesMode;
+    rowPadding?: number | null;
+}
+
 export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     uri?: string;
     title?: string;
@@ -71,6 +79,7 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     selection?: ISlickRange[];
     executionPlanState: ExecutionPlanState;
     fontSettings: FontSettings;
+    gridSettings?: GridSettings;
     autoSizeColumnsMode?: ResultsGridAutoSizeStyle;
     inMemoryDataProcessingThreshold?: number;
     initializationError?: string;
@@ -164,6 +173,7 @@ export interface IDbColumn {
     dataType: string;
     isXml?: boolean;
     isJson?: boolean;
+    isVector?: boolean;
     isLong?: boolean;
     isReadOnly?: boolean;
     isUnique?: boolean;
@@ -319,6 +329,14 @@ export interface CopyAsInsertIntoRequest {
 
 export namespace CopyAsInsertIntoRequest {
     export const type = new RequestType<CopyAsInsertIntoRequest, void, void>("copyAsInsertInto");
+}
+
+export interface CopyColumnNameRequestParams {
+    columnName: string;
+}
+
+export namespace CopyColumnNameRequest {
+    export const type = new RequestType<CopyColumnNameRequestParams, void, void>("copyColumnName");
 }
 
 export interface SetSelectionSummary {

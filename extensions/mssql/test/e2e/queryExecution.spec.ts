@@ -46,8 +46,8 @@ test.describe("MSSQL Extension - Query Execution", async () => {
         beforeClose: async ({ page: vsCodePage }) => {
             await openNewQueryEditor(vsCodePage);
             const dropTestDatabaseScript = `
-USE master
-ALTER DATABASE TestDB SET SINGLE_USER WITH ROLLBACK IMMEDIATE
+USE master;
+ALTER DATABASE TestDB SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
 DROP DATABASE TestDB;`;
             await enterTextIntoQueryEditor(vsCodePage, dropTestDatabaseScript);
             await executeQuery(vsCodePage);

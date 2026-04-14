@@ -15,6 +15,19 @@ export default defineConfig({
                 timeout: 30_000,
             }),
         },
+        {
+            label: "Activation Tests",
+            files: "out/test/activation/**/*.test.js",
+            version: "insiders",
+            installExtensions: ["ms-dotnettools.vscode-dotnet-runtime"],
+            env: {
+                VSCODE_LOG_LEVEL: "error",
+            },
+            mocha: createMochaConfig({
+                ui: "tdd",
+                timeout: 30_000,
+            }),
+        },
     ],
     coverage: defaultCoverageConfig,
 });

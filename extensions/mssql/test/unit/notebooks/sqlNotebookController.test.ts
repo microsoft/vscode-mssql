@@ -11,6 +11,8 @@ import * as vscode from "vscode";
 
 chai.use(sinonChai);
 import type { IConnectionInfo } from "vscode-mssql";
+import * as Constants from "../../../src/constants/constants";
+import * as LocalizedConstants from "../../../src/constants/locConstants";
 import { SqlNotebookController } from "../../../src/notebooks/sqlNotebookController";
 import ConnectionManager from "../../../src/controllers/connectionManager";
 import { ConnectionSharingService } from "../../../src/connectionSharing/connectionSharingService";
@@ -18,6 +20,7 @@ import type { NotebookQueryResult } from "../../../src/notebooks/notebookQueryEx
 import { NotebookConnectionManager } from "../../../src/notebooks/notebookConnectionManager";
 import { IDbColumn } from "../../../src/models/interfaces";
 import { BatchSummary } from "../../../src/models/contracts/queryExecute";
+import type { NotebookQueryResultOutputData } from "../../../src/sharedInterfaces/notebookQueryResult";
 
 function makeQueryResult(overrides?: Partial<NotebookQueryResult>): NotebookQueryResult {
     return {
@@ -47,11 +50,19 @@ function makeBatchSummary(overrides?: Partial<BatchSummary>): BatchSummary {
         hasError: false,
         selection: { startLine: 0, startColumn: 0, endLine: 0, endColumn: 0 },
         resultSetSummaries: [],
-        executionElapsed: "00:00:00.000",
+        executionElapsed: "",
         executionEnd: "",
         executionStart: "",
         ...overrides,
     };
+}
+
+function getOutputText(output: vscode.NotebookCellOutput, itemIndex = 0): string {
+    return new TextDecoder().decode(output.items[itemIndex].data);
+}
+
+function getJsonOutput<T>(output: vscode.NotebookCellOutput, itemIndex = 0): T {
+    return JSON.parse(getOutputText(output, itemIndex)) as T;
 }
 
 suite("SqlNotebookController", () => {
@@ -105,6 +116,7 @@ suite("SqlNotebookController", () => {
         token: vscode.CancellationToken;
     };
     let mockCancelToken: vscode.EventEmitter<void>;
+    let executeCommandStub: sinon.SinonStub;
 
     const notebookUri = vscode.Uri.parse("vscode-notebook://test-notebook");
 
@@ -219,6 +231,7 @@ suite("SqlNotebookController", () => {
         };
 
         setupVscodeMocks(sandbox);
+        executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves(undefined);
 
         // Mock ConnectionManager (used for connection UI flows)
         connectionMgr = {
@@ -370,6 +383,171 @@ suite("SqlNotebookController", () => {
             expect(mockExecution.end).to.have.been.calledWith(false, sinon.match.number);
         });
 
+        test("shows total execution time after a single result set", async () => {
+            mockNotebookConnMgr.executeQueryString.resolves(
+                makeQueryResult({
+                    batches: [
+                        {
+                            batchSummary: makeBatchSummary({ executionElapsed: "00:00:01.234" }),
+                            messages: [],
+                            resultSets: [
+                                {
+                                    columnInfo: [makeColumn("id", "int")],
+                                    rows: [[{ displayValue: "1", isNull: false }]],
+                                    rowCount: 1,
+                                },
+                            ],
+                            hasError: false,
+                        },
+                    ],
+                }),
+            );
+
+            const notebook = makeNotebook([{ text: "SELECT 1 AS id" }]);
+            const cells = notebook.getCells();
+
+            await mockController.executeHandler(cells, notebook, mockController);
+
+            const outputs = mockExecution.replaceOutput.firstCall
+                .args[0] as vscode.NotebookCellOutput[];
+            expect(outputs).to.have.lengthOf(1);
+            expect(outputs[0].items[0].mime).to.equal("application/vnd.mssql.query-result");
+            const output = getJsonOutput<NotebookQueryResultOutputData>(outputs[0]);
+            expect(output.blocks.map((block) => block.type)).to.deep.equal(["resultSet", "text"]);
+            expect(output.blocks[1]).to.deep.equal({
+                type: "text",
+                text: LocalizedConstants.elapsedTimeLabel("00:00:01.234"),
+            });
+            expect(getOutputText(outputs[0], 1)).to.include(
+                LocalizedConstants.elapsedTimeLabel("00:00:01.234"),
+            );
+        });
+
+        test("adds spacing between multiple result grids and appends execution time once", async () => {
+            mockNotebookConnMgr.executeQueryString.resolves(
+                makeQueryResult({
+                    batches: [
+                        {
+                            batchSummary: makeBatchSummary({ executionElapsed: "00:00:02.000" }),
+                            messages: [],
+                            resultSets: [
+                                {
+                                    columnInfo: [makeColumn("id", "int")],
+                                    rows: [[{ displayValue: "1", isNull: false }]],
+                                    rowCount: 1,
+                                },
+                                {
+                                    columnInfo: [makeColumn("name", "nvarchar")],
+                                    rows: [[{ displayValue: "Alice", isNull: false }]],
+                                    rowCount: 1,
+                                },
+                            ],
+                            hasError: false,
+                        },
+                    ],
+                }),
+            );
+
+            const notebook = makeNotebook([{ text: "SELECT 1 AS id; SELECT 'Alice' AS name;" }]);
+            const cells = notebook.getCells();
+
+            await mockController.executeHandler(cells, notebook, mockController);
+
+            const outputs = mockExecution.replaceOutput.firstCall
+                .args[0] as vscode.NotebookCellOutput[];
+            expect(outputs).to.have.lengthOf(1);
+
+            const output = getJsonOutput<NotebookQueryResultOutputData>(outputs[0]);
+            expect(output.blocks.map((block) => block.type)).to.deep.equal([
+                "resultSet",
+                "resultSet",
+                "text",
+            ]);
+
+            const executionTimeBlock = output.blocks[2];
+            expect(executionTimeBlock).to.deep.equal({
+                type: "text",
+                text: LocalizedConstants.elapsedTimeLabel("00:00:02"),
+            });
+        });
+
+        test("shows total execution time after message-only execution", async () => {
+            mockNotebookConnMgr.executeQueryString.resolves(
+                makeQueryResult({
+                    batches: [
+                        {
+                            batchSummary: makeBatchSummary({ executionElapsed: "00:00:00.450" }),
+                            messages: [
+                                {
+                                    batchId: 0,
+                                    isError: false,
+                                    time: new Date().toISOString(),
+                                    message: "(1 row(s) affected)",
+                                },
+                            ],
+                            resultSets: [],
+                            hasError: false,
+                        },
+                    ],
+                }),
+            );
+
+            const notebook = makeNotebook([{ text: "PRINT 'done'" }]);
+            const cells = notebook.getCells();
+
+            await mockController.executeHandler(cells, notebook, mockController);
+
+            const outputs = mockExecution.replaceOutput.firstCall
+                .args[0] as vscode.NotebookCellOutput[];
+            expect(outputs).to.have.lengthOf(2);
+            expect(getOutputText(outputs[0])).to.equal("(1 row(s) affected)");
+            expect(getOutputText(outputs[1])).to.equal(
+                LocalizedConstants.elapsedTimeLabel("00:00:00.450"),
+            );
+        });
+
+        test("shows total execution time once at the end across multiple batches", async () => {
+            mockNotebookConnMgr.executeQueryString.resolves(
+                makeQueryResult({
+                    batches: [
+                        {
+                            batchSummary: makeBatchSummary({
+                                id: 0,
+                                executionElapsed: "00:00:01.000",
+                            }),
+                            messages: [],
+                            resultSets: [],
+                            hasError: false,
+                        },
+                        {
+                            batchSummary: makeBatchSummary({
+                                id: 1,
+                                executionElapsed: "00:00:00.250",
+                            }),
+                            messages: [],
+                            resultSets: [],
+                            hasError: false,
+                        },
+                    ],
+                }),
+            );
+
+            const notebook = makeNotebook([{ text: "SELECT 1\nGO\nSELECT 2" }]);
+            const cells = notebook.getCells();
+
+            await mockController.executeHandler(cells, notebook, mockController);
+
+            const outputs = mockExecution.replaceOutput.firstCall
+                .args[0] as vscode.NotebookCellOutput[];
+            const executionTimeText = LocalizedConstants.elapsedTimeLabel("00:00:01.250");
+            const executionTimeOutputs = outputs.filter(
+                (output) => getOutputText(output) === executionTimeText,
+            );
+
+            expect(executionTimeOutputs).to.have.lengthOf(1);
+            expect(getOutputText(outputs[outputs.length - 1])).to.equal(executionTimeText);
+        });
+
         test("shows truncation warning when result set is incomplete", async () => {
             mockNotebookConnMgr.executeQueryString.resolves(
                 makeQueryResult({
@@ -400,17 +578,186 @@ suite("SqlNotebookController", () => {
 
             expect(mockExecution.replaceOutput).to.have.been.calledOnce;
             const outputs = mockExecution.replaceOutput.firstCall.args[0];
-            expect(outputs).to.have.lengthOf(2);
+            expect(outputs).to.have.lengthOf(1);
 
-            // First output should be the truncation warning
-            const warningOutput = outputs[0];
-            expect(warningOutput.items[0].mime).to.equal("text/plain");
-            const warningText = new TextDecoder().decode(warningOutput.items[0].data);
-            expect(warningText).to.include("Warning: Result set is incomplete");
-            expect(warningText).to.include("2"); // Actual rows returned
-            expect(warningText).to.include("1000"); // Total rows available
+            const output = getJsonOutput<NotebookQueryResultOutputData>(outputs[0]);
+            expect(output.blocks.map((block) => block.type)).to.deep.equal(["text", "resultSet"]);
+            const warningBlock = output.blocks[0];
+            expect(warningBlock.type).to.equal("text");
+            if (warningBlock.type === "text") {
+                expect(warningBlock.text).to.include("Warning: Result set is incomplete");
+                expect(warningBlock.text).to.include("2");
+                expect(warningBlock.text).to.include("1000");
+            }
 
             expect(mockExecution.end).to.have.been.calledWith(true, sinon.match.number);
+        });
+
+        test("shows error message for batch with isError=true messages (regardless of batch.hasError)", async () => {
+            mockNotebookConnMgr.executeQueryString.resolves(
+                makeQueryResult({
+                    batches: [
+                        {
+                            batchSummary: makeBatchSummary({ hasError: false }), // hasError=false even though there's an error message
+                            messages: [
+                                {
+                                    batchId: 0,
+                                    isError: true,
+                                    time: "",
+                                    message: "Incorrect syntax near 'SELEC'.",
+                                },
+                            ],
+                            resultSets: [],
+                            hasError: false,
+                        },
+                    ],
+                }),
+            );
+
+            const notebook = makeNotebook([{ text: "SELEC 1" }]);
+            const cells = notebook.getCells();
+
+            await mockController.executeHandler(cells, notebook, mockController);
+
+            const outputs = mockExecution.replaceOutput.firstCall.args[0];
+            // Should have one error output, not "Commands completed successfully"
+            expect(outputs).to.have.lengthOf(1);
+            // Error output uses stderr mime type
+            expect(outputs[0].items[0].mime).to.equal("application/vnd.code.notebook.stderr");
+            const errorText = new TextDecoder().decode(outputs[0].items[0].data);
+            expect(errorText).to.include("Incorrect syntax near 'SELEC'.");
+            // Cell should be marked as failed
+            expect(mockExecution.end).to.have.been.calledWith(false, sinon.match.number);
+        });
+
+        test("does not show 'Commands completed successfully' when error messages exist", async () => {
+            mockNotebookConnMgr.executeQueryString.resolves(
+                makeQueryResult({
+                    batches: [
+                        {
+                            batchSummary: makeBatchSummary({ hasError: true }),
+                            messages: [
+                                {
+                                    batchId: 0,
+                                    isError: true,
+                                    time: "",
+                                    message: "Divide by zero error encountered.",
+                                },
+                            ],
+                            resultSets: [],
+                            hasError: true,
+                        },
+                    ],
+                }),
+            );
+
+            const notebook = makeNotebook([{ text: "SELECT 1/0" }]);
+            const cells = notebook.getCells();
+
+            await mockController.executeHandler(cells, notebook, mockController);
+
+            const outputs = mockExecution.replaceOutput.firstCall.args[0];
+            expect(outputs).to.have.lengthOf(1);
+            const text = new TextDecoder().decode(outputs[0].items[0].data);
+            expect(text).to.not.include("Command completed successfully");
+            expect(text).to.include("Divide by zero error encountered.");
+        });
+
+        test("shows PRINT messages as plain text output", async () => {
+            mockNotebookConnMgr.executeQueryString.resolves(
+                makeQueryResult({
+                    batches: [
+                        {
+                            batchSummary: makeBatchSummary(),
+                            messages: [
+                                {
+                                    batchId: 0,
+                                    isError: false,
+                                    time: "",
+                                    message: "hello world",
+                                },
+                            ],
+                            resultSets: [],
+                            hasError: false,
+                        },
+                    ],
+                }),
+            );
+
+            const notebook = makeNotebook([{ text: "PRINT 'hello world'" }]);
+            const cells = notebook.getCells();
+
+            await mockController.executeHandler(cells, notebook, mockController);
+
+            const outputs = mockExecution.replaceOutput.firstCall.args[0];
+            expect(outputs).to.have.lengthOf(1);
+            expect(outputs[0].items[0].mime).to.equal("text/plain");
+            const text = new TextDecoder().decode(outputs[0].items[0].data);
+            expect(text).to.equal("hello world");
+            expect(mockExecution.end).to.have.been.calledWith(true, sinon.match.number);
+        });
+
+        test("multi-batch: shows grid, error, grid in order", async () => {
+            mockNotebookConnMgr.executeQueryString.resolves(
+                makeQueryResult({
+                    batches: [
+                        {
+                            batchSummary: makeBatchSummary({ id: 0 }),
+                            messages: [],
+                            resultSets: [
+                                {
+                                    columnInfo: [makeColumn("n", "int")],
+                                    rows: [[{ displayValue: "1", isNull: false }]],
+                                    rowCount: 1,
+                                },
+                            ],
+                            hasError: false,
+                        },
+                        {
+                            batchSummary: makeBatchSummary({ id: 1, hasError: true }),
+                            messages: [
+                                {
+                                    batchId: 1,
+                                    isError: true,
+                                    time: "",
+                                    message: "Divide by zero error encountered.",
+                                },
+                            ],
+                            resultSets: [],
+                            hasError: true,
+                        },
+                        {
+                            batchSummary: makeBatchSummary({ id: 2 }),
+                            messages: [],
+                            resultSets: [
+                                {
+                                    columnInfo: [makeColumn("n", "int")],
+                                    rows: [[{ displayValue: "2", isNull: false }]],
+                                    rowCount: 1,
+                                },
+                            ],
+                            hasError: false,
+                        },
+                    ],
+                }),
+            );
+
+            const notebook = makeNotebook([{ text: "SELECT 1\nGO\nSELECT 1/0\nGO\nSELECT 2" }]);
+            const cells = notebook.getCells();
+
+            await mockController.executeHandler(cells, notebook, mockController);
+
+            const outputs = mockExecution.replaceOutput.firstCall.args[0];
+            expect(outputs).to.have.lengthOf(1);
+            expect(outputs[0].items[0].mime).to.equal("application/vnd.mssql.query-result");
+            const output = getJsonOutput<NotebookQueryResultOutputData>(outputs[0]);
+            expect(output.blocks.map((block) => block.type)).to.deep.equal([
+                "resultSet",
+                "error",
+                "resultSet",
+            ]);
+            // Cell should be marked failed because one batch had an error
+            expect(mockExecution.end).to.have.been.calledWith(false, sinon.match.number);
         });
 
         test("does not show truncation warning when result set is complete", async () => {
@@ -577,12 +924,13 @@ suite("SqlNotebookController", () => {
     });
 
     suite("createNotebookWithConnection", () => {
-        test("creates notebook without connection", async () => {
+        test("creates notebook without connection and selects MSSQL kernel", async () => {
             const mockNotebook = makeNotebook();
+            const mockNotebookEditor = {
+                notebook: mockNotebook,
+            } as unknown as vscode.NotebookEditor;
             sandbox.stub(vscode.workspace, "openNotebookDocument").resolves(mockNotebook);
-            sandbox
-                .stub(vscode.window, "showNotebookDocument")
-                .resolves({} as unknown as vscode.NotebookEditor);
+            sandbox.stub(vscode.window, "showNotebookDocument").resolves(mockNotebookEditor);
 
             await controller.createNotebookWithConnection();
 
@@ -591,14 +939,20 @@ suite("SqlNotebookController", () => {
                 mockNotebook,
                 vscode.NotebookControllerAffinity.Preferred,
             );
+            expect(executeCommandStub).to.have.been.calledWithExactly("notebook.selectKernel", {
+                notebookEditor: mockNotebookEditor,
+                id: mockController.id,
+                extension: Constants.extensionId,
+            });
         });
 
-        test("creates notebook and connects with provided connection", async () => {
+        test("creates notebook, selects MSSQL kernel, and connects with provided connection", async () => {
             const mockNotebook = makeNotebook();
+            const mockNotebookEditor = {
+                notebook: mockNotebook,
+            } as unknown as vscode.NotebookEditor;
             sandbox.stub(vscode.workspace, "openNotebookDocument").resolves(mockNotebook);
-            sandbox
-                .stub(vscode.window, "showNotebookDocument")
-                .resolves({} as unknown as vscode.NotebookEditor);
+            sandbox.stub(vscode.window, "showNotebookDocument").resolves(mockNotebookEditor);
             sandbox.stub(vscode.window, "showInformationMessage").resolves();
 
             const connInfo = {
@@ -609,6 +963,11 @@ suite("SqlNotebookController", () => {
 
             await controller.createNotebookWithConnection(connInfo);
 
+            expect(executeCommandStub).to.have.been.calledWithExactly("notebook.selectKernel", {
+                notebookEditor: mockNotebookEditor,
+                id: mockController.id,
+                extension: Constants.extensionId,
+            });
             expect(mockNotebookConnMgr.connectWith).to.have.been.calledWith(connInfo);
         });
     });

@@ -336,6 +336,7 @@ export namespace SchemaDesigner {
         copilotChatDiscoveryDismissed?: CopilotChat.DiscoveryDismissedState;
         activeView?: SchemaDesignerActiveView;
         isDabDeploymentSupported?: boolean;
+        initialFilterTables?: string[];
     }
 
     export interface ExportFileOptions {

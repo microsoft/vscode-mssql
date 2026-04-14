@@ -53,6 +53,7 @@ suite("AddFirewallRuleWebviewController Tests", () => {
             const expectedInitialState: AddFirewallRuleState = {
                 serverName: serverName,
                 isSignedIn: false,
+                loadingAccounts: false,
                 accounts: [],
                 tenants: {},
                 clientIp: "1.2.3.4",
@@ -74,6 +75,7 @@ suite("AddFirewallRuleWebviewController Tests", () => {
             const expectedInitialState: AddFirewallRuleState = {
                 serverName: serverName,
                 isSignedIn: true,
+                loadingAccounts: false,
                 accounts: [azureHelperStubs.mockAccounts.signedInAccount].map((a) => {
                     return {
                         accountId: a.id,

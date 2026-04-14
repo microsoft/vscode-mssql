@@ -8,7 +8,6 @@ localization
 ! localization/l10n
 out/test
 packages
-samples
 src
 tasks
 test
@@ -39,3 +38,7 @@ prettier.config.mjs
 scripts
 out
 node_modules/**
+AGENTS.md
+codeql.yml
+coverconfig.json
+test-results/**

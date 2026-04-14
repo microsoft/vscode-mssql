@@ -3,10 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import dotenv from "dotenv";
+import * as dotenv from "dotenv";
+import * as path from "path";
 import { defineConfig } from "@playwright/test";
 
-dotenv.config({ path: "./test/e2e/.env" });
+dotenv.config({ path: path.resolve(__dirname, "test/e2e/.env") });
 
 /**
  * Read environment variables from file.

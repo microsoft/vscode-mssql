@@ -1,7 +1,7 @@
 {
     "name": "mssql",
     "displayName": "SQL Server (mssql)",
-    "version": "1.42.0",
+    "version": "1.43.0",
     "description": "Design and optimize schemas for SQL Server, Azure SQL, and SQL Database in Fabric using a modern, lightweight extension built for developers",
     "publisher": "ms-mssql",
     "preview": false,
@@ -48,32 +48,33 @@
     "extensionPack": [
         "ms-mssql.data-workspace-vscode",
         "ms-mssql.sql-database-projects-vscode",
-        "ms-mssql.sql-bindings-vscode"
+        "ms-mssql.sql-bindings-vscode",
+        "ms-dotnettools.vscode-dotnet-runtime"
     ],
     "scripts": {
         "build:runtime-localization": "node ../../scripts/localization-generate.js vscode-mssql .",
         "build:copy-assets": "node scripts/copy-assets.js",
-        "build:prepare": "yarn build:copy-assets && yarn build:runtime-localization",
+        "build:prepare": "npm run build:copy-assets && npm run build:runtime-localization",
         "build:extension": "tsc -p tsconfig.extension.json",
         "build:extension-bundle": "node scripts/bundle-extension.js",
-        "build:webviews": "tsc -p tsconfig.react.json",
-        "build:webviews-bundle": "node scripts/bundle-reactviews.js",
+        "build:webviews": "tsc -p tsconfig.webviews.json",
+        "build:webviews-bundle": "node scripts/bundle-webviews.js",
         "build:notebook-renderer-bundle": "node scripts/bundle-notebook-renderer.js",
         "build": "node scripts/build.js",
         "watch:extension": "tsc -watch -p tsconfig.extension.json  --preserveWatchOutput",
         "watch:extension-bundle": "node scripts/bundle-extension.js --watch",
-        "watch:webviews": "tsc -watch -p tsconfig.react.json --preserveWatchOutput",
-        "watch:webviews-bundle": "node scripts/bundle-reactviews.js --watch",
+        "watch:webviews": "tsc -watch -p tsconfig.webviews.json --preserveWatchOutput",
+        "watch:webviews-bundle": "node scripts/bundle-webviews.js --watch",
         "watch:notebook-renderer-bundle": "node scripts/bundle-notebook-renderer.js --watch",
-        "watch": "yarn build:prepare && run-p -l watch:extension watch:extension-bundle watch:webviews watch:webviews-bundle watch:notebook-renderer-bundle",
-        "lint": "../../node_modules/.bin/eslint --quiet --cache ./src ./test",
+        "watch": "npm run build:prepare && run-p -l watch:extension watch:extension-bundle watch:webviews watch:webviews-bundle watch:notebook-renderer-bundle",
+        "lint": "eslint --quiet --cache ./src ./test",
         "localization": "node ../../scripts/localization-extract.js mssql",
         "localization:generate-pseudoloc": "node scripts/generate-pseudoloc.js",
-        "smoketest": "yarn instrument && yarn e2eTest",
+        "smoketest": "npm run instrument && npm run e2eTest",
         "test": "vscode-test --coverage",
         "package": "node scripts/package-extension.js",
         "instrument": "nyc instrument ./dist/views ./dist/views --in-place",
-        "e2eTest": "npx playwright test && npx nyc report --reporter=cobertura --reporter=text-summary --reporter=html --report-dir=\"coverage/coverage-e2e\" --temp-dir=\"coverage/reactviews-coverage\" --include=\"src/reactviews/pages/**/*.tsx\""
+        "e2eTest": "npx playwright test && npx nyc report --reporter=cobertura --reporter=text-summary --reporter=html --report-dir=\"coverage/coverage-e2e\" --temp-dir=\"coverage/webviews-coverage\" --include=\"src/webviews/pages/**/*.tsx\""
     },
     "devDependencies": {
         "@azure/core-paging": "^1.6.2",
@@ -83,7 +84,7 @@
         "@fluentui/react-components": "^9.72.3",
         "@istanbuljs/nyc-config-typescript": "^1.0.2",
         "@monaco-editor/react": "^4.6.0",
-        "@playwright/test": "^1.45.0",
+        "@playwright/test": "1.58.2",
         "@tanstack/react-virtual": "^3.13.12",
         "@types/azdata": "^1.46.6",
         "@types/chai": "^5.2.2",
@@ -93,8 +94,8 @@
         "@types/lodash": "^4.17.21",
         "@types/mocha": "^5.2.7",
         "@types/node": "^22.13.14",
-        "@types/react": "^18.3.3",
-        "@types/react-dom": "^18.3.0",
+        "@types/react": "^19.2.2",
+        "@types/react-dom": "^19.2.2",
         "@types/react-resizable": "^3.0.8",
         "@types/sinon": "^10.0.12",
         "@types/sinon-chai": "^4.0.0",
@@ -113,24 +114,27 @@
         "azdataGraph": "github:Microsoft/azdataGraph#0.0.137",
         "chai": "^5.3.3",
         "cli-color": "^2.0.4",
-        "del": "^2.2.1",
         "esbuild": "^0.25.0",
         "html-to-image": "1.11.11",
         "mocha-junit-reporter": "^2.2.1",
         "mocha-multi-reporters": "^1.5.1",
+        "monaco-editor": "0.53.0",
         "npm-run-all": "^4.1.5",
-        "nyc": "^17.1.0",
-        "react": "^18.3.1",
-        "react-dom": "^18.3.1",
+        "nyc": "^18.0.0",
+        "react": "^19.2.0",
+        "react-dom": "^19.2.0",
         "react-markdown": "^9.0.1",
         "react-resizable": "^3.0.5",
         "react-resizable-panels": "^3.0.2",
-        "sinon": "^14.0.0",
+        "sinon": "^21.0.3",
         "sinon-chai": "^4.0.1",
-        "slickgrid": "github:Microsoft/SlickGrid.ADS#2.3.49",
+        "slickgrid": "github:Microsoft/SlickGrid.ADS#v2.3.51",
+        "slickgrid-react": "10.3.0",
         "source-map-support": "^0.5.21",
         "ts-node": "^10.9.2",
         "typescript": "^5.8.3",
+        "vscode-oniguruma": "^2.0.1",
+        "vscode-textmate": "^9.3.2",
         "xliff": "^6.2.1",
         "yargs": "^17.7.2"
     },
@@ -144,9 +148,9 @@
         "@azure/msal-node": "^2.12.0",
         "@azure/storage-blob": "^12.31.0",
         "@microsoft/ads-extension-telemetry": "^3.0.2",
-        "@microsoft/vscode-azext-azureauth": "^4.1.1",
-        "@xmldom/xmldom": "^0.8.11",
-        "axios": "^1.13.5",
+        "@microsoft/vscode-azext-azureauth": "^5.1.1",
+        "@xmldom/xmldom": "^0.9.9",
+        "axios": "^1.15.0",
         "dockerode": "^4.0.9",
         "dotenv": "^16.4.5",
         "error-ex": "^1.3.0",
@@ -156,13 +160,12 @@
         "has-proto": "^1.2.0",
         "jquery": "^3.4.1",
         "lockfile": "1.0.4",
-        "lodash": "^4.17.21",
+        "lodash": "^4.18.1",
         "opener": "1.5.2",
         "plist": "^3.0.6",
         "pretty-data": "^0.40.0",
-        "semver": "https://registry.npmjs.org/semver/-/semver-5.0.3.tgz",
+        "semver": "^7.7.4",
         "shallow-equal": "^3.1.0",
-        "slickgrid-react": "^9.8.0",
         "strip-json-comments": "^5.0.1",
         "tar": "^7.5.11",
         "tmp": "^0.2.4",
@@ -182,6 +185,9 @@
         }
     },
     "contributes": {
+        "vscode-sql-common-features": {
+            "uriOwnershipApi": true
+        },
         "viewsContainers": {
             "activitybar": [
                 {
@@ -218,6 +224,11 @@
                     "name": "%extension.queryHistory%",
                     "when": "config.mssql.enableQueryHistoryFeature",
                     "icon": "media/objectTypes/StoredProcedure.svg"
+                },
+                {
+                    "id": "backgroundTasks",
+                    "name": "%extension.backgroundTasks%",
+                    "icon": "media/objectTypes/Queue.svg"
                 }
             ]
         },
@@ -351,7 +362,10 @@
             {
                 "language": "sql",
                 "scopeName": "source.sql",
-                "path": "./syntaxes/SQL.plist"
+                "path": "./syntaxes/SQL.plist",
+                "unbalancedBracketScopes": [
+                    "constant.character.bracket.sql"
+                ]
             }
         ],
         "snippets": [
@@ -362,7 +376,7 @@
         ],
         "configurationDefaults": {
             "[sql]": {
-                "editor.wordSeparators": "~!#$%^&*()-=+[{]}\\|;:'\",.<>/?"
+                "editor.wordSeparators": "`~!$%^&*()-=+[{]}\\|;:'\",.<>/?"
             }
         },
         "submenus": [
@@ -380,8 +394,13 @@
         "menus": {
             "editor/title": [
                 {
+                    "command": "mssql.runQueryWithUriOwnership",
+                    "when": "editorLangId == sql && !isInDiffEditor && resourcePath not in mssql.runningQueries && !mssql.hideUIElements && mssql.hasCoordinatingExtensionsWithUriOwnership && resource not in mssql.connections && resource not in mssql.connecting",
+                    "group": "navigation@1"
+                },
+                {
                     "command": "mssql.runQuery",
-                    "when": "editorLangId == sql && !isInDiffEditor && resourcePath not in mssql.runningQueries && resource not in mssql.connecting",
+                    "when": "editorLangId == sql && !isInDiffEditor && resourcePath not in mssql.runningQueries && !mssql.hideUIElements && resource not in mssql.connecting && (resource in mssql.connections || !mssql.hasCoordinatingExtensionsWithUriOwnership)",
                     "group": "navigation@1"
                 },
                 {
@@ -395,8 +414,13 @@
                     "group": "navigation@2"
                 },
                 {
+                    "command": "mssql.connectWithUriOwnership",
+                    "when": "editorLangId == sql && !isInDiffEditor && resource not in mssql.connections && !mssql.hideUIElements && mssql.hasCoordinatingExtensionsWithUriOwnership && resource not in mssql.connecting",
+                    "group": "navigation@3"
+                },
+                {
                     "command": "mssql.connect",
-                    "when": "editorLangId == sql && !isInDiffEditor && resource not in mssql.connections && resource not in mssql.connecting",
+                    "when": "editorLangId == sql && !isInDiffEditor && resource not in mssql.connections && !mssql.hideUIElements && !mssql.hasCoordinatingExtensionsWithUriOwnership && resource not in mssql.connecting",
                     "group": "navigation@3"
                 },
                 {
@@ -438,12 +462,12 @@
             "editor/context": [
                 {
                     "command": "mssql.runQuery",
-                    "when": "editorLangId == sql",
+                    "when": "editorLangId == sql && !mssql.hideUIElements",
                     "group": "0_mssql"
                 },
                 {
                     "submenu": "mssql.copilot.editorSubmenu",
-                    "when": "editorLangId == sql && mssql.copilot.isGHCInstalled",
+                    "when": "editorLangId == sql && mssql.copilot.isGHCInstalled && !mssql.hideUIElements",
                     "group": "0_mssql"
                 }
             ],
@@ -509,6 +533,12 @@
                     "group": "secondary"
                 },
                 {
+                    "command": "mssql.clearFinishedBackgroundTasks",
+                    "when": "view == backgroundTasks",
+                    "title": "%mssql.clearFinishedBackgroundTasks%",
+                    "group": "navigation"
+                },
+                {
                     "command": "mssql.objectExplorer.enableGroupBySchema",
                     "when": "view == objectExplorer && !config.mssql.objectExplorer.groupBySchema",
                     "title": "%mssql.objectExplorer.enableGroupBySchema%",
@@ -571,17 +601,22 @@
                 },
                 {
                     "command": "mssql.profiler.launchFromObjectExplorer",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/ && !(viewItem =~ /\\btype=Database\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
                     "group": "4_MSSQL_discoverAndProfile@2"
                 },
                 {
+                    "command": "mssql.profiler.launchFromDatabase",
+                    "when": "view == objectExplorer && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
+                    "group": "3_MSSQL_databaseDiscover@2"
+                },
+                {
                     "command": "mssql.schemaDesigner",
-                    "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database|DockerContainerDatabase)\\b/",
+                    "when": "view === objectExplorer && (viewItem =~ /\\btype=(Database|Server)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
                     "group": "2a_MSSQL_databaseDesign@1"
                 },
                 {
                     "command": "mssql.buildDataApi",
-                    "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database|DockerContainerDatabase)\\b/",
+                    "when": "view === objectExplorer && (viewItem =~ /\\btype=(Database|Server)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
                     "group": "2a_MSSQL_databaseDesign@2"
                 },
                 {
@@ -591,7 +626,7 @@
                 },
                 {
                     "command": "mssql.searchDatabase",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/ && !(viewItem =~ /\\btype=Database\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
                     "group": "4_MSSQL_discoverAndProfile@1"
                 },
                 {
@@ -626,7 +661,7 @@
                 },
                 {
                     "command": "mssql.restoreDatabase",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/ && !(viewItem =~ /\\btype=Database\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
                     "group": "3_MSSQL_instanceDatabaseActions@3"
                 },
                 {
@@ -636,7 +671,7 @@
                 },
                 {
                     "command": "mssql.flatFileImport",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=Server\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=Server\\b/ && !(viewItem =~ /\\btype=Database\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
                     "group": "3_MSSQL_instanceDatabaseActions@4"
                 },
                 {
@@ -745,11 +780,6 @@
                     "group": "6_MSSQL_copilot@2"
                 },
                 {
-                    "command": "mssql.profiler.launchFromDatabase",
-                    "when": "view == objectExplorer && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
-                    "group": "3_MSSQL_databaseDiscover@2"
-                },
-                {
                     "command": "mssql.addObjectExplorer",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(ConnectionGroup)\\b/",
                     "title": "%mssql.addObjectExplorer%",
@@ -839,9 +869,51 @@
                     "command": "mssql.startContainer",
                     "when": "view == objectExplorer && viewItem =~ /\\bsubType=(disconnectedDockerContainer|DockerContainerDatabase)\\b/",
                     "group": "9_MSSQL_container@3"
+                },
+                {
+                    "command": "mssql.openBackgroundTask",
+                    "when": "view == backgroundTasks && viewItem =~ /\\bactionable=true\\b/",
+                    "group": "MS_SQL@1"
+                },
+                {
+                    "command": "mssql.viewBackgroundTaskLogs",
+                    "when": "view == backgroundTasks && viewItem =~ /\\bbackgroundTaskNode\\b/",
+                    "group": "MS_SQL@2"
+                },
+                {
+                    "command": "mssql.cancelBackgroundTask",
+                    "when": "view == backgroundTasks && viewItem =~ /\\bcancelable=true\\b/",
+                    "group": "MS_SQL@3"
+                },
+                {
+                    "command": "mssql.openBackgroundTask",
+                    "when": "view == backgroundTasks && viewItem =~ /\\bactionable=true\\b/",
+                    "group": "inline@1"
+                },
+                {
+                    "command": "mssql.viewBackgroundTaskLogs",
+                    "when": "view == backgroundTasks && viewItem =~ /\\bbackgroundTaskNode\\b/",
+                    "group": "inline@2"
+                },
+                {
+                    "command": "mssql.cancelBackgroundTask",
+                    "when": "view == backgroundTasks && viewItem =~ /\\bcancelable=true\\b/",
+                    "group": "inline@3"
                 }
             ],
             "commandPalette": [
+                {
+                    "command": "mssql.viewBackgroundTaskLogs",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.runQueryWithUriOwnership",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.connectWithUriOwnership",
+                    "when": "false"
+                },
                 {
                     "command": "mssql.objectExplorerNewQuery",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/"
@@ -973,6 +1045,15 @@
                 "icon": "$(debug-start)"
             },
             {
+                "command": "mssql.runQueryWithUriOwnership",
+                "title": "%mssql.runQuery%",
+                "category": "MS SQL",
+                "icon": {
+                    "dark": "media/runQueryUriOwnership_dark.svg",
+                    "light": "media/runQueryUriOwnership_light.svg"
+                }
+            },
+            {
                 "command": "mssql.runCurrentStatement",
                 "title": "%mssql.runCurrentStatement%",
                 "category": "MS SQL"
@@ -1004,6 +1085,15 @@
                 "title": "%mssql.connect%",
                 "category": "MS SQL",
                 "icon": "$(plug)"
+            },
+            {
+                "command": "mssql.connectWithUriOwnership",
+                "title": "%mssql.connect%",
+                "category": "MS SQL",
+                "icon": {
+                    "dark": "media/connectUriOwnership_dark.svg",
+                    "light": "media/connectUriOwnership_light.svg"
+                }
             },
             {
                 "command": "mssql.disconnect",
@@ -1292,6 +1382,30 @@
                 "category": "MS SQL"
             },
             {
+                "command": "mssql.clearFinishedBackgroundTasks",
+                "title": "%mssql.clearFinishedBackgroundTasks%",
+                "category": "MS SQL",
+                "icon": "$(trash)"
+            },
+            {
+                "command": "mssql.openBackgroundTask",
+                "title": "%mssql.openBackgroundTask%",
+                "category": "MS SQL",
+                "icon": "$(go-to-file)"
+            },
+            {
+                "command": "mssql.viewBackgroundTaskLogs",
+                "title": "%mssql.viewBackgroundTaskLogs%",
+                "category": "MS SQL",
+                "icon": "$(output)"
+            },
+            {
+                "command": "mssql.cancelBackgroundTask",
+                "title": "%mssql.cancelBackgroundTask%",
+                "category": "MS SQL",
+                "icon": "$(debug-stop)"
+            },
+            {
                 "command": "mssql.startQueryHistoryCapture",
                 "title": "%mssql.startQueryHistoryCapture%",
                 "category": "MS SQL",
@@ -1532,6 +1646,15 @@
                     "type": "boolean",
                     "default": false,
                     "description": "%mssql.enableExperimentalFeatures.description%",
+                    "scope": "application"
+                },
+                "mssql.preview.useVscodeAccountsForEntraMFA": {
+                    "type": [
+                        "boolean",
+                        "null"
+                    ],
+                    "default": null,
+                    "description": "%mssql.preview.useVscodeAccountsForEntraMFA.description%",
                     "scope": "application"
                 },
                 "mssql.openQueryResultsInTabByDefault": {
@@ -2150,6 +2273,38 @@
                     "default": 5000,
                     "description": "%mssql.resultsGrid.inMemoryDataProcessingThreshold%",
                     "minimum": 1
+                },
+                "mssql.resultsGrid.alternatingRowColors": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.resultsGrid.alternatingRowColors%"
+                },
+                "mssql.resultsGrid.showGridLines": {
+                    "type": "string",
+                    "default": "both",
+                    "enum": [
+                        "both",
+                        "horizontal",
+                        "vertical",
+                        "none"
+                    ],
+                    "enumDescriptions": [
+                        "%mssql.resultsGrid.showGridLines.both%",
+                        "%mssql.resultsGrid.showGridLines.horizontal%",
+                        "%mssql.resultsGrid.showGridLines.vertical%",
+                        "%mssql.resultsGrid.showGridLines.none%"
+                    ],
+                    "description": "%mssql.resultsGrid.showGridLines%"
+                },
+                "mssql.resultsGrid.rowPadding": {
+                    "type": [
+                        "number",
+                        "null"
+                    ],
+                    "default": null,
+                    "minimum": 0,
+                    "maximum": 10,
+                    "description": "%mssql.resultsGrid.rowPadding%"
                 },
                 "mssql.query.displayBitAsNumber": {
                     "type": "boolean",
@@ -3549,7 +3704,7 @@
             },
             {
                 "name": "mssql_dab",
-                "modelDescription": "Work with the Data API Builder configuration in the currently active schema designer. Use 'get_state' to inspect it and 'apply_changes' to modify it; use 'show' only to open the Data API Builder view for a connectionId when needed. Operations: 'get_state' returns the current version, summary, and bounded configuration state (full config may be omitted for large configurations); 'apply_changes' uses payload { expectedVersion, targetHint?, changes } and returns the post-mutation version plus summary, with optional returnState control. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with the current version and latest summary/config according to returnState. Entity refs are either { id } or { schemaName, tableName }. Change types: { type: 'set_api_types', apiTypes }, { type: 'set_entity_enabled', entity, isEnabled }, { type: 'set_entity_actions', entity, enabledActions }, { type: 'patch_entity_settings', entity, set }, { type: 'set_only_enabled_entities', entities }, { type: 'set_all_entities_enabled', isEnabled }.",
+                "modelDescription": "Work with the Data API builder configuration in the currently active schema designer. Use 'get_state' to inspect it and 'apply_changes' to modify it; use 'show' only to open the Data API builder view for a connectionId when needed. Operations: 'get_state' returns the current version, summary, and bounded configuration state (full config may be omitted for large configurations); 'apply_changes' uses payload { expectedVersion, targetHint?, changes } and returns the post-mutation version plus summary, with optional returnState control. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with the current version and latest summary/config according to returnState. Entity refs are either { id } or { schemaName, tableName }. Change types: { type: 'set_api_types', apiTypes }, { type: 'set_entity_enabled', entity, isEnabled }, { type: 'set_entity_actions', entity, enabledActions }, { type: 'patch_entity_settings', entity, set }, { type: 'set_only_enabled_entities', entities }, { type: 'set_all_entities_enabled', isEnabled }.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -3640,7 +3795,7 @@
                     },
                     "properties": {
                         "operation": {
-                            "description": "The operation to perform on Data API Builder. Supported values: 'get_state', 'apply_changes', 'show'.",
+                            "description": "The operation to perform on Data API builder. Supported values: 'get_state', 'apply_changes', 'show'.",
                             "title": "Operation",
                             "type": "string",
                             "enum": [
@@ -3650,7 +3805,7 @@
                             ]
                         },
                         "connectionId": {
-                            "description": "Connection ID to use when opening Data API Builder (show operation only). Do not include for get_state/apply_changes when an active designer is already open.",
+                            "description": "Connection ID to use when opening Data API builder (show operation only). Do not include for get_state/apply_changes when an active designer is already open.",
                             "title": "Connection ID",
                             "type": "string",
                             "minLength": 1
@@ -3875,9 +4030,9 @@
                     "additionalProperties": false
                 },
                 "canBeReferencedInPrompt": true,
-                "displayName": "Data API Builder",
+                "displayName": "Data API builder",
                 "toolReferenceName": "mssql_dab",
-                "userDescription": "Open or manage Data API Builder settings for a connection or the active designer.",
+                "userDescription": "Open or manage Data API builder settings for a connection or the active designer.",
                 "icon": "$(database)"
             },
             {

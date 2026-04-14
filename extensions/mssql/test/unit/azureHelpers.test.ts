@@ -25,18 +25,19 @@ import {
 import { MssqlVSCodeAzureSubscriptionProvider } from "../../src/azure/MssqlVSCodeAzureSubscriptionProvider";
 import * as utils from "../../src/utils/utils";
 import { BlobServiceClient } from "@azure/storage-blob";
+import { createStubLogger } from "./utils";
 
 chai.use(sinonChai);
 
 suite("Azure Helpers", () => {
     let sandbox: sinon.SinonSandbox;
     let mockAzureAccountService: AzureAccountService;
-    let mockLogger: Logger;
+    let mockLogger: sinon.SinonStubbedInstance<Logger>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
         mockAzureAccountService = sandbox.createStubInstance(AzureAccountService);
-        mockLogger = sandbox.createStubInstance(Logger);
+        mockLogger = createStubLogger(sandbox);
     });
 
     teardown(() => {

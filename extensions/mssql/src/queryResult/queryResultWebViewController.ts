@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import * as qr from "../sharedInterfaces/queryResult";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
-import { ReactWebviewViewController } from "../controllers/reactWebviewViewController";
+import { WebviewViewController } from "../controllers/webviewViewController";
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
@@ -27,7 +27,7 @@ import {
 import { Deferred } from "../protocol";
 import { getUriKey } from "../utils/utils";
 
-export class QueryResultWebviewController extends ReactWebviewViewController<
+export class QueryResultWebviewController extends WebviewViewController<
     qr.QueryResultWebviewState,
     qr.QueryResultReducers
 > {
@@ -57,6 +57,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             },
             executionPlanState: {},
             fontSettings: {},
+            gridSettings: {},
             autoSizeColumnsMode: qr.ResultsGridAutoSizeStyle.HeadersAndData,
         });
 
@@ -77,38 +78,62 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
         context.subscriptions.push(
             this.vscodeWrapper.onDidChangeConfiguration((e) => {
+                let stateChanged = false;
                 if (e.affectsConfiguration("mssql.resultsFontFamily")) {
+                    const newValue = this.getFontFamilyConfig();
                     for (const [uri, state] of this._queryResultStateMap) {
-                        state.fontSettings.fontFamily = this.vscodeWrapper
-                            .getConfiguration(Constants.extensionName)
-                            .get(Constants.extConfigResultKeys.ResultsFontFamily);
+                        state.fontSettings.fontFamily = newValue;
                         this._queryResultStateMap.set(uri, state);
                     }
+                    stateChanged = true;
                 }
                 if (e.affectsConfiguration("mssql.resultsFontSize")) {
+                    const newValue = this.getFontSizeConfig();
                     for (const [uri, state] of this._queryResultStateMap) {
-                        state.fontSettings.fontSize =
-                            (this.vscodeWrapper
-                                .getConfiguration(Constants.extensionName)
-                                .get(Constants.extConfigResultKeys.ResultsFontSize) as number) ??
-                            (this.vscodeWrapper
-                                .getConfiguration("editor")
-                                .get("fontSize") as number);
+                        state.fontSettings.fontSize = newValue;
                         this._queryResultStateMap.set(uri, state);
                     }
+                    stateChanged = true;
                 }
-                if (e.affectsConfiguration("mssql.resultsGrid.autoSizeColumns")) {
+                if (e.affectsConfiguration("mssql.resultsGrid.autoSizeColumnsMode")) {
+                    const newValue = this.getAutoSizeColumnsConfig();
                     for (const [uri, state] of this._queryResultStateMap) {
-                        state.autoSizeColumnsMode = this.getAutoSizeColumnsConfig();
+                        state.autoSizeColumnsMode = newValue;
                         this._queryResultStateMap.set(uri, state);
                     }
+                    stateChanged = true;
                 }
                 if (e.affectsConfiguration("mssql.resultsGrid.inMemoryDataProcessingThreshold")) {
+                    const newValue = getInMemoryGridDataProcessingThreshold();
                     for (const [uri, state] of this._queryResultStateMap) {
-                        state.inMemoryDataProcessingThreshold = this.vscodeWrapper
-                            .getConfiguration(Constants.extensionName)
-                            .get(Constants.configInMemoryDataProcessingThreshold);
+                        state.inMemoryDataProcessingThreshold = newValue;
                         this._queryResultStateMap.set(uri, state);
+                    }
+                    stateChanged = true;
+                }
+                if (
+                    e.affectsConfiguration("mssql.resultsGrid.alternatingRowColors") ||
+                    e.affectsConfiguration("mssql.resultsGrid.showGridLines") ||
+                    e.affectsConfiguration("mssql.resultsGrid.rowPadding")
+                ) {
+                    const newValue = this.getGridSettingsConfig();
+                    for (const [uri, state] of this._queryResultStateMap) {
+                        state.gridSettings = newValue;
+                        this._queryResultStateMap.set(uri, state);
+                    }
+                    stateChanged = true;
+                }
+                if (stateChanged) {
+                    // Push updates to all open panel controllers
+                    for (const [uri] of this._queryResultStateMap) {
+                        this.updatePanelState(uri);
+                    }
+                    // Push update to the webview view if it is visible
+                    if (this.isVisible() && this.state?.uri) {
+                        const currentUri = this.state.uri;
+                        if (this._queryResultStateMap.has(currentUri)) {
+                            this.state = this.getQueryResultState(currentUri);
+                        }
                     }
                 }
             }),
@@ -250,9 +275,9 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             executionPlanState: {},
             fontSettings: {
                 fontSize: this.getFontSizeConfig(),
-
                 fontFamily: this.getFontFamilyConfig(),
             },
+            gridSettings: this.getGridSettingsConfig(),
             autoSizeColumnsMode: this.getAutoSizeColumnsConfig(),
             inMemoryDataProcessingThreshold: getInMemoryGridDataProcessingThreshold(),
             initializationError: undefined,
@@ -321,6 +346,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 fontSize: this.getFontSizeConfig(),
                 fontFamily: this.getFontFamilyConfig(),
             },
+            gridSettings: this.getGridSettingsConfig(),
             autoSizeColumnsMode: this.getAutoSizeColumnsConfig(),
             inMemoryDataProcessingThreshold: getInMemoryGridDataProcessingThreshold(),
         } as qr.QueryResultWebviewState;
@@ -362,6 +388,23 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         return this.vscodeWrapper
             .getConfiguration(Constants.extensionName)
             .get(Constants.extConfigResultKeys.ResultsFontFamily) as string;
+    }
+
+    public getGridSettingsConfig(): qr.GridSettings {
+        const config = this.vscodeWrapper.getConfiguration(Constants.extensionName);
+        const validGridLineModes: qr.GridLinesMode[] = ["both", "horizontal", "vertical", "none"];
+        const gridLinesValue = config.get(Constants.configResultsGridShowGridLines) as string;
+        const showGridLines: qr.GridLinesMode = validGridLineModes.includes(
+            gridLinesValue as qr.GridLinesMode,
+        )
+            ? (gridLinesValue as qr.GridLinesMode)
+            : "both";
+        return {
+            alternatingRowColors:
+                (config.get(Constants.configResultsGridAlternatingRowColors) as boolean) ?? false,
+            showGridLines,
+            rowPadding: config.get(Constants.configResultsGridRowPadding) as number | undefined,
+        };
     }
 
     public getDefaultViewModeConfig(): qr.QueryResultViewMode {

@@ -31,6 +31,7 @@ export enum AuthenticationTypes {
     Integrated = 1,
     SqlLogin = 2,
     AzureMFA = 3,
+    ActiveDirectoryDefault = 4,
 }
 
 export enum EncryptOptions {
@@ -126,6 +127,7 @@ export interface IDbColumn {
     dataType: string;
     isXml?: boolean;
     isJson?: boolean;
+    isVector?: boolean;
     isLong?: boolean;
     isReadOnly?: boolean;
     isUnique?: boolean;
@@ -186,6 +188,7 @@ export interface ILogger {
     decreaseIndent(): void;
     append(message?: string): void;
     appendLine(message?: string): void;
+    info(msg: any, ...vals: any[]): void;
 }
 
 export interface IAzureSignInQuickPickItem extends vscode.QuickPickItem {

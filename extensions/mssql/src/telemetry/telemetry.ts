@@ -101,7 +101,7 @@ export function sendActionEvent(
     telemetryAction: TelemetryActions,
     additionalProps: TelemetryEventProperties | { [key: string]: string } = {},
     additionalMeasurements: TelemetryEventMeasures | { [key: string]: number } = {},
-    connectionInfo?: IConnectionProfile,
+    connectionInfo?: vscodeMssql.IConnectionInfo,
     serverInfo?: vscodeMssql.IServerInfo,
     includeCallStack: boolean = false,
 ): void {
@@ -188,6 +188,8 @@ export function startActivity(
     correlationId?: string,
     startActivityAdditionalProps: TelemetryEventProperties = {},
     startActivityAdditionalMeasurements: TelemetryEventMeasures = {},
+    connectionInfo?: vscodeMssql.IConnectionInfo,
+    serverInfo?: vscodeMssql.IServerInfo,
     includeCallStack: boolean = false,
 ): ActivityObject {
     const startTime = performance.now();
@@ -209,6 +211,8 @@ export function startActivity(
             ...startActivityAdditionalMeasurements,
             startTime: Math.round(startTime),
         },
+        connectionInfo,
+        serverInfo,
     );
 
     const activityUpdateAdditionalPropsBase: TelemetryEventProperties = {

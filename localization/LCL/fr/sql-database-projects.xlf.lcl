@@ -2482,6 +2482,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++de3d0b4f0d9ffd5c28abdaedfda299d9d874069cd590eb145b999df7681688a8" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Add ProjectGuid]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ajouter ProjectGuid]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++de554ddaf72fbc2e0ad0e75fc128d75b3422ebc13af1eea553bf73baa62f6eda" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[User selected to install autorest gloablly.  Installing now...]]></Val>
@@ -2518,6 +2527,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++e04042289bd986941675cd4a9ada3b0d0a6f8c2eb75f5b833381d60fdec4186c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Project '{0}' is missing a ProjectGuid. A unique ProjectGuid helps identify the project for cross-project references. Would you like one to be added?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Le projet « {0} » ne possède pas de ProjectGuid. Un ProjectGuid unique permet d'identifier le projet pour les références inter-projets. Souhaiteriez-vous qu'on en ajoute un ?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++e0a06981f6dd0d4ca2c5e3a808122ea107adc5980c505dcf2ca09d231a129fd7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Dacpac references need to be located on the same drive as the project file.]]></Val>
@@ -2541,6 +2559,15 @@
           <Val><![CDATA[Data Source]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Source de données]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++e13b197b20b10678a8114eb56d121c6b32568a636f93cfd0397234b194a052de" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0} projects in this workspace are missing a ProjectGuid. A unique ProjectGuid helps identify projects for cross-project references. Would you like one to be added to each project?]A;]A;Projects:]A;{1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} projets de cet espace de travail ne disposent pas de ProjectGuid. Un ProjectGuid unique permet d'identifier les projets pour les références inter-projets. Souhaitez-vous qu'un soit ajouté à chaque projet ?]A;]A;Projets :]A;{1}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2896,6 +2923,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";package.sqlDatabaseProjects.autoCreateFolders" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Automatically create folders (e.g., dbo/Tables) when adding SQL objects from any add-item entry point in a project.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Créez automatiquement des dossiers (par exemple, dbo/Tables) lors de l’ajout d’objets SQL depuis n’importe quel point d’entrée d’ajout d’élément dans un projet.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";package.sqlDatabaseProjects.autorestSqlVersion" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Which version of Autorest.Sql to use from NPM.  Latest will be used if not set.]]></Val>
@@ -3213,6 +3249,15 @@
           <Val><![CDATA[Open Containing Folder]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Ouvrir le dossier contenant]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.sqlDatabaseProjects.openDocumentation" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Documentation]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Documentation]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

@@ -1,62 +1,4 @@
 {
-    "Description for the table.": "Description for the table.",
-    "Description": "Description",
-    "The name of the column object.": "The name of the column object.",
-    "Name": "Name",
-    "Displays the description of the column": "Displays the description of the column",
-    "Displays the unified data type (including length, scale and precision) for the column": "Displays the unified data type (including length, scale and precision) for the column",
-    "Data Type": "Data Type",
-    "Displays the data type name for the column": "Displays the data type name for the column",
-    "Type": "Type",
-    "The maximum length (in characters) that can be stored in this database object.": "The maximum length (in characters) that can be stored in this database object.",
-    "Length": "Length",
-    "A predefined global default value for the column or binding.": "A predefined global default value for the column or binding.",
-    "Default Value": "Default Value",
-    "Specifies whether the column may have a NULL value.": "Specifies whether the column may have a NULL value.",
-    "Allow Nulls": "Allow Nulls",
-    "Specifies whether the column is included in the primary key for the table.": "Specifies whether the column is included in the primary key for the table.",
-    "Primary Key": "Primary Key",
-    "For numeric data, the maximum number of decimal digits that can be stored in this database object.": "For numeric data, the maximum number of decimal digits that can be stored in this database object.",
-    "Precision": "Precision",
-    "For numeric data, the maximum number of decimal digits that can be stored in this database object to the right of decimal point.": "For numeric data, the maximum number of decimal digits that can be stored in this database object to the right of decimal point.",
-    "Scale": "Scale",
-    "Columns": "Columns",
-    "Column": "Column",
-    "New Column": "New Column",
-    "The name of the column.": "The name of the column.",
-    "Name of the primary key.": "Name of the primary key.",
-    "The description of the primary key.": "The description of the primary key.",
-    "Columns in the primary key.": "Columns in the primary key.",
-    "Primary Key Columns": "Primary Key Columns",
-    "Add Column": "Add Column",
-    "The name of the index.": "The name of the index.",
-    "The description of the index.": "The description of the index.",
-    "The columns of the index.": "The columns of the index.",
-    "Indexes": "Indexes",
-    "Index": "Index",
-    "New Index": "New Index",
-    "Foreign Column": "Foreign Column",
-    "The name of the foreign key.": "The name of the foreign key.",
-    "The description of the foreign key.": "The description of the foreign key.",
-    "The table which contains the primary or unique key column.": "The table which contains the primary or unique key column.",
-    "Foreign Table": "Foreign Table",
-    "The behavior when a user tries to update a row with data that is involved in a foreign key relationship.": "The behavior when a user tries to update a row with data that is involved in a foreign key relationship.",
-    "On Update Action": "On Update Action",
-    "The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.": "The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.",
-    "On Delete Action": "On Delete Action",
-    "The mapping between foreign key columns and primary key columns.": "The mapping between foreign key columns and primary key columns.",
-    "New Column Mapping": "New Column Mapping",
-    "Foreign Keys": "Foreign Keys",
-    "Foreign Key": "Foreign Key",
-    "New Foreign Key": "New Foreign Key",
-    "The name of the check constraint.": "The name of the check constraint.",
-    "The description of the check constraint.": "The description of the check constraint.",
-    "The expression defining the check constraint.": "The expression defining the check constraint.",
-    "Expression": "Expression",
-    "Check Constraints": "Check Constraints",
-    "Check Constraint": "Check Constraint",
-    "New Check Constraint": "New Check Constraint",
-    "Advanced Options": "Advanced Options",
     "{0} issue/{0} is the number of issues": {
         "message": "{0} issue",
         "comment": ["{0} is the number of issues"]
@@ -83,6 +25,7 @@
     "Copy with Headers": "Copy with Headers",
     "Copy Headers": "Copy Headers",
     "Error: Failed to parse query result data.": "Error: Failed to parse query result data.",
+    "Error: Unrecognized query result data.": "Error: Unrecognized query result data.",
     "Cancel": "Cancel",
     "Are you sure?": "Are you sure?",
     "Are you sure you want to {0}?/{0} is the action being confirmed": {
@@ -119,9 +62,14 @@
     "Warning": "Warning",
     "Sign In": "Sign In",
     "Loading": "Loading",
+    "Loading...": "Loading...",
     "General": "General",
     "Previous": "Previous",
     "OK": "OK",
+    "Step {0} of {1}/{0} is the current step number{1} is the total number of steps": {
+        "message": "Step {0} of {1}",
+        "comment": ["{0} is the current step number", "{1} is the total number of steps"]
+    },
     "Learn more": "Learn more",
     "Filter Settings": "Filter Settings",
     "Clear All": "Clear All",
@@ -172,6 +120,7 @@
     "Preview Database Updates": "Preview Database Updates",
     "Error loading Table Designer": "Error loading Table Designer",
     "Severity": "Severity",
+    "Description": "Description",
     "Script as Create": "Script as Create",
     "I have read the summary and understand the potential risks.": "I have read the summary and understand the potential risks.",
     "Copy script": "Copy script",
@@ -261,6 +210,7 @@
         "comment": ["{0} is the IP address of the client"]
     },
     "Add my subnet IP range": "Add my subnet IP range",
+    "IP address range": "IP address range",
     "From/Label for the start IP address in the firewall rule IP range": {
         "message": "From",
         "comment": ["Label for the start IP address in the firewall rule IP range"]
@@ -289,6 +239,8 @@
     "SQL Analytics Endpoint": "SQL Analytics Endpoint",
     "SQL Database": "SQL Database",
     "No workspaces found": "No workspaces found",
+    "Name": "Name",
+    "Type": "Type",
     "Location (Workspace)": "Location (Workspace)",
     "Expand Workspace Explorer": "Expand Workspace Explorer",
     "Explorer": "Explorer",
@@ -301,10 +253,27 @@
     "No databases found in the selected workspace.": "No databases found in the selected workspace.",
     "Database list": "Database list",
     "Connect": "Connect",
+    "Connection actions": "Connection actions",
     "Advanced Connection Settings": "Advanced Connection Settings",
     "Advanced": "Advanced",
-    "Test Connection": "Test Connection",
+    "Test connection": "Test connection",
+    "Connection test succeeded": "Connection test succeeded",
+    "Testing...": "Testing...",
+    "Connecting...": "Connecting...",
+    "Save without connecting": "Save without connecting",
     "Connect to Database": "Connect to Database",
+    "Edit Database Connection - {0}/{0} is the name of the connection profile": {
+        "message": "Edit Database Connection - {0}",
+        "comment": ["{0} is the name of the connection profile"]
+    },
+    "Edit {0}/{0} is the name of the connection profile": {
+        "message": "Edit {0}",
+        "comment": ["{0} is the name of the connection profile"]
+    },
+    "Create new connection copied from {0}/{0} is the name of the connection profile": {
+        "message": "Create new connection copied from {0}",
+        "comment": ["{0} is the name of the connection profile"]
+    },
     "Connect to {0}/{0} is the name of the connection profile": {
         "message": "Connect to {0}",
         "comment": ["{0} is the name of the connection profile"]
@@ -367,6 +336,7 @@
     "Error loading workspaces": "Error loading workspaces",
     "Error loading databases": "Error loading databases",
     "Connection Authentication": "Connection Authentication",
+    "Advanced Options": "Advanced Options",
     "Import from Azure Data Studio": "Import from Azure Data Studio",
     "Sign into Azure": "Sign into Azure",
     "Not signed in": "Not signed in",
@@ -414,6 +384,8 @@
     "Expand All": "Expand All",
     "Collapse All": "Collapse All",
     "Filter for any field...": "Filter for any field...",
+    "Estimated Subtree Cost": "Estimated Subtree Cost",
+    "Estimated Operator Cost": "Estimated Operator Cost",
     "Microsoft would like your feedback": "Microsoft would like your feedback",
     "Overall, how satisfied are you with the MSSQL extension?": "Overall, how satisfied are you with the MSSQL extension?",
     "Very Satisfied": "Very Satisfied",
@@ -539,6 +511,7 @@
     },
     "Sort": "Sort",
     "Resize": "Resize",
+    "Copy Column Name": "Copy Column Name",
     "Resize column '{0}'/{0} is the name of the column": {
         "message": "Resize column '{0}'",
         "comment": ["{0} is the name of the column"]
@@ -548,9 +521,12 @@
         "message": "Column width must be at least {0} pixels.",
         "comment": ["{0} is the minimum column width in pixels"]
     },
+    "Columns": "Columns",
     "Add new column": "Add new column",
     "Table": "Table",
+    "Foreign Keys": "Foreign Keys",
     "Add": "Add",
+    "Primary Key": "Primary Key",
     "Cannot delete column because it is used by a foreign key.": "Cannot delete column because it is used by a foreign key.",
     "Cannot delete column because it is referenced by a foreign key.": "Cannot delete column because it is referenced by a foreign key.",
     "Cannot delete column because it is part of foreign key relationships.": "Cannot delete column because it is part of foreign key relationships.",
@@ -561,6 +537,7 @@
     },
     "Source Column": "Source Column",
     "Target Table": "Target Table",
+    "Foreign Column": "Foreign Column",
     "Export": "Export",
     "Add Table": "Add Table",
     "Auto Arrange": "Auto Arrange",
@@ -577,7 +554,7 @@
     "Design Schemas with GitHub Copilot (Preview)": "Design Schemas with GitHub Copilot (Preview)",
     "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.": "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.",
     "Build APIs with GitHub Copilot": "Build APIs with GitHub Copilot",
-    "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.": "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.",
+    "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API builder.": "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API builder.",
     "Edit Table": "Edit Table",
     "Open in Editor": "Open in Editor",
     "Changed Tables": "Changed Tables",
@@ -678,6 +655,9 @@
     "Allow Null": "Allow Null",
     "Max Length": "Max Length",
     "Is Identity": "Is Identity",
+    "Scale": "Scale",
+    "Precision": "Precision",
+    "Default Value": "Default Value",
     "Is Computed": "Is Computed",
     "Formula": "Formula",
     "Is Persisted": "Is Persisted",
@@ -835,6 +815,8 @@
     "Revert this change to its original state": "Revert this change to its original state",
     "Cannot revert: The referenced table or column has been deleted": "Cannot revert: The referenced table or column has been deleted",
     "Cannot revert: The column is part of a foreign key that references a deleted table": "Cannot revert: The column is part of a foreign key that references a deleted table",
+    "Column": "Column",
+    "Foreign Key": "Foreign Key",
     "{0} change(s)/{0} is the number of changes": {
         "message": "{0} change(s)",
         "comment": ["{0} is the number of changes"]
@@ -865,7 +847,7 @@
             "{1} is the count of additional changed properties"
         ]
     },
-    "Data API Builder Configuration (Preview)": "Data API Builder Configuration (Preview)",
+    "Data API builder Configuration (Preview)": "Data API builder Configuration (Preview)",
     "API Type": "API Type",
     "REST API": "REST API",
     "GraphQL": "GraphQL",
@@ -886,9 +868,9 @@
     "Local container deployment is currently only supported with SQL Authentication connections.": "Local container deployment is currently only supported with SQL Authentication connections.",
     "At least one API type must be selected.": "At least one API type must be selected.",
     "Authentication not supported": "Authentication not supported",
-    "In the Data API Builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.": "In the Data API Builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.",
+    "In the Data API builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.": "In the Data API builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.",
     "Unsupported data types detected": "Unsupported data types detected",
-    "One or more of your entities contain column types that are not currently supported by Data API Builder. These entities cannot be selected for deployment.": "One or more of your entities contain column types that are not currently supported by Data API Builder. These entities cannot be selected for deployment.",
+    "One or more of your entities contain column types that are not currently supported by Data API builder. These entities cannot be selected for deployment.": "One or more of your entities contain column types that are not currently supported by Data API builder. These entities cannot be selected for deployment.",
     "Back to Schema": "Back to Schema",
     "Design API": "Design API",
     "Advanced Entity Configuration": "Advanced Entity Configuration",
@@ -905,7 +887,6 @@
     "Custom GraphQL Type": "Custom GraphQL Type",
     "Optional - Override default GraphQL type name": "Optional - Override default GraphQL type name",
     "Source Table": "Source Table",
-    "Loading...": "Loading...",
     "Initializing DAB configuration...": "Initializing DAB configuration...",
     "No entities found": "No entities found",
     "Toggle all entities in {0}/{0} is the schema name": {
@@ -930,8 +911,8 @@
     },
     "Deploy DAB Container": "Deploy DAB Container",
     "Local Container Deployment": "Local Container Deployment",
-    "This will deploy a Data API Builder container locally using Docker. The container will expose {0} APIs based on your configuration./{0} is a list of API types, e.g. 'REST and GraphQL'": {
-        "message": "This will deploy a Data API Builder container locally using Docker. The container will expose {0} APIs based on your configuration.",
+    "This will deploy a Data API builder container locally using Docker. The container will expose {0} APIs based on your configuration./{0} is a list of API types, e.g. 'REST and GraphQL'": {
+        "message": "This will deploy a Data API builder container locally using Docker. The container will expose {0} APIs based on your configuration.",
         "comment": ["{0} is a list of API types, e.g. 'REST and GraphQL'"]
     },
     "Requirements:": "Requirements:",
@@ -957,9 +938,9 @@
     "Add MCP server to workspace configuration": "Add MCP server to workspace configuration",
     "View Swagger": "View Swagger",
     "Open Nitro": "Open Nitro",
-    "Table must have a primary key to be used with Data API Builder": "Table must have a primary key to be used with Data API Builder",
-    "Table contains column types not supported by Data API Builder: {0}/{0} is a comma-separated list of column names and their data types": {
-        "message": "Table contains column types not supported by Data API Builder: {0}",
+    "Table must have a primary key to be used with Data API builder": "Table must have a primary key to be used with Data API builder",
+    "Table contains column types not supported by Data API builder: {0}/{0} is a comma-separated list of column names and their data types": {
+        "message": "Table contains column types not supported by Data API builder: {0}",
         "comment": ["{0} is a comma-separated list of column names and their data types"]
     },
     "Checking Docker installation": "Checking Docker installation",
@@ -969,7 +950,7 @@
     "Checking Docker engine": "Checking Docker engine",
     "Verifying Docker engine is ready": "Verifying Docker engine is ready",
     "Pulling DAB container image": "Pulling DAB container image",
-    "Downloading the Data API Builder container image": "Downloading the Data API Builder container image",
+    "Downloading the Data API builder container image": "Downloading the Data API builder container image",
     "Starting DAB container": "Starting DAB container",
     "Creating and starting the container": "Creating and starting the container",
     "Checking container readiness": "Checking container readiness",
@@ -1256,6 +1237,8 @@
     "No data available": "No data available",
     "No pending changes. Make edits to generate a script.": "No pending changes. Make edits to generate a script.",
     "Close Script Pane": "Close Script Pane",
+    "Modify Table": "Modify Table",
+    "View Table Diagram": "View Table Diagram",
     "Search Database Objects (Preview)": "Search Database Objects (Preview)",
     "Loading database objects": "Loading database objects",
     "Connecting to {0}.../{0} is the server name": {
@@ -1291,7 +1274,6 @@
     "Script as Alter": "Script as Alter",
     "Script as Execute": "Script as Execute",
     "Edit Data": "Edit Data",
-    "Modify Table": "Modify Table",
     "Copy Object Name": "Copy Object Name",
     "Not contains": "Not contains",
     "Not equal to": "Not equal to",
@@ -1308,6 +1290,7 @@
     "Expand all groups": "Expand all groups",
     "Export to CSV": "Export to CSV",
     "Export to Excel": "Export to Excel",
+    "Export to PDF": "Export to PDF",
     "Export to JSON": "Export to JSON",
     "Export to text format": "Export to text format",
     "Export to tab delimited": "Export to tab delimited",
@@ -1461,8 +1444,8 @@
     "Files of Type": "Files of Type",
     "File path": "File path",
     "Folder path": "Folder path",
-    "Backup Database (Preview) - {0}/{0} is the database name": {
-        "message": "Backup Database (Preview) - {0}",
+    "Backup Database - {0}/{0} is the database name": {
+        "message": "Backup Database - {0}",
         "comment": ["{0} is the database name"]
     },
     "Loading backup database...": "Loading backup database...",
@@ -1616,15 +1599,17 @@
     "Export all captured events to a CSV file": "Export all captured events to a CSV file",
     "No events to export": "No events to export",
     "profiler_events": "profiler_events",
-    "Import File (Preview)": "Import File (Preview)",
-    "Step 1: Specify Input File": "Step 1: Specify Input File",
+    "Import File": "Import File",
+    "Specify Input File": "Specify Input File",
     "Loading flat file import...": "Loading flat file import...",
     "Loading table preview...": "Loading table preview...",
-    "Step 2: Preview Data": "Step 2: Preview Data",
+    "Preview Data": "Preview Data",
     "This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.": "This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.",
-    "Step 3: Modify Columns": "Step 3: Modify Columns",
+    "Modify Columns": "Modify Columns",
+    "Data Type": "Data Type",
+    "Allow Nulls": "Allow Nulls",
     "Import Data": "Import Data",
-    "Step 4: Summary": "Step 4: Summary",
+    "Summary": "Summary",
     "Import Information": "Import Information",
     "Import Status": "Import Status",
     "Server Name": "Server Name",
@@ -1635,7 +1620,7 @@
     "File imported successfully": "File imported successfully",
     "Import New File": "Import New File",
     "Loading restore database...": "Loading restore database...",
-    "Restore Database (Preview)": "Restore Database (Preview)",
+    "Restore Database": "Restore Database",
     "Backup File": "Backup File",
     "URL": "URL",
     "Browse files": "Browse files",
@@ -1654,6 +1639,49 @@
     "Could not load restore plan": "Could not load restore plan",
     "Please choose a backup file to load restore plan": "Please choose a backup file to load restore plan",
     "Please choose a blob to load restore plan": "Please choose a blob to load restore plan",
+    "Description for the table.": "Description for the table.",
+    "The name of the column object.": "The name of the column object.",
+    "Displays the description of the column": "Displays the description of the column",
+    "Displays the unified data type (including length, scale and precision) for the column": "Displays the unified data type (including length, scale and precision) for the column",
+    "Displays the data type name for the column": "Displays the data type name for the column",
+    "The maximum length (in characters) that can be stored in this database object.": "The maximum length (in characters) that can be stored in this database object.",
+    "Length": "Length",
+    "A predefined global default value for the column or binding.": "A predefined global default value for the column or binding.",
+    "Specifies whether the column may have a NULL value.": "Specifies whether the column may have a NULL value.",
+    "Specifies whether the column is included in the primary key for the table.": "Specifies whether the column is included in the primary key for the table.",
+    "For numeric data, the maximum number of decimal digits that can be stored in this database object.": "For numeric data, the maximum number of decimal digits that can be stored in this database object.",
+    "For numeric data, the maximum number of decimal digits that can be stored in this database object to the right of decimal point.": "For numeric data, the maximum number of decimal digits that can be stored in this database object to the right of decimal point.",
+    "New Column": "New Column",
+    "The name of the column.": "The name of the column.",
+    "Name of the primary key.": "Name of the primary key.",
+    "The description of the primary key.": "The description of the primary key.",
+    "Columns in the primary key.": "Columns in the primary key.",
+    "Primary Key Columns": "Primary Key Columns",
+    "Add Column": "Add Column",
+    "The name of the index.": "The name of the index.",
+    "The description of the index.": "The description of the index.",
+    "The columns of the index.": "The columns of the index.",
+    "Indexes": "Indexes",
+    "Index": "Index",
+    "New Index": "New Index",
+    "The name of the foreign key.": "The name of the foreign key.",
+    "The description of the foreign key.": "The description of the foreign key.",
+    "The table which contains the primary or unique key column.": "The table which contains the primary or unique key column.",
+    "Foreign Table": "Foreign Table",
+    "The behavior when a user tries to update a row with data that is involved in a foreign key relationship.": "The behavior when a user tries to update a row with data that is involved in a foreign key relationship.",
+    "On Update Action": "On Update Action",
+    "The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.": "The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.",
+    "On Delete Action": "On Delete Action",
+    "The mapping between foreign key columns and primary key columns.": "The mapping between foreign key columns and primary key columns.",
+    "New Column Mapping": "New Column Mapping",
+    "New Foreign Key": "New Foreign Key",
+    "The name of the check constraint.": "The name of the check constraint.",
+    "The description of the check constraint.": "The description of the check constraint.",
+    "The expression defining the check constraint.": "The expression defining the check constraint.",
+    "Expression": "Expression",
+    "Check Constraints": "Check Constraints",
+    "Check Constraint": "Check Constraint",
+    "New Check Constraint": "New Check Constraint",
     "Object Explorer Filter": "Object Explorer Filter",
     "Azure MFA": "Azure MFA",
     "Windows Authentication": "Windows Authentication",
@@ -1673,7 +1701,8 @@
     "Public": "Public",
     "Private": "Private",
     "Remove": "Remove",
-    "Rename Database (Preview)": "Rename Database (Preview)",
+    "Drop Database": "Drop Database",
+    "Rename Database": "Rename Database",
     "Enter the new database name": "Enter the new database name",
     "Please select a server node in Object Explorer to create a database.": "Please select a server node in Object Explorer to create a database.",
     "Please select a database node in Object Explorer to drop.": "Please select a database node in Object Explorer to drop.",
@@ -1757,6 +1786,7 @@
     "Integrated": "Integrated",
     "SQL Login": "SQL Login",
     "Microsoft Entra Id - Universal w/ MFA Support": "Microsoft Entra Id - Universal w/ MFA Support",
+    "Microsoft Entra Id - Default": "Microsoft Entra Id - Default",
     "Azure Code Grant": "Azure Code Grant",
     "Azure Device Code": "Azure Device Code",
     "MSSQL - Azure Auth Logs": "MSSQL - Azure Auth Logs",
@@ -1850,6 +1880,10 @@
     },
     "Firewall rule successfully added. Retry profile creation? ": "Firewall rule successfully added. Retry profile creation? ",
     "Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.": "Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.",
+    "Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate. Error: {0}/{0} is the error message": {
+        "message": "Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate. Error: {0}",
+        "comment": ["{0} is the error message"]
+    },
     "Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.": "Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.",
     "Unable to expand. Please check logs for more information.": "Unable to expand. Please check logs for more information.",
     "Firewall rule successfully created.": "Firewall rule successfully created.",
@@ -1970,6 +2004,86 @@
     "Sign in to your Azure subscription with a device code. Use this in setups where the Sign In command does not work": "Sign in to your Azure subscription with a device code. Use this in setups where the Sign In command does not work",
     "Azure: Sign In to Azure Cloud": "Azure: Sign In to Azure Cloud",
     "Sign in to your Azure subscription in one of the sovereign clouds.": "Sign in to your Azure subscription in one of the sovereign clouds.",
+    "No background tasks": "No background tasks",
+    "Task: {0}/{0} is the task name": {
+        "message": "Task: {0}",
+        "comment": ["{0} is the task name"]
+    },
+    "Description: {0}/{0} is the task description": {
+        "message": "Description: {0}",
+        "comment": ["{0} is the task description"]
+    },
+    "Status: {0}/{0} is the task status": {
+        "message": "Status: {0}",
+        "comment": ["{0} is the task status"]
+    },
+    "Source: {0}/{0} is the task source": {
+        "message": "Source: {0}",
+        "comment": ["{0} is the task source"]
+    },
+    "Connection: {0}/{0} is the task connection label": {
+        "message": "Connection: {0}",
+        "comment": ["{0} is the task connection label"]
+    },
+    "Target: {0}/{0} is the task target location": {
+        "message": "Target: {0}",
+        "comment": ["{0} is the task target location"]
+    },
+    "Elapsed time: {0}/{0} is the task elapsed time": {
+        "message": "Elapsed time: {0}",
+        "comment": ["{0} is the task elapsed time"]
+    },
+    "Logs": "Logs",
+    "No log entries yet.": "No log entries yet.",
+    "Task log is unavailable.": "Task log is unavailable.",
+    "Are you sure you want to cancel this background task?": "Are you sure you want to cancel this background task?",
+    "Cancel Task": "Cancel Task",
+    "[{0}] {1}/{0} is the timestamp{1} is the log entry text": {
+        "message": "[{0}] {1}",
+        "comment": ["{0} is the timestamp", "{1} is the log entry text"]
+    },
+    "{0}: {1}/{0} is the task status{1} is the task message": {
+        "message": "{0}: {1}",
+        "comment": ["{0} is the task status", "{1} is the task message"]
+    },
+    "{0} ({1}%)/{0} is the task status{1} is the completion percent": {
+        "message": "{0} ({1}%)",
+        "comment": ["{0} is the task status", "{1} is the completion percent"]
+    },
+    "{0} ({1}%): {2}/{0} is the task status{1} is the completion percent{2} is the task message": {
+        "message": "{0} ({1}%): {2}",
+        "comment": [
+            "{0} is the task status",
+            "{1} is the completion percent",
+            "{2} is the task message"
+        ]
+    },
+    "{0}ms/{0} is the elapsed time in milliseconds": {
+        "message": "{0}ms",
+        "comment": ["{0} is the elapsed time in milliseconds"]
+    },
+    "{0}s/{0} is the elapsed time in seconds": {
+        "message": "{0}s",
+        "comment": ["{0} is the elapsed time in seconds"]
+    },
+    "{0}m {1}s/{0} is the elapsed time in minutes{1} is the remaining elapsed time in seconds": {
+        "message": "{0}m {1}s",
+        "comment": [
+            "{0} is the elapsed time in minutes",
+            "{1} is the remaining elapsed time in seconds"
+        ]
+    },
+    "{0}h {1}m/{0} is the elapsed time in hours{1} is the remaining elapsed time in minutes": {
+        "message": "{0}h {1}m",
+        "comment": [
+            "{0} is the elapsed time in hours",
+            "{1} is the remaining elapsed time in minutes"
+        ]
+    },
+    "{0}d {1}h/{0} is the elapsed time in days{1} is the remaining elapsed time in hours": {
+        "message": "{0}d {1}h",
+        "comment": ["{0} is the elapsed time in days", "{1} is the remaining elapsed time in hours"]
+    },
     "{0}: {1}/{0} is the task name{1} is the status": {
         "message": "{0}: {1}",
         "comment": ["{0} is the task name", "{1} is the status"]
@@ -2095,8 +2209,8 @@
     "Error loading; refresh to try again": "Error loading; refresh to try again",
     "No items": "No items",
     "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?": "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?",
-    "Edit Connection Profile": "Edit Connection Profile",
-    "Connecting...": "Connecting...",
+    "Edit connection profile": "Edit connection profile",
+    "Sign in and retry": "Sign in and retry",
     "Are you sure you want to remove {0}?/{0} is the node label": {
         "message": "Are you sure you want to remove {0}?",
         "comment": ["{0} is the node label"]
@@ -2108,7 +2222,10 @@
     },
     "Insert": "Insert",
     "Alter": "Alter",
-    "Signing in to Azure...": "Signing in to Azure...",
+    "Signing in to Azure as {0}.../{0} is the account name": {
+        "message": "Signing in to Azure as {0}...",
+        "comment": ["{0} is the account name"]
+    },
     "Are you sure you want to delete {0}?  You can delete its connections as well, or move them to the root folder./{0} is the group name": {
         "message": "Are you sure you want to delete {0}?  You can delete its connections as well, or move them to the root folder.",
         "comment": ["{0} is the group name"]
@@ -2154,13 +2271,25 @@
     "Clear cache and refresh token": "Clear cache and refresh token",
     "Clear token cache": "Clear token cache",
     "No workspaces found. Please change Fabric account or tenant to view available workspaces.": "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
-    "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported./{0} is the authentication type": {
-        "message": "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported.",
+    "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported./{0} is the authentication type": {
+        "message": "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported.",
         "comment": ["{0} is the authentication type"]
     },
     "Add Firewall Rule to {0}/{0} is the server name": {
         "message": "Add Firewall Rule to {0}",
         "comment": ["{0} is the server name"]
+    },
+    "Unable to acquire a Microsoft Entra token from VS Code for the selected account: {0}/{0} is the account label or ID": {
+        "message": "Unable to acquire a Microsoft Entra token from VS Code for the selected account: {0}",
+        "comment": ["{0} is the account label or ID"]
+    },
+    "No SQL resource is configured for the current cloud '{0}'. Please update your Azure account settings./{0} is the display name of the current cloud": {
+        "message": "No SQL resource is configured for the current cloud '{0}'. Please update your Azure account settings.",
+        "comment": ["{0} is the display name of the current cloud"]
+    },
+    "Azure account '{0}' was not found. Sign in with the correct account or select a different one./{0} is the display name or ID of the Azure account that was not found": {
+        "message": "Azure account '{0}' was not found. Sign in with the correct account or select a different one.",
+        "comment": ["{0} is the display name or ID of the Azure account that was not found"]
     },
     "Error signing into Azure: {0}/{0} is the error message": {
         "message": "Error signing into Azure: {0}",
@@ -2249,6 +2378,10 @@
     "Fabric is not supported in the current cloud ({0}).  Ensure setting '{1}' is configured correctly./{0} is the cloud name{1} is the setting name": {
         "message": "Fabric is not supported in the current cloud ({0}).  Ensure setting '{1}' is configured correctly.",
         "comment": ["{0} is the cloud name", "{1} is the setting name"]
+    },
+    "The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect./{0} is the account ID or label{1} is the tenant ID": {
+        "message": "The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.",
+        "comment": ["{0} is the account ID or label", "{1} is the tenant ID"]
     },
     "{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again./{0} is the number of invalid accounts that have been removed": {
         "message": "{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again.",
@@ -2712,8 +2845,8 @@
             "{2} is the operation name 'apply_edits' and must not be translated"
         ]
     },
-    "Data API Builder opened. Continue with {0} operations ({1}/{2})./{0} is the command identifier 'mssql_dab' and must not be translated{1} is the operation name 'get_state' and must not be translated{2} is the operation name 'apply_changes' and must not be translated": {
-        "message": "Data API Builder opened. Continue with {0} operations ({1}/{2}).",
+    "Data API builder opened. Continue with {0} operations ({1}/{2})./{0} is the command identifier 'mssql_dab' and must not be translated{1} is the operation name 'get_state' and must not be translated{2} is the operation name 'apply_changes' and must not be translated": {
+        "message": "Data API builder opened. Continue with {0} operations ({1}/{2}).",
         "comment": [
             "{0} is the command identifier 'mssql_dab' and must not be translated",
             "{1} is the operation name 'get_state' and must not be translated",
@@ -2728,17 +2861,17 @@
         "message": "Executing '{0}' operation on schema designer",
         "comment": ["{0} is the operation name"]
     },
-    "Data API Builder": "Data API Builder",
-    "Execute '{0}' operation on Data API Builder?/{0} is the operation name": {
-        "message": "Execute '{0}' operation on Data API Builder?",
+    "Data API builder": "Data API builder",
+    "Execute '{0}' operation on Data API builder?/{0} is the operation name": {
+        "message": "Execute '{0}' operation on Data API builder?",
         "comment": ["{0} is the operation name"]
     },
-    "Executing '{0}' operation on Data API Builder/{0} is the operation name": {
-        "message": "Executing '{0}' operation on Data API Builder",
+    "Executing '{0}' operation on Data API builder/{0} is the operation name": {
+        "message": "Executing '{0}' operation on Data API builder",
         "comment": ["{0} is the operation name"]
     },
-    "No active schema designer found. Please open Data API Builder first using mssql_dab with operation 'show' or from the UI.": "No active schema designer found. Please open Data API Builder first using mssql_dab with operation 'show' or from the UI.",
-    "Missing connectionId. Please provide a connectionId to open Data API Builder.": "Missing connectionId. Please provide a connectionId to open Data API Builder.",
+    "No active schema designer found. Please open Data API builder first using mssql_dab with operation 'show' or from the UI.": "No active schema designer found. Please open Data API builder first using mssql_dab with operation 'show' or from the UI.",
+    "Missing connectionId. Please provide a connectionId to open Data API builder.": "Missing connectionId. Please provide a connectionId to open Data API builder.",
     "No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.": "No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.",
     "Schema designer state changed. Fetch the latest schema and retry the operation.": "Schema designer state changed. Fetch the latest schema and retry the operation.",
     "Missing connectionId. Please provide a connectionId to open the schema designer.": "Missing connectionId. Please provide a connectionId to open the schema designer.",
@@ -3051,6 +3184,14 @@
         "message": "Failed to export results: {0}",
         "comment": ["{0} is the error message"]
     },
+    "Failed to open Table Designer: {0}/{0} is the error message": {
+        "message": "Failed to open Table Designer: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Failed to open Schema Designer: {0}/{0} is the error message": {
+        "message": "Failed to open Schema Designer: {0}",
+        "comment": ["{0} is the error message"]
+    },
     "Locate an Azure Data Studio settings.json file to import": "Locate an Azure Data Studio settings.json file to import",
     "Ready for import": "Ready for import",
     "Needs attention": "Needs attention",
@@ -3087,7 +3228,6 @@
     "Customize keyboard shortcuts": "Customize keyboard shortcuts",
     "Schema Designer with GitHub Copilot": "Schema Designer with GitHub Copilot",
     "Use natural language to design database schemas directly within the visual Schema Designer. Create schemas from scratch, evolve existing designs, review changes through a diff view, and import external artifacts - all reflected live in the visual diagram and T-SQL script.": "Use natural language to design database schemas directly within the visual Schema Designer. Create schemas from scratch, evolve existing designs, review changes through a diff view, and import external artifacts - all reflected live in the visual diagram and T-SQL script.",
-    "Data API builder": "Data API builder",
     "Create REST, GraphQL, and MCP endpoints for your SQL database tables from a visual interface within Visual Studio Code. Configure entities, permissions, and deployment settings — then deploy locally with Docker.": "Create REST, GraphQL, and MCP endpoints for your SQL database tables from a visual interface within Visual Studio Code. Configure entities, permissions, and deployment settings — then deploy locally with Docker.",
     "GitHub Copilot integration in Data API builder": "GitHub Copilot integration in Data API builder",
     "Generate Data API builder configurations using natural language through GitHub Copilot chat and agent tools. Describe your API requirements and let GitHub Copilot scaffold the configuration for you.": "Generate Data API builder configurations using natural language through GitHub Copilot chat and agent tools. Describe your API requirements and let GitHub Copilot scaffold the configuration for you.",
@@ -3298,7 +3438,7 @@
         "message": "Failed to start '{0}': {1}",
         "comment": ["{0} is the service name", "{1} is the error message"]
     },
-    "Import Flat File (Preview)": "Import Flat File (Preview)",
+    "Import Flat File": "Import Flat File",
     "Database the table is created in": "Database the table is created in",
     "Location of the file to be imported": "Location of the file to be imported",
     "New Table Name": "New Table Name",
@@ -3345,6 +3485,20 @@
     "Please choose at least one backup set to restore": "Please choose at least one backup set to restore",
     "No databases with backups found": "No databases with backups found",
     "Azure SQL Database is not supported for restore.": "Azure SQL Database is not supported for restore.",
+    "A required .NET runtime could not be found or installed.": "A required .NET runtime could not be found or installed.",
+    "The SQL Server extension couldn't start because its required background service failed to launch. Install the offline VSIX for your operating system, or check your network connection and try again. Details: {0}/{0} is the error message": {
+        "message": "The SQL Server extension couldn't start because its required background service failed to launch. Install the offline VSIX for your operating system, or check your network connection and try again. Details: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Download offline VSIX": "Download offline VSIX",
+    "Copy link": "Copy link",
+    "Link copied to clipboard": "Link copied to clipboard",
+    "The {0} service has crashed. Details: {1}/{0} is the service name{1} is the error message": {
+        "message": "The {0} service has crashed. Details: {1}",
+        "comment": ["{0} is the service name", "{1} is the error message"]
+    },
+    "View known issues": "View known issues",
+    "Service installation failed.": "Service installation failed.",
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

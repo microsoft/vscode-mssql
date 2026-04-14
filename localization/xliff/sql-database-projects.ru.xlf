@@ -74,6 +74,10 @@
         <source xml:lang="en">Add Item</source>
         <target state="translated">Добавить элемент</target>
       </trans-unit>
+      <trans-unit id="++CODE++de3d0b4f0d9ffd5c28abdaedfda299d9d874069cd590eb145b999df7681688a8">
+        <source xml:lang="en">Add ProjectGuid</source>
+        <target state="translated">Добавить ProjectGuid</target>
+      </trans-unit>
       <trans-unit id="++CODE++7287537df41bee4b40e151d7c5f2f345d70fdcf9b16a48ec51a07013cd23a6ac">
         <source xml:lang="en">Add SQLCMD variable '{0}' to project without default value?</source>
         <target state="translated">Добавить переменную SQLCMD "{0}" в проект без значения по умолчанию?</target>
@@ -738,6 +742,10 @@
         <source xml:lang="en">Project '{0}' is already opened.</source>
         <target state="translated">Проект "{0}" уже открыт.</target>
       </trans-unit>
+      <trans-unit id="++CODE++e04042289bd986941675cd4a9ada3b0d0a6f8c2eb75f5b833381d60fdec4186c">
+        <source xml:lang="en">Project '{0}' is missing a ProjectGuid. A unique ProjectGuid helps identify the project for cross-project references. Would you like one to be added?</source>
+        <target state="translated">В проекте «{0}» отсутствует ProjectGuid. Уникальный идентификатор ProjectGuid помогает идентифицировать проект для использования в рамках различных проектов. Добавить его?</target>
+      </trans-unit>
       <trans-unit id="++CODE++9ab84bcb7f3b646135e8d589e6240037bb955e322cb97bf5a679f6231f63e856">
         <source xml:lang="en">Project (.sqlproj)</source>
         <target state="translated">Проект (.sqlproj)</target>
@@ -1270,6 +1278,16 @@
         <source xml:lang="en">{0} If the project was created in SSDT, it will continue to work in both tools. Do you want to update the project?</source>
         <target state="translated">{0} Если проект был создан в SSDT, он продолжит работать в обоих инструментах. Обновить проект?</target>
       </trans-unit>
+      <trans-unit id="++CODE++e13b197b20b10678a8114eb56d121c6b32568a636f93cfd0397234b194a052de">
+        <source xml:lang="en">{0} projects in this workspace are missing a ProjectGuid. A unique ProjectGuid helps identify projects for cross-project references. Would you like one to be added to each project?
+
+Projects:
+{1}</source>
+        <target state="translated">В {0} проектах этой рабочей области отсутствует ProjectGuid. Уникальный идентификатор ProjectGuid помогает идентифицировать проекты для использования в рамках различных проектов. Добавить его в каждый проект?
+
+Проекты:
+{1}</target>
+      </trans-unit>
     </body>
   </file>
   <file original="package" source-language="en" datatype="plaintext" target-language="ru">
@@ -1326,6 +1344,10 @@
         <source xml:lang="en">Add View</source>
         <target state="translated">Добавить представление</target>
       </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.autoCreateFolders">
+        <source xml:lang="en">Automatically create folders (e.g., dbo/Tables) when adding SQL objects from any add-item entry point in a project.</source>
+        <target state="translated">Автоматически создавать папки (например, dbo/Tables) при добавлении объектов SQL из любой точки входа добавления элементов в проект.</target>
+      </trans-unit>
       <trans-unit id="sqlDatabaseProjects.build">
         <source xml:lang="en">Build</source>
         <target state="translated">Сборка</target>
@@ -1369,6 +1391,10 @@
       <trans-unit id="sqlDatabaseProjects.description">
         <source xml:lang="en">Design and publish SQL database schemas</source>
         <target state="translated">Разработка и публикация схем базы данных SQL</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.openDocumentation">
+        <source xml:lang="en">Documentation</source>
+        <target state="translated">Документация</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.edit">
         <source xml:lang="en">Edit</source>

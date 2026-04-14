@@ -47,6 +47,7 @@ export enum TelemetryViews {
     Profiler = "Profiler",
     Restore = "Restore",
     SqlNotebooks = "SqlNotebooks",
+    ServiceClient = "ServiceClient",
 }
 
 export enum TelemetryActions {
@@ -227,10 +228,13 @@ export enum TelemetryActions {
     SetDatabase = "SetDatabase",
     EditData = "EditData",
     ModifyTable = "ModifyTable",
+    ViewTableDiagram = "ViewTableDiagram",
     CopyObjectName = "CopyObjectName",
     RefreshResults = "RefreshResults",
     Search = "Search",
     ServiceStarted = "ServiceStarted",
+    ServiceStartFailed = "ServiceStartFailed",
+    AcquireDotnetRuntimeFailed = "AcquireDotnetRuntimeFailed",
     TablePreview = "TablePreview",
     ImportFile = "ImportFile",
     ResetState = "ResetState",
@@ -282,7 +286,7 @@ export type FinishActivity = (
     activityStatus: Exclude<ActivityStatus, ActivityStatus.Failed>,
     additionalProperties?: Record<string, string>,
     additionalMeasurements?: Record<string, number>,
-    connectionProfile?: any, //TODO fix any with IConnectionProfile
+    connectionProfile?: vscodeMssql.IConnectionInfo,
     serverInfo?: vscodeMssql.IServerInfo,
 ) => void;
 
@@ -306,7 +310,7 @@ export type FinishActivityFailed = (
 export type UpdateActivity = (
     additionalProperties?: Record<string, string>,
     additionalMeasurements?: Record<string, number>,
-    connectionProfile?: any, //TODO fix any with IConnectionProfile
+    connectionProfile?: vscodeMssql.IConnectionInfo,
     serverInfo?: vscodeMssql.IServerInfo,
 ) => void;
 

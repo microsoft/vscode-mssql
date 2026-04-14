@@ -25,7 +25,11 @@ import {
     IConnectionDialogProfile,
 } from "../../src/sharedInterfaces/connectionDialog";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
-import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
+import ConnectionManager, {
+    ConnectionInfo,
+    SqlConnectionErrorType,
+} from "../../src/controllers/connectionManager";
+import * as ConnectionManagerModule from "../../src/controllers/connectionManager";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import {
@@ -38,8 +42,10 @@ import { ConnectionDetails, IAccount } from "vscode-mssql";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import { MssqlVSCodeAzureSubscriptionProvider } from "../../src/azure/MssqlVSCodeAzureSubscriptionProvider";
 import {
+    createStubLogger,
     initializeIconUtils,
     stubGetCapabilitiesRequest,
+    stubPreviewService,
     stubTelemetry,
     stubUserSurvey,
     stubVscodeWrapper,
@@ -48,6 +54,7 @@ import {
     stubVscodeAzureSignIn,
     stubFetchServersFromAzure,
     stubPromptForAzureSubscriptionFilter,
+    mockAccounts,
     stubVscodeAzureHelperGetAccounts,
     mockServerName,
     mockUserName,
@@ -59,13 +66,13 @@ import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { AzureController } from "../../src/azure/azureController";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import { multiple_matching_tokens_error } from "../../src/azure/constants";
-import { Logger } from "../../src/models/logger";
 import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
 import { errorPasswordExpired } from "../../src/constants/constants";
 import { FirewallRuleSpec } from "../../src/sharedInterfaces/firewallRule";
 import { FirewallService } from "../../src/firewall/firewallService";
 import { AddFirewallRuleState } from "../../src/sharedInterfaces/addFirewallRule";
 import { deepClone } from "../../src/models/utils";
+import { PreviewFeature } from "../../src/previews/previewService";
 
 chai.use(sinonChai);
 
@@ -249,6 +256,8 @@ suite("ConnectionDialogWebviewController Tests", () => {
             ]);
 
             expect(controller.state.selectedInputMode).to.equal(ConnectionInputMode.Parameters);
+            expect(controller.state.isEditingConnection).to.be.false;
+            expect(controller.state.editingConnectionDisplayName).to.be.undefined;
             expect(controller.state.savedConnections).to.have.lengthOf(1);
             expect(controller.state.savedConnections[0]).to.deep.include(testSavedConnection);
 
@@ -287,6 +296,8 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 controller.state.readyToConnect,
                 "should be ready to connect when launched with a profile to edit",
             ).to.be.true;
+            expect(controller.state.isEditingConnection).to.be.true;
+            expect(controller.state.editingConnectionDisplayName).to.not.be.undefined;
         });
 
         test("should initialize correctly when editing connection with password", async () => {
@@ -318,6 +329,21 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 controller.state.readyToConnect,
                 "should be ready to connect when launched with a profile to edit",
             ).to.be.true;
+            expect(controller.state.isEditingConnection).to.be.true;
+            expect(controller.state.editingConnectionDisplayName).to.not.be.undefined;
+        });
+
+        test("should show optional user and hide password fields for ActiveDirectoryDefault", async () => {
+            controller.state.connectionProfile.authenticationType =
+                AuthenticationType.ActiveDirectoryDefault;
+
+            await controller.updateItemVisibility();
+
+            expect(controller.state.formComponents.user.hidden).to.not.be.true;
+            expect(controller.state.formComponents.password.hidden).to.be.true;
+            expect(controller.state.formComponents.savePassword.hidden).to.be.true;
+            expect(controller.state.formComponents.accountId.hidden).to.be.true;
+            expect(controller.state.formComponents.tenantId.hidden).to.be.true;
         });
     });
 
@@ -393,7 +419,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
             });
         });
 
-        test("loadConnection", async () => {
+        test("loadConnectionForEdit", async () => {
             controller.state.formMessage = { message: "Sample error" };
 
             expect(
@@ -413,14 +439,14 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 authenticationType: AuthenticationType.Integrated,
             } as IConnectionDialogProfile;
 
-            await controller["_reducerHandlers"].get("loadConnection")(controller.state, {
+            await controller["_reducerHandlers"].get("loadConnectionForEdit")(controller.state, {
                 connection: testConnection,
             });
 
             expect(
                 controller["_connectionBeingEdited"],
                 "connection being edited should have the same properties as the one passed to the reducer",
-            ).to.deep.equal(testConnection);
+            ).to.deep.include(testConnection);
             expect(
                 controller["_connectionBeingEdited"],
                 "connection being edited should be a clone of the one passed to the reducer, not the original",
@@ -435,6 +461,75 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 controller.state.readyToConnect,
                 "should be ready to connect after profile has been loaded",
             ).to.be.true;
+            expect(controller.state.isEditingConnection).to.be.true;
+            expect(controller.state.editingConnectionDisplayName).to.not.be.undefined;
+        });
+
+        test("loadConnectionAsNewDraft", async () => {
+            controller.state.formMessage = { message: "Sample error" };
+
+            const testConnection = {
+                id: "existing-profile-id",
+                profileName: "Test Profile",
+                server: "SavedServer",
+                database: "SavedDatabase",
+                authenticationType: AuthenticationType.Integrated,
+                configSource: vscode.ConfigurationTarget.Workspace,
+            } as IConnectionProfileWithSource;
+
+            await controller["_reducerHandlers"].get("loadConnectionAsNewDraft")(controller.state, {
+                connection: testConnection,
+            });
+
+            expect(
+                controller["_connectionBeingEdited"],
+                "new draft mode should not track a profile as being edited",
+            ).to.be.undefined;
+            expect(controller.state.connectionProfile.id).to.be.undefined;
+            expect(controller.state.connectionProfile.profileName).to.be.undefined;
+            expect(
+                (controller.state.connectionProfile as IConnectionProfileWithSource).configSource,
+            ).to.be.undefined;
+            expect(controller.state.isEditingConnection).to.be.false;
+            expect(controller.state.editingConnectionDisplayName).to.be.undefined;
+            expect(controller.state.formMessage).to.be.undefined;
+            expect(controller.state.readyToConnect).to.be.true;
+
+            // Ensure source object wasn't mutated
+            expect(testConnection.id).to.equal("existing-profile-id");
+            expect(testConnection.profileName).to.equal("Test Profile");
+            expect(testConnection.configSource).to.equal(vscode.ConfigurationTarget.Workspace);
+        });
+
+        test("loadConnection normalizes legacy Entra account ids when VS Code account mode is enabled", async () => {
+            stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: true });
+            sandbox
+                .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
+                .resolves([mockAccounts.signedInAccount]);
+            sandbox
+                .stub(AzureHelpers.VsCodeAzureHelper, "getTenantsForAccount")
+                .resolves([mockTenants[0], mockTenants[1]]);
+
+            // Pre-populate the Entra account and tenant caches
+            await controller["loadVscodeEntraDataAsync"]();
+
+            const testConnection = {
+                profileName: "Test Entra Connection",
+                server: "SavedServer",
+                database: "SavedDatabase",
+                authenticationType: AuthenticationType.AzureMFA,
+                accountId: mockAccounts.signedInAccount.id.split(".")[0],
+                tenantId: mockTenants[0].tenantId,
+            } as IConnectionDialogProfile;
+
+            await controller["_reducerHandlers"].get("loadConnectionForEdit")(controller.state, {
+                connection: testConnection,
+            });
+
+            expect(controller.state.connectionProfile.accountId).to.equal(
+                mockAccounts.signedInAccount.id,
+            );
+            expect(controller.state.connectionProfile.tenantId).to.equal(mockTenants[0].tenantId);
         });
 
         suite("connect", () => {
@@ -487,6 +582,115 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 controller.state.formState = testFormState;
 
                 await controller["_reducerHandlers"].get("connect")(controller.state, {});
+
+                expect(connectionManager.connect.calledOnce).to.be.true;
+                expect(connectionStore.saveProfile.calledOnce).to.be.true;
+                expect(mockObjectExplorerProvider.createSession.calledOnce).to.be.true;
+            });
+
+            test("testConnection only validates connectivity without saving or creating session", async () => {
+                connectionManager.connect.resolves(true);
+                controller.state.formState = testFormState;
+
+                await controller["_reducerHandlers"].get("testConnection")(controller.state, {});
+
+                expect(connectionManager.connect.calledOnce).to.be.true;
+                expect(connectionStore.saveProfile.notCalled).to.be.true;
+                expect(mockObjectExplorerProvider.createSession.notCalled).to.be.true;
+                expect(controller.state.connectionStatus).to.equal(ApiStatus.Loaded);
+                expect(controller.state.testConnectionSucceeded).to.be.true;
+            });
+
+            test("saveWithoutConnecting only saves connection profile", async () => {
+                controller.state.formState = testFormState;
+
+                await controller["_reducerHandlers"].get("saveWithoutConnecting")(
+                    controller.state,
+                    {},
+                );
+
+                expect(connectionManager.connect.notCalled).to.be.true;
+                expect(connectionStore.saveProfile.calledOnce).to.be.true;
+                expect(mockObjectExplorerProvider.createSession.notCalled).to.be.true;
+                expect(controller.state.testConnectionSucceeded).to.be.false;
+            });
+
+            test("retryLastSubmitAction replays test connection action for trust cert flow", async () => {
+                const trustCertErrorMessage = "Trust server certificate required";
+                connectionManager.connect.onFirstCall().resolves(false);
+                connectionManager.connect.onSecondCall().resolves(true);
+                connectionManager.getConnectionInfo.returns({
+                    errorNumber: 18456,
+                    errorMessage: trustCertErrorMessage,
+                    messages: trustCertErrorMessage,
+                    credentials: {
+                        server: mockServerName,
+                        user: mockUserName,
+                    },
+                } as ConnectionInfo);
+
+                sandbox
+                    .stub(ConnectionManagerModule, "getSqlConnectionErrorType")
+                    .resolves(SqlConnectionErrorType.TrustServerCertificateNotEnabled);
+
+                controller.state.formState = testFormState;
+                await controller["_reducerHandlers"].get("testConnection")(controller.state, {});
+
+                expect(controller.state.dialog?.type).to.equal("trustServerCert");
+                expect(connectionManager.connect.calledOnce).to.be.true;
+
+                await controller["_reducerHandlers"].get("retryLastSubmitAction")(
+                    controller.state,
+                    {},
+                );
+
+                expect(connectionManager.connect.calledTwice).to.be.true;
+                expect(connectionStore.saveProfile.notCalled).to.be.true;
+                expect(mockObjectExplorerProvider.createSession.notCalled).to.be.true;
+            });
+
+            test("afterSetFormProperty clears test connection success indicator", async () => {
+                controller.state.formState = testFormState;
+                connectionManager.connect.resolves(true);
+
+                await controller["_reducerHandlers"].get("testConnection")(controller.state, {});
+                expect(controller.state.testConnectionSucceeded).to.be.true;
+
+                await controller["_reducerHandlers"].get("formAction")(controller.state, {
+                    event: {
+                        propertyName: "server",
+                        value: "localhost2",
+                        isAction: false,
+                    },
+                });
+
+                expect(controller.state.testConnectionSucceeded).to.be.false;
+            });
+
+            test("afterSetFormProperty keeps success indicator for profileName and groupId", async () => {
+                controller.state.formState = testFormState;
+                connectionManager.connect.resolves(true);
+
+                await controller["_reducerHandlers"].get("testConnection")(controller.state, {});
+                expect(controller.state.testConnectionSucceeded).to.be.true;
+
+                await controller["_reducerHandlers"].get("formAction")(controller.state, {
+                    event: {
+                        propertyName: "profileName",
+                        value: "My profile",
+                        isAction: false,
+                    },
+                });
+                expect(controller.state.testConnectionSucceeded).to.be.true;
+
+                await controller["_reducerHandlers"].get("formAction")(controller.state, {
+                    event: {
+                        propertyName: "groupId",
+                        value: ConnectionConfig.ROOT_GROUP_ID,
+                        isAction: false,
+                    },
+                });
+                expect(controller.state.testConnectionSucceeded).to.be.true;
             });
 
             test("displays actionable error message for multiple_matching_tokens_error", async () => {
@@ -623,7 +827,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
             test("unknown button", async () => {
                 const unknownButtonId = "unknownButtonId";
 
-                const loggerStub = sandbox.createStubInstance(Logger);
+                const loggerStub = createStubLogger(sandbox);
                 controller["logger"] = loggerStub;
 
                 await controller["_reducerHandlers"].get("messageButtonClicked")(controller.state, {
@@ -728,6 +932,25 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 expect(controller.state.connectionProfile.database).to.equal("myDB");
                 expect(controller.state.connectionProfile.authenticationType).to.equal(
                     AuthenticationType.AzureMFA,
+                );
+                expect(controller.state.dialog, "dialog should be closed").to.be.undefined;
+            });
+
+            test("should load connection details from connection string with ActiveDirectoryDefault", async () => {
+                const parsedDetails = {
+                    options: {
+                        server: "myServer",
+                        database: "myDB",
+                        authenticationType: AuthenticationType.ActiveDirectoryDefault,
+                    },
+                } as ConnectionDetails;
+
+                await runConnectionStringScenario(parsedDetails);
+
+                expect(controller.state.connectionProfile.server).to.equal("myServer");
+                expect(controller.state.connectionProfile.database).to.equal("myDB");
+                expect(controller.state.connectionProfile.authenticationType).to.equal(
+                    AuthenticationType.ActiveDirectoryDefault,
                 );
                 expect(controller.state.dialog, "dialog should be closed").to.be.undefined;
             });
@@ -846,5 +1069,35 @@ suite("ConnectionDialogWebviewController Tests", () => {
         buttons = await controller["getAzureActionButtons"]();
         expect(buttons.length).to.equal(2);
         expect(buttons[1].id).to.equal("refreshToken");
+    });
+
+    test("getAzureActionButtons uses VS Code sign-in when VS Code account mode is enabled", async () => {
+        stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: true });
+
+        sandbox
+            .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
+            .resolves([mockAccounts.signedInAccount]);
+        sandbox
+            .stub(AzureHelpers.VsCodeAzureHelper, "getTenantsForAccount")
+            .resolves([mockTenants[0], mockTenants[1]]);
+
+        const signInStub = sandbox.stub().callsFake(() => {
+            return true;
+        });
+
+        sandbox.stub(MssqlVSCodeAzureSubscriptionProvider, "getInstance").returns({
+            signIn: signInStub,
+        } as unknown as MssqlVSCodeAzureSubscriptionProvider);
+
+        controller.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
+        controller.state.connectionProfile.accountId = mockAccounts.signedInAccount.id;
+
+        const buttons = await controller["getAzureActionButtons"]();
+        expect(buttons).to.have.lengthOf(1);
+        expect(buttons[0].id).to.equal("azureSignIn");
+
+        await buttons[0].callback();
+
+        expect(signInStub).to.have.been.calledOnce;
     });
 });

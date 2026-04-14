@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { ReactWebviewPanelController } from "./reactWebviewPanelController";
+import { WebviewPanelController } from "./webviewPanelController";
 import VscodeWrapper from "./vscodeWrapper";
 import { AddFirewallRuleState, AddFirewallRuleReducers } from "../sharedInterfaces/addFirewallRule";
 import { FirewallService } from "../firewall/firewallService";
@@ -21,7 +21,7 @@ import { MssqlVSCodeAzureSubscriptionProvider } from "../azure/MssqlVSCodeAzureS
 /**
  * Controller for the Add Firewall Rule dialog
  */
-export class AddFirewallRuleWebviewController extends ReactWebviewPanelController<
+export class AddFirewallRuleWebviewController extends WebviewPanelController<
     AddFirewallRuleState,
     AddFirewallRuleReducers,
     boolean
@@ -47,6 +47,7 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
                 message: initializationProps.errorMessage,
                 clientIp: "",
                 isSignedIn: false,
+                loadingAccounts: true,
                 accounts: [],
                 tenants: {},
                 addFirewallRuleStatus: ApiStatus.NotStarted,
@@ -90,14 +91,8 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
      * Initialize the controller
      */
     private async initializeDialog(errorMessage: string): Promise<void> {
-        // Check if user is signed into Azure, and populate the dialog if they are
-        this.state.isSignedIn = await VsCodeAzureHelper.isSignedIn();
+        const accountLoadingPromise = this.loadAzureAccounts(); // Load accounts and extract client IP in parallel
 
-        if (this.state.isSignedIn) {
-            await populateAzureAccountInfo(this.state, false /* forceSignInPrompt */);
-        }
-
-        // Extract the client IP address from the error message
         const handleFirewallErrorResult = await this.firewallService.handleFirewallRule(
             errorFirewallRule,
             errorMessage,
@@ -118,6 +113,21 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
         }
 
         this.state.clientIp = handleFirewallErrorResult.ipAddress;
+
+        await accountLoadingPromise;
+    }
+
+    private async loadAzureAccounts(): Promise<void> {
+        try {
+            this.state.isSignedIn = await VsCodeAzureHelper.isSignedIn();
+
+            if (this.state.isSignedIn) {
+                await populateAzureAccountInfo(this.state, false /* forceSignInPrompt */);
+            }
+        } finally {
+            this.state.loadingAccounts = false;
+            this.updateState();
+        }
     }
 
     /**
@@ -165,7 +175,14 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
         });
 
         this.registerReducer("signIntoAzure", async (state) => {
-            await populateAzureAccountInfo(state, true /* forceSignInPrompt */);
+            state.loadingAccounts = true;
+            this.updateState(state);
+
+            try {
+                await populateAzureAccountInfo(state, true /* forceSignInPrompt */);
+            } finally {
+                state.loadingAccounts = false;
+            }
 
             return state;
         });
@@ -181,11 +198,7 @@ export async function populateAzureAccountInfo(
     try {
         auth = await VsCodeAzureHelper.signIn(forceSignInPrompt);
     } catch (error) {
-        this.logger.error(`Error signing into Azure: ${getErrorMessage(error)}`);
-        this.vscodeWrapper.showErrorMessage(
-            Loc.Azure.errorSigningIntoAzure(getErrorMessage(error)),
-        );
-
+        console.error(`Error signing into Azure: ${getErrorMessage(error)}`);
         return;
     }
 
