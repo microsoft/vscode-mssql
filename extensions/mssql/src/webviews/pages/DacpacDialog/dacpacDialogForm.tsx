@@ -256,6 +256,36 @@ export const DacpacDialogForm = () => {
                     setDatabaseName(result.databases[0]);
                 }
             }
+
+            // If there was an error loading databases (e.g., permission issues)
+            // but we got fallback results from the connection's database, show a warning.
+            // If no databases at all, show an error about permissions.
+            if (result?.errorMessage) {
+                if (result.databases && result.databases.length > 0) {
+                    // We have a fallback database from the connection - show as warning
+                    setDatabaseName(result.databases[0]);
+                    setValidationMessages((prev) => ({
+                        ...prev,
+                        database: {
+                            message:
+                                locConstants.dacpacDialog
+                                    .databasesCannotBeLoadedDueToPermissions,
+                            severity: "warning",
+                        },
+                    }));
+                } else {
+                    // No databases at all - show error
+                    setValidationMessages((prev) => ({
+                        ...prev,
+                        database: {
+                            message:
+                                locConstants.dacpacDialog
+                                    .databasesCannotBeLoadedDueToPermissions,
+                            severity: "error",
+                        },
+                    }));
+                }
+            }
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
             setValidationMessages((prev) => ({
