@@ -38,7 +38,7 @@ import {
     IConnectionProfileWithSource,
 } from "../../src/models/interfaces";
 import { AzureAccountService } from "../../src/services/azureAccountService";
-import { ConnectionDetails, IAccount } from "vscode-mssql";
+import { ConnectionDetails, IAccount, IToken } from "vscode-mssql";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import { MssqlVSCodeAzureSubscriptionProvider } from "../../src/azure/MssqlVSCodeAzureSubscriptionProvider";
 import {
@@ -1055,6 +1055,11 @@ suite("ConnectionDialogWebviewController Tests", () => {
         controller.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
         controller.state.connectionProfile.accountId = "TestUserId";
 
+        azureAccountService.getAccountSecurityToken.resolves({
+            token: "testToken",
+            expiresOn: Date.now() / 1000,
+        } as IToken);
+
         const isTokenValidStub = sandbox.stub(AzureController, "isTokenValid").returns(false);
 
         // When there's no error, we should have refreshToken button
@@ -1064,6 +1069,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
         // Test error handling when getAccountSecurityToken throws
         isTokenValidStub.restore();
+        mockVscodeWrapper.showErrorMessage.resolves(undefined);
         azureAccountService.getAccountSecurityToken.throws(new Error("Test error"));
 
         buttons = await controller["getAzureActionButtons"]();
