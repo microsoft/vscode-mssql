@@ -180,6 +180,17 @@ function getSortIcon(direction: SortDirection) {
     }
 }
 
+function getSortAriaLabel(direction: SortDirection): string {
+    switch (direction) {
+        case SortDirection.Ascending:
+            return locConstants.queryResult.sortAscending;
+        case SortDirection.Descending:
+            return locConstants.queryResult.sortDescending;
+        default:
+            return locConstants.queryResult.toggleSort;
+    }
+}
+
 function cycleSortDirection(current: SortDirection): SortDirection {
     switch (current) {
         case SortDirection.None:
@@ -478,7 +489,7 @@ export const DabEntityTable = () => {
                             size="small"
                             className={classes.sortButton}
                             onClick={handleEntitySort}
-                            aria-label={locConstants.queryResult.toggleSort}
+                            aria-label={getSortAriaLabel(entityColumnSortDirection)}
                         />
                     </div>
                 ),
@@ -523,7 +534,7 @@ export const DabEntityTable = () => {
                             size="small"
                             className={classes.sortButton}
                             onClick={handleSourceSort}
-                            aria-label={locConstants.queryResult.toggleSort}
+                            aria-label={getSortAriaLabel(sourceColumnSortDirection)}
                         />
                     </div>
                 ),
