@@ -1530,6 +1530,8 @@ export class LocConstants {
             saveSourceAndTargetOptionsAndExcludedElements: l10n.t(
                 "Save source and target, options, and excluded elements",
             ),
+            groupBy: l10n.t("Group By"),
+            groupDifferencesBy: l10n.t("Group differences by"),
             type: l10n.t("Type"),
             sourceName: l10n.t("Source Name"),
             include: l10n.t("Include"),
