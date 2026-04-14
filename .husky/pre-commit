@@ -1,34 +1,5 @@
 #!/usr/bin/env sh
 
-if ! command -v node >/dev/null 2>&1; then
-	export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
-
-	if [ -s "$NVM_DIR/nvm.sh" ]; then
-		. "$NVM_DIR/nvm.sh" --no-use
-		nvm use --silent >/dev/null 2>&1 || true
-	fi
-
-	for node_bin_dir in \
-		"$NVM_DIR"/versions/node/*/bin \
-		/opt/homebrew/bin \
-		/usr/local/bin \
-		"$HOME/.volta/bin" \
-		"$HOME/.asdf/shims"
-	do
-		if [ -d "$node_bin_dir" ]; then
-			PATH="$node_bin_dir:$PATH"
-		fi
-	done
-
-	export PATH
-fi
-
-if ! command -v node >/dev/null 2>&1; then
-	echo "husky: node not found. Install Node.js or initialize it for non-interactive shells." >&2
-	echo "husky: on macOS with nvm, create ~/.config/husky/init.sh to source nvm before hooks run." >&2
-	exit 127
-fi
-
 node scripts/ensure-crlf.js || exit 1
-npm run localization || exit 1
-npm run precommit || exit 1
+npm run localization
+npm run precommit
