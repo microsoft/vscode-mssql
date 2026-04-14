@@ -96,7 +96,9 @@ export const RenameDatabaseForm = ({
                     </div>
                 </div>
                 <div className={styles.tableContainer}>
-                    <table className={styles.table}>
+                    <table
+                        className={styles.table}
+                        aria-label={locConstants.renameDatabase.detailsSection}>
                         <thead>
                             <tr>
                                 <th className={styles.tableHeaderCell}>

@@ -3,11 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import React from "react";
+import React, { useId } from "react";
 
 export const RenameDatabaseIcon = Object.assign(
     React.forwardRef<SVGSVGElement, React.SVGAttributes<SVGElement>>((props, ref) => {
         const { fill = "currentColor", className, style, ...rest } = props;
+        const clipPathId = useId();
 
         return (
             <svg
@@ -20,7 +21,7 @@ export const RenameDatabaseIcon = Object.assign(
                 style={style}
                 xmlns="http://www.w3.org/2000/svg"
                 {...rest}>
-                <g clipPath="url(#renameDatabaseIconClipPath)">
+                <g clipPath={`url(#${clipPathId})`}>
                     <path
                         fillRule="evenodd"
                         clipRule="evenodd"
@@ -33,7 +34,7 @@ export const RenameDatabaseIcon = Object.assign(
                     />
                 </g>
                 <defs>
-                    <clipPath id="renameDatabaseIconClipPath">
+                    <clipPath id={clipPathId}>
                         <rect width="16" height="16" />
                     </clipPath>
                 </defs>

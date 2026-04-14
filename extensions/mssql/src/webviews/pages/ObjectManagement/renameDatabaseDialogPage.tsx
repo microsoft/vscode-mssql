@@ -50,6 +50,7 @@ export const RenameDatabaseDialogPage = ({
 }: RenameDatabaseDialogPageProps) => {
     const styles = useStyles();
     const context = useContext(ObjectManagementContext);
+    const extensionRpc = context!.extensionRpc;
     const [resultApiError, setResultApiError] = useState<string | undefined>(undefined);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [renameForm, setRenameForm] = useState<RenameDatabaseFormState>({
@@ -119,13 +120,15 @@ export const RenameDatabaseDialogPage = ({
                 };
                 setIsSubmitting(true);
                 setResultApiError(undefined);
+
                 try {
-                    const result = await context?.extensionRpc?.sendRequest(
+                    const result = await extensionRpc.sendRequest(
                         ObjectManagementSubmitRequest.type,
                         { dialogType: ObjectManagementDialogType.RenameDatabase, params },
                     );
-                    if (result?.errorMessage) {
-                        setResultApiError(result.errorMessage);
+
+                    if (!result?.success) {
+                        setResultApiError(result?.errorMessage ?? initializationError);
                         setIsSubmitting(false);
                     }
                 } catch (error) {
@@ -138,25 +141,26 @@ export const RenameDatabaseDialogPage = ({
                     ...renameForm,
                     newName: trimmedName,
                 };
+                setResultApiError(undefined);
+
                 try {
-                    const result = await context?.extensionRpc?.sendRequest(
+                    const result = await extensionRpc.sendRequest(
                         ObjectManagementScriptRequest.type,
                         { dialogType: ObjectManagementDialogType.RenameDatabase, params },
                     );
-                    if (result?.errorMessage) {
-                        setResultApiError(result.errorMessage);
+
+                    if (!result?.success) {
+                        setResultApiError(result?.errorMessage ?? initializationError);
                     }
                 } catch (error) {
                     setResultApiError(getErrorMessage(error));
                 }
             }}
             onHelp={() => {
-                void context?.extensionRpc?.sendNotification(ObjectManagementHelpNotification.type);
+                void extensionRpc.sendNotification(ObjectManagementHelpNotification.type);
             }}
             onCancel={() => {
-                void context?.extensionRpc?.sendNotification(
-                    ObjectManagementCancelNotification.type,
-                );
+                void extensionRpc.sendNotification(ObjectManagementCancelNotification.type);
             }}>
             {model && (
                 <RenameDatabaseForm

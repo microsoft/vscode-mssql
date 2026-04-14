@@ -30,6 +30,8 @@ suite("RenameDatabaseWebviewController Tests", () => {
     let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
     let objectManagementServiceStub: sinon.SinonStubbedInstance<ObjectManagementService>;
     let requestHandlers: Map<string, (params: unknown) => Promise<unknown>>;
+    let initializeViewCalled: Promise<void>;
+    let resolveInitializeViewCalled: (() => void) | undefined;
 
     const connectionUri = "test-connection-uri";
     const serverName = "test-server";
@@ -61,8 +63,14 @@ suite("RenameDatabaseWebviewController Tests", () => {
 
         vscodeWrapperStub = stubVscodeWrapper(sandbox);
         objectManagementServiceStub = sandbox.createStubInstance(ObjectManagementService);
-        objectManagementServiceStub.initializeView.resolves({
-            objectInfo: { name: databaseName, owner: "sa", status: "Normal" },
+        initializeViewCalled = new Promise<void>((resolve) => {
+            resolveInitializeViewCalled = resolve;
+        });
+        objectManagementServiceStub.initializeView.callsFake(async () => {
+            resolveInitializeViewCalled?.();
+            return {
+                objectInfo: { name: databaseName, owner: "sa", status: "Normal" },
+            };
         });
     });
 
@@ -82,8 +90,7 @@ suite("RenameDatabaseWebviewController Tests", () => {
     }
 
     async function waitForInitialization(): Promise<void> {
-        await Promise.resolve();
-        await Promise.resolve();
+        await initializeViewCalled;
     }
 
     test("initialization should call initializeView for the selected database", async () => {

@@ -1848,7 +1848,7 @@ export class LocConstants {
 
     public get renameDatabase() {
         return {
-            title: l10n.t("Rename Database (Preview)"),
+            title: l10n.t("Rename Database"),
             description: (databaseName: string, serverName: string) =>
                 l10n.t({
                     message: "Rename '{0}' on '{1}'.",
