@@ -54,6 +54,7 @@ import { ConnectionDialogWebviewController } from "../connectionconfig/connectio
 import { DacpacDialogWebviewController } from "./dacpacDialogWebviewController";
 import { CreateDatabaseWebviewController } from "./createDatabaseWebviewController";
 import { DropDatabaseWebviewController } from "./dropDatabaseWebviewController";
+import { RenameDatabaseWebviewController } from "./renameDatabaseWebviewController";
 import {
     DacpacDialogWebviewState,
     DacPacDialogOperationType,
@@ -1321,8 +1322,6 @@ export default class MainController implements vscode.Disposable {
             await this._objectExplorerProvider.refreshNode(node);
         };
 
-        const escapeSingleQuotes = (value: string): string => value.replace(/'/g, "''");
-
         /**
          * Checks if the given node is a server node that is scoped to a database.
          */
@@ -1531,23 +1530,6 @@ export default class MainController implements vscode.Disposable {
                         return;
                     }
 
-                    const databaseName = ObjectExplorerUtils.getDatabaseName(targetNode);
-                    const newName = await vscode.window.showInputBox({
-                        title: LocalizedConstants.renameDatabaseDialogTitle,
-                        value: databaseName,
-                        placeHolder: LocalizedConstants.renameDatabaseInputPlaceholder,
-                        validateInput: (value: string): string | undefined => {
-                            if (!value.trim()) {
-                                return LocalizedConstants.databaseNameRequired;
-                            }
-                            return undefined;
-                        },
-                    });
-
-                    if (!newName || newName === databaseName) {
-                        return;
-                    }
-
                     const connectionProfile = targetNode.connectionProfile;
                     const connectionUri =
                         connectionProfile &&
@@ -1559,34 +1541,25 @@ export default class MainController implements vscode.Disposable {
                         return;
                     }
 
-                    const objectUrn =
-                        targetNode.metadata?.urn ??
-                        `Server/Database[@Name='${escapeSingleQuotes(databaseName)}']`;
-
-                    try {
-                        await vscode.window.withProgress(
-                            {
-                                location: vscode.ProgressLocation.Notification,
-                                title: LocalizedConstants.renamingDatabase(databaseName, newName),
-                            },
-                            async () => {
-                                await this.objectManagementService.rename(
-                                    connectionUri,
-                                    Constants.databaseString,
-                                    objectUrn,
-                                    newName,
-                                );
-                            },
-                        );
+                    const databaseName = ObjectExplorerUtils.getDatabaseName(targetNode);
+                    const parentUrn = targetNode.parentNode?.metadata?.urn ?? "Server";
+                    const objectUrn = targetNode.metadata?.urn;
+                    const controller = new RenameDatabaseWebviewController(
+                        this._context,
+                        this._vscodeWrapper,
+                        this.objectManagementService,
+                        connectionUri,
+                        connectionProfile.server ?? "",
+                        databaseName,
+                        parentUrn,
+                        objectUrn,
+                        LocalizedConstants.renameDatabaseDialogTitle,
+                    );
+                    await controller.whenWebviewReady();
+                    controller.revealToForeground();
+                    const renamedDatabase = await controller.dialogResult.promise;
+                    if (renamedDatabase) {
                         await refreshNodeChildren(targetNode.parentNode);
-                    } catch (error) {
-                        void this._vscodeWrapper.showErrorMessage(
-                            LocalizedConstants.renameDatabaseError(
-                                databaseName,
-                                newName,
-                                getErrorMessage(error),
-                            ),
-                        );
                     }
                 },
             ),

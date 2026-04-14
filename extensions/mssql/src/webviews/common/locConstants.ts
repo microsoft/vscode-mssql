@@ -1846,6 +1846,36 @@ export class LocConstants {
         };
     }
 
+    public get renameDatabase() {
+        return {
+            title: l10n.t("Rename Database (Preview)"),
+            description: (databaseName: string, serverName: string) =>
+                l10n.t({
+                    message: "Rename '{0}' on '{1}'.",
+                    args: [databaseName, serverName],
+                    comment: ["{0} is the current database name", "{1} is the server name"],
+                }),
+            loading: l10n.t("Loading..."),
+            detailsSection: l10n.t("Database Details"),
+            optionsSection: l10n.t("Rename Options"),
+            nameColumn: l10n.t("Name"),
+            ownerColumn: l10n.t("Owner"),
+            statusColumn: l10n.t("Status"),
+            valueUnknown: l10n.t("-"),
+            newNameLabel: l10n.t("New Database Name"),
+            newNamePlaceholder: l10n.t("Enter new database name"),
+            newNameRequired: l10n.t("Database name is required"),
+            newNameTooLong: l10n.t("Database name must be 128 characters or fewer"),
+            newNameUnchanged: l10n.t("New database name must be different from the current name"),
+            dropConnections: l10n.t("Drop active connections"),
+            helpButton: l10n.t("Help"),
+            scriptButton: l10n.t("Script"),
+            renameButton: l10n.t("Rename"),
+            cancelButton: l10n.t("Cancel"),
+            renamingDatabase: l10n.t("Renaming database"),
+        };
+    }
+
     public get dacpacDialog() {
         return {
             title: l10n.t("Data-tier Application"),

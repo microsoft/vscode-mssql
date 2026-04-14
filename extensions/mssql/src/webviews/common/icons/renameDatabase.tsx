@@ -1,0 +1,44 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import React from "react";
+
+export const RenameDatabaseIcon = Object.assign(
+    React.forwardRef<SVGSVGElement, React.SVGAttributes<SVGElement>>((props, ref) => {
+        const { fill = "currentColor", className, style, ...rest } = props;
+
+        return (
+            <svg
+                ref={ref}
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                className={className}
+                style={style}
+                xmlns="http://www.w3.org/2000/svg"
+                {...rest}>
+                <g clipPath="url(#renameDatabaseIconClipPath)">
+                    <path
+                        fillRule="evenodd"
+                        clipRule="evenodd"
+                        d="M3 3.5C3 2.075 5.149 1 8 1C10.851 1 13 2.075 13 3.5V7.40081C12.8657 7.49157 12.7393 7.59551 12.623 7.71179L12 8.3346V5.021C10.7859 5.71872 9.39905 6.05816 8 6C6.60095 6.05816 5.21405 5.71872 4 5.021V12.5C4 13.0492 5.25867 13.8229 7.2866 13.9739L7.04295 14.9581C4.68148 14.7471 3 13.7605 3 12.5V3.5ZM12 3.5C12 2.888 10.441 2 8 2C5.558 2 4 2.888 4 3.5C4 4.112 5.559 5 8 5C10.441 5 12 4.112 12 3.5Z"
+                        fill={fill}
+                    />
+                    <path
+                        d="M15.5449 8.45394C15.2519 8.1616 14.8549 7.99741 14.4409 7.99741C14.027 7.99741 13.63 8.1616 13.3369 8.45394L9.04895 12.7414C8.69299 13.0975 8.44065 13.5437 8.31895 14.0322L8.01895 15.2431C7.99361 15.3451 7.99509 15.452 8.02324 15.5533C8.0514 15.6547 8.10528 15.747 8.17964 15.8213C8.25401 15.8957 8.34633 15.9495 8.44766 15.9777C8.54899 16.0059 8.65588 16.0073 8.75795 15.982L9.96895 15.682C10.4572 15.5598 10.9031 15.3071 11.2589 14.9511L15.5479 10.6637C15.6931 10.5185 15.8081 10.3461 15.8865 10.1564C15.9649 9.96673 16.0051 9.76344 16.0049 9.55818C16.0046 9.35293 15.9638 9.14974 15.8849 8.96026C15.806 8.77078 15.6905 8.59872 15.5449 8.45394V8.45394Z"
+                        fill={fill}
+                    />
+                </g>
+                <defs>
+                    <clipPath id="renameDatabaseIconClipPath">
+                        <rect width="16" height="16" />
+                    </clipPath>
+                </defs>
+            </svg>
+        );
+    }),
+    { displayName: "RenameDatabaseIcon" },
+);
