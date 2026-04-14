@@ -1162,6 +1162,17 @@
     "I understand this action is permanent and irreversible": "I understand this action is permanent and irreversible",
     "Drop": "Drop",
     "Dropping database": "Dropping database",
+    "Rename Database (Preview)": "Rename Database (Preview)",
+    "Rename '{0}' on '{1}'./{0} is the current database name{1} is the server name": {
+        "message": "Rename '{0}' on '{1}'.",
+        "comment": ["{0} is the current database name", "{1} is the server name"]
+    },
+    "Rename Options": "Rename Options",
+    "New Database Name": "New Database Name",
+    "Enter new database name": "Enter new database name",
+    "New database name must be different from the current name": "New database name must be different from the current name",
+    "Rename": "Rename",
+    "Renaming database": "Renaming database",
     "Data-tier Application": "Data-tier Application",
     "Deploy, extract, import, or export data-tier applications on the selected database": "Deploy, extract, import, or export data-tier applications on the selected database",
     "Operation": "Operation",
