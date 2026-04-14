@@ -271,6 +271,77 @@ suite("ConnectionDialogWebviewController Tests", () => {
             ).to.be.false;
         });
 
+        test("should hide the recent profile name when the saved profile database differs", async () => {
+            const sharedSavedConnection = {
+                id: "shared-profile-id",
+                profileName: "Shared Profile",
+                profileSource: CredentialsQuickPickItemType.Profile,
+                server: "SharedServer",
+                database: "SavedDatabase",
+                groupId: ConnectionConfig.ROOT_GROUP_ID,
+            } as IConnectionProfileWithSource;
+            const sharedRecentConnection = {
+                id: "shared-profile-id",
+                profileName: "Shared Profile",
+                profileSource: CredentialsQuickPickItemType.Mru,
+                server: "SharedServer",
+                database: "RecentDatabase",
+            } as IConnectionProfileWithSource;
+
+            connectionStore.readAllConnections.resolves([
+                sharedRecentConnection,
+                sharedSavedConnection,
+            ]);
+
+            controller = new ConnectionDialogWebviewController(
+                mockContext,
+                mockVscodeWrapper,
+                mainController,
+                mockObjectExplorerProvider,
+                undefined,
+            );
+            await controller.initialized;
+
+            expect(controller.state.recentConnections).to.have.lengthOf(1);
+            expect(controller.state.recentConnections[0].profileName).to.be.undefined;
+            expect(controller.state.savedConnections[0].profileName).to.equal("Shared Profile");
+        });
+
+        test("should keep the recent profile name when one database is empty and the other is master", async () => {
+            const sharedSavedConnection = {
+                id: "shared-profile-id",
+                profileName: "Shared Profile",
+                profileSource: CredentialsQuickPickItemType.Profile,
+                server: "SharedServer",
+                database: "master",
+                groupId: ConnectionConfig.ROOT_GROUP_ID,
+            } as IConnectionProfileWithSource;
+            const sharedRecentConnection = {
+                id: "shared-profile-id",
+                profileName: "Shared Profile",
+                profileSource: CredentialsQuickPickItemType.Mru,
+                server: "SharedServer",
+                database: "",
+            } as IConnectionProfileWithSource;
+
+            connectionStore.readAllConnections.resolves([
+                sharedRecentConnection,
+                sharedSavedConnection,
+            ]);
+
+            controller = new ConnectionDialogWebviewController(
+                mockContext,
+                mockVscodeWrapper,
+                mainController,
+                mockObjectExplorerProvider,
+                undefined,
+            );
+            await controller.initialized;
+
+            expect(controller.state.recentConnections).to.have.lengthOf(1);
+            expect(controller.state.recentConnections[0].profileName).to.equal("Shared Profile");
+        });
+
         test("should initialize correctly when editing connection", async () => {
             const editedConnection = {
                 profileName: "Test Server to Edit",

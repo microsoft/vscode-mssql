@@ -73,7 +73,7 @@ import { generateConnectionComponents, groupAdvancedOptions } from "./formCompon
 import { FormWebviewController } from "../forms/formWebviewController";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { Deferred } from "../protocol";
-import { configSelectedAzureSubscriptions } from "../constants/constants";
+import { configSelectedAzureSubscriptions, defaultDatabase } from "../constants/constants";
 import * as AzureConstants from "../azure/constants";
 import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
 import * as Utils from "../models/utils";
@@ -1059,8 +1059,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             (c) => c.profileSource === CredentialsQuickPickItemType.Profile,
         );
 
-        const recentConnections = unsortedConnections.filter(
-            (c) => c.profileSource === CredentialsQuickPickItemType.Mru,
+        const recentConnections = this.normalizeRecentConnectionsForDisplay(
+            unsortedConnections.filter((c) => c.profileSource === CredentialsQuickPickItemType.Mru),
+            savedConnections,
         );
 
         sendActionEvent(
@@ -1118,6 +1119,54 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         state.recentConnections = loadedConnections.recentConnections;
         state.savedConnections = loadedConnections.savedConnections;
+    }
+
+    private normalizeRecentConnectionsForDisplay(
+        recentConnections: IConnectionProfileWithSource[],
+        savedConnections: IConnectionProfileWithSource[],
+    ): IConnectionProfileWithSource[] {
+        return recentConnections.map((recentConnection) => {
+            const matchingSavedConnection = savedConnections.find((savedConnection) =>
+                this.isOriginalSavedProfile(savedConnection, recentConnection),
+            );
+
+            if (
+                matchingSavedConnection &&
+                !this.isSameDatabaseName(
+                    matchingSavedConnection.database,
+                    recentConnection.database,
+                )
+            ) {
+                return {
+                    ...recentConnection,
+                    profileName: undefined,
+                };
+            }
+
+            return recentConnection;
+        });
+    }
+
+    private isOriginalSavedProfile(
+        savedConnection: IConnectionProfileWithSource,
+        recentConnection: IConnectionProfileWithSource,
+    ): boolean {
+        if (savedConnection.id && recentConnection.id) {
+            return savedConnection.id === recentConnection.id;
+        }
+
+        if (savedConnection.profileName && recentConnection.profileName) {
+            return savedConnection.profileName === recentConnection.profileName;
+        }
+
+        return false;
+    }
+
+    private isSameDatabaseName(currentDatabase?: string, expectedDatabase?: string): boolean {
+        const normalizedCurrentDatabase = currentDatabase?.trim() || defaultDatabase;
+        const normalizedExpectedDatabase = expectedDatabase?.trim() || defaultDatabase;
+
+        return normalizedCurrentDatabase === normalizedExpectedDatabase;
     }
 
     private async validateProfile(connectionProfile?: IConnectionDialogProfile): Promise<string[]> {

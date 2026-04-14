@@ -113,6 +113,17 @@ const useStyles = makeStyles({
 
 const azureDataStudioIcon = require("../../media/azureDataStudio.svg");
 
+const getConnectionCardKey = (connection: IConnectionDialogProfile): string => {
+    return [
+        connection.id ?? "",
+        connection.server ?? "",
+        connection.database ?? "",
+        connection.authenticationType ?? "",
+        connection.profileName ?? "",
+        connection.user ?? "",
+    ].join("|");
+};
+
 export const ConnectionsListContainer = () => {
     const styles = useStyles();
     const context = useContext(ConnectionDialogContext);
@@ -168,10 +179,7 @@ export const ConnectionsListContainer = () => {
                                 return (
                                     <ConnectionCard
                                         connection={connection}
-                                        key={
-                                            connection.id ??
-                                            `${connection.server}|${connection.database}|${connection.authenticationType}|${connection.profileName ?? ""}`
-                                        }
+                                        key={getConnectionCardKey(connection)}
                                         onSelect={() =>
                                             context.loadConnectionAsNewDraft(connection)
                                         }
@@ -214,10 +222,7 @@ export const ConnectionsListContainer = () => {
                         return (
                             <ConnectionCard
                                 connection={connection}
-                                key={
-                                    connection.id ??
-                                    `${connection.server}|${connection.database}|${connection.authenticationType}|${connection.profileName ?? ""}`
-                                }
+                                key={getConnectionCardKey(connection)}
                                 onSelect={() => context.loadConnectionForEdit(connection)}
                                 actionButtons={[
                                     {
@@ -273,17 +278,17 @@ export const ConnectionCard = ({
     const [displayName, setDisplayName] = useState<string>(
         connection.profileName || connection.server,
     );
-    const [hasFetchedDisplayName, setHasFetchedDisplayName] = useState(false);
 
-    // Fetch the display name asynchronously when the component mounts
+    // Refresh the display name whenever the rendered connection identity changes.
     useEffect(() => {
         let isMounted = true;
+        setDisplayName(connection.profileName || connection.server);
+
         const loadDisplayName = async () => {
-            if (context && !hasFetchedDisplayName) {
+            if (context) {
                 const name = await context.getConnectionDisplayName(connection);
                 if (isMounted) {
                     setDisplayName(name);
-                    setHasFetchedDisplayName(true);
                 }
             }
         };
@@ -293,7 +298,15 @@ export const ConnectionCard = ({
         return () => {
             isMounted = false;
         };
-    }, [context, connection]);
+    }, [
+        context,
+        connection.id,
+        connection.server,
+        connection.database,
+        connection.authenticationType,
+        connection.profileName,
+        connection.user,
+    ]);
 
     if (context === undefined) {
         return undefined;

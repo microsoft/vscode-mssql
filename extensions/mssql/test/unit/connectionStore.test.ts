@@ -37,7 +37,11 @@ suite("ConnectionStore Tests", () => {
         sandbox = sinon.createSandbox();
 
         mockContext = stubExtensionContext(sandbox);
+        (mockContext.globalState.update as sinon.SinonStub).resolves();
         mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+        mockVscodeWrapper.getConfiguration.returns({
+            [Constants.configMaxRecentConnections]: 5,
+        } as unknown as vscode.WorkspaceConfiguration);
         mockLogger = createStubLogger(sandbox);
 
         mockCredentialStore = sandbox.createStubInstance(CredentialStore);
@@ -289,5 +293,108 @@ suite("ConnectionStore Tests", () => {
         expect(connections).to.have.lengthOf(2);
         expect(connections).to.deep.include(savedConnection);
         expect(connections).to.deep.include(recentConnection);
+    });
+
+    test("addRecentlyUsed keeps separate MRU entries when only the database differs", async () => {
+        const recentConnections = [
+            {
+                id: "shared-connection-id",
+                profileName: "Shared Profile",
+                server: "shared-server",
+                database: "db-1",
+                authenticationType: "SqlLogin",
+                user: "shared-user",
+            },
+        ] as IConnectionProfile[];
+        const newRecentConnection = {
+            id: "shared-connection-id",
+            profileName: "Shared Profile",
+            server: "shared-server",
+            database: "db-2",
+            authenticationType: "SqlLogin",
+            user: "shared-user",
+        } as IConnectionProfile;
+
+        connectionStore = new ConnectionStore(
+            mockContext,
+            mockCredentialStore,
+            mockLogger,
+            mockConnectionConfig,
+            mockVscodeWrapper,
+        );
+
+        await connectionStore.initialized;
+
+        sandbox.stub(connectionStore, "getRecentlyUsedConnections").returns(recentConnections);
+
+        await connectionStore.addRecentlyUsed(newRecentConnection);
+
+        const storedConnectionsMatch = sinon.match((storedConnections: IConnectionProfile[]) => {
+            return (
+                storedConnections.length === 2 &&
+                storedConnections.some((conn) => conn.database === "db-1") &&
+                storedConnections.some((conn) => conn.database === "db-2")
+            );
+        });
+
+        expect(
+            (mockContext.globalState.update as sinon.SinonStub).calledWith(
+                Constants.configRecentConnections,
+                storedConnectionsMatch,
+            ),
+        ).to.be.true;
+    });
+
+    test("removeRecentlyUsed removes only the matching MRU database variant", async () => {
+        const recentConnections = [
+            {
+                id: "shared-connection-id",
+                profileName: "Shared Profile",
+                server: "shared-server",
+                database: "db-1",
+                authenticationType: "SqlLogin",
+                user: "shared-user",
+            },
+            {
+                id: "shared-connection-id",
+                profileName: "Shared Profile",
+                server: "shared-server",
+                database: "db-2",
+                authenticationType: "SqlLogin",
+                user: "shared-user",
+            },
+        ] as IConnectionProfile[];
+
+        connectionStore = new ConnectionStore(
+            mockContext,
+            mockCredentialStore,
+            mockLogger,
+            mockConnectionConfig,
+            mockVscodeWrapper,
+        );
+
+        await connectionStore.initialized;
+
+        sandbox.stub(connectionStore, "getRecentlyUsedConnections").returns(recentConnections);
+
+        await connectionStore.removeRecentlyUsed({
+            id: "shared-connection-id",
+            profileName: "Shared Profile",
+            server: "shared-server",
+            database: "db-2",
+            authenticationType: "SqlLogin",
+            user: "shared-user",
+        } as IConnectionProfile);
+
+        const remainingConnectionsMatch = sinon.match((storedConnections: IConnectionProfile[]) => {
+            return storedConnections.length === 1 && storedConnections[0].database === "db-1";
+        });
+
+        expect(
+            (mockContext.globalState.update as sinon.SinonStub).calledWith(
+                Constants.configRecentConnections,
+                remainingConnectionsMatch,
+            ),
+        ).to.be.true;
     });
 });

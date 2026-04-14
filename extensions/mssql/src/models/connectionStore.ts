@@ -425,7 +425,10 @@ export class ConnectionStore {
             // Remove the connection from the list if it already exists
             configValues = configValues.filter(
                 (value) =>
-                    !Utils.isSameProfile(<IConnectionProfile>value, <IConnectionProfile>conn),
+                    !self.isSameRecentConnectionEntry(
+                        value as IConnectionProfile,
+                        conn as IConnectionProfile,
+                    ),
             );
 
             // Add the connection to the front of the list, taking care to clear out the password field
@@ -498,7 +501,7 @@ export class ConnectionStore {
 
             // Remove the connection from the list if it already exists
             configValues = configValues.filter(
-                (value) => !Utils.isSameProfile(<IConnectionProfile>value, conn),
+                (value) => !self.isSameRecentConnectionEntry(value as IConnectionProfile, conn),
             );
 
             // Remove any saved password
@@ -706,7 +709,9 @@ export class ConnectionStore {
             const isDuplicate = uniqueConnections.some(
                 (existingConn) =>
                     existingConn.profileSource === conn.profileSource &&
-                    Utils.isSameProfile(existingConn, conn),
+                    (conn.profileSource === CredentialsQuickPickItemType.Mru
+                        ? this.isSameRecentConnectionEntry(existingConn, conn)
+                        : Utils.isSameProfile(existingConn, conn)),
             );
 
             if (!isDuplicate) {
@@ -788,5 +793,23 @@ export class ConnectionStore {
             maxConnections = 5;
         }
         return maxConnections;
+    }
+
+    private isSameRecentConnectionEntry(
+        currentProfile: IConnectionProfile,
+        expectedProfile: IConnectionProfile,
+    ): boolean {
+        const currentRecentProfile = {
+            ...currentProfile,
+            id: undefined,
+            profileName: undefined,
+        } as IConnectionProfile;
+        const expectedRecentProfile = {
+            ...expectedProfile,
+            id: undefined,
+            profileName: undefined,
+        } as IConnectionProfile;
+
+        return Utils.isSameProfile(currentRecentProfile, expectedRecentProfile);
     }
 }
