@@ -9512,10 +9512,6 @@ Query: {2}</source>
         <source xml:lang="en">Create Azure Function with SQL binding</source>
         <target state="translated">使用 SQL 绑定创建 Azure 函数</target>
       </trans-unit>
-      <trans-unit id="mssql.notebooks.createNotebook">
-        <source xml:lang="en">Create SQL Notebook (Preview)</source>
-        <target state="translated">创建 SQL 笔记本(预览版)</target>
-      </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.title">
         <source xml:lang="en">Create a Table with Table Designer</source>
         <target state="translated">使用表设计器创建表</target>
@@ -9849,6 +9845,10 @@ You can connect to a database by entering your connection information, using a c
       <trans-unit id="mssql.newQuery">
         <source xml:lang="en">New Query</source>
         <target state="translated">新建查询</target>
+      </trans-unit>
+      <trans-unit id="mssql.notebooks.createNotebook">
+        <source xml:lang="en">New SQL Notebook (Preview)</source>
+        <target state="new">New SQL Notebook (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.newTable">
         <source xml:lang="en">New Table</source>

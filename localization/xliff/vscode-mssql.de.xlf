@@ -9512,10 +9512,6 @@ Abfrage: {2}</target>
         <source xml:lang="en">Create Azure Function with SQL binding</source>
         <target state="translated">Erstellen einer Azure-Funktion mit SQL-Bindung</target>
       </trans-unit>
-      <trans-unit id="mssql.notebooks.createNotebook">
-        <source xml:lang="en">Create SQL Notebook (Preview)</source>
-        <target state="translated">SQL-Notebook erstellen (Vorschau)</target>
-      </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.title">
         <source xml:lang="en">Create a Table with Table Designer</source>
         <target state="translated">Erstellen einer Tabelle mit Tabellen-Designer</target>
@@ -9849,6 +9845,10 @@ Sie können eine Verbindung mit einer Datenbank herstellen, indem Sie Ihre Verbi
       <trans-unit id="mssql.newQuery">
         <source xml:lang="en">New Query</source>
         <target state="translated">Neue Abfrage</target>
+      </trans-unit>
+      <trans-unit id="mssql.notebooks.createNotebook">
+        <source xml:lang="en">New SQL Notebook (Preview)</source>
+        <target state="new">New SQL Notebook (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.newTable">
         <source xml:lang="en">New Table</source>

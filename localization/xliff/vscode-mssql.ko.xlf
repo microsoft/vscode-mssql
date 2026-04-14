@@ -9512,10 +9512,6 @@ Query: {2}</source>
         <source xml:lang="en">Create Azure Function with SQL binding</source>
         <target state="translated">SQL 입력 바인딩으로 Azure 함수 만들기</target>
       </trans-unit>
-      <trans-unit id="mssql.notebooks.createNotebook">
-        <source xml:lang="en">Create SQL Notebook (Preview)</source>
-        <target state="translated">SQL Notebook 만들기(미리 보기)</target>
-      </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.title">
         <source xml:lang="en">Create a Table with Table Designer</source>
         <target state="translated">테이블 디자이너를 사용하여 테이블 만들기</target>
@@ -9849,6 +9845,10 @@ You can connect to a database by entering your connection information, using a c
       <trans-unit id="mssql.newQuery">
         <source xml:lang="en">New Query</source>
         <target state="translated">새 쿼리</target>
+      </trans-unit>
+      <trans-unit id="mssql.notebooks.createNotebook">
+        <source xml:lang="en">New SQL Notebook (Preview)</source>
+        <target state="new">New SQL Notebook (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.newTable">
         <source xml:lang="en">New Table</source>

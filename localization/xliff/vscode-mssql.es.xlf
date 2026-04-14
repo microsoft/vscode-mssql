@@ -9512,10 +9512,6 @@ Consulta: {2}</target>
         <source xml:lang="en">Create Azure Function with SQL binding</source>
         <target state="translated">Crear Azure Function con enlace SQL</target>
       </trans-unit>
-      <trans-unit id="mssql.notebooks.createNotebook">
-        <source xml:lang="en">Create SQL Notebook (Preview)</source>
-        <target state="translated">Creación de SQL Notebook (versión preliminar)</target>
-      </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.title">
         <source xml:lang="en">Create a Table with Table Designer</source>
         <target state="translated">Creación de una tabla con el Diseñador de tablas</target>
@@ -9849,6 +9845,10 @@ Puede conectarse a una base de datos escribiendo su información de conexión, u
       <trans-unit id="mssql.newQuery">
         <source xml:lang="en">New Query</source>
         <target state="translated">Nueva consulta</target>
+      </trans-unit>
+      <trans-unit id="mssql.notebooks.createNotebook">
+        <source xml:lang="en">New SQL Notebook (Preview)</source>
+        <target state="new">New SQL Notebook (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.newTable">
         <source xml:lang="en">New Table</source>
