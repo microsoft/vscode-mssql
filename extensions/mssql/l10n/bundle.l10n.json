@@ -986,6 +986,8 @@
     "Load source, target, and options saved in an .scmp file": "Load source, target, and options saved in an .scmp file",
     "Save .scmp file": "Save .scmp file",
     "Save source and target, options, and excluded elements": "Save source and target, options, and excluded elements",
+    "Group By": "Group By",
+    "Group differences by": "Group differences by",
     "Source Name": "Source Name",
     "Include": "Include",
     "Target Name": "Target Name",
