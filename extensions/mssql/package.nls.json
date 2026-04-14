@@ -291,7 +291,7 @@
     "mssql.backupDatabase": "Backup Database...",
     "mssql.restoreDatabase": "Restore Database...",
     "mssql.flatFileImport": "Import Data...",
-    "mssql.notebooks.createNotebook": "Create SQL Notebook (Preview)",
+    "mssql.notebooks.createNotebook": "New SQL Notebook (Preview)",
     "mssql.notebooks.changeDatabase": "Change Notebook Database",
     "mssql.notebooks.changeConnection": "Change Notebook Connection"
 }
