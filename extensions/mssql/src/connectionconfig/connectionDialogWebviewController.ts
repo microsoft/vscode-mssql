@@ -61,7 +61,7 @@ import {
     getServerTypes,
     getDefaultConnection,
 } from "../models/connectionInfo";
-import { getErrorMessage, uuid } from "../utils/utils";
+import { formatEpochSecondsForDisplay, getErrorMessage, uuid } from "../utils/utils";
 import { l10n } from "vscode";
 import {
     CredentialsQuickPickItemType,
@@ -1772,15 +1772,15 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                                 );
 
                                 self.logger.log(
-                                    `Token refreshed.  Next expiration: ${token.expiresOn}`,
+                                    `Token refreshed.  Next expiration: ${formatEpochSecondsForDisplay(token.expiresOn)}`,
                                 );
 
                                 return token;
                             } else {
                                 throw new Error(
                                     Loc.unableToAcquireValidToken(
-                                        token.expiresOn,
-                                        Date.now() / 1000,
+                                        formatEpochSecondsForDisplay(token.expiresOn),
+                                        formatEpochSecondsForDisplay(Date.now() / 1000),
                                     ),
                                 );
                             }

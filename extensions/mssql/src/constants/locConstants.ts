@@ -1030,10 +1030,11 @@ export class ConnectionDialog {
     public static clearCacheAndRefreshToken = l10n.t("Clear cache and refresh token");
     public static clearTokenCache = l10n.t("Clear token cache");
     public static tokenRefreshedSuccessfully = l10n.t("Token refreshed successfully.");
-    public static unableToAcquireValidToken(expiresOn: number | undefined, currentTime: number) {
+
+    public static unableToAcquireValidToken(expiresOn: string, currentTime: string) {
         return l10n.t({
             message: "Unable to acquire a valid token. (expires: {0}, but is currently {1})",
-            args: [String(expiresOn ?? "unknown"), String(currentTime)],
+            args: [expiresOn, currentTime],
             comment: ["{0} is the token expiration time", "{1} is the current time"],
         });
     }
