@@ -419,7 +419,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
         // Port availability is validated in validateForm before publish runs,
         // so we can safely use the parsed value here.
-        const port = parseInt(state.formState.containerPort);
+        const port = parseInt(state.formState.containerPort, 10);
 
         return { containerName, port };
     }
@@ -1634,7 +1634,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     constants.defaultPortNumber,
                 );
                 this.state.formState.containerPort =
-                    availablePort > 0 ? String(availablePort) : constants.DefaultSqlPortNumber;
+                    availablePort > 0 ? String(availablePort) : String(constants.defaultPortNumber);
             } else if (this.state.formState.publishTarget === PublishTarget.ExistingServer) {
                 // Restore for server mode
                 if (this._cachedDatabaseList?.length) {
@@ -1704,6 +1704,10 @@ export class PublishProjectWebViewController extends FormWebviewController<
             // Skip availability check for out-of-range values; the range validator already caught those.
             if (portComponent && validateSqlServerPortNumber(portNum)) {
                 const availablePort = await dockerUtils.findAvailablePort(portNum);
+                // Discard stale results if the user changed the port while we were awaiting.
+                if (String(this.state.formState.containerPort).trim() !== portStr) {
+                    return erroredInputs;
+                }
                 if (availablePort !== portNum) {
                     portComponent.validation = {
                         isValid: false,
