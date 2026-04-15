@@ -2270,6 +2270,19 @@
     },
     "Clear cache and refresh token": "Clear cache and refresh token",
     "Clear token cache": "Clear token cache",
+    "Token refreshed successfully.": "Token refreshed successfully.",
+    "Unable to acquire a valid token. (expires: {0}, but is currently {1})/{0} is the token expiration time{1} is the current time": {
+        "message": "Unable to acquire a valid token. (expires: {0}, but is currently {1})",
+        "comment": ["{0} is the token expiration time", "{1} is the current time"]
+    },
+    "Error refreshing token; you may need to sign out and sign back in: {0}/{0} is the error message": {
+        "message": "Error refreshing token; you may need to sign out and sign back in: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Error validating Entra authentication token; you may need to refresh your token: {0}/{0} is the error message": {
+        "message": "Error validating Entra authentication token; you may need to refresh your token: {0}",
+        "comment": ["{0} is the error message"]
+    },
     "No workspaces found. Please change Fabric account or tenant to view available workspaces.": "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
     "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported./{0} is the authentication type": {
         "message": "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported.",

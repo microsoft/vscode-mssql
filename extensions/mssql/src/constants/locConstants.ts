@@ -1029,6 +1029,30 @@ export class ConnectionDialog {
     }
     public static clearCacheAndRefreshToken = l10n.t("Clear cache and refresh token");
     public static clearTokenCache = l10n.t("Clear token cache");
+    public static tokenRefreshedSuccessfully = l10n.t("Token refreshed successfully.");
+
+    public static unableToAcquireValidToken(expiresOn: string, currentTime: string) {
+        return l10n.t({
+            message: "Unable to acquire a valid token. (expires: {0}, but is currently {1})",
+            args: [expiresOn, currentTime],
+            comment: ["{0} is the token expiration time", "{1} is the current time"],
+        });
+    }
+    public static errorRefreshingToken(errorMessage: string) {
+        return l10n.t({
+            message: "Error refreshing token; you may need to sign out and sign back in: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+    }
+    public static errorValidatingEntraToken(errorMessage: string) {
+        return l10n.t({
+            message:
+                "Error validating Entra authentication token; you may need to refresh your token: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+    }
 
     public static noWorkspacesFound = l10n.t(
         "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
