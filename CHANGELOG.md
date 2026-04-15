@@ -10,10 +10,10 @@
 - Released Backup Database, Restore Database, Flat File Import, and Create/Rename/Drop Database dialogs as generally available (GA)
 - Added Active Directory Default authentication support in the Connection Dialog, enabling passwordless authentication using the currently signed-in Windows identity
 - Added the ability to use VS Code accounts for Entra MFA authentication (preview). Enable by setting either `mssql.enableExperimentalFeatures` or `mssql.preview.useVscodeAccountsForEntraMFA`. Users will need to re-sign into Entra ID accounts that existing connections use for authentication.
-- Added a new background task panel in the SQL Server activity bar to display active and completed deployment tasks (container provisioning, Fabric deployments) with real-time progress
+- Added a new background task panel in the SQL Server activity bar to display active and completed deployment tasks (SQL container provisioning, SQL database in Fabric deployments) with real-time progress
 - Improved SQL Notebooks to display SQL Server error messages inline in cell output, improved cell output formatting and spacing, and set the MSSQL kernel as the default when creating a new notebook
-- Fixed an issue where VECTOR(n) column values were incorrectly rendered as JSON hyperlinks in the query results grid
-- Added a setting to automatically create folders in SQL Database Projects, automatically creating the folder hierarchy when adding new SQL objects to a project
+- Fixed several Query Results Grid issues with VECTOR, JSON, and XML data types including incorrect rendering as hyperlinks and values
+- Improved SQL Database Projects with a documentation menu option, automatic folder creation for new objects, correct schema name in templates, and a projectGuid update prompt
 
 ## Version 1.41.0
 
