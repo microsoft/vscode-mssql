@@ -14,6 +14,8 @@
 - Improved SQL Notebooks to display SQL Server error messages inline in cell output, improved cell output formatting and spacing, and set the MSSQL kernel as the default when creating a new notebook
 - Fixed several Query Results Grid issues with VECTOR, JSON, and XML data types including incorrect rendering as hyperlinks and values
 - Improved SQL Database Projects with a documentation menu option, automatic folder creation for new objects, correct schema name in templates, and a projectGuid update prompt
+- Improved first-time setup speed and reliability by packaging the required components directly with the extension instead of downloading them at first-launch.
+- Fixed a long-standing issue that could cause the extension to freeze or become unresponsive while running queries.
 
 ## Version 1.41.0
 
