@@ -21,6 +21,9 @@ import {
     tokens,
 } from "@fluentui/react-components";
 import {
+    ArrowDown16Regular,
+    ArrowSort16Regular,
+    ArrowUp16Regular,
     ChevronDown16Regular,
     ChevronRight16Regular,
     Settings16Regular,
@@ -120,6 +123,15 @@ const useStyles = makeStyles({
     settingsButton: {
         minWidth: "auto",
     },
+    headerCellContent: {
+        display: "flex",
+        alignItems: "center",
+        gap: "4px",
+    },
+    sortButton: {
+        minWidth: "auto",
+        padding: "2px",
+    },
     warningIconWrapper: {
         display: "flex",
         alignItems: "center",
@@ -151,6 +163,45 @@ function formatUnsupportedReasons(reasons: Dab.DabUnsupportedReason[]): string {
         .join("; ");
 }
 
+enum SortDirection {
+    None,
+    Ascending,
+    Descending,
+}
+
+function getSortIcon(direction: SortDirection) {
+    switch (direction) {
+        case SortDirection.Ascending:
+            return <ArrowUp16Regular />;
+        case SortDirection.Descending:
+            return <ArrowDown16Regular />;
+        default:
+            return <ArrowSort16Regular />;
+    }
+}
+
+function getSortAriaLabel(direction: SortDirection): string {
+    switch (direction) {
+        case SortDirection.Ascending:
+            return locConstants.queryResult.sortAscending;
+        case SortDirection.Descending:
+            return locConstants.queryResult.sortDescending;
+        default:
+            return locConstants.queryResult.toggleSort;
+    }
+}
+
+function cycleSortDirection(current: SortDirection): SortDirection {
+    switch (current) {
+        case SortDirection.None:
+            return SortDirection.Ascending;
+        case SortDirection.Ascending:
+            return SortDirection.Descending;
+        case SortDirection.Descending:
+            return SortDirection.None;
+    }
+}
+
 export const DabEntityTable = () => {
     const classes = useStyles();
     const context = useDabContext();
@@ -165,6 +216,22 @@ export const DabEntityTable = () => {
 
     const [collapsedSchemas, setCollapsedSchemas] = useState<Set<string>>(new Set());
     const [settingsEntityId, setSettingsEntityId] = useState<string | null>(null);
+    const [entityColumnSortDirection, setEntityColumnSortDirection] = useState<SortDirection>(
+        SortDirection.None,
+    );
+    const [sourceColumnSortDirection, setSourceColumnSortDirection] = useState<SortDirection>(
+        SortDirection.None,
+    );
+
+    const handleEntitySort = useCallback(() => {
+        setEntityColumnSortDirection((prev) => cycleSortDirection(prev));
+        setSourceColumnSortDirection(SortDirection.None);
+    }, []);
+
+    const handleSourceSort = useCallback(() => {
+        setSourceColumnSortDirection((prev) => cycleSortDirection(prev));
+        setEntityColumnSortDirection(SortDirection.None);
+    }, []);
 
     const toggleSchemaCollapsed = useCallback((schemaName: string) => {
         setCollapsedSchemas((prev) => {
@@ -177,6 +244,21 @@ export const DabEntityTable = () => {
             return next;
         });
     }, []);
+
+    const sortEntities = (a: Dab.DabEntityConfig, b: Dab.DabEntityConfig) => {
+        if (entityColumnSortDirection !== SortDirection.None) {
+            const cmp = a.advancedSettings.entityName.localeCompare(b.advancedSettings.entityName);
+            return entityColumnSortDirection === SortDirection.Ascending ? cmp : -cmp;
+        }
+        if (sourceColumnSortDirection !== SortDirection.None) {
+            const sourceA = `${a.schemaName}.${a.tableName}`;
+            const sourceB = `${b.schemaName}.${b.tableName}`;
+            const cmp = sourceA.localeCompare(sourceB);
+            return sourceColumnSortDirection === SortDirection.Ascending ? cmp : -cmp;
+        }
+        // default case- sort by which entities are supported.
+        return Number(!a.isSupported) - Number(!b.isSupported);
+    };
 
     // Filter entities based on text filter
     const filteredEntities = useMemo(() => {
@@ -197,7 +279,7 @@ export const DabEntityTable = () => {
         });
     }, [dabConfig, dabTextFilter]);
 
-    // Group filtered entities by schema, with unsupported entities sorted to the bottom
+    // Group filtered entities by schema, with sorting applied
     const entitiesBySchema = useMemo(() => {
         const groups: Record<string, typeof filteredEntities> = {};
         for (const entity of filteredEntities) {
@@ -210,14 +292,12 @@ export const DabEntityTable = () => {
             .sort(([a], [b]) => a.localeCompare(b))
             .map(
                 ([schemaName, entities]) =>
-                    [
-                        schemaName,
-                        [...entities].sort(
-                            (a, b) => Number(!a.isSupported) - Number(!b.isSupported),
-                        ),
-                    ] as [string, typeof filteredEntities],
+                    [schemaName, [...entities].sort(sortEntities)] as [
+                        string,
+                        typeof filteredEntities,
+                    ],
             );
-    }, [filteredEntities]);
+    }, [filteredEntities, entityColumnSortDirection, sourceColumnSortDirection]);
 
     // Build flattened row list for DataGrid
     const tableRows = useMemo<DabTableRow[]>(() => {
@@ -397,7 +477,19 @@ export const DabEntityTable = () => {
             }),
             createTableColumn<DabTableRow>({
                 columnId: "entityName",
-                renderHeaderCell: () => locConstants.schemaDesigner.entityName,
+                renderHeaderCell: () => (
+                    <div className={classes.headerCellContent}>
+                        {locConstants.schemaDesigner.entityName}
+                        <Button
+                            appearance="subtle"
+                            icon={getSortIcon(entityColumnSortDirection)}
+                            size="small"
+                            className={classes.sortButton}
+                            onClick={handleEntitySort}
+                            aria-label={getSortAriaLabel(entityColumnSortDirection)}
+                        />
+                    </div>
+                ),
                 renderCell: (item) => {
                     if (item.type !== "entity") {
                         return null;
@@ -430,7 +522,19 @@ export const DabEntityTable = () => {
             }),
             createTableColumn<DabTableRow>({
                 columnId: "source",
-                renderHeaderCell: () => locConstants.schemaDesigner.sourceTable,
+                renderHeaderCell: () => (
+                    <div className={classes.headerCellContent}>
+                        {locConstants.schemaDesigner.sourceTable}
+                        <Button
+                            appearance="subtle"
+                            icon={getSortIcon(sourceColumnSortDirection)}
+                            size="small"
+                            className={classes.sortButton}
+                            onClick={handleSourceSort}
+                            aria-label={getSortAriaLabel(sourceColumnSortDirection)}
+                        />
+                    </div>
+                ),
                 renderCell: (item) => {
                     if (item.type !== "entity") {
                         return null;
@@ -503,6 +607,10 @@ export const DabEntityTable = () => {
             renderActionHeaderCell,
             renderActionCell,
             setSettingsEntityId,
+            entityColumnSortDirection,
+            sourceColumnSortDirection,
+            handleEntitySort,
+            handleSourceSort,
         ],
     );
 
