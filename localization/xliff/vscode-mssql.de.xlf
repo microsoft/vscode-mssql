@@ -704,7 +704,7 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++27dda4355b44df3f400de7845fe1bfc83a880707d4630f52be097d95625f7bfa">
         <source xml:lang="en">Azure account '{0}' was not found. Sign in with the correct account or select a different one.</source>
         <note>{0} is the display name or ID of the Azure account that was not found</note>
-        <target state="new">Azure account '{0}' was not found. Sign in with the correct account or select a different one.</target>
+        <target state="translated">Azure-Konto „{0}“ wurde nicht gefunden. Melden Sie sich mit dem richtigen Konto an oder wählen Sie ein anderes aus.</target>
       </trans-unit>
       <trans-unit id="++CODE++314afcc6e23d362133e764e1ebfacabe4d330308b528392570949a17270248b9">
         <source xml:lang="en">Azure sign in failed.</source>
@@ -4256,7 +4256,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++be9ee0cf4e3d4fdd1af6d17852b5e7ef78069590b49fe086652744f0157aa268">
         <source xml:lang="en">IP address range</source>
-        <target state="new">IP address range</target>
+        <target state="translated">IP-Adressbereich</target>
       </trans-unit>
       <trans-unit id="++CODE++b37cea142b959c4f6c75754d7b3d56bc41d1a2d6667600c748d7a168f10c8818">
         <source xml:lang="en">Ignore Options</source>
@@ -6097,6 +6097,11 @@ Fehler:
         <source xml:lang="en">Port {0} is already in use</source>
         <note>{0} is the port number</note>
         <target state="translated">Port {0} wird bereits verwendet</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a1c60409bfd9bcd53f31a132bd46b1f125ebf2b16012ceb2bf16baacc460e61c">
+        <source xml:lang="en">Port {0} is already in use. Please choose a different port.</source>
+        <note>{0} is the port number</note>
+        <target state="new">Port {0} is already in use. Please choose a different port.</target>
       </trans-unit>
       <trans-unit id="++CODE++c56a86c298eb5a88289af29ba70d8dfdfbf42f6a0c6cf7fe8317a824db4eb767">
         <source xml:lang="en">Possible Data Loss detected. Please review the changes.</source>
