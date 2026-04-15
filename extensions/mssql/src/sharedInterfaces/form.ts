@@ -19,6 +19,7 @@ export interface FormState<
  */
 export interface FormContextProps<TForm> extends CoreRPCs {
     formAction: (event: FormEvent<TForm>) => void;
+    openInfoLink?: (option: FormItemOptions) => void;
 }
 
 export interface FormReducers<TForm> {
@@ -128,6 +129,10 @@ export interface FormItemOptions {
      * Optional text color for the option
      */
     color?: string;
+    /**
+     * Optional tooltip text for the info icon
+     */
+    infoTooltip?: string;
 }
 
 /**

@@ -12,6 +12,7 @@ import {
     GetConnectionDisplayNameRequest,
     GetSqlAnalyticsEndpointUriFromFabricRequest,
     IConnectionDialogProfile,
+    OpenOptionInfoLinkNotification,
 } from "../../../sharedInterfaces/connectionDialog";
 import { FirewallRuleSpec } from "../../../sharedInterfaces/firewallRule";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
@@ -22,6 +23,7 @@ import {
     ChangePasswordResult,
     ChangePasswordWebviewRequest,
 } from "../../../sharedInterfaces/changePassword";
+import { FormItemOptions } from "../../../sharedInterfaces/form";
 
 const ConnectionDialogContext = createContext<ConnectionDialogContextProps | undefined>(undefined);
 
@@ -144,6 +146,11 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
             selectFabricWorkspace: (workspaceId: string) => {
                 extensionRpc.action("selectFabricWorkspace", {
                     workspaceId,
+                });
+            },
+            openInfoLink: (option: FormItemOptions) => {
+                void extensionRpc.sendNotification(OpenOptionInfoLinkNotification.type, {
+                    option,
                 });
             },
             messageButtonClicked: (buttonId: string) => {

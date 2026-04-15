@@ -25,6 +25,7 @@ import {
     ConnectionDialogFormItemSpec,
     ConnectionStringDialogProps,
     GetConnectionDisplayNameRequest,
+    OpenOptionInfoLinkNotification,
     IAzureAccount,
     GetSqlAnalyticsEndpointUriFromFabricRequest,
     ChangePasswordDialogProps,
@@ -863,6 +864,19 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             }
 
             return state;
+        });
+
+        this.onNotification(OpenOptionInfoLinkNotification.type, async (payload) => {
+            const infoLinkMap: Partial<Record<AuthenticationType, string>> = {
+                [AuthenticationType.ActiveDirectoryDefault]:
+                    "https://aka.ms/vscode-mssql-auth-entra-default",
+                [AuthenticationType.AzureMFA]: "https://aka.ms/vscode-mssql-auth-entra-mfa",
+            };
+
+            const url = infoLinkMap[payload.option.value as AuthenticationType];
+            if (url) {
+                void this.vscodeWrapper.openExternal(url);
+            }
         });
 
         this.registerReducer("messageButtonClicked", async (state, payload) => {

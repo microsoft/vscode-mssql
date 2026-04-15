@@ -18,10 +18,11 @@ import {
     Spinner,
     Text,
     Textarea,
+    Tooltip,
     makeStyles,
     tokens,
 } from "@fluentui/react-components";
-import { Eye16Regular, EyeOff16Regular } from "@fluentui/react-icons";
+import { Eye16Regular, EyeOff16Regular, Info16Regular } from "@fluentui/react-icons";
 import {
     FormContextProps,
     FormItemSpec,
@@ -375,6 +376,44 @@ export function generateFormComponent<
                                         }}>
                                         {option.description && <Text>{option.description}</Text>}
                                         {option.icon && FluentOptionIcons[option.icon]}
+                                        {option.infoTooltip && (
+                                            <span
+                                                // onPointerDown={(e) => {
+                                                //     e.stopPropagation();
+                                                //     e.preventDefault();
+                                                // }}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    e.preventDefault();
+                                                    context?.openInfoLink?.(option);
+                                                }}
+                                                style={{ display: "flex", alignItems: "center" }}>
+                                                <Tooltip
+                                                    content={option.infoTooltip}
+                                                    relationship="description"
+                                                    positioning="after"
+                                                    withArrow>
+                                                    <button
+                                                        // onPointerDown={(e) => {
+                                                        //     e.stopPropagation();
+                                                        //     e.preventDefault();
+                                                        //     context?.openInfoLink?.(option);
+                                                        // }}
+                                                        style={{
+                                                            background: "none",
+                                                            border: "none",
+                                                            cursor: "pointer",
+                                                            padding: 0,
+                                                            minWidth: 0,
+                                                            display: "flex",
+                                                            alignItems: "center",
+                                                            color: "inherit",
+                                                        }}>
+                                                        <Info16Regular />
+                                                    </button>
+                                                </Tooltip>
+                                            </span>
+                                        )}
                                     </span>
                                 </div>
                             </Option>
