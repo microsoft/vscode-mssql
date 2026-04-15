@@ -267,7 +267,8 @@ export const DacpacDialogForm = () => {
                     setValidationMessages((prev) => ({
                         ...prev,
                         database: {
-                            message: locConstants.dacpacDialog.databasesCannotBeLoadedDueToPermissions,
+                            message:
+                                locConstants.dacpacDialog.databasesCannotBeLoadedDueToPermissions,
                             severity: "warning",
                         },
                     }));
@@ -276,7 +277,8 @@ export const DacpacDialogForm = () => {
                     setValidationMessages((prev) => ({
                         ...prev,
                         database: {
-                            message: locConstants.dacpacDialog.databasesCannotBeLoadedDueToPermissions,
+                            message:
+                                locConstants.dacpacDialog.databasesCannotBeLoadedDueToPermissions,
                             severity: "error",
                         },
                     }));
