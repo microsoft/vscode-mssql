@@ -40,6 +40,7 @@ interface DabContextProps {
     resetDabDeploymentState: () => void;
     retryDabDeploymentSteps: () => Promise<void>;
     addDabMcpServer: (serverUrl: string) => Promise<Dab.AddMcpServerResponse>;
+    currentFilteredTables: string[];
 }
 
 const DabContext = createContext<DabContextProps | undefined>(undefined);
@@ -54,6 +55,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         schemaDesignerContext;
     const isDabDeploymentSupported =
         useSchemaDesignerSelector((s) => s?.isDabDeploymentSupported) ?? false;
+    const currentFilteredTables = useSchemaDesignerSelector((s) => s?.currentFilteredTables) ?? [];
 
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
     const [dabTextFilter, setDabTextFilter] = useState<string>("");
@@ -428,6 +430,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 resetDabDeploymentState,
                 retryDabDeploymentSteps,
                 addDabMcpServer,
+                currentFilteredTables,
             }}>
             {children}
         </DabContext.Provider>
