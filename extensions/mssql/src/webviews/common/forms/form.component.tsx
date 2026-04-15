@@ -378,10 +378,6 @@ export function generateFormComponent<
                                         {option.icon && FluentOptionIcons[option.icon]}
                                         {option.infoTooltip && (
                                             <span
-                                                // onPointerDown={(e) => {
-                                                //     e.stopPropagation();
-                                                //     e.preventDefault();
-                                                // }}
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     e.preventDefault();
@@ -394,11 +390,8 @@ export function generateFormComponent<
                                                     positioning="after"
                                                     withArrow>
                                                     <button
-                                                        // onPointerDown={(e) => {
-                                                        //     e.stopPropagation();
-                                                        //     e.preventDefault();
-                                                        //     context?.openInfoLink?.(option);
-                                                        // }}
+                                                        type="button"
+                                                        aria-label={locConstants.common.learnMore}
                                                         style={{
                                                             background: "none",
                                                             border: "none",
