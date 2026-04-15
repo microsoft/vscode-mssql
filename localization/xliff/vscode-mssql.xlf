@@ -1207,6 +1207,9 @@
       <source xml:lang="en">Connect to server {0}?</source>
       <note>{0} is the server name</note>
     </trans-unit>
+    <trans-unit id="++CODE++bd2faa4dc9e8c63ea2c6c7f4cd63328fd2332d2b9e2e00b03f86cf788d028114">
+      <source xml:lang="en">Connect to the specified SQL instance and save the connection profile</source>
+    </trans-unit>
     <trans-unit id="++CODE++ea9acac28e2644caf0dd7884eec71c1a92d541701276abf4acd5de8d04aa8af9">
       <source xml:lang="en">Connect to {0}</source>
       <note>{0} is the name of the connection profile</note>
@@ -5294,6 +5297,9 @@
     <trans-unit id="++CODE++96b1b8cd908066c11a95c7b3c5aa3e0147264f999df87e8ced6d0b240f571c9a">
       <source xml:lang="en">Save backup to URL</source>
     </trans-unit>
+    <trans-unit id="++CODE++e7e6421e77a208718956538ea14f589ab43207800d985563be7e407d0a369c96">
+      <source xml:lang="en">Save connection profile changes without establishing a connection</source>
+    </trans-unit>
     <trans-unit id="++CODE++bae1da28225af71a125385224716f5ff7870573e6c01494c597e8ed4168b12e3">
       <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
     </trans-unit>
@@ -6169,6 +6175,9 @@
     </trans-unit>
     <trans-unit id="++CODE++2af9bc0ac247853b98b854b657784c881cc649d3f1a660aafecd1b8b1a26d535">
       <source xml:lang="en">Terms &amp; Conditions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++799f6f8acde01a01209703f348f68f7802b5c8623007342d362bed19959e7ed5">
+      <source xml:lang="en">Test connecting with the current settings</source>
     </trans-unit>
     <trans-unit id="++CODE++5bcf311b19d80c5645ce05f5fd36fc449412a6571ceb229fd483e9c415865912">
       <source xml:lang="en">Test connection</source>
