@@ -416,7 +416,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
         // Auto-generate unique container name
         const containerName = await dockerUtils.validateContainerName("");
 
-        // Parse port (already validated by form)
+        // Port availability is validated in validateForm before publish runs,
+        // so we can safely use the parsed value here.
         const port = parseInt(state.formState.containerPort);
 
         return { containerName, port };
@@ -491,51 +492,77 @@ export class PublishProjectWebViewController extends FormWebviewController<
             trustServerCertificate: true,
         } as IConnectionProfile;
 
-        try {
-            // Save the connection profile to VS Code settings
-            const savedProfile =
-                await this._mainController.connectionManager.connectionUI.saveProfile(
-                    connectionProfile,
-                );
+        // SQL Server logs "ready for client connections" slightly before it can fully
+        // handle authentication. The deployment UI avoids this race condition because
+        // the user manually clicks "Connect" (adding a natural delay). In the automated
+        // publish flow we retry the connection a few times with a short delay to give
+        // the container enough time to become fully responsive.
+        const maxConnectionAttempts = constants.containerConnectionMaxAttempts;
+        const connectionRetryDelayMs = constants.containerConnectionRetryDelayMs;
+        let lastConnectionError: string | undefined;
 
-            // Open in Object Explorer (this also establishes the connection)
-            await this._mainController.createObjectExplorerSession(savedProfile);
+        for (let attempt = 1; attempt <= maxConnectionAttempts; attempt++) {
+            // Wait before each attempt: the first wait lets SQL Server finish auth
+            // initialisation; subsequent waits back off after a transient failure.
+            await new Promise((resolve) => setTimeout(resolve, connectionRetryDelayMs));
 
-            // Get the connection URI from the saved profile
-            const connectionUri =
-                this._mainController.connectionManager.getUriForConnection(savedProfile);
+            try {
+                // Save the connection profile to VS Code settings (idempotent on retry)
+                const savedProfile =
+                    await this._mainController.connectionManager.connectionUI.saveProfile(
+                        connectionProfile,
+                    );
 
-            // Send telemetry for successful container creation and connection
-            sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.ConnectToContainer, {
-                operationId: this._operationId,
-                publishTarget: PublishTarget.LocalContainer,
-                success: "true",
-            });
+                // Open in Object Explorer (this also establishes the connection)
+                await this._mainController.createObjectExplorerSession(savedProfile);
 
-            return {
-                success: true,
-                connectionUri: connectionUri,
-            };
-        } catch (error) {
-            // Send telemetry for connection failure
-            sendErrorEvent(
-                TelemetryViews.SqlProjects,
-                TelemetryActions.ConnectToContainer,
-                error instanceof Error ? error : new Error(getErrorMessage(error)),
-                false,
-                undefined,
-                undefined,
-                {
-                    operationId: this._operationId,
-                    success: "false",
-                },
-            );
+                // Get the connection URI from the saved profile
+                const connectionUri =
+                    this._mainController.connectionManager.getUriForConnection(savedProfile);
 
-            return {
-                success: false,
-                error: getErrorMessage(error),
-            };
+                if (connectionUri) {
+                    // Send telemetry for successful container creation and connection
+                    sendActionEvent(
+                        TelemetryViews.SqlProjects,
+                        TelemetryActions.ConnectToContainer,
+                        {
+                            operationId: this._operationId,
+                            publishTarget: PublishTarget.LocalContainer,
+                            success: "true",
+                        },
+                    );
+
+                    return {
+                        success: true,
+                        connectionUri: connectionUri,
+                    };
+                }
+
+                // Session was created but no URI yet – treat as a soft failure and retry
+                lastConnectionError = Loc.FailedToConnectToServer;
+            } catch (error) {
+                lastConnectionError = getErrorMessage(error);
+            }
         }
+
+        // All attempts exhausted
+        sendErrorEvent(
+            TelemetryViews.SqlProjects,
+            TelemetryActions.ConnectToContainer,
+            new Error(lastConnectionError),
+            false,
+            undefined,
+            undefined,
+            {
+                operationId: this._operationId,
+                success: "false",
+            },
+        );
+
+        return {
+            success: false,
+            error: lastConnectionError,
+        };
     }
 
     /**
@@ -1649,6 +1676,42 @@ export class PublishProjectWebViewController extends FormWebviewController<
     ): Promise<(keyof IPublishForm)[]> {
         // Call parent validation logic which returns array of fields with errors
         const erroredInputs = await super.validateForm(formTarget, propertyName, updateValidation);
+
+        // Async port-availability check for LocalContainer target — mirrors deployment UI.
+        // The synchronous validate() in formComponentHelpers only checks the number range;
+        // this checks whether the port is already bound by a running/stopped container.
+        const isPortField = !propertyName || propertyName === PublishFormFields.ContainerPort;
+        if (
+            isPortField &&
+            this.state.formState.publishTarget === PublishTarget.LocalContainer &&
+            updateValidation
+        ) {
+            const portComponent = this.state.formComponents[PublishFormFields.ContainerPort];
+            const portStr = String(this.state.formState.containerPort ?? "").trim();
+            const portNum = Number(portStr);
+            // Only run availability check if the value is already a valid port number
+            if (portComponent && !isNaN(portNum) && portNum > 0) {
+                const availablePort = await dockerUtils.findAvailablePort(portNum);
+                if (availablePort !== portNum) {
+                    portComponent.validation = {
+                        isValid: false,
+                        validationMessage: Loc.PortAlreadyInUse(portNum),
+                    };
+                    if (
+                        !erroredInputs.includes(
+                            PublishFormFields.ContainerPort as keyof IPublishForm,
+                        )
+                    ) {
+                        erroredInputs.push(PublishFormFields.ContainerPort as keyof IPublishForm);
+                    }
+                } else if (
+                    portComponent.validation?.validationMessage === Loc.PortAlreadyInUse(portNum)
+                ) {
+                    // Clear the port-in-use error if the port is now free
+                    portComponent.validation = { isValid: true, validationMessage: "" };
+                }
+            }
+        }
 
         // erroredInputs only contains fields validated with updateValidation=true (on blur)
         // So we also need to check for missing required values (which may not be validated yet on dialog open)
