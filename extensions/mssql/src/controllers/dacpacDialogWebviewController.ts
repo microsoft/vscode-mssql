@@ -627,7 +627,10 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
             errorMessage = LocConstants.DacpacDialog.FailedToListDatabases;
         } catch (error) {
             this.logger.error(`Failed to list databases: ${error}`);
-            errorMessage = error instanceof Error ? error.message : LocConstants.DacpacDialog.FailedToListDatabases;
+            errorMessage =
+                error instanceof Error
+                    ? error.message
+                    : LocConstants.DacpacDialog.FailedToListDatabases;
         }
 
         // Fallback: if the database list is empty or the request failed,

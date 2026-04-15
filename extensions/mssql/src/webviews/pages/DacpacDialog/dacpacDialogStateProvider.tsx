@@ -56,9 +56,7 @@ export interface DacpacDialogRpcMethods {
           }
         | undefined
     >;
-    connectToServer: (params: {
-        profileId: string;
-    }) => Promise<
+    connectToServer: (params: { profileId: string }) => Promise<
         | {
               ownerUri: string;
               isConnected: boolean;

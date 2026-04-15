@@ -39,8 +39,8 @@ import {
     ValidateFilePathWebviewRequest,
     BrowseInputFileWebviewRequest,
     BrowseOutputFileWebviewRequest,
+    type DacpacDialogWebviewState,
 } from "../../src/sharedInterfaces/dacpacDialog";
-import type { DacpacDialogWebviewState } from "../../src/sharedInterfaces/dacpacDialog";
 import * as LocConstants from "../../src/constants/locConstants";
 import {
     stubTelemetry,
@@ -815,12 +815,7 @@ suite("DacpacDialogWebviewController", () => {
             expect(response.errorMessage).to.equal("Connection failed");
         });
         test("returns fallback database from state when list returns only system databases", async () => {
-            connectionManagerStub.listDatabases.resolves([
-                "master",
-                "tempdb",
-                "model",
-                "msdb",
-            ]);
+            connectionManagerStub.listDatabases.resolves(["master", "tempdb", "model", "msdb"]);
             createControllerWithState({
                 ...initialState,
                 databaseName: "MyDatabase",
@@ -831,10 +826,7 @@ suite("DacpacDialogWebviewController", () => {
             expect(response.errorMessage).to.be.a("string").that.is.not.empty;
         });
         test("returns error message with empty list when no fallback database available", async () => {
-            connectionManagerStub.listDatabases.resolves([
-                "master",
-                "tempdb",
-            ]);
+            connectionManagerStub.listDatabases.resolves(["master", "tempdb"]);
             createController();
             const requestHandler = requestHandlers.get(ListDatabasesWebviewRequest.type.method);
             const response = await requestHandler!({ ownerUri: ownerUri });
