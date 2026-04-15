@@ -28,6 +28,7 @@ import {
     ConnectionMatcher,
 } from "../models/utils";
 import { UserSurvey } from "../nps/userSurvey";
+import { isSystemDatabase } from "../utils/databaseUtils";
 import { getErrorMessage } from "../utils/utils";
 
 // File extension constants
@@ -599,7 +600,6 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
     private async listDatabases(
         ownerUri: string,
     ): Promise<{ databases: string[]; errorMessage?: string }> {
-        const systemDatabases = ["master", "tempdb", "model", "msdb"];
         const stateDatabaseName = this.state.databaseName;
 
         let errorMessage: string | undefined;
@@ -607,15 +607,13 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
             const databaseNames = await this.connectionManager.listDatabases(ownerUri);
 
             // Filter out system databases
-            const userDatabases = (databaseNames || []).filter(
-                (db) => !systemDatabases.includes(db.toLowerCase()),
-            );
+            const userDatabases = (databaseNames || []).filter((db) => !isSystemDatabase(db));
 
             if (userDatabases.length > 0) {
                 // Ensure the state database is in the list if set
                 if (
                     stateDatabaseName &&
-                    !systemDatabases.includes(stateDatabaseName.toLowerCase()) &&
+                    !isSystemDatabase(stateDatabaseName) &&
                     !userDatabases.includes(stateDatabaseName)
                 ) {
                     userDatabases.unshift(stateDatabaseName);
@@ -635,7 +633,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
 
         // Fallback: if the database list is empty or the request failed,
         // use the database name from the initial state (set via ObjectExplorerUtils.getDatabaseName)
-        if (stateDatabaseName && !systemDatabases.includes(stateDatabaseName.toLowerCase())) {
+        if (stateDatabaseName && !isSystemDatabase(stateDatabaseName)) {
             return {
                 databases: [stateDatabaseName],
                 errorMessage,
