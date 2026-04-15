@@ -4649,6 +4649,10 @@
       <source xml:lang="en">Port {0} is already in use</source>
       <note>{0} is the port number</note>
     </trans-unit>
+    <trans-unit id="++CODE++a1c60409bfd9bcd53f31a132bd46b1f125ebf2b16012ceb2bf16baacc460e61c">
+      <source xml:lang="en">Port {0} is already in use. Please choose a different port.</source>
+      <note>{0} is the port number</note>
+    </trans-unit>
     <trans-unit id="++CODE++c56a86c298eb5a88289af29ba70d8dfdfbf42f6a0c6cf7fe8317a824db4eb767">
       <source xml:lang="en">Possible Data Loss detected. Please review the changes.</source>
     </trans-unit>
