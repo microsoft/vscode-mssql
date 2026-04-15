@@ -28,7 +28,7 @@ import {
     Warning16Regular,
 } from "@fluentui/react-icons";
 import { Schema16Regular } from "../../../common/icons/fluentIcons";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { locConstants } from "../../../common/locConstants";
 import { DabEntitySettingsDialog } from "./dabEntitySettingsDialog";
 import { Dab } from "../../../../sharedInterfaces/dab";
@@ -161,10 +161,38 @@ export const DabEntityTable = () => {
         toggleDabEntityAction,
         updateDabEntitySettings,
         dabTextFilter,
+        currentFilteredTables,
     } = context;
 
     const [collapsedSchemas, setCollapsedSchemas] = useState<Set<string>>(new Set());
     const [settingsEntityId, setSettingsEntityId] = useState<string | null>(null);
+
+    const getEntityFullName = (entity: Dab.DabEntityConfig) =>
+        `${entity.schemaName}.${entity.tableName}`;
+
+    const initialEnabledEntities = useRef<Set<string>>(
+        new Set(
+            dabConfig?.entities.filter((e) => e.isEnabled).map((e) => getEntityFullName(e)) ?? [],
+        ),
+    );
+
+    useEffect(() => {
+        if (!dabConfig) return;
+
+        const tablesToCheck: Set<string> =
+            currentFilteredTables.length > 0
+                ? new Set(currentFilteredTables)
+                : initialEnabledEntities.current;
+
+        dabConfig.entities.forEach((entity) => {
+            const fullName = getEntityFullName(entity);
+            const shouldCheck = tablesToCheck.has(fullName);
+
+            if (initialEnabledEntities.current.has(fullName) && shouldCheck !== entity.isEnabled) {
+                toggleDabEntity(entity.id, shouldCheck);
+            }
+        });
+    }, [currentFilteredTables]); // only runs when user changes schema designer filter
 
     const toggleSchemaCollapsed = useCallback((schemaName: string) => {
         setCollapsedSchemas((prev) => {
