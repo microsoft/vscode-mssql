@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, Link, makeStyles } from "@fluentui/react-components";
+import { Button, Link, makeStyles, MessageBar, MessageBarBody } from "@fluentui/react-components";
 import { DatabaseArrowRight20Regular, DatabaseArrowRight24Regular } from "@fluentui/react-icons";
 import { useState, useEffect, useContext } from "react";
 import * as dacpacDialog from "../../../sharedInterfaces/dacpacDialog";
@@ -69,6 +69,10 @@ export const DacpacDialogForm = () => {
     const [ownerUri, setOwnerUri] = useState<string>(initialOwnerUri || "");
     const [isConnecting, setIsConnecting] = useState(false);
     const [isFabric, setIsFabric] = useState(false);
+    const [databaseListError, setDatabaseListError] = useState<{
+        message: string;
+        severity: "error" | "warning";
+    } | null>(null);
 
     // Load available connections when component mounts
     useEffect(() => {
@@ -191,6 +195,7 @@ export const DacpacDialogForm = () => {
     const handleServerChange = async (profileId: string) => {
         setSelectedProfileId(profileId);
         setValidationMessages({});
+        setDatabaseListError(null);
 
         // Find the selected connection
         const selectedConnection = availableConnections.find((conn) => conn.id === profileId);
@@ -264,35 +269,26 @@ export const DacpacDialogForm = () => {
                 if (result.databases && result.databases.length > 0) {
                     // We have a fallback database from the connection - show as warning
                     setDatabaseName(result.databases[0]);
-                    setValidationMessages((prev) => ({
-                        ...prev,
-                        database: {
-                            message:
-                                locConstants.dacpacDialog.databasesCannotBeLoadedDueToPermissions,
-                            severity: "warning",
-                        },
-                    }));
+                    setDatabaseListError({
+                        message: locConstants.dacpacDialog.databasesCannotBeLoadedDueToPermissions,
+                        severity: "warning",
+                    });
                 } else {
                     // No databases at all - show error
-                    setValidationMessages((prev) => ({
-                        ...prev,
-                        database: {
-                            message:
-                                locConstants.dacpacDialog.databasesCannotBeLoadedDueToPermissions,
-                            severity: "error",
-                        },
-                    }));
+                    setDatabaseListError({
+                        message: locConstants.dacpacDialog.databasesCannotBeLoadedDueToPermissions,
+                        severity: "error",
+                    });
                 }
+            } else {
+                setDatabaseListError(null);
             }
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
-            setValidationMessages((prev) => ({
-                ...prev,
-                database: {
-                    message: `${locConstants.dacpacDialog.failedToLoadDatabases}: ${errorMsg}`,
-                    severity: "error",
-                },
-            }));
+            setDatabaseListError({
+                message: `${locConstants.dacpacDialog.failedToLoadDatabases}: ${errorMsg}`,
+                severity: "error",
+            });
         }
     };
 
@@ -722,12 +718,20 @@ export const DacpacDialogForm = () => {
                     isOperationInProgress={isOperationInProgress}
                     onOperationTypeChange={() => {
                         setValidationMessages({});
+                        setDatabaseListError(null);
                         // Reset file path when switching operation types
                         // Import/Deploy need empty (browse for existing file)
                         // Export/Extract will be set when database name changes
                         setFilePath("");
                     }}
                 />
+
+                {databaseListError && (
+                    <MessageBar
+                        intent={databaseListError.severity === "error" ? "error" : "warning"}>
+                        <MessageBarBody>{databaseListError.message}</MessageBarBody>
+                    </MessageBar>
+                )}
 
                 <ServerSelectionSection
                     selectedProfileId={selectedProfileId}
