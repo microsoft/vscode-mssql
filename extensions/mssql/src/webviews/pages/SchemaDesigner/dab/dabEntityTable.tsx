@@ -245,6 +245,21 @@ export const DabEntityTable = () => {
         });
     }, []);
 
+    const sortEntities = (a: Dab.DabEntityConfig, b: Dab.DabEntityConfig) => {
+        if (entityColumnSortDirection !== SortDirection.None) {
+            const cmp = a.advancedSettings.entityName.localeCompare(b.advancedSettings.entityName);
+            return entityColumnSortDirection === SortDirection.Ascending ? cmp : -cmp;
+        }
+        if (sourceColumnSortDirection !== SortDirection.None) {
+            const sourceA = `${a.schemaName}.${a.tableName}`;
+            const sourceB = `${b.schemaName}.${b.tableName}`;
+            const cmp = sourceA.localeCompare(sourceB);
+            return sourceColumnSortDirection === SortDirection.Ascending ? cmp : -cmp;
+        }
+        // default case- sort by which entities are supported.
+        return Number(!a.isSupported) - Number(!b.isSupported);
+    };
+
     // Filter entities based on text filter
     const filteredEntities = useMemo(() => {
         if (!dabConfig) {
@@ -277,28 +292,10 @@ export const DabEntityTable = () => {
             .sort(([a], [b]) => a.localeCompare(b))
             .map(
                 ([schemaName, entities]) =>
-                    [
-                        schemaName,
-                        [...entities].sort((a, b) => {
-                            if (entityColumnSortDirection !== SortDirection.None) {
-                                const cmp = a.advancedSettings.entityName.localeCompare(
-                                    b.advancedSettings.entityName,
-                                );
-                                return entityColumnSortDirection === SortDirection.Ascending
-                                    ? cmp
-                                    : -cmp;
-                            }
-                            if (sourceColumnSortDirection !== SortDirection.None) {
-                                const sourceA = `${a.schemaName}.${a.tableName}`;
-                                const sourceB = `${b.schemaName}.${b.tableName}`;
-                                const cmp = sourceA.localeCompare(sourceB);
-                                return sourceColumnSortDirection === SortDirection.Ascending
-                                    ? cmp
-                                    : -cmp;
-                            }
-                            return Number(!a.isSupported) - Number(!b.isSupported);
-                        }),
-                    ] as [string, typeof filteredEntities],
+                    [schemaName, [...entities].sort(sortEntities)] as [
+                        string,
+                        typeof filteredEntities,
+                    ],
             );
     }, [filteredEntities, entityColumnSortDirection, sourceColumnSortDirection]);
 
