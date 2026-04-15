@@ -253,7 +253,7 @@
     "No databases found in the selected workspace.": "No databases found in the selected workspace.",
     "Database list": "Database list",
     "Connect": "Connect",
-    "Connect to the specified SQL instance and save the connection profile": "Connect to the specified SQL instance and save the connection profile",
+    "Connect with the current settings and save the connection profile": "Connect with the current settings and save the connection profile",
     "Connection actions": "Connection actions",
     "Advanced Connection Settings": "Advanced Connection Settings",
     "Advanced": "Advanced",

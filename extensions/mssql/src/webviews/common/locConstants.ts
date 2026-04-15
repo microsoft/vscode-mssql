@@ -358,7 +358,7 @@ export class LocConstants {
             databaseList: l10n.t("Database list"),
             connect: l10n.t("Connect"),
             connectTooltip: l10n.t(
-                "Connect to the specified SQL instance and save the connection profile",
+                "Connect with the current settings and save the connection profile",
             ),
             connectActions: l10n.t("Connection actions"),
             advancedConnectionSettings: l10n.t("Advanced Connection Settings"),
