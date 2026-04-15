@@ -30,6 +30,7 @@ import {
     parsePublishProfileXml,
     readProjectProperties,
     validateSqlCmdVariables,
+    validateSqlServerPortNumber,
     getSqlServerContainerTagsForTargetVersion,
     updateDatabaseInConnectionString,
 } from "./projectUtils";
@@ -492,20 +493,12 @@ export class PublishProjectWebViewController extends FormWebviewController<
             trustServerCertificate: true,
         } as IConnectionProfile;
 
-        // SQL Server logs "ready for client connections" slightly before it can fully
-        // handle authentication. The deployment UI avoids this race condition because
-        // the user manually clicks "Connect" (adding a natural delay). In the automated
-        // publish flow we retry the connection a few times with a short delay to give
-        // the container enough time to become fully responsive.
-        const maxConnectionAttempts = constants.containerConnectionMaxAttempts;
-        const connectionRetryDelayMs = constants.containerConnectionRetryDelayMs;
+        // SQL Server logs "ready for client connections" slightly before SA auth is fully
+        // initialized. Retry with exponential backoff (baseDelay × 2^attempt) to give
+        // the container enough time to become fully responsive after a failure.
         let lastConnectionError: string | undefined;
 
-        for (let attempt = 1; attempt <= maxConnectionAttempts; attempt++) {
-            // Wait before each attempt: the first wait lets SQL Server finish auth
-            // initialisation; subsequent waits back off after a transient failure.
-            await new Promise((resolve) => setTimeout(resolve, connectionRetryDelayMs));
-
+        for (let attempt = 0; attempt < constants.containerConnectionMaxAttempts; attempt++) {
             try {
                 // Save the connection profile to VS Code settings (idempotent on retry)
                 const savedProfile =
@@ -542,6 +535,17 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 lastConnectionError = Loc.FailedToConnectToServer;
             } catch (error) {
                 lastConnectionError = getErrorMessage(error);
+            }
+
+            // Wait before the next attempt using exponential backoff: baseDelay × 2^attempt
+            // (attempt 0 → 3s, attempt 1 → 6s). No wait after the last attempt.
+            if (attempt + 1 < constants.containerConnectionMaxAttempts) {
+                await new Promise((resolve) =>
+                    setTimeout(
+                        resolve,
+                        constants.containerConnectionRetryDelayMs * Math.pow(2, attempt),
+                    ),
+                );
             }
         }
 
@@ -1623,6 +1627,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 );
                 this._connectionUri = undefined;
                 this._serverTypes = "";
+
+                // Auto-detect the first port available from 1433 upward so the field
+                // never shows a port that is already in use.
+                const availablePort = await dockerUtils.findAvailablePort(
+                    constants.defaultPortNumber,
+                );
+                this.state.formState.containerPort =
+                    availablePort > 0 ? String(availablePort) : constants.DefaultSqlPortNumber;
             } else if (this.state.formState.publishTarget === PublishTarget.ExistingServer) {
                 // Restore for server mode
                 if (this._cachedDatabaseList?.length) {
@@ -1683,14 +1695,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
         const isPortField = !propertyName || propertyName === PublishFormFields.ContainerPort;
         if (
             isPortField &&
-            this.state.formState.publishTarget === PublishTarget.LocalContainer &&
+            formTarget.publishTarget === PublishTarget.LocalContainer &&
             updateValidation
         ) {
             const portComponent = this.state.formComponents[PublishFormFields.ContainerPort];
-            const portStr = String(this.state.formState.containerPort ?? "").trim();
+            const portStr = String(formTarget.containerPort ?? "").trim();
             const portNum = Number(portStr);
-            // Only run availability check if the value is already a valid port number
-            if (portComponent && !isNaN(portNum) && portNum > 0) {
+            // Skip availability check for out-of-range values; the range validator already caught those.
+            if (portComponent && validateSqlServerPortNumber(portNum)) {
                 const availablePort = await dockerUtils.findAvailablePort(portNum);
                 if (availablePort !== portNum) {
                     portComponent.validation = {
@@ -1704,10 +1716,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     ) {
                         erroredInputs.push(PublishFormFields.ContainerPort as keyof IPublishForm);
                     }
-                } else if (
-                    portComponent.validation?.validationMessage === Loc.PortAlreadyInUse(portNum)
-                ) {
-                    // Clear the port-in-use error if the port is now free
+                } else {
+                    // Port is free — clear any previous port-in-use error.
                     portComponent.validation = { isValid: true, validationMessage: "" };
                 }
             }

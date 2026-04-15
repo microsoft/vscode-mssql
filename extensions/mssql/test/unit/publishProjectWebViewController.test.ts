@@ -1145,6 +1145,7 @@ suite("PublishProjectWebViewController Tests", () => {
 
         const config = await controller["prepareContainerConfiguration"](controller.state);
 
+        expect(dockerUtils.validateContainerName).to.have.been.calledWith("");
         expect(config.containerName).to.equal("sql-server-container-abc123");
         expect(config.port).to.equal(1433);
     });
@@ -1409,11 +1410,7 @@ suite("PublishProjectWebViewController Tests", () => {
         const controller = createTestController();
         await controller.initialized.promise;
 
-        // Stub the setTimeout used for retry delay so tests run instantly
-        sandbox.stub(global, "setTimeout").callsFake((fn: () => void) => {
-            fn();
-            return undefined as unknown as NodeJS.Timeout;
-        });
+        const clock = sandbox.useFakeTimers();
 
         const connectionProfile = {} as IConnectionProfileWithSource;
 
@@ -1437,7 +1434,7 @@ suite("PublishProjectWebViewController Tests", () => {
 
         sandbox.stub(telemetry, "sendActionEvent");
 
-        const result = await controller["createDockerContainer"]("test-container", 1433, {
+        const resultPromise = controller["createDockerContainer"]("test-container", 1433, {
             ...controller.state,
             formState: {
                 ...controller.state.formState,
@@ -1447,6 +1444,10 @@ suite("PublishProjectWebViewController Tests", () => {
             },
         });
 
+        // Advance past the backoff delay between attempt 0 and attempt 1 (3000ms)
+        await clock.tickAsync(10000);
+        const result = await resultPromise;
+
         expect(result.success).to.be.true;
         expect(result.connectionUri).to.equal("mssql://container-uri");
     });
@@ -1455,10 +1456,7 @@ suite("PublishProjectWebViewController Tests", () => {
         const controller = createTestController();
         await controller.initialized.promise;
 
-        sandbox.stub(global, "setTimeout").callsFake((fn: () => void) => {
-            fn();
-            return undefined as unknown as NodeJS.Timeout;
-        });
+        const clock = sandbox.useFakeTimers();
 
         const saveProfileStub = sandbox.stub().rejects(new Error("Login failed for user 'SA'."));
         (
@@ -1469,7 +1467,7 @@ suite("PublishProjectWebViewController Tests", () => {
 
         sandbox.stub(telemetry, "sendErrorEvent");
 
-        const result = await controller["createDockerContainer"]("test-container", 1433, {
+        const resultPromise = controller["createDockerContainer"]("test-container", 1433, {
             ...controller.state,
             formState: {
                 ...controller.state.formState,
@@ -1479,9 +1477,13 @@ suite("PublishProjectWebViewController Tests", () => {
             },
         });
 
+        // Advance past all backoff delays: 3000ms (after attempt 0) + 6000ms (after attempt 1)
+        await clock.tickAsync(100000);
+        const result = await resultPromise;
+
         expect(result.success).to.be.false;
         expect(result.error).to.include("Login failed");
-        // saveProfile should have been called for each retry attempt
+        // saveProfile should have been called for each attempt
         expect(saveProfileStub.callCount).to.equal(constants.containerConnectionMaxAttempts);
     });
 

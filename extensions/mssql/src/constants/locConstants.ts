@@ -1768,7 +1768,11 @@ export class PublishProject {
     // Validation messages
     public static InvalidPortMessage = l10n.t("Port must be a number between 1 and 65535");
     public static PortAlreadyInUse = (port: number) =>
-        l10n.t("Port {0} is already in use. Please choose a different port.", port);
+        l10n.t({
+            message: "Port {0} is already in use. Please choose a different port.",
+            args: [port],
+            comment: ["{0} is the port number"],
+        });
     public static InvalidSQLPasswordMessage(name: string) {
         return l10n.t(
             "Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy",
