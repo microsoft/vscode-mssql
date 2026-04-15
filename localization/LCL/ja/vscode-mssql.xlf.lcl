@@ -784,11 +784,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++090015e97e08461a02b0915ed446e955928a4686cdc839c66bd9f7781b81d8fb" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Drop Database]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[データベースの削除]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++094e39c37800d5830e170aa0fbb976b10df2e3a9b847a6ec019c1e304bc509a6" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Remove filter for {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[{0} のフィルターを削除する]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++094e437cda5fd692838cc9472b78f0b56bb8696e37f931d0dceb816443bb0e87" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Backup Database - {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[データベースのバックアップ - {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1333,15 +1351,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++0fca84e49ac02af373521c99fb0ff436c7908bd09697d4ff09b570441e3d81d5" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[接続文字列の認証タイプ {0} はサポートされていません。サポートされているのは、SQL ログイン、統合認証、および Azure MFA 認証のみです。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++0fdafb5c26d9b0676b97c877261cc5ffcbbe40b53f2ed0863f213e2d5cd1713f" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{0} connection imported]]></Val>
@@ -1608,15 +1617,6 @@
           <Val><![CDATA[(Command completed successfully)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[(コマンドは正常に完了しました)]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++131339547c38a888800811c65663ba4a48be297f76a3ffdf6075afd06b591df8" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Backup Database (Preview) - {0}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[データベースのバックアップ (プレビュー) - {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2269,6 +2269,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++1b0fa08e0bb59b85ed1ee40df41e8a237133736b10ed5e19ca6b8934b0b46bf6" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Import Flat File]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[フラット ファイルのインポート]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++1b301aefb6d539ae0f9ad9d0a548549459322b5271d33f2b041df5c096e996b6" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Finished Deployment]]></Val>
@@ -2634,6 +2643,15 @@
           <Val><![CDATA[No databases found to import into.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[インポート先のデータベースが見つかりません。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++2156aca18e3ca2e3572d650a8071055ef5b50d81b043d68e994c6726c950da26" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0} ({1}%): {2}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} ({1}%): {2}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3853,6 +3871,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++2fd557cb0d0dc9fb91362ad40c6d256d2f0651acde628b9e27152c331f6af0a8" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0}d {1}h]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} 日と {1} 時間]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++3018218f5b66be1c5027fdc1d75389f30f30ac7cfa00c77c3453790d8830dc9a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Total rows to fetch:]]></Val>
@@ -3912,6 +3939,15 @@
           <Val><![CDATA[New Index]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[新しいインデックス]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++30ecb608c5cff9e821a41d28312d0070cbeb3901bc8e32ecefd17171f87dc53a" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Source: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[ソース: {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4029,6 +4065,15 @@
           <Val><![CDATA[Apply]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[適用]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++321ab91cb44c0a39cbf56a5f42f87fdc7fc2d00e29e2df5619d3e436f20dddc4" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Error: Unrecognized query result data.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[エラー: 認識できないクエリ結果データです。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4668,6 +4713,15 @@
           <Val><![CDATA[Close properties pane]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[[プロパティを閉じる]5D; ウィンドウ]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++3bd96350b569900406d2b6fcd6d41c1083c5dec9bd6052587c0a4657f831fe33" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[接続文字列の認証タイプ {0} はサポートされていません。サポートされているのは、SQL ログイン、統合認証、Azure MFA、および Active Directory Default 認証のみです。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7021,6 +7075,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++585389836e18976b372ada3cfd7a57608ccff88fc27ade1458fd968b3c089ff5" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Microsoft Entra Id - Default]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Microsoft Entra ID - 既定値]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++58601e3ffba5990d1be4db9f2bcc6107f9a72949aabd8f68f79bcb2c92195b5f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Not Between]]></Val>
@@ -7156,6 +7219,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++5a0515f60bd3693347830f37a0e69fa8477aa11b9fb3b0fef1a52e898ce46a76" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Are you sure you want to cancel this background task?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[このバックグラウンド タスクを取り消しますか?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++5a2df8a2745d54fa2197753e1c2c22a8dea9676916677120da5c44550647180d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Saved Connections]]></Val>
@@ -7282,15 +7354,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++5b7f462ae3c2f088449521a194e6c2b8833bd4acd5c877f6e13f55681d4d931d" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Restore Database (Preview)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[データベースの復元 (プレビュー)]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++5bcf311b19d80c5645ce05f5fd36fc449412a6571ceb229fd483e9c415865912" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Test connection]]></Val>
@@ -7413,6 +7476,15 @@
           <Val><![CDATA[Do you mind taking a quick feedback survey about the MSSQL Extension for VS Code?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[VS Code 用の MSSQL 拡張機能に関する簡単なフィードバック アンケートに答えますか?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++5d22a056f5f5f92e185435b509187fc8e61f15a5b85e6b08cda8d8811880cfc3" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Status: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[状態: {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8056,6 +8128,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++6798a9a353a86e591c7e67d0de13cc1b13216c95a1d38821b319d1f21823e3b1" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0}s]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} 秒]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++67b215a4a9c0185c90cc9b971dcdf8dc2c3fddcaa5bfc78eed8cfcc2cefaf0d7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Remove Sort]]></Val>
@@ -8659,6 +8740,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++6e7235c51cdbf5d78d6d31be6dab659515a42b307648229060b6afecb346f1be" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Target: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[ターゲット: {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++6e92fffc548b4ca49a6b4963939ef5c52a72dbcd88ec22bfad258e4c3e06fd58" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Overwrite all existing backup sets]]></Val>
@@ -8830,15 +8920,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++70c983cad7df6201df65d920d2483db7e1c8e824fe563943b0280ac5d11b5f2c" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Import File (Preview)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[ファイルのインポート (プレビュー)]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++70d2e37ffe6556af0cba5c43fa55ab55f9235530987956b396745510a5d4d471" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Auto-scroll enabled]]></Val>
@@ -8916,6 +8997,15 @@
           <Val><![CDATA[Changes ({0})]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[変更 ({0})]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++7225167ed5e4103e8208032eadc0cd8c8a50960a1d64a94da29046dc04100582" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0}ms]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} ミリ秒]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11269,6 +11359,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++90d9ab3255a92db5b378418ece6b230df904cb32837a59f146c96966f659a683" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Rename Database]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[データベース名の変更]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++910bb9ebcad74af9fe7fae916e94812f8a97c60f93e76a1167b4ca1583d70f27" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Missing schema payload for replace_schema operation.]]></Val>
@@ -11490,6 +11589,15 @@
           <Val><![CDATA[Retry]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[再試行]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++945322014369cb3209e969128e2294919076dc40a5005906320dd8a099cb418a" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Task: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[タスク: {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11737,6 +11845,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++985ed9835264ebdfa8f578536196c1d3f0a23b500b824b417300dd7e954b0042" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No log entries yet.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[ログ エントリはまだありません。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++98705269dd591aad37bacd7289a91ccb143232441bfe1143db9f2704c6f029e8" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{0}/{1}]]></Val>
@@ -11944,15 +12061,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++9afac530f969aee3a096a2d27abc3c44acfa31d1533b1e73eecb9faac48bc09b" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Import Flat File (Preview)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[フラット ファイルのインポート (プレビュー)]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++9b0636db073a79048ef4de667c447e516b7241e55ecf311c2a6f1fbe662574a1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Browse Fabric]]></Val>
@@ -11967,6 +12075,15 @@
           <Val><![CDATA[No changes yet.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[変更はまだありません。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++9b2a5e2aa6a3b183e78c7853f8d2e4ad4581726e1352110bd2e0d5f215d2f492" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0} ({1}%)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} ({1}%)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12273,15 +12390,6 @@
           <Val><![CDATA[MSSQL Feedback]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[MSSQL フィードバック]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++9f7b45b322d217b0cee6325963502b5a13eb8aa00e3b6330b7099f868f73782f" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Rename Database (Preview)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[データベース名の変更 (プレビュー)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13312,6 +13420,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++ac684565c2b14138e810a13adaad5c47b8fcfe81d7a11738202d806cac32acb3" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Import File]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[ファイルのインポート]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++ac71b6a015738ee5338790cb940cf29b65310494e9c98aba9894dac78b05e4ca" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[MSSQL - VS Code walkthrough]]></Val>
@@ -13924,6 +14041,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++b61200fec7f541d54e2092ce39398345e943a9190baac3c9191b540fb359fc41" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0}m {1}s]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} 分 {1} 秒]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++b613d48f906e133dadf56bfc9a00ef15bc7209a24e679f5d5e38df28270ef4f9" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connecting to server...]]></Val>
@@ -14338,6 +14464,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++baf083b029cb149c0220c5d92d030938620575f3da7f46af41f26b1db920bfdd" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Cancel Task]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[タスクの取り消し]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++bb035c6e4172fa0ed22c5df8a72cbc77405f39715c9515c5eb7fe9db16adde4b" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Execute '{0}' operation on Data API builder?]]></Val>
@@ -14604,6 +14739,15 @@
           <Val><![CDATA[Satisfied]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[満足]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++be5a4e5aa348f87ea026acec0d4a2d3181a504dad2d924e8a3cb0e229cbdae30" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0}: {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0}: {1}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15711,6 +15855,15 @@
           <Val><![CDATA[Collapse {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[{0} を折りたたむ]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++ce802c2881fc734c4e0eff3836c5cb3a775844c1c34faabf5d0ff3bd8687b262" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Task log is unavailable.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[タスク ログは利用できません。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17083,6 +17236,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++deba39e2531aa2d4ef487b5740425abeedf2ea1de021e46347bfba33105643b3" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connection: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[接続: {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++dee3e3871faf828499426928ded1c3d2762c767a5c9f07e954d25a63aca26da2" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Save .scmp file]]></Val>
@@ -17097,6 +17259,15 @@
           <Val><![CDATA[Creating...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[作成しています...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++defd2829d94341dd9a553fb0272dd8d95fbfb3ba7f7450083039aeb221014b5a" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Description: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[説明: {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17524,6 +17695,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++e451b91d33132634ff0a558d8d40b0e2daa3e392c45f0b75591924534362255d" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Elapsed time: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[経過時間: {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++e4b1d1f865854b036aa3fc73eceb365135c402dbd2b73f2f81d5841196a71750" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[New Database]]></Val>
@@ -17821,6 +18001,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++e7be1f1c5defef15839893c3ee18563f46ff1e9f16abc46983c3811f8bec0b62" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[[{0}]5D; {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[[{0}]5D; {1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++e7cf3ef4f17c3999a94f2c6f612e8a888e5b1026878e4e19398b23bd38ec221a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Password]]></Val>
@@ -18015,6 +18204,15 @@
           <Val><![CDATA[File type]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[ファイルの種類]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++ea2100dc89ae9fe21fa9b08ab1bf18662dca1e53a3eebd7d03afebcaf5d57515" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Logs]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[ログ]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18348,6 +18546,15 @@
           <Val><![CDATA[Example: Find queries with {0} > 100]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[例: {0} > 100 のクエリを検索する]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++ef2447cbc8c31cb68e92410fbddc126ba7a4d3b2448d8b55891fd110f2629c4d" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0}h {1}m]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} 時間 {1} 分]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19216,6 +19423,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++fcc2107b5a260d3c07480870a91a7634f1520f7d2afa98f70ff1ce21e36132b1" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Restore Database]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Database の復元]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++fcd9241097659a9ae58a06bd9b762b5aded99a3f82d97e73e75279b098e00c6d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The mapping between foreign key columns and primary key columns.]]></Val>
@@ -19441,6 +19657,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++ff68b3be0cbfce8037b00dfd3f0edcddfd195bd62aeced39845063dd40d8af10" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No background tasks]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[バックグラウンド タスクなし]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++ff8059dc6752afdd30d275932b1d5031a2ec854b387a8c57ecc6689915293a43" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Actions]]></Val>
@@ -19500,6 +19725,15 @@
           <Val><![CDATA[Remove file]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[ファイルを削除する]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.extension.backgroundTasks" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Background Tasks]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[バックグラウンド タスク]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19590,12 +19824,12 @@
       </Item>
       <Item ItemId=";package.mssql.backupDatabase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Backup Database (Preview)...]]></Val>
+          <Val><![CDATA[Backup Database...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[データベースのバックアップ (プレビュー)...]]></Val>
+            <Val><![CDATA[データベースをバックアップする...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Backup Database (Preview)]]></Val>
+            <Val><![CDATA[Backup Database (Preview)...]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
@@ -19605,6 +19839,15 @@
           <Val><![CDATA[Build Data API (Preview)...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Data API のビルド (プレビュー)...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.cancelBackgroundTask" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Cancel Task]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[タスクの取り消し]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19707,6 +19950,15 @@
           <Val><![CDATA[Clear Filters]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[フィルターのクリア]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.clearFinishedBackgroundTasks" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Clear Finished Tasks]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[完了したタスクのクリア]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -20307,12 +20559,12 @@
       </Item>
       <Item ItemId=";package.mssql.createDatabase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[New Database (Preview)...]]></Val>
+          <Val><![CDATA[New Database...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[新しいデータベース (プレビュー)...]]></Val>
+            <Val><![CDATA[新しいデータベース...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Create Database (Preview)]]></Val>
+            <Val><![CDATA[New Database (Preview)...]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
@@ -20538,12 +20790,12 @@
       </Item>
       <Item ItemId=";package.mssql.dropDatabase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Drop Database (Preview)...]]></Val>
+          <Val><![CDATA[Drop Database...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[データベースのドロップ (プレビュー)...]]></Val>
+            <Val><![CDATA[データベースのドロップ...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Drop Database (Preview)]]></Val>
+            <Val><![CDATA[Drop Database (Preview)...]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
@@ -20637,12 +20889,12 @@
       </Item>
       <Item ItemId=";package.mssql.flatFileImport" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Import Data (Preview)...]]></Val>
+          <Val><![CDATA[Import Data...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[データのインポート (プレビュー)...]]></Val>
+            <Val><![CDATA[データのインポート...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Import Flat File (Preview)]]></Val>
+            <Val><![CDATA[Import Data (Preview)...]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
@@ -21088,6 +21340,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";package.mssql.openBackgroundTask" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Open Task Result]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[タスクの結果を開く]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";package.mssql.openChangelog" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Open Changelog]]></Val>
@@ -21516,24 +21777,24 @@
       </Item>
       <Item ItemId=";package.mssql.renameDatabase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Rename Database (Preview)...]]></Val>
+          <Val><![CDATA[Rename Database...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[データベース名の変更 (プレビュー)...]]></Val>
+            <Val><![CDATA[データベース名の変更...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Rename Database (Preview)]]></Val>
+            <Val><![CDATA[Rename Database (Preview)...]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.restoreDatabase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Restore Database (Preview)...]]></Val>
+          <Val><![CDATA[Restore Database...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[データベースの復元 (プレビュー)...]]></Val>
+            <Val><![CDATA[データベースの復元...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Restore Database (Preview)]]></Val>
+            <Val><![CDATA[Restore Database (Preview)...]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
@@ -22057,6 +22318,15 @@
           <Prev Cat="Text">
             <Val><![CDATA[Give Feedback]]></Val>
           </Prev>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.viewBackgroundTaskLogs" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[View Task Logs]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[タスク ログの表示]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>

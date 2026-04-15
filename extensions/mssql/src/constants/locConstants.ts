@@ -27,11 +27,11 @@ export class Common {
     public static remove = l10n.t("Remove");
 }
 
-export let createDatabaseDialogTitle = l10n.t("Create Database (Preview)");
-export let dropDatabaseDialogTitle = l10n.t("Drop Database (Preview)");
-export let renameDatabaseDialogTitle = l10n.t("Rename Database (Preview)");
-export let createDatabaseWebviewTitle = l10n.t("Create Database (Preview)");
-export let dropDatabaseWebviewTitle = l10n.t("Drop Database (Preview)");
+export let createDatabaseDialogTitle = l10n.t("Create Database");
+export let dropDatabaseDialogTitle = l10n.t("Drop Database");
+export let renameDatabaseDialogTitle = l10n.t("Rename Database");
+export let createDatabaseWebviewTitle = l10n.t("Create Database");
+export let dropDatabaseWebviewTitle = l10n.t("Drop Database");
 export let renameDatabaseInputPlaceholder = l10n.t("Enter the new database name");
 export let databaseNameRequired = l10n.t("Database name is required");
 export let msgSelectServerNodeToCreateDatabase = l10n.t(
@@ -1029,6 +1029,30 @@ export class ConnectionDialog {
     }
     public static clearCacheAndRefreshToken = l10n.t("Clear cache and refresh token");
     public static clearTokenCache = l10n.t("Clear token cache");
+    public static tokenRefreshedSuccessfully = l10n.t("Token refreshed successfully.");
+
+    public static unableToAcquireValidToken(expiresOn: string, currentTime: string) {
+        return l10n.t({
+            message: "Unable to acquire a valid token. (expires: {0}, but is currently {1})",
+            args: [expiresOn, currentTime],
+            comment: ["{0} is the token expiration time", "{1} is the current time"],
+        });
+    }
+    public static errorRefreshingToken(errorMessage: string) {
+        return l10n.t({
+            message: "Error refreshing token; you may need to sign out and sign back in: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+    }
+    public static errorValidatingEntraToken(errorMessage: string) {
+        return l10n.t({
+            message:
+                "Error validating Entra authentication token; you may need to refresh your token: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+    }
 
     public static noWorkspacesFound = l10n.t(
         "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
@@ -1071,6 +1095,15 @@ export class Azure {
                 "No SQL resource is configured for the current cloud '{0}'. Please update your Azure account settings.",
             args: [cloudName],
             comment: ["{0} is the display name of the current cloud"],
+        });
+    }
+
+    public static accountNotFound(accountDisplayName: string): string {
+        return l10n.t({
+            message:
+                "Azure account '{0}' was not found. Sign in with the correct account or select a different one.",
+            args: [accountDisplayName],
+            comment: ["{0} is the display name or ID of the Azure account that was not found"],
         });
     }
 

@@ -1346,7 +1346,7 @@ Projekte:
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.autoCreateFolders">
         <source xml:lang="en">Automatically create folders (e.g., dbo/Tables) when adding SQL objects from any add-item entry point in a project.</source>
-        <target state="new">Automatically create folders (e.g., dbo/Tables) when adding SQL objects from any add-item entry point in a project.</target>
+        <target state="translated">Erstellen Sie automatisch Ordner (z. B. „dbo/Tables“), wenn Sie SQL-Objekte über einen beliebigen Einstiegspunkt zum Hinzufügen von Elementen in einem Projekt hinzufügen.</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.build">
         <source xml:lang="en">Build</source>

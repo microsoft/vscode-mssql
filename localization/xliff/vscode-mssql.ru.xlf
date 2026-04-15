@@ -498,7 +498,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++5a0515f60bd3693347830f37a0e69fa8477aa11b9fb3b0fef1a52e898ce46a76">
         <source xml:lang="en">Are you sure you want to cancel this background task?</source>
-        <target state="new">Are you sure you want to cancel this background task?</target>
+        <target state="translated">Вы действительно хотите отменить эту задачу, выполняющуюся в фоновом режиме?</target>
       </trans-unit>
       <trans-unit id="++CODE++34ab1d94f3f0ea49596bfd3fdbba6358a366ecd259be4bf46543ee58caad0614">
         <source xml:lang="en">Are you sure you want to close the current session? All captured events will be lost. You can export events to CSV from the toolbar before closing.</source>
@@ -701,6 +701,11 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Azure SQL Database is not supported for restore.</source>
         <target state="translated">Восстановление Базы данных SQL Azure не поддерживается.</target>
       </trans-unit>
+      <trans-unit id="++CODE++27dda4355b44df3f400de7845fe1bfc83a880707d4630f52be097d95625f7bfa">
+        <source xml:lang="en">Azure account '{0}' was not found. Sign in with the correct account or select a different one.</source>
+        <note>{0} is the display name or ID of the Azure account that was not found</note>
+        <target state="new">Azure account '{0}' was not found. Sign in with the correct account or select a different one.</target>
+      </trans-unit>
       <trans-unit id="++CODE++314afcc6e23d362133e764e1ebfacabe4d330308b528392570949a17270248b9">
         <source xml:lang="en">Azure sign in failed.</source>
         <target state="translated">Сбой входа в Azure.</target>
@@ -754,7 +759,7 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++094e437cda5fd692838cc9472b78f0b56bb8696e37f931d0dceb816443bb0e87">
         <source xml:lang="en">Backup Database - {0}</source>
         <note>{0} is the database name</note>
-        <target state="new">Backup Database - {0}</target>
+        <target state="translated">Создание резервной копии базы данных - {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++55e3ec5a66490b401352f97b8c81d967c3e0f06782815833b8ebef7c4113a1f3">
         <source xml:lang="en">Backup File</source>
@@ -921,7 +926,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++baf083b029cb149c0220c5d92d030938620575f3da7f46af41f26b1db920bfdd">
         <source xml:lang="en">Cancel Task</source>
-        <target state="new">Cancel Task</target>
+        <target state="translated">Отменить задачу</target>
       </trans-unit>
       <trans-unit id="++CODE++a6dab3e65af40b4f3bca5c056278a22a48972adfa26a46fa3cc16aa4e07e86e0">
         <source xml:lang="en">Cancel failed: {0}</source>
@@ -1799,7 +1804,7 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++deba39e2531aa2d4ef487b5740425abeedf2ea1de021e46347bfba33105643b3">
         <source xml:lang="en">Connection: {0}</source>
         <note>{0} is the task connection label</note>
-        <target state="new">Connection: {0}</target>
+        <target state="translated">Соединение: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++b08ee8f8534ee808b03d2a6534a0f3988a149469b487454af076faf4a3b98a3d">
         <source xml:lang="en">Connections in groups that are not selected will be moved under the root.</source>
@@ -2452,7 +2457,7 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++defd2829d94341dd9a553fb0272dd8d95fbfb3ba7f7450083039aeb221014b5a">
         <source xml:lang="en">Description: {0}</source>
         <note>{0} is the task description</note>
-        <target state="new">Description: {0}</target>
+        <target state="translated">Описание: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++5cd261bcc680ffdaef07096b65379d9358316948ef7fddce644405f7e518c848">
         <source xml:lang="en">Deselect All</source>
@@ -2622,6 +2627,10 @@ Select "{0}" to establish a connection.</source>
 {1} is the server name</note>
         <target state="translated">Удалить "{0}" из "{1}". Это необратимое действие.</target>
       </trans-unit>
+      <trans-unit id="++CODE++090015e97e08461a02b0915ed446e955928a4686cdc839c66bd9f7781b81d8fb">
+        <source xml:lang="en">Drop Database</source>
+        <target state="translated">Удалить базу данных</target>
+      </trans-unit>
       <trans-unit id="++CODE++a9c46777591fc96ccc6c8317280d36c4b68bc04298439cc0e6837ec2ae4bf49c">
         <source xml:lang="en">Drop Database (Preview)</source>
         <target state="translated">Удалить базу данных (предварительная версия)</target>
@@ -2689,7 +2698,7 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++e451b91d33132634ff0a558d8d40b0e2daa3e392c45f0b75591924534362255d">
         <source xml:lang="en">Elapsed time: {0}</source>
         <note>{0} is the task elapsed time</note>
-        <target state="new">Elapsed time: {0}</target>
+        <target state="translated">Затраченное время: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++1e71b5c8f3211f1f01b27341d3ddc6a2ad651800264b495c12b50867f998662c">
         <source xml:lang="en">Enable 'Trust Server Certificate'</source>
@@ -2994,6 +3003,11 @@ Error:
         <source xml:lang="en">Error occurred opening content in editor.</source>
         <target state="translated">При открытии документа в редакторе произошла ошибка.</target>
       </trans-unit>
+      <trans-unit id="++CODE++289c8a16e6884fd0e3f1579134fea1a2457efaaecad171ed5ac598eb0ae9ec58">
+        <source xml:lang="en">Error refreshing token; you may need to sign out and sign back in: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Error refreshing token; you may need to sign out and sign back in: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++7ce810c92d5881cd4638f73772ee57317b503d0f04dbc5cd2f281f77ac1d697d">
         <source xml:lang="en">Error retrieving server list: {0}</source>
         <note>{0} is the error message</note>
@@ -3007,6 +3021,11 @@ Error:
         <source xml:lang="en">Error signing into Azure: {0}</source>
         <note>{0} is the error message</note>
         <target state="translated">Ошибка при входе в Azure: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++70580f5715d9c53e71db7b7197f59cb412dc2ead9d577067cfbe9f3b5d2d65ca">
+        <source xml:lang="en">Error validating Entra authentication token; you may need to refresh your token: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Error validating Entra authentication token; you may need to refresh your token: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++e3bd07d6d5ddff1c7aefd27f1d3af9d23b97fc19d29d732816ea80fddb08f4dc">
         <source xml:lang="en">Error when refreshing token</source>
@@ -3039,6 +3058,10 @@ Error:
       <trans-unit id="++CODE++9d8c40f184be0169233d713fa64128ca200db300743a2adbb700912c74b5620d">
         <source xml:lang="en">Error: Unable to connect using the connection information provided. Retry profile creation?</source>
         <target state="translated">Ошибка: не удается подключиться с использованием предоставленных деталей подключения. Хотите повторить попытку создания профиля?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++321ab91cb44c0a39cbf56a5f42f87fdc7fc2d00e29e2df5619d3e436f20dddc4">
+        <source xml:lang="en">Error: Unrecognized query result data.</source>
+        <target state="translated">Ошибка: данные результата запроса не распознаны.</target>
       </trans-unit>
       <trans-unit id="++CODE++beab8d6b59ef40883dd9887fd21f67e4716b5d4581461c3eae2825e09b698ad0">
         <source xml:lang="en">Error: {0}</source>
@@ -4231,6 +4254,10 @@ Error:
         <source xml:lang="en">I'm sorry, I can only assist with SQL-related questions.</source>
         <target state="translated">Извините, я могу помочь только по вопросам, связанным с SQL.</target>
       </trans-unit>
+      <trans-unit id="++CODE++be9ee0cf4e3d4fdd1af6d17852b5e7ef78069590b49fe086652744f0157aa268">
+        <source xml:lang="en">IP address range</source>
+        <target state="new">IP address range</target>
+      </trans-unit>
       <trans-unit id="++CODE++b37cea142b959c4f6c75754d7b3d56bc41d1a2d6667600c748d7a168f10c8818">
         <source xml:lang="en">Ignore Options</source>
         <target state="translated">Игнорировать параметры</target>
@@ -4253,11 +4280,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++ac684565c2b14138e810a13adaad5c47b8fcfe81d7a11738202d806cac32acb3">
         <source xml:lang="en">Import File</source>
-        <target state="new">Import File</target>
+        <target state="translated">Импорт файла</target>
       </trans-unit>
       <trans-unit id="++CODE++1b0fa08e0bb59b85ed1ee40df41e8a237133736b10ed5e19ca6b8934b0b46bf6">
         <source xml:lang="en">Import Flat File</source>
-        <target state="new">Import Flat File</target>
+        <target state="translated">Импортировать неструктурированный файл</target>
       </trans-unit>
       <trans-unit id="++CODE++d059247bec8b508bc7b25a4d371433db929d754ac010d5347a67a0b5701dddc8">
         <source xml:lang="en">Import Information</source>
@@ -4849,7 +4876,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++ea2100dc89ae9fe21fa9b08ab1bf18662dca1e53a3eebd7d03afebcaf5d57515">
         <source xml:lang="en">Logs</source>
-        <target state="new">Logs</target>
+        <target state="translated">Журналы</target>
       </trans-unit>
       <trans-unit id="++CODE++7c43051e3f634f58555893076bb62e8a1318044729feb100df57fa181835884f">
         <source xml:lang="en">Logs copied to clipboard</source>
@@ -5015,7 +5042,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++585389836e18976b372ada3cfd7a57608ccff88fc27ade1458fd968b3c089ff5">
         <source xml:lang="en">Microsoft Entra Id - Default</source>
-        <target state="new">Microsoft Entra Id - Default</target>
+        <target state="translated">Microsoft Entra ID — по умолчанию</target>
       </trans-unit>
       <trans-unit id="++CODE++d24b24ff2640e9b5731d40ac97ea534034176c1478b681eca122262c4d98a8a2">
         <source xml:lang="en">Microsoft Entra Id - Universal w/ MFA Support</source>
@@ -5344,7 +5371,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++ff68b3be0cbfce8037b00dfd3f0edcddfd195bd62aeced39845063dd40d8af10">
         <source xml:lang="en">No background tasks</source>
-        <target state="new">No background tasks</target>
+        <target state="translated">Нет фоновых задач</target>
       </trans-unit>
       <trans-unit id="++CODE++8dc89c7190143e4d1630ac2bbd2eb03c2f94480f7d5511fb638179da5c0cab43">
         <source xml:lang="en">No backup sets found in the restore plan</source>
@@ -5486,7 +5513,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++985ed9835264ebdfa8f578536196c1d3f0a23b500b824b417300dd7e954b0042">
         <source xml:lang="en">No log entries yet.</source>
-        <target state="new">No log entries yet.</target>
+        <target state="translated">В журнале пока нет записей.</target>
       </trans-unit>
       <trans-unit id="++CODE++4b4d7ac22cee34f92cd16fbe4193b0eb106e185100ea38f72b0190e1affaf933">
         <source xml:lang="en">No matches found</source>
@@ -6525,9 +6552,9 @@ Error:
         <note>{0} is the object type</note>
         <target state="translated">Удалить {0}</target>
       </trans-unit>
-      <trans-unit id="++CODE++9f7b45b322d217b0cee6325963502b5a13eb8aa00e3b6330b7099f868f73782f">
-        <source xml:lang="en">Rename Database (Preview)</source>
-        <target state="translated">Переименовать базу данных (предварительная версия)</target>
+      <trans-unit id="++CODE++90d9ab3255a92db5b378418ece6b230df904cb32837a59f146c96966f659a683">
+        <source xml:lang="en">Rename Database</source>
+        <target state="translated">Переименовать базу данных</target>
       </trans-unit>
       <trans-unit id="++CODE++3426e6a23fe6e9ab8ec4d59a46f5e26596e94b9712da61c7a323e0cb0a6ecd25">
         <source xml:lang="en">Renaming database '{0}' to '{1}'...</source>
@@ -6591,7 +6618,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++fcc2107b5a260d3c07480870a91a7634f1520f7d2afa98f70ff1ce21e36132b1">
         <source xml:lang="en">Restore Database</source>
-        <target state="new">Restore Database</target>
+        <target state="translated">Восстановление базы данных</target>
       </trans-unit>
       <trans-unit id="++CODE++08a1e27d6e3c46f5a5b553a82a39ac2d0e89f6b37a9f57269532ed172d6d2de8">
         <source xml:lang="en">Restore Panel Size</source>
@@ -7685,7 +7712,7 @@ Query: {2}</source>
       <trans-unit id="++CODE++30ecb608c5cff9e821a41d28312d0070cbeb3901bc8e32ecefd17171f87dc53a">
         <source xml:lang="en">Source: {0}</source>
         <note>{0} is the task source</note>
-        <target state="new">Source: {0}</target>
+        <target state="translated">Источник: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++1e49ea47266ab1130ffc9be417fa6eb62da7299641f30a76e728fe983c25f29d">
         <source xml:lang="en">Specifies whether the column is included in the primary key for the table.</source>
@@ -7781,7 +7808,7 @@ Query: {2}</source>
       <trans-unit id="++CODE++5d22a056f5f5f92e185435b509187fc8e61f15a5b85e6b08cda8d8811880cfc3">
         <source xml:lang="en">Status: {0}</source>
         <note>{0} is the task status</note>
-        <target state="new">Status: {0}</target>
+        <target state="translated">Статус: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++fcd9e926d4fdee12468ed2bada9c9a3836ffa503e8dd105ce430cb9dc77450df">
         <source xml:lang="en">Step {0} of {1}</source>
@@ -8041,16 +8068,16 @@ Query: {2}</source>
       <trans-unit id="++CODE++6e7235c51cdbf5d78d6d31be6dab659515a42b307648229060b6afecb346f1be">
         <source xml:lang="en">Target: {0}</source>
         <note>{0} is the task target location</note>
-        <target state="new">Target: {0}</target>
+        <target state="translated">Целевой объект: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++ce802c2881fc734c4e0eff3836c5cb3a775844c1c34faabf5d0ff3bd8687b262">
         <source xml:lang="en">Task log is unavailable.</source>
-        <target state="new">Task log is unavailable.</target>
+        <target state="translated">Журнал задач недоступен.</target>
       </trans-unit>
       <trans-unit id="++CODE++945322014369cb3209e969128e2294919076dc40a5005906320dd8a099cb418a">
         <source xml:lang="en">Task: {0}</source>
         <note>{0} is the task name</note>
-        <target state="new">Task: {0}</target>
+        <target state="translated">Задача: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++e23969d284c3424c8014c6e5b1b85ebc275bc5c74321e7677a21d023e6ea154c">
         <source xml:lang="en">Tenant</source>
@@ -8339,6 +8366,10 @@ Query: {2}</source>
         <note>{0} is the connection group name</note>
         <target state="translated">Выбрать группу "{0}" или отменить выбор</target>
       </trans-unit>
+      <trans-unit id="++CODE++4999049f347c8083a5db26ef5fb3f51dc8ec31e0518279072ffdd7a2e8119195">
+        <source xml:lang="en">Token refreshed successfully.</source>
+        <target state="new">Token refreshed successfully.</target>
+      </trans-unit>
       <trans-unit id="++CODE++10b7ff2efd404627d5a929c6fb2a97fa57867f169fbf1016834477571a4cedb2">
         <source xml:lang="en">Tool lookup for: {0} - {1}.</source>
         <note>{0} is the part name
@@ -8386,6 +8417,12 @@ Query: {2}</source>
         <source xml:lang="en">Unable to acquire a Microsoft Entra token from VS Code for the selected account: {0}</source>
         <note>{0} is the account label or ID</note>
         <target state="translated">Не удалось получить токен Microsoft Entra из VS Code для выбранной учетной записи: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0f8e75246db2971314d4ccab6451fac39308e60133f90443516d207a4b717983">
+        <source xml:lang="en">Unable to acquire a valid token. (expires: {0}, but is currently {1})</source>
+        <note>{0} is the token expiration time
+{1} is the current time</note>
+        <target state="new">Unable to acquire a valid token. (expires: {0}, but is currently {1})</target>
       </trans-unit>
       <trans-unit id="++CODE++e395097d9cde221cdb9af8b04e1073d0d3394439fce660d1c954d012cdeae6c1">
         <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source>
@@ -8490,7 +8527,7 @@ Query: {2}</source>
       <trans-unit id="++CODE++3bd96350b569900406d2b6fcd6d41c1083c5dec9bd6052587c0a4657f831fe33">
         <source xml:lang="en">Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported.</source>
         <note>{0} is the authentication type</note>
-        <target state="new">Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported.</target>
+        <target state="translated">Неподдерживаемый тип проверки подлинности в строке подключения: {0}. Поддерживаются только вход SQL, интегрированная проверка подлинности, многофакторная проверка подлинности Azure и проверка подлинности Active Directory по умолчанию.</target>
       </trans-unit>
       <trans-unit id="++CODE++59925dabae7544939136767d732ce4bd853e6a3822324777eb3615b997680c05">
         <source xml:lang="en">Unsupported data types detected</source>
@@ -8888,7 +8925,7 @@ Query: {2}</source>
         <source xml:lang="en">[{0}] {1}</source>
         <note>{0} is the timestamp
 {1} is the log entry text</note>
-        <target state="new">[{0}] {1}</target>
+        <target state="translated">[{0}] {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++c1399614154a55dfb1fcb95e208ed1f0b1115b846d6150ded7c7b43fdf6cbc09">
         <source xml:lang="en">authenticationType</source>
@@ -8996,14 +9033,14 @@ Query: {2}</source>
         <source xml:lang="en">{0} ({1}%)</source>
         <note>{0} is the task status
 {1} is the completion percent</note>
-        <target state="new">{0} ({1}%)</target>
+        <target state="translated">{0} ({1} %)</target>
       </trans-unit>
       <trans-unit id="++CODE++2156aca18e3ca2e3572d650a8071055ef5b50d81b043d68e994c6726c950da26">
         <source xml:lang="en">{0} ({1}%): {2}</source>
         <note>{0} is the task status
 {1} is the completion percent
 {2} is the task message</note>
-        <target state="new">{0} ({1}%): {2}</target>
+        <target state="translated">{0} ({1} %): {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++d26e21ebdede152a58db3c9ae1c87fd29a87b97da434181f5617921d2ba4a284">
         <source xml:lang="en">{0} accounts</source>
@@ -9238,7 +9275,7 @@ Query: {2}</source>
         <source xml:lang="en">{0}: {1}</source>
         <note>{0} is the task status
 {1} is the task message</note>
-        <target state="new">{0}: {1}</target>
+        <target state="translated">{0}: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++a2d133c4fbcb2f605ecd460e6639e824d6bc388d75b5df672fd4cbf95d1e71f9">
         <source xml:lang="en">{0}: {1}</source>
@@ -9263,29 +9300,29 @@ Query: {2}</source>
         <source xml:lang="en">{0}d {1}h</source>
         <note>{0} is the elapsed time in days
 {1} is the remaining elapsed time in hours</note>
-        <target state="new">{0}d {1}h</target>
+        <target state="translated">{0} дн. {1} ч</target>
       </trans-unit>
       <trans-unit id="++CODE++ef2447cbc8c31cb68e92410fbddc126ba7a4d3b2448d8b55891fd110f2629c4d">
         <source xml:lang="en">{0}h {1}m</source>
         <note>{0} is the elapsed time in hours
 {1} is the remaining elapsed time in minutes</note>
-        <target state="new">{0}h {1}m</target>
+        <target state="translated">{0} ч {1} мин</target>
       </trans-unit>
       <trans-unit id="++CODE++b61200fec7f541d54e2092ce39398345e943a9190baac3c9191b540fb359fc41">
         <source xml:lang="en">{0}m {1}s</source>
         <note>{0} is the elapsed time in minutes
 {1} is the remaining elapsed time in seconds</note>
-        <target state="new">{0}m {1}s</target>
+        <target state="translated">{0} мин. {1} с</target>
       </trans-unit>
       <trans-unit id="++CODE++7225167ed5e4103e8208032eadc0cd8c8a50960a1d64a94da29046dc04100582">
         <source xml:lang="en">{0}ms</source>
         <note>{0} is the elapsed time in milliseconds</note>
-        <target state="new">{0}ms</target>
+        <target state="translated">{0} мс</target>
       </trans-unit>
       <trans-unit id="++CODE++6798a9a353a86e591c7e67d0de13cc1b13216c95a1d38821b319d1f21823e3b1">
         <source xml:lang="en">{0}s</source>
         <note>{0} is the elapsed time in seconds</note>
-        <target state="new">{0}s</target>
+        <target state="translated">{0} с</target>
       </trans-unit>
       <trans-unit id="++CODE++c7c45c2f2ad470c2dc1a35bf3320d977e49bd4f4c804d9bf347d009669e5ebae">
         <source xml:lang="en">{{put-server-name-here}}</source>
@@ -9361,11 +9398,11 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="extension.backgroundTasks">
         <source xml:lang="en">Background Tasks</source>
-        <target state="new">Background Tasks</target>
+        <target state="translated">Фоновые задачи</target>
       </trans-unit>
       <trans-unit id="mssql.backupDatabase">
         <source xml:lang="en">Backup Database...</source>
-        <target state="new">Backup Database...</target>
+        <target state="translated">Создать резервную копию базы данных...</target>
       </trans-unit>
       <trans-unit id="mssql.buildDataApi">
         <source xml:lang="en">Build Data API (Preview)...</source>
@@ -9381,7 +9418,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="mssql.cancelBackgroundTask">
         <source xml:lang="en">Cancel Task</source>
-        <target state="new">Cancel Task</target>
+        <target state="translated">Отменить задачу</target>
       </trans-unit>
       <trans-unit id="mssql.changeConnection">
         <source xml:lang="en">Change Connection (MSSQL)</source>
@@ -9425,7 +9462,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="mssql.clearFinishedBackgroundTasks">
         <source xml:lang="en">Clear Finished Tasks</source>
-        <target state="new">Clear Finished Tasks</target>
+        <target state="translated">Очистить завершенные задачи</target>
       </trans-unit>
       <trans-unit id="mssql.clearAzureAccountTokenCache">
         <source xml:lang="en">Clear Microsoft Entra account token cache</source>
@@ -9495,10 +9532,6 @@ Query: {2}</source>
         <source xml:lang="en">Create Azure Function with SQL binding</source>
         <target state="translated">Создание Функций Azure с привязкой SQL</target>
       </trans-unit>
-      <trans-unit id="mssql.notebooks.createNotebook">
-        <source xml:lang="en">Create SQL Notebook (Preview)</source>
-        <target state="translated">Создать записную книжку SQL (предварительная версия)</target>
-      </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.title">
         <source xml:lang="en">Create a Table with Table Designer</source>
         <target state="translated">Создание таблицы с помощью конструктора таблиц</target>
@@ -9566,8 +9599,8 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <target state="translated">Не показывать запросы на отображение результатов запроса в новой вкладке.</target>
       </trans-unit>
       <trans-unit id="mssql.dropDatabase">
-        <source xml:lang="en">Drop Database (Preview)...</source>
-        <target state="translated">Удалить базу данных (предварительный просмотр)...</target>
+        <source xml:lang="en">Drop Database...</source>
+        <target state="translated">Удалить базу данных...</target>
       </trans-unit>
       <trans-unit id="mssql.connectionGroups.edit">
         <source xml:lang="en">Edit Connection Group</source>
@@ -9759,11 +9792,11 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.flatFileImport">
         <source xml:lang="en">Import Data...</source>
-        <target state="new">Import Data...</target>
+        <target state="translated">Импортировать данные...</target>
       </trans-unit>
       <trans-unit id="mssql.profiler.launchFromObjectExplorer">
-        <source xml:lang="en">Launch Query Profiler (Preview)...</source>
-        <target state="translated">Запустить профилировщик запросов (предварительный просмотр)...</target>
+        <source xml:lang="en">Launch Query Profiler...</source>
+        <target state="new">Launch Query Profiler...</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.editorSubmenu">
         <source xml:lang="en">MSSQL Copilot</source>
@@ -9818,8 +9851,8 @@ You can connect to a database by entering your connection information, using a c
         <target state="translated">Изменить структуру таблицы...</target>
       </trans-unit>
       <trans-unit id="mssql.createDatabase">
-        <source xml:lang="en">New Database (Preview)...</source>
-        <target state="translated">Новая база данных (предварительный просмотр)...</target>
+        <source xml:lang="en">New Database...</source>
+        <target state="translated">Новая база данных...</target>
       </trans-unit>
       <trans-unit id="mssql.newDeployment">
         <source xml:lang="en">New Deployment</source>
@@ -9832,6 +9865,10 @@ You can connect to a database by entering your connection information, using a c
       <trans-unit id="mssql.newQuery">
         <source xml:lang="en">New Query</source>
         <target state="translated">Создать запрос</target>
+      </trans-unit>
+      <trans-unit id="mssql.notebooks.createNotebook">
+        <source xml:lang="en">New SQL Notebook (Preview)</source>
+        <target state="new">New SQL Notebook (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.newTable">
         <source xml:lang="en">New Table</source>
@@ -9885,7 +9922,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.openBackgroundTask">
         <source xml:lang="en">Open Task Result</source>
-        <target state="new">Open Task Result</target>
+        <target state="translated">Открыть результат задачи</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
         <source xml:lang="en">Open in GitHub Copilot Agent</source>
@@ -9940,8 +9977,8 @@ Start by clicking the filter button next to most folders in the Connections view
         <target state="translated">Удалить учетную запись Microsoft Entra</target>
       </trans-unit>
       <trans-unit id="mssql.renameDatabase">
-        <source xml:lang="en">Rename Database (Preview)...</source>
-        <target state="translated">Переименовать базу данных (предварительный просмотр)...</target>
+        <source xml:lang="en">Rename Database...</source>
+        <target state="translated">Переименовать базу данных...</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
         <source xml:lang="en">Replication</source>
@@ -9949,7 +9986,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.restoreDatabase">
         <source xml:lang="en">Restore Database...</source>
-        <target state="new">Restore Database...</target>
+        <target state="translated">Восстановить базу данных...</target>
       </trans-unit>
       <trans-unit id="mssql.revealQueryResult">
         <source xml:lang="en">Reveal Query Result (MSSQL)</source>
@@ -9996,8 +10033,8 @@ Start by clicking the filter button next to most folders in the Connections view
         <target state="translated">Создать скрипт как EXECUTE</target>
       </trans-unit>
       <trans-unit id="mssql.searchDatabase">
-        <source xml:lang="en">Search Database Objects (Preview)...</source>
-        <target state="translated">Поиск объектов базы данных (предварительная версия)...</target>
+        <source xml:lang="en">Search Database Objects...</source>
+        <target state="new">Search Database Objects...</target>
       </trans-unit>
       <trans-unit id="mssql.scriptSelect">
         <source xml:lang="en">Select Top 1000</source>
@@ -10255,7 +10292,7 @@ See the estimated plan without running the query, or view the actual query plan 
       </trans-unit>
       <trans-unit id="mssql.viewBackgroundTaskLogs">
         <source xml:lang="en">View Task Logs</source>
-        <target state="new">View Task Logs</target>
+        <target state="translated">Просмотреть журналы задач</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>

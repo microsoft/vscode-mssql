@@ -15,6 +15,8 @@ export interface AddFirewallRuleState {
     message: string;
     clientIp: string;
     isSignedIn: boolean;
+    /** Whether accounts and tenants are currently being loaded */
+    loadingAccounts: boolean;
     accounts: IMssqlAzureAccount[];
     /** Maps from account ID to list of tenants */
     tenants: Record<string, IMssqlAzureTenant[]>;

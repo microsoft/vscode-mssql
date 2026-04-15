@@ -306,6 +306,106 @@ suite("NotebookQueryExecutor", () => {
         expect(result.batches[0].messages[0].isError).to.be.true;
     });
 
+    test("attaches messages with batchId=-1 to the last started batch", async () => {
+        mockClient.sendRequest.callsFake(() => {
+            capturedHandler.handleBatchStart({
+                batchSummary: {
+                    id: 0,
+                    hasError: false,
+                    selection: { startLine: 0, startColumn: 0, endLine: 0, endColumn: 0 },
+                    resultSetSummaries: [],
+                    executionElapsed: "00:00:00.001",
+                    executionEnd: "",
+                    executionStart: "",
+                },
+                ownerUri: "test-uri",
+            });
+            // Syntax/parse errors can arrive with batchId=-1
+            capturedHandler.handleMessage({
+                message: {
+                    batchId: -1,
+                    isError: true,
+                    time: new Date().toISOString(),
+                    message: "Incorrect syntax near 'SELEC'.",
+                },
+                ownerUri: "test-uri",
+            });
+            capturedHandler.handleBatchComplete({
+                batchSummary: {
+                    id: 0,
+                    hasError: false, // STS may send false even for parse errors
+                    selection: { startLine: 0, startColumn: 0, endLine: 0, endColumn: 0 },
+                    resultSetSummaries: [],
+                    executionElapsed: "00:00:00.001",
+                    executionEnd: "",
+                    executionStart: "",
+                },
+                ownerUri: "test-uri",
+            });
+            capturedHandler.handleQueryComplete({
+                ownerUri: "test-uri",
+                batchSummaries: [],
+            });
+            return Promise.resolve({});
+        });
+
+        const result = await executor.execute("test-uri", "SELEC 1");
+
+        expect(result.batches).to.have.length(1);
+        expect(result.batches[0].messages).to.have.length(1);
+        expect(result.batches[0].messages[0].isError).to.be.true;
+        expect(result.batches[0].messages[0].message).to.equal("Incorrect syntax near 'SELEC'.");
+    });
+
+    test("attaches messages with undefined batchId to the last started batch", async () => {
+        mockClient.sendRequest.callsFake(() => {
+            capturedHandler.handleBatchStart({
+                batchSummary: {
+                    id: 0,
+                    hasError: false,
+                    selection: { startLine: 0, startColumn: 0, endLine: 0, endColumn: 0 },
+                    resultSetSummaries: [],
+                    executionElapsed: "00:00:00.001",
+                    executionEnd: "",
+                    executionStart: "",
+                },
+                ownerUri: "test-uri",
+            });
+            capturedHandler.handleMessage({
+                message: {
+                    batchId: undefined,
+                    isError: true,
+                    time: new Date().toISOString(),
+                    message: "Query-level error",
+                },
+                ownerUri: "test-uri",
+            });
+            capturedHandler.handleBatchComplete({
+                batchSummary: {
+                    id: 0,
+                    hasError: false,
+                    selection: { startLine: 0, startColumn: 0, endLine: 0, endColumn: 0 },
+                    resultSetSummaries: [],
+                    executionElapsed: "00:00:00.001",
+                    executionEnd: "",
+                    executionStart: "",
+                },
+                ownerUri: "test-uri",
+            });
+            capturedHandler.handleQueryComplete({
+                ownerUri: "test-uri",
+                batchSummaries: [],
+            });
+            return Promise.resolve({});
+        });
+
+        const result = await executor.execute("test-uri", "SELEC 1");
+
+        expect(result.batches).to.have.length(1);
+        expect(result.batches[0].messages).to.have.length(1);
+        expect(result.batches[0].messages[0].message).to.equal("Query-level error");
+    });
+
     test("handles multiple batches", async () => {
         mockClient.sendRequest.callsFake(() => {
             // First batch

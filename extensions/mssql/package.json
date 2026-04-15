@@ -1,7 +1,7 @@
 {
     "name": "mssql",
     "displayName": "SQL Server (mssql)",
-    "version": "1.42.0",
+    "version": "1.43.0",
     "description": "Design and optimize schemas for SQL Server, Azure SQL, and SQL Database in Fabric using a modern, lightweight extension built for developers",
     "publisher": "ms-mssql",
     "preview": false,
@@ -150,7 +150,7 @@
         "@microsoft/ads-extension-telemetry": "^3.0.2",
         "@microsoft/vscode-azext-azureauth": "^5.1.1",
         "@xmldom/xmldom": "^0.9.9",
-        "axios": "^1.13.5",
+        "axios": "^1.15.0",
         "dockerode": "^4.0.9",
         "dotenv": "^16.4.5",
         "error-ex": "^1.3.0",

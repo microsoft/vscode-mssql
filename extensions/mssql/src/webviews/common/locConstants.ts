@@ -67,6 +67,7 @@ export class LocConstants {
             warning: l10n.t("Warning"),
             signIn: l10n.t("Sign In"),
             loading: l10n.t("Loading"),
+            loadingWithEllipsis: l10n.t("Loading..."),
             general: l10n.t("General"),
             previous: l10n.t("Previous"),
             ok: l10n.t("OK"),
@@ -300,6 +301,7 @@ export class LocConstants {
                     comment: ["{0} is the IP address of the client"],
                 }),
             addMySubnetRange: l10n.t("Add my subnet IP range"),
+            ipAddressRange: l10n.t("IP address range"),
             fromLabel: l10n.t({
                 message: "From",
                 comment: ["Label for the start IP address in the firewall rule IP range"],

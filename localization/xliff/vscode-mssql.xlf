@@ -530,6 +530,10 @@
     <trans-unit id="++CODE++bc2a386616d4df1bf0313bdc4a7161a6c66b93554d20c9ad2dd3bc8ffe04e4ad">
       <source xml:lang="en">Azure SQL Database is not supported for restore.</source>
     </trans-unit>
+    <trans-unit id="++CODE++27dda4355b44df3f400de7845fe1bfc83a880707d4630f52be097d95625f7bfa">
+      <source xml:lang="en">Azure account &apos;{0}&apos; was not found. Sign in with the correct account or select a different one.</source>
+      <note>{0} is the display name or ID of the Azure account that was not found</note>
+    </trans-unit>
     <trans-unit id="++CODE++314afcc6e23d362133e764e1ebfacabe4d330308b528392570949a17270248b9">
       <source xml:lang="en">Azure sign in failed.</source>
     </trans-unit>
@@ -1998,6 +2002,9 @@
       <note>{0} is the database name
 {1} is the server name</note>
     </trans-unit>
+    <trans-unit id="++CODE++090015e97e08461a02b0915ed446e955928a4686cdc839c66bd9f7781b81d8fb">
+      <source xml:lang="en">Drop Database</source>
+    </trans-unit>
     <trans-unit id="++CODE++a9c46777591fc96ccc6c8317280d36c4b68bc04298439cc0e6837ec2ae4bf49c">
       <source xml:lang="en">Drop Database (Preview)</source>
     </trans-unit>
@@ -2279,6 +2286,10 @@
     <trans-unit id="++CODE++619d1a6dc49f043552f7b8d14e6483de4a2caf1c8270d6168a642c8eccc3a752">
       <source xml:lang="en">Error occurred opening content in editor.</source>
     </trans-unit>
+    <trans-unit id="++CODE++289c8a16e6884fd0e3f1579134fea1a2457efaaecad171ed5ac598eb0ae9ec58">
+      <source xml:lang="en">Error refreshing token; you may need to sign out and sign back in: {0}</source>
+      <note>{0} is the error message</note>
+    </trans-unit>
     <trans-unit id="++CODE++7ce810c92d5881cd4638f73772ee57317b503d0f04dbc5cd2f281f77ac1d697d">
       <source xml:lang="en">Error retrieving server list: {0}</source>
       <note>{0} is the error message</note>
@@ -2288,6 +2299,10 @@
     </trans-unit>
     <trans-unit id="++CODE++7c03518af7ea8058b9f5444011cc402ee48c86c765dfd6ba8e5ce09ed8d836ca">
       <source xml:lang="en">Error signing into Azure: {0}</source>
+      <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++70580f5715d9c53e71db7b7197f59cb412dc2ead9d577067cfbe9f3b5d2d65ca">
+      <source xml:lang="en">Error validating Entra authentication token; you may need to refresh your token: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++e3bd07d6d5ddff1c7aefd27f1d3af9d23b97fc19d29d732816ea80fddb08f4dc">
@@ -2314,6 +2329,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9d8c40f184be0169233d713fa64128ca200db300743a2adbb700912c74b5620d">
       <source xml:lang="en">Error: Unable to connect using the connection information provided. Retry profile creation?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++321ab91cb44c0a39cbf56a5f42f87fdc7fc2d00e29e2df5619d3e436f20dddc4">
+      <source xml:lang="en">Error: Unrecognized query result data.</source>
     </trans-unit>
     <trans-unit id="++CODE++beab8d6b59ef40883dd9887fd21f67e4716b5d4581461c3eae2825e09b698ad0">
       <source xml:lang="en">Error: {0}</source>
@@ -3230,6 +3248,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d8d462ddc91939459ae107d47fee7a34b3601b20fcd01615f98e1941674f14ea">
       <source xml:lang="en">I&apos;m sorry, I can only assist with SQL-related questions.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++be9ee0cf4e3d4fdd1af6d17852b5e7ef78069590b49fe086652744f0157aa268">
+      <source xml:lang="en">IP address range</source>
     </trans-unit>
     <trans-unit id="++CODE++b37cea142b959c4f6c75754d7b3d56bc41d1a2d6667600c748d7a168f10c8818">
       <source xml:lang="en">Ignore Options</source>
@@ -4975,8 +4996,8 @@
       <source xml:lang="en">Remove {0}</source>
       <note>{0} is the object type</note>
     </trans-unit>
-    <trans-unit id="++CODE++9f7b45b322d217b0cee6325963502b5a13eb8aa00e3b6330b7099f868f73782f">
-      <source xml:lang="en">Rename Database (Preview)</source>
+    <trans-unit id="++CODE++90d9ab3255a92db5b378418ece6b230df904cb32837a59f146c96966f659a683">
+      <source xml:lang="en">Rename Database</source>
     </trans-unit>
     <trans-unit id="++CODE++3426e6a23fe6e9ab8ec4d59a46f5e26596e94b9712da61c7a323e0cb0a6ecd25">
       <source xml:lang="en">Renaming database &apos;{0}&apos; to &apos;{1}&apos;...</source>
@@ -6351,6 +6372,9 @@
       <source xml:lang="en">Toggle selection for {0}</source>
       <note>{0} is the connection group name</note>
     </trans-unit>
+    <trans-unit id="++CODE++4999049f347c8083a5db26ef5fb3f51dc8ec31e0518279072ffdd7a2e8119195">
+      <source xml:lang="en">Token refreshed successfully.</source>
+    </trans-unit>
     <trans-unit id="++CODE++10b7ff2efd404627d5a929c6fb2a97fa57867f169fbf1016834477571a4cedb2">
       <source xml:lang="en">Tool lookup for: {0} - {1}.</source>
       <note>{0} is the part name
@@ -6387,6 +6411,11 @@
     <trans-unit id="++CODE++174af08052d23280b455e65ee7fe31307b6b838514937562db1a66605ce1cd68">
       <source xml:lang="en">Unable to acquire a Microsoft Entra token from VS Code for the selected account: {0}</source>
       <note>{0} is the account label or ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++0f8e75246db2971314d4ccab6451fac39308e60133f90443516d207a4b717983">
+      <source xml:lang="en">Unable to acquire a valid token. (expires: {0}, but is currently {1})</source>
+      <note>{0} is the token expiration time
+{1} is the current time</note>
     </trans-unit>
     <trans-unit id="++CODE++e395097d9cde221cdb9af8b04e1073d0d3394439fce660d1c954d012cdeae6c1">
       <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source>
@@ -7244,9 +7273,6 @@
     <trans-unit id="mssql.createAzureFunction">
       <source xml:lang="en">Create Azure Function with SQL binding</source>
     </trans-unit>
-    <trans-unit id="mssql.notebooks.createNotebook">
-      <source xml:lang="en">Create SQL Notebook (Preview)</source>
-    </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.title">
       <source xml:lang="en">Create a Table with Table Designer</source>
     </trans-unit>
@@ -7296,7 +7322,7 @@
       <source xml:lang="en">Do not show prompts to display query results in a new tab.</source>
     </trans-unit>
     <trans-unit id="mssql.dropDatabase">
-      <source xml:lang="en">Drop Database (Preview)...</source>
+      <source xml:lang="en">Drop Database...</source>
     </trans-unit>
     <trans-unit id="mssql.connectionGroups.edit">
       <source xml:lang="en">Edit Connection Group</source>
@@ -7443,7 +7469,7 @@
       <source xml:lang="en">Import Data...</source>
     </trans-unit>
     <trans-unit id="mssql.profiler.launchFromObjectExplorer">
-      <source xml:lang="en">Launch Query Profiler (Preview)...</source>
+      <source xml:lang="en">Launch Query Profiler...</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.editorSubmenu">
       <source xml:lang="en">MSSQL Copilot</source>
@@ -7482,7 +7508,7 @@
       <source xml:lang="en">Modify Table Structure...</source>
     </trans-unit>
     <trans-unit id="mssql.createDatabase">
-      <source xml:lang="en">New Database (Preview)...</source>
+      <source xml:lang="en">New Database...</source>
     </trans-unit>
     <trans-unit id="mssql.newDeployment">
       <source xml:lang="en">New Deployment</source>
@@ -7492,6 +7518,9 @@
     </trans-unit>
     <trans-unit id="mssql.newQuery">
       <source xml:lang="en">New Query</source>
+    </trans-unit>
+    <trans-unit id="mssql.notebooks.createNotebook">
+      <source xml:lang="en">New SQL Notebook (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.newTable">
       <source xml:lang="en">New Table</source>
@@ -7572,7 +7601,7 @@
       <source xml:lang="en">Remove Microsoft Entra Account</source>
     </trans-unit>
     <trans-unit id="mssql.renameDatabase">
-      <source xml:lang="en">Rename Database (Preview)...</source>
+      <source xml:lang="en">Rename Database...</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
       <source xml:lang="en">Replication</source>
@@ -7614,7 +7643,7 @@
       <source xml:lang="en">Script as Execute</source>
     </trans-unit>
     <trans-unit id="mssql.searchDatabase">
-      <source xml:lang="en">Search Database Objects (Preview)...</source>
+      <source xml:lang="en">Search Database Objects...</source>
     </trans-unit>
     <trans-unit id="mssql.scriptSelect">
       <source xml:lang="en">Select Top 1000</source>

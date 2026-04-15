@@ -88,6 +88,11 @@ export interface FormItemSpec<
      * Whether the form item is an advanced option
      */
     isAdvancedOption?: boolean;
+
+    /**
+     * Whether the form item is currently loading its data (e.g. dropdown options)
+     */
+    loading?: boolean;
 }
 
 export interface FormItemValidationState {
