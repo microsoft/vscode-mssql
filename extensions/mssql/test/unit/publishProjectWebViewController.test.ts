@@ -1410,6 +1410,17 @@ suite("PublishProjectWebViewController Tests", () => {
         const controller = createTestController();
         await controller.initialized.promise;
 
+        // Stub Docker steps (pullImage → checkContainer) to all succeed so we reach the connection logic
+        sandbox.stub(sqlServerContainer, "initializeDockerSteps").returns(
+            Array.from({ length: 7 }, () => ({
+                loadState: ApiStatus.NotStarted,
+                argNames: [],
+                headerText: "",
+                bodyText: "",
+                stepAction: sandbox.stub().resolves({ success: true }),
+            })),
+        );
+
         const clock = sandbox.useFakeTimers();
 
         const connectionProfile = {} as IConnectionProfileWithSource;
@@ -1455,6 +1466,17 @@ suite("PublishProjectWebViewController Tests", () => {
     test("createDockerContainer fails after all retry attempts exhausted", async () => {
         const controller = createTestController();
         await controller.initialized.promise;
+
+        // Stub Docker steps (pullImage → checkContainer) to all succeed so we reach the connection logic
+        sandbox.stub(sqlServerContainer, "initializeDockerSteps").returns(
+            Array.from({ length: 7 }, () => ({
+                loadState: ApiStatus.NotStarted,
+                argNames: [],
+                headerText: "",
+                bodyText: "",
+                stepAction: sandbox.stub().resolves({ success: true }),
+            })),
+        );
 
         const clock = sandbox.useFakeTimers();
 
