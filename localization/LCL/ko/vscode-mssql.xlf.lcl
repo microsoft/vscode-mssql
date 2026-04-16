@@ -1324,6 +1324,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++0f8e75246db2971314d4ccab6451fac39308e60133f90443516d207a4b717983" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unable to acquire a valid token. (expires: {0}, but is currently {1})]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[유효한 토큰을 가져올 수 없습니다. (만료 시간: {0}, 현재 시간: {1})]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++0f98888ce39572ae27e642dd46baba8dbf179c6b3c42c522cde8ad1f43323b11" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The language model did not return any output.]]></Val>
@@ -3228,6 +3237,15 @@
           <Val><![CDATA[Delete Confirmation]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[삭제 확인]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++289c8a16e6884fd0e3f1579134fea1a2457efaaecad171ed5ac598eb0ae9ec58" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Error refreshing token; you may need to sign out and sign back in: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[토큰을 새로 고치는 동안 오류가 발생했습니다. 로그아웃 후 다시 로그인해야 할 수 있습니다. {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5910,6 +5928,15 @@
           <Val><![CDATA[SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[SQL Server는 Windows 컨테이너를 지원하지 않습니다. Docker Desktop 설정에서 Linux 컨테이너로 전환하세요.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++4999049f347c8083a5db26ef5fb3f51dc8ec31e0518279072ffdd7a2e8119195" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Token refreshed successfully.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[토큰이 새로 고쳐졌습니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8898,6 +8925,15 @@
           <Val><![CDATA[Recent connections list cleared]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[최근 연결 목록을 삭제함]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++70580f5715d9c53e71db7b7197f59cb412dc2ead9d577067cfbe9f3b5d2d65ca" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Error validating Entra authentication token; you may need to refresh your token: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Entra 인증 토큰을 확인하는 동안 오류가 발생했습니다. 토큰을 새로 고쳐야 할 수 있습니다. {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21117,12 +21153,12 @@
       </Item>
       <Item ItemId=";package.mssql.notebooks.createNotebook" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Create SQL Notebook (Preview)]]></Val>
+          <Val><![CDATA[New SQL Notebook (Preview)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[SQL Notebook 만들기(미리 보기)]]></Val>
+            <Val><![CDATA[새 SQL Notebook(미리 보기)]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Create SQL Notebook]]></Val>
+            <Val><![CDATA[Create SQL Notebook (Preview)]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
@@ -21471,12 +21507,12 @@
       </Item>
       <Item ItemId=";package.mssql.profiler.launchFromObjectExplorer" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Launch Query Profiler (Preview)...]]></Val>
+          <Val><![CDATA[Launch Query Profiler...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[쿼리 프로파일러 시작(미리 보기)...]]></Val>
+            <Val><![CDATA[쿼리 프로파일러 시작...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Launch Query Profiler (Preview)]]></Val>
+            <Val><![CDATA[Launch Query Profiler (Preview)...]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
@@ -22128,12 +22164,12 @@
       </Item>
       <Item ItemId=";package.mssql.searchDatabase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Search Database Objects (Preview)...]]></Val>
+          <Val><![CDATA[Search Database Objects...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[데이터베이스 개체 검색(미리 보기)...]]></Val>
+            <Val><![CDATA[데이터베이스 개체 검색...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Search Database Objects...]]></Val>
+            <Val><![CDATA[Search Database Objects (Preview)...]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
