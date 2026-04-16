@@ -90,6 +90,20 @@ export namespace RenameObjectRequest {
     );
 }
 
+export interface RenameDatabaseRequestParams {
+    connectionUri: string;
+    database: string;
+    newName: string;
+    dropConnections: boolean;
+    generateScript: boolean;
+}
+
+export namespace RenameDatabaseRequest {
+    export const type = new RequestType<RenameDatabaseRequestParams, string, void, void>(
+        "objectManagement/renameDatabase",
+    );
+}
+
 export interface DropDatabaseRequestParams {
     connectionUri: string;
     database: string;

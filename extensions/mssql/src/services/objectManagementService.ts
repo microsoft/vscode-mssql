@@ -11,6 +11,7 @@ import {
     ObjectManagementSqlObject,
     ObjectManagementViewInfo,
     RenameObjectRequest,
+    RenameDatabaseRequest,
     SaveObjectRequest,
     ScriptObjectRequest,
     DisposeViewRequest,
@@ -46,7 +47,7 @@ export class ObjectManagementService {
         database: string,
         isNewObject: boolean,
         parentUrn: string,
-        objectUrn: string,
+        objectUrn?: string,
     ): Promise<ObjectManagementViewInfo<ObjectManagementSqlObject>> {
         const params: InitializeViewRequestParams = {
             connectionUri,
@@ -83,6 +84,22 @@ export class ObjectManagementService {
             objectType,
             objectUrn,
             newName,
+        });
+    }
+
+    public async renameDatabase(
+        connectionUri: string,
+        database: string,
+        newName: string,
+        dropConnections: boolean,
+        generateScript: boolean,
+    ): Promise<string> {
+        return this._client.sendRequest(RenameDatabaseRequest.type, {
+            connectionUri,
+            database,
+            newName,
+            dropConnections,
+            generateScript,
         });
     }
 

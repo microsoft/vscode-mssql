@@ -13,6 +13,7 @@ import {
     ScriptObjectRequest,
     DisposeViewRequest,
     RenameObjectRequest,
+    RenameDatabaseRequest,
     DropDatabaseRequest,
     ObjectManagementSqlObject,
     BackupConfigInfoRequest,
@@ -140,6 +141,30 @@ suite("ObjectManagementService Tests", () => {
             objectType: "Database",
             objectUrn: "object-urn",
             newName: "new-name",
+        });
+    });
+
+    test("renameDatabase should send correct request", async () => {
+        sqlToolsClientStub.sendRequest.resolves("ALTER DATABASE [db] MODIFY NAME = [db2]");
+
+        const result = await objectManagementService.renameDatabase(
+            "connection-uri",
+            "database-name",
+            "new-database-name",
+            true,
+            true,
+        );
+
+        expect(result).to.equal("ALTER DATABASE [db] MODIFY NAME = [db2]");
+        expect(sqlToolsClientStub.sendRequest.calledOnce).to.be.true;
+        const [type, params] = sqlToolsClientStub.sendRequest.firstCall.args;
+        expect(type).to.equal(RenameDatabaseRequest.type);
+        expect(params).to.deep.equal({
+            connectionUri: "connection-uri",
+            database: "database-name",
+            newName: "new-database-name",
+            dropConnections: true,
+            generateScript: true,
         });
     });
 
