@@ -635,6 +635,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Automatic tuning features like automatic index creation enabled by default.</source>
         <target state="translated">預設已啟用自動微調功能 (例如自動建立索引)。</target>
       </trans-unit>
+      <trans-unit id="++CODE++0b5cc185ca6a07f98625ce51f17da6ab56e7003264c3b98dac6324d231d61652">
+        <source xml:lang="en">Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.</source>
+        <target state="new">Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.</target>
+      </trans-unit>
       <trans-unit id="++CODE++87cdec8b1acc8c61a853ce73e9707a8a0c55e57922ff53e108262128e97553f2">
         <source xml:lang="en">Available Servers</source>
         <target state="translated">可用的伺服器</target>
@@ -1597,6 +1601,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Connect using profile {0}?</source>
         <note>{0} is the profile ID</note>
         <target state="translated">要使用設定檔 {0} 連接嗎?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bf2b06cf5edeeb66a098a3a052ced6d9f0c647f587aa00f072c6de26abcacfa0">
+        <source xml:lang="en">Connect with the current settings and save the connection profile</source>
+        <target state="new">Connect with the current settings and save the connection profile</target>
       </trans-unit>
       <trans-unit id="++CODE++28d29898bc769fd6df013da142af60f451953946e641fc2a2bee0e49b235a623">
         <source xml:lang="en">Connected successfully</source>
@@ -6952,6 +6960,10 @@ Query: {2}</source>
         <source xml:lang="en">Save backup to URL</source>
         <target state="translated">將備份儲存至 URL</target>
       </trans-unit>
+      <trans-unit id="++CODE++e7e6421e77a208718956538ea14f589ab43207800d985563be7e407d0a369c96">
+        <source xml:lang="en">Save connection profile changes without establishing a connection</source>
+        <target state="new">Save connection profile changes without establishing a connection</target>
+      </trans-unit>
       <trans-unit id="++CODE++bae1da28225af71a125385224716f5ff7870573e6c01494c597e8ed4168b12e3">
         <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
         <target state="translated">多重選取項目無法使用儲存結果命令。</target>
@@ -7629,6 +7641,10 @@ Query: {2}</source>
         <note>{0} is the Entra ID username</note>
         <target state="translated">請使用 Entra ID '{0}' 登入。</target>
       </trans-unit>
+      <trans-unit id="++CODE++1611a24a44316316a1736eb54d2504ddcc0f728257616bc857b0005b90beaea4">
+        <source xml:lang="en">Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.</source>
+        <target state="new">Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.</target>
+      </trans-unit>
       <trans-unit id="++CODE++f33c8e270a9d867a7ed6cb8d51e40f58132390afcd0e2eb79292952039fd8397">
         <source xml:lang="en">Sign into Azure</source>
         <target state="translated">登入 Azure</target>
@@ -8103,6 +8119,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++2af9bc0ac247853b98b854b657784c881cc649d3f1a660aafecd1b8b1a26d535">
         <source xml:lang="en">Terms &amp; Conditions</source>
         <target state="translated">條款及條件</target>
+      </trans-unit>
+      <trans-unit id="++CODE++799f6f8acde01a01209703f348f68f7802b5c8623007342d362bed19959e7ed5">
+        <source xml:lang="en">Test connecting with the current settings</source>
+        <target state="new">Test connecting with the current settings</target>
       </trans-unit>
       <trans-unit id="++CODE++5bcf311b19d80c5645ce05f5fd36fc449412a6571ceb229fd483e9c415865912">
         <source xml:lang="en">Test connection</source>
