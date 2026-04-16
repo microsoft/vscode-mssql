@@ -10,6 +10,7 @@
 - Released Backup Database, Restore Database, Flat File Import, and Create/Rename/Drop Database dialogs as generally available (GA)
 - Added Active Directory Default authentication support in the Connection Dialog, enabling passwordless authentication using the currently signed-in Windows identity
 - Added the ability to use VS Code accounts for Entra MFA authentication (preview). Enable by setting either `mssql.enableExperimentalFeatures` or `mssql.preview.useVscodeAccountsForEntraMFA`. Users will need to re-sign into Entra ID accounts that existing connections use for authentication.
+- Optimized Microsoft Entra sign-in flows to reduce repeated authentication prompts.
 - Added a new background task panel in the SQL Server activity bar to display active and completed deployment tasks (SQL container provisioning, SQL database in Fabric deployments) with real-time progress
 - Improved SQL Notebooks to display SQL Server error messages inline in cell output, improved cell output formatting and spacing, and set the MSSQL kernel as the default when creating a new notebook
 - Fixed several Query Results Grid issues with VECTOR, JSON, and XML data types including incorrect rendering as hyperlinks and values
