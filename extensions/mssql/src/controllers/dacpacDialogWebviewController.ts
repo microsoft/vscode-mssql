@@ -28,6 +28,7 @@ import {
     ConnectionMatcher,
 } from "../models/utils";
 import { UserSurvey } from "../nps/userSurvey";
+import { isSystemDatabase } from "../utils/databaseUtils";
 import { getErrorMessage } from "../utils/utils";
 
 // File extension constants
@@ -596,24 +597,50 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
     /**
      * Lists databases on the connected server
      */
-    private async listDatabases(ownerUri: string): Promise<{ databases: string[] }> {
+    private async listDatabases(
+        ownerUri: string,
+    ): Promise<{ databases: string[]; errorMessage?: string }> {
+        const stateDatabaseName = this.state.databaseName;
+
+        let errorMessage: string | undefined;
         try {
-            const result = await this.connectionManager.client.sendRequest(
-                ListDatabasesRequest.type,
-                { ownerUri: ownerUri },
-            );
+            const databaseNames = await this.connectionManager.listDatabases(ownerUri);
 
             // Filter out system databases
-            const systemDatabases = ["master", "tempdb", "model", "msdb"];
-            const userDatabases = (result.databaseNames || []).filter(
-                (db) => !systemDatabases.includes(db.toLowerCase()),
-            );
+            const userDatabases = (databaseNames || []).filter((db) => !isSystemDatabase(db));
 
-            return { databases: userDatabases };
+            if (userDatabases.length > 0) {
+                // Ensure the state database is in the list if set
+                if (
+                    stateDatabaseName &&
+                    !isSystemDatabase(stateDatabaseName) &&
+                    !userDatabases.includes(stateDatabaseName)
+                ) {
+                    userDatabases.unshift(stateDatabaseName);
+                }
+                return { databases: userDatabases };
+            }
+
+            // List succeeded but returned no user databases — likely a permissions issue
+            errorMessage = LocConstants.DacpacDialog.FailedToListDatabases;
         } catch (error) {
             this.logger.error(`Failed to list databases: ${error}`);
-            return { databases: [] };
+            errorMessage =
+                error instanceof Error
+                    ? error.message
+                    : LocConstants.DacpacDialog.FailedToListDatabases;
         }
+
+        // Fallback: if the database list is empty or the request failed,
+        // use the database name from the initial state (set via ObjectExplorerUtils.getDatabaseName)
+        if (stateDatabaseName && !isSystemDatabase(stateDatabaseName)) {
+            return {
+                databases: [stateDatabaseName],
+                errorMessage,
+            };
+        }
+
+        return { databases: [], errorMessage };
     }
 
     /**
@@ -803,6 +830,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
         isConnected: boolean;
         errorMessage?: string;
         isFabric?: boolean;
+        databaseName?: string;
     }> {
         try {
             // Find the profile in saved connections
@@ -824,6 +852,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
 
             // Check if this is a Fabric connection
             const isFabric = this.isFabricConnection(profile as IConnectionDialogProfile);
+            const databaseName = profile.database || "";
 
             // Check if already connected and the connection is valid
             let ownerUri = this.connectionManager.getUriForConnection(profile);
@@ -833,6 +862,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
                     ownerUri,
                     isConnected: true,
                     isFabric,
+                    databaseName,
                 };
             }
 
@@ -848,6 +878,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
                     ownerUri,
                     isConnected: true,
                     isFabric,
+                    databaseName,
                 };
             } else {
                 // Check if connection failed due to error or if it was never initiated
@@ -862,6 +893,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
                     isConnected: false,
                     errorMessage,
                     isFabric,
+                    databaseName,
                 };
             }
         } catch (error) {
@@ -920,6 +952,13 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
             return { isValid: false, errorMessage };
         }
 
+        // Check if the database matches the one from the active connection.
+        // If the user lacks permissions to list databases but is connected to a specific database,
+        // we should trust the connection's database and skip the server-side existence check.
+        const isConnectionDatabase =
+            this.state.databaseName &&
+            databaseName.toLowerCase() === this.state.databaseName.toLowerCase();
+
         // Check if database exists
         try {
             const result = await this.connectionManager.client.sendRequest(
@@ -951,6 +990,11 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
 
             // For Extract/Export operations, database must exist
             if (!shouldNotExist && !exists) {
+                // If the database matches the connection's database, trust it even if
+                // the list is incomplete (user may lack permissions to list all databases)
+                if (isConnectionDatabase) {
+                    return { isValid: true };
+                }
                 return {
                     isValid: false,
                     errorMessage: LocConstants.DacpacDialog.DatabaseNotFound,
@@ -959,6 +1003,11 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
 
             return { isValid: true };
         } catch (error) {
+            // If listing databases failed but the database matches the connection's database,
+            // allow the operation since the user is already connected to this database
+            if (isConnectionDatabase) {
+                return { isValid: true };
+            }
             const errorMessage =
                 error instanceof Error
                     ? `Failed to validate database name: ${error.message}`

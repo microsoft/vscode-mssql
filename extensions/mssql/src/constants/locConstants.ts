@@ -2806,6 +2806,9 @@ export class DacpacDialog {
     public static RevealInExplorer = l10n.t("Reveal in Explorer");
     public static RevealInFinder = l10n.t("Reveal in Finder");
     public static OpenContainingFolder = l10n.t("Open Containing Folder");
+    public static FailedToListDatabases = l10n.t(
+        "Unable to retrieve the list of databases. You may not have permission to list databases on this server.",
+    );
     public static DeploySuccessWithDatabase(databaseName: string): string {
         return l10n.t({
             message: "DACPAC deployed successfully to database '{0}'",
