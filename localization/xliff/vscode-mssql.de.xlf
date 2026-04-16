@@ -8282,11 +8282,27 @@ Abfrage: {2}</target>
         <source xml:lang="en">The selected file is not a valid XEL file.</source>
         <target state="translated">Die ausgewählte Datei ist keine gültige XEL-Datei.</target>
       </trans-unit>
+      <trans-unit id="++CODE++e2efd136048806149ca845f8521dbad2967230b47a2030b5b01614f9d5779620">
+        <source xml:lang="en">The selected profile authenticates using Entra ID '{0}' but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.</source>
+        <note>{0} is the account ID or label</note>
+        <target state="new">The selected profile authenticates using Entra ID '{0}' but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.</target>
+      </trans-unit>
       <trans-unit id="++CODE++17fc9cf78ccc4c6485ababb4c5c9ec97a19cb70c7531bdcf315dfe27f8d2c5da">
         <source xml:lang="en">The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.</source>
         <note>{0} is the account ID or label
 {1} is the tenant ID</note>
         <target state="translated">Das ausgewählte Profil authentifiziert sich mit Entra ID „{0}“ im Mandanten „{1}“, aber dieses Konto ist über die VS Code-Anmeldung nicht verfügbar. Bearbeiten Sie die Verbindung oder melden Sie sich mit diesem Konto in VS Code an, um eine Verbindung herzustellen.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b59435494dcd35be1cef0694a50b64de613df46a38364f7c59f082b8cf5ff263">
+        <source xml:lang="en">The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.</source>
+        <note>{0} is the account ID or label
+{1} is the tenant ID</note>
+        <target state="new">The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2d93cdf980de7a656d499569548c98d27086e3edebb3b89f58b28ec45facf111">
+        <source xml:lang="en">The selected profile authenticates using Entra ID '{0}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.</source>
+        <note>{0} is the account ID or label</note>
+        <target state="new">The selected profile authenticates using Entra ID '{0}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.</target>
       </trans-unit>
       <trans-unit id="++CODE++d7f9cfdbfc45384b7521ed4b8082d476a2d3cae5cbb8c57eec64003513cacbf2">
         <source xml:lang="en">The table which contains the primary or unique key column.</source>
