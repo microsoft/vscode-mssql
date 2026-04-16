@@ -8449,6 +8449,14 @@ Requête : {2}</target>
         <source xml:lang="en">Unable to read proxy agent options.</source>
         <target state="translated">Impossible de lire les options de l'agent proxy.</target>
       </trans-unit>
+      <trans-unit id="++CODE++5d1ae18e4c82efee8401c895242feeb54a8a5093d2b024877c83a7a08660a945">
+        <source xml:lang="en">Unable to retrieve the list of databases. You may not have permission to list databases on this server.</source>
+        <target state="new">Unable to retrieve the list of databases. You may not have permission to list databases on this server.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5e487cbb896806c4ffd5fd55308a163e5a5ebdb2de5b6e717faff434ddd119dd">
+        <source xml:lang="en">Unable to retrieve the list of databases. You may not have permission to list databases on this server. If your connection specifies a database, it will be preselected.</source>
+        <target state="new">Unable to retrieve the list of databases. You may not have permission to list databases on this server. If your connection specifies a database, it will be preselected.</target>
+      </trans-unit>
       <trans-unit id="++CODE++6be6bf4fae4897b542e648716d3e0fb9d67e3f4457c7b37afd4b217ca93e2914">
         <source xml:lang="en">Unavailable for backups to existing files</source>
         <target state="translated">Non disponible pour les sauvegardes sur des fichiers existants</target>
