@@ -357,14 +357,21 @@ export class LocConstants {
             },
             databaseList: l10n.t("Database list"),
             connect: l10n.t("Connect"),
+            connectTooltip: l10n.t(
+                "Connect with the current settings and save the connection profile",
+            ),
             connectActions: l10n.t("Connection actions"),
             advancedConnectionSettings: l10n.t("Advanced Connection Settings"),
             advancedSettings: l10n.t("Advanced"),
             testConnection: l10n.t("Test connection"),
+            testConnectionTooltip: l10n.t("Test connecting with the current settings"),
             testConnectionSucceeded: l10n.t("Connection test succeeded"),
             testing: l10n.t("Testing..."),
             connecting: l10n.t("Connecting..."),
             saveWithoutConnecting: l10n.t("Save without connecting"),
+            saveWithoutConnectingTooltip: l10n.t(
+                "Save connection profile changes without establishing a connection",
+            ),
             connectToDatabase: l10n.t("Connect to Database"),
             editDatabaseConnection: (profileName: string) =>
                 l10n.t({
