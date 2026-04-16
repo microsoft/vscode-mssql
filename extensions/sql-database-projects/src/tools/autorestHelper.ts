@@ -15,6 +15,20 @@ const nodejsDoNotAskAgainKey = "nodejsDoNotAsk";
 const autorestSqlVersionKey = "autorestSqlVersion";
 
 /**
+ * On Windows, .cmd/.bat files cannot be executed directly by spawn(shell:false).
+ * They must be routed through cmd.exe /c.
+ */
+function wrapCmdIfNeeded(resolvedPath: string): { executable: string; prefixArgs: string[] } {
+    if (process.platform === "win32" && /\.(cmd|bat)$/i.test(resolvedPath)) {
+        const cmdExe = process.env.ComSpec ?? "cmd.exe";
+        // /d disables AutoRun; /c runs the command and exits.
+        // No /s: it triggers quote-stripping that mangles args containing spaces.
+        return { executable: cmdExe, prefixArgs: ["/d", "/c", resolvedPath] };
+    }
+    return { executable: resolvedPath, prefixArgs: [] };
+}
+
+/**
  * Helper class for dealing with Autorest generation and detection
  */
 export class AutorestHelper extends ShellExecutionHelper {
@@ -37,15 +51,21 @@ export class AutorestHelper extends ShellExecutionHelper {
     }
 
     /**
-     * @returns the beginning of the command to execute autorest; 'autorest' if available, 'npx autorest' if module not installed, or undefined if neither
+     * @returns the executable and prefix args needed to run autorest, or undefined if unavailable.
      */
-    public async detectInstallation(): Promise<string | undefined> {
+    public async detectInstallation(): Promise<
+        { executable: string; prefixArgs: string[] } | undefined
+    > {
         const autorestCommand = "autorest";
         const npxCommand = "npx";
 
-        if (await utils.detectCommandInstallation(autorestCommand)) {
-            return autorestCommand;
-        } else if (await utils.detectCommandInstallation(npxCommand)) {
+        const resolvedAutorest = await utils.resolveCommandPath(autorestCommand);
+        if (resolvedAutorest) {
+            return wrapCmdIfNeeded(resolvedAutorest);
+        }
+
+        const resolvedNpx = await utils.resolveCommandPath(npxCommand);
+        if (resolvedNpx) {
             this._outputChannel.appendLine(constants.nodeButNotAutorestFound);
             const response = await vscode.window.showInformationMessage(
                 constants.nodeButNotAutorestFoundPrompt,
@@ -55,11 +75,27 @@ export class AutorestHelper extends ShellExecutionHelper {
 
             if (response === constants.installGlobally) {
                 this._outputChannel.appendLine(constants.userSelectionInstallGlobally);
-                await this.runStreamedCommand("npm", ["install", "autorest", "-g"]);
-                return autorestCommand;
+                const resolvedNpm = await utils.resolveCommandPath("npm");
+                const npmInstall = resolvedNpm
+                    ? wrapCmdIfNeeded(resolvedNpm)
+                    : { executable: "npm", prefixArgs: [] };
+                await this.runStreamedCommand(npmInstall.executable, [
+                    ...npmInstall.prefixArgs,
+                    "install",
+                    "autorest",
+                    "-g",
+                ]);
+                const newResolved = await utils.resolveCommandPath(autorestCommand);
+                return newResolved
+                    ? wrapCmdIfNeeded(newResolved)
+                    : { executable: autorestCommand, prefixArgs: [] };
             } else if (response === constants.runViaNpx) {
                 this._outputChannel.appendLine(constants.userSelectionRunNpx);
-                return `${npxCommand} ${autorestCommand}`;
+                const npxWrapped = wrapCmdIfNeeded(resolvedNpx);
+                return {
+                    executable: npxWrapped.executable,
+                    prefixArgs: [...npxWrapped.prefixArgs, autorestCommand],
+                };
             } else {
                 this._outputChannel.appendLine(constants.userSelectionCancelled);
             }
@@ -80,17 +116,17 @@ export class AutorestHelper extends ShellExecutionHelper {
         specPath: string,
         outputFolder: string,
     ): Promise<string | undefined> {
-        const commandExecutable = await this.detectInstallation();
+        const installation = await this.detectInstallation();
 
-        if (!commandExecutable) {
+        if (!installation) {
             // unable to find autorest or npx
 
             if (
                 vscode.workspace.getConfiguration(DBProjectConfigurationKey)[
                     nodejsDoNotAskAgainKey
-                ] !== true
+                ] === true
             ) {
-                return; // user doesn't want to be prompted about installing it
+                return; // user opted out of being prompted
             }
 
             // prompt user to install Node.js
@@ -101,8 +137,7 @@ export class AutorestHelper extends ShellExecutionHelper {
             );
 
             if (result === constants.Install) {
-                //open install link
-                const nodejsInstallationUrl = "https://nodejs.dev/download";
+                const nodejsInstallationUrl = "https://nodejs.org/en/download";
                 await vscode.env.openExternal(vscode.Uri.parse(nodejsInstallationUrl));
             } else if (result === constants.DoNotAskAgain) {
                 const config = vscode.workspace.getConfiguration(DBProjectConfigurationKey);
@@ -117,7 +152,7 @@ export class AutorestHelper extends ShellExecutionHelper {
         }
 
         const { executable, args } = this.constructAutorestCommand(
-            commandExecutable,
+            installation,
             specPath,
             outputFolder,
         );
@@ -127,26 +162,26 @@ export class AutorestHelper extends ShellExecutionHelper {
     }
 
     /**
-     *
-     * @param executable either "autorest" or "npx autorest", depending on whether autorest is already present in the global cache
+     * @param installation resolved executable and any prefix args (e.g. npx prefix)
      * @param specPath path to the OpenAPI spec
      * @param outputFolder folder in which to generate the files
-     * @returns composed command to be executed
+     * @returns ready to pass to runStreamedCommand
      */
     public constructAutorestCommand(
-        executable: string,
+        installation: { executable: string; prefixArgs: string[] },
         specPath: string,
         outputFolder: string,
     ): { executable: string; args: string[] } {
         // TODO: should --clear-output-folder be included? We should always be writing to a folder created just for this, but potentially risky
         return {
-            executable,
+            executable: installation.executable,
             args: [
+                ...installation.prefixArgs,
                 `--use:${autorestPackageName}@${this.autorestSqlPackageVersion}`,
                 `--input-file=${specPath}`,
                 `--output-folder=${outputFolder}`,
                 "--clear-output-folder",
-                "--verbose",
+                "--level:error",
             ],
         };
     }
