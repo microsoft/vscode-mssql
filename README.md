@@ -36,7 +36,6 @@ Features that have moved from Public Preview to general availability.
 | [Query Results](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#query-results-pane) | View, sort, copy, and export query results |
 | [Query Plan Visualizer](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#query-plan-visualizer) | Analyze execution plans with interactive node navigation |
 | [Query Profiler](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-query-profiler) | Real-time database activity monitoring with Extended Events |
-| [SQL Notebooks](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-sql-notebooks) | Jupyter-based SQL notebooks with rich results and multi-kernel support |
 | [Table Designer](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#table-designer) | Create and manage tables with a visual interface |
 | [Schema Designer](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-schema-designer) | Visual schema modeling with drag-and-drop, auto-layout, and T-SQL script generation |
 | [Schema Compare](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-schema-compare) | Compare and synchronize schemas between databases or DACPACs |
@@ -56,6 +55,7 @@ Features available for public use while we gather feedback. APIs and UX may chan
 | [Schema Designer with GitHub Copilot](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-schema-designer-copilot) | Natural language schema design within the visual Schema Designer       |
 | [Data API builder](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-data-api-builder)                           | Create REST, GraphQL, and MCP endpoints for SQL databases              |
 | [GitHub Copilot in Data API builder](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-data-api-builder)         | Generate Data API builder configs using natural language               |
+| [SQL Notebooks](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-sql-notebooks) | Jupyter-based SQL notebooks with rich results and multi-kernel support |
 
 ## Using the MSSQL Extension
 
@@ -150,7 +150,6 @@ Configure the MSSQL extension in user preferences (`Cmd+,`) or workspace setting
   "mssql.maxRecentConnections": 5,                         // Number of recent connections to display (0-50)
   "mssql.connectionManagement.rememberPasswordsUntilRestart": true,  // Keep passwords in memory until VS Code restarts
   "mssql.enableConnectionPooling": false,                  // Enable connection pooling for improved performance
-  "mssql.enableSqlAuthenticationProvider": true,           // Enable SQL authentication support
   "mssql.azureActiveDirectory": "AuthCodeGrant"            // Azure AD auth method: "AuthCodeGrant" or "DeviceCode"
 }
 

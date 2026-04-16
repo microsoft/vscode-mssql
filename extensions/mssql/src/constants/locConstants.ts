@@ -2877,7 +2877,7 @@ export class DacpacDialog {
 export class SearchDatabase {
     public static title = (serverName: string) =>
         l10n.t({
-            message: "Search Database Objects (Preview) - {0}",
+            message: "Search Database Objects - {0}",
             args: [serverName],
             comment: ["{0} is the server name"],
         });
@@ -3240,12 +3240,10 @@ export class Profiler {
 
     // Quick pick and input prompts
     public static selectTemplate = l10n.t("Select a profiler template");
-    public static newSessionSelectTemplate = l10n.t(
-        "New Query Profiler (Preview) - Select Template",
-    );
+    public static newSessionSelectTemplate = l10n.t("New Query Profiler - Select Template");
     public static enterSessionName = l10n.t("Enter a name for the new profiler session");
     public static sessionNamePlaceholder = l10n.t("MyProfilerSession");
-    public static newSessionEnterName = l10n.t("New Query Profiler (Preview) - Enter Name");
+    public static newSessionEnterName = l10n.t("New Query Profiler - Enter Name");
     public static engineLabel = (engineType: string) =>
         l10n.t({
             message: "Engine: {0}",
@@ -3299,17 +3297,17 @@ export class Profiler {
         });
 
     // Status bar
-    public static statusBarNoSession = l10n.t("Query Profiler (Preview): No session");
-    public static statusBarTooltip = l10n.t("Query Profiler (Preview) Session Status");
+    public static statusBarNoSession = l10n.t("Query Profiler: No session");
+    public static statusBarTooltip = l10n.t("Query Profiler Session Status");
 
     // Panel titles
     public static panelTitleWithSession = (name: string) =>
         l10n.t({
-            message: "Query Profiler (Preview): {0}",
+            message: "Query Profiler: {0}",
             args: [name],
             comment: ["{0} is the file name or session name"],
         });
-    public static panelTitleDefault = l10n.t("Query Profiler (Preview)");
+    public static panelTitleDefault = l10n.t("Query Profiler");
     public static stateRunning = l10n.t("Running");
     public static statePaused = l10n.t("Paused");
     public static stateStopped = l10n.t("Stopped");
