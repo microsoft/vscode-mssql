@@ -33,9 +33,9 @@ suite("Autorest tests", function (): void {
         sandbox.stub(window, "showInformationMessage").returns(<any>Promise.resolve(runViaNpx)); // stub a selection in case test runner doesn't have autorest installed
 
         const autorestHelper = new AutorestHelper(testContext.outputChannel);
-        const executable = await autorestHelper.detectInstallation();
+        const installation = await autorestHelper.detectInstallation();
         expect(
-            executable === "autorest" || executable === "npx autorest",
+            installation !== undefined,
             "autorest command should be found in default path during unit tests",
         ).to.be.true;
     });
@@ -44,10 +44,10 @@ suite("Autorest tests", function (): void {
         sandbox.stub(window, "showInformationMessage").returns(<any>Promise.resolve(runViaNpx)); // stub a selection in case test runner doesn't have autorest installed
 
         const autorestHelper = new AutorestHelper(testContext.outputChannel);
-        const executable = await autorestHelper.detectInstallation();
+        const installation = await autorestHelper.detectInstallation();
         sandbox.stub(autorestHelper, "constructAutorestCommand").returns({
-            executable: executable!,
-            args: ["--version"],
+            executable: installation!.executable,
+            args: [...installation!.prefixArgs, "--version"],
         });
 
         try {
@@ -64,10 +64,12 @@ suite("Autorest tests", function (): void {
     test("Should construct a correct autorest command for project generation", async function (): Promise<void> {
         const autorestHelper = new AutorestHelper(testContext.outputChannel);
         sandbox.stub(window, "showInformationMessage").returns(<any>Promise.resolve(runViaNpx)); // stub a selection in case test runner doesn't have autorest installed
-        sandbox.stub(autorestHelper, "detectInstallation").returns(Promise.resolve("autorest"));
+        sandbox
+            .stub(autorestHelper, "detectInstallation")
+            .returns(Promise.resolve({ executable: "autorest", prefixArgs: [] }));
 
         const result = autorestHelper.constructAutorestCommand(
-            (await autorestHelper.detectInstallation())!,
+            { executable: "autorest", prefixArgs: [] },
             "/some/path/test.yaml",
             "/some/output/path",
         );
@@ -78,7 +80,7 @@ suite("Autorest tests", function (): void {
             "--input-file=/some/path/test.yaml",
             "--output-folder=/some/output/path",
             "--clear-output-folder",
-            "--verbose",
+            "--level:error",
         ]);
     });
 
@@ -86,9 +88,9 @@ suite("Autorest tests", function (): void {
         const promptStub = sandbox
             .stub(window, "showInformationMessage")
             .returns(<any>Promise.resolve());
-        const detectStub = sandbox.stub(utils, "detectCommandInstallation");
-        detectStub.withArgs("autorest").returns(Promise.resolve(false));
-        detectStub.withArgs("npx").returns(Promise.resolve(true));
+        const resolveStub = sandbox.stub(utils, "resolveCommandPath");
+        resolveStub.withArgs("autorest").returns(Promise.resolve(undefined));
+        resolveStub.withArgs("npx").returns(Promise.resolve("/usr/bin/npx"));
 
         const autorestHelper = new AutorestHelper(testContext.outputChannel);
         await autorestHelper.detectInstallation();
