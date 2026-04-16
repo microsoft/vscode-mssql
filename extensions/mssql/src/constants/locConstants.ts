@@ -1308,7 +1308,7 @@ export class Accounts {
         accountDisplayName: string,
         tenantId?: string,
     ): string {
-        if (tenantId === undefined) {
+        if (tenantId === undefined || tenantId === "") {
             return l10n.t({
                 message:
                     "The selected profile authenticates using Entra ID '{0}' but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.",
@@ -1325,7 +1325,7 @@ export class Accounts {
         }
     }
     static accountNotAvailableThroughVsCode(accountDisplayName: string, tenantId?: string): string {
-        if (tenantId === undefined) {
+        if (tenantId === undefined || tenantId === "") {
             return l10n.t({
                 message:
                     "The selected profile authenticates using Entra ID '{0}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.",

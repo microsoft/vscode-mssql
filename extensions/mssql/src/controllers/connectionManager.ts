@@ -1101,7 +1101,7 @@ export default class ConnectionManager {
             throw new MissingEntraAuthAccountError(
                 LocalizedConstants.Accounts.entraAccountNotAvailableThroughMsal(
                     connectionInfo.email ?? connectionInfo.user ?? connectionInfo.accountId ?? "",
-                    connectionInfo.tenantId ?? "",
+                    connectionInfo.tenantId,
                 ),
             );
             //LocalizedConstants.msgAccountNotFound

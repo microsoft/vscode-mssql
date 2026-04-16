@@ -101,7 +101,7 @@ export async function acquireSqlAccessTokenFromVscodeAccount(
         throw new MissingEntraAuthAccountError(
             locConstants.Accounts.accountNotAvailableThroughVsCode(
                 accountLabel ?? accountId ?? "",
-                tenantId ?? "",
+                tenantId,
             ),
         );
     }
@@ -116,7 +116,7 @@ export async function acquireSqlAccessTokenFromVscodeAccount(
         throw new MissingEntraAuthAccountError(
             locConstants.Accounts.accountNotAvailableThroughVsCode(
                 accountLabel ?? accountId ?? "",
-                tenantId ?? "",
+                tenantId,
             ),
         );
     }
