@@ -2668,13 +2668,14 @@ suite("OE Service Tests", () => {
                 ).to.be.false;
             });
 
-            test("should log and return undefined immediately when useVscodeAccountsForEntraMfa is disabled", async () => {
+            test("should prompt with Sign In and Edit options and use addAccount when useVscodeAccountsForEntraMfa is disabled", async () => {
                 stubPreviewService(sandbox, {
                     [PreviewFeature.UseVscodeAccountsForEntraMFA]: false,
                 });
 
                 const authError = new MissingEntraAuthAccountError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
+                mockVscodeWrapper.showErrorMessage.resolves(undefined);
 
                 const connectionProfile = createMockConnectionProfile({
                     authenticationType: "AzureMFA",
@@ -2683,11 +2684,58 @@ suite("OE Service Tests", () => {
                     connectionProfile,
                 );
 
-                expect(result, "Result should be undefined").to.be.undefined;
+                expect(result, "Result should be undefined when user dismisses dialog").to.be
+                    .undefined;
                 expect(
-                    mockVscodeWrapper.showErrorMessage.called,
-                    "showErrorMessage should not be called when feature is disabled",
+                    mockVscodeWrapper.showErrorMessage.calledOnce,
+                    "showErrorMessage should be called even when feature is disabled",
+                ).to.be.true;
+                expect(
+                    signInStub.called,
+                    "VSCode signIn should not be called when feature is disabled",
                 ).to.be.false;
+            });
+
+            test("should call addAccount and retry when useVscodeAccountsForEntraMfa is disabled and user chooses Sign In", async () => {
+                stubPreviewService(sandbox, {
+                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: false,
+                });
+
+                const authError = new MissingEntraAuthAccountError("Account not available");
+                const connectionProfile = createMockConnectionProfile({
+                    authenticationType: "AzureMFA",
+                });
+                const preparedProfile = createMockConnectionProfile({
+                    id: "prepared-id",
+                    authenticationType: "AzureMFA",
+                });
+
+                mockConnectionManager.prepareConnectionInfo
+                    .onFirstCall()
+                    .rejects(authError)
+                    .onSecondCall()
+                    .resolves(preparedProfile);
+
+                mockConnectionManager.addAccount.resolves();
+                mockVscodeWrapper.showErrorMessage.resolves(
+                    LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorSignIn,
+                );
+
+                const result = await (objectExplorerService as any).prepareConnectionProfile(
+                    connectionProfile,
+                );
+
+                expect(
+                    mockConnectionManager.addAccount.calledOnce,
+                    "addAccount should be called when feature is disabled",
+                ).to.be.true;
+                expect(
+                    signInStub.called,
+                    "VSCode signIn should not be called when feature is disabled",
+                ).to.be.false;
+                expect(result, "Result should be the prepared profile after retry").to.deep.equal(
+                    preparedProfile,
+                );
             });
         },
     );
