@@ -1243,6 +1243,11 @@
     "Close Script Pane": "Close Script Pane",
     "Modify Table": "Modify Table",
     "View Table Diagram": "View Table Diagram",
+    "Show SQL Pane": "Show SQL Pane",
+    "Hide SQL Pane": "Hide SQL Pane",
+    "Script Changes": "Script Changes",
+    "Table Query": "Table Query",
+    "Run": "Run",
     "Search Database Objects (Preview)": "Search Database Objects (Preview)",
     "Loading database objects": "Loading database objects",
     "Connecting to {0}.../{0} is the server name": {
@@ -3216,6 +3221,12 @@
         "message": "Failed to open Schema Designer: {0}",
         "comment": ["{0} is the error message"]
     },
+    "Failed to run table query: {0}/{0} is the error message": {
+        "message": "Failed to run table query: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Running a custom query will discard all pending changes. Do you want to continue?": "Running a custom query will discard all pending changes. Do you want to continue?",
+    "Continue": "Continue",
     "Locate an Azure Data Studio settings.json file to import": "Locate an Azure Data Studio settings.json file to import",
     "Ready for import": "Ready for import",
     "Needs attention": "Needs attention",

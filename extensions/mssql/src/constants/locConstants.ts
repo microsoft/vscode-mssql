@@ -3018,6 +3018,19 @@ export class TableExplorer {
             args: [errorMessage],
             comment: ["{0} is the error message"],
         });
+
+    public static failedToRunTableQuery = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to run table query: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static pendingChangesWillBeLost = l10n.t(
+        "Running a custom query will discard all pending changes. Do you want to continue?",
+    );
+
+    public static Continue = l10n.t("Continue");
 }
 
 export class AzureDataStudioMigration {

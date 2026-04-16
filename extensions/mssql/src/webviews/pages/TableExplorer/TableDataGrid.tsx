@@ -37,6 +37,7 @@ interface TableDataGridProps {
     currentRowCount?: number;
     failedCells?: string[];
     deletedRows?: number[];
+    tableQuery?: string;
     onDeleteRow?: (rowId: number) => void;
     onUpdateCell?: (rowId: number, columnId: number, newValue: string) => void;
     onRevertCell?: (rowId: number, columnId: number) => void;
@@ -66,6 +67,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             pageSize = 50,
             failedCells,
             deletedRows,
+            tableQuery,
             onDeleteRow,
             onUpdateCell,
             onRevertCell,
@@ -404,6 +406,16 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             }
         }, [themeKind, currentTheme]);
 
+        // When the table query changes (custom query run), reset the previous result set
+        // reference so the next resultSet update triggers a full grid re-initialization
+        // (Scenario 1) instead of an incremental update (Scenario 2). This is necessary
+        // because the backend assigns position-based row IDs (0, 1, 2, ...), so
+        // incremental ID-based comparison would incorrectly keep stale data for
+        // overlapping IDs.
+        useEffect(() => {
+            previousResultSetRef.current = undefined;
+        }, [tableQuery]);
+
         // Main effect: Handle resultSet changes
         useEffect(() => {
             if (!resultSet?.columnInfo || !resultSet?.subset) {
@@ -431,6 +443,13 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     convertRowToDataRow(row, resultSet.columnInfo, index),
                 );
                 setDataset(convertedDataset);
+
+                // If the grid is already initialized (e.g. after a custom query),
+                // explicitly replace the DataView items so slickgrid re-renders
+                if (reactGridRef.current?.dataView) {
+                    reactGridRef.current.dataView.setItems(convertedDataset);
+                    reactGridRef.current.slickGrid?.invalidate();
+                }
 
                 // Set grid options only on initial load
                 if (!options) {
