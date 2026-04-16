@@ -90,6 +90,7 @@ suite("PublishProjectWebViewController Tests", () => {
 
         // Create mock for interface (IDacFxService) - only stub methods we actually use in tests
         mockDacFxService = {
+            getDeploymentOptions: sandbox.stub().resolves({ defaultDeploymentOptions: undefined }),
             getOptionsFromProfile: sandbox.stub(),
             savePublishProfile: sandbox.stub(),
             deployDacpac: sandbox.stub(),
@@ -104,6 +105,9 @@ suite("PublishProjectWebViewController Tests", () => {
             connectionManager: mockConnectionManager,
             createObjectExplorerSession: sandbox.stub().resolves(),
         } as unknown as sinon.SinonStubbedInstance<MainController>;
+
+        // Stub findAvailablePort — called eagerly in the constructor to pre-fetch the port.
+        sandbox.stub(dockerUtils, "findAvailablePort").resolves(1433);
     });
 
     teardown(() => {
