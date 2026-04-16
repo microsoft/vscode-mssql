@@ -1304,13 +1304,42 @@ export class Fabric {
 }
 
 export class Accounts {
-    static accountNotAvailableThroughVsCode(accountDisplayName: string, tenantId: string): string {
-        return l10n.t({
-            message:
-                "The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.",
-            args: [accountDisplayName, tenantId],
-            comment: ["{0} is the account ID or label", "{1} is the tenant ID"],
-        });
+    static entraAccountNotAvailableThroughMsal(
+        accountDisplayName: string,
+        tenantId?: string,
+    ): string {
+        if (tenantId === undefined || tenantId === "") {
+            return l10n.t({
+                message:
+                    "The selected profile authenticates using Entra ID '{0}' but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.",
+                args: [accountDisplayName],
+                comment: ["{0} is the account ID or label"],
+            });
+        } else {
+            return l10n.t({
+                message:
+                    "The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.",
+                args: [accountDisplayName, tenantId],
+                comment: ["{0} is the account ID or label", "{1} is the tenant ID"],
+            });
+        }
+    }
+    static accountNotAvailableThroughVsCode(accountDisplayName: string, tenantId?: string): string {
+        if (tenantId === undefined || tenantId === "") {
+            return l10n.t({
+                message:
+                    "The selected profile authenticates using Entra ID '{0}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.",
+                args: [accountDisplayName],
+                comment: ["{0} is the account ID or label"],
+            });
+        } else {
+            return l10n.t({
+                message:
+                    "The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.",
+                args: [accountDisplayName, tenantId],
+                comment: ["{0} is the account ID or label", "{1} is the tenant ID"],
+            });
+        }
     }
     public static invalidEntraAccountsRemoved = (numRemoved: number) => {
         return l10n.t({

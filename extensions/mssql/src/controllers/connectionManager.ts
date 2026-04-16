@@ -11,7 +11,10 @@ import { AccountStore } from "../azure/accountStore";
 import { AzureController } from "../azure/azureController";
 import { MsalAzureController } from "../azure/msal/msalAzureController";
 import { getCloudId, getCloudProviderSettings } from "../azure/providerSettings";
-import { acquireSqlAccessTokenFromVscodeAccount } from "../azure/vscodeEntraMfaUtils";
+import {
+    acquireSqlAccessTokenFromVscodeAccount,
+    MissingEntraAuthAccountError,
+} from "../azure/vscodeEntraMfaUtils";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { CredentialStore } from "../credentialstore/credentialstore";
@@ -1053,7 +1056,7 @@ export default class ConnectionManager {
         }
 
         // 3. Refresh the token
-        // A3. If the user is using vscode accounts for Entra MFA, use that flow to refresh the token
+        // A3. If the user is using VS Code accounts for Entra MFA, use that flow to refresh the token
         if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
             const tokenInfo = await acquireSqlAccessTokenFromVscodeAccount(
                 connectionInfo.accountId,
@@ -1067,10 +1070,11 @@ export default class ConnectionManager {
             connectionInfo.tenantId = tokenInfo.tenantId;
             connectionInfo.user = tokenInfo.account.label;
             connectionInfo.email = tokenInfo.session.account.label;
+
             return;
         }
 
-        // B3. Otherwise, use the old flow to refresh the token
+        // B3. Otherwise, use the MSAL flow to refresh the token
         // B3.1 Collect Entra account information
         let account: IAccount | undefined;
         let profile: ConnectionProfile;
@@ -1093,7 +1097,14 @@ export default class ConnectionManager {
             this._logger?.verbose(
                 `No account found in account store for accountId ${connectionInfo.accountId}. Cannot refresh Entra token.`,
             );
-            throw new Error(LocalizedConstants.msgAccountNotFound);
+
+            throw new MissingEntraAuthAccountError(
+                LocalizedConstants.Accounts.entraAccountNotAvailableThroughMsal(
+                    connectionInfo.email ?? connectionInfo.user ?? connectionInfo.accountId ?? "",
+                    connectionInfo.tenantId,
+                ),
+            );
+            //LocalizedConstants.msgAccountNotFound
         }
 
         connectionInfo.user = account.displayInfo.displayName;

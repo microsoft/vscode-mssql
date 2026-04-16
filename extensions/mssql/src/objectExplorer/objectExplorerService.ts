@@ -57,7 +57,7 @@ import { getConnectionDisplayName } from "../models/connectionInfo";
 import { NewDeploymentTreeNode } from "../deployment/newDeploymentTreeNode";
 import { getErrorMessage, uuid } from "../utils/utils";
 import { ConnectionConfig } from "../connectionconfig/connectionconfig";
-import { MissingVsCodeEntraAuthError } from "../azure/vscodeEntraMfaUtils";
+import { MissingEntraAuthAccountError } from "../azure/vscodeEntraMfaUtils";
 import { VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { PreviewFeature, previewService } from "../previews/previewService";
 
@@ -746,15 +746,8 @@ export class ObjectExplorerService {
         try {
             return await prepareConnectionProfile();
         } catch (error) {
-            if (!previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
-                this._logger.error(
-                    `Error when attempting to prepare connection profile.  Attempting to proceed normally.\n\nError:\n${getErrorMessage(error)}`,
-                );
-                return undefined;
-            }
-
             // Handle case where the user isn't signed into VS Code with the necessary auth account
-            if (error instanceof MissingVsCodeEntraAuthError) {
+            if (error instanceof MissingEntraAuthAccountError) {
                 const choice = await this._vscodeWrapper.showErrorMessage(
                     getErrorMessage(error),
                     LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorSignIn,
@@ -762,11 +755,21 @@ export class ObjectExplorerService {
                 );
                 if (choice === LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorSignIn) {
                     try {
-                        await VsCodeAzureHelper.signIn(true /* forceSignInPrompt */); // User chose to sign in to the missing account; try again.
+                        // User chose to sign in to the missing account; try again.
+                        if (
+                            previewService.isFeatureEnabled(
+                                PreviewFeature.UseVscodeAccountsForEntraMFA,
+                            )
+                        ) {
+                            await VsCodeAzureHelper.signIn(true /* forceSignInPrompt */);
+                        } else {
+                            await this._connectionManager.addAccount();
+                        }
+
                         return await prepareConnectionProfile();
                     } catch (retryError) {
                         this._logger.error(
-                            `Error when signing in or attempting to prepare connection profile after VS Code sign-in.\n\nError:\n${getErrorMessage(retryError)}`,
+                            `Error when signing in or attempting to prepare connection profile after sign-in.\n\nError:\n${getErrorMessage(retryError)}`,
                         );
                     }
                 } else if (
