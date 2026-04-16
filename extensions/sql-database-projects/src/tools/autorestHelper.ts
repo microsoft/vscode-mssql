@@ -47,8 +47,8 @@ async function resolveScriptExecutable(resolvedPath: string): Promise<{
                 (await utils.resolveCommandPath("pwsh")) ??
                 (await utils.resolveCommandPath("powershell")) ??
                 "powershell.exe";
-            
-                return {
+
+            return {
                 executable: pwsh,
                 prefixArgs: ["-NoProfile", "-File", resolvedPath],
             };
