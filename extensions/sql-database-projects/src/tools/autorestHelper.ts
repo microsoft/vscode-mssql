@@ -16,9 +16,11 @@ const nodejsDoNotAskAgainKey = "nodejsDoNotAsk";
 const autorestSqlVersionKey = "autorestSqlVersion";
 
 /**
- * On Windows, script files cannot be executed directly by spawn(shell:false).
- * - .cmd/.bat must be routed through cmd.exe /d /c
- * - .ps1 must be routed through pwsh.exe -NoProfile -File
+ * Resolves the correct executable and prefix arguments for a script path returned by `which`.
+ * On Windows, `which` may resolve commands to `.cmd` or `.ps1` wrappers, which cannot be
+ * executed directly by spawn(shell:false) and must be routed through a shell:
+ * - .cmd/.bat → cmd.exe /d /c <path>
+ * - .ps1      → pwsh.exe -NoProfile -File <path>
  * On other platforms, the resolved path is used directly.
  */
 function resolveScriptExecutable(resolvedPath: string): {
