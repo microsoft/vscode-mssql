@@ -3014,7 +3014,7 @@ Fehler:
       <trans-unit id="++CODE++289c8a16e6884fd0e3f1579134fea1a2457efaaecad171ed5ac598eb0ae9ec58">
         <source xml:lang="en">Error refreshing token; you may need to sign out and sign back in: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Error refreshing token; you may need to sign out and sign back in: {0}</target>
+        <target state="translated">Fehler beim Aktualisieren des Token; Sie müssen sich möglicherweise abmelden und wieder anmelden: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++7ce810c92d5881cd4638f73772ee57317b503d0f04dbc5cd2f281f77ac1d697d">
         <source xml:lang="en">Error retrieving server list: {0}</source>
@@ -3033,7 +3033,7 @@ Fehler:
       <trans-unit id="++CODE++70580f5715d9c53e71db7b7197f59cb412dc2ead9d577067cfbe9f3b5d2d65ca">
         <source xml:lang="en">Error validating Entra authentication token; you may need to refresh your token: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Error validating Entra authentication token; you may need to refresh your token: {0}</target>
+        <target state="translated">Fehler beim Überprüfen des Entra-Authentifizierungstokens; möglicherweise müssen Sie Ihr Token aktualisieren: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++e3bd07d6d5ddff1c7aefd27f1d3af9d23b97fc19d29d732816ea80fddb08f4dc">
         <source xml:lang="en">Error when refreshing token</source>
@@ -8393,7 +8393,7 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++4999049f347c8083a5db26ef5fb3f51dc8ec31e0518279072ffdd7a2e8119195">
         <source xml:lang="en">Token refreshed successfully.</source>
-        <target state="new">Token refreshed successfully.</target>
+        <target state="translated">Token erfolgreich aktualisiert.</target>
       </trans-unit>
       <trans-unit id="++CODE++10b7ff2efd404627d5a929c6fb2a97fa57867f169fbf1016834477571a4cedb2">
         <source xml:lang="en">Tool lookup for: {0} - {1}.</source>
@@ -8447,7 +8447,7 @@ Abfrage: {2}</target>
         <source xml:lang="en">Unable to acquire a valid token. (expires: {0}, but is currently {1})</source>
         <note>{0} is the token expiration time
 {1} is the current time</note>
-        <target state="new">Unable to acquire a valid token. (expires: {0}, but is currently {1})</target>
+        <target state="translated">Es kann kein gültiges Token abgerufen werden. (läuft ab: {0}, ist aber zurzeit {1})</target>
       </trans-unit>
       <trans-unit id="++CODE++e395097d9cde221cdb9af8b04e1073d0d3394439fce660d1c954d012cdeae6c1">
         <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source>
@@ -9829,7 +9829,7 @@ Nachdem Sie Ihre Änderungen vorgenommen haben, klicken Sie auf die Schaltfläch
       </trans-unit>
       <trans-unit id="mssql.profiler.launchFromObjectExplorer">
         <source xml:lang="en">Launch Query Profiler...</source>
-        <target state="new">Launch Query Profiler...</target>
+        <target state="translated">Abfrageprofiler starten...</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.editorSubmenu">
         <source xml:lang="en">MSSQL Copilot</source>
@@ -9901,7 +9901,7 @@ Sie können eine Verbindung mit einer Datenbank herstellen, indem Sie Ihre Verbi
       </trans-unit>
       <trans-unit id="mssql.notebooks.createNotebook">
         <source xml:lang="en">New SQL Notebook (Preview)</source>
-        <target state="new">New SQL Notebook (Preview)</target>
+        <target state="translated">Neues SQL-Notebook (Vorschau)</target>
       </trans-unit>
       <trans-unit id="mssql.newTable">
         <source xml:lang="en">New Table</source>
@@ -10067,7 +10067,7 @@ Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in d
       </trans-unit>
       <trans-unit id="mssql.searchDatabase">
         <source xml:lang="en">Search Database Objects...</source>
-        <target state="new">Search Database Objects...</target>
+        <target state="translated">Datenbankobjekte durchsuchen ...</target>
       </trans-unit>
       <trans-unit id="mssql.scriptSelect">
         <source xml:lang="en">Select Top 1000</source>
