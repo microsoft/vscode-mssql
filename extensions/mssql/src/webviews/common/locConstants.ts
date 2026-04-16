@@ -1910,6 +1910,9 @@ export class LocConstants {
             operationFailed: l10n.t("Operation failed"),
             unexpectedError: l10n.t("An unexpected error occurred"),
             failedToLoadDatabases: l10n.t("Failed to load databases"),
+            databasesCannotBeLoadedDueToPermissions: l10n.t(
+                "Unable to retrieve the list of databases. You may not have permission to list databases on this server. If your connection specifies a database, it will be preselected.",
+            ),
             deploySuccess: l10n.t("DACPAC deployed successfully"),
             extractSuccess: l10n.t("DACPAC extracted successfully"),
             importSuccess: l10n.t("BACPAC imported successfully"),
