@@ -1204,7 +1204,10 @@
                 "command": "mssql.addObjectExplorer",
                 "title": "%mssql.addObjectExplorer%",
                 "category": "MS SQL",
-                "icon": "$(add)"
+                "icon": {
+                    "light": "media/addNewConnection_light.svg",
+                    "dark": "media/addNewConnection_dark.svg"
+                }
             },
             {
                 "command": "mssql.objectExplorer.enableGroupBySchema",
