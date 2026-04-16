@@ -60,6 +60,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
 > {
     private _cachedDatabaseList?: { displayName: string; value: string }[];
     private _cachedSelectedDatabase?: string;
+    private _preloadedContainerPort?: Promise<number>;
     private _connectionUri?: string;
     private _serverTypes: string = "";
     private _availableConnections?: IConnectionDialogProfile[];
@@ -82,6 +83,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
         dacFxService?: mssql.IDacFxService,
         sqlPackageService?: SqlPackageService,
         deploymentOptions?: mssql.DeploymentOptions,
+        preloadedContainerPort?: Promise<number>,
     ) {
         super(
             context,
@@ -132,6 +134,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
             ? structuredClone(deploymentOptions)
             : undefined;
 
+        this._preloadedContainerPort = preloadedContainerPort;
         this._sqlProjectsService = sqlProjectsService;
         this._dacFxService = dacFxService;
         this._sqlPackageService = sqlPackageService;
@@ -1628,11 +1631,10 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 this._connectionUri = undefined;
                 this._serverTypes = "";
 
-                // Auto-detect the first port available from 1433 upward so the field
-                // never shows a port that is already in use.
-                const availablePort = await dockerUtils.findAvailablePort(
-                    constants.defaultPortNumber,
-                );
+                // Use pre-fetched port if available, otherwise fetch live.
+                const availablePort = this._preloadedContainerPort
+                    ? await this._preloadedContainerPort
+                    : await dockerUtils.findAvailablePort(constants.defaultPortNumber);
                 this.state.formState.containerPort =
                     availablePort > 0 ? String(availablePort) : String(constants.defaultPortNumber);
             } else if (this.state.formState.publishTarget === PublishTarget.ExistingServer) {

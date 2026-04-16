@@ -99,6 +99,7 @@ import { ConnectionGroupWebviewController } from "./connectionGroupWebviewContro
 import { DeploymentWebviewController } from "../deployment/deploymentWebviewController";
 import {
     deleteContainer,
+    findAvailablePort,
     prepareForDockerContainerCommand,
     stopContainer,
 } from "../docker/dockerUtils";
@@ -3085,6 +3086,9 @@ export default class MainController implements vscode.Disposable {
      * @param projectFilePath The file path of the database project to publish.
      */
     public async onPublishDatabaseProject(projectFilePath: string): Promise<void> {
+        // Fire port detection immediately without awaiting so it runs in the background
+        // while getDeploymentOptions and dialog initialization proceed.
+        const portPromise = findAvailablePort(Constants.defaultPortNumber);
         const deploymentOptionsResult = await this.dacFxService.getDeploymentOptions(
             DeploymentScenario.Deployment,
         );
@@ -3098,6 +3102,7 @@ export default class MainController implements vscode.Disposable {
             this.dacFxService,
             this.sqlPackageService,
             deploymentOptionsResult.defaultDeploymentOptions,
+            portPromise,
         );
 
         publishProjectWebView.revealToForeground();
