@@ -61,7 +61,7 @@ import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtil
 import * as vscodeEntraMfaUtils from "../../src/azure/vscodeEntraMfaUtils";
 import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
 import { PreviewFeature } from "../../src/previews/previewService";
-const { MissingVsCodeEntraAuthError } = vscodeEntraMfaUtils;
+const { MissingEntraAuthAccountError } = vscodeEntraMfaUtils;
 
 chai.use(sinonChai);
 
@@ -2501,7 +2501,7 @@ suite("OE Service Tests", () => {
                 stubPreviewService(sandbox, {
                     [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
                 });
-                const authError = new MissingVsCodeEntraAuthError("Account not available");
+                const authError = new MissingEntraAuthAccountError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
                 // User dismisses the dialog
                 mockVscodeWrapper.showErrorMessage.resolves(undefined);
@@ -2533,7 +2533,7 @@ suite("OE Service Tests", () => {
                 stubPreviewService(sandbox, {
                     [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
                 });
-                const authError = new MissingVsCodeEntraAuthError("Account not available");
+                const authError = new MissingEntraAuthAccountError("Account not available");
                 const connectionProfile = createMockConnectionProfile({
                     authenticationType: "AzureMFA",
                 });
@@ -2571,7 +2571,7 @@ suite("OE Service Tests", () => {
                 stubPreviewService(sandbox, {
                     [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
                 });
-                const authError = new MissingVsCodeEntraAuthError("Account not available");
+                const authError = new MissingEntraAuthAccountError("Account not available");
                 const connectionProfile = createMockConnectionProfile({
                     authenticationType: "AzureMFA",
                 });
@@ -2599,7 +2599,7 @@ suite("OE Service Tests", () => {
                 stubPreviewService(sandbox, {
                     [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
                 });
-                const authError = new MissingVsCodeEntraAuthError("Account not available");
+                const authError = new MissingEntraAuthAccountError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
 
                 mockVscodeWrapper.showErrorMessage.resolves(
@@ -2631,7 +2631,7 @@ suite("OE Service Tests", () => {
                 stubPreviewService(sandbox, {
                     [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
                 });
-                const authError = new MissingVsCodeEntraAuthError("Account not available");
+                const authError = new MissingEntraAuthAccountError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
                 mockVscodeWrapper.showErrorMessage.resolves(undefined);
 
@@ -2673,7 +2673,7 @@ suite("OE Service Tests", () => {
                     [PreviewFeature.UseVscodeAccountsForEntraMFA]: false,
                 });
 
-                const authError = new MissingVsCodeEntraAuthError("Account not available");
+                const authError = new MissingEntraAuthAccountError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
 
                 const connectionProfile = createMockConnectionProfile({
