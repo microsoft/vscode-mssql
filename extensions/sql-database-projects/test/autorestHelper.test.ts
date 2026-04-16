@@ -130,22 +130,48 @@ suite("Autorest tests", function (): void {
 
     test("Should route .ps1 autorest through pwsh.exe on Windows", async function (): Promise<void> {
         const ps1Path = "C:\\tools\\autorest.ps1";
-        sandbox
-            .stub(utils, "resolveCommandPath")
-            .withArgs("autorest")
-            .returns(Promise.resolve(ps1Path));
+        const resolveStub = sandbox.stub(utils, "resolveCommandPath");
+        resolveStub.withArgs("autorest").returns(Promise.resolve(ps1Path));
+        resolveStub
+            .withArgs("pwsh")
+            .returns(Promise.resolve("C:\\Program Files\\PowerShell\\7\\pwsh.exe"));
 
         const autorestHelper = new AutorestHelper(testContext.outputChannel);
         const installation = await autorestHelper.detectInstallation();
         const resolved = installation as { executable: string; prefixArgs: string[] };
 
         if (process.platform === "win32") {
-            expect(resolved.executable).to.equal("pwsh.exe");
+            expect(resolved.executable).to.equal("C:\\Program Files\\PowerShell\\7\\pwsh.exe");
             expect(resolved.prefixArgs).to.deep.equal(["-NoProfile", "-File", ps1Path]);
         } else {
-            // Non-Windows: wrapCmdIfNeeded is a no-op, path used directly
+            // Non-Windows: resolveScriptExecutable is a no-op, path used directly
             expect(resolved.executable).to.equal(ps1Path);
             expect(resolved.prefixArgs).to.deep.equal([]);
         }
+    });
+
+    test("Should fall back to powershell.exe for .ps1 when pwsh is not installed", async function (): Promise<void> {
+        if (process.platform !== "win32") {
+            return; // fallback only applies on Windows
+        }
+
+        const ps1Path = "C:\\tools\\autorest.ps1";
+        const resolveStub = sandbox.stub(utils, "resolveCommandPath");
+        resolveStub.withArgs("autorest").returns(Promise.resolve(ps1Path));
+        resolveStub.withArgs("pwsh").returns(Promise.resolve(undefined));
+        resolveStub
+            .withArgs("powershell")
+            .returns(
+                Promise.resolve("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"),
+            );
+
+        const autorestHelper = new AutorestHelper(testContext.outputChannel);
+        const installation = await autorestHelper.detectInstallation();
+        const resolved = installation as { executable: string; prefixArgs: string[] };
+
+        expect(resolved.executable).to.equal(
+            "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        );
+        expect(resolved.prefixArgs).to.deep.equal(["-NoProfile", "-File", ps1Path]);
     });
 });

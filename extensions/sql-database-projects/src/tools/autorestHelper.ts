@@ -20,13 +20,13 @@ const autorestSqlVersionKey = "autorestSqlVersion";
  * On Windows, `which` may resolve commands to `.cmd` or `.ps1` wrappers, which cannot be
  * executed directly by spawn(shell:false) and must be routed through a shell:
  * - .cmd/.bat → cmd.exe /d /c <path>
- * - .ps1      → pwsh.exe -NoProfile -File <path>
+ * - .ps1      → pwsh.exe -NoProfile -File <path>  (falls back to powershell.exe if pwsh is not installed)
  * On other platforms, the resolved path is used directly.
  */
-function resolveScriptExecutable(resolvedPath: string): {
+async function resolveScriptExecutable(resolvedPath: string): Promise<{
     executable: string;
     prefixArgs: string[];
-} {
+}> {
     if (process.platform === "win32") {
         const ext = path.extname(resolvedPath).toLowerCase();
 
@@ -40,10 +40,16 @@ function resolveScriptExecutable(resolvedPath: string): {
         }
 
         if (ext === ".ps1") {
+            // Prefer PowerShell 7 (pwsh.exe); fall back to Windows PowerShell (powershell.exe).
             // -NoProfile avoids loading user profile scripts that could interfere.
             // -File treats the argument as a script path, not a command string.
-            return {
-                executable: "pwsh.exe",
+            const pwsh =
+                (await utils.resolveCommandPath("pwsh")) ??
+                (await utils.resolveCommandPath("powershell")) ??
+                "powershell.exe";
+            
+                return {
+                executable: pwsh,
                 prefixArgs: ["-NoProfile", "-File", resolvedPath],
             };
         }
@@ -85,7 +91,7 @@ export class AutorestHelper extends ShellExecutionHelper {
         const resolvedAutorest = await utils.resolveCommandPath(autorestCommand);
 
         if (resolvedAutorest) {
-            return resolveScriptExecutable(resolvedAutorest);
+            return await resolveScriptExecutable(resolvedAutorest);
         }
 
         const resolvedNpx = await utils.resolveCommandPath(npxCommand);
@@ -103,18 +109,18 @@ export class AutorestHelper extends ShellExecutionHelper {
                 const resolvedNpm = await utils.resolveCommandPath("npm");
 
                 const { executable: npmExe, prefixArgs: npmArgs } = resolvedNpm
-                    ? resolveScriptExecutable(resolvedNpm)
+                    ? await resolveScriptExecutable(resolvedNpm)
                     : { executable: "npm", prefixArgs: [] };
 
                 await this.runStreamedCommand(npmExe, [...npmArgs, "install", "autorest", "-g"]);
                 const resolvedAutorest = await utils.resolveCommandPath(autorestCommand);
 
                 return resolvedAutorest
-                    ? resolveScriptExecutable(resolvedAutorest)
+                    ? await resolveScriptExecutable(resolvedAutorest)
                     : { executable: autorestCommand, prefixArgs: [] };
             } else if (response === constants.runViaNpx) {
                 this._outputChannel.appendLine(constants.userSelectionRunNpx);
-                const { executable, prefixArgs } = resolveScriptExecutable(resolvedNpx);
+                const { executable, prefixArgs } = await resolveScriptExecutable(resolvedNpx);
 
                 return { executable, prefixArgs: [...prefixArgs, autorestCommand] };
             } else {
