@@ -488,23 +488,6 @@ export async function resolveCommandPath(command: string): Promise<string | unde
 }
 
 /**
- * Detects whether the specified command-line command is available on the current machine
- */
-export async function detectCommandInstallation(command: string): Promise<boolean> {
-    try {
-        const found = await which(command);
-
-        if (found) {
-            return true;
-        }
-    } catch (err) {
-        console.log(getErrorMessage(err));
-    }
-
-    return false;
-}
-
-/**
  * Returns the results of the glob pattern
  * @param pattern Glob pattern to search for
  */

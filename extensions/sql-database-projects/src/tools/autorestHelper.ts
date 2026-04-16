@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import * as path from "path";
 import * as constants from "../common/constants";
 import * as utils from "../common/utils";
 import * as semver from "semver";
@@ -15,15 +16,35 @@ const nodejsDoNotAskAgainKey = "nodejsDoNotAsk";
 const autorestSqlVersionKey = "autorestSqlVersion";
 
 /**
- * On Windows, .cmd/.bat files cannot be executed directly by spawn(shell:false).
- * They must be routed through cmd.exe /c.
+ * On Windows, script files cannot be executed directly by spawn(shell:false).
+ * - .cmd/.bat must be routed through cmd.exe /d /c
+ * - .ps1 must be routed through pwsh.exe -NoProfile -File
+ * On other platforms, the resolved path is used directly.
  */
-function wrapCmdIfNeeded(resolvedPath: string): { executable: string; prefixArgs: string[] } {
-    if (process.platform === "win32" && /\.(cmd|bat)$/i.test(resolvedPath)) {
-        const cmdExe = process.env.ComSpec ?? "cmd.exe";
-        // /d disables AutoRun; /c runs the command and exits.
-        // No /s: it triggers quote-stripping that mangles args containing spaces.
-        return { executable: cmdExe, prefixArgs: ["/d", "/c", resolvedPath] };
+function resolveScriptExecutable(resolvedPath: string): {
+    executable: string;
+    prefixArgs: string[];
+} {
+    if (process.platform === "win32") {
+        const ext = path.extname(resolvedPath).toLowerCase();
+
+        if (ext === ".cmd" || ext === ".bat") {
+            const cmdExe = process.env.ComSpec ?? "cmd.exe";
+            // /d disables AutoRun; /c runs the command and exits.
+            // Do NOT manually quote resolvedPath here — spawn passes each prefixArg as a
+            // separate element to CreateProcess, so Node.js handles quoting automatically.
+            // Adding manual quotes causes double-quoting ("\"path\"") which cmd.exe rejects.
+            return { executable: cmdExe, prefixArgs: ["/d", "/c", resolvedPath] };
+        }
+
+        if (ext === ".ps1") {
+            // -NoProfile avoids loading user profile scripts that could interfere.
+            // -File treats the argument as a script path, not a command string.
+            return {
+                executable: "pwsh.exe",
+                prefixArgs: ["-NoProfile", "-File", resolvedPath],
+            };
+        }
     }
     return { executable: resolvedPath, prefixArgs: [] };
 }
@@ -51,20 +72,22 @@ export class AutorestHelper extends ShellExecutionHelper {
     }
 
     /**
-     * @returns the executable and prefix args needed to run autorest, or undefined if unavailable.
+     * @returns the executable and prefix args needed to run autorest,
+     * `undefined` if Node.js/npx is not found, or `"cancelled"` if the user dismissed the install prompt.
      */
     public async detectInstallation(): Promise<
-        { executable: string; prefixArgs: string[] } | undefined
+        { executable: string; prefixArgs: string[] } | "cancelled" | undefined
     > {
         const autorestCommand = "autorest";
         const npxCommand = "npx";
-
         const resolvedAutorest = await utils.resolveCommandPath(autorestCommand);
+
         if (resolvedAutorest) {
-            return wrapCmdIfNeeded(resolvedAutorest);
+            return resolveScriptExecutable(resolvedAutorest);
         }
 
         const resolvedNpx = await utils.resolveCommandPath(npxCommand);
+
         if (resolvedNpx) {
             this._outputChannel.appendLine(constants.nodeButNotAutorestFound);
             const response = await vscode.window.showInformationMessage(
@@ -76,20 +99,26 @@ export class AutorestHelper extends ShellExecutionHelper {
             if (response === constants.installGlobally) {
                 this._outputChannel.appendLine(constants.userSelectionInstallGlobally);
                 const resolvedNpm = await utils.resolveCommandPath("npm");
+
                 const { executable: npmExe, prefixArgs: npmArgs } = resolvedNpm
-                    ? wrapCmdIfNeeded(resolvedNpm)
+                    ? resolveScriptExecutable(resolvedNpm)
                     : { executable: "npm", prefixArgs: [] };
+
                 await this.runStreamedCommand(npmExe, [...npmArgs, "install", "autorest", "-g"]);
-                const newResolved = await utils.resolveCommandPath(autorestCommand);
-                return newResolved
-                    ? wrapCmdIfNeeded(newResolved)
+                const resolvedAutorest = await utils.resolveCommandPath(autorestCommand);
+
+                return resolvedAutorest
+                    ? resolveScriptExecutable(resolvedAutorest)
                     : { executable: autorestCommand, prefixArgs: [] };
             } else if (response === constants.runViaNpx) {
                 this._outputChannel.appendLine(constants.userSelectionRunNpx);
-                const { executable, prefixArgs } = wrapCmdIfNeeded(resolvedNpx);
+                const { executable, prefixArgs } = resolveScriptExecutable(resolvedNpx);
+
                 return { executable, prefixArgs: [...prefixArgs, autorestCommand] };
             } else {
                 this._outputChannel.appendLine(constants.userSelectionCancelled);
+
+                return "cancelled";
             }
         } else {
             this._outputChannel.appendLine(constants.nodeNotFound);
@@ -110,15 +139,18 @@ export class AutorestHelper extends ShellExecutionHelper {
     ): Promise<string | undefined> {
         const commandExecutable = await this.detectInstallation();
 
+        if (commandExecutable === "cancelled") {
+            return; // user intentionally dismissed the prompt — do not show Node.js install dialog
+        }
+
         if (!commandExecutable) {
             // unable to find autorest or npx
-
             if (
                 vscode.workspace.getConfiguration(DBProjectConfigurationKey)[
                     nodejsDoNotAskAgainKey
-                ] === true
+                ] !== true
             ) {
-                return; // user opted out of being prompted
+                return; // user doesn't want to be prompted about installing it
             }
 
             // prompt user to install Node.js
