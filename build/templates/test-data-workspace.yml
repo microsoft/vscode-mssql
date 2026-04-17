@@ -1,0 +1,30 @@
+steps:
+  - task: UseNode@1
+    displayName: "Use Node 24.x"
+    inputs:
+      version: 24.x
+
+  - pwsh: |
+      $testRunner = "$(Build.SourcesDirectory)/extensions/data-workspace/node_modules/.bin/vscode-test"
+      if (!(Test-Path $testRunner)) {
+        npm install --no-save @vscode/test-cli
+        if (!(Test-Path $testRunner)) {
+          throw "vscode-test runner not found at $testRunner after installing @vscode/test-cli"
+        }
+      }
+      & $testRunner --coverage
+    displayName: DataWorkspace - Run tests
+    workingDirectory: "$(Build.SourcesDirectory)/extensions/data-workspace"
+
+  - task: PublishTestResults@2
+    displayName: DataWorkspace - Publish test results
+    inputs:
+      testResultsFormat: "JUnit"
+      testResultsFiles: "$(Build.SourcesDirectory)/extensions/data-workspace/test-reports/test-results-ext.xml"
+    condition: succeededOrFailed()
+
+  - task: PublishCodeCoverageResults@2
+    displayName: DataWorkspace - Publish code coverage
+    inputs:
+      summaryFileLocation: "$(Build.SourcesDirectory)/extensions/data-workspace/coverage/cobertura-coverage.xml"
+    condition: succeededOrFailed()

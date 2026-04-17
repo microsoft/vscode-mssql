@@ -6,24 +6,89 @@ trigger:
 pool:
   vmImage: "macos-latest"
 
-steps:
-  - pwsh: |
-      npm ci
-    displayName: Install root dependencies
-    workingDirectory: "$(Build.SourcesDirectory)"
+stages:
+  - stage: BuildAndTest
+    displayName: Build, package, and test
+    jobs:
+      - job: BuildAndPackage
+        displayName: Build and package extensions
+        steps:
+          - pwsh: |
+              npm ci
+            displayName: Install root dependencies
+            workingDirectory: "$(Build.SourcesDirectory)"
 
-  - template: ./templates/build-mssql.yml@self
-    parameters:
-      packageOffline: false # don't build offline packages for PR builds to speed runs up
+          - template: ./templates/build-mssql.yml@self
+            parameters:
+              packageOffline: false # don't build offline packages for PR builds to speed runs up
 
-  - template: ./templates/build-sql-database-projects.yml@self
+          - template: ./templates/build-sql-database-projects.yml@self
 
-  - template: ./templates/build-data-workspace.yml@self
+          - template: ./templates/build-data-workspace.yml@self
 
-  - template: ./templates/build-database-management-keymap.yml@self
+          - template: ./templates/build-database-management-keymap.yml@self
 
-  - task: PublishPipelineArtifact@1
-    displayName: Publish artifacts
-    inputs:
-      targetPath: "$(Build.ArtifactStagingDirectory)/vsix"
-      artifact: drop
+          - pwsh: |
+              $relativePaths = @(
+                "node_modules",
+                "extensions/mssql/node_modules",
+                "extensions/sql-database-projects/node_modules",
+                "extensions/data-workspace/node_modules",
+                "extensions/mssql/dist",
+                "extensions/mssql/.vscode-test",
+                "extensions/sql-database-projects/out",
+                "extensions/data-workspace/out"
+              )
+
+              $existingRelativePaths = @()
+              foreach ($path in $relativePaths) {
+                $fullPath = Join-Path "$(Build.SourcesDirectory)" $path
+                if (Test-Path $fullPath) {
+                  $existingRelativePaths += $path
+                }
+              }
+
+              $tarArgs = @(
+                "-czf", "$(Build.ArtifactStagingDirectory)/test-runtime.tgz",
+                "-C", "$(Build.SourcesDirectory)"
+              ) + $existingRelativePaths
+
+              & tar @tarArgs
+            displayName: Archive test runtime
+
+          - task: PublishPipelineArtifact@1
+            displayName: Publish artifacts
+            inputs:
+              targetPath: "$(Build.ArtifactStagingDirectory)/vsix"
+              artifact: drop
+
+          - task: PublishPipelineArtifact@1
+            displayName: Publish test runtime
+            inputs:
+              targetPath: "$(Build.ArtifactStagingDirectory)/test-runtime.tgz"
+              artifact: test-runtime
+
+      - job: Tests
+        displayName: Run extension unit tests
+        dependsOn: BuildAndPackage
+        condition: succeeded('BuildAndPackage')
+        steps:
+          - task: DownloadPipelineArtifact@2
+            displayName: Download test runtime
+            inputs:
+              artifact: test-runtime
+              path: "$(Pipeline.Workspace)/test-runtime"
+
+          - pwsh: |
+              $tarArgs = @(
+                "-xzf", "$(Pipeline.Workspace)/test-runtime/test-runtime.tgz",
+                "-C", "$(Build.SourcesDirectory)"
+              )
+              & tar @tarArgs
+            displayName: Restore test runtime
+
+          - template: ./templates/test-mssql.yml@self
+
+          - template: ./templates/test-sql-database-projects.yml@self
+
+          - template: ./templates/test-data-workspace.yml@self
