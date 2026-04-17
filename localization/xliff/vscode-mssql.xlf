@@ -3168,9 +3168,6 @@
     <trans-unit id="++CODE++38ee89c32a2a983a8b02689b35c8cdb60f5d9949c4e128a77cc3e79785c02b51">
       <source xml:lang="en">Grid View</source>
     </trans-unit>
-    <trans-unit id="++CODE++b76f48fec38fcbe622131d04320696fdfb50730cc177d149c92ea4f86c2760f5">
-      <source xml:lang="en">Group By</source>
-    </trans-unit>
     <trans-unit id="++CODE++956a51f6b098a41b7c3108015f0790bb24af7693717b07cee39d5df6a5da1826">
       <source xml:lang="en">Group by</source>
     </trans-unit>
