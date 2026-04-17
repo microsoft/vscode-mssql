@@ -1,0 +1,23 @@
+steps:
+  - task: UseNode@1
+    displayName: "Use Node 24.x"
+    inputs:
+      version: 24.x
+
+  - pwsh: |
+      npm run test -- --target mssql
+    displayName: MSSQL - Run tests
+    workingDirectory: "$(Build.SourcesDirectory)"
+
+  - task: PublishTestResults@2
+    displayName: MSSQL - Publish test results
+    inputs:
+      testResultsFormat: "JUnit"
+      testResultsFiles: "$(Build.SourcesDirectory)/extensions/mssql/test-reports/test-results-ext.xml"
+    condition: succeededOrFailed()
+
+  - task: PublishCodeCoverageResults@2
+    displayName: MSSQL - Publish code coverage
+    inputs:
+      summaryFileLocation: "$(Build.SourcesDirectory)/extensions/mssql/coverage/cobertura-coverage.xml"
+    condition: succeededOrFailed()

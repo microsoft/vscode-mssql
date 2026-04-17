@@ -6,24 +6,69 @@ trigger:
 pool:
   vmImage: "macos-latest"
 
-steps:
-  - pwsh: |
-      npm ci
-    displayName: Install root dependencies
-    workingDirectory: "$(Build.SourcesDirectory)"
+stages:
+  - stage: BuildAndPackage
+    displayName: Build, lint, and package
+    jobs:
+      - job: Build
+        displayName: Build and package extensions
+        steps:
+          - task: Cache@2
+            displayName: Restore npm dependencies cache
+            inputs:
+              key: 'npm | "$(Agent.OS)" | package-lock.json'
+              restoreKeys: |
+                npm | "$(Agent.OS)"
+              path: "$(Build.SourcesDirectory)/node_modules"
+              cacheHitVar: NPM_CACHE_RESTORED
 
-  - template: ./templates/build-mssql.yml@self
-    parameters:
-      packageOffline: false # don't build offline packages for PR builds to speed runs up
+          - pwsh: |
+              npm ci
+            displayName: Install root dependencies
+            workingDirectory: "$(Build.SourcesDirectory)"
+            condition: ne(variables.NPM_CACHE_RESTORED, 'true')
 
-  - template: ./templates/build-sql-database-projects.yml@self
+          - template: ./templates/build-mssql.yml@self
+            parameters:
+              packageOffline: false # don't build offline packages for PR builds to speed runs up
 
-  - template: ./templates/build-data-workspace.yml@self
+          - template: ./templates/build-sql-database-projects.yml@self
 
-  - template: ./templates/build-database-management-keymap.yml@self
+          - template: ./templates/build-data-workspace.yml@self
 
-  - task: PublishPipelineArtifact@1
-    displayName: Publish artifacts
-    inputs:
-      targetPath: "$(Build.ArtifactStagingDirectory)/vsix"
-      artifact: drop
+          - template: ./templates/build-database-management-keymap.yml@self
+
+          - task: PublishPipelineArtifact@1
+            displayName: Publish artifacts
+            inputs:
+              targetPath: "$(Build.ArtifactStagingDirectory)/vsix"
+              artifact: drop
+
+  - stage: Tests
+    displayName: Run unit tests
+    dependsOn: BuildAndPackage
+    condition: succeeded('BuildAndPackage')
+    jobs:
+      - job: UnitTests
+        displayName: Run extension unit tests
+        steps:
+          - task: Cache@2
+            displayName: Restore npm dependencies cache
+            inputs:
+              key: 'npm | "$(Agent.OS)" | package-lock.json'
+              restoreKeys: |
+                npm | "$(Agent.OS)"
+              path: "$(Build.SourcesDirectory)/node_modules"
+              cacheHitVar: NPM_CACHE_RESTORED
+
+          - pwsh: |
+              npm ci
+            displayName: Install root dependencies
+            workingDirectory: "$(Build.SourcesDirectory)"
+            condition: ne(variables.NPM_CACHE_RESTORED, 'true')
+
+          - template: ./templates/test-mssql.yml@self
+
+          - template: ./templates/test-sql-database-projects.yml@self
+
+          - template: ./templates/test-data-workspace.yml@self
