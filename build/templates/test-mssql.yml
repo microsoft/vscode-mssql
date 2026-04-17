@@ -5,10 +5,9 @@ steps:
       version: 24.x
 
   - pwsh: |
-      npm run test -- --target mssql
-      Write-Error "Intentional poison-pill failure for pipeline validation"
+      npx --no-install vscode-test --coverage
     displayName: MSSQL - Run tests
-    workingDirectory: "$(Build.SourcesDirectory)"
+    workingDirectory: "$(Build.SourcesDirectory)/extensions/mssql"
 
   - task: PublishTestResults@2
     displayName: MSSQL - Publish test results

@@ -28,21 +28,42 @@ stages:
 
           - template: ./templates/build-database-management-keymap.yml@self
 
+          - pwsh: |
+              tar -czf "$(Build.ArtifactStagingDirectory)/test-runtime.tgz" \
+                -C "$(Build.SourcesDirectory)" \
+                node_modules \
+                extensions/mssql/dist \
+                extensions/mssql/.vscode-test \
+                extensions/sql-database-projects/out \
+                extensions/data-workspace/out
+            displayName: Archive test runtime
+
           - task: PublishPipelineArtifact@1
             displayName: Publish artifacts
             inputs:
               targetPath: "$(Build.ArtifactStagingDirectory)/vsix"
               artifact: drop
 
+          - task: PublishPipelineArtifact@1
+            displayName: Publish test runtime
+            inputs:
+              targetPath: "$(Build.ArtifactStagingDirectory)/test-runtime.tgz"
+              artifact: test-runtime
+
       - job: Tests
         displayName: Run extension unit tests
         dependsOn: BuildAndPackage
         condition: succeeded('BuildAndPackage')
         steps:
+          - task: DownloadPipelineArtifact@2
+            displayName: Download test runtime
+            inputs:
+              artifact: test-runtime
+              path: "$(Pipeline.Workspace)/test-runtime"
+
           - pwsh: |
-              npm ci
-            displayName: Install root dependencies
-            workingDirectory: "$(Build.SourcesDirectory)"
+              tar -xzf "$(Pipeline.Workspace)/test-runtime/test-runtime.tgz" -C "$(Build.SourcesDirectory)"
+            displayName: Restore test runtime
 
           - template: ./templates/test-mssql.yml@self
 

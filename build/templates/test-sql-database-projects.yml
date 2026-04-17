@@ -5,9 +5,9 @@ steps:
       version: 24.x
 
   - pwsh: |
-      npm run test -- --target sql-database-projects
+      npx --no-install vscode-test --coverage
     displayName: SqlProj - Run tests
-    workingDirectory: "$(Build.SourcesDirectory)"
+    workingDirectory: "$(Build.SourcesDirectory)/extensions/sql-database-projects"
 
   - task: PublishTestResults@2
     displayName: SqlProj - Publish test results
