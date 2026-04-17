@@ -982,6 +982,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++0b5cc185ca6a07f98625ce51f17da6ab56e7003264c3b98dac6324d231d61652" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[시스템에 설치된 공급자 중 사용 가능한 Microsoft Entra ID 계정을 자동으로 선택합니다. 자세한 내용을 보려면 아이콘을 클릭하세요.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++0b6ccfdcffbebddf187dbda4178da2bd0a4889bdb715df0d62ea75774aebfad4" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No filter is currently active]]></Val>
@@ -1923,6 +1932,15 @@
           <Val><![CDATA[Enter new password]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[새 암호 입력]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++1611a24a44316316a1736eb54d2504ddcc0f728257616bc857b0005b90beaea4" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[다단계 인증이 포함된 계정을 포함한 Microsoft Entra ID 계정으로 로그인하세요. 자세한 내용을 보려면 아이콘을 클릭하세요.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7516,6 +7534,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++5d1ae18e4c82efee8401c895242feeb54a8a5093d2b024877c83a7a08660a945" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unable to retrieve the list of databases. You may not have permission to list databases on this server.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[데이터베이스 목록을 검색할 수 없습니다. 이 서버에서 데이터베이스를 나열할 권한이 없을 수 있습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++5d22a056f5f5f92e185435b509187fc8e61f15a5b85e6b08cda8d8811880cfc3" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Status: {0}]]></Val>
@@ -7557,6 +7584,15 @@
           <Val><![CDATA[Your tenant '{0} ({1})' requires you to re-authenticate again to access {2} resources. Press Open to start the authentication process.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[테넌트 '{0} ({1})'을(를) 사용하려면 {2} 리소스에 액세스하기 위해 다시 인증해야 합니다. 열기를 눌러 인증 프로세스를 시작하세요.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++5e487cbb896806c4ffd5fd55308a163e5a5ebdb2de5b6e717faff434ddd119dd" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unable to retrieve the list of databases. You may not have permission to list databases on this server. If your connection specifies a database, it will be preselected.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[데이터베이스 목록을 검색할 수 없습니다. 이 서버에서 데이터베이스를 나열할 권한이 없을 수 있습니다. 연결에 데이터베이스가 지정되어 있으면 미리 선택됩니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9699,6 +9735,15 @@
           <Val><![CDATA[Referenced table '{0}' not found]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[참조된 테이블 '{0}'을(를) 찾을 수 없습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++799f6f8acde01a01209703f348f68f7802b5c8623007342d362bed19959e7ed5" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Test connecting with the current settings]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[현재 설정으로 연결 테스트하기]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12673,6 +12718,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++a1c60409bfd9bcd53f31a132bd46b1f125ebf2b16012ceb2bf16baacc460e61c" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Port {0} is already in use. Please choose a different port.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[포트 {0}이(가) 이미 사용 중입니다. 다른 포트를 선택하세요.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++a278c1ed2486fecd0d324085d0a85dc6b97cb2444cd15978e2ccbea319157b62" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Expand connections]]></Val>
@@ -14874,6 +14928,15 @@
           <Val><![CDATA[Find Previous]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[이전 찾기]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++bf2b06cf5edeeb66a098a3a052ced6d9f0c647f587aa00f072c6de26abcacfa0" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connect with the current settings and save the connection profile]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[현재 설정으로 연결하고 연결 프로필을 저장]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18087,6 +18150,15 @@
           <Val><![CDATA[Creating Container]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[컨테이너 만드는 중]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++e7e6421e77a208718956538ea14f589ab43207800d985563be7e407d0a369c96" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Save connection profile changes without establishing a connection]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[연결하지 않고 연결 프로필 변경 내용을 저장]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

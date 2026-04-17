@@ -982,6 +982,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++0b5cc185ca6a07f98625ce51f17da6ab56e7003264c3b98dac6324d231d61652" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[自動從系統中安裝的提供者選取可用的 Microsoft Entra ID 身分識別。若要深入了解，請按一下圖示。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++0b6ccfdcffbebddf187dbda4178da2bd0a4889bdb715df0d62ea75774aebfad4" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No filter is currently active]]></Val>
@@ -1923,6 +1932,15 @@
           <Val><![CDATA[Enter new password]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[輸入新密碼]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++1611a24a44316316a1736eb54d2504ddcc0f728257616bc857b0005b90beaea4" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[使用您的 Microsoft Entra ID 帳戶登入，包括啟用多重要素驗證的帳戶。若要深入了解，請按一下圖示。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7516,6 +7534,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++5d1ae18e4c82efee8401c895242feeb54a8a5093d2b024877c83a7a08660a945" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unable to retrieve the list of databases. You may not have permission to list databases on this server.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[無法擷取資料庫清單。您可能沒有權限在此伺服器上列出資料庫。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++5d22a056f5f5f92e185435b509187fc8e61f15a5b85e6b08cda8d8811880cfc3" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Status: {0}]]></Val>
@@ -7557,6 +7584,15 @@
           <Val><![CDATA[Your tenant '{0} ({1})' requires you to re-authenticate again to access {2} resources. Press Open to start the authentication process.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[您的租用戶 '{0} ({1})' 需要再次重新驗證，才能存取 {2}資源。按下 [開啟]5D; 以開始驗證程序。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++5e487cbb896806c4ffd5fd55308a163e5a5ebdb2de5b6e717faff434ddd119dd" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unable to retrieve the list of databases. You may not have permission to list databases on this server. If your connection specifies a database, it will be preselected.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[無法擷取資料庫清單。您可能沒有權限在此伺服器上列出資料庫。如果您的連線指定了資料庫，該資料庫將會預先選取。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9699,6 +9735,15 @@
           <Val><![CDATA[Referenced table '{0}' not found]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[找不到參考的資料表 '{0}']]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++799f6f8acde01a01209703f348f68f7802b5c8623007342d362bed19959e7ed5" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Test connecting with the current settings]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[使用目前設定測試連線]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12673,6 +12718,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++a1c60409bfd9bcd53f31a132bd46b1f125ebf2b16012ceb2bf16baacc460e61c" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Port {0} is already in use. Please choose a different port.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[連接埠 '{0}' 已在使用中。請選擇其他連接埠。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++a278c1ed2486fecd0d324085d0a85dc6b97cb2444cd15978e2ccbea319157b62" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Expand connections]]></Val>
@@ -14874,6 +14928,15 @@
           <Val><![CDATA[Find Previous]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[尋找上一個]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++bf2b06cf5edeeb66a098a3a052ced6d9f0c647f587aa00f072c6de26abcacfa0" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connect with the current settings and save the connection profile]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[使用目前設定連線並儲存連線設定檔]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18087,6 +18150,15 @@
           <Val><![CDATA[Creating Container]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[正在建立容器]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++e7e6421e77a208718956538ea14f589ab43207800d985563be7e407d0a369c96" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Save connection profile changes without establishing a connection]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[儲存連線設定檔變更，而不建立連線]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
