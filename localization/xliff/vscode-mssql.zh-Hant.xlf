@@ -637,7 +637,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++0b5cc185ca6a07f98625ce51f17da6ab56e7003264c3b98dac6324d231d61652">
         <source xml:lang="en">Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.</source>
-        <target state="new">Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.</target>
+        <target state="translated">自動從系統中安裝的提供者選取可用的 Microsoft Entra ID 身分識別。若要深入了解，請按一下圖示。</target>
       </trans-unit>
       <trans-unit id="++CODE++87cdec8b1acc8c61a853ce73e9707a8a0c55e57922ff53e108262128e97553f2">
         <source xml:lang="en">Available Servers</source>
@@ -1604,7 +1604,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++bf2b06cf5edeeb66a098a3a052ced6d9f0c647f587aa00f072c6de26abcacfa0">
         <source xml:lang="en">Connect with the current settings and save the connection profile</source>
-        <target state="new">Connect with the current settings and save the connection profile</target>
+        <target state="translated">使用目前設定連線並儲存連線設定檔</target>
       </trans-unit>
       <trans-unit id="++CODE++28d29898bc769fd6df013da142af60f451953946e641fc2a2bee0e49b235a623">
         <source xml:lang="en">Connected successfully</source>
@@ -6101,7 +6101,7 @@ Error:
       <trans-unit id="++CODE++a1c60409bfd9bcd53f31a132bd46b1f125ebf2b16012ceb2bf16baacc460e61c">
         <source xml:lang="en">Port {0} is already in use. Please choose a different port.</source>
         <note>{0} is the port number</note>
-        <target state="new">Port {0} is already in use. Please choose a different port.</target>
+        <target state="translated">連接埠 '{0}' 已在使用中。請選擇其他連接埠。</target>
       </trans-unit>
       <trans-unit id="++CODE++c56a86c298eb5a88289af29ba70d8dfdfbf42f6a0c6cf7fe8317a824db4eb767">
         <source xml:lang="en">Possible Data Loss detected. Please review the changes.</source>
@@ -6954,7 +6954,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++e7e6421e77a208718956538ea14f589ab43207800d985563be7e407d0a369c96">
         <source xml:lang="en">Save connection profile changes without establishing a connection</source>
-        <target state="new">Save connection profile changes without establishing a connection</target>
+        <target state="translated">儲存連線設定檔變更，而不建立連線</target>
       </trans-unit>
       <trans-unit id="++CODE++bae1da28225af71a125385224716f5ff7870573e6c01494c597e8ed4168b12e3">
         <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
@@ -7635,7 +7635,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++1611a24a44316316a1736eb54d2504ddcc0f728257616bc857b0005b90beaea4">
         <source xml:lang="en">Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.</source>
-        <target state="new">Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.</target>
+        <target state="translated">使用您的 Microsoft Entra ID 帳戶登入，包括啟用多重要素驗證的帳戶。若要深入了解，請按一下圖示。</target>
       </trans-unit>
       <trans-unit id="++CODE++f33c8e270a9d867a7ed6cb8d51e40f58132390afcd0e2eb79292952039fd8397">
         <source xml:lang="en">Sign into Azure</source>
@@ -8114,7 +8114,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++799f6f8acde01a01209703f348f68f7802b5c8623007342d362bed19959e7ed5">
         <source xml:lang="en">Test connecting with the current settings</source>
-        <target state="new">Test connecting with the current settings</target>
+        <target state="translated">使用目前設定測試連線</target>
       </trans-unit>
       <trans-unit id="++CODE++5bcf311b19d80c5645ce05f5fd36fc449412a6571ceb229fd483e9c415865912">
         <source xml:lang="en">Test connection</source>
@@ -8479,11 +8479,11 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++5d1ae18e4c82efee8401c895242feeb54a8a5093d2b024877c83a7a08660a945">
         <source xml:lang="en">Unable to retrieve the list of databases. You may not have permission to list databases on this server.</source>
-        <target state="new">Unable to retrieve the list of databases. You may not have permission to list databases on this server.</target>
+        <target state="translated">無法擷取資料庫清單。您可能沒有權限在此伺服器上列出資料庫。</target>
       </trans-unit>
       <trans-unit id="++CODE++5e487cbb896806c4ffd5fd55308a163e5a5ebdb2de5b6e717faff434ddd119dd">
         <source xml:lang="en">Unable to retrieve the list of databases. You may not have permission to list databases on this server. If your connection specifies a database, it will be preselected.</source>
-        <target state="new">Unable to retrieve the list of databases. You may not have permission to list databases on this server. If your connection specifies a database, it will be preselected.</target>
+        <target state="translated">無法擷取資料庫清單。您可能沒有權限在此伺服器上列出資料庫。如果您的連線指定了資料庫，該資料庫將會預先選取。</target>
       </trans-unit>
       <trans-unit id="++CODE++6be6bf4fae4897b542e648716d3e0fb9d67e3f4457c7b37afd4b217ca93e2914">
         <source xml:lang="en">Unavailable for backups to existing files</source>
