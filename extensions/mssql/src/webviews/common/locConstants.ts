@@ -1532,6 +1532,7 @@ export class LocConstants {
             ),
             groupBy: l10n.t("Group By"),
             groupDifferencesBy: l10n.t("Group differences by"),
+            none: l10n.t("None"),
             type: l10n.t("Type"),
             sourceName: l10n.t("Source Name"),
             include: l10n.t("Include"),

@@ -15,7 +15,7 @@ import { useSchemaCompareSelector } from "./schemaCompareSelector";
 import Message from "./components/Message";
 import { makeStyles } from "@fluentui/react-components";
 
-export type SchemaCompareGroupBy = "type" | "action" | "schema";
+export type SchemaCompareGroupBy = "none" | "type" | "action" | "schema";
 
 const useStyles = makeStyles({
     container: {

@@ -6,6 +6,7 @@
 import * as mssql from "vscode-mssql";
 import {
     Menu,
+    MenuDivider,
     MenuItemRadio,
     MenuList,
     MenuPopover,
@@ -254,6 +255,10 @@ const CompareActionBar = (props: Props) => {
                 </MenuTrigger>
                 <MenuPopover>
                     <MenuList>
+                        <MenuItemRadio name={GROUP_BY_MENU_NAME} value="none">
+                            {loc.schemaCompare.none}
+                        </MenuItemRadio>
+                        <MenuDivider />
                         <MenuItemRadio name={GROUP_BY_MENU_NAME} value="action">
                             {loc.schemaCompare.action}
                         </MenuItemRadio>

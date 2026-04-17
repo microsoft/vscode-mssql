@@ -354,6 +354,8 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                     return getLabelForAction(entry.updateAction as number);
                 case "schema":
                     return entry.sourceValue?.[0] ?? entry.targetValue?.[0] ?? "";
+                case "none":
+                    return "";
             }
         };
 
@@ -385,29 +387,33 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                 position: index,
             }));
 
-            const groups = new Map<string, DiffRow[]>();
-            for (const d of diffs) {
-                const key = getGroupKey(d);
-                const existing = groups.get(key);
-                if (existing) {
-                    existing.push(d);
-                } else {
-                    groups.set(key, [d]);
+            if (groupBy === "none") {
+                items = diffs;
+            } else {
+                const groups = new Map<string, DiffRow[]>();
+                for (const d of diffs) {
+                    const key = getGroupKey(d);
+                    const existing = groups.get(key);
+                    if (existing) {
+                        existing.push(d);
+                    } else {
+                        groups.set(key, [d]);
+                    }
                 }
-            }
 
-            for (const key of sortGroupKeys(Array.from(groups.keys()))) {
-                const children = groups.get(key)!;
-                const collapsed = collapsedGroups.has(key);
-                items.push({
-                    kind: "group",
-                    key,
-                    label: key,
-                    count: children.length,
-                    collapsed,
-                });
-                if (!collapsed) {
-                    items.push(...children);
+                for (const key of sortGroupKeys(Array.from(groups.keys()))) {
+                    const children = groups.get(key)!;
+                    const collapsed = collapsedGroups.has(key);
+                    items.push({
+                        kind: "group",
+                        key,
+                        label: key,
+                        count: children.length,
+                        collapsed,
+                    });
+                    if (!collapsed) {
+                        items.push(...children);
+                    }
                 }
             }
         }
