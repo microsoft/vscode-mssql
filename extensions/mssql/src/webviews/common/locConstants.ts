@@ -1799,7 +1799,7 @@ export class LocConstants {
 
     public get createDatabase() {
         return {
-            title: l10n.t("Create Database (Preview)"),
+            title: l10n.t("Create Database"),
             description: (serverName: string) =>
                 l10n.t({
                     message: "Create a new database on '{0}'.",
@@ -1829,7 +1829,7 @@ export class LocConstants {
 
     public get dropDatabase() {
         return {
-            title: l10n.t("Drop Database (Preview)"),
+            title: l10n.t("Drop Database"),
             description: (databaseName: string, serverName: string) =>
                 l10n.t({
                     message: "Drop '{0}' from '{1}'. This action cannot be undone.",
@@ -1965,7 +1965,7 @@ export class LocConstants {
     public get searchDatabase() {
         return {
             // Page titles and headers
-            title: l10n.t("Search Database Objects (Preview)"),
+            title: l10n.t("Search Database Objects"),
             loading: l10n.t("Loading database objects"),
             connectingTo: (serverName: string) =>
                 l10n.t({
@@ -2410,8 +2410,8 @@ export class LocConstants {
             stateReadOnly: l10n.t("Read-Only"),
 
             // Status bar
-            noSession: l10n.t("Query Profiler (Preview): No session"),
-            sessionStatusTooltip: l10n.t("Query Profiler (Preview) Session Status"),
+            noSession: l10n.t("Query Profiler: No session"),
+            sessionStatusTooltip: l10n.t("Query Profiler Session Status"),
             eventsCount: (count: number) =>
                 l10n.t({
                     message: "{0} events",
