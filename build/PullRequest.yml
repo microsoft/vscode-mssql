@@ -7,26 +7,16 @@ pool:
   vmImage: "macos-latest"
 
 stages:
-  - stage: BuildAndPackage
-    displayName: Build, lint, and package
+  - stage: BuildAndTest
+    displayName: Build, package, and test
     jobs:
-      - job: Build
+      - job: BuildAndPackage
         displayName: Build and package extensions
         steps:
-          - task: Cache@2
-            displayName: Restore npm dependencies cache
-            inputs:
-              key: 'npm | "$(Agent.OS)" | package-lock.json'
-              restoreKeys: |
-                npm | "$(Agent.OS)"
-              path: "$(Build.SourcesDirectory)/node_modules"
-              cacheHitVar: NPM_CACHE_RESTORED
-
           - pwsh: |
               npm ci
             displayName: Install root dependencies
             workingDirectory: "$(Build.SourcesDirectory)"
-            condition: ne(variables.NPM_CACHE_RESTORED, 'true')
 
           - template: ./templates/build-mssql.yml@self
             parameters:
@@ -44,28 +34,15 @@ stages:
               targetPath: "$(Build.ArtifactStagingDirectory)/vsix"
               artifact: drop
 
-  - stage: Tests
-    displayName: Run unit tests
-    dependsOn: BuildAndPackage
-    condition: succeeded('BuildAndPackage')
-    jobs:
-      - job: UnitTests
+      - job: Tests
         displayName: Run extension unit tests
+        dependsOn: BuildAndPackage
+        condition: succeeded('BuildAndPackage')
         steps:
-          - task: Cache@2
-            displayName: Restore npm dependencies cache
-            inputs:
-              key: 'npm | "$(Agent.OS)" | package-lock.json'
-              restoreKeys: |
-                npm | "$(Agent.OS)"
-              path: "$(Build.SourcesDirectory)/node_modules"
-              cacheHitVar: NPM_CACHE_RESTORED
-
           - pwsh: |
               npm ci
             displayName: Install root dependencies
             workingDirectory: "$(Build.SourcesDirectory)"
-            condition: ne(variables.NPM_CACHE_RESTORED, 'true')
 
           - template: ./templates/test-mssql.yml@self
 
