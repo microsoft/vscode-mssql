@@ -2034,10 +2034,6 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Create Database</source>
         <target state="translated">创建数据库</target>
       </trans-unit>
-      <trans-unit id="++CODE++1ebdd648faad7c5d26109ee99549e6b76bd6749e84bec6250599a2e31029a400">
-        <source xml:lang="en">Create Database (Preview)</source>
-        <target state="translated">创建数据库(预览版)</target>
-      </trans-unit>
       <trans-unit id="++CODE++0d5e7861b9a1710c8e1d2347dbb8d4dde272143bbeca537d216474ef7bd9193f">
         <source xml:lang="en">Create Firewall Rule</source>
         <target state="translated">创建防火墙规则</target>
@@ -2638,10 +2634,6 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++090015e97e08461a02b0915ed446e955928a4686cdc839c66bd9f7781b81d8fb">
         <source xml:lang="en">Drop Database</source>
         <target state="translated">删除数据库</target>
-      </trans-unit>
-      <trans-unit id="++CODE++a9c46777591fc96ccc6c8317280d36c4b68bc04298439cc0e6837ec2ae4bf49c">
-        <source xml:lang="en">Drop Database (Preview)</source>
-        <target state="translated">删除数据库(预览版)</target>
       </trans-unit>
       <trans-unit id="++CODE++9efa6488b1453597a16946eec3bec93d89632493aae8e137b09ed9ffcaf70e7b">
         <source xml:lang="en">Drop Database Options</source>
@@ -5264,13 +5256,13 @@ Error:
         <source xml:lang="en">New Password</source>
         <target state="translated">新密码</target>
       </trans-unit>
-      <trans-unit id="++CODE++c5caff26e896bd287b8528c5a421fc62ae0e550185b606c0cada4e9420ee281f">
-        <source xml:lang="en">New Query Profiler (Preview) - Enter Name</source>
-        <target state="translated">新建查询探查器(预览版) - 输入名称</target>
+      <trans-unit id="++CODE++a32a71122605d871f3213af8b401fe9cfd1e00ab4b1d508826d2dd6f97bb3cc6">
+        <source xml:lang="en">New Query Profiler - Enter Name</source>
+        <target state="new">New Query Profiler - Enter Name</target>
       </trans-unit>
-      <trans-unit id="++CODE++17f1cd47dfd09c344b014b08c691f9707cfe65920e03d4856c0dd34bde93e146">
-        <source xml:lang="en">New Query Profiler (Preview) - Select Template</source>
-        <target state="translated">新建查询探查器(预览版)- 选择模板</target>
+      <trans-unit id="++CODE++0d4d95a7a2955bb82377a0ca37dbb8a946344dd95c092820b5ece489c29e7403">
+        <source xml:lang="en">New Query Profiler - Select Template</source>
+        <target state="new">New Query Profiler - Select Template</target>
       </trans-unit>
       <trans-unit id="++CODE++f0ebbe4b20d0db8c4c52feb9dc715d1db281ae429389480780ce9120113da253">
         <source xml:lang="en">New SQL database</source>
@@ -6345,22 +6337,22 @@ Error:
         <note>{0} is the number of query plans</note>
         <target state="translated">查询计划 ({0})</target>
       </trans-unit>
-      <trans-unit id="++CODE++904baf74a450d7a547a60ffe8a678f5bd150d095f4a0851b936330b722d02dd9">
-        <source xml:lang="en">Query Profiler (Preview)</source>
-        <target state="translated">查询探查器(预览版)</target>
+      <trans-unit id="++CODE++17947c2e89e94b801fc32969b453d6004b1b8d94032f3b4843b594644a77882c">
+        <source xml:lang="en">Query Profiler</source>
+        <target state="new">Query Profiler</target>
       </trans-unit>
-      <trans-unit id="++CODE++eed1ad0449f94c91be1a030a5627d11466ae8d7af8237428dbc3cae097cb044b">
-        <source xml:lang="en">Query Profiler (Preview) Session Status</source>
-        <target state="translated">查询探查器(预览版)会话状态</target>
+      <trans-unit id="++CODE++6b0b8551d35dd7933f41fecf2942fc2219011291443e24b6c7b25988db65c159">
+        <source xml:lang="en">Query Profiler Session Status</source>
+        <target state="new">Query Profiler Session Status</target>
       </trans-unit>
-      <trans-unit id="++CODE++a161365357557281bfbf274bd154a2acc27530a99e67ebf931ab27cf4f73595d">
-        <source xml:lang="en">Query Profiler (Preview): No session</source>
-        <target state="translated">查询探查器(预览版): 无会话</target>
+      <trans-unit id="++CODE++4f58606c7930b151acf10d33a17f526a14ad630d7cdce1351e798d73c0ae225d">
+        <source xml:lang="en">Query Profiler: No session</source>
+        <target state="new">Query Profiler: No session</target>
       </trans-unit>
-      <trans-unit id="++CODE++0e48ce4a45983d7784c326334cc5a57764d1136e589156ea99aa1c07393e7678">
-        <source xml:lang="en">Query Profiler (Preview): {0}</source>
+      <trans-unit id="++CODE++d99dd3f5eca08c181708213b2607143fdd8813040f25e98a4987eec3c94d1570">
+        <source xml:lang="en">Query Profiler: {0}</source>
         <note>{0} is the file name or session name</note>
-        <target state="translated">查询探查器(预览版): {0}</target>
+        <target state="new">Query Profiler: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++9e83dc6d2db272ac27cc875b994f834b62b7202a49b69e885f8f4e8f9c29a452">
         <source xml:lang="en">Query executed</source>
@@ -7107,14 +7099,14 @@ Query: {2}</source>
         <source xml:lang="en">Script copied to clipboard.</source>
         <target state="translated">已将脚本复制到剪贴板。</target>
       </trans-unit>
-      <trans-unit id="++CODE++6bf56ab2774a261ddf7eb5face2f46e7d36789a847949a0219fbfc9572ed8804">
-        <source xml:lang="en">Search Database Objects (Preview)</source>
-        <target state="translated">搜索数据库对象(预览版)</target>
+      <trans-unit id="++CODE++615cb1c6b249984eb02967310fe49221a73cd895ddbadfe3bd81c45690941e57">
+        <source xml:lang="en">Search Database Objects</source>
+        <target state="new">Search Database Objects</target>
       </trans-unit>
-      <trans-unit id="++CODE++053c84fff13ccf92eaa128fa67efa91ef8cbf842592955bced26b57046a24ee3">
-        <source xml:lang="en">Search Database Objects (Preview) - {0}</source>
+      <trans-unit id="++CODE++e84f366d30c8a2b085d32e67f0405aa88e6fd559c71641f8a86306bf18a9fb70">
+        <source xml:lang="en">Search Database Objects - {0}</source>
         <note>{0} is the server name</note>
-        <target state="translated">搜索数据库对象(预览版)- {0}</target>
+        <target state="new">Search Database Objects - {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++bd74591fea2d60dc873cec192685f7b6a930d2a370d5b3c9032014bf8224529a">
         <source xml:lang="en">Search Workspaces</source>
