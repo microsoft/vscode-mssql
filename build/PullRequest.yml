@@ -29,15 +29,27 @@ stages:
           - template: ./templates/build-database-management-keymap.yml@self
 
           - pwsh: |
-              $tarArgs = @(
-                "-czf", "$(Build.ArtifactStagingDirectory)/test-runtime.tgz",
-                "-C", "$(Build.SourcesDirectory)",
+              $relativePaths = @(
                 "node_modules",
                 "extensions/mssql/dist",
                 "extensions/mssql/.vscode-test",
                 "extensions/sql-database-projects/out",
                 "extensions/data-workspace/out"
               )
+
+              $existingRelativePaths = @()
+              foreach ($path in $relativePaths) {
+                $fullPath = Join-Path "$(Build.SourcesDirectory)" $path
+                if (Test-Path $fullPath) {
+                  $existingRelativePaths += $path
+                }
+              }
+
+              $tarArgs = @(
+                "-czf", "$(Build.ArtifactStagingDirectory)/test-runtime.tgz",
+                "-C", "$(Build.SourcesDirectory)"
+              ) + $existingRelativePaths
+
               & tar @tarArgs
             displayName: Archive test runtime
 
