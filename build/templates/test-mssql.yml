@@ -5,7 +5,11 @@ steps:
       version: 24.x
 
   - pwsh: |
-      npx --no-install vscode-test --coverage
+      $testRunner = "$(Build.SourcesDirectory)/node_modules/.bin/vscode-test"
+      if (!(Test-Path $testRunner)) {
+        throw "vscode-test runner not found at $testRunner"
+      }
+      & $testRunner --coverage
     displayName: MSSQL - Run tests
     workingDirectory: "$(Build.SourcesDirectory)/extensions/mssql"
 
