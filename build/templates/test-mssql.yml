@@ -6,6 +6,7 @@ steps:
 
   - pwsh: |
       npm run test -- --target mssql
+      Write-Error "Intentional poison-pill failure for pipeline validation"
     displayName: MSSQL - Run tests
     workingDirectory: "$(Build.SourcesDirectory)"
 
