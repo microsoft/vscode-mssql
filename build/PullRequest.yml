@@ -31,6 +31,9 @@ stages:
           - pwsh: |
               $relativePaths = @(
                 "node_modules",
+                "extensions/mssql/node_modules",
+                "extensions/sql-database-projects/node_modules",
+                "extensions/data-workspace/node_modules",
                 "extensions/mssql/dist",
                 "extensions/mssql/.vscode-test",
                 "extensions/sql-database-projects/out",

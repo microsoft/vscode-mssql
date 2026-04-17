@@ -5,9 +5,12 @@ steps:
       version: 24.x
 
   - pwsh: |
-      $testRunner = "$(Build.SourcesDirectory)/node_modules/.bin/vscode-test"
+      $testRunner = "$(Build.SourcesDirectory)/extensions/data-workspace/node_modules/.bin/vscode-test"
       if (!(Test-Path $testRunner)) {
-        throw "vscode-test runner not found at $testRunner"
+        npm install --no-save @vscode/test-cli
+        if (!(Test-Path $testRunner)) {
+          throw "vscode-test runner not found at $testRunner after installing @vscode/test-cli"
+        }
       }
       & $testRunner --coverage
     displayName: DataWorkspace - Run tests
