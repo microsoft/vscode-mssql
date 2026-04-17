@@ -133,9 +133,11 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             const schemaDesignerInitActivity = startActivity(
                 TelemetryViews.SchemaDesigner,
                 TelemetryActions.Initialize,
-                undefined,
-                undefined,
-                undefined,
+                undefined, // correlationId
+                undefined, // startActivityAdditionalProps
+                undefined, // startActivityAdditionalMeasurements
+                undefined, // connectionInfo
+                undefined, // serverInfo
                 true, // include callstack in telemetry
             );
             try {
@@ -396,6 +398,13 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
 
         this.onNotification(SchemaDesigner.SchemaDesignerDirtyStateNotification.type, (payload) => {
             this.updateCacheItem(undefined, payload.hasChanges);
+        });
+
+        this.onNotification(SchemaDesigner.UpdateFilterTablesNotification.type, (payload) => {
+            this.updateState({
+                ...this.state,
+                currentFilteredTables: payload.currentFilteredTables,
+            });
         });
 
         this.onRequest(SchemaDesigner.GetBaselineSchemaRequest.type, async () => {

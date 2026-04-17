@@ -7,6 +7,11 @@ import $ from "jquery";
 import { createRoot, Root } from "react-dom/client";
 import * as l10n from "@vscode/l10n";
 import { NotebookResultGrid, NotebookResultGridProps } from "./notebookResultGrid";
+import { NotebookResultsOutput } from "./notebookResultsOutput";
+import type {
+    NotebookQueryResultOutputData,
+    SavedNotebookResultSetOutputData,
+} from "../../../sharedInterfaces/notebookQueryResult";
 
 window.jQuery = $ as any;
 require("slickgrid/lib/jquery.event.drag-2.3.0.js");
@@ -45,13 +50,36 @@ type ActivationFunction = (
     context: RendererContext,
 ) => RenderOutputInfo | Promise<RenderOutputInfo>;
 
+function isNotebookResultsOutputData(data: unknown): data is NotebookQueryResultOutputData {
+    return (
+        !!data &&
+        typeof data === "object" &&
+        (data as { version?: unknown }).version === 1 &&
+        Array.isArray((data as { blocks?: unknown }).blocks)
+    );
+}
+
+function isSavedNotebookResultSetOutputData(
+    data: unknown,
+): data is SavedNotebookResultSetOutputData {
+    if (!data || typeof data !== "object") {
+        return false;
+    }
+
+    const candidate = data as Partial<NotebookResultGridProps>;
+    return (
+        Array.isArray(candidate.columnInfo) &&
+        Array.isArray(candidate.rows) &&
+        typeof candidate.rowCount === "number"
+    );
+}
+
 // Track React roots per output element for proper cleanup
 const roots = new Map<string, Root>();
 
 export const activate: ActivationFunction = (_context: RendererContext) => {
     return {
         renderOutputItem(data: OutputItem, element: HTMLElement) {
-            // Clean up existing root if re-rendering
             const existingRoot = roots.get(data.id);
             if (existingRoot) {
                 existingRoot.unmount();
@@ -61,22 +89,32 @@ export const activate: ActivationFunction = (_context: RendererContext) => {
             // Clear element content
             element.innerHTML = "";
 
-            let props: NotebookResultGridProps;
+            let parsedData: NotebookQueryResultOutputData | SavedNotebookResultSetOutputData;
             try {
-                const parsed = data.json();
-                props = {
-                    columnInfo: parsed.columnInfo,
-                    rows: parsed.rows,
-                    rowCount: parsed.rowCount,
-                };
+                parsedData = data.json();
             } catch {
                 element.textContent = l10n.t("Error: Failed to parse query result data.");
                 return;
             }
 
-            const root = createRoot(element);
-            roots.set(data.id, root);
-            root.render(<NotebookResultGrid {...props} />);
+            if (isNotebookResultsOutputData(parsedData)) {
+                const root = createRoot(element);
+                roots.set(data.id, root);
+                root.render(<NotebookResultsOutput blocks={parsedData.blocks} />);
+            } else if (isSavedNotebookResultSetOutputData(parsedData)) {
+                const root = createRoot(element);
+                roots.set(data.id, root);
+                root.render(
+                    <NotebookResultGrid
+                        columnInfo={parsedData.columnInfo}
+                        rows={parsedData.rows}
+                        rowCount={parsedData.rowCount}
+                        addBottomSpacing={parsedData.addBottomSpacing}
+                    />,
+                );
+            } else {
+                element.textContent = l10n.t("Error: Unrecognized query result data.");
+            }
         },
 
         disposeOutputItem(id?: string) {

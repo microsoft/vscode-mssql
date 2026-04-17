@@ -366,12 +366,14 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             const reducerActivity = startActivity(
                 TelemetryViews.WebviewController,
                 TelemetryActions.Reducer,
-                undefined,
+                undefined, // correlationId
                 {
                     type: action.type as string,
                     webviewId: this._sourceFile,
                 },
-                undefined,
+                undefined, // startActivityAdditionalMeasurements
+                undefined, // connectionInfo
+                undefined, // serverInfo
                 true, // include call stack
             );
             const reducer = this._reducerHandlers.get(action.type);
@@ -440,12 +442,14 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             const handlerActivity = startActivity(
                 TelemetryViews.WebviewController,
                 TelemetryActions.OnRequest,
-                undefined,
+                undefined, // correlationId
                 {
                     type: type.method,
                     webviewId: this._sourceFile,
                 },
-                undefined,
+                undefined, // startActivityAdditionalMeasurements
+                undefined, // connectionInfo
+                undefined, // serverInfo
                 true, // include call stack
             );
             try {

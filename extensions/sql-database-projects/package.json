@@ -2,7 +2,7 @@
     "name": "sql-database-projects-vscode",
     "displayName": "SQL Database Projects",
     "description": "Enables users to develop and publish database schemas for MSSQL Databases",
-    "version": "1.5.9",
+    "version": "1.5.10",
     "publisher": "ms-mssql",
     "preview": false,
     "homepage": "https://github.com/Microsoft/vscode-mssql/blob/main/extensions/sql-database-projects/README.md",
@@ -83,6 +83,11 @@
                         "type": "string",
                         "default": "2.1.0",
                         "description": "%sqlDatabaseProjects.microsoftBuildSqlVersion%"
+                    },
+                    "sqlDatabaseProjects.autoCreateFolders": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "%sqlDatabaseProjects.autoCreateFolders%"
                     }
                 }
             }
@@ -603,7 +608,7 @@
         "@microsoft/ads-extension-telemetry": "^3.0.1",
         "@xmldom/xmldom": "^0.9.9",
         "ajv": "^8.18.0",
-        "axios": "^1.13.5",
+        "axios": "^1.15.0",
         "extract-zip": "^2.0.1",
         "fast-glob": "^3.2.7",
         "fs-extra": "^5.0.0",

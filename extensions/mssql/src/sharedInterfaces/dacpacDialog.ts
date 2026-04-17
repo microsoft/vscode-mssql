@@ -177,9 +177,11 @@ export namespace ValidateFilePathWebviewRequest {
  * Request to list databases on a server from the webview
  */
 export namespace ListDatabasesWebviewRequest {
-    export const type = new RequestType<{ ownerUri: string }, { databases: string[] }, void>(
-        "dacpacDialog/listDatabases",
-    );
+    export const type = new RequestType<
+        { ownerUri: string },
+        { databases: string[]; errorMessage?: string },
+        void
+    >("dacpacDialog/listDatabases");
 }
 
 /**
@@ -237,7 +239,13 @@ export namespace InitializeConnectionWebviewRequest {
 export namespace ConnectToServerWebviewRequest {
     export const type = new RequestType<
         { profileId: string },
-        { ownerUri: string; isConnected: boolean; errorMessage?: string; isFabric?: boolean },
+        {
+            ownerUri: string;
+            isConnected: boolean;
+            errorMessage?: string;
+            isFabric?: boolean;
+            databaseName?: string;
+        },
         void
     >("dacpacDialog/connectToServer");
 }

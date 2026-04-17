@@ -4,12 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscodeMssql from "vscode-mssql";
-import { FormItemSpec, FormContextProps, FormState, FormReducers } from "./form";
+import { FormItemSpec, FormContextProps, FormState, FormReducers, FormItemOptions } from "./form";
 import { FirewallRuleSpec } from "./firewallRule";
 import { ApiStatus, Status } from "./webview";
 import { AddFirewallRuleState } from "./addFirewallRule";
 import { ConnectionGroupSpec, ConnectionGroupState } from "./connectionGroup";
-import { RequestType } from "vscode-jsonrpc/browser";
+import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
 import { FabricSqlDbInfo, FabricWorkspaceInfo } from "./fabric";
 import { ChangePasswordResult, ChangePasswordWebviewState } from "./changePassword";
 import { DialogMessageSpec } from "./dialogMessage";
@@ -213,6 +213,10 @@ export enum AuthenticationType {
      */
     AzureMFA = "AzureMFA",
     /**
+     * Microsoft Entra Id - Default
+     */
+    ActiveDirectoryDefault = "ActiveDirectoryDefault",
+    /**
      * Microsoft Entra Id - Password
      */
     AzureMFAAndUser = "AzureMFAAndUser",
@@ -308,6 +312,12 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     selectAzureTenant: { tenantId: string };
     selectFabricWorkspace: { workspaceId: string };
     messageButtonClicked: { buttonId: string };
+}
+
+export namespace OpenOptionInfoLinkNotification {
+    export const type = new NotificationType<{ option: FormItemOptions }>(
+        "connectionDialog/openOptionInfoLink",
+    );
 }
 
 export namespace GetConnectionDisplayNameRequest {

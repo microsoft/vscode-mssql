@@ -16,6 +16,7 @@ import {
     Field,
     Input,
     Label,
+    LabelProps,
     Link,
     makeStyles,
     MessageBar,
@@ -49,6 +50,9 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         gap: "12px",
+    },
+    horizontalField: {
+        "--fui-field--label-width": "20%",
     },
     readMoreText: {
         marginBottom: "12px",
@@ -139,6 +143,7 @@ export const AddFirewallRuleDialog = ({
     const onAccountOptionSelect = (_: SelectionEvents, data: OptionOnSelectData) => {
         if (data.optionValue === addNewMicrosoftAccount) {
             signIntoAzure();
+            return;
         }
 
         setSelectedAccountId(data.optionValue ?? "");
@@ -188,7 +193,11 @@ export const AddFirewallRuleDialog = ({
                                 : { startIp, endIp },
                     });
                 }}
-                disabled={!state.isSignedIn || state.addFirewallRuleStatus === ApiStatus.Loading}
+                disabled={
+                    state.loadingAccounts ||
+                    !state.isSignedIn ||
+                    state.addFirewallRuleStatus === ApiStatus.Loading
+                }
                 icon={
                     state.addFirewallRuleStatus === ApiStatus.Loading ? (
                         <Spinner size="tiny" />
@@ -212,7 +221,7 @@ export const AddFirewallRuleDialog = ({
                 <Link href={addFirewallRuleReadMoreUrl}>{Loc.connectionDialog.readMore}</Link>
             </div>
 
-            {!state.isSignedIn && (
+            {!state.loadingAccounts && !state.isSignedIn && (
                 <>
                     {Loc.firewallRules.signIntoAzureToAddFirewallRule}
                     {" " /* extra space before the 'Sign in' link*/}
@@ -224,17 +233,32 @@ export const AddFirewallRuleDialog = ({
                     </Link>
                 </>
             )}
-            {state.isSignedIn && (
+            {(state.loadingAccounts || state.isSignedIn) && (
                 <>
-                    {state.accounts.length > 0 && (
+                    {(state.loadingAccounts || state.accounts.length > 0) && (
                         <>
                             <Field
-                                label={Loc.azure.azureAccount}
-                                className={formStyles.formComponentDiv}>
+                                label={{
+                                    children: (_: unknown, slotProps: LabelProps) => (
+                                        <span
+                                            className={formStyles.labelDecoration}
+                                            style={{ columnGap: "0px" }}>
+                                            <Label {...slotProps}>{Loc.azure.azureAccount}</Label>
+                                            {state.loadingAccounts && <Spinner size="extra-tiny" />}
+                                        </span>
+                                    ),
+                                }}
+                                className={`${formStyles.formComponentDiv} ${styles.horizontalField}`}
+                                orientation="horizontal">
                                 <Dropdown
-                                    value={selectedAccountDisplayText}
+                                    value={
+                                        state.loadingAccounts
+                                            ? Loc.common.loadingWithEllipsis
+                                            : selectedAccountDisplayText
+                                    }
                                     selectedOptions={[selectedAccountId]}
-                                    onOptionSelect={onAccountOptionSelect}>
+                                    onOptionSelect={onAccountOptionSelect}
+                                    disabled={state.loadingAccounts}>
                                     <Option
                                         text={Loc.azure.addAzureAccount}
                                         key={addNewMicrosoftAccount}
@@ -253,11 +277,28 @@ export const AddFirewallRuleDialog = ({
                                     })}
                                 </Dropdown>
                             </Field>
-                            <Field label={Loc.azure.tenant} className={formStyles.formComponentDiv}>
+                            <Field
+                                label={{
+                                    children: (_: unknown, slotProps: LabelProps) => (
+                                        <span
+                                            className={formStyles.labelDecoration}
+                                            style={{ columnGap: "0px" }}>
+                                            <Label {...slotProps}>{Loc.azure.tenant}</Label>
+                                            {state.loadingAccounts && <Spinner size="extra-tiny" />}
+                                        </span>
+                                    ),
+                                }}
+                                className={`${formStyles.formComponentDiv} ${styles.horizontalField}`}
+                                orientation="horizontal">
                                 <Dropdown
-                                    value={tenantDisplayText}
+                                    value={
+                                        state.loadingAccounts
+                                            ? Loc.common.loadingWithEllipsis
+                                            : tenantDisplayText
+                                    }
                                     selectedOptions={[selectedTenantId]}
-                                    onOptionSelect={onTenantOptionSelect}>
+                                    onOptionSelect={onTenantOptionSelect}
+                                    disabled={state.loadingAccounts}>
                                     {state.tenants[selectedAccountId]?.map((tenant) => {
                                         return (
                                             <Option
@@ -275,7 +316,8 @@ export const AddFirewallRuleDialog = ({
 
                     <Field
                         label={Loc.firewallRules.ruleName}
-                        className={formStyles.formComponentDiv}>
+                        className={`${formStyles.formComponentDiv} ${styles.horizontalField}`}
+                        orientation="horizontal">
                         <Input
                             value={ruleName}
                             onChange={(_ev, data) => {
@@ -284,7 +326,10 @@ export const AddFirewallRuleDialog = ({
                             id="ruleName"
                         />
                     </Field>
-                    <Field className={formStyles.formComponentDiv}>
+                    <Field
+                        label={Loc.firewallRules.ipAddressRange}
+                        className={`${formStyles.formComponentDiv} ${styles.horizontalField}`}
+                        orientation="horizontal">
                         <RadioGroup
                             value={ipSelectionMode}
                             onChange={(_, data) =>
@@ -299,29 +344,29 @@ export const AddFirewallRuleDialog = ({
                                 value={IpSelectionMode.IpRange}
                             />
                         </RadioGroup>
+                        <div>
+                            <Label htmlFor="startIpInput">{Loc.firewallRules.fromLabel}</Label>
+                            <Input
+                                value={startIp}
+                                onChange={(_ev, data) => {
+                                    setStartIp(data.value);
+                                }}
+                                id="startIpInput"
+                                disabled={ipSelectionMode === IpSelectionMode.SpecificIp}
+                                className={styles.ipInputBox}
+                            />
+                            <Label htmlFor="endIpInput">{Loc.firewallRules.toLabel}</Label>
+                            <Input
+                                value={endIp}
+                                onChange={(_ev, data) => {
+                                    setEndIp(data.value);
+                                }}
+                                id="endIpInput"
+                                disabled={ipSelectionMode === IpSelectionMode.SpecificIp}
+                                className={styles.ipInputBox}
+                            />
+                        </div>
                     </Field>
-                    <div className={formStyles.formComponentDiv + " " + styles.fromToRow}>
-                        <Label htmlFor="startIpInput">{Loc.firewallRules.fromLabel}</Label>
-                        <Input
-                            value={startIp}
-                            onChange={(_ev, data) => {
-                                setStartIp(data.value);
-                            }}
-                            id="startIpInput"
-                            disabled={ipSelectionMode === IpSelectionMode.SpecificIp}
-                            className={styles.ipInputBox}
-                        />
-                        <Label htmlFor="endIpInput">{Loc.firewallRules.toLabel}</Label>
-                        <Input
-                            value={endIp}
-                            onChange={(_ev, data) => {
-                                setEndIp(data.value);
-                            }}
-                            id="endIpInput"
-                            disabled={ipSelectionMode === IpSelectionMode.SpecificIp}
-                            className={styles.ipInputBox}
-                        />
-                    </div>
                 </>
             )}
         </div>

@@ -83,6 +83,11 @@ export class BackgroundTasksProvider
         });
     }
 
+    public getParent(_element: BackgroundTasksTreeNode): BackgroundTasksTreeNode | undefined {
+        // Background tasks is a flat list rooted at the tree itself.
+        return undefined;
+    }
+
     public async openTask(taskId: string): Promise<void> {
         await this._backgroundTasksService.openTask(taskId);
     }

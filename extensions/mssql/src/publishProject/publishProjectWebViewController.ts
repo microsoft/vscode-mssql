@@ -30,6 +30,7 @@ import {
     parsePublishProfileXml,
     readProjectProperties,
     validateSqlCmdVariables,
+    validateSqlServerPortNumber,
     getSqlServerContainerTagsForTargetVersion,
     updateDatabaseInConnectionString,
 } from "./projectUtils";
@@ -416,8 +417,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
         // Auto-generate unique container name
         const containerName = await dockerUtils.validateContainerName("");
 
-        // Parse port (already validated by form)
-        const port = parseInt(state.formState.containerPort);
+        // Port availability is validated in validateForm before publish runs,
+        // so we can safely use the parsed value here.
+        const port = parseInt(state.formState.containerPort, 10);
 
         return { containerName, port };
     }
@@ -491,51 +493,80 @@ export class PublishProjectWebViewController extends FormWebviewController<
             trustServerCertificate: true,
         } as IConnectionProfile;
 
-        try {
-            // Save the connection profile to VS Code settings
-            const savedProfile =
-                await this._mainController.connectionManager.connectionUI.saveProfile(
-                    connectionProfile,
+        // SQL Server logs "ready for client connections" slightly before SA auth is fully
+        // initialized. Retry with exponential backoff (baseDelay × 2^attempt) to give
+        // the container enough time to become fully responsive after a failure.
+        let lastConnectionError: string | undefined;
+
+        for (let attempt = 0; attempt < constants.containerConnectionMaxAttempts; attempt++) {
+            try {
+                // Save the connection profile to VS Code settings (idempotent on retry)
+                const savedProfile =
+                    await this._mainController.connectionManager.connectionUI.saveProfile(
+                        connectionProfile,
+                    );
+
+                // Open in Object Explorer (this also establishes the connection)
+                await this._mainController.createObjectExplorerSession(savedProfile);
+
+                // Get the connection URI from the saved profile
+                const connectionUri =
+                    this._mainController.connectionManager.getUriForConnection(savedProfile);
+
+                if (connectionUri) {
+                    // Send telemetry for successful container creation and connection
+                    sendActionEvent(
+                        TelemetryViews.SqlProjects,
+                        TelemetryActions.ConnectToContainer,
+                        {
+                            operationId: this._operationId,
+                            publishTarget: PublishTarget.LocalContainer,
+                            success: "true",
+                        },
+                    );
+
+                    return {
+                        success: true,
+                        connectionUri: connectionUri,
+                    };
+                }
+
+                // Session was created but no URI yet – treat as a soft failure and retry
+                lastConnectionError = Loc.FailedToConnectToServer;
+            } catch (error) {
+                lastConnectionError = getErrorMessage(error);
+            }
+
+            // Wait before the next attempt using exponential backoff: baseDelay × 2^attempt
+            // (attempt 0 → 3s, attempt 1 → 6s). No wait after the last attempt.
+            if (attempt + 1 < constants.containerConnectionMaxAttempts) {
+                await new Promise((resolve) =>
+                    setTimeout(
+                        resolve,
+                        constants.containerConnectionRetryDelayMs * Math.pow(2, attempt),
+                    ),
                 );
-
-            // Open in Object Explorer (this also establishes the connection)
-            await this._mainController.createObjectExplorerSession(savedProfile);
-
-            // Get the connection URI from the saved profile
-            const connectionUri =
-                this._mainController.connectionManager.getUriForConnection(savedProfile);
-
-            // Send telemetry for successful container creation and connection
-            sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.ConnectToContainer, {
-                operationId: this._operationId,
-                publishTarget: PublishTarget.LocalContainer,
-                success: "true",
-            });
-
-            return {
-                success: true,
-                connectionUri: connectionUri,
-            };
-        } catch (error) {
-            // Send telemetry for connection failure
-            sendErrorEvent(
-                TelemetryViews.SqlProjects,
-                TelemetryActions.ConnectToContainer,
-                error instanceof Error ? error : new Error(getErrorMessage(error)),
-                false,
-                undefined,
-                undefined,
-                {
-                    operationId: this._operationId,
-                    success: "false",
-                },
-            );
-
-            return {
-                success: false,
-                error: getErrorMessage(error),
-            };
+            }
         }
+
+        // All attempts exhausted
+        sendErrorEvent(
+            TelemetryViews.SqlProjects,
+            TelemetryActions.ConnectToContainer,
+            new Error(lastConnectionError),
+            false,
+            undefined,
+            undefined,
+            {
+                operationId: this._operationId,
+                success: "false",
+            },
+        );
+
+        return {
+            success: false,
+            error: lastConnectionError,
+        };
     }
 
     /**
@@ -1596,6 +1627,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 );
                 this._connectionUri = undefined;
                 this._serverTypes = "";
+
+                // Auto-detect the first port available from 1433 upward so the field
+                // never shows a port that is already in use.
+                const availablePort = await dockerUtils.findAvailablePort(
+                    constants.defaultPortNumber,
+                );
+                this.state.formState.containerPort =
+                    availablePort > 0 ? String(availablePort) : String(constants.defaultPortNumber);
             } else if (this.state.formState.publishTarget === PublishTarget.ExistingServer) {
                 // Restore for server mode
                 if (this._cachedDatabaseList?.length) {
@@ -1649,6 +1688,44 @@ export class PublishProjectWebViewController extends FormWebviewController<
     ): Promise<(keyof IPublishForm)[]> {
         // Call parent validation logic which returns array of fields with errors
         const erroredInputs = await super.validateForm(formTarget, propertyName, updateValidation);
+
+        // Async port-availability check for LocalContainer target — mirrors deployment UI.
+        // The synchronous validate() in formComponentHelpers only checks the number range;
+        // this checks whether the port is already bound by a running/stopped container.
+        const isPortField = !propertyName || propertyName === PublishFormFields.ContainerPort;
+        if (
+            isPortField &&
+            formTarget.publishTarget === PublishTarget.LocalContainer &&
+            updateValidation
+        ) {
+            const portComponent = this.state.formComponents[PublishFormFields.ContainerPort];
+            const portStr = String(formTarget.containerPort ?? "").trim();
+            const portNum = Number(portStr);
+            // Skip availability check for out-of-range values; the range validator already caught those.
+            if (portComponent && validateSqlServerPortNumber(portNum)) {
+                const availablePort = await dockerUtils.findAvailablePort(portNum);
+                // Discard stale results if the user changed the port while we were awaiting.
+                if (String(this.state.formState.containerPort).trim() !== portStr) {
+                    return erroredInputs;
+                }
+                if (availablePort !== portNum) {
+                    portComponent.validation = {
+                        isValid: false,
+                        validationMessage: Loc.PortAlreadyInUse(portNum),
+                    };
+                    if (
+                        !erroredInputs.includes(
+                            PublishFormFields.ContainerPort as keyof IPublishForm,
+                        )
+                    ) {
+                        erroredInputs.push(PublishFormFields.ContainerPort as keyof IPublishForm);
+                    }
+                } else {
+                    // Port is free — clear any previous port-in-use error.
+                    portComponent.validation = { isValid: true, validationMessage: "" };
+                }
+            }
+        }
 
         // erroredInputs only contains fields validated with updateValidation=true (on blur)
         // So we also need to check for missing required values (which may not be validated yet on dialog open)

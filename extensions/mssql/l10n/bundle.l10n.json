@@ -25,6 +25,7 @@
     "Copy with Headers": "Copy with Headers",
     "Copy Headers": "Copy Headers",
     "Error: Failed to parse query result data.": "Error: Failed to parse query result data.",
+    "Error: Unrecognized query result data.": "Error: Unrecognized query result data.",
     "Cancel": "Cancel",
     "Are you sure?": "Are you sure?",
     "Are you sure you want to {0}?/{0} is the action being confirmed": {
@@ -61,6 +62,7 @@
     "Warning": "Warning",
     "Sign In": "Sign In",
     "Loading": "Loading",
+    "Loading...": "Loading...",
     "General": "General",
     "Previous": "Previous",
     "OK": "OK",
@@ -208,6 +210,7 @@
         "comment": ["{0} is the IP address of the client"]
     },
     "Add my subnet IP range": "Add my subnet IP range",
+    "IP address range": "IP address range",
     "From/Label for the start IP address in the firewall rule IP range": {
         "message": "From",
         "comment": ["Label for the start IP address in the firewall rule IP range"]
@@ -250,14 +253,17 @@
     "No databases found in the selected workspace.": "No databases found in the selected workspace.",
     "Database list": "Database list",
     "Connect": "Connect",
+    "Connect with the current settings and save the connection profile": "Connect with the current settings and save the connection profile",
     "Connection actions": "Connection actions",
     "Advanced Connection Settings": "Advanced Connection Settings",
     "Advanced": "Advanced",
     "Test connection": "Test connection",
+    "Test connecting with the current settings": "Test connecting with the current settings",
     "Connection test succeeded": "Connection test succeeded",
     "Testing...": "Testing...",
     "Connecting...": "Connecting...",
     "Save without connecting": "Save without connecting",
+    "Save connection profile changes without establishing a connection": "Save connection profile changes without establishing a connection",
     "Connect to Database": "Connect to Database",
     "Edit Database Connection - {0}/{0} is the name of the connection profile": {
         "message": "Edit Database Connection - {0}",
@@ -884,7 +890,6 @@
     "Custom GraphQL Type": "Custom GraphQL Type",
     "Optional - Override default GraphQL type name": "Optional - Override default GraphQL type name",
     "Source Table": "Source Table",
-    "Loading...": "Loading...",
     "Initializing DAB configuration...": "Initializing DAB configuration...",
     "No entities found": "No entities found",
     "Toggle all entities in {0}/{0} is the schema name": {
@@ -1202,6 +1207,7 @@
     "Operation failed": "Operation failed",
     "An unexpected error occurred": "An unexpected error occurred",
     "Failed to load databases": "Failed to load databases",
+    "Unable to retrieve the list of databases. You may not have permission to list databases on this server. If your connection specifies a database, it will be preselected.": "Unable to retrieve the list of databases. You may not have permission to list databases on this server. If your connection specifies a database, it will be preselected.",
     "DACPAC deployed successfully": "DACPAC deployed successfully",
     "DACPAC extracted successfully": "DACPAC extracted successfully",
     "BACPAC imported successfully": "BACPAC imported successfully",
@@ -1442,8 +1448,8 @@
     "Files of Type": "Files of Type",
     "File path": "File path",
     "Folder path": "Folder path",
-    "Backup Database (Preview) - {0}/{0} is the database name": {
-        "message": "Backup Database (Preview) - {0}",
+    "Backup Database - {0}/{0} is the database name": {
+        "message": "Backup Database - {0}",
         "comment": ["{0} is the database name"]
     },
     "Loading backup database...": "Loading backup database...",
@@ -1597,7 +1603,7 @@
     "Export all captured events to a CSV file": "Export all captured events to a CSV file",
     "No events to export": "No events to export",
     "profiler_events": "profiler_events",
-    "Import File (Preview)": "Import File (Preview)",
+    "Import File": "Import File",
     "Specify Input File": "Specify Input File",
     "Loading flat file import...": "Loading flat file import...",
     "Loading table preview...": "Loading table preview...",
@@ -1618,7 +1624,7 @@
     "File imported successfully": "File imported successfully",
     "Import New File": "Import New File",
     "Loading restore database...": "Loading restore database...",
-    "Restore Database (Preview)": "Restore Database (Preview)",
+    "Restore Database": "Restore Database",
     "Backup File": "Backup File",
     "URL": "URL",
     "Browse files": "Browse files",
@@ -1699,7 +1705,8 @@
     "Public": "Public",
     "Private": "Private",
     "Remove": "Remove",
-    "Rename Database (Preview)": "Rename Database (Preview)",
+    "Drop Database": "Drop Database",
+    "Rename Database": "Rename Database",
     "Enter the new database name": "Enter the new database name",
     "Please select a server node in Object Explorer to create a database.": "Please select a server node in Object Explorer to create a database.",
     "Please select a database node in Object Explorer to drop.": "Please select a database node in Object Explorer to drop.",
@@ -1783,6 +1790,7 @@
     "Integrated": "Integrated",
     "SQL Login": "SQL Login",
     "Microsoft Entra Id - Universal w/ MFA Support": "Microsoft Entra Id - Universal w/ MFA Support",
+    "Microsoft Entra Id - Default": "Microsoft Entra Id - Default",
     "Azure Code Grant": "Azure Code Grant",
     "Azure Device Code": "Azure Device Code",
     "MSSQL - Azure Auth Logs": "MSSQL - Azure Auth Logs",
@@ -2001,6 +2009,18 @@
     "Azure: Sign In to Azure Cloud": "Azure: Sign In to Azure Cloud",
     "Sign in to your Azure subscription in one of the sovereign clouds.": "Sign in to your Azure subscription in one of the sovereign clouds.",
     "No background tasks": "No background tasks",
+    "Task: {0}/{0} is the task name": {
+        "message": "Task: {0}",
+        "comment": ["{0} is the task name"]
+    },
+    "Description: {0}/{0} is the task description": {
+        "message": "Description: {0}",
+        "comment": ["{0} is the task description"]
+    },
+    "Status: {0}/{0} is the task status": {
+        "message": "Status: {0}",
+        "comment": ["{0} is the task status"]
+    },
     "Source: {0}/{0} is the task source": {
         "message": "Source: {0}",
         "comment": ["{0} is the task source"]
@@ -2016,6 +2036,31 @@
     "Elapsed time: {0}/{0} is the task elapsed time": {
         "message": "Elapsed time: {0}",
         "comment": ["{0} is the task elapsed time"]
+    },
+    "Logs": "Logs",
+    "No log entries yet.": "No log entries yet.",
+    "Task log is unavailable.": "Task log is unavailable.",
+    "Are you sure you want to cancel this background task?": "Are you sure you want to cancel this background task?",
+    "Cancel Task": "Cancel Task",
+    "[{0}] {1}/{0} is the timestamp{1} is the log entry text": {
+        "message": "[{0}] {1}",
+        "comment": ["{0} is the timestamp", "{1} is the log entry text"]
+    },
+    "{0}: {1}/{0} is the task status{1} is the task message": {
+        "message": "{0}: {1}",
+        "comment": ["{0} is the task status", "{1} is the task message"]
+    },
+    "{0} ({1}%)/{0} is the task status{1} is the completion percent": {
+        "message": "{0} ({1}%)",
+        "comment": ["{0} is the task status", "{1} is the completion percent"]
+    },
+    "{0} ({1}%): {2}/{0} is the task status{1} is the completion percent{2} is the task message": {
+        "message": "{0} ({1}%): {2}",
+        "comment": [
+            "{0} is the task status",
+            "{1} is the completion percent",
+            "{2} is the task message"
+        ]
     },
     "{0}ms/{0} is the elapsed time in milliseconds": {
         "message": "{0}ms",
@@ -2211,6 +2256,8 @@
     "Sign in": "Sign in",
     "Additional parameters": "Additional parameters",
     "<Default>": "<Default>",
+    "Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.": "Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.",
+    "Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.": "Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.",
     "+ Create Connection Group": "+ Create Connection Group",
     "Select a connection group": "Select a connection group",
     "Search connection groups": "Search connection groups",
@@ -2229,9 +2276,22 @@
     },
     "Clear cache and refresh token": "Clear cache and refresh token",
     "Clear token cache": "Clear token cache",
+    "Token refreshed successfully.": "Token refreshed successfully.",
+    "Unable to acquire a valid token. (expires: {0}, but is currently {1})/{0} is the token expiration time{1} is the current time": {
+        "message": "Unable to acquire a valid token. (expires: {0}, but is currently {1})",
+        "comment": ["{0} is the token expiration time", "{1} is the current time"]
+    },
+    "Error refreshing token; you may need to sign out and sign back in: {0}/{0} is the error message": {
+        "message": "Error refreshing token; you may need to sign out and sign back in: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Error validating Entra authentication token; you may need to refresh your token: {0}/{0} is the error message": {
+        "message": "Error validating Entra authentication token; you may need to refresh your token: {0}",
+        "comment": ["{0} is the error message"]
+    },
     "No workspaces found. Please change Fabric account or tenant to view available workspaces.": "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
-    "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported./{0} is the authentication type": {
-        "message": "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported.",
+    "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported./{0} is the authentication type": {
+        "message": "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported.",
         "comment": ["{0} is the authentication type"]
     },
     "Add Firewall Rule to {0}/{0} is the server name": {
@@ -2245,6 +2305,10 @@
     "No SQL resource is configured for the current cloud '{0}'. Please update your Azure account settings./{0} is the display name of the current cloud": {
         "message": "No SQL resource is configured for the current cloud '{0}'. Please update your Azure account settings.",
         "comment": ["{0} is the display name of the current cloud"]
+    },
+    "Azure account '{0}' was not found. Sign in with the correct account or select a different one./{0} is the display name or ID of the Azure account that was not found": {
+        "message": "Azure account '{0}' was not found. Sign in with the correct account or select a different one.",
+        "comment": ["{0} is the display name or ID of the Azure account that was not found"]
     },
     "Error signing into Azure: {0}/{0} is the error message": {
         "message": "Error signing into Azure: {0}",
@@ -2333,6 +2397,18 @@
     "Fabric is not supported in the current cloud ({0}).  Ensure setting '{1}' is configured correctly./{0} is the cloud name{1} is the setting name": {
         "message": "Fabric is not supported in the current cloud ({0}).  Ensure setting '{1}' is configured correctly.",
         "comment": ["{0} is the cloud name", "{1} is the setting name"]
+    },
+    "The selected profile authenticates using Entra ID '{0}' but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect./{0} is the account ID or label": {
+        "message": "The selected profile authenticates using Entra ID '{0}' but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.",
+        "comment": ["{0} is the account ID or label"]
+    },
+    "The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect./{0} is the account ID or label{1} is the tenant ID": {
+        "message": "The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.",
+        "comment": ["{0} is the account ID or label", "{1} is the tenant ID"]
+    },
+    "The selected profile authenticates using Entra ID '{0}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect./{0} is the account ID or label": {
+        "message": "The selected profile authenticates using Entra ID '{0}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.",
+        "comment": ["{0} is the account ID or label"]
     },
     "The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect./{0} is the account ID or label{1} is the tenant ID": {
         "message": "The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.",
@@ -2572,6 +2648,10 @@
     "Checking Docker prerequisites...": "Checking Docker prerequisites...",
     "Creating SQL Server container...": "Creating SQL Server container...",
     "Port must be a number between 1 and 65535": "Port must be a number between 1 and 65535",
+    "Port {0} is already in use. Please choose a different port./{0} is the port number": {
+        "message": "Port {0} is already in use. Please choose a different port.",
+        "comment": ["{0} is the port number"]
+    },
     "Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy": "Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy",
     "{0} password doesn't match the confirmation password": "{0} password doesn't match the confirmation password",
     "Required": "Required",
@@ -3046,6 +3126,7 @@
     "Reveal in Explorer": "Reveal in Explorer",
     "Reveal in Finder": "Reveal in Finder",
     "Open Containing Folder": "Open Containing Folder",
+    "Unable to retrieve the list of databases. You may not have permission to list databases on this server.": "Unable to retrieve the list of databases. You may not have permission to list databases on this server.",
     "DACPAC deployed successfully to database '{0}'/{0} is the database name": {
         "message": "DACPAC deployed successfully to database '{0}'",
         "comment": ["{0} is the database name"]
@@ -3393,7 +3474,7 @@
         "message": "Failed to start '{0}': {1}",
         "comment": ["{0} is the service name", "{1} is the error message"]
     },
-    "Import Flat File (Preview)": "Import Flat File (Preview)",
+    "Import Flat File": "Import Flat File",
     "Database the table is created in": "Database the table is created in",
     "Location of the file to be imported": "Location of the file to be imported",
     "New Table Name": "New Table Name",

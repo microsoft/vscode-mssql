@@ -1344,6 +1344,10 @@ Projects:
         <source xml:lang="en">Add View</source>
         <target state="translated">보기 추가</target>
       </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.autoCreateFolders">
+        <source xml:lang="en">Automatically create folders (e.g., dbo/Tables) when adding SQL objects from any add-item entry point in a project.</source>
+        <target state="translated">프로젝트의 모든 추가 항목 진입점에서 SQL 개체를 추가할 때 자동으로 폴더(예: dbo/Tables)를 만듭니다.</target>
+      </trans-unit>
       <trans-unit id="sqlDatabaseProjects.build">
         <source xml:lang="en">Build</source>
         <target state="translated">빌드</target>

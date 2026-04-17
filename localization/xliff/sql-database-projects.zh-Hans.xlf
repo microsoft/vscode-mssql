@@ -1344,6 +1344,10 @@ Projects:
         <source xml:lang="en">Add View</source>
         <target state="translated">添加视图</target>
       </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.autoCreateFolders">
+        <source xml:lang="en">Automatically create folders (e.g., dbo/Tables) when adding SQL objects from any add-item entry point in a project.</source>
+        <target state="translated">从项目中的任何加载项入口点添加 SQL 对象时，自动创建文件夹(例如 dbo/Tables)。</target>
+      </trans-unit>
       <trans-unit id="sqlDatabaseProjects.build">
         <source xml:lang="en">Build</source>
         <target state="translated">生成</target>

@@ -24,7 +24,7 @@ import { NotebookQueryExecutor, NotebookQueryResult } from "./notebookQueryExecu
  * uses vscode.window.activeTextEditor, which is undefined for notebook editors.
  * We cannot auto-sync with the MSSQL UI. Connection changes must be explicit:
  *   - %%connect magic command
- *   - "Create SQL Notebook" from Object Explorer (connectWith)
+ *   - "New SQL Notebook" from Object Explorer (connectWith)
  *   - First cell execution (prompts the user)
  *
  * NOTE: The MSSQL extension's SqlDocumentService auto-connects any newly opened

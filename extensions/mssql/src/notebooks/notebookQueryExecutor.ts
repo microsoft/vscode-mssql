@@ -77,6 +77,10 @@ export class NotebookQueryExecutor {
     ): Promise<NotebookQueryResult> {
         const batchResults = new Map<number, NotebookBatchResult>();
         let canceled = false;
+        // Tracks the most recently started batch so that messages with
+        // batchId=-1 or undefined (e.g. parse/syntax errors) can be attached
+        // to the batch they logically belong to.
+        let lastStartedBatchId = -1;
 
         // Promise that resolves when query/complete arrives
         const completion = new Deferred<QueryExecuteCompleteNotificationResult>();
@@ -87,6 +91,7 @@ export class NotebookQueryExecutor {
             },
             handleBatchStart(result: QueryExecuteBatchNotificationParams): void {
                 const batch = result.batchSummary;
+                lastStartedBatchId = batch.id;
                 batchResults.set(batch.id, {
                     batchSummary: batch,
                     messages: [],
@@ -130,7 +135,15 @@ export class NotebookQueryExecutor {
                 }
             },
             handleMessage(result: QueryExecuteMessageParams): void {
-                const batchEntry = batchResults.get(result.message.batchId);
+                const batchId = result.message.batchId;
+                // batchId can be -1 or undefined for query-level messages such
+                // as parse/syntax errors that aren't tied to a specific batch.
+                // Fall back to the most recently started batch so these errors
+                // are surfaced in cell output rather than silently dropped.
+                const effectiveBatchId =
+                    batchId !== undefined && batchId >= 0 ? batchId : lastStartedBatchId;
+                const batchEntry =
+                    effectiveBatchId >= 0 ? batchResults.get(effectiveBatchId) : undefined;
                 if (batchEntry) {
                     batchEntry.messages.push(result.message);
                 }

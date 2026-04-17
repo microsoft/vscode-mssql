@@ -476,20 +476,15 @@ export function timeConversion(duration: number): string {
 }
 
 /**
- * Detects whether the specified command-line command is available on the current machine
+ * Returns the fully resolved path of a command, or undefined if not found.
  */
-export async function detectCommandInstallation(command: string): Promise<boolean> {
+export async function resolveCommandPath(command: string): Promise<string | undefined> {
     try {
         const found = await which(command);
-
-        if (found) {
-            return true;
-        }
-    } catch (err) {
-        console.log(getErrorMessage(err));
+        return found || undefined;
+    } catch {
+        return undefined;
     }
-
-    return false;
 }
 
 /**

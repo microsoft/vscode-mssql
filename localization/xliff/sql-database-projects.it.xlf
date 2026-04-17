@@ -1344,6 +1344,10 @@ Progetti:
         <source xml:lang="en">Add View</source>
         <target state="translated">Aggiungi visualizzazione</target>
       </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.autoCreateFolders">
+        <source xml:lang="en">Automatically create folders (e.g., dbo/Tables) when adding SQL objects from any add-item entry point in a project.</source>
+        <target state="translated">Creare automaticamente cartelle (ad es. dbo/Tables) quando si aggiungono oggetti SQL da qualsiasi punto di accesso per l'aggiunta di elementi in un progetto.</target>
+      </trans-unit>
       <trans-unit id="sqlDatabaseProjects.build">
         <source xml:lang="en">Build</source>
         <target state="translated">Build</target>

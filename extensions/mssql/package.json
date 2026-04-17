@@ -1,7 +1,7 @@
 {
     "name": "mssql",
     "displayName": "SQL Server (mssql)",
-    "version": "1.42.0",
+    "version": "1.43.0",
     "description": "Design and optimize schemas for SQL Server, Azure SQL, and SQL Database in Fabric using a modern, lightweight extension built for developers",
     "publisher": "ms-mssql",
     "preview": false,
@@ -150,7 +150,7 @@
         "@microsoft/ads-extension-telemetry": "^3.0.2",
         "@microsoft/vscode-azext-azureauth": "^5.1.1",
         "@xmldom/xmldom": "^0.9.9",
-        "axios": "^1.13.5",
+        "axios": "^1.15.0",
         "dockerode": "^4.0.9",
         "dotenv": "^16.4.5",
         "error-ex": "^1.3.0",
@@ -856,21 +856,6 @@
                     "group": "MS_SQL@3"
                 },
                 {
-                    "command": "mssql.openBackgroundTask",
-                    "when": "view == backgroundTasks && viewItem =~ /\\bactionable=true\\b/",
-                    "group": "MS_SQL@1"
-                },
-                {
-                    "command": "mssql.cancelBackgroundTask",
-                    "when": "view == backgroundTasks && viewItem =~ /\\bcancelable=true\\b/",
-                    "group": "MS_SQL@2"
-                },
-                {
-                    "command": "mssql.cancelBackgroundTask",
-                    "when": "view == backgroundTasks && viewItem =~ /\\bcancelable=true\\b/",
-                    "group": "inline@1"
-                },
-                {
                     "command": "mssql.stopContainer",
                     "when": "view == objectExplorer && viewItem =~ /\\bsubType=(DockerContainer|DockerContainerDatabase)\\b/",
                     "group": "9_MSSQL_container@1"
@@ -884,9 +869,43 @@
                     "command": "mssql.startContainer",
                     "when": "view == objectExplorer && viewItem =~ /\\bsubType=(disconnectedDockerContainer|DockerContainerDatabase)\\b/",
                     "group": "9_MSSQL_container@3"
+                },
+                {
+                    "command": "mssql.openBackgroundTask",
+                    "when": "view == backgroundTasks && viewItem =~ /\\bactionable=true\\b/",
+                    "group": "MS_SQL@1"
+                },
+                {
+                    "command": "mssql.viewBackgroundTaskLogs",
+                    "when": "view == backgroundTasks && viewItem =~ /\\bbackgroundTaskNode\\b/",
+                    "group": "MS_SQL@2"
+                },
+                {
+                    "command": "mssql.cancelBackgroundTask",
+                    "when": "view == backgroundTasks && viewItem =~ /\\bcancelable=true\\b/",
+                    "group": "MS_SQL@3"
+                },
+                {
+                    "command": "mssql.openBackgroundTask",
+                    "when": "view == backgroundTasks && viewItem =~ /\\bactionable=true\\b/",
+                    "group": "inline@1"
+                },
+                {
+                    "command": "mssql.viewBackgroundTaskLogs",
+                    "when": "view == backgroundTasks && viewItem =~ /\\bbackgroundTaskNode\\b/",
+                    "group": "inline@2"
+                },
+                {
+                    "command": "mssql.cancelBackgroundTask",
+                    "when": "view == backgroundTasks && viewItem =~ /\\bcancelable=true\\b/",
+                    "group": "inline@3"
                 }
             ],
             "commandPalette": [
+                {
+                    "command": "mssql.viewBackgroundTaskLogs",
+                    "when": "false"
+                },
                 {
                     "command": "mssql.runQueryWithUriOwnership",
                     "when": "false"
@@ -1185,7 +1204,10 @@
                 "command": "mssql.addObjectExplorer",
                 "title": "%mssql.addObjectExplorer%",
                 "category": "MS SQL",
-                "icon": "$(add)"
+                "icon": {
+                    "light": "media/addNewConnection_light.svg",
+                    "dark": "media/addNewConnection_dark.svg"
+                }
             },
             {
                 "command": "mssql.objectExplorer.enableGroupBySchema",
@@ -1371,7 +1393,14 @@
             {
                 "command": "mssql.openBackgroundTask",
                 "title": "%mssql.openBackgroundTask%",
-                "category": "MS SQL"
+                "category": "MS SQL",
+                "icon": "$(go-to-file)"
+            },
+            {
+                "command": "mssql.viewBackgroundTaskLogs",
+                "title": "%mssql.viewBackgroundTaskLogs%",
+                "category": "MS SQL",
+                "icon": "$(output)"
             },
             {
                 "command": "mssql.cancelBackgroundTask",
