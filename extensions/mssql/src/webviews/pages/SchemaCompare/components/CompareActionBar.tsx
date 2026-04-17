@@ -247,16 +247,16 @@ const CompareActionBar = (props: Props) => {
                 }}>
                 <MenuTrigger disableButtonEnhancement>
                     <ToolbarButton
-                        aria-label={loc.schemaCompare.groupBy}
+                        aria-label={loc.common.groupBy}
                         title={loc.schemaCompare.groupDifferencesBy}
                         icon={<TextBulletListTreeRegular />}>
-                        {loc.schemaCompare.groupBy}
+                        {loc.common.groupBy}
                     </ToolbarButton>
                 </MenuTrigger>
                 <MenuPopover>
                     <MenuList>
                         <MenuItemRadio name={GROUP_BY_MENU_NAME} value="none">
-                            {loc.schemaCompare.none}
+                            {loc.common.none}
                         </MenuItemRadio>
                         <MenuDivider />
                         <MenuItemRadio name={GROUP_BY_MENU_NAME} value="action">

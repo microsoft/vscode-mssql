@@ -42,6 +42,19 @@ type GroupRow = {
 };
 type Row = DiffRow | GroupRow;
 
+const getLabelForAction = (action: SchemaUpdateAction): string => {
+    switch (action) {
+        case SchemaUpdateAction.Add:
+            return loc.schemaCompare.add;
+        case SchemaUpdateAction.Change:
+            return loc.schemaCompare.change;
+        case SchemaUpdateAction.Delete:
+            return loc.schemaCompare.delete;
+        default:
+            return "";
+    }
+};
+
 const useStyles = makeStyles({
     HeaderCellPadding: {
         padding: "0 8px",
@@ -96,19 +109,33 @@ const useStyles = makeStyles({
         backgroundColor: "var(--vscode-keybindingTable-headerBackground)",
     },
     groupHeaderRow: {
-        display: "flex",
-        alignItems: "center",
-        gap: "4px",
-        padding: "0 8px",
-        cursor: "pointer",
         backgroundColor: "var(--vscode-sideBarSectionHeader-background)",
         color: "var(--vscode-sideBarSectionHeader-foreground)",
-        userSelect: "none",
         boxSizing: "border-box",
         borderBottom: "1px solid var(--vscode-sideBarSectionHeader-border)",
         "&:hover": {
             backgroundColor: "var(--vscode-list-hoverBackground)",
         },
+    },
+    groupHeaderCell: {
+        width: "100%",
+        height: "100%",
+        padding: 0,
+    },
+    groupHeaderButton: {
+        display: "flex",
+        alignItems: "center",
+        gap: "4px",
+        padding: "0 8px",
+        width: "100%",
+        height: "100%",
+        background: "transparent",
+        border: "none",
+        color: "inherit",
+        font: "inherit",
+        cursor: "pointer",
+        textAlign: "left",
+        userSelect: "none",
     },
     groupHeaderLabel: {
         fontWeight: 600,
@@ -206,23 +233,6 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
             }
         };
 
-        const getLabelForAction = (action: SchemaUpdateAction): string => {
-            let actionLabel = "";
-            switch (action) {
-                case SchemaUpdateAction.Add:
-                    actionLabel = loc.schemaCompare.add;
-                    break;
-                case SchemaUpdateAction.Change:
-                    actionLabel = loc.schemaCompare.change;
-                    break;
-                case SchemaUpdateAction.Delete:
-                    actionLabel = loc.schemaCompare.delete;
-                    break;
-            }
-
-            return actionLabel;
-        };
-
         const emptyCell = <DataGridCell />;
 
         const columns: TableColumnDefinition<Row>[] = [
@@ -306,7 +316,7 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                     return (
                         <DataGridCell>
                             <Text truncate className={classes.hideTextOverflow}>
-                                {getLabelForAction(item.updateAction as number)}
+                                {getLabelForAction(item.updateAction)}
                             </Text>
                         </DataGridCell>
                     );
@@ -346,77 +356,82 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
             });
         };
 
-        const getGroupKey = (entry: DiffEntry): string => {
-            switch (groupBy) {
-                case "type":
-                    return entry.name ?? "";
-                case "action":
-                    return getLabelForAction(entry.updateAction as number);
-                case "schema":
-                    return entry.sourceValue?.[0] ?? entry.targetValue?.[0] ?? "";
-                case "none":
-                    return "";
-            }
-        };
+        const items = React.useMemo<Row[]>(() => {
+            if (!compareResult?.success) return [];
 
-        const actionSortOrder = [
-            loc.schemaCompare.delete,
-            loc.schemaCompare.change,
-            loc.schemaCompare.add,
-        ];
-
-        const sortGroupKeys = (keys: string[]): string[] => {
-            if (groupBy === "action") {
-                return [...keys].sort((a, b) => {
-                    const ai = actionSortOrder.indexOf(a);
-                    const bi = actionSortOrder.indexOf(b);
-                    if (ai === -1 && bi === -1) return a.localeCompare(b);
-                    if (ai === -1) return 1;
-                    if (bi === -1) return -1;
-                    return ai - bi;
-                });
-            }
-            return [...keys].sort((a, b) => a.localeCompare(b));
-        };
-
-        let items: Row[] = [];
-        if (compareResult?.success) {
             const diffs: DiffRow[] = compareResult.differences.map((item, index) => ({
                 kind: "diff",
                 ...item,
                 position: index,
             }));
 
-            if (groupBy === "none") {
-                items = diffs;
-            } else {
-                const groups = new Map<string, DiffRow[]>();
-                for (const d of diffs) {
-                    const key = getGroupKey(d);
-                    const existing = groups.get(key);
-                    if (existing) {
-                        existing.push(d);
-                    } else {
-                        groups.set(key, [d]);
-                    }
-                }
+            if (groupBy === "none") return diffs;
 
-                for (const key of sortGroupKeys(Array.from(groups.keys()))) {
-                    const children = groups.get(key)!;
-                    const collapsed = collapsedGroups.has(key);
-                    items.push({
-                        kind: "group",
-                        key,
-                        label: key,
-                        count: children.length,
-                        collapsed,
-                    });
-                    if (!collapsed) {
-                        items.push(...children);
-                    }
+            // Group keys are stable identifiers (enum values or raw names), not
+            // localized strings, so grouping survives language changes.
+            const getKey = (entry: DiffEntry): string => {
+                switch (groupBy) {
+                    case "type":
+                        return entry.name ?? "";
+                    case "action":
+                        return String(entry.updateAction);
+                    case "schema":
+                        return entry.sourceValue?.[0] ?? entry.targetValue?.[0] ?? "";
+                    default:
+                        return "";
+                }
+            };
+
+            const getLabel = (key: string): string =>
+                groupBy === "action" ? getLabelForAction(Number(key)) : key;
+
+            const groups = new Map<string, DiffRow[]>();
+            for (const d of diffs) {
+                const key = getKey(d);
+                const existing = groups.get(key);
+                if (existing) {
+                    existing.push(d);
+                } else {
+                    groups.set(key, [d]);
                 }
             }
-        }
+
+            const keys = Array.from(groups.keys());
+            if (groupBy === "action") {
+                const actionOrder: SchemaUpdateAction[] = [
+                    SchemaUpdateAction.Delete,
+                    SchemaUpdateAction.Change,
+                    SchemaUpdateAction.Add,
+                ];
+                keys.sort((a, b) => {
+                    const ai = actionOrder.indexOf(Number(a));
+                    const bi = actionOrder.indexOf(Number(b));
+                    if (ai === -1 && bi === -1) return a.localeCompare(b);
+                    if (ai === -1) return 1;
+                    if (bi === -1) return -1;
+                    return ai - bi;
+                });
+            } else {
+                keys.sort((a, b) => a.localeCompare(b));
+            }
+
+            const result: Row[] = [];
+            for (const key of keys) {
+                const children = groups.get(key)!;
+                const collapsed = collapsedGroups.has(key);
+                result.push({
+                    kind: "group",
+                    key,
+                    label: getLabel(key),
+                    count: children.length,
+                    collapsed,
+                });
+                if (!collapsed) {
+                    result.push(...children);
+                }
+            }
+            return result;
+        }, [compareResult, groupBy, collapsedGroups]);
 
         const toggleAllKeydown = (e: React.KeyboardEvent<HTMLDivElement>) => {
             if (e.key === " ") {
@@ -438,32 +453,27 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
             if (item.kind === "group") {
                 const Chevron = item.collapsed ? ChevronRightRegular : ChevronDownRegular;
                 return (
-                    <div
-                        key={rowId}
-                        role="row"
-                        aria-expanded={!item.collapsed}
-                        tabIndex={0}
-                        style={style}
-                        className={classes.groupHeaderRow}
-                        onClick={() => toggleGroupCollapsed(item.key)}
-                        onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                                toggleGroupCollapsed(item.key);
-                                e.preventDefault();
-                            }
-                        }}>
-                        <span className={classes.groupHeaderChevron}>
-                            <Chevron />
-                        </span>
-                        <Text
-                            truncate
-                            className={mergeClasses(
-                                classes.hideTextOverflow,
-                                classes.groupHeaderLabel,
-                            )}>
-                            {item.label}
-                        </Text>
-                        <Text className={classes.groupHeaderCount}>({item.count})</Text>
+                    <div key={rowId} role="row" style={style} className={classes.groupHeaderRow}>
+                        <div role="gridcell" className={classes.groupHeaderCell}>
+                            <button
+                                type="button"
+                                aria-expanded={!item.collapsed}
+                                className={classes.groupHeaderButton}
+                                onClick={() => toggleGroupCollapsed(item.key)}>
+                                <span className={classes.groupHeaderChevron}>
+                                    <Chevron />
+                                </span>
+                                <Text
+                                    truncate
+                                    className={mergeClasses(
+                                        classes.hideTextOverflow,
+                                        classes.groupHeaderLabel,
+                                    )}>
+                                    {item.label}
+                                </Text>
+                                <Text className={classes.groupHeaderCount}>({item.count})</Text>
+                            </button>
+                        </div>
                     </div>
                 );
             }
