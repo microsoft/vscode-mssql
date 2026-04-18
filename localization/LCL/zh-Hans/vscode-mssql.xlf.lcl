@@ -3700,6 +3700,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++2d93cdf980de7a656d499569548c98d27086e3edebb3b89f58b28ec45facf111" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The selected profile authenticates using Entra ID '{0}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[所选配置文件使用 Entra ID“{0}”进行身份验证，但该帐户无法通过 VS Code 登录使用。编辑连接或使用该帐户登录 VS Code 进行连接。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++2da839233749a1d48af0f1399da21768ade458db40ba95dcd405a7addefad753" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Query execution was canceled.]]></Val>
@@ -14104,6 +14113,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++b59435494dcd35be1cef0694a50b64de613df46a38364f7c59f082b8cf5ff263" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[所选配置文件使用租户“{1}”上的 Entra ID“{0}”进行身份验证，但该帐户未登录到 MSSQL 扩展。编辑连接或使用该帐户登录 MSSQL 进行连接。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++b5c2455f3e05fab4c5019daf09573a5885446d59adc75e85406fb1e9336eb48d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No text data available]]></Val>
@@ -17682,6 +17700,15 @@
           <Val><![CDATA[Delete]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[删除]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++e2efd136048806149ca845f8521dbad2967230b47a2030b5b01614f9d5779620" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The selected profile authenticates using Entra ID '{0}' but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[所选配置文件使用 Entra ID“{0}”进行身份验证，但该帐户未登录到 MSSQL 扩展。编辑连接或使用该帐户登录 MSSQL 进行连接。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

@@ -982,6 +982,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++0b5cc185ca6a07f98625ce51f17da6ab56e7003264c3b98dac6324d231d61652" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Sélectionne automatiquement une identité Microsoft Entra ID disponible parmi les fournisseurs installés sur votre système. Cliquez sur l'icône d'information pour en savoir plus.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++0b6ccfdcffbebddf187dbda4178da2bd0a4889bdb715df0d62ea75774aebfad4" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No filter is currently active]]></Val>
@@ -1923,6 +1932,15 @@
           <Val><![CDATA[Enter new password]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Entrer un nouveau mot de passe]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++1611a24a44316316a1736eb54d2504ddcc0f728257616bc857b0005b90beaea4" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Connectez-vous avec votre compte Microsoft Entra ID, y compris les comptes avec authentification multifacteur. Cliquez sur l'icône d'information pour en savoir plus.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3678,6 +3696,15 @@
           <Val><![CDATA[Please Accept the SQL Server EULA]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Veuillez accepter le CLUF de SQL Server]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++2d93cdf980de7a656d499569548c98d27086e3edebb3b89f58b28ec45facf111" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The selected profile authenticates using Entra ID '{0}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Le profil sélectionné s’authentifie en utilisant Entra ID « {0} », mais ce compte n’est pas disponible via la connexion VS Code. Modifiez la connexion ou connectez-vous à VS Code avec ce compte pour vous connecter.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7516,6 +7543,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++5d1ae18e4c82efee8401c895242feeb54a8a5093d2b024877c83a7a08660a945" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unable to retrieve the list of databases. You may not have permission to list databases on this server.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Impossible de récupérer la liste des bases de données. Vous n'avez peut-être pas l'autorisation de lister les bases de données sur ce serveur.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++5d22a056f5f5f92e185435b509187fc8e61f15a5b85e6b08cda8d8811880cfc3" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Status: {0}]]></Val>
@@ -7557,6 +7593,15 @@
           <Val><![CDATA[Your tenant '{0} ({1})' requires you to re-authenticate again to access {2} resources. Press Open to start the authentication process.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Votre locataire « {0} ({1}) » exige une nouvelle authentification pour accéder aux ressources {2}. Appuyez sur Ouvrir pour démarrer le processus d’authentification.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++5e487cbb896806c4ffd5fd55308a163e5a5ebdb2de5b6e717faff434ddd119dd" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unable to retrieve the list of databases. You may not have permission to list databases on this server. If your connection specifies a database, it will be preselected.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Impossible de récupérer la liste des bases de données. Vous n'avez peut-être pas l'autorisation de lister les bases de données sur ce serveur. Si votre connexion spécifie une base de données, celle-ci sera présélectionnée.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9699,6 +9744,15 @@
           <Val><![CDATA[Referenced table '{0}' not found]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Table référencée « {0} » introuvable]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++799f6f8acde01a01209703f348f68f7802b5c8623007342d362bed19959e7ed5" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Test connecting with the current settings]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tester la connexion avec les paramètres actuels]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12673,6 +12727,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++a1c60409bfd9bcd53f31a132bd46b1f125ebf2b16012ceb2bf16baacc460e61c" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Port {0} is already in use. Please choose a different port.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Le port {0} est déjà utilisé. Veuillez choisir un autre port.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++a278c1ed2486fecd0d324085d0a85dc6b97cb2444cd15978e2ccbea319157b62" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Expand connections]]></Val>
@@ -14050,6 +14113,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++b59435494dcd35be1cef0694a50b64de613df46a38364f7c59f082b8cf5ff263" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Le profil sélectionné s’authentifie en utilisant Entra ID « {0} » sur le locataire « {1} », mais ce compte n’est pas connecté dans l’extension MSSQL. Modifiez la connexion ou connectez-vous à MSSQL avec ce compte pour vous connecter.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++b5c2455f3e05fab4c5019daf09573a5885446d59adc75e85406fb1e9336eb48d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No text data available]]></Val>
@@ -14874,6 +14946,15 @@
           <Val><![CDATA[Find Previous]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Rechercher précédent]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++bf2b06cf5edeeb66a098a3a052ced6d9f0c647f587aa00f072c6de26abcacfa0" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connect with the current settings and save the connection profile]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Connectez-vous avec les paramètres actuels et enregistrez le profil de connexion]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17623,6 +17704,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++e2efd136048806149ca845f8521dbad2967230b47a2030b5b01614f9d5779620" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The selected profile authenticates using Entra ID '{0}' but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Le profil sélectionné s’authentifie en utilisant Entra ID « {0} », mais ce compte n’est pas connecté dans l’extension MSSQL. Modifiez la connexion ou connectez-vous à MSSQL avec ce compte pour vous connecter.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++e320e8c6ef9cc79399346a80f7074742cbc9e7ad78b2592c81929cf08b17f9ed" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Sort column]]></Val>
@@ -18087,6 +18177,15 @@
           <Val><![CDATA[Creating Container]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Création du conteneur]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++e7e6421e77a208718956538ea14f589ab43207800d985563be7e407d0a369c96" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Save connection profile changes without establishing a connection]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Enregistrer les modifications du profil de connexion sans établir de connexion]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
