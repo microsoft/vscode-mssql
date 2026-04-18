@@ -314,7 +314,7 @@
     },
     "Default": "Default",
     "Delete saved connection": "Delete saved connection",
-    "Remove recent connection": "Remove recent connection",
+    "Clear from recent connections list": "Clear from recent connections list",
     "Copy connection string to clipboard": "Copy connection string to clipboard",
     "Paste connection string from clipboard": "Paste connection string from clipboard",
     "Paste": "Paste",
