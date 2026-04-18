@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import StatusView from "../views/statusView";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import { QueryNotificationHandler } from "./queryNotificationHandler";
 import VscodeWrapper from "./vscodeWrapper";
@@ -154,7 +153,6 @@ export default class QueryRunner {
     constructor(
         private _ownerUri: string,
         private _editorTitle: string,
-        private _statusView: StatusView,
         private _client?: SqlToolsServerClient,
         private _notificationHandler?: QueryNotificationHandler,
         private _vscodeWrapper?: VscodeWrapper,
@@ -433,8 +431,6 @@ export default class QueryRunner {
         this._resultLineOffset = selection ? selection.startLine : 0;
         this._isExecuting = true;
         this._totalElapsedMilliseconds = 0;
-        // Update the status view to show that we're executing
-        this._statusView.executingQuery(this.uri);
 
         QueryRunner.addRunningQuery(this._ownerUri);
 
@@ -465,11 +461,6 @@ export default class QueryRunner {
             promise.resolve();
             this._uriToQueryPromiseMap.delete(result.ownerUri);
         }
-        this._statusView.executedQuery(result.ownerUri);
-        this._statusView.setExecutionTime(
-            result.ownerUri,
-            Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
-        );
         let hasError = this._batchSets.some((batch) => batch.hasError === true);
         this.removeRunningQuery();
         this.unregisterAllNotificationUris();
@@ -575,13 +566,6 @@ export default class QueryRunner {
 
         // Send the message to the results pane
         this._messageEmitter.fire(message);
-
-        // Set row count on status bar if there are no errors
-        if (!obj.message.isError) {
-            this._statusView.showRowCount(obj.ownerUri, obj.message.message);
-        } else {
-            this._statusView.hideRowCount(obj.ownerUri, true);
-        }
     }
 
     /**
@@ -625,8 +609,6 @@ export default class QueryRunner {
             totalMilliseconds: Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
             hasError: !!error,
         });
-        this._statusView.executedQuery(this._ownerUri);
-
         this.unregisterAllNotificationUris();
 
         if (errorMsg) {
@@ -724,7 +706,7 @@ export default class QueryRunner {
         batchId: number,
         resultId: number,
         selection: ISlickRange[],
-    ): Promise<void> {
+    ): Promise<boolean> {
         let copyString = "";
         let firstCol: number;
         let lastCol: number;
@@ -754,6 +736,8 @@ export default class QueryRunner {
         if (process.platform === "darwin") {
             process.env["LANG"] = oldLang;
         }
+
+        return true;
     }
 
     /**
@@ -768,8 +752,8 @@ export default class QueryRunner {
         batchId: number,
         resultId: number,
         includeHeaders?: boolean,
-    ): Promise<void> {
-        await this.copyResults2(selection, batchId, resultId, CopyType.Text, {
+    ): Promise<boolean> {
+        return await this.copyResults2(selection, batchId, resultId, CopyType.Text, {
             includeHeaders: includeHeaders ?? false,
         });
     }
@@ -790,7 +774,7 @@ export default class QueryRunner {
             textIdentifier?: string;
             encoding?: string;
         },
-    ): Promise<void> {
+    ): Promise<boolean> {
         // Cancel any in-progress copy operation
         if (this._copyOperationCancellation) {
             this._copyOperationCancellation.cancel();
@@ -808,23 +792,23 @@ export default class QueryRunner {
             _progress?: vscode.Progress<any>,
             token?: vscode.CancellationToken,
         ) => {
-            return new Promise<void>(async (resolve, reject) => {
+            return new Promise<boolean>(async (resolve, reject) => {
                 try {
                     // Handle cancellation from the progress dialog (user clicked cancel)
                     token?.onCancellationRequested(async () => {
                         await this._client.sendNotification(CancelCopy2Notification.type);
                         vscode.window.showInformationMessage("Copying results cancelled");
-                        resolve();
+                        resolve(false);
                     });
 
                     // Handle internal cancellation (new copy operation started) - no notification
                     copyToken.onCancellationRequested(async () => {
-                        resolve();
+                        resolve(false);
                     });
 
                     // Check if already cancelled before starting
                     if (copyToken.isCancellationRequested) {
-                        resolve();
+                        resolve(false);
                         return;
                     }
 
@@ -852,7 +836,7 @@ export default class QueryRunner {
 
                     // Check if cancelled while waiting for the request
                     if (copyToken.isCancellationRequested) {
-                        resolve();
+                        resolve(false);
                         return;
                     }
 
@@ -860,14 +844,11 @@ export default class QueryRunner {
                         await this.writeStringToClipboard(result.content);
                     }
 
-                    vscode.window.showInformationMessage(
-                        LocalizedConstants.resultsCopiedToClipboard,
-                    );
-                    resolve();
+                    resolve(true);
                 } catch (error) {
                     // Don't show error if cancelled
                     if (copyToken.isCancellationRequested) {
-                        resolve();
+                        resolve(false);
                         return;
                     }
                     vscode.window.showErrorMessage(
@@ -879,7 +860,7 @@ export default class QueryRunner {
         };
 
         if (showProgress) {
-            await vscode.window.withProgress(
+            return await vscode.window.withProgress(
                 {
                     location: vscode.ProgressLocation.Notification,
                     title: LocalizedConstants.copyingResults,
@@ -888,7 +869,7 @@ export default class QueryRunner {
                 executeCopy,
             );
         } else {
-            await executeCopy();
+            return await executeCopy();
         }
     }
 
@@ -952,7 +933,7 @@ export default class QueryRunner {
         selection: ISlickRange[],
         batchId: number,
         resultId: number,
-    ): Promise<void> {
+    ): Promise<boolean> {
         const config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
         const csvConfig = config[Constants.configSaveAsCsv] || {};
 
@@ -962,7 +943,7 @@ export default class QueryRunner {
         const encoding = csvConfig.encoding;
         const includeHeaders = csvConfig.includeHeaders;
 
-        await this.copyResults2(selection, batchId, resultId, CopyType.CSV, {
+        return await this.copyResults2(selection, batchId, resultId, CopyType.CSV, {
             includeHeaders: includeHeaders,
             delimiter,
             textIdentifier,
@@ -982,8 +963,8 @@ export default class QueryRunner {
         selection: ISlickRange[],
         batchId: number,
         resultId: number,
-    ): Promise<void> {
-        await this.copyResults2(selection, batchId, resultId, CopyType.JSON, {
+    ): Promise<boolean> {
+        return await this.copyResults2(selection, batchId, resultId, CopyType.JSON, {
             includeHeaders: true,
         });
     }
@@ -992,16 +973,16 @@ export default class QueryRunner {
         selection: ISlickRange[],
         batchId: number,
         resultId: number,
-    ): Promise<void> {
-        await this.copyResults2(selection, batchId, resultId, CopyType.IN);
+    ): Promise<boolean> {
+        return await this.copyResults2(selection, batchId, resultId, CopyType.IN);
     }
 
     public async copyResultsAsInsertInto(
         selection: ISlickRange[],
         batchId: number,
         resultId: number,
-    ): Promise<void> {
-        await this.copyResults2(selection, batchId, resultId, CopyType.INSERT, {
+    ): Promise<boolean> {
+        return await this.copyResults2(selection, batchId, resultId, CopyType.INSERT, {
             includeHeaders: true,
         });
     }
@@ -1030,6 +1011,8 @@ export default class QueryRunner {
                 text: `$(play-circle) ${LocalizedConstants.QueryResult.summaryFetchConfirmation(totalRows)}`,
                 tooltip: LocalizedConstants.QueryResult.clickToFetchSummary,
                 uri: this.uri,
+                batchId,
+                resultId,
             });
             await proceed.promise;
         };
@@ -1045,6 +1028,8 @@ export default class QueryRunner {
                 text: `$(loading~spin) ${LocalizedConstants.QueryResult.summaryLoadingProgress(totalRows)}`,
                 tooltip: LocalizedConstants.QueryResult.clickToCancelLoadingSummary,
                 uri: this.uri,
+                batchId,
+                resultId,
             });
         };
 
@@ -1111,38 +1096,17 @@ export default class QueryRunner {
                 return;
             }
 
-            let text = "";
-            let tooltip = "";
+            const stats: NonNullable<SelectionSummary["stats"]> = {
+                count: result.count,
+                distinctCount: result.distinctCount,
+                nullCount: result.nullCount,
+            };
 
-            // the selection is numeric
             if (result.average !== undefined && result.average !== null) {
-                const average = result.average.toFixed(2);
-                text = LocalizedConstants.QueryResult.numericSelectionSummary(
-                    average,
-                    result.count,
-                    result.sum,
-                );
-                tooltip = LocalizedConstants.QueryResult.numericSelectionSummaryTooltip(
-                    average,
-                    result.count,
-                    result.distinctCount,
-                    result.max ?? 0,
-                    result.min ?? 0,
-                    result.nullCount,
-                    result.sum,
-                );
-            } else {
-                text = LocalizedConstants.QueryResult.nonNumericSelectionSummary(
-                    result.count,
-                    result.distinctCount,
-                    result.nullCount,
-                );
-                tooltip = LocalizedConstants.QueryResult.nonNumericSelectionSummaryTooltip(
-                    result.count,
-                    result.distinctCount,
-                    result.nullCount,
-                );
-                tooltip = text;
+                stats.average = result.average;
+                stats.sum = result.sum;
+                stats.max = result.max;
+                stats.min = result.min;
             }
 
             // Resolve the cancel confirmation to clean up
@@ -1151,11 +1115,12 @@ export default class QueryRunner {
             }
 
             this.fireSummaryChangedEvent(requestId, {
-                text,
-                tooltip,
+                stats,
                 uri: this.uri,
                 command: undefined,
                 continue: undefined,
+                batchId,
+                resultId,
             });
         } catch (error) {
             // Clean up on error
@@ -1171,6 +1136,8 @@ export default class QueryRunner {
                 uri: this.uri,
                 command: undefined,
                 continue: undefined,
+                batchId,
+                resultId,
             });
             throw error;
         }

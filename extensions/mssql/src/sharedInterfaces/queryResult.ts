@@ -84,17 +84,32 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     inMemoryDataProcessingThreshold?: number;
     initializationError?: string;
     selectionSummary?: SelectionSummary;
+    isExecuting?: boolean;
+    executionStartTime?: number;
+}
+
+export interface SelectionSummaryMetrics {
+    average?: number;
+    count: number;
+    distinctCount: number;
+    max?: number;
+    min?: number;
+    nullCount: number;
+    sum?: number;
 }
 
 export interface SelectionSummary {
-    text: string;
-    command: {
+    stats?: SelectionSummaryMetrics;
+    text?: string;
+    command?: {
         title: string;
         command: string;
-        arguments: any[];
+        arguments: unknown[];
     };
-    tooltip: string;
-    continue?: any;
+    tooltip?: string;
+    continue?: unknown;
+    batchId?: number;
+    resultId?: number;
 }
 
 export interface QueryResultReducers extends Omit<ExecutionPlanReducers, "getExecutionPlan"> {
@@ -349,6 +364,10 @@ export namespace SetSelectionSummaryRequest {
     export const type = new NotificationType<SetSelectionSummary>("setSelectionSummary");
 }
 
+export namespace ShowCopySuccessNotification {
+    export const type = new NotificationType<void>("showCopySuccess");
+}
+
 export interface OpenInNewTabParams {
     uri: string;
 }
@@ -362,6 +381,20 @@ export interface GetWebviewLocationParams {
 export namespace GetWebviewLocationRequest {
     export const type = new RequestType<GetWebviewLocationParams, QueryResultWebviewLocation, void>(
         "getWebviewLocation",
+    );
+}
+
+export namespace GetOpenQueryResultsInTabByDefaultRequest {
+    export const type = new RequestType<void, boolean, void>("getOpenQueryResultsInTabByDefault");
+}
+
+export interface SetOpenQueryResultsInTabByDefaultParams {
+    enabled: boolean;
+}
+
+export namespace SetOpenQueryResultsInTabByDefaultRequest {
+    export const type = new RequestType<SetOpenQueryResultsInTabByDefaultParams, void, void>(
+        "setOpenQueryResultsInTabByDefault",
     );
 }
 
