@@ -37,7 +37,7 @@ import {
 import { SqlProjectsService } from "../services/sqlProjectsService";
 import { Deferred } from "../protocol";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
-import { TaskExecutionMode } from "../enums";
+import { TaskExecutionMode, DeploymentScenario } from "../enums";
 import { hasAnyMissingRequiredValues, getErrorMessage, uuid } from "../utils/utils";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { ProjectController } from "../controllers/projectController";
@@ -60,6 +60,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
 > {
     private _cachedDatabaseList?: { displayName: string; value: string }[];
     private _cachedSelectedDatabase?: string;
+    private _preloadedContainerPort?: Promise<number>;
     private _connectionUri?: string;
     private _serverTypes: string = "";
     private _availableConnections?: IConnectionDialogProfile[];
@@ -81,7 +82,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
         sqlProjectsService?: SqlProjectsService,
         dacFxService?: mssql.IDacFxService,
         sqlPackageService?: SqlPackageService,
-        deploymentOptions?: mssql.DeploymentOptions,
     ) {
         super(
             context,
@@ -101,8 +101,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 inProgress: false,
                 lastPublishResult: undefined,
                 hasFormErrors: true,
-                deploymentOptions: deploymentOptions,
-                defaultDeploymentOptions: undefined, //Clone after clearing excludeObjectTypes so reset uses the correct defaults
+                deploymentOptions: undefined,
+                defaultDeploymentOptions: undefined,
             } as PublishDialogState,
             {
                 title: Loc.Title,
@@ -122,16 +122,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
             },
         );
 
-        // Clear default excludeObjectTypes for publish dialog, no default exclude options should exist
-        if (deploymentOptions?.excludeObjectTypes !== undefined) {
-            deploymentOptions.excludeObjectTypes.value = [];
-        }
-
-        // Clone after clearing excludeObjectTypes so reset uses the correct defaults
-        this.state.defaultDeploymentOptions = deploymentOptions
-            ? structuredClone(deploymentOptions)
-            : undefined;
-
+        // Fire port detection immediately so it runs in the background while the dialog initializes.
+        this._preloadedContainerPort = dockerUtils.findAvailablePort(constants.defaultPortNumber);
         this._sqlProjectsService = sqlProjectsService;
         this._dacFxService = dacFxService;
         this._sqlPackageService = sqlPackageService;
@@ -146,6 +138,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
         });
 
         this.registerRpcHandlers();
+        this.updateState();
 
         // Listen for new connections being added elsewhere (e.g., Object Explorer)
         // Refresh the saved connections list so new connections appear in the dropdown
@@ -164,6 +157,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 this.initialized.resolve();
             })
             .catch((err) => {
+                this.logger.error(
+                    `Error initializing PublishProjectWebViewController: ${getErrorMessage(err)}`,
+                );
                 this.initialized.reject(err);
             });
     }
@@ -781,6 +777,30 @@ export class PublishProjectWebViewController extends FormWebviewController<
     private async initializeDialog(projectFilePath: string) {
         if (projectFilePath) {
             this.state.projectFilePath = projectFilePath;
+        }
+
+        // Fetch deployment options in the background while other init work proceeds.
+        if (this._dacFxService) {
+            // getDeploymentOptions returns a Thenable; wrap in Promise.resolve() for .catch support.
+            void Promise.resolve(
+                this._dacFxService.getDeploymentOptions(DeploymentScenario.Deployment),
+            )
+                .then((result) => {
+                    const options = result?.defaultDeploymentOptions;
+                    if (options) {
+                        // Clear default excludeObjectTypes — no default exclude options for the publish dialog.
+                        if (options.excludeObjectTypes !== undefined) {
+                            options.excludeObjectTypes.value = [];
+                        }
+                        this.state.deploymentOptions = options;
+                        // Clone after clearing so reset uses the correct defaults.
+                        this.state.defaultDeploymentOptions = structuredClone(options);
+                        this.updateState();
+                    }
+                })
+                .catch((err) => {
+                    this.logger.error("Failed to fetch deployment options:", err);
+                });
         }
 
         // Get the project properties from the proj file
@@ -1628,11 +1648,10 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 this._connectionUri = undefined;
                 this._serverTypes = "";
 
-                // Auto-detect the first port available from 1433 upward so the field
-                // never shows a port that is already in use.
-                const availablePort = await dockerUtils.findAvailablePort(
-                    constants.defaultPortNumber,
-                );
+                // Use pre-fetched port if available, otherwise fetch live.
+                const availablePort = this._preloadedContainerPort
+                    ? await this._preloadedContainerPort
+                    : await dockerUtils.findAvailablePort(constants.defaultPortNumber);
                 this.state.formState.containerPort =
                     availablePort > 0 ? String(availablePort) : String(constants.defaultPortNumber);
             } else if (this.state.formState.publishTarget === PublishTarget.ExistingServer) {
