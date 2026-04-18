@@ -154,12 +154,12 @@ suite("Tests to verify utils functions", function (): void {
 
     test("Should correctly detect present commands", async () => {
         expect(
-            await utils.detectCommandInstallation("node"),
+            await utils.resolveCommandPath("node"),
             '"node" should have been detected.',
-        ).to.equal(true);
+        ).to.not.equal(undefined);
         expect(
-            await utils.detectCommandInstallation("bogusFakeCommand"),
-            '"bogusFakeCommand" should have been detected.',
-        ).to.equal(false);
+            await utils.resolveCommandPath("bogusFakeCommand"),
+            '"bogusFakeCommand" should not have been detected.',
+        ).to.equal(undefined);
     });
 });

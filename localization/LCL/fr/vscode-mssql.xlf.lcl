@@ -1324,6 +1324,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++0f8e75246db2971314d4ccab6451fac39308e60133f90443516d207a4b717983" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unable to acquire a valid token. (expires: {0}, but is currently {1})]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Impossible d'obtenir un jeton valide. (expire le : {0}, mais est actuellement : {1})]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++0f98888ce39572ae27e642dd46baba8dbf179c6b3c42c522cde8ad1f43323b11" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The language model did not return any output.]]></Val>
@@ -3178,6 +3187,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++27dda4355b44df3f400de7845fe1bfc83a880707d4630f52be097d95625f7bfa" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure account '{0}' was not found. Sign in with the correct account or select a different one.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Le compte Azure « {0} » n'a pas été trouvé. Connectez-vous avec le compte correct ou sélectionnez-en un autre.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++27f768bff5493669f3ea47f271ac8cbc1f64712b84067a3d52598d5fed8fc55e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Save to URL]]></Val>
@@ -3219,6 +3237,15 @@
           <Val><![CDATA[Delete Confirmation]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Confirmation de la suppression]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++289c8a16e6884fd0e3f1579134fea1a2457efaaecad171ed5ac598eb0ae9ec58" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Error refreshing token; you may need to sign out and sign back in: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Erreur lors du renouvellement du jeton ; vous devrez peut-être vous déconnecter et vous reconnecter : {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5901,6 +5928,15 @@
           <Val><![CDATA[SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[SQL Server ne prend pas en charge les conteneurs Windows. Basculez vers des conteneurs Linux dans les paramètres de Docker Desktop.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++4999049f347c8083a5db26ef5fb3f51dc8ec31e0518279072ffdd7a2e8119195" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Token refreshed successfully.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Jeton actualisé avec succès.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8889,6 +8925,15 @@
           <Val><![CDATA[Recent connections list cleared]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Liste des connexions récentes effacée]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++70580f5715d9c53e71db7b7197f59cb412dc2ead9d577067cfbe9f3b5d2d65ca" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Error validating Entra authentication token; you may need to refresh your token: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Erreur lors de la validation du jeton d'authentification Entra ; vous devrez peut-être actualiser votre jeton : {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14766,6 +14811,15 @@
           <Val><![CDATA[Circular reference detected: '{0}' → '{1}' creates a cycle]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Référence circulaire détectée : « {0} » → « {1} » crée un cycle]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++be9ee0cf4e3d4fdd1af6d17852b5e7ef78069590b49fe086652744f0157aa268" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[IP address range]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Plage d’adresses IP]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21099,12 +21153,12 @@
       </Item>
       <Item ItemId=";package.mssql.notebooks.createNotebook" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Create SQL Notebook (Preview)]]></Val>
+          <Val><![CDATA[New SQL Notebook (Preview)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Créer un bloc-notes SQL (préversion)]]></Val>
+            <Val><![CDATA[Nouveau Notebook SQL (Aperçu)]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Create SQL Notebook]]></Val>
+            <Val><![CDATA[Create SQL Notebook (Preview)]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
@@ -21453,12 +21507,12 @@
       </Item>
       <Item ItemId=";package.mssql.profiler.launchFromObjectExplorer" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Launch Query Profiler (Preview)...]]></Val>
+          <Val><![CDATA[Launch Query Profiler...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Lancer le profileur de requêtes (Aperçu)...]]></Val>
+            <Val><![CDATA[Lancer le profileur de requêtes...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Launch Query Profiler (Preview)]]></Val>
+            <Val><![CDATA[Launch Query Profiler (Preview)...]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
@@ -22110,12 +22164,12 @@
       </Item>
       <Item ItemId=";package.mssql.searchDatabase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Search Database Objects (Preview)...]]></Val>
+          <Val><![CDATA[Search Database Objects...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Rechercher des objets de base de données (préversion)...]]></Val>
+            <Val><![CDATA[Recherche d'objets dans la base de données...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Search Database Objects...]]></Val>
+            <Val><![CDATA[Search Database Objects (Preview)...]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />

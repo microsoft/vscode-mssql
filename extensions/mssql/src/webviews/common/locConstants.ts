@@ -357,14 +357,21 @@ export class LocConstants {
             },
             databaseList: l10n.t("Database list"),
             connect: l10n.t("Connect"),
+            connectTooltip: l10n.t(
+                "Connect with the current settings and save the connection profile",
+            ),
             connectActions: l10n.t("Connection actions"),
             advancedConnectionSettings: l10n.t("Advanced Connection Settings"),
             advancedSettings: l10n.t("Advanced"),
             testConnection: l10n.t("Test connection"),
+            testConnectionTooltip: l10n.t("Test connecting with the current settings"),
             testConnectionSucceeded: l10n.t("Connection test succeeded"),
             testing: l10n.t("Testing..."),
             connecting: l10n.t("Connecting..."),
             saveWithoutConnecting: l10n.t("Save without connecting"),
+            saveWithoutConnectingTooltip: l10n.t(
+                "Save connection profile changes without establishing a connection",
+            ),
             connectToDatabase: l10n.t("Connect to Database"),
             editDatabaseConnection: (profileName: string) =>
                 l10n.t({
@@ -1792,7 +1799,7 @@ export class LocConstants {
 
     public get createDatabase() {
         return {
-            title: l10n.t("Create Database (Preview)"),
+            title: l10n.t("Create Database"),
             description: (serverName: string) =>
                 l10n.t({
                     message: "Create a new database on '{0}'.",
@@ -1822,7 +1829,7 @@ export class LocConstants {
 
     public get dropDatabase() {
         return {
-            title: l10n.t("Drop Database (Preview)"),
+            title: l10n.t("Drop Database"),
             description: (databaseName: string, serverName: string) =>
                 l10n.t({
                     message: "Drop '{0}' from '{1}'. This action cannot be undone.",
@@ -1903,6 +1910,9 @@ export class LocConstants {
             operationFailed: l10n.t("Operation failed"),
             unexpectedError: l10n.t("An unexpected error occurred"),
             failedToLoadDatabases: l10n.t("Failed to load databases"),
+            databasesCannotBeLoadedDueToPermissions: l10n.t(
+                "Unable to retrieve the list of databases. You may not have permission to list databases on this server. If your connection specifies a database, it will be preselected.",
+            ),
             deploySuccess: l10n.t("DACPAC deployed successfully"),
             extractSuccess: l10n.t("DACPAC extracted successfully"),
             importSuccess: l10n.t("BACPAC imported successfully"),
@@ -1955,7 +1965,7 @@ export class LocConstants {
     public get searchDatabase() {
         return {
             // Page titles and headers
-            title: l10n.t("Search Database Objects (Preview)"),
+            title: l10n.t("Search Database Objects"),
             loading: l10n.t("Loading database objects"),
             connectingTo: (serverName: string) =>
                 l10n.t({
@@ -2400,8 +2410,8 @@ export class LocConstants {
             stateReadOnly: l10n.t("Read-Only"),
 
             // Status bar
-            noSession: l10n.t("Query Profiler (Preview): No session"),
-            sessionStatusTooltip: l10n.t("Query Profiler (Preview) Session Status"),
+            noSession: l10n.t("Query Profiler: No session"),
+            sessionStatusTooltip: l10n.t("Query Profiler Session Status"),
             eventsCount: (count: number) =>
                 l10n.t({
                     message: "{0} events",

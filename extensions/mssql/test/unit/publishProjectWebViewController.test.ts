@@ -23,6 +23,7 @@ import {
     PublishTarget,
     PublishDialogState,
     MaskMode,
+    PublishFormFields,
 } from "../../src/sharedInterfaces/publishDialog";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import { SqlProjectsService } from "../../src/services/sqlProjectsService";
@@ -1134,25 +1135,19 @@ suite("PublishProjectWebViewController Tests", () => {
     //#endregion
 
     //#region Docker Container Publish Tests
-    test("prepareContainerConfiguration generates unique container name and parses port", async () => {
+    test("prepareContainerConfiguration generates container name and parses port", async () => {
         const controller = createTestController();
         await controller.initialized.promise;
 
-        // Set up form state with container values
-        controller.state.formState.containerPort = "1450";
+        controller.state.formState.containerPort = "1433";
 
-        // Mock validateContainerName to return a unique name
         sandbox.stub(dockerUtils, "validateContainerName").resolves("sql-server-container-abc123");
 
-        // Call the method
         const config = await controller["prepareContainerConfiguration"](controller.state);
 
-        // Verify container name was generated
+        expect(dockerUtils.validateContainerName).to.have.been.calledWith("");
         expect(config.containerName).to.equal("sql-server-container-abc123");
-        expect(dockerUtils.validateContainerName).to.have.been.calledOnce;
-
-        // Verify port was parsed
-        expect(config.port).to.equal(1450);
+        expect(config.port).to.equal(1433);
     });
 
     test("publishNow with LocalContainer target runs full Docker workflow", async () => {
@@ -1410,6 +1405,136 @@ suite("PublishProjectWebViewController Tests", () => {
             loggerErrorSpy,
         );
     });
+
+    test("createDockerContainer succeeds on second attempt after transient auth failure", async () => {
+        const controller = createTestController();
+        await controller.initialized.promise;
+
+        // Stub Docker steps (pullImage → checkContainer) to all succeed so we reach the connection logic
+        sandbox.stub(sqlServerContainer, "initializeDockerSteps").returns(
+            Array.from({ length: 7 }, () => ({
+                loadState: ApiStatus.NotStarted,
+                argNames: [],
+                headerText: "",
+                bodyText: "",
+                stepAction: sandbox.stub().resolves({ success: true }),
+            })),
+        );
+
+        const clock = sandbox.useFakeTimers();
+
+        const connectionProfile = {} as IConnectionProfileWithSource;
+
+        // First saveProfile call throws login-failed; second succeeds
+        (
+            mockMainController.connectionManager as unknown as {
+                connectionUI: { saveProfile: sinon.SinonStub };
+            }
+        ).connectionUI = {
+            saveProfile: sandbox
+                .stub()
+                .onFirstCall()
+                .rejects(new Error("Login failed for user 'SA'."))
+                .onSecondCall()
+                .resolves(connectionProfile),
+        };
+
+        (mockMainController.connectionManager.getUriForConnection as sinon.SinonStub).returns(
+            "mssql://container-uri",
+        );
+
+        sandbox.stub(telemetry, "sendActionEvent");
+
+        const resultPromise = controller["createDockerContainer"]("test-container", 1433, {
+            ...controller.state,
+            formState: {
+                ...controller.state.formState,
+                containerAdminPassword: "P@ssw0rd!",
+                containerImageTag: "2022-latest",
+                acceptContainerLicense: true,
+            },
+        });
+
+        // Advance past the backoff delay between attempt 0 and attempt 1 (3000ms)
+        await clock.tickAsync(10000);
+        const result = await resultPromise;
+
+        expect(result.success).to.be.true;
+        expect(result.connectionUri).to.equal("mssql://container-uri");
+    });
+
+    test("createDockerContainer fails after all retry attempts exhausted", async () => {
+        const controller = createTestController();
+        await controller.initialized.promise;
+
+        // Stub Docker steps (pullImage → checkContainer) to all succeed so we reach the connection logic
+        sandbox.stub(sqlServerContainer, "initializeDockerSteps").returns(
+            Array.from({ length: 7 }, () => ({
+                loadState: ApiStatus.NotStarted,
+                argNames: [],
+                headerText: "",
+                bodyText: "",
+                stepAction: sandbox.stub().resolves({ success: true }),
+            })),
+        );
+
+        const clock = sandbox.useFakeTimers();
+
+        const saveProfileStub = sandbox.stub().rejects(new Error("Login failed for user 'SA'."));
+        (
+            mockMainController.connectionManager as unknown as {
+                connectionUI: { saveProfile: sinon.SinonStub };
+            }
+        ).connectionUI = { saveProfile: saveProfileStub };
+
+        sandbox.stub(telemetry, "sendErrorEvent");
+
+        const resultPromise = controller["createDockerContainer"]("test-container", 1433, {
+            ...controller.state,
+            formState: {
+                ...controller.state.formState,
+                containerAdminPassword: "P@ssw0rd!",
+                containerImageTag: "2022-latest",
+                acceptContainerLicense: true,
+            },
+        });
+
+        // Advance past all backoff delays: 3000ms (after attempt 0) + 6000ms (after attempt 1)
+        await clock.tickAsync(100000);
+        const result = await resultPromise;
+
+        expect(result.success).to.be.false;
+        expect(result.error).to.include("Login failed");
+        // saveProfile should have been called for each attempt
+        expect(saveProfileStub.callCount).to.equal(constants.containerConnectionMaxAttempts);
+    });
+
+    test("validateForm marks port as invalid when already in use", async () => {
+        const controller = createTestController();
+        await controller.initialized.promise;
+
+        controller.state.formState.publishTarget = PublishTarget.LocalContainer;
+        controller.state.formState.containerPort = "1433";
+
+        // Simulate port in use: findAvailablePort returns a different port
+        sandbox.stub(dockerUtils, "findAvailablePort").resolves(1434);
+
+        // Stub parent validateForm to return no errors
+        sandbox
+            .stub(Object.getPrototypeOf(Object.getPrototypeOf(controller)), "validateForm")
+            .resolves([]);
+
+        const errored = await controller["validateForm"](
+            controller.state.formState,
+            PublishFormFields.ContainerPort as keyof typeof controller.state.formState,
+            true,
+        );
+
+        const portComponent = controller.state.formComponents[PublishFormFields.ContainerPort];
+        expect(portComponent?.validation?.isValid).to.be.false;
+        expect(errored).to.include(PublishFormFields.ContainerPort);
+    });
+
     //#endregion
 
     test("publish and generate-script telemetry payloads include serverTypes from the active connection", async () => {

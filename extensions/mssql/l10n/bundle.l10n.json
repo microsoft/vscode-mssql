@@ -253,14 +253,17 @@
     "No databases found in the selected workspace.": "No databases found in the selected workspace.",
     "Database list": "Database list",
     "Connect": "Connect",
+    "Connect with the current settings and save the connection profile": "Connect with the current settings and save the connection profile",
     "Connection actions": "Connection actions",
     "Advanced Connection Settings": "Advanced Connection Settings",
     "Advanced": "Advanced",
     "Test connection": "Test connection",
+    "Test connecting with the current settings": "Test connecting with the current settings",
     "Connection test succeeded": "Connection test succeeded",
     "Testing...": "Testing...",
     "Connecting...": "Connecting...",
     "Save without connecting": "Save without connecting",
+    "Save connection profile changes without establishing a connection": "Save connection profile changes without establishing a connection",
     "Connect to Database": "Connect to Database",
     "Edit Database Connection - {0}/{0} is the name of the connection profile": {
         "message": "Edit Database Connection - {0}",
@@ -1132,7 +1135,6 @@
     "Show Confirm Password": "Show Confirm Password",
     "Hide Confirm Password": "Hide Confirm Password",
     "Passwords do not match": "Passwords do not match",
-    "Create Database (Preview)": "Create Database (Preview)",
     "Create a new database on '{0}'./{0} is the name of the server": {
         "message": "Create a new database on '{0}'.",
         "comment": ["{0} is the name of the server"]
@@ -1149,7 +1151,7 @@
     "Is Ledger Database": "Is Ledger Database",
     "Help": "Help",
     "Creating database": "Creating database",
-    "Drop Database (Preview)": "Drop Database (Preview)",
+    "Drop Database": "Drop Database",
     "Drop '{0}' from '{1}'. This action cannot be undone./{0} is the database name{1} is the server name": {
         "message": "Drop '{0}' from '{1}'. This action cannot be undone.",
         "comment": ["{0} is the database name", "{1} is the server name"]
@@ -1204,6 +1206,7 @@
     "Operation failed": "Operation failed",
     "An unexpected error occurred": "An unexpected error occurred",
     "Failed to load databases": "Failed to load databases",
+    "Unable to retrieve the list of databases. You may not have permission to list databases on this server. If your connection specifies a database, it will be preselected.": "Unable to retrieve the list of databases. You may not have permission to list databases on this server. If your connection specifies a database, it will be preselected.",
     "DACPAC deployed successfully": "DACPAC deployed successfully",
     "DACPAC extracted successfully": "DACPAC extracted successfully",
     "BACPAC imported successfully": "BACPAC imported successfully",
@@ -1239,7 +1242,7 @@
     "Close Script Pane": "Close Script Pane",
     "Modify Table": "Modify Table",
     "View Table Diagram": "View Table Diagram",
-    "Search Database Objects (Preview)": "Search Database Objects (Preview)",
+    "Search Database Objects": "Search Database Objects",
     "Loading database objects": "Loading database objects",
     "Connecting to {0}.../{0} is the server name": {
         "message": "Connecting to {0}...",
@@ -1526,8 +1529,8 @@
     "Stopped": "Stopped",
     "Not Started": "Not Started",
     "Read-Only": "Read-Only",
-    "Query Profiler (Preview): No session": "Query Profiler (Preview): No session",
-    "Query Profiler (Preview) Session Status": "Query Profiler (Preview) Session Status",
+    "Query Profiler: No session": "Query Profiler: No session",
+    "Query Profiler Session Status": "Query Profiler Session Status",
     "{0} events/{0} is the number of events": {
         "message": "{0} events",
         "comment": ["{0} is the number of events"]
@@ -1701,7 +1704,6 @@
     "Public": "Public",
     "Private": "Private",
     "Remove": "Remove",
-    "Drop Database": "Drop Database",
     "Rename Database": "Rename Database",
     "Enter the new database name": "Enter the new database name",
     "Please select a server node in Object Explorer to create a database.": "Please select a server node in Object Explorer to create a database.",
@@ -2252,6 +2254,8 @@
     "Sign in": "Sign in",
     "Additional parameters": "Additional parameters",
     "<Default>": "<Default>",
+    "Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.": "Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.",
+    "Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.": "Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.",
     "+ Create Connection Group": "+ Create Connection Group",
     "Select a connection group": "Select a connection group",
     "Search connection groups": "Search connection groups",
@@ -2391,6 +2395,18 @@
     "Fabric is not supported in the current cloud ({0}).  Ensure setting '{1}' is configured correctly./{0} is the cloud name{1} is the setting name": {
         "message": "Fabric is not supported in the current cloud ({0}).  Ensure setting '{1}' is configured correctly.",
         "comment": ["{0} is the cloud name", "{1} is the setting name"]
+    },
+    "The selected profile authenticates using Entra ID '{0}' but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect./{0} is the account ID or label": {
+        "message": "The selected profile authenticates using Entra ID '{0}' but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.",
+        "comment": ["{0} is the account ID or label"]
+    },
+    "The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect./{0} is the account ID or label{1} is the tenant ID": {
+        "message": "The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.",
+        "comment": ["{0} is the account ID or label", "{1} is the tenant ID"]
+    },
+    "The selected profile authenticates using Entra ID '{0}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect./{0} is the account ID or label": {
+        "message": "The selected profile authenticates using Entra ID '{0}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.",
+        "comment": ["{0} is the account ID or label"]
     },
     "The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect./{0} is the account ID or label{1} is the tenant ID": {
         "message": "The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.",
@@ -2630,6 +2646,10 @@
     "Checking Docker prerequisites...": "Checking Docker prerequisites...",
     "Creating SQL Server container...": "Creating SQL Server container...",
     "Port must be a number between 1 and 65535": "Port must be a number between 1 and 65535",
+    "Port {0} is already in use. Please choose a different port./{0} is the port number": {
+        "message": "Port {0} is already in use. Please choose a different port.",
+        "comment": ["{0} is the port number"]
+    },
     "Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy": "Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy",
     "{0} password doesn't match the confirmation password": "{0} password doesn't match the confirmation password",
     "Required": "Required",
@@ -3104,6 +3124,7 @@
     "Reveal in Explorer": "Reveal in Explorer",
     "Reveal in Finder": "Reveal in Finder",
     "Open Containing Folder": "Open Containing Folder",
+    "Unable to retrieve the list of databases. You may not have permission to list databases on this server.": "Unable to retrieve the list of databases. You may not have permission to list databases on this server.",
     "DACPAC deployed successfully to database '{0}'/{0} is the database name": {
         "message": "DACPAC deployed successfully to database '{0}'",
         "comment": ["{0} is the database name"]
@@ -3120,8 +3141,8 @@
         "message": "BACPAC exported successfully to '{0}'",
         "comment": ["{0} is the file path"]
     },
-    "Search Database Objects (Preview) - {0}/{0} is the server name": {
-        "message": "Search Database Objects (Preview) - {0}",
+    "Search Database Objects - {0}/{0} is the server name": {
+        "message": "Search Database Objects - {0}",
         "comment": ["{0} is the server name"]
     },
     "Failed to establish connection": "Failed to establish connection",
@@ -3303,10 +3324,10 @@
     },
     "Session name can only contain letters, numbers, underscores, and hyphens": "Session name can only contain letters, numbers, underscores, and hyphens",
     "Select a profiler template": "Select a profiler template",
-    "New Query Profiler (Preview) - Select Template": "New Query Profiler (Preview) - Select Template",
+    "New Query Profiler - Select Template": "New Query Profiler - Select Template",
     "Enter a name for the new profiler session": "Enter a name for the new profiler session",
     "MyProfilerSession": "MyProfilerSession",
-    "New Query Profiler (Preview) - Enter Name": "New Query Profiler (Preview) - Enter Name",
+    "New Query Profiler - Enter Name": "New Query Profiler - Enter Name",
     "Engine: {0}/{0} is the engine type": {
         "message": "Engine: {0}",
         "comment": ["{0} is the engine type"]
@@ -3338,11 +3359,11 @@
         "message": "Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection",
         "comment": ["{0} is the file name"]
     },
-    "Query Profiler (Preview): {0}/{0} is the file name or session name": {
-        "message": "Query Profiler (Preview): {0}",
+    "Query Profiler: {0}/{0} is the file name or session name": {
+        "message": "Query Profiler: {0}",
         "comment": ["{0} is the file name or session name"]
     },
-    "Query Profiler (Preview)": "Query Profiler (Preview)",
+    "Query Profiler": "Query Profiler",
     "{0}/{1} events/{0} is the filtered count, {1} is the total count": {
         "message": "{0}/{1} events",
         "comment": ["{0} is the filtered count, {1} is the total count"]
