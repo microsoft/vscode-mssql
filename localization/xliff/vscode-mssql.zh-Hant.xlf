@@ -8277,7 +8277,7 @@ Query: {2}</source>
       <trans-unit id="++CODE++e2efd136048806149ca845f8521dbad2967230b47a2030b5b01614f9d5779620">
         <source xml:lang="en">The selected profile authenticates using Entra ID '{0}' but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.</source>
         <note>{0} is the account ID or label</note>
-        <target state="new">The selected profile authenticates using Entra ID '{0}' but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.</target>
+        <target state="translated">所選設定檔使用 Entra ID '{0}' 進行驗證，但該帳號尚未登入 MSSQL 擴充功能。請編輯連線或使用該帳戶登入 MSSQL 以連線。</target>
       </trans-unit>
       <trans-unit id="++CODE++17fc9cf78ccc4c6485ababb4c5c9ec97a19cb70c7531bdcf315dfe27f8d2c5da">
         <source xml:lang="en">The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.</source>
@@ -8289,12 +8289,12 @@ Query: {2}</source>
         <source xml:lang="en">The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.</source>
         <note>{0} is the account ID or label
 {1} is the tenant ID</note>
-        <target state="new">The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.</target>
+        <target state="translated">所選設定檔使用 Entra ID '{0}' 在租用戶 '{1}' 上進行驗證，但該帳號尚未登入 MSSQL 擴充功能。請編輯連線或使用該帳戶登入 MSSQL 以連線。</target>
       </trans-unit>
       <trans-unit id="++CODE++2d93cdf980de7a656d499569548c98d27086e3edebb3b89f58b28ec45facf111">
         <source xml:lang="en">The selected profile authenticates using Entra ID '{0}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.</source>
         <note>{0} is the account ID or label</note>
-        <target state="new">The selected profile authenticates using Entra ID '{0}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.</target>
+        <target state="translated">所選設定檔使用 Entra ID '{0}' 進行驗證，但該帳號無法透過 VS Code 登入取得。請編輯連線或使用該帳戶登入 VS Code 以連線。</target>
       </trans-unit>
       <trans-unit id="++CODE++d7f9cfdbfc45384b7521ed4b8082d476a2d3cae5cbb8c57eec64003513cacbf2">
         <source xml:lang="en">The table which contains the primary or unique key column.</source>

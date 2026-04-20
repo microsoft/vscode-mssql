@@ -637,7 +637,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++0b5cc185ca6a07f98625ce51f17da6ab56e7003264c3b98dac6324d231d61652">
         <source xml:lang="en">Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.</source>
-        <target state="new">Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.</target>
+        <target state="translated">Sélectionne automatiquement une identité Microsoft Entra ID disponible parmi les fournisseurs installés sur votre système. Cliquez sur l'icône d'information pour en savoir plus.</target>
       </trans-unit>
       <trans-unit id="++CODE++87cdec8b1acc8c61a853ce73e9707a8a0c55e57922ff53e108262128e97553f2">
         <source xml:lang="en">Available Servers</source>
@@ -1604,7 +1604,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++bf2b06cf5edeeb66a098a3a052ced6d9f0c647f587aa00f072c6de26abcacfa0">
         <source xml:lang="en">Connect with the current settings and save the connection profile</source>
-        <target state="new">Connect with the current settings and save the connection profile</target>
+        <target state="translated">Connectez-vous avec les paramètres actuels et enregistrez le profil de connexion</target>
       </trans-unit>
       <trans-unit id="++CODE++28d29898bc769fd6df013da142af60f451953946e641fc2a2bee0e49b235a623">
         <source xml:lang="en">Connected successfully</source>
@@ -6101,7 +6101,7 @@ Erreur :
       <trans-unit id="++CODE++a1c60409bfd9bcd53f31a132bd46b1f125ebf2b16012ceb2bf16baacc460e61c">
         <source xml:lang="en">Port {0} is already in use. Please choose a different port.</source>
         <note>{0} is the port number</note>
-        <target state="new">Port {0} is already in use. Please choose a different port.</target>
+        <target state="translated">Le port {0} est déjà utilisé. Veuillez choisir un autre port.</target>
       </trans-unit>
       <trans-unit id="++CODE++c56a86c298eb5a88289af29ba70d8dfdfbf42f6a0c6cf7fe8317a824db4eb767">
         <source xml:lang="en">Possible Data Loss detected. Please review the changes.</source>
@@ -6954,7 +6954,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++e7e6421e77a208718956538ea14f589ab43207800d985563be7e407d0a369c96">
         <source xml:lang="en">Save connection profile changes without establishing a connection</source>
-        <target state="new">Save connection profile changes without establishing a connection</target>
+        <target state="translated">Enregistrer les modifications du profil de connexion sans établir de connexion</target>
       </trans-unit>
       <trans-unit id="++CODE++bae1da28225af71a125385224716f5ff7870573e6c01494c597e8ed4168b12e3">
         <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
@@ -7635,7 +7635,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++1611a24a44316316a1736eb54d2504ddcc0f728257616bc857b0005b90beaea4">
         <source xml:lang="en">Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.</source>
-        <target state="new">Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.</target>
+        <target state="translated">Connectez-vous avec votre compte Microsoft Entra ID, y compris les comptes avec authentification multifacteur. Cliquez sur l'icône d'information pour en savoir plus.</target>
       </trans-unit>
       <trans-unit id="++CODE++f33c8e270a9d867a7ed6cb8d51e40f58132390afcd0e2eb79292952039fd8397">
         <source xml:lang="en">Sign into Azure</source>
@@ -8114,7 +8114,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++799f6f8acde01a01209703f348f68f7802b5c8623007342d362bed19959e7ed5">
         <source xml:lang="en">Test connecting with the current settings</source>
-        <target state="new">Test connecting with the current settings</target>
+        <target state="translated">Tester la connexion avec les paramètres actuels</target>
       </trans-unit>
       <trans-unit id="++CODE++5bcf311b19d80c5645ce05f5fd36fc449412a6571ceb229fd483e9c415865912">
         <source xml:lang="en">Test connection</source>
@@ -8277,7 +8277,7 @@ Requête : {2}</target>
       <trans-unit id="++CODE++e2efd136048806149ca845f8521dbad2967230b47a2030b5b01614f9d5779620">
         <source xml:lang="en">The selected profile authenticates using Entra ID '{0}' but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.</source>
         <note>{0} is the account ID or label</note>
-        <target state="new">The selected profile authenticates using Entra ID '{0}' but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.</target>
+        <target state="translated">Le profil sélectionné s’authentifie en utilisant Entra ID « {0} », mais ce compte n’est pas connecté dans l’extension MSSQL. Modifiez la connexion ou connectez-vous à MSSQL avec ce compte pour vous connecter.</target>
       </trans-unit>
       <trans-unit id="++CODE++17fc9cf78ccc4c6485ababb4c5c9ec97a19cb70c7531bdcf315dfe27f8d2c5da">
         <source xml:lang="en">The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.</source>
@@ -8289,12 +8289,12 @@ Requête : {2}</target>
         <source xml:lang="en">The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.</source>
         <note>{0} is the account ID or label
 {1} is the tenant ID</note>
-        <target state="new">The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.</target>
+        <target state="translated">Le profil sélectionné s’authentifie en utilisant Entra ID « {0} » sur le locataire « {1} », mais ce compte n’est pas connecté dans l’extension MSSQL. Modifiez la connexion ou connectez-vous à MSSQL avec ce compte pour vous connecter.</target>
       </trans-unit>
       <trans-unit id="++CODE++2d93cdf980de7a656d499569548c98d27086e3edebb3b89f58b28ec45facf111">
         <source xml:lang="en">The selected profile authenticates using Entra ID '{0}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.</source>
         <note>{0} is the account ID or label</note>
-        <target state="new">The selected profile authenticates using Entra ID '{0}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.</target>
+        <target state="translated">Le profil sélectionné s’authentifie en utilisant Entra ID « {0} », mais ce compte n’est pas disponible via la connexion VS Code. Modifiez la connexion ou connectez-vous à VS Code avec ce compte pour vous connecter.</target>
       </trans-unit>
       <trans-unit id="++CODE++d7f9cfdbfc45384b7521ed4b8082d476a2d3cae5cbb8c57eec64003513cacbf2">
         <source xml:lang="en">The table which contains the primary or unique key column.</source>
@@ -8479,11 +8479,11 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++5d1ae18e4c82efee8401c895242feeb54a8a5093d2b024877c83a7a08660a945">
         <source xml:lang="en">Unable to retrieve the list of databases. You may not have permission to list databases on this server.</source>
-        <target state="new">Unable to retrieve the list of databases. You may not have permission to list databases on this server.</target>
+        <target state="translated">Impossible de récupérer la liste des bases de données. Vous n'avez peut-être pas l'autorisation de lister les bases de données sur ce serveur.</target>
       </trans-unit>
       <trans-unit id="++CODE++5e487cbb896806c4ffd5fd55308a163e5a5ebdb2de5b6e717faff434ddd119dd">
         <source xml:lang="en">Unable to retrieve the list of databases. You may not have permission to list databases on this server. If your connection specifies a database, it will be preselected.</source>
-        <target state="new">Unable to retrieve the list of databases. You may not have permission to list databases on this server. If your connection specifies a database, it will be preselected.</target>
+        <target state="translated">Impossible de récupérer la liste des bases de données. Vous n'avez peut-être pas l'autorisation de lister les bases de données sur ce serveur. Si votre connexion spécifie une base de données, celle-ci sera présélectionnée.</target>
       </trans-unit>
       <trans-unit id="++CODE++6be6bf4fae4897b542e648716d3e0fb9d67e3f4457c7b37afd4b217ca93e2914">
         <source xml:lang="en">Unavailable for backups to existing files</source>
