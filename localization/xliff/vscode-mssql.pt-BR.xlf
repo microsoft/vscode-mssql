@@ -5258,11 +5258,11 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++a32a71122605d871f3213af8b401fe9cfd1e00ab4b1d508826d2dd6f97bb3cc6">
         <source xml:lang="en">New Query Profiler - Enter Name</source>
-        <target state="new">New Query Profiler - Enter Name</target>
+        <target state="translated">Novo Criador de Perfil de Consulta — Inserir Nome</target>
       </trans-unit>
       <trans-unit id="++CODE++0d4d95a7a2955bb82377a0ca37dbb8a946344dd95c092820b5ece489c29e7403">
         <source xml:lang="en">New Query Profiler - Select Template</source>
-        <target state="new">New Query Profiler - Select Template</target>
+        <target state="translated">Novo Criador de Perfil de Consulta — Selecionar Modelo</target>
       </trans-unit>
       <trans-unit id="++CODE++f0ebbe4b20d0db8c4c52feb9dc715d1db281ae429389480780ce9120113da253">
         <source xml:lang="en">New SQL database</source>
@@ -6339,20 +6339,20 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++17947c2e89e94b801fc32969b453d6004b1b8d94032f3b4843b594644a77882c">
         <source xml:lang="en">Query Profiler</source>
-        <target state="new">Query Profiler</target>
+        <target state="translated">Criador de Perfil de Consulta</target>
       </trans-unit>
       <trans-unit id="++CODE++6b0b8551d35dd7933f41fecf2942fc2219011291443e24b6c7b25988db65c159">
         <source xml:lang="en">Query Profiler Session Status</source>
-        <target state="new">Query Profiler Session Status</target>
+        <target state="translated">Status da Sessão do Criador de Perfil de Consulta</target>
       </trans-unit>
       <trans-unit id="++CODE++4f58606c7930b151acf10d33a17f526a14ad630d7cdce1351e798d73c0ae225d">
         <source xml:lang="en">Query Profiler: No session</source>
-        <target state="new">Query Profiler: No session</target>
+        <target state="translated">Criador de Perfil de Consulta: Sem sessão</target>
       </trans-unit>
       <trans-unit id="++CODE++d99dd3f5eca08c181708213b2607143fdd8813040f25e98a4987eec3c94d1570">
         <source xml:lang="en">Query Profiler: {0}</source>
         <note>{0} is the file name or session name</note>
-        <target state="new">Query Profiler: {0}</target>
+        <target state="translated">Criador de Perfil de Consulta: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++9e83dc6d2db272ac27cc875b994f834b62b7202a49b69e885f8f4e8f9c29a452">
         <source xml:lang="en">Query executed</source>
@@ -7101,12 +7101,12 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++615cb1c6b249984eb02967310fe49221a73cd895ddbadfe3bd81c45690941e57">
         <source xml:lang="en">Search Database Objects</source>
-        <target state="new">Search Database Objects</target>
+        <target state="translated">Pesquisar objetos de banco de dados</target>
       </trans-unit>
       <trans-unit id="++CODE++e84f366d30c8a2b085d32e67f0405aa88e6fd559c71641f8a86306bf18a9fb70">
         <source xml:lang="en">Search Database Objects - {0}</source>
         <note>{0} is the server name</note>
-        <target state="new">Search Database Objects - {0}</target>
+        <target state="translated">Pesquisar Objetos de Banco de Dados - {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++bd74591fea2d60dc873cec192685f7b6a930d2a370d5b3c9032014bf8224529a">
         <source xml:lang="en">Search Workspaces</source>
@@ -8277,7 +8277,7 @@ Consulta: {2}</target>
       <trans-unit id="++CODE++e2efd136048806149ca845f8521dbad2967230b47a2030b5b01614f9d5779620">
         <source xml:lang="en">The selected profile authenticates using Entra ID '{0}' but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.</source>
         <note>{0} is the account ID or label</note>
-        <target state="new">The selected profile authenticates using Entra ID '{0}' but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.</target>
+        <target state="translated">O perfil selecionado autentica usando o Entra ID '{0}', mas essa conta não está conectada na extensão MSSQL. Edite a conexão ou entre no MSSQL com essa conta para se conectar.</target>
       </trans-unit>
       <trans-unit id="++CODE++17fc9cf78ccc4c6485ababb4c5c9ec97a19cb70c7531bdcf315dfe27f8d2c5da">
         <source xml:lang="en">The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.</source>
@@ -8289,12 +8289,12 @@ Consulta: {2}</target>
         <source xml:lang="en">The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.</source>
         <note>{0} is the account ID or label
 {1} is the tenant ID</note>
-        <target state="new">The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.</target>
+        <target state="translated">O perfil selecionado autentica usando o Entra ID '{0}' no locatário '{1}', mas essa conta não está conectada na extensão MSSQL. Edite a conexão ou entre no MSSQL com essa conta para se conectar.</target>
       </trans-unit>
       <trans-unit id="++CODE++2d93cdf980de7a656d499569548c98d27086e3edebb3b89f58b28ec45facf111">
         <source xml:lang="en">The selected profile authenticates using Entra ID '{0}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.</source>
         <note>{0} is the account ID or label</note>
-        <target state="new">The selected profile authenticates using Entra ID '{0}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.</target>
+        <target state="translated">O perfil selecionado autentica usando o Entra ID '{0}', mas essa conta não está disponível na entrada do VS Code. Edite a conexão ou entre no VS Code com essa conta para se conectar.</target>
       </trans-unit>
       <trans-unit id="++CODE++d7f9cfdbfc45384b7521ed4b8082d476a2d3cae5cbb8c57eec64003513cacbf2">
         <source xml:lang="en">The table which contains the primary or unique key column.</source>
