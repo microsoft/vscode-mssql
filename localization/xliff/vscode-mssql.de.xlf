@@ -5258,11 +5258,11 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++a32a71122605d871f3213af8b401fe9cfd1e00ab4b1d508826d2dd6f97bb3cc6">
         <source xml:lang="en">New Query Profiler - Enter Name</source>
-        <target state="translated">Neuer Abfrageprofiler: Namen eingeben</target>
+        <target state="new">New Query Profiler - Enter Name</target>
       </trans-unit>
       <trans-unit id="++CODE++0d4d95a7a2955bb82377a0ca37dbb8a946344dd95c092820b5ece489c29e7403">
         <source xml:lang="en">New Query Profiler - Select Template</source>
-        <target state="translated">Neuer Abfrageprofiler – Vorlage auswählen</target>
+        <target state="new">New Query Profiler - Select Template</target>
       </trans-unit>
       <trans-unit id="++CODE++f0ebbe4b20d0db8c4c52feb9dc715d1db281ae429389480780ce9120113da253">
         <source xml:lang="en">New SQL database</source>
@@ -6339,20 +6339,20 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++17947c2e89e94b801fc32969b453d6004b1b8d94032f3b4843b594644a77882c">
         <source xml:lang="en">Query Profiler</source>
-        <target state="translated">Abfrageprofiler</target>
+        <target state="new">Query Profiler</target>
       </trans-unit>
       <trans-unit id="++CODE++6b0b8551d35dd7933f41fecf2942fc2219011291443e24b6c7b25988db65c159">
         <source xml:lang="en">Query Profiler Session Status</source>
-        <target state="translated">Status der Abfrageprofiler-Sitzung</target>
+        <target state="new">Query Profiler Session Status</target>
       </trans-unit>
       <trans-unit id="++CODE++4f58606c7930b151acf10d33a17f526a14ad630d7cdce1351e798d73c0ae225d">
         <source xml:lang="en">Query Profiler: No session</source>
-        <target state="translated">Abfrageprofiler: Keine Sitzung</target>
+        <target state="new">Query Profiler: No session</target>
       </trans-unit>
       <trans-unit id="++CODE++d99dd3f5eca08c181708213b2607143fdd8813040f25e98a4987eec3c94d1570">
         <source xml:lang="en">Query Profiler: {0}</source>
         <note>{0} is the file name or session name</note>
-        <target state="translated">Abfrageprofiler: {0}</target>
+        <target state="new">Query Profiler: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++9e83dc6d2db272ac27cc875b994f834b62b7202a49b69e885f8f4e8f9c29a452">
         <source xml:lang="en">Query executed</source>
@@ -7101,12 +7101,12 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++615cb1c6b249984eb02967310fe49221a73cd895ddbadfe3bd81c45690941e57">
         <source xml:lang="en">Search Database Objects</source>
-        <target state="translated">Datenbankobjekte durchsuchen</target>
+        <target state="new">Search Database Objects</target>
       </trans-unit>
       <trans-unit id="++CODE++e84f366d30c8a2b085d32e67f0405aa88e6fd559c71641f8a86306bf18a9fb70">
         <source xml:lang="en">Search Database Objects - {0}</source>
         <note>{0} is the server name</note>
-        <target state="translated">Datenbankobjekte durchsuchen – {0}</target>
+        <target state="new">Search Database Objects - {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++bd74591fea2d60dc873cec192685f7b6a930d2a370d5b3c9032014bf8224529a">
         <source xml:lang="en">Search Workspaces</source>

@@ -7101,12 +7101,12 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++615cb1c6b249984eb02967310fe49221a73cd895ddbadfe3bd81c45690941e57">
         <source xml:lang="en">Search Database Objects</source>
-        <target state="translated">데이터베이스 개체 검색</target>
+        <target state="new">Search Database Objects</target>
       </trans-unit>
       <trans-unit id="++CODE++e84f366d30c8a2b085d32e67f0405aa88e6fd559c71641f8a86306bf18a9fb70">
         <source xml:lang="en">Search Database Objects - {0}</source>
         <note>{0} is the server name</note>
-        <target state="translated">데이터베이스 개체 검색 - {0}</target>
+        <target state="new">Search Database Objects - {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++bd74591fea2d60dc873cec192685f7b6a930d2a370d5b3c9032014bf8224529a">
         <source xml:lang="en">Search Workspaces</source>
