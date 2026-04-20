@@ -120,6 +120,13 @@ export interface SearchableDropdownProps {
      * Optional function to render a decoration element for each option.
      */
     renderDecoration?: (option: SearchableDropdownOptions) => React.JSX.Element | undefined;
+
+    /**
+     * If true, the user may type and commit a value that doesn't appear in the options list.
+     * Pressing Enter when no options match, or closing the popup with typed text, will call
+     * onSelect with the typed value as a synthetic option (index -1).
+     */
+    freeform?: boolean;
 }
 
 /**
@@ -265,14 +272,27 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
         [props.options, selectedOption.value],
     );
 
-    const closePopup = useCallback((focusTrigger: boolean) => {
-        setIsOpen(false);
-        setSearchText("");
-        setActiveIndex(-1);
-        if (focusTrigger) {
-            requestAnimationFrame(() => buttonRef.current?.focus());
-        }
-    }, []);
+    const closePopup = useCallback(
+        (focusTrigger: boolean, currentSearchText?: string) => {
+            // In freeform mode, commit any typed text that doesn't match an option
+            if (props.freeform && currentSearchText) {
+                const index = props.options.findIndex(
+                    (opt) => (opt.text || opt.value) === currentSearchText,
+                );
+                if (index === -1) {
+                    setSelectedOption({ value: currentSearchText, text: currentSearchText });
+                    props.onSelect({ value: currentSearchText, text: currentSearchText }, -1);
+                }
+            }
+            setIsOpen(false);
+            setSearchText("");
+            setActiveIndex(-1);
+            if (focusTrigger) {
+                requestAnimationFrame(() => buttonRef.current?.focus());
+            }
+        },
+        [props.freeform, props.options, props.onSelect],
+    );
 
     const updateOption = useCallback(
         (option: SearchableDropdownOptions) => {
@@ -395,11 +415,16 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
         }
 
         if (e.key === "Enter") {
-            if (filteredOptions.length === 0) {
-                return;
-            }
             e.preventDefault();
             e.stopPropagation();
+
+            if (filteredOptions.length === 0) {
+                // In freeform mode, commit the typed text even if no options match
+                if (props.freeform && searchText) {
+                    closePopup(true, searchText);
+                }
+                return;
+            }
 
             const indexToSelect = activeIndex >= 0 ? activeIndex : 0;
             const option = filteredOptions[indexToSelect];
@@ -412,13 +437,13 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
         if (e.key === "Escape") {
             e.preventDefault();
             e.stopPropagation();
-            closePopup(true);
+            closePopup(true, searchText);
             return;
         }
 
         if (e.key === "Tab") {
-            // Allow normal focus traversal; just close the popup.
-            closePopup(false);
+            // Allow normal focus traversal; close the popup, committing freeform text if applicable.
+            closePopup(false, searchText);
         }
     };
 
@@ -534,6 +559,11 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
             positioning={{ position: "below", align: "start" }}
             open={isOpen}
             onOpenChange={(_e, data) => {
+                if (!data.open && props.freeform && searchText) {
+                    // Click-outside while text is typed: commit the freeform value
+                    closePopup(false, searchText);
+                    return;
+                }
                 setIsOpen(data.open);
                 if (data.open) {
                     setSearchText("");

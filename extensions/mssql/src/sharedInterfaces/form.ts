@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CoreRPCs } from "./webview";
+import { CoreRPCs, Status } from "./webview";
 
 export interface FormState<
     TForm,
@@ -91,9 +91,16 @@ export interface FormItemSpec<
     isAdvancedOption?: boolean;
 
     /**
-     * Whether the form item is currently loading its data (e.g. dropdown options)
+     * Async loading status for label decoration.
+     * Loading → spinner; Loaded → green checkmark; Error → red X next to the label.
+     * The message is shown as a tooltip on the icon.
      */
-    loading?: boolean;
+    loadStatus?: Status;
+
+    /**
+     * For SearchableDropdown: if true, the user may type and commit a value not in the options list.
+     */
+    freeform?: boolean;
 }
 
 export interface FormItemValidationState {

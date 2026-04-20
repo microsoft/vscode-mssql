@@ -144,6 +144,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     /** Deferred that resolves when background Entra account+tenant loading completes. Check `isCompleted` for synchronous readiness. */
     private _entraDataLoaded = new Deferred<void>();
 
+    /** Incremented on each database fetch to allow superseding in-flight requests. */
+    private _dbFetchToken: number = 0;
+    /** Stable key representing the last successful database fetch's connection params. */
+    private _lastDatabaseFetchKey: string = "";
+
     //#endregion
 
     constructor(
@@ -220,7 +225,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         if (useVscodeAccounts) {
             const accountComponent = this.getFormComponent(this.state, "accountId");
             if (accountComponent) {
-                accountComponent.loading = true;
+                accountComponent.loadStatus = { status: ApiStatus.Loading };
             }
         }
 
@@ -960,6 +965,21 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this.state.testConnectionSucceeded = false;
         }
         await this.handleAzureMFAEdits(propertyName);
+
+        const dbRelevantProps: (keyof IConnectionDialogProfile)[] = [
+            "server",
+            "authenticationType",
+            "user",
+            "password",
+            "accountId",
+            "tenantId",
+        ];
+        if (dbRelevantProps.includes(propertyName) && this.state.connectionProfile.server) {
+            const fetchKey = this.buildDatabaseFetchKey();
+            if (fetchKey !== this._lastDatabaseFetchKey) {
+                void this.loadDatabasesAsync();
+            }
+        }
     }
 
     private async checkReadyToConnect(): Promise<void> {
@@ -1314,6 +1334,82 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
     }
 
+    private buildDatabaseFetchKey(): string {
+        const p = this.state.connectionProfile;
+        return `${p.server ?? ""}|${p.authenticationType ?? ""}|${p.user ?? ""}|${p.password ?? ""}|${p.accountId ?? ""}|${p.tenantId ?? ""}`;
+    }
+
+    private async loadDatabasesAsync(): Promise<void> {
+        const token = ++this._dbFetchToken;
+        const fetchKey = this.buildDatabaseFetchKey();
+        const dbComponent = this.getFormComponent(this.state, "database");
+        if (!dbComponent) {
+            return;
+        }
+
+        dbComponent.loadStatus = { status: ApiStatus.Loading };
+        this.updateState();
+
+        const tempUri = uuid();
+        try {
+            const profile: IConnectionDialogProfile = {
+                ...this.state.connectionProfile,
+                database: "",
+            };
+
+            const connected = await this._mainController.connectionManager.connect(
+                tempUri,
+                profile,
+                {
+                    shouldHandleErrors: false,
+                    connectionSource: CONNECTION_DIALOG_VIEW_ID,
+                },
+            );
+
+            if (token !== this._dbFetchToken) {
+                return;
+            }
+
+            if (!connected) {
+                dbComponent.loadStatus = {
+                    status: ApiStatus.Error,
+                    message: Loc.couldNotConnectToLoadDatabases,
+                };
+                this.updateState();
+                return;
+            }
+
+            const dbs = await this._mainController.connectionManager.listDatabases(tempUri);
+
+            if (token !== this._dbFetchToken) {
+                return;
+            }
+
+            dbComponent.options = dbs.map((db) => ({ displayName: db, value: db }));
+            dbComponent.loadStatus = {
+                status: ApiStatus.Loaded,
+                message: Loc.databasesLoaded(dbs.length),
+            };
+            this._lastDatabaseFetchKey = fetchKey;
+            this.updateState();
+        } catch (err) {
+            if (token !== this._dbFetchToken) {
+                return;
+            }
+            dbComponent.loadStatus = {
+                status: ApiStatus.Error,
+                message: getErrorMessage(err),
+            };
+            this.updateState();
+        } finally {
+            try {
+                await this._mainController.connectionManager.disconnect(tempUri);
+            } catch {
+                // ignore disconnect errors
+            }
+        }
+    }
+
     private async prepareConnectionForSave(
         connection: IConnectionDialogProfile,
     ): Promise<IConnectionDialogProfile> {
@@ -1487,6 +1583,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         if (connectionToEdit) {
             await this.setConnectionForEdit(connectionToEdit);
             this.updateState();
+            if (this.state.connectionProfile.server) {
+                void this.loadDatabasesAsync();
+            }
         }
     }
 
@@ -1599,7 +1698,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this._entraDataLoaded.resolve();
         } finally {
             if (accountComponent) {
-                accountComponent.loading = false;
+                accountComponent.loadStatus = { status: ApiStatus.Loaded };
             }
 
             await this.updateItemVisibility();
@@ -1712,7 +1811,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
                     // Invalidate cache and re-load all accounts + tenants
                     this.clearEntraAccountCache();
-                    accountsComponent.loading = true;
+                    accountsComponent.loadStatus = { status: ApiStatus.Loading };
                     this.updateState();
 
                     await this.loadVscodeEntraDataAsync();
@@ -1887,7 +1986,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         // await the deferred. updateItemVisibility is called for authenticationType
         // changes so account/tenant fields become visible before pushing state.
         if (useVscodeAccounts && !this._entraDataLoaded.isCompleted) {
-            accountComponent.loading = true;
+            accountComponent.loadStatus = { status: ApiStatus.Loading };
 
             if (propertyName === "authenticationType") {
                 await this.updateItemVisibility();
@@ -1980,7 +2079,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             }
         } finally {
             if (useVscodeAccounts) {
-                accountComponent.loading = false;
+                accountComponent.loadStatus = { status: ApiStatus.Loaded };
                 await this.updateItemVisibility();
             }
         }

@@ -22,13 +22,20 @@ import {
     makeStyles,
     tokens,
 } from "@fluentui/react-components";
-import { Eye16Regular, EyeOff16Regular, Info16Regular } from "@fluentui/react-icons";
+import {
+    CheckmarkCircle16Regular,
+    ErrorCircle16Regular,
+    Eye16Regular,
+    EyeOff16Regular,
+    Info16Regular,
+} from "@fluentui/react-icons";
 import {
     FormContextProps,
     FormItemSpec,
     FormItemType,
     FormState,
 } from "../../../sharedInterfaces/form";
+import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { useEffect, useState } from "react";
 import { FluentOptionIcons, SearchableDropdown } from "../searchableDropdown.component";
 import { locConstants } from "../locConstants";
@@ -244,7 +251,31 @@ export const FormField = <
                                 <LabelComponent {...slotProps} {...tooltipProps}>
                                     {labelContent}
                                 </LabelComponent>
-                                {component.loading && <Spinner size="extra-tiny" />}
+                                {component.loadStatus?.status === ApiStatus.Loading && (
+                                    <Spinner size="extra-tiny" />
+                                )}
+                                {component.loadStatus?.status === ApiStatus.Loaded && (
+                                    <Tooltip
+                                        content={component.loadStatus.message ?? ""}
+                                        relationship="label">
+                                        <CheckmarkCircle16Regular
+                                            style={{
+                                                color: tokens.colorPaletteGreenForeground1,
+                                            }}
+                                        />
+                                    </Tooltip>
+                                )}
+                                {component.loadStatus?.status === ApiStatus.Error && (
+                                    <Tooltip
+                                        content={component.loadStatus.message ?? ""}
+                                        relationship="label">
+                                        <ErrorCircle16Regular
+                                            style={{
+                                                color: tokens.colorPaletteRedForeground1,
+                                            }}
+                                        />
+                                    </Tooltip>
+                                )}
                             </span>
                         );
                     },
@@ -501,6 +532,7 @@ export function generateFormComponent<
                     placeholder={component.placeholder}
                     searchBoxPlaceholder={component.searchBoxPlaceholder}
                     selectedOption={selectedOption}
+                    freeform={component.freeform}
                     onSelect={(option) => {
                         if (props && props.onSelect) {
                             props.onSelect(option.value);
@@ -515,6 +547,7 @@ export function generateFormComponent<
                     size="small"
                     clearable={true}
                     ariaLabel={component.label}
+                    showPlaceholder={true}
                     {...props}
                 />
             );
