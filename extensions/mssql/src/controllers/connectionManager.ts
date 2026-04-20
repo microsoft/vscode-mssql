@@ -666,7 +666,7 @@ export default class ConnectionManager {
                             account,
                             self.accountStore,
                             params.tenantId,
-                            resource,
+                            resource as any, // TODO: fix type mismatch
                         );
 
                         if (refreshedToken) {
@@ -1120,6 +1120,12 @@ export default class ConnectionManager {
     public async refreshEntraTokenIfNeeded(connectionInfo: IConnectionInfo) {
         // 1. Validate that the connection is using Entra auth
         if (connectionInfo.authenticationType !== Constants.azureMfa) {
+            return;
+        }
+
+        // In VS Code accounts mode, STS acquires tokens via AccessTokenCallback —
+        // no upfront token fetch or refresh is needed from the extension side.
+        if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
             return;
         }
 
@@ -2237,6 +2243,27 @@ export default class ConnectionManager {
     private async handleSecurityTokenRequest(
         params: RequestSecurityTokenParams,
     ): Promise<RequestSecurityTokenResponse> {
+        // VS Code accounts path: STS provides accountId + tenantId via the callback.
+        if (params.accountId) {
+            try {
+                const tokenInfo = await acquireSqlAccessTokenFromVscodeAccount(
+                    params.accountId,
+                    params.tenantId,
+                );
+                return {
+                    accountKey: params.accountId,
+                    token: tokenInfo.token.token,
+                    expiresOn: tokenInfo.token.expiresOn,
+                };
+            } catch (error) {
+                this._logger.error(
+                    `VS Code accounts token request failed for account ${params.accountId}: ${getErrorMessage(error)}`,
+                );
+                return { accountKey: "", token: "", expiresOn: 0 };
+            }
+        }
+
+        // Key Vault / MSAL path — unchanged
         try {
             if (this._keyVaultTokenCache.has(JSON.stringify(params))) {
                 const token = this._keyVaultTokenCache.get(JSON.stringify(params));
