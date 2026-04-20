@@ -637,7 +637,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++0b5cc185ca6a07f98625ce51f17da6ab56e7003264c3b98dac6324d231d61652">
         <source xml:lang="en">Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.</source>
-        <target state="new">Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.</target>
+        <target state="translated">Автоматически выбирает доступное удостоверение Microsoft Entra ID от поставщиков, установленных в системе. Для получения дополнительных сведений щелкните значок информации.</target>
       </trans-unit>
       <trans-unit id="++CODE++87cdec8b1acc8c61a853ce73e9707a8a0c55e57922ff53e108262128e97553f2">
         <source xml:lang="en">Available Servers</source>
@@ -1604,7 +1604,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++bf2b06cf5edeeb66a098a3a052ced6d9f0c647f587aa00f072c6de26abcacfa0">
         <source xml:lang="en">Connect with the current settings and save the connection profile</source>
-        <target state="new">Connect with the current settings and save the connection profile</target>
+        <target state="translated">Подключиться с текущими параметрами и сохранить профиль подключения</target>
       </trans-unit>
       <trans-unit id="++CODE++28d29898bc769fd6df013da142af60f451953946e641fc2a2bee0e49b235a623">
         <source xml:lang="en">Connected successfully</source>
@@ -2033,10 +2033,6 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++a4772bd4c2a746f4bf95ffea1f8e9f44d3a8db72e301280d2bba6338c61724b6">
         <source xml:lang="en">Create Database</source>
         <target state="translated">Создать базу данных</target>
-      </trans-unit>
-      <trans-unit id="++CODE++1ebdd648faad7c5d26109ee99549e6b76bd6749e84bec6250599a2e31029a400">
-        <source xml:lang="en">Create Database (Preview)</source>
-        <target state="translated">Создать базу данных (предварительная версия)</target>
       </trans-unit>
       <trans-unit id="++CODE++0d5e7861b9a1710c8e1d2347dbb8d4dde272143bbeca537d216474ef7bd9193f">
         <source xml:lang="en">Create Firewall Rule</source>
@@ -2639,10 +2635,6 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Drop Database</source>
         <target state="translated">Удалить базу данных</target>
       </trans-unit>
-      <trans-unit id="++CODE++a9c46777591fc96ccc6c8317280d36c4b68bc04298439cc0e6837ec2ae4bf49c">
-        <source xml:lang="en">Drop Database (Preview)</source>
-        <target state="translated">Удалить базу данных (предварительная версия)</target>
-      </trans-unit>
       <trans-unit id="++CODE++9efa6488b1453597a16946eec3bec93d89632493aae8e137b09ed9ffcaf70e7b">
         <source xml:lang="en">Drop Database Options</source>
         <target state="translated">Параметры удаления базы данных</target>
@@ -3014,7 +3006,7 @@ Error:
       <trans-unit id="++CODE++289c8a16e6884fd0e3f1579134fea1a2457efaaecad171ed5ac598eb0ae9ec58">
         <source xml:lang="en">Error refreshing token; you may need to sign out and sign back in: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Error refreshing token; you may need to sign out and sign back in: {0}</target>
+        <target state="translated">Ошибка при обновлении маркера. Может потребоваться выйти и снова войти: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++7ce810c92d5881cd4638f73772ee57317b503d0f04dbc5cd2f281f77ac1d697d">
         <source xml:lang="en">Error retrieving server list: {0}</source>
@@ -3033,7 +3025,7 @@ Error:
       <trans-unit id="++CODE++70580f5715d9c53e71db7b7197f59cb412dc2ead9d577067cfbe9f3b5d2d65ca">
         <source xml:lang="en">Error validating Entra authentication token; you may need to refresh your token: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Error validating Entra authentication token; you may need to refresh your token: {0}</target>
+        <target state="translated">Ошибка при проверке маркера проверки подлинности Entra. Может потребоваться обновить маркер: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++e3bd07d6d5ddff1c7aefd27f1d3af9d23b97fc19d29d732816ea80fddb08f4dc">
         <source xml:lang="en">Error when refreshing token</source>
@@ -5264,13 +5256,13 @@ Error:
         <source xml:lang="en">New Password</source>
         <target state="translated">Новый пароль</target>
       </trans-unit>
-      <trans-unit id="++CODE++c5caff26e896bd287b8528c5a421fc62ae0e550185b606c0cada4e9420ee281f">
-        <source xml:lang="en">New Query Profiler (Preview) - Enter Name</source>
-        <target state="translated">Новый профилировщик запросов (предварительная версия) — введите имя</target>
+      <trans-unit id="++CODE++a32a71122605d871f3213af8b401fe9cfd1e00ab4b1d508826d2dd6f97bb3cc6">
+        <source xml:lang="en">New Query Profiler - Enter Name</source>
+        <target state="new">New Query Profiler - Enter Name</target>
       </trans-unit>
-      <trans-unit id="++CODE++17f1cd47dfd09c344b014b08c691f9707cfe65920e03d4856c0dd34bde93e146">
-        <source xml:lang="en">New Query Profiler (Preview) - Select Template</source>
-        <target state="translated">Новый профилировщик запросов (предварительная версия) — выберите шаблон</target>
+      <trans-unit id="++CODE++0d4d95a7a2955bb82377a0ca37dbb8a946344dd95c092820b5ece489c29e7403">
+        <source xml:lang="en">New Query Profiler - Select Template</source>
+        <target state="new">New Query Profiler - Select Template</target>
       </trans-unit>
       <trans-unit id="++CODE++f0ebbe4b20d0db8c4c52feb9dc715d1db281ae429389480780ce9120113da253">
         <source xml:lang="en">New SQL database</source>
@@ -6109,7 +6101,7 @@ Error:
       <trans-unit id="++CODE++a1c60409bfd9bcd53f31a132bd46b1f125ebf2b16012ceb2bf16baacc460e61c">
         <source xml:lang="en">Port {0} is already in use. Please choose a different port.</source>
         <note>{0} is the port number</note>
-        <target state="new">Port {0} is already in use. Please choose a different port.</target>
+        <target state="translated">Порт {0} уже используется. Выберите другой порт.</target>
       </trans-unit>
       <trans-unit id="++CODE++c56a86c298eb5a88289af29ba70d8dfdfbf42f6a0c6cf7fe8317a824db4eb767">
         <source xml:lang="en">Possible Data Loss detected. Please review the changes.</source>
@@ -6345,22 +6337,22 @@ Error:
         <note>{0} is the number of query plans</note>
         <target state="translated">План запроса ({0})</target>
       </trans-unit>
-      <trans-unit id="++CODE++904baf74a450d7a547a60ffe8a678f5bd150d095f4a0851b936330b722d02dd9">
-        <source xml:lang="en">Query Profiler (Preview)</source>
-        <target state="translated">Профилировщик запросов (предварительная версия)</target>
+      <trans-unit id="++CODE++17947c2e89e94b801fc32969b453d6004b1b8d94032f3b4843b594644a77882c">
+        <source xml:lang="en">Query Profiler</source>
+        <target state="new">Query Profiler</target>
       </trans-unit>
-      <trans-unit id="++CODE++eed1ad0449f94c91be1a030a5627d11466ae8d7af8237428dbc3cae097cb044b">
-        <source xml:lang="en">Query Profiler (Preview) Session Status</source>
-        <target state="translated">Статус сеанса профилировщика запросов (предварительная версия)</target>
+      <trans-unit id="++CODE++6b0b8551d35dd7933f41fecf2942fc2219011291443e24b6c7b25988db65c159">
+        <source xml:lang="en">Query Profiler Session Status</source>
+        <target state="new">Query Profiler Session Status</target>
       </trans-unit>
-      <trans-unit id="++CODE++a161365357557281bfbf274bd154a2acc27530a99e67ebf931ab27cf4f73595d">
-        <source xml:lang="en">Query Profiler (Preview): No session</source>
-        <target state="translated">Профилировщик запросов (предварительная версия): сеанс отсутствует</target>
+      <trans-unit id="++CODE++4f58606c7930b151acf10d33a17f526a14ad630d7cdce1351e798d73c0ae225d">
+        <source xml:lang="en">Query Profiler: No session</source>
+        <target state="new">Query Profiler: No session</target>
       </trans-unit>
-      <trans-unit id="++CODE++0e48ce4a45983d7784c326334cc5a57764d1136e589156ea99aa1c07393e7678">
-        <source xml:lang="en">Query Profiler (Preview): {0}</source>
+      <trans-unit id="++CODE++d99dd3f5eca08c181708213b2607143fdd8813040f25e98a4987eec3c94d1570">
+        <source xml:lang="en">Query Profiler: {0}</source>
         <note>{0} is the file name or session name</note>
-        <target state="translated">Профилировщик запросов (предварительная версия): {0}</target>
+        <target state="new">Query Profiler: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++9e83dc6d2db272ac27cc875b994f834b62b7202a49b69e885f8f4e8f9c29a452">
         <source xml:lang="en">Query executed</source>
@@ -6962,7 +6954,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++e7e6421e77a208718956538ea14f589ab43207800d985563be7e407d0a369c96">
         <source xml:lang="en">Save connection profile changes without establishing a connection</source>
-        <target state="new">Save connection profile changes without establishing a connection</target>
+        <target state="translated">Сохранить изменения профиля подключения без установления подключения</target>
       </trans-unit>
       <trans-unit id="++CODE++bae1da28225af71a125385224716f5ff7870573e6c01494c597e8ed4168b12e3">
         <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
@@ -7107,14 +7099,14 @@ Query: {2}</source>
         <source xml:lang="en">Script copied to clipboard.</source>
         <target state="translated">Скрипт скопирован в буфер обмена.</target>
       </trans-unit>
-      <trans-unit id="++CODE++6bf56ab2774a261ddf7eb5face2f46e7d36789a847949a0219fbfc9572ed8804">
-        <source xml:lang="en">Search Database Objects (Preview)</source>
-        <target state="translated">Поиск объектов базы данных (предварительная версия)</target>
+      <trans-unit id="++CODE++615cb1c6b249984eb02967310fe49221a73cd895ddbadfe3bd81c45690941e57">
+        <source xml:lang="en">Search Database Objects</source>
+        <target state="new">Search Database Objects</target>
       </trans-unit>
-      <trans-unit id="++CODE++053c84fff13ccf92eaa128fa67efa91ef8cbf842592955bced26b57046a24ee3">
-        <source xml:lang="en">Search Database Objects (Preview) - {0}</source>
+      <trans-unit id="++CODE++e84f366d30c8a2b085d32e67f0405aa88e6fd559c71641f8a86306bf18a9fb70">
+        <source xml:lang="en">Search Database Objects - {0}</source>
         <note>{0} is the server name</note>
-        <target state="translated">Поиск объектов базы данных (предварительная версия) — {0}</target>
+        <target state="new">Search Database Objects - {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++bd74591fea2d60dc873cec192685f7b6a930d2a370d5b3c9032014bf8224529a">
         <source xml:lang="en">Search Workspaces</source>
@@ -7643,7 +7635,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++1611a24a44316316a1736eb54d2504ddcc0f728257616bc857b0005b90beaea4">
         <source xml:lang="en">Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.</source>
-        <target state="new">Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.</target>
+        <target state="translated">Войдите с помощью учетной записи Microsoft Entra ID, включая учетные записи с многофакторной проверкой подлинности. Для получения дополнительных сведений щелкните значок информации.</target>
       </trans-unit>
       <trans-unit id="++CODE++f33c8e270a9d867a7ed6cb8d51e40f58132390afcd0e2eb79292952039fd8397">
         <source xml:lang="en">Sign into Azure</source>
@@ -8122,7 +8114,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++799f6f8acde01a01209703f348f68f7802b5c8623007342d362bed19959e7ed5">
         <source xml:lang="en">Test connecting with the current settings</source>
-        <target state="new">Test connecting with the current settings</target>
+        <target state="translated">Проверка подключения с текущими параметрами</target>
       </trans-unit>
       <trans-unit id="++CODE++5bcf311b19d80c5645ce05f5fd36fc449412a6571ceb229fd483e9c415865912">
         <source xml:lang="en">Test connection</source>
@@ -8282,11 +8274,27 @@ Query: {2}</source>
         <source xml:lang="en">The selected file is not a valid XEL file.</source>
         <target state="translated">Выбранный файл не является допустимым файлом XEL.</target>
       </trans-unit>
+      <trans-unit id="++CODE++e2efd136048806149ca845f8521dbad2967230b47a2030b5b01614f9d5779620">
+        <source xml:lang="en">The selected profile authenticates using Entra ID '{0}' but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.</source>
+        <note>{0} is the account ID or label</note>
+        <target state="translated">Выбранный профиль проходит проверку подлинности через Entra ID {0}, но эта учетная запись не авторизована в расширении MSSQL. Измените подключение или войдите в MSSQL с этой учетной записью для подключения.</target>
+      </trans-unit>
       <trans-unit id="++CODE++17fc9cf78ccc4c6485ababb4c5c9ec97a19cb70c7531bdcf315dfe27f8d2c5da">
         <source xml:lang="en">The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.</source>
         <note>{0} is the account ID or label
 {1} is the tenant ID</note>
         <target state="translated">Выбранный профиль проходит проверку подлинности через Entra ID «{0}» в клиенте «{1}», но эта учетная запись недоступна через вход в VS Code. Измените подключение или войдите в VS Code с этой учетной записью для подключения.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b59435494dcd35be1cef0694a50b64de613df46a38364f7c59f082b8cf5ff263">
+        <source xml:lang="en">The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.</source>
+        <note>{0} is the account ID or label
+{1} is the tenant ID</note>
+        <target state="translated">Выбранный профиль проходит проверку подлинности через Entra ID {0} в клиенте {1}, но эта учетная запись не авторизована в расширении MSSQL. Измените подключение или войдите в MSSQL с этой учетной записью для подключения.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2d93cdf980de7a656d499569548c98d27086e3edebb3b89f58b28ec45facf111">
+        <source xml:lang="en">The selected profile authenticates using Entra ID '{0}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.</source>
+        <note>{0} is the account ID or label</note>
+        <target state="translated">Выбранный профиль проходит проверку подлинности через Entra ID {0}, но эта учетная запись недоступна через вход в VS Code. Измените подключение или войдите в VS Code с этой учетной записью для подключения.</target>
       </trans-unit>
       <trans-unit id="++CODE++d7f9cfdbfc45384b7521ed4b8082d476a2d3cae5cbb8c57eec64003513cacbf2">
         <source xml:lang="en">The table which contains the primary or unique key column.</source>
@@ -8393,7 +8401,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++4999049f347c8083a5db26ef5fb3f51dc8ec31e0518279072ffdd7a2e8119195">
         <source xml:lang="en">Token refreshed successfully.</source>
-        <target state="new">Token refreshed successfully.</target>
+        <target state="translated">Маркер успешно обновлен.</target>
       </trans-unit>
       <trans-unit id="++CODE++10b7ff2efd404627d5a929c6fb2a97fa57867f169fbf1016834477571a4cedb2">
         <source xml:lang="en">Tool lookup for: {0} - {1}.</source>
@@ -8447,7 +8455,7 @@ Query: {2}</source>
         <source xml:lang="en">Unable to acquire a valid token. (expires: {0}, but is currently {1})</source>
         <note>{0} is the token expiration time
 {1} is the current time</note>
-        <target state="new">Unable to acquire a valid token. (expires: {0}, but is currently {1})</target>
+        <target state="translated">Не удалось получить допустимый маркер. (срок действия: {0}, сейчас {1})</target>
       </trans-unit>
       <trans-unit id="++CODE++e395097d9cde221cdb9af8b04e1073d0d3394439fce660d1c954d012cdeae6c1">
         <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source>
@@ -8471,11 +8479,11 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++5d1ae18e4c82efee8401c895242feeb54a8a5093d2b024877c83a7a08660a945">
         <source xml:lang="en">Unable to retrieve the list of databases. You may not have permission to list databases on this server.</source>
-        <target state="new">Unable to retrieve the list of databases. You may not have permission to list databases on this server.</target>
+        <target state="translated">Не удалось получить список баз данных. Возможно, у вас нет разрешений на просмотр баз данных на этом сервере.</target>
       </trans-unit>
       <trans-unit id="++CODE++5e487cbb896806c4ffd5fd55308a163e5a5ebdb2de5b6e717faff434ddd119dd">
         <source xml:lang="en">Unable to retrieve the list of databases. You may not have permission to list databases on this server. If your connection specifies a database, it will be preselected.</source>
-        <target state="new">Unable to retrieve the list of databases. You may not have permission to list databases on this server. If your connection specifies a database, it will be preselected.</target>
+        <target state="translated">Не удалось получить список баз данных. Возможно, у вас нет разрешений на просмотр баз данных на этом сервере. Если в подключении указана база данных, она будет выбрана предварительно.</target>
       </trans-unit>
       <trans-unit id="++CODE++6be6bf4fae4897b542e648716d3e0fb9d67e3f4457c7b37afd4b217ca93e2914">
         <source xml:lang="en">Unavailable for backups to existing files</source>
@@ -9829,7 +9837,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.profiler.launchFromObjectExplorer">
         <source xml:lang="en">Launch Query Profiler...</source>
-        <target state="new">Launch Query Profiler...</target>
+        <target state="translated">Запустить профилировщик запросов...</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.editorSubmenu">
         <source xml:lang="en">MSSQL Copilot</source>
@@ -9901,7 +9909,7 @@ You can connect to a database by entering your connection information, using a c
       </trans-unit>
       <trans-unit id="mssql.notebooks.createNotebook">
         <source xml:lang="en">New SQL Notebook (Preview)</source>
-        <target state="new">New SQL Notebook (Preview)</target>
+        <target state="translated">Новая записная книжка New SQL (предварительная версия)</target>
       </trans-unit>
       <trans-unit id="mssql.newTable">
         <source xml:lang="en">New Table</source>
@@ -10067,7 +10075,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.searchDatabase">
         <source xml:lang="en">Search Database Objects...</source>
-        <target state="new">Search Database Objects...</target>
+        <target state="translated">Поиск объектов базы данных...</target>
       </trans-unit>
       <trans-unit id="mssql.scriptSelect">
         <source xml:lang="en">Select Top 1000</source>

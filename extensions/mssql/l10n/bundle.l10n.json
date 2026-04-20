@@ -1135,7 +1135,6 @@
     "Show Confirm Password": "Show Confirm Password",
     "Hide Confirm Password": "Hide Confirm Password",
     "Passwords do not match": "Passwords do not match",
-    "Create Database (Preview)": "Create Database (Preview)",
     "Create a new database on '{0}'./{0} is the name of the server": {
         "message": "Create a new database on '{0}'.",
         "comment": ["{0} is the name of the server"]
@@ -1152,7 +1151,7 @@
     "Is Ledger Database": "Is Ledger Database",
     "Help": "Help",
     "Creating database": "Creating database",
-    "Drop Database (Preview)": "Drop Database (Preview)",
+    "Drop Database": "Drop Database",
     "Drop '{0}' from '{1}'. This action cannot be undone./{0} is the database name{1} is the server name": {
         "message": "Drop '{0}' from '{1}'. This action cannot be undone.",
         "comment": ["{0} is the database name", "{1} is the server name"]
@@ -1243,7 +1242,7 @@
     "Close Script Pane": "Close Script Pane",
     "Modify Table": "Modify Table",
     "View Table Diagram": "View Table Diagram",
-    "Search Database Objects (Preview)": "Search Database Objects (Preview)",
+    "Search Database Objects": "Search Database Objects",
     "Loading database objects": "Loading database objects",
     "Connecting to {0}.../{0} is the server name": {
         "message": "Connecting to {0}...",
@@ -1530,8 +1529,8 @@
     "Stopped": "Stopped",
     "Not Started": "Not Started",
     "Read-Only": "Read-Only",
-    "Query Profiler (Preview): No session": "Query Profiler (Preview): No session",
-    "Query Profiler (Preview) Session Status": "Query Profiler (Preview) Session Status",
+    "Query Profiler: No session": "Query Profiler: No session",
+    "Query Profiler Session Status": "Query Profiler Session Status",
     "{0} events/{0} is the number of events": {
         "message": "{0} events",
         "comment": ["{0} is the number of events"]
@@ -1705,7 +1704,6 @@
     "Public": "Public",
     "Private": "Private",
     "Remove": "Remove",
-    "Drop Database": "Drop Database",
     "Rename Database": "Rename Database",
     "Enter the new database name": "Enter the new database name",
     "Please select a server node in Object Explorer to create a database.": "Please select a server node in Object Explorer to create a database.",
@@ -3143,8 +3141,8 @@
         "message": "BACPAC exported successfully to '{0}'",
         "comment": ["{0} is the file path"]
     },
-    "Search Database Objects (Preview) - {0}/{0} is the server name": {
-        "message": "Search Database Objects (Preview) - {0}",
+    "Search Database Objects - {0}/{0} is the server name": {
+        "message": "Search Database Objects - {0}",
         "comment": ["{0} is the server name"]
     },
     "Failed to establish connection": "Failed to establish connection",
@@ -3326,10 +3324,10 @@
     },
     "Session name can only contain letters, numbers, underscores, and hyphens": "Session name can only contain letters, numbers, underscores, and hyphens",
     "Select a profiler template": "Select a profiler template",
-    "New Query Profiler (Preview) - Select Template": "New Query Profiler (Preview) - Select Template",
+    "New Query Profiler - Select Template": "New Query Profiler - Select Template",
     "Enter a name for the new profiler session": "Enter a name for the new profiler session",
     "MyProfilerSession": "MyProfilerSession",
-    "New Query Profiler (Preview) - Enter Name": "New Query Profiler (Preview) - Enter Name",
+    "New Query Profiler - Enter Name": "New Query Profiler - Enter Name",
     "Engine: {0}/{0} is the engine type": {
         "message": "Engine: {0}",
         "comment": ["{0} is the engine type"]
@@ -3361,11 +3359,11 @@
         "message": "Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection",
         "comment": ["{0} is the file name"]
     },
-    "Query Profiler (Preview): {0}/{0} is the file name or session name": {
-        "message": "Query Profiler (Preview): {0}",
+    "Query Profiler: {0}/{0} is the file name or session name": {
+        "message": "Query Profiler: {0}",
         "comment": ["{0} is the file name or session name"]
     },
-    "Query Profiler (Preview)": "Query Profiler (Preview)",
+    "Query Profiler": "Query Profiler",
     "{0}/{1} events/{0} is the filtered count, {1} is the total count": {
         "message": "{0}/{1} events",
         "comment": ["{0} is the filtered count, {1} is the total count"]
