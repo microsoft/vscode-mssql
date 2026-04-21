@@ -2240,10 +2240,12 @@ export default class ConnectionManager {
         return undefined;
     }
 
+    /**
+     * Acquires a fresh token from VS Code for the specified account + tenant
+     */
     private async handleSecurityTokenRequest(
         params: RequestSecurityTokenParams,
     ): Promise<RequestSecurityTokenResponse> {
-        // VS Code accounts path: STS provides accountId + tenantId via the callback.
         if (params.accountId) {
             try {
                 const tokenInfo = await acquireSqlAccessTokenFromVscodeAccount(
@@ -2257,13 +2259,13 @@ export default class ConnectionManager {
                 };
             } catch (error) {
                 this._logger.error(
-                    `VS Code accounts token request failed for account ${params.accountId}: ${getErrorMessage(error)}`,
+                    `Token request failed for account ${params.accountId}: ${getErrorMessage(error)}`,
                 );
                 return { accountKey: "", token: "", expiresOn: 0 };
             }
         }
 
-        // Key Vault / MSAL path — unchanged
+        // Key Vault / MSAL path
         try {
             if (this._keyVaultTokenCache.has(JSON.stringify(params))) {
                 const token = this._keyVaultTokenCache.get(JSON.stringify(params));

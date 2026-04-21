@@ -239,7 +239,7 @@ export interface RequestSecurityTokenParams {
     authority: string;
     resource: string;
     scopes: string[];
-    /** VS Code account ID. Populated when STS is in RequestMfaTokenFromClient mode; absent for MSAL callers. */
+    /** Entra account ID. Populated when STS is in RequestMfaTokenFromClient mode; absent for MSAL callers. */
     accountId?: string;
     /** Entra tenant ID. Populated when STS is in RequestMfaTokenFromClient mode; absent for MSAL callers. */
     tenantId?: string;
