@@ -7189,10 +7189,6 @@ Query: {2}</source>
         <source xml:lang="en">Select Profile</source>
         <target state="translated">プロファイルの選択</target>
       </trans-unit>
-      <trans-unit id="++CODE++cbd2958b1fe1b6ca98cbb77b80166a16187b9b2c5a0b7e7d8c8bb718b57b48f8">
-        <source xml:lang="en">Select Session:</source>
-        <target state="translated">セッションの選択:</target>
-      </trans-unit>
       <trans-unit id="++CODE++498e179dee6c281c74c130a980b58ecfdf8c85a97cf907ed7d820ef06afd8b51">
         <source xml:lang="en">Select Source</source>
         <target state="translated">ソースの選択</target>
@@ -7361,6 +7357,10 @@ Query: {2}</source>
         <source xml:lang="en">Select profile to remove</source>
         <target state="translated">削除するプロファイルを選択します</target>
       </trans-unit>
+      <trans-unit id="++CODE++803814693885dfb92ec8373f4c02f31015541e0e97e437287cdd0db681e0dae6">
+        <source xml:lang="en">Select session</source>
+        <target state="new">Select session</target>
+      </trans-unit>
       <trans-unit id="++CODE++31c1868de5b07d10224f472d3f5957b4502175ab68a89839134a1f1dd747ab3b">
         <source xml:lang="en">Select subscriptions</source>
         <target state="translated">サブスクリプションの選択</target>
@@ -7438,6 +7438,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++dac743dff083eb4e7426ed1b0a586ff5ead5b87a35759f12eea61e57638fcbc3">
         <source xml:lang="en">Service installation failed.</source>
         <target state="translated">サービスのインストールに失敗しました。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6959b4159575d8dd76d9f3bbe2c6437904f861e7860c35abd18deffb1c3425a0">
+        <source xml:lang="en">Session</source>
+        <target state="new">Session</target>
       </trans-unit>
       <trans-unit id="++CODE++4bebad98ba216d42e88b8a86cb19d459eb5be5ce6b74251e2b94ca0da9722a6e">
         <source xml:lang="en">Session creation timed out</source>
