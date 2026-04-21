@@ -907,6 +907,10 @@
                     "when": "false"
                 },
                 {
+                    "command": "mssql.notebooks.copyCellOutput",
+                    "when": "false"
+                },
+                {
                     "command": "mssql.runQueryWithUriOwnership",
                     "when": "false"
                 },
@@ -1607,6 +1611,11 @@
             {
                 "command": "mssql.notebooks.changeConnection",
                 "title": "%mssql.notebooks.changeConnection%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.notebooks.copyCellOutput",
+                "title": "%mssql.notebooks.copyCellOutput%",
                 "category": "MS SQL"
             }
         ],

@@ -293,5 +293,6 @@
     "mssql.flatFileImport": "Import Data...",
     "mssql.notebooks.createNotebook": "New SQL Notebook (Preview)",
     "mssql.notebooks.changeDatabase": "Change Notebook Database",
-    "mssql.notebooks.changeConnection": "Change Notebook Connection"
+    "mssql.notebooks.changeConnection": "Change Notebook Connection",
+    "mssql.notebooks.copyCellOutput": "Copy Cell Messages"
 }
