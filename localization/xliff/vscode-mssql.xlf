@@ -1519,9 +1519,6 @@
       <source xml:lang="en">Could not connect to database: {0}</source>
       <note>{0} is the database name</note>
     </trans-unit>
-    <trans-unit id="++CODE++e7c33a6e3f2fafa2f42b439dd78c87832d11d9431f10098df0f9eaa3636c27fb">
-      <source xml:lang="en">Could not connect to the server to retrieve the list of databases.</source>
-    </trans-unit>
     <trans-unit id="++CODE++f630f91edbf1dc6649a7de55179cb551ef8245ef63461de0094de54e58d5ea62">
       <source xml:lang="en">Could not find scripting metadata for {0} &apos;{1}&apos;.</source>
       <note>{0} is the node type
@@ -6457,6 +6454,10 @@
     </trans-unit>
     <trans-unit id="++CODE++4355e7352a614a58a8051157468baaf1102b9be2bdc6334597a8298aefbfbed6">
       <source xml:lang="en">Unable to load backup configuration. Please try again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c8a8ab1cef4a26f5a47e6aff86611314a34effe284539cfe1421067648432eab">
+      <source xml:lang="en">Unable to load database list from server: {0}</source>
+      <note>{0} is the connection error message</note>
     </trans-unit>
     <trans-unit id="++CODE++955b62784673f0081b2a54d867245fa50ca1e830cea22348ff69caa6317e7889">
       <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>
