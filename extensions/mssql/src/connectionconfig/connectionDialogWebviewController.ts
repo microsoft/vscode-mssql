@@ -74,7 +74,7 @@ import { generateConnectionComponents, groupAdvancedOptions } from "./formCompon
 import { FormWebviewController } from "../forms/formWebviewController";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { Deferred } from "../protocol";
-import { configSelectedAzureSubscriptions } from "../constants/constants";
+import { configSelectedAzureSubscriptions, systemDatabases } from "../constants/constants";
 import * as AzureConstants from "../azure/constants";
 import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
 import * as Utils from "../models/utils";
@@ -1372,6 +1372,28 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
     }
 
+    private buildDatabaseOptions(dbs: string[]): FormItemOptions[] {
+        const collator = new Intl.Collator(undefined, { sensitivity: "base" });
+        const userDbs = dbs
+            .filter((db) => !systemDatabases.includes(db.toLowerCase()))
+            .sort((a, b) => collator.compare(a, b));
+        const sysDbs = dbs
+            .filter((db) => systemDatabases.includes(db.toLowerCase()))
+            .sort((a, b) => collator.compare(a, b));
+        return [
+            ...userDbs.map((db) => ({
+                displayName: db,
+                value: db,
+                groupName: Loc.userDatabasesGroup,
+            })),
+            ...sysDbs.map((db) => ({
+                displayName: db,
+                value: db,
+                groupName: Loc.systemDatabasesGroup,
+            })),
+        ];
+    }
+
     private buildDatabaseFetchKey(): string {
         const p = this.state.connectionProfile;
         return `${p.server ?? ""}|${p.authenticationType ?? ""}|${p.user ?? ""}|${p.accountId ?? ""}|${p.tenantId ?? ""}`;
@@ -1391,11 +1413,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         if (cached) {
             this._activeDbFetchKey = fetchKey;
-            dbComponent.options = cached.map((db) => ({ displayName: db, value: db }));
-            dbComponent.loadStatus = undefined; // loaded checkmark is unnecessary, so clear instead
-
+            dbComponent.options = this.buildDatabaseOptions(cached);
+            dbComponent.loadStatus = undefined;
             this.updateState();
-
             return;
         }
 
@@ -1455,8 +1475,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             // 4b. If connection succeeded, cache and display database list
             this._databaseListCache.set(fetchKey, dbs);
-            dbComponent.options = dbs.map((db) => ({ displayName: db, value: db }));
-            dbComponent.loadStatus = undefined; // loaded checkmark is unnecessary, so clear instead
+            dbComponent.options = this.buildDatabaseOptions(dbs);
+            dbComponent.loadStatus = undefined;
 
             this.updateState();
         } catch (err) {

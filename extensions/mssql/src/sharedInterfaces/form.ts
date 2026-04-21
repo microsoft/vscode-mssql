@@ -140,6 +140,12 @@ export interface FormItemOptions {
      * Optional tooltip text for the info icon
      */
     infoTooltip?: string;
+    /**
+     * Optional group label for the option. When any option in a list has a groupName,
+     * the front-end renders options grouped under their respective labels. If none do,
+     * then all options are rendered in a flat list.
+     */
+    groupName?: string;
 }
 
 /**

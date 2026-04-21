@@ -15,6 +15,7 @@ import {
     Label,
     LabelProps,
     Option,
+    OptionGroup,
     Spinner,
     Text,
     Textarea,
@@ -389,14 +390,48 @@ export const FormCombobox = <
                 }
             }}
             {...props}>
-            {component.options?.map((option) => (
+            {renderComboboxOptions(component.options)}
+        </Combobox>
+    );
+};
+
+function renderComboboxOptions(options: FormItemOptions[] | undefined) {
+    if (!options?.length) {
+        return undefined;
+    }
+
+    // If no options have a group, render as flat list of options
+    const isGrouped = options.some((o) => o.groupName);
+    if (!isGrouped) {
+        return options.map((option) => (
+            <Option key={option.value} value={option.value}>
+                {option.displayName}
+            </Option>
+        ));
+    }
+
+    // Group options by groupName and render with OptionGroup
+    const groups = new Map<string, FormItemOptions[]>();
+    for (const option of options) {
+        const group = option.groupName ?? "";
+
+        if (!groups.has(group)) {
+            groups.set(group, []);
+        }
+
+        groups.get(group)!.push(option);
+    }
+
+    return Array.from(groups.entries()).map(([groupName, groupOptions]) => (
+        <OptionGroup key={groupName} label={groupName}>
+            {groupOptions.map((option) => (
                 <Option key={option.value} value={option.value}>
                     {option.displayName}
                 </Option>
             ))}
-        </Combobox>
-    );
-};
+        </OptionGroup>
+    ));
+}
 
 export function generateFormComponent<
     TForm,

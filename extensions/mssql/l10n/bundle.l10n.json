@@ -2288,6 +2288,8 @@
         "comment": ["{0} is the error message"]
     },
     "No workspaces found. Please change Fabric account or tenant to view available workspaces.": "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
+    "User databases": "User databases",
+    "System databases": "System databases",
     "Unable to load database list from server: {0}/{0} is the connection error message": {
         "message": "Unable to load database list from server: {0}",
         "comment": ["{0} is the connection error message"]

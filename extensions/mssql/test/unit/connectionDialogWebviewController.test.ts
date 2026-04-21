@@ -1226,10 +1226,16 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
                 const dbComponent = controller.state.formComponents["database"];
                 expect(dbComponent.options).to.have.lengthOf(3);
+                // user DBs first, then system DBs, each group sorted alphabetically
                 expect(dbComponent.options.map((o) => o.value)).to.deep.equal([
+                    "mydb",
                     "master",
                     "tempdb",
-                    "mydb",
+                ]);
+                expect(dbComponent.options.map((o) => o.groupName)).to.deep.equal([
+                    Loc.userDatabasesGroup,
+                    Loc.systemDatabasesGroup,
+                    Loc.systemDatabasesGroup,
                 ]);
                 expect(dbComponent.loadStatus).to.be.undefined;
                 expect(connectionManager.disconnect.calledOnce).to.be.true;

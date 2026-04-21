@@ -1065,6 +1065,8 @@ export class ConnectionDialog {
     );
 
     public static selectDatabase = l10n.t("Select a database");
+    public static userDatabasesGroup = l10n.t("User databases");
+    public static systemDatabasesGroup = l10n.t("System databases");
     public static unableToLoadDatabaseList(errorMessage: string) {
         return l10n.t({
             message: "Unable to load database list from server: {0}",
