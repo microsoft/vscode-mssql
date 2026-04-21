@@ -2288,14 +2288,9 @@
         "comment": ["{0} is the error message"]
     },
     "No workspaces found. Please change Fabric account or tenant to view available workspaces.": "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
-    "Search databases": "Search databases",
     "Unable to load database list from server: {0}/{0} is the connection error message": {
         "message": "Unable to load database list from server: {0}",
         "comment": ["{0} is the connection error message"]
-    },
-    "{0} databases loaded/{0} is the number of databases": {
-        "message": "{0} databases loaded",
-        "comment": ["{0} is the number of databases"]
     },
     "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported./{0} is the authentication type": {
         "message": "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported.",

@@ -5429,9 +5429,6 @@
     <trans-unit id="++CODE++4f5103123c8a9080ba6c1595ab5f058a1aa4715fe8c1aa2b956b6512f28cc365">
       <source xml:lang="en">Search connection groups</source>
     </trans-unit>
-    <trans-unit id="++CODE++1cf83a1fe892674a1b2059008782602852d4c3b4221b53634aca36f143cf56e3">
-      <source xml:lang="en">Search databases</source>
-    </trans-unit>
     <trans-unit id="++CODE++556a085010faa6476221cb3790fd4b9e00d6a9abacd60c19b398162ec9af1d53">
       <source xml:lang="en">Search options</source>
     </trans-unit>
@@ -6974,10 +6971,6 @@
     <trans-unit id="++CODE++440129f90fc8b26515c43b81f41d4243fca747b73149d34a9c33df4f75d9a85d">
       <source xml:lang="en">{0} connections imported</source>
       <note>{0} is the number of connections imported (plural)</note>
-    </trans-unit>
-    <trans-unit id="++CODE++863021ca6c81b0fd56e44859768529901a9fc4f4fe006881c64cef6c7c9285ce">
-      <source xml:lang="en">{0} databases loaded</source>
-      <note>{0} is the number of databases</note>
     </trans-unit>
     <trans-unit id="++CODE++0362d3ecbb7ec63592961e75fdb3b9cce59a91db85f4b99e2ba5106d1bf167ed">
       <source xml:lang="en">{0} deleted successfully.</source>
