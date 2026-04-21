@@ -146,8 +146,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
     /** Incremented on each database fetch to allow superseding in-flight requests. */
     private _dbFetchToken: number = 0;
-    /** Stable key representing the last successful database fetch's connection params. */
-    private _lastDatabaseFetchKey: string = "";
+    /** Fetch key currently reflected in the UI (options + loadStatus), updated at the start of every load attempt. */
+    private _displayedFetchKey: string = "";
+    /** Cache of database lists keyed by fetch key, reused within the same dialog session. */
+    private _databaseListCache: Map<string, string[]> = new Map();
 
     //#endregion
 
@@ -973,12 +975,39 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             "password",
             "accountId",
             "tenantId",
+            "trustServerCertificate",
         ];
-        if (dbRelevantProps.includes(propertyName) && this.state.connectionProfile.server) {
-            const fetchKey = this.buildDatabaseFetchKey();
-            if (fetchKey !== this._lastDatabaseFetchKey) {
-                void this.loadDatabasesAsync();
+        if (dbRelevantProps.includes(propertyName)) {
+            if (this.isConnectionInfoSufficientForDatabaseFetch()) {
+                const fetchKey = this.buildDatabaseFetchKey();
+                if (fetchKey !== this._displayedFetchKey) {
+                    void this.loadDatabasesAsync();
+                }
+            } else if (this._displayedFetchKey !== "") {
+                // Auth info is now incomplete — clear stale options and any error decoration
+                const dbComponent = this.getFormComponent(this.state, "database");
+                if (dbComponent) {
+                    dbComponent.options = [];
+                    dbComponent.loadStatus = undefined;
+                }
+                this._displayedFetchKey = "";
+                this.updateState();
             }
+        }
+    }
+
+    private isConnectionInfoSufficientForDatabaseFetch(): boolean {
+        const p = this.state.connectionProfile;
+        if (!p.server) {
+            return false;
+        }
+        switch (p.authenticationType) {
+            case AuthenticationType.SqlLogin:
+                return !!(p.user && p.password);
+            case AuthenticationType.AzureMFA:
+                return !!p.accountId;
+            default: // Windows/Integrated, EntraDefault:
+                return true;
         }
     }
 
@@ -1336,7 +1365,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
     private buildDatabaseFetchKey(): string {
         const p = this.state.connectionProfile;
-        return `${p.server ?? ""}|${p.authenticationType ?? ""}|${p.user ?? ""}|${p.password ?? ""}|${p.accountId ?? ""}|${p.tenantId ?? ""}`;
+        return `${p.server ?? ""}|${p.authenticationType ?? ""}|${p.user ?? ""}|${p.accountId ?? ""}|${p.tenantId ?? ""}`;
     }
 
     private async loadDatabasesAsync(): Promise<void> {
@@ -1347,6 +1376,18 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return;
         }
 
+        // Serve from cache if available
+        const cached = this._databaseListCache.get(fetchKey);
+        if (cached) {
+            this._displayedFetchKey = fetchKey;
+            dbComponent.options = cached.map((db) => ({ displayName: db, value: db }));
+            dbComponent.loadStatus = undefined;
+            this.updateState();
+            return;
+        }
+
+        this._displayedFetchKey = fetchKey;
+        dbComponent.options = [];
         dbComponent.loadStatus = { status: ApiStatus.Loading };
         this.updateState();
 
@@ -1371,10 +1412,20 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             }
 
             if (!connected) {
+                const connInfo = this._mainController.connectionManager.getConnectionInfo(tempUri);
+                const errorType = connInfo
+                    ? await getSqlConnectionErrorType(connInfo, this.state.connectionProfile)
+                    : SqlConnectionErrorType.Generic;
+                const errorDetail =
+                    errorType === SqlConnectionErrorType.TrustServerCertificateNotEnabled
+                        ? LocAll.enableTrustServerCertificate
+                        : (connInfo?.errorMessage ?? "");
+                dbComponent.options = [];
                 dbComponent.loadStatus = {
                     status: ApiStatus.Error,
-                    message: Loc.couldNotConnectToLoadDatabases,
+                    message: Loc.unableToLoadDatabaseList(errorDetail),
                 };
+                this._displayedFetchKey = "";
                 this.updateState();
                 return;
             }
@@ -1385,21 +1436,20 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 return;
             }
 
+            this._databaseListCache.set(fetchKey, dbs);
             dbComponent.options = dbs.map((db) => ({ displayName: db, value: db }));
-            dbComponent.loadStatus = {
-                status: ApiStatus.Loaded,
-                message: Loc.databasesLoaded(dbs.length),
-            };
-            this._lastDatabaseFetchKey = fetchKey;
+            dbComponent.loadStatus = undefined;
             this.updateState();
         } catch (err) {
             if (token !== this._dbFetchToken) {
                 return;
             }
+            dbComponent.options = [];
             dbComponent.loadStatus = {
                 status: ApiStatus.Error,
-                message: getErrorMessage(err),
+                message: Loc.unableToLoadDatabaseList(getErrorMessage(err)),
             };
+            this._displayedFetchKey = "";
             this.updateState();
         } finally {
             try {
@@ -1583,7 +1633,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         if (connectionToEdit) {
             await this.setConnectionForEdit(connectionToEdit);
             this.updateState();
-            if (this.state.connectionProfile.server) {
+
+            if (this.isConnectionInfoSufficientForDatabaseFetch()) {
                 void this.loadDatabasesAsync();
             }
         }
