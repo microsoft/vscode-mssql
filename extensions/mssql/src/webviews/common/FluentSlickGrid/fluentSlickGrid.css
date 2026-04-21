@@ -4,7 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 body {
-    /* Container */
+    /* Typography */
+    --slick-font-family: var(--vscode-editor-font-family);
+
+    /* Menu surfaces */
     --slick-menu-bg-color: var(--vscode-menu-background);
     --slick-menu-color: var(--vscode-menu-foreground);
     --slick-menu-border: 1px solid var(--vscode-menu-border);
@@ -13,7 +16,7 @@ body {
     --slick-menu-padding: 4px 0;
     --slick-menu-min-width: 160px;
 
-    /* Items - close to Query Result Fluent menu */
+    /* Menu items */
     --slick-menu-item-font-size: 12px;
     --slick-menu-item-height: 24px;
     --slick-menu-line-height: 24px;
@@ -26,19 +29,19 @@ body {
     --slick-menu-item-width: 100%;
     --slick-menu-item-white-space: nowrap;
 
-    /* Icons */
+    /* Menu icons */
     --slick-menu-icon-font-size: 16px;
     --slick-menu-icon-line-height: 16px;
     --slick-menu-icon-margin-right: 8px;
     --slick-menu-icon-min-width: 16px;
 
-    /* Dividers */
+    /* Menu dividers */
     --slick-menu-divider-height: 1px;
     --slick-menu-divider-margin: 4px 0;
     --slick-menu-divider-color: var(--vscode-menu-separatorBackground, var(--vscode-menu-border));
     --slick-menu-divider-width: 100%;
 
-    /* Titles */
+    /* Menu titles */
     --slick-menu-title-color: var(--vscode-menu-foreground);
     --slick-menu-title-font-size: 12px;
     --slick-menu-title-font-weight: normal;
@@ -47,7 +50,7 @@ body {
     --slick-menu-title-margin-bottom: 4px;
     --slick-menu-title-width: 100%;
 
-    /* Grid menu close X */
+    /* Menu close buttons */
     --slick-menu-close-btn-bg-color: transparent;
     --slick-menu-close-btn-border: 0;
     --slick-menu-close-btn-color: var(--vscode-menu-foreground);
@@ -60,48 +63,79 @@ body {
     --slick-menu-close-btn-opacity: 0.7;
     --slick-menu-close-btn-opacity-hover: 1;
 
-    --slick-header-background-color: var(--vscode-editor-background);
-    --slick-hover-header-color: var(--vscode-editor-foreground);
-    --slick-header-text-color: var(--vscode-editor-foreground);
-    --slick-sorting-header-color: var(--vscode-editor-foreground);
-    --slick-font-family: var(--vscode-editor-font-family);
-    --slick-header-font-size: 12px;
-    --slick-header-font-weight: normal;
-    --slick-icon-sort-position-right: 30px;
-    --slick-icon-sort-position-top: 5px;
-    --slick-icon-sort-color: var(--vscode-editor-foreground);
-    --slick-header-menu-button-icon-font-size: 18px;
-    --slick-header-column-background-active: var(--vscode-editor-background);
-}
+    /* Grid menu */
+    --slick-grid-menu-divider-width: var(--slick-menu-divider-width);
+    --slick-grid-menu-icon-btn-color: var(--slick-menu-color);
 
-.slick-context-menu,
-.slick-grid-menu,
-.slick-header-menu {
-    resize: none;
-}
+    /* Column picker surface */
+    --slick-column-picker-background-color: var(--slick-menu-bg-color);
+    --slick-column-picker-border: var(--slick-menu-border);
+    --slick-column-picker-border-radius: var(--slick-menu-border-radius);
+    --slick-column-picker-box-shadow: var(--slick-menu-box-shadow);
+    --slick-column-picker-min-width: var(--slick-menu-min-width);
+    --slick-column-picker-padding: var(--slick-menu-padding);
 
-.slick-grid-menu {
-    --slick-grid-menu-divider-width: 100%;
-    --slick-grid-menu-icon-btn-color: var(--vscode-menu-foreground);
+    /* Column picker close button */
+    --slick-column-picker-close-btn-bg-color: var(--slick-menu-close-btn-bg-color);
+    --slick-column-picker-close-btn-border: var(--slick-menu-close-btn-border);
+    --slick-column-picker-close-btn-color: var(--slick-menu-close-btn-color);
+    --slick-column-picker-close-btn-font-size: var(--slick-menu-close-btn-font-size);
+    --slick-column-picker-close-btn-height: var(--slick-menu-close-btn-height);
+    --slick-column-picker-close-btn-margin: var(--slick-menu-close-btn-margin);
+    --slick-column-picker-close-btn-padding: var(--slick-menu-close-btn-padding);
+    --slick-column-picker-close-btn-opacity: var(--slick-menu-close-btn-opacity);
+    --slick-column-picker-close-btn-opacity-hover: var(--slick-menu-close-btn-opacity-hover);
+    --slick-column-picker-close-btn-width: var(--slick-menu-close-btn-width);
 
-    --slick-column-picker-item-font-size: 12px;
-    --slick-column-picker-item-height: 24px;
-    --slick-column-picker-item-line-height: 24px;
-    --slick-column-picker-item-padding: 0 8px;
-    --slick-column-picker-item-hover-color: var(--vscode-menu-selectionBackground);
-    --slick-column-picker-item-hover-border: 1px solid transparent;
+    /* Column picker items */
+    --slick-column-picker-item-border: var(--slick-menu-item-border);
+    --slick-column-picker-item-border-radius: var(--slick-menu-item-border-radius);
+    --slick-column-picker-item-font-size: var(--slick-menu-item-font-size);
+    --slick-column-picker-item-height: var(--slick-menu-item-height);
+    --slick-column-picker-item-line-height: var(--slick-menu-line-height);
+    --slick-column-picker-item-padding: var(--slick-menu-item-padding);
+    --slick-column-picker-item-hover-color: var(--slick-menu-item-hover-color);
+    --slick-column-picker-item-hover-border: var(--slick-menu-item-hover-border);
     --slick-column-picker-label-margin: 0;
     --slick-column-picker-label-text-padding-left: 8px;
-    --slick-column-picker-icon-color: var(--vscode-menu-foreground);
-    --slick-column-picker-icon-font-size: 14px;
-}
 
-.slick-header-menu {
+    /* Column picker icons */
+    --slick-column-picker-icon-color: var(--slick-grid-menu-icon-btn-color);
+    --slick-column-picker-icon-font-size: var(--slick-menu-icon-font-size);
+
+    /* Column picker dividers */
+    --slick-column-picker-divider-width: var(--slick-menu-divider-width);
+    --slick-column-picker-hr-bg-color: var(--slick-menu-divider-color);
+    --slick-column-picker-hr-divider-border: 1px solid var(--slick-menu-divider-color);
+
+    /* Column picker titles */
+    --slick-column-picker-title-border-bottom: var(--slick-menu-title-border-bottom);
+
+    /* Header menu button */
     --slick-header-menu-button-icon-color: var(--vscode-menu-foreground);
     --slick-header-menu-button-icon-size: 16px;
     --slick-header-menu-button-icon-font-size: 16px;
     --slick-header-menu-button-padding: 0;
     --slick-header-menu-button-border-width: 0;
+
+    /* Grid headers */
+    --slick-header-background-color: var(--vscode-editor-background);
+    --slick-hover-header-color: var(--vscode-editor-foreground);
+    --slick-header-text-color: var(--vscode-editor-foreground);
+    --slick-sorting-header-color: var(--vscode-editor-foreground);
+    --slick-header-font-size: 12px;
+    --slick-header-font-weight: normal;
+    --slick-icon-sort-position-right: 25px;
+    --slick-icon-sort-position-top: 5px;
+    --slick-icon-sort-color: var(--vscode-editor-foreground);
+    --slick-header-column-background-active: var(--vscode-editor-background);
+}
+
+.slick-context-menu,
+.slick-grid-menu,
+.slick-header-menu,
+.slick-column-picker {
+    resize: none;
 }
 
 .slick-grid-menu .slick-command-header.with-title.with-close {
@@ -145,6 +179,7 @@ body {
     top: 3px;
 }
 
-.slick-grid-menu .slick-menu-title {
+.slick-grid-menu .slick-menu-title,
+.slick-column-picker .slick-menu-title {
     padding-left: 5px;
 }
