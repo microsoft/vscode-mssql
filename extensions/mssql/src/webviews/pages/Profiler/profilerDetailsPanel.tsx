@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import React, { useState, useCallback } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import {
     Button,
     Toolbar,
@@ -12,10 +12,10 @@ import {
     Tooltip,
     makeStyles,
     shorthands,
-    tokens,
     SelectTabEvent,
     SelectTabData,
 } from "@fluentui/react-components";
+import { SlickgridReact } from "slickgrid-react";
 import {
     Open16Regular,
     Copy16Regular,
@@ -23,13 +23,17 @@ import {
     Dismiss16Regular,
     ChevronDown16Regular,
 } from "@fluentui/react-icons";
-import {
-    ProfilerSelectedEventDetails,
-    ProfilerEventProperty,
-} from "../../../sharedInterfaces/profiler";
+import { ProfilerSelectedEventDetails } from "../../../sharedInterfaces/profiler";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { locConstants } from "../../common/locConstants";
 import { VscodeEditor } from "../../common/vscodeMonaco";
+import {
+    buildProfilerDetailsGridRows,
+    getProfilerDetailsGridColumns,
+    getProfilerDetailsGridOptions,
+    PROFILER_DETAILS_GRID_CONTAINER_ID,
+    PROFILER_DETAILS_GRID_ID,
+} from "./profilerDetailsGridConfig";
 
 /**
  * Tab identifiers for the details panel
@@ -99,32 +103,13 @@ const useStyles = makeStyles({
     propertiesContainer: {
         width: "100%",
         height: "100%",
-        ...shorthands.overflow("auto"),
-        ...shorthands.padding("8px"),
+        minHeight: 0,
+        position: "relative",
     },
-    propertyRow: {
-        display: "grid",
-        gridTemplateColumns: "200px 1fr",
-        ...shorthands.padding("4px", "8px"),
-        ...shorthands.borderBottom("1px", "solid", "var(--vscode-editorWidget-border)"),
-        "&:hover": {
-            backgroundColor: "var(--vscode-list-hoverBackground)",
-        },
-    },
-    propertyLabel: {
-        fontWeight: tokens.fontWeightSemibold,
-        color: "var(--vscode-foreground)",
-        ...shorthands.overflow("hidden"),
-        textOverflow: "ellipsis",
-        whiteSpace: "nowrap",
-    },
-    propertyValue: {
-        color: "var(--vscode-foreground)",
-        ...shorthands.overflow("hidden"),
-        textOverflow: "ellipsis",
-        whiteSpace: "nowrap",
-        fontFamily: "var(--vscode-editor-font-family)",
-        fontSize: "var(--vscode-editor-font-size)",
+    detailsGridContainer: {
+        width: "100%",
+        height: "100%",
+        minHeight: 0,
     },
     noEventMessage: {
         display: "flex",
@@ -162,6 +147,17 @@ export const ProfilerDetailsPanel: React.FC<ProfilerDetailsPanelProps> = ({
     const loc = locConstants.profiler.detailsPanel;
     const commonLoc = locConstants.common;
     const [activeTab, setActiveTab] = useState<DetailsPanelTab>(DetailsPanelTab.Text);
+    const detailsGridRows = useMemo(
+        () => buildProfilerDetailsGridRows(selectedEvent?.properties ?? []),
+        [selectedEvent],
+    );
+    const detailsGridColumns = useMemo(
+        // slickgrid-react mutates the column array on unmount, so we must recreate
+        // it whenever the Details tab is toggled back on.
+        () => getProfilerDetailsGridColumns(commonLoc.property, commonLoc.value),
+        [activeTab, commonLoc.property, commonLoc.value],
+    );
+    const detailsGridOptions = useMemo(() => getProfilerDetailsGridOptions(themeKind), [themeKind]);
 
     // Handle tab change
     const handleTabSelect = useCallback((_event: SelectTabEvent, data: SelectTabData) => {
@@ -181,26 +177,6 @@ export const ProfilerDetailsPanel: React.FC<ProfilerDetailsPanelProps> = ({
             onCopy(selectedEvent.textData);
         }
     }, [selectedEvent, onCopy]);
-
-    // Handle keyboard navigation for property list
-    const handlePropertyKeyDown = useCallback(
-        (event: React.KeyboardEvent<HTMLDivElement>, index: number, totalItems: number) => {
-            if (event.key === "ArrowDown" && index < totalItems - 1) {
-                event.preventDefault();
-                const nextElement = document.querySelector(
-                    `[data-property-index="${index + 1}"]`,
-                ) as HTMLElement;
-                nextElement?.focus();
-            } else if (event.key === "ArrowUp" && index > 0) {
-                event.preventDefault();
-                const prevElement = document.querySelector(
-                    `[data-property-index="${index - 1}"]`,
-                ) as HTMLElement;
-                prevElement?.focus();
-            }
-        },
-        [],
-    );
 
     // If no event is selected, show placeholder
     if (!selectedEvent) {
@@ -340,58 +316,19 @@ export const ProfilerDetailsPanel: React.FC<ProfilerDetailsPanelProps> = ({
                         className={classes.propertiesContainer}
                         role="group"
                         aria-label={loc.propertiesListAriaLabel}>
-                        {selectedEvent.properties.map((property, index) => (
-                            <PropertyRow
-                                key={`${property.label}-${index}`}
-                                property={property}
-                                index={index}
-                                totalItems={selectedEvent.properties.length}
-                                classes={classes}
-                                onKeyDown={handlePropertyKeyDown}
+                        <div
+                            id={PROFILER_DETAILS_GRID_CONTAINER_ID}
+                            className={classes.detailsGridContainer}>
+                            <SlickgridReact
+                                gridId={PROFILER_DETAILS_GRID_ID}
+                                columns={detailsGridColumns}
+                                options={detailsGridOptions}
+                                dataset={detailsGridRows}
                             />
-                        ))}
+                        </div>
                     </div>
                 )}
             </div>
-        </div>
-    );
-};
-
-/**
- * Individual property row component for the Details tab
- */
-interface PropertyRowProps {
-    property: ProfilerEventProperty;
-    index: number;
-    totalItems: number;
-    classes: ReturnType<typeof useStyles>;
-    onKeyDown: (
-        event: React.KeyboardEvent<HTMLDivElement>,
-        index: number,
-        totalItems: number,
-    ) => void;
-}
-
-const PropertyRow: React.FC<PropertyRowProps> = ({
-    property,
-    index,
-    totalItems,
-    classes,
-    onKeyDown,
-}) => {
-    return (
-        <div
-            className={classes.propertyRow}
-            tabIndex={0}
-            data-property-index={index}
-            onKeyDown={(e) => onKeyDown(e, index, totalItems)}
-            aria-label={`${property.label}: ${property.value}`}>
-            <span className={classes.propertyLabel} title={property.label}>
-                {property.label}
-            </span>
-            <span className={classes.propertyValue} title={property.value}>
-                {property.value}
-            </span>
         </div>
     );
 };

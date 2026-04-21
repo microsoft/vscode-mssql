@@ -43,7 +43,8 @@
 }
 
 /* Grid base styles — CSS variables consumed by slickgrid-theme-default.css */
-#profilerGrid {
+#profilerGrid,
+#profilerDetailsGrid {
     --slick-border-color: var(--vscode-editorWidget-border);
     --slick-cell-border-right: 1px solid var(--vscode-editorWidget-border);
     --slick-cell-border-top: 1px solid var(--vscode-editorWidget-border);
@@ -58,6 +59,15 @@
 #profilerGrid .slick-header-column {
     border-right: 1px solid var(--vscode-panel-border) !important;
     border-bottom: 1px solid var(--vscode-panel-border) !important;
+}
+
+#profilerDetailsGrid .slick-cell.profiler-details-label-cell {
+    font-weight: 600;
+}
+
+#profilerDetailsGrid .slick-cell.profiler-details-value-cell {
+    font-family: var(--vscode-editor-font-family);
+    font-size: var(--vscode-editor-font-size);
 }
 
 /* Hide sort indicators since sorting is managed by custom sort buttons */
