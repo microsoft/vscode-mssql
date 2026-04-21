@@ -38,6 +38,8 @@ export class LocConstants {
             find: l10n.t("Find"),
             findNext: l10n.t("Find Next"),
             findPrevious: l10n.t("Find Previous"),
+            property: l10n.t("Property"),
+            value: l10n.t("Value"),
             noResults: l10n.t("No results"),
             searchResultSummary: (activeElement: number, totalElements: number) =>
                 l10n.t({
@@ -135,9 +137,9 @@ export class LocConstants {
                         "{1} is the name of the filter",
                     ],
                 }),
-            property: l10n.t("Property"),
+            property: this.common.property,
             operator: l10n.t("Operator"),
-            value: l10n.t("Value"),
+            value: this.common.value,
             clear: l10n.t("Clear"),
         };
     }
@@ -2501,8 +2503,6 @@ export class LocConstants {
             detailsPanel: {
                 textTab: l10n.t("Text"),
                 detailsTab: l10n.t("Details"),
-                propertyColumn: l10n.t("Property"),
-                valueColumn: l10n.t("Value"),
                 openInEditor: l10n.t("Open in Editor"),
                 maximize: l10n.t("Maximize"),
                 restore: l10n.t("Restore"),

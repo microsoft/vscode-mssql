@@ -44,6 +44,7 @@ import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { locConstants } from "../../common/locConstants";
 import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-fluent.css";
 import "./profiler.css";
+import "../../common/FluentSlickGrid/fluentSlickGrid.css";
 import { baseFluentGridOption } from "../../common/FluentSlickGrid/fluentGridOptions";
 import {
     getProfilerColumnDefaultWidth,

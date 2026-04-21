@@ -154,8 +154,8 @@ export const ProfilerDetailsPanel: React.FC<ProfilerDetailsPanelProps> = ({
     const detailsGridColumns = useMemo(
         // slickgrid-react mutates the column array on unmount, so we must recreate
         // it whenever the Details tab is toggled back on.
-        () => getProfilerDetailsGridColumns(loc.propertyColumn, loc.valueColumn),
-        [activeTab, loc.propertyColumn, loc.valueColumn],
+        () => getProfilerDetailsGridColumns(commonLoc.property, commonLoc.value),
+        [activeTab, commonLoc.property, commonLoc.value],
     );
     const detailsGridOptions = useMemo(() => getProfilerDetailsGridOptions(themeKind), [themeKind]);
 

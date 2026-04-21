@@ -29,6 +29,7 @@ import TableExplorerCustomPager from "./TableExplorerCustomPager";
 import { slickGridLocales } from "./commonGridOptions";
 import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-fluent.css";
 import "./TableDataGrid.css";
+import "../../common/FluentSlickGrid/fluentSlickGrid.css";
 import { baseFluentGridOption } from "../../common/FluentSlickGrid/fluentGridOptions";
 
 interface TableDataGridProps {

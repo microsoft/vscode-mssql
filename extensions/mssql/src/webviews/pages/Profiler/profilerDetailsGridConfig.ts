@@ -6,6 +6,7 @@
 import { Column, GridOption } from "slickgrid-react";
 import { ProfilerEventProperty } from "../../../sharedInterfaces/profiler";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
+import { baseFluentGridOption } from "../../common/FluentSlickGrid/fluentGridOptions";
 
 export interface ProfilerDetailsGridRow {
     id: number;
@@ -63,6 +64,7 @@ export function getProfilerDetailsGridColumns(propertyLabel: string, valueLabel:
 
 export function getProfilerDetailsGridOptions(themeKind: ColorThemeKind): GridOption {
     return {
+        ...baseFluentGridOption,
         autoFitColumnsOnFirstLoad: false,
         autoResize: {
             container: `#${PROFILER_DETAILS_GRID_CONTAINER_ID}`,
