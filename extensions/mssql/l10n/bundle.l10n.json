@@ -2209,10 +2209,7 @@
     "No connection selected.": "No connection selected.",
     "Copy messages": "Copy messages",
     "Copy all text output for this cell (messages, PRINT, errors)": "Copy all text output for this cell (messages, PRINT, errors)",
-    "$(check) Copied {0} characters/{0} is the number of characters copied to the clipboard": {
-        "message": "$(check) Copied {0} characters",
-        "comment": ["{0} is the number of characters copied to the clipboard"]
-    },
+    "$(check) Copied messages": "$(check) Copied messages",
     "({0} row(s) affected)/{0} is the number of rows affected": {
         "message": "({0} row(s) affected)",
         "comment": ["{0} is the number of rows affected"]

@@ -4,9 +4,8 @@
     <trans-unit id="++CODE++fd10453f63e5c663d4e640ea9cbe1adcc832b6fed0454e62686773ac486ce64d">
       <source xml:lang="en"> is required.</source>
     </trans-unit>
-    <trans-unit id="++CODE++cb073b0f8a6fe17dee09765fb0725c13898190b82e30c5a91b7f7d5e61f25d89">
-      <source xml:lang="en">$(check) Copied {0} characters</source>
-      <note>{0} is the number of characters copied to the clipboard</note>
+    <trans-unit id="++CODE++fd3bd9305a1a7d5dfd79fa21b626163609a8f298aab892396554e74842a84f9b">
+      <source xml:lang="en">$(check) Copied messages</source>
     </trans-unit>
     <trans-unit id="++CODE++18b63db64aa0aff55a9f4784ad62abdc2b70cedb95b5e89d5551996cc9bd25ac">
       <source xml:lang="en">$(plug)  Connect to MSSQL</source>
