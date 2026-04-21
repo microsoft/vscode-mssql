@@ -54,14 +54,16 @@ body {
     --slick-menu-close-btn-bg-color: transparent;
     --slick-menu-close-btn-border: 0;
     --slick-menu-close-btn-color: var(--vscode-menu-foreground);
+    --slick-menu-close-btn-font-family: var(--slick-font-family);
     --slick-menu-close-btn-font-size: 18px;
     --slick-menu-close-btn-height: 20px;
-    --slick-menu-close-btn-line-height: 18px;
+    --slick-menu-close-btn-line-height: 1;
     --slick-menu-close-btn-width: 20px;
     --slick-menu-close-btn-margin: 0;
     --slick-menu-close-btn-padding: 0;
     --slick-menu-close-btn-opacity: 0.7;
     --slick-menu-close-btn-opacity-hover: 1;
+    --slick-menu-title-container-align-items: center;
 
     /* Grid menu */
     --slick-grid-menu-divider-width: var(--slick-menu-divider-width);
@@ -86,6 +88,7 @@ body {
     --slick-column-picker-close-btn-opacity: var(--slick-menu-close-btn-opacity);
     --slick-column-picker-close-btn-opacity-hover: var(--slick-menu-close-btn-opacity-hover);
     --slick-column-picker-close-btn-width: var(--slick-menu-close-btn-width);
+    --slick-column-picker-close-btn-position-top: 1px;
 
     /* Column picker items */
     --slick-column-picker-item-border: var(--slick-menu-item-border);
@@ -119,6 +122,7 @@ body {
     --slick-header-menu-button-border-width: 0;
 
     /* Grid headers */
+    --slick-grid-header-background: var(--vscode-editor-background);
     --slick-header-background-color: var(--vscode-editor-background);
     --slick-hover-header-color: var(--vscode-editor-foreground);
     --slick-header-text-color: var(--vscode-editor-foreground);
@@ -143,10 +147,40 @@ body {
     display: flex;
 }
 
-.slick-grid-menu .slick-command-header.with-title.with-close .close {
+.slick-grid-menu
+    .slick-menu-command-list
+    .slick-command-header.with-title.with-close
+    .slick-menu-title,
+.slick-column-picker > .slick-menu-title {
+    align-items: center;
+    box-sizing: border-box;
+    display: flex;
+    flex: 1 1 auto;
+    min-height: var(--slick-menu-close-btn-height);
+    padding-right: calc(var(--slick-menu-close-btn-width) + 8px);
+}
+
+.slick-grid-menu .slick-menu-command-list .slick-command-header.with-title.with-close .close,
+.slick-column-picker > .close {
     display: inline-flex;
     align-items: center;
+    flex: 0 0 auto;
     justify-content: center;
+}
+
+.slick-grid-menu .slick-menu-command-list .slick-command-header.with-title.with-close .close {
+    position: relative;
+    top: -2px;
+}
+
+.slick-column-picker > .close {
+    right: 5px;
+    top: var(--slick-column-picker-close-btn-position-top);
+}
+
+.slick-grid-menu .slick-menu-command-list .slick-command-header.with-title.with-close .close:hover,
+.slick-column-picker > .close:hover {
+    opacity: var(--slick-menu-close-btn-opacity-hover);
 }
 
 .slick-context-menu .slick-menu-item,
