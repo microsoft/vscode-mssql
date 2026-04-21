@@ -1392,7 +1392,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         if (cached) {
             this._activeDbFetchKey = fetchKey;
             dbComponent.options = cached.map((db) => ({ displayName: db, value: db }));
-            dbComponent.loadStatus = undefined;
+            dbComponent.loadStatus = undefined; // loaded checkmark is unnecessary, so clear instead
+
             this.updateState();
 
             return;
@@ -1455,7 +1456,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             // 4b. If connection succeeded, cache and display database list
             this._databaseListCache.set(fetchKey, dbs);
             dbComponent.options = dbs.map((db) => ({ displayName: db, value: db }));
-            dbComponent.loadStatus = undefined;
+            dbComponent.loadStatus = undefined; // loaded checkmark is unnecessary, so clear instead
+
             this.updateState();
         } catch (err) {
             // Check if this fetch attempt is out-of-date
