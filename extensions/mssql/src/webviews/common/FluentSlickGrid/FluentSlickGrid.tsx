@@ -3,10 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { GridOption } from "slickgrid-react";
+import React, { useMemo } from "react";
+import { GridOption, SlickgridReact } from "slickgrid-react";
+import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-fluent.css";
 import "./fluentSlickGrid.css";
 
-export const baseFluentGridOption: GridOption = {
+const baseFluentGridOption: GridOption = {
     contextMenu: {
         iconCollapseAllGroupsCommand: "fi fi-arrow-minimize",
         iconExpandAllGroupsCommand: "fi fi-arrow-maximize",
@@ -45,4 +47,37 @@ export const baseFluentGridOption: GridOption = {
         iconColumnResizeByContentCommand: "fi fi-arrow-bidirection",
         subItemChevronClass: "fi fi-chevron-right",
     },
+};
+
+type SlickgridReactPublicProps = React.JSX.LibraryManagedAttributes<
+    typeof SlickgridReact,
+    React.ComponentProps<typeof SlickgridReact>
+>;
+
+export interface FluentSlickGridProps extends Omit<SlickgridReactPublicProps, "options"> {
+    options: GridOption;
+}
+
+export const FluentSlickGrid: React.FC<FluentSlickGridProps> = ({ options, ...props }) => {
+    const mergedOptions = useMemo<GridOption>(
+        () => ({
+            ...baseFluentGridOption,
+            ...options,
+            contextMenu: {
+                ...baseFluentGridOption.contextMenu,
+                ...options.contextMenu,
+            },
+            gridMenu: {
+                ...baseFluentGridOption.gridMenu,
+                ...options.gridMenu,
+            },
+            headerMenu: {
+                ...baseFluentGridOption.headerMenu,
+                ...options.headerMenu,
+            },
+        }),
+        [options],
+    );
+
+    return <SlickgridReact {...props} options={mergedOptions} />;
 };

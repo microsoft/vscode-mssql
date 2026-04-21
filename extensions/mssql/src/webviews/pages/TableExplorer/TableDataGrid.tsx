@@ -17,7 +17,6 @@ import {
     SlickgridReactInstance,
     Column,
     GridOption,
-    SlickgridReact,
     Editors,
     ContextMenu,
 } from "slickgrid-react";
@@ -27,9 +26,8 @@ import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { locConstants as loc } from "../../common/locConstants";
 import TableExplorerCustomPager from "./TableExplorerCustomPager";
 import { slickGridLocales } from "./commonGridOptions";
-import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-fluent.css";
 import "./TableDataGrid.css";
-import { baseFluentGridOption } from "../../common/FluentSlickGrid/fluentGridOptions";
+import { FluentSlickGrid } from "../../common/FluentSlickGrid/FluentSlickGrid";
 
 interface TableDataGridProps {
     resultSet: EditSubsetResult | undefined;
@@ -440,7 +438,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     const FILTER_ROW_HEIGHT = 34;
 
                     setOptions({
-                        ...baseFluentGridOption,
                         alwaysShowVerticalScroll: true,
                         autoEdit: false,
                         autoCommitEdit: true,
@@ -468,7 +465,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         },
                         enableHeaderMenu: true, // Enable header menu for column operations
                         headerMenu: {
-                            ...baseFluentGridOption.headerMenu,
                             hideCommands: ["freeze-columns"],
                         },
 
@@ -1217,7 +1213,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             <div
                 id="grid-container"
                 className={`table-explorer-grid-container ${isDarkMode ? "dark-mode" : ""}`}>
-                <SlickgridReact
+                <FluentSlickGrid
                     gridId="tableExplorerGrid"
                     columns={columns}
                     options={options}

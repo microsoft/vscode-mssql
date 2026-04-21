@@ -4,14 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import React, { useRef, useMemo, useEffect, useCallback, useState } from "react";
-import {
-    SlickgridReact,
-    SlickgridReactInstance,
-    Column,
-    GridOption,
-    Formatters,
-    Formatter,
-} from "slickgrid-react";
+import { SlickgridReactInstance, Column, GridOption, Formatters, Formatter } from "slickgrid-react";
 import { makeStyles, shorthands } from "@fluentui/react-components";
 import {
     Panel,
@@ -42,9 +35,8 @@ import {
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { locConstants } from "../../common/locConstants";
-import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-fluent.css";
 import "./profiler.css";
-import { baseFluentGridOption } from "../../common/FluentSlickGrid/fluentGridOptions";
+import { FluentSlickGrid } from "../../common/FluentSlickGrid/FluentSlickGrid";
 import {
     getProfilerColumnDefaultWidth,
     getProfilerColumnWidth,
@@ -793,7 +785,6 @@ export const Profiler: React.FC = () => {
     // Grid options
     const gridOptions: GridOption = useMemo(
         () => ({
-            ...baseFluentGridOption,
             autoFitColumnsOnFirstLoad: false,
             autoResize: {
                 container: "#profilerGridContainer",
@@ -1076,7 +1067,7 @@ export const Profiler: React.FC = () => {
                 onLayout={scheduleGridResize}>
                 <Panel ref={gridPanelRef} defaultSize={100} minSize={20}>
                     <div id="profilerGridContainer" className={classes.profilerGridContainer}>
-                        <SlickgridReact
+                        <FluentSlickGrid
                             gridId="profilerGrid"
                             columns={columns}
                             options={gridOptions}
