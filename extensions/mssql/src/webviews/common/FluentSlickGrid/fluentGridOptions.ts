@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { GridOption } from "slickgrid-react";
+import "./fluentSlickGrid.css";
 
 export const baseFluentGridOption: GridOption = {
     contextMenu: {
