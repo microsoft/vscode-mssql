@@ -4,6 +4,10 @@
     <trans-unit id="++CODE++fd10453f63e5c663d4e640ea9cbe1adcc832b6fed0454e62686773ac486ce64d">
       <source xml:lang="en"> is required.</source>
     </trans-unit>
+    <trans-unit id="++CODE++cb073b0f8a6fe17dee09765fb0725c13898190b82e30c5a91b7f7d5e61f25d89">
+      <source xml:lang="en">$(check) Copied {0} characters</source>
+      <note>{0} is the number of characters copied to the clipboard</note>
+    </trans-unit>
     <trans-unit id="++CODE++18b63db64aa0aff55a9f4784ad62abdc2b70cedb95b5e89d5551996cc9bd25ac">
       <source xml:lang="en">$(plug)  Connect to MSSQL</source>
     </trans-unit>
@@ -1478,6 +1482,9 @@
     <trans-unit id="++CODE++84f5172141bab484104cf73fd00dc9d1d9426606ec2f0a3785ede261956f1ed2">
       <source xml:lang="en">Copy Script to Clipboard</source>
     </trans-unit>
+    <trans-unit id="++CODE++bd0768aa6b547da2466d49441410931420e8beb78cc1d3051e68242a04e8583b">
+      <source xml:lang="en">Copy all text output for this cell (messages, PRINT, errors)</source>
+    </trans-unit>
     <trans-unit id="++CODE++ac030299960c4d5cba2b13fa5f358cb7f1b1531ce5f2e5315eff17b7c93a97bf">
       <source xml:lang="en">Copy as CSV</source>
     </trans-unit>
@@ -1501,6 +1508,9 @@
     </trans-unit>
     <trans-unit id="++CODE++dbf362d4f210c780513a9258278d4d07abe8a224f84ba7ad775d819039342e77">
       <source xml:lang="en">Copy link</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cc4b07f956793d518a1f073565e7dceef4aab9bebae6e515dc7c9b046a38bc9d">
+      <source xml:lang="en">Copy messages</source>
     </trans-unit>
     <trans-unit id="++CODE++c8b5428b9ac790b3952e08ceea5a8a170ad8b0af1e0f51c98a159f1147631e8a">
       <source xml:lang="en">Copy script</source>
@@ -7396,6 +7406,9 @@
     </trans-unit>
     <trans-unit id="mssql.copyAll">
       <source xml:lang="en">Copy All</source>
+    </trans-unit>
+    <trans-unit id="mssql.notebooks.copyCellOutput">
+      <source xml:lang="en">Copy Cell Messages</source>
     </trans-unit>
     <trans-unit id="mssql.copyConnectionString">
       <source xml:lang="en">Copy Connection String</source>
