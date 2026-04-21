@@ -438,11 +438,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     const FILTER_ROW_HEIGHT = 34;
 
                     setOptions({
-                        alwaysShowVerticalScroll: true,
                         autoEdit: false,
                         autoCommitEdit: true,
                         editable: true,
-                        enableAutoResize: true,
                         autoResize: {
                             container: "#grid-container",
                             calculateAvailableSizeBy: "container",
@@ -451,13 +449,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                             bottomPadding: 10,
                             minHeight: 180,
                         },
-                        forceFitColumns: false, // Allow horizontal scrolling for many columns
 
                         // Localization for grid UI
                         locales: slickGridLocales,
 
                         // Column operations
-                        enableColumnReorder: true, // Allow column reordering via drag-and-drop
                         enableColumnPicker: true, // Allow hide/show columns from column picker
                         columnPicker: {
                             hideForceFitButton: true,
@@ -478,10 +474,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         headerRowHeight: FILTER_ROW_HEIGHT,
 
                         // Cell navigation and copy buffer
-                        enableCellNavigation: true,
-                        enableExcelCopyBuffer: true, // Enables cell range selection + copy/paste (Ctrl+C, Ctrl+V)
-                        enableTextSelectionOnCells: false, // Keep drag gestures selecting cells instead of native text
-
                         // Context menu
                         enableContextMenu: true,
                         contextMenu: getContextMenuOptions(),

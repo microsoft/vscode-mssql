@@ -793,12 +793,9 @@ export const Profiler: React.FC = () => {
                 bottomPadding: 0,
                 minHeight: 50,
             },
-            enableAutoResize: true,
             // Preserve explicit/manual column widths when the grid container resizes.
             // Slickgrid Universal enables auto-sizing on resize by default.
             enableAutoSizeColumns: false,
-            enableCellNavigation: true,
-            enableColumnReorder: true,
             enableSorting: false,
             enableFiltering: false,
             enablePagination: false,
@@ -806,13 +803,9 @@ export const Profiler: React.FC = () => {
             enableGridMenu: false, // Hide grid menu (hamburger menu)
             enableHeaderMenu: false, // Hide header menu (column hide/show)
             enableAutoTooltip: true, // Enable tooltips to show cell values on hover
-            enableExcelCopyBuffer: true, // Enable cell range selection (multi-cell select + copy)
-            enableTextSelectionOnCells: false, // Disable native text selection so cell range selection works
             rowHeight: 25,
             headerRowHeight: 30,
             showHeaderRow: false,
-            forceFitColumns: false,
-            alwaysShowVerticalScroll: true, // Always show vertical scrollbar to keep header/row alignment
             darkMode: themeKind === ColorThemeKind.Dark,
             emptyDataWarning: {
                 message: isFilterActive

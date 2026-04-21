@@ -9,6 +9,7 @@ import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-fluent.css";
 import "./fluentSlickGrid.css";
 
 const baseFluentGridOption: GridOption = {
+    alwaysShowVerticalScroll: true,
     contextMenu: {
         iconCollapseAllGroupsCommand: "fi fi-arrow-minimize",
         iconExpandAllGroupsCommand: "fi fi-arrow-maximize",
@@ -47,6 +48,12 @@ const baseFluentGridOption: GridOption = {
         iconColumnResizeByContentCommand: "fi fi-arrow-bidirection",
         subItemChevronClass: "fi fi-chevron-right",
     },
+    enableAutoResize: true,
+    enableCellNavigation: true,
+    enableColumnReorder: true,
+    enableExcelCopyBuffer: true,
+    enableTextSelectionOnCells: false,
+    forceFitColumns: false,
 };
 
 type SlickgridReactPublicProps = React.JSX.LibraryManagedAttributes<
