@@ -216,6 +216,67 @@
     border-radius: 0 !important;
 }
 
+/* VS Code-style grid menu
+   Note: SlickGrid appends the grid menu to document.body (not inside #tableExplorerGrid),
+   so scoped grid CSS variables do not cascade to it. */
+.slick-grid-menu {
+    --slick-menu-bg-color: var(--vscode-menu-background);
+    --slick-menu-color: var(--vscode-menu-foreground);
+    --slick-menu-item-hover-color: var(--vscode-menu-selectionBackground);
+    --slick-menu-title-color: var(--vscode-menu-foreground);
+    --slick-menu-close-btn-bg-color: transparent;
+    --slick-menu-close-btn-color: var(--vscode-menu-foreground);
+    --slick-column-picker-item-hover-color: var(--vscode-menu-selectionBackground);
+    --slick-menu-divider-color: var(--vscode-menu-separatorBackground, var(--vscode-menu-border));
+
+    background-color: var(--vscode-menu-background) !important;
+    border-color: var(--vscode-menu-border) !important;
+    color: var(--vscode-menu-foreground) !important;
+}
+
+.slick-grid-menu .slick-menu-title,
+.slick-grid-menu .slick-command-header {
+    color: var(--vscode-menu-foreground) !important;
+}
+
+.slick-grid-menu .slick-command-header.with-title {
+    border-bottom-color: var(
+        --vscode-menu-separatorBackground,
+        var(--vscode-menu-border)
+    ) !important;
+}
+
+.slick-grid-menu .slick-menu-item,
+.slick-grid-menu .slick-column-picker-list li {
+    color: var(--vscode-menu-foreground) !important;
+}
+
+.slick-grid-menu .slick-menu-item:hover,
+.slick-grid-menu .slick-menu-item:focus,
+.slick-grid-menu .slick-column-picker-list li:hover,
+.slick-grid-menu .slick-column-picker-list li:focus {
+    background-color: var(--vscode-menu-selectionBackground) !important;
+    color: var(--vscode-menu-selectionForeground) !important;
+}
+
+.slick-grid-menu .slick-menu-item .slick-menu-icon,
+.slick-grid-menu .slick-menu-item .mdi,
+.slick-grid-menu .slick-menu-item .fi,
+.slick-grid-menu .slick-column-picker-list .sgi {
+    color: var(--vscode-menu-foreground) !important;
+}
+
+.slick-grid-menu .slick-menu-item:hover .slick-menu-icon,
+.slick-grid-menu .slick-menu-item:hover .mdi,
+.slick-grid-menu .slick-menu-item:hover .fi,
+.slick-grid-menu .slick-column-picker-list li:hover .sgi {
+    color: var(--vscode-menu-selectionForeground) !important;
+}
+
+.slick-grid-menu hr {
+    border-color: var(--vscode-menu-separatorBackground, var(--vscode-menu-border)) !important;
+}
+
 /* Cell state styles */
 .table-cell-error {
     background-color: var(--vscode-inputValidation-errorBackground, #5a1d1d);
