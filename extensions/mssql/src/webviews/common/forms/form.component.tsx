@@ -449,68 +449,13 @@ export function generateFormComponent<
             if (component.options === undefined) {
                 throw new Error("Combobox component must have options");
             }
-            // options that sets whether a user can enter a freeform value or must select from the list of options
-            const isFreeform = props && props.freeform;
-            const optionDisplayName =
-                component.options.find(
-                    (option) => option.value === formState[component.propertyName],
-                )?.displayName ?? "";
             return (
-                <Combobox
-                    size="small"
-                    placeholder={component.placeholder ?? ""}
-                    value={
-                        isFreeform
-                            ? (formState[component.propertyName] as string)
-                            : optionDisplayName
-                    }
-                    selectedOptions={
-                        optionDisplayName !== ""
-                            ? [formState[component.propertyName] as string]
-                            : []
-                    }
-                    autoComplete={isFreeform ? "off" : "on"}
-                    onChange={(event) => {
-                        if (isFreeform) {
-                            if (props.onChange) {
-                                props.onChange(event);
-                            } else {
-                                context?.formAction({
-                                    propertyName: component.propertyName,
-                                    isAction: false,
-                                    value: event.target.value,
-                                });
-                            }
-                        }
-                    }}
-                    onOptionSelect={(event, data) => {
-                        // if user pressed enter after typing a freeform value that doesn't match an option,
-                        // don't trigger onOptionSelect and instead let onChange handle it
-                        if (
-                            isFreeform &&
-                            !optionDisplayName &&
-                            event.type === EventType.Keydown &&
-                            (event as React.KeyboardEvent).key === KeyCode.Enter
-                        ) {
-                            return;
-                        }
-                        if (props && props.onOptionSelect) {
-                            props.onOptionSelect(event, data);
-                        } else {
-                            context?.formAction({
-                                propertyName: component.propertyName,
-                                isAction: false,
-                                value: data.optionValue as string,
-                            });
-                        }
-                    }}
-                    {...props}>
-                    {component.options.map((option) => (
-                        <Option key={option.value} value={option.value}>
-                            {option.displayName}
-                        </Option>
-                    ))}
-                </Combobox>
+                <FormCombobox<TForm, TState, TFormItemSpec, TContext>
+                    context={context}
+                    formState={formState}
+                    component={component}
+                    props={props}
+                />
             );
         case FormItemType.SearchableDropdown:
             if (component.options === undefined) {
@@ -568,3 +513,88 @@ export function generateFormComponent<
             );
     }
 }
+
+export const FormCombobox = <
+    TForm,
+    TState extends FormState<TForm, TState, TFormItemSpec>,
+    TFormItemSpec extends FormItemSpec<TForm, TState, TFormItemSpec>,
+    TContext extends FormContextProps<TForm>,
+>({
+    context,
+    formState,
+    component,
+    props,
+}: {
+    context: TContext;
+    formState: TForm;
+    component: TFormItemSpec;
+    props?: any;
+}) => {
+    const isFreeform = component.freeform || (props && props.freeform);
+
+    const optionDisplayName =
+        component.options?.find((option) => option.value === formState[component.propertyName])
+            ?.displayName ?? "";
+
+    const externalValue = isFreeform
+        ? ((formState[component.propertyName] as string) ?? "")
+        : optionDisplayName;
+
+    const [inputValue, setInputValue] = useState(externalValue);
+
+    useEffect(() => {
+        setInputValue(externalValue);
+    }, [externalValue]);
+
+    return (
+        <Combobox
+            size="small"
+            placeholder={component.placeholder ?? ""}
+            value={inputValue}
+            selectedOptions={
+                optionDisplayName !== "" ? [formState[component.propertyName] as string] : []
+            }
+            autoComplete={isFreeform ? "off" : "on"}
+            onChange={(event) => {
+                if (isFreeform) {
+                    const newVal = event.target.value;
+                    setInputValue(newVal);
+                    if (props?.onChange) {
+                        props.onChange(event);
+                    } else {
+                        context?.formAction({
+                            propertyName: component.propertyName,
+                            isAction: false,
+                            value: newVal,
+                        });
+                    }
+                }
+            }}
+            onOptionSelect={(event, data) => {
+                if (
+                    isFreeform &&
+                    !optionDisplayName &&
+                    event.type === EventType.Keydown &&
+                    (event as React.KeyboardEvent).key === KeyCode.Enter
+                ) {
+                    return;
+                }
+                if (props?.onOptionSelect) {
+                    props.onOptionSelect(event, data);
+                } else {
+                    context?.formAction({
+                        propertyName: component.propertyName,
+                        isAction: false,
+                        value: data.optionValue as string,
+                    });
+                }
+            }}
+            {...props}>
+            {component.options?.map((option) => (
+                <Option key={option.value} value={option.value}>
+                    {option.displayName}
+                </Option>
+            ))}
+        </Combobox>
+    );
+};
