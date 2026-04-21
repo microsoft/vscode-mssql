@@ -34,7 +34,7 @@ export function registerNotebookCopyOutput(context: vscode.ExtensionContext): vo
                 }
                 await vscode.env.clipboard.writeText(text);
                 vscode.window.setStatusBarMessage(
-                    LocalizedConstants.Notebooks.copiedCharacters(text.length),
+                    LocalizedConstants.Notebooks.copiedMessages,
                     2000,
                 );
             },

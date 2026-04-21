@@ -829,13 +829,7 @@ export class Notebooks {
     public static copyMessagesTooltip = l10n.t(
         "Copy all text output for this cell (messages, PRINT, errors)",
     );
-    public static copiedCharacters(count: number) {
-        return l10n.t({
-            message: "$(check) Copied {0} characters",
-            args: [count.toLocaleString()],
-            comment: ["{0} is the number of characters copied to the clipboard"],
-        });
-    }
+    public static copiedMessages = l10n.t("$(check) Copied messages");
 
     // Execution results
     public static rowsAffected(count: number) {
