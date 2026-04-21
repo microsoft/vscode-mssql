@@ -2501,6 +2501,8 @@ export class LocConstants {
             detailsPanel: {
                 textTab: l10n.t("Text"),
                 detailsTab: l10n.t("Details"),
+                propertyColumn: l10n.t("Property"),
+                valueColumn: l10n.t("Value"),
                 openInEditor: l10n.t("Open in Editor"),
                 maximize: l10n.t("Maximize"),
                 restore: l10n.t("Restore"),
