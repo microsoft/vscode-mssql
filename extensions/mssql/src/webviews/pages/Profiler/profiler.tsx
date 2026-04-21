@@ -45,6 +45,11 @@ import { locConstants } from "../../common/locConstants";
 import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-fluent.css";
 import "./profiler.css";
 import { baseFluentGridOption } from "../../common/FluentSlickGrid/fluentGridOptions";
+import {
+    getProfilerColumnDefaultWidth,
+    getProfilerColumnWidth,
+    PROFILER_RESIZABLE_MIN_WIDTH_PX,
+} from "./profilerGridWidthUtils";
 
 /** Number of rows to fetch per request */
 const FETCH_SIZE = 100;
@@ -725,15 +730,17 @@ export const Profiler: React.FC = () => {
     const columns: Column[] = useMemo(() => {
         if (!viewConfig?.columns) {
             // Default single column if no view config
+            const defaultWidth = getProfilerColumnDefaultWidth("Event");
             return [
                 {
                     id: "eventClass",
                     name: "Event",
                     field: "eventClass",
+                    width: defaultWidth,
                     sortable: false,
                     filterable: true,
                     resizable: true,
-                    minWidth: 200,
+                    minWidth: PROFILER_RESIZABLE_MIN_WIDTH_PX,
                     excludeFromColumnPicker: true,
                     excludeFromGridMenu: true,
                     excludeFromHeaderMenu: true,
@@ -744,15 +751,16 @@ export const Profiler: React.FC = () => {
         return [
             ...viewConfig.columns.map((col) => {
                 const formatterConfig = getFormatterConfig(col.field);
+                const hasHeaderButtons = col.filterable !== false;
                 return {
                     id: col.field,
                     name: col.header,
                     field: col.field,
-                    width: col.width,
+                    width: getProfilerColumnWidth(col.header, col.width, { hasHeaderButtons }),
                     sortable: false, // Sorting disabled for profiler grid
                     filterable: col.filterable ?? true, // Default to filterable
                     resizable: true,
-                    minWidth: 50,
+                    minWidth: PROFILER_RESIZABLE_MIN_WIDTH_PX,
                     excludeFromColumnPicker: true,
                     excludeFromGridMenu: true,
                     excludeFromHeaderMenu: true,
@@ -786,6 +794,7 @@ export const Profiler: React.FC = () => {
     const gridOptions: GridOption = useMemo(
         () => ({
             ...baseFluentGridOption,
+            autoFitColumnsOnFirstLoad: false,
             autoResize: {
                 container: "#profilerGridContainer",
                 calculateAvailableSizeBy: "container",
@@ -794,6 +803,9 @@ export const Profiler: React.FC = () => {
                 minHeight: 50,
             },
             enableAutoResize: true,
+            // Preserve explicit/manual column widths when the grid container resizes.
+            // Slickgrid Universal enables auto-sizing on resize by default.
+            enableAutoSizeColumns: false,
             enableCellNavigation: true,
             enableColumnReorder: true,
             enableSorting: false,
