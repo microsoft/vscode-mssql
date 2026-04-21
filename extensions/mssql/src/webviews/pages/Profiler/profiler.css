@@ -3,6 +3,45 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+.profiler-toolbar {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 4px 8px;
+    border-bottom: 1px solid var(--vscode-panel-border);
+    background-color: var(--vscode-editor-background);
+}
+
+.profiler-toolbar .fui-Toolbar {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    min-width: max-content;
+    width: max-content;
+}
+
+.profiler-toolbar .fui-Toolbar > * {
+    flex-shrink: 0;
+}
+
+.profiler-toolbar-view-selector {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.profiler-toolbar-label {
+    font-size: 12px;
+    color: var(--vscode-foreground);
+    white-space: nowrap;
+}
+
+.profiler-toolbar-select {
+    width: 150px;
+    min-width: 150px;
+    max-width: 150px;
+}
+
 /* Grid base styles — CSS variables consumed by slickgrid-theme-default.css */
 #profilerGrid {
     --slick-border-color: var(--vscode-editorWidget-border);

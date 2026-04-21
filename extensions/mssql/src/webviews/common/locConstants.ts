@@ -2345,7 +2345,9 @@ export class LocConstants {
             clearFilter: l10n.t("Clear Filter"),
 
             // Toolbar labels
-            selectSessionLabel: l10n.t("Select Session:"),
+            sessionLabel: l10n.t("Session"),
+            selectSessionAriaLabel: l10n.t("Select session"),
+            selectSessionLabel: l10n.t("Select session"),
             viewLabel: l10n.t("View:"),
             selectASession: l10n.t("Select a session..."),
             readOnlyFileLabel: l10n.t("File (Read-Only)"),
