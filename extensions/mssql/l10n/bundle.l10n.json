@@ -40,6 +40,8 @@
     "Find": "Find",
     "Find Next": "Find Next",
     "Find Previous": "Find Previous",
+    "Property": "Property",
+    "Value": "Value",
     "No results": "No results",
     "{0} of {1}/{0} is the number of active elements{1} is the total number of elements": {
         "message": "{0} of {1}",
@@ -104,9 +106,7 @@
         "message": "The first value must be less than the second value for the {0} operator in the {1} filter",
         "comment": ["{0} is the operator for the filter", "{1} is the name of the filter"]
     },
-    "Property": "Property",
     "Operator": "Operator",
-    "Value": "Value",
     "Publishing Changes": "Publishing Changes",
     "Changes published successfully": "Changes published successfully",
     "Close Designer": "Close Designer",
