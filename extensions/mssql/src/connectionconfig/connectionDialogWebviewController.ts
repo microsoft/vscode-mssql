@@ -133,6 +133,17 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         "encrypt",
     ];
 
+    /** Properties that trigger a database list fetch when changed */
+    private static readonly _dbFetchTriggerProps: readonly (keyof IConnectionDialogProfile)[] = [
+        "server", // server, obviously
+        "authenticationType", // auth info because changing auth may change ability to connect/list databases
+        "user",
+        "password",
+        "accountId",
+        "tenantId",
+        "trustServerCertificate", // trustServerCertificate because enabling this may be required to connect/list databases
+    ];
+
     private _connectionBeingEdited: IConnectionDialogProfile | undefined;
     private _azureSubscriptions: Map<string, AzureSubscription>;
     private _lastSubmittedAction: ConnectionSubmitAction = ConnectionSubmitAction.Connect;
@@ -145,9 +156,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     private _entraDataLoaded = new Deferred<void>();
 
     /** Incremented on each database fetch to allow superseding in-flight requests. */
-    private _dbFetchToken: number = 0;
-    /** Fetch key currently reflected in the UI (options + loadStatus), updated at the start of every load attempt. */
-    private _displayedFetchKey: string = "";
+    private _dbFetchCounter = 0;
+    /** Fetch key currently reflected in the UI (options + loadStatus), for tracking if a changed connection property should trigger an update. */
+    private _activeDbFetchKey = "";
     /** Cache of database lists keyed by fetch key, reused within the same dialog session. */
     private _databaseListCache: Map<string, string[]> = new Map();
 
@@ -968,46 +979,26 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
         await this.handleAzureMFAEdits(propertyName);
 
-        const dbRelevantProps: (keyof IConnectionDialogProfile)[] = [
-            "server",
-            "authenticationType",
-            "user",
-            "password",
-            "accountId",
-            "tenantId",
-            "trustServerCertificate",
-        ];
-        if (dbRelevantProps.includes(propertyName)) {
-            if (this.isConnectionInfoSufficientForDatabaseFetch()) {
+        if (ConnectionDialogWebviewController._dbFetchTriggerProps.includes(propertyName)) {
+            // If the connection has enough information, attempt to populate the database list...
+            if (this.isConnectionReadyForDatabaseFetch(this.state.connectionProfile)) {
                 const fetchKey = this.buildDatabaseFetchKey();
-                if (fetchKey !== this._displayedFetchKey) {
-                    void this.loadDatabasesAsync();
+
+                if (fetchKey !== this._activeDbFetchKey) {
+                    void this.loadDatabaseList();
                 }
-            } else if (this._displayedFetchKey !== "") {
-                // Auth info is now incomplete — clear stale options and any error decoration
+            } else if (this._activeDbFetchKey !== "") {
+                // ...otherwise, clear the database list
                 const dbComponent = this.getFormComponent(this.state, "database");
+
                 if (dbComponent) {
                     dbComponent.options = [];
                     dbComponent.loadStatus = undefined;
                 }
-                this._displayedFetchKey = "";
+
+                this._activeDbFetchKey = "";
                 this.updateState();
             }
-        }
-    }
-
-    private isConnectionInfoSufficientForDatabaseFetch(): boolean {
-        const p = this.state.connectionProfile;
-        if (!p.server) {
-            return false;
-        }
-        switch (p.authenticationType) {
-            case AuthenticationType.SqlLogin:
-                return !!(p.user && p.password);
-            case AuthenticationType.AzureMFA:
-                return !!p.accountId;
-            default: // Windows/Integrated, EntraDefault:
-                return true;
         }
     }
 
@@ -1363,34 +1354,57 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
     }
 
+    private isConnectionReadyForDatabaseFetch(profile: IConnectionDialogProfile): boolean {
+        if (!profile.server) {
+            return false;
+        }
+
+        switch (profile.authenticationType) {
+            case AuthenticationType.SqlLogin:
+                return !!(profile.user && profile.password);
+            case AuthenticationType.AzureMFA:
+                return !!profile.accountId;
+            case AuthenticationType.Integrated:
+            case AuthenticationType.ActiveDirectoryDefault:
+                true;
+            default:
+                return false;
+        }
+    }
+
     private buildDatabaseFetchKey(): string {
         const p = this.state.connectionProfile;
         return `${p.server ?? ""}|${p.authenticationType ?? ""}|${p.user ?? ""}|${p.accountId ?? ""}|${p.tenantId ?? ""}`;
     }
 
-    private async loadDatabasesAsync(): Promise<void> {
-        const token = ++this._dbFetchToken;
+    private async loadDatabaseList(): Promise<void> {
+        const counter = ++this._dbFetchCounter;
         const fetchKey = this.buildDatabaseFetchKey();
         const dbComponent = this.getFormComponent(this.state, "database");
+
         if (!dbComponent) {
             return;
         }
 
-        // Serve from cache if available
+        // 1. Use cached list if available
         const cached = this._databaseListCache.get(fetchKey);
+
         if (cached) {
-            this._displayedFetchKey = fetchKey;
+            this._activeDbFetchKey = fetchKey;
             dbComponent.options = cached.map((db) => ({ displayName: db, value: db }));
             dbComponent.loadStatus = undefined;
             this.updateState();
+
             return;
         }
 
-        this._displayedFetchKey = fetchKey;
+        // 2. Display loading state
+        this._activeDbFetchKey = fetchKey;
         dbComponent.options = [];
         dbComponent.loadStatus = { status: ApiStatus.Loading };
         this.updateState();
 
+        // 3. Attempt to fetch database list
         const tempUri = uuid();
         try {
             const profile: IConnectionDialogProfile = {
@@ -1407,10 +1421,12 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 },
             );
 
-            if (token !== this._dbFetchToken) {
+            // Check if this fetch attempt is out-of-date
+            if (counter !== this._dbFetchCounter) {
                 return;
             }
 
+            // 4a. If connection failed, show error message
             if (!connected) {
                 const connInfo = this._mainController.connectionManager.getConnectionInfo(tempUri);
                 const errorType = connInfo
@@ -1420,36 +1436,39 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     errorType === SqlConnectionErrorType.TrustServerCertificateNotEnabled
                         ? LocAll.enableTrustServerCertificate
                         : (connInfo?.errorMessage ?? "");
-                dbComponent.options = [];
                 dbComponent.loadStatus = {
                     status: ApiStatus.Error,
                     message: Loc.unableToLoadDatabaseList(errorDetail),
                 };
-                this._displayedFetchKey = "";
+                this._activeDbFetchKey = "";
                 this.updateState();
                 return;
             }
 
             const dbs = await this._mainController.connectionManager.listDatabases(tempUri);
 
-            if (token !== this._dbFetchToken) {
+            // Check if this fetch attempt is out-of-date
+            if (counter !== this._dbFetchCounter) {
                 return;
             }
 
+            // 4b. If connection succeeded, cache and display database list
             this._databaseListCache.set(fetchKey, dbs);
             dbComponent.options = dbs.map((db) => ({ displayName: db, value: db }));
             dbComponent.loadStatus = undefined;
             this.updateState();
         } catch (err) {
-            if (token !== this._dbFetchToken) {
+            // Check if this fetch attempt is out-of-date
+            if (counter !== this._dbFetchCounter) {
                 return;
             }
-            dbComponent.options = [];
+
             dbComponent.loadStatus = {
                 status: ApiStatus.Error,
                 message: Loc.unableToLoadDatabaseList(getErrorMessage(err)),
             };
-            this._displayedFetchKey = "";
+
+            this._activeDbFetchKey = "";
             this.updateState();
         } finally {
             try {
@@ -1634,8 +1653,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             await this.setConnectionForEdit(connectionToEdit);
             this.updateState();
 
-            if (this.isConnectionInfoSufficientForDatabaseFetch()) {
-                void this.loadDatabasesAsync();
+            if (this.isConnectionReadyForDatabaseFetch(this.state.connectionProfile)) {
+                void this.loadDatabaseList();
             }
         }
     }

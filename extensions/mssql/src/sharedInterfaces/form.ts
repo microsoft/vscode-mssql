@@ -98,7 +98,7 @@ export interface FormItemSpec<
     loadStatus?: Status;
 
     /**
-     * For SearchableDropdown: if true, the user may type and commit a value not in the options list.
+     * If true, the user may enter a value that doesn't appear in the options list.
      */
     freeform?: boolean;
 }

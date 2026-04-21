@@ -1065,20 +1065,11 @@ export class ConnectionDialog {
     );
 
     public static selectDatabase = l10n.t("Select a database");
-    public static searchDatabases = l10n.t("Search databases");
     public static unableToLoadDatabaseList(errorMessage: string) {
         return l10n.t({
             message: "Unable to load database list from server: {0}",
             args: [errorMessage],
             comment: ["{0} is the connection error message"],
-        });
-    }
-
-    public static databasesLoaded(count: number) {
-        return l10n.t({
-            message: "{0} databases loaded",
-            args: [count],
-            comment: ["{0} is the number of databases"],
         });
     }
 

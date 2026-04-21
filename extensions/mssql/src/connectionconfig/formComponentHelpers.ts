@@ -292,13 +292,12 @@ export async function completeFormComponents(
     }
 
     // add missing validation functions for generated components
-    // Override database field: freeform combobox — user can type any value, options populated by background fetch
     if (components["database"]) {
         components["database"] = {
             ...components["database"],
             type: FormItemType.Combobox,
             options: [],
-            freeform: true,
+            freeform: true, // allow users to enter a database that isn't populated automatically (e.g. user doesn't have LIST permission)
             placeholder: Loc.selectDatabase,
         };
     }
