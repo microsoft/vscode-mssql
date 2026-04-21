@@ -484,6 +484,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         // Cell navigation and copy buffer
                         enableCellNavigation: true,
                         enableExcelCopyBuffer: true, // Enables cell range selection + copy/paste (Ctrl+C, Ctrl+V)
+                        enableTextSelectionOnCells: false, // Keep drag gestures selecting cells instead of native text
 
                         // Context menu
                         enableContextMenu: true,
