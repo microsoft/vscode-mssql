@@ -1366,7 +1366,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 return !!profile.accountId;
             case AuthenticationType.Integrated:
             case AuthenticationType.ActiveDirectoryDefault:
-                true;
+                return true;
             default:
                 return false;
         }
