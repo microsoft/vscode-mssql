@@ -29,7 +29,7 @@ import TableExplorerCustomPager from "./TableExplorerCustomPager";
 import { slickGridLocales } from "./commonGridOptions";
 import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-fluent.css";
 import "./TableDataGrid.css";
-import { baseFluentGridOption } from "../base-fluent-grid-options";
+import { baseFluentGridOption } from "../../common/FluentSlickGrid/fluentGridOptions";
 
 interface TableDataGridProps {
     resultSet: EditSubsetResult | undefined;
@@ -468,7 +468,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         },
                         enableHeaderMenu: true, // Enable header menu for column operations
                         headerMenu: {
-                            // v10+ prefers hideCommands over hide*Command flags.
+                            ...baseFluentGridOption.headerMenu,
                             hideCommands: ["freeze-columns"],
                         },
 
