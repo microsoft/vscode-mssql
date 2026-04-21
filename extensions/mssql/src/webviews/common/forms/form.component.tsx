@@ -32,6 +32,7 @@ import {
 } from "@fluentui/react-icons";
 import {
     FormContextProps,
+    FormItemOptions,
     FormItemSpec,
     FormItemType,
     FormState,

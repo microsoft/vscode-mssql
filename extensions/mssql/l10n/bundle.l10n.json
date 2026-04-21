@@ -1874,7 +1874,6 @@
     "Refresh Credentials": "Refresh Credentials",
     "Failed to fetch user tokens.": "Failed to fetch user tokens.",
     "Error: Login failed. Retry using different credentials?": "Error: Login failed. Retry using different credentials?",
-    "Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?": "Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?",
     "Your client IP address does not have access to the server. Add a Microsoft Entra account and create a new firewall rule to enable access.": "Your client IP address does not have access to the server. Add a Microsoft Entra account and create a new firewall rule to enable access.",
     "Your client IP Address '{0}' does not have access to the server '{1}' you're attempting to connect to. Would you like to create new firewall rule?/{0} is the client IP address{1} is the server name": {
         "message": "Your client IP Address '{0}' does not have access to the server '{1}' you're attempting to connect to. Would you like to create new firewall rule?",
@@ -2762,6 +2761,8 @@
     "Sign in to a new account": "Sign in to a new account",
     "Select Azure account with Key Vault access for column decryption": "Select Azure account with Key Vault access for column decryption",
     "No tenant selected": "No tenant selected",
+    "Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true'. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments.": "Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true'. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments.",
+    "Do you want to enable 'Trust server certificate' on this connection and retry?": "Do you want to enable 'Trust server certificate' on this connection and retry?",
     "No model found.": "No model found.",
     "No tools to process.": "No tools to process.",
     "You are not connected to any database.": "You are not connected to any database.",

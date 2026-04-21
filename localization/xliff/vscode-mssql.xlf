@@ -1967,6 +1967,9 @@
     <trans-unit id="++CODE++79520a5688933d6fc7b0f540292cbbfb2898a9edc2d85d0ee231b6ed63adaad1">
       <source xml:lang="en">Do you want to always display query results in a new tab instead of the query pane?</source>
     </trans-unit>
+    <trans-unit id="++CODE++3c96c6d1388e41b0724659fa022b1843dea4a84d175a1d571bf72382fc0c3581">
+      <source xml:lang="en">Do you want to enable &apos;Trust server certificate&apos; on this connection and retry?</source>
+    </trans-unit>
     <trans-unit id="++CODE++f1286712850b10aee8607a93c2120e10316b5962b73c377860cd5cded5b98184">
       <source xml:lang="en">Docker Desktop must be installed and running on your machine.</source>
     </trans-unit>
@@ -2100,8 +2103,8 @@
     <trans-unit id="++CODE++ac8fee089cebcddef6529d9c8b467120173dbd02a46992ecbaf62fe25c925ae0">
       <source xml:lang="en">Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or enable &apos;Trust server certificate&apos; in the connection dialog.</source>
     </trans-unit>
-    <trans-unit id="++CODE++a04452986b48c7c3c21f78712b31a68f2aecb85566c134d87d55348c7b16b9a8">
-      <source xml:lang="en">Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set &apos;Trust server certificate&apos; to &apos;true&apos; in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable &apos;Trust server certificate&apos; on this connection and retry?</source>
+    <trans-unit id="++CODE++e03c1fa5598b1caba263d99a4896ddba797148eaca638348d48aa792db57f71e">
+      <source xml:lang="en">Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set &apos;Trust server certificate&apos; to &apos;true&apos;. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments.</source>
     </trans-unit>
     <trans-unit id="++CODE++6051d2070e8e51a99adfa6b3f5171cfa92107943f46417bcd51a8f5e995c881f">
       <source xml:lang="en">End IP Address</source>

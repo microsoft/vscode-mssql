@@ -1455,7 +1455,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     : SqlConnectionErrorType.Generic;
                 const errorDetail =
                     errorType === SqlConnectionErrorType.TrustServerCertificateNotEnabled
-                        ? LocAll.enableTrustServerCertificate
+                        ? LocAll.Connection.trustServerCertificateMustBeEnabledMessage
                         : (connInfo?.errorMessage ?? "");
                 dbComponent.loadStatus = {
                     status: ApiStatus.Error,
