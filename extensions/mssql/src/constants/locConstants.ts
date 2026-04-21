@@ -806,6 +806,19 @@ export class Notebooks {
     public static noActiveConnection = l10n.t("No active connection.");
     public static noConnectionSelected = l10n.t("No connection selected.");
 
+    // Copy cell output
+    public static copyMessages = l10n.t("Copy messages");
+    public static copyMessagesTooltip = l10n.t(
+        "Copy all text output for this cell (messages, PRINT, errors)",
+    );
+    public static copiedCharacters(count: number) {
+        return l10n.t({
+            message: "$(check) Copied {0} characters",
+            args: [count.toLocaleString()],
+            comment: ["{0} is the number of characters copied to the clipboard"],
+        });
+    }
+
     // Execution results
     public static rowsAffected(count: number) {
         return l10n.t({

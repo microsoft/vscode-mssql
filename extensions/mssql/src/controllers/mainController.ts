@@ -80,6 +80,7 @@ import { CreateSessionResult } from "../objectExplorer/objectExplorerService";
 import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
 import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
 import { SqlNotebookController } from "../notebooks/sqlNotebookController";
+import { registerNotebookCopyOutput } from "../notebooks/notebookCopyOutputProvider";
 import { ConnectTool } from "../copilot/tools/connectTool";
 import { ListServersTool } from "../copilot/tools/listServersTool";
 import { DisconnectTool } from "../copilot/tools/disconnectTool";
@@ -714,6 +715,8 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdNotebooksChangeConnection, () => {
                 void this.sqlNotebookController.changeConnectionInteractive();
             });
+
+            registerNotebookCopyOutput(this._context);
 
             const providerInstance = new this.ExecutionPlanCustomEditorProvider(
                 this._context,
