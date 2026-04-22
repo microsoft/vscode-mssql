@@ -337,6 +337,7 @@ export namespace SchemaDesigner {
         activeView?: SchemaDesignerActiveView;
         isDabDeploymentSupported?: boolean;
         initialFilterTables?: string[];
+        currentFilteredTables?: string[];
     }
 
     export interface ExportFileOptions {
@@ -428,6 +429,12 @@ export namespace SchemaDesigner {
 
     export namespace ExportToFileNotification {
         export const type = new NotificationType<ExportFileOptions>("exportToFile");
+    }
+
+    export namespace UpdateFilterTablesNotification {
+        export const type = new NotificationType<{ currentFilteredTables: string[] }>(
+            "updateFilterTables",
+        );
     }
 
     export interface SchemaDesignerDirtyStateParams {

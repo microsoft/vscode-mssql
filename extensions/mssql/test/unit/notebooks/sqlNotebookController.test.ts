@@ -11,6 +11,7 @@ import * as vscode from "vscode";
 
 chai.use(sinonChai);
 import type { IConnectionInfo } from "vscode-mssql";
+import * as Constants from "../../../src/constants/constants";
 import * as LocalizedConstants from "../../../src/constants/locConstants";
 import { SqlNotebookController } from "../../../src/notebooks/sqlNotebookController";
 import ConnectionManager from "../../../src/controllers/connectionManager";
@@ -115,6 +116,7 @@ suite("SqlNotebookController", () => {
         token: vscode.CancellationToken;
     };
     let mockCancelToken: vscode.EventEmitter<void>;
+    let executeCommandStub: sinon.SinonStub;
 
     const notebookUri = vscode.Uri.parse("vscode-notebook://test-notebook");
 
@@ -229,6 +231,7 @@ suite("SqlNotebookController", () => {
         };
 
         setupVscodeMocks(sandbox);
+        executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves(undefined);
 
         // Mock ConnectionManager (used for connection UI flows)
         connectionMgr = {
@@ -921,12 +924,13 @@ suite("SqlNotebookController", () => {
     });
 
     suite("createNotebookWithConnection", () => {
-        test("creates notebook without connection", async () => {
+        test("creates notebook without connection and selects MSSQL kernel", async () => {
             const mockNotebook = makeNotebook();
+            const mockNotebookEditor = {
+                notebook: mockNotebook,
+            } as unknown as vscode.NotebookEditor;
             sandbox.stub(vscode.workspace, "openNotebookDocument").resolves(mockNotebook);
-            sandbox
-                .stub(vscode.window, "showNotebookDocument")
-                .resolves({} as unknown as vscode.NotebookEditor);
+            sandbox.stub(vscode.window, "showNotebookDocument").resolves(mockNotebookEditor);
 
             await controller.createNotebookWithConnection();
 
@@ -935,14 +939,20 @@ suite("SqlNotebookController", () => {
                 mockNotebook,
                 vscode.NotebookControllerAffinity.Preferred,
             );
+            expect(executeCommandStub).to.have.been.calledWithExactly("notebook.selectKernel", {
+                notebookEditor: mockNotebookEditor,
+                id: mockController.id,
+                extension: Constants.extensionId,
+            });
         });
 
-        test("creates notebook and connects with provided connection", async () => {
+        test("creates notebook, selects MSSQL kernel, and connects with provided connection", async () => {
             const mockNotebook = makeNotebook();
+            const mockNotebookEditor = {
+                notebook: mockNotebook,
+            } as unknown as vscode.NotebookEditor;
             sandbox.stub(vscode.workspace, "openNotebookDocument").resolves(mockNotebook);
-            sandbox
-                .stub(vscode.window, "showNotebookDocument")
-                .resolves({} as unknown as vscode.NotebookEditor);
+            sandbox.stub(vscode.window, "showNotebookDocument").resolves(mockNotebookEditor);
             sandbox.stub(vscode.window, "showInformationMessage").resolves();
 
             const connInfo = {
@@ -953,6 +963,11 @@ suite("SqlNotebookController", () => {
 
             await controller.createNotebookWithConnection(connInfo);
 
+            expect(executeCommandStub).to.have.been.calledWithExactly("notebook.selectKernel", {
+                notebookEditor: mockNotebookEditor,
+                id: mockController.id,
+                extension: Constants.extensionId,
+            });
             expect(mockNotebookConnMgr.connectWith).to.have.been.calledWith(connInfo);
         });
     });

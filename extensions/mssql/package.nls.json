@@ -55,7 +55,7 @@
     "mssql.renameDatabase": "Rename Database...",
     "mssql.objectExplorerChatWithDatabase": "Open in GitHub Copilot Chat",
     "mssql.objectExplorerChatWithDatabaseInAgentMode": "Open in GitHub Copilot Agent",
-    "mssql.profiler.launchFromObjectExplorer": "Launch Query Profiler (Preview)...",
+    "mssql.profiler.launchFromObjectExplorer": "Launch Query Profiler...",
     "mssql.copilot.editorSubmenu": "MSSQL Copilot",
     "mssql.copilot.explainQuery": "Explain Query",
     "mssql.copilot.analyzeQueryPerformance": "Analyze Query Performance",
@@ -63,7 +63,7 @@
     "mssql.copilot.newQueryWithConnection": "Open New Query and Connect",
     "mssql.schemaCompare": "Compare Schemas...",
     "mssql.tableExplorer": "Edit Table Data...",
-    "mssql.searchDatabase": "Search Database Objects (Preview)...",
+    "mssql.searchDatabase": "Search Database Objects...",
     "mssql.toggleSqlCmd": "Toggle SQLCMD Mode",
     "mssql.copyObjectName": "Copy Object Name",
     "mssql.copyConnectionString": "Copy Connection String",
@@ -291,7 +291,7 @@
     "mssql.backupDatabase": "Backup Database...",
     "mssql.restoreDatabase": "Restore Database...",
     "mssql.flatFileImport": "Import Data...",
-    "mssql.notebooks.createNotebook": "Create SQL Notebook (Preview)",
+    "mssql.notebooks.createNotebook": "New SQL Notebook (Preview)",
     "mssql.notebooks.changeDatabase": "Change Notebook Database",
     "mssql.notebooks.changeConnection": "Change Notebook Connection"
 }

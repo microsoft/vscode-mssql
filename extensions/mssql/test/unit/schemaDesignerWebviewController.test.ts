@@ -234,6 +234,9 @@ suite("SchemaDesignerWebviewController tests", () => {
                     SchemaDesigner.CloseSchemaDesignerNotification.type.method,
                 ),
             ).to.be.true;
+            expect(
+                notificationHandlers.has(SchemaDesigner.UpdateFilterTablesNotification.type.method),
+            ).to.be.true;
         });
     });
 
@@ -487,6 +490,17 @@ suite("SchemaDesignerWebviewController tests", () => {
 
             const handler = notificationHandlers.get(
                 SchemaDesigner.ExportToFileNotification.type.method,
+            );
+            expect(handler).to.be.a("function");
+        });
+    });
+
+    suite("UpdateFilterTablesNotification handler", () => {
+        test("should register UpdateFilterTablesNotification handler", async () => {
+            createController();
+
+            const handler = notificationHandlers.get(
+                SchemaDesigner.UpdateFilterTablesNotification.type.method,
             );
             expect(handler).to.be.a("function");
         });

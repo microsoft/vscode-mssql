@@ -369,6 +369,10 @@ export function FilterTablesButton() {
     }, [selectedTables, showTableRelationships]);
 
     useEffect(() => {
+        context.updateFilterTables(selectedTables);
+    }, [selectedTables]);
+
+    useEffect(() => {
         const rafId = requestAnimationFrame(() => {
             loadTables();
         });

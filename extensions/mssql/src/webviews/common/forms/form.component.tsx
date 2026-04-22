@@ -12,14 +12,17 @@ import {
     FieldProps,
     InfoLabel,
     Input,
+    Label,
     LabelProps,
     Option,
+    Spinner,
     Text,
     Textarea,
+    Tooltip,
     makeStyles,
     tokens,
 } from "@fluentui/react-components";
-import { Eye16Regular, EyeOff16Regular } from "@fluentui/react-icons";
+import { Eye16Regular, EyeOff16Regular, Info16Regular } from "@fluentui/react-icons";
 import {
     FormContextProps,
     FormItemSpec,
@@ -72,6 +75,11 @@ export const useFormStyles = makeStyles({
     formNavTrayRight: {
         display: "flex",
         marginLeft: "auto",
+    },
+    labelDecoration: {
+        display: "inline-flex",
+        alignItems: "center",
+        columnGap: "0px",
     },
 });
 
@@ -218,29 +226,29 @@ export const FormField = <
                 }
                 required={component.required}
                 // @ts-ignore there's a bug in the typings somewhere, so ignoring this line to avoid angering type-checker
-                label={
+                label={{
                     // The html here shouldn't need to be sanitized, and should be safe
                     // because it's only ever set by forms internal to the extension
-                    component.tooltip ? (
-                        {
-                            children: (_: unknown, slotProps: LabelProps) => (
-                                <InfoLabel {...slotProps} info={component.tooltip}>
-                                    <span
-                                        dangerouslySetInnerHTML={{
-                                            __html: component.label,
-                                        }}
-                                    />
-                                </InfoLabel>
-                            ),
-                        }
-                    ) : (
-                        <span
-                            dangerouslySetInnerHTML={{
-                                __html: component.label,
-                            }}
-                        />
-                    )
-                }
+                    children: (_: unknown, slotProps: LabelProps) => {
+                        const labelContent = (
+                            <span
+                                dangerouslySetInnerHTML={{
+                                    __html: component.label,
+                                }}
+                            />
+                        );
+                        const LabelComponent = component.tooltip ? InfoLabel : Label;
+                        const tooltipProps = component.tooltip ? { info: component.tooltip } : {};
+                        return (
+                            <span className={formStyles.labelDecoration}>
+                                <LabelComponent {...slotProps} {...tooltipProps}>
+                                    {labelContent}
+                                </LabelComponent>
+                                {component.loading && <Spinner size="extra-tiny" />}
+                            </span>
+                        );
+                    },
+                }}
                 {...props}
                 style={{ color: tokens.colorNeutralForeground1 }}>
                 {generateFormComponent<TForm, TState, TFormItemSpec, TContext>(
@@ -368,6 +376,37 @@ export function generateFormComponent<
                                         }}>
                                         {option.description && <Text>{option.description}</Text>}
                                         {option.icon && FluentOptionIcons[option.icon]}
+                                        {option.infoTooltip && (
+                                            <span
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    e.preventDefault();
+                                                    context?.openInfoLink?.(option);
+                                                }}
+                                                style={{ display: "flex", alignItems: "center" }}>
+                                                <Tooltip
+                                                    content={option.infoTooltip}
+                                                    relationship="description"
+                                                    positioning="after"
+                                                    withArrow>
+                                                    <button
+                                                        type="button"
+                                                        aria-label={locConstants.common.learnMore}
+                                                        style={{
+                                                            background: "none",
+                                                            border: "none",
+                                                            cursor: "pointer",
+                                                            padding: 0,
+                                                            minWidth: 0,
+                                                            display: "flex",
+                                                            alignItems: "center",
+                                                            color: "inherit",
+                                                        }}>
+                                                        <Info16Regular />
+                                                    </button>
+                                                </Tooltip>
+                                            </span>
+                                        )}
                                     </span>
                                 </div>
                             </Option>
