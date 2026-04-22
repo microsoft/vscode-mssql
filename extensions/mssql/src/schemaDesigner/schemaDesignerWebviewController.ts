@@ -614,7 +614,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
 
         const updatedSchema = params?.updatedSchema ?? this.schemaDesignerDetails?.schema;
         if (!updatedSchema) {
-            throw new Error("Schema designer details are not available.");
+            throw new Error(LocConstants.schemaDesignerDetailsUnavailable);
         }
 
         this.updateCacheItem(updatedSchema);
@@ -655,7 +655,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         let schemaDesignerCacheItem = this.schemaDesignerCache.get(this._key);
         if (!schemaDesignerCacheItem) {
             if (!this.schemaDesignerDetails) {
-                throw new Error("Schema designer details are not available.");
+                throw new Error(LocConstants.schemaDesignerDetailsUnavailable);
             }
 
             schemaDesignerCacheItem = {

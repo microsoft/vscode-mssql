@@ -5381,6 +5381,9 @@
     <trans-unit id="++CODE++dba1b57d1ef7b24e6af478caa5f6a62ed50fd58c825abf1eb053ca847d56be65">
       <source xml:lang="en">Schema Diff</source>
     </trans-unit>
+    <trans-unit id="++CODE++a94ae9ca78147a7fc9bac5fbe59284cb1cbdcc897f002bd839fe49769ab093aa">
+      <source xml:lang="en">Schema designer details are not available.</source>
+    </trans-unit>
     <trans-unit id="++CODE++bcfd627eae48fe0460c71c47de6ce52a35780136e70593d6f17da5f3ba3ec894">
       <source xml:lang="en">Schema designer is not initialized.</source>
     </trans-unit>

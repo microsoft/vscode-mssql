@@ -792,6 +792,7 @@ export let failedToCopyTextToClipboard = (errorMessage: string) =>
         args: [errorMessage],
         comment: ["{0} is the error message"],
     });
+export let schemaDesignerDetailsUnavailable = l10n.t("Schema designer details are not available.");
 export let copyingResults = l10n.t("Copying results...");
 export let resultsCopiedToClipboard = l10n.t("Results copied to clipboard");
 
