@@ -15,14 +15,14 @@ import {
 } from "../../src/webviews/pages/ConnectionDialog/connectionCardUtils";
 
 suite("ConnectionCardUtils", () => {
-    const baseConnection: IConnectionDialogProfile = {
+    const baseConnection = {
         id: "profile-1",
         server: "server-a",
         database: "db-a",
         authenticationType: AuthenticationType.SqlLogin,
         profileName: "Saved Profile",
         user: "sa",
-    };
+    } as IConnectionDialogProfile;
 
     test("uses different keys for recent entries with the same id but different databases", () => {
         const firstConnection: IConnectionDialogProfile = {
