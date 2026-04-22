@@ -2351,6 +2351,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Definition</source>
         <target state="translated">Определение</target>
       </trans-unit>
+      <trans-unit id="++CODE++a50f9dadfc8b5f675d6d4d886d7ceb23b15051980b4de7a88e280264f3d9e9e7">
+        <source xml:lang="en">Definition type</source>
+        <target state="new">Definition type</target>
+      </trans-unit>
       <trans-unit id="++CODE++b6ca9a06ebcc8ea511648b46b103859960924b42fa98231c0ca4b69b84943687">
         <source xml:lang="en">DefinitionRequestCompleted</source>
         <target state="translated">DefinitionRequestCompleted</target>
@@ -2625,6 +2629,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Downloading the Data API builder container image</source>
         <target state="translated">Скачивание образа контейнера построителя API данных</target>
       </trans-unit>
+      <trans-unit id="++CODE++bb090d4cc6a01ecd80d943806719ce301ae1a90ca569a88735eb9c6e488cf828">
+        <source xml:lang="en">Drizzle</source>
+        <target state="new">Drizzle</target>
+      </trans-unit>
       <trans-unit id="++CODE++c8af9ae37a48273f981bc82af63517e3a2195c4076360e73546c306a044dd38b">
         <source xml:lang="en">Drop</source>
         <target state="translated">Удалить</target>
@@ -2650,6 +2658,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++b5fb1a311c627a052d69179f4fb37cc4d9b0d9aa8b4db5a16458c97563420413">
         <source xml:lang="en">Dropping database</source>
         <target state="translated">Удаление базы данных</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4a87bc4a6f84b6911fabebc702ad8d32dbb799d7bec2abf53a05c86d91b456bf">
+        <source xml:lang="en">EF Core</source>
+        <target state="new">EF Core</target>
       </trans-unit>
       <trans-unit id="++CODE++8cbb7c26112408cd60a1c8ac0daff1b020815ad01c94df751ab7145dea824881">
         <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
@@ -3365,6 +3377,11 @@ Error:
         <source xml:lang="en">Failed to copy script: {0}</source>
         <note>{0} is the error message</note>
         <target state="translated">Не удалось скопировать скрипт: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5ba6b8c4deffdaec3b79ce938a2f937a653bc8f7557f8646f7d135d4945deaf7">
+        <source xml:lang="en">Failed to copy text to clipboard: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Failed to copy text to clipboard: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++707f0ef201b7dca62aa44100faafcd54168f7614d4966e200f9188b638abdd52">
         <source xml:lang="en">Failed to create a new row: {0}</source>
@@ -6180,6 +6197,10 @@ Error:
         <source xml:lang="en">Primary key</source>
         <target state="translated">Первичный ключ</target>
       </trans-unit>
+      <trans-unit id="++CODE++e4b88de23274e99ca98b822e9f304564c85d96333a5d35bb218b95654a03c7ab">
+        <source xml:lang="en">Prisma</source>
+        <target state="new">Prisma</target>
+      </trans-unit>
       <trans-unit id="++CODE++25f4fe8cd149e57de765fa487f6e70395ed29ad8d1f2b9c116f9efa24262b420">
         <source xml:lang="en">Privacy Statement</source>
         <target state="translated">Заявление о конфиденциальности</target>
@@ -6864,6 +6885,10 @@ Query: {2}</source>
         <source xml:lang="en">SQL database in Fabric</source>
         <target state="translated">База данных SQL в Fabric</target>
       </trans-unit>
+      <trans-unit id="++CODE++dd0804b065a533eb0198e076460421ada3d861683b408ef39daea67e9aad46a6">
+        <source xml:lang="en">SQLAlchemy</source>
+        <target state="new">SQLAlchemy</target>
+      </trans-unit>
       <trans-unit id="++CODE++33c911ed6f7c6e8d0093aecd7c73564bf2ef2992db044a0892fc3de8b92cdb71">
         <source xml:lang="en">SQLCMD Variables</source>
         <target state="translated">Переменные SQLCMD</target>
@@ -7039,6 +7064,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++dba1b57d1ef7b24e6af478caa5f6a62ed50fd58c825abf1eb053ca847d56be65">
         <source xml:lang="en">Schema Diff</source>
         <target state="translated">Инструмент сравнения схемы</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a94ae9ca78147a7fc9bac5fbe59284cb1cbdcc897f002bd839fe49769ab093aa">
+        <source xml:lang="en">Schema designer details are not available.</source>
+        <target state="new">Schema designer details are not available.</target>
       </trans-unit>
       <trans-unit id="++CODE++bcfd627eae48fe0460c71c47de6ce52a35780136e70593d6f17da5f3ba3ec894">
         <source xml:lang="en">Schema designer is not initialized.</source>
@@ -7388,6 +7417,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++05b335b429fbb422b7e22e8f8b77acd140d21b43c04f04476206cfaf85978d13">
         <source xml:lang="en">Selected backup file does not contain a valid database backup</source>
         <target state="translated">Выбранный файл резервной копии не содержит действительной резервной копии базы данных</target>
+      </trans-unit>
+      <trans-unit id="++CODE++79dc22c7292b82bb5b10f7fe3e4196400d86127a91507e8487c7d2da0f6a8283">
+        <source xml:lang="en">Sequelize</source>
+        <target state="new">Sequelize</target>
       </trans-unit>
       <trans-unit id="++CODE++aef7de28d52977f1b5cd0fecfdc151717610adf41e0aa33b4d9f7522a43337ef">
         <source xml:lang="en">Server</source>
@@ -7982,6 +8015,10 @@ Query: {2}</source>
         <source xml:lang="en">Synchronous resize</source>
         <target state="translated">Синхронное изменение размера</target>
       </trans-unit>
+      <trans-unit id="++CODE++b27ba710997adaf6099374edb801d44bef36c92e6d37e0190c7c1d12d4b32209">
+        <source xml:lang="en">T-SQL</source>
+        <target state="new">T-SQL</target>
+      </trans-unit>
       <trans-unit id="++CODE++16d1c9050a0b32e83764a81d801a880773abedfd7f8b0b08a1cd87ca0e404f12">
         <source xml:lang="en">Table</source>
         <target state="translated">Таблица</target>
@@ -8445,6 +8482,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++baaddf70fb5d432b8bd948ef91d6f910124a6d138edae4d5f000c4610ddc8eae">
         <source xml:lang="en">Type</source>
         <target state="translated">Тип</target>
+      </trans-unit>
+      <trans-unit id="++CODE++eab9bd4ed6506f418e00977a0a7bcc445774cac844a2f6debffeff1efc0b75f2">
+        <source xml:lang="en">TypeORM</source>
+        <target state="new">TypeORM</target>
       </trans-unit>
       <trans-unit id="++CODE++e7a241debad56609ee660a5d2ef258a1aceb7357ff210ac66d7280b3add02a9a">
         <source xml:lang="en">URL</source>
