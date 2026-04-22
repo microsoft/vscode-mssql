@@ -1169,11 +1169,41 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return savedConnection.id === recentConnection.id;
         }
 
-        if (savedConnection.profileName && recentConnection.profileName) {
-            return savedConnection.profileName === recentConnection.profileName;
+        if (
+            !savedConnection.profileName ||
+            !recentConnection.profileName ||
+            savedConnection.profileName !== recentConnection.profileName
+        ) {
+            return false;
         }
 
-        return false;
+        if (savedConnection.connectionString || recentConnection.connectionString) {
+            return savedConnection.connectionString === recentConnection.connectionString;
+        }
+
+        if (savedConnection.server !== recentConnection.server) {
+            return false;
+        }
+
+        const savedAuthType = savedConnection.authenticationType || AuthenticationType.SqlLogin;
+        const recentAuthType = recentConnection.authenticationType || AuthenticationType.SqlLogin;
+
+        if (savedAuthType !== recentAuthType) {
+            return false;
+        }
+
+        if ((savedConnection.user ?? "") !== (recentConnection.user ?? "")) {
+            return false;
+        }
+
+        if (savedConnection.accountId || recentConnection.accountId) {
+            return areCompatibleEntraAccountIds(
+                savedConnection.accountId,
+                recentConnection.accountId,
+            );
+        }
+
+        return true;
     }
 
     private isSameDatabaseName(currentDatabase?: string, expectedDatabase?: string): boolean {

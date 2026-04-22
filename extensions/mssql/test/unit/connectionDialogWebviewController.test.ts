@@ -343,6 +343,80 @@ suite("ConnectionDialogWebviewController Tests", () => {
             expect(controller.state.recentConnections[0].profileName).to.equal("Shared Profile");
         });
 
+        test("should keep the recent profile name when ids are missing and only the profile name matches", async () => {
+            const sharedSavedConnection = {
+                profileName: "Shared Profile",
+                profileSource: CredentialsQuickPickItemType.Profile,
+                server: "SavedServer",
+                database: "SavedDatabase",
+                authenticationType: AuthenticationType.AzureMFA,
+                accountId: "saved-account-id",
+                groupId: ConnectionConfig.ROOT_GROUP_ID,
+            } as IConnectionProfileWithSource;
+            const sharedRecentConnection = {
+                profileName: "Shared Profile",
+                profileSource: CredentialsQuickPickItemType.Mru,
+                server: "RecentServer",
+                database: "RecentDatabase",
+                authenticationType: AuthenticationType.AzureMFA,
+                accountId: "recent-account-id",
+            } as IConnectionProfileWithSource;
+
+            connectionStore.readAllConnections.resolves([
+                sharedRecentConnection,
+                sharedSavedConnection,
+            ]);
+
+            controller = new ConnectionDialogWebviewController(
+                mockContext,
+                mockVscodeWrapper,
+                mainController,
+                mockObjectExplorerProvider,
+                undefined,
+            );
+            await controller.initialized;
+
+            expect(controller.state.recentConnections).to.have.lengthOf(1);
+            expect(controller.state.recentConnections[0].profileName).to.equal("Shared Profile");
+        });
+
+        test("should hide the recent profile name when ids are missing and the core identity matches", async () => {
+            const sharedSavedConnection = {
+                profileName: "Shared Profile",
+                profileSource: CredentialsQuickPickItemType.Profile,
+                server: "SharedServer",
+                database: "SavedDatabase",
+                authenticationType: AuthenticationType.AzureMFA,
+                accountId: "user@example.com",
+                groupId: ConnectionConfig.ROOT_GROUP_ID,
+            } as IConnectionProfileWithSource;
+            const sharedRecentConnection = {
+                profileName: "Shared Profile",
+                profileSource: CredentialsQuickPickItemType.Mru,
+                server: "SharedServer",
+                database: "RecentDatabase",
+                authenticationType: AuthenticationType.AzureMFA,
+                accountId: "user@example.com.tenant-id",
+            } as IConnectionProfileWithSource;
+
+            connectionStore.readAllConnections.resolves([
+                sharedRecentConnection,
+                sharedSavedConnection,
+            ]);
+
+            controller = new ConnectionDialogWebviewController(
+                mockContext,
+                mockVscodeWrapper,
+                mainController,
+                mockObjectExplorerProvider,
+                undefined,
+            );
+            await controller.initialized;
+
+            expect(controller.state.recentConnections).to.have.lengthOf(1);
+            expect(controller.state.recentConnections[0].profileName).to.be.undefined;
+        });
+
         test("should initialize correctly when editing connection", async () => {
             const editedConnection = {
                 profileName: "Test Server to Edit",

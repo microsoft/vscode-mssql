@@ -121,6 +121,8 @@ const getConnectionCardKey = (connection: IConnectionDialogProfile): string => {
         connection.authenticationType ?? "",
         connection.profileName ?? "",
         connection.user ?? "",
+        connection.accountId ?? "",
+        connection.connectionString ?? "",
     ].join("|");
 };
 
