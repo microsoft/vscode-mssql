@@ -21,7 +21,6 @@ import {
     CopyType,
 } from "../../src/models/contracts/queryExecute";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import StatusView from "../../src/views/statusView";
 import * as Constants from "../../src/constants/constants";
 import * as QueryExecuteContracts from "../../src/models/contracts/queryExecute";
 import * as QueryDisposeContracts from "../../src/models/contracts/queryDispose";
@@ -49,7 +48,6 @@ suite("Query Runner tests", () => {
     let testSqlToolsServerClient: sinon.SinonStubbedInstance<SqlToolsServerClient>;
     let testQueryNotificationHandler: sinon.SinonStubbedInstance<QueryNotificationHandler>;
     let testVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
-    let testStatusView: sinon.SinonStubbedInstance<StatusView>;
 
     function createQueryRunner(
         uri: string = standardUri,
@@ -58,7 +56,6 @@ suite("Query Runner tests", () => {
         return new QueryRunner(
             uri,
             title,
-            testStatusView,
             testSqlToolsServerClient,
             testQueryNotificationHandler,
             testVscodeWrapper,
@@ -70,7 +67,6 @@ suite("Query Runner tests", () => {
         testSqlToolsServerClient = sandbox.createStubInstance(SqlToolsServerClient);
         testQueryNotificationHandler = sandbox.createStubInstance(QueryNotificationHandler);
         testVscodeWrapper = stubVscodeWrapper(sandbox);
-        testStatusView = sandbox.createStubInstance(StatusView);
         QueryRunner["_runningQueries"] = [];
 
         (testVscodeWrapper.parseUri as sinon.SinonStub).callsFake((value: string) =>
@@ -121,8 +117,7 @@ suite("Query Runner tests", () => {
         expect(testQueryNotificationHandler.registerRunner).to.have.been.calledOnce;
         expect(testQueryNotificationHandler.registerRunner.firstCall.args[1]).to.equal(standardUri);
 
-        // ... The VS Code status should be updated
-        expect(testStatusView.executingQuery).to.have.been.calledOnceWithExactly(standardUri);
+        // ... The VS Code output should be updated
         expect(testVscodeWrapper.logToOutputChannel as sinon.SinonStub).to.have.been.calledOnce;
 
         // ... The query runner should indicate that it is running a query and elapsed time should be set to 0
@@ -138,10 +133,6 @@ suite("Query Runner tests", () => {
             return Promise.reject<QueryExecuteContracts.QueryExecuteResult>("failed");
         });
         setupStandardQueryNotificationHandlerMock(testQueryNotificationHandler);
-
-        // ... Setup the status view to handle start and stop updates
-        testStatusView.executedQuery.resetHistory();
-        testStatusView.executingQuery.resetHistory();
 
         let testDoc: vscode.TextDocument = {
             getText: () => {
@@ -162,10 +153,8 @@ suite("Query Runner tests", () => {
             expect.fail("Expected runQuery to throw an error");
         } catch (error) {
             // Then:
-            // ... The view status should have started and stopped
+            // ... The output channel should still log the failed start
             expect(testVscodeWrapper.logToOutputChannel as sinon.SinonStub).to.have.been.calledOnce;
-            expect(testStatusView.executingQuery).to.have.been.calledOnceWithExactly(standardUri);
-            expect(testStatusView.executedQuery).to.have.been.called;
             // ... The query runner should not be running a query
             expect(queryRunner.isExecutingQuery).to.equal(false);
         }
@@ -420,12 +409,6 @@ suite("Query Runner tests", () => {
 
         // ... And I handle a query completion event
         queryRunner.handleQueryComplete(result);
-
-        // Then:
-        // ... The VS Code view should have stopped executing
-        expect(testStatusView.executedQuery).to.have.been.calledOnceWithExactly(standardUri);
-        expect(testStatusView.setExecutionTime).to.have.been.calledOnce;
-        expect(testStatusView.setExecutionTime.firstCall.args[0]).to.equal(standardUri);
 
         // ... The state of the query runner has been updated
         expect(queryRunner.batchSets.length).to.equal(1);

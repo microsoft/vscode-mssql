@@ -38,8 +38,6 @@ export class QueryResultWebviewController extends WebviewViewController<
     private _queryResultWebviewPanelControllerMap: Map<string, QueryResultWebviewPanelController> =
         new Map<string, QueryResultWebviewPanelController>();
     private _correlationId: string = randomUUID();
-    private _selectionSummaryStatusBarItem: vscode.StatusBarItem =
-        vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 2);
     public actualPlanStatuses: string[] = [];
     private _sqlDocumentService: SqlDocumentService;
 
@@ -59,6 +57,7 @@ export class QueryResultWebviewController extends WebviewViewController<
             fontSettings: {},
             gridSettings: {},
             autoSizeColumnsMode: qr.ResultsGridAutoSizeStyle.HeadersAndData,
+            isExecuting: false,
         });
 
         void this.initialize();
@@ -136,6 +135,12 @@ export class QueryResultWebviewController extends WebviewViewController<
                         }
                     }
                 }
+                if (
+                    e.affectsConfiguration(Constants.configOpenQueryResultsInTabByDefault) &&
+                    this.isOpenQueryResultsInTabByDefaultEnabled
+                ) {
+                    void this.moveCurrentPanelResultToDocumentTab();
+                }
             }),
         );
 
@@ -145,7 +150,7 @@ export class QueryResultWebviewController extends WebviewViewController<
                 if (!state) {
                     return;
                 }
-                (state.selectionSummary.continue as Deferred<void>).resolve();
+                (state.selectionSummary?.continue as Deferred<void> | undefined)?.resolve();
             }),
         );
     }
@@ -155,8 +160,6 @@ export class QueryResultWebviewController extends WebviewViewController<
     }
 
     public updateResultsOnActiveEditorChange(editor: vscode.TextEditor | undefined): void {
-        this.updateSelectionSummary();
-
         const uri = getUriKey(editor?.document?.uri);
         const hasPanel = uri && this.hasPanel(uri);
         const hasWebviewViewState = uri && this._queryResultStateMap.has(uri);
@@ -273,6 +276,7 @@ export class QueryResultWebviewController extends WebviewViewController<
             tabStates: undefined,
             isExecutionPlan: false,
             executionPlanState: {},
+            isExecuting: false,
             fontSettings: {
                 fontSize: this.getFontSizeConfig(),
                 fontFamily: this.getFontFamilyConfig(),
@@ -282,6 +286,33 @@ export class QueryResultWebviewController extends WebviewViewController<
             inMemoryDataProcessingThreshold: getInMemoryGridDataProcessingThreshold(),
             initializationError: undefined,
         };
+    }
+
+    private getCurrentPanelResultUri(): string | undefined {
+        const stateUri = this.state?.uri;
+        if (stateUri && this._queryResultStateMap.has(stateUri) && !this.hasPanel(stateUri)) {
+            return stateUri;
+        }
+
+        const activeEditorUri = getUriKey(this.vscodeWrapper.activeTextEditor?.document?.uri);
+        if (
+            activeEditorUri &&
+            this._queryResultStateMap.has(activeEditorUri) &&
+            !this.hasPanel(activeEditorUri)
+        ) {
+            return activeEditorUri;
+        }
+
+        return undefined;
+    }
+
+    private async moveCurrentPanelResultToDocumentTab(): Promise<void> {
+        const uriToMove = this.getCurrentPanelResultUri();
+        if (!uriToMove) {
+            return;
+        }
+
+        await this.createPanelController(uriToMove);
     }
 
     public async createPanelController(uri: string) {
@@ -349,6 +380,7 @@ export class QueryResultWebviewController extends WebviewViewController<
             gridSettings: this.getGridSettingsConfig(),
             autoSizeColumnsMode: this.getAutoSizeColumnsConfig(),
             inMemoryDataProcessingThreshold: getInMemoryGridDataProcessingThreshold(),
+            isExecuting: false,
         } as qr.QueryResultWebviewState;
         this._queryResultStateMap.set(uri, currentState);
     }
@@ -495,8 +527,6 @@ export class QueryResultWebviewController extends WebviewViewController<
                 this._queryResultStateMap.delete(uri);
                 await this._sqlOutputContentProvider.cleanupRunner(uri);
             }
-
-            this.updateSelectionSummary();
         }
     }
 
@@ -563,6 +593,28 @@ export class QueryResultWebviewController extends WebviewViewController<
 
         const messageText = messages.join("\n");
         await this.vscodeWrapper.clipboardWriteText(messageText);
+        void this.notifyCopySuccess(uri);
+    }
+
+    public async notifyCopySuccess(uri: string): Promise<void> {
+        if (!uri || !this._queryResultStateMap.has(uri)) {
+            return;
+        }
+
+        if (this.hasPanel(uri)) {
+            const panelController = this._queryResultWebviewPanelControllerMap.get(uri);
+            if (panelController) {
+                await panelController.sendNotification(
+                    qr.ShowCopySuccessNotification.type,
+                    undefined,
+                );
+            }
+            return;
+        }
+
+        if (this.state?.uri === uri) {
+            await this.sendNotification(qr.ShowCopySuccessNotification.type, undefined);
+        }
     }
 
     public getNumExecutionPlanResultSets(
@@ -586,29 +638,43 @@ export class QueryResultWebviewController extends WebviewViewController<
         return total;
     }
 
-    public updateSelectionSummary() {
-        let activeUri = Array.from(this._queryResultWebviewPanelControllerMap.keys()).find(
-            (uri) => this._queryResultWebviewPanelControllerMap.get(uri).panel.active,
+    public getOpenQueryResultsInTabByDefaultRequestHandler(): boolean {
+        return this.vscodeWrapper
+            .getConfiguration()
+            .get<boolean>(Constants.configOpenQueryResultsInTabByDefault, false);
+    }
+
+    public async setOpenQueryResultsInTabByDefaultRequestHandler(enabled: boolean): Promise<void> {
+        const configuration = this.vscodeWrapper.getConfiguration();
+        const previousValue = configuration.get<boolean>(
+            Constants.configOpenQueryResultsInTabByDefault,
+            false,
         );
 
-        if (!activeUri) {
-            activeUri = getUriKey(vscode.window.activeTextEditor?.document.uri);
+        await configuration.update(
+            Constants.configOpenQueryResultsInTabByDefault,
+            enabled,
+            vscode.ConfigurationTarget.Global,
+        );
+
+        // Skip the one-time prompt after users explicitly choose their preferred result location.
+        await configuration.update(
+            Constants.configOpenQueryResultsInTabByDefaultDoNotShowPrompt,
+            true,
+            vscode.ConfigurationTarget.Global,
+        );
+
+        if (enabled) {
+            await this.moveCurrentPanelResultToDocumentTab();
         }
 
-        if (!this._queryResultStateMap.has(activeUri)) {
-            this._selectionSummaryStatusBarItem.hide();
-            return;
-        }
-
-        const state = this._queryResultStateMap.get(activeUri);
-
-        if (state?.selectionSummary) {
-            this._selectionSummaryStatusBarItem.text = state.selectionSummary.text;
-            this._selectionSummaryStatusBarItem.tooltip = state.selectionSummary.tooltip;
-            this._selectionSummaryStatusBarItem.command = state.selectionSummary.command;
-            this._selectionSummaryStatusBarItem.show();
-        } else {
-            this._selectionSummaryStatusBarItem.hide();
-        }
+        sendActionEvent(
+            TelemetryViews.QueryResult,
+            TelemetryActions.QueryResultsTabDefaultSettingToggled,
+            {
+                enabled: enabled.toString(),
+                previousValue: previousValue.toString(),
+            },
+        );
     }
 }

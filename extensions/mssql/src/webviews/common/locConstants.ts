@@ -611,7 +611,15 @@ export class LocConstants {
             messages: l10n.t("Messages"),
             timestamp: l10n.t("Timestamp"),
             message: l10n.t("Message"),
+            copied: l10n.t("Copied"),
+            copiedToClipboard: l10n.t("Copied to clipboard"),
             openResultInNewTab: l10n.t("Open in New Tab"),
+            resultsSettings: l10n.t("Results Settings"),
+            showResultsInEditorTab: l10n.t("Open results in new tab"),
+            showResultsInEditorTabDescription: l10n.t(
+                "Show query results in a new editor tab instead of the query pane.",
+            ),
+            closeResultsSettings: l10n.t("Close results settings"),
             showplanXML: l10n.t("Showplan XML"),
             showMenu: (shortcut: string) => {
                 if (shortcut) {
@@ -761,6 +769,23 @@ export class LocConstants {
                         });
                 }
             },
+            noRowsAffected: l10n.t("No rows affected"),
+            selectedItemLabel: l10n.t("Selected"),
+            rowsAffectedLabel: l10n.t("Rows"),
+            timeLabel: l10n.t("Time"),
+            runningLabel: l10n.t("Running"),
+            executionLabel: l10n.t("Execution"),
+            noSelectionSummary: l10n.t("No selection"),
+            selectionSummaryCountLabel: l10n.t("Count"),
+            selectionSummaryAverageLabel: l10n.t("Avg"),
+            selectionSummarySumLabel: l10n.t("Sum"),
+            selectionSummaryMinLabel: l10n.t("Min"),
+            selectionSummaryMaxLabel: l10n.t("Max"),
+            selectionSummaryDistinctLabel: l10n.t("Distinct"),
+            selectionSummaryNullLabel: l10n.t("Null"),
+            executionCancelled: l10n.t("Execution cancelled"),
+            executionTimeUnavailable: l10n.t("Execution time unavailable"),
+            totalExecutionTimePrefix: l10n.t("Total execution time:"),
             resultSet: (batchNumber: number, queryNumber: number) =>
                 l10n.t({
                     message: "Result Set Batch {0} - Query {1}",
