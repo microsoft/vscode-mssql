@@ -1,5 +1,24 @@
 # Change Log
 
+## Version 1.42.0
+
+- Release date: April 22, 2026
+- Release status: GA
+
+### What's new in 1.42.0
+
+- Released Backup Database, Restore Database, Flat File Import, and Create/Rename/Drop Database dialogs as generally available (GA)
+- Added Active Directory Default authentication support in the Connection Dialog, enabling passwordless authentication using the currently signed-in Windows identity
+- Added the ability to use VS Code accounts for Microsoft Entra ID MFA authentication (preview). Enable by setting either `mssql.enableExperimentalFeatures` or `mssql.preview.useVscodeAccountsForEntraMFA`. Users will need to re-sign into Microsoft Entra ID accounts that existing connections use for authentication.
+- Optimized Microsoft Entra ID sign-in flows to reduce repeated authentication prompts.
+- Added a View Table Diagram action to the Edit Data toolbar, opening the selected table and its relationships directly in Schema Designer so you can review and evolve the database schema if needed
+- Added a new background task panel in the SQL Server activity bar to display active and completed deployment tasks (SQL container provisioning, SQL database in Fabric deployments) with real-time progress
+- Improved SQL Notebooks to display SQL Server error messages inline in cell output, improved cell output formatting and spacing, and set the MSSQL kernel as the default when creating a new notebook
+- Fixed several Query Results Grid issues with VECTOR, JSON, and XML data types including incorrect rendering as hyperlinks and values
+- Improved SQL Database Projects with a documentation menu option, automatic folder creation for new objects, correct schema name in templates, and a projectGuid update prompt
+- Improved first-time setup speed and reliability by packaging the required components directly with the extension instead of downloading them at first-launch.
+- Fixed a long-standing issue that could cause the extension to freeze or become unresponsive while running queries.
+
 ## Version 1.41.0
 
 - Release date: March 18, 2026

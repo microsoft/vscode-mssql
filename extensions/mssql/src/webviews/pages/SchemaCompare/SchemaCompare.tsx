@@ -15,6 +15,8 @@ import { useSchemaCompareSelector } from "./schemaCompareSelector";
 import Message from "./components/Message";
 import { makeStyles } from "@fluentui/react-components";
 
+export type SchemaCompareGroupBy = "none" | "type" | "action" | "schema";
+
 const useStyles = makeStyles({
     container: {
         display: "flex",
@@ -47,6 +49,7 @@ export const SchemaComparePage = () => {
     const [showDrawer, setShowDrawer] = useState(false);
     const [showOptionsDrawer, setShowOptionsDrawer] = useState(false);
     const [endpointType, setEndpointType] = useState<"source" | "target">("source");
+    const [groupBy, setGroupBy] = useState<SchemaCompareGroupBy>("type");
 
     // Create refs for the resizable components
     const differencesRef = useRef<HTMLDivElement>(null);
@@ -87,7 +90,11 @@ export const SchemaComparePage = () => {
 
     return (
         <div className={classes.container}>
-            <CompareActionBar onOptionsClicked={openOptionsDialog} />
+            <CompareActionBar
+                onOptionsClicked={openOptionsDialog}
+                groupBy={groupBy}
+                onGroupByChange={setGroupBy}
+            />
             <SelectSchemasPanel onSelectSchemaClicked={handleSelectSchemaClicked} />
 
             {showMessage() && <Message />}
@@ -100,6 +107,7 @@ export const SchemaComparePage = () => {
                             selectedDiffId={selectedDiffId}
                             onDiffSelected={handleDiffSelected}
                             siblingRef={diffEditorRef}
+                            groupBy={groupBy}
                         />
 
                         {selectedDiffId !== -1 && (

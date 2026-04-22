@@ -25,6 +25,7 @@ import {
     ConnectionDialogFormItemSpec,
     ConnectionStringDialogProps,
     GetConnectionDisplayNameRequest,
+    OpenOptionInfoLinkNotification,
     IAzureAccount,
     GetSqlAnalyticsEndpointUriFromFabricRequest,
     ChangePasswordDialogProps,
@@ -51,7 +52,7 @@ import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/tel
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { AzureController } from "../azure/azureController";
 import { AzureSubscription } from "@microsoft/vscode-azext-azureauth";
-import { ConnectionDetails, IConnectionInfo } from "vscode-mssql";
+import { ConnectionDetails, IConnectionInfo, IToken } from "vscode-mssql";
 import MainController from "../controllers/mainController";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { UserSurvey } from "../nps/userSurvey";
@@ -61,7 +62,7 @@ import {
     getServerTypes,
     getDefaultConnection,
 } from "../models/connectionInfo";
-import { getErrorMessage, uuid } from "../utils/utils";
+import { formatEpochSecondsForDisplay, getErrorMessage, uuid } from "../utils/utils";
 import { l10n } from "vscode";
 import {
     CredentialsQuickPickItemType,
@@ -863,6 +864,19 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             }
 
             return state;
+        });
+
+        this.onNotification(OpenOptionInfoLinkNotification.type, async (payload) => {
+            const infoLinkMap: Partial<Record<AuthenticationType, string>> = {
+                [AuthenticationType.ActiveDirectoryDefault]:
+                    "https://aka.ms/vscode-mssql-auth-entra-default",
+                [AuthenticationType.AzureMFA]: "https://aka.ms/vscode-mssql-auth-entra-mfa",
+            };
+
+            const url = infoLinkMap[payload.option.value as AuthenticationType];
+            if (url) {
+                void this.vscodeWrapper.openExternal(url);
+            }
         });
 
         this.registerReducer("messageButtonClicked", async (state, payload) => {
@@ -1722,7 +1736,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     }
 
     private async getAzureActionButtons(): Promise<FormItemActionButton[]> {
+        const self = this;
         const actionButtons: FormItemActionButton[] = [];
+
         actionButtons.push({
             label: Loc.signIn,
             id: "azureSignIn",
@@ -1796,15 +1812,67 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             const account = (await this._mainController.azureAccountService.getAccounts()).find(
                 (account) => account.displayInfo.userId === this.state.connectionProfile.accountId,
             );
+
             if (account) {
                 let isTokenExpired = false;
 
+                async function refreshToken(): Promise<IToken | undefined> {
+                    const account = (
+                        await self._mainController.azureAccountService.getAccounts()
+                    ).find(
+                        (account) =>
+                            account.displayInfo.userId === self.state.connectionProfile.accountId,
+                    );
+
+                    if (account) {
+                        try {
+                            const token =
+                                await self._mainController.azureAccountService.getAccountSecurityToken(
+                                    account,
+                                    undefined,
+                                );
+
+                            if (AzureController.isTokenValid(token.token, token.expiresOn)) {
+                                self.vscodeWrapper.showInformationMessage(
+                                    Loc.tokenRefreshedSuccessfully,
+                                );
+
+                                self.logger.log(
+                                    `Token refreshed.  Next expiration: ${formatEpochSecondsForDisplay(token.expiresOn)}`,
+                                );
+
+                                return token;
+                            } else {
+                                throw new Error(
+                                    Loc.unableToAcquireValidToken(
+                                        formatEpochSecondsForDisplay(token.expiresOn),
+                                        formatEpochSecondsForDisplay(Date.now() / 1000),
+                                    ),
+                                );
+                            }
+                        } catch (err) {
+                            self.logger.error(`Error refreshing token: ${getErrorMessage(err)}`);
+                            self.vscodeWrapper.showErrorMessage(
+                                Loc.errorRefreshingToken(getErrorMessage(err)),
+                            );
+                        }
+                    } else {
+                        self.logger.error(
+                            `Account not found when attempting token refresh: ${self.state.connectionProfile.email} (${self.state.connectionProfile.accountId})`,
+                        );
+                    }
+
+                    return undefined;
+                }
+
                 try {
+                    // Check if token is expired or expiring soon...
                     const session =
                         await this._mainController.azureAccountService.getAccountSecurityToken(
                             account,
                             undefined,
                         );
+
                     isTokenExpired = !AzureController.isTokenValid(
                         session.token,
                         session.expiresOn,
@@ -1814,9 +1882,16 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         `Error getting token or checking validity; prompting for refresh. Error: ${getErrorMessage(err)}`,
                     );
 
-                    this.vscodeWrapper.showErrorMessage(
-                        "Error validating Entra authentication token; you may need to refresh your token.",
-                    );
+                    void this.vscodeWrapper
+                        .showErrorMessage(
+                            Loc.errorValidatingEntraToken(getErrorMessage(err)),
+                            refreshTokenLabel,
+                        )
+                        .then((result) => {
+                            if (result === refreshTokenLabel) {
+                                void refreshToken();
+                            }
+                        });
 
                     isTokenExpired = true;
                 }
@@ -1826,27 +1901,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         label: refreshTokenLabel,
                         id: "refreshToken",
                         callback: async () => {
-                            const account = (
-                                await this._mainController.azureAccountService.getAccounts()
-                            ).find(
-                                (account) =>
-                                    account.displayInfo.userId ===
-                                    this.state.connectionProfile.accountId,
-                            );
-                            if (account) {
-                                try {
-                                    const session =
-                                        await this._mainController.azureAccountService.getAccountSecurityToken(
-                                            account,
-                                            undefined,
-                                        );
-                                    this.logger.log("Token refreshed", session.expiresOn);
-                                } catch (err) {
-                                    this.logger.error(
-                                        `Error refreshing token: ${getErrorMessage(err)}`,
-                                    );
-                                }
-                            }
+                            await refreshToken();
                         },
                     });
                 }

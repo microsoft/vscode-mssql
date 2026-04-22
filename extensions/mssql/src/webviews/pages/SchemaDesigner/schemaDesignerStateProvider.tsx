@@ -82,6 +82,7 @@ export interface SchemaDesignerContextProps extends CoreRPCs {
         preForeignKeyCount: number,
         postForeignKeyCount: number,
     ) => Promise<void>;
+    updateFilterTables: (currentFilteredTables: string[]) => void;
 }
 
 const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
@@ -337,6 +338,12 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         );
     };
 
+    const updateFilterTables = (currentFilteredTables: string[]) => {
+        void extensionRpc.sendNotification(SchemaDesigner.UpdateFilterTablesNotification.type, {
+            currentFilteredTables: currentFilteredTables,
+        });
+    };
+
     /**
      * Adds a new table to the flow
      */
@@ -578,6 +585,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 notifySchemaChanged,
                 onPushUndoState,
                 maybeAutoArrangeForToolBatch,
+                updateFilterTables,
             }}>
             {children}
         </SchemaDesignerContext.Provider>

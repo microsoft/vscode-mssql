@@ -30,24 +30,32 @@ suite("Autorest tests", function (): void {
     });
 
     test("Should detect autorest", async function (): Promise<void> {
-        sandbox.stub(window, "showInformationMessage").returns(<any>Promise.resolve(runViaNpx)); // stub a selection in case test runner doesn't have autorest installed
+        sandbox
+            .stub(utils, "resolveCommandPath")
+            .withArgs("autorest")
+            .returns(Promise.resolve("autorest"));
 
         const autorestHelper = new AutorestHelper(testContext.outputChannel);
-        const executable = await autorestHelper.detectInstallation();
-        expect(
-            executable === "autorest" || executable === "npx autorest",
-            "autorest command should be found in default path during unit tests",
-        ).to.be.true;
+        const installation = await autorestHelper.detectInstallation();
+        const resolved = installation as { executable: string; prefixArgs: string[] };
+        expect(resolved.executable, "autorest command should be detected").to.equal("autorest");
     });
 
     test("Should run an autorest command successfully", async function (): Promise<void> {
-        sandbox.stub(window, "showInformationMessage").returns(<any>Promise.resolve(runViaNpx)); // stub a selection in case test runner doesn't have autorest installed
+        sandbox
+            .stub(window, "showInformationMessage")
+            .returns(
+                Promise.resolve(runViaNpx) as unknown as ReturnType<
+                    typeof window.showInformationMessage
+                >,
+            ); // stub a selection in case test runner doesn't have autorest installed
 
         const autorestHelper = new AutorestHelper(testContext.outputChannel);
-        const executable = await autorestHelper.detectInstallation();
+        const installation = await autorestHelper.detectInstallation();
+        const resolved = installation as { executable: string; prefixArgs: string[] };
         sandbox.stub(autorestHelper, "constructAutorestCommand").returns({
-            executable: executable!,
-            args: ["--version"],
+            executable: resolved.executable,
+            args: [...resolved.prefixArgs, "--version"],
         });
 
         try {
@@ -56,18 +64,16 @@ suite("Autorest tests", function (): void {
             expect(output, `Substring not found. Expected "${expected}" in "${output}"`).to.contain(
                 expected,
             );
-        } catch (err) {
+        } catch {
             // test is skipped, but handle cleanup gracefully
         }
     });
 
-    test("Should construct a correct autorest command for project generation", async function (): Promise<void> {
+    test("Should construct a correct autorest command for project generation", function (): void {
         const autorestHelper = new AutorestHelper(testContext.outputChannel);
-        sandbox.stub(window, "showInformationMessage").returns(<any>Promise.resolve(runViaNpx)); // stub a selection in case test runner doesn't have autorest installed
-        sandbox.stub(autorestHelper, "detectInstallation").returns(Promise.resolve("autorest"));
 
         const result = autorestHelper.constructAutorestCommand(
-            (await autorestHelper.detectInstallation())!,
+            { executable: "autorest", prefixArgs: [] },
             "/some/path/test.yaml",
             "/some/output/path",
         );
@@ -78,17 +84,19 @@ suite("Autorest tests", function (): void {
             "--input-file=/some/path/test.yaml",
             "--output-folder=/some/output/path",
             "--clear-output-folder",
-            "--verbose",
+            "--level:error",
         ]);
     });
 
     test("Should prompt user for action when autorest not found", async function (): Promise<void> {
         const promptStub = sandbox
             .stub(window, "showInformationMessage")
-            .returns(<any>Promise.resolve());
-        const detectStub = sandbox.stub(utils, "detectCommandInstallation");
-        detectStub.withArgs("autorest").returns(Promise.resolve(false));
-        detectStub.withArgs("npx").returns(Promise.resolve(true));
+            .returns(
+                Promise.resolve() as unknown as ReturnType<typeof window.showInformationMessage>,
+            );
+        const resolveStub = sandbox.stub(utils, "resolveCommandPath");
+        resolveStub.withArgs("autorest").returns(Promise.resolve(undefined));
+        resolveStub.withArgs("npx").returns(Promise.resolve("/usr/bin/npx"));
 
         const autorestHelper = new AutorestHelper(testContext.outputChannel);
         await autorestHelper.detectInstallation();
@@ -97,5 +105,73 @@ suite("Autorest tests", function (): void {
             promptStub.calledOnce,
             "User should have been prompted for how to run autorest because it wasn't found.",
         ).to.be.true;
+    });
+
+    test("Should return 'cancelled' when user dismisses the install prompt", async function (): Promise<void> {
+        sandbox
+            .stub(window, "showInformationMessage")
+            .returns(
+                Promise.resolve(undefined) as unknown as ReturnType<
+                    typeof window.showInformationMessage
+                >,
+            );
+        const resolveStub = sandbox.stub(utils, "resolveCommandPath");
+        resolveStub.withArgs("autorest").returns(Promise.resolve(undefined));
+        resolveStub.withArgs("npx").returns(Promise.resolve("/usr/bin/npx"));
+
+        const autorestHelper = new AutorestHelper(testContext.outputChannel);
+        const result = await autorestHelper.detectInstallation();
+
+        expect(result).to.equal(
+            "cancelled",
+            "Should return 'cancelled' when user dismisses the prompt.",
+        );
+    });
+
+    test("Should route .ps1 autorest through pwsh.exe on Windows", async function (): Promise<void> {
+        const ps1Path = "C:\\tools\\autorest.ps1";
+        const resolveStub = sandbox.stub(utils, "resolveCommandPath");
+        resolveStub.withArgs("autorest").returns(Promise.resolve(ps1Path));
+        resolveStub
+            .withArgs("pwsh")
+            .returns(Promise.resolve("C:\\Program Files\\PowerShell\\7\\pwsh.exe"));
+
+        const autorestHelper = new AutorestHelper(testContext.outputChannel);
+        const installation = await autorestHelper.detectInstallation();
+        const resolved = installation as { executable: string; prefixArgs: string[] };
+
+        if (process.platform === "win32") {
+            expect(resolved.executable).to.equal("C:\\Program Files\\PowerShell\\7\\pwsh.exe");
+            expect(resolved.prefixArgs).to.deep.equal(["-NoProfile", "-File", ps1Path]);
+        } else {
+            // Non-Windows: resolveScriptExecutable is a no-op, path used directly
+            expect(resolved.executable).to.equal(ps1Path);
+            expect(resolved.prefixArgs).to.deep.equal([]);
+        }
+    });
+
+    test("Should fall back to powershell.exe for .ps1 when pwsh is not installed", async function (): Promise<void> {
+        if (process.platform !== "win32") {
+            return; // fallback only applies on Windows
+        }
+
+        const ps1Path = "C:\\tools\\autorest.ps1";
+        const resolveStub = sandbox.stub(utils, "resolveCommandPath");
+        resolveStub.withArgs("autorest").returns(Promise.resolve(ps1Path));
+        resolveStub.withArgs("pwsh").returns(Promise.resolve(undefined));
+        resolveStub
+            .withArgs("powershell")
+            .returns(
+                Promise.resolve("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"),
+            );
+
+        const autorestHelper = new AutorestHelper(testContext.outputChannel);
+        const installation = await autorestHelper.detectInstallation();
+        const resolved = installation as { executable: string; prefixArgs: string[] };
+
+        expect(resolved.executable).to.equal(
+            "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        );
+        expect(resolved.prefixArgs).to.deep.equal(["-NoProfile", "-File", ps1Path]);
     });
 });
