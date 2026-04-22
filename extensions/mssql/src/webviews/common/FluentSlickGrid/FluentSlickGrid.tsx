@@ -3,10 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import React, { useMemo } from "react";
-import { GridOption, SlickgridReact } from "slickgrid-react";
+import React, { useCallback, useMemo, useRef } from "react";
+import { GridOption, SlickgridReact, SlickgridReactInstance } from "slickgrid-react";
 import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-fluent.css";
+import { handleFluentSlickGridTabNavigation } from "./fluentSlickGridKeyboardNavigation";
 import "./fluentSlickGrid.css";
+
+export {
+    createFluentSlickGridCopyMenu,
+    FLUENT_SLICK_GRID_COPY_COMMAND,
+    getFluentSlickGridSelectionText,
+} from "./fluentSlickGridCopy";
+
+type FluentAutoResizeOptions = NonNullable<GridOption["autoResize"]>;
 
 const baseFluentGridOption: GridOption = {
     alwaysShowVerticalScroll: true,
@@ -56,6 +65,31 @@ const baseFluentGridOption: GridOption = {
     forceFitColumns: false,
 };
 
+export const baseFluentReadOnlyGridOption: GridOption = {
+    autoFitColumnsOnFirstLoad: false,
+    enableSorting: false,
+    enableFiltering: false,
+    enablePagination: false,
+    enableColumnPicker: false,
+    enableGridMenu: false,
+    enableHeaderMenu: false,
+    enableAutoTooltip: true,
+    showHeaderRow: false,
+    rowHeight: 25,
+};
+
+export function createFluentAutoResizeOptions(
+    container: string,
+    overrides: Partial<FluentAutoResizeOptions> = {},
+): FluentAutoResizeOptions {
+    return {
+        container,
+        calculateAvailableSizeBy: "container",
+        resizeDetection: "container",
+        ...overrides,
+    };
+}
+
 type SlickgridReactPublicProps = React.JSX.LibraryManagedAttributes<
     typeof SlickgridReact,
     React.ComponentProps<typeof SlickgridReact>
@@ -63,9 +97,18 @@ type SlickgridReactPublicProps = React.JSX.LibraryManagedAttributes<
 
 export interface FluentSlickGridProps extends Omit<SlickgridReactPublicProps, "options"> {
     options: GridOption;
+    enableCellTabNavigation?: boolean;
 }
 
-export const FluentSlickGrid: React.FC<FluentSlickGridProps> = ({ options, ...props }) => {
+export const FluentSlickGrid: React.FC<FluentSlickGridProps> = ({
+    options,
+    enableCellTabNavigation = false,
+    onKeyDown,
+    onReactGridCreated,
+    ...props
+}) => {
+    const gridContainerRef = useRef<HTMLElement | undefined>(undefined);
+
     const mergedOptions = useMemo<GridOption>(
         () => ({
             ...baseFluentGridOption,
@@ -86,5 +129,36 @@ export const FluentSlickGrid: React.FC<FluentSlickGridProps> = ({ options, ...pr
         [options],
     );
 
-    return <SlickgridReact {...props} options={mergedOptions} />;
+    const handleReactGridCreated = useCallback<
+        NonNullable<SlickgridReactPublicProps["onReactGridCreated"]>
+    >(
+        (event) => {
+            const reactGrid = event.detail as SlickgridReactInstance | undefined;
+            gridContainerRef.current = reactGrid?.slickGrid?.getContainerNode?.();
+            onReactGridCreated?.(event);
+        },
+        [onReactGridCreated],
+    );
+
+    const handleKeyDown = useCallback<NonNullable<SlickgridReactPublicProps["onKeyDown"]>>(
+        (event) => {
+            onKeyDown?.(event);
+
+            if (enableCellTabNavigation) {
+                return;
+            }
+
+            handleFluentSlickGridTabNavigation(event, gridContainerRef.current);
+        },
+        [enableCellTabNavigation, onKeyDown],
+    );
+
+    return (
+        <SlickgridReact
+            {...props}
+            onKeyDown={handleKeyDown}
+            onReactGridCreated={handleReactGridCreated}
+            options={mergedOptions}
+        />
+    );
 };

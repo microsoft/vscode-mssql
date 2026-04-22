@@ -27,7 +27,10 @@ import { locConstants as loc } from "../../common/locConstants";
 import TableExplorerCustomPager from "./TableExplorerCustomPager";
 import { slickGridLocales } from "./commonGridOptions";
 import "./TableDataGrid.css";
-import { FluentSlickGrid } from "../../common/FluentSlickGrid/FluentSlickGrid";
+import {
+    createFluentAutoResizeOptions,
+    FluentSlickGrid,
+} from "../../common/FluentSlickGrid/FluentSlickGrid";
 
 interface TableDataGridProps {
     resultSet: EditSubsetResult | undefined;
@@ -441,14 +444,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         autoEdit: false,
                         autoCommitEdit: true,
                         editable: true,
-                        autoResize: {
-                            container: "#grid-container",
-                            calculateAvailableSizeBy: "container",
-                            resizeDetection: "container",
+                        autoResize: createFluentAutoResizeOptions("#grid-container", {
                             autoHeight: false,
                             bottomPadding: 10,
                             minHeight: 180,
-                        },
+                        }),
 
                         // Localization for grid UI
                         locales: slickGridLocales,

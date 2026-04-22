@@ -545,7 +545,6 @@ export class ProfilerWebviewController extends WebviewPanelController<
             ProfilerNotifications.CopyToClipboard,
             async (params: { text: string }) => {
                 await vscode.env.clipboard.writeText(params.text);
-                void vscode.window.showInformationMessage(LocProfiler.copiedToClipboard);
             },
         );
 

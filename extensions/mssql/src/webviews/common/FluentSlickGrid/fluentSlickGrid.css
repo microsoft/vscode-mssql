@@ -193,6 +193,7 @@ body {
 .slick-grid-menu .slick-menu-item:hover,
 .slick-grid-menu .slick-column-picker-list li:hover,
 .slick-header-menu .slick-menu-item:hover {
+    background-color: var(--vscode-menu-selectionBackground) !important;
     color: var(--vscode-menu-selectionForeground) !important;
 }
 
