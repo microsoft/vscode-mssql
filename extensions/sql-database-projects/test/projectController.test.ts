@@ -1536,9 +1536,9 @@ suite("ProjectsController", function (): void {
         });
     });
 
-    suite("AutoRest generation", function (): void {
+    suite("OpenAPI SQL generation", function (): void {
         // skipping for now because this feature is hidden under preview flag
-        test("Should create project from autorest-generated files", async function (): Promise<void> {
+        test("Should create project from OpenAPI spec-generated SQL files", async function (): Promise<void> {
             const parentFolder = await testUtils.generateTestFolderPath(this.test);
             await testUtils.createDummyFileStructure(this.test);
             const specName = "DummySpec.yaml";
@@ -1548,8 +1548,8 @@ suite("ProjectsController", function (): void {
 
             const projController = new ProjectsController(testContext.outputChannel);
 
-            sandbox.stub(projController, "selectAutorestSpecFile").resolves(specName);
-            sandbox.stub(projController, "selectAutorestProjectLocation").callsFake(async () => {
+            sandbox.stub(projController, "selectSpecFile").resolves(specName);
+            sandbox.stub(projController, "selectProjectLocation").callsFake(async () => {
                 await fs.mkdir(newProjFolder);
                 return {
                     newProjectFolder: newProjFolder,
@@ -1557,19 +1557,17 @@ suite("ProjectsController", function (): void {
                     projectName: renamedProjectName,
                 };
             });
-            sandbox.stub(projController, "generateAutorestFiles").callsFake(async () => {
+            sandbox.stub(projController, "generateSqlFilesFromSpec").callsFake(async () => {
                 await testUtils.createDummyFileStructure(this.test, true, fileList, newProjFolder);
                 await testUtils.createTestFile(
                     this.test,
                     "SELECT 'This is a post-deployment script'",
-                    constants.autorestPostDeploymentScriptName,
+                    constants.postDeploymentScriptName,
                     newProjFolder,
                 );
                 return "some dummy console output";
             });
-            sandbox
-                .stub(projController, "promptForAutorestProjectName")
-                .resolves(renamedProjectName);
+            sandbox.stub(projController, "promptForProjectName").resolves(renamedProjectName);
             sandbox.stub(projController, "openProjectInWorkspace").resolves();
 
             const project = (await projController.generateProjectFromOpenApiSpec())!;
@@ -1583,8 +1581,8 @@ suite("ProjectsController", function (): void {
             );
             const actual = path.basename(project.postDeployScripts[0].fsUri.fsPath);
             expect(actual).to.equal(
-                constants.autorestPostDeploymentScriptName,
-                `Unexpected post-deployment script name: ${actual}, expected ${constants.autorestPostDeploymentScriptName}`,
+                constants.postDeploymentScriptName,
+                `Unexpected post-deployment script name: ${actual}, expected ${constants.postDeploymentScriptName}`,
             );
 
             const expectedScripts = fileList.filter((f) => path.extname(f.fsPath) === ".sql");

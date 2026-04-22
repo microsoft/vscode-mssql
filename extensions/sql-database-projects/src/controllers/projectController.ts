@@ -40,7 +40,7 @@ import {
     ItemType,
     SqlTargetPlatform,
 } from "sqldbproj";
-import { AutorestHelper } from "../tools/autorestHelper";
+import * as openApiSqlGenerator from "../tools/openApiSqlGenerator";
 import { createNewProjectFromDatabaseWithQuickpick } from "../dialogs/createProjectFromDatabaseQuickpick";
 import { UpdateProjectFromDatabaseWithQuickpick } from "../dialogs/updateProjectFromDatabaseQuickpick";
 import { addDatabaseReferenceQuickpick } from "../dialogs/addDatabaseReferenceQuickpick";
@@ -65,7 +65,6 @@ interface FileWatcherStatus {
 export class ProjectsController {
     private netCoreTool: NetCoreTool;
     private buildHelper: BuildHelper;
-    private autorestHelper: AutorestHelper;
 
     private projFileWatchers = new Map<string, vscode.FileSystemWatcher>();
     private fileWatchers = new Map<string, FileWatcherStatus>();
@@ -73,7 +72,6 @@ export class ProjectsController {
     constructor(private _outputChannel: vscode.OutputChannel) {
         this.netCoreTool = new NetCoreTool(this._outputChannel);
         this.buildHelper = new BuildHelper();
-        this.autorestHelper = new AutorestHelper(this._outputChannel);
     }
 
     //#region Create new project
@@ -1663,9 +1661,9 @@ export class ProjectsController {
         return result;
     }
 
-    //#region AutoRest
+    //#region OpenAPI SQL generation
 
-    public async selectAutorestSpecFile(): Promise<string | undefined> {
+    public async selectSpecFile(): Promise<string | undefined> {
         let quickpickSelection = await vscode.window.showQuickPick(
             [constants.browseEllipsisWithIcon],
             { title: constants.selectSpecFile, ignoreFocusOut: true },
@@ -1698,7 +1696,7 @@ export class ProjectsController {
      * 			outputFolder: 'C:\Source',
      * 			projectName: 'MyProject'}
      */
-    public async selectAutorestProjectLocation(
+    public async selectProjectLocation(
         projectName: string,
         defaultOutputLocation: vscode.Uri | undefined,
     ): Promise<
@@ -1749,7 +1747,7 @@ export class ProjectsController {
         return { newProjectFolder, outputFolder, projectName };
     }
 
-    public async generateAutorestFiles(
+    public async generateSqlFilesFromSpec(
         specPath: string,
         newProjectFolder: string,
     ): Promise<string | undefined> {
@@ -1758,11 +1756,16 @@ export class ProjectsController {
         return vscode.window.withProgress(
             {
                 location: vscode.ProgressLocation.Notification,
-                title: constants.generatingProjectFromAutorest(path.basename(specPath)),
+                title: constants.generatingProjectFromSpec(path.basename(specPath)),
                 cancellable: false,
             },
             async (_progress, _token) => {
-                return this.autorestHelper.generateAutorestFiles(specPath, newProjectFolder);
+                const result = await openApiSqlGenerator.generateSqlFilesFromSpec(
+                    specPath,
+                    newProjectFolder,
+                    this._outputChannel,
+                );
+                return `Generated ${result.filesWritten} SQL file(s) from ${path.basename(specPath)}`;
             },
         );
     }
@@ -1779,10 +1782,10 @@ export class ProjectsController {
         workspaceApi.showProjectsView();
     }
 
-    public async promptForAutorestProjectName(defaultName?: string): Promise<string | undefined> {
+    public async promptForProjectName(defaultName?: string): Promise<string | undefined> {
         let name: string | undefined = await vscode.window.showInputBox({
             ignoreFocusOut: true,
-            prompt: constants.autorestProjectName,
+            prompt: constants.newSqlProjectName,
             value: defaultName,
             validateInput: (value) => {
                 return utils.isValidBasenameErrorMessage(value);
@@ -1814,13 +1817,13 @@ export class ProjectsController {
 
             // 1. select spec file
             const specPath: string | undefined =
-                options?.openApiSpecFile?.fsPath || (await this.selectAutorestSpecFile());
+                options?.openApiSpecFile?.fsPath || (await this.selectSpecFile());
             if (!specPath) {
                 return;
             }
 
             // 2. prompt for project name
-            const projectName = await this.promptForAutorestProjectName(
+            const projectName = await this.promptForProjectName(
                 options?.defaultProjectName || path.basename(specPath, path.extname(specPath)),
             );
             if (!projectName) {
@@ -1828,7 +1831,7 @@ export class ProjectsController {
             }
 
             // 3. select location, make new folder
-            const projectInfo = await this.selectAutorestProjectLocation(
+            const projectInfo = await this.selectProjectLocation(
                 projectName!,
                 options?.defaultOutputLocation,
             );
@@ -1836,10 +1839,12 @@ export class ProjectsController {
                 return;
             }
 
-            // 4. run AutoRest to generate .sql files
-            const result = await this.generateAutorestFiles(specPath, projectInfo.newProjectFolder);
+            // 4. generate .sql files from spec
+            const result = await this.generateSqlFilesFromSpec(
+                specPath,
+                projectInfo.newProjectFolder,
+            );
             if (!result) {
-                // user canceled operation when choosing how to run autorest
                 return;
             }
 
@@ -1867,7 +1872,7 @@ export class ProjectsController {
             // 6. add generated files to SQL project
 
             const uriList = scriptList.filter(
-                (f) => !f.fsPath.endsWith(constants.autorestPostDeploymentScriptName),
+                (f) => !f.fsPath.endsWith(constants.postDeploymentScriptName),
             );
             const relativePaths = uriList.map((f) =>
                 path.relative(project.projectFolderPath, f.fsPath),
@@ -1904,13 +1909,9 @@ export class ProjectsController {
     }
 
     private findPostDeploymentScript(files: vscode.Uri[]): vscode.Uri | undefined {
-        // Locate the post-deployment script generated by autorest, if one exists.
-        // It's only generated if enums are present in spec, b/c the enum values need to be inserted into the generated table.
-        // Because autorest is executed via command rather than API, we can't easily "receive" the name of the script,
-        // so we're stuck just matching on a file name.
-        const results = files.filter((f) =>
-            f.fsPath.endsWith(constants.autorestPostDeploymentScriptName),
-        );
+        // PostDeploymentScript.sql is only generated when enum-valued properties are present
+        // in the spec (the enum values are inserted into a generated lookup table).
+        const results = files.filter((f) => f.fsPath.endsWith(constants.postDeploymentScriptName));
 
         switch (results.length) {
             case 0:

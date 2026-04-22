@@ -71,10 +71,6 @@
                         "type": "boolean",
                         "description": "%sqlDatabaseProjects.nodejsDoNotAsk%"
                     },
-                    "sqlDatabaseProjects.autorestSqlVersion": {
-                        "type": "string",
-                        "description": "%sqlDatabaseProjects.autorestSqlVersion%"
-                    },
                     "sqlDatabaseProjects.collapseProjectNodes": {
                         "type": "boolean",
                         "description": "%sqlDatabaseProjects.collapseProjectNodes%"
@@ -611,6 +607,7 @@
         "axios": "^1.15.0",
         "extract-zip": "^2.0.1",
         "fast-glob": "^3.2.7",
+        "js-yaml": "^4.1.0",
         "fs-extra": "^5.0.0",
         "promisify-child-process": "^3.1.1",
         "semver": "^7.5.2",
@@ -623,6 +620,7 @@
     "devDependencies": {
         "@types/chai": "^5.2.2",
         "@types/fs-extra": "^5.0.0",
+        "@types/js-yaml": "^4.0.9",
         "@types/mocha": "^7.0.2",
         "@types/node": "^22.13.14",
         "@types/semver": "^7.3.1",
