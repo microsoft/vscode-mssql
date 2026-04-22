@@ -147,6 +147,16 @@ export namespace SchemaDesigner {
         Dab = "dab",
     }
 
+    export enum DefinitionKind {
+        Sql = "sql",
+        Prisma = "prisma",
+        Sequelize = "sequelize",
+        TypeOrm = "typeorm",
+        Drizzle = "drizzle",
+        SqlAlchemy = "sqlalchemy",
+        EfCore = "efcore",
+    }
+
     /**
      * Schema designer model ready event
      * This event is sent when the schema designer model is ready
@@ -356,11 +366,16 @@ export namespace SchemaDesigner {
     }
 
     export interface CopyToClipboardOptions {
-        text: string;
+        text?: string;
+        updatedSchema?: Schema;
+        definitionKind?: DefinitionKind;
     }
 
     export interface OpenInEditorOptions {
-        text: string;
+        text?: string;
+        language?: string;
+        updatedSchema?: Schema;
+        definitionKind?: DefinitionKind;
     }
 
     export interface SchemaDesignerReducers {
@@ -399,10 +414,6 @@ export namespace SchemaDesigner {
     export namespace CloseSchemaDesignerNotification {
         export const type = new NotificationType<void>("closeDesigner");
     }
-    export interface OpenInEditorParams {
-        text: string;
-    }
-
     export namespace OpenInEditorWithConnectionNotification {
         export const type = new NotificationType<void>("openInEditorWithConnection");
     }
@@ -411,7 +422,7 @@ export namespace SchemaDesigner {
     }
 
     export namespace CopyToClipboardNotification {
-        export const type = new NotificationType<OpenInEditorParams>("copyToClipboard");
+        export const type = new NotificationType<CopyToClipboardOptions>("copyToClipboard");
     }
 
     export interface UpdatedSchemaParams {

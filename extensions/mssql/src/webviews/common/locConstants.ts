@@ -38,6 +38,8 @@ export class LocConstants {
             find: l10n.t("Find"),
             findNext: l10n.t("Find Next"),
             findPrevious: l10n.t("Find Previous"),
+            property: l10n.t("Property"),
+            value: l10n.t("Value"),
             noResults: l10n.t("No results"),
             searchResultSummary: (activeElement: number, totalElements: number) =>
                 l10n.t({
@@ -71,6 +73,8 @@ export class LocConstants {
             general: l10n.t("General"),
             previous: l10n.t("Previous"),
             ok: l10n.t("OK"),
+            groupBy: l10n.t("Group by"),
+            none: l10n.t("None"),
             stepOf: (currentStep: number, totalSteps: number) =>
                 l10n.t({
                     message: "Step {0} of {1}",
@@ -135,9 +139,9 @@ export class LocConstants {
                         "{1} is the name of the filter",
                     ],
                 }),
-            property: l10n.t("Property"),
+            property: this.common.property,
             operator: l10n.t("Operator"),
-            value: l10n.t("Value"),
+            value: this.common.value,
             clear: l10n.t("Clear"),
         };
     }
@@ -442,7 +446,7 @@ export class LocConstants {
                 }),
             default: l10n.t("Default"),
             deleteSavedConnection: l10n.t("Delete saved connection"),
-            removeRecentConnection: l10n.t("Remove recent connection"),
+            removeRecentConnection: l10n.t("Clear from recent connections list"),
             copyConnectionString: l10n.t("Copy connection string to clipboard"),
             pasteConnectionString: l10n.t("Paste connection string from clipboard"),
             copy: l10n.t("Copy"),
@@ -1084,6 +1088,14 @@ export class LocConstants {
             definition: l10n.t("Definition"),
             showDefinition: l10n.t("Show Definition"),
             hideDefinition: l10n.t("Hide Definition"),
+            definitionType: l10n.t("Definition type"),
+            definitionTypeSql: l10n.t("T-SQL"),
+            definitionTypePrisma: l10n.t("Prisma"),
+            definitionTypeSequelize: l10n.t("Sequelize"),
+            definitionTypeTypeOrm: l10n.t("TypeORM"),
+            definitionTypeDrizzle: l10n.t("Drizzle"),
+            definitionTypeSqlAlchemy: l10n.t("SQLAlchemy"),
+            definitionTypeEfCore: l10n.t("EF Core"),
             copy: l10n.t("Copy"),
             close: l10n.t("Close"),
             deleteConfirmation: l10n.t("Delete Confirmation"),
@@ -1537,6 +1549,7 @@ export class LocConstants {
             saveSourceAndTargetOptionsAndExcludedElements: l10n.t(
                 "Save source and target, options, and excluded elements",
             ),
+            groupDifferencesBy: l10n.t("Group differences by"),
             type: l10n.t("Type"),
             sourceName: l10n.t("Source Name"),
             include: l10n.t("Include"),
@@ -2345,7 +2358,9 @@ export class LocConstants {
             clearFilter: l10n.t("Clear Filter"),
 
             // Toolbar labels
-            selectSessionLabel: l10n.t("Select Session:"),
+            sessionLabel: l10n.t("Session"),
+            selectSessionAriaLabel: l10n.t("Select session"),
+            selectSessionLabel: l10n.t("Select session"),
             viewLabel: l10n.t("View:"),
             selectASession: l10n.t("Select a session..."),
             readOnlyFileLabel: l10n.t("File (Read-Only)"),

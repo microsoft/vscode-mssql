@@ -4,14 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import React, { useRef, useMemo, useEffect, useCallback, useState } from "react";
-import {
-    SlickgridReact,
-    SlickgridReactInstance,
-    Column,
-    GridOption,
-    Formatters,
-    Formatter,
-} from "slickgrid-react";
+import { SlickgridReactInstance, Column, GridOption, Formatters, Formatter } from "slickgrid-react";
 import { makeStyles, shorthands } from "@fluentui/react-components";
 import {
     Panel,
@@ -42,9 +35,20 @@ import {
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { locConstants } from "../../common/locConstants";
-import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-fluent.css";
 import "./profiler.css";
-import { baseFluentGridOption } from "../base-fluent-grid-options";
+import {
+    baseFluentReadOnlyGridOption,
+    createFluentAutoResizeOptions,
+    createFluentSlickGridCopyMenu,
+    FLUENT_SLICK_GRID_COPY_COMMAND,
+    FluentSlickGrid,
+    getFluentSlickGridSelectionText,
+} from "../../common/FluentSlickGrid/FluentSlickGrid";
+import {
+    getProfilerColumnDefaultWidth,
+    getProfilerColumnWidth,
+    PROFILER_RESIZABLE_MIN_WIDTH_PX,
+} from "./profilerGridWidthUtils";
 
 /** Number of rows to fetch per request */
 const FETCH_SIZE = 100;
@@ -725,15 +729,17 @@ export const Profiler: React.FC = () => {
     const columns: Column[] = useMemo(() => {
         if (!viewConfig?.columns) {
             // Default single column if no view config
+            const defaultWidth = getProfilerColumnDefaultWidth("Event");
             return [
                 {
                     id: "eventClass",
                     name: "Event",
                     field: "eventClass",
+                    width: defaultWidth,
                     sortable: false,
                     filterable: true,
                     resizable: true,
-                    minWidth: 200,
+                    minWidth: PROFILER_RESIZABLE_MIN_WIDTH_PX,
                     excludeFromColumnPicker: true,
                     excludeFromGridMenu: true,
                     excludeFromHeaderMenu: true,
@@ -744,15 +750,16 @@ export const Profiler: React.FC = () => {
         return [
             ...viewConfig.columns.map((col) => {
                 const formatterConfig = getFormatterConfig(col.field);
+                const hasHeaderButtons = col.filterable !== false;
                 return {
                     id: col.field,
                     name: col.header,
                     field: col.field,
-                    width: col.width,
+                    width: getProfilerColumnWidth(col.header, col.width, { hasHeaderButtons }),
                     sortable: false, // Sorting disabled for profiler grid
                     filterable: col.filterable ?? true, // Default to filterable
                     resizable: true,
-                    minWidth: 50,
+                    minWidth: PROFILER_RESIZABLE_MIN_WIDTH_PX,
                     excludeFromColumnPicker: true,
                     excludeFromGridMenu: true,
                     excludeFromHeaderMenu: true,
@@ -785,31 +792,29 @@ export const Profiler: React.FC = () => {
     // Grid options
     const gridOptions: GridOption = useMemo(
         () => ({
-            ...baseFluentGridOption,
-            autoResize: {
-                container: "#profilerGridContainer",
-                calculateAvailableSizeBy: "container",
-                resizeDetection: "container",
+            ...baseFluentReadOnlyGridOption,
+            autoResize: createFluentAutoResizeOptions("#profilerGridContainer", {
                 bottomPadding: 0,
                 minHeight: 50,
+            }),
+            // Preserve explicit/manual column widths when the grid container resizes.
+            // Slickgrid Universal enables auto-sizing on resize by default.
+            enableAutoSizeColumns: false,
+            enableContextMenu: true,
+            contextMenu: {
+                ...createFluentSlickGridCopyMenu(locConstants.slickGrid.copy),
+                onCommand: (_e, args) => {
+                    if (args?.command !== FLUENT_SLICK_GRID_COPY_COMMAND) {
+                        return;
+                    }
+
+                    const text = getFluentSlickGridSelectionText(reactGridRef.current);
+                    if (text) {
+                        copyToClipboard(text);
+                    }
+                },
             },
-            enableAutoResize: true,
-            enableCellNavigation: true,
-            enableColumnReorder: true,
-            enableSorting: false,
-            enableFiltering: false,
-            enablePagination: false,
-            enableColumnPicker: false, // Hide column picker menu
-            enableGridMenu: false, // Hide grid menu (hamburger menu)
-            enableHeaderMenu: false, // Hide header menu (column hide/show)
-            enableAutoTooltip: true, // Enable tooltips to show cell values on hover
-            enableExcelCopyBuffer: true, // Enable cell range selection (multi-cell select + copy)
-            enableTextSelectionOnCells: false, // Disable native text selection so cell range selection works
-            rowHeight: 25,
             headerRowHeight: 30,
-            showHeaderRow: false,
-            forceFitColumns: false,
-            alwaysShowVerticalScroll: true, // Always show vertical scrollbar to keep header/row alignment
             darkMode: themeKind === ColorThemeKind.Dark,
             emptyDataWarning: {
                 message: isFilterActive
@@ -817,7 +822,7 @@ export const Profiler: React.FC = () => {
                     : locConstants.profiler.noDataToDisplay,
             },
         }),
-        [themeKind, isFilterActive],
+        [themeKind, isFilterActive, copyToClipboard],
     );
 
     // Toolbar handlers
@@ -1064,7 +1069,7 @@ export const Profiler: React.FC = () => {
                 onLayout={scheduleGridResize}>
                 <Panel ref={gridPanelRef} defaultSize={100} minSize={20}>
                     <div id="profilerGridContainer" className={classes.profilerGridContainer}>
-                        <SlickgridReact
+                        <FluentSlickGrid
                             gridId="profilerGrid"
                             columns={columns}
                             options={gridOptions}
@@ -1199,7 +1204,8 @@ const useStyles = makeStyles({
 // Global styles for SlickGrid that need to be injected as CSS
 // These use CSS custom properties with --slick- prefix which makeStyles doesn't support well
 const slickGridStyles = `
-#profilerGrid {
+#profilerGrid,
+#profilerDetailsGrid {
     /* Header colors - --slick-header-background-color is what .slick-header-column reads,
        --slick-grid-header-background is what .slick-header-columns reads */
     --slick-header-background-color: var(--vscode-editor-background);
@@ -1252,31 +1258,37 @@ const slickGridStyles = `
 }
 
 /* Auto-hide scrollbars when not needed */
-#profilerGrid .slick-viewport {
+#profilerGrid .slick-viewport,
+#profilerDetailsGrid .slick-viewport {
     overflow: auto !important;
 }
 
 /* Ensure internal grid structure fills container */
-#profilerGrid .slick-pane {
+#profilerGrid .slick-pane,
+#profilerDetailsGrid .slick-pane {
     flex: 1;
 }
 
-#profilerGrid .slick-canvas {
+#profilerGrid .slick-canvas,
+#profilerDetailsGrid .slick-canvas {
     width: 100%;
     height: 100%;
 }
 
 /* Hide scrollbars when content fits */
-#profilerGrid .slick-viewport::-webkit-scrollbar {
+#profilerGrid .slick-viewport::-webkit-scrollbar,
+#profilerDetailsGrid .slick-viewport::-webkit-scrollbar {
     width: 14px;
     height: 14px;
 }
 
-#profilerGrid .slick-viewport::-webkit-scrollbar-track {
+#profilerGrid .slick-viewport::-webkit-scrollbar-track,
+#profilerDetailsGrid .slick-viewport::-webkit-scrollbar-track {
     background-color: transparent;
 }
 
-#profilerGrid .slick-viewport::-webkit-scrollbar-thumb {
+#profilerGrid .slick-viewport::-webkit-scrollbar-thumb,
+#profilerDetailsGrid .slick-viewport::-webkit-scrollbar-thumb {
     background-color: var(--vscode-scrollbarSlider-background);
     border-radius: 7px;
     border: 3px solid transparent;
