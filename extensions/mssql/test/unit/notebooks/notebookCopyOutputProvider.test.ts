@@ -32,6 +32,16 @@ function richOutput(plainFallback: string): vscode.NotebookCellOutput {
     ]);
 }
 
+function richOutputWithBlocks(
+    blocks: Array<Record<string, unknown>>,
+    plainFallback = "fallback",
+): vscode.NotebookCellOutput {
+    return new vscode.NotebookCellOutput([
+        vscode.NotebookCellOutputItem.json({ version: 1, blocks }, MIME_MSSQL_RICH),
+        vscode.NotebookCellOutputItem.text(plainFallback, "text/plain"),
+    ]);
+}
+
 function emptyOutput(): vscode.NotebookCellOutput {
     return new vscode.NotebookCellOutput([]);
 }
@@ -154,6 +164,29 @@ suite("registerNotebookCopyOutput", () => {
             expect(item).to.not.be.undefined;
         });
 
+        test("returns a status bar item when a rich output bundles messages with a result set", () => {
+            // Mirrors sqlNotebookController.buildRichBatchOutput: when a batch has
+            // both messages and a grid, all blocks land in a single rich output.
+            const cell = makeCell([
+                richOutputWithBlocks([
+                    { type: "text", text: "DEBUG #1" },
+                    { type: "resultSet", columnInfo: [], rows: [], rowCount: 0 },
+                ]),
+            ]);
+            const item = runProvider(cell) as vscode.NotebookCellStatusBarItem;
+
+            expect(item).to.not.be.undefined;
+        });
+
+        test("returns undefined when a rich output contains only a result-set block", () => {
+            const cell = makeCell([
+                richOutputWithBlocks([
+                    { type: "resultSet", columnInfo: [], rows: [], rowCount: 0 },
+                ]),
+            ]);
+            expect(runProvider(cell)).to.be.undefined;
+        });
+
         test("item invokes the copy command with the cell as argument", () => {
             const cell = makeCell([textOutput("hi")]);
             const item = runProvider(cell) as vscode.NotebookCellStatusBarItem;
@@ -200,6 +233,39 @@ suite("registerNotebookCopyOutput", () => {
             await capturedHandler(cell);
 
             expect(clipboardWriteTextStub).to.have.been.calledOnceWith("PRINT after grid");
+        });
+
+        test("extracts message blocks from a rich output that bundles messages with a grid", async () => {
+            // Repro for the scenario where a single batch emits both RAISERROR
+            // messages and a SELECT result — the controller packs them into one
+            // rich output whose text/plain fallback concatenates everything.
+            const cell = makeCell([
+                richOutputWithBlocks([
+                    { type: "text", text: "DEBUG #1" },
+                    { type: "text", text: "DEBUG #2" },
+                    { type: "resultSet", columnInfo: [], rows: [], rowCount: 0 },
+                    { type: "text", text: "Total execution time: 00:00:03.900" },
+                ]),
+            ]);
+            await capturedHandler(cell);
+
+            expect(clipboardWriteTextStub).to.have.been.calledOnceWith(
+                `DEBUG #1${os.EOL}DEBUG #2${os.EOL}Total execution time: 00:00:03.900`,
+            );
+        });
+
+        test("includes error blocks from a rich output and skips the result set", async () => {
+            const cell = makeCell([
+                richOutputWithBlocks([
+                    { type: "error", text: "Msg 208: Invalid object name" },
+                    { type: "resultSet", columnInfo: [], rows: [], rowCount: 0 },
+                ]),
+            ]);
+            await capturedHandler(cell);
+
+            expect(clipboardWriteTextStub).to.have.been.calledOnceWith(
+                "Msg 208: Invalid object name",
+            );
         });
 
         test("shows the confirmation status bar message after a successful copy", async () => {
