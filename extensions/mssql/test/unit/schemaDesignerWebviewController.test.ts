@@ -519,7 +519,10 @@ suite("SchemaDesignerWebviewController tests", () => {
 
         test("should copy freshly generated SQL text", async () => {
             mockSchemaDesignerService.getDefinition.resolves({ script: "CREATE TABLE Test;" });
-            const clipboardStub = sandbox.stub(vscode.env.clipboard, "writeText").resolves();
+            const clipboardStub = sandbox.stub().resolves();
+            sandbox.stub(vscode.env, "clipboard").value({
+                writeText: clipboardStub,
+            });
 
             const ctrl = createController();
             ctrl.schemaDesignerDetails = mockCreateSessionResponse;
