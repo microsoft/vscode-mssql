@@ -85,7 +85,7 @@ import {
 import { populateAzureAccountInfo } from "../controllers/addFirewallRuleWebviewController";
 import { MssqlVSCodeAzureSubscriptionProvider } from "../azure/MssqlVSCodeAzureSubscriptionProvider";
 import { FabricHelper } from "../fabric/fabricHelper";
-import { FabricSqlDbInfo, FabricWorkspaceInfo } from "../sharedInterfaces/fabric";
+import { SqlDbInfo, SqlCollectionInfo } from "../sharedInterfaces/fabric";
 import {
     ConnectionInfo,
     getSqlConnectionErrorType,
@@ -322,8 +322,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 state.connectionProfile.user = undefined;
 
                 // Also clear old Fabric state
-                state.fabricWorkspacesLoadStatus = { status: ApiStatus.NotStarted };
-                state.fabricWorkspaces = [];
+                state.sqlCollectionsLoadStatus = { status: ApiStatus.NotStarted };
+                state.sqlCollections = [];
 
                 if (!state.selectedAccountId) {
                     if (
@@ -828,20 +828,20 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         this.registerReducer("selectAzureTenant", async (state, payload) => {
             state.selectedTenantId = payload.tenantId;
-            state.fabricWorkspacesLoadStatus = { status: ApiStatus.Loading };
-            state.fabricWorkspaces = [];
+            state.sqlCollectionsLoadStatus = { status: ApiStatus.Loading };
+            state.sqlCollections = [];
             this.updateState(state);
 
             await this.loadFabricWorkspaces(state, state.selectedAccountId, state.selectedTenantId);
 
             // Fabric REST API rate-limits to 50 requests/user/minute,
             // so only auto-load contents of workspaces if they're below a safe threshold
-            if (state.fabricWorkspaces.length <= FABRIC_WORKSPACE_AUTOLOAD_LIMIT) {
+            if (state.sqlCollections.length <= FABRIC_WORKSPACE_AUTOLOAD_LIMIT) {
                 this.updateState(state);
 
                 const promiseArray: Promise<void>[] = [];
 
-                for (const workspace of state.fabricWorkspaces) {
+                for (const workspace of state.sqlCollections) {
                     promiseArray.push(this.loadFabricDatabasesForWorkspace(state, workspace));
                 }
 
@@ -851,8 +851,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return state;
         });
 
-        this.registerReducer("selectFabricWorkspace", async (state, payload) => {
-            const workspace = state.fabricWorkspaces.find((w) => w.id === payload.workspaceId);
+        this.registerReducer("selectSqlCollection", async (state, payload) => {
+            const workspace = state.sqlCollections.find((w) => w.id === payload.collectionId);
             this.state.connectionProfile.server = "";
             this.state.connectionProfile.database = "";
 
@@ -908,7 +908,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             try {
                 const result = FabricHelper.getFabricSqlEndpointServerUri(
                     payload.id,
-                    payload.workspaceId,
+                    payload.collectionId,
                     payload.tenantId,
                 );
 
@@ -2276,7 +2276,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             const accountId = typeof account === "string" ? account : account.id;
             const vscodeAccount = await VsCodeAzureHelper.getAccountById(accountId);
 
-            const newWorkspaces: FabricWorkspaceInfo[] = [];
+            const newWorkspaces: SqlCollectionInfo[] = [];
 
             // Fetch the full tenant info to confirm token permissions
             const tenant = await VsCodeAzureHelper.getTenant(vscodeAccount, tenantId);
@@ -2289,7 +2289,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 );
 
                 this.logger.error(message);
-                state.fabricWorkspacesLoadStatus = { status: ApiStatus.Error, message: locMessage };
+                state.sqlCollectionsLoadStatus = { status: ApiStatus.Error, message: locMessage };
 
                 loadWorkspacesActivity.endFailed(
                     new Error(
@@ -2305,7 +2305,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 const workspaces = await FabricHelper.getFabricWorkspaces(tenant.tenantId);
 
                 for (const workspace of workspaces) {
-                    const stateWorkspace: FabricWorkspaceInfo = {
+                    const stateWorkspace: SqlCollectionInfo = {
                         id: workspace.id,
                         displayName: workspace.displayName,
                         databases: [],
@@ -2316,19 +2316,17 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     newWorkspaces.push(stateWorkspace);
                 }
 
-                this.state.fabricWorkspaces = newWorkspaces.sort((a, b) =>
+                this.state.sqlCollections = newWorkspaces.sort((a, b) =>
                     a.displayName.localeCompare(b.displayName),
                 );
-                state.fabricWorkspacesLoadStatus = {
+                state.sqlCollectionsLoadStatus = {
                     status: ApiStatus.Loaded,
                     message:
-                        this.state.fabricWorkspaces.length === 0
-                            ? Loc.noWorkspacesFound
-                            : undefined,
+                        this.state.sqlCollections.length === 0 ? Loc.noWorkspacesFound : undefined,
                 };
 
                 loadWorkspacesActivity.end(ActivityStatus.Succeeded, undefined, {
-                    workspaceCount: this.state.fabricWorkspaces.length,
+                    workspaceCount: this.state.sqlCollections.length,
                 });
             } catch (err) {
                 const message = `Failed to get Fabric workspaces for tenant '${tenant.displayName} (${tenant.tenantId})': ${getErrorMessage(err)}`;
@@ -2339,7 +2337,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 );
 
                 this.logger.error(message);
-                state.fabricWorkspacesLoadStatus = { status: ApiStatus.Error, message: locMessage };
+                state.sqlCollectionsLoadStatus = { status: ApiStatus.Error, message: locMessage };
 
                 loadWorkspacesActivity.endFailed(
                     new Error("Failed to fetch Fabric workspaces"),
@@ -2362,7 +2360,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
     private async loadFabricDatabasesForWorkspace(
         state: ConnectionDialogWebviewState,
-        workspace: FabricWorkspaceInfo,
+        workspace: SqlCollectionInfo,
     ): Promise<void> {
         const loadDatabasesActivity = startActivity(
             TelemetryViews.ConnectionDialog,
@@ -2374,7 +2372,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         this.updateState(state);
 
         try {
-            const databases: FabricSqlDbInfo[] = [];
+            const databases: SqlDbInfo[] = [];
             const errorMessages: string[] = [];
 
             // 2. Load SQL databases from Fabric
@@ -2415,8 +2413,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     displayName: db.displayName,
                     server: db.server,
                     type: db.type,
-                    workspaceId: workspace.id,
-                    workspaceName: workspace.displayName,
+                    collectionId: workspace.id,
+                    collectionName: workspace.displayName,
                     tenantId: workspace.tenantId,
                 };
             });

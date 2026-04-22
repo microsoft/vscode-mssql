@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 import {
-    FabricSqlDbInfo,
+    SqlDbInfo,
     IWorkspace,
     IFabricError,
     ICapacity,
@@ -110,14 +110,14 @@ export class FabricHelper {
      *
      * @param workspace The workspace object or workspace ID for which to fetch databases.
      * @param tenantId Optional tenant ID for scoping the request.
-     * @returns A promise that resolves to an array of `FabricSqlDbInfo` objects
+     * @returns A promise that resolves to an array of `SqlDbInfo` objects
      * @throws {Error} Throws an error if the underlying Fabric API request fails or if database
      *         processing encounters an error.
      */
     public static async getFabricDatabases(
         workspace: IWorkspace | string,
         tenantId?: string,
-    ): Promise<FabricSqlDbInfo[]> {
+    ): Promise<SqlDbInfo[]> {
         const workspacePromise =
             typeof workspace === "string"
                 ? this.getFabricWorkspace(workspace, tenantId)
@@ -125,7 +125,7 @@ export class FabricHelper {
 
         const workspaceId = typeof workspace === "string" ? workspace : workspace.id;
 
-        const result: FabricSqlDbInfo[] = [];
+        const result: SqlDbInfo[] = [];
 
         try {
             const response = await this.fetchFromFabric<{ value: ISqlDbArtifact[] }>(
@@ -143,9 +143,9 @@ export class FabricHelper {
                         server: db.properties.serverFqdn,
                         displayName: db.displayName,
                         database: db.properties.databaseName,
-                        workspaceName: resolvedWorkspace.displayName,
+                        collectionName: resolvedWorkspace.displayName,
                         type: db.type,
-                    } as FabricSqlDbInfo;
+                    } as SqlDbInfo;
                 }),
             );
         } catch (error) {
@@ -161,7 +161,7 @@ export class FabricHelper {
      *
      * @param workspace The workspace object or workspace ID to fetch SQL endpoints from.
      * @param tenantId Optional tenant ID for scoping the request.
-     * @returns A promise that resolves to an array of `FabricSqlDbInfo` objects.
+     * @returns A promise that resolves to an array of `SqlDbInfo` objects.
      */
     public static async getFabricSqlEndpoints(workspace: IWorkspace | string, tenantId?: string) {
         const workspacePromise =
@@ -171,7 +171,7 @@ export class FabricHelper {
 
         const workspaceId = typeof workspace === "string" ? workspace : workspace.id;
 
-        const result: FabricSqlDbInfo[] = [];
+        const result: SqlDbInfo[] = [];
 
         try {
             const response = await this.fetchFromFabric<{ value: ISqlEndpointArtifact[] }>(
@@ -189,9 +189,9 @@ export class FabricHelper {
                         server: undefined, // requires a second Fabric API call to populate; fill later to avoid rate-limiting (50/API/user/minute)
                         displayName: endpoint.displayName,
                         database: undefined,
-                        workspaceName: resolvedWorkspace.displayName,
+                        collectionName: resolvedWorkspace.displayName,
                         type: endpoint.type,
-                    } as FabricSqlDbInfo;
+                    } as SqlDbInfo;
                 }),
             );
         } catch (error) {

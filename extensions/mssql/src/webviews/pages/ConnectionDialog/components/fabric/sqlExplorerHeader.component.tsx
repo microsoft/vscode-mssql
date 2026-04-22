@@ -20,14 +20,14 @@ import { addNewMicrosoftAccount } from "../../../../common/constants";
 import { KeyCode } from "../../../../common/keys";
 import { useConnectionDialogSelector } from "../../connectionDialogSelector";
 
-const FabricExplorerHeader = ({
+const SqlExplorerHeader = ({
     onSignIntoMicrosoftAccount,
     onSelectAccountId,
     onSelectTenantId,
     onSearchValueChanged,
     searchValue = "",
     selectedTypeFilters: _selectedTypeFilters = [],
-}: FabricBrowserHeaderProps) => {
+}: SqlExplorerHeaderProps) => {
     const styles = useStyles();
 
     const azureAccounts = useConnectionDialogSelector((s) => s.azureAccounts);
@@ -176,9 +176,9 @@ const FabricExplorerHeader = ({
     );
 };
 
-export default FabricExplorerHeader;
+export default SqlExplorerHeader;
 
-interface FabricBrowserHeaderProps {
+interface SqlExplorerHeaderProps {
     onSignIntoMicrosoftAccount: () => void;
     onSelectAccountId: (accountId: string) => void;
     onSelectTenantId: (tenantId: string) => void;

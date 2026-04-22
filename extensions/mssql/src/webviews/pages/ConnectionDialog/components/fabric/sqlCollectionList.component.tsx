@@ -14,7 +14,7 @@ import {
     Button,
     Input,
 } from "@fluentui/react-components";
-import { FabricWorkspaceInfo } from "../../../../../sharedInterfaces/fabric";
+import { SqlCollectionInfo } from "../../../../../sharedInterfaces/fabric";
 import {
     useCallback,
     SyntheticEvent,
@@ -32,20 +32,18 @@ import {
     SearchRegular,
 } from "@fluentui/react-icons";
 import { locConstants as Loc } from "../../../../common/locConstants";
-import { useFabricExplorerStyles } from "./fabricExplorer.styles";
+import { useSqlExplorerStyles } from "./sqlExplorer.styles";
 import { ApiStatus } from "../../../../../sharedInterfaces/webview";
 import { KeyCode } from "../../../../common/keys";
 import { useConnectionDialogSelector } from "../../connectionDialogSelector";
 
-export const FabricWorkspacesList = ({
+export const SqlCollectionList = ({
     workspaces,
     onSelectWorkspace,
     selectedWorkspace,
-}: FabricWorkspacesListProps) => {
-    const styles = useFabricExplorerStyles();
-    const fabricWorkspacesLoadStatus = useConnectionDialogSelector(
-        (s) => s.fabricWorkspacesLoadStatus,
-    );
+}: SqlCollectionListProps) => {
+    const styles = useSqlExplorerStyles();
+    const sqlCollectionsLoadStatus = useConnectionDialogSelector((s) => s.sqlCollectionsLoadStatus);
 
     const [isExplorerCollapsed, setIsExplorerCollapsed] = useState(false);
 
@@ -72,16 +70,16 @@ export const FabricWorkspacesList = ({
         );
     }, [workspaces, workspaceSearchFilter]);
 
-    // Automatically select the first workspace when workspaces are loaded and none is selected
+    // Automatically select the first collection when collections are loaded and none is selected
     useEffect(() => {
         if (
-            fabricWorkspacesLoadStatus.status === ApiStatus.Loaded &&
+            sqlCollectionsLoadStatus.status === ApiStatus.Loaded &&
             workspaces.length > 0 &&
             !selectedWorkspace
         ) {
             onSelectWorkspace(workspaces[0]);
         }
-    }, [workspaces, selectedWorkspace, fabricWorkspacesLoadStatus.status, onSelectWorkspace]);
+    }, [workspaces, selectedWorkspace, sqlCollectionsLoadStatus.status, onSelectWorkspace]);
 
     const onSelectionChange = useCallback(
         (_: SyntheticEvent | Event, data: { selectedItems: SelectionItemId[] }) => {
@@ -101,7 +99,7 @@ export const FabricWorkspacesList = ({
             <div className={styles.workspaceHeader}>
                 {!isExplorerCollapsed && (
                     <Input
-                        placeholder={Loc.connectionDialog.searchWorkspaces}
+                        placeholder={Loc.connectionDialog.searchCollections}
                         value={workspaceSearchFilter}
                         onChange={(e) => setWorkspaceSearchFilter(e.target.value)}
                         contentBefore={<SearchRegular />}
@@ -146,62 +144,62 @@ export const FabricWorkspacesList = ({
                     }}
                     aria-label={
                         isExplorerCollapsed
-                            ? Loc.connectionDialog.expandWorkspaceExplorer
-                            : Loc.connectionDialog.collapseWorkspaceExplorer
+                            ? Loc.connectionDialog.expandCollectionExplorer
+                            : Loc.connectionDialog.collapseCollectionExplorer
                     }
                     title={
                         isExplorerCollapsed
-                            ? Loc.connectionDialog.expandWorkspaceExplorer
-                            : Loc.connectionDialog.collapseWorkspaceExplorer
+                            ? Loc.connectionDialog.expandCollectionExplorer
+                            : Loc.connectionDialog.collapseCollectionExplorer
                     }
                     className={styles.collapseWorkspaceListButton}
                 />
             </div>
             {!isExplorerCollapsed && (
                 <div className={styles.workspaceListContainer} style={{ position: "relative" }}>
-                    {fabricWorkspacesLoadStatus.status === ApiStatus.Loading && (
+                    {sqlCollectionsLoadStatus.status === ApiStatus.Loading && (
                         <div className={styles.workspaceListMessageContainer}>
                             <Spinner size="medium" />
                             <Text className={styles.messageText}>
-                                {Loc.connectionDialog.loadingWorkspaces}
+                                {Loc.connectionDialog.loadingCollections}
                             </Text>
                         </div>
                     )}
-                    {fabricWorkspacesLoadStatus.status === ApiStatus.Error && (
+                    {sqlCollectionsLoadStatus.status === ApiStatus.Error && (
                         <div className={styles.workspaceListMessageContainer}>
                             <Tooltip
                                 content={
-                                    fabricWorkspacesLoadStatus.message ||
-                                    Loc.connectionDialog.errorLoadingWorkspaces
+                                    sqlCollectionsLoadStatus.message ||
+                                    Loc.connectionDialog.errorLoadingCollections
                                 }
                                 relationship="label">
                                 <ErrorCircleRegular className={styles.errorIcon} />
                             </Tooltip>
                             <Text className={styles.messageText}>
-                                {Loc.connectionDialog.errorLoadingWorkspaces}
+                                {Loc.connectionDialog.errorLoadingCollections}
                             </Text>
                         </div>
                     )}
-                    {fabricWorkspacesLoadStatus.status === ApiStatus.Loaded && (
+                    {sqlCollectionsLoadStatus.status === ApiStatus.Loaded && (
                         <>
                             {!filteredWorkspaces ||
                                 (filteredWorkspaces.length === 0 && (
                                     <div className={styles.workspaceListMessageContainer}>
                                         <Text className={styles.messageText}>
-                                            {Loc.connectionDialog.noWorkspacesFound}
+                                            {Loc.connectionDialog.noCollectionsFound}
                                         </Text>
                                     </div>
                                 ))}
                             {filteredWorkspaces.length > 0 && (
                                 <List
                                     role="listbox"
-                                    aria-label={Loc.connectionDialog.fabricWorkspaces}
+                                    aria-label={Loc.connectionDialog.sqlCollections}
                                     selectionMode="single"
                                     navigationMode="composite"
                                     selectedItems={selectedItems}
                                     onSelectionChange={onSelectionChange}>
                                     {filteredWorkspaces.map((workspace) => (
-                                        <FabricWorkspaceListItem
+                                        <SqlCollectionListItem
                                             key={workspace.id}
                                             workspace={workspace}
                                             isSelected={selectedItems.includes(workspace.id)}
@@ -217,8 +215,8 @@ export const FabricWorkspacesList = ({
     );
 };
 
-const FabricWorkspaceListItem = ({ workspace, isSelected }: FabricWorkspaceListItemProps) => {
-    const styles = useFabricExplorerStyles();
+const SqlCollectionListItem = ({ workspace, isSelected }: SqlCollectionListItemProps) => {
+    const styles = useSqlExplorerStyles();
 
     return (
         <ListItem
@@ -287,13 +285,13 @@ const FabricWorkspaceListItem = ({ workspace, isSelected }: FabricWorkspaceListI
     );
 };
 
-interface FabricWorkspacesListProps {
-    workspaces: FabricWorkspaceInfo[];
-    onSelectWorkspace: (workspace: FabricWorkspaceInfo) => void;
-    selectedWorkspace?: FabricWorkspaceInfo;
+interface SqlCollectionListProps {
+    workspaces: SqlCollectionInfo[];
+    onSelectWorkspace: (workspace: SqlCollectionInfo) => void;
+    selectedWorkspace?: SqlCollectionInfo;
 }
 
-interface FabricWorkspaceListItemProps {
-    workspace: FabricWorkspaceInfo;
+interface SqlCollectionListItemProps {
+    workspace: SqlCollectionInfo;
     isSelected: boolean;
 }

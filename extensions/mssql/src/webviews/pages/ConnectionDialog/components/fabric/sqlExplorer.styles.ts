@@ -5,7 +5,7 @@
 
 import { makeStyles, shorthands } from "@fluentui/react-components";
 
-export const useFabricExplorerStyles = makeStyles({
+export const useSqlExplorerStyles = makeStyles({
     workspaceExplorer: {
         display: "flex",
         height: "400px",

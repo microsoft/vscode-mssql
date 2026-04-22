@@ -16,16 +16,12 @@ import {
     ConnectionInputMode,
     IConnectionDialogProfile,
 } from "../../../sharedInterfaces/connectionDialog";
-import {
-    FabricSqlDbInfo,
-    FabricWorkspaceInfo,
-    SqlArtifactTypes,
-} from "../../../sharedInterfaces/fabric";
+import { SqlDbInfo, SqlCollectionInfo, SqlArtifactTypes } from "../../../sharedInterfaces/fabric";
 import { locConstants as Loc } from "../../common/locConstants";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import EntraSignInEmpty from "./components/entraSignInEmpty.component";
-import { FabricExplorer } from "./components/fabric/fabricExplorer.component";
-import { getTypeDisplayName } from "./components/fabric/fabricWorkspaceContentsList.component";
+import { SqlExplorer } from "./components/fabric/sqlExplorer.component";
+import { getTypeDisplayName } from "./components/fabric/sqlCollectionContentsList.component";
 
 export const FabricBrowsePage = () => {
     const context = useContext(ConnectionDialogContext);
@@ -72,11 +68,11 @@ export const FabricBrowsePage = () => {
         context!.selectAzureTenant(tenantId);
     }
 
-    function handleSelectWorkspace(workspace: FabricWorkspaceInfo) {
-        context!.selectFabricWorkspace(workspace.id);
+    function handleSelectWorkspace(collection: SqlCollectionInfo) {
+        context!.selectSqlCollection(collection.id);
     }
 
-    async function handleDatabaseSelected(database: FabricSqlDbInfo) {
+    async function handleDatabaseSelected(database: SqlDbInfo) {
         switch (database.type) {
             case SqlArtifactTypes.SqlAnalyticsEndpoint: {
                 const serverUrl = await context!.getSqlAnalyticsEndpointUriFromFabric(database);
@@ -116,10 +112,10 @@ export const FabricBrowsePage = () => {
             {loadingAzureAccountsStatus === ApiStatus.Loaded && hasAccounts && (
                 <>
                     <div className={styles.componentGroupHeader}>
-                        <Label>{Loc.connectionDialog.fabricWorkspaces}</Label>
+                        <Label>{Loc.connectionDialog.sqlCollections}</Label>
                     </div>
                     <div className={styles.componentGroupContainer}>
-                        <FabricExplorer
+                        <SqlExplorer
                             onSignIntoMicrosoftAccount={handleSignIntoMicrosoftAccount}
                             onSelectAccountId={handleSelectAccountId}
                             onSelectTenantId={handleSelectTenantId}
@@ -211,6 +207,6 @@ const fabricAuthOptions: (keyof IConnectionDialogProfile)[] = [
     "tenantId",
 ];
 
-function generateProfileName(database: FabricSqlDbInfo) {
+function generateProfileName(database: SqlDbInfo) {
     return `${database.displayName} (${getTypeDisplayName(database.type)})`;
 }

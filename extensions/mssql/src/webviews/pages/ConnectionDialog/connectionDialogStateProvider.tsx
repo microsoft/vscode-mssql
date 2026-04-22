@@ -18,7 +18,7 @@ import { FirewallRuleSpec } from "../../../sharedInterfaces/firewallRule";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { getCoreRPCs } from "../../common/utils";
 import { ConnectionGroupSpec } from "../../../sharedInterfaces/connectionGroup";
-import { FabricSqlDbInfo } from "../../../sharedInterfaces/fabric";
+import { SqlDbInfo } from "../../../sharedInterfaces/fabric";
 import {
     ChangePasswordResult,
     ChangePasswordWebviewRequest,
@@ -143,9 +143,9 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                     tenantId,
                 });
             },
-            selectFabricWorkspace: (workspaceId: string) => {
-                extensionRpc.action("selectFabricWorkspace", {
-                    workspaceId,
+            selectSqlCollection: (collectionId: string) => {
+                extensionRpc.action("selectSqlCollection", {
+                    collectionId,
                 });
             },
             openInfoLink: (option: FormItemOptions) => {
@@ -167,7 +167,7 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                 );
             },
             getSqlAnalyticsEndpointUriFromFabric: async function (
-                sqlDb: FabricSqlDbInfo,
+                sqlDb: SqlDbInfo,
             ): Promise<string> {
                 return await extensionRpc.sendRequest(
                     GetSqlAnalyticsEndpointUriFromFabricRequest.type,

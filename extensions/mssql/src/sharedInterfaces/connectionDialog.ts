@@ -10,7 +10,7 @@ import { ApiStatus, Status } from "./webview";
 import { AddFirewallRuleState } from "./addFirewallRule";
 import { ConnectionGroupSpec, ConnectionGroupState } from "./connectionGroup";
 import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
-import { FabricSqlDbInfo, FabricWorkspaceInfo } from "./fabric";
+import { SqlDbInfo, SqlCollectionInfo } from "./fabric";
 import { ChangePasswordResult, ChangePasswordWebviewState } from "./changePassword";
 import { DialogMessageSpec } from "./dialogMessage";
 
@@ -64,8 +64,8 @@ export class ConnectionDialogWebviewState
     public selectedAccountId: string | undefined;
     public azureTenants: IAzureTenant[] = [];
     public selectedTenantId: string | undefined;
-    public fabricWorkspacesLoadStatus: Status = { status: ApiStatus.NotStarted };
-    public fabricWorkspaces: FabricWorkspaceInfo[] = [];
+    public sqlCollectionsLoadStatus: Status = { status: ApiStatus.NotStarted };
+    public sqlCollections: SqlCollectionInfo[] = [];
 
     constructor(params?: Partial<ConnectionDialogWebviewState>) {
         for (const key in params) {
@@ -258,12 +258,12 @@ export interface ConnectionDialogContextProps extends FormContextProps<IConnecti
     signIntoAzureTenantForBrowse: () => void;
     selectAzureAccount: (accountId: string) => void;
     selectAzureTenant: (tenantId: string) => void;
-    selectFabricWorkspace: (workspaceId: string) => void;
+    selectSqlCollection: (collectionId: string) => void;
     messageButtonClicked: (buttonId: string) => void;
 
     // Request handlers
     getConnectionDisplayName: (connection: IConnectionDialogProfile) => Promise<string>;
-    getSqlAnalyticsEndpointUriFromFabric: (sqlEndpoint: FabricSqlDbInfo) => Promise<string>;
+    getSqlAnalyticsEndpointUriFromFabric: (sqlEndpoint: SqlDbInfo) => Promise<string>;
     changePassword: (newPassword: string) => Promise<ChangePasswordResult>;
 }
 
@@ -310,7 +310,7 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     signIntoAzureTenantForBrowse: {};
     selectAzureAccount: { accountId: string };
     selectAzureTenant: { tenantId: string };
-    selectFabricWorkspace: { workspaceId: string };
+    selectSqlCollection: { collectionId: string };
     messageButtonClicked: { buttonId: string };
 }
 
@@ -327,7 +327,7 @@ export namespace GetConnectionDisplayNameRequest {
 }
 
 export namespace GetSqlAnalyticsEndpointUriFromFabricRequest {
-    export const type = new RequestType<FabricSqlDbInfo, string, void>(
+    export const type = new RequestType<SqlDbInfo, string, void>(
         "getSqlAnalyticsEndpointUriFromFabric",
     );
 }

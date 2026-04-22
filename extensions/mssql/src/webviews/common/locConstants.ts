@@ -319,7 +319,7 @@ export class LocConstants {
 
     public get connectionDialog() {
         return {
-            searchWorkspaces: l10n.t("Search workspaces..."),
+            searchCollections: l10n.t("Search workspaces..."),
             loadingFabricAccounts: l10n.t("Loading Fabric Accounts"),
             fabricAccount: l10n.t("Fabric Account"),
             selectAnAccount: l10n.t("Select an account"),
@@ -330,7 +330,7 @@ export class LocConstants {
             myData: l10n.t("My Data"),
             recent: l10n.t("Recent"),
             favorites: l10n.t("Favorites"),
-            fabricWorkspaces: l10n.t("Fabric Workspaces"),
+            sqlCollections: l10n.t("Fabric Workspaces"),
             signIntoFabric: l10n.t("Sign into Fabric"),
             filterByKeyword: l10n.t("Filter by keyword"),
             filter: l10n.t("Filter"),
@@ -338,17 +338,17 @@ export class LocConstants {
             showAll: l10n.t("Show All"),
             sqlAnalyticsEndpoint: l10n.t("SQL Analytics Endpoint"),
             sqlDatabase: l10n.t("SQL Database"),
-            noWorkspacesFound: l10n.t("No workspaces found"),
+            noCollectionsFound: l10n.t("No workspaces found"),
             nameColumnHeader: l10n.t("Name"),
             typeColumnHeader: l10n.t("Type"),
             locationColumnHeader: l10n.t("Location (Workspace)"),
-            expandWorkspaceExplorer: l10n.t("Expand Workspace Explorer"),
+            expandCollectionExplorer: l10n.t("Expand Workspace Explorer"),
             explorer: l10n.t("Explorer"),
-            collapseWorkspaceExplorer: l10n.t("Collapse Workspace Explorer"),
-            selectAWorkspaceToViewDatabases: l10n.t(
+            collapseCollectionExplorer: l10n.t("Collapse Workspace Explorer"),
+            selectACollectionToViewDatabases: l10n.t(
                 "Select a workspace to view the databases in it.",
             ),
-            noDatabasesFoundInWorkspace: (workspaceName?: string) => {
+            noDatabasesFoundInCollection: (workspaceName?: string) => {
                 if (workspaceName) {
                     return l10n.t({
                         message: "No databases found in workspace '{0}'.",
@@ -469,8 +469,8 @@ export class LocConstants {
                 }),
             signIntoTenantLink: l10n.t("Sign into tenant"),
             noTenantsSignedIn: l10n.t("No tenants are currently signed in."),
-            loadingWorkspaces: l10n.t("Loading workspaces..."),
-            loadingDatabasesInWorkspace: (workspaceName?: string) => {
+            loadingCollections: l10n.t("Loading workspaces..."),
+            loadingDatabasesInCollection: (workspaceName?: string) => {
                 if (workspaceName) {
                     return l10n.t({
                         message: "Loading databases in '{0}'...",
@@ -481,8 +481,8 @@ export class LocConstants {
                     return l10n.t("Loading databases in selected workspace...");
                 }
             },
-            errorLoadingWorkspaces: l10n.t("Error loading workspaces"),
-            errorLoadingDatabases: l10n.t("Error loading databases"),
+            errorLoadingCollections: l10n.t("Error loading workspaces"),
+            errorLoadingCollectionDatabases: l10n.t("Error loading databases"),
             connectionAuthentication: l10n.t("Connection Authentication"),
             advancedOptions: l10n.t("Advanced Options"),
             importFromAzureDataStudio: l10n.t("Import from Azure Data Studio"),

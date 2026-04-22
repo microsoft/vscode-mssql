@@ -5,34 +5,34 @@
 
 import { useMemo, useState } from "react";
 import { useConnectionDialogSelector } from "../../connectionDialogSelector";
-import FabricExplorerHeader from "./fabricExplorerHeader.component";
-import { FabricWorkspaceContentsList } from "./fabricWorkspaceContentsList.component";
-import { FabricWorkspacesList } from "./fabricWorkspacesList.component";
-import { FabricSqlDbInfo, FabricWorkspaceInfo } from "../../../../../sharedInterfaces/fabric";
-import { useFabricExplorerStyles } from "./fabricExplorer.styles";
+import SqlExplorerHeader from "./sqlExplorerHeader.component";
+import { SqlCollectionContentsList } from "./sqlCollectionContentsList.component";
+import { SqlCollectionList } from "./sqlCollectionList.component";
+import { SqlDbInfo, SqlCollectionInfo } from "../../../../../sharedInterfaces/fabric";
+import { useSqlExplorerStyles } from "./sqlExplorer.styles";
 
-export const FabricExplorer = ({
+export const SqlExplorer = ({
     onSignIntoMicrosoftAccount,
     onSelectAccountId,
     onSelectTenantId,
     onSelectWorkspace,
     onSelectDatabase,
-}: FabricExplorerProps) => {
-    const fabricWorkspaces = useConnectionDialogSelector((s) => s.fabricWorkspaces);
+}: SqlExplorerProps) => {
+    const sqlCollections = useConnectionDialogSelector((s) => s.sqlCollections);
 
-    const fabricStyles = useFabricExplorerStyles();
+    const sqlStyles = useSqlExplorerStyles();
 
     const [searchFilter, setSearchFilter] = useState<string>("");
 
-    const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | undefined>(undefined);
+    const [selectedCollectionId, setSelectedCollectionId] = useState<string | undefined>(undefined);
 
-    const selectedWorkspace = useMemo(() => {
-        if (fabricWorkspaces.length === 0 || !selectedWorkspaceId) {
+    const selectedCollection = useMemo(() => {
+        if (sqlCollections.length === 0 || !selectedCollectionId) {
             return undefined;
         }
 
-        return fabricWorkspaces.find((w) => w.id === selectedWorkspaceId);
-    }, [fabricWorkspaces, selectedWorkspaceId]);
+        return sqlCollections.find((w) => w.id === selectedCollectionId);
+    }, [sqlCollections, selectedCollectionId]);
 
     function handleSignIntoMicrosoftAccount() {
         onSignIntoMicrosoftAccount();
@@ -46,12 +46,12 @@ export const FabricExplorer = ({
         onSelectTenantId(tenantId);
     }
 
-    function handleWorkspaceSelected(workspace: FabricWorkspaceInfo) {
-        setSelectedWorkspaceId(workspace.id);
-        onSelectWorkspace(workspace);
+    function handleCollectionSelected(collection: SqlCollectionInfo) {
+        setSelectedCollectionId(collection.id);
+        onSelectWorkspace(collection);
     }
 
-    function handleDatabaseSelected(database: FabricSqlDbInfo) {
+    function handleDatabaseSelected(database: SqlDbInfo) {
         onSelectDatabase(database);
     }
     function handleSearchValueChanged(searchValue: string) {
@@ -60,21 +60,21 @@ export const FabricExplorer = ({
 
     return (
         <>
-            <FabricExplorerHeader
+            <SqlExplorerHeader
                 searchValue={searchFilter}
                 onSignIntoMicrosoftAccount={handleSignIntoMicrosoftAccount}
                 onSelectAccountId={handleSelectAccountId}
                 onSelectTenantId={handleSelectTenantId}
                 onSearchValueChanged={handleSearchValueChanged}
             />
-            <div className={fabricStyles.workspaceExplorer}>
-                <FabricWorkspacesList
-                    workspaces={fabricWorkspaces}
-                    selectedWorkspace={selectedWorkspace}
-                    onSelectWorkspace={handleWorkspaceSelected}
+            <div className={sqlStyles.workspaceExplorer}>
+                <SqlCollectionList
+                    workspaces={sqlCollections}
+                    selectedWorkspace={selectedCollection}
+                    onSelectWorkspace={handleCollectionSelected}
                 />
-                <FabricWorkspaceContentsList
-                    selectedWorkspace={selectedWorkspace}
+                <SqlCollectionContentsList
+                    selectedWorkspace={selectedCollection}
                     searchFilter={searchFilter}
                     onSelectDatabase={handleDatabaseSelected}
                 />
@@ -83,10 +83,10 @@ export const FabricExplorer = ({
     );
 };
 
-export interface FabricExplorerProps {
+export interface SqlExplorerProps {
     onSignIntoMicrosoftAccount: () => void;
     onSelectAccountId: (accountId: string) => void;
     onSelectTenantId: (tenantId: string) => void;
-    onSelectWorkspace: (workspace: FabricWorkspaceInfo) => void;
-    onSelectDatabase: (database: FabricSqlDbInfo) => void;
+    onSelectWorkspace: (collection: SqlCollectionInfo) => void;
+    onSelectDatabase: (database: SqlDbInfo) => void;
 }
