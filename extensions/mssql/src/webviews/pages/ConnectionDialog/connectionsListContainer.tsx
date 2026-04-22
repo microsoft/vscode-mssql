@@ -26,6 +26,7 @@ import { MouseEventHandler, useContext, useEffect, useState } from "react";
 
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { useConnectionDialogSelector } from "./connectionDialogSelector";
+import { getConnectionCardKey } from "./connectionCardUtils";
 import {
     ConnectionDialogReducers,
     ConnectionDialogWebviewState,
@@ -112,19 +113,6 @@ const useStyles = makeStyles({
 });
 
 const azureDataStudioIcon = require("../../media/azureDataStudio.svg");
-
-const getConnectionCardKey = (connection: IConnectionDialogProfile): string => {
-    return [
-        connection.id ?? "",
-        connection.server ?? "",
-        connection.database ?? "",
-        connection.authenticationType ?? "",
-        connection.profileName ?? "",
-        connection.user ?? "",
-        connection.accountId ?? "",
-        connection.connectionString ?? "",
-    ].join("|");
-};
 
 export const ConnectionsListContainer = () => {
     const styles = useStyles();
