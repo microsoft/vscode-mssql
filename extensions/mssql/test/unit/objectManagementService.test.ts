@@ -145,7 +145,9 @@ suite("ObjectManagementService Tests", () => {
     });
 
     test("renameDatabase should send correct request", async () => {
-        sqlToolsClientStub.sendRequest.resolves("ALTER DATABASE [db] MODIFY NAME = [db2]");
+        sqlToolsClientStub.sendRequest.resolves({
+            script: "ALTER DATABASE [db] MODIFY NAME = [db2]",
+        });
 
         const result = await objectManagementService.renameDatabase(
             "connection-uri",
@@ -155,7 +157,9 @@ suite("ObjectManagementService Tests", () => {
             true,
         );
 
-        expect(result).to.equal("ALTER DATABASE [db] MODIFY NAME = [db2]");
+        expect(result).to.deep.equal({
+            script: "ALTER DATABASE [db] MODIFY NAME = [db2]",
+        });
         expect(sqlToolsClientStub.sendRequest.calledOnce).to.be.true;
         const [type, params] = sqlToolsClientStub.sendRequest.firstCall.args;
         expect(type).to.equal(RenameDatabaseRequest.type);

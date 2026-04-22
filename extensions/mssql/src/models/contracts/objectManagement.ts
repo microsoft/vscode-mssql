@@ -98,10 +98,18 @@ export interface RenameDatabaseRequestParams {
     generateScript: boolean;
 }
 
+export interface RenameDatabaseResponse {
+    taskId?: string;
+    script?: string;
+}
+
 export namespace RenameDatabaseRequest {
-    export const type = new RequestType<RenameDatabaseRequestParams, string, void, void>(
-        "objectManagement/renameDatabase",
-    );
+    export const type = new RequestType<
+        RenameDatabaseRequestParams,
+        RenameDatabaseResponse,
+        void,
+        void
+    >("objectManagement/renameDatabase");
 }
 
 export interface DropDatabaseRequestParams {

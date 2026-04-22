@@ -10,6 +10,7 @@ import {
     InitializeViewRequestParams,
     ObjectManagementSqlObject,
     ObjectManagementViewInfo,
+    RenameDatabaseResponse,
     RenameObjectRequest,
     RenameDatabaseRequest,
     SaveObjectRequest,
@@ -93,7 +94,7 @@ export class ObjectManagementService {
         newName: string,
         dropConnections: boolean,
         generateScript: boolean,
-    ): Promise<string> {
+    ): Promise<RenameDatabaseResponse> {
         return this._client.sendRequest(RenameDatabaseRequest.type, {
             connectionUri,
             database,
