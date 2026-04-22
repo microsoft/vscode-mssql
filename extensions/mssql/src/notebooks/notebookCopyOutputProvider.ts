@@ -7,9 +7,14 @@ import * as os from "os";
 import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
+import type {
+    NotebookQueryResultBlock,
+    NotebookQueryResultOutputData,
+} from "../sharedInterfaces/notebookQueryResult";
 
 const MIME_TEXT_PLAIN = "text/plain";
 const MIME_STDERR = "application/vnd.code.notebook.stderr";
+const MIME_NOTEBOOK_QUERY_RESULT = "application/vnd.mssql.query-result";
 
 /**
  * Adds a "Copy messages" status bar item to SQL notebook cells that emit
@@ -20,8 +25,10 @@ const MIME_STDERR = "application/vnd.code.notebook.stderr";
  * output data from the cell model instead of the rendered DOM, so the
  * full content copies regardless of virtualization.
  *
- * Excludes the rich result-set output (custom mssql mimetype) — users
- * copy grid data through the grid itself, not this command.
+ * When a cell emits a result grid, the controller bundles grid + messages
+ * into a single rich output. We unpack its JSON payload and copy only the
+ * text/error blocks, skipping the tabular data — users copy grid contents
+ * through the grid itself, not this command.
  */
 export function registerNotebookCopyOutput(context: vscode.ExtensionContext): void {
     context.subscriptions.push(
@@ -70,18 +77,50 @@ function isCopyableTextOutput(output: vscode.NotebookCellOutput): boolean {
     if (output.items.length === 0) {
         return false;
     }
-    return output.items.every((item) => item.mime === MIME_TEXT_PLAIN || item.mime === MIME_STDERR);
+    const rich = findRichItem(output);
+    if (rich) {
+        return extractRichMessageText(rich).length > 0;
+    }
+    return output.items.some((item) => item.mime === MIME_TEXT_PLAIN || item.mime === MIME_STDERR);
 }
 
 function collectTextOutput(cell: vscode.NotebookCell): string {
     const chunks: string[] = [];
     for (const output of cell.outputs) {
-        if (!isCopyableTextOutput(output)) {
+        const rich = findRichItem(output);
+        if (rich) {
+            chunks.push(...extractRichMessageText(rich));
             continue;
         }
         for (const item of output.items) {
-            chunks.push(Buffer.from(item.data).toString("utf8"));
+            if (item.mime === MIME_TEXT_PLAIN || item.mime === MIME_STDERR) {
+                chunks.push(Buffer.from(item.data).toString("utf8"));
+            }
         }
     }
     return chunks.join(os.EOL);
+}
+
+function findRichItem(
+    output: vscode.NotebookCellOutput,
+): vscode.NotebookCellOutputItem | undefined {
+    return output.items.find((item) => item.mime === MIME_NOTEBOOK_QUERY_RESULT);
+}
+
+function extractRichMessageText(item: vscode.NotebookCellOutputItem): string[] {
+    let data: NotebookQueryResultOutputData;
+    try {
+        data = JSON.parse(Buffer.from(item.data).toString("utf8"));
+    } catch {
+        return [];
+    }
+    if (!data || !Array.isArray(data.blocks)) {
+        return [];
+    }
+    return data.blocks
+        .filter(
+            (block): block is Exclude<NotebookQueryResultBlock, { type: "resultSet" }> =>
+                block.type !== "resultSet",
+        )
+        .map((block) => block.text);
 }
