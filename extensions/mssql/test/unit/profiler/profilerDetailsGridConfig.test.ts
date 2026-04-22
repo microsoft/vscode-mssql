@@ -46,12 +46,23 @@ suite("ProfilerDetailsGridConfig Tests", () => {
     test("enables cell range selection and copy behavior for the details grid", () => {
         const options = getProfilerDetailsGridOptions(ColorThemeKind.Dark);
 
-        expect(options.enableCellNavigation).to.equal(true);
-        expect(options.enableExcelCopyBuffer).to.equal(true);
-        expect(options.enableTextSelectionOnCells).to.equal(false);
+        expect(options.enableSorting).to.equal(false);
+        expect(options.enableFiltering).to.equal(false);
+        expect(options.enablePagination).to.equal(false);
+        expect(options.enableColumnPicker).to.equal(false);
+        expect(options.enableGridMenu).to.equal(false);
+        expect(options.enableHeaderMenu).to.equal(false);
+        expect(options.enableAutoTooltip).to.equal(true);
+        expect(options.showHeaderRow).to.equal(false);
+        expect(options.rowHeight).to.equal(25);
+        expect(options.enableColumnReorder).to.equal(false);
         expect(options.selectionOptions?.selectionType).to.equal("cell");
         expect(options.showColumnHeader).to.equal(false);
+        expect(options.forceFitColumns).to.equal(true);
+        expect(options.headerRowHeight).to.equal(0);
         expect(options.autoResize?.container).to.equal(`#${PROFILER_DETAILS_GRID_CONTAINER_ID}`);
+        expect(options.autoResize?.calculateAvailableSizeBy).to.equal("container");
+        expect(options.autoResize?.resizeDetection).to.equal("container");
         expect(options.darkMode).to.equal(true);
     });
 

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import React, { useMemo, useState, useCallback } from "react";
+import React, { useMemo, useState, useCallback, useRef } from "react";
 import {
     Button,
     Toolbar,
@@ -15,7 +15,6 @@ import {
     SelectTabEvent,
     SelectTabData,
 } from "@fluentui/react-components";
-import { SlickgridReact } from "slickgrid-react";
 import {
     Open16Regular,
     Copy16Regular,
@@ -23,9 +22,16 @@ import {
     Dismiss16Regular,
     ChevronDown16Regular,
 } from "@fluentui/react-icons";
+import { GridOption, SlickgridReactInstance } from "slickgrid-react";
 import { ProfilerSelectedEventDetails } from "../../../sharedInterfaces/profiler";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { locConstants } from "../../common/locConstants";
+import {
+    createFluentSlickGridCopyMenu,
+    FLUENT_SLICK_GRID_COPY_COMMAND,
+    FluentSlickGrid,
+    getFluentSlickGridSelectionText,
+} from "../../common/FluentSlickGrid/FluentSlickGrid";
 import { VscodeEditor } from "../../common/vscodeMonaco";
 import {
     buildProfilerDetailsGridRows,
@@ -42,6 +48,10 @@ export enum DetailsPanelTab {
     Text = "text",
     Details = "details",
 }
+
+type DetailsGridContextMenuCommandHandler = NonNullable<
+    NonNullable<GridOption["contextMenu"]>["onCommand"]
+>;
 
 export interface ProfilerDetailsPanelProps {
     /** The selected event details to display */
@@ -147,6 +157,7 @@ export const ProfilerDetailsPanel: React.FC<ProfilerDetailsPanelProps> = ({
     const loc = locConstants.profiler.detailsPanel;
     const commonLoc = locConstants.common;
     const [activeTab, setActiveTab] = useState<DetailsPanelTab>(DetailsPanelTab.Text);
+    const detailsGridRef = useRef<SlickgridReactInstance | undefined>(undefined);
     const detailsGridRows = useMemo(
         () => buildProfilerDetailsGridRows(selectedEvent?.properties ?? []),
         [selectedEvent],
@@ -157,7 +168,27 @@ export const ProfilerDetailsPanel: React.FC<ProfilerDetailsPanelProps> = ({
         () => getProfilerDetailsGridColumns(commonLoc.property, commonLoc.value),
         [activeTab, commonLoc.property, commonLoc.value],
     );
-    const detailsGridOptions = useMemo(() => getProfilerDetailsGridOptions(themeKind), [themeKind]);
+    const detailsGridOptions = useMemo(
+        () => ({
+            ...getProfilerDetailsGridOptions(themeKind),
+            enableContextMenu: true,
+            contextMenu: {
+                ...createFluentSlickGridCopyMenu(locConstants.slickGrid.copy),
+                onCommand: (...callbackArgs: Parameters<DetailsGridContextMenuCommandHandler>) => {
+                    const [, args] = callbackArgs;
+                    if (args?.command !== FLUENT_SLICK_GRID_COPY_COMMAND) {
+                        return;
+                    }
+
+                    const text = getFluentSlickGridSelectionText(detailsGridRef.current);
+                    if (text) {
+                        onCopy(text);
+                    }
+                },
+            },
+        }),
+        [themeKind, onCopy],
+    );
 
     // Handle tab change
     const handleTabSelect = useCallback((_event: SelectTabEvent, data: SelectTabData) => {
@@ -177,6 +208,10 @@ export const ProfilerDetailsPanel: React.FC<ProfilerDetailsPanelProps> = ({
             onCopy(selectedEvent.textData);
         }
     }, [selectedEvent, onCopy]);
+
+    const handleDetailsGridCreated = useCallback((reactGrid: SlickgridReactInstance) => {
+        detailsGridRef.current = reactGrid;
+    }, []);
 
     // If no event is selected, show placeholder
     if (!selectedEvent) {
@@ -319,11 +354,14 @@ export const ProfilerDetailsPanel: React.FC<ProfilerDetailsPanelProps> = ({
                         <div
                             id={PROFILER_DETAILS_GRID_CONTAINER_ID}
                             className={classes.detailsGridContainer}>
-                            <SlickgridReact
+                            <FluentSlickGrid
                                 gridId={PROFILER_DETAILS_GRID_ID}
                                 columns={detailsGridColumns}
                                 options={detailsGridOptions}
                                 dataset={detailsGridRows}
+                                onReactGridCreated={($event) =>
+                                    handleDetailsGridCreated($event.detail)
+                                }
                             />
                         </div>
                     </div>
