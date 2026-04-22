@@ -3,12 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { useConnectionDialogSelector } from "./connectionDialogSelector";
-import { Button, Field, Link, Spinner, Tooltip } from "@fluentui/react-components";
-import { Filter16Filled } from "@fluentui/react-icons";
-import { FormField, useFormStyles } from "../../common/forms/form.component";
+import { Label, makeStyles } from "@fluentui/react-components";
+import { FormField } from "../../common/forms/form.component";
 import {
     ConnectionDialogContextProps,
     ConnectionDialogFormItemSpec,
@@ -16,12 +15,11 @@ import {
     ConnectionInputMode,
     IConnectionDialogProfile,
 } from "../../../sharedInterfaces/connectionDialog";
+import { SqlCollectionInfo, SqlDbInfo } from "../../../sharedInterfaces/fabric";
 import { locConstants as Loc } from "../../common/locConstants";
-import { ApiStatus } from "../../../sharedInterfaces/webview";
-import { removeDuplicates } from "../../common/utils";
-import { DefaultSelectionMode, updateComboboxSelection } from "../../common/comboboxHelper";
-import { AzureFilterCombobox } from "./AzureFilterCombobox.component";
-import { EntraSignInEmpty } from "./components/entraSignInEmpty.component";
+import { ApiStatus, Status } from "../../../sharedInterfaces/webview";
+import EntraSignInEmpty from "./components/entraSignInEmpty.component";
+import { SqlExplorer } from "./components/fabric/sqlExplorer.component";
 
 export const azureLogoColor = () => {
     return require(`../../media/azure-color.svg`);
@@ -36,228 +34,80 @@ export const AzureBrowsePage = () => {
         (s) => s.loadingAzureAccountsStatus,
     );
     const azureSubscriptions = useConnectionDialogSelector((s) => s.azureSubscriptions);
-    const azureTenantSignInCounts = useConnectionDialogSelector((s) => s.azureTenantSignInCounts);
-    const azureTenantStatus = useConnectionDialogSelector((s) => s.azureTenantStatus);
     const loadingAzureSubscriptionsStatus = useConnectionDialogSelector(
         (s) => s.loadingAzureSubscriptionsStatus,
     );
-    const loadingAzureServersStatus = useConnectionDialogSelector(
-        (s) => s.loadingAzureServersStatus,
-    );
+    const selectedAccountId = useConnectionDialogSelector((s) => s.selectedAccountId);
+    const selectedTenantId = useConnectionDialogSelector((s) => s.selectedTenantId);
     const formComponents = useConnectionDialogSelector((s) => s.formComponents);
     const mainOptions = useConnectionDialogSelector((s) => s.connectionComponents.mainOptions);
+
     if (context === undefined) {
         return undefined;
     }
 
-    const formStyles = useFormStyles();
+    const styles = useStyles();
 
-    const [subscriptions, setSubscriptions] = useState<string[]>([]);
-    const [selectedSubscription, setSelectedSubscription] = useState<string | undefined>(undefined);
-    const [subscriptionValue, setSubscriptionValue] = useState<string>("");
-
-    const [resourceGroups, setResourceGroups] = useState<string[]>([]);
-    const [selectedResourceGroup, setSelectedResourceGroup] = useState<string | undefined>(
-        undefined,
-    );
-    const [resourceGroupValue, setResourceGroupValue] = useState<string>("");
-
-    const [locations, setLocations] = useState<string[]>([]);
-    const [selectedLocation, setSelectedLocation] = useState<string | undefined>(undefined);
-    const [locationValue, setLocationValue] = useState<string>("");
-
-    const [servers, setServers] = useState<string[]>([]);
-    const [selectedServer, setSelectedServer] = useState<string | undefined>(undefined);
-    const [serverValue, setServerValue] = useState<string>("");
-
-    const [databases, setDatabases] = useState<string[]>([]);
-    const [selectedDatabase, setSelectedDatabase] = useState<string | undefined>(undefined);
-    const [databaseValue, setDatabaseValue] = useState<string>("");
-
-    function setSelectedServerWithFormState(server: string | undefined) {
-        if (server === undefined && formState.server === "") {
-            return; // avoid unnecessary updates
-        }
-
-        setSelectedServer(server);
-
-        let serverUri = "";
-
-        if (server) {
-            const srv = azureServers.find((s) => s.server === server);
-            serverUri = srv?.uri || "";
-        }
-
-        setConnectionProperty("server", serverUri);
-    }
-
-    function getAzureAccountsText(): string {
-        switch (azureAccounts.length) {
-            case 0:
-                return Loc.azure.notSignedIn;
-            case 1:
-                return azureAccounts[0].name;
-            default:
-                return Loc!.azure.nAccounts(azureAccounts.length);
-        }
-    }
-
-    // #region Effects
-
-    // subscriptions
     useEffect(() => {
-        const subs = removeDuplicates(azureSubscriptions.map((sub) => `${sub.name} (${sub.id})`));
-        setSubscriptions(subs.sort());
-
-        updateComboboxSelection(
-            selectedSubscription,
-            setSelectedSubscription,
-            setSubscriptionValue,
-            subs,
-            DefaultSelectionMode.AlwaysSelectNone,
-        );
-    }, [azureSubscriptions]);
-
-    // resource groups
-    useEffect(() => {
-        let activeServers = azureServers;
-
-        if (selectedSubscription) {
-            activeServers = activeServers.filter(
-                (server) => server.subscription === selectedSubscription,
-            );
+        if (
+            loadingAzureAccountsStatus === ApiStatus.Loaded &&
+            azureAccounts &&
+            !selectedAccountId
+        ) {
+            const firstAccount = azureAccounts[0];
+            if (firstAccount) {
+                context.selectAzureAccount(firstAccount.id);
+            }
         }
-
-        const rgs = removeDuplicates(activeServers.map((server) => server.resourceGroup));
-        setResourceGroups(rgs.sort());
-
-        updateComboboxSelection(
-            selectedResourceGroup,
-            setSelectedResourceGroup,
-            setResourceGroupValue,
-            rgs,
-            DefaultSelectionMode.AlwaysSelectNone,
-        );
-    }, [subscriptions, selectedSubscription, azureServers]);
-
-    // locations
-    useEffect(() => {
-        let activeServers = azureServers;
-
-        if (selectedSubscription) {
-            activeServers = activeServers.filter(
-                (server) => server.subscription === selectedSubscription,
-            );
-        }
-
-        if (selectedResourceGroup) {
-            activeServers = activeServers.filter(
-                (server) => server.resourceGroup === selectedResourceGroup,
-            );
-        }
-
-        const locs = removeDuplicates(activeServers.map((server) => server.location));
-
-        setLocations(locs.sort());
-
-        updateComboboxSelection(
-            selectedLocation,
-            setSelectedLocation,
-            setLocationValue,
-            locs,
-            DefaultSelectionMode.AlwaysSelectNone,
-        );
-    }, [resourceGroups, selectedResourceGroup, azureServers]);
-
-    // servers
-    useEffect(() => {
-        if (loadingAzureAccountsStatus !== ApiStatus.Loaded) {
-            return; // should not be visible if not signed in
-        }
-
-        let activeServers = azureServers;
-
-        if (selectedSubscription) {
-            activeServers = activeServers.filter(
-                (server) => server.subscription === selectedSubscription,
-            );
-        }
-
-        if (selectedResourceGroup) {
-            activeServers = activeServers.filter(
-                (server) => server.resourceGroup === selectedResourceGroup,
-            );
-        }
-
-        if (selectedLocation) {
-            activeServers = activeServers.filter((server) => server.location === selectedLocation);
-        }
-
-        const srvs = removeDuplicates(activeServers.map((server) => server.server));
-        setServers(srvs.sort());
-
-        // intentionally cleared
-        if (selectedServer === "") {
-            setServerValue("");
-        } else {
-            updateComboboxSelection(
-                selectedServer,
-                setSelectedServerWithFormState,
-                setServerValue,
-                srvs,
-                DefaultSelectionMode.SelectFirstIfAny,
-            );
-        }
-    }, [locations, selectedLocation, azureServers]);
-
-    // databases
-    useEffect(() => {
-        if (!selectedServer) {
-            return; // should not be visible if no server is selected
-        }
-
-        const server = azureServers.find((server) => server.server === selectedServer);
-
-        if (!server) {
-            return;
-        }
-
-        const dbs = server.databases;
-
-        setDatabases(dbs.sort());
-        setSelectedDatabase(dbs.length === 1 ? dbs[0] : undefined);
-    }, [selectedServer]);
-
-    // #endregion
+    }, [loadingAzureAccountsStatus, azureAccounts]);
 
     function setConnectionProperty(propertyName: keyof IConnectionDialogProfile, value: string) {
         context!.formAction({ propertyName, value, isAction: false });
     }
 
+    // Map Azure subscriptions + servers to SqlCollectionInfo[] shape
+    const subscriptionWorkspaces = useMemo((): SqlCollectionInfo[] => {
+        let subs = azureSubscriptions;
+        if (selectedTenantId) {
+            subs = subs.filter((sub) => sub.tenantId === selectedTenantId);
+        }
+
+        return subs.map((sub) => {
+            const subKey = `${sub.name} (${sub.id})`;
+            const subServers = azureServers.filter((s) => s.subscription === subKey);
+
+            const databases: SqlDbInfo[] = subServers.map((srv) => ({
+                id: srv.server,
+                server: srv.uri,
+                displayName: srv.server,
+                database: "",
+                type: "AzureSqlServer",
+                collectionId: sub.id,
+                collectionName: sub.name,
+                tenantId: sub.tenantId,
+                resourceGroup: srv.resourceGroup,
+            }));
+
+            const loadStatus: Status = {
+                status: sub.loaded ? ApiStatus.Loaded : ApiStatus.Loading,
+            };
+
+            return {
+                id: sub.id,
+                displayName: sub.name,
+                tenantId: sub.tenantId,
+                databases,
+                loadStatus,
+            };
+        });
+    }, [azureSubscriptions, azureServers, selectedTenantId]);
+
+    const subscriptionsLoadStatus = useMemo(
+        (): Status => ({ status: loadingAzureSubscriptionsStatus }),
+        [loadingAzureSubscriptionsStatus],
+    );
+
     const hasAccounts = (azureAccounts?.length ?? 0) > 0;
-    const tenantCounts = azureTenantSignInCounts;
-    const tenantStatus = azureTenantStatus ?? [];
-    const shouldShowTenantPrompt =
-        tenantCounts !== undefined &&
-        tenantCounts.totalTenants > 0 &&
-        tenantCounts.signedInTenants < tenantCounts.totalTenants;
-    const tenantTooltipContent =
-        tenantStatus.length === 0 ? (
-            <span>{Loc.connectionDialog.noTenantsSignedIn}</span>
-        ) : (
-            <div>
-                {tenantStatus.map((status) => (
-                    <div key={status.accountId} style={{ marginBottom: "6px" }}>
-                        <strong>{status.accountName}</strong>
-                        <ul style={{ margin: "4px 0 0 16px", padding: 0 }}>
-                            {status.signedInTenants.map((tenant) => (
-                                <li key={`${status.accountId}-${tenant}`}>{tenant}</li>
-                            ))}
-                        </ul>
-                    </div>
-                ))}
-            </div>
-        );
 
     return (
         <div>
@@ -274,249 +124,88 @@ export const AzureBrowsePage = () => {
             />
             {loadingAzureAccountsStatus === ApiStatus.Loaded && hasAccounts && (
                 <>
-                    <div
-                        className={formStyles.formComponentDiv}
-                        style={{ marginTop: "0", marginBottom: "12px" }}>
-                        <Field orientation="horizontal">
-                            <span>
-                                <Tooltip
-                                    content={
-                                        <>
-                                            {azureAccounts.length === 0 && (
-                                                <span>
-                                                    {Loc.azure.clickToSignIntoAnAzureAccount}
-                                                </span>
-                                            )}
-                                            {azureAccounts.length > 0 && (
-                                                <>
-                                                    {Loc.azure.currentlySignedInAs}
-                                                    <br />
-                                                    <ul>
-                                                        {azureAccounts.map((account) => (
-                                                            <li key={account.id}>{account.name}</li>
-                                                        ))}
-                                                    </ul>
-                                                </>
-                                            )}
-                                        </>
-                                    }
-                                    relationship="description">
-                                    <Link
-                                        onClick={() => {
-                                            context.signIntoAzureForBrowse(
-                                                ConnectionInputMode.AzureBrowse,
-                                            );
-                                        }}
-                                        inline>
-                                        {getAzureAccountsText()}
-                                        {" • "}
-                                        {azureAccounts.length === 0
-                                            ? Loc.azure.signIntoAzure
-                                            : Loc.azure.addAccount}
-                                    </Link>
-                                </Tooltip>
-                                {shouldShowTenantPrompt && (
-                                    <>
-                                        {" • "}
-                                        <Tooltip
-                                            content={tenantTooltipContent}
-                                            relationship="description">
-                                            <Link
-                                                onClick={() =>
-                                                    context.signIntoAzureTenantForBrowse()
-                                                }
-                                                inline>
-                                                {Loc.connectionDialog.azureTenantSignInStatus(
-                                                    tenantCounts!.signedInTenants,
-                                                    tenantCounts!.totalTenants,
-                                                )}
-                                                {" • "}
-                                                {Loc.connectionDialog.signIntoTenantLink}
-                                            </Link>
-                                        </Tooltip>
-                                    </>
-                                )}
-                            </span>
-                        </Field>
+                    <div className={styles.componentGroupHeader}>
+                        <Label>{Loc.connectionDialog.azureSubscriptions}</Label>
                     </div>
-                    <AzureFilterCombobox
-                        label={Loc.connectionDialog.subscriptionLabel}
-                        clearable
-                        decoration={
-                            <>
-                                <Button
-                                    icon={<Filter16Filled />}
-                                    appearance="subtle"
-                                    title={Loc.connectionDialog.filterSubscriptions}
-                                    onClick={() => {
-                                        context.filterAzureSubscriptions();
-                                    }}
-                                    size="small"
-                                />
-                                {loadingAzureSubscriptionsStatus === ApiStatus.Loading ? (
-                                    <Spinner size="tiny" />
-                                ) : undefined}
-                            </>
-                        }
-                        content={{
-                            valueList: subscriptions,
-                            value: subscriptionValue,
-                            setValue: setSubscriptionValue,
-                            selection: selectedSubscription,
-                            setSelection: (sub) => {
-                                setSelectedSubscription(sub);
-
-                                if (sub === undefined) {
-                                    return;
+                    <div className={styles.componentGroupContainer}>
+                        <SqlExplorer
+                            workspaces={subscriptionWorkspaces}
+                            workspacesLoadStatus={subscriptionsLoadStatus}
+                            workspaceListLabel={Loc.connectionDialog.azureSubscriptions}
+                            workspaceSearchPlaceholder={Loc.connectionDialog.searchSubscriptions}
+                            noWorkspacesFoundMessage={Loc.connectionDialog.noSubscriptionsFound}
+                            selectWorkspaceMessage={
+                                Loc.connectionDialog.selectASubscriptionToViewServers
+                            }
+                            loadingWorkspacesMessage={Loc.connectionDialog.loadingSubscriptions}
+                            errorLoadingWorkspacesMessage={
+                                Loc.connectionDialog.errorLoadingSubscriptions
+                            }
+                            loadingDatabasesMessage={
+                                Loc.connectionDialog.loadingServersInSubscription
+                            }
+                            errorLoadingDatabasesMessage={Loc.connectionDialog.errorLoadingServers}
+                            noDatabasesInWorkspaceMessage={
+                                Loc.connectionDialog.noServersFoundInSubscription
+                            }
+                            showTypeFilter={false}
+                            showResourceGroupColumn={true}
+                            onSignIntoMicrosoftAccount={() =>
+                                context.signIntoAzureForBrowse(ConnectionInputMode.AzureBrowse)
+                            }
+                            onSelectAccountId={(id) => context.selectAzureAccount(id)}
+                            onSelectTenantId={(id) => context.setSelectedTenantId(id)}
+                            onSelectWorkspace={(_ws) => {
+                                /* no-op: servers auto-loaded for all subscriptions */
+                            }}
+                            onSelectDatabase={(db) => {
+                                setConnectionProperty("server", db.server);
+                                if (db.database) {
+                                    setConnectionProperty("database", db.database);
                                 }
+                            }}
+                        />
+                    </div>
 
-                                // Parse subscription ID from the string
-                                const openParen = sub.indexOf("(");
-
-                                if (openParen === -1) {
-                                    return;
-                                }
-
-                                const closeParen = sub.indexOf(")", openParen);
-
-                                if (closeParen === -1) {
-                                    return;
-                                }
-
-                                const subId = sub.substring(openParen + 1, closeParen); // get the subscription ID from the string
-
-                                if (subId.length === 0) {
-                                    return;
-                                }
-
-                                context.loadAzureServers(subId);
-                            },
-                            placeholder: Loc.connectionDialog.azureFilterPlaceholder(
-                                Loc.connectionDialog.subscription,
-                            ),
-                            invalidOptionErrorMessage: Loc.connectionDialog.invalidAzureBrowse(
-                                Loc.connectionDialog.subscription,
-                            ),
-                        }}
-                    />
-                    <AzureFilterCombobox
-                        label={Loc.connectionDialog.resourceGroupLabel}
-                        clearable
-                        content={{
-                            valueList: resourceGroups,
-                            value: resourceGroupValue,
-                            setValue: setResourceGroupValue,
-                            selection: selectedResourceGroup,
-                            setSelection: setSelectedResourceGroup,
-                            placeholder: Loc.connectionDialog.azureFilterPlaceholder(
-                                Loc.connectionDialog.resourceGroup,
-                            ),
-                            invalidOptionErrorMessage: Loc.connectionDialog.invalidAzureBrowse(
-                                Loc.connectionDialog.resourceGroup,
-                            ),
-                        }}
-                    />
-                    <AzureFilterCombobox
-                        label={Loc.connectionDialog.locationLabel}
-                        clearable
-                        content={{
-                            valueList: locations,
-                            value: locationValue,
-                            setValue: setLocationValue,
-                            selection: selectedLocation,
-                            setSelection: setSelectedLocation,
-                            placeholder: Loc.connectionDialog.azureFilterPlaceholder(
-                                Loc.connectionDialog.location,
-                            ),
-                            invalidOptionErrorMessage: Loc.connectionDialog.invalidAzureBrowse(
-                                Loc.connectionDialog.location,
-                            ),
-                        }}
-                    />
-                    <AzureFilterCombobox
-                        label={Loc.connectionDialog.serverLabel}
-                        required
-                        decoration={
-                            loadingAzureServersStatus === ApiStatus.Loading ? (
-                                <Spinner size="tiny" />
-                            ) : undefined
-                        }
-                        content={{
-                            valueList: servers,
-                            value: serverValue,
-                            setValue: setServerValue,
-                            selection: selectedServer,
-                            setSelection: setSelectedServerWithFormState,
-                            invalidOptionErrorMessage: Loc.connectionDialog.invalidAzureBrowse(
-                                Loc.connectionDialog.server,
-                            ),
-                        }}
-                    />
-
-                    {selectedServer && (
+                    {formState.server && (
                         <>
-                            <FormField<
-                                IConnectionDialogProfile,
-                                ConnectionDialogWebviewState,
-                                ConnectionDialogFormItemSpec,
-                                ConnectionDialogContextProps
-                            >
-                                context={context}
-                                formState={formState}
-                                component={formComponents["trustServerCertificate"]!}
-                                idx={0}
-                                props={{ orientation: "horizontal" }}
-                            />
-                            <AzureFilterCombobox
-                                label={Loc.connectionDialog.databaseLabel}
-                                clearable
-                                content={{
-                                    valueList: databases,
-                                    value: databaseValue,
-                                    setValue: setDatabaseValue,
-                                    selection: selectedDatabase,
-                                    setSelection: (db) => {
-                                        setSelectedDatabase(db);
-                                        setConnectionProperty("database", db ?? "");
-                                    },
-                                    placeholder: `<${Loc.connectionDialog.default}>`,
-                                    invalidOptionErrorMessage:
-                                        Loc.connectionDialog.invalidAzureBrowse(
-                                            Loc.connectionDialog.database,
-                                        ),
-                                }}
-                            />
-                            {mainOptions
-                                .filter(
-                                    // filter out inputs that are manually placed above
-                                    (opt) =>
-                                        !["server", "database", "trustServerCertificate"].includes(
-                                            opt,
-                                        ),
-                                )
-                                .map((inputName, idx) => {
-                                    const component =
-                                        formComponents[inputName as keyof IConnectionDialogProfile];
-                                    if (component?.hidden !== false) {
-                                        return undefined;
-                                    }
+                            <div
+                                className={styles.componentGroupHeader}
+                                style={{ marginTop: "16px" }}>
+                                <Label>{Loc.connectionDialog.connectionAuthentication}</Label>
+                            </div>
+                            <div className={styles.componentGroupContainer}>
+                                {mainOptions
+                                    .filter(
+                                        // filter out inputs that are manually handled
+                                        (opt) => !["server", "database"].includes(opt),
+                                    )
+                                    .map((inputName, idx) => {
+                                        const component =
+                                            formComponents[
+                                                inputName as keyof IConnectionDialogProfile
+                                            ];
+                                        if (component?.hidden !== false) {
+                                            return undefined;
+                                        }
 
-                                    return (
-                                        <FormField<
-                                            IConnectionDialogProfile,
-                                            ConnectionDialogWebviewState,
-                                            ConnectionDialogFormItemSpec,
-                                            ConnectionDialogContextProps
-                                        >
-                                            key={idx}
-                                            context={context}
-                                            formState={formState}
-                                            component={component}
-                                            idx={idx}
-                                            props={{ orientation: "horizontal" }}
-                                        />
-                                    );
-                                })}
+                                        return (
+                                            <FormField<
+                                                IConnectionDialogProfile,
+                                                ConnectionDialogWebviewState,
+                                                ConnectionDialogFormItemSpec,
+                                                ConnectionDialogContextProps
+                                            >
+                                                key={idx}
+                                                context={context}
+                                                formState={formState}
+                                                component={component}
+                                                idx={idx}
+                                                props={{ orientation: "horizontal" }}
+                                            />
+                                        );
+                                    })}
+                            </div>
                         </>
                     )}
                 </>
@@ -524,3 +213,14 @@ export const AzureBrowsePage = () => {
         </div>
     );
 };
+
+const useStyles = makeStyles({
+    componentGroupHeader: {
+        marginBottom: "8px",
+    },
+    componentGroupContainer: {
+        padding: "8px",
+        border: "0.5px solid var(--vscode-editorWidget-border)",
+        borderRadius: "2px",
+    },
+});

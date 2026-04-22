@@ -826,6 +826,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return state;
         });
 
+        this.registerReducer("setSelectedTenantId", async (state, payload) => {
+            state.selectedTenantId = payload.tenantId;
+            return state;
+        });
+
         this.registerReducer("selectAzureTenant", async (state, payload) => {
             state.selectedTenantId = payload.tenantId;
             state.sqlCollectionsLoadStatus = { status: ApiStatus.Loading };
@@ -2138,6 +2143,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         id: s.subscriptionId,
                         name: s.name,
                         loaded: false,
+                        tenantId: t,
                     });
                 }
             }

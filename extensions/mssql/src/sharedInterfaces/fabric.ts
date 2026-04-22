@@ -14,6 +14,7 @@ export interface SqlDbInfo {
     collectionId: string;
     collectionName: string;
     tenantId: string;
+    resourceGroup?: string;
 }
 
 /** @deprecated Use SqlDbInfo */

@@ -33,7 +33,7 @@ import {
 } from "@fluentui/react-icons";
 import { locConstants as Loc } from "../../../../common/locConstants";
 import { useSqlExplorerStyles } from "./sqlExplorer.styles";
-import { ApiStatus } from "../../../../../sharedInterfaces/webview";
+import { ApiStatus, Status } from "../../../../../sharedInterfaces/webview";
 import { KeyCode } from "../../../../common/keys";
 import { useConnectionDialogSelector } from "../../connectionDialogSelector";
 
@@ -41,9 +41,18 @@ export const SqlCollectionList = ({
     workspaces,
     onSelectWorkspace,
     selectedWorkspace,
+    loadStatus: loadStatusProp,
+    listLabel,
+    searchPlaceholder,
+    noItemsFoundMessage,
+    loadingMessage,
+    errorMessage,
 }: SqlCollectionListProps) => {
     const styles = useSqlExplorerStyles();
     const sqlCollectionsLoadStatus = useConnectionDialogSelector((s) => s.sqlCollectionsLoadStatus);
+
+    // Use prop override if provided, otherwise fall back to store
+    const effectiveLoadStatus = loadStatusProp ?? sqlCollectionsLoadStatus;
 
     const [isExplorerCollapsed, setIsExplorerCollapsed] = useState(false);
 
@@ -73,13 +82,13 @@ export const SqlCollectionList = ({
     // Automatically select the first collection when collections are loaded and none is selected
     useEffect(() => {
         if (
-            sqlCollectionsLoadStatus.status === ApiStatus.Loaded &&
+            effectiveLoadStatus.status === ApiStatus.Loaded &&
             workspaces.length > 0 &&
             !selectedWorkspace
         ) {
             onSelectWorkspace(workspaces[0]);
         }
-    }, [workspaces, selectedWorkspace, sqlCollectionsLoadStatus.status, onSelectWorkspace]);
+    }, [workspaces, selectedWorkspace, effectiveLoadStatus.status, onSelectWorkspace]);
 
     const onSelectionChange = useCallback(
         (_: SyntheticEvent | Event, data: { selectedItems: SelectionItemId[] }) => {
@@ -99,7 +108,7 @@ export const SqlCollectionList = ({
             <div className={styles.workspaceHeader}>
                 {!isExplorerCollapsed && (
                     <Input
-                        placeholder={Loc.connectionDialog.searchCollections}
+                        placeholder={searchPlaceholder ?? Loc.connectionDialog.searchCollections}
                         value={workspaceSearchFilter}
                         onChange={(e) => setWorkspaceSearchFilter(e.target.value)}
                         contentBefore={<SearchRegular />}
@@ -157,43 +166,45 @@ export const SqlCollectionList = ({
             </div>
             {!isExplorerCollapsed && (
                 <div className={styles.workspaceListContainer} style={{ position: "relative" }}>
-                    {sqlCollectionsLoadStatus.status === ApiStatus.Loading && (
+                    {effectiveLoadStatus.status === ApiStatus.Loading && (
                         <div className={styles.workspaceListMessageContainer}>
                             <Spinner size="medium" />
                             <Text className={styles.messageText}>
-                                {Loc.connectionDialog.loadingCollections}
+                                {loadingMessage ?? Loc.connectionDialog.loadingCollections}
                             </Text>
                         </div>
                     )}
-                    {sqlCollectionsLoadStatus.status === ApiStatus.Error && (
+                    {effectiveLoadStatus.status === ApiStatus.Error && (
                         <div className={styles.workspaceListMessageContainer}>
                             <Tooltip
                                 content={
-                                    sqlCollectionsLoadStatus.message ||
+                                    effectiveLoadStatus.message ||
+                                    errorMessage ||
                                     Loc.connectionDialog.errorLoadingCollections
                                 }
                                 relationship="label">
                                 <ErrorCircleRegular className={styles.errorIcon} />
                             </Tooltip>
                             <Text className={styles.messageText}>
-                                {Loc.connectionDialog.errorLoadingCollections}
+                                {errorMessage ?? Loc.connectionDialog.errorLoadingCollections}
                             </Text>
                         </div>
                     )}
-                    {sqlCollectionsLoadStatus.status === ApiStatus.Loaded && (
+                    {effectiveLoadStatus.status === ApiStatus.Loaded && (
                         <>
                             {!filteredWorkspaces ||
                                 (filteredWorkspaces.length === 0 && (
                                     <div className={styles.workspaceListMessageContainer}>
                                         <Text className={styles.messageText}>
-                                            {Loc.connectionDialog.noCollectionsFound}
+                                            {noItemsFoundMessage ??
+                                                Loc.connectionDialog.noCollectionsFound}
                                         </Text>
                                     </div>
                                 ))}
                             {filteredWorkspaces.length > 0 && (
                                 <List
                                     role="listbox"
-                                    aria-label={Loc.connectionDialog.sqlCollections}
+                                    aria-label={listLabel ?? Loc.connectionDialog.sqlCollections}
                                     selectionMode="single"
                                     navigationMode="composite"
                                     selectedItems={selectedItems}
@@ -289,6 +300,18 @@ interface SqlCollectionListProps {
     workspaces: SqlCollectionInfo[];
     onSelectWorkspace: (workspace: SqlCollectionInfo) => void;
     selectedWorkspace?: SqlCollectionInfo;
+    /** Override the store's sqlCollectionsLoadStatus */
+    loadStatus?: Status;
+    /** aria-label for the list */
+    listLabel?: string;
+    /** Placeholder for the search input */
+    searchPlaceholder?: string;
+    /** Message when no items are found */
+    noItemsFoundMessage?: string;
+    /** Message while loading */
+    loadingMessage?: string;
+    /** Message on error */
+    errorMessage?: string;
 }
 
 interface SqlCollectionListItemProps {

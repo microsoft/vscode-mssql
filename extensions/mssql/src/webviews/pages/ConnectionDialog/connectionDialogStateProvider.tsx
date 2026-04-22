@@ -143,6 +143,11 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                     tenantId,
                 });
             },
+            setSelectedTenantId: (tenantId: string) => {
+                extensionRpc.action("setSelectedTenantId", {
+                    tenantId,
+                });
+            },
             selectSqlCollection: (collectionId: string) => {
                 extensionRpc.action("selectSqlCollection", {
                     collectionId,

@@ -486,6 +486,39 @@ export class LocConstants {
             connectionAuthentication: l10n.t("Connection Authentication"),
             advancedOptions: l10n.t("Advanced Options"),
             importFromAzureDataStudio: l10n.t("Import from Azure Data Studio"),
+            azureSubscriptions: l10n.t("Azure Subscriptions"),
+            searchSubscriptions: l10n.t("Search subscriptions..."),
+            noSubscriptionsFound: l10n.t("No subscriptions found"),
+            selectASubscriptionToViewServers: l10n.t(
+                "Select a subscription to view servers in it.",
+            ),
+            noServersFoundInSubscription: (subscriptionName?: string) => {
+                if (subscriptionName) {
+                    return l10n.t({
+                        message: "No servers found in subscription '{0}'.",
+                        args: [subscriptionName],
+                        comment: ["{0} is the name of the subscription"],
+                    });
+                } else {
+                    return l10n.t("No servers found in the selected subscription.");
+                }
+            },
+            loadingSubscriptions: l10n.t("Loading subscriptions..."),
+            loadingServersInSubscription: (subscriptionName?: string) => {
+                if (subscriptionName) {
+                    return l10n.t({
+                        message: "Loading servers in '{0}'...",
+                        args: [subscriptionName],
+                        comment: ["{0} is the name of the subscription"],
+                    });
+                } else {
+                    return l10n.t("Loading servers in selected subscription...");
+                }
+            },
+            errorLoadingSubscriptions: l10n.t("Error loading subscriptions"),
+            errorLoadingServers: l10n.t("Error loading servers"),
+            resourceGroupColumnHeader: l10n.t("Resource Group"),
+            azureSqlServer: l10n.t("Azure SQL Server"),
         };
     }
 

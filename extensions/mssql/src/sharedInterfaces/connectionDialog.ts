@@ -145,6 +145,7 @@ export interface AzureSubscriptionInfo {
     name: string;
     id: string;
     loaded: boolean;
+    tenantId: string;
 }
 
 export interface AzureSqlServerInfo {
@@ -258,6 +259,7 @@ export interface ConnectionDialogContextProps extends FormContextProps<IConnecti
     signIntoAzureTenantForBrowse: () => void;
     selectAzureAccount: (accountId: string) => void;
     selectAzureTenant: (tenantId: string) => void;
+    setSelectedTenantId: (tenantId: string) => void;
     selectSqlCollection: (collectionId: string) => void;
     messageButtonClicked: (buttonId: string) => void;
 
@@ -310,6 +312,7 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     signIntoAzureTenantForBrowse: {};
     selectAzureAccount: { accountId: string };
     selectAzureTenant: { tenantId: string };
+    setSelectedTenantId: { tenantId: string };
     selectSqlCollection: { collectionId: string };
     messageButtonClicked: { buttonId: string };
 }
