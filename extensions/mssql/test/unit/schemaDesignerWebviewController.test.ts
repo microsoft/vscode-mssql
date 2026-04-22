@@ -523,6 +523,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             sandbox.stub(vscode.env, "clipboard").value({
                 writeText: clipboardStub,
             });
+            const showInfoStub = sandbox.stub(vscode.window, "showInformationMessage").resolves();
 
             const ctrl = createController();
             ctrl.schemaDesignerDetails = mockCreateSessionResponse;
@@ -542,6 +543,7 @@ suite("SchemaDesignerWebviewController tests", () => {
                 sessionId: "test-session-id",
             });
             expect(clipboardStub).to.have.been.calledWith("CREATE TABLE Test;");
+            expect(showInfoStub).to.have.been.called;
         });
     });
 
