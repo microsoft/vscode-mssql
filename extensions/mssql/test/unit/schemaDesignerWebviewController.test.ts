@@ -22,6 +22,7 @@ import { DefaultSqlPortNumber } from "../../src/constants/constants";
 import {
     stubExtensionContext,
     stubUserSurvey,
+    stubVscodeWrapper,
     stubWebviewPanel,
     stubWebviewConnectionRpc,
 } from "./utils";
@@ -87,7 +88,7 @@ suite("SchemaDesignerWebviewController tests", () => {
         mockContext = stubExtensionContext(sandbox);
         stubUserSurvey(sandbox);
 
-        mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+        mockVscodeWrapper = stubVscodeWrapper(sandbox);
         mockMainController = sandbox.createStubInstance(MainController);
         mockSchemaDesignerService = {
             createSession: sandbox.stub(),
@@ -515,10 +516,90 @@ suite("SchemaDesignerWebviewController tests", () => {
             );
             expect(handler).to.be.a("function");
         });
+
+        test("should copy freshly generated SQL text", async () => {
+            mockSchemaDesignerService.getDefinition.resolves({ script: "CREATE TABLE Test;" });
+            const clipboardStub = sandbox.stub(vscode.env.clipboard, "writeText").resolves();
+
+            const ctrl = createController();
+            ctrl.schemaDesignerDetails = mockCreateSessionResponse;
+
+            const handler = notificationHandlers.get(
+                SchemaDesigner.CopyToClipboardNotification.type.method,
+            );
+            expect(handler).to.be.a("function");
+
+            await handler({
+                updatedSchema: mockSchema,
+                definitionKind: SchemaDesigner.DefinitionKind.Sql,
+            });
+
+            expect(mockSchemaDesignerService.getDefinition).to.have.been.calledWith({
+                updatedSchema: mockSchema,
+                sessionId: "test-session-id",
+            });
+            expect(clipboardStub).to.have.been.calledWith("CREATE TABLE Test;");
+        });
     });
 
     suite("OpenInEditorNotification handler", () => {
-        test("should open script in editor without connection", async () => {
+        test("should open freshly generated SQL text in editor", async () => {
+            mockSchemaDesignerService.getDefinition.resolves({ script: "CREATE TABLE Test;" });
+
+            const ctrl = createController();
+            ctrl.schemaDesignerDetails = mockCreateSessionResponse;
+
+            const handler = notificationHandlers.get(
+                SchemaDesigner.OpenInEditorNotification.type.method,
+            );
+            expect(handler).to.be.a("function");
+
+            await handler({
+                updatedSchema: mockSchema,
+                definitionKind: SchemaDesigner.DefinitionKind.Sql,
+            });
+
+            expect(mockSchemaDesignerService.getDefinition).to.have.been.calledWith({
+                updatedSchema: mockSchema,
+                sessionId: "test-session-id",
+            });
+            expect(mockMainController.sqlDocumentService.newQuery).to.have.been.calledWith({
+                content: "CREATE TABLE Test;",
+                connectionStrategy: sinon.match.any,
+            });
+        });
+
+        test("should open freshly generated ORM text in an editor document", async () => {
+            const document = {
+                uri: vscode.Uri.parse("untitled:schema.prisma"),
+            } as vscode.TextDocument;
+            const openTextDocumentStub = sandbox
+                .stub(vscode.workspace, "openTextDocument")
+                .resolves(document);
+            const showTextDocumentStub = sandbox.stub(vscode.window, "showTextDocument").resolves();
+
+            const ctrl = createController();
+            ctrl.schemaDesignerDetails = mockCreateSessionResponse;
+
+            const handler = notificationHandlers.get(
+                SchemaDesigner.OpenInEditorNotification.type.method,
+            );
+            expect(handler).to.be.a("function");
+
+            await handler({
+                updatedSchema: mockSchema,
+                definitionKind: SchemaDesigner.DefinitionKind.Prisma,
+            });
+
+            expect(mockSchemaDesignerService.getDefinition).to.not.have.been.called;
+            expect(openTextDocumentStub).to.have.been.calledWithMatch({
+                content: sinon.match("model Users"),
+                language: "prisma",
+            });
+            expect(showTextDocumentStub).to.have.been.calledWith(document, { preview: false });
+        });
+
+        test("should fall back to generated SQL when no definition kind is provided", async () => {
             mockSchemaDesignerService.getDefinition.resolves({ script: "CREATE TABLE Test;" });
 
             const ctrl = createController();

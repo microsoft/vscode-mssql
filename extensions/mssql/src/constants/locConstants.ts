@@ -780,6 +780,18 @@ export let executionPlan = l10n.t("Execution Plan");
 export let executionPlanFileFilter = l10n.t("SQL Plan Files");
 export let scriptCopiedToClipboard = l10n.t("Script copied to clipboard");
 export let copied = l10n.t("Copied");
+export let failedToOpenTextInEditor = (errorMessage: string) =>
+    l10n.t({
+        message: "Failed to open text in editor: {0}",
+        args: [errorMessage],
+        comment: ["{0} is the error message"],
+    });
+export let failedToCopyTextToClipboard = (errorMessage: string) =>
+    l10n.t({
+        message: "Failed to copy text to clipboard: {0}",
+        args: [errorMessage],
+        comment: ["{0} is the error message"],
+    });
 export let copyingResults = l10n.t("Copying results...");
 export let resultsCopiedToClipboard = l10n.t("Results copied to clipboard");
 

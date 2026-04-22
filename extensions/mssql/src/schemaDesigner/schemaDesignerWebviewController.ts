@@ -23,6 +23,10 @@ import { DabService } from "../services/dabService";
 import { Dab } from "../sharedInterfaces/dab";
 import { CopilotChat } from "../sharedInterfaces/copilotChat";
 import { addMcpServerToWorkspace } from "../copilot/copilotUtils";
+import {
+    getSchemaDesignerDefinitionOutput,
+    SchemaDesignerDefinitionOutput,
+} from "../sharedInterfaces/schemaDesignerDefinitionOutput";
 
 function isExpandCollapseButtonsEnabled(): boolean {
     return vscode.workspace
@@ -327,19 +331,39 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         });
 
         this.onNotification(SchemaDesigner.CopyToClipboardNotification.type, async (params) => {
-            await vscode.env.clipboard.writeText(params.text);
-            await vscode.window.showInformationMessage(LocConstants.scriptCopiedToClipboard);
+            try {
+                const definition = await this.createDefinitionOutput(params);
+                await vscode.env.clipboard.writeText(definition.text);
+                await vscode.window.showInformationMessage(LocConstants.copied);
+            } catch (error) {
+                await vscode.window.showErrorMessage(
+                    LocConstants.failedToCopyTextToClipboard(getErrorMessage(error)),
+                );
+            }
         });
 
-        this.onNotification(SchemaDesigner.OpenInEditorNotification.type, async () => {
-            const definition = await this.schemaDesignerService.getDefinition({
-                updatedSchema: this.schemaDesignerDetails!.schema,
-                sessionId: this._sessionId,
-            });
-            await this.mainController.sqlDocumentService.newQuery({
-                content: definition.script,
-                connectionStrategy: ConnectionStrategy.DoNotConnect,
-            });
+        this.onNotification(SchemaDesigner.OpenInEditorNotification.type, async (params) => {
+            try {
+                const definition = await this.createDefinitionOutput(params);
+
+                if (definition.language === "sql") {
+                    await this.mainController.sqlDocumentService.newQuery({
+                        content: definition.text,
+                        connectionStrategy: ConnectionStrategy.DoNotConnect,
+                    });
+                    return;
+                }
+
+                const document = await vscode.workspace.openTextDocument({
+                    content: definition.text,
+                    language: definition.language,
+                });
+                await vscode.window.showTextDocument(document, { preview: false });
+            } catch (error) {
+                await vscode.window.showErrorMessage(
+                    LocConstants.failedToOpenTextInEditor(getErrorMessage(error)),
+                );
+            }
         });
 
         this.onNotification(SchemaDesigner.OpenInEditorWithConnectionNotification.type, () => {
@@ -578,6 +602,38 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         });
     }
 
+    private async createDefinitionOutput(
+        params?: SchemaDesigner.OpenInEditorOptions | SchemaDesigner.CopyToClipboardOptions,
+    ): Promise<SchemaDesignerDefinitionOutput> {
+        if (params?.text !== undefined) {
+            return {
+                text: params.text,
+                language: "language" in params ? (params.language ?? "sql") : "sql",
+            };
+        }
+
+        const updatedSchema = params?.updatedSchema ?? this.schemaDesignerDetails?.schema;
+        if (!updatedSchema) {
+            throw new Error("Schema designer details are not available.");
+        }
+
+        this.updateCacheItem(updatedSchema);
+
+        const definitionKind = params?.definitionKind ?? SchemaDesigner.DefinitionKind.Sql;
+        if (definitionKind === SchemaDesigner.DefinitionKind.Sql) {
+            const definition = await this.schemaDesignerService.getDefinition({
+                updatedSchema,
+                sessionId: this._sessionId || this.schemaDesignerDetails?.sessionId || "",
+            });
+            return {
+                text: definition.script,
+                language: "sql",
+            };
+        }
+
+        return getSchemaDesignerDefinitionOutput(updatedSchema, definitionKind);
+    }
+
     private setupConfigurationListener() {
         const configChangeDisposable = vscode.workspace.onDidChangeConfiguration((e) => {
             if (e.affectsConfiguration(configSchemaDesignerEnableExpandCollapseButtons)) {
@@ -596,7 +652,19 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         updatedSchema?: SchemaDesigner.Schema,
         isDirty?: boolean,
     ): SchemaDesigner.SchemaDesignerCacheItem {
-        let schemaDesignerCacheItem = this.schemaDesignerCache.get(this._key)!;
+        let schemaDesignerCacheItem = this.schemaDesignerCache.get(this._key);
+        if (!schemaDesignerCacheItem) {
+            if (!this.schemaDesignerDetails) {
+                throw new Error("Schema designer details are not available.");
+            }
+
+            schemaDesignerCacheItem = {
+                schemaDesignerDetails: this.schemaDesignerDetails,
+                baselineSchema: this.baselineSchema ?? this.schemaDesignerDetails.schema,
+                isDirty: false,
+            };
+        }
+        this.schemaDesignerDetails ??= schemaDesignerCacheItem.schemaDesignerDetails;
         if (updatedSchema) {
             this.schemaDesignerDetails!.schema = updatedSchema;
             schemaDesignerCacheItem.schemaDesignerDetails.schema = updatedSchema;
