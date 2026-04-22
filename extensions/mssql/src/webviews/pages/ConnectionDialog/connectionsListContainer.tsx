@@ -185,6 +185,17 @@ export const ConnectionsListContainer = () => {
                                         }
                                         actionButtons={[
                                             {
+                                                icon: <Copy16Regular />,
+                                                onClick: (e) => {
+                                                    context.loadConnectionAsNewDraft(connection);
+                                                    e.stopPropagation();
+                                                },
+                                                tooltip: (displayName) =>
+                                                    locConstants.connectionDialog.createCopiedConnection(
+                                                        displayName,
+                                                    ),
+                                            },
+                                            {
                                                 icon: <Dismiss16Regular />,
                                                 onClick: (e) => {
                                                     context.removeRecentConnection(connection);
