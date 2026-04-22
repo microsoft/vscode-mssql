@@ -34,7 +34,10 @@ export function registerNotebookCopyOutput(context: vscode.ExtensionContext): vo
     context.subscriptions.push(
         vscode.commands.registerCommand(
             Constants.cmdNotebooksCopyCellOutput,
-            async (cell: vscode.NotebookCell) => {
+            async (cell: vscode.NotebookCell | undefined) => {
+                if (!cell) {
+                    return;
+                }
                 const text = collectTextOutput(cell);
                 if (!text) {
                     return;

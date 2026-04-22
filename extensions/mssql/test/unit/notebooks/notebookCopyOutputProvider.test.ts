@@ -294,16 +294,28 @@ suite("registerNotebookCopyOutput", () => {
             expect(setStatusBarMessageStub).to.not.have.been.called;
         });
 
+        test("does nothing when invoked without a cell argument", async () => {
+            await capturedHandler(undefined as unknown as vscode.NotebookCell);
+
+            expect(clipboardWriteTextStub).to.not.have.been.called;
+            expect(setStatusBarMessageStub).to.not.have.been.called;
+        });
+
         test("preserves large content verbatim (repro for vscode-mssql#21378)", async () => {
             const manyLines = Array.from({ length: 5000 }, (_, i) => `debug message ${i + 1}`);
             const cell = makeCell([textOutput(manyLines.join("\n"))]);
             await capturedHandler(cell);
 
-            expect(clipboardWriteTextStub).to.have.been.calledOnce;
-            const copied = clipboardWriteTextStub.firstCall.args[0] as string;
-            expect(copied.split("\n")).to.have.length(5000);
-            expect(copied).to.include("debug message 1");
-            expect(copied).to.include("debug message 5000");
+            expect(clipboardWriteTextStub).to.have.been.calledWithMatch(
+                sinon.match(
+                    (value: unknown) =>
+                        typeof value === "string" &&
+                        value.split("\n").length === 5000 &&
+                        value.includes("debug message 1") &&
+                        value.includes("debug message 5000"),
+                    "clipboard payload with 5000 debug lines",
+                ),
+            );
         });
     });
 });
