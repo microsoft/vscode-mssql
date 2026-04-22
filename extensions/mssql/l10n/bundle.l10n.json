@@ -343,6 +343,24 @@
     "Connection Authentication": "Connection Authentication",
     "Advanced Options": "Advanced Options",
     "Import from Azure Data Studio": "Import from Azure Data Studio",
+    "Azure Subscriptions": "Azure Subscriptions",
+    "Search subscriptions...": "Search subscriptions...",
+    "No subscriptions found": "No subscriptions found",
+    "Select a subscription to view servers in it.": "Select a subscription to view servers in it.",
+    "No servers found in subscription '{0}'./{0} is the name of the subscription": {
+        "message": "No servers found in subscription '{0}'.",
+        "comment": ["{0} is the name of the subscription"]
+    },
+    "No servers found in the selected subscription.": "No servers found in the selected subscription.",
+    "Loading subscriptions...": "Loading subscriptions...",
+    "Loading servers in '{0}'.../{0} is the name of the subscription": {
+        "message": "Loading servers in '{0}'...",
+        "comment": ["{0} is the name of the subscription"]
+    },
+    "Loading servers in selected subscription...": "Loading servers in selected subscription...",
+    "Error loading subscriptions": "Error loading subscriptions",
+    "Error loading servers": "Error loading servers",
+    "Azure SQL Server": "Azure SQL Server",
     "Sign into Azure": "Sign into Azure",
     "Not signed in": "Not signed in",
     "Azure Account": "Azure Account",
@@ -3449,7 +3467,6 @@
     "Backup Files (*.bak, *.log, *.trn)": "Backup Files (*.bak, *.log, *.trn)",
     "All Files (*.*)": "All Files (*.*)",
     "No tenants found": "No tenants found",
-    "No subscriptions found": "No subscriptions found",
     "No storage accounts found": "No storage accounts found",
     "No blob containers found": "No blob containers found",
     "Generating SAS key failed: {0}/{0} is the error message": {

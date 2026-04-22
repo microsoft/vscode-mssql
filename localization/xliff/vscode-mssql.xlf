@@ -533,6 +533,12 @@
     <trans-unit id="++CODE++bc2a386616d4df1bf0313bdc4a7161a6c66b93554d20c9ad2dd3bc8ffe04e4ad">
       <source xml:lang="en">Azure SQL Database is not supported for restore.</source>
     </trans-unit>
+    <trans-unit id="++CODE++2827add936f31415e16e0670d8686084ec2e21fed7686c0aa91fffdfa09e4e38">
+      <source xml:lang="en">Azure SQL Server</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6d457cc1e5982858c386c637bec86a3c2615e648054d4d5472a261e0b5004b2d">
+      <source xml:lang="en">Azure Subscriptions</source>
+    </trans-unit>
     <trans-unit id="++CODE++27dda4355b44df3f400de7845fe1bfc83a880707d4630f52be097d95625f7bfa">
       <source xml:lang="en">Azure account &apos;{0}&apos; was not found. Sign in with the correct account or select a different one.</source>
       <note>{0} is the display name or ID of the Azure account that was not found</note>
@@ -2262,6 +2268,12 @@
     <trans-unit id="++CODE++6d89c16c7cf3f832b29fe1d181d420d4a583f93bb02e63fdfa266c33b6b3fcaf">
       <source xml:lang="en">Error loading preview</source>
     </trans-unit>
+    <trans-unit id="++CODE++b1307da140c4be5df01b2bdc2bf078e18eb719d00068b0eb22132d47dbfa869d">
+      <source xml:lang="en">Error loading servers</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d793e9856eaed8553a411a2ee12f9c1631c70cf86945645baa5a3edb00888235">
+      <source xml:lang="en">Error loading subscriptions</source>
+    </trans-unit>
     <trans-unit id="++CODE++fa8002fe1d41e09812880f2bfb97ef0849885d8a4de95a67b26294b7e83e912f">
       <source xml:lang="en">Error loading summary</source>
     </trans-unit>
@@ -3674,6 +3686,16 @@
     <trans-unit id="++CODE++11915518f7318632b91b797ca08f2be829f1364847dda216d397370f2287a83a">
       <source xml:lang="en">Loading schemas...</source>
     </trans-unit>
+    <trans-unit id="++CODE++f01407578cbde4669a268b1fbcadffd19797d7e3f51bc0f176a52d5eb76f1358">
+      <source xml:lang="en">Loading servers in &apos;{0}&apos;...</source>
+      <note>{0} is the name of the subscription</note>
+    </trans-unit>
+    <trans-unit id="++CODE++d6fd520e2618b0231a03b251ea5831f125d0087382f96b0a6b8c57f1fa97a69c">
+      <source xml:lang="en">Loading servers in selected subscription...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++42245d3f61aef75893195e1e0856f76292f910c8f5b8e671e515321ff9cd843b">
+      <source xml:lang="en">Loading subscriptions...</source>
+    </trans-unit>
     <trans-unit id="++CODE++71499b4de6ef3b8d0c19b76e76295f5dd9f5690a180de07ed861fdce757182aa">
       <source xml:lang="en">Loading summary for {0} rows (Click to cancel)</source>
       <note>{0} is the total number of rows</note>
@@ -4270,6 +4292,13 @@
     </trans-unit>
     <trans-unit id="++CODE++4208eed39129c84332acd1dcb2c74e8e6073039e80862fc02cb09aa3fae5ed8e">
       <source xml:lang="en">No script generated.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b823f4fb895582ef515ab18d8dd18f72160ed258f33dfb727a8e37f91ebda1b6">
+      <source xml:lang="en">No servers found in subscription &apos;{0}&apos;.</source>
+      <note>{0} is the name of the subscription</note>
+    </trans-unit>
+    <trans-unit id="++CODE++42f23e5323393c23245d6bbe61f912df022f3f9e6df0eb0b21e66939a788b773">
+      <source xml:lang="en">No servers found in the selected subscription.</source>
     </trans-unit>
     <trans-unit id="++CODE++ca74b0c5b8a73c286ae5bc0d7802f72e6e591364956dd16f3a5210582b6f4212">
       <source xml:lang="en">No storage accounts found</source>
@@ -5444,6 +5473,9 @@
     <trans-unit id="++CODE++6801207d5994165123a10ab767fd9439130fae500f8c407877ae5070843b906d">
       <source xml:lang="en">Search settings...</source>
     </trans-unit>
+    <trans-unit id="++CODE++14b4e9b2b94c620edf0bfa25d44598818614a26a5343ecf963a54d6ff12bedb7">
+      <source xml:lang="en">Search subscriptions...</source>
+    </trans-unit>
     <trans-unit id="++CODE++771f5d2c0599dcf4194e3fdddd9a5212d6392f4703d29971575bb455b5287a84">
       <source xml:lang="en">Search tables...</source>
     </trans-unit>
@@ -5543,6 +5575,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ed19c10287619e289e998f2c861e139754820af50b549c527483425879ea3bf0">
       <source xml:lang="en">Select a subscription</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fac4c702f7790e41763806f2cdc67d0521f91fe1cd0cc1ac492506ea2842b5dc">
+      <source xml:lang="en">Select a subscription to view servers in it.</source>
     </trans-unit>
     <trans-unit id="++CODE++ebe0dbee443b4562c7925a01e3bc69a3d5d0a3b0e8b3e11041c69fa067b65ef7">
       <source xml:lang="en">Select a tenant</source>
