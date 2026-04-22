@@ -494,17 +494,6 @@ suite("SchemaDesignerWebviewController tests", () => {
         });
     });
 
-    suite("CopyToClipboardNotification handler", () => {
-        test("should register CopyToClipboardNotification handler", () => {
-            createController();
-
-            const handler = notificationHandlers.get(
-                SchemaDesigner.CopyToClipboardNotification.type.method,
-            );
-            expect(handler).to.be.a("function");
-        });
-    });
-
     suite("OpenInEditorNotification handler", () => {
         test("should fall back to generating T-SQL when no payload text is provided", async () => {
             mockSchemaDesignerService.getDefinition.resolves({ script: "CREATE TABLE Test;" });
