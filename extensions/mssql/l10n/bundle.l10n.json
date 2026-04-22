@@ -1717,8 +1717,6 @@
     "Public": "Public",
     "Private": "Private",
     "Remove": "Remove",
-    "Drop Database": "Drop Database",
-    "Rename Database": "Rename Database",
     "Enter the new database name": "Enter the new database name",
     "Please select a server node in Object Explorer to create a database.": "Please select a server node in Object Explorer to create a database.",
     "Please select a database node in Object Explorer to drop.": "Please select a database node in Object Explorer to drop.",
