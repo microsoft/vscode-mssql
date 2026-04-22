@@ -73,6 +73,8 @@ export class LocConstants {
             general: l10n.t("General"),
             previous: l10n.t("Previous"),
             ok: l10n.t("OK"),
+            groupBy: l10n.t("Group by"),
+            none: l10n.t("None"),
             stepOf: (currentStep: number, totalSteps: number) =>
                 l10n.t({
                     message: "Step {0} of {1}",
@@ -1539,6 +1541,7 @@ export class LocConstants {
             saveSourceAndTargetOptionsAndExcludedElements: l10n.t(
                 "Save source and target, options, and excluded elements",
             ),
+            groupDifferencesBy: l10n.t("Group differences by"),
             type: l10n.t("Type"),
             sourceName: l10n.t("Source Name"),
             include: l10n.t("Include"),

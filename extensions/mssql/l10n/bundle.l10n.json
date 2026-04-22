@@ -68,6 +68,8 @@
     "General": "General",
     "Previous": "Previous",
     "OK": "OK",
+    "Group by": "Group by",
+    "None": "None",
     "Step {0} of {1}/{0} is the current step number{1} is the total number of steps": {
         "message": "Step {0} of {1}",
         "comment": ["{0} is the current step number", "{1} is the total number of steps"]
@@ -989,6 +991,7 @@
     "Load source, target, and options saved in an .scmp file": "Load source, target, and options saved in an .scmp file",
     "Save .scmp file": "Save .scmp file",
     "Save source and target, options, and excluded elements": "Save source and target, options, and excluded elements",
+    "Group differences by": "Group differences by",
     "Source Name": "Source Name",
     "Include": "Include",
     "Target Name": "Target Name",
@@ -1261,7 +1264,6 @@
     "Stored Procedures": "Stored Procedures",
     "Functions": "Functions",
     "Schemas": "Schemas",
-    "None": "None",
     "View": "View",
     "Stored Procedure": "Stored Procedure",
     "Function": "Function",
@@ -1302,7 +1304,6 @@
     "Freeze columns": "Freeze columns",
     "Greater than": "Greater than",
     "Greater than or equal to": "Greater than or equal to",
-    "Group by": "Group by",
     "Hide column": "Hide column",
     "items": "items",
     "items per page": "items per page",
