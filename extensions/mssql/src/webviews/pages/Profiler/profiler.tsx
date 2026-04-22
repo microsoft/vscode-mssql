@@ -38,8 +38,8 @@ import { locConstants } from "../../common/locConstants";
 import "./profiler.css";
 import {
     baseFluentReadOnlyGridOption,
-    createFluentSlickGridCopyMenu,
     createFluentAutoResizeOptions,
+    createFluentSlickGridCopyMenu,
     FLUENT_SLICK_GRID_COPY_COMMAND,
     FluentSlickGrid,
     getFluentSlickGridSelectionText,

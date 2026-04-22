@@ -6,10 +6,6 @@
 import { Column, GridOption } from "slickgrid-react";
 import { ProfilerEventProperty } from "../../../sharedInterfaces/profiler";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
-import {
-    baseFluentReadOnlyGridOption,
-    createFluentAutoResizeOptions,
-} from "../../common/FluentSlickGrid/FluentSlickGrid";
 
 export interface ProfilerDetailsGridRow {
     id: number;
@@ -67,11 +63,23 @@ export function getProfilerDetailsGridColumns(propertyLabel: string, valueLabel:
 
 export function getProfilerDetailsGridOptions(themeKind: ColorThemeKind): GridOption {
     return {
-        ...baseFluentReadOnlyGridOption,
-        autoResize: createFluentAutoResizeOptions(`#${PROFILER_DETAILS_GRID_CONTAINER_ID}`, {
+        autoFitColumnsOnFirstLoad: false,
+        autoResize: {
+            container: `#${PROFILER_DETAILS_GRID_CONTAINER_ID}`,
+            calculateAvailableSizeBy: "container",
+            resizeDetection: "container",
             bottomPadding: 0,
             minHeight: 50,
-        }),
+        },
+        enableSorting: false,
+        enableFiltering: false,
+        enablePagination: false,
+        enableColumnPicker: false,
+        enableGridMenu: false,
+        enableHeaderMenu: false,
+        enableAutoTooltip: true,
+        showHeaderRow: false,
+        rowHeight: 25,
         enableColumnReorder: false,
         selectionOptions: {
             selectionType: "cell",

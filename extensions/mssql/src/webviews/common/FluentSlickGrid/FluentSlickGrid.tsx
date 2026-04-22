@@ -15,6 +15,9 @@ export {
 } from "./fluentSlickGridCopy";
 
 type FluentAutoResizeOptions = NonNullable<GridOption["autoResize"]>;
+type FluentAutoResizeOverrides = Partial<
+    Omit<FluentAutoResizeOptions, "container" | "calculateAvailableSizeBy" | "resizeDetection">
+>;
 
 const baseFluentGridOption: GridOption = {
     alwaysShowVerticalScroll: true,
@@ -79,7 +82,7 @@ export const baseFluentReadOnlyGridOption: GridOption = {
 
 export function createFluentAutoResizeOptions(
     container: string,
-    overrides: Partial<FluentAutoResizeOptions> = {},
+    overrides: FluentAutoResizeOverrides = {},
 ): FluentAutoResizeOptions {
     return {
         container,
