@@ -65,7 +65,6 @@ import { getErrorMessage, isIConnectionInfo } from "../utils/utils";
 import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
-import { ObjectExplorerOrderingStore } from "../objectExplorer/objectExplorerOrderingStore";
 import { SchemaDesignerService } from "../services/schemaDesignerService";
 import { SchemaDesigner } from "../sharedInterfaces/schemaDesigner";
 import store from "../queryResult/singletonStore";
@@ -1190,18 +1189,10 @@ export default class MainController implements vscode.Disposable {
     private async initializeObjectExplorer(
         objectExplorerProvider?: ObjectExplorerProvider,
     ): Promise<void> {
-        // Shared store for persisting Object Explorer drag-and-drop ordering. Stored in
-        // global state so the user's connection settings file remains untouched.
-        const objectExplorerOrderingStore = new ObjectExplorerOrderingStore(this._context);
-
         // Register the object explorer tree provider
         this._objectExplorerProvider =
             objectExplorerProvider ??
-            new ObjectExplorerProvider(
-                this._vscodeWrapper,
-                this._connectionMgr,
-                objectExplorerOrderingStore,
-            );
+            new ObjectExplorerProvider(this._vscodeWrapper, this._connectionMgr);
 
         this.objectExplorerTree = vscode.window.createTreeView("objectExplorer", {
             treeDataProvider: this._objectExplorerProvider,
@@ -1210,8 +1201,6 @@ export default class MainController implements vscode.Disposable {
             dragAndDropController: new ObjectExplorerDragAndDropController(
                 this._vscodeWrapper,
                 this._connectionMgr.connectionStore,
-                objectExplorerOrderingStore,
-                () => this._objectExplorerProvider.refresh(undefined),
             ),
         });
         this._context.subscriptions.push(this.objectExplorerTree);

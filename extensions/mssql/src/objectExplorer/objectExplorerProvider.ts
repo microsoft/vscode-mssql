@@ -12,7 +12,6 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { IConnectionProfile } from "../models/interfaces";
 import { ConnectionNode } from "./nodes/connectionNode";
 import { serverLabel } from "../constants/constants";
-import { ObjectExplorerOrderingStore } from "./objectExplorerOrderingStore";
 
 export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     private _onDidChangeTreeData: vscode.EventEmitter<any | undefined> = new vscode.EventEmitter<
@@ -25,7 +24,6 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     constructor(
         private _vscodeWrapper: VscodeWrapper,
         connectionManager: ConnectionManager,
-        orderingStore?: ObjectExplorerOrderingStore,
     ) {
         if (!_vscodeWrapper) {
             this._vscodeWrapper = new VscodeWrapper();
@@ -37,7 +35,6 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
             (node) => {
                 this.refresh(node);
             },
-            orderingStore,
         );
     }
 

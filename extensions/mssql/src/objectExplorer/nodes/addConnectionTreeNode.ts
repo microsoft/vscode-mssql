@@ -9,16 +9,8 @@ import * as LocalizedConstants from "../../constants/locConstants";
 import { ObjectExplorerUtils } from "../objectExplorerUtils";
 
 export class AddConnectionTreeNode extends vscode.TreeItem {
-    /**
-     * Parent tree item this placeholder belongs to (usually an empty
-     * ConnectionGroupNode). Exposed so drag-and-drop can resolve a drop on
-     * the placeholder as a drop on the owning group.
-     */
-    public readonly parentNode?: vscode.TreeItem;
-
     constructor(parent?: vscode.TreeItem) {
         super(LocalizedConstants.msgAddConnection, vscode.TreeItemCollapsibleState.None);
-        this.parentNode = parent;
         this.command = {
             title: LocalizedConstants.msgAddConnection,
             command: Constants.cmdAddObjectExplorer,

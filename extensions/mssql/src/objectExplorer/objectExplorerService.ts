@@ -60,7 +60,6 @@ import { ConnectionConfig } from "../connectionconfig/connectionconfig";
 import { MissingEntraAuthAccountError } from "../azure/vscodeEntraMfaUtils";
 import { VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { PreviewFeature, previewService } from "../previews/previewService";
-import { ObjectExplorerOrderingStore } from "./objectExplorerOrderingStore";
 
 export interface CreateSessionResult {
     sessionId?: string;
@@ -119,7 +118,6 @@ export class ObjectExplorerService {
         private _vscodeWrapper: VscodeWrapper,
         private _connectionManager: ConnectionManager,
         private _refreshCallback: (node: TreeNodeInfo) => void,
-        private _orderingStore?: ObjectExplorerOrderingStore,
     ) {
         if (!_vscodeWrapper) {
             this._vscodeWrapper = new VscodeWrapper();
@@ -476,62 +474,12 @@ export class ObjectExplorerService {
         this._connectionGroupNodes = newConnectionGroupNodes;
         this._connectionNodes = newConnectionNodes;
 
-        // Apply user-defined ordering (from drag-and-drop reordering) on top of the
-        // default alphabetical sort that ConnectionGroupNode.addChild produced.
-        this.applyPersistedOrder(newConnectionGroupNodes);
-
         const result = [...this._rootTreeNodeArray];
 
         getConnectionActivity.end(ActivityStatus.Succeeded, undefined, {
             nodeCount: result.length,
         });
         return result;
-    }
-
-    /**
-     * Re-sorts each group's children according to the persisted drag-and-drop order.
-     * Items present in the persisted list come first in their listed order; remaining
-     * items keep their existing relative order (alphabetical, groups-first) as a stable
-     * fallback for siblings that have never been reordered.
-     */
-    private applyPersistedOrder(groupNodes: Map<string, ConnectionGroupNode>): void {
-        if (!this._orderingStore) {
-            return;
-        }
-
-        for (const [groupId, groupNode] of groupNodes) {
-            const order = this._orderingStore.getChildOrder(groupId);
-            if (order.length === 0) {
-                continue;
-            }
-
-            const indexOf = (id: string | undefined): number => {
-                if (!id) {
-                    return Number.MAX_SAFE_INTEGER;
-                }
-                const i = order.indexOf(id);
-                return i === -1 ? Number.MAX_SAFE_INTEGER : i;
-            };
-
-            const annotated = groupNode.children.map((child, origIdx) => {
-                let id: string | undefined;
-                if (child instanceof ConnectionNode) {
-                    id = child.connectionProfile.id;
-                } else if (child instanceof ConnectionGroupNode) {
-                    id = child.connectionGroup.id;
-                }
-                return { child, orderIdx: indexOf(id), origIdx };
-            });
-
-            annotated.sort((a, b) => {
-                if (a.orderIdx !== b.orderIdx) {
-                    return a.orderIdx - b.orderIdx;
-                }
-                return a.origIdx - b.origIdx;
-            });
-
-            groupNode.children = annotated.map((a) => a.child);
-        }
     }
 
     /**
