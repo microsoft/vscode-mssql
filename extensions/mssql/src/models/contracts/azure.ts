@@ -239,11 +239,17 @@ export interface RequestSecurityTokenParams {
     authority: string;
     resource: string;
     scopes: string[];
+    /** Entra account ID. Populated when STS is in RequestMfaTokenFromClient mode; absent for MSAL callers. */
+    accountId?: string;
+    /** Entra tenant ID. Populated when STS is in RequestMfaTokenFromClient mode; absent for MSAL callers. */
+    tenantId?: string;
 }
 
 export interface RequestSecurityTokenResponse {
     accountKey: string;
     token: string;
+    /** Unix epoch seconds. Required when responding to RequestMfaTokenFromClient requests. */
+    expiresOn?: number;
 }
 
 export namespace SecurityTokenRequest {

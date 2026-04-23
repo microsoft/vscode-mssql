@@ -243,6 +243,10 @@ export default class ConnectionManager {
                 SecurityTokenRequest.type,
                 this.handleSecurityTokenRequest.bind(this),
             );
+            this.client.onNotification(
+                ConnectionContracts.RefreshTokenNotification.type,
+                this.handleRefreshTokenNotification(),
+            );
         }
         void this.initialize();
     }
@@ -613,6 +617,80 @@ export default class ConnectionManager {
 
                 self.vscodeWrapper.logToOutputChannel(logMessage);
             }
+        };
+    }
+
+    /**
+     * Handles the account/refreshToken notification from the service.
+     * Acquires a fresh token using VS Code accounts or MSAL, then sends
+     * account/tokenRefreshed back to the service.
+     */
+    public handleRefreshTokenNotification(): NotificationHandler<ConnectionContracts.RefreshTokenParams> {
+        const self = this;
+        return (params: ConnectionContracts.RefreshTokenParams): void => {
+            void (async () => {
+                try {
+                    let token: string | undefined;
+                    let expiresOn: number | undefined;
+
+                    if (
+                        previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)
+                    ) {
+                        const tokenInfo = await acquireSqlAccessTokenFromVscodeAccount(
+                            params.accountId,
+                            params.tenantId,
+                        );
+                        token = tokenInfo.token.token;
+                        expiresOn = tokenInfo.token.expiresOn;
+                    } else {
+                        if (!params.accountId) {
+                            self._logger?.verbose(
+                                `Cannot refresh token: no accountId provided in refresh request for URI ${params.uri}`,
+                            );
+                            return;
+                        }
+
+                        const account = await self.accountStore.getAccount(params.accountId);
+                        if (!account) {
+                            self._logger?.verbose(
+                                `Cannot refresh token: account ${params.accountId} not found in account store`,
+                            );
+                            return;
+                        }
+
+                        const resource =
+                            params.resource ??
+                            getCloudProviderSettings(account.key.providerId).settings.sqlResource!;
+
+                        const refreshedToken = await self.azureController.refreshAccessToken(
+                            account,
+                            self.accountStore,
+                            params.tenantId,
+                            resource as any, // TODO: fix type mismatch
+                        );
+
+                        if (refreshedToken) {
+                            token = refreshedToken.token;
+                            expiresOn = refreshedToken.expiresOn;
+                        }
+                    }
+
+                    if (token && self.client) {
+                        self.client.sendNotification(
+                            ConnectionContracts.TokenRefreshedNotification.type,
+                            {
+                                token: token,
+                                expiresOn: expiresOn ?? 0,
+                                uri: params.uri,
+                            },
+                        );
+                    }
+                } catch (error) {
+                    self._logger?.verbose(
+                        `Failed to refresh token for URI ${params.uri}: ${error}`,
+                    );
+                }
+            })();
         };
     }
 
@@ -1042,6 +1120,12 @@ export default class ConnectionManager {
     public async refreshEntraTokenIfNeeded(connectionInfo: IConnectionInfo) {
         // 1. Validate that the connection is using Entra auth
         if (connectionInfo.authenticationType !== Constants.azureMfa) {
+            return;
+        }
+
+        // In VS Code accounts mode, STS acquires tokens via AccessTokenCallback —
+        // no upfront token fetch or refresh is needed from the extension side.
+        if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
             return;
         }
 
@@ -2156,9 +2240,32 @@ export default class ConnectionManager {
         return undefined;
     }
 
+    /**
+     * Acquires a fresh token from VS Code for the specified account + tenant
+     */
     private async handleSecurityTokenRequest(
         params: RequestSecurityTokenParams,
     ): Promise<RequestSecurityTokenResponse> {
+        if (params.accountId) {
+            try {
+                const tokenInfo = await acquireSqlAccessTokenFromVscodeAccount(
+                    params.accountId,
+                    params.tenantId,
+                );
+                return {
+                    accountKey: params.accountId,
+                    token: tokenInfo.token.token,
+                    expiresOn: tokenInfo.token.expiresOn,
+                };
+            } catch (error) {
+                this._logger.error(
+                    `Token request failed for account ${params.accountId}: ${getErrorMessage(error)}`,
+                );
+                return { accountKey: "", token: "", expiresOn: 0 };
+            }
+        }
+
+        // Key Vault / MSAL path
         try {
             if (this._keyVaultTokenCache.has(JSON.stringify(params))) {
                 const token = this._keyVaultTokenCache.get(JSON.stringify(params));
