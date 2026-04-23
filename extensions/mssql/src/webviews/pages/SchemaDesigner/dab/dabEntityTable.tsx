@@ -3,239 +3,146 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    Button,
-    Checkbox,
-    DataGrid,
-    DataGridBody,
-    DataGridCell,
-    DataGridHeader,
-    DataGridHeaderCell,
-    DataGridRow,
-    TableColumnDefinition,
-    TableColumnSizingOptions,
-    Tooltip,
-    createTableColumn,
-    makeStyles,
-    Text,
-    tokens,
-} from "@fluentui/react-components";
-import {
-    ArrowDown16Regular,
-    ArrowSort16Regular,
-    ArrowUp16Regular,
-    ChevronDown16Regular,
-    ChevronRight16Regular,
-    Settings16Regular,
-    Table16Regular,
-    Warning16Regular,
-} from "@fluentui/react-icons";
-import { Schema16Regular } from "../../../common/icons/fluentIcons";
+import { treeFormatter, type TreeToggleStateChange } from "@slickgrid-universal/common";
+import { Text } from "@fluentui/react-components";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { locConstants } from "../../../common/locConstants";
-import { DabEntitySettingsDialog } from "./dabEntitySettingsDialog";
+import { type Column, type Formatter, type GridOption, htmlEncode } from "slickgrid-react";
 import { Dab } from "../../../../sharedInterfaces/dab";
+import {
+    baseFluentReadOnlyGridOption,
+    createFluentAutoResizeOptions,
+    FluentSlickGrid,
+} from "../../../common/FluentSlickGrid/FluentSlickGrid";
+import { locConstants } from "../../../common/locConstants";
 import { useDabContext } from "./dabContext";
+import { DabEntitySettingsDialog } from "./dabEntitySettingsDialog";
+import "./dabEntityTable.css";
 
-export type DabTableRow =
-    | { type: "schema"; schemaName: string; entities: Dab.DabEntityConfig[] }
-    | { type: "entity"; entity: Dab.DabEntityConfig };
+type DabTreeRow =
+    | {
+          id: string;
+          rowType: "schema";
+          entityName: string;
+          source: string;
+          schemaName: string;
+          entities: Dab.DabEntityConfig[];
+          enabledEntityCount: number;
+          hasChildren: boolean;
+          children: DabTreeRow[];
+          __collapsed: boolean;
+      }
+    | {
+          id: string;
+          rowType: "entity";
+          entityName: string;
+          source: string;
+          entity: Dab.DabEntityConfig;
+          hasChildren: boolean;
+          children: DabTreeRow[];
+          __collapsed: boolean;
+      }
+    | {
+          id: string;
+          rowType: "column";
+          entityName: string;
+          source: string;
+          entity: Dab.DabEntityConfig;
+          column: Dab.DabColumnConfig;
+      };
 
-const useStyles = makeStyles({
-    grid: {
-        width: "100%",
-    },
-    header: {
-        position: "sticky",
-        top: 0,
-        zIndex: 1,
-        backgroundColor: tokens.colorNeutralBackground1,
-    },
-    schemaRow: {
-        backgroundColor: tokens.colorNeutralBackground3,
-        cursor: "pointer",
-    },
-    schemaCell: {
-        display: "flex",
-        alignItems: "center",
-        gap: "8px",
-        padding: "8px 12px",
-    },
-    schemaLabel: {
-        fontSize: "14px",
-        fontWeight: 600,
-        color: tokens.colorNeutralForeground1,
-    },
-    schemaCount: {
-        fontSize: "11px",
-        color: tokens.colorNeutralForeground3,
-        backgroundColor: tokens.colorNeutralBackground1,
-        padding: "1px 6px",
-        borderRadius: "10px",
-    },
-    schemaDivider: {
-        flex: 1,
-    },
-    rowNoHighlight: {
-        ":hover": {
-            backgroundColor: "transparent",
-        },
-        ":active": {
-            backgroundColor: "transparent",
-        },
-    },
-    entityCheckboxCell: {
-        paddingLeft: "28px",
-    },
-    entityCellDisabled: {
-        opacity: 0.6,
-    },
-    entityCellUnsupported: {
-        opacity: 0.4,
-    },
-    entityNameCell: {
-        display: "flex",
-        alignItems: "center",
-        gap: "6px",
-        minWidth: 0,
-        overflow: "hidden",
-    },
-    entityName: {
-        fontWeight: 600,
-        fontSize: "13px",
-        minWidth: 0,
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-    },
-    sourceCell: {
-        minWidth: 0,
-        overflow: "hidden",
-    },
-    sourceText: {
-        fontSize: "12px",
-        color: tokens.colorNeutralForeground3,
-        minWidth: 0,
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-    },
-    settingsButton: {
-        minWidth: "auto",
-    },
-    headerCellContent: {
-        display: "flex",
-        alignItems: "center",
-        gap: "4px",
-    },
-    sortButton: {
-        minWidth: "auto",
-        padding: "2px",
-    },
-    warningIconWrapper: {
-        display: "flex",
-        alignItems: "center",
-        flexShrink: 0,
-    },
-    warningIcon: {
-        color: tokens.colorPaletteYellowForeground2,
-    },
-    emptyState: {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        height: "200px",
-        color: tokens.colorNeutralForeground3,
-    },
-});
+type ToggleVisualState = "checked" | "mixed" | "unchecked";
 
 function formatUnsupportedReasons(reasons: Dab.DabUnsupportedReason[]): string {
     return reasons
-        .map((r) => {
-            switch (r.type) {
+        .map((reason) => {
+            switch (reason.type) {
                 case "noPrimaryKey":
                     return locConstants.schemaDesigner.unsupportedNoPrimaryKey;
                 case "unsupportedDataTypes":
-                    return locConstants.schemaDesigner.unsupportedDataTypes(r.columns);
+                    return locConstants.schemaDesigner.unsupportedDataTypes(reason.columns);
             }
         })
         .join("; ");
 }
 
-enum SortDirection {
-    None,
-    Ascending,
-    Descending,
+function getEntityFullName(entity: Dab.DabEntityConfig): string {
+    return `${entity.schemaName}.${entity.tableName}`;
 }
 
-function getSortIcon(direction: SortDirection) {
-    switch (direction) {
-        case SortDirection.Ascending:
-            return <ArrowUp16Regular />;
-        case SortDirection.Descending:
-            return <ArrowDown16Regular />;
+function getToggleState(totalCount: number, checkedCount: number): ToggleVisualState {
+    if (totalCount > 0 && checkedCount === totalCount) {
+        return "checked";
+    }
+    if (checkedCount > 0) {
+        return "mixed";
+    }
+    return "unchecked";
+}
+
+function getToggleSymbol(state: ToggleVisualState): string {
+    switch (state) {
+        case "checked":
+            return "x";
+        case "mixed":
+            return "-";
         default:
-            return <ArrowSort16Regular />;
+            return "&nbsp;";
     }
 }
 
-function getSortAriaLabel(direction: SortDirection): string {
-    switch (direction) {
-        case SortDirection.Ascending:
-            return locConstants.queryResult.sortAscending;
-        case SortDirection.Descending:
-            return locConstants.queryResult.sortDescending;
-        default:
-            return locConstants.queryResult.toggleSort;
+function getEntityToneClass(entity: Dab.DabEntityConfig): string {
+    if (!entity.isSupported) {
+        return "dab-tone-unsupported";
     }
+    if (!entity.isEnabled) {
+        return "dab-tone-disabled";
+    }
+    return "";
 }
 
-function cycleSortDirection(current: SortDirection): SortDirection {
-    switch (current) {
-        case SortDirection.None:
-            return SortDirection.Ascending;
-        case SortDirection.Ascending:
-            return SortDirection.Descending;
-        case SortDirection.Descending:
-            return SortDirection.None;
-    }
+function renderToggleButtonHtml(options: {
+    state: ToggleVisualState;
+    label: string;
+    disabled?: boolean;
+    extraClassName?: string;
+    dataAttributes?: Record<string, string>;
+}): string {
+    const classes = ["dab-grid-toggle", `is-${options.state}`, options.extraClassName]
+        .filter(Boolean)
+        .join(" ");
+    const ariaChecked =
+        options.state === "mixed" ? "mixed" : options.state === "checked" ? "true" : "false";
+    const disabledAttributes = options.disabled ? ' disabled aria-disabled="true"' : "";
+    const dataAttributes = Object.entries(options.dataAttributes ?? {})
+        .map(([key, value]) => ` data-${key}="${htmlEncode(value)}"`)
+        .join("");
+
+    return `<button type="button" class="${classes}" role="checkbox" aria-checked="${ariaChecked}" aria-label="${htmlEncode(options.label)}" title="${htmlEncode(options.label)}"${disabledAttributes}${dataAttributes}>${getToggleSymbol(options.state)}</button>`;
+}
+
+function renderTextCellHtml(text: string, className: string, title?: string): string {
+    return `<span class="${className}" title="${htmlEncode(title ?? text)}">${htmlEncode(text)}</span>`;
+}
+
+function renderSettingsButtonHtml(label: string, disabled: boolean): string {
+    const disabledAttributes = disabled ? ' disabled aria-disabled="true"' : "";
+    return `<button type="button" class="dab-grid-icon-button" data-dab-role="settings" aria-label="${htmlEncode(label)}" title="${htmlEncode(label)}"${disabledAttributes}>...</button>`;
 }
 
 export const DabEntityTable = () => {
-    const classes = useStyles();
     const context = useDabContext();
-
     const {
         dabConfig,
         toggleDabEntity,
         toggleDabEntityAction,
+        toggleDabColumnExposure,
         updateDabEntitySettings,
         dabTextFilter,
         currentFilteredTables,
     } = context;
 
-    const [collapsedSchemas, setCollapsedSchemas] = useState<Set<string>>(new Set());
+    const [collapsedRows, setCollapsedRows] = useState<Map<string, boolean>>(new Map());
     const [settingsEntityId, setSettingsEntityId] = useState<string | null>(null);
-    const [entityColumnSortDirection, setEntityColumnSortDirection] = useState<SortDirection>(
-        SortDirection.None,
-    );
-    const [sourceColumnSortDirection, setSourceColumnSortDirection] = useState<SortDirection>(
-        SortDirection.None,
-    );
-
-    const handleEntitySort = useCallback(() => {
-        setEntityColumnSortDirection((prev) => cycleSortDirection(prev));
-        setSourceColumnSortDirection(SortDirection.None);
-    }, []);
-
-    const handleSourceSort = useCallback(() => {
-        setSourceColumnSortDirection((prev) => cycleSortDirection(prev));
-        setEntityColumnSortDirection(SortDirection.None);
-    }, []);
-
-    const getEntityFullName = (entity: Dab.DabEntityConfig) =>
-        `${entity.schemaName}.${entity.tableName}`;
 
     const initialEnabledEntities = useRef<Set<string>>(
         new Set(
@@ -244,7 +151,9 @@ export const DabEntityTable = () => {
     );
 
     useEffect(() => {
-        if (!dabConfig) return;
+        if (!dabConfig) {
+            return;
+        }
 
         const tablesToCheck: Set<string> =
             currentFilteredTables.length > 0
@@ -259,95 +168,7 @@ export const DabEntityTable = () => {
                 toggleDabEntity(entity.id, shouldCheck);
             }
         });
-    }, [currentFilteredTables]); // only runs when user changes schema designer filter
-
-    const toggleSchemaCollapsed = useCallback((schemaName: string) => {
-        setCollapsedSchemas((prev) => {
-            const next = new Set(prev);
-            if (next.has(schemaName)) {
-                next.delete(schemaName);
-            } else {
-                next.add(schemaName);
-            }
-            return next;
-        });
-    }, []);
-
-    const sortEntities = (a: Dab.DabEntityConfig, b: Dab.DabEntityConfig) => {
-        if (entityColumnSortDirection !== SortDirection.None) {
-            const cmp = a.advancedSettings.entityName.localeCompare(b.advancedSettings.entityName);
-            return entityColumnSortDirection === SortDirection.Ascending ? cmp : -cmp;
-        }
-        if (sourceColumnSortDirection !== SortDirection.None) {
-            const sourceA = `${a.schemaName}.${a.tableName}`;
-            const sourceB = `${b.schemaName}.${b.tableName}`;
-            const cmp = sourceA.localeCompare(sourceB);
-            return sourceColumnSortDirection === SortDirection.Ascending ? cmp : -cmp;
-        }
-        // default case- sort by which entities are supported.
-        return Number(!a.isSupported) - Number(!b.isSupported);
-    };
-
-    // Filter entities based on text filter
-    const filteredEntities = useMemo(() => {
-        if (!dabConfig) {
-            return [];
-        }
-        if (!dabTextFilter.trim()) {
-            return dabConfig.entities;
-        }
-        const lower = dabTextFilter.toLowerCase().trim();
-        return dabConfig.entities.filter((e) => {
-            const entityName = e.advancedSettings.entityName.toLowerCase();
-            const schemaName = e.schemaName.toLowerCase();
-            const source = `${e.schemaName}.${e.tableName}`.toLowerCase();
-            return (
-                entityName.includes(lower) || schemaName.includes(lower) || source.includes(lower)
-            );
-        });
-    }, [dabConfig, dabTextFilter]);
-
-    // Group filtered entities by schema, with sorting applied
-    const entitiesBySchema = useMemo(() => {
-        const groups: Record<string, typeof filteredEntities> = {};
-        for (const entity of filteredEntities) {
-            if (!groups[entity.schemaName]) {
-                groups[entity.schemaName] = [];
-            }
-            groups[entity.schemaName].push(entity);
-        }
-        return Object.entries(groups)
-            .sort(([a], [b]) => a.localeCompare(b))
-            .map(
-                ([schemaName, entities]) =>
-                    [schemaName, [...entities].sort(sortEntities)] as [
-                        string,
-                        typeof filteredEntities,
-                    ],
-            );
-    }, [filteredEntities, entityColumnSortDirection, sourceColumnSortDirection]);
-
-    // Build flattened row list for DataGrid
-    const tableRows = useMemo<DabTableRow[]>(() => {
-        const rows: DabTableRow[] = [];
-        for (const [schemaName, entities] of entitiesBySchema) {
-            rows.push({ type: "schema", schemaName, entities });
-            if (!collapsedSchemas.has(schemaName)) {
-                for (const entity of entities) {
-                    rows.push({ type: "entity", entity });
-                }
-            }
-        }
-        return rows;
-    }, [entitiesBySchema, collapsedSchemas]);
-
-    // Look up settings entity from config to stay fresh
-    const settingsEntity = useMemo(() => {
-        if (!settingsEntityId || !dabConfig) {
-            return null;
-        }
-        return dabConfig.entities.find((e) => e.id === settingsEntityId) ?? null;
-    }, [settingsEntityId, dabConfig]);
+    }, [currentFilteredTables]);
 
     const allActions = useMemo(
         () => [
@@ -369,282 +190,468 @@ export const DabEntityTable = () => {
         [],
     );
 
-    const columnSizingOptions = useMemo<TableColumnSizingOptions>(
-        () => ({
-            checkbox: { minWidth: 68, defaultWidth: 68 },
-            entityName: { minWidth: 150, defaultWidth: 280 },
-            source: { minWidth: 150, defaultWidth: 380 },
-            create: { minWidth: 80, defaultWidth: 90 },
-            read: { minWidth: 80, defaultWidth: 90 },
-            update: { minWidth: 80, defaultWidth: 90 },
-            delete: { minWidth: 80, defaultWidth: 90 },
-            settings: { minWidth: 40, defaultWidth: 50 },
-        }),
+    const filteredEntities = useMemo(() => {
+        if (!dabConfig) {
+            return [];
+        }
+        if (!dabTextFilter.trim()) {
+            return dabConfig.entities;
+        }
+
+        const loweredFilter = dabTextFilter.toLowerCase().trim();
+        return dabConfig.entities.filter((entity) => {
+            const entityName = entity.advancedSettings.entityName.toLowerCase();
+            const schemaName = entity.schemaName.toLowerCase();
+            const source = `${entity.schemaName}.${entity.tableName}`.toLowerCase();
+            const columnNames = entity.columns.map((column) => column.name.toLowerCase());
+
+            return (
+                entityName.includes(loweredFilter) ||
+                schemaName.includes(loweredFilter) ||
+                source.includes(loweredFilter) ||
+                columnNames.some((columnName) => columnName.includes(loweredFilter))
+            );
+        });
+    }, [dabConfig, dabTextFilter]);
+
+    const entitiesBySchema = useMemo(() => {
+        const groups: Record<string, Dab.DabEntityConfig[]> = {};
+        for (const entity of filteredEntities) {
+            if (!groups[entity.schemaName]) {
+                groups[entity.schemaName] = [];
+            }
+            groups[entity.schemaName].push(entity);
+        }
+
+        return Object.entries(groups)
+            .sort(([leftSchema], [rightSchema]) => leftSchema.localeCompare(rightSchema))
+            .map(
+                ([schemaName, entities]) =>
+                    [
+                        schemaName,
+                        [...entities].sort((left, right) => {
+                            const supportComparison =
+                                Number(!left.isSupported) - Number(!right.isSupported);
+                            if (supportComparison !== 0) {
+                                return supportComparison;
+                            }
+                            return left.advancedSettings.entityName.localeCompare(
+                                right.advancedSettings.entityName,
+                            );
+                        }),
+                    ] as const,
+            );
+    }, [filteredEntities]);
+
+    const treeRows = useMemo<DabTreeRow[]>(() => {
+        return entitiesBySchema.map(([schemaName, entities]) => {
+            const schemaId = `schema-${schemaName}`;
+            const entityRows: DabTreeRow[] = entities.map((entity) => ({
+                id: entity.id,
+                rowType: "entity",
+                entityName: entity.advancedSettings.entityName,
+                source: `${entity.schemaName}.${entity.tableName}`,
+                entity,
+                hasChildren: entity.columns.length > 0,
+                children: entity.columns.map((column) => ({
+                    id: `${entity.id}-${column.id}`,
+                    rowType: "column",
+                    entityName: column.name,
+                    source: column.dataType,
+                    entity,
+                    column,
+                })),
+                __collapsed: collapsedRows.get(entity.id) ?? true,
+            }));
+            const enabledEntityCount = entities.filter((entity) => entity.isEnabled).length;
+
+            return {
+                id: schemaId,
+                rowType: "schema",
+                entityName: schemaName,
+                source: "",
+                schemaName,
+                entities,
+                enabledEntityCount,
+                hasChildren: entityRows.length > 0,
+                children: entityRows,
+                __collapsed: collapsedRows.get(schemaId) ?? false,
+            };
+        });
+    }, [collapsedRows, entitiesBySchema]);
+
+    const settingsEntity = useMemo(() => {
+        if (!settingsEntityId || !dabConfig) {
+            return null;
+        }
+        return dabConfig.entities.find((entity) => entity.id === settingsEntityId) ?? null;
+    }, [dabConfig, settingsEntityId]);
+
+    const renderTreeTitle = useCallback<Formatter<DabTreeRow>>(
+        (_row, _cell, value, _columnDef, item) => {
+            if (!item) {
+                return htmlEncode(String(value ?? ""));
+            }
+
+            if (item.rowType === "schema") {
+                return `<span class="dab-tree-title dab-tree-title-schema"><span class="dab-tree-title-label">${htmlEncode(item.schemaName)}</span><span class="dab-tree-pill">${item.enabledEntityCount}/${item.entities.length}</span></span>`;
+            }
+
+            if (item.rowType === "entity") {
+                const warningText =
+                    !item.entity.isSupported && item.entity.unsupportedReasons
+                        ? htmlEncode(formatUnsupportedReasons(item.entity.unsupportedReasons))
+                        : "";
+                const warningHtml = warningText
+                    ? `<span class="dab-tree-warning" title="${warningText}" aria-hidden="true">!</span>`
+                    : "";
+                const toneClass = getEntityToneClass(item.entity);
+
+                return `<span class="dab-tree-title dab-tree-title-entity ${toneClass}"><span class="dab-tree-title-label">${htmlEncode(item.entity.advancedSettings.entityName)}</span>${warningHtml}</span>`;
+            }
+
+            const warningText = !item.column.isSupported
+                ? htmlEncode(
+                      locConstants.schemaDesigner.unsupportedDataTypes(
+                          `${item.column.name} (${item.column.dataType})`,
+                      ),
+                  )
+                : "";
+            const warningHtml = warningText
+                ? `<span class="dab-tree-warning" title="${warningText}" aria-hidden="true">!</span>`
+                : "";
+
+            return `<span class="dab-tree-title dab-tree-title-column"><span class="dab-tree-title-label">${htmlEncode(item.column.name)}</span>${warningHtml}</span>`;
+        },
         [],
     );
 
-    const renderActionHeaderCell = useCallback(
+    const checkboxFormatter = useCallback<Formatter<DabTreeRow>>(
+        (_row, _cell, _value, _columnDef, item) => {
+            if (!item) {
+                return "";
+            }
+
+            if (item.rowType === "schema") {
+                const supportedEntities = item.entities.filter((entity) => entity.isSupported);
+                const checkedCount = supportedEntities.filter((entity) => entity.isEnabled).length;
+                return renderToggleButtonHtml({
+                    state: getToggleState(supportedEntities.length, checkedCount),
+                    label: locConstants.schemaDesigner.toggleAllEntitiesInSchema(item.schemaName),
+                    disabled: supportedEntities.length === 0,
+                    dataAttributes: { "dab-role": "checkbox" },
+                });
+            }
+
+            if (item.rowType === "entity") {
+                return renderToggleButtonHtml({
+                    state: item.entity.isEnabled ? "checked" : "unchecked",
+                    label: locConstants.schemaDesigner.enableEntity(
+                        item.entity.advancedSettings.entityName,
+                    ),
+                    disabled: !item.entity.isSupported,
+                    dataAttributes: { "dab-role": "checkbox" },
+                });
+            }
+
+            return renderToggleButtonHtml({
+                state: item.column.isExposed ? "checked" : "unchecked",
+                label: locConstants.schemaDesigner.exposeColumn(item.column.name),
+                disabled: !item.entity.isSupported,
+                dataAttributes: { "dab-role": "checkbox" },
+            });
+        },
+        [],
+    );
+
+    const sourceFormatter = useCallback<Formatter<DabTreeRow>>(
+        (_row, _cell, _value, _columnDef, item) => {
+            if (!item || item.rowType === "schema") {
+                return "";
+            }
+
+            if (item.rowType === "entity") {
+                const toneClass = getEntityToneClass(item.entity);
+                return renderTextCellHtml(item.source, `dab-source-text ${toneClass}`.trim());
+            }
+
+            return renderTextCellHtml(item.source, "dab-source-text dab-source-type");
+        },
+        [],
+    );
+
+    const createActionHeader = useCallback(
         (action: Dab.EntityAction) => {
-            const enabledEntities = filteredEntities.filter((e) => e.isSupported && e.isEnabled);
-            const withAction = enabledEntities.filter((e) => e.enabledActions.includes(action));
-            const allHave =
-                enabledEntities.length > 0 && withAction.length === enabledEntities.length;
-            const noneHave = withAction.length === 0;
-            return (
-                <Checkbox
-                    checked={allHave ? true : noneHave ? false : "mixed"}
-                    label={actionLabels[action]}
-                    aria-label={locConstants.schemaDesigner.selectAllAction(actionLabels[action])}
-                    onChange={(_, data) => {
-                        const enable = data.checked === true || data.checked === "mixed";
-                        for (const entity of enabledEntities) {
-                            toggleDabEntityAction(entity.id, action, enable);
-                        }
-                    }}
-                />
+            if (typeof document === "undefined") {
+                return actionLabels[action];
+            }
+
+            const enabledEntities = filteredEntities.filter(
+                (entity) => entity.isSupported && entity.isEnabled,
             );
+            const withAction = enabledEntities.filter((entity) =>
+                entity.enabledActions.includes(action),
+            );
+            const state = getToggleState(enabledEntities.length, withAction.length);
+
+            const wrapper = document.createElement("div");
+            wrapper.className = "dab-action-header";
+
+            const toggleButton = document.createElement("button");
+            toggleButton.type = "button";
+            toggleButton.className = `dab-grid-toggle dab-action-header-toggle is-${state}`;
+            toggleButton.setAttribute("role", "checkbox");
+            toggleButton.setAttribute(
+                "aria-checked",
+                state === "mixed" ? "mixed" : state === "checked" ? "true" : "false",
+            );
+            toggleButton.setAttribute(
+                "aria-label",
+                locConstants.schemaDesigner.selectAllAction(actionLabels[action]),
+            );
+            toggleButton.setAttribute(
+                "title",
+                locConstants.schemaDesigner.selectAllAction(actionLabels[action]),
+            );
+            toggleButton.textContent = state === "checked" ? "x" : state === "mixed" ? "-" : " ";
+            toggleButton.disabled = enabledEntities.length === 0;
+            toggleButton.addEventListener("click", (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const shouldEnable = state !== "checked";
+                for (const entity of enabledEntities) {
+                    toggleDabEntityAction(entity.id, action, shouldEnable);
+                }
+            });
+
+            const label = document.createElement("span");
+            label.className = "dab-action-header-label";
+            label.textContent = actionLabels[action];
+
+            wrapper.append(toggleButton, label);
+            return wrapper;
         },
-        [filteredEntities, actionLabels, toggleDabEntityAction],
+        [actionLabels, filteredEntities, toggleDabEntityAction],
     );
 
-    const renderActionCell = useCallback(
-        (entity: Dab.DabEntityConfig, action: Dab.EntityAction) => {
-            return (
-                <Checkbox
-                    checked={entity.enabledActions.includes(action)}
-                    disabled={!entity.isEnabled}
-                    aria-label={locConstants.schemaDesigner.actionForEntity(
+    const createActionFormatter = useCallback(
+        (action: Dab.EntityAction): Formatter<DabTreeRow> =>
+            (_row, _cell, _value, _columnDef, item) => {
+                if (!item || item.rowType !== "entity") {
+                    return "";
+                }
+
+                return renderToggleButtonHtml({
+                    state: item.entity.enabledActions.includes(action) ? "checked" : "unchecked",
+                    label: locConstants.schemaDesigner.actionForEntity(
                         actionLabels[action],
-                        entity.advancedSettings.entityName,
-                    )}
-                    onChange={(_, data) =>
-                        toggleDabEntityAction(entity.id, action, data.checked === true)
-                    }
-                />
-            );
-        },
-        [actionLabels, toggleDabEntityAction],
-    );
-
-    const renderSchemaRow = useCallback(
-        (rowId: string | number, schemaName: string, entities: Dab.DabEntityConfig[]) => {
-            const supportedEntities = entities.filter((e) => e.isSupported);
-            const enabledCount = supportedEntities.filter((e) => e.isEnabled).length;
-            const allChecked =
-                supportedEntities.length > 0 && enabledCount === supportedEntities.length;
-            const noneChecked = enabledCount === 0;
-            const isCollapsed = collapsedSchemas.has(schemaName);
-            return (
-                <DataGridRow
-                    key={rowId}
-                    className={`${classes.schemaRow} ${classes.rowNoHighlight}`}
-                    onClick={() => toggleSchemaCollapsed(schemaName)}>
-                    {({ columnId }) => {
-                        if (columnId !== "checkbox") {
-                            return <DataGridCell style={{ display: "none" }} />;
-                        }
-                        return (
-                            <DataGridCell
-                                className={classes.schemaCell}
-                                style={{ flex: "1 1 100%", maxWidth: "none" }}>
-                                {isCollapsed ? <ChevronRight16Regular /> : <ChevronDown16Regular />}
-                                <Checkbox
-                                    checked={allChecked ? true : noneChecked ? false : "mixed"}
-                                    disabled={supportedEntities.length === 0}
-                                    aria-label={locConstants.schemaDesigner.toggleAllEntitiesInSchema(
-                                        schemaName,
-                                    )}
-                                    onClick={(e) => e.stopPropagation()}
-                                    onChange={(_, data) => {
-                                        const enable =
-                                            data.checked === true || data.checked === "mixed";
-                                        for (const entity of supportedEntities) {
-                                            toggleDabEntity(entity.id, enable);
-                                        }
-                                    }}
-                                />
-                                <Schema16Regular />
-                                <Text className={classes.schemaLabel}>{schemaName}</Text>
-                                <Text className={classes.schemaCount}>
-                                    {enabledCount}/{entities.length}
-                                </Text>
-                                <div className={classes.schemaDivider} />
-                            </DataGridCell>
-                        );
-                    }}
-                </DataGridRow>
-            );
-        },
-        [classes, collapsedSchemas, toggleSchemaCollapsed, toggleDabEntity],
-    );
-
-    const columns = useMemo<TableColumnDefinition<DabTableRow>[]>(
-        () => [
-            createTableColumn<DabTableRow>({
-                columnId: "checkbox",
-                renderHeaderCell: () => null,
-                renderCell: (item) => {
-                    if (item.type !== "entity") {
-                        return null;
-                    }
-                    return (
-                        <div className={classes.entityCheckboxCell}>
-                            <Checkbox
-                                checked={item.entity.isEnabled}
-                                disabled={!item.entity.isSupported}
-                                aria-label={locConstants.schemaDesigner.enableEntity(
-                                    item.entity.advancedSettings.entityName,
-                                )}
-                                onChange={(_, data) =>
-                                    toggleDabEntity(item.entity.id, data.checked === true)
-                                }
-                            />
-                        </div>
-                    );
-                },
-            }),
-            createTableColumn<DabTableRow>({
-                columnId: "entityName",
-                renderHeaderCell: () => (
-                    <div className={classes.headerCellContent}>
-                        {locConstants.schemaDesigner.entityName}
-                        <Button
-                            appearance="subtle"
-                            icon={getSortIcon(entityColumnSortDirection)}
-                            size="small"
-                            className={classes.sortButton}
-                            onClick={handleEntitySort}
-                            aria-label={getSortAriaLabel(entityColumnSortDirection)}
-                        />
-                    </div>
-                ),
-                renderCell: (item) => {
-                    if (item.type !== "entity") {
-                        return null;
-                    }
-                    const disabledClass = !item.entity.isSupported
-                        ? classes.entityCellUnsupported
-                        : !item.entity.isEnabled
-                          ? classes.entityCellDisabled
-                          : "";
-                    return (
-                        <div className={`${classes.entityNameCell} ${disabledClass}`}>
-                            <Table16Regular />
-                            <Text className={classes.entityName}>
-                                {item.entity.advancedSettings.entityName}
-                            </Text>
-                            {!item.entity.isSupported && item.entity.unsupportedReasons && (
-                                <Tooltip
-                                    content={formatUnsupportedReasons(
-                                        item.entity.unsupportedReasons,
-                                    )}
-                                    relationship="description">
-                                    <span className={classes.warningIconWrapper}>
-                                        <Warning16Regular className={classes.warningIcon} />
-                                    </span>
-                                </Tooltip>
-                            )}
-                        </div>
-                    );
-                },
-            }),
-            createTableColumn<DabTableRow>({
-                columnId: "source",
-                renderHeaderCell: () => (
-                    <div className={classes.headerCellContent}>
-                        {locConstants.schemaDesigner.sourceTable}
-                        <Button
-                            appearance="subtle"
-                            icon={getSortIcon(sourceColumnSortDirection)}
-                            size="small"
-                            className={classes.sortButton}
-                            onClick={handleSourceSort}
-                            aria-label={getSortAriaLabel(sourceColumnSortDirection)}
-                        />
-                    </div>
-                ),
-                renderCell: (item) => {
-                    if (item.type !== "entity") {
-                        return null;
-                    }
-                    const disabledClass = !item.entity.isSupported
-                        ? classes.entityCellUnsupported
-                        : !item.entity.isEnabled
-                          ? classes.entityCellDisabled
-                          : "";
-                    return (
-                        <div className={`${classes.sourceCell} ${disabledClass}`}>
-                            <Text className={classes.sourceText}>
-                                {item.entity.schemaName}.{item.entity.tableName}
-                            </Text>
-                        </div>
-                    );
-                },
-            }),
-            ...allActions.map((action) =>
-                createTableColumn<DabTableRow>({
-                    columnId: action,
-                    renderHeaderCell: () => renderActionHeaderCell(action),
-                    renderCell: (item) => {
-                        if (item.type !== "entity") {
-                            return null;
-                        }
-                        const disabledClass = !item.entity.isSupported
-                            ? classes.entityCellUnsupported
-                            : !item.entity.isEnabled
-                              ? classes.entityCellDisabled
-                              : "";
-                        return (
-                            <div className={disabledClass}>
-                                {renderActionCell(item.entity, action)}
-                            </div>
-                        );
+                        item.entity.advancedSettings.entityName,
+                    ),
+                    disabled: !item.entity.isEnabled || !item.entity.isSupported,
+                    extraClassName: "dab-grid-action-toggle",
+                    dataAttributes: {
+                        "dab-role": "action",
+                        "dab-action": action,
                     },
-                }),
-            ),
-            createTableColumn<DabTableRow>({
-                columnId: "settings",
-                renderHeaderCell: () => null,
-                renderCell: (item) => {
-                    if (item.type !== "entity") {
-                        return null;
-                    }
-                    return (
-                        <Button
-                            appearance="subtle"
-                            icon={<Settings16Regular />}
-                            size="small"
-                            className={classes.settingsButton}
-                            disabled={!item.entity.isEnabled}
-                            onClick={() => setSettingsEntityId(item.entity.id)}
-                            title={locConstants.schemaDesigner.settingsForEntity(
-                                item.entity.advancedSettings.entityName,
-                            )}
-                            aria-label={locConstants.schemaDesigner.settingsForEntity(
-                                item.entity.advancedSettings.entityName,
-                            )}
-                        />
-                    );
-                },
-            }),
+                });
+            },
+        [actionLabels],
+    );
+
+    const settingsFormatter = useCallback<Formatter<DabTreeRow>>(
+        (_row, _cell, _value, _columnDef, item) => {
+            if (!item || item.rowType !== "entity") {
+                return "";
+            }
+
+            return renderSettingsButtonHtml(
+                locConstants.schemaDesigner.settingsForEntity(
+                    item.entity.advancedSettings.entityName,
+                ),
+                !item.entity.isEnabled,
+            );
+        },
+        [],
+    );
+
+    const columns = useMemo<Column<DabTreeRow>[]>(
+        () => [
+            {
+                id: "checkbox",
+                field: "id",
+                name: "",
+                sortable: false,
+                resizable: false,
+                focusable: true,
+                minWidth: 68,
+                maxWidth: 68,
+                formatter: checkboxFormatter,
+                excludeFromColumnPicker: true,
+                excludeFromGridMenu: true,
+                excludeFromHeaderMenu: true,
+                headerCssClass: "dab-header-cell-empty",
+            },
+            {
+                id: "entityName",
+                field: "entityName",
+                name: locConstants.schemaDesigner.entityName,
+                sortable: true,
+                minWidth: 260,
+                formatter: treeFormatter,
+            },
+            {
+                id: "source",
+                field: "source",
+                name: locConstants.schemaDesigner.sourceTable,
+                sortable: true,
+                minWidth: 220,
+                formatter: sourceFormatter,
+            },
+            ...allActions.map((action) => ({
+                id: action,
+                field: "id" as const,
+                name: createActionHeader(action),
+                sortable: false,
+                resizable: false,
+                minWidth: 108,
+                maxWidth: 108,
+                formatter: createActionFormatter(action),
+                excludeFromColumnPicker: true,
+                excludeFromGridMenu: true,
+                excludeFromHeaderMenu: true,
+            })),
+            {
+                id: "settings",
+                field: "id",
+                name: "",
+                sortable: false,
+                resizable: false,
+                minWidth: 54,
+                maxWidth: 54,
+                formatter: settingsFormatter,
+                excludeFromColumnPicker: true,
+                excludeFromGridMenu: true,
+                excludeFromHeaderMenu: true,
+                headerCssClass: "dab-header-cell-empty",
+            },
         ],
         [
-            classes,
             allActions,
-            toggleDabEntity,
-            renderActionHeaderCell,
-            renderActionCell,
-            setSettingsEntityId,
-            entityColumnSortDirection,
-            sourceColumnSortDirection,
-            handleEntitySort,
-            handleSourceSort,
+            checkboxFormatter,
+            createActionFormatter,
+            createActionHeader,
+            settingsFormatter,
+            sourceFormatter,
         ],
+    );
+
+    const gridOptions = useMemo<GridOption>(
+        () => ({
+            ...baseFluentReadOnlyGridOption,
+            autoResize: createFluentAutoResizeOptions("#dab-entity-grid-container", {
+                autoHeight: false,
+                bottomPadding: 8,
+                minHeight: 220,
+            }),
+            enableAutoResize: true,
+            enableCellNavigation: true,
+            enableExcelCopyBuffer: false,
+            enableSorting: true,
+            multiColumnSort: false,
+            rowHeight: 32,
+            enableTreeData: true,
+            treeDataOptions: {
+                columnId: "entityName",
+                childrenPropName: "children",
+                collapsedPropName: "__collapsed",
+                hasChildrenPropName: "hasChildren",
+                titleFormatter: renderTreeTitle,
+                indentMarginLeft: 16,
+            },
+        }),
+        [renderTreeTitle],
+    );
+
+    const handleGridClick = useCallback(
+        (event: Event, args: { dataContext?: DabTreeRow }) => {
+            const target = (event.target as HTMLElement | null)?.closest<HTMLElement>(
+                "[data-dab-role]",
+            );
+            const item = args.dataContext;
+
+            if (!target || !item) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (target.dataset.dabRole === "checkbox") {
+                if (item.rowType === "schema") {
+                    const supportedEntities = item.entities.filter((entity) => entity.isSupported);
+                    const enabledCount = supportedEntities.filter(
+                        (entity) => entity.isEnabled,
+                    ).length;
+                    const shouldEnable =
+                        getToggleState(supportedEntities.length, enabledCount) !== "checked";
+
+                    for (const entity of supportedEntities) {
+                        toggleDabEntity(entity.id, shouldEnable);
+                    }
+                    return;
+                }
+
+                if (item.rowType === "entity") {
+                    toggleDabEntity(item.entity.id, !item.entity.isEnabled);
+                    return;
+                }
+
+                toggleDabColumnExposure(item.entity.id, item.column.id, !item.column.isExposed);
+                return;
+            }
+
+            if (target.dataset.dabRole === "action" && item.rowType === "entity") {
+                const action = target.dataset.dabAction as Dab.EntityAction | undefined;
+                if (!action) {
+                    return;
+                }
+
+                toggleDabEntityAction(
+                    item.entity.id,
+                    action,
+                    !item.entity.enabledActions.includes(action),
+                );
+                return;
+            }
+
+            if (target.dataset.dabRole === "settings" && item.rowType === "entity") {
+                setSettingsEntityId(item.entity.id);
+            }
+        },
+        [toggleDabColumnExposure, toggleDabEntity, toggleDabEntityAction],
+    );
+
+    const handleTreeItemToggled = useCallback(
+        (_event: CustomEvent, change: TreeToggleStateChange) => {
+            if (!Array.isArray(change.toggledItems)) {
+                return;
+            }
+
+            setCollapsedRows((previous) => {
+                const next = new Map(previous);
+                for (const toggledItem of change.toggledItems ?? []) {
+                    next.set(String(toggledItem.itemId), toggledItem.isCollapsed);
+                }
+                return next;
+            });
+        },
+        [],
     );
 
     if (filteredEntities.length === 0) {
         return (
-            <div className={classes.emptyState}>
+            <div className="dab-entity-grid-empty-state">
                 <Text>{locConstants.schemaDesigner.noEntitiesFound}</Text>
             </div>
         );
@@ -652,39 +659,17 @@ export const DabEntityTable = () => {
 
     return (
         <>
-            <DataGrid
-                className={classes.grid}
-                items={tableRows}
-                columns={columns}
-                columnSizingOptions={columnSizingOptions}
-                resizableColumns
-                focusMode="composite"
-                size="small"
-                getRowId={(item) =>
-                    item.type === "schema" ? `schema-${item.schemaName}` : item.entity.id
-                }>
-                <DataGridHeader className={classes.header}>
-                    <DataGridRow>
-                        {({ renderHeaderCell }) => (
-                            <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>
-                        )}
-                    </DataGridRow>
-                </DataGridHeader>
-                <DataGridBody<DabTableRow>>
-                    {({ item, rowId }) => {
-                        if (item.type === "schema") {
-                            return renderSchemaRow(rowId, item.schemaName, item.entities);
-                        }
-                        return (
-                            <DataGridRow key={rowId} className={classes.rowNoHighlight}>
-                                {({ renderCell }) => (
-                                    <DataGridCell>{renderCell(item)}</DataGridCell>
-                                )}
-                            </DataGridRow>
-                        );
-                    }}
-                </DataGridBody>
-            </DataGrid>
+            <div id="dab-entity-grid-container" className="dab-entity-grid-container">
+                <FluentSlickGrid
+                    gridId="dab-entity-grid"
+                    columns={columns}
+                    dataset={[]}
+                    datasetHierarchical={treeRows}
+                    options={gridOptions}
+                    onClick={handleGridClick}
+                    onTreeItemToggled={handleTreeItemToggled}
+                />
+            </div>
 
             {settingsEntity && (
                 <DabEntitySettingsDialog

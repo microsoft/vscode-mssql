@@ -156,6 +156,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                     this.schemaDesignerCache.set(this._key, {
                         schemaDesignerDetails: sessionResponse,
                         baselineSchema: sessionResponse.schema,
+                        dabConfig: undefined,
                         isDirty: false,
                     });
                 } else {
@@ -456,6 +457,16 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             });
         });
 
+        this.onRequest(Dab.GetCachedConfigRequest.type, async () => {
+            return {
+                config: this.schemaDesignerCache.get(this._key)?.dabConfig,
+            };
+        });
+
+        this.onNotification(Dab.CacheConfigNotification.type, async (payload) => {
+            this.updateCacheItem(undefined, undefined, payload.config);
+        });
+
         this.onNotification(Dab.OpenConfigInEditorNotification.type, async (payload) => {
             const doc = await vscode.workspace.openTextDocument({
                 content: payload.configContent,
@@ -651,6 +662,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     private updateCacheItem(
         updatedSchema?: SchemaDesigner.Schema,
         isDirty?: boolean,
+        dabConfig?: Dab.DabConfig,
     ): SchemaDesigner.SchemaDesignerCacheItem {
         let schemaDesignerCacheItem = this.schemaDesignerCache.get(this._key);
         if (!schemaDesignerCacheItem) {
@@ -668,6 +680,9 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         if (updatedSchema) {
             this.schemaDesignerDetails!.schema = updatedSchema;
             schemaDesignerCacheItem.schemaDesignerDetails.schema = updatedSchema;
+        }
+        if (dabConfig) {
+            schemaDesignerCacheItem.dabConfig = dabConfig;
         }
         // if isDirty is not provided, set it to schemaDesignerCacheItem.isDirty
         // else, set it to the provided value

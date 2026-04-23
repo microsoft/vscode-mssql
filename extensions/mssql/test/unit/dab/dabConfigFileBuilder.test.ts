@@ -21,6 +21,22 @@ function createTestEntity(overrides?: Partial<Dab.DabEntityConfig>): Dab.DabEnti
             Dab.EntityAction.Update,
             Dab.EntityAction.Delete,
         ],
+        columns: [
+            {
+                id: "test-id-1-column-id",
+                name: "Id",
+                dataType: "int",
+                isSupported: true,
+                isExposed: true,
+            },
+            {
+                id: "test-id-1-column-name",
+                name: "Name",
+                dataType: "nvarchar",
+                isSupported: true,
+                isExposed: true,
+            },
+        ],
         advancedSettings: {
             entityName: "Users",
             authorizationRole: Dab.AuthorizationRole.Anonymous,
@@ -465,6 +481,62 @@ suite("DabConfigFileBuilder Tests", () => {
                 const result = builder.build(config, defaultConnectionInfo);
                 const parsed = JSON.parse(result);
                 expect(parsed.entities["Users"].permissions[0].actions).to.deep.equal([]);
+            });
+
+            test("should emit field exclusions for hidden columns on create/read/update", () => {
+                const config = createTestConfig({
+                    entities: [
+                        createTestEntity({
+                            enabledActions: [
+                                Dab.EntityAction.Create,
+                                Dab.EntityAction.Read,
+                                Dab.EntityAction.Update,
+                                Dab.EntityAction.Delete,
+                            ],
+                            columns: [
+                                {
+                                    id: "id",
+                                    name: "Id",
+                                    dataType: "int",
+                                    isSupported: true,
+                                    isExposed: true,
+                                },
+                                {
+                                    id: "secret",
+                                    name: "SecretValue",
+                                    dataType: "nvarchar",
+                                    isSupported: true,
+                                    isExposed: false,
+                                },
+                            ],
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+
+                expect(parsed.entities["Users"].permissions[0].actions).to.deep.equal([
+                    {
+                        action: "create",
+                        fields: {
+                            exclude: ["SecretValue"],
+                        },
+                    },
+                    {
+                        action: "read",
+                        fields: {
+                            exclude: ["SecretValue"],
+                        },
+                    },
+                    {
+                        action: "update",
+                        fields: {
+                            exclude: ["SecretValue"],
+                        },
+                    },
+                    "delete",
+                ]);
             });
         });
 

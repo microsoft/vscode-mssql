@@ -825,6 +825,15 @@ suite("SchemaDesignerWebviewController tests", () => {
                         Dab.EntityAction.Update,
                         Dab.EntityAction.Delete,
                     ],
+                    columns: [
+                        {
+                            id: "1-id",
+                            name: "Id",
+                            dataType: "int",
+                            isSupported: true,
+                            isExposed: true,
+                        },
+                    ],
                     advancedSettings: {
                         entityName: "Users",
                         authorizationRole: Dab.AuthorizationRole.Anonymous,
@@ -919,6 +928,30 @@ suite("SchemaDesignerWebviewController tests", () => {
                 expect(parsedConfig["data-source"]["connection-string"]).to.equal(
                     remoteConnectionString,
                 );
+            });
+        });
+
+        suite("Cached config handlers", () => {
+            test("should register GetCachedConfigRequest and CacheConfigNotification handlers", () => {
+                createController();
+
+                expect(requestHandlers.has(Dab.GetCachedConfigRequest.type.method)).to.be.true;
+                expect(notificationHandlers.has(Dab.CacheConfigNotification.type.method)).to.be
+                    .true;
+            });
+
+            test("should cache and return DAB config", async () => {
+                createController();
+
+                const cacheHandler = notificationHandlers.get(
+                    Dab.CacheConfigNotification.type.method,
+                );
+                const getHandler = requestHandlers.get(Dab.GetCachedConfigRequest.type.method);
+
+                await cacheHandler({ config: mockDabConfig });
+                const result = await getHandler(undefined);
+
+                expect(result.config).to.deep.equal(mockDabConfig);
             });
         });
 

@@ -1410,6 +1410,18 @@ export class LocConstants {
                     args: [entityName],
                     comment: ["{0} is the entity name"],
                 }),
+            toggleEntityColumns: (entityName: string) =>
+                l10n.t({
+                    message: "Toggle columns for {0}",
+                    args: [entityName],
+                    comment: ["{0} is the entity name"],
+                }),
+            exposeColumn: (columnName: string) =>
+                l10n.t({
+                    message: "Expose {0}",
+                    args: [columnName],
+                    comment: ["{0} is the backing database column name"],
+                }),
             actionForEntity: (action: string, entityName: string) =>
                 l10n.t({
                     message: "{0} action for {1}",

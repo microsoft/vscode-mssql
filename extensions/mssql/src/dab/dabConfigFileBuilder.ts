@@ -38,14 +38,21 @@ interface DabRuntimeConfig {
  */
 interface DabEntityOutput {
     source: { type: string; object: string };
-    rest: boolean | { path: string };
-    graphql: boolean | { type: string };
+    rest: boolean | { path: string } | undefined;
+    graphql: boolean | { type: string } | undefined;
     permissions: DabPermissionEntry[];
 }
 
 interface DabPermissionEntry {
     role: string;
-    actions: string[];
+    actions: Array<string | DabPermissionAction>;
+}
+
+interface DabPermissionAction {
+    action: string;
+    fields?: {
+        exclude: string[];
+    };
 }
 
 export class DabConfigFileBuilder {
@@ -58,7 +65,7 @@ export class DabConfigFileBuilder {
      */
     public build(config: Dab.DabConfig, connectionInfo: Dab.DabConnectionInfo): string {
         const dabOutput = this.buildDabConfigFile(config, connectionInfo);
-        return JSON.stringify(dabOutput, null, 2);
+        return JSON.stringify(dabOutput, undefined, 2);
     }
 
     /**
@@ -159,8 +166,8 @@ export class DabConfigFileBuilder {
         isRestEnabled: boolean,
         isGraphQLEnabled: boolean,
     ): DabEntityOutput {
-        const restConfig = isRestEnabled ? this.buildRestProperty(entity) : undefined;
-        const graphqlConfig = isGraphQLEnabled ? this.buildGraphQLProperty(entity) : undefined;
+        const restConfig = isRestEnabled ? this.buildRestProperty(entity) : false;
+        const graphqlConfig = isGraphQLEnabled ? this.buildGraphQLProperty(entity) : false;
         return {
             source: {
                 type: "table",
@@ -212,10 +219,23 @@ export class DabConfigFileBuilder {
      * @returns The permissions for the entity.
      */
     private buildPermissions(entity: Dab.DabEntityConfig): DabPermissionEntry[] {
+        const hiddenColumns = entity.columns
+            .filter((column) => !column.isExposed)
+            .map((column) => column.name);
+
         return [
             {
                 role: entity.advancedSettings.authorizationRole,
-                actions: [...entity.enabledActions],
+                actions: entity.enabledActions.map((action) =>
+                    hiddenColumns.length > 0 && action !== Dab.EntityAction.Delete
+                        ? {
+                              action,
+                              fields: {
+                                  exclude: [...hiddenColumns],
+                              },
+                          }
+                        : action,
+                ),
             },
         ];
     }

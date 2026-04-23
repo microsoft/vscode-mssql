@@ -399,7 +399,7 @@ suite("DabTool Tests", () => {
             sandbox.stub(mockDesigner as any, "database").get(() => "AdventureWorks");
             mockDesigner.applyDabToolChanges.resolves({
                 success: true,
-                appliedChanges: 6,
+                appliedChanges: 7,
                 returnState: "none",
                 stateOmittedReason: "caller_requested_none",
                 version: "dabcfg_after",
@@ -429,6 +429,12 @@ suite("DabTool Tests", () => {
                                 enabledActions: [Dab.EntityAction.Read],
                             },
                             {
+                                type: "set_column_exposed",
+                                entity: { id: "t1" },
+                                column: { name: "SecretValue" },
+                                isExposed: false,
+                            },
+                            {
                                 type: "patch_entity_settings",
                                 entity: { id: "t1" },
                                 set: { authorizationRole: Dab.AuthorizationRole.Authenticated },
@@ -449,6 +455,7 @@ suite("DabTool Tests", () => {
                 setApiTypesCount: 1,
                 setEntityEnabledCount: 1,
                 setEntityActionsCount: 1,
+                setColumnExposedCount: 1,
                 patchEntitySettingsCount: 1,
                 setOnlyEnabledEntitiesCount: 1,
                 setAllEntitiesEnabledCount: 1,
@@ -966,6 +973,52 @@ suite("DabTool Tests", () => {
             expect(result.message).to.equal("enabledActions contains unsupported values.");
             expect(result.failedChangeIndex).to.equal(0);
             expect(result.appliedChanges).to.equal(0);
+            expect(harness.commitSpy.calledOnce).to.equal(true);
+        });
+
+        test("apply_changes updates column exposure by column name", async () => {
+            const harness = createDabHandlerHarness({
+                tables: [
+                    {
+                        ...createTable("t1", "dbo", "Users"),
+                        columns: [
+                            {
+                                id: "t1-id",
+                                name: "Id",
+                                dataType: "int",
+                                isPrimaryKey: true,
+                            } as SchemaDesigner.Column,
+                            {
+                                id: "t1-secret",
+                                name: "SecretValue",
+                                dataType: "nvarchar",
+                                isPrimaryKey: false,
+                            } as SchemaDesigner.Column,
+                        ],
+                    },
+                ],
+                dabConfig: null,
+            });
+            const state = await harness.getState();
+            harness.commitSpy.resetHistory();
+
+            const result = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [
+                    {
+                        type: "set_column_exposed",
+                        entity: { id: "t1" },
+                        column: { name: "SecretValue" },
+                        isExposed: false,
+                    },
+                ],
+            });
+
+            expect(result.success).to.equal(true);
+            const entity = harness.getConfig()?.entities.find((candidate) => candidate.id === "t1");
+            expect(
+                entity?.columns.find((column) => column.name === "SecretValue")?.isExposed,
+            ).to.equal(false);
             expect(harness.commitSpy.calledOnce).to.equal(true);
         });
 

@@ -1,0 +1,142 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.dab-entity-grid-container {
+    width: 100%;
+    min-height: 220px;
+}
+
+.dab-entity-grid-empty-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    color: var(--vscode-descriptionForeground);
+}
+
+.dab-entity-grid-container .slickgrid-container {
+    border: 1px solid var(--vscode-editorWidget-border);
+    border-radius: 4px;
+}
+
+.dab-entity-grid-container .slick-cell {
+    align-items: center;
+    display: inline-flex;
+}
+
+.dab-entity-grid-container .slick-header-column {
+    display: inline-flex;
+    align-items: center;
+}
+
+.dab-entity-grid-container .slick-column-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dab-tree-title {
+    align-items: center;
+    display: inline-flex;
+    gap: 6px;
+    min-width: 0;
+}
+
+.dab-tree-title-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dab-tree-title-schema .dab-tree-title-label,
+.dab-tree-title-entity .dab-tree-title-label {
+    font-weight: 600;
+}
+
+.dab-tree-title-column .dab-tree-title-label,
+.dab-source-type {
+    font-size: 12px;
+}
+
+.dab-tree-pill {
+    background-color: var(--vscode-badge-background);
+    border-radius: 999px;
+    color: var(--vscode-badge-foreground);
+    font-size: 11px;
+    line-height: 1;
+    padding: 2px 6px;
+}
+
+.dab-tree-warning {
+    color: var(--vscode-editorWarning-foreground);
+    font-weight: 700;
+}
+
+.dab-tone-disabled {
+    opacity: 0.6;
+}
+
+.dab-tone-unsupported {
+    opacity: 0.4;
+}
+
+.dab-source-text {
+    color: var(--vscode-descriptionForeground);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dab-grid-toggle,
+.dab-grid-icon-button {
+    align-items: center;
+    background: var(--vscode-checkbox-background, transparent);
+    border: 1px solid var(--vscode-checkbox-border, var(--vscode-editorWidget-border));
+    border-radius: 3px;
+    color: var(--vscode-checkbox-foreground, var(--vscode-editor-foreground));
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 11px;
+    height: 18px;
+    justify-content: center;
+    line-height: 1;
+    padding: 0;
+    width: 18px;
+}
+
+.dab-grid-icon-button {
+    font-size: 12px;
+    width: 24px;
+}
+
+.dab-grid-toggle.is-checked,
+.dab-grid-toggle.is-mixed {
+    background: var(--vscode-button-background);
+    border-color: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+}
+
+.dab-grid-toggle:disabled,
+.dab-grid-icon-button:disabled {
+    cursor: default;
+    opacity: 0.5;
+}
+
+.dab-action-header {
+    align-items: center;
+    display: inline-flex;
+    gap: 6px;
+}
+
+.dab-action-header-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dab-header-cell-empty .slick-column-name {
+    display: none;
+}

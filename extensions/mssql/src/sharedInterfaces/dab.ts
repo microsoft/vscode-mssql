@@ -61,6 +61,32 @@ export namespace Dab {
     }
 
     /**
+     * Represents exposure state for a single backing database column.
+     */
+    export interface DabColumnConfig {
+        /**
+         * Unique identifier for the column (matches schema column id)
+         */
+        id: string;
+        /**
+         * Backing database column name
+         */
+        name: string;
+        /**
+         * Column data type, used for display only
+         */
+        dataType: string;
+        /**
+         * Whether the column can be safely exposed through DAB.
+         */
+        isSupported: boolean;
+        /**
+         * Whether the column is currently exposed in the generated DAB config.
+         */
+        isExposed: boolean;
+    }
+
+    /**
      * Represents a table entity configured for DAB
      */
     export interface DabEntityConfig {
@@ -95,6 +121,10 @@ export namespace Dab {
          * Enabled CRUD actions for this entity
          */
         enabledActions: EntityAction[];
+        /**
+         * Column exposure state for backing database columns.
+         */
+        columns: DabColumnConfig[];
         /**
          * Advanced settings for this entity
          */
@@ -230,6 +260,8 @@ export namespace Dab {
      */
     export type DabEntityRef = { id: string } | { schemaName: string; tableName: string };
 
+    export type DabColumnRef = { id: string } | { name: string };
+
     export type DabEntitySettingsPatch = Partial<
         Omit<EntityAdvancedSettings, "customRestPath" | "customGraphQLType">
     > & {
@@ -241,6 +273,12 @@ export namespace Dab {
         | { type: "set_api_types"; apiTypes: ApiType[] }
         | { type: "set_entity_enabled"; entity: DabEntityRef; isEnabled: boolean }
         | { type: "set_entity_actions"; entity: DabEntityRef; enabledActions: EntityAction[] }
+        | {
+              type: "set_column_exposed";
+              entity: DabEntityRef;
+              column: DabColumnRef;
+              isExposed: boolean;
+          }
         | { type: "patch_entity_settings"; entity: DabEntityRef; set: DabEntitySettingsPatch }
         | { type: "set_only_enabled_entities"; entities: DabEntityRef[] }
         | { type: "set_all_entities_enabled"; isEnabled: boolean };
@@ -316,6 +354,24 @@ export namespace Dab {
         >("dab/tool/applyChanges");
     }
 
+    export interface GetCachedConfigResponse {
+        config?: DabConfig;
+    }
+
+    export namespace GetCachedConfigRequest {
+        export const type = new RequestType<void, GetCachedConfigResponse, void>(
+            "dab/getCachedConfig",
+        );
+    }
+
+    export interface CacheConfigParams {
+        config: DabConfig;
+    }
+
+    export namespace CacheConfigNotification {
+        export const type = new NotificationType<CacheConfigParams>("dab/cacheConfig");
+    }
+
     // ============================================
     // Notifications (Webview -> Extension)
     // ============================================
@@ -382,6 +438,7 @@ export namespace Dab {
         updateApiTypes: { apiTypes: ApiType[] };
         toggleEntity: { entityId: string; isEnabled: boolean };
         toggleEntityAction: { entityId: string; action: EntityAction; isEnabled: boolean };
+        toggleEntityColumnExposure: { entityId: string; columnId: string; isExposed: boolean };
         updateEntityAdvancedSettings: { entityId: string; settings: EntityAdvancedSettings };
         setSchemaFilter: { schemaName: string };
     }
@@ -852,6 +909,28 @@ export namespace Dab {
     }
 
     /**
+     * Determines whether an individual column is supported by DAB.
+     */
+    export function isColumnSupportedForDab(column: SchemaDesigner.Column): boolean {
+        return !(
+            column.dataType && DAB_UNSUPPORTED_DATA_TYPES.includes(column.dataType.toLowerCase())
+        );
+    }
+
+    /**
+     * Creates default column exposure configuration from a schema column.
+     */
+    export function createDefaultColumnConfig(column: SchemaDesigner.Column): DabColumnConfig {
+        return {
+            id: column.id,
+            name: column.name,
+            dataType: column.dataType,
+            isSupported: isColumnSupportedForDab(column),
+            isExposed: true,
+        };
+    }
+
+    /**
      * Creates default entity configuration from a schema table
      */
     export function createDefaultEntityConfig(table: SchemaDesigner.Table): DabEntityConfig {
@@ -869,6 +948,7 @@ export namespace Dab {
                 EntityAction.Update,
                 EntityAction.Delete,
             ],
+            columns: table.columns.map((column) => createDefaultColumnConfig(column)),
             advancedSettings: {
                 entityName: table.name,
                 authorizationRole: AuthorizationRole.Anonymous,
@@ -882,16 +962,63 @@ export namespace Dab {
         return reasons?.map((reason) => ({ ...reason }));
     }
 
+    function cloneColumns(columns: DabColumnConfig[]): DabColumnConfig[] {
+        return columns.map((column) => ({ ...column }));
+    }
+
     function cloneConfig(config: DabConfig): DabConfig {
         return {
             apiTypes: [...config.apiTypes],
             entities: config.entities.map((entity) => ({
                 ...entity,
                 enabledActions: [...entity.enabledActions],
+                columns: cloneColumns(entity.columns),
                 unsupportedReasons: cloneUnsupportedReasons(entity.unsupportedReasons),
                 advancedSettings: { ...entity.advancedSettings },
             })),
         };
+    }
+
+    function syncColumnsWithTable(
+        existingColumns: DabColumnConfig[],
+        tableColumns: SchemaDesigner.Column[],
+    ): { columns: DabColumnConfig[]; changed: boolean } {
+        let changed = false;
+        const existingById = new Map(existingColumns.map((column) => [column.id, column]));
+        const syncedColumns: DabColumnConfig[] = [];
+
+        for (const tableColumn of tableColumns) {
+            const existingColumn = existingById.get(tableColumn.id);
+            if (!existingColumn) {
+                syncedColumns.push(createDefaultColumnConfig(tableColumn));
+                changed = true;
+                continue;
+            }
+
+            const syncedColumn: DabColumnConfig = {
+                ...existingColumn,
+                name: tableColumn.name,
+                dataType: tableColumn.dataType,
+                isSupported: isColumnSupportedForDab(tableColumn),
+            };
+
+            if (
+                existingColumn.name !== syncedColumn.name ||
+                existingColumn.dataType !== syncedColumn.dataType ||
+                existingColumn.isSupported !== syncedColumn.isSupported
+            ) {
+                changed = true;
+            }
+
+            syncedColumns.push(syncedColumn);
+            existingById.delete(tableColumn.id);
+        }
+
+        if (existingById.size > 0) {
+            changed = true;
+        }
+
+        return { columns: syncedColumns, changed };
     }
 
     export function syncEntityConfigWithTable(
@@ -899,12 +1026,14 @@ export namespace Dab {
         table: SchemaDesigner.Table,
     ): DabEntityConfig {
         const { isSupported, reasons } = validateTableForDab(table);
+        const syncedColumns = syncColumnsWithTable(entity.columns, table.columns ?? []);
         return {
             ...entity,
             tableName: table.name,
             schemaName: table.schema,
             isSupported,
             unsupportedReasons: reasons,
+            columns: syncedColumns.columns,
             // Unsupported entities must remain disabled until the schema is fixed.
             isEnabled: !isSupported ? false : entity.isEnabled,
         };
@@ -937,6 +1066,7 @@ export namespace Dab {
                 entity.tableName !== syncedEntity.tableName ||
                 entity.schemaName !== syncedEntity.schemaName ||
                 entity.isSupported !== syncedEntity.isSupported ||
+                JSON.stringify(entity.columns) !== JSON.stringify(syncedEntity.columns) ||
                 JSON.stringify(entity.unsupportedReasons) !==
                     JSON.stringify(syncedEntity.unsupportedReasons) ||
                 entity.isEnabled !== syncedEntity.isEnabled
