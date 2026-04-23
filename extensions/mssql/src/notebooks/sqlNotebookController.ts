@@ -134,19 +134,21 @@ export class SqlNotebookController implements vscode.Disposable {
                         `[onDidChangeSelectedNotebooks] Selected for ${notebook.uri.toString()}`,
                     );
                     this.ensureSqlCellLanguage(notebook);
-                    void this.ensureSqlNotebookMetadata(notebook);
                     this.updateStatusBar(notebook);
                 }
             }),
         );
 
-        // When a notebook is saved, persist connection metadata under the
-        // final file URI. This handles the case where a notebook was created
-        // as untitled (different URI) and then saved to disk.
+        // On save: persist connection metadata under the final file URI
+        // (handles untitled → file URI change) and heal notebook-level
+        // kernelspec/language_info so the next save writes SQL metadata to
+        // the .ipynb. We defer the heal to save time (rather than kernel
+        // selection) to avoid dirtying notebooks the user hasn't touched.
         this.disposables.push(
             vscode.workspace.onDidSaveNotebookDocument((notebook) => {
                 this.rekeyConnectionOnSave(notebook);
                 this.saveConnectionMetadataIfConnected(notebook);
+                void this.ensureSqlNotebookMetadata(notebook);
             }),
         );
 
@@ -199,8 +201,13 @@ export class SqlNotebookController implements vscode.Disposable {
         const metadata = notebook.metadata;
 
         // The ipynb serializer stores notebook-level metadata under
-        // notebook.metadata.metadata (see vscode/extensions/ipynb).
-        const kernelspec = metadata?.metadata?.kernelspec;
+        // notebook.metadata.metadata (see vscode/extensions/ipynb). Also
+        // check top-level and legacy `custom` shapes defensively in case
+        // other extensions construct metadata differently.
+        const kernelspec =
+            metadata?.metadata?.kernelspec ??
+            metadata?.kernelspec ??
+            metadata?.custom?.metadata?.kernelspec;
 
         if (kernelspec) {
             const name = String(kernelspec.name ?? "").toLowerCase();
@@ -220,7 +227,10 @@ export class SqlNotebookController implements vscode.Disposable {
             }
         }
 
-        const languageInfo = metadata?.metadata?.language_info;
+        const languageInfo =
+            metadata?.metadata?.language_info ??
+            metadata?.language_info ??
+            metadata?.custom?.metadata?.language_info;
 
         if (languageInfo?.name?.toLowerCase() === "sql") {
             this.log.info(
@@ -281,15 +291,25 @@ export class SqlNotebookController implements vscode.Disposable {
         if (name === "sql-notebook") {
             return;
         }
+        // Deep-merge the inner `metadata` bag so unrelated Jupyter metadata
+        // keys (e.g. author, title) survive the edit.
+        const sqlMetadata = sqlNotebookMetadata();
+        const mergedMetadata = {
+            ...notebook.metadata,
+            metadata: {
+                ...notebook.metadata?.metadata,
+                ...(sqlMetadata.metadata as Record<string, unknown>),
+            },
+        };
         const edit = new vscode.WorkspaceEdit();
-        edit.set(notebook.uri, [
-            vscode.NotebookEdit.updateNotebookMetadata({
-                ...notebook.metadata,
-                ...sqlNotebookMetadata(),
-            }),
-        ]);
+        edit.set(notebook.uri, [vscode.NotebookEdit.updateNotebookMetadata(mergedMetadata)]);
         try {
-            await vscode.workspace.applyEdit(edit);
+            const applied = await vscode.workspace.applyEdit(edit);
+            if (!applied) {
+                this.log.warn(
+                    `[ensureSqlNotebookMetadata] applyEdit was rejected for ${notebook.uri.toString()}`,
+                );
+            }
         } catch (err) {
             this.log.warn(
                 `[ensureSqlNotebookMetadata] Failed to update metadata for ${notebook.uri.toString()}: ${(err as Error)?.message ?? err}`,
