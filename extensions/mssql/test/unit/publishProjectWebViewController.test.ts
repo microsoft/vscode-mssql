@@ -1521,7 +1521,7 @@ suite("PublishProjectWebViewController Tests", () => {
         controller.state.formState.containerPort = "1433";
 
         // Simulate port in use: findAvailablePort returns a different port
-        sandbox.stub(dockerUtils, "findAvailablePort").resolves(1434);
+        (dockerUtils.findAvailablePort as sinon.SinonStub).resolves(1434);
 
         // Stub parent validateForm to return no errors
         sandbox
