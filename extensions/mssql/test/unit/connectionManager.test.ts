@@ -778,7 +778,9 @@ suite("ConnectionManager Tests", () => {
             );
         });
 
-        test("uses VS Code account tokens when VS Code account mode is enabled", async () => {
+        // TODO: Benjin - skipping this test as the STS-driven token acquisition flow is validated,
+        // since this test validates the flow where VS Code pushes tokens in.  That model was dropped because it didn't support refreshing expired tokens.
+        test.skip("uses VS Code account tokens when VS Code account mode is enabled", async () => {
             stubPreviewService(sandbox, {
                 [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
             });
