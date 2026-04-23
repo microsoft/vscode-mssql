@@ -123,8 +123,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
             },
         );
 
-        // Fire port detection immediately so it runs in the background while the dialog initializes.
-        this._preloadedContainerPort = dockerUtils.findAvailablePort(constants.defaultPortNumber);
         this._sqlProjectsService = sqlProjectsService;
         this._dacFxService = dacFxService;
         this._sqlPackageService = sqlPackageService;
@@ -156,6 +154,10 @@ export class PublishProjectWebViewController extends FormWebviewController<
             .then(() => {
                 this.updateState();
                 this.initialized.resolve();
+                // Start port detection after dialog is showing to avoid blocking constructor.
+                this._preloadedContainerPort = dockerUtils.findAvailablePort(
+                    constants.defaultPortNumber,
+                );
             })
             .catch((err) => {
                 this.logger.error(
@@ -1663,10 +1665,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 this._connectionUri = undefined;
                 this._serverTypes = "";
 
+                // Kick off port detection if not already started.
+                if (!this._preloadedContainerPort) {
+                    this._preloadedContainerPort = dockerUtils.findAvailablePort(
+                        constants.defaultPortNumber,
+                    );
+                }
                 // Use pre-fetched port if available, otherwise fetch live.
-                const availablePort = this._preloadedContainerPort
-                    ? await this._preloadedContainerPort
-                    : await dockerUtils.findAvailablePort(constants.defaultPortNumber);
+                const availablePort = await this._preloadedContainerPort;
                 this.state.formState.containerPort =
                     availablePort > 0 ? String(availablePort) : String(constants.defaultPortNumber);
             } else if (this.state.formState.publishTarget === PublishTarget.ExistingServer) {
@@ -1742,7 +1748,12 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 if (String(this.state.formState.containerPort).trim() !== portStr) {
                     return erroredInputs;
                 }
-                if (availablePort !== portNum) {
+                // findAvailablePort returns -1 on error (e.g., Docker not running).
+                // Skip validation in that case to avoid false "port in use" errors.
+                if (availablePort === -1) {
+                    // Clear any previous validation state when we can't check.
+                    portComponent.validation = { isValid: true, validationMessage: "" };
+                } else if (availablePort !== portNum) {
                     portComponent.validation = {
                         isValid: false,
                         validationMessage: Loc.PortAlreadyInUse(portNum),
