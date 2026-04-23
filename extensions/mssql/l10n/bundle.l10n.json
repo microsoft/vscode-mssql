@@ -910,6 +910,14 @@
         "message": "Enable {0}",
         "comment": ["{0} is the entity name"]
     },
+    "Toggle columns for {0}/{0} is the entity name": {
+        "message": "Toggle columns for {0}",
+        "comment": ["{0} is the entity name"]
+    },
+    "Expose {0}/{0} is the backing database column name": {
+        "message": "Expose {0}",
+        "comment": ["{0} is the backing database column name"]
+    },
     "{0} action for {1}/{0} is the action name (Create, Read, etc.){1} is the entity name": {
         "message": "{0} action for {1}",
         "comment": ["{0} is the action name (Create, Read, etc.)", "{1} is the entity name"]
