@@ -858,7 +858,7 @@ suite("SqlNotebookController", () => {
             sandbox = sinon.createSandbox();
 
             const mockNotebook = makeNotebook([], {
-                kernelspec: { name: "sql", display_name: "SQL" },
+                metadata: { kernelspec: { name: "sql", display_name: "SQL" } },
             });
 
             // Re-stub everything
