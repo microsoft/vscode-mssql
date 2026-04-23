@@ -27,24 +27,24 @@ The MSSQL extension provides a rich set of capabilities for SQL development. Eac
 
 Features that have moved from Public Preview to general availability.
 
-| Capability | Description |
-| --- | --- |
-| [Connection Dialog](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#connection-dialog) | Connect using parameters, connection strings, or Azure/Fabric browse. Organize connections with color-coded groups |
-| [Object Explorer](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#object-explorer-filtering) | Browse and filter database objects with type-aware search |
-| [Database Object Search](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-database-operations#database-object-search) | Search for tables, views, stored procedures, and other objects across a database |
-| [Fabric integration](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-fabric-integration) | Browse Fabric workspaces and provision SQL databases |
-| [Query Results](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#query-results-pane) | View, sort, copy, and export query results |
-| [Query Plan Visualizer](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#query-plan-visualizer) | Analyze execution plans with interactive node navigation |
-| [Query Profiler](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-query-profiler) | Real-time database activity monitoring with Extended Events |
-| [Table Designer](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#table-designer) | Create and manage tables with a visual interface |
-| [Schema Designer](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-schema-designer) | Visual schema modeling with drag-and-drop, auto-layout, and T-SQL script generation |
-| [Schema Compare](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-schema-compare) | Compare and synchronize schemas between databases or DACPACs |
-| [View & Edit Data](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#view--edit-data) | Browse and modify table data inline without writing T-SQL |
-| [Database Operations](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-database-operations) | Rename, back up, restore, import data from flat files, and drop databases from Object Explorer |
-| [DACPAC/BACPAC Operations](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-data-tier-application) | Publish/extract database schema with `.dacpac` files and import/export schema + data with `.bacpac` files |
-| [SQL Database Projects](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code) | Build, publish with the visual Publish Dialog, and analyze SQL projects with Code Analysis |
-| [GitHub Copilot integration](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/github-copilot/overview) | AI-assisted SQL development with natural language chat and agent mode |
-| [Local SQL Server container](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-local-container) | Create and manage SQL Server containers locally |
+| Capability                                                                                                                                                  | Description                                                                                                        |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| [Connection Dialog](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#connection-dialog)         | Connect using parameters, connection strings, or Azure/Fabric browse. Organize connections with color-coded groups |
+| [Object Explorer](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#object-explorer-filtering)   | Browse and filter database objects with type-aware search                                                          |
+| [Database Object Search](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-database-operations#database-object-search)        | Search for tables, views, stored procedures, and other objects across a database                                   |
+| [Fabric integration](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-fabric-integration)                                    | Browse Fabric workspaces and provision SQL databases                                                               |
+| [Query Results](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#query-results-pane)            | View, sort, copy, and export query results                                                                         |
+| [Query Plan Visualizer](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#query-plan-visualizer) | Analyze execution plans with interactive node navigation                                                           |
+| [Query Profiler](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-query-profiler)                                            | Real-time database activity monitoring with Extended Events                                                        |
+| [Table Designer](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#table-designer)               | Create and manage tables with a visual interface                                                                   |
+| [Schema Designer](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-schema-designer)                                          | Visual schema modeling with drag-and-drop, auto-layout, and T-SQL script generation                                |
+| [Schema Compare](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-schema-compare)                                            | Compare and synchronize schemas between databases or DACPACs                                                       |
+| [View & Edit Data](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#view--edit-data)            | Browse and modify table data inline without writing T-SQL                                                          |
+| [Database Operations](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-database-operations)                                  | Rename, back up, restore, import data from flat files, and drop databases from Object Explorer                     |
+| [DACPAC/BACPAC Operations](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-data-tier-application)                           | Publish/extract database schema with `.dacpac` files and import/export schema + data with `.bacpac` files          |
+| [SQL Database Projects](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code)                       | Build, publish with the visual Publish Dialog, and analyze SQL projects with Code Analysis                         |
+| [GitHub Copilot integration](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/github-copilot/overview)                                   | AI-assisted SQL development with natural language chat and agent mode                                              |
+| [Local SQL Server container](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-local-container)                               | Create and manage SQL Server containers locally                                                                    |
 
 ### Public Preview
 
@@ -55,7 +55,7 @@ Features available for public use while we gather feedback. APIs and UX may chan
 | [Schema Designer with GitHub Copilot](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-schema-designer-copilot) | Natural language schema design within the visual Schema Designer       |
 | [Data API builder](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-data-api-builder)                           | Create REST, GraphQL, and MCP endpoints for SQL databases              |
 | [GitHub Copilot in Data API builder](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-data-api-builder)         | Generate Data API builder configs using natural language               |
-| [SQL Notebooks](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-sql-notebooks) | Jupyter-based SQL notebooks with rich results and multi-kernel support |
+| [SQL Notebooks](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-sql-notebooks)                                 | Jupyter-based SQL notebooks with rich results and multi-kernel support |
 
 ## Using the MSSQL Extension
 

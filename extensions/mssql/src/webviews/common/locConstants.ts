@@ -71,6 +71,8 @@ export class LocConstants {
             loading: l10n.t("Loading"),
             loadingWithEllipsis: l10n.t("Loading..."),
             general: l10n.t("General"),
+            databaseNameRequired: l10n.t("Database name is required"),
+            databaseNameTooLong: l10n.t("Database name must be 128 characters or fewer"),
             previous: l10n.t("Previous"),
             ok: l10n.t("OK"),
             groupBy: l10n.t("Group by"),
@@ -1824,8 +1826,8 @@ export class LocConstants {
             optionsSection: l10n.t("Advanced Options"),
             nameLabel: l10n.t("Database Name"),
             namePlaceholder: l10n.t("Enter database name"),
-            nameRequired: l10n.t("Database name is required"),
-            nameTooLong: l10n.t("Database name must be 128 characters or fewer"),
+            nameRequired: this.common.databaseNameRequired,
+            nameTooLong: this.common.databaseNameTooLong,
             ownerLabel: l10n.t("Owner"),
             collationLabel: l10n.t("Collation"),
             recoveryModelLabel: l10n.t("Recovery Model"),
@@ -1865,6 +1867,36 @@ export class LocConstants {
             dropButton: l10n.t("Drop"),
             cancelButton: l10n.t("Cancel"),
             droppingDatabase: l10n.t("Dropping database"),
+        };
+    }
+
+    public get renameDatabase() {
+        return {
+            title: l10n.t("Rename Database"),
+            description: (databaseName: string, serverName: string) =>
+                l10n.t({
+                    message: "Rename '{0}' on '{1}'.",
+                    args: [databaseName, serverName],
+                    comment: ["{0} is the current database name", "{1} is the server name"],
+                }),
+            loading: l10n.t("Loading..."),
+            detailsSection: l10n.t("Database Details"),
+            optionsSection: l10n.t("Rename Options"),
+            nameColumn: l10n.t("Name"),
+            ownerColumn: l10n.t("Owner"),
+            statusColumn: l10n.t("Status"),
+            valueUnknown: l10n.t("-"),
+            newNameLabel: l10n.t("New Database Name"),
+            newNamePlaceholder: l10n.t("Enter new database name"),
+            newNameRequired: this.common.databaseNameRequired,
+            newNameTooLong: this.common.databaseNameTooLong,
+            newNameUnchanged: l10n.t("New database name must be different from the current name"),
+            dropConnections: l10n.t("Drop active connections"),
+            helpButton: l10n.t("Help"),
+            scriptButton: l10n.t("Script"),
+            renameButton: l10n.t("Rename"),
+            cancelButton: l10n.t("Cancel"),
+            renamingDatabase: l10n.t("Renaming database"),
         };
     }
 
@@ -1913,7 +1945,7 @@ export class LocConstants {
             execute: l10n.t("Execute"),
             filePathRequired: l10n.t("File path is required"),
             invalidFile: l10n.t("Invalid file"),
-            databaseNameRequired: l10n.t("Database name is required"),
+            databaseNameRequired: this.common.databaseNameRequired,
             invalidDatabase: l10n.t("Invalid database"),
             validationFailed: l10n.t("Validation failed"),
             deployingDacpac: l10n.t("Deploying DACPAC..."),

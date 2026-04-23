@@ -6,12 +6,16 @@
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import {
     DropDatabaseRequest,
+    DropDatabaseResponse,
     InitializeViewRequest,
     InitializeViewRequestParams,
     ObjectManagementSqlObject,
     ObjectManagementViewInfo,
+    RenameDatabaseResponse,
     RenameObjectRequest,
+    RenameDatabaseRequest,
     SaveObjectRequest,
+    SaveObjectRequestResponse,
     ScriptObjectRequest,
     DisposeViewRequest,
     BackupConfigInfoRequest,
@@ -46,7 +50,7 @@ export class ObjectManagementService {
         database: string,
         isNewObject: boolean,
         parentUrn: string,
-        objectUrn: string,
+        objectUrn?: string,
     ): Promise<ObjectManagementViewInfo<ObjectManagementSqlObject>> {
         const params: InitializeViewRequestParams = {
             connectionUri,
@@ -60,7 +64,10 @@ export class ObjectManagementService {
         return this._client.sendRequest(InitializeViewRequest.type, params);
     }
 
-    public async save(contextId: string, object: ObjectManagementSqlObject): Promise<void> {
+    public async save(
+        contextId: string,
+        object: ObjectManagementSqlObject,
+    ): Promise<SaveObjectRequestResponse> {
         return this._client.sendRequest(SaveObjectRequest.type, { contextId, object });
     }
 
@@ -86,13 +93,29 @@ export class ObjectManagementService {
         });
     }
 
+    public async renameDatabase(
+        connectionUri: string,
+        database: string,
+        newName: string,
+        dropConnections: boolean,
+        generateScript: boolean,
+    ): Promise<RenameDatabaseResponse> {
+        return this._client.sendRequest(RenameDatabaseRequest.type, {
+            connectionUri,
+            database,
+            newName,
+            dropConnections,
+            generateScript,
+        });
+    }
+
     public async dropDatabase(
         connectionUri: string,
         database: string,
         dropConnections: boolean,
         deleteBackupHistory: boolean,
         generateScript: boolean,
-    ): Promise<string> {
+    ): Promise<DropDatabaseResponse> {
         return this._client.sendRequest(DropDatabaseRequest.type, {
             connectionUri,
             database,
