@@ -87,13 +87,11 @@ suite("SqlNotebookController", () => {
         supportedLanguages: string[] | undefined;
         supportsExecutionOrder: boolean | undefined;
         description: string | undefined;
-        executeHandler:
-            | ((
-                  cells: vscode.NotebookCell[],
-                  notebook: vscode.NotebookDocument,
-                  controller: vscode.NotebookController,
-              ) => void | Thenable<void>)
-            | undefined;
+        executeHandler: (
+            cells: vscode.NotebookCell[],
+            notebook: vscode.NotebookDocument,
+            controller: vscode.NotebookController,
+        ) => void | Thenable<void>;
         updateNotebookAffinity: sinon.SinonStub;
         createNotebookCellExecution: sinon.SinonStub;
         onDidChangeSelectedNotebooks: sinon.SinonStub;
@@ -212,7 +210,11 @@ suite("SqlNotebookController", () => {
             supportedLanguages: undefined,
             supportsExecutionOrder: undefined,
             description: undefined,
-            executeHandler: undefined,
+            executeHandler: undefined as unknown as (
+                cells: vscode.NotebookCell[],
+                notebook: vscode.NotebookDocument,
+                controller: vscode.NotebookController,
+            ) => void | Thenable<void>,
             updateNotebookAffinity: sandbox.stub(),
             createNotebookCellExecution: sandbox.stub().returns(mockExecution),
             onDidChangeSelectedNotebooks: sandbox.stub().returns({ dispose: sandbox.stub() }),
@@ -869,7 +871,11 @@ suite("SqlNotebookController", () => {
                 supportedLanguages: undefined,
                 supportsExecutionOrder: undefined,
                 description: undefined,
-                executeHandler: undefined,
+                executeHandler: undefined as unknown as (
+                    cells: vscode.NotebookCell[],
+                    notebook: vscode.NotebookDocument,
+                    controller: vscode.NotebookController,
+                ) => void | Thenable<void>,
                 updateNotebookAffinity: sandbox.stub(),
                 createNotebookCellExecution: sandbox.stub().returns(mockExecution),
                 onDidChangeSelectedNotebooks: sandbox.stub().returns({ dispose: sandbox.stub() }),
