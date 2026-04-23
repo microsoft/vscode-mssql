@@ -780,6 +780,19 @@ export let executionPlan = l10n.t("Execution Plan");
 export let executionPlanFileFilter = l10n.t("SQL Plan Files");
 export let scriptCopiedToClipboard = l10n.t("Script copied to clipboard");
 export let copied = l10n.t("Copied");
+export let failedToOpenTextInEditor = (errorMessage: string) =>
+    l10n.t({
+        message: "Failed to open text in editor: {0}",
+        args: [errorMessage],
+        comment: ["{0} is the error message"],
+    });
+export let failedToCopyTextToClipboard = (errorMessage: string) =>
+    l10n.t({
+        message: "Failed to copy text to clipboard: {0}",
+        args: [errorMessage],
+        comment: ["{0} is the error message"],
+    });
+export let schemaDesignerDetailsUnavailable = l10n.t("Schema designer details are not available.");
 export let copyingResults = l10n.t("Copying results...");
 export let resultsCopiedToClipboard = l10n.t("Results copied to clipboard");
 
@@ -1304,13 +1317,42 @@ export class Fabric {
 }
 
 export class Accounts {
-    static accountNotAvailableThroughVsCode(accountDisplayName: string, tenantId: string): string {
-        return l10n.t({
-            message:
-                "The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.",
-            args: [accountDisplayName, tenantId],
-            comment: ["{0} is the account ID or label", "{1} is the tenant ID"],
-        });
+    static entraAccountNotAvailableThroughMsal(
+        accountDisplayName: string,
+        tenantId?: string,
+    ): string {
+        if (tenantId === undefined || tenantId === "") {
+            return l10n.t({
+                message:
+                    "The selected profile authenticates using Entra ID '{0}' but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.",
+                args: [accountDisplayName],
+                comment: ["{0} is the account ID or label"],
+            });
+        } else {
+            return l10n.t({
+                message:
+                    "The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.",
+                args: [accountDisplayName, tenantId],
+                comment: ["{0} is the account ID or label", "{1} is the tenant ID"],
+            });
+        }
+    }
+    static accountNotAvailableThroughVsCode(accountDisplayName: string, tenantId?: string): string {
+        if (tenantId === undefined || tenantId === "") {
+            return l10n.t({
+                message:
+                    "The selected profile authenticates using Entra ID '{0}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.",
+                args: [accountDisplayName],
+                comment: ["{0} is the account ID or label"],
+            });
+        } else {
+            return l10n.t({
+                message:
+                    "The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.",
+                args: [accountDisplayName, tenantId],
+                comment: ["{0} is the account ID or label", "{1} is the tenant ID"],
+            });
+        }
     }
     public static invalidEntraAccountsRemoved = (numRemoved: number) => {
         return l10n.t({
@@ -2848,7 +2890,7 @@ export class DacpacDialog {
 export class SearchDatabase {
     public static title = (serverName: string) =>
         l10n.t({
-            message: "Search Database Objects (Preview) - {0}",
+            message: "Search Database Objects - {0}",
             args: [serverName],
             comment: ["{0} is the server name"],
         });
@@ -3211,12 +3253,10 @@ export class Profiler {
 
     // Quick pick and input prompts
     public static selectTemplate = l10n.t("Select a profiler template");
-    public static newSessionSelectTemplate = l10n.t(
-        "New Query Profiler (Preview) - Select Template",
-    );
+    public static newSessionSelectTemplate = l10n.t("New Query Profiler - Select Template");
     public static enterSessionName = l10n.t("Enter a name for the new profiler session");
     public static sessionNamePlaceholder = l10n.t("MyProfilerSession");
-    public static newSessionEnterName = l10n.t("New Query Profiler (Preview) - Enter Name");
+    public static newSessionEnterName = l10n.t("New Query Profiler - Enter Name");
     public static engineLabel = (engineType: string) =>
         l10n.t({
             message: "Engine: {0}",
@@ -3270,17 +3310,17 @@ export class Profiler {
         });
 
     // Status bar
-    public static statusBarNoSession = l10n.t("Query Profiler (Preview): No session");
-    public static statusBarTooltip = l10n.t("Query Profiler (Preview) Session Status");
+    public static statusBarNoSession = l10n.t("Query Profiler: No session");
+    public static statusBarTooltip = l10n.t("Query Profiler Session Status");
 
     // Panel titles
     public static panelTitleWithSession = (name: string) =>
         l10n.t({
-            message: "Query Profiler (Preview): {0}",
+            message: "Query Profiler: {0}",
             args: [name],
             comment: ["{0} is the file name or session name"],
         });
-    public static panelTitleDefault = l10n.t("Query Profiler (Preview)");
+    public static panelTitleDefault = l10n.t("Query Profiler");
     public static stateRunning = l10n.t("Running");
     public static statePaused = l10n.t("Paused");
     public static stateStopped = l10n.t("Stopped");

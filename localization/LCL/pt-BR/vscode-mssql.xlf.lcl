@@ -442,15 +442,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++053c84fff13ccf92eaa128fa67efa91ef8cbf842592955bced26b57046a24ee3" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Search Database Objects (Preview) - {0}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Pesquisar Objetos de Banco de Dados (Visualização) - {0}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++0556bfb755c73e8c60da1230c38f26ce0eaf79dc7bd5f5368371d561e5eab52f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Extremely likely]]></Val>
@@ -982,6 +973,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++0b5cc185ca6a07f98625ce51f17da6ab56e7003264c3b98dac6324d231d61652" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Seleciona automaticamente uma identidade do Microsoft Entra ID disponível de provedores instalados em seu sistema. Clique no ícone de informações para saber mais.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++0b6ccfdcffbebddf187dbda4178da2bd0a4889bdb715df0d62ea75774aebfad4" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No filter is currently active]]></Val>
@@ -1153,6 +1153,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++0d4d95a7a2955bb82377a0ca37dbb8a946344dd95c092820b5ece489c29e7403" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[New Query Profiler - Select Template]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Novo Criador de Perfil de Consulta — Selecionar Modelo]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++0d5e7861b9a1710c8e1d2347dbb8d4dde272143bbeca537d216474ef7bd9193f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Create Firewall Rule]]></Val>
@@ -1212,15 +1221,6 @@
           <Val><![CDATA[Pulling the SQL Server container image. This might take a few minutes depending on your internet connection.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Efetuando o pull da imagem do contêiner do SQL Server. Isso pode demorar alguns minutos, dependendo da sua conexão com a Internet.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++0e48ce4a45983d7784c326334cc5a57764d1136e589156ea99aa1c07393e7678" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Query Profiler (Preview): {0}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Criador de Perfil de Consulta (Versão Prévia): {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1927,6 +1927,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++1611a24a44316316a1736eb54d2504ddcc0f728257616bc857b0005b90beaea4" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Entre com sua conta do Microsoft Entra ID, incluindo contas com autenticação multifator. Clique no ícone de informações para saber mais.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++16885df9a4767fe04d26b997deabc5a36f96f34bf58bbed4b4a87d029f25209b" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{0} has been closed. Would you like to restore it?]]></Val>
@@ -2017,20 +2026,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++17947c2e89e94b801fc32969b453d6004b1b8d94032f3b4843b594644a77882c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Query Profiler]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Criador de Perfil de Consulta]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++17f0b82ed4308509b67351b92fb3e2892fa54bae44e90f88811c90938aef0c20" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No connections available. Please create a connection first.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Nenhuma conexão disponível. Crie uma conexão primeiro.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++17f1cd47dfd09c344b014b08c691f9707cfe65920e03d4856c0dd34bde93e146" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[New Query Profiler (Preview) - Select Template]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Novo Criador de Perfil de Consulta (Versão Prévia) – Selecionar Modelo]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2472,15 +2481,6 @@
           <Val><![CDATA[Unfreeze columns/rows]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Descongelar colunas/linhas]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++1ebdd648faad7c5d26109ee99549e6b76bd6749e84bec6250599a2e31029a400" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Create Database (Preview)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Criar Banco de Dados (Prévia)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3678,6 +3678,15 @@
           <Val><![CDATA[Please Accept the SQL Server EULA]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Aceite o SQL Server EULA]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++2d93cdf980de7a656d499569548c98d27086e3edebb3b89f58b28ec45facf111" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The selected profile authenticates using Entra ID '{0}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[O perfil selecionado autentica usando o Entra ID '{0}', mas essa conta não está disponível na entrada do VS Code. Edite a conexão ou entre no VS Code com essa conta para se conectar.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6481,6 +6490,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++4f58606c7930b151acf10d33a17f526a14ad630d7cdce1351e798d73c0ae225d" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Query Profiler: No session]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Criador de Perfil de Consulta: Sem sessão]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++4f597d21c43ad4296c13690ad65aaff476273a489afc5e5d6f91073de96baf9b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[MyProfilerSession]]></Val>
@@ -7516,6 +7534,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++5d1ae18e4c82efee8401c895242feeb54a8a5093d2b024877c83a7a08660a945" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unable to retrieve the list of databases. You may not have permission to list databases on this server.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Não é possível recuperar a lista de bancos de dados. Talvez você não tenha permissão para listar bancos de dados neste servidor.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++5d22a056f5f5f92e185435b509187fc8e61f15a5b85e6b08cda8d8811880cfc3" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Status: {0}]]></Val>
@@ -7557,6 +7584,15 @@
           <Val><![CDATA[Your tenant '{0} ({1})' requires you to re-authenticate again to access {2} resources. Press Open to start the authentication process.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[O locatário "{0} ({1})" requer que você se autentique novamente para acessar os recursos de {2}. Pressione Abrir para iniciar o processo de autenticação.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++5e487cbb896806c4ffd5fd55308a163e5a5ebdb2de5b6e717faff434ddd119dd" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unable to retrieve the list of databases. You may not have permission to list databases on this server. If your connection specifies a database, it will be preselected.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Não é possível recuperar a lista de bancos de dados. Talvez você não tenha permissão para listar bancos de dados neste servidor. Se a sua conexão especificar um banco de dados, ele será pré-selecionado.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7746,6 +7782,15 @@
           <Val><![CDATA[No templates available]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Nenhum modelo disponível]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++615cb1c6b249984eb02967310fe49221a73cd895ddbadfe3bd81c45690941e57" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Search Database Objects]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Pesquisar objetos de banco de dados]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8461,6 +8506,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++6b0b8551d35dd7933f41fecf2942fc2219011291443e24b6c7b25988db65c159" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Query Profiler Session Status]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Status da Sessão do Criador de Perfil de Consulta]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++6b17def22e3775d608a7cdc7f600aa9fd107e2209e657a6d358a5687f9f7c7bd" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[At least one API type must be selected.]]></Val>
@@ -8574,15 +8628,6 @@
           <Val><![CDATA[Checking if Docker is started]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Verificando se o Docker foi iniciado]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++6bf56ab2774a261ddf7eb5face2f46e7d36789a847949a0219fbfc9572ed8804" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Search Database Objects (Preview)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Pesquisar Objetos de Banco de Dados (Visualização)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9699,6 +9744,15 @@
           <Val><![CDATA[Referenced table '{0}' not found]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Tabela referenciada ''{0}'' não encontrada]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++799f6f8acde01a01209703f348f68f7802b5c8623007342d362bed19959e7ed5" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Test connecting with the current settings]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Testar a conexão com as configurações atuais]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11314,15 +11368,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++904baf74a450d7a547a60ffe8a678f5bd150d095f4a0851b936330b722d02dd9" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Query Profiler (Preview)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Criador de Perfil de Consulta (Versão Prévia)]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++905e3218067c7ad96983b2efa72f292627a8b7e1a2c7865613379b01da57c2fb" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Estimated Subtree Cost]]></Val>
@@ -12619,15 +12664,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++a161365357557281bfbf274bd154a2acc27530a99e67ebf931ab27cf4f73595d" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Query Profiler (Preview): No session]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Criador de Perfil de Consulta (Versão Prévia): Nenhuma sessão]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++a163aaa22cf7ce6c4c2a634f98bef10d0fe0a0602ada2aa50d60b262dc70b2d9" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Previous Page]]></Val>
@@ -12669,6 +12705,15 @@
           <Val><![CDATA[Enter a date...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Insira uma data...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++a1c60409bfd9bcd53f31a132bd46b1f125ebf2b16012ceb2bf16baacc460e61c" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Port {0} is already in use. Please choose a different port.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[A porta {0} já está em uso. Escolha uma porta diferente.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12732,6 +12777,15 @@
           <Val><![CDATA[Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Configurações de proxy encontradas, mas sem um protocolo (por exemplo, http://): "{0}". Você pode ter problemas de conexão ao usar a extensão MSSQL.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++a32a71122605d871f3213af8b401fe9cfd1e00ab4b1d508826d2dd6f97bb3cc6" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[New Query Profiler - Enter Name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Novo Criador de Perfil de Consulta — Inserir Nome]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13191,15 +13245,6 @@
           <Val><![CDATA[{0} properties]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[{0} propriedades]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++a9c46777591fc96ccc6c8317280d36c4b68bc04298439cc0e6837ec2ae4bf49c" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Drop Database (Preview)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Descartar Banco de Dados (Prévia)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14050,6 +14095,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++b59435494dcd35be1cef0694a50b64de613df46a38364f7c59f082b8cf5ff263" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[O perfil selecionado autentica usando o Entra ID '{0}' no locatário '{1}', mas essa conta não está conectada na extensão MSSQL. Edite a conexão ou entre no MSSQL com essa conta para se conectar.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++b5c2455f3e05fab4c5019daf09573a5885446d59adc75e85406fb1e9336eb48d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No text data available]]></Val>
@@ -14878,6 +14932,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++bf2b06cf5edeeb66a098a3a052ced6d9f0c647f587aa00f072c6de26abcacfa0" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connect with the current settings and save the connection profile]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Conectar-se com as configurações atuais e salvar o perfil de conexão]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++bf3cd82434efadb9ea501ff44c7d52b0dd98b3d11c0097ba88a10b7fd14d9b54" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[What can we do to improve?]]></Val>
@@ -15306,15 +15369,6 @@
           <Val><![CDATA[Browse...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Procurar...]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++c5caff26e896bd287b8528c5a421fc62ae0e550185b606c0cada4e9420ee281f" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[New Query Profiler (Preview) - Enter Name]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Novo Criador de Perfil de Consulta (Versão Prévia) – Inserir Nome]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16804,6 +16858,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++d99dd3f5eca08c181708213b2607143fdd8813040f25e98a4987eec3c94d1570" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Query Profiler: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Criador de Perfil de Consulta: {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++d9a7c4d6b82cf221cfaff6e3440828e91c7d480d7b16f50081c78ff9179f1be2" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Foreign key column mappings are required.]]></Val>
@@ -17623,6 +17686,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++e2efd136048806149ca845f8521dbad2967230b47a2030b5b01614f9d5779620" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The selected profile authenticates using Entra ID '{0}' but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[O perfil selecionado autentica usando o Entra ID '{0}', mas essa conta não está conectada na extensão MSSQL. Edite a conexão ou entre no MSSQL com essa conta para se conectar.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++e320e8c6ef9cc79399346a80f7074742cbc9e7ad78b2592c81929cf08b17f9ed" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Sort column]]></Val>
@@ -18091,6 +18163,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++e7e6421e77a208718956538ea14f589ab43207800d985563be7e407d0a369c96" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Save connection profile changes without establishing a connection]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Salvar alterações de perfil de conexão sem estabelecer uma conexão]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++e8463e680c32abe75224a03ee5b03d4781e812c3180fb6e0a9c992730879574f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Starting Docker Desktop]]></Val>
@@ -18105,6 +18186,15 @@
           <Val><![CDATA[Containment Type]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Tipo de Contenção]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++e84f366d30c8a2b085d32e67f0405aa88e6fd559c71641f8a86306bf18a9fb70" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Search Database Objects - {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Pesquisar Objetos de Banco de Dados - {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18573,15 +18663,6 @@
           <Val><![CDATA[Add account]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Adicionar conta]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++eed1ad0449f94c91be1a030a5627d11466ae8d7af8237428dbc3cae097cb044b" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Query Profiler (Preview) Session Status]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Status da Sessão do Criador de Perfil de Consulta (Versão Prévia)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

@@ -74,7 +74,7 @@ import { generateConnectionComponents, groupAdvancedOptions } from "./formCompon
 import { FormWebviewController } from "../forms/formWebviewController";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { Deferred } from "../protocol";
-import { configSelectedAzureSubscriptions } from "../constants/constants";
+import { configSelectedAzureSubscriptions, defaultDatabase } from "../constants/constants";
 import * as AzureConstants from "../azure/constants";
 import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
 import * as Utils from "../models/utils";
@@ -1061,17 +1061,21 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         savedConnections: IConnectionDialogProfile[];
         recentConnections: IConnectionDialogProfile[];
     }> {
+        const recentConnectionsLimit =
+            this._mainController.connectionManager.connectionStore.getMaxRecentConnectionsCount();
         const unsortedConnections: IConnectionProfileWithSource[] =
             await this._mainController.connectionManager.connectionStore.readAllConnections(
                 true /* includeRecentConnections */,
+                recentConnectionsLimit,
             );
 
         const savedConnections = unsortedConnections.filter(
             (c) => c.profileSource === CredentialsQuickPickItemType.Profile,
         );
 
-        const recentConnections = unsortedConnections.filter(
-            (c) => c.profileSource === CredentialsQuickPickItemType.Mru,
+        const recentConnections = this.normalizeRecentConnectionsForDisplay(
+            unsortedConnections.filter((c) => c.profileSource === CredentialsQuickPickItemType.Mru),
+            savedConnections,
         );
 
         sendActionEvent(
@@ -1129,6 +1133,84 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         state.recentConnections = loadedConnections.recentConnections;
         state.savedConnections = loadedConnections.savedConnections;
+    }
+
+    private normalizeRecentConnectionsForDisplay(
+        recentConnections: IConnectionProfileWithSource[],
+        savedConnections: IConnectionProfileWithSource[],
+    ): IConnectionProfileWithSource[] {
+        return recentConnections.map((recentConnection) => {
+            const matchingSavedConnection = savedConnections.find((savedConnection) =>
+                this.isOriginalSavedProfile(savedConnection, recentConnection),
+            );
+
+            if (
+                matchingSavedConnection &&
+                !this.isSameDatabaseName(
+                    matchingSavedConnection.database,
+                    recentConnection.database,
+                )
+            ) {
+                return {
+                    ...recentConnection,
+                    profileName: undefined,
+                };
+            }
+
+            return recentConnection;
+        });
+    }
+
+    private isOriginalSavedProfile(
+        savedConnection: IConnectionProfileWithSource,
+        recentConnection: IConnectionProfileWithSource,
+    ): boolean {
+        if (savedConnection.id && recentConnection.id) {
+            return savedConnection.id === recentConnection.id;
+        }
+
+        if (
+            !savedConnection.profileName ||
+            !recentConnection.profileName ||
+            savedConnection.profileName !== recentConnection.profileName
+        ) {
+            return false;
+        }
+
+        if (savedConnection.connectionString || recentConnection.connectionString) {
+            return savedConnection.connectionString === recentConnection.connectionString;
+        }
+
+        if (savedConnection.server !== recentConnection.server) {
+            return false;
+        }
+
+        const savedAuthType = savedConnection.authenticationType || AuthenticationType.SqlLogin;
+        const recentAuthType = recentConnection.authenticationType || AuthenticationType.SqlLogin;
+
+        if (savedAuthType !== recentAuthType) {
+            return false;
+        }
+
+        if ((savedConnection.user ?? "") !== (recentConnection.user ?? "")) {
+            return false;
+        }
+
+        if (savedConnection.accountId || recentConnection.accountId) {
+            return areCompatibleEntraAccountIds(
+                savedConnection.accountId,
+                recentConnection.accountId,
+            );
+        }
+
+        return true;
+    }
+
+    private isSameDatabaseName(currentDatabase?: string, expectedDatabase?: string): boolean {
+        const normalizedCurrentDatabase = currentDatabase?.trim() || defaultDatabase;
+        const normalizedExpectedDatabase = expectedDatabase?.trim() || defaultDatabase;
+
+        return normalizedCurrentDatabase === normalizedExpectedDatabase;
     }
 
     private async validateProfile(connectionProfile?: IConnectionDialogProfile): Promise<string[]> {
