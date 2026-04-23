@@ -4184,7 +4184,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++e7a0f5d984721771397ee01588da1bac07c6f45150113d1ba8c4c3de194cfdb0">
         <source xml:lang="en">Group differences by</source>
-        <target state="new">Group differences by</target>
+        <target state="translated">Unterschiede gruppieren nach</target>
       </trans-unit>
       <trans-unit id="++CODE++b79cac926e0b2e347e72cc91d5174037c9e17ae7733fd7bdb570f71b10cd7bfc">
         <source xml:lang="en">Help</source>
@@ -7392,7 +7392,7 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++803814693885dfb92ec8373f4c02f31015541e0e97e437287cdd0db681e0dae6">
         <source xml:lang="en">Select session</source>
-        <target state="new">Select session</target>
+        <target state="translated">Sitzung auswählen</target>
       </trans-unit>
       <trans-unit id="++CODE++31c1868de5b07d10224f472d3f5957b4502175ab68a89839134a1f1dd747ab3b">
         <source xml:lang="en">Select subscriptions</source>
@@ -7478,7 +7478,7 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++6959b4159575d8dd76d9f3bbe2c6437904f861e7860c35abd18deffb1c3425a0">
         <source xml:lang="en">Session</source>
-        <target state="new">Session</target>
+        <target state="translated">Sitzung</target>
       </trans-unit>
       <trans-unit id="++CODE++4bebad98ba216d42e88b8a86cb19d459eb5be5ce6b74251e2b94ca0da9722a6e">
         <source xml:lang="en">Session creation timed out</source>
