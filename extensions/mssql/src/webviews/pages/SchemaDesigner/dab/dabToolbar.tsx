@@ -9,6 +9,11 @@ import {
     Divider,
     Input,
     makeStyles,
+    Menu,
+    MenuItem,
+    MenuList,
+    MenuPopover,
+    MenuTrigger,
     Text,
     tokens,
     Tooltip,
@@ -99,6 +104,9 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: 
         dabTextFilter,
         setDabTextFilter,
         openDabDeploymentDialog,
+        toggleDabEntity,
+        toggleDabEntityAction,
+        toggleDabColumnExposure,
     } = context;
 
     const [showApiTypeWarning, setShowApiTypeWarning] = useState(false);
@@ -127,8 +135,66 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: 
         return null;
     }
 
+    const supportedEntities = dabConfig.entities.filter((e) => e.isSupported);
     const enabledCount = dabConfig.entities.filter((e) => e.isEnabled).length;
     const totalCount = dabConfig.entities.length;
+
+    const allActions = [
+        Dab.EntityAction.Create,
+        Dab.EntityAction.Read,
+        Dab.EntityAction.Update,
+        Dab.EntityAction.Delete,
+    ];
+
+    const handleEnableAll = () => {
+        for (const entity of supportedEntities) {
+            if (!entity.isEnabled) {
+                toggleDabEntity(entity.id, true);
+            }
+        }
+    };
+
+    const handleDisableAll = () => {
+        for (const entity of supportedEntities) {
+            if (entity.isEnabled) {
+                toggleDabEntity(entity.id, false);
+            }
+        }
+    };
+
+    const handleMakeReadOnly = () => {
+        for (const entity of supportedEntities) {
+            if (!entity.isEnabled) {
+                toggleDabEntity(entity.id, true);
+            }
+            for (const action of allActions) {
+                toggleDabEntityAction(entity.id, action, action === Dab.EntityAction.Read);
+            }
+        }
+    };
+
+    const handleEnableAllCruds = () => {
+        for (const entity of supportedEntities) {
+            if (!entity.isEnabled) {
+                toggleDabEntity(entity.id, true);
+            }
+            for (const action of allActions) {
+                if (!entity.enabledActions.includes(action)) {
+                    toggleDabEntityAction(entity.id, action, true);
+                }
+            }
+        }
+    };
+
+    const handleIncludeAllColumns = () => {
+        for (const entity of supportedEntities) {
+            for (const column of entity.columns) {
+                if (!column.isExposed) {
+                    toggleDabColumnExposure(entity.id, column.id, true);
+                }
+            }
+        }
+    };
 
     const apiTypeOptions = [
         { type: Dab.ApiType.Rest, label: locConstants.schemaDesigner.restApi },
@@ -168,6 +234,45 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: 
                     <Text className={classes.title}>{locConstants.schemaDesigner.dabTitle}</Text>
                 </div>
                 <div className={classes.actionsSection}>
+                    <Menu>
+                        <MenuTrigger disableButtonEnhancement>
+                            <Button
+                                appearance="subtle"
+                                icon={<FluentIcons.MoreHorizontal16Regular />}
+                                size="small">
+                                {locConstants.schemaDesigner.bulkActions}
+                            </Button>
+                        </MenuTrigger>
+                        <MenuPopover>
+                            <MenuList>
+                                <MenuItem
+                                    icon={<FluentIcons.CheckboxChecked16Regular />}
+                                    onClick={handleEnableAll}>
+                                    {locConstants.schemaDesigner.enableAllEntities}
+                                </MenuItem>
+                                <MenuItem
+                                    icon={<FluentIcons.CheckboxUnchecked16Regular />}
+                                    onClick={handleDisableAll}>
+                                    {locConstants.schemaDesigner.disableAllEntities}
+                                </MenuItem>
+                                <MenuItem
+                                    icon={<FluentIcons.Eye16Regular />}
+                                    onClick={handleMakeReadOnly}>
+                                    {locConstants.schemaDesigner.makeReadOnly}
+                                </MenuItem>
+                                <MenuItem
+                                    icon={<FluentIcons.TableEdit16Regular />}
+                                    onClick={handleEnableAllCruds}>
+                                    {locConstants.schemaDesigner.enableAllCruds}
+                                </MenuItem>
+                                <MenuItem
+                                    icon={<FluentIcons.Column16Regular />}
+                                    onClick={handleIncludeAllColumns}>
+                                    {locConstants.schemaDesigner.includeAllColumns}
+                                </MenuItem>
+                            </MenuList>
+                        </MenuPopover>
+                    </Menu>
                     <SchemaDesignerWebviewCopilotChatEntry
                         scenario="dab"
                         entryPoint="dabToolbar"
