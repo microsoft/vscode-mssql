@@ -210,7 +210,7 @@ suite("SqlNotebookController", () => {
             supportedLanguages: undefined,
             supportsExecutionOrder: undefined,
             description: undefined,
-            executeHandler: undefined as unknown as (
+            executeHandler: sandbox.stub() as unknown as (
                 cells: vscode.NotebookCell[],
                 notebook: vscode.NotebookDocument,
                 controller: vscode.NotebookController,
@@ -871,7 +871,7 @@ suite("SqlNotebookController", () => {
                 supportedLanguages: undefined,
                 supportsExecutionOrder: undefined,
                 description: undefined,
-                executeHandler: undefined as unknown as (
+                executeHandler: sandbox.stub() as unknown as (
                     cells: vscode.NotebookCell[],
                     notebook: vscode.NotebookDocument,
                     controller: vscode.NotebookController,

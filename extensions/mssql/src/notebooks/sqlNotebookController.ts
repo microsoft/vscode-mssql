@@ -59,6 +59,10 @@ export class SqlNotebookController implements vscode.Disposable {
     private executionOrder = 0;
     // Track notebooks by their document object to handle URI changes on save
     private readonly notebookToUri = new WeakMap<vscode.NotebookDocument, string>();
+    // Notebooks for which our controller is currently the selected kernel.
+    // Used to scope save-time metadata healing to SQL notebooks only, so we
+    // never overwrite kernelspec/language_info on unrelated (e.g. Python) .ipynb files.
+    private readonly selectedNotebooks = new WeakSet<vscode.NotebookDocument>();
 
     constructor(
         private connectionMgr: ConnectionManager,
@@ -130,11 +134,14 @@ export class SqlNotebookController implements vscode.Disposable {
         this.disposables.push(
             this.controller.onDidChangeSelectedNotebooks(({ notebook, selected }) => {
                 if (selected) {
+                    this.selectedNotebooks.add(notebook);
                     this.log.info(
                         `[onDidChangeSelectedNotebooks] Selected for ${notebook.uri.toString()}`,
                     );
                     this.ensureSqlCellLanguage(notebook);
                     this.updateStatusBar(notebook);
+                } else {
+                    this.selectedNotebooks.delete(notebook);
                 }
             }),
         );
@@ -143,12 +150,16 @@ export class SqlNotebookController implements vscode.Disposable {
         // (handles untitled → file URI change) and heal notebook-level
         // kernelspec/language_info so the next save writes SQL metadata to
         // the .ipynb. We defer the heal to save time (rather than kernel
-        // selection) to avoid dirtying notebooks the user hasn't touched.
+        // selection) to avoid dirtying notebooks the user hasn't touched, and
+        // gate it on our controller being the selected kernel so we never
+        // overwrite metadata on unrelated notebooks (e.g. Python).
         this.disposables.push(
             vscode.workspace.onDidSaveNotebookDocument((notebook) => {
                 this.rekeyConnectionOnSave(notebook);
                 this.saveConnectionMetadataIfConnected(notebook);
-                void this.ensureSqlNotebookMetadata(notebook);
+                if (this.selectedNotebooks.has(notebook)) {
+                    void this.ensureSqlNotebookMetadata(notebook);
+                }
             }),
         );
 
