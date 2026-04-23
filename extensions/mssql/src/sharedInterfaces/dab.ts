@@ -77,6 +77,10 @@ export namespace Dab {
          */
         dataType: string;
         /**
+         * Whether the column is part of the primary key.
+         */
+        isPrimaryKey: boolean;
+        /**
          * Whether the column can be safely exposed through DAB.
          */
         isSupported: boolean;
@@ -925,6 +929,7 @@ export namespace Dab {
             id: column.id,
             name: column.name,
             dataType: column.dataType,
+            isPrimaryKey: column.isPrimaryKey,
             isSupported: isColumnSupportedForDab(column),
             isExposed: true,
         };
@@ -999,12 +1004,14 @@ export namespace Dab {
                 ...existingColumn,
                 name: tableColumn.name,
                 dataType: tableColumn.dataType,
+                isPrimaryKey: tableColumn.isPrimaryKey,
                 isSupported: isColumnSupportedForDab(tableColumn),
             };
 
             if (
                 existingColumn.name !== syncedColumn.name ||
                 existingColumn.dataType !== syncedColumn.dataType ||
+                existingColumn.isPrimaryKey !== syncedColumn.isPrimaryKey ||
                 existingColumn.isSupported !== syncedColumn.isSupported
             ) {
                 changed = true;

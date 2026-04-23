@@ -202,6 +202,9 @@ const useStyles = makeStyles({
         fontWeight: 300,
         flexShrink: 0,
     },
+    columnBadge: {
+        flexShrink: 0,
+    },
     actionCell: {
         display: "flex",
         alignItems: "center",
@@ -237,12 +240,6 @@ const useStyles = makeStyles({
         width: "24px",
         height: "24px",
         padding: 0,
-    },
-    disabled: {
-        opacity: 0.6,
-    },
-    unsupported: {
-        opacity: 0.4,
     },
     warningIcon: {
         color: "var(--vscode-editorWarning-foreground)",
@@ -433,7 +430,7 @@ export const DabEntityTable = () => {
 
             if (schemaExpanded) {
                 for (const entity of entities) {
-                    const entityExpanded = expandedRows.has(entity.id);
+                    const entityExpanded = entity.isSupported && expandedRows.has(entity.id);
                     rows.push({
                         type: "entity",
                         id: entity.id,
@@ -502,7 +499,8 @@ export const DabEntityTable = () => {
                 case "ArrowRight":
                     if (
                         row &&
-                        (row.type === "schema" || row.type === "entity") &&
+                        (row.type === "schema" ||
+                            (row.type === "entity" && row.entity.isSupported)) &&
                         !row.isExpanded
                     ) {
                         e.preventDefault();
@@ -511,7 +509,12 @@ export const DabEntityTable = () => {
                     }
                     return;
                 case "ArrowLeft":
-                    if (row && (row.type === "schema" || row.type === "entity") && row.isExpanded) {
+                    if (
+                        row &&
+                        (row.type === "schema" ||
+                            (row.type === "entity" && row.entity.isSupported)) &&
+                        row.isExpanded
+                    ) {
                         e.preventDefault();
                         toggleExpanded(row.id);
                         return;
@@ -637,11 +640,7 @@ export const DabEntityTable = () => {
         (row: Extract<FlatRow, { type: "entity" }>) => {
             const { entity } = row;
             const unsupportedText = getUnsupportedReasonText(entity);
-            const toneClass = !entity.isSupported
-                ? classes.unsupported
-                : !entity.isEnabled
-                  ? classes.disabled
-                  : undefined;
+            const isExpandable = entity.isSupported;
 
             const nameContent = (
                 <>
@@ -658,10 +657,15 @@ export const DabEntityTable = () => {
                         size="small"
                         icon={row.isExpanded ? <ChevronDown16Regular /> : <ChevronRight16Regular />}
                         className={classes.expandButton}
-                        onClick={() => toggleExpanded(entity.id)}
+                        disabled={!isExpandable}
+                        onClick={() => {
+                            if (isExpandable) {
+                                toggleExpanded(entity.id);
+                            }
+                        }}
                         aria-label={row.isExpanded ? "Collapse" : "Expand"}
                     />
-                    <div className={mergeClasses(classes.nameCell, toneClass)}>
+                    <div className={classes.nameCell}>
                         <Table16Regular className="dab-icon-table" />
                         <span className={classes.nameLabel}>
                             {entity.advancedSettings.entityName}
@@ -676,28 +680,33 @@ export const DabEntityTable = () => {
                             </Tooltip>
                         )}
                     </div>
-                    <span className={mergeClasses(classes.sourceCell, toneClass)}>
+                    <span className={classes.sourceCell}>
                         {entity.schemaName}.{entity.tableName}
                     </span>
-                    {allActions.map((action) => (
-                        <div className={classes.actionCell} key={action}>
-                            <Checkbox
-                                checked={entity.enabledActions.includes(action)}
-                                disabled={!entity.isEnabled || !entity.isSupported}
-                                onChange={() =>
-                                    toggleDabEntityAction(
-                                        entity.id,
-                                        action,
-                                        !entity.enabledActions.includes(action),
-                                    )
-                                }
-                                aria-label={locConstants.schemaDesigner.actionForEntity(
-                                    actionLabels[action],
-                                    entity.advancedSettings.entityName,
-                                )}
-                            />
-                        </div>
-                    ))}
+                    {allActions.map((action) => {
+                        const isActionChecked =
+                            entity.isEnabled && entity.enabledActions.includes(action);
+
+                        return (
+                            <div className={classes.actionCell} key={action}>
+                                <Checkbox
+                                    checked={isActionChecked}
+                                    disabled={!entity.isEnabled || !entity.isSupported}
+                                    onChange={() =>
+                                        toggleDabEntityAction(
+                                            entity.id,
+                                            action,
+                                            !entity.enabledActions.includes(action),
+                                        )
+                                    }
+                                    aria-label={locConstants.schemaDesigner.actionForEntity(
+                                        actionLabels[action],
+                                        entity.advancedSettings.entityName,
+                                    )}
+                                />
+                            </div>
+                        );
+                    })}
                     <div className={classes.settingsCell}>
                         <Tooltip
                             content={locConstants.schemaDesigner.settingsForEntity(
@@ -729,17 +738,37 @@ export const DabEntityTable = () => {
                       `${column.name} (${column.dataType})`,
                   )
                 : "";
+            const isPrimaryKeyColumn = column.isPrimaryKey;
+            const checkbox = (
+                <Checkbox
+                    checked={column.isExposed}
+                    disabled={!entity.isSupported || isPrimaryKeyColumn}
+                    onChange={() =>
+                        toggleDabColumnExposure(entity.id, column.id, !column.isExposed)
+                    }
+                    aria-label={
+                        isPrimaryKeyColumn
+                            ? locConstants.schemaDesigner.primaryKeyColumnExposureLocked(
+                                  column.name,
+                              )
+                            : locConstants.schemaDesigner.exposeColumn(column.name)
+                    }
+                />
+            );
 
             return (
                 <>
-                    <Checkbox
-                        checked={column.isExposed}
-                        disabled={!entity.isSupported}
-                        onChange={() =>
-                            toggleDabColumnExposure(entity.id, column.id, !column.isExposed)
-                        }
-                        aria-label={locConstants.schemaDesigner.exposeColumn(column.name)}
-                    />
+                    {isPrimaryKeyColumn ? (
+                        <Tooltip
+                            content={locConstants.schemaDesigner.primaryKeyColumnExposureLocked(
+                                column.name,
+                            )}
+                            relationship="label">
+                            <span>{checkbox}</span>
+                        </Tooltip>
+                    ) : (
+                        checkbox
+                    )}
                     <span className={classes.expandPlaceholder} />
                     <div className={classes.nameCell}>
                         <svg
@@ -751,6 +780,15 @@ export const DabEntityTable = () => {
                             <path d="M3.25 2C4.22 2 5 2.78 5 3.75v8.5C5 13.22 4.22 14 3.25 14H2.5a.5.5 0 0 1 0-1h.75c.41 0 .75-.34.75-.75v-8.5A.75.75 0 0 0 3.25 3H2.5a.5.5 0 0 1 0-1h.75ZM8.5 2c.83 0 1.5.67 1.5 1.5v9c0 .83-.67 1.5-1.5 1.5h-1A1.5 1.5 0 0 1 6 12.5v-9C6 2.67 6.67 2 7.5 2h1Zm5 0a.5.5 0 0 1 0 1h-.75a.75.75 0 0 0-.75.75v8.5c0 .41.34.75.75.75h.75a.5.5 0 0 1 0 1h-.75c-.97 0-1.75-.78-1.75-1.75v-8.5c0-.97.78-1.75 1.75-1.75h.75Zm-6 1a.5.5 0 0 0-.5.5v9c0 .28.22.5.5.5h1a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5h-1Z" />
                         </svg>
                         <span className={classes.nameLabel}>{column.name}</span>
+                        {isPrimaryKeyColumn && (
+                            <Badge
+                                appearance="tint"
+                                size="small"
+                                color="informative"
+                                className={classes.columnBadge}>
+                                {locConstants.schemaDesigner.primaryKey}
+                            </Badge>
+                        )}
                         <span className={classes.dataTypeLabel}>{column.dataType}</span>
                         {unsupportedText && (
                             <Tooltip content={unsupportedText} relationship="description">
