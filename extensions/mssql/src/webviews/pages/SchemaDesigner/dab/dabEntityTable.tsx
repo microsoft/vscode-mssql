@@ -27,6 +27,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { Dab } from "../../../../sharedInterfaces/dab";
 import { locConstants } from "../../../common/locConstants";
+import { PrimaryKeyIcon } from "../../../common/icons/primaryKey";
 import { useDabContext } from "./dabContext";
 import { DabEntitySettingsDialog } from "./dabEntitySettingsDialog";
 import "./dabEntityTable.css";
@@ -202,8 +203,11 @@ const useStyles = makeStyles({
         fontWeight: 300,
         flexShrink: 0,
     },
-    columnBadge: {
+    primaryKeyIcon: {
+        color: "var(--vscode-symbolIcon-keywordForeground, var(--vscode-editorWarning-foreground))",
         flexShrink: 0,
+        width: "16px",
+        height: "16px",
     },
     actionCell: {
         display: "flex",
@@ -781,13 +785,11 @@ export const DabEntityTable = () => {
                         </svg>
                         <span className={classes.nameLabel}>{column.name}</span>
                         {isPrimaryKeyColumn && (
-                            <Badge
-                                appearance="tint"
-                                size="small"
-                                color="informative"
-                                className={classes.columnBadge}>
-                                {locConstants.schemaDesigner.primaryKey}
-                            </Badge>
+                            <Tooltip
+                                content={locConstants.schemaDesigner.primaryKey}
+                                relationship="label">
+                                <PrimaryKeyIcon className={classes.primaryKeyIcon} />
+                            </Tooltip>
                         )}
                         <span className={classes.dataTypeLabel}>{column.dataType}</span>
                         {unsupportedText && (
