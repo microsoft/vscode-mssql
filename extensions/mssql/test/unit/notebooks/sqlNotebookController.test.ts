@@ -929,12 +929,25 @@ suite("SqlNotebookController", () => {
             const mockNotebookEditor = {
                 notebook: mockNotebook,
             } as unknown as vscode.NotebookEditor;
-            sandbox.stub(vscode.workspace, "openNotebookDocument").resolves(mockNotebook);
+            const openStub = sandbox
+                .stub(vscode.workspace, "openNotebookDocument")
+                .resolves(mockNotebook);
             sandbox.stub(vscode.window, "showNotebookDocument").resolves(mockNotebookEditor);
 
             await controller.createNotebookWithConnection();
 
             expect(vscode.workspace.openNotebookDocument).to.have.been.calledOnce;
+            const notebookData = openStub.firstCall.args[1] as vscode.NotebookData;
+            expect(notebookData.metadata).to.deep.equal({
+                metadata: {
+                    kernelspec: {
+                        name: "sql-notebook",
+                        display_name: "SQL",
+                        language: "sql",
+                    },
+                    language_info: { name: "sql" },
+                },
+            });
             expect(mockController.updateNotebookAffinity).to.have.been.calledWith(
                 mockNotebook,
                 vscode.NotebookControllerAffinity.Preferred,
