@@ -7051,6 +7051,10 @@
       <source xml:lang="en">{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again.</source>
       <note>{0} is the number of invalid accounts that have been removed</note>
     </trans-unit>
+    <trans-unit id="++CODE++8ee4e65df77291c702e67b2a14060cddd3d53d15c05a64ed6a95e8ef5c53441b">
+      <source xml:lang="en">{0} is a primary key column and can&apos;t be disabled.</source>
+      <note>{0} is the backing database column name</note>
+    </trans-unit>
     <trans-unit id="++CODE++e3620e8a37371c6057d768faed05a7608c6e5ee783372a58b137b047300e8b7a">
       <source xml:lang="en">{0} issue</source>
       <note>{0} is the number of issues</note>

@@ -924,6 +924,10 @@
         "message": "Expose {0}",
         "comment": ["{0} is the backing database column name"]
     },
+    "{0} is a primary key column and can't be disabled./{0} is the backing database column name": {
+        "message": "{0} is a primary key column and can't be disabled.",
+        "comment": ["{0} is the backing database column name"]
+    },
     "{0} action for {1}/{0} is the action name (Create, Read, etc.){1} is the entity name": {
         "message": "{0} action for {1}",
         "comment": ["{0} is the action name (Create, Read, etc.)", "{1} is the entity name"]
