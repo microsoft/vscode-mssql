@@ -2183,9 +2183,6 @@
       <source xml:lang="en">Enter the SQL Login password for user &apos;{0}&apos;.</source>
       <note>{0} is the SQL Login username</note>
     </trans-unit>
-    <trans-unit id="++CODE++493f89b5d0c917509476602a7ad84ca70dd6bba7558fa30416f54c5c0458e15c">
-      <source xml:lang="en">Enter the new database name</source>
-    </trans-unit>
     <trans-unit id="++CODE++41058600ed8ab3d197264132f1b22ed25b7b2d9fa6afdffd559fc08bca9e6075">
       <source xml:lang="en">Enter the path for the output file</source>
     </trans-unit>
