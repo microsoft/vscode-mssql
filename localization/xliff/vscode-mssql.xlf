@@ -685,6 +685,9 @@
     <trans-unit id="++CODE++9168a1046e45504ed34edeecd99ec73be336161e82395399aa9a3c1d912be6b2">
       <source xml:lang="en">Building {0}...</source>
     </trans-unit>
+    <trans-unit id="++CODE++24908cc5593d5d8ea1f67ad6b873dd49a8a045f441e35de15d8041d2caccfa93">
+      <source xml:lang="en">Bulk Actions</source>
+    </trans-unit>
     <trans-unit id="++CODE++6f52d618fb243f0ae137c3c850eb0bda8b347766a553b613fc210f6eb6bb5c97">
       <source xml:lang="en">Bulk-logged</source>
     </trans-unit>
@@ -1913,6 +1916,9 @@
     <trans-unit id="++CODE++33df1f7746d428f19493d14c875c60ddc71befd7377ba92d4fc578bc3529b993">
       <source xml:lang="en">Directory not found</source>
     </trans-unit>
+    <trans-unit id="++CODE++3583e2d377f9ee2c31596d15752d65fddec82de715720b2c43fad0756d6fda28">
+      <source xml:lang="en">Disable all entities</source>
+    </trans-unit>
     <trans-unit id="++CODE++6fbed214e0ea21c683db0ba2d648ef09b11edf4b4bb23835d4fdda84b5d097f3">
       <source xml:lang="en">Disable intellisense and syntax error checking on current document</source>
     </trans-unit>
@@ -2078,6 +2084,12 @@
     </trans-unit>
     <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
       <source xml:lang="en">Enable Trust Server Certificate</source>
+    </trans-unit>
+    <trans-unit id="++CODE++efa7adedb651f5d8d6be99873aeb53ef49aa29f82f94aeaab24cd02f25ca6305">
+      <source xml:lang="en">Enable all CRUD operations</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f4d8932f5f8ab4e79333deaf1d97a78038f5a4aea29334fd307612e1586d08a6">
+      <source xml:lang="en">Enable all entities</source>
     </trans-unit>
     <trans-unit id="++CODE++c60bd510aadca4cca8a64d535f63600d29ea21be9532ea0fa74c907d5c676311">
       <source xml:lang="en">Enable all rules in {0}</source>
@@ -3360,6 +3372,9 @@
     <trans-unit id="++CODE++e6918522718725ba7a74b087c48f889648bbfc7627b1d4ab826ac2cc1b30aa31">
       <source xml:lang="en">Include Object Types</source>
     </trans-unit>
+    <trans-unit id="++CODE++224b991b88c5510627611bdb43e5a500f1660e212e0e74ed34dc53be87699169">
+      <source xml:lang="en">Include all columns</source>
+    </trans-unit>
     <trans-unit id="++CODE++ac665fafc5f9732c9d322749a1f726be51f8b31d2ec83ecde83a6e1d2b632eda">
       <source xml:lang="en">Include all object types</source>
     </trans-unit>
@@ -3796,6 +3811,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bc9503a89518d47aeceed119c50d8826d8ca48592bd977647da2b8e49a240ed3">
       <source xml:lang="en">MSSQL: What&apos;s new</source>
+    </trans-unit>
+    <trans-unit id="++CODE++af56abadd6f783641801adf6ed9b7d1fcf4b7a5d207dab320252520f49d4894f">
+      <source xml:lang="en">Make everything read-only</source>
     </trans-unit>
     <trans-unit id="++CODE++614e5389e87ce465fe548a0665aeaa67a52a06ff792f2f791615cd37fb610178">
       <source xml:lang="en">Manage Connection Profiles</source>
