@@ -61,6 +61,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
     private _cachedDatabaseList?: { displayName: string; value: string }[];
     private _cachedSelectedDatabase?: string;
     private _preloadedContainerPort?: Promise<number>;
+    private _deploymentOptionsPromise?: Promise<void>;
     private _connectionUri?: string;
     private _serverTypes: string = "";
     private _availableConnections?: IConnectionDialogProfile[];
@@ -203,6 +204,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
         databaseName: string,
         upgradeExisting: boolean,
     ): Promise<void> {
+        // Ensure deployment options are loaded before executing DacFx operations.
+        await this._deploymentOptionsPromise;
         const connectionUri = this._connectionUri || "";
         const sqlCmdVariables = new Map(Object.entries(state.formState.sqlCmdVariables || {}));
 
@@ -268,6 +271,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
         dacpacPath: string,
         databaseName: string,
     ): Promise<void> {
+        // Ensure deployment options are loaded before executing DacFx operations.
+        await this._deploymentOptionsPromise;
         const connectionUri = this._connectionUri || "";
         const sqlCmdVariables = new Map(Object.entries(state.formState.sqlCmdVariables || {}));
 
@@ -780,12 +785,16 @@ export class PublishProjectWebViewController extends FormWebviewController<
         }
 
         // Fetch deployment options in the background while other init work proceeds.
+        // Cache the promise so consumers can await it if they run before the fetch completes.
         if (this._dacFxService) {
             // getDeploymentOptions returns a Thenable; wrap in Promise.resolve() for .catch support.
-            void Promise.resolve(
+            this._deploymentOptionsPromise = Promise.resolve(
                 this._dacFxService.getDeploymentOptions(DeploymentScenario.Deployment),
             )
                 .then((result) => {
+                    if (this.isDisposed) {
+                        return;
+                    }
                     const options = result?.defaultDeploymentOptions;
                     if (options) {
                         // Clear default excludeObjectTypes — no default exclude options for the publish dialog.
@@ -801,6 +810,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 .catch((err) => {
                     this.logger.error("Failed to fetch deployment options:", err);
                 });
+            // Intentionally not awaited here — callers await _deploymentOptionsPromise before using the options.
+            void this._deploymentOptionsPromise;
         }
 
         // Get the project properties from the proj file
@@ -1321,6 +1332,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 }
 
                 try {
+                    // Ensure deployment options are loaded before saving profile.
+                    await this._deploymentOptionsPromise;
                     const databaseName = state.formState.databaseName || projectName;
                     // Connection string depends on publish target:
                     // - For container targets: empty string because we're provisioning a new container
@@ -1397,6 +1410,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
         // Request handler to generate sqlpackage command string
         this.onRequest(GenerateSqlPackageCommandRequest.type, async (params) => {
             try {
+                // Ensure deployment options are loaded before building the command.
+                await this._deploymentOptionsPromise;
                 const dacpacPath = this.state.projectProperties?.dacpacOutputPath;
 
                 if (!dacpacPath) {
