@@ -50,10 +50,18 @@ export interface SaveObjectRequestParams {
     object: ObjectManagementSqlObject;
 }
 
+export interface SaveObjectRequestResponse {
+    taskId?: string;
+    errorMessage?: string;
+}
+
 export namespace SaveObjectRequest {
-    export const type = new RequestType<SaveObjectRequestParams, void, void, void>(
-        "objectManagement/save",
-    );
+    export const type = new RequestType<
+        SaveObjectRequestParams,
+        SaveObjectRequestResponse,
+        void,
+        void
+    >("objectManagement/save");
 }
 
 export interface ScriptObjectRequestParams {
@@ -101,6 +109,7 @@ export interface RenameDatabaseRequestParams {
 export interface RenameDatabaseResponse {
     taskId?: string;
     script?: string;
+    errorMessage?: string;
 }
 
 export namespace RenameDatabaseRequest {
@@ -120,10 +129,19 @@ export interface DropDatabaseRequestParams {
     generateScript: boolean;
 }
 
+export interface DropDatabaseResponse {
+    taskId?: string;
+    script?: string;
+    errorMessage?: string;
+}
+
 export namespace DropDatabaseRequest {
-    export const type = new RequestType<DropDatabaseRequestParams, string, void, void>(
-        "objectManagement/dropDatabase",
-    );
+    export const type = new RequestType<
+        DropDatabaseRequestParams,
+        DropDatabaseResponse,
+        void,
+        void
+    >("objectManagement/dropDatabase");
 }
 
 //#region Backup Database;

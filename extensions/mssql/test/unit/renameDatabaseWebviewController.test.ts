@@ -22,7 +22,6 @@ import {
     ObjectManagementScriptRequest,
     ObjectManagementDialogType,
 } from "../../src/sharedInterfaces/objectManagement";
-import { taskCompletedEmitter, TaskStatus } from "../../src/services/sqlTasksService";
 import * as utils from "../../src/utils/utils";
 
 suite("RenameDatabaseWebviewController Tests", () => {
@@ -30,7 +29,6 @@ suite("RenameDatabaseWebviewController Tests", () => {
     let mockContext: vscode.ExtensionContext;
     let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
     let objectManagementServiceStub: sinon.SinonStubbedInstance<ObjectManagementService>;
-    let panelStub: vscode.WebviewPanel;
     let requestHandlers: Map<string, (params: unknown) => Promise<unknown>>;
     let initializeViewCalled: Promise<void>;
     let resolveInitializeViewCalled: (() => void) | undefined;
@@ -54,8 +52,9 @@ suite("RenameDatabaseWebviewController Tests", () => {
             .stub(jsonRpc, "createMessageConnection")
             .returns(connection.connection as unknown as jsonRpc.MessageConnection);
 
-        panelStub = stubWebviewPanel(sandbox);
-        sandbox.stub(vscode.window, "createWebviewPanel").callsFake(() => panelStub);
+        sandbox
+            .stub(vscode.window, "createWebviewPanel")
+            .callsFake(() => stubWebviewPanel(sandbox));
 
         mockContext = {
             extensionUri: vscode.Uri.file("/tmp/ext"),
@@ -95,33 +94,6 @@ suite("RenameDatabaseWebviewController Tests", () => {
         await initializeViewCalled;
     }
 
-    function fireRenameTaskCompleted(
-        status: TaskStatus,
-        newDatabaseName = "renamed-db",
-        message = "Rename completed",
-    ): void {
-        taskCompletedEmitter.fire({
-            task: {
-                taskId: "rename-task-id",
-                status,
-                taskExecutionMode: 0,
-                serverName,
-                databaseName: newDatabaseName,
-                name: "Rename database",
-                description: "Rename database task",
-                providerName: "MSSQL",
-                isCancelable: false,
-                targetLocation: "",
-                operationName: "RenameDatabaseOperation",
-            },
-            progress: {
-                taskId: "rename-task-id",
-                status,
-                message,
-            },
-        });
-    }
-
     test("initialization should call initializeView for the selected database", async () => {
         createController();
         await waitForInitialization();
@@ -147,7 +119,7 @@ suite("RenameDatabaseWebviewController Tests", () => {
         const requestHandler = requestHandlers.get(ObjectManagementSubmitRequest.type.method);
         expect(requestHandler).to.be.a("function");
 
-        const resultPromise = requestHandler!({
+        const result = await requestHandler!({
             dialogType: ObjectManagementDialogType.RenameDatabase,
             params: {
                 newName: "renamed-db",
@@ -155,13 +127,10 @@ suite("RenameDatabaseWebviewController Tests", () => {
             },
         });
 
-        await Promise.resolve();
-
-        fireRenameTaskCompleted(TaskStatus.Succeeded);
-
-        const result = await resultPromise;
-
-        expect(result).to.deep.equal({ success: true });
+        expect(result).to.deep.equal({
+            success: true,
+            taskId: "rename-task-id",
+        });
         expect(
             objectManagementServiceStub.renameDatabase.calledWith(
                 connectionUri,
@@ -171,6 +140,30 @@ suite("RenameDatabaseWebviewController Tests", () => {
                 false,
             ),
         ).to.be.true;
+    });
+
+    test("handleSubmit should return task id when rename response reports failure", async () => {
+        createController();
+        await waitForInitialization();
+        objectManagementServiceStub.renameDatabase.resolves({
+            taskId: "rename-task-id",
+            errorMessage: "Rename failed",
+        });
+
+        const requestHandler = requestHandlers.get(ObjectManagementSubmitRequest.type.method);
+        const result = await requestHandler!({
+            dialogType: ObjectManagementDialogType.RenameDatabase,
+            params: {
+                newName: "renamed-db",
+                dropConnections: false,
+            },
+        });
+
+        expect(result).to.deep.equal({
+            success: false,
+            errorMessage: "Rename failed",
+            taskId: "rename-task-id",
+        });
     });
 
     test("handleSubmit should surface service errors", async () => {
@@ -211,36 +204,6 @@ suite("RenameDatabaseWebviewController Tests", () => {
             success: false,
             errorMessage: "Unknown object management dialog.",
         });
-    });
-
-    test("handleSubmit should not close the dialog when the rename task fails", async () => {
-        createController();
-        await waitForInitialization();
-        objectManagementServiceStub.renameDatabase.resolves({
-            taskId: "rename-task-id",
-        });
-
-        const requestHandler = requestHandlers.get(ObjectManagementSubmitRequest.type.method);
-        const resultPromise = requestHandler!({
-            dialogType: ObjectManagementDialogType.RenameDatabase,
-            params: {
-                newName: "renamed-db",
-                dropConnections: false,
-            },
-        });
-
-        await Promise.resolve();
-
-        fireRenameTaskCompleted(TaskStatus.Failed, "renamed-db", "Rename database failed");
-
-        const result = await resultPromise;
-
-        expect(result).to.deep.equal({
-            success: false,
-            errorMessage: "Rename database failed",
-        });
-        expect(objectManagementServiceStub.disposeView.called).to.be.false;
-        expect(panelStub.dispose.called).to.be.false;
     });
 
     test("handleScript should request a rename script and open it", async () => {

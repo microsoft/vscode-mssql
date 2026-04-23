@@ -144,6 +144,7 @@ export type ObjectManagementActionParams =
 export interface ObjectManagementActionResult {
     success: boolean;
     errorMessage?: string;
+    taskId?: string;
 }
 
 export namespace ObjectManagementSubmitRequest {

@@ -14,7 +14,6 @@ import {
 import * as Constants from "../constants/constants";
 import * as LocConstants from "../constants/locConstants";
 import { ObjectManagementService } from "../services/objectManagementService";
-import { onTaskCompleted, TaskCompletedEvent, TaskStatus } from "../services/sqlTasksService";
 import { getErrorMessage } from "../utils/utils";
 import VscodeWrapper from "./vscodeWrapper";
 import { ObjectManagementWebviewController } from "./objectManagementWebviewController";
@@ -24,7 +23,6 @@ interface RenameDatabaseViewInfo {
 }
 
 export class RenameDatabaseWebviewController extends ObjectManagementWebviewController {
-    private static readonly _renameDatabaseOperationName = "RenameDatabaseOperation";
     private _databaseNameForRename = "";
 
     public constructor(
@@ -130,6 +128,14 @@ export class RenameDatabaseWebviewController extends ObjectManagementWebviewCont
                 false,
             );
 
+            if (renameResponse.errorMessage) {
+                return {
+                    success: false,
+                    errorMessage: renameResponse.errorMessage,
+                    taskId: renameResponse.taskId,
+                };
+            }
+
             if (!renameResponse.taskId) {
                 return {
                     success: false,
@@ -137,16 +143,9 @@ export class RenameDatabaseWebviewController extends ObjectManagementWebviewCont
                 };
             }
 
-            const renameTaskCompletion = this.waitForRenameTaskCompletion(renameResponse.taskId);
-
-            const completionResult = await renameTaskCompletion.promise;
-            if (!completionResult.success) {
-                return completionResult;
-            }
-
             await this.disposeView();
             this.closeDialog(typedParams.newName);
-            return { success: true };
+            return { success: true, taskId: renameResponse.taskId };
         } catch (error) {
             return { success: false, errorMessage: getErrorMessage(error) };
         }
@@ -184,49 +183,5 @@ export class RenameDatabaseWebviewController extends ObjectManagementWebviewCont
 
     private asViewInfo(viewInfo: unknown): RenameDatabaseViewInfo {
         return viewInfo as RenameDatabaseViewInfo;
-    }
-
-    private waitForRenameTaskCompletion(taskId: string): {
-        promise: Promise<ObjectManagementActionResult>;
-        dispose: () => void;
-    } {
-        let completionListener: vscode.Disposable | undefined;
-
-        const promise = new Promise<ObjectManagementActionResult>((resolve) => {
-            completionListener = onTaskCompleted((taskCompletedEvent: TaskCompletedEvent) => {
-                const { task, progress } = taskCompletedEvent;
-                if (
-                    task.operationName !==
-                        RenameDatabaseWebviewController._renameDatabaseOperationName ||
-                    task.taskId !== taskId
-                ) {
-                    return;
-                }
-
-                completionListener?.dispose();
-                completionListener = undefined;
-
-                if (
-                    progress.status === TaskStatus.Succeeded ||
-                    progress.status === TaskStatus.SucceededWithWarning
-                ) {
-                    resolve({ success: true });
-                    return;
-                }
-
-                resolve({
-                    success: false,
-                    errorMessage: progress.message || LocConstants.msgObjectManagementUnknownDialog,
-                });
-            });
-        });
-
-        return {
-            promise,
-            dispose: () => {
-                completionListener?.dispose();
-                completionListener = undefined;
-            },
-        };
     }
 }

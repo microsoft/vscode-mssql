@@ -6,6 +6,7 @@
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import {
     DropDatabaseRequest,
+    DropDatabaseResponse,
     InitializeViewRequest,
     InitializeViewRequestParams,
     ObjectManagementSqlObject,
@@ -14,6 +15,7 @@ import {
     RenameObjectRequest,
     RenameDatabaseRequest,
     SaveObjectRequest,
+    SaveObjectRequestResponse,
     ScriptObjectRequest,
     DisposeViewRequest,
     BackupConfigInfoRequest,
@@ -62,7 +64,10 @@ export class ObjectManagementService {
         return this._client.sendRequest(InitializeViewRequest.type, params);
     }
 
-    public async save(contextId: string, object: ObjectManagementSqlObject): Promise<void> {
+    public async save(
+        contextId: string,
+        object: ObjectManagementSqlObject,
+    ): Promise<SaveObjectRequestResponse> {
         return this._client.sendRequest(SaveObjectRequest.type, { contextId, object });
     }
 
@@ -110,7 +115,7 @@ export class ObjectManagementService {
         dropConnections: boolean,
         deleteBackupHistory: boolean,
         generateScript: boolean,
-    ): Promise<string> {
+    ): Promise<DropDatabaseResponse> {
         return this._client.sendRequest(DropDatabaseRequest.type, {
             connectionUri,
             database,
