@@ -161,16 +161,15 @@ suite("ObjectManagementService Tests", () => {
         expect(result).to.deep.equal({
             script: "ALTER DATABASE [db] MODIFY NAME = [db2]",
         });
-        expect(sqlToolsClientStub.sendRequest.calledOnce).to.be.true;
-        const [type, params] = sqlToolsClientStub.sendRequest.firstCall.args;
-        expect(type).to.equal(RenameDatabaseRequest.type);
-        expect(params).to.deep.equal({
-            connectionUri: "connection-uri",
-            database: "database-name",
-            newName: "new-database-name",
-            dropConnections: true,
-            generateScript: true,
-        });
+        expect(
+            sqlToolsClientStub.sendRequest.calledWith(RenameDatabaseRequest.type, {
+                connectionUri: "connection-uri",
+                database: "database-name",
+                newName: "new-database-name",
+                dropConnections: true,
+                generateScript: true,
+            }),
+        ).to.be.true;
     });
 
     test("dropDatabase should send correct request", async () => {

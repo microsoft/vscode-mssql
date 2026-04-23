@@ -166,10 +166,11 @@ export class RenameDatabaseWebviewController extends ObjectManagementWebviewCont
             const script = response.script;
 
             if (!script) {
-                void this.vscodeWrapper.showWarningMessage(LocConstants.msgNoScriptGenerated);
+                const errorMessage = response.errorMessage ?? LocConstants.msgNoScriptGenerated;
+                void this.vscodeWrapper.showWarningMessage(errorMessage);
                 return {
                     success: false,
-                    errorMessage: LocConstants.msgNoScriptGenerated,
+                    errorMessage,
                 };
             }
 

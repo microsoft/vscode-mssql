@@ -53,6 +53,7 @@ export const RenameDatabaseDialogPage = ({
     const extensionRpc = context!.extensionRpc;
     const [resultApiError, setResultApiError] = useState<string | undefined>(undefined);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [hasEditedName, setHasEditedName] = useState(false);
     const [renameForm, setRenameForm] = useState<RenameDatabaseFormState>({
         newName: model?.newDatabaseName ?? model?.databaseName ?? "",
         dropConnections: false,
@@ -65,6 +66,7 @@ export const RenameDatabaseDialogPage = ({
                 newName: model.newDatabaseName ?? model.databaseName,
                 dropConnections: false,
             });
+            setHasEditedName(false);
             renameFormInitialized.current = true;
         }
     }, [model]);
@@ -76,7 +78,8 @@ export const RenameDatabaseDialogPage = ({
     const isNameUnchanged = trimmedName === currentDatabaseName;
     const showNameRequired = renameForm.newName.length > 0 && isNameEmpty;
     const showNameTooLong = !showNameRequired && isNameTooLong;
-    const showNameUnchanged = !showNameRequired && !showNameTooLong && isNameUnchanged;
+    const showNameUnchanged =
+        hasEditedName && !showNameRequired && !showNameTooLong && isNameUnchanged;
     const isSubmitDisabled =
         isLoading || isSubmitting || isNameEmpty || isNameTooLong || isNameUnchanged;
 
@@ -170,7 +173,10 @@ export const RenameDatabaseDialogPage = ({
                     newNameValidationState={
                         showNameRequired || showNameTooLong || showNameUnchanged ? "error" : "none"
                     }
-                    onChange={(next) => setRenameForm(next)}
+                    onChange={(next) => {
+                        setHasEditedName(true);
+                        setRenameForm(next);
+                    }}
                 />
             )}
         </ObjectManagementDialog>

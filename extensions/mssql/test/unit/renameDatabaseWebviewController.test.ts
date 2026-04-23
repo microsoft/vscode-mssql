@@ -237,4 +237,27 @@ suite("RenameDatabaseWebviewController Tests", () => {
             ),
         ).to.be.true;
     });
+
+    test("handleScript should surface the service error when script generation fails", async () => {
+        createController();
+        await waitForInitialization();
+        objectManagementServiceStub.renameDatabase.resolves({
+            errorMessage: "Rename script failed",
+        });
+
+        const requestHandler = requestHandlers.get(ObjectManagementScriptRequest.type.method);
+        const result = await requestHandler!({
+            dialogType: ObjectManagementDialogType.RenameDatabase,
+            params: {
+                newName: "renamed-db",
+                dropConnections: true,
+            },
+        });
+
+        expect(result).to.deep.equal({
+            success: false,
+            errorMessage: "Rename script failed",
+        });
+        expect(vscodeWrapperStub.showWarningMessage.calledWith("Rename script failed")).to.be.true;
+    });
 });
