@@ -85,6 +85,7 @@ export interface InlineCompletionDebugModelOption {
 
 export interface InlineCompletionDebugDefaults {
     configuredModelFamily?: string;
+    effectiveModelFamily?: string;
     useSchemaContext: boolean;
     debounceMs: number;
     continuationMaxTokens: number;

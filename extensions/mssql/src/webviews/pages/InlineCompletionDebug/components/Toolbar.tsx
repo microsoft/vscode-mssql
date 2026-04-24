@@ -148,6 +148,7 @@ export const InlineCompletionDebugToolbar = ({
     }, []);
 
     const selectedModelOption = state.overrides.modelFamily ?? "__default__";
+    const defaultModelLabel = getDefaultModelLabel(state);
     const schemaContextChecked =
         state.overrides.useSchemaContext ?? state.defaults.useSchemaContext;
     const autoTriggerChecked =
@@ -247,12 +248,7 @@ export const InlineCompletionDebugToolbar = ({
                     <Dropdown
                         size="small"
                         selectedOptions={[selectedModelOption]}
-                        value={
-                            state.overrides.modelFamily ??
-                            (state.defaults.configuredModelFamily
-                                ? `${state.defaults.configuredModelFamily} (default)`
-                                : "(default)")
-                        }
+                        value={state.overrides.modelFamily ?? defaultModelLabel}
                         onOptionSelect={(_, data) => {
                             updateOverrides({
                                 modelFamily:
@@ -262,11 +258,7 @@ export const InlineCompletionDebugToolbar = ({
                             });
                             blurActiveElementSoon();
                         }}>
-                        <Option value="__default__">
-                            {state.defaults.configuredModelFamily
-                                ? `${state.defaults.configuredModelFamily} (default)`
-                                : "(default)"}
-                        </Option>
+                        <Option value="__default__">{defaultModelLabel}</Option>
                         {state.availableModels.map((model) => (
                             <Option key={model.family} value={model.family}>
                                 {model.family}
@@ -428,3 +420,9 @@ export const InlineCompletionDebugToolbar = ({
         </div>
     );
 };
+
+function getDefaultModelLabel(state: InlineCompletionDebugWebviewState): string {
+    const defaultModelFamily =
+        state.defaults.effectiveModelFamily ?? state.defaults.configuredModelFamily;
+    return defaultModelFamily ? `${defaultModelFamily} (default)` : "(default)";
+}

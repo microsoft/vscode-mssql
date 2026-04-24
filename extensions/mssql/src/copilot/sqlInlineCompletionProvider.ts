@@ -716,9 +716,7 @@ ${options.schemaContextText}`,
     ];
 }
 
-export function selectPreferredModel(
-    models: vscode.LanguageModelChat[],
-): vscode.LanguageModelChat | undefined {
+export function selectPreferredModel<T extends { family: string }>(models: T[]): T | undefined {
     for (const pattern of modelFamilyFallbackPreferences) {
         const match = models.find((m) => pattern.test(m.family));
         if (match) {

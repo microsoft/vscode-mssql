@@ -47,6 +47,7 @@ export class InlineCompletionDebugController extends WebviewPanelController<
 > {
     private readonly _logger = logger2.withPrefix("InlineCompletionDebug");
     private _availableModels: InlineCompletionDebugModelOption[] = [];
+    private _effectiveDefaultModelFamily: string | undefined;
     private _savedCustomPromptValue: string | null;
     private _customPromptLastSavedAt: number | undefined;
 
@@ -72,6 +73,7 @@ export class InlineCompletionDebugController extends WebviewPanelController<
             "inlineCompletionDebug",
             createState({
                 availableModels: [],
+                effectiveDefaultModelFamily: undefined,
                 selectedEventId: undefined,
                 customPromptDialogOpen: false,
                 customPromptValue: savedCustomPrompt,
@@ -116,10 +118,17 @@ export class InlineCompletionDebugController extends WebviewPanelController<
                     e.affectsConfiguration(
                         Constants.configCopilotInlineCompletionsDebugRecordWhenClosed,
                     ) ||
-                    e.affectsConfiguration(Constants.configCopilotInlineCompletionsModelFamily) ||
                     e.affectsConfiguration(Constants.configCopilotInlineCompletionsUseSchemaContext)
                 ) {
                     this.updateState(this.createState());
+                }
+                if (e.affectsConfiguration(Constants.configCopilotInlineCompletionsModelFamily)) {
+                    this._effectiveDefaultModelFamily = getEffectiveDefaultModelFamily(
+                        this._availableModels,
+                        getConfiguredModelFamily(),
+                    );
+                    this.updateState(this.createState());
+                    void this.refreshAvailableModels();
                 }
             }),
         );
@@ -241,6 +250,7 @@ export class InlineCompletionDebugController extends WebviewPanelController<
             overrides?.customPromptLastSavedAt ?? this._customPromptLastSavedAt;
         return createState({
             availableModels: this._availableModels,
+            effectiveDefaultModelFamily: this._effectiveDefaultModelFamily,
             selectedEventId: overrides?.selectedEventId ?? this.state?.selectedEventId,
             customPromptDialogOpen:
                 overrides?.customPromptDialogOpen ?? this.state?.customPrompt.dialogOpen ?? false,
@@ -252,6 +262,10 @@ export class InlineCompletionDebugController extends WebviewPanelController<
     private async refreshAvailableModels(): Promise<void> {
         try {
             const models = await vscode.lm.selectChatModels({ vendor: "copilot" });
+            this._effectiveDefaultModelFamily = getEffectiveDefaultModelFamily(
+                models,
+                getConfiguredModelFamily(),
+            );
             const byFamily = new Map<string, InlineCompletionDebugModelOption>();
             for (const model of models) {
                 if (!byFamily.has(model.family)) {
@@ -666,16 +680,21 @@ export class InlineCompletionDebugController extends WebviewPanelController<
 
 function createState(options: {
     availableModels: InlineCompletionDebugModelOption[];
+    effectiveDefaultModelFamily: string | undefined;
     selectedEventId: string | undefined;
     customPromptDialogOpen: boolean;
     customPromptValue: string | null;
     customPromptLastSavedAt: number | undefined;
 }): InlineCompletionDebugWebviewState {
+    const configuredModelFamily = getConfiguredModelFamily();
     return {
         events: inlineCompletionDebugStore.getEvents(),
         overrides: inlineCompletionDebugStore.getOverrides(),
         defaults: {
-            configuredModelFamily: getConfiguredModelFamily(),
+            configuredModelFamily,
+            effectiveModelFamily:
+                options.effectiveDefaultModelFamily ??
+                getEffectiveDefaultModelFamily(options.availableModels, configuredModelFamily),
             useSchemaContext: getConfiguredUseSchemaContext(),
             debounceMs: automaticTriggerDebounceMs,
             continuationMaxTokens: continuationModeMaxTokens,
@@ -692,6 +711,20 @@ function createState(options: {
             lastSavedAt: options.customPromptLastSavedAt,
         },
     };
+}
+
+function getEffectiveDefaultModelFamily<T extends { family: string }>(
+    availableModels: T[],
+    configuredModelFamily: string | undefined,
+): string | undefined {
+    if (
+        configuredModelFamily &&
+        availableModels.some((model) => model.family === configuredModelFamily)
+    ) {
+        return configuredModelFamily;
+    }
+
+    return selectPreferredModel(availableModels)?.family ?? configuredModelFamily;
 }
 
 function getConfiguredModelFamily(): string | undefined {
