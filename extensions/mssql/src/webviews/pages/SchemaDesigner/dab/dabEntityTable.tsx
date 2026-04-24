@@ -140,6 +140,12 @@ const useStyles = makeStyles({
     },
     header: {
         backgroundColor: "var(--vscode-editor-background)",
+        position: "sticky",
+        top: 0,
+        zIndex: 2,
+    },
+    headerRow: {
+        backgroundColor: "var(--vscode-editor-background)",
     },
     headerCell: {
         minWidth: 0,
@@ -147,9 +153,7 @@ const useStyles = makeStyles({
         fontWeight: 600,
         fontSize: "12px",
         backgroundColor: "var(--vscode-editor-background)",
-        position: "sticky",
-        top: 0,
-        zIndex: 1,
+        zIndex: 3,
         borderBottom: `1px solid var(--vscode-editorWidget-border)`,
     },
     row: {
@@ -362,7 +366,9 @@ export const DabEntityTable = () => {
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
     const settingsButtonRefs = useRef<Map<string, HTMLElement | null>>(new Map());
     const pendingSettingsFocusEntityIdRef = useRef<string | undefined>(undefined);
-    const scrollContainerRef = useRef<HTMLDivElement | undefined>(undefined);
+    const scrollContainerRef = useRef<HTMLDivElement | null>(
+        undefined as unknown as HTMLDivElement | null,
+    );
 
     const initialEnabledEntities = useRef<Set<string>>(
         new Set(
@@ -1087,7 +1093,7 @@ export const DabEntityTable = () => {
                             aria-rowcount={rows.length + 1}
                             aria-label={locConstants.schemaDesigner.entityName}>
                             <TableHeader className={classes.header}>
-                                <TableRow aria-rowindex={1}>
+                                <TableRow aria-rowindex={1} className={classes.headerRow}>
                                     {columns.map((column) => (
                                         <TableHeaderCell
                                             {...columnSizing_unstable.getTableHeaderCellProps(
