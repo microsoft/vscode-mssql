@@ -28,6 +28,7 @@ function createTestEntity(overrides?: Partial<Dab.DabEntityConfig>): Dab.DabEnti
                 dataType: "int",
                 isSupported: true,
                 isExposed: true,
+                isPrimaryKey: true,
             },
             {
                 id: "test-id-1-column-name",
@@ -35,6 +36,7 @@ function createTestEntity(overrides?: Partial<Dab.DabEntityConfig>): Dab.DabEnti
                 dataType: "nvarchar",
                 isSupported: true,
                 isExposed: true,
+                isPrimaryKey: false,
             },
         ],
         advancedSettings: {
@@ -500,6 +502,7 @@ suite("DabConfigFileBuilder Tests", () => {
                                     dataType: "int",
                                     isSupported: true,
                                     isExposed: true,
+                                    isPrimaryKey: true,
                                 },
                                 {
                                     id: "secret",
@@ -507,6 +510,7 @@ suite("DabConfigFileBuilder Tests", () => {
                                     dataType: "nvarchar",
                                     isSupported: true,
                                     isExposed: false,
+                                    isPrimaryKey: false,
                                 },
                             ],
                         }),

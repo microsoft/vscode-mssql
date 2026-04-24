@@ -832,6 +832,7 @@ suite("SchemaDesignerWebviewController tests", () => {
                             dataType: "int",
                             isSupported: true,
                             isExposed: true,
+                            isPrimaryKey: true,
                         },
                     ],
                     advancedSettings: {
