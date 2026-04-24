@@ -146,7 +146,10 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             );
             try {
                 let sessionResponse: SchemaDesigner.CreateSessionResponse;
-                if (!this.schemaDesignerCache.has(this._key)) {
+                const cacheItem = this.schemaDesignerCache.get(this._key);
+                const hasCachedSession = !!cacheItem?.schemaDesignerDetails?.sessionId;
+
+                if (!hasCachedSession) {
                     sessionResponse = await this.schemaDesignerService.createSession({
                         connectionString: this.connectionString,
                         accessToken: this.accessToken,
@@ -156,11 +159,10 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                     this.schemaDesignerCache.set(this._key, {
                         schemaDesignerDetails: sessionResponse,
                         baselineSchema: sessionResponse.schema,
-                        dabConfig: undefined,
-                        isDirty: false,
+                        dabConfig: cacheItem?.dabConfig,
+                        isDirty: cacheItem?.isDirty ?? false,
                     });
                 } else {
-                    const cacheItem = this.schemaDesignerCache.get(this._key)!;
                     sessionResponse = cacheItem.schemaDesignerDetails;
                     this.baselineSchema = cacheItem.baselineSchema;
                 }
@@ -666,18 +668,35 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     ): SchemaDesigner.SchemaDesignerCacheItem {
         let schemaDesignerCacheItem = this.schemaDesignerCache.get(this._key);
         if (!schemaDesignerCacheItem) {
+            if (this.schemaDesignerDetails) {
+                schemaDesignerCacheItem = {
+                    schemaDesignerDetails: this.schemaDesignerDetails,
+                    baselineSchema: this.baselineSchema ?? this.schemaDesignerDetails.schema,
+                    isDirty: false,
+                };
+            } else {
+                schemaDesignerCacheItem = {
+                    schemaDesignerDetails: {
+                        schema: { tables: [] },
+                        dataTypes: [],
+                        schemaNames: [],
+                        sessionId: "",
+                    },
+                    baselineSchema: this.baselineSchema ?? { tables: [] },
+                    isDirty: false,
+                };
+            }
+        }
+        if (
+            !this.schemaDesignerDetails &&
+            schemaDesignerCacheItem.schemaDesignerDetails.sessionId
+        ) {
+            this.schemaDesignerDetails = schemaDesignerCacheItem.schemaDesignerDetails;
+        }
+        if (updatedSchema) {
             if (!this.schemaDesignerDetails) {
                 throw new Error(LocConstants.schemaDesignerDetailsUnavailable);
             }
-
-            schemaDesignerCacheItem = {
-                schemaDesignerDetails: this.schemaDesignerDetails,
-                baselineSchema: this.baselineSchema ?? this.schemaDesignerDetails.schema,
-                isDirty: false,
-            };
-        }
-        this.schemaDesignerDetails ??= schemaDesignerCacheItem.schemaDesignerDetails;
-        if (updatedSchema) {
             this.schemaDesignerDetails!.schema = updatedSchema;
             schemaDesignerCacheItem.schemaDesignerDetails.schema = updatedSchema;
         }

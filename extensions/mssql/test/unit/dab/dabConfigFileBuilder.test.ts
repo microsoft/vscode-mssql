@@ -384,7 +384,12 @@ suite("DabConfigFileBuilder Tests", () => {
 
         suite("entity GraphQL property", () => {
             test("should not include graphql property when no customGraphQLType is set", () => {
-                const result = builder.build(createTestConfig(), defaultConnectionInfo);
+                const result = builder.build(
+                    createTestConfig({
+                        apiTypes: [Dab.ApiType.GraphQL],
+                    }),
+                    defaultConnectionInfo,
+                );
                 const parsed = JSON.parse(result);
                 expect(parsed.entities["Users"].graphql).to.be.undefined;
             });

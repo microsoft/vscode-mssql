@@ -550,6 +550,7 @@ suite("DabTool Tests", () => {
                 setApiTypesCount: 1,
                 setEntityEnabledCount: 0,
                 setEntityActionsCount: 0,
+                setColumnExposedCount: 0,
                 patchEntitySettingsCount: 0,
                 setOnlyEnabledEntitiesCount: 0,
                 setAllEntitiesEnabledCount: 1,
