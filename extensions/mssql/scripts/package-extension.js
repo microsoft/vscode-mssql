@@ -112,7 +112,10 @@ function packageExtension(packageName = null) {
 
         logger.debug(`Running: ${npmCommand} ${vsceArgs.join(" ")}`);
 
-        execFileSync(npmCommand, vsceArgs, { stdio: "inherit" });
+        execFileSync(npmCommand, vsceArgs, {
+            stdio: "inherit",
+            shell: process.platform === "win32",
+        });
         logger.success(`Extension packaged${packageName ? `: ${packageName}` : ""}`);
     } catch (error) {
         logger.error(`Packaging failed: ${error.message}`);
