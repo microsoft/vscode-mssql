@@ -146,17 +146,32 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 if (!prev) {
                     return prev;
                 }
+
+                let didChange = false;
+                const entities = prev.entities.map((e) => {
+                    if (e.id !== entityId) {
+                        return e;
+                    }
+
+                    const hasActionEnabled = e.enabledActions.includes(action);
+                    if (hasActionEnabled === isEnabled) {
+                        return e;
+                    }
+
+                    didChange = true;
+                    const enabledActions = isEnabled
+                        ? [...e.enabledActions, action]
+                        : e.enabledActions.filter((a) => a !== action);
+                    return { ...e, enabledActions };
+                });
+
+                if (!didChange) {
+                    return prev;
+                }
+
                 return {
                     ...prev,
-                    entities: prev.entities.map((e) => {
-                        if (e.id !== entityId) {
-                            return e;
-                        }
-                        const enabledActions = isEnabled
-                            ? [...e.enabledActions, action]
-                            : e.enabledActions.filter((a) => a !== action);
-                        return { ...e, enabledActions };
-                    }),
+                    entities,
                 };
             });
         },

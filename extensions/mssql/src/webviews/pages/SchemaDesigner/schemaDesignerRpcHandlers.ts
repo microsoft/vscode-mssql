@@ -1459,6 +1459,10 @@ function applyDabToolChange(
                 return resolvedColumn;
             }
 
+            if (resolvedColumn.column.isPrimaryKey && !change.isExposed) {
+                return createDabValidationError("Primary key columns must remain exposed.");
+            }
+
             config.entities[resolvedEntity.index] = {
                 ...resolvedEntity.entity,
                 columns: resolvedEntity.entity.columns.map((column, index) =>

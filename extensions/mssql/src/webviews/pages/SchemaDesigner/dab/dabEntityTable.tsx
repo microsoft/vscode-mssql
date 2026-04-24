@@ -103,6 +103,14 @@ function getEntityFullName(entity: Dab.DabEntityConfig): string {
     return `${entity.schemaName}.${entity.tableName}`;
 }
 
+function createDefaultExpandedRows(config?: Dab.DabConfig | null): Set<string> {
+    if (!config) {
+        return new Set<string>();
+    }
+
+    return new Set(config.entities.map((entity) => `schema-${entity.schemaName}`));
+}
+
 function getCheckedState(total: number, checked: number): CheckedState {
     if (total > 0 && checked === total) {
         return "checked";
@@ -351,24 +359,15 @@ export const DabEntityTable = () => {
         currentFilteredTables,
     } = context;
 
-    const [expandedRows, setExpandedRows] = useState<Set<string>>(() => {
-        // Schemas expanded by default
-        if (!dabConfig) {
-            return new Set<string>();
-        }
-        const schemas = new Set<string>();
-        for (const entity of dabConfig.entities) {
-            schemas.add(`schema-${entity.schemaName}`);
-        }
-        return schemas;
-    });
+    const [expandedRows, setExpandedRows] = useState<Set<string>>(() =>
+        createDefaultExpandedRows(dabConfig),
+    );
     const [settingsEntityId, setSettingsEntityId] = useState<string | undefined>(undefined);
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
     const settingsButtonRefs = useRef<Map<string, HTMLElement | null>>(new Map());
     const pendingSettingsFocusEntityIdRef = useRef<string | undefined>(undefined);
-    const scrollContainerRef = useRef<HTMLDivElement | null>(
-        undefined as unknown as HTMLDivElement | null,
-    );
+    const hasInitializedExpandedRows = useRef(Boolean(dabConfig));
+    const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
     const initialEnabledEntities = useRef<Set<string>>(
         new Set(
@@ -379,6 +378,11 @@ export const DabEntityTable = () => {
     useEffect(() => {
         if (!dabConfig) {
             return;
+        }
+
+        if (!hasInitializedExpandedRows.current) {
+            setExpandedRows(createDefaultExpandedRows(dabConfig));
+            hasInitializedExpandedRows.current = true;
         }
 
         const tablesToCheck: Set<string> =
@@ -555,7 +559,10 @@ export const DabEntityTable = () => {
 
             const shouldEnable = headerActionState(action) !== "checked";
             for (const entity of enabledEntities) {
-                toggleDabEntityAction(entity.id, action, shouldEnable);
+                const hasAction = entity.enabledActions.includes(action);
+                if ((shouldEnable && !hasAction) || (!shouldEnable && hasAction)) {
+                    toggleDabEntityAction(entity.id, action, shouldEnable);
+                }
             }
         },
         [filteredEntities, headerActionState, toggleDabEntityAction],

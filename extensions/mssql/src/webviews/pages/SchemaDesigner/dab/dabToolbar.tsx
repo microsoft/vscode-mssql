@@ -178,7 +178,14 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: 
                 toggleDabEntity(entity.id, true);
             }
             for (const action of allActions) {
-                toggleDabEntityAction(entity.id, action, action === Dab.EntityAction.Read);
+                const shouldEnableAction = action === Dab.EntityAction.Read;
+                const hasActionEnabled = entity.enabledActions.includes(action);
+
+                if (shouldEnableAction && !hasActionEnabled) {
+                    toggleDabEntityAction(entity.id, action, true);
+                } else if (!shouldEnableAction && hasActionEnabled) {
+                    toggleDabEntityAction(entity.id, action, false);
+                }
             }
         }
     };
