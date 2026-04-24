@@ -150,6 +150,7 @@ export const cmdStartContainer = "mssql.startContainer";
 export const cmdHandleSummaryOperation = "mssql.handleSummaryOperation";
 export const cmdOpenChangelog = "mssql.openChangelog";
 export const cmdOpenAzureDataStudioMigration = "mssql.openAzureDataStudioMigration";
+export const cmdOpenInlineCompletionDebug = "mssql.openInlineCompletionDebug";
 export const cmdOpenGithubChat = "workbench.action.chat.open";
 export const cmdBackupDatabase = "mssql.backupDatabase";
 export const cmdRestoreDatabase = "mssql.restoreDatabase";
@@ -203,6 +204,7 @@ export const contentProviderMinFile = "dist/js/app.min.js";
 export const timeToWaitForLanguageModeChange = 10000.0;
 export const gettingStartedGuideLink = "https://aka.ms/mssql-getting-started";
 export const changelogLink = "https://aka.ms/vscode-mssql-changes";
+export const documentationLink = "https://aka.ms/vscode-mssql-docs";
 export const encryptionBlogLink = "https://aka.ms/vscodemssql-connection";
 export const integratedAuthHelpLink = "https://aka.ms/vscode-mssql-integratedauth";
 export const createDatabaseHelpLink =
@@ -297,6 +299,12 @@ export const configResultsGridShowGridLines = "resultsGrid.showGridLines";
 export const configResultsGridRowPadding = "resultsGrid.rowPadding";
 export const configAutoDisableNonTSqlLanguageService = "mssql.autoDisableNonTSqlLanguageService";
 export const copilotDebugLogging = "mssql.copilotDebugLogging";
+export const configCopilotInlineCompletionsUseSchemaContext =
+    "mssql.copilot.inlineCompletions.useSchemaContext";
+export const configCopilotInlineCompletionsModelFamily =
+    "mssql.copilot.inlineCompletions.modelFamily";
+export const configCopilotInlineCompletionsDebugRecordWhenClosed =
+    "mssql.copilot.inlineCompletions.debug.recordWhenClosed";
 export const configSelectedAzureSubscriptions = "mssql.selectedAzureSubscriptions";
 export const configShowActiveConnectionAsCodeLensSuggestion =
     "mssql.query.showActiveConnectionAsCodeLensSuggestion";

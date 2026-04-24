@@ -1530,6 +1530,10 @@
     <trans-unit id="++CODE++779a7b17e40482d5ea307dc9a3c53901566b6fbaf138bb9660b557780102ce0a">
       <source xml:lang="en">Could not load restore plan</source>
     </trans-unit>
+    <trans-unit id="++CODE++f98ff593dab8c96691b26d57492b135374895433313d6fd18efbb2f78be3aed6">
+      <source xml:lang="en">Couldn&apos;t update the &apos;github.copilot.enable&apos; setting. {0}</source>
+      <note>{0} is the error message</note>
+    </trans-unit>
     <trans-unit id="++CODE++740a203633aed889e5b930b95ba1b4091d8813de60755ef81e481cc427703821">
       <source xml:lang="en">Count: {0}</source>
       <note>{0} is the count</note>
@@ -1912,6 +1916,9 @@
     </trans-unit>
     <trans-unit id="++CODE++33df1f7746d428f19493d14c875c60ddc71befd7377ba92d4fc578bc3529b993">
       <source xml:lang="en">Directory not found</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bcd054524a893b2ece4c1e612a0d118b1e9ff220f4575849d69cd832577a9065">
+      <source xml:lang="en">Disable for SQL</source>
     </trans-unit>
     <trans-unit id="++CODE++6fbed214e0ea21c683db0ba2d648ef09b11edf4b4bb23835d4fdda84b5d097f3">
       <source xml:lang="en">Disable intellisense and syntax error checking on current document</source>
@@ -3169,6 +3176,9 @@
     <trans-unit id="++CODE++f311c2fb4a90d31362e0c6578ce52cd4b6200755caf41040acf39fc9ea6ed487">
       <source xml:lang="en">GitHub Copilot survey</source>
     </trans-unit>
+    <trans-unit id="++CODE++4cc5abb73fe59a8c42b91a10ffb5ea3804fb9cc18be4e70dc38b997ee1933507">
+      <source xml:lang="en">GitHub Copilot&apos;s default completions are now disabled for SQL files.</source>
+    </trans-unit>
     <trans-unit id="++CODE++60c3ae4830143b646d9d70611c2ad5961faeca804e4713b5b768087167d1772b">
       <source xml:lang="en">Got invalid tool use parameters: &quot;{0}&quot;. ({1})</source>
       <note>{0} is the part input
@@ -3465,6 +3475,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b91185f63fbbc17c093e3d2b7a50b755ba38d0e3a2bf1c82e079236e0624c673">
       <source xml:lang="en">Join the discussions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9fc40891e01f78aea537da3fed4bcf2af4d4cd21a6edbe8303b780a2e024a6aa">
+      <source xml:lang="en">Keep as-is</source>
     </trans-unit>
     <trans-unit id="++CODE++29b39d81b8651e8717f85c00002b2b087bafb969eb289ac991fa41b17522e775">
       <source xml:lang="en">Keep in query pane</source>
@@ -3780,6 +3793,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f7fc6e80cfc472d01f0cbe63665cda3c32d6d6ef2539b7e7cb27b1f22709a050">
       <source xml:lang="en">MSSQL extension icon</source>
+    </trans-unit>
+    <trans-unit id="++CODE++018a4fc0acce1f89db728a57386fbf8d198b87fb47bfc47eed2a2abd88ef9576">
+      <source xml:lang="en">MSSQL inline SQL completions are active. For best results, disable GitHub Copilot&apos;s default completions for SQL files.</source>
     </trans-unit>
     <trans-unit id="++CODE++a8b9a3bc6f9dfdfe260d58469e1cd0c1b8f15a879688815a0c0fb89ece9916bc">
       <source xml:lang="en">MSSQL: Click to change connection</source>
@@ -7330,6 +7346,9 @@
     <trans-unit id="mssql.resultsGrid.inMemoryDataProcessingThreshold">
       <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>
     </trans-unit>
+    <trans-unit id="mssql.copilot.inlineCompletions.modelFamily.description">
+      <source xml:lang="en">Copilot language model family used for SQL inline completions (e.g. &apos;gpt-4o&apos;, &apos;gpt-4o-mini&apos;, &apos;claude-sonnet-4-5&apos;). Falls back to any available Copilot model if the specified family is not found.</source>
+    </trans-unit>
     <trans-unit id="mssql.copyAll">
       <source xml:lang="en">Copy All</source>
     </trans-unit>
@@ -7410,6 +7429,9 @@
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.enableGroupBySchema">
       <source xml:lang="en">Enable Group By Schema</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.inlineCompletions.useSchemaContext.description">
+      <source xml:lang="en">Enable MSSQL custom ghost-text SQL completions after experimental features are enabled. When active-editor schema context is available, completions use it; otherwise they fall back without database context.</source>
     </trans-unit>
     <trans-unit id="mssql.query.alwaysEncryptedParameterization">
       <source xml:lang="en">Enable Parameterization for Always Encrypted</source>

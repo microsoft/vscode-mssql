@@ -40,6 +40,7 @@ const config = {
         searchDatabase: "src/webviews/pages/SearchDatabase/index.tsx",
         changelog: "src/webviews/pages/Changelog/index.tsx",
         profiler: "src/webviews/pages/Profiler/index.tsx",
+        inlineCompletionDebug: "src/webviews/pages/InlineCompletionDebug/index.tsx",
         azureDataStudioMigration: "src/webviews/pages/AzureDataStudioMigration/index.tsx",
     },
     bundle: true,

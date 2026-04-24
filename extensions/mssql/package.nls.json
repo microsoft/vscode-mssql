@@ -194,6 +194,8 @@
     "mssql.query.ansiWarnings": "Enable SET ANSI_WARNINGS",
     "mssql.query.ansiNulls": "Enable SET ANSI_NULLS",
     "mssql.query.showActiveConnectionAsCodeLensSuggestion": "Show the active SQL connection details as a CodeLens suggestion at the top of the editor for quick visibility.",
+    "mssql.copilot.inlineCompletions.useSchemaContext.description": "Enable MSSQL custom ghost-text SQL completions after experimental features are enabled. When active-editor schema context is available, completions use it; otherwise they fall back without database context.",
+    "mssql.copilot.inlineCompletions.modelFamily.description": "Copilot language model family used for SQL inline completions (e.g. 'gpt-4o', 'gpt-4o-mini', 'claude-sonnet-4-5'). Falls back to any available Copilot model if the specified family is not found.",
     "mssql.query.alwaysEncryptedParameterization": "Enable Parameterization for Always Encrypted",
     "mssql.ignorePlatformWarning": "[Optional] Do not show unsupported platform warnings",
     "mssql.Configuration": "MSSQL configuration",

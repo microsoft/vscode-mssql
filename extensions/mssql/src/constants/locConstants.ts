@@ -223,6 +223,22 @@ export let encryptMandatory = l10n.t("Mandatory (True)");
 export let encryptMandatoryRecommended = l10n.t("Mandatory (Recommended)");
 export let enableTrustServerCertificate = l10n.t("Enable Trust Server Certificate");
 export let readMore = l10n.t("Read more");
+export let copilotEnableGuardMessage = l10n.t(
+    "MSSQL inline SQL completions are active. For best results, disable GitHub Copilot's default completions for SQL files.",
+);
+export let copilotEnableGuardDisableForSql = l10n.t("Disable for SQL");
+export let copilotEnableGuardKeepAsIs = l10n.t("Keep as-is");
+export let copilotEnableGuardLearnMore = l10n.t("Learn more");
+export let copilotEnableGuardApplied = l10n.t(
+    "GitHub Copilot's default completions are now disabled for SQL files.",
+);
+export function copilotEnableGuardApplyFailed(errorMessage: string) {
+    return l10n.t({
+        message: "Couldn't update the 'github.copilot.enable' setting. {0}",
+        args: [errorMessage],
+        comment: ["{0} is the error message"],
+    });
+}
 export let msgCopyAndOpenWebpage = l10n.t("Copy code and open webpage");
 export let azureChooseAccount = l10n.t("Choose a Microsoft Entra account");
 export let azureAddAccount = l10n.t("Add a Microsoft Entra account...");

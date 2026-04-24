@@ -599,6 +599,7 @@ export default class ConnectionManager {
                 connectionInfo.credentials.server = event.connection.serverName;
                 connectionInfo.credentials.database = event.connection.databaseName;
                 connectionInfo.credentials.user = event.connection.userName;
+                self._onConnectionsChangedEmitter.fire();
 
                 void self._statusView.connectSuccess(
                     event.ownerUri,

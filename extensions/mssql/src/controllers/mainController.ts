@@ -78,6 +78,7 @@ import { CopilotService } from "../services/copilotService";
 import * as Prompts from "../copilot/prompts";
 import { CreateSessionResult } from "../objectExplorer/objectExplorerService";
 import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
+import { isInlineCompletionFeatureEnabled } from "../copilot/inlineCompletionFeatureGate";
 import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
 import { SqlNotebookController } from "../notebooks/sqlNotebookController";
 import { ConnectTool } from "../copilot/tools/connectTool";
@@ -125,6 +126,10 @@ import { BackgroundTasksProvider } from "../backgroundTasks/backgroundTasksProvi
 import { BackgroundTaskNode } from "../backgroundTasks/backgroundTaskNode";
 import { BackgroundTaskLogContentProvider } from "../backgroundTasks/backgroundTaskLogContentProvider";
 import { BackgroundTasksService } from "../backgroundTasks/backgroundTasksService";
+import { SqlInlineCompletionProvider } from "../copilot/sqlInlineCompletionProvider";
+import { SqlInlineCompletionSchemaContextService } from "../copilot/sqlInlineCompletionSchemaContextService";
+import { CopilotEnableSettingsGuard } from "../copilot/copilotEnableSettingsGuard";
+import { InlineCompletionDebugController } from "../copilot/inlineCompletionDebug/inlineCompletionDebugController";
 
 /**
  * The main controller class that initializes the extension
@@ -172,6 +177,8 @@ export default class MainController implements vscode.Disposable {
     public fileBrowserService: FileBrowserService;
     public profilerController: ProfilerController;
     public sqlNotebookController: SqlNotebookController;
+    public inlineCompletionSchemaContextService: SqlInlineCompletionSchemaContextService;
+    public inlineCompletionDebugController: InlineCompletionDebugController | undefined;
 
     /**
      * The main controller constructor
@@ -379,11 +386,58 @@ export default class MainController implements vscode.Disposable {
 
                 migrationController.revealToForeground();
             });
+            this.registerCommand(Constants.cmdOpenInlineCompletionDebug);
+            this._event.on(Constants.cmdOpenInlineCompletionDebug, () => {
+                if (!isInlineCompletionFeatureEnabled()) {
+                    return;
+                }
+
+                if (
+                    this.inlineCompletionDebugController &&
+                    !this.inlineCompletionDebugController.isDisposed
+                ) {
+                    this.inlineCompletionDebugController.revealToForeground(
+                        vscode.ViewColumn.Active,
+                    );
+                    return;
+                }
+
+                const controller = new InlineCompletionDebugController(
+                    this._context,
+                    this._vscodeWrapper,
+                );
+                controller.onDisposed(() => {
+                    if (this.inlineCompletionDebugController === controller) {
+                        this.inlineCompletionDebugController = undefined;
+                    }
+                });
+                this.inlineCompletionDebugController = controller;
+                controller.revealToForeground(vscode.ViewColumn.Active);
+            });
 
             this._context.subscriptions.push(
                 vscode.languages.registerCodeLensProvider(
                     { language: "sql" },
                     new SqlCodeLensProvider(this._connectionMgr),
+                ),
+            );
+
+            this.inlineCompletionSchemaContextService = new SqlInlineCompletionSchemaContextService(
+                this._connectionMgr,
+                SqlToolsServerClient.instance,
+            );
+            const inlineCompletionProvider = new SqlInlineCompletionProvider(
+                this._context,
+                this.inlineCompletionSchemaContextService,
+            );
+            const copilotEnableSettingsGuard = new CopilotEnableSettingsGuard(this._context);
+            this._context.subscriptions.push(
+                this.inlineCompletionSchemaContextService,
+                inlineCompletionProvider,
+                copilotEnableSettingsGuard,
+                vscode.languages.registerInlineCompletionItemProvider(
+                    { language: Constants.languageId },
+                    inlineCompletionProvider,
                 ),
             );
 
@@ -3176,6 +3230,16 @@ export default class MainController implements vscode.Disposable {
         }
         if (e.affectsConfiguration(Constants.mssqlPiiLogging)) {
             this.updatePiiLoggingLevel();
+        }
+        if (
+            (e.affectsConfiguration(Constants.configEnableExperimentalFeatures) ||
+                e.affectsConfiguration(Constants.configCopilotInlineCompletionsUseSchemaContext)) &&
+            !isInlineCompletionFeatureEnabled() &&
+            this.inlineCompletionDebugController &&
+            !this.inlineCompletionDebugController.isDisposed
+        ) {
+            this.inlineCompletionDebugController.dispose();
+            this.inlineCompletionDebugController = undefined;
         }
 
         // Prompt to reload VS Code when any of these settings are updated.

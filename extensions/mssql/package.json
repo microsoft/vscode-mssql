@@ -915,6 +915,10 @@
                     "when": "false"
                 },
                 {
+                    "command": "mssql.openInlineCompletionDebug",
+                    "when": "config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.useSchemaContext"
+                },
+                {
                     "command": "mssql.objectExplorerNewQuery",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/"
                 },
@@ -1169,6 +1173,10 @@
                 "command": "mssql.newQuery",
                 "title": "%mssql.newQuery%",
                 "category": "MS SQL"
+            },
+            {
+                "command": "mssql.openInlineCompletionDebug",
+                "title": "MSSQL: Open Inline Completion Debug"
             },
             {
                 "command": "mssql.schemaCompare",
@@ -2466,6 +2474,24 @@
                     "type": "boolean",
                     "default": true,
                     "description": "%mssql.query.showActiveConnectionAsCodeLensSuggestion%"
+                },
+                "mssql.copilot.inlineCompletions.useSchemaContext": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.copilot.inlineCompletions.useSchemaContext.description%",
+                    "scope": "window"
+                },
+                "mssql.copilot.inlineCompletions.modelFamily": {
+                    "type": "string",
+                    "default": "claude-sonnet-4-5",
+                    "description": "%mssql.copilot.inlineCompletions.modelFamily.description%",
+                    "scope": "window"
+                },
+                "mssql.copilot.inlineCompletions.debug.recordWhenClosed": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Keep recording inline completion debug events while the debug panel is closed.",
+                    "scope": "window"
                 },
                 "mssql.ignorePlatformWarning": {
                     "type": "boolean",

@@ -289,3 +289,34 @@ export function stubPreviewService(
         .stub(previewService, "isFeatureEnabled")
         .callsFake((feature: PreviewFeature) => previews[feature] ?? experimentalFeaturesEnabled);
 }
+
+export function createTestDocument(text: string, uri: string): vscode.TextDocument {
+    const lines = text.split(/\r?\n/);
+
+    function offsetAt(position: vscode.Position): number {
+        let offset = 0;
+        for (let line = 0; line < position.line; line++) {
+            offset += lines[line].length + 1;
+        }
+        return offset + position.character;
+    }
+
+    return {
+        uri: vscode.Uri.parse(uri),
+        languageId: "sql",
+        lineCount: lines.length,
+        lineAt: (line: number) => ({
+            text: lines[line] ?? "",
+            range: new vscode.Range(
+                new vscode.Position(line, 0),
+                new vscode.Position(line, (lines[line] ?? "").length),
+            ),
+        }),
+        getText: (range?: vscode.Range) => {
+            if (!range) {
+                return text;
+            }
+            return text.slice(offsetAt(range.start), offsetAt(range.end));
+        },
+    } as unknown as vscode.TextDocument;
+}

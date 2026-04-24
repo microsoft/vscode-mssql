@@ -3,9 +3,51 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-body {
+body,
+.slickgrid-container,
+.slick-context-menu,
+.slick-grid-menu,
+.slick-header-menu,
+.slick-column-picker,
+.slick-submenu {
     /* Typography */
     --slick-font-family: var(--vscode-editor-font-family);
+    --slick-font-color: var(--vscode-foreground);
+    --slick-font-size-base: 12px;
+    --slick-text-color: var(--vscode-foreground);
+    --slick-focus-outline-color: var(--vscode-focusBorder);
+
+    /* Grid surfaces */
+    --slick-canvas-bg-color: var(--vscode-editor-background);
+    --slick-empty-data-warning-color: var(--vscode-descriptionForeground);
+
+    /* Cells & rows */
+    --slick-cell-even-background-color: var(--vscode-editor-background);
+    --slick-cell-odd-background-color: var(--vscode-editor-background);
+    --slick-cell-text-color: var(--vscode-foreground);
+    --slick-cell-selected-color: var(--vscode-list-activeSelectionBackground);
+    --slick-row-selected-color: var(--vscode-list-activeSelectionBackground);
+    --slick-row-mouse-hover-color: var(--vscode-list-hoverBackground);
+    --slick-cell-box-shadow: none;
+
+    /* Borders */
+    --slick-border-color: var(--vscode-editorWidget-border);
+    --slick-grid-border-color: var(--vscode-editorWidget-border);
+    --slick-cell-border-right: 1px solid var(--vscode-editorWidget-border);
+    --slick-cell-border-top: 1px solid var(--vscode-editorWidget-border);
+    --slick-cell-border-bottom: 1px solid var(--vscode-editorWidget-border);
+    --slick-cell-border-left: 0;
+    --slick-container-border-top: 1px solid var(--vscode-editorWidget-border);
+    --slick-container-border-bottom: 1px solid var(--vscode-editorWidget-border);
+    --slick-pane-top-border-top: none;
+    --slick-viewport-border-top: 0;
+    --slick-viewport-border-right: 0;
+    --slick-viewport-border-bottom: 0;
+    --slick-viewport-border-left: 0;
+
+    /* Scrollbars */
+    --slick-scrollbar-color: var(--vscode-scrollbarSlider-background)
+        var(--vscode-editor-background);
 
     /* Menu surfaces */
     --slick-menu-bg-color: var(--vscode-menu-background);
@@ -124,6 +166,8 @@ body {
     /* Grid headers */
     --slick-grid-header-background: var(--vscode-editor-background);
     --slick-header-background-color: var(--vscode-editor-background);
+    --slick-header-row-background-color: var(--vscode-editor-background);
+    --slick-header-column-background-hover: var(--vscode-list-hoverBackground);
     --slick-hover-header-color: var(--vscode-editor-foreground);
     --slick-header-text-color: var(--vscode-editor-foreground);
     --slick-sorting-header-color: var(--vscode-editor-foreground);

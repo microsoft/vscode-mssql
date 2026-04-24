@@ -12,7 +12,7 @@ import { ConnectionDetails, IToken, IConnectionInfo } from "vscode-mssql";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { Logger } from "../../src/models/logger";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import ConnectionManager from "../../src/controllers/connectionManager";
+import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import StatusView from "../../src/views/statusView";
 import { CredentialStore } from "../../src/credentialstore/credentialstore";
@@ -244,6 +244,63 @@ suite("ConnectionManager Tests", () => {
                     connectionString: "",
                 } as IConnectionProfile,
             );
+        });
+    });
+
+    suite("Connection Change Notifications", () => {
+        test("fires onConnectionsChanged when the active database changes", async () => {
+            connectionManager = new ConnectionManager(
+                mockContext,
+                mockStatusView,
+                undefined, // prompter
+                mockLogger,
+                mockServiceClient,
+                mockVscodeWrapper,
+                mockConnectionStore,
+                mockCredentialStore,
+                undefined, // connectionUI
+                mockAccountStore,
+            );
+
+            await connectionManager.initialized;
+
+            const ownerUri = "file:///test.sql";
+            const connectionInfo = new ConnectionInfo();
+            connectionInfo.connectionId = "connection-id";
+            connectionInfo.connecting = false;
+            connectionInfo.credentials = {
+                server: "old-server",
+                database: "OldDatabase",
+                user: "old-user",
+            } as IConnectionInfo;
+
+            (connectionManager as any)._connections[ownerUri] = connectionInfo;
+
+            const onConnectionsChangedSpy = sandbox.spy();
+            const disposable = connectionManager.onConnectionsChanged(onConnectionsChangedSpy);
+
+            try {
+                connectionManager.handleConnectionChangedNotification()({
+                    ownerUri,
+                    connection: {
+                        serverName: "new-server",
+                        databaseName: "NewDatabase",
+                        userName: "new-user",
+                    },
+                } as any);
+
+                expect(connectionInfo.credentials.server).to.equal("new-server");
+                expect(connectionInfo.credentials.database).to.equal("NewDatabase");
+                expect(connectionInfo.credentials.user).to.equal("new-user");
+                expect(onConnectionsChangedSpy).to.have.been.called;
+                expect(mockStatusView.connectSuccess).to.have.been.calledWith(
+                    ownerUri,
+                    connectionInfo.credentials,
+                    connectionInfo.serverInfo,
+                );
+            } finally {
+                disposable.dispose();
+            }
         });
     });
 

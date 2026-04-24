@@ -1827,6 +1827,14 @@
     "Mandatory (True)": "Mandatory (True)",
     "Mandatory (Recommended)": "Mandatory (Recommended)",
     "Enable Trust Server Certificate": "Enable Trust Server Certificate",
+    "MSSQL inline SQL completions are active. For best results, disable GitHub Copilot's default completions for SQL files.": "MSSQL inline SQL completions are active. For best results, disable GitHub Copilot's default completions for SQL files.",
+    "Disable for SQL": "Disable for SQL",
+    "Keep as-is": "Keep as-is",
+    "GitHub Copilot's default completions are now disabled for SQL files.": "GitHub Copilot's default completions are now disabled for SQL files.",
+    "Couldn't update the 'github.copilot.enable' setting. {0}/{0} is the error message": {
+        "message": "Couldn't update the 'github.copilot.enable' setting. {0}",
+        "comment": ["{0} is the error message"]
+    },
     "Copy code and open webpage": "Copy code and open webpage",
     "Choose a Microsoft Entra account": "Choose a Microsoft Entra account",
     "Add a Microsoft Entra account...": "Add a Microsoft Entra account...",
