@@ -140,19 +140,40 @@ suite("WebviewPanelController", () => {
         ).to.equal("function");
     });
 
-    test("Should reveal the panel to the foreground", () => {
-        const controller = createController();
+    test("Should reveal the panel without forcing a view column", () => {
+        const controller = createController({ viewColumn: 2 as vscode.ViewColumn });
         const revealSpy = mockPanel.reveal as sinon.SinonSpy;
         controller.revealToForeground();
-        expect(revealSpy, "reveal should be called once").to.have.been.calledOnce;
-        expect(revealSpy).to.have.been.calledWith(vscode.ViewColumn.One, true);
+        // Pass undefined so VS Code keeps the panel in its current column;
+        // forcing a column on a freshly-created Beside panel was leaving the
+        // iframe blank (issue #21940).
+        expect(revealSpy).to.have.been.calledWith(undefined, true);
+    });
+
+    test("Should use configured focus behavior when revealing the panel", () => {
+        const controller = createController({
+            viewColumn: 1 as vscode.ViewColumn,
+            preserveFocus: false,
+        });
+        const revealSpy = mockPanel.reveal as sinon.SinonSpy;
+        controller.revealToForeground();
+        expect(revealSpy).to.have.been.calledWith(undefined, false);
+    });
+
+    test("Should preserve focus by default when revealing the panel", () => {
+        const controller = createController({
+            viewColumn: 1 as vscode.ViewColumn,
+            preserveFocus: undefined,
+        });
+        const revealSpy = mockPanel.reveal as sinon.SinonSpy;
+        controller.revealToForeground();
+        expect(revealSpy).to.have.been.calledWith(undefined, true);
     });
 
     test("Should reveal the panel to the foreground with the specified view column", () => {
         const controller = createController();
         const revealSpy = mockPanel.reveal as sinon.SinonSpy;
         controller.revealToForeground(vscode.ViewColumn.Two);
-        expect(revealSpy, "reveal should be called once").to.have.been.calledOnce;
         expect(revealSpy).to.have.been.calledWith(vscode.ViewColumn.Two, true);
     });
 
