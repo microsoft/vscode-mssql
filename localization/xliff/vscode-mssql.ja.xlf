@@ -1294,7 +1294,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++8108e330197c650c4af3d541da75c97d44600ab343742f5fbe5ee91d1ec042c0">
         <source xml:lang="en">Clear from recent connections list</source>
-        <target state="new">Clear from recent connections list</target>
+        <target state="translated">最近使用した接続の一覧からクリアする</target>
       </trans-unit>
       <trans-unit id="++CODE++21f5ea19572773c428e8375b3d63058ad4f04aea83df347deb633f9ddad9a643">
         <source xml:lang="en">Clear permissions for all extensions to access your connections</source>
@@ -2353,7 +2353,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++a50f9dadfc8b5f675d6d4d886d7ceb23b15051980b4de7a88e280264f3d9e9e7">
         <source xml:lang="en">Definition type</source>
-        <target state="new">Definition type</target>
+        <target state="translated">定義の種類</target>
       </trans-unit>
       <trans-unit id="++CODE++b6ca9a06ebcc8ea511648b46b103859960924b42fa98231c0ca4b69b84943687">
         <source xml:lang="en">DefinitionRequestCompleted</source>
@@ -2631,7 +2631,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++bb090d4cc6a01ecd80d943806719ce301ae1a90ca569a88735eb9c6e488cf828">
         <source xml:lang="en">Drizzle</source>
-        <target state="new">Drizzle</target>
+        <target state="translated">Drizzle</target>
       </trans-unit>
       <trans-unit id="++CODE++c8af9ae37a48273f981bc82af63517e3a2195c4076360e73546c306a044dd38b">
         <source xml:lang="en">Drop</source>
@@ -2661,7 +2661,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++4a87bc4a6f84b6911fabebc702ad8d32dbb799d7bec2abf53a05c86d91b456bf">
         <source xml:lang="en">EF Core</source>
-        <target state="new">EF Core</target>
+        <target state="translated">EF Core</target>
       </trans-unit>
       <trans-unit id="++CODE++8cbb7c26112408cd60a1c8ac0daff1b020815ad01c94df751ab7145dea824881">
         <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
@@ -3381,7 +3381,7 @@ Error:
       <trans-unit id="++CODE++5ba6b8c4deffdaec3b79ce938a2f937a653bc8f7557f8646f7d135d4945deaf7">
         <source xml:lang="en">Failed to copy text to clipboard: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to copy text to clipboard: {0}</target>
+        <target state="translated">テキストをクリップボードにコピーできませんでした: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++707f0ef201b7dca62aa44100faafcd54168f7614d4966e200f9188b638abdd52">
         <source xml:lang="en">Failed to create a new row: {0}</source>
@@ -6207,7 +6207,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++e4b88de23274e99ca98b822e9f304564c85d96333a5d35bb218b95654a03c7ab">
         <source xml:lang="en">Prisma</source>
-        <target state="new">Prisma</target>
+        <target state="translated">Prisma</target>
       </trans-unit>
       <trans-unit id="++CODE++25f4fe8cd149e57de765fa487f6e70395ed29ad8d1f2b9c116f9efa24262b420">
         <source xml:lang="en">Privacy Statement</source>
@@ -6913,7 +6913,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++dd0804b065a533eb0198e076460421ada3d861683b408ef39daea67e9aad46a6">
         <source xml:lang="en">SQLAlchemy</source>
-        <target state="new">SQLAlchemy</target>
+        <target state="translated">SQLAlchemy</target>
       </trans-unit>
       <trans-unit id="++CODE++33c911ed6f7c6e8d0093aecd7c73564bf2ef2992db044a0892fc3de8b92cdb71">
         <source xml:lang="en">SQLCMD Variables</source>
@@ -7093,7 +7093,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++a94ae9ca78147a7fc9bac5fbe59284cb1cbdcc897f002bd839fe49769ab093aa">
         <source xml:lang="en">Schema designer details are not available.</source>
-        <target state="new">Schema designer details are not available.</target>
+        <target state="translated">スキーマ デザイナーの詳細は使用できません。</target>
       </trans-unit>
       <trans-unit id="++CODE++bcfd627eae48fe0460c71c47de6ce52a35780136e70593d6f17da5f3ba3ec894">
         <source xml:lang="en">Schema designer is not initialized.</source>
@@ -7446,7 +7446,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++79dc22c7292b82bb5b10f7fe3e4196400d86127a91507e8487c7d2da0f6a8283">
         <source xml:lang="en">Sequelize</source>
-        <target state="new">Sequelize</target>
+        <target state="translated">Sequelize</target>
       </trans-unit>
       <trans-unit id="++CODE++aef7de28d52977f1b5cd0fecfdc151717610adf41e0aa33b4d9f7522a43337ef">
         <source xml:lang="en">Server</source>
@@ -8043,7 +8043,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++b27ba710997adaf6099374edb801d44bef36c92e6d37e0190c7c1d12d4b32209">
         <source xml:lang="en">T-SQL</source>
-        <target state="new">T-SQL</target>
+        <target state="translated">T-SQL</target>
       </trans-unit>
       <trans-unit id="++CODE++16d1c9050a0b32e83764a81d801a880773abedfd7f8b0b08a1cd87ca0e404f12">
         <source xml:lang="en">Table</source>
@@ -8511,7 +8511,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++eab9bd4ed6506f418e00977a0a7bcc445774cac844a2f6debffeff1efc0b75f2">
         <source xml:lang="en">TypeORM</source>
-        <target state="new">TypeORM</target>
+        <target state="translated">TypeORM</target>
       </trans-unit>
       <trans-unit id="++CODE++e7a241debad56609ee660a5d2ef258a1aceb7357ff210ac66d7280b3add02a9a">
         <source xml:lang="en">URL</source>
