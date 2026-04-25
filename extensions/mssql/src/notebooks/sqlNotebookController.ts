@@ -30,10 +30,11 @@ type NotebookTextualResultBlock = Exclude<NotebookQueryResultBlock, NotebookQuer
 
 /**
  * Notebook-level metadata identifying a notebook as SQL. The VS Code ipynb
- * serializer reads kernelspec/language_info from notebook.metadata.metadata
- * (see https://github.com/microsoft/vscode/blob/main/extensions/ipynb/src/serializers.ts),
- * so placing them there round-trips them through the .ipynb file and lets
- * setAffinityIfSql re-detect the notebook as SQL on reopen.
+ * serializer writes kernelspec/language_info from notebook.metadata.metadata
+ * to the .ipynb file, and reads them back from the same location on reopen
+ * (see https://github.com/microsoft/vscode/blob/main/extensions/ipynb/src/serializers.ts#L490
+ * and https://github.com/microsoft/vscode/blob/main/extensions/ipynb/src/deserializers.ts#L371).
+ * This allows setAffinityIfSql to re-detect the notebook as SQL on reopen.
  */
 function sqlNotebookMetadata(): Record<string, unknown> {
     return {
@@ -209,7 +210,8 @@ export class SqlNotebookController implements vscode.Disposable {
 
         // Check metadata.metadata first (where VS Code ipynb serializer stores it),
         // then fallback to other locations for compatibility.
-        // See: https://github.com/microsoft/vscode/blob/main/extensions/ipynb/src/serializers.ts
+        // See: https://github.com/microsoft/vscode/blob/main/extensions/ipynb/src/serializers.ts#L490
+        // and https://github.com/microsoft/vscode/blob/main/extensions/ipynb/src/deserializers.ts#L371
         const kernelspec =
             metadata?.metadata?.kernelspec ??
             metadata?.kernelspec ??
