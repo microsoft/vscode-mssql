@@ -141,7 +141,7 @@ suite("WebviewPanelController", () => {
     });
 
     test("Should reveal the panel without forcing a view column by default", () => {
-        const controller = createController({ viewColumn: 2 as vscode.ViewColumn });
+        const controller = createController({ viewColumn: vscode.ViewColumn.Two });
         const revealSpy = mockPanel.reveal as sinon.SinonSpy;
         controller.revealToForeground();
         // Pass undefined so VS Code keeps the panel in its current column;
