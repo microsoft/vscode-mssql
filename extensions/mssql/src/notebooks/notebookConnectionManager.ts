@@ -59,6 +59,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
         this.queryExecutor = new NotebookQueryExecutor(
             client ?? SqlToolsServiceClient.instance,
             notificationHandler ?? QueryNotificationHandler.instance,
+            log,
         );
     }
 
@@ -89,9 +90,27 @@ export class NotebookConnectionManager implements vscode.Disposable {
      */
     private async connectInternal(connectionInfo: IConnectionInfo): Promise<string> {
         const uri = generateQueryUri().toString();
-        const success = await this.connectionMgr.connect(uri, connectionInfo, {
-            connectionSource: "sqlNotebooks",
-        });
+        this.log.info(
+            `[connectInternal] begin adhocUri=${uri} ` +
+                `server=${connectionInfo.server} database=${connectionInfo.database ?? "(default)"}`,
+        );
+        const started = Date.now();
+        let success: boolean;
+        try {
+            success = await this.connectionMgr.connect(uri, connectionInfo, {
+                connectionSource: "sqlNotebooks",
+            });
+        } catch (err: any) {
+            this.log.error(
+                `[connectInternal] connect threw after ${Date.now() - started}ms ` +
+                    `uri=${uri} msg=${err?.message ?? "(no message)"}`,
+            );
+            throw err;
+        }
+        this.log.info(
+            `[connectInternal] connect returned success=${success} ` +
+                `after ${Date.now() - started}ms uri=${uri}`,
+        );
         if (!success) {
             throw new Error(LocalizedConstants.Notebooks.connectionFailed);
         }
@@ -103,8 +122,14 @@ export class NotebookConnectionManager implements vscode.Disposable {
      * otherwise prompts the user to pick one.
      */
     async ensureConnection(): Promise<string> {
+        this.log.info(
+            `[ensureConnection] begin currentUri=${this.connectionUri ?? "none"} ` +
+                `hasStoredInfo=${!!this.connectionInfo}`,
+        );
         if (this.connectionUri) {
-            if (this.connectionSharingService.isConnected(this.connectionUri)) {
+            const alive = this.connectionSharingService.isConnected(this.connectionUri);
+            this.log.info(`[ensureConnection] existing uri alive=${alive}`);
+            if (alive) {
                 return this.connectionUri;
             }
             // Connection went stale
@@ -269,8 +294,14 @@ export class NotebookConnectionManager implements vscode.Disposable {
         cancellationToken?: vscode.CancellationToken,
     ): Promise<NotebookQueryResult> {
         if (!this.connectionUri) {
+            this.log.warn(`[executeQueryString] no active connection`);
             throw new Error(LocalizedConstants.Notebooks.noActiveConnection);
         }
+        const alive = this.connectionSharingService.isConnected(this.connectionUri);
+        this.log.info(
+            `[executeQueryString] dispatch uri=${this.connectionUri} ` +
+                `aliveAtDispatch=${alive} sqlLen=${sql.length}`,
+        );
         return this.queryExecutor.execute(this.connectionUri, sql, cancellationToken);
     }
 

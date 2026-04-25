@@ -414,15 +414,27 @@ export class SqlNotebookController implements vscode.Disposable {
 
         const code = cell.document.getText().trim();
 
+        this.log.info(
+            `[executeCell] start order=${execution.executionOrder} cellIndex=${cell.index} ` +
+                `notebook=${notebook.uri.toString()} isUntitled=${notebook.isUntitled} ` +
+                `codeLen=${code.length}`,
+        );
+
         if (!code) {
+            this.log.info(`[executeCell] empty cell, skipping`);
             execution.end(true, Date.now());
             return;
         }
 
         const connMgr = this.getConnectionManager(notebook);
+        this.log.info(
+            `[executeCell] preConn existingUri=${connMgr.getConnectionUri() ?? "none"} ` +
+                `isConnected=${connMgr.isConnected()}`,
+        );
 
         // Handle magic commands
         if (code.startsWith("%%")) {
+            this.log.info(`[executeCell] magic command path`);
             await this.handleMagic(code, execution, connMgr, notebook);
             this.updateStatusBar(notebook);
             this.codeLensProvider.refresh();
@@ -431,10 +443,18 @@ export class SqlNotebookController implements vscode.Disposable {
 
         // Ensure we have a connection (one per notebook, reused across cells)
         try {
-            await connMgr.ensureConnection();
+            this.log.info(`[executeCell] ensureConnection: begin`);
+            const ensuredUri = await connMgr.ensureConnection();
+            this.log.info(
+                `[executeCell] ensureConnection: ok uri=${ensuredUri} ` +
+                    `isConnected=${connMgr.isConnected()}`,
+            );
             this.connectCellsForIntellisense(notebook);
             this.saveConnectionMetadataIfConnected(notebook);
         } catch (err: any) {
+            this.log.error(
+                `[executeCell] ensureConnection: failed msg=${err?.message ?? "(no message)"}`,
+            );
             execution.replaceOutput([
                 new vscode.NotebookCellOutput([
                     vscode.NotebookCellOutputItem.text(
@@ -457,7 +477,15 @@ export class SqlNotebookController implements vscode.Disposable {
         );
 
         try {
+            this.log.info(
+                `[executeCell] executeQueryString: begin uri=${connMgr.getConnectionUri() ?? "none"} ` +
+                    `sqlLen=${code.length}`,
+            );
             const result = await connMgr.executeQueryString(code, execution.token);
+            this.log.info(
+                `[executeCell] executeQueryString: done canceled=${result.canceled} ` +
+                    `batches=${result.batches.length}`,
+            );
             const outputs = this.buildBatchOutputs(result.batches, !result.canceled);
 
             if (result.canceled) {
@@ -486,6 +514,9 @@ export class SqlNotebookController implements vscode.Disposable {
                 }
             }
         } catch (err: any) {
+            this.log.error(
+                `[executeCell] executeQueryString: failed msg=${err?.message ?? "(no message)"}`,
+            );
             execution.replaceOutput([
                 new vscode.NotebookCellOutput([
                     vscode.NotebookCellOutputItem.text(
