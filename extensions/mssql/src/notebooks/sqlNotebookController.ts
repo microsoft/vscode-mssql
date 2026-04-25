@@ -149,14 +149,20 @@ export class SqlNotebookController implements vscode.Disposable {
         );
 
         this.disposables.push(
+            vscode.workspace.onWillSaveNotebookDocument((event) => {
+                const { notebook } = event;
+                // Stamp SQL kernelspec/language_info before serialization so it is included in the same save
+                if (this.selectedNotebooks.has(notebook)) {
+                    event.waitUntil(this.ensureSqlNotebookMetadata(notebook));
+                }
+            }),
+        );
+
+        this.disposables.push(
             vscode.workspace.onDidSaveNotebookDocument((notebook) => {
                 // Persist connection metadata under the final file URI (handles untitled → saved file URI change)
                 this.rekeyConnectionOnSave(notebook);
                 this.saveConnectionMetadataIfConnected(notebook);
-                // Stamp SQL kernelspec/language_info so this notebook identifies as SQL (not Python) on reopen
-                if (this.selectedNotebooks.has(notebook)) {
-                    void this.ensureSqlNotebookMetadata(notebook);
-                }
             }),
         );
 
