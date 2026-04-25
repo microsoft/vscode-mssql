@@ -6,6 +6,7 @@
 import * as os from "os";
 import * as vscode from "vscode";
 import type { IConnectionInfo } from "vscode-mssql";
+import merge = require("lodash/merge");
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import ConnectionManager from "../controllers/connectionManager";
@@ -30,9 +31,9 @@ type NotebookTextualResultBlock = Exclude<NotebookQueryResultBlock, NotebookQuer
 /**
  * Notebook-level metadata identifying a notebook as SQL. The VS Code ipynb
  * serializer reads kernelspec/language_info from notebook.metadata.metadata
- * (see vscode/extensions/ipynb serializers), so placing them there round-trips
- * them through the .ipynb file and lets setAffinityIfSql re-detect the
- * notebook as SQL on reopen.
+ * (see https://github.com/microsoft/vscode/blob/main/extensions/ipynb/src/serializers.ts),
+ * so placing them there round-trips them through the .ipynb file and lets
+ * setAffinityIfSql re-detect the notebook as SQL on reopen.
  */
 function sqlNotebookMetadata(): Record<string, unknown> {
     return {
@@ -59,9 +60,9 @@ export class SqlNotebookController implements vscode.Disposable {
     private executionOrder = 0;
     // Track notebooks by their document object to handle URI changes on save
     private readonly notebookToUri = new WeakMap<vscode.NotebookDocument, string>();
-    // Notebooks for which our controller is currently the selected kernel.
-    // Used to scope save-time metadata healing to SQL notebooks only, so we
-    // never overwrite kernelspec/language_info on unrelated (e.g. Python) .ipynb files.
+    // Track notebooks using our SQL kernel. When these notebooks are saved, we stamp
+    // SQL kernelspec/language_info metadata so the .ipynb file identifies as SQL
+    // (not Python) when reopened.
     private readonly selectedNotebooks = new WeakSet<vscode.NotebookDocument>();
 
     constructor(
@@ -146,17 +147,12 @@ export class SqlNotebookController implements vscode.Disposable {
             }),
         );
 
-        // On save: persist connection metadata under the final file URI
-        // (handles untitled → file URI change) and heal notebook-level
-        // kernelspec/language_info so the next save writes SQL metadata to
-        // the .ipynb. We defer the heal to save time (rather than kernel
-        // selection) to avoid dirtying notebooks the user hasn't touched, and
-        // gate it on our controller being the selected kernel so we never
-        // overwrite metadata on unrelated notebooks (e.g. Python).
         this.disposables.push(
             vscode.workspace.onDidSaveNotebookDocument((notebook) => {
+                // Persist connection metadata under the final file URI (handles untitled → saved file URI change)
                 this.rekeyConnectionOnSave(notebook);
                 this.saveConnectionMetadataIfConnected(notebook);
+                // Stamp SQL kernelspec/language_info so this notebook identifies as SQL (not Python) on reopen
                 if (this.selectedNotebooks.has(notebook)) {
                     void this.ensureSqlNotebookMetadata(notebook);
                 }
@@ -211,10 +207,9 @@ export class SqlNotebookController implements vscode.Disposable {
     private setAffinityIfSql(notebook: vscode.NotebookDocument): void {
         const metadata = notebook.metadata;
 
-        // The ipynb serializer stores notebook-level metadata under
-        // notebook.metadata.metadata (see vscode/extensions/ipynb). Also
-        // check top-level and legacy `custom` shapes defensively in case
-        // other extensions construct metadata differently.
+        // Check metadata.metadata first (where VS Code ipynb serializer stores it),
+        // then fallback to other locations for compatibility.
+        // See: https://github.com/microsoft/vscode/blob/main/extensions/ipynb/src/serializers.ts
         const kernelspec =
             metadata?.metadata?.kernelspec ??
             metadata?.kernelspec ??
@@ -292,9 +287,8 @@ export class SqlNotebookController implements vscode.Disposable {
     }
 
     /**
-     * Ensure the notebook's kernelspec/language_info identify it as SQL.
-     * Heals notebooks created before we started stamping this metadata, so
-     * the next save writes SQL metadata to the .ipynb instead of Python.
+     * Stamp SQL kernelspec/language_info metadata on the notebook so it
+     * identifies as SQL (not Python) when saved and reopened.
      */
     private async ensureSqlNotebookMetadata(notebook: vscode.NotebookDocument): Promise<void> {
         const existing = notebook.metadata?.metadata?.kernelspec;
@@ -302,16 +296,7 @@ export class SqlNotebookController implements vscode.Disposable {
         if (name === "sql-notebook") {
             return;
         }
-        // Deep-merge the inner `metadata` bag so unrelated Jupyter metadata
-        // keys (e.g. author, title) survive the edit.
-        const sqlMetadata = sqlNotebookMetadata();
-        const mergedMetadata = {
-            ...notebook.metadata,
-            metadata: {
-                ...notebook.metadata?.metadata,
-                ...(sqlMetadata.metadata as Record<string, unknown>),
-            },
-        };
+        const mergedMetadata = merge({}, notebook.metadata, sqlNotebookMetadata());
         const edit = new vscode.WorkspaceEdit();
         edit.set(notebook.uri, [vscode.NotebookEdit.updateNotebookMetadata(mergedMetadata)]);
         try {
