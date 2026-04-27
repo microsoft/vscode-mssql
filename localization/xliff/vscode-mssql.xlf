@@ -105,6 +105,9 @@
     <trans-unit id="++CODE++c9cc5580497f31a6459320e9857b20d5c7638e934bf3e7ec2ba1b0f4c13a13ab">
       <source xml:lang="en">A required .NET runtime could not be found or installed.</source>
     </trans-unit>
+    <trans-unit id="++CODE++2919f32825c242cd639cb7fef2a3cb0a0f3f54722b9bfdace318d72c399662ed">
+      <source xml:lang="en">API Diagram</source>
+    </trans-unit>
     <trans-unit id="++CODE++72e7cc4c4f1c083b8607c0e8d0e5093cb5756df15336523ee5d00f194829168b">
       <source xml:lang="en">API Type</source>
     </trans-unit>
@@ -606,6 +609,9 @@
     <trans-unit id="++CODE++9b58bb027ad8dd51cee6dfa3d8a10bc1a9cc66cd1bedbbbc4947d7071450614b">
       <source xml:lang="en">Backup to a new media set</source>
     </trans-unit>
+    <trans-unit id="++CODE++199fa1a9fa26a0983639d684b94843b7bef82f33bcdde99b63c69caebf3b658e">
+      <source xml:lang="en">Base path</source>
+    </trans-unit>
     <trans-unit id="++CODE++785f39d515b5f700c4f9cfec99b46d49fdc412522e0e24a9316fc25e7bfd06a3">
       <source xml:lang="en">Batch execution time: {0}</source>
       <note>{0} is the batch time</note>
@@ -684,6 +690,12 @@
     </trans-unit>
     <trans-unit id="++CODE++9168a1046e45504ed34edeecd99ec73be336161e82395399aa9a3c1d912be6b2">
       <source xml:lang="en">Building {0}...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++71cf377206ff0384cd91f65b42b363bcd8594e2874e7165b48041cfceecb6891">
+      <source xml:lang="en">Built-in MCP tools derived from enabled entities and operations.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++92a726148df7839fc176adc0edb1a08fa209424a28c3f097885b4d1a6e404520">
+      <source xml:lang="en">Built-in Tools</source>
     </trans-unit>
     <trans-unit id="++CODE++6f52d618fb243f0ae137c3c850eb0bda8b347766a553b613fc210f6eb6bb5c97">
       <source xml:lang="en">Bulk-logged</source>
@@ -1655,6 +1667,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c525ed2944e05f661b7bc658ddccb355cd47a8daab5629ce4310c575aa58e2a1">
       <source xml:lang="en">Customize keyboard shortcuts</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3f56fea1744cf91a6f10babb1b750a549cca180b86bebf21969b9e340decac23">
+      <source xml:lang="en">DAB Config</source>
     </trans-unit>
     <trans-unit id="++CODE++e7aa1ff656ae01487b19a24f178526fa3b74963ac0bfb6cff35b047b62d8be4b">
       <source xml:lang="en">DAB container failed to become ready within the timeout period.</source>
@@ -2930,6 +2945,9 @@
     <trans-unit id="++CODE++b69848561e02841b68dcbfadcbba33ea9008d49fb44c61fd4e670bc3fa3b9968">
       <source xml:lang="en">Filter changes</source>
     </trans-unit>
+    <trans-unit id="++CODE++bb836974755051182d894875ef8abc116b3365711f8e830703d5a8b3c09c5b06">
+      <source xml:lang="en">Filter entities, endpoints, tools...</source>
+    </trans-unit>
     <trans-unit id="++CODE++f03ec545964ab62cf49cf19c60ffd1c9609dab0fbd2239d5bc643da5427b4270">
       <source xml:lang="en">Filter entities...</source>
     </trans-unit>
@@ -3122,6 +3140,9 @@
     <trans-unit id="++CODE++983f311018642b0ae60c71253b5735579906d43d260ea926ebe5e815b1c97abb">
       <source xml:lang="en">Get Started</source>
     </trans-unit>
+    <trans-unit id="++CODE++3632e33d89e86130fba7c6d9b7e939df253e3827ff7536710110295c82eaeb59">
+      <source xml:lang="en">Get by ID</source>
+    </trans-unit>
     <trans-unit id="++CODE++8d931bb4019cd9ff4b45813baec027a9d80f9e353afc37d6643cc9ff6737997e">
       <source xml:lang="en">Get connection details for connection &apos;{0}&apos; (ID: {1})?</source>
       <note>{0} is the connection display name
@@ -3197,6 +3218,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e7a0f5d984721771397ee01588da1bac07c6f45150113d1ba8c4c3de194cfdb0">
       <source xml:lang="en">Group differences by</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2495156c537bb5681f424460ee7e8dc062a2c265b790762dde0c84d23a7bf250">
+      <source xml:lang="en">HTTP/JSON endpoints derived from enabled CRUD actions.</source>
     </trans-unit>
     <trans-unit id="++CODE++b79cac926e0b2e347e72cc91d5174037c9e17ae7733fd7bdb570f71b10cd7bfc">
       <source xml:lang="en">Help</source>
@@ -3377,6 +3401,9 @@
     <trans-unit id="++CODE++8aa318eb7eaa233aada0d332bec14cb6a631c8fda25deb2c7d4f402888f1b1e2">
       <source xml:lang="en">Insert</source>
     </trans-unit>
+    <trans-unit id="++CODE++3427f973a8843b8eb09e42615b40096d90c9248f3e68500c477071fb35a804fb">
+      <source xml:lang="en">Insert a new record.</source>
+    </trans-unit>
     <trans-unit id="++CODE++336a8af254446c5c9006e090f430a9f283960aeefdd0dc52cf0401fa2c19ac03">
       <source xml:lang="en">Install Docker</source>
     </trans-unit>
@@ -3534,8 +3561,14 @@
     <trans-unit id="++CODE++68053ffe844804d37eced757d4d0582e750a9b20d8ec5084aaab907846177b86">
       <source xml:lang="en">List Views</source>
     </trans-unit>
+    <trans-unit id="++CODE++4eea8d5432761658c0048d627aeb0bd2027562836cf1996da7c3a36a646b02c7">
+      <source xml:lang="en">List all</source>
+    </trans-unit>
     <trans-unit id="++CODE++b77fb88f6365c7aa62b75d120b96e1859e449166ac52bd58301306032102daf0">
       <source xml:lang="en">List all connections registered with the mssql extension?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++dd7db62f493d4d64438181ab08ed1093b4fd5df1bde4137326b67b24702949fa">
+      <source xml:lang="en">List all exposed entity schemas.</source>
     </trans-unit>
     <trans-unit id="++CODE++0228867ee113d27a7377e81352a399252a73a53fcda8c7eeb55366e272692d90">
       <source xml:lang="en">List databases for connection &apos;{0}&apos; (ID: {1})?</source>
@@ -3951,6 +3984,9 @@
     <trans-unit id="++CODE++999447c73dea8a58e7845ced946ec9030d22db88790df0320f35bf6bac6c588f">
       <source xml:lang="en">Modify Table</source>
     </trans-unit>
+    <trans-unit id="++CODE++3ffb3e2975fb843708987b72f23a77fb7930455239a3e4900c1332cb9aabce9c">
+      <source xml:lang="en">Modify an existing record.</source>
+    </trans-unit>
     <trans-unit id="++CODE++0149b409a73e8498a5256e13dbf70225738e9e1fed0d976e20ad8ef338cc2d22">
       <source xml:lang="en">More Query Actions</source>
     </trans-unit>
@@ -4216,6 +4252,9 @@
     <trans-unit id="++CODE++9a5ffa9a03deee764163c794a73832d859a2df314715bb7c281f4eaac7919f3f">
       <source xml:lang="en">No elements found</source>
     </trans-unit>
+    <trans-unit id="++CODE++19674775d9bcc7638663e5147e2bdb907577911403583860a5c94e1b51d390b8">
+      <source xml:lang="en">No enabled entities to display.</source>
+    </trans-unit>
     <trans-unit id="++CODE++8074b19c0365b61c3a88fe5cbd2d5c6193b9a601b425c22c0acea8273b880251">
       <source xml:lang="en">No entities found</source>
     </trans-unit>
@@ -4236,6 +4275,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4b4d7ac22cee34f92cd16fbe4193b0eb106e185100ea38f72b0190e1affaf933">
       <source xml:lang="en">No matches found</source>
+    </trans-unit>
+    <trans-unit id="++CODE++05d64e3f7a75c07cb1408adebe25b018e48d5a2913427ba0811f0edffff7b8e5">
+      <source xml:lang="en">No matching entities, endpoints, or tools.</source>
     </trans-unit>
     <trans-unit id="++CODE++1879af23a37978ff5873d50e56a20f354d53be9278d4075d63e9291b22924af8">
       <source xml:lang="en">No model found.</source>
@@ -4595,6 +4637,9 @@
     <trans-unit id="++CODE++b0c99209b59c6d7ac573d0eacaa18989cc0a4213bc131cd4535072359d746f26">
       <source xml:lang="en">Paused - click to resume</source>
     </trans-unit>
+    <trans-unit id="++CODE++e20790f9f30a55a05a124706aca15e1053b7deb59a7a8b7e9bd659d558ac8014">
+      <source xml:lang="en">Per Entity</source>
+    </trans-unit>
     <trans-unit id="++CODE++e87dbc12e88933c84d9ccdb30d89a4c9977b80894c26a85504ed7b1b42fda674">
       <source xml:lang="en">Perform checksum before writing to media</source>
     </trans-unit>
@@ -4874,6 +4919,9 @@
       <source xml:lang="en">Query Profiler: {0}</source>
       <note>{0} is the file name or session name</note>
     </trans-unit>
+    <trans-unit id="++CODE++d4893ff44ea859f9c857ceda32506d56e70eec6e1b349d77777f2c174fb4a888">
+      <source xml:lang="en">Query and mutation operations derived from current GraphQL settings.</source>
+    </trans-unit>
     <trans-unit id="++CODE++9e83dc6d2db272ac27cc875b994f834b62b7202a49b69e885f8f4e8f9c29a452">
       <source xml:lang="en">Query executed</source>
     </trans-unit>
@@ -4885,6 +4933,9 @@
     </trans-unit>
     <trans-unit id="++CODE++222d8657e6ce5036c2c4e9baf67ab52aeb5b35c12ff05d913296ea5cefad1f9c">
       <source xml:lang="en">Query failed</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3bbc3de36c4b576bb7a731a4e1bf40429a5114ac77b99fe427976fb73f0c068c">
+      <source xml:lang="en">Query records from an entity.</source>
     </trans-unit>
     <trans-unit id="++CODE++9bb19ac86101a6dfe00ba121dc8fab54c216992ef8d061c9cf27bd93a4424a91">
       <source xml:lang="en">Query succeeded</source>
@@ -4899,6 +4950,9 @@
     </trans-unit>
     <trans-unit id="++CODE++41a52587276c392bfdf0c5086b78662e089895fe2bf22e3d413af8e75f98bc3d">
       <source xml:lang="en">REST API</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a1b951261a3b2f73e4b1fb88ba0799b51438715506f803f3b93c9f125311cce9">
+      <source xml:lang="en">REST API Endpoints</source>
     </trans-unit>
     <trans-unit id="++CODE++98963b78cde061b1c1406ce97e7a38d2e7f4adaa459517174e2d54269fa47c7c">
       <source xml:lang="en">RESTORE WITH NORECOVERY</source>
@@ -5008,6 +5062,9 @@
     <trans-unit id="++CODE++b1ab0d9fa82b1c562a39df3dc986ee56a59f8fa2ab106e88936f505daad7d7c4">
       <source xml:lang="en">Remove a connection profile</source>
     </trans-unit>
+    <trans-unit id="++CODE++de8109c6529b676145165f2a2a542c837d5665da9889013def240b9f931ee92c">
+      <source xml:lang="en">Remove a record.</source>
+    </trans-unit>
     <trans-unit id="++CODE++fffa2e32da712d499f75b15a2fae0e145c1f33dff29cac68e7e0a46f9bf9483a">
       <source xml:lang="en">Remove file</source>
     </trans-unit>
@@ -5046,6 +5103,9 @@
       <source xml:lang="en">Renaming database &apos;{0}&apos; to &apos;{1}&apos;...</source>
       <note>{0} is the current database name
 {1} is the new database name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++5035b76b5d5e124bf19ddceaeb6261a3a9936a347eba3a1d3f9ce5fc45ea1a85">
+      <source xml:lang="en">Replace or update</source>
     </trans-unit>
     <trans-unit id="++CODE++0b73ca14b5d89fd5c289af312a66842146e766baf6c5018848b36f086944cb0b">
       <source xml:lang="en">Replication</source>
@@ -5433,6 +5493,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bdae3cfc11ace2d49f363c2a0603b5d7467a534bc981769ae9f3a4dd4f594059">
       <source xml:lang="en">Schemas</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b073f6c68ef8721107fd9815b19b2c35ec111d526b75c2123d1111ba64424000">
+      <source xml:lang="en">Scope</source>
     </trans-unit>
     <trans-unit id="++CODE++102acc10e67a297d79f7a0440d9fb96e2bfe8b1830676ae1d524cde6203212e0">
       <source xml:lang="en">Script</source>
@@ -5937,6 +6000,11 @@
       <source xml:lang="en">Source: {0}</source>
       <note>{0} is the task source</note>
     </trans-unit>
+    <trans-unit id="++CODE++9a889b653966e3a5449fccfd928bb6a67063d98c04931898f120427971ea7240">
+      <source xml:lang="en">Source: {0}.{1}</source>
+      <note>{0} is the schema name for the source table
+{1} is the table name for the source table</note>
+    </trans-unit>
     <trans-unit id="++CODE++1e49ea47266ab1130ffc9be417fa6eb62da7299641f30a76e728fe983c25f29d">
       <source xml:lang="en">Specifies whether the column is included in the primary key for the table.</source>
     </trans-unit>
@@ -6042,6 +6110,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0a8904b5630e456e42687c74f557749fbd9e61dc13bffb6a403ced083619ba69">
       <source xml:lang="en">Stored Procedures</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a3dbd1e59aa4e1f641c30c7a13a146daafa3073ed07c1125cbb85257b13cc687">
+      <source xml:lang="en">Stored procedure execution is not configured by this designer.</source>
     </trans-unit>
     <trans-unit id="++CODE++155f816c0407310c0dab222493370773e045ee7fe04e6c9a951b07f495531264">
       <source xml:lang="en">Submit</source>
@@ -6485,6 +6556,11 @@
     <trans-unit id="++CODE++eab9bd4ed6506f418e00977a0a7bcc445774cac844a2f6debffeff1efc0b75f2">
       <source xml:lang="en">TypeORM</source>
     </trans-unit>
+    <trans-unit id="++CODE++2efc907df003bfa39321828cbb92fb3e52e6770ae46483d4806a95f08ceffb69">
+      <source xml:lang="en">Types: {0}, {1}</source>
+      <note>{0} is the GraphQL singular type name
+{1} is the GraphQL plural type name</note>
+    </trans-unit>
     <trans-unit id="++CODE++e7a241debad56609ee660a5d2ef258a1aceb7357ff210ac66d7280b3add02a9a">
       <source xml:lang="en">URL</source>
     </trans-unit>
@@ -6520,6 +6596,9 @@
     </trans-unit>
     <trans-unit id="++CODE++5e487cbb896806c4ffd5fd55308a163e5a5ebdb2de5b6e717faff434ddd119dd">
       <source xml:lang="en">Unable to retrieve the list of databases. You may not have permission to list databases on this server. If your connection specifies a database, it will be preselected.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ca184496974204a0bd3fd4925e0540bc4b0df6fcc232994d29754272b7183812">
+      <source xml:lang="en">Unavailable</source>
     </trans-unit>
     <trans-unit id="++CODE++6be6bf4fae4897b542e648716d3e0fb9d67e3f4457c7b37afd4b217ca93e2914">
       <source xml:lang="en">Unavailable for backups to existing files</source>
@@ -7029,6 +7108,15 @@
       <source xml:lang="en">{0} deleted successfully.</source>
       <note>{0} deleted successfully.</note>
     </trans-unit>
+    <trans-unit id="++CODE++5b39f0adf6f92d52e94489a14102e45dc8a5139fd6a81722a932a96641c90960">
+      <source xml:lang="en">{0} entities</source>
+      <note>{0} is the number of entities shown in the API diagram column</note>
+    </trans-unit>
+    <trans-unit id="++CODE++74a80a7a94fe11b8800f46180fcad3e9c3fe0099a01cfc9f9a23c7ebb94f5488">
+      <source xml:lang="en">{0} entities exposed - {1}</source>
+      <note>{0} is the number of enabled entities exposed through MCP
+{1} is a comma-separated list of enabled actions</note>
+    </trans-unit>
     <trans-unit id="++CODE++5c1afaa0e5ec640786450559a23d287ff17a8b5ffd18db119012de352e431731">
       <source xml:lang="en">{0} errors</source>
       <note>{0} is the number of errors</note>
@@ -7044,6 +7132,10 @@
     <trans-unit id="++CODE++dde734013704b68f0d2d57a1385773d7e4bfbae374a67c150f3f06d8abb95f9d">
       <source xml:lang="en">{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again.</source>
       <note>{0} is the number of invalid accounts that have been removed</note>
+    </trans-unit>
+    <trans-unit id="++CODE++d47db921b9eb98e06008ebdec3504c2cb445db5fe903707cf816a2d71a2c7f2e">
+      <source xml:lang="en">{0} is disabled in the current configuration.</source>
+      <note>{0} is the API type name, e.g. REST API or GraphQL</note>
     </trans-unit>
     <trans-unit id="++CODE++e3620e8a37371c6057d768faed05a7608c6e5ee783372a58b137b047300e8b7a">
       <source xml:lang="en">{0} issue</source>
@@ -7086,12 +7178,21 @@
       <note>{0} is the number of tenants with active sessions
 {1} is the total number of tenants</note>
     </trans-unit>
+    <trans-unit id="++CODE++cc3502ad4f6d244b2d19940c33b0d4efaf7caca861d38e71d6ed97989280e412">
+      <source xml:lang="en">{0} operations</source>
+      <note>{0} is the number of REST operations for one entity</note>
+    </trans-unit>
     <trans-unit id="++CODE++0a6a65ea9882252d0abde519b647d2bd091f9a3a4ad1ddd0b8f79de88c4173e6">
       <source xml:lang="en">{0} password doesn&apos;t match the confirmation password</source>
     </trans-unit>
     <trans-unit id="++CODE++a97848c89e7bbdc7d3064ed718beef4138a0b3e6fba815d496df332bbc3773ed">
       <source xml:lang="en">{0} properties</source>
       <note>{0} is the object type</note>
+    </trans-unit>
+    <trans-unit id="++CODE++9efa3793a4845500ae93a378eab98238a1a044642157fe6dfc2d8bde0d856b81">
+      <source xml:lang="en">{0} queries, {1} mutations</source>
+      <note>{0} is the number of GraphQL queries
+{1} is the number of GraphQL mutations</note>
     </trans-unit>
     <trans-unit id="++CODE++2bd22e3b4b0281a2ffa3bc8bdd3e1f2b49dedcdde97d4cc83fdf598d1208d103">
       <source xml:lang="en">{0} rows selected, click to load summary</source>
@@ -7124,6 +7225,10 @@
     <trans-unit id="++CODE++1bc61380dfa94d79a64b67b2a483332c51a6263dcf5379519cd36b691f6469e3">
       <source xml:lang="en">{0} stopped successfully.</source>
       <note>{0} stopped successfully.</note>
+    </trans-unit>
+    <trans-unit id="++CODE++f8730048c7bef59549cb3d8b9af1267b93c76b57f2fcb2352cf5016379dbbe3a">
+      <source xml:lang="en">{0} tools</source>
+      <note>{0} is the number of MCP tools</note>
     </trans-unit>
     <trans-unit id="++CODE++c4777dc358a4dd9d44e2865392ea9fb6b761d10b718279ab38df4f72f5645fa7">
       <source xml:lang="en">{0} warnings</source>
