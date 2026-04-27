@@ -1911,6 +1911,33 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
             return state;
         });
+
+        this.registerReducer("showSql", async (state, payload) => {
+            const sqlText = (payload?.sqlText ?? state.tableQuery ?? "").toString();
+            if (!sqlText.trim()) {
+                vscode.window.showWarningMessage(LocConstants.TableExplorer.noScriptToOpen);
+                return state;
+            }
+            try {
+                const doc = await vscode.workspace.openTextDocument({
+                    content: sqlText,
+                    language: "sql",
+                });
+                await vscode.window.showTextDocument(doc, { preview: false });
+                sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.Open, {
+                    operationId: this.operationId,
+                    context: "showSql",
+                });
+            } catch (error) {
+                this.logger.error(
+                    `Error opening SQL in editor: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                );
+                vscode.window.showErrorMessage(
+                    LocConstants.TableExplorer.failedToOpenScript(getErrorMessage(error)),
+                );
+            }
+            return state;
+        });
     }
 
     /**

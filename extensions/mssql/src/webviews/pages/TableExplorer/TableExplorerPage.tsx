@@ -111,6 +111,7 @@ export const TableExplorerPage: React.FC = () => {
     const currentRowCount = useTableExplorerSelector((s) => s.currentRowCount);
     const failedCells = useTableExplorerSelector((s) => s.failedCells);
     const deletedRows = useTableExplorerSelector((s) => s.deletedRows);
+    const newRows = useTableExplorerSelector((s) => s.newRows);
     const showScriptPane = useTableExplorerSelector((s) => s.showScriptPane);
     const updateScript = useTableExplorerSelector((s) => s.updateScript);
     const sqlPaneMode = useTableExplorerSelector((s) => s.sqlPaneMode);
@@ -441,6 +442,33 @@ export const TableExplorerPage: React.FC = () => {
     const gridRef = useRef<TableDataGridRef>(null);
     const [cellChangeCount, setCellChangeCount] = React.useState(0);
     const [deletionCount, setDeletionCount] = React.useState(0);
+    const [selectedRowIds, setSelectedRowIds] = React.useState<number[]>([]);
+
+    const handleExport = useCallback((format: "csv" | "excel" | "json") => {
+        gridRef.current?.exportData(format);
+    }, []);
+
+    const handleGetDataColumns = useCallback(() => {
+        return gridRef.current?.getDataColumns() ?? [];
+    }, []);
+
+    const handleSetColumnVisibility = useCallback((id: string, visible: boolean) => {
+        gridRef.current?.setDataColumnVisibility(id, visible);
+    }, []);
+
+    const handleDeleteSelected = useCallback(() => {
+        if (selectedRowIds.length > 0) {
+            gridRef.current?.deleteRows(selectedRowIds);
+            setSelectedRowIds([]);
+        }
+    }, [selectedRowIds]);
+
+    const handleShowSql = useCallback(() => {
+        const sql = gridRef.current?.getSqlForCurrentView();
+        if (sql) {
+            context?.showSql?.(sql);
+        }
+    }, [context]);
 
     // When a TOP clause is present in the current query, rewrite it with the new
     // count and re-execute via runTableQuery so the underlying edit session is
@@ -490,6 +518,12 @@ export const TableExplorerPage: React.FC = () => {
                             deletionCount={deletionCount}
                             currentRowCount={currentRowCount}
                             onLoadSubset={handleLoadSubset}
+                            onExport={handleExport}
+                            getDataColumns={handleGetDataColumns}
+                            onSetColumnVisibility={handleSetColumnVisibility}
+                            onShowSql={handleShowSql}
+                            selectedRowCount={selectedRowIds.length}
+                            onDeleteSelected={handleDeleteSelected}
                         />
                         {resultSet ? (
                             <div className={classes.dataGridContainer}>
@@ -508,6 +542,7 @@ export const TableExplorerPage: React.FC = () => {
                                     currentRowCount={currentRowCount}
                                     failedCells={failedCells}
                                     deletedRows={deletedRows}
+                                    newRowIds={newRows?.map((r) => r.id)}
                                     tableQuery={tableQuery}
                                     onDeleteRow={context?.deleteRow}
                                     onUpdateCell={context?.updateCell}
@@ -516,6 +551,7 @@ export const TableExplorerPage: React.FC = () => {
                                     onLoadSubset={context?.loadSubset}
                                     onCellChangeCountChanged={handleCellChangeCountChanged}
                                     onDeletionCountChanged={handleDeletionCountChanged}
+                                    onSelectedRowsChanged={setSelectedRowIds}
                                     onSaveResults={context?.saveResults}
                                     onModifyTable={context?.modifyTable}
                                 />

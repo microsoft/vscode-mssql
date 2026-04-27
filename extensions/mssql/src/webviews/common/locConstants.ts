@@ -1979,8 +1979,6 @@ export class LocConstants {
         return {
             saveChanges: l10n.t("Save Changes"),
             addRow: l10n.t("Add Row"),
-            showScript: l10n.t("Show Script"),
-            hideScript: l10n.t("Hide Script"),
             openInEditor: l10n.t("Open in Editor"),
             openInSqlEditor: l10n.t("Open in SQL Editor"),
             copyScript: l10n.t("Copy Script"),
@@ -1993,7 +1991,6 @@ export class LocConstants {
             revertRow: l10n.t("Revert Row"),
             totalRowsToFetch: l10n.t("Total rows to fetch:"),
             rowsPerPage: l10n.t("Rows per page"),
-            fetchRows: l10n.t("Fetch rows"),
             firstPage: l10n.t("First Page"),
             previousPage: l10n.t("Previous Page"),
             nextPage: l10n.t("Next Page"),
@@ -2006,8 +2003,14 @@ export class LocConstants {
             viewTableDiagram: l10n.t("View Table Diagram"),
             showSqlPane: l10n.t("Show SQL Pane"),
             hideSqlPane: l10n.t("Hide SQL Pane"),
-            scriptChanges: l10n.t("Script Changes"),
+            scriptChanges: l10n.t("Show Changes"),
             tableQuery: l10n.t("Table Query"),
+            export: l10n.t("Export"),
+            columns: l10n.t("Columns"),
+            deleteSelected: (count: number) =>
+                count === 1 ? l10n.t("Delete 1 row") : l10n.t("Delete {0} rows", count),
+            showSql: l10n.t("Show SQL"),
+            openSqlInEditor: l10n.t("Open the generated SELECT statement in a new editor"),
         };
     }
 

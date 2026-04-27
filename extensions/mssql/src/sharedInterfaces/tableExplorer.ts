@@ -94,6 +94,7 @@ export interface EditColumnInfo {
     name: string;
     isEditable: boolean;
     isNullable?: boolean;
+    dataTypeName?: string;
 }
 
 export interface EditSubsetResult {
@@ -230,6 +231,7 @@ export interface TableExplorerContextProps {
     cancelTableQuery: () => void;
     modifyTable: () => void;
     viewTableDiagram: () => void;
+    showSql: (sqlText: string) => void;
 }
 
 export interface TableExplorerReducers {
@@ -251,6 +253,7 @@ export interface TableExplorerReducers {
     cancelTableQuery: {};
     modifyTable: {};
     viewTableDiagram: {};
+    showSql: { sqlText: string };
 }
 
 export interface ExportData {

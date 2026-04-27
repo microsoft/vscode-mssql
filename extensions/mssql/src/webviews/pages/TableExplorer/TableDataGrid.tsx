@@ -39,6 +39,7 @@ interface TableDataGridProps {
     currentRowCount?: number;
     failedCells?: string[];
     deletedRows?: number[];
+    newRowIds?: number[];
     tableQuery?: string;
     onDeleteRow?: (rowId: number) => void;
     onUpdateCell?: (rowId: number, columnId: number, newValue: string) => void;
@@ -52,6 +53,12 @@ interface TableDataGridProps {
     onModifyTable?: () => void;
 }
 
+export interface DataColumnVisibility {
+    id: string;
+    name: string;
+    visible: boolean;
+}
+
 export interface TableDataGridRef {
     clearAllChangeTracking: () => void;
     getCellChangeCount: () => number;
@@ -59,6 +66,11 @@ export interface TableDataGridRef {
     goToFirstPage: () => void;
     getSelectedRowIds: () => number[];
     clearSelection: () => void;
+    exportData: (format: "csv" | "excel" | "json") => void;
+    getDataColumns: () => DataColumnVisibility[];
+    setDataColumnVisibility: (id: string, visible: boolean) => void;
+    deleteRows: (rowIds: number[]) => void;
+    getSqlForCurrentView: () => string;
 }
 
 export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
@@ -69,6 +81,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             pageSize = 50,
             failedCells,
             deletedRows,
+            newRowIds,
             tableQuery,
             onDeleteRow,
             onUpdateCell,
@@ -89,11 +102,17 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         const reactGridRef = useRef<SlickgridReactInstance | null>(null);
         const cellChangesRef = useRef<Map<string, any>>(new Map());
         const deletedRowsRef = useRef<Set<number>>(new Set());
+        const newRowIdsRef = useRef<Set<number>>(new Set());
         const failedCellsRef = useRef<Set<string>>(new Set());
         const lastPageRef = useRef<number>(1);
         const lastItemsPerPageRef = useRef<number>(pageSize);
         const previousResultSetRef = useRef<EditSubsetResult | undefined>(undefined);
         const isInitializedRef = useRef<boolean>(false);
+        // Mirror of all columns (including hidden) so imperative methods can recompose
+        // the visible set without losing hidden columns.
+        const columnsRef = useRef<Column[]>([]);
+        // Plain-text column names for callers that need a label without HTML.
+        const columnDisplayNamesRef = useRef<Map<string | number, string>>(new Map());
 
         // Create a custom pager component
         const BoundCustomPager = useMemo(
@@ -157,6 +176,94 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     reactGridRef.current.slickGrid.setSelectedRows([]);
                 }
             },
+            exportData: (format: "csv" | "excel" | "json") => {
+                if (format === "csv") {
+                    exportToFile();
+                } else if (format === "excel") {
+                    exportToExcel();
+                } else {
+                    exportToJson();
+                }
+            },
+            getDataColumns: () => {
+                const grid = reactGridRef.current?.slickGrid;
+                if (!grid) {
+                    return [];
+                }
+                const visibleIds = new Set(grid.getColumns().map((c) => c.id));
+                return columnsRef.current
+                    .filter(
+                        (c) =>
+                            c.id !== "delete" && c.id !== "undo" && c.id !== "_checkbox_selector",
+                    )
+                    .map((c) => ({
+                        id: String(c.id),
+                        name:
+                            columnDisplayNamesRef.current.get(c.id) ??
+                            (typeof c.name === "string" ? c.name : String(c.id)),
+                        visible: visibleIds.has(c.id),
+                    }));
+            },
+            setDataColumnVisibility: (id: string, visible: boolean) => {
+                const grid = reactGridRef.current?.slickGrid;
+                if (!grid) {
+                    return;
+                }
+                const allColumns = columnsRef.current;
+                const visibleIds = new Set(grid.getColumns().map((c) => c.id));
+                if (visible) {
+                    visibleIds.add(id);
+                } else {
+                    visibleIds.delete(id);
+                }
+                const nextVisible = allColumns.filter((c) => visibleIds.has(c.id));
+                grid.setColumns(nextVisible);
+            },
+            deleteRows: (rowIds: number[]) => {
+                if (!onDeleteRow) {
+                    return;
+                }
+                if (reactGridRef.current?.paginationService) {
+                    lastPageRef.current = reactGridRef.current.paginationService.pageNumber;
+                    lastItemsPerPageRef.current =
+                        reactGridRef.current.paginationService.itemsPerPage;
+                }
+                for (const rowId of rowIds) {
+                    if (!deletedRowsRef.current.has(rowId)) {
+                        onDeleteRow(rowId);
+                    }
+                }
+                if (reactGridRef.current?.slickGrid) {
+                    reactGridRef.current.slickGrid.setSelectedRows([]);
+                    reactGridRef.current.slickGrid.invalidate();
+                }
+            },
+            getSqlForCurrentView: () => {
+                const base = (tableQuery ?? "").trimEnd();
+                const grid = reactGridRef.current?.slickGrid;
+                if (!grid || !base) {
+                    return base;
+                }
+                const sortCols = grid.getSortColumns?.() ?? [];
+                if (sortCols.length === 0) {
+                    return base;
+                }
+                const orderParts = sortCols
+                    .map((s: any) => {
+                        const colName = columnDisplayNamesRef.current.get(s.columnId);
+                        if (!colName) {
+                            return undefined;
+                        }
+                        return `[${colName.replace(/]/g, "]]")}] ${s.sortAsc ? "ASC" : "DESC"}`;
+                    })
+                    .filter((p): p is string => Boolean(p));
+                if (orderParts.length === 0) {
+                    return base;
+                }
+                // Strip a trailing semicolon if present so the appended ORDER BY is valid.
+                const stripped = base.replace(/;\s*$/, "");
+                return `${stripped}\nORDER BY ${orderParts.join(", ")}`;
+            },
         }));
 
         // Convert a single row to grid format
@@ -182,69 +289,17 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
         // Create columns from columnInfo
         function createColumns(columnInfo: any[], currentThemeKind?: ColorThemeKind): Column[] {
-            // Action columns (delete and undo)
-            const actionColumns: Column[] = [
-                {
-                    id: "delete",
-                    field: "id",
-                    name: "",
-                    excludeFromColumnPicker: true,
-                    excludeFromGridMenu: true,
-                    excludeFromHeaderMenu: true,
-                    formatter: (
-                        _row: number,
-                        _cell: number,
-                        _value: any,
-                        _columnDef: any,
-                        dataContext: any,
-                    ) => {
-                        const rowId = dataContext.id;
-                        const isDeleted = deletedRowsRef.current.has(rowId);
-                        const iconClass = isDeleted
-                            ? "fi fi-delete action-icon disabled"
-                            : "fi fi-delete action-icon pointer";
-                        return createDomElement("i", {
-                            className: iconClass,
-                            title: isDeleted ? "" : loc.tableExplorer.deleteRow,
-                        });
-                    },
-                    minWidth: 30,
-                    maxWidth: 30,
-                },
-                {
-                    id: "undo",
-                    field: "id",
-                    name: "",
-                    excludeFromColumnPicker: true,
-                    excludeFromGridMenu: true,
-                    excludeFromHeaderMenu: true,
-                    formatter: (
-                        _row: number,
-                        _cell: number,
-                        _value: any,
-                        _columnDef: any,
-                        dataContext: any,
-                    ) => {
-                        const rowId = dataContext.id;
-                        const isDeleted = deletedRowsRef.current.has(rowId);
-                        const iconClass = isDeleted
-                            ? "fi fi-arrow-undo action-icon pointer"
-                            : "fi fi-arrow-undo action-icon disabled";
-                        return createDomElement("i", {
-                            className: iconClass,
-                            title: isDeleted ? loc.tableExplorer.revertRow : "",
-                        });
-                    },
-                    minWidth: 30,
-                    maxWidth: 30,
-                },
-            ];
-
             // Data columns
             const dataColumns: Column[] = columnInfo.map((colInfo, index) => {
+                const headerName = colInfo.dataTypeName
+                    ? `<span class="column-name">${htmlEncode(colInfo.name)}</span><span class="column-data-type">${htmlEncode(colInfo.dataTypeName)}</span>`
+                    : htmlEncode(colInfo.name);
                 const column: Column = {
                     id: `col${index}`,
-                    name: colInfo.name,
+                    name: headerName,
+                    toolTip: colInfo.dataTypeName
+                        ? `${colInfo.name} (${colInfo.dataTypeName})`
+                        : colInfo.name,
                     field: `col${index}`,
                     sortable: true,
                     filterable: true,
@@ -311,7 +366,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 return column;
             });
 
-            return [...actionColumns, ...dataColumns];
+            return dataColumns;
         }
 
         // Handle page size changes from props
@@ -389,6 +444,14 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                                 : "deleted-row";
                         }
 
+                        // Check if this row is a newly inserted row
+                        if (item && newRowIdsRef.current.has(item.id)) {
+                            metadata = metadata || {};
+                            metadata.cssClasses = metadata.cssClasses
+                                ? `${metadata.cssClasses} new-row`
+                                : "new-row";
+                        }
+
                         return metadata;
                     };
 
@@ -399,6 +462,15 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 }
             }
         }, [deletedRows]);
+
+        // Sync new row IDs from props to ref so the row-metadata override
+        // applies the yellow highlight to newly inserted rows.
+        useEffect(() => {
+            newRowIdsRef.current = new Set(newRowIds ?? []);
+            if (reactGridRef.current?.slickGrid) {
+                reactGridRef.current.slickGrid.invalidate();
+            }
+        }, [newRowIds]);
 
         // Handle theme changes - just update state to trigger re-render
         useEffect(() => {
@@ -440,6 +512,12 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
                 const newColumns = createColumns(resultSet.columnInfo, currentTheme);
                 setColumns(newColumns);
+                columnsRef.current = newColumns;
+                const displayNames = new Map<string | number, string>();
+                resultSet.columnInfo.forEach((c: any, i: number) => {
+                    displayNames.set(`col${i}`, c.name);
+                });
+                columnDisplayNamesRef.current = displayNames;
 
                 const convertedDataset = resultSet.subset.map((row, index) =>
                     convertRowToDataRow(row, resultSet.columnInfo, index),
@@ -492,6 +570,26 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         showHeaderRow: true, // Show filter row
                         headerRowHeight: FILTER_ROW_HEIGHT,
 
+                        // Row selection (checkbox column for multi-select).
+                        // Excel copy buffer is also on, so slickgrid uses the hybrid
+                        // selection model. The hybrid model's default selectActiveRow:true
+                        // collapses multi-select down to one row whenever the active
+                        // cell changes — and CheckboxSelectColumn moves the active
+                        // cell on every checkbox click. Setting selectActiveRow:false
+                        // on selectionOptions keeps prior checkbox selections intact.
+                        enableCheckboxSelector: true,
+                        enableRowSelection: true,
+                        multiSelect: true,
+                        checkboxSelector: {
+                            hideInFilterHeaderRow: true,
+                            hideInColumnTitleRow: false,
+                            applySelectOnAllPages: false,
+                            columnIndexPosition: 0,
+                        },
+                        selectionOptions: {
+                            selectActiveRow: false,
+                        },
+
                         // Cell navigation and copy buffer
                         // Context menu
                         enableContextMenu: true,
@@ -530,23 +628,29 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 // Add new rows (rows in current but not in previous)
                 const rowsToAdd = resultSet.subset.filter((row: any) => !previousIds.has(row.id));
                 console.log(`Adding ${rowsToAdd.length} new row(s) by ID`);
-                const currentLength = reactGridRef.current.dataView.getLength();
+                const dataView = reactGridRef.current.dataView;
+                const paginationService = reactGridRef.current.paginationService;
+                const currentLength = dataView.getLength();
+                // Insert each new row at the bottom of the page the user is currently
+                // viewing. With no pagination, this falls back to the end of the dataset.
+                let insertAt =
+                    paginationService && paginationService.itemsPerPage > 0
+                        ? Math.min(
+                              paginationService.pageNumber * paginationService.itemsPerPage,
+                              currentLength,
+                          )
+                        : currentLength;
                 for (let i = 0; i < rowsToAdd.length; i++) {
                     const newRow = rowsToAdd[i];
-                    const dataRow = convertRowToDataRow(
-                        newRow,
-                        resultSet.columnInfo,
-                        currentLength + i,
+                    const dataRow = convertRowToDataRow(newRow, resultSet.columnInfo, insertAt);
+                    dataView.insertItem(insertAt, dataRow);
+                    insertAt += 1;
+                    console.log(
+                        `Inserted row ${dataRow.id} at index ${insertAt - 1} (current page bottom)`,
                     );
-                    // Use gridService.addItem with position 'bottom' and scrollRowIntoView
-                    // gridService automatically handles pagination updates
-                    reactGridRef.current.gridService.addItem(dataRow, {
-                        position: "bottom",
-                        highlightRow: true,
-                        scrollRowIntoView: true,
-                        triggerEvent: true,
-                    });
-                    console.log(`Added row ${dataRow.id} at bottom using gridService`);
+                }
+                if (rowsToAdd.length > 0 && reactGridRef.current.slickGrid) {
+                    reactGridRef.current.slickGrid.invalidate();
                 }
 
                 // Remove deleted rows (rows in previous but not in current)
@@ -662,111 +766,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             // Update the display without full re-render
             if (reactGridRef.current?.slickGrid) {
                 reactGridRef.current.slickGrid.invalidate();
-            }
-        }
-
-        function handleDeleteRow(rowId: number) {
-            // Only handle if row is not already deleted
-            if (deletedRowsRef.current.has(rowId)) {
-                return;
-            }
-
-            // Capture pagination state
-            if (reactGridRef.current?.paginationService) {
-                lastPageRef.current = reactGridRef.current.paginationService.pageNumber;
-                lastItemsPerPageRef.current = reactGridRef.current.paginationService.itemsPerPage;
-            }
-
-            if (onDeleteRow) {
-                onDeleteRow(rowId);
-            }
-
-            // Refresh the grid to update button states
-            if (reactGridRef.current?.slickGrid) {
-                reactGridRef.current.slickGrid.invalidate();
-            }
-        }
-
-        function handleUndoDelete(rowId: number) {
-            // Only handle if row is deleted
-            if (!deletedRowsRef.current.has(rowId)) {
-                return;
-            }
-
-            // Capture pagination state
-            if (reactGridRef.current?.paginationService) {
-                lastPageRef.current = reactGridRef.current.paginationService.pageNumber;
-                lastItemsPerPageRef.current = reactGridRef.current.paginationService.itemsPerPage;
-            }
-
-            if (onRevertRow) {
-                onRevertRow(rowId);
-            }
-
-            // Remove from deletion tracking
-            deletedRowsRef.current.delete(rowId);
-
-            // Notify parent of deletion count update
-            if (onDeletionCountChanged) {
-                onDeletionCountChanged(deletedRowsRef.current.size);
-            }
-
-            // Refresh the grid to update button states
-            if (reactGridRef.current?.slickGrid) {
-                reactGridRef.current.slickGrid.invalidate();
-            }
-        }
-
-        function handleCellClick(_e: Event, args: any) {
-            const metadata = reactGridRef.current?.gridService.getColumnFromEventArguments(args);
-            const rowId = metadata?.dataContext?.id;
-
-            if (metadata?.columnDef.id === "delete") {
-                handleDeleteRow(rowId);
-            } else if (metadata?.columnDef.id === "undo") {
-                handleUndoDelete(rowId);
-            }
-        }
-
-        function handleKeyDown(e: KeyboardEvent, _: any) {
-            // Only handle Enter key
-            if (e.key !== "Enter") {
-                return;
-            }
-
-            const grid = reactGridRef.current?.slickGrid;
-            if (!grid) {
-                return;
-            }
-
-            const activeCell = grid.getActiveCell();
-            if (!activeCell) {
-                return;
-            }
-
-            const column = grid.getVisibleColumns()[activeCell.cell];
-            if (!column) {
-                return;
-            }
-
-            // Check if the active cell is in the delete or undo column
-            if (column.id === "delete" || column.id === "undo") {
-                const dataItem = grid.getDataItem(activeCell.row);
-                if (!dataItem) {
-                    return;
-                }
-
-                const rowId = dataItem.id;
-
-                if (column.id === "delete") {
-                    handleDeleteRow(rowId);
-                } else if (column.id === "undo") {
-                    handleUndoDelete(rowId);
-                }
-
-                // Prevent default behavior (e.g., editing the cell)
-                e.preventDefault();
-                e.stopPropagation();
             }
         }
 
@@ -1234,12 +1233,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     onCellChange={($event) => handleCellChange($event, $event.detail.args)}
                     onSelectedRowsChanged={($event) =>
                         handleSelectedRowsChanged($event, $event.detail.args)
-                    }
-                    onClick={($event) =>
-                        handleCellClick($event.detail.eventData, $event.detail.args)
-                    }
-                    onKeyDown={($event) =>
-                        handleKeyDown($event.detail.eventData, $event.detail.args)
                     }
                 />
             </div>
