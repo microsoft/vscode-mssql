@@ -2850,7 +2850,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++b5812bf46901002496e2c4f090515599cfccbf65c585b1d4ca4346971d4eb504">
         <source xml:lang="en">Enter new database name</source>
-        <target state="new">Enter new database name</target>
+        <target state="translated">输入新数据库名</target>
       </trans-unit>
       <trans-unit id="++CODE++15f691f800a4b76afbf264547e3718c96fbb46fc076005b8f12575eac2f1f136">
         <source xml:lang="en">Enter new password</source>
