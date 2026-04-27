@@ -86,31 +86,31 @@ export class ObjectExplorerFilter {
         vscodeWrapper: VscodeWrapper,
         treeNode: TreeNodeInfo,
     ): Promise<vscodeMssql.NodeFilter[] | undefined> {
-        return await new Promise((resolve, _reject) => {
-            const correlationId = randomUUID();
-            sendActionEvent(TelemetryViews.ObjectExplorerFilter, TelemetryActions.Open, {
-                nodeType: treeNode.nodeType,
-                correlationId,
-            });
-            if (!this._filterWebviewController || this._filterWebviewController.isDisposed) {
-                this._filterWebviewController = new ObjectExplorerFilterWebviewController(
-                    context,
-                    vscodeWrapper,
-                    {
-                        filterProperties: treeNode.filterableProperties,
-                        existingFilters: treeNode.filters,
-                        nodePath: treeNode.nodePath,
-                    },
-                );
-            } else {
-                this._filterWebviewController.loadData({
+        const correlationId = randomUUID();
+        sendActionEvent(TelemetryViews.ObjectExplorerFilter, TelemetryActions.Open, {
+            nodeType: treeNode.nodeType,
+            correlationId,
+        });
+        if (!this._filterWebviewController || this._filterWebviewController.isDisposed) {
+            this._filterWebviewController = new ObjectExplorerFilterWebviewController(
+                context,
+                vscodeWrapper,
+                {
                     filterProperties: treeNode.filterableProperties,
                     existingFilters: treeNode.filters,
                     nodePath: treeNode.nodePath,
-                });
-            }
-            await this._filterWebviewController.whenWebviewReady();
-            this._filterWebviewController.revealToForeground();
+                },
+            );
+        } else {
+            this._filterWebviewController.loadData({
+                filterProperties: treeNode.filterableProperties,
+                existingFilters: treeNode.filters,
+                nodePath: treeNode.nodePath,
+            });
+        }
+        await this._filterWebviewController.whenWebviewReady();
+        this._filterWebviewController.revealToForeground();
+        return await new Promise((resolve, _reject) => {
             this._filterWebviewController.onSubmit((e) => {
                 if (e) {
                     sendActionEvent(
