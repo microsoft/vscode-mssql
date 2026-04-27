@@ -9,6 +9,7 @@ import { ColorThemeKind } from "../../sharedInterfaces/webview";
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "./locConstants";
 import { VscodeEditor } from "./vscodeMonaco";
+import { getDefinitionPanelScriptTabLabel } from "./definitionPanelUtils";
 import {
     useRef,
     useState,
@@ -89,6 +90,7 @@ export interface ScriptTabProps {
     value: string;
     themeKind: ColorThemeKind;
     language?: string;
+    label?: string;
     headerActions?: ReactNode;
     openInEditor: (script: string) => void;
     copyToClipboard: (script: string) => void;
@@ -103,13 +105,13 @@ export interface DefinitionPanelProps<TCustomTabId extends string = never> {
     onPanelVisibilityChange?: (isVisible: boolean) => void;
 }
 
-function getScriptTab(
+export function createScriptTabDefinition(
     props: ScriptTabProps,
     scriptPaneClassName: string,
 ): DefinitionPanelCustomTab<DefinitionBuiltInTabIdentifier> {
     return {
         id: SCRIPT_TAB_ID,
-        label: locConstants.schemaDesigner.definition,
+        label: getDefinitionPanelScriptTabLabel(props.label),
         content: (
             <div className={scriptPaneClassName}>
                 <VscodeEditor
@@ -165,7 +167,7 @@ const DefinitionPanelInner = <TCustomTabId extends string = never>(
     const classes = useStyles();
     const panelRef = useRef<ImperativePanelHandle | null>(null);
     const tabs: DefinitionPanelCustomTab<DefinitionTabIdentifier<TCustomTabId>>[] = [
-        getScriptTab(scriptTab, classes.definitionPanelScriptTab),
+        createScriptTabDefinition(scriptTab, classes.definitionPanelScriptTab),
         ...customTabs,
     ];
     const selectedTab: DefinitionTabIdentifier<TCustomTabId> = activeTab ?? SCRIPT_TAB_ID;

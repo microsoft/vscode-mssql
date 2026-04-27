@@ -877,6 +877,70 @@
     "Create": "Create",
     "Read": "Read",
     "Update": "Update",
+    "DAB Config": "DAB Config",
+    "API Diagram": "API Diagram",
+    "Filter entities, endpoints, tools...": "Filter entities, endpoints, tools...",
+    "REST API Endpoints": "REST API Endpoints",
+    "HTTP/JSON endpoints derived from enabled CRUD actions.": "HTTP/JSON endpoints derived from enabled CRUD actions.",
+    "Query and mutation operations derived from current GraphQL settings.": "Query and mutation operations derived from current GraphQL settings.",
+    "Built-in MCP tools derived from enabled entities and operations.": "Built-in MCP tools derived from enabled entities and operations.",
+    "Base path": "Base path",
+    "{0} is disabled in the current configuration./{0} is the API type name, e.g. REST API or GraphQL": {
+        "message": "{0} is disabled in the current configuration.",
+        "comment": ["{0} is the API type name, e.g. REST API or GraphQL"]
+    },
+    "No enabled entities to display.": "No enabled entities to display.",
+    "No matching entities, endpoints, or tools.": "No matching entities, endpoints, or tools.",
+    "{0} entities/{0} is the number of entities shown in the API diagram column": {
+        "message": "{0} entities",
+        "comment": ["{0} is the number of entities shown in the API diagram column"]
+    },
+    "{0} operations/{0} is the number of REST operations for one entity": {
+        "message": "{0} operations",
+        "comment": ["{0} is the number of REST operations for one entity"]
+    },
+    "{0} tools/{0} is the number of MCP tools": {
+        "message": "{0} tools",
+        "comment": ["{0} is the number of MCP tools"]
+    },
+    "{0} queries, {1} mutations/{0} is the number of GraphQL queries{1} is the number of GraphQL mutations": {
+        "message": "{0} queries, {1} mutations",
+        "comment": [
+            "{0} is the number of GraphQL queries",
+            "{1} is the number of GraphQL mutations"
+        ]
+    },
+    "Source: {0}.{1}/{0} is the schema name for the source table{1} is the table name for the source table": {
+        "message": "Source: {0}.{1}",
+        "comment": [
+            "{0} is the schema name for the source table",
+            "{1} is the table name for the source table"
+        ]
+    },
+    "Types: {0}, {1}/{0} is the GraphQL singular type name{1} is the GraphQL plural type name": {
+        "message": "Types: {0}, {1}",
+        "comment": ["{0} is the GraphQL singular type name", "{1} is the GraphQL plural type name"]
+    },
+    "Built-in Tools": "Built-in Tools",
+    "Per Entity": "Per Entity",
+    "Scope": "Scope",
+    "{0} entities exposed - {1}/{0} is the number of enabled entities exposed through MCP{1} is a comma-separated list of enabled actions": {
+        "message": "{0} entities exposed - {1}",
+        "comment": [
+            "{0} is the number of enabled entities exposed through MCP",
+            "{1} is a comma-separated list of enabled actions"
+        ]
+    },
+    "List all": "List all",
+    "Get by ID": "Get by ID",
+    "Replace or update": "Replace or update",
+    "List all exposed entity schemas.": "List all exposed entity schemas.",
+    "Query records from an entity.": "Query records from an entity.",
+    "Insert a new record.": "Insert a new record.",
+    "Modify an existing record.": "Modify an existing record.",
+    "Remove a record.": "Remove a record.",
+    "Stored procedure execution is not configured by this designer.": "Stored procedure execution is not configured by this designer.",
+    "Unavailable": "Unavailable",
     "Entity name used in API routes": "Entity name used in API routes",
     "View Config": "View Config",
     "Deploy": "Deploy",

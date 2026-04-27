@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { SchemaDesigner } from "./schemaDesigner";
+import { pluralize } from "./pluralization";
 
 export const SchemaDesignerDefinitionKind = SchemaDesigner.DefinitionKind;
 export type SchemaDesignerDefinitionKind = SchemaDesigner.DefinitionKind;
@@ -268,19 +269,6 @@ function getSchemaColumnNameMaps(
 
 function getPrimaryKeyColumns(table: SchemaDesigner.Table): SchemaDesigner.Column[] {
     return table.columns.filter((column) => column.isPrimaryKey);
-}
-
-function pluralize(value: string): string {
-    if (/s$/i.test(value)) {
-        return value;
-    }
-    if (/[^aeiou]y$/i.test(value)) {
-        return `${value.slice(0, -1)}ies`;
-    }
-    if (/(s|x|z|ch|sh)$/i.test(value)) {
-        return `${value}es`;
-    }
-    return `${value}s`;
 }
 
 function findTable(

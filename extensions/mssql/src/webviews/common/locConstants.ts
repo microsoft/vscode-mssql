@@ -1364,6 +1364,97 @@ export class LocConstants {
             create: l10n.t("Create"),
             read: l10n.t("Read"),
             update: l10n.t("Update"),
+            dabConfigTab: l10n.t("DAB Config"),
+            apiDiagramTab: l10n.t("API Diagram"),
+            apiDiagramFilter: l10n.t("Filter entities, endpoints, tools..."),
+            restApiEndpoints: l10n.t("REST API Endpoints"),
+            apiDiagramRestDescription: l10n.t(
+                "HTTP/JSON endpoints derived from enabled CRUD actions.",
+            ),
+            apiDiagramGraphQLDescription: l10n.t(
+                "Query and mutation operations derived from current GraphQL settings.",
+            ),
+            apiDiagramMcpDescription: l10n.t(
+                "Built-in MCP tools derived from enabled entities and operations.",
+            ),
+            apiDiagramBasePath: l10n.t("Base path"),
+            apiDiagramDisabled: (apiType: string) =>
+                l10n.t({
+                    message: "{0} is disabled in the current configuration.",
+                    args: [apiType],
+                    comment: ["{0} is the API type name, e.g. REST API or GraphQL"],
+                }),
+            apiDiagramNoEnabledEntities: l10n.t("No enabled entities to display."),
+            apiDiagramNoMatches: l10n.t("No matching entities, endpoints, or tools."),
+            apiDiagramEntitiesCount: (count: number) =>
+                l10n.t({
+                    message: "{0} entities",
+                    args: [count],
+                    comment: ["{0} is the number of entities shown in the API diagram column"],
+                }),
+            apiDiagramOperationsCount: (count: number) =>
+                l10n.t({
+                    message: "{0} operations",
+                    args: [count],
+                    comment: ["{0} is the number of REST operations for one entity"],
+                }),
+            apiDiagramToolsCount: (count: number) =>
+                l10n.t({
+                    message: "{0} tools",
+                    args: [count],
+                    comment: ["{0} is the number of MCP tools"],
+                }),
+            apiDiagramGraphQLCount: (queryCount: number, mutationCount: number) =>
+                l10n.t({
+                    message: "{0} queries, {1} mutations",
+                    args: [queryCount, mutationCount],
+                    comment: [
+                        "{0} is the number of GraphQL queries",
+                        "{1} is the number of GraphQL mutations",
+                    ],
+                }),
+            apiDiagramSource: (schemaName: string, tableName: string) =>
+                l10n.t({
+                    message: "Source: {0}.{1}",
+                    args: [schemaName, tableName],
+                    comment: [
+                        "{0} is the schema name for the source table",
+                        "{1} is the table name for the source table",
+                    ],
+                }),
+            apiDiagramGraphQLTypes: (singularName: string, pluralName: string) =>
+                l10n.t({
+                    message: "Types: {0}, {1}",
+                    args: [singularName, pluralName],
+                    comment: [
+                        "{0} is the GraphQL singular type name",
+                        "{1} is the GraphQL plural type name",
+                    ],
+                }),
+            apiDiagramBuiltInTools: l10n.t("Built-in Tools"),
+            apiDiagramPerEntity: l10n.t("Per Entity"),
+            apiDiagramScope: l10n.t("Scope"),
+            apiDiagramScopeSummary: (entityCount: number, actions: string) =>
+                l10n.t({
+                    message: "{0} entities exposed - {1}",
+                    args: [entityCount, actions],
+                    comment: [
+                        "{0} is the number of enabled entities exposed through MCP",
+                        "{1} is a comma-separated list of enabled actions",
+                    ],
+                }),
+            apiDiagramListAll: l10n.t("List all"),
+            apiDiagramGetById: l10n.t("Get by ID"),
+            apiDiagramReplaceOrUpdate: l10n.t("Replace or update"),
+            apiDiagramDescribeEntities: l10n.t("List all exposed entity schemas."),
+            apiDiagramReadRecords: l10n.t("Query records from an entity."),
+            apiDiagramCreateRecord: l10n.t("Insert a new record."),
+            apiDiagramUpdateRecord: l10n.t("Modify an existing record."),
+            apiDiagramDeleteRecord: l10n.t("Remove a record."),
+            apiDiagramExecuteEntity: l10n.t(
+                "Stored procedure execution is not configured by this designer.",
+            ),
+            apiDiagramUnavailable: l10n.t("Unavailable"),
             entityNameDescription: l10n.t("Entity name used in API routes"),
             viewConfig: l10n.t("View Config"),
             deploy: l10n.t("Deploy"),
