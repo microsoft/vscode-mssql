@@ -66,7 +66,7 @@ export default class DotnetRuntimeProvider {
                 };
             };
             const framework = runtimeConfig.runtimeOptions?.framework;
-            if (framework?.name === "Microsoft.NETCore.App" && framework.version) {
+            if (framework?.version) {
                 return framework.version;
             }
         } catch (err) {
