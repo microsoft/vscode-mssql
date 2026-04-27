@@ -38,6 +38,8 @@ export class LocConstants {
             find: l10n.t("Find"),
             findNext: l10n.t("Find Next"),
             findPrevious: l10n.t("Find Previous"),
+            property: l10n.t("Property"),
+            value: l10n.t("Value"),
             noResults: l10n.t("No results"),
             searchResultSummary: (activeElement: number, totalElements: number) =>
                 l10n.t({
@@ -67,9 +69,14 @@ export class LocConstants {
             warning: l10n.t("Warning"),
             signIn: l10n.t("Sign In"),
             loading: l10n.t("Loading"),
+            loadingWithEllipsis: l10n.t("Loading..."),
             general: l10n.t("General"),
+            databaseNameRequired: l10n.t("Database name is required"),
+            databaseNameTooLong: l10n.t("Database name must be 128 characters or fewer"),
             previous: l10n.t("Previous"),
             ok: l10n.t("OK"),
+            groupBy: l10n.t("Group by"),
+            none: l10n.t("None"),
             stepOf: (currentStep: number, totalSteps: number) =>
                 l10n.t({
                     message: "Step {0} of {1}",
@@ -134,9 +141,9 @@ export class LocConstants {
                         "{1} is the name of the filter",
                     ],
                 }),
-            property: l10n.t("Property"),
+            property: this.common.property,
             operator: l10n.t("Operator"),
-            value: l10n.t("Value"),
+            value: this.common.value,
             clear: l10n.t("Clear"),
         };
     }
@@ -300,6 +307,7 @@ export class LocConstants {
                     comment: ["{0} is the IP address of the client"],
                 }),
             addMySubnetRange: l10n.t("Add my subnet IP range"),
+            ipAddressRange: l10n.t("IP address range"),
             fromLabel: l10n.t({
                 message: "From",
                 comment: ["Label for the start IP address in the firewall rule IP range"],
@@ -355,14 +363,21 @@ export class LocConstants {
             },
             databaseList: l10n.t("Database list"),
             connect: l10n.t("Connect"),
+            connectTooltip: l10n.t(
+                "Connect with the current settings and save the connection profile",
+            ),
             connectActions: l10n.t("Connection actions"),
             advancedConnectionSettings: l10n.t("Advanced Connection Settings"),
             advancedSettings: l10n.t("Advanced"),
             testConnection: l10n.t("Test connection"),
+            testConnectionTooltip: l10n.t("Test connecting with the current settings"),
             testConnectionSucceeded: l10n.t("Connection test succeeded"),
             testing: l10n.t("Testing..."),
             connecting: l10n.t("Connecting..."),
             saveWithoutConnecting: l10n.t("Save without connecting"),
+            saveWithoutConnectingTooltip: l10n.t(
+                "Save connection profile changes without establishing a connection",
+            ),
             connectToDatabase: l10n.t("Connect to Database"),
             editDatabaseConnection: (profileName: string) =>
                 l10n.t({
@@ -433,7 +448,7 @@ export class LocConstants {
                 }),
             default: l10n.t("Default"),
             deleteSavedConnection: l10n.t("Delete saved connection"),
-            removeRecentConnection: l10n.t("Remove recent connection"),
+            removeRecentConnection: l10n.t("Clear from recent connections list"),
             copyConnectionString: l10n.t("Copy connection string to clipboard"),
             pasteConnectionString: l10n.t("Paste connection string from clipboard"),
             copy: l10n.t("Copy"),
@@ -1075,6 +1090,14 @@ export class LocConstants {
             definition: l10n.t("Definition"),
             showDefinition: l10n.t("Show Definition"),
             hideDefinition: l10n.t("Hide Definition"),
+            definitionType: l10n.t("Definition type"),
+            definitionTypeSql: l10n.t("T-SQL"),
+            definitionTypePrisma: l10n.t("Prisma"),
+            definitionTypeSequelize: l10n.t("Sequelize"),
+            definitionTypeTypeOrm: l10n.t("TypeORM"),
+            definitionTypeDrizzle: l10n.t("Drizzle"),
+            definitionTypeSqlAlchemy: l10n.t("SQLAlchemy"),
+            definitionTypeEfCore: l10n.t("EF Core"),
             copy: l10n.t("Copy"),
             close: l10n.t("Close"),
             deleteConfirmation: l10n.t("Delete Confirmation"),
@@ -1528,6 +1551,7 @@ export class LocConstants {
             saveSourceAndTargetOptionsAndExcludedElements: l10n.t(
                 "Save source and target, options, and excluded elements",
             ),
+            groupDifferencesBy: l10n.t("Group differences by"),
             type: l10n.t("Type"),
             sourceName: l10n.t("Source Name"),
             include: l10n.t("Include"),
@@ -1790,7 +1814,7 @@ export class LocConstants {
 
     public get createDatabase() {
         return {
-            title: l10n.t("Create Database (Preview)"),
+            title: l10n.t("Create Database"),
             description: (serverName: string) =>
                 l10n.t({
                     message: "Create a new database on '{0}'.",
@@ -1802,8 +1826,8 @@ export class LocConstants {
             optionsSection: l10n.t("Advanced Options"),
             nameLabel: l10n.t("Database Name"),
             namePlaceholder: l10n.t("Enter database name"),
-            nameRequired: l10n.t("Database name is required"),
-            nameTooLong: l10n.t("Database name must be 128 characters or fewer"),
+            nameRequired: this.common.databaseNameRequired,
+            nameTooLong: this.common.databaseNameTooLong,
             ownerLabel: l10n.t("Owner"),
             collationLabel: l10n.t("Collation"),
             recoveryModelLabel: l10n.t("Recovery Model"),
@@ -1820,7 +1844,7 @@ export class LocConstants {
 
     public get dropDatabase() {
         return {
-            title: l10n.t("Drop Database (Preview)"),
+            title: l10n.t("Drop Database"),
             description: (databaseName: string, serverName: string) =>
                 l10n.t({
                     message: "Drop '{0}' from '{1}'. This action cannot be undone.",
@@ -1843,6 +1867,36 @@ export class LocConstants {
             dropButton: l10n.t("Drop"),
             cancelButton: l10n.t("Cancel"),
             droppingDatabase: l10n.t("Dropping database"),
+        };
+    }
+
+    public get renameDatabase() {
+        return {
+            title: l10n.t("Rename Database"),
+            description: (databaseName: string, serverName: string) =>
+                l10n.t({
+                    message: "Rename '{0}' on '{1}'.",
+                    args: [databaseName, serverName],
+                    comment: ["{0} is the current database name", "{1} is the server name"],
+                }),
+            loading: l10n.t("Loading..."),
+            detailsSection: l10n.t("Database Details"),
+            optionsSection: l10n.t("Rename Options"),
+            nameColumn: l10n.t("Name"),
+            ownerColumn: l10n.t("Owner"),
+            statusColumn: l10n.t("Status"),
+            valueUnknown: l10n.t("-"),
+            newNameLabel: l10n.t("New Database Name"),
+            newNamePlaceholder: l10n.t("Enter new database name"),
+            newNameRequired: this.common.databaseNameRequired,
+            newNameTooLong: this.common.databaseNameTooLong,
+            newNameUnchanged: l10n.t("New database name must be different from the current name"),
+            dropConnections: l10n.t("Drop active connections"),
+            helpButton: l10n.t("Help"),
+            scriptButton: l10n.t("Script"),
+            renameButton: l10n.t("Rename"),
+            cancelButton: l10n.t("Cancel"),
+            renamingDatabase: l10n.t("Renaming database"),
         };
     }
 
@@ -1891,7 +1945,7 @@ export class LocConstants {
             execute: l10n.t("Execute"),
             filePathRequired: l10n.t("File path is required"),
             invalidFile: l10n.t("Invalid file"),
-            databaseNameRequired: l10n.t("Database name is required"),
+            databaseNameRequired: this.common.databaseNameRequired,
             invalidDatabase: l10n.t("Invalid database"),
             validationFailed: l10n.t("Validation failed"),
             deployingDacpac: l10n.t("Deploying DACPAC..."),
@@ -1901,6 +1955,9 @@ export class LocConstants {
             operationFailed: l10n.t("Operation failed"),
             unexpectedError: l10n.t("An unexpected error occurred"),
             failedToLoadDatabases: l10n.t("Failed to load databases"),
+            databasesCannotBeLoadedDueToPermissions: l10n.t(
+                "Unable to retrieve the list of databases. You may not have permission to list databases on this server. If your connection specifies a database, it will be preselected.",
+            ),
             deploySuccess: l10n.t("DACPAC deployed successfully"),
             extractSuccess: l10n.t("DACPAC extracted successfully"),
             importSuccess: l10n.t("BACPAC imported successfully"),
@@ -1959,7 +2016,7 @@ export class LocConstants {
     public get searchDatabase() {
         return {
             // Page titles and headers
-            title: l10n.t("Search Database Objects (Preview)"),
+            title: l10n.t("Search Database Objects"),
             loading: l10n.t("Loading database objects"),
             connectingTo: (serverName: string) =>
                 l10n.t({
@@ -2339,7 +2396,9 @@ export class LocConstants {
             clearFilter: l10n.t("Clear Filter"),
 
             // Toolbar labels
-            selectSessionLabel: l10n.t("Select Session:"),
+            sessionLabel: l10n.t("Session"),
+            selectSessionAriaLabel: l10n.t("Select session"),
+            selectSessionLabel: l10n.t("Select session"),
             viewLabel: l10n.t("View:"),
             selectASession: l10n.t("Select a session..."),
             readOnlyFileLabel: l10n.t("File (Read-Only)"),
@@ -2404,8 +2463,8 @@ export class LocConstants {
             stateReadOnly: l10n.t("Read-Only"),
 
             // Status bar
-            noSession: l10n.t("Query Profiler (Preview): No session"),
-            sessionStatusTooltip: l10n.t("Query Profiler (Preview) Session Status"),
+            noSession: l10n.t("Query Profiler: No session"),
+            sessionStatusTooltip: l10n.t("Query Profiler Session Status"),
             eventsCount: (count: number) =>
                 l10n.t({
                     message: "{0} events",

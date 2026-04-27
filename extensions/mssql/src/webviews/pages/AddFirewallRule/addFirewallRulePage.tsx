@@ -19,6 +19,7 @@ export const AddFirewallRulePage = () => {
     const isSignedIn = useAddFirewallRuleSelector((s) => s?.isSignedIn);
     const accounts = useAddFirewallRuleSelector((s) => s?.accounts);
     const tenants = useAddFirewallRuleSelector((s) => s?.tenants);
+    const loadingAccounts = useAddFirewallRuleSelector((s) => s?.loadingAccounts);
     const addFirewallRuleStatus = useAddFirewallRuleSelector((s) => s?.addFirewallRuleStatus);
 
     // If context isn't available yet, don't render
@@ -34,6 +35,7 @@ export const AddFirewallRulePage = () => {
                 message: message!,
                 clientIp: clientIp!,
                 isSignedIn: isSignedIn!,
+                loadingAccounts: loadingAccounts!,
                 accounts,
                 tenants: tenants!,
                 addFirewallRuleStatus: addFirewallRuleStatus!,

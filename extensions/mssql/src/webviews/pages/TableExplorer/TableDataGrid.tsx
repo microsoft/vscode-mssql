@@ -17,7 +17,6 @@ import {
     SlickgridReactInstance,
     Column,
     GridOption,
-    SlickgridReact,
     Editors,
     ContextMenu,
 } from "slickgrid-react";
@@ -27,8 +26,11 @@ import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { locConstants as loc } from "../../common/locConstants";
 import TableExplorerCustomPager from "./TableExplorerCustomPager";
 import { slickGridLocales } from "./commonGridOptions";
-import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-default.css";
 import "./TableDataGrid.css";
+import {
+    createFluentAutoResizeOptions,
+    FluentSlickGrid,
+} from "../../common/FluentSlickGrid/FluentSlickGrid";
 
 interface TableDataGridProps {
     resultSet: EditSubsetResult | undefined;
@@ -199,8 +201,8 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         const rowId = dataContext.id;
                         const isDeleted = deletedRowsRef.current.has(rowId);
                         const iconClass = isDeleted
-                            ? "mdi mdi-trash-can action-icon disabled"
-                            : "mdi mdi-trash-can action-icon pointer";
+                            ? "fi fi-delete action-icon disabled"
+                            : "fi fi-delete action-icon pointer";
                         return createDomElement("i", {
                             className: iconClass,
                             title: isDeleted ? "" : loc.tableExplorer.deleteRow,
@@ -226,8 +228,8 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         const rowId = dataContext.id;
                         const isDeleted = deletedRowsRef.current.has(rowId);
                         const iconClass = isDeleted
-                            ? "mdi mdi-undo action-icon pointer"
-                            : "mdi mdi-undo action-icon disabled";
+                            ? "fi fi-arrow-undo action-icon pointer"
+                            : "fi fi-arrow-undo action-icon disabled";
                         return createDomElement("i", {
                             className: iconClass,
                             title: isDeleted ? loc.tableExplorer.revertRow : "",
@@ -458,26 +460,19 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     const FILTER_ROW_HEIGHT = 34;
 
                     setOptions({
-                        alwaysShowVerticalScroll: true,
                         autoEdit: false,
                         autoCommitEdit: true,
                         editable: true,
-                        enableAutoResize: true,
-                        autoResize: {
-                            container: "#grid-container",
-                            calculateAvailableSizeBy: "container",
-                            resizeDetection: "container",
+                        autoResize: createFluentAutoResizeOptions("#grid-container", {
                             autoHeight: false,
                             bottomPadding: 10,
                             minHeight: 180,
-                        },
-                        forceFitColumns: false, // Allow horizontal scrolling for many columns
+                        }),
 
                         // Localization for grid UI
                         locales: slickGridLocales,
 
                         // Column operations
-                        enableColumnReorder: true, // Allow column reordering via drag-and-drop
                         enableColumnPicker: true, // Allow hide/show columns from column picker
                         columnPicker: {
                             hideForceFitButton: true,
@@ -485,7 +480,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         },
                         enableHeaderMenu: true, // Enable header menu for column operations
                         headerMenu: {
-                            // v10+ prefers hideCommands over hide*Command flags.
                             hideCommands: ["freeze-columns"],
                         },
 
@@ -499,9 +493,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         headerRowHeight: FILTER_ROW_HEIGHT,
 
                         // Cell navigation and copy buffer
-                        enableCellNavigation: true,
-                        enableExcelCopyBuffer: true, // Enables cell range selection + copy/paste (Ctrl+C, Ctrl+V)
-
                         // Context menu
                         enableContextMenu: true,
                         contextMenu: getContextMenuOptions(),
@@ -1145,19 +1136,19 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     {
                         command: "copy",
                         title: loc.slickGrid.copy,
-                        iconCssClass: "mdi mdi-content-copy",
+                        iconCssClass: "fi fi-copy",
                         positionOrder: 1,
                     },
                     {
                         command: "copy-with-headers",
                         title: loc.slickGrid.copyWithHeaders,
-                        iconCssClass: "mdi mdi-content-copy",
+                        iconCssClass: "fi fi-copy",
                         positionOrder: 2,
                     },
                     {
                         command: "copy-headers",
                         title: loc.slickGrid.copyHeaders,
-                        iconCssClass: "mdi mdi-content-copy",
+                        iconCssClass: "fi fi-copy",
                         positionOrder: 3,
                     },
                     // Divider before export
@@ -1166,19 +1157,19 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     {
                         command: "export-csv",
                         title: loc.slickGrid.exportToCsv,
-                        iconCssClass: "mdi mdi-download",
+                        iconCssClass: "fi fi-arrow-download",
                         positionOrder: 5,
                     },
                     {
                         command: "export-excel",
                         title: loc.slickGrid.exportToExcel,
-                        iconCssClass: "mdi mdi-download",
+                        iconCssClass: "fi fi-arrow-download",
                         positionOrder: 6,
                     },
                     {
                         command: "export-json",
                         title: loc.slickGrid.exportToJson,
-                        iconCssClass: "mdi mdi-download",
+                        iconCssClass: "fi fi-arrow-download",
                         positionOrder: 7,
                     },
                     // Divider before edit commands
@@ -1187,7 +1178,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     {
                         command: "delete-row",
                         title: loc.tableExplorer.deleteRow,
-                        iconCssClass: "mdi mdi-close",
+                        iconCssClass: "fi fi-dismiss",
                         cssClass: "red",
                         textCssClass: "bold",
                         positionOrder: 9,
@@ -1200,13 +1191,13 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     {
                         command: "revert-cell",
                         title: loc.tableExplorer.revertCell,
-                        iconCssClass: "mdi mdi-undo",
+                        iconCssClass: "fi fi-arrow-undo",
                         positionOrder: 10,
                     },
                     {
                         command: "revert-row",
                         title: loc.tableExplorer.revertRow,
-                        iconCssClass: "mdi mdi-undo",
+                        iconCssClass: "fi fi-arrow-undo",
                         positionOrder: 11,
                     },
                     // Divider before navigation commands
@@ -1215,7 +1206,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     {
                         command: "modify-table",
                         title: loc.tableExplorer.modifyTable,
-                        iconCssClass: "mdi mdi-table-edit",
+                        iconCssClass: "fi fi-table-edit",
                         positionOrder: 13,
                     },
                 ],
@@ -1234,7 +1225,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             <div
                 id="grid-container"
                 className={`table-explorer-grid-container ${isDarkMode ? "dark-mode" : ""}`}>
-                <SlickgridReact
+                <FluentSlickGrid
                     gridId="tableExplorerGrid"
                     columns={columns}
                     options={options}

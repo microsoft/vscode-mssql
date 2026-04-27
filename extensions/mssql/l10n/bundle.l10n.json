@@ -40,6 +40,8 @@
     "Find": "Find",
     "Find Next": "Find Next",
     "Find Previous": "Find Previous",
+    "Property": "Property",
+    "Value": "Value",
     "No results": "No results",
     "{0} of {1}/{0} is the number of active elements{1} is the total number of elements": {
         "message": "{0} of {1}",
@@ -62,9 +64,14 @@
     "Warning": "Warning",
     "Sign In": "Sign In",
     "Loading": "Loading",
+    "Loading...": "Loading...",
     "General": "General",
+    "Database name is required": "Database name is required",
+    "Database name must be 128 characters or fewer": "Database name must be 128 characters or fewer",
     "Previous": "Previous",
     "OK": "OK",
+    "Group by": "Group by",
+    "None": "None",
     "Step {0} of {1}/{0} is the current step number{1} is the total number of steps": {
         "message": "Step {0} of {1}",
         "comment": ["{0} is the current step number", "{1} is the total number of steps"]
@@ -103,9 +110,7 @@
         "message": "The first value must be less than the second value for the {0} operator in the {1} filter",
         "comment": ["{0} is the operator for the filter", "{1} is the name of the filter"]
     },
-    "Property": "Property",
     "Operator": "Operator",
-    "Value": "Value",
     "Publishing Changes": "Publishing Changes",
     "Changes published successfully": "Changes published successfully",
     "Close Designer": "Close Designer",
@@ -209,6 +214,7 @@
         "comment": ["{0} is the IP address of the client"]
     },
     "Add my subnet IP range": "Add my subnet IP range",
+    "IP address range": "IP address range",
     "From/Label for the start IP address in the firewall rule IP range": {
         "message": "From",
         "comment": ["Label for the start IP address in the firewall rule IP range"]
@@ -251,14 +257,17 @@
     "No databases found in the selected workspace.": "No databases found in the selected workspace.",
     "Database list": "Database list",
     "Connect": "Connect",
+    "Connect with the current settings and save the connection profile": "Connect with the current settings and save the connection profile",
     "Connection actions": "Connection actions",
     "Advanced Connection Settings": "Advanced Connection Settings",
     "Advanced": "Advanced",
     "Test connection": "Test connection",
+    "Test connecting with the current settings": "Test connecting with the current settings",
     "Connection test succeeded": "Connection test succeeded",
     "Testing...": "Testing...",
     "Connecting...": "Connecting...",
     "Save without connecting": "Save without connecting",
+    "Save connection profile changes without establishing a connection": "Save connection profile changes without establishing a connection",
     "Connect to Database": "Connect to Database",
     "Edit Database Connection - {0}/{0} is the name of the connection profile": {
         "message": "Edit Database Connection - {0}",
@@ -309,7 +318,7 @@
     },
     "Default": "Default",
     "Delete saved connection": "Delete saved connection",
-    "Remove recent connection": "Remove recent connection",
+    "Clear from recent connections list": "Clear from recent connections list",
     "Copy connection string to clipboard": "Copy connection string to clipboard",
     "Paste connection string from clipboard": "Paste connection string from clipboard",
     "Paste": "Paste",
@@ -698,6 +707,14 @@
     "Definition": "Definition",
     "Show Definition": "Show Definition",
     "Hide Definition": "Hide Definition",
+    "Definition type": "Definition type",
+    "T-SQL": "T-SQL",
+    "Prisma": "Prisma",
+    "Sequelize": "Sequelize",
+    "TypeORM": "TypeORM",
+    "Drizzle": "Drizzle",
+    "SQLAlchemy": "SQLAlchemy",
+    "EF Core": "EF Core",
     "Delete Confirmation": "Delete Confirmation",
     "Are you sure you want to delete the selected items?": "Are you sure you want to delete the selected items?",
     "Undo": "Undo",
@@ -885,7 +902,6 @@
     "Custom GraphQL Type": "Custom GraphQL Type",
     "Optional - Override default GraphQL type name": "Optional - Override default GraphQL type name",
     "Source Table": "Source Table",
-    "Loading...": "Loading...",
     "Initializing DAB configuration...": "Initializing DAB configuration...",
     "No entities found": "No entities found",
     "Toggle all entities in {0}/{0} is the schema name": {
@@ -985,6 +1001,7 @@
     "Load source, target, and options saved in an .scmp file": "Load source, target, and options saved in an .scmp file",
     "Save .scmp file": "Save .scmp file",
     "Save source and target, options, and excluded elements": "Save source and target, options, and excluded elements",
+    "Group differences by": "Group differences by",
     "Source Name": "Source Name",
     "Include": "Include",
     "Target Name": "Target Name",
@@ -1131,15 +1148,12 @@
     "Show Confirm Password": "Show Confirm Password",
     "Hide Confirm Password": "Hide Confirm Password",
     "Passwords do not match": "Passwords do not match",
-    "Create Database (Preview)": "Create Database (Preview)",
     "Create a new database on '{0}'./{0} is the name of the server": {
         "message": "Create a new database on '{0}'.",
         "comment": ["{0} is the name of the server"]
     },
     "Database Name": "Database Name",
     "Enter database name": "Enter database name",
-    "Database name is required": "Database name is required",
-    "Database name must be 128 characters or fewer": "Database name must be 128 characters or fewer",
     "Owner": "Owner",
     "Collation": "Collation",
     "Recovery Model": "Recovery Model",
@@ -1148,7 +1162,7 @@
     "Is Ledger Database": "Is Ledger Database",
     "Help": "Help",
     "Creating database": "Creating database",
-    "Drop Database (Preview)": "Drop Database (Preview)",
+    "Drop Database": "Drop Database",
     "Drop '{0}' from '{1}'. This action cannot be undone./{0} is the database name{1} is the server name": {
         "message": "Drop '{0}' from '{1}'. This action cannot be undone.",
         "comment": ["{0} is the database name", "{1} is the server name"]
@@ -1162,6 +1176,17 @@
     "I understand this action is permanent and irreversible": "I understand this action is permanent and irreversible",
     "Drop": "Drop",
     "Dropping database": "Dropping database",
+    "Rename Database": "Rename Database",
+    "Rename '{0}' on '{1}'./{0} is the current database name{1} is the server name": {
+        "message": "Rename '{0}' on '{1}'.",
+        "comment": ["{0} is the current database name", "{1} is the server name"]
+    },
+    "Rename Options": "Rename Options",
+    "New Database Name": "New Database Name",
+    "Enter new database name": "Enter new database name",
+    "New database name must be different from the current name": "New database name must be different from the current name",
+    "Rename": "Rename",
+    "Renaming database": "Renaming database",
     "Data-tier Application": "Data-tier Application",
     "Deploy, extract, import, or export data-tier applications on the selected database": "Deploy, extract, import, or export data-tier applications on the selected database",
     "Operation": "Operation",
@@ -1203,6 +1228,7 @@
     "Operation failed": "Operation failed",
     "An unexpected error occurred": "An unexpected error occurred",
     "Failed to load databases": "Failed to load databases",
+    "Unable to retrieve the list of databases. You may not have permission to list databases on this server. If your connection specifies a database, it will be preselected.": "Unable to retrieve the list of databases. You may not have permission to list databases on this server. If your connection specifies a database, it will be preselected.",
     "DACPAC deployed successfully": "DACPAC deployed successfully",
     "DACPAC extracted successfully": "DACPAC extracted successfully",
     "BACPAC imported successfully": "BACPAC imported successfully",
@@ -1238,6 +1264,7 @@
     "Close Script Pane": "Close Script Pane",
     "Modify Table": "Modify Table",
     "View Table Diagram": "View Table Diagram",
+    "Search Database Objects": "Search Database Objects",
     "Show SQL Pane": "Show SQL Pane",
     "Hide SQL Pane": "Hide SQL Pane",
     "Script Changes": "Script Changes",
@@ -1262,7 +1289,6 @@
     "Stored Procedures": "Stored Procedures",
     "Functions": "Functions",
     "Schemas": "Schemas",
-    "None": "None",
     "View": "View",
     "Stored Procedure": "Stored Procedure",
     "Function": "Function",
@@ -1303,7 +1329,6 @@
     "Freeze columns": "Freeze columns",
     "Greater than": "Greater than",
     "Greater than or equal to": "Greater than or equal to",
-    "Group by": "Group by",
     "Hide column": "Hide column",
     "items": "items",
     "items per page": "items per page",
@@ -1484,7 +1509,8 @@
     "Auto-scroll": "Auto-scroll",
     "Filter...": "Filter...",
     "Clear Filter": "Clear Filter",
-    "Select Session:": "Select Session:",
+    "Session": "Session",
+    "Select session": "Select session",
     "View:": "View:",
     "Select a session...": "Select a session...",
     "File (Read-Only)": "File (Read-Only)",
@@ -1530,8 +1556,8 @@
     "Stopped": "Stopped",
     "Not Started": "Not Started",
     "Read-Only": "Read-Only",
-    "Query Profiler (Preview): No session": "Query Profiler (Preview): No session",
-    "Query Profiler (Preview) Session Status": "Query Profiler (Preview) Session Status",
+    "Query Profiler: No session": "Query Profiler: No session",
+    "Query Profiler Session Status": "Query Profiler Session Status",
     "{0} events/{0} is the number of events": {
         "message": "{0} events",
         "comment": ["{0} is the number of events"]
@@ -1705,9 +1731,6 @@
     "Public": "Public",
     "Private": "Private",
     "Remove": "Remove",
-    "Drop Database": "Drop Database",
-    "Rename Database": "Rename Database",
-    "Enter the new database name": "Enter the new database name",
     "Please select a server node in Object Explorer to create a database.": "Please select a server node in Object Explorer to create a database.",
     "Please select a database node in Object Explorer to drop.": "Please select a database node in Object Explorer to drop.",
     "Please select a database node in Object Explorer to rename.": "Please select a database node in Object Explorer to rename.",
@@ -2144,6 +2167,15 @@
     "SQL Plan Files": "SQL Plan Files",
     "Script copied to clipboard": "Script copied to clipboard",
     "Copied": "Copied",
+    "Failed to open text in editor: {0}/{0} is the error message": {
+        "message": "Failed to open text in editor: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Failed to copy text to clipboard: {0}/{0} is the error message": {
+        "message": "Failed to copy text to clipboard: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Schema designer details are not available.": "Schema designer details are not available.",
     "Copying results...": "Copying results...",
     "Results copied to clipboard": "Results copied to clipboard",
     "Do you want to always display query results in a new tab instead of the query pane?": "Do you want to always display query results in a new tab instead of the query pane?",
@@ -2256,6 +2288,8 @@
     "Sign in": "Sign in",
     "Additional parameters": "Additional parameters",
     "<Default>": "<Default>",
+    "Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.": "Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.",
+    "Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.": "Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.",
     "+ Create Connection Group": "+ Create Connection Group",
     "Select a connection group": "Select a connection group",
     "Search connection groups": "Search connection groups",
@@ -2274,6 +2308,19 @@
     },
     "Clear cache and refresh token": "Clear cache and refresh token",
     "Clear token cache": "Clear token cache",
+    "Token refreshed successfully.": "Token refreshed successfully.",
+    "Unable to acquire a valid token. (expires: {0}, but is currently {1})/{0} is the token expiration time{1} is the current time": {
+        "message": "Unable to acquire a valid token. (expires: {0}, but is currently {1})",
+        "comment": ["{0} is the token expiration time", "{1} is the current time"]
+    },
+    "Error refreshing token; you may need to sign out and sign back in: {0}/{0} is the error message": {
+        "message": "Error refreshing token; you may need to sign out and sign back in: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Error validating Entra authentication token; you may need to refresh your token: {0}/{0} is the error message": {
+        "message": "Error validating Entra authentication token; you may need to refresh your token: {0}",
+        "comment": ["{0} is the error message"]
+    },
     "No workspaces found. Please change Fabric account or tenant to view available workspaces.": "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
     "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported./{0} is the authentication type": {
         "message": "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported.",
@@ -2290,6 +2337,10 @@
     "No SQL resource is configured for the current cloud '{0}'. Please update your Azure account settings./{0} is the display name of the current cloud": {
         "message": "No SQL resource is configured for the current cloud '{0}'. Please update your Azure account settings.",
         "comment": ["{0} is the display name of the current cloud"]
+    },
+    "Azure account '{0}' was not found. Sign in with the correct account or select a different one./{0} is the display name or ID of the Azure account that was not found": {
+        "message": "Azure account '{0}' was not found. Sign in with the correct account or select a different one.",
+        "comment": ["{0} is the display name or ID of the Azure account that was not found"]
     },
     "Error signing into Azure: {0}/{0} is the error message": {
         "message": "Error signing into Azure: {0}",
@@ -2378,6 +2429,18 @@
     "Fabric is not supported in the current cloud ({0}).  Ensure setting '{1}' is configured correctly./{0} is the cloud name{1} is the setting name": {
         "message": "Fabric is not supported in the current cloud ({0}).  Ensure setting '{1}' is configured correctly.",
         "comment": ["{0} is the cloud name", "{1} is the setting name"]
+    },
+    "The selected profile authenticates using Entra ID '{0}' but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect./{0} is the account ID or label": {
+        "message": "The selected profile authenticates using Entra ID '{0}' but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.",
+        "comment": ["{0} is the account ID or label"]
+    },
+    "The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect./{0} is the account ID or label{1} is the tenant ID": {
+        "message": "The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.",
+        "comment": ["{0} is the account ID or label", "{1} is the tenant ID"]
+    },
+    "The selected profile authenticates using Entra ID '{0}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect./{0} is the account ID or label": {
+        "message": "The selected profile authenticates using Entra ID '{0}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.",
+        "comment": ["{0} is the account ID or label"]
     },
     "The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect./{0} is the account ID or label{1} is the tenant ID": {
         "message": "The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.",
@@ -2617,6 +2680,10 @@
     "Checking Docker prerequisites...": "Checking Docker prerequisites...",
     "Creating SQL Server container...": "Creating SQL Server container...",
     "Port must be a number between 1 and 65535": "Port must be a number between 1 and 65535",
+    "Port {0} is already in use. Please choose a different port./{0} is the port number": {
+        "message": "Port {0} is already in use. Please choose a different port.",
+        "comment": ["{0} is the port number"]
+    },
     "Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy": "Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy",
     "{0} password doesn't match the confirmation password": "{0} password doesn't match the confirmation password",
     "Required": "Required",
@@ -3091,6 +3158,7 @@
     "Reveal in Explorer": "Reveal in Explorer",
     "Reveal in Finder": "Reveal in Finder",
     "Open Containing Folder": "Open Containing Folder",
+    "Unable to retrieve the list of databases. You may not have permission to list databases on this server.": "Unable to retrieve the list of databases. You may not have permission to list databases on this server.",
     "DACPAC deployed successfully to database '{0}'/{0} is the database name": {
         "message": "DACPAC deployed successfully to database '{0}'",
         "comment": ["{0} is the database name"]
@@ -3107,8 +3175,8 @@
         "message": "BACPAC exported successfully to '{0}'",
         "comment": ["{0} is the file path"]
     },
-    "Search Database Objects (Preview) - {0}/{0} is the server name": {
-        "message": "Search Database Objects (Preview) - {0}",
+    "Search Database Objects - {0}/{0} is the server name": {
+        "message": "Search Database Objects - {0}",
         "comment": ["{0} is the server name"]
     },
     "Failed to establish connection": "Failed to establish connection",
@@ -3296,10 +3364,10 @@
     },
     "Session name can only contain letters, numbers, underscores, and hyphens": "Session name can only contain letters, numbers, underscores, and hyphens",
     "Select a profiler template": "Select a profiler template",
-    "New Query Profiler (Preview) - Select Template": "New Query Profiler (Preview) - Select Template",
+    "New Query Profiler - Select Template": "New Query Profiler - Select Template",
     "Enter a name for the new profiler session": "Enter a name for the new profiler session",
     "MyProfilerSession": "MyProfilerSession",
-    "New Query Profiler (Preview) - Enter Name": "New Query Profiler (Preview) - Enter Name",
+    "New Query Profiler - Enter Name": "New Query Profiler - Enter Name",
     "Engine: {0}/{0} is the engine type": {
         "message": "Engine: {0}",
         "comment": ["{0} is the engine type"]
@@ -3331,11 +3399,11 @@
         "message": "Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection",
         "comment": ["{0} is the file name"]
     },
-    "Query Profiler (Preview): {0}/{0} is the file name or session name": {
-        "message": "Query Profiler (Preview): {0}",
+    "Query Profiler: {0}/{0} is the file name or session name": {
+        "message": "Query Profiler: {0}",
         "comment": ["{0} is the file name or session name"]
     },
-    "Query Profiler (Preview)": "Query Profiler (Preview)",
+    "Query Profiler": "Query Profiler",
     "{0}/{1} events/{0} is the filtered count, {1} is the total count": {
         "message": "{0}/{1} events",
         "comment": ["{0} is the filtered count, {1} is the total count"]
@@ -3343,10 +3411,6 @@
     "File: {0}/{0} is the file name": {
         "message": "File: {0}",
         "comment": ["{0} is the file name"]
-    },
-    "Failed to open text in editor: {0}/{0} is the error message": {
-        "message": "Failed to open text in editor: {0}",
-        "comment": ["{0} is the error message"]
     },
     "Profiler events exported successfully to {0}/{0} is the file path": {
         "message": "Profiler events exported successfully to {0}",
