@@ -906,6 +906,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Building {0}...</source>
         <target state="translated">正在生成 {0}...</target>
       </trans-unit>
+      <trans-unit id="++CODE++24908cc5593d5d8ea1f67ad6b873dd49a8a045f441e35de15d8041d2caccfa93">
+        <source xml:lang="en">Bulk Actions</source>
+        <target state="new">Bulk Actions</target>
+      </trans-unit>
       <trans-unit id="++CODE++6f52d618fb243f0ae137c3c850eb0bda8b347766a553b613fc210f6eb6bb5c97">
         <source xml:lang="en">Bulk-logged</source>
         <target state="translated">大容量日志</target>
@@ -2511,6 +2515,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Directory not found</source>
         <target state="translated">找不到目录</target>
       </trans-unit>
+      <trans-unit id="++CODE++3583e2d377f9ee2c31596d15752d65fddec82de715720b2c43fad0756d6fda28">
+        <source xml:lang="en">Disable all entities</source>
+        <target state="new">Disable all entities</target>
+      </trans-unit>
       <trans-unit id="++CODE++6fbed214e0ea21c683db0ba2d648ef09b11edf4b4bb23835d4fdda84b5d097f3">
         <source xml:lang="en">Disable intellisense and syntax error checking on current document</source>
         <target state="translated">在当前文档中禁用 Intellisense 和语法错误检查</target>
@@ -2727,6 +2735,14 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
         <source xml:lang="en">Enable Trust Server Certificate</source>
         <target state="translated">启用“信任服务器证书”</target>
+      </trans-unit>
+      <trans-unit id="++CODE++efa7adedb651f5d8d6be99873aeb53ef49aa29f82f94aeaab24cd02f25ca6305">
+        <source xml:lang="en">Enable all CRUD operations</source>
+        <target state="new">Enable all CRUD operations</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f4d8932f5f8ab4e79333deaf1d97a78038f5a4aea29334fd307612e1586d08a6">
+        <source xml:lang="en">Enable all entities</source>
+        <target state="new">Enable all entities</target>
       </trans-unit>
       <trans-unit id="++CODE++c60bd510aadca4cca8a64d535f63600d29ea21be9532ea0fa74c907d5c676311">
         <source xml:lang="en">Enable all rules in {0}</source>
@@ -3262,6 +3278,11 @@ Error:
       <trans-unit id="++CODE++de5cd90f5341f8bb2ebe10270705fa436ac43f8c5ff653358b9eee3a56323ec4">
         <source xml:lang="en">Exporting BACPAC...</source>
         <target state="translated">正在导出 BACPAC...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7758738264236e2f15e315d6e6ebca6fb9192ce031207744cc9bdd4a5a052817">
+        <source xml:lang="en">Expose {0}</source>
+        <note>{0} is the backing database column name</note>
+        <target state="new">Expose {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++c67415bcff328a59fd399e2a7ca9691e0044192fb7480ae501644339965d046d">
         <source xml:lang="en">Expression</source>
@@ -4396,6 +4417,10 @@ Error:
         <source xml:lang="en">Include Object Types</source>
         <target state="translated">包括对象类型</target>
       </trans-unit>
+      <trans-unit id="++CODE++224b991b88c5510627611bdb43e5a500f1660e212e0e74ed34dc53be87699169">
+        <source xml:lang="en">Include all columns</source>
+        <target state="new">Include all columns</target>
+      </trans-unit>
       <trans-unit id="++CODE++ac665fafc5f9732c9d322749a1f726be51f8b31d2ec83ecde83a6e1d2b632eda">
         <source xml:lang="en">Include all object types</source>
         <target state="translated">包括所有对象类型</target>
@@ -4965,6 +4990,10 @@ Error:
       <trans-unit id="++CODE++bc9503a89518d47aeceed119c50d8826d8ca48592bd977647da2b8e49a240ed3">
         <source xml:lang="en">MSSQL: What's new</source>
         <target state="translated">MSSQL: 新增功能</target>
+      </trans-unit>
+      <trans-unit id="++CODE++af56abadd6f783641801adf6ed9b7d1fcf4b7a5d207dab320252520f49d4894f">
+        <source xml:lang="en">Make everything read-only</source>
+        <target state="new">Make everything read-only</target>
       </trans-unit>
       <trans-unit id="++CODE++614e5389e87ce465fe548a0665aeaa67a52a06ff792f2f791615cd37fb610178">
         <source xml:lang="en">Manage Connection Profiles</source>
@@ -8448,6 +8477,11 @@ Query: {2}</source>
         <note>{0} is the schema name</note>
         <target state="translated">切换 {0} 中的所有实体</target>
       </trans-unit>
+      <trans-unit id="++CODE++c7b96245094d8cc24762fbd0211e44291f3224450089189c452ce1985982dd94">
+        <source xml:lang="en">Toggle columns for {0}</source>
+        <note>{0} is the entity name</note>
+        <target state="new">Toggle columns for {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++ffe32a004b062d5e8252cac4729963ba6ff129023ea0b33c6aa3f0a9e725f157">
         <source xml:lang="en">Toggle dark mode</source>
         <target state="translated">切换深色模式</target>
@@ -9241,6 +9275,11 @@ Query: {2}</source>
         <source xml:lang="en">{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again.</source>
         <note>{0} is the number of invalid accounts that have been removed</note>
         <target state="translated">{0} 已移除无效的 Entra 帐户；可能需要运行 `MS SQL: 清除 Microsoft Entra 帐户令牌缓存`，然后重新登录。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8ee4e65df77291c702e67b2a14060cddd3d53d15c05a64ed6a95e8ef5c53441b">
+        <source xml:lang="en">{0} is a primary key column and can't be disabled.</source>
+        <note>{0} is the backing database column name</note>
+        <target state="new">{0} is a primary key column and can't be disabled.</target>
       </trans-unit>
       <trans-unit id="++CODE++e3620e8a37371c6057d768faed05a7608c6e5ee783372a58b137b047300e8b7a">
         <source xml:lang="en">{0} issue</source>
