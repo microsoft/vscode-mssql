@@ -7579,6 +7579,9 @@
     <trans-unit id="mssql.flatFileImport">
       <source xml:lang="en">Import Data...</source>
     </trans-unit>
+    <trans-unit id="mssql.copilot.inlineCompletions.includeSqlDiagnostics.description">
+      <source xml:lang="en">Include nearby SQL error diagnostics in MSSQL inline completion prompts. Diagnostics are limited to errors near the cursor and omit file paths.</source>
+    </trans-unit>
     <trans-unit id="mssql.copilot.inlineCompletions.enabledCategories.description">
       <source xml:lang="en">Inline SQL completion categories to enable. Use &apos;continuation&apos; for cursor-continuation ghost text and &apos;intent&apos; for comment-to-query completions.</source>
     </trans-unit>
