@@ -1005,13 +1005,52 @@ export function selectPreferredModel<
             : defaultInlineCompletionModelPreference.familyPatterns;
 
     for (const pattern of familyPatterns) {
-        const candidates = models.filter((model) => modelMatchesPreferencePattern(model, pattern));
-        const match = selectPreferredProviderModel(candidates, preference.providerVendors);
+        const candidates = models
+            .map((model) => ({
+                model,
+                matchRank: getModelPreferenceMatchRank(model, pattern),
+            }))
+            .filter((candidate) => candidate.matchRank > 0);
+        const match = selectPreferredPatternModel(candidates, preference.providerVendors);
         if (match) {
             return match;
         }
     }
     return selectPreferredProviderModel(models, preference.providerVendors);
+}
+
+function selectPreferredPatternModel<
+    T extends { vendor?: string; id?: string; version?: string; name?: string },
+>(
+    candidates: { model: T; matchRank: number }[],
+    providerVendors: readonly string[],
+): T | undefined {
+    for (const vendor of providerVendors) {
+        const vendorCandidates = candidates.filter(
+            (candidate) => candidate.model.vendor === vendor,
+        );
+        const best = selectBestRankedModel(vendorCandidates);
+        if (best) {
+            return best;
+        }
+    }
+
+    return selectBestRankedModel(candidates);
+}
+
+function selectBestRankedModel<T extends { id?: string; version?: string; name?: string }>(
+    candidates: { model: T; matchRank: number }[],
+): T | undefined {
+    if (candidates.length === 0) {
+        return undefined;
+    }
+
+    const bestRank = Math.max(...candidates.map((candidate) => candidate.matchRank));
+    return selectBestVersionedModel(
+        candidates
+            .filter((candidate) => candidate.matchRank === bestRank)
+            .map((candidate) => candidate.model),
+    );
 }
 
 function selectPreferredProviderModel<
@@ -1067,22 +1106,54 @@ function getModelVersionText(model: { id?: string; version?: string; name?: stri
         return version;
     }
 
-    return model.id ?? version ?? model.name ?? "";
+    const id = model.id?.trim();
+    if (id && /\d/.test(id)) {
+        return id;
+    }
+
+    const name = model.name?.trim();
+    if (name && /\d/.test(name)) {
+        return name;
+    }
+
+    return id ?? name ?? "";
 }
 
-function modelMatchesPreferencePattern(
-    model: { family: string; id?: string; name?: string },
+function getModelPreferenceMatchRank(
+    model: { family: string; id?: string; name?: string; version?: string },
     pattern: RegExp,
-): boolean {
-    return [model.family, model.id, model.name].some((value) => {
-        if (!value) {
-            return false;
-        }
+): number {
+    const autoModel = isAutoLanguageModel(model);
+    const explicitMatch = [model.id, model.name, model.version].some((value) =>
+        modelTextMatchesPattern(value, pattern),
+    );
+    const familyMatch = modelTextMatchesPattern(model.family, pattern);
 
-        return [value, normalizeModelPreferenceText(value)].some((candidate) => {
-            pattern.lastIndex = 0;
-            return pattern.test(candidate);
-        });
+    if (autoModel) {
+        return explicitMatch || familyMatch ? 1 : 0;
+    }
+
+    if (explicitMatch) {
+        return 2;
+    }
+
+    return familyMatch ? 1 : 0;
+}
+
+function isAutoLanguageModel(model: { id?: string; name?: string }): boolean {
+    return [model.id, model.name].some(
+        (value) => normalizeModelPreferenceText(value ?? "") === "auto",
+    );
+}
+
+function modelTextMatchesPattern(value: string | undefined, pattern: RegExp): boolean {
+    if (!value) {
+        return false;
+    }
+
+    return [value, normalizeModelPreferenceText(value)].some((candidate) => {
+        pattern.lastIndex = 0;
+        return pattern.test(candidate);
     });
 }
 

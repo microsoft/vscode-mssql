@@ -136,6 +136,26 @@ suite("selectPreferredModel", () => {
         expect(matched?.id).to.equal("claude-sonnet-4-6");
     });
 
+    test("uses display names to rank versions when provider ids are generic", () => {
+        const models = [
+            fakeModel({
+                vendor: "copilot",
+                id: "copilot-sonnet-a",
+                name: "Claude Sonnet 4.5",
+                family: "claude-sonnet",
+            }),
+            fakeModel({
+                vendor: "copilot",
+                id: "copilot-sonnet-b",
+                name: "Claude Sonnet 4.6",
+                family: "claude-sonnet",
+            }),
+        ];
+
+        const matched = selectPreferredModel(models);
+        expect(matched?.name).to.equal("Claude Sonnet 4.6");
+    });
+
     test("focused profile prefers the intent model preference", () => {
         const focused = inlineCompletionDebugPresetProfiles.find(
             (profile) => profile.id === "focused",
@@ -182,5 +202,58 @@ suite("selectPreferredModel", () => {
         );
         expect(matched?.vendor).to.equal("copilot");
         expect(matched?.family).to.equal("claude-haiku");
+    });
+
+    test("balanced continuation profile prefers a named Haiku option over Copilot Auto", () => {
+        const balanced = inlineCompletionDebugPresetProfiles.find(
+            (profile) => profile.id === "balanced",
+        );
+        const models = [
+            fakeModel({
+                vendor: "copilot",
+                id: "auto",
+                name: "Auto",
+                family: "claude-haiku-4.5",
+            }),
+            fakeModel({
+                vendor: "copilot",
+                id: "copilot-haiku",
+                name: "Claude Haiku 4.5",
+                family: "claude-haiku",
+            }),
+        ];
+
+        const matched = selectPreferredModel(
+            models,
+            getInlineCompletionModelPreferenceForCategory(balanced, "continuation"),
+        );
+        expect(matched?.name).to.equal("Claude Haiku 4.5");
+    });
+
+    test("balanced continuation profile prefers named Haiku even when Auto has a Haiku id", () => {
+        const balanced = inlineCompletionDebugPresetProfiles.find(
+            (profile) => profile.id === "balanced",
+        );
+        const models = [
+            fakeModel({
+                vendor: "copilot",
+                id: "claude-haiku-4.5",
+                name: "Auto",
+                family: "claude-haiku-4.5",
+                version: "claude-haiku-4.5",
+            }),
+            fakeModel({
+                vendor: "copilot",
+                id: "copilot-haiku",
+                name: "Claude Haiku 4.5",
+                family: "claude-haiku",
+            }),
+        ];
+
+        const matched = selectPreferredModel(
+            models,
+            getInlineCompletionModelPreferenceForCategory(balanced, "continuation"),
+        );
+        expect(matched?.name).to.equal("Claude Haiku 4.5");
     });
 });
