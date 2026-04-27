@@ -109,6 +109,7 @@ export class ObjectExplorerFilter {
                     nodePath: treeNode.nodePath,
                 });
             }
+            await this._filterWebviewController.whenWebviewReady();
             this._filterWebviewController.revealToForeground();
             this._filterWebviewController.onSubmit((e) => {
                 if (e) {
