@@ -5255,7 +5255,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++7ac3db013474883f450cf9838db274c69c9df2dfc79212ed3436b4819f88d4be">
         <source xml:lang="en">New Database Name</source>
-        <target state="new">New Database Name</target>
+        <target state="translated">新的数据库名称</target>
       </trans-unit>
       <trans-unit id="++CODE++ab23a59c68316fe4f3a53c610bdf6d7a43090ced0e69ce60895361f176ce93f6">
         <source xml:lang="en">New Deployment</source>
@@ -5311,7 +5311,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++4f892896fe4d51df804e3c51630936afa5e8326e519f40158b4c60800a8d85fb">
         <source xml:lang="en">New database name must be different from the current name</source>
-        <target state="new">New database name must be different from the current name</target>
+        <target state="translated">新数据库名称必须与当前名称不同</target>
       </trans-unit>
       <trans-unit id="++CODE++48f1dcb4a6002e872ccadde9ece53ebc6da7168299656a635450ec7d66fcfbee">
         <source xml:lang="en">New media set description</source>
@@ -6592,13 +6592,13 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++3064d79a295cefe4b384b8fe5cb29fd6b06d7eb1ad94b8895f4148039d06b330">
         <source xml:lang="en">Rename</source>
-        <target state="new">Rename</target>
+        <target state="translated">重命名</target>
       </trans-unit>
       <trans-unit id="++CODE++10e34a5a019af13deebf67c5646d7198447544bd5425816eae6136418c946756">
         <source xml:lang="en">Rename '{0}' on '{1}'.</source>
         <note>{0} is the current database name
 {1} is the server name</note>
-        <target state="new">Rename '{0}' on '{1}'.</target>
+        <target state="translated">在 '{1}' 上重命名 '{0}'。</target>
       </trans-unit>
       <trans-unit id="++CODE++90d9ab3255a92db5b378418ece6b230df904cb32837a59f146c96966f659a683">
         <source xml:lang="en">Rename Database</source>
@@ -6606,11 +6606,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++39b10e9a29841c96618fdf773450de8dbc3c86e0d4392b03e0c13ae1c6dfd938">
         <source xml:lang="en">Rename Options</source>
-        <target state="new">Rename Options</target>
+        <target state="translated">重命名选项</target>
       </trans-unit>
       <trans-unit id="++CODE++765f920dea2bbe32e15041c0045002e4888642f0e6e49e5888275518cb3f9a97">
         <source xml:lang="en">Renaming database</source>
-        <target state="new">Renaming database</target>
+        <target state="translated">正在重命名数据库</target>
       </trans-unit>
       <trans-unit id="++CODE++3426e6a23fe6e9ab8ec4d59a46f5e26596e94b9712da61c7a323e0cb0a6ecd25">
         <source xml:lang="en">Renaming database '{0}' to '{1}'...</source>
