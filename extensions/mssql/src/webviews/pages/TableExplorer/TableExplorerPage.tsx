@@ -574,13 +574,20 @@ export const TableExplorerPage: React.FC = () => {
                             onToggleFilters={() => setFiltersOpen((prev) => !prev)}
                             filtersOpen={filtersOpen}
                         />
-                        {filtersOpen && filterColumns.length > 0 && (
-                            <TableExplorerFilterBar
-                                columns={filterColumns}
-                                onApply={handleApplyFilters}
-                                onClear={handleClearFilters}
-                                disabled={isLoading}
-                            />
+                        {filterColumns.length > 0 && (
+                            // Keep the filter bar mounted but hidden when closed so
+                            // the user's filter rows (and any in-progress edits)
+                            // persist across toggles. Remounting would reset the
+                            // bar's internal rows state and visually clear filters
+                            // even though the underlying query is still filtered.
+                            <div style={{ display: filtersOpen ? undefined : "none" }}>
+                                <TableExplorerFilterBar
+                                    columns={filterColumns}
+                                    onApply={handleApplyFilters}
+                                    onClear={handleClearFilters}
+                                    disabled={isLoading}
+                                />
+                            </div>
                         )}
                         {resultSet ? (
                             <div className={classes.dataGridContainer}>

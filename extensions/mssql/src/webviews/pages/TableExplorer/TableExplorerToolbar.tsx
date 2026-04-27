@@ -258,19 +258,19 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
                     {loc.tableExplorer.showSql}
                 </ToolbarButton>
             )}
+            {onToggleFilters && (
+                <ToolbarButton
+                    aria-label={loc.tableExplorer.filters}
+                    aria-pressed={filtersOpen}
+                    title={loc.tableExplorer.filters}
+                    icon={<FilterRegular />}
+                    onClick={onToggleFilters}
+                    disabled={isLoading}>
+                    {loc.tableExplorer.filters}
+                </ToolbarButton>
+            )}
             {onExport && (
                 <Menu>
-                    {onToggleFilters && (
-                        <ToolbarButton
-                            aria-label={loc.tableExplorer.filters}
-                            aria-pressed={filtersOpen}
-                            title={loc.tableExplorer.filters}
-                            icon={<FilterRegular />}
-                            onClick={onToggleFilters}
-                            disabled={isLoading}>
-                            {loc.tableExplorer.filters}
-                        </ToolbarButton>
-                    )}
                     <MenuTrigger disableButtonEnhancement>
                         <ToolbarButton
                             aria-label={loc.tableExplorer.export}
