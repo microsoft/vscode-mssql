@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import * as fs from "fs/promises";
 import { ILogger } from "../models/interfaces";
 import * as Constants from "../constants/constants";
 import { config } from "../configurations/config";
@@ -43,9 +44,12 @@ export default class DotnetRuntimeProvider {
                 {
                     version: config.service.dotnetRuntimeVersion,
                     requestingExtensionId: Constants.extensionId,
+                    mode: "runtime",
+                    forceUpdate: true,
                 },
             );
             if (result?.dotnetPath) {
+                await fs.access(result.dotnetPath);
                 this._logger.verbose("Acquired .NET runtime via command: " + result.dotnetPath);
                 this._cachedDotnetPath = result.dotnetPath;
                 return result.dotnetPath;

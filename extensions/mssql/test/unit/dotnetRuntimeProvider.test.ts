@@ -8,6 +8,7 @@ import sinonChai from "sinon-chai";
 import * as chai from "chai";
 import { expect } from "chai";
 import * as vscode from "vscode";
+import * as fs from "fs/promises";
 import DotnetRuntimeProvider from "../../src/languageservice/dotnetRuntimeProvider";
 import * as Constants from "../../src/constants/constants";
 import { config } from "../../src/configurations/config";
@@ -24,6 +25,7 @@ suite("DotnetRuntimeProvider tests", () => {
     let getExtensionStub: sinon.SinonStub;
     let activateExtensionStub: sinon.SinonStub;
     let showErrorMessageStub: sinon.SinonStub;
+    let fsAccessStub: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
@@ -41,6 +43,7 @@ suite("DotnetRuntimeProvider tests", () => {
                 return undefined;
             });
         showErrorMessageStub = sandbox.stub(vscode.window, "showErrorMessage");
+        fsAccessStub = sandbox.stub(fs, "access").resolves();
     });
 
     teardown(() => {
@@ -64,8 +67,11 @@ suite("DotnetRuntimeProvider tests", () => {
                 {
                     version: config.service.dotnetRuntimeVersion,
                     requestingExtensionId: Constants.extensionId,
+                    mode: "runtime",
+                    forceUpdate: true,
                 },
             );
+            expect(fsAccessStub).to.have.been.calledWith("/extension/dotnet");
             expect(getExtensionStub).to.have.been.calledWith(Constants.dotnetRuntimeExtensionId);
             expect(activateExtensionStub).to.have.been.called;
             expect(logger.verbose).to.have.been.calledWithMatch("Acquired .NET runtime via");
@@ -81,6 +87,22 @@ suite("DotnetRuntimeProvider tests", () => {
                 await provider.acquireDotnetRuntime();
                 expect.fail("Expected acquireDotnetRuntime to throw");
             } catch (err) {
+                expect((err as Error).message).to.equal(ServiceClient.runtimeNotFoundError);
+            }
+        });
+
+        test("should fall through when the runtime extension returns an invalid path", async () => {
+            executeCommandStub.resolves({ dotnetPath: "/missing/dotnet" });
+            fsAccessStub.rejects(new Error("ENOENT"));
+            showErrorMessageStub.resolves(undefined);
+
+            const provider = createProvider();
+
+            try {
+                await provider.acquireDotnetRuntime();
+                expect.fail("Expected acquireDotnetRuntime to throw");
+            } catch (err) {
+                expect(logger.error).to.have.been.calledWithMatch("Error acquiring .NET runtime");
                 expect((err as Error).message).to.equal(ServiceClient.runtimeNotFoundError);
             }
         });
