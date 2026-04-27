@@ -20,6 +20,7 @@
 - Released Backup Database, Restore Database, Flat File Import, Create/Rename/Drop Database, Global Search, and Query Profiler dialogs as generally available (GA)
 - Added Active Directory Default authentication support in the Connection Dialog, enabling passwordless authentication using the currently signed-in Windows identity
 - Added the ability to use VS Code accounts for Microsoft Entra ID MFA authentication (preview). Enable by setting either `mssql.enableExperimentalFeatures` or `mssql.preview.useVscodeAccountsForEntraMFA`. Users will need to re-sign into Microsoft Entra ID accounts that existing connections use for authentication.
+- Improved the Connection Dialog to distinguish between editing an existing connection and creating a new one, with the ability to modify connection parameters and test the connection before saving
 - Optimized Microsoft Entra ID sign-in flows to reduce repeated authentication prompts.
 - Added a View Table Diagram action to the Edit Data toolbar, opening the selected table and its relationships directly in Schema Designer so you can review and evolve the database schema if needed
 - Added a new background task panel in the SQL Server activity bar to display active and completed deployment tasks (SQL container provisioning, SQL database in Fabric deployments) with real-time progress
