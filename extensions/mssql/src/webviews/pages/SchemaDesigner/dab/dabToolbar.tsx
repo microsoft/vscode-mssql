@@ -9,12 +9,27 @@ import {
     Divider,
     Input,
     makeStyles,
+    Menu,
+    MenuItem,
+    MenuList,
+    MenuPopover,
+    MenuTrigger,
     Text,
     tokens,
     Tooltip,
 } from "@fluentui/react-components";
-import * as FluentIcons from "@fluentui/react-icons";
-import { Dismiss16Regular, Search16Regular } from "@fluentui/react-icons";
+import {
+    ArrowLeft16Regular as ArrowLeftIcon,
+    CheckboxChecked16Regular as CheckboxCheckedIcon,
+    CheckboxUnchecked16Regular as CheckboxUncheckedIcon,
+    ChevronDown16Regular as ChevronDownIcon,
+    Column16Regular as ColumnIcon,
+    Dismiss16Regular,
+    Eye16Regular as EyeIcon,
+    Play16Filled as PlayIcon,
+    Search16Regular,
+    TableEdit16Regular as TableEditIcon,
+} from "@fluentui/react-icons";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { locConstants } from "../../../common/locConstants";
 import { Dab } from "../../../../sharedInterfaces/dab";
@@ -99,10 +114,13 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: 
         dabTextFilter,
         setDabTextFilter,
         openDabDeploymentDialog,
+        toggleDabEntity,
+        toggleDabEntityAction,
+        toggleDabColumnExposure,
     } = context;
 
     const [showApiTypeWarning, setShowApiTypeWarning] = useState(false);
-    const warningTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const warningTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
     const showMinApiTypeWarning = useCallback(() => {
         setShowApiTypeWarning(true);
@@ -111,7 +129,7 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: 
         }
         warningTimerRef.current = setTimeout(() => {
             setShowApiTypeWarning(false);
-            warningTimerRef.current = null;
+            warningTimerRef.current = undefined;
         }, 3000);
     }, []);
 
@@ -124,11 +142,76 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: 
     }, []);
 
     if (!dabConfig) {
-        return null;
+        return <></>;
     }
 
+    const supportedEntities = dabConfig.entities.filter((e) => e.isSupported);
     const enabledCount = dabConfig.entities.filter((e) => e.isEnabled).length;
     const totalCount = dabConfig.entities.length;
+
+    const allActions = [
+        Dab.EntityAction.Create,
+        Dab.EntityAction.Read,
+        Dab.EntityAction.Update,
+        Dab.EntityAction.Delete,
+    ];
+
+    const handleEnableAll = () => {
+        for (const entity of supportedEntities) {
+            if (!entity.isEnabled) {
+                toggleDabEntity(entity.id, true);
+            }
+        }
+    };
+
+    const handleDisableAll = () => {
+        for (const entity of supportedEntities) {
+            if (entity.isEnabled) {
+                toggleDabEntity(entity.id, false);
+            }
+        }
+    };
+
+    const handleMakeReadOnly = () => {
+        for (const entity of supportedEntities) {
+            if (!entity.isEnabled) {
+                toggleDabEntity(entity.id, true);
+            }
+            for (const action of allActions) {
+                const shouldEnableAction = action === Dab.EntityAction.Read;
+                const hasActionEnabled = entity.enabledActions.includes(action);
+
+                if (shouldEnableAction && !hasActionEnabled) {
+                    toggleDabEntityAction(entity.id, action, true);
+                } else if (!shouldEnableAction && hasActionEnabled) {
+                    toggleDabEntityAction(entity.id, action, false);
+                }
+            }
+        }
+    };
+
+    const handleEnableAllCruds = () => {
+        for (const entity of supportedEntities) {
+            if (!entity.isEnabled) {
+                toggleDabEntity(entity.id, true);
+            }
+            for (const action of allActions) {
+                if (!entity.enabledActions.includes(action)) {
+                    toggleDabEntityAction(entity.id, action, true);
+                }
+            }
+        }
+    };
+
+    const handleIncludeAllColumns = () => {
+        for (const entity of supportedEntities) {
+            for (const column of entity.columns) {
+                if (!column.isExposed) {
+                    toggleDabColumnExposure(entity.id, column.id, true);
+                }
+            }
+        }
+    };
 
     const apiTypeOptions = [
         { type: Dab.ApiType.Rest, label: locConstants.schemaDesigner.restApi },
@@ -160,7 +243,7 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: 
                     <Button
                         appearance="subtle"
                         size="small"
-                        icon={<FluentIcons.ArrowLeft16Regular />}
+                        icon={<ArrowLeftIcon />}
                         onClick={onNavigateToSchema}>
                         {locConstants.schemaDesigner.backToSchema}
                     </Button>
@@ -168,6 +251,34 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: 
                     <Text className={classes.title}>{locConstants.schemaDesigner.dabTitle}</Text>
                 </div>
                 <div className={classes.actionsSection}>
+                    <Menu>
+                        <MenuTrigger disableButtonEnhancement>
+                            <Button appearance="subtle" icon={<ChevronDownIcon />} size="small">
+                                {locConstants.schemaDesigner.bulkActions}
+                            </Button>
+                        </MenuTrigger>
+                        <MenuPopover>
+                            <MenuList>
+                                <MenuItem icon={<CheckboxCheckedIcon />} onClick={handleEnableAll}>
+                                    {locConstants.schemaDesigner.enableAllEntities}
+                                </MenuItem>
+                                <MenuItem
+                                    icon={<CheckboxUncheckedIcon />}
+                                    onClick={handleDisableAll}>
+                                    {locConstants.schemaDesigner.disableAllEntities}
+                                </MenuItem>
+                                <MenuItem icon={<EyeIcon />} onClick={handleMakeReadOnly}>
+                                    {locConstants.schemaDesigner.makeReadOnly}
+                                </MenuItem>
+                                <MenuItem icon={<TableEditIcon />} onClick={handleEnableAllCruds}>
+                                    {locConstants.schemaDesigner.enableAllCruds}
+                                </MenuItem>
+                                <MenuItem icon={<ColumnIcon />} onClick={handleIncludeAllColumns}>
+                                    {locConstants.schemaDesigner.includeAllColumns}
+                                </MenuItem>
+                            </MenuList>
+                        </MenuPopover>
+                    </Menu>
                     <SchemaDesignerWebviewCopilotChatEntry
                         scenario="dab"
                         entryPoint="dabToolbar"
@@ -177,7 +288,7 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: 
                     />
                     <Button
                         appearance="subtle"
-                        icon={<FluentIcons.Eye16Regular />}
+                        icon={<EyeIcon />}
                         size="small"
                         title={locConstants.schemaDesigner.viewConfig}
                         onClick={onViewConfig}>
@@ -188,7 +299,7 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: 
                             <span>
                                 <Button
                                     appearance="primary"
-                                    icon={<FluentIcons.Play16Filled />}
+                                    icon={<PlayIcon />}
                                     size="small"
                                     disabled>
                                     {locConstants.schemaDesigner.deploy}
@@ -198,7 +309,7 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: 
                     ) : (
                         <Button
                             appearance="primary"
-                            icon={<FluentIcons.Play16Filled />}
+                            icon={<PlayIcon />}
                             size="small"
                             onClick={openDabDeploymentDialog}>
                             {locConstants.schemaDesigner.deploy}
@@ -273,7 +384,7 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: 
                                 onClick={() => setDabTextFilter("")}
                                 style={{ minWidth: "auto", padding: 0 }}
                             />
-                        ) : null
+                        ) : undefined
                     }
                 />
                 <Text className={classes.enabledCount}>

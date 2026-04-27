@@ -4063,7 +4063,7 @@
             },
             {
                 "name": "mssql_dab",
-                "modelDescription": "Work with the Data API builder configuration in the currently active schema designer. Use 'get_state' to inspect it and 'apply_changes' to modify it; use 'show' only to open the Data API builder view for a connectionId when needed. Operations: 'get_state' returns the current version, summary, and bounded configuration state (full config may be omitted for large configurations); 'apply_changes' uses payload { expectedVersion, targetHint?, changes } and returns the post-mutation version plus summary, with optional returnState control. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with the current version and latest summary/config according to returnState. Entity refs are either { id } or { schemaName, tableName }. Change types: { type: 'set_api_types', apiTypes }, { type: 'set_entity_enabled', entity, isEnabled }, { type: 'set_entity_actions', entity, enabledActions }, { type: 'patch_entity_settings', entity, set }, { type: 'set_only_enabled_entities', entities }, { type: 'set_all_entities_enabled', isEnabled }.",
+                "modelDescription": "Work with the Data API builder configuration in the currently active schema designer. Use 'get_state' to inspect it and 'apply_changes' to modify it; use 'show' only to open the Data API builder view for a connectionId when needed. Operations: 'get_state' returns the current version, summary, and bounded configuration state (full config may be omitted for large configurations); 'apply_changes' uses payload { expectedVersion, targetHint?, changes } and returns the post-mutation version plus summary, with optional returnState control. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with the current version and latest summary/config according to returnState. Entity refs are either { id } or { schemaName, tableName }. Column refs are either { id } or { name }. Change types: { type: 'set_api_types', apiTypes }, { type: 'set_entity_enabled', entity, isEnabled }, { type: 'set_entity_actions', entity, enabledActions }, { type: 'set_column_exposed', entity, column, isExposed }, { type: 'patch_entity_settings', entity, set }, { type: 'set_only_enabled_entities', entities }, { type: 'set_all_entities_enabled', isEnabled }.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -4104,6 +4104,36 @@
                                     "required": [
                                         "schemaName",
                                         "tableName"
+                                    ],
+                                    "additionalProperties": false
+                                }
+                            ]
+                        },
+                        "columnRef": {
+                            "oneOf": [
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {
+                                            "type": "string",
+                                            "minLength": 1
+                                        }
+                                    },
+                                    "required": [
+                                        "id"
+                                    ],
+                                    "additionalProperties": false
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "name": {
+                                            "type": "string",
+                                            "minLength": 1
+                                        }
+                                    },
+                                    "required": [
+                                        "name"
                                     ],
                                     "additionalProperties": false
                                 }
@@ -4170,7 +4200,7 @@
                             "minLength": 1
                         },
                         "payload": {
-                            "description": "Operation-specific payload. apply_changes: { expectedVersion, targetHint?, changes }. Change types: set_api_types { apiTypes }, set_entity_enabled { entity, isEnabled }, set_entity_actions { entity, enabledActions }, patch_entity_settings { entity, set }, set_only_enabled_entities { entities }, set_all_entities_enabled { isEnabled }.",
+                            "description": "Operation-specific payload. apply_changes: { expectedVersion, targetHint?, changes }. Change types: set_api_types { apiTypes }, set_entity_enabled { entity, isEnabled }, set_entity_actions { entity, enabledActions }, set_column_exposed { entity, column, isExposed }, patch_entity_settings { entity, set }, set_only_enabled_entities { entities }, set_all_entities_enabled { isEnabled }.",
                             "title": "Payload",
                             "type": "object",
                             "properties": {
@@ -4287,6 +4317,33 @@
                                                     "type",
                                                     "entity",
                                                     "enabledActions"
+                                                ],
+                                                "additionalProperties": false
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "type": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "set_column_exposed"
+                                                        ]
+                                                    },
+                                                    "entity": {
+                                                        "$ref": "#/$defs/entityRef"
+                                                    },
+                                                    "column": {
+                                                        "$ref": "#/$defs/columnRef"
+                                                    },
+                                                    "isExposed": {
+                                                        "type": "boolean"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "type",
+                                                    "entity",
+                                                    "column",
+                                                    "isExposed"
                                                 ],
                                                 "additionalProperties": false
                                             },
