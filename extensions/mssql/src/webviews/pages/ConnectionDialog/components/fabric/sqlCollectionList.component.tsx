@@ -30,6 +30,8 @@ import {
     ErrorCircleRegular,
     PeopleTeamRegular,
     SearchRegular,
+    StarFilled,
+    StarRegular,
 } from "@fluentui/react-icons";
 import { locConstants as Loc } from "../../../../common/locConstants";
 import { useSqlExplorerStyles } from "./sqlExplorer.styles";
@@ -47,6 +49,8 @@ export const SqlCollectionList = ({
     noItemsFoundMessage,
     loadingMessage,
     errorMessage,
+    favoritedIds,
+    onToggleFavorite,
 }: SqlCollectionListProps) => {
     const styles = useSqlExplorerStyles();
     const sqlCollectionsLoadStatus = useConnectionDialogSelector((s) => s.sqlCollectionsLoadStatus);
@@ -69,15 +73,29 @@ export const SqlCollectionList = ({
         e?.stopPropagation();
     }
 
+    // Sort: favorites first (stable), then alphabetical by displayName (case-insensitive)
+    const sortedWorkspaces = useMemo(() => {
+        return [...workspaces].sort((a, b) => {
+            const aFav = favoritedIds?.includes(a.id) ?? false;
+            const bFav = favoritedIds?.includes(b.id) ?? false;
+            if (aFav !== bFav) {
+                return aFav ? -1 : 1;
+            }
+            return a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase());
+        });
+    }, [workspaces, favoritedIds]);
+
     const filteredWorkspaces = useMemo(() => {
         if (!workspaceSearchFilter.trim()) {
-            return workspaces;
+            return sortedWorkspaces;
         }
         const searchTerm = workspaceSearchFilter.toLowerCase();
-        return workspaces.filter((workspace) =>
-            workspace.displayName.toLowerCase().includes(searchTerm),
+        return sortedWorkspaces.filter(
+            (workspace) =>
+                workspace.displayName.toLowerCase().includes(searchTerm) ||
+                workspace.id.toLowerCase().includes(searchTerm),
         );
-    }, [workspaces, workspaceSearchFilter]);
+    }, [sortedWorkspaces, workspaceSearchFilter]);
 
     // Automatically select the first collection when collections are loaded and none is selected
     useEffect(() => {
@@ -214,6 +232,10 @@ export const SqlCollectionList = ({
                                             key={workspace.id}
                                             workspace={workspace}
                                             isSelected={selectedItems.includes(workspace.id)}
+                                            isFavorited={
+                                                favoritedIds?.includes(workspace.id) ?? false
+                                            }
+                                            onToggleFavorite={onToggleFavorite}
                                         />
                                     ))}
                                 </List>
@@ -226,8 +248,16 @@ export const SqlCollectionList = ({
     );
 };
 
-const SqlCollectionListItem = ({ workspace, isSelected }: SqlCollectionListItemProps) => {
+const SqlCollectionListItem = ({
+    workspace,
+    isSelected,
+    isFavorited,
+    onToggleFavorite,
+}: SqlCollectionListItemProps) => {
     const styles = useSqlExplorerStyles();
+    const [isHovered, setIsHovered] = useState(false);
+
+    const showStar = isFavorited || isHovered;
 
     return (
         <ListItem
@@ -238,7 +268,8 @@ const SqlCollectionListItem = ({ workspace, isSelected }: SqlCollectionListItemP
                 isSelected && styles.workspaceItemSelected,
             )}
             aria-label={workspace.displayName}
-            title={workspace.displayName}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
             // eslint-disable-next-line no-restricted-syntax
             checkmark={null}>
             <div
@@ -246,57 +277,125 @@ const SqlCollectionListItem = ({ workspace, isSelected }: SqlCollectionListItemP
                     display: "flex",
                     alignItems: "center",
                     minHeight: "20px",
+                    width: "100%",
                 }}>
-                {/* Icon container with consistent styling */}
-                <div className={styles.iconContainer}>
-                    {/* display error if workspace status is errored */}
-                    {workspace.loadStatus.status === ApiStatus.Error && (
-                        <Tooltip content={workspace.loadStatus.message ?? ""} relationship="label">
-                            <ErrorCircleRegular
+                {/* Icon + name with name/ID tooltip on the left */}
+                <Tooltip
+                    content={
+                        <div>
+                            <div>{workspace.displayName}</div>
+                            <div
                                 style={{
-                                    width: "100%",
-                                    height: "100%",
-                                }}
-                            />
-                        </Tooltip>
-                    )}
-                    {/* display loading spinner */}
-                    {workspace.loadStatus.status === ApiStatus.Loading && (
-                        <Spinner
-                            size="extra-tiny"
-                            style={{
-                                width: "100%",
-                                height: "100%",
-                            }}
-                        />
-                    )}
-                    {/* display workspace icon */}
-                    {(workspace.loadStatus.status === ApiStatus.Loaded ||
-                        workspace.loadStatus.status === ApiStatus.NotStarted) && (
-                        <PeopleTeamRegular
-                            style={{
-                                width: "100%",
-                                height: "100%",
-                            }}
-                        />
-                    )}
-                </div>
+                                    opacity: 0.75,
+                                    fontSize: "11px",
+                                    marginTop: "2px",
+                                    fontFamily: "monospace",
+                                }}>
+                                {workspace.id}
+                            </div>
+                        </div>
+                    }
+                    relationship="description"
+                    positioning="before">
+                    <div
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            flex: 1,
+                            overflow: "hidden",
+                        }}>
+                        {/* Icon container */}
+                        <div className={styles.iconContainer}>
+                            {workspace.loadStatus.status === ApiStatus.Error && (
+                                <Tooltip
+                                    content={workspace.loadStatus.message ?? ""}
+                                    relationship="label">
+                                    <ErrorCircleRegular
+                                        style={{
+                                            width: "100%",
+                                            height: "100%",
+                                        }}
+                                    />
+                                </Tooltip>
+                            )}
+                            {workspace.loadStatus.status === ApiStatus.Loading && (
+                                <Spinner
+                                    size="extra-tiny"
+                                    style={{
+                                        width: "100%",
+                                        height: "100%",
+                                    }}
+                                />
+                            )}
+                            {(workspace.loadStatus.status === ApiStatus.Loaded ||
+                                workspace.loadStatus.status === ApiStatus.NotStarted) && (
+                                <PeopleTeamRegular
+                                    style={{
+                                        width: "100%",
+                                        height: "100%",
+                                    }}
+                                />
+                            )}
+                        </div>
 
-                <Text
-                    style={{
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                        flex: 1,
-                    }}>
-                    {workspace.displayName}
-                </Text>
+                        <Text
+                            style={{
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                                flex: 1,
+                            }}>
+                            {workspace.displayName}
+                        </Text>
+                    </div>
+                </Tooltip>
+
+                {/* Star button with its own tooltip */}
+                {onToggleFavorite && (
+                    <Tooltip
+                        content={
+                            isFavorited
+                                ? Loc.connectionDialog.removeFromFavorites
+                                : Loc.connectionDialog.addToFavorites
+                        }
+                        relationship="label">
+                        <button
+                            className={styles.starButton}
+                            style={{ visibility: showStar ? "visible" : "hidden" }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onToggleFavorite(workspace.id);
+                            }}
+                            onKeyDown={(e) => {
+                                if (e.code === KeyCode.Enter || e.code === KeyCode.Space) {
+                                    e.stopPropagation();
+                                    onToggleFavorite(workspace.id);
+                                    e.preventDefault();
+                                }
+                            }}
+                            aria-label={
+                                isFavorited
+                                    ? Loc.connectionDialog.removeFromFavorites
+                                    : Loc.connectionDialog.addToFavorites
+                            }
+                            aria-pressed={isFavorited}>
+                            {isFavorited ? (
+                                <StarFilled
+                                    className={styles.starFilled}
+                                    style={{ width: "14px", height: "14px" }}
+                                />
+                            ) : (
+                                <StarRegular style={{ width: "14px", height: "14px" }} />
+                            )}
+                        </button>
+                    </Tooltip>
+                )}
             </div>
         </ListItem>
     );
 };
 
-interface SqlCollectionListProps {
+export interface SqlCollectionListProps {
     workspaces: SqlCollectionInfo[];
     onSelectWorkspace: (workspace: SqlCollectionInfo) => void;
     selectedWorkspace?: SqlCollectionInfo;
@@ -312,9 +411,15 @@ interface SqlCollectionListProps {
     loadingMessage?: string;
     /** Message on error */
     errorMessage?: string;
+    /** IDs of favorited collections (sorted to top with filled star) */
+    favoritedIds?: string[];
+    /** Called when the user clicks the star for a collection */
+    onToggleFavorite?: (collectionId: string) => void;
 }
 
 interface SqlCollectionListItemProps {
     workspace: SqlCollectionInfo;
     isSelected: boolean;
+    isFavorited: boolean;
+    onToggleFavorite?: (collectionId: string) => void;
 }

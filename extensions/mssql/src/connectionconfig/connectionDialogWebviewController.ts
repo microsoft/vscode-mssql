@@ -74,7 +74,10 @@ import { generateConnectionComponents, groupAdvancedOptions } from "./formCompon
 import { FormWebviewController } from "../forms/formWebviewController";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { Deferred } from "../protocol";
-import { configSelectedAzureSubscriptions } from "../constants/constants";
+import {
+    configSelectedAzureSubscriptions,
+    configSelectedFabricWorkspaces,
+} from "../constants/constants";
 import * as AzureConstants from "../azure/constants";
 import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
 import * as Utils from "../models/utils";
@@ -828,6 +831,52 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         this.registerReducer("setSelectedTenantId", async (state, payload) => {
             state.selectedTenantId = payload.tenantId;
+            return state;
+        });
+
+        this.registerReducer("toggleFavoriteCollection", async (state, payload) => {
+            if (payload.inputMode === ConnectionInputMode.AzureBrowse) {
+                const sub = state.azureSubscriptions.find((s) => s.id === payload.collectionId);
+                if (!sub) {
+                    return state;
+                }
+                const entry = `${sub.tenantId}/${sub.id}`;
+                const current = vscode.workspace
+                    .getConfiguration()
+                    .get<string[]>(configSelectedAzureSubscriptions, []);
+                const idx = current.indexOf(entry);
+                if (idx >= 0) {
+                    current.splice(idx, 1);
+                } else {
+                    current.push(entry);
+                }
+                await vscode.workspace
+                    .getConfiguration()
+                    .update(
+                        configSelectedAzureSubscriptions,
+                        current,
+                        vscode.ConfigurationTarget.Global,
+                    );
+                state.favoritedAzureSubscriptionIds = current.map((e) => e.split("/")[1]);
+            } else if (payload.inputMode === ConnectionInputMode.FabricBrowse) {
+                const current = vscode.workspace
+                    .getConfiguration()
+                    .get<string[]>(configSelectedFabricWorkspaces, []);
+                const idx = current.indexOf(payload.collectionId);
+                if (idx >= 0) {
+                    current.splice(idx, 1);
+                } else {
+                    current.push(payload.collectionId);
+                }
+                await vscode.workspace
+                    .getConfiguration()
+                    .update(
+                        configSelectedFabricWorkspaces,
+                        current,
+                        vscode.ConfigurationTarget.Global,
+                    );
+                state.favoritedFabricWorkspaceIds = [...current];
+            }
             return state;
         });
 
@@ -2115,20 +2164,15 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             await this.refreshUnauthenticatedTenants(state, auth);
             this.updateState(state);
 
-            // getSubscriptions() below checks this config setting if filtering is specified.  If the user has this set, then we use it; if not, we get all subscriptions.
-            // The specific vscode config setting it uses is hardcoded into the VS Code Azure SDK, so we need to use the same value here.
-            const shouldUseFilter =
-                vscode.workspace
-                    .getConfiguration()
-                    .get<string[] | undefined>(configSelectedAzureSubscriptions) !== undefined;
-
             telemActivity = startActivity(
                 TelemetryViews.ConnectionDialog,
                 TelemetryActions.LoadAzureSubscriptions,
             );
 
+            // Always load all subscriptions; the config key is now used to track favorites/ordering,
+            // not to filter which subscriptions are shown.
             this._azureSubscriptions = new Map(
-                (await auth.getSubscriptions(shouldUseFilter)).map((s) => [s.subscriptionId, s]),
+                (await auth.getSubscriptions(false)).map((s) => [s.subscriptionId, s]),
             );
             const tenantSubMap = Map.groupBy<string, AzureSubscription>(
                 Array.from(this._azureSubscriptions.values()),
@@ -2150,6 +2194,14 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             state.azureSubscriptions = subs;
             state.loadingAzureSubscriptionsStatus = ApiStatus.Loaded;
+
+            // Populate favorites from config (format: "tenantId/subscriptionId")
+            const favoritedAzureConfig = vscode.workspace
+                .getConfiguration()
+                .get<string[]>(configSelectedAzureSubscriptions, []);
+            state.favoritedAzureSubscriptionIds = favoritedAzureConfig.map(
+                (entry) => entry.split("/")[1],
+            );
 
             telemActivity.end(
                 ActivityStatus.Succeeded,
@@ -2187,28 +2239,45 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             if (tenantSubMap.size === 0) {
                 state.formMessage = {
-                    message: l10n.t(
-                        "No subscriptions available.  Adjust your subscription filters to try again.",
-                    ),
+                    message: l10n.t("No subscriptions available."),
                 };
             } else {
                 state.loadingAzureServersStatus = ApiStatus.Loading;
                 state.azureServers = [];
                 this.updateState();
-                const promiseArray: Promise<void>[] = [];
+
+                // Flatten all subscriptions, then split: favorites load first so they
+                // appear in the UI quickly, the rest follow concurrently in a second wave.
+                const allSubs: AzureSubscription[] = [];
                 for (const t of tenantSubMap.keys()) {
                     for (const s of tenantSubMap.get(t)) {
-                        promiseArray.push(
-                            this.loadAzureServersForSubscription(state, s.subscriptionId),
-                        );
+                        allSubs.push(s);
                     }
                 }
-                await Promise.all(promiseArray);
+
+                const favoritedIds = state.favoritedAzureSubscriptionIds;
+                const favoriteSubs = allSubs.filter((s) => favoritedIds.includes(s.subscriptionId));
+                const restSubs = allSubs.filter((s) => !favoritedIds.includes(s.subscriptionId));
+
+                // Wave 1: favorites — await so they appear before the rest start
+                await Promise.all(
+                    favoriteSubs.map((s) =>
+                        this.loadAzureServersForSubscription(state, s.subscriptionId),
+                    ),
+                );
+
+                // Wave 2: everything else — all concurrent as before
+                await Promise.all(
+                    restSubs.map((s) =>
+                        this.loadAzureServersForSubscription(state, s.subscriptionId),
+                    ),
+                );
+
                 endActivity.end(
                     ActivityStatus.Succeeded,
                     undefined, // additionalProperties
                     {
-                        subscriptionCount: promiseArray.length,
+                        subscriptionCount: allSubs.length,
                     },
                 );
 
@@ -2322,9 +2391,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     newWorkspaces.push(stateWorkspace);
                 }
 
-                this.state.sqlCollections = newWorkspaces.sort((a, b) =>
-                    a.displayName.localeCompare(b.displayName),
-                );
+                this.state.sqlCollections = newWorkspaces;
+                state.favoritedFabricWorkspaceIds = vscode.workspace
+                    .getConfiguration()
+                    .get<string[]>(configSelectedFabricWorkspaces, []);
                 state.sqlCollectionsLoadStatus = {
                     status: ApiStatus.Loaded,
                     message:

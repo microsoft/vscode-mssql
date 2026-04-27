@@ -148,6 +148,9 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                     tenantId,
                 });
             },
+            toggleFavoriteCollection: (collectionId: string, inputMode: ConnectionInputMode) => {
+                extensionRpc.action("toggleFavoriteCollection", { collectionId, inputMode });
+            },
             selectSqlCollection: (collectionId: string) => {
                 extensionRpc.action("selectSqlCollection", {
                     collectionId,

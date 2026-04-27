@@ -208,4 +208,29 @@ export const useSqlExplorerStyles = makeStyles({
         width: "12px",
         height: "12px",
     },
+    starButton: {
+        flexShrink: 0,
+        marginLeft: "4px",
+        padding: "0",
+        width: "16px",
+        height: "16px",
+        minWidth: "16px",
+        cursor: "pointer",
+        background: "transparent",
+        border: "none",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "inherit",
+        borderRadius: "2px",
+        "&:hover": {
+            backgroundColor: "var(--vscode-toolbar-hoverBackground)",
+        },
+        "&:focus-visible": {
+            outline: "1px solid var(--vscode-focusBorder)",
+        },
+    },
+    starFilled: {
+        color: "var(--vscode-charts-yellow)",
+    },
 });

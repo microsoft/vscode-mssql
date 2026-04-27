@@ -31,6 +31,8 @@ export const SqlExplorer = ({
     selectWorkspaceMessage,
     showTypeFilter,
     showResourceGroupColumn,
+    favoritedIds,
+    onToggleFavorite,
 }: SqlExplorerProps) => {
     const sqlCollections = useConnectionDialogSelector((s) => s.sqlCollections);
 
@@ -95,6 +97,8 @@ export const SqlExplorer = ({
                     noItemsFoundMessage={noWorkspacesFoundMessage}
                     loadingMessage={loadingWorkspacesMessage}
                     errorMessage={errorLoadingWorkspacesMessage}
+                    favoritedIds={favoritedIds}
+                    onToggleFavorite={onToggleFavorite}
                 />
                 <SqlCollectionContentsList
                     selectedWorkspace={selectedCollection}
@@ -147,4 +151,8 @@ export interface SqlExplorerProps {
     showTypeFilter?: boolean;
     /** Whether to show the Resource Group column (default: false) */
     showResourceGroupColumn?: boolean;
+    /** IDs of favorited collections (sorted to top with filled star) */
+    favoritedIds?: string[];
+    /** Called when the user clicks the star for a collection */
+    onToggleFavorite?: (collectionId: string) => void;
 }

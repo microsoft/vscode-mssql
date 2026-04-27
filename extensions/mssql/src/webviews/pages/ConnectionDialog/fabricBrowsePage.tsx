@@ -30,6 +30,9 @@ export const FabricBrowsePage = () => {
     );
     const azureAccounts = useConnectionDialogSelector((s) => s.azureAccounts);
     const selectedAccountId = useConnectionDialogSelector((s) => s.selectedAccountId);
+    const favoritedFabricWorkspaceIds = useConnectionDialogSelector(
+        (s) => s.favoritedFabricWorkspaceIds,
+    );
     const formState = useConnectionDialogSelector((s) => s.formState);
     const mainOptions = useConnectionDialogSelector((s) => s.connectionComponents.mainOptions);
     const formComponents = useConnectionDialogSelector((s) => s.formComponents);
@@ -121,6 +124,13 @@ export const FabricBrowsePage = () => {
                             onSelectTenantId={handleSelectTenantId}
                             onSelectWorkspace={handleSelectWorkspace}
                             onSelectDatabase={handleDatabaseSelected}
+                            favoritedIds={favoritedFabricWorkspaceIds}
+                            onToggleFavorite={(id) =>
+                                context.toggleFavoriteCollection(
+                                    id,
+                                    ConnectionInputMode.FabricBrowse,
+                                )
+                            }
                         />
                     </div>
 

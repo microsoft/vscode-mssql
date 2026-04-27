@@ -39,6 +39,9 @@ export const AzureBrowsePage = () => {
     );
     const selectedAccountId = useConnectionDialogSelector((s) => s.selectedAccountId);
     const selectedTenantId = useConnectionDialogSelector((s) => s.selectedTenantId);
+    const favoritedAzureSubscriptionIds = useConnectionDialogSelector(
+        (s) => s.favoritedAzureSubscriptionIds,
+    );
     const formComponents = useConnectionDialogSelector((s) => s.formComponents);
     const mainOptions = useConnectionDialogSelector((s) => s.connectionComponents.mainOptions);
 
@@ -155,6 +158,13 @@ export const AzureBrowsePage = () => {
                             }
                             onSelectAccountId={(id) => context.selectAzureAccount(id)}
                             onSelectTenantId={(id) => context.setSelectedTenantId(id)}
+                            favoritedIds={favoritedAzureSubscriptionIds}
+                            onToggleFavorite={(id) =>
+                                context.toggleFavoriteCollection(
+                                    id,
+                                    ConnectionInputMode.AzureBrowse,
+                                )
+                            }
                             onSelectWorkspace={(_ws) => {
                                 /* no-op: servers auto-loaded for all subscriptions */
                             }}

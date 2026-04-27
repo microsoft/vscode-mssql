@@ -66,6 +66,8 @@ export class ConnectionDialogWebviewState
     public selectedTenantId: string | undefined;
     public sqlCollectionsLoadStatus: Status = { status: ApiStatus.NotStarted };
     public sqlCollections: SqlCollectionInfo[] = [];
+    public favoritedAzureSubscriptionIds: string[] = [];
+    public favoritedFabricWorkspaceIds: string[] = [];
 
     constructor(params?: Partial<ConnectionDialogWebviewState>) {
         for (const key in params) {
@@ -261,6 +263,7 @@ export interface ConnectionDialogContextProps extends FormContextProps<IConnecti
     selectAzureTenant: (tenantId: string) => void;
     setSelectedTenantId: (tenantId: string) => void;
     selectSqlCollection: (collectionId: string) => void;
+    toggleFavoriteCollection: (collectionId: string, inputMode: ConnectionInputMode) => void;
     messageButtonClicked: (buttonId: string) => void;
 
     // Request handlers
@@ -314,6 +317,7 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     selectAzureTenant: { tenantId: string };
     setSelectedTenantId: { tenantId: string };
     selectSqlCollection: { collectionId: string };
+    toggleFavoriteCollection: { collectionId: string; inputMode: ConnectionInputMode };
     messageButtonClicked: { buttonId: string };
 }
 
