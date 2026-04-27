@@ -2177,6 +2177,9 @@
     <trans-unit id="++CODE++b35ebaaf32f469f2fa86b0b2fb67e6f51fae3fb8e6ceaeaea97c2696321a8ee4">
       <source xml:lang="en">Enter new column width</source>
     </trans-unit>
+    <trans-unit id="++CODE++b5812bf46901002496e2c4f090515599cfccbf65c585b1d4ca4346971d4eb504">
+      <source xml:lang="en">Enter new database name</source>
+    </trans-unit>
     <trans-unit id="++CODE++15f691f800a4b76afbf264547e3718c96fbb46fc076005b8f12575eac2f1f136">
       <source xml:lang="en">Enter new password</source>
     </trans-unit>
@@ -2195,9 +2198,6 @@
     <trans-unit id="++CODE++e8ebf41062c66e03ca98f0459c1a1084a419d525efb3b86b92f01f25edfebbde">
       <source xml:lang="en">Enter the SQL Login password for user &apos;{0}&apos;.</source>
       <note>{0} is the SQL Login username</note>
-    </trans-unit>
-    <trans-unit id="++CODE++493f89b5d0c917509476602a7ad84ca70dd6bba7558fa30416f54c5c0458e15c">
-      <source xml:lang="en">Enter the new database name</source>
     </trans-unit>
     <trans-unit id="++CODE++41058600ed8ab3d197264132f1b22ed25b7b2d9fa6afdffd559fc08bca9e6075">
       <source xml:lang="en">Enter the path for the output file</source>
@@ -4028,6 +4028,9 @@
     <trans-unit id="++CODE++e4b1d1f865854b036aa3fc73eceb365135c402dbd2b73f2f81d5841196a71750">
       <source xml:lang="en">New Database</source>
     </trans-unit>
+    <trans-unit id="++CODE++7ac3db013474883f450cf9838db274c69c9df2dfc79212ed3436b4819f88d4be">
+      <source xml:lang="en">New Database Name</source>
+    </trans-unit>
     <trans-unit id="++CODE++ab23a59c68316fe4f3a53c610bdf6d7a43090ced0e69ce60895361f176ce93f6">
       <source xml:lang="en">New Deployment</source>
     </trans-unit>
@@ -4066,6 +4069,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d9c78424d66905fdeabfc255d8900ff5c10df41268f883660b400d4dad09cfbd">
       <source xml:lang="en">New column mapping</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4f892896fe4d51df804e3c51630936afa5e8326e519f40158b4c60800a8d85fb">
+      <source xml:lang="en">New database name must be different from the current name</source>
     </trans-unit>
     <trans-unit id="++CODE++48f1dcb4a6002e872ccadde9ece53ebc6da7168299656a635450ec7d66fcfbee">
       <source xml:lang="en">New media set description</source>
@@ -5035,8 +5041,22 @@
       <source xml:lang="en">Remove {0}</source>
       <note>{0} is the object type</note>
     </trans-unit>
+    <trans-unit id="++CODE++3064d79a295cefe4b384b8fe5cb29fd6b06d7eb1ad94b8895f4148039d06b330">
+      <source xml:lang="en">Rename</source>
+    </trans-unit>
+    <trans-unit id="++CODE++10e34a5a019af13deebf67c5646d7198447544bd5425816eae6136418c946756">
+      <source xml:lang="en">Rename &apos;{0}&apos; on &apos;{1}&apos;.</source>
+      <note>{0} is the current database name
+{1} is the server name</note>
+    </trans-unit>
     <trans-unit id="++CODE++90d9ab3255a92db5b378418ece6b230df904cb32837a59f146c96966f659a683">
       <source xml:lang="en">Rename Database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++39b10e9a29841c96618fdf773450de8dbc3c86e0d4392b03e0c13ae1c6dfd938">
+      <source xml:lang="en">Rename Options</source>
+    </trans-unit>
+    <trans-unit id="++CODE++765f920dea2bbe32e15041c0045002e4888642f0e6e49e5888275518cb3f9a97">
+      <source xml:lang="en">Renaming database</source>
     </trans-unit>
     <trans-unit id="++CODE++3426e6a23fe6e9ab8ec4d59a46f5e26596e94b9712da61c7a323e0cb0a6ecd25">
       <source xml:lang="en">Renaming database &apos;{0}&apos; to &apos;{1}&apos;...</source>

@@ -99,7 +99,7 @@ suite("CreateDatabaseWebviewController Tests", () => {
     test("handleSubmit should call save", async () => {
         createController();
         await waitForInitialization();
-        objectManagementServiceStub.save.resolves();
+        objectManagementServiceStub.save.resolves({ taskId: "save-task-id" });
 
         const requestHandler = requestHandlers.get(ObjectManagementSubmitRequest.type.method);
         expect(requestHandler, "Request handler was not registered").to.be.a("function");
@@ -114,8 +114,55 @@ suite("CreateDatabaseWebviewController Tests", () => {
             params,
         });
 
-        expect(result.success).to.be.true;
+        expect(result).to.deep.equal({
+            success: true,
+            taskId: "save-task-id",
+        });
         expect(objectManagementServiceStub.save.calledOnce).to.be.true;
+    });
+
+    test("handleSubmit should return task id when save response reports failure", async () => {
+        createController();
+        await waitForInitialization();
+        objectManagementServiceStub.save.resolves({
+            taskId: "save-task-id",
+            errorMessage: "Save failed",
+        });
+
+        const requestHandler = requestHandlers.get(ObjectManagementSubmitRequest.type.method);
+        const result = await requestHandler!({
+            dialogType: ObjectManagementDialogType.CreateDatabase,
+            params: {
+                name: "test-db",
+                owner: "sa",
+            },
+        });
+
+        expect(result).to.deep.equal({
+            success: false,
+            errorMessage: "Save failed",
+            taskId: "save-task-id",
+        });
+    });
+
+    test("handleSubmit should fail when save response has no task id", async () => {
+        createController();
+        await waitForInitialization();
+        objectManagementServiceStub.save.resolves({});
+
+        const requestHandler = requestHandlers.get(ObjectManagementSubmitRequest.type.method);
+        const result = await requestHandler!({
+            dialogType: ObjectManagementDialogType.CreateDatabase,
+            params: {
+                name: "test-db",
+                owner: "sa",
+            },
+        });
+
+        expect(result).to.deep.equal({
+            success: false,
+            errorMessage: "Unknown object management dialog.",
+        });
     });
 
     test("handleSubmit should handle error", async () => {

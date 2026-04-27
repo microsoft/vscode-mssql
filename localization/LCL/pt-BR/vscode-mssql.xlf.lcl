@@ -1495,6 +1495,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++10e34a5a019af13deebf67c5646d7198447544bd5425816eae6136418c946756" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Rename '{0}' on '{1}'.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Renomeie '{0}' em '{1}'.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++110b7288ee54432862487c6ca5ea2579493dc3b078d51218ff4e2bfdcac4986c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Original file name]]></Val>
@@ -3952,6 +3961,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++3064d79a295cefe4b384b8fe5cb29fd6b06d7eb1ad94b8895f4148039d06b330" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Rename]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Renomear]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++3070527056fcbd2ba823f6ed6ec72a556b5d82695b4490bc28c86d210c696bad" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Fabric Workspaces]]></Val>
@@ -4623,6 +4641,15 @@
           <Val><![CDATA[Database name contains invalid characters. Avoid using: < > * ? " / \ |]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[O nome do banco de dados contém caracteres inválidos. Evite usar: < > * ? " / \ |]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++39b10e9a29841c96618fdf773450de8dbc3c86e0d4392b03e0c13ae1c6dfd938" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Rename Options]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Opções de Renomeação]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5878,15 +5905,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++493f89b5d0c917509476602a7ad84ca70dd6bba7558fa30416f54c5c0458e15c" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Enter the new database name]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Insira o novo nome do banco de dados]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++494731de200692139842ce40b55ca4e15ccb299d4d82b803ed1f0bd25ce82efd" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Switching to Linux containers was canceled. SQL Server only supports Linux containers.]]></Val>
@@ -6027,6 +6045,15 @@
           <Val><![CDATA[Action Type]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Tipo de Ação]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++4a87bc4a6f84b6911fabebc702ad8d32dbb799d7bec2abf53a05c86d91b456bf" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[EF Core]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[EF Core]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6522,6 +6549,15 @@
           <Val><![CDATA[Connecting to server "{0}" on document "{1}".]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Conectando-se ao servidor "{0}" no documento "{1}".]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++4f892896fe4d51df804e3c51630936afa5e8326e519f40158b4c60800a8d85fb" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[New database name must be different from the current name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[O novo nome do banco de dados precisa ser diferente do nome atual]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7404,6 +7440,15 @@
           <Val><![CDATA[Comparison Details]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Detalhes da Comparação]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++5ba6b8c4deffdaec3b79ce938a2f937a653bc8f7557f8646f7d135d4945deaf7" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to copy text to clipboard: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Falha ao copiar texto para a área de transferência: {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8353,6 +8398,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++6959b4159575d8dd76d9f3bbe2c6437904f861e7860c35abd18deffb1c3425a0" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Session]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Sessão]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++696dd2e6ecf74f4f9f3c7a4f86dbd20c49f797f6f328f1c7b1235a2058d08d78" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Don't Save]]></Val>
@@ -8956,15 +9010,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++7024a828547b51d9fb11f26d4d1d472691dd7e6ec7d7a2f499cb08731a63e943" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Remove recent connection]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Remover conexão recente]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++703f1ae8b7cdb3525cdab9ea694ab27b1b9e4337f0b2ca32f152f7f9a6e2f9d5" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Recent connections list cleared]]></Val>
@@ -9532,6 +9577,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++765f920dea2bbe32e15041c0045002e4888642f0e6e49e5888275518cb3f9a97" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Renaming database]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Renomeando banco de dados]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++767e443808512901f6097797d8054570a7bbd053e7db6fc556679e2757ac4162" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Backup Type]]></Val>
@@ -9757,6 +9811,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++79dc22c7292b82bb5b10f7fe3e4196400d86127a91507e8487c7d2da0f6a8283" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Sequelize]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Sequelize]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++79e53b9f38d1c9de4d84c9a78339ceb838b609638b9194a2f0caad2f05ea2c85" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[My Data]]></Val>
@@ -9807,6 +9870,15 @@
           <Val><![CDATA[Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[O Profiler está no modo somente leitura e desconectado para o arquivo XEL '{0}' e não pode iniciar ou criar sessões ativas sem uma conexão de banco de dados]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++7ac3db013474883f450cf9838db274c69c9df2dfc79212ed3436b4819f88d4be" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[New Database Name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Novo Nome do Banco de Dados]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10225,6 +10297,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++803814693885dfb92ec8373f4c02f31015541e0e97e437287cdd0db681e0dae6" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select session]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Selecionar sessão]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++8043c062698783f821c86c7bc00a285e71f93c8ddf50815cfa601fef33905401" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Listing Fabric SQL Databases for workspace '{0}']]></Val>
@@ -10293,6 +10374,15 @@
           <Val><![CDATA[Error loading summary: {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Erro ao carregar o resumo: {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++8108e330197c650c4af3d541da75c97d44600ab343742f5fbe5ee91d1ec042c0" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Clear from recent connections list]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Limpar da lista de conexões recentes]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12952,6 +13042,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++a50f9dadfc8b5f675d6d4d886d7ceb23b15051980b4de7a88e280264f3d9e9e7" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Definition type]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tipo de definição]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++a51af987819c1dfc511ea44930a23e6f28a921dd2741fb05c110960ab898b178" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Code analysis rules saved successfully]]></Val>
@@ -13236,6 +13335,15 @@
           <Val><![CDATA[Change Password]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Alterar Senha]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++a94ae9ca78147a7fc9bac5fbe59284cb1cbdcc897f002bd839fe49769ab093aa" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Schema designer details are not available.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Os detalhes do designer de esquema não estão disponíveis.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13915,6 +14023,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++b27ba710997adaf6099374edb801d44bef36c92e6d37e0190c7c1d12d4b32209" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[T-SQL]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[T-SQL]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++b2c490a777ddf796ff31f0e2a230e002b1329f808ec37cf885ad1bfcd7696ca3" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connect to server {0} and database {1}?]]></Val>
@@ -14082,6 +14199,15 @@
           <Val><![CDATA[No Queries Available]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Não Há Consultas Disponíveis]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++b5812bf46901002496e2c4f090515599cfccbf65c585b1d4ca4346971d4eb504" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter new database name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Insira um nome de banco de dados]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14577,6 +14703,15 @@
           <Val><![CDATA[Execute '{0}' operation on Data API builder?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Executar a operação "{0}" no construtor de API de dados?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++bb090d4cc6a01ecd80d943806719ce301ae1a90ca569a88735eb9c6e488cf828" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Drizzle]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Regue]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15810,15 +15945,6 @@
           <Val><![CDATA[Add Table]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Adicionar Tabela]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++cbd2958b1fe1b6ca98cbb77b80166a16187b9b2c5a0b7e7d8c8bb718b57b48f8" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Select Session:]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Selecionar Sessão:]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17218,6 +17344,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++dd0804b065a533eb0198e076460421ada3d861683b408ef39daea67e9aad46a6" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[SQLAlchemy]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SQLAlchemy]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++dd1e244b4e319bb25477890a9327b3a2419908e042cd4063f9235a0afed6e908" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No Microsoft Entra account can be found for removal.]]></Val>
@@ -17839,6 +17974,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++e4b88de23274e99ca98b822e9f304564c85d96333a5d35bb218b95654a03c7ab" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Prisma]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Prisma]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++e4bb9f1ece9af9264a3b9e3913bbdb2cf497457167b14ced5f85688bfde74644" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Start]]></Val>
@@ -18087,6 +18231,15 @@
           <Val><![CDATA[Generate Script]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Gerar Script]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++e7a0f5d984721771397ee01588da1bac07c6f45150113d1ba8c4c3de194cfdb0" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Group differences by]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Agrupar diferenças por]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18375,6 +18528,15 @@
           <Val><![CDATA[Access token expired for connection {0} with uri {1}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[O token de acesso expirou para a conexão {0} com o URI {1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++eab9bd4ed6506f418e00977a0a7bcc445774cac844a2f6debffeff1efc0b75f2" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[TypeORM]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[TypeORM]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
