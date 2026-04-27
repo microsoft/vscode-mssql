@@ -1,5 +1,15 @@
 # Change Log
 
+## Version 1.42.1
+
+- Release date: April 28, 2026
+- Release status: GA
+
+### What's new in 1.42.1
+
+- Fixed an issue where the Object Explorer Filter dialog sometimes would not render immediately
+- Fixed an issue where the platform-specific VSIX files for offline installation (posted on the GitHub releases page) would not be able to launch on macOS. Installations from the VS Code marketplace were unaffected.
+
 ## Version 1.42.0
 
 - Release date: April 22, 2026
@@ -7,9 +17,10 @@
 
 ### What's new in 1.42.0
 
-- Released Backup Database, Restore Database, Flat File Import, and Create/Rename/Drop Database dialogs as generally available (GA)
+- Released Backup Database, Restore Database, Flat File Import, Create/Rename/Drop Database, Global Search, and Query Profiler dialogs as generally available (GA)
 - Added Active Directory Default authentication support in the Connection Dialog, enabling passwordless authentication using the currently signed-in Windows identity
 - Added the ability to use VS Code accounts for Microsoft Entra ID MFA authentication (preview). Enable by setting either `mssql.enableExperimentalFeatures` or `mssql.preview.useVscodeAccountsForEntraMFA`. Users will need to re-sign into Microsoft Entra ID accounts that existing connections use for authentication.
+- Improved the Connection Dialog to distinguish between editing an existing connection and creating a new one, with the ability to modify connection parameters and test the connection before saving
 - Optimized Microsoft Entra ID sign-in flows to reduce repeated authentication prompts.
 - Added a new background task panel in the SQL Server activity bar to display active and completed deployment tasks (SQL container provisioning, SQL database in Fabric deployments) with real-time progress
 - Improved SQL Notebooks to display SQL Server error messages inline in cell output, improved cell output formatting and spacing, and set the MSSQL kernel as the default when creating a new notebook
