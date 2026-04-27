@@ -47,7 +47,7 @@ export class ObjectExplorerFilterWebviewController extends WebviewPanelControlle
             },
             {
                 title: vscode.l10n.t("Object Explorer Filter"),
-                viewColumn: vscode.ViewColumn.Beside,
+                viewColumn: vscode.ViewColumn.One,
                 iconPath: {
                     dark: vscode.Uri.joinPath(context.extensionUri, "media", "filter_dark.svg"),
                     light: vscode.Uri.joinPath(context.extensionUri, "media", "filter_light.svg"),
