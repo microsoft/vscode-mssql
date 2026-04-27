@@ -5,7 +5,6 @@
 
 export const config = {
     service: {
-        dotnetRuntimeVersion: "10.0",
         downloadUrl:
             "https://github.com/Microsoft/sqltoolsservice/releases/download/{#version#}/microsoft.sqltools.servicelayer-{#fileName#}",
         version: "6.0.20260409.1",
