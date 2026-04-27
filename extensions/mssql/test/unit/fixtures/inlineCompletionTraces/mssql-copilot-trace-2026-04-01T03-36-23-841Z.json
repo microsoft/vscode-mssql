@@ -1,0 +1,115 @@
+{
+    "version": 1,
+    "exportedAt": 1775028983841,
+    "_savedAt": "2026-04-01T03:36:23.841Z",
+    "_extensionVersion": "1.43.0-test",
+    "overrides": {
+        "profileId": "balanced",
+        "modelSelector": null,
+        "useSchemaContext": true,
+        "debounceMs": null,
+        "maxTokens": null,
+        "enabledCategories": null,
+        "forceIntentMode": null,
+        "customSystemPrompt": "[REDACTED]",
+        "allowAutomaticTriggers": null,
+        "schemaContext": {
+            "columnRepresentation": "compact"
+        }
+    },
+    "recordWhenClosed": true,
+    "events": [
+        {
+            "id": "E-1",
+            "timestamp": 1775028900000,
+            "documentUri": "file:///query.sql",
+            "documentFileName": "query.sql",
+            "line": 1,
+            "column": 8,
+            "triggerKind": "automatic",
+            "explicitFromUser": false,
+            "completionCategory": "intent",
+            "intentMode": true,
+            "inferredSystemQuery": false,
+            "modelFamily": "claude-sonnet-4-6",
+            "modelId": "claude-sonnet-4-6",
+            "modelVendor": "anthropic-api",
+            "result": "accepted",
+            "latencyMs": 120,
+            "inputTokens": 2400,
+            "outputTokens": 120,
+            "schemaObjectCount": 8,
+            "schemaSystemObjectCount": 2,
+            "schemaForeignKeyCount": 1,
+            "usedSchemaContext": true,
+            "overridesApplied": {
+                "profileId": "balanced",
+                "schemaContext": {
+                    "columnRepresentation": "compact"
+                },
+                "customSystemPromptUsed": true
+            },
+            "promptMessages": [
+                {
+                    "role": "user",
+                    "content": "[REDACTED]"
+                }
+            ],
+            "rawResponse": "[REDACTED]",
+            "sanitizedResponse": "[REDACTED]",
+            "finalCompletionText": "[REDACTED]",
+            "schemaContextFormatted": "[REDACTED]",
+            "locals": {
+                "document.languageId": "sql",
+                "profileId": "balanced",
+                "schemaSizeKind": "small"
+            }
+        },
+        {
+            "id": "E-2",
+            "timestamp": 1775028910000,
+            "documentUri": "file:///query.sql",
+            "documentFileName": "query.sql",
+            "line": 2,
+            "column": 4,
+            "triggerKind": "invoke",
+            "explicitFromUser": true,
+            "completionCategory": "intent",
+            "intentMode": true,
+            "inferredSystemQuery": true,
+            "modelFamily": "gpt-5.5-mini",
+            "modelId": "gpt-5.5-mini",
+            "modelVendor": "openai-api",
+            "result": "success",
+            "latencyMs": 640,
+            "inputTokens": 1800,
+            "outputTokens": 90,
+            "schemaObjectCount": 4,
+            "schemaSystemObjectCount": 1,
+            "schemaForeignKeyCount": 0,
+            "usedSchemaContext": true,
+            "overridesApplied": {
+                "profileId": "focused",
+                "schemaContext": {
+                    "columnRepresentation": "types"
+                },
+                "customSystemPromptUsed": false
+            },
+            "promptMessages": [
+                {
+                    "role": "user",
+                    "content": "[REDACTED]"
+                }
+            ],
+            "rawResponse": "[REDACTED]",
+            "sanitizedResponse": "[REDACTED]",
+            "finalCompletionText": "[REDACTED]",
+            "schemaContextFormatted": "[REDACTED]",
+            "locals": {
+                "document.languageId": "sql",
+                "profileId": "focused",
+                "schemaSizeKind": "medium"
+            }
+        }
+    ]
+}

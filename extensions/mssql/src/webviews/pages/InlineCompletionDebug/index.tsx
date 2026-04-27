@@ -7,12 +7,12 @@ import ReactDOM from "react-dom/client";
 import "../../index.css";
 import { VscodeWebviewProvider } from "../../common/vscodeWebviewProvider";
 import { InlineCompletionDebugStateProvider } from "./inlineCompletionDebugStateProvider";
-import { InlineCompletionDebugPage } from "./inlineCompletionDebug";
+import { InlineCompletionDebugApp } from "./App";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <VscodeWebviewProvider>
         <InlineCompletionDebugStateProvider>
-            <InlineCompletionDebugPage />
+            <InlineCompletionDebugApp />
         </InlineCompletionDebugStateProvider>
     </VscodeWebviewProvider>,
 );

@@ -13,6 +13,7 @@ import {
     buildCompletionRules,
     detectIntentComment,
     intentModeMaxTokens,
+    sanitizeInlineCompletionText,
     SqlInlineCompletionProvider,
 } from "../../src/copilot/sqlInlineCompletionProvider";
 import { inlineCompletionDebugStore } from "../../src/copilot/inlineCompletionDebug/inlineCompletionDebugStore";
@@ -30,14 +31,18 @@ suite("SqlInlineCompletionProvider Tests", () => {
     let countTokensStub: sinon.SinonStub;
     let experimentalFeaturesEnabled: boolean;
     let inlineCompletionFeatureEnabled: boolean;
+    let configuredProfile: string;
     let configuredModelFamily: string;
+    let enabledCategories: string[];
 
     setup(() => {
         sandbox = sinon.createSandbox();
         stubTelemetry(sandbox);
         experimentalFeaturesEnabled = true;
         inlineCompletionFeatureEnabled = true;
+        configuredProfile = "default";
         configuredModelFamily = "";
+        enabledCategories = ["continuation", "intent"];
 
         schemaContextService = sandbox.createStubInstance(SqlInlineCompletionSchemaContextService);
         extensionContext = {
@@ -58,8 +63,16 @@ suite("SqlInlineCompletionProvider Tests", () => {
                         return inlineCompletionFeatureEnabled;
                     }
 
+                    if (key === Constants.configCopilotInlineCompletionsProfile) {
+                        return configuredProfile;
+                    }
+
                     if (key === Constants.configCopilotInlineCompletionsModelFamily) {
                         return configuredModelFamily;
+                    }
+
+                    if (key === Constants.configCopilotInlineCompletionsEnabledCategories) {
+                        return enabledCategories;
                     }
 
                     return defaultValue;
@@ -86,10 +99,13 @@ suite("SqlInlineCompletionProvider Tests", () => {
         inlineCompletionDebugStore.clearEvents();
         inlineCompletionDebugStore.setPanelOpen(false);
         inlineCompletionDebugStore.replaceOverrides({
-            modelFamily: null,
+            profileId: null,
+            modelSelector: null,
+            continuationModelSelector: null,
             useSchemaContext: null,
             debounceMs: null,
             maxTokens: null,
+            enabledCategories: null,
             forceIntentMode: null,
             customSystemPrompt: null,
             allowAutomaticTriggers: null,
@@ -154,7 +170,7 @@ suite("SqlInlineCompletionProvider Tests", () => {
         expect(getMessageText(messages[0])).to.include(
             "Return only the text to insert at the cursor",
         );
-        expect(getMessageText(messages[1])).to.include("Current statement prefix:");
+        expect(getMessageText(messages[1])).to.include("<current_statement_prefix>");
     });
 
     test("falls back to prompting without schema context when metadata is unavailable", async () => {
@@ -175,7 +191,7 @@ suite("SqlInlineCompletionProvider Tests", () => {
         expect((items as vscode.InlineCompletionItem[])[0].insertText).to.equal("\nWHERE 1 = 1");
 
         const userMessageText = getMessageText(sendRequestStub.firstCall.args[0][1]);
-        expect(userMessageText).to.include("Schema context:\n-- unavailable");
+        expect(userMessageText).to.include("<schema_context>\n-- unavailable\n</schema_context>");
     });
 
     test("prepends a newline when the model omits it before a clause keyword", async () => {
@@ -365,12 +381,12 @@ suite("SqlInlineCompletionProvider Tests", () => {
 
         const userMessageText = getMessageText(sendRequestStub.firstCall.args[0][1]);
         expect(userMessageText).to.include(
-            "Recent document prefix:\nDECLARE @start_time datetime = DATEADD(DAY, -1, GETDATE());",
+            "<recent_document_prefix>\nDECLARE @start_time datetime = DATEADD(DAY, -1, GETDATE());",
         );
         expect(userMessageText).to.include(
-            "Current line prefix:\nDECLARE @end_time datetime = GETDATE(); ",
+            "<current_line_prefix>\nDECLARE @end_time datetime = GETDATE(); ",
         );
-        expect(userMessageText).to.include("Document suffix:");
+        expect(userMessageText).to.include("<document_suffix>");
         expect(userMessageText).to.include("SELECT\n    qs.sql_handle");
     });
 
@@ -480,6 +496,30 @@ ORDER BY qs.total_worker_time DESC;`,
         const event = inlineCompletionDebugStore.getEvents()[0];
         expect(event.inputTokens).to.equal(20);
         expect(event.outputTokens).to.equal(3);
+        expect(event.completionCategory).to.equal("continuation");
+    });
+
+    test("skips exact token counting when a non-debug prompt is well under the model window", async () => {
+        schemaContextService.getSchemaContext.resolves(undefined);
+        (vscode.lm.selectChatModels as sinon.SinonStub).resolves([
+            {
+                sendRequest: sendRequestStub,
+                countTokens: countTokensStub,
+                maxInputTokens: 100000,
+            } as unknown as vscode.LanguageModelChat,
+        ]);
+
+        const items = await provider.provideInlineCompletionItems(
+            createTestDocument("SELECT *", "file:///query.sql"),
+            new vscode.Position(0, "SELECT *".length),
+            {
+                triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
+            } as vscode.InlineCompletionContext,
+            { isCancellationRequested: false } as vscode.CancellationToken,
+        );
+
+        expect(items).to.have.lengthOf(1);
+        expect(countTokensStub).to.not.have.been.called;
     });
 
     test("returns no completions when no Copilot language model is available", async () => {
@@ -529,6 +569,160 @@ ORDER BY qs.total_worker_time DESC;`,
 
         expect(items).to.deep.equal([]);
         expect(sendRequestStub).to.not.have.been.called;
+    });
+
+    test("returns no completions when the continuation category is disabled", async () => {
+        enabledCategories = ["intent"];
+
+        const items = await provider.provideInlineCompletionItems(
+            createTestDocument("SELECT *", "file:///query.sql"),
+            new vscode.Position(0, "SELECT *".length),
+            {
+                triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
+            } as vscode.InlineCompletionContext,
+            { isCancellationRequested: false } as vscode.CancellationToken,
+        );
+
+        expect(items).to.deep.equal([]);
+        expect(sendRequestStub).to.not.have.been.called;
+    });
+
+    test("returns no completions when the intent category is disabled", async () => {
+        enabledCategories = ["continuation"];
+
+        const line = "-- Write a query to show all customers";
+        const items = await provider.provideInlineCompletionItems(
+            createTestDocument(line, "file:///query.sql"),
+            new vscode.Position(0, line.length),
+            {
+                triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
+            } as vscode.InlineCompletionContext,
+            { isCancellationRequested: false } as vscode.CancellationToken,
+        );
+
+        expect(items).to.deep.equal([]);
+        expect(sendRequestStub).to.not.have.been.called;
+    });
+
+    test("uses the runtime category override before requesting a model", async () => {
+        inlineCompletionDebugStore.updateOverrides({ enabledCategories: ["intent"] });
+
+        const items = await provider.provideInlineCompletionItems(
+            createTestDocument("SELECT *", "file:///query.sql"),
+            new vscode.Position(0, "SELECT *".length),
+            {
+                triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
+            } as vscode.InlineCompletionContext,
+            { isCancellationRequested: false } as vscode.CancellationToken,
+        );
+
+        expect(items).to.deep.equal([]);
+        expect(sendRequestStub).to.not.have.been.called;
+    });
+
+    test("uses the active debug profile categories before requesting a model", async () => {
+        inlineCompletionDebugStore.updateOverrides({ profileId: "focused" });
+
+        const items = await provider.provideInlineCompletionItems(
+            createTestDocument("SELECT *", "file:///query.sql"),
+            new vscode.Position(0, "SELECT *".length),
+            {
+                triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
+            } as vscode.InlineCompletionContext,
+            { isCancellationRequested: false } as vscode.CancellationToken,
+        );
+
+        expect(items).to.deep.equal([]);
+        expect(sendRequestStub).to.not.have.been.called;
+    });
+
+    test("uses the configured default profile categories before requesting a model", async () => {
+        configuredProfile = "focused";
+
+        const items = await provider.provideInlineCompletionItems(
+            createTestDocument("SELECT *", "file:///query.sql"),
+            new vscode.Position(0, "SELECT *".length),
+            {
+                triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
+            } as vscode.InlineCompletionContext,
+            { isCancellationRequested: false } as vscode.CancellationToken,
+        );
+
+        expect(items).to.deep.equal([]);
+        expect(sendRequestStub).to.not.have.been.called;
+    });
+
+    test("uses runtime category overrides over the configured default profile", async () => {
+        configuredProfile = "focused";
+        inlineCompletionDebugStore.updateOverrides({ enabledCategories: ["continuation"] });
+        schemaContextService.getSchemaContext.resolves(undefined);
+
+        const items = await provider.provideInlineCompletionItems(
+            createTestDocument("SELECT *", "file:///query.sql"),
+            new vscode.Position(0, "SELECT *".length),
+            {
+                triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
+            } as vscode.InlineCompletionContext,
+            { isCancellationRequested: false } as vscode.CancellationToken,
+        );
+
+        expect(items).to.have.lengthOf(1);
+        expect(sendRequestStub).to.have.been.calledOnce;
+    });
+
+    test("uses the continuation model override only for continuation requests", async () => {
+        const defaultSendRequest = sandbox.stub().resolves(createChatResponse("SELECT 1;"));
+        const continuationSendRequest = sandbox
+            .stub()
+            .resolves(createChatResponse("FROM dbo.Customers"));
+        (vscode.lm.selectChatModels as sinon.SinonStub).callsFake(async ({ vendor }) =>
+            vendor === "openai-api"
+                ? [
+                      {
+                          id: "gpt-5.5",
+                          name: "GPT-5.5",
+                          family: "gpt-5.5",
+                          vendor: "openai-api",
+                          sendRequest: defaultSendRequest,
+                          countTokens: countTokensStub,
+                      },
+                      {
+                          id: "gpt-5.4-mini",
+                          name: "GPT-5.4 Mini",
+                          family: "gpt-5.4-mini",
+                          vendor: "openai-api",
+                          sendRequest: continuationSendRequest,
+                          countTokens: countTokensStub,
+                      },
+                  ]
+                : [],
+        );
+        inlineCompletionDebugStore.updateOverrides({
+            modelSelector: "openai-api/gpt-5.5",
+            continuationModelSelector: "openai-api/gpt-5.4-mini",
+        });
+        schemaContextService.getSchemaContext.resolves(undefined);
+
+        await provider.provideInlineCompletionItems(
+            createTestDocument("SELECT *", "file:///query.sql"),
+            new vscode.Position(0, "SELECT *".length),
+            {
+                triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
+            } as vscode.InlineCompletionContext,
+            { isCancellationRequested: false } as vscode.CancellationToken,
+        );
+
+        await provider.provideInlineCompletionItems(
+            createTestDocument("-- Write a query to show one row\n", "file:///query.sql"),
+            new vscode.Position(1, 0),
+            {
+                triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
+            } as vscode.InlineCompletionContext,
+            { isCancellationRequested: false } as vscode.CancellationToken,
+        );
+
+        expect(continuationSendRequest).to.have.been.calledOnce;
+        expect(defaultSendRequest).to.have.been.calledOnce;
     });
 
     test("returns no completions when the cancellation token fires during the debounce wait", async () => {
@@ -621,8 +815,12 @@ ORDER BY qs.total_worker_time DESC;`,
         expect(intentRules).to.include(
             "The document suffix and current line suffix are authoritative context",
         );
-        expect(intentRules).to.include("TABLE NAMES / VIEW NAMES inventory entries");
-        expect(intentRules).to.include("broad discovery queries or simple SELECT * exploration");
+        expect(intentRules).to.include(
+            "TABLE NAMES / VIEW NAMES / ROUTINE NAMES inventory entries",
+        );
+        expect(intentRules).to.include(
+            "broad discovery queries, EXEC name exploration, or simple SELECT * exploration",
+        );
         expect(intentRules).to.include("Prefer stable conventional formatting");
         expect(intentRules).to.include("canonical multiline layout");
         expect(intentRules).to.include("Prefer uppercase SQL keywords");
@@ -788,7 +986,7 @@ ORDER BY s.login_time DESC;`;
         const instructionText = getMessageText(sendRequestStub.firstCall.args[0][0]);
         const userMessageText = getMessageText(sendRequestStub.firstCall.args[0][1]);
         expect(instructionText).to.include("Return the complete SQL statement");
-        expect(userMessageText).to.include("Mode: intent (return complete query)");
+        expect(userMessageText).to.include("<mode>intent (return complete query)</mode>");
     });
 
     test("keeps valid intent-mode cached-plan DMV SQL", async () => {
@@ -822,6 +1020,17 @@ ORDER BY qs.total_worker_time DESC;`;
 
         expect(items).to.have.lengthOf(1);
         expect((items as vscode.InlineCompletionItem[])[0].insertText).to.equal(cachedPlanQuery);
+    });
+
+    test("does not truncate continuation stops inside string literals", () => {
+        const sanitized = sanitizeInlineCompletionText(
+            "WHERE NoteText = 'line one\n\nline two'\n\nORDER BY CreatedAt",
+            200,
+            "SELECT * FROM dbo.Notes ",
+            false,
+        );
+
+        expect(sanitized).to.equal("WHERE NoteText = 'line one\n\nline two'");
     });
 
     test("returns no completion when intent mode produces an explanation instead of SQL", async () => {

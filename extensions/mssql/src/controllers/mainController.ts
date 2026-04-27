@@ -130,6 +130,10 @@ import { SqlInlineCompletionProvider } from "../copilot/sqlInlineCompletionProvi
 import { SqlInlineCompletionSchemaContextService } from "../copilot/sqlInlineCompletionSchemaContextService";
 import { CopilotEnableSettingsGuard } from "../copilot/copilotEnableSettingsGuard";
 import { InlineCompletionDebugController } from "../copilot/inlineCompletionDebug/inlineCompletionDebugController";
+import {
+    getConfiguredTraceFolder,
+    saveInlineCompletionTraceOnDeactivate,
+} from "../copilot/inlineCompletionDebug/tracePersistence";
 
 /**
  * The main controller class that initializes the extension
@@ -154,6 +158,7 @@ export default class MainController implements vscode.Disposable {
     private _logger: Logger;
     private _lastBackgroundTaskClickTime = 0;
     private _lastBackgroundTaskId: string | undefined;
+    private _deactivated = false;
 
     public sqlTasksService: SqlTasksService;
     public backgroundTasksService: BackgroundTasksService;
@@ -249,7 +254,13 @@ export default class MainController implements vscode.Disposable {
      * Deactivates the extension
      */
     public async deactivate(): Promise<void> {
+        if (this._deactivated) {
+            return;
+        }
+
+        this._deactivated = true;
         Utils.logDebug("de-activated.");
+        await saveInlineCompletionTraceOnDeactivate(this._context);
         await this.onDisconnect();
         this._statusview.dispose();
     }
@@ -405,6 +416,7 @@ export default class MainController implements vscode.Disposable {
                 const controller = new InlineCompletionDebugController(
                     this._context,
                     this._vscodeWrapper,
+                    this.inlineCompletionSchemaContextService,
                 );
                 controller.onDisposed(() => {
                     if (this.inlineCompletionDebugController === controller) {
@@ -413,6 +425,14 @@ export default class MainController implements vscode.Disposable {
                 });
                 this.inlineCompletionDebugController = controller;
                 controller.revealToForeground(vscode.ViewColumn.Active);
+            });
+            this.registerCommand(Constants.cmdCopilotCompletionsTraceSyncToDatabase);
+            this._event.on(Constants.cmdCopilotCompletionsTraceSyncToDatabase, async () => {
+                await vscode.window.showInformationMessage(
+                    `Database sync is not yet implemented. Traces are currently saved to: ${getConfiguredTraceFolder(
+                        this._context,
+                    )}`,
+                );
             });
 
             this._context.subscriptions.push(

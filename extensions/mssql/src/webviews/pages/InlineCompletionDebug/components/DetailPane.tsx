@@ -10,11 +10,13 @@ import {
     TabList,
     Text,
     makeStyles,
+    mergeClasses,
     shorthands,
     tokens,
 } from "@fluentui/react-components";
 import { CopyRegular } from "@fluentui/react-icons";
 import { InlineCompletionDebugEvent } from "../../../../sharedInterfaces/inlineCompletionDebug";
+import { getLatencyBucket } from "../../../../sharedInterfaces/latencyBuckets";
 import { useInlineCompletionDebugContext } from "../inlineCompletionDebugStateProvider";
 
 const useStyles = makeStyles({
@@ -29,9 +31,25 @@ const useStyles = makeStyles({
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        ...shorthands.padding("0", "12px"),
+        gap: "6px",
+        ...shorthands.padding("0", "8px"),
         ...shorthands.borderBottom("1px", "solid", "var(--vscode-panel-border)"),
-        minHeight: "42px",
+        minHeight: "36px",
+    },
+    tabScroller: {
+        flexGrow: 1,
+        flexShrink: 1,
+        minWidth: 0,
+        overflowX: "auto",
+        overflowY: "hidden",
+    },
+    tabList: {
+        width: "max-content",
+        minWidth: "max-content",
+        "& [role='tab']": {
+            flexShrink: 0,
+            whiteSpace: "nowrap",
+        },
     },
     content: {
         ...shorthands.flex(1),
@@ -81,12 +99,19 @@ const useStyles = makeStyles({
     },
     keyValueGrid: {
         display: "grid",
-        gridTemplateColumns: "220px minmax(0, 1fr)",
+        gridTemplateColumns: "max-content minmax(0, 1fr)",
         rowGap: "8px",
         columnGap: "16px",
+        alignItems: "baseline",
+    },
+    telemetryLabel: {
+        whiteSpace: "nowrap",
     },
     copyButton: {
         flexShrink: 0,
+        height: "28px",
+        minWidth: "auto",
+        ...shorthands.padding("0", "10px"),
     },
     note: {
         marginBottom: "8px",
@@ -106,8 +131,13 @@ type DetailTab =
 
 export const InlineCompletionDebugDetailPane = ({
     event,
+    onCopyEventPayload,
 }: {
     event: InlineCompletionDebugEvent | undefined;
+    onCopyEventPayload?: (
+        event: InlineCompletionDebugEvent,
+        kind: "systemPrompt" | "userPrompt" | "rawResponse" | "sanitizedResponse",
+    ) => void;
 }) => {
     const classes = useStyles();
     const { copyEventPayload } = useInlineCompletionDebugContext();
@@ -129,45 +159,68 @@ export const InlineCompletionDebugDetailPane = ({
     return (
         <div className={classes.root}>
             <div className={classes.tabHeader}>
-                <TabList
-                    selectedValue={activeTab}
-                    onTabSelect={(_, data) => setActiveTab(data.value as DetailTab)}>
-                    <Tab value="summary">Summary</Tab>
-                    <Tab value="system">System Prompt</Tab>
-                    <Tab value="user">User Prompt</Tab>
-                    <Tab value="raw">Raw Response</Tab>
-                    <Tab value="sanitized">Sanitized</Tab>
-                    <Tab value="schema">Schema Context</Tab>
-                    <Tab value="locals">Locals Dump</Tab>
-                    <Tab value="telemetry">Telemetry</Tab>
-                </TabList>
+                <div className={classes.tabScroller}>
+                    <TabList
+                        className={classes.tabList}
+                        selectedValue={activeTab}
+                        onTabSelect={(_, data) => setActiveTab(data.value as DetailTab)}>
+                        <Tab value="summary">Summary</Tab>
+                        <Tab value="system">System Prompt</Tab>
+                        <Tab value="user">User Prompt</Tab>
+                        <Tab value="raw">Raw Response</Tab>
+                        <Tab value="sanitized">Sanitized</Tab>
+                        <Tab value="schema">Schema Context</Tab>
+                        <Tab value="locals">Locals Dump</Tab>
+                        <Tab value="telemetry">Telemetry</Tab>
+                    </TabList>
+                </div>
 
                 {activeTab === "system" ? (
                     <Button
                         className={classes.copyButton}
+                        size="small"
                         icon={<CopyRegular />}
-                        onClick={() => copyEventPayload(event.id, "systemPrompt")}>
+                        onClick={() =>
+                            onCopyEventPayload
+                                ? onCopyEventPayload(event, "systemPrompt")
+                                : copyEventPayload(event.id, "systemPrompt")
+                        }>
                         Copy
                     </Button>
                 ) : activeTab === "user" ? (
                     <Button
                         className={classes.copyButton}
+                        size="small"
                         icon={<CopyRegular />}
-                        onClick={() => copyEventPayload(event.id, "userPrompt")}>
+                        onClick={() =>
+                            onCopyEventPayload
+                                ? onCopyEventPayload(event, "userPrompt")
+                                : copyEventPayload(event.id, "userPrompt")
+                        }>
                         Copy
                     </Button>
                 ) : activeTab === "raw" ? (
                     <Button
                         className={classes.copyButton}
+                        size="small"
                         icon={<CopyRegular />}
-                        onClick={() => copyEventPayload(event.id, "rawResponse")}>
+                        onClick={() =>
+                            onCopyEventPayload
+                                ? onCopyEventPayload(event, "rawResponse")
+                                : copyEventPayload(event.id, "rawResponse")
+                        }>
                         Copy
                     </Button>
                 ) : activeTab === "sanitized" ? (
                     <Button
                         className={classes.copyButton}
+                        size="small"
                         icon={<CopyRegular />}
-                        onClick={() => copyEventPayload(event.id, "sanitizedResponse")}>
+                        onClick={() =>
+                            onCopyEventPayload
+                                ? onCopyEventPayload(event, "sanitizedResponse")
+                                : copyEventPayload(event.id, "sanitizedResponse")
+                        }>
                         Copy
                     </Button>
                 ) : null}
@@ -195,18 +248,15 @@ export const InlineCompletionDebugDetailPane = ({
                             )}
                             {summaryRow(
                                 "Mode",
-                                `${event.intentMode ? "intent" : "continuation"} | intentMode=${event.intentMode}`,
+                                `${
+                                    event.completionCategory ??
+                                    (event.intentMode ? "intent" : "continuation")
+                                } | intentMode=${event.intentMode}`,
                                 classes,
                             )}
-                            {summaryRow(
-                                "Model",
-                                `${event.modelFamily ?? "default"}${
-                                    event.modelId ? ` (${event.modelId})` : ""
-                                }`,
-                                classes,
-                            )}
+                            {summaryRow("Model", formatEventModel(event), classes)}
                             {summaryRow("Result", event.result, classes)}
-                            {summaryRow("Latency", `${event.latencyMs} ms`, classes)}
+                            {summaryRow("Latency", formatLatency(event), classes)}
                             {summaryRow(
                                 "Tokens",
                                 `in=${formatTokenCount(event.inputTokens)} | out=${formatTokenCount(
@@ -264,7 +314,13 @@ export const InlineCompletionDebugDetailPane = ({
                     <div className={classes.keyValueGrid}>
                         {telemetryRows.map(([label, value]) => (
                             <React.Fragment key={label}>
-                                <Text className={classes.summaryLabel}>{label}</Text>
+                                <Text
+                                    className={mergeClasses(
+                                        classes.summaryLabel,
+                                        classes.telemetryLabel,
+                                    )}>
+                                    {label}
+                                </Text>
                                 <Text>{value}</Text>
                             </React.Fragment>
                         ))}
@@ -323,14 +379,26 @@ function buildTelemetryRows(event: InlineCompletionDebugEvent): Array<[string, s
         ["schemaForeignKeyCountBucket", bucketCount(event.schemaForeignKeyCount)],
         ["modelFamily", event.modelFamily ?? "unknown"],
         ["triggerKind", event.triggerKind],
-        ["latencyBucket", bucketLatency(event.latencyMs)],
+        ["latencyBucket", getLatencyBucket(event.latencyMs)],
         ["inferredSystemQuery", String(event.inferredSystemQuery)],
+        [
+            "completionCategory",
+            event.completionCategory ?? (event.intentMode ? "intent" : "continuation"),
+        ],
         ["intentMode", String(event.intentMode)],
     ];
 }
 
 function formatTokenCount(value: number | undefined): string {
     return value === undefined ? "unknown" : value.toLocaleString();
+}
+
+function formatLatency(event: InlineCompletionDebugEvent): string {
+    if (event.result !== "pending") {
+        return `${event.latencyMs.toLocaleString()} ms`;
+    }
+
+    return `${Math.max(0, Date.now() - event.timestamp).toLocaleString()} ms (pending)`;
 }
 
 function bucketCount(count: number): string {
@@ -349,18 +417,13 @@ function bucketCount(count: number): string {
     return "20+";
 }
 
-function bucketLatency(latencyMs: number): string {
-    if (latencyMs < 100) {
-        return "<100";
+function formatEventModel(event: InlineCompletionDebugEvent): string {
+    if (event.modelVendor && event.modelId) {
+        const familySuffix =
+            event.modelFamily && event.modelFamily !== event.modelId
+                ? `, family=${event.modelFamily}`
+                : "";
+        return `${event.modelVendor}/${event.modelId}${familySuffix}`;
     }
-    if (latencyMs < 300) {
-        return "100-300";
-    }
-    if (latencyMs < 800) {
-        return "300-800";
-    }
-    if (latencyMs < 2000) {
-        return "800-2000";
-    }
-    return "2000+";
+    return event.modelFamily ?? "default";
 }

@@ -139,6 +139,54 @@ suite("SqlInlineCompletionSchemaContextService Tests", () => {
         expect(queryString).to.not.include("@relevanceTerms");
     });
 
+    test("reserves detailed table slots for foreign-key expansion before topping up by relevance", async () => {
+        connectionManager.getConnectionInfo.returns(createConnectionInfo("Sales"));
+        serviceClient.sendRequest.resolves(
+            createSimpleExecuteResult({
+                server: "localhost",
+                database: "Sales",
+                defaultSchema: "dbo",
+                totalTableCount: 20,
+                totalViewCount: 0,
+                schemas: [{ name: "dbo" }],
+                tables: [
+                    {
+                        schema: "dbo",
+                        name: "Orders",
+                        columns: [{ name: "OrderId" }, { name: "CustomerId" }],
+                        foreignKeys: [
+                            {
+                                column: "CustomerId",
+                                referencedTable: "dbo.ZzzCustomers",
+                                referencedColumn: "CustomerId",
+                            },
+                        ],
+                    },
+                    ...Array.from({ length: 18 }, (_, index) => ({
+                        schema: "dbo",
+                        name: `AaaFiller_${index.toString().padStart(2, "0")}`,
+                        columns: [{ name: "Id" }],
+                    })),
+                    {
+                        schema: "dbo",
+                        name: "ZzzCustomers",
+                        columns: [{ name: "CustomerId" }, { name: "CustomerName" }],
+                    },
+                ],
+                views: [],
+                masterSymbols: [],
+            }),
+        );
+
+        const result = await service.getSchemaContext(
+            createTestDocument("SELECT * FROM dbo.Orders", ownerUri),
+            "SELECT * FROM dbo.Orders",
+        );
+
+        expect(result?.tables.map((table) => table.name)).to.include("dbo.ZzzCustomers");
+        expect(result?.tables).to.have.lengthOf(12);
+    });
+
     test("clears cached entries when the connection manager raises a connections changed event", async () => {
         const liveConnection = createConnectionInfo("Sales");
         let activeConnections: { [fileUri: string]: ConnectionInfo } = {

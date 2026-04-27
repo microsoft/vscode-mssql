@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { makeStyles, shorthands } from "@fluentui/react-components";
+import { Button, Text, makeStyles, shorthands } from "@fluentui/react-components";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { InlineCompletionDebugEvent } from "../../../sharedInterfaces/inlineCompletionDebug";
 import { useInlineCompletionDebugContext } from "./inlineCompletionDebugStateProvider";
@@ -18,7 +18,7 @@ const useStyles = makeStyles({
     root: {
         display: "flex",
         flexDirection: "column",
-        height: "100vh",
+        height: "100%",
         width: "100%",
         backgroundColor: "var(--vscode-editor-background)",
         color: "var(--vscode-foreground)",
@@ -43,12 +43,49 @@ const useStyles = makeStyles({
         height: "100%",
         backgroundColor: "var(--vscode-editor-background)",
     },
+    runStrip: {
+        display: "grid",
+        gridTemplateColumns: "minmax(0, 1fr) auto",
+        alignItems: "center",
+        gap: "12px",
+        minHeight: "40px",
+        flexShrink: 0,
+        backgroundColor: "var(--vscode-button-background)",
+        color: "var(--vscode-button-foreground)",
+        ...shorthands.padding("0", "12px"),
+    },
+    runMeta: {
+        display: "flex",
+        alignItems: "center",
+        gap: "10px",
+        minWidth: 0,
+        fontFamily: "var(--vscode-editor-font-family, Consolas, monospace)",
+    },
+    progressTrack: {
+        height: "4px",
+        width: "260px",
+        maxWidth: "24vw",
+        backgroundColor: "color-mix(in srgb, var(--vscode-button-foreground) 22%, transparent)",
+        ...shorthands.borderRadius("999px"),
+        overflow: "hidden",
+    },
+    progressFill: {
+        height: "100%",
+        backgroundColor: "var(--vscode-button-foreground)",
+    },
+    cancelRunButton: {
+        color: "var(--vscode-button-foreground)",
+        ...shorthands.borderColor(
+            "color-mix(in srgb, var(--vscode-button-foreground) 55%, transparent)",
+        ),
+    },
 });
 
 export const InlineCompletionDebugPage = () => {
     const classes = useStyles();
-    const { selectEvent } = useInlineCompletionDebugContext();
+    const { cancelReplayRun, selectEvent } = useInlineCompletionDebugContext();
     const events = useInlineCompletionDebugSelector((state) => state.events);
+    const replay = useInlineCompletionDebugSelector((state) => state.replay);
     const selectedEventId = useInlineCompletionDebugSelector((state) => state.selectedEventId);
     const toolbarState = useInlineCompletionDebugSelector((state) => state);
     const [filterQuery, setFilterQuery] = useState("");
@@ -58,23 +95,30 @@ export const InlineCompletionDebugPage = () => {
     const pendingFilterFocusRestoreRef = useRef<FilterFocusRestoreState | undefined>(undefined);
 
     const filterResult = useMemo(() => parseFilterQuery(filterQuery), [filterQuery]);
+    const displayEvents = useMemo(
+        () => [...events, ...replay.queueRows.map((row) => row.event)],
+        [events, replay.queueRows],
+    );
     const filteredEvents = useMemo(() => {
         if (filterResult.error) {
             return [];
         }
-        return events.filter(filterResult.predicate);
-    }, [events, filterResult]);
+        return displayEvents.filter(filterResult.predicate);
+    }, [displayEvents, filterResult]);
     const selectedEvent = useMemo(
-        () => events.find((event) => event.id === selectedEventId),
-        [events, selectedEventId],
+        () => displayEvents.find((event) => event.id === selectedEventId),
+        [displayEvents, selectedEventId],
     );
     const summary = useMemo(() => {
         const documents = new Set(filteredEvents.map((event) => event.documentFileName));
+        const completedEvents = filteredEvents.filter(
+            (event) => event.result !== "pending" && event.result !== "queued",
+        );
         const averageLatency =
-            filteredEvents.length > 0
+            completedEvents.length > 0
                 ? Math.round(
-                      filteredEvents.reduce((sum, event) => sum + event.latencyMs, 0) /
-                          filteredEvents.length,
+                      completedEvents.reduce((sum, event) => sum + event.latencyMs, 0) /
+                          completedEvents.length,
                   )
                 : 0;
         return {
@@ -83,6 +127,12 @@ export const InlineCompletionDebugPage = () => {
             averageLatency,
         };
     }, [filteredEvents]);
+    const activeRun = replay.runs.find((run) => run.id === replay.activeRunId);
+    const activeRunIsVisible =
+        !!activeRun && (activeRun.status === "queued" || activeRun.status === "running");
+    const activeMatrixCell = activeRun?.matrixCells?.find(
+        (cell) => cell.cellId === activeRun.activeMatrixCellId,
+    );
 
     const restoreFilterInputFocus = useCallback(() => {
         const focusState = pendingFilterFocusRestoreRef.current;
@@ -147,11 +197,53 @@ export const InlineCompletionDebugPage = () => {
                 onLayout={() => setGridResizeToken((value) => value + 1)}>
                 <Panel defaultSize={56} minSize={28}>
                     <div className={classes.topPanel}>
+                        {activeRunIsVisible && activeRun ? (
+                            <div className={classes.runStrip}>
+                                <div className={classes.runMeta}>
+                                    <Text weight="semibold">
+                                        {activeRun.kind === "matrix"
+                                            ? "Replay matrix run"
+                                            : "Replay run"}
+                                    </Text>
+                                    <Text>
+                                        {activeMatrixCell
+                                            ? `cell ${activeMatrixCell.ordinal}/${
+                                                  activeRun.matrixCells?.length ?? 0
+                                              } · ${activeMatrixCell.profileLabel} x ${
+                                                  activeMatrixCell.schemaLabel
+                                              } · `
+                                            : ""}
+                                        event {activeRun.completedEvents}/{activeRun.totalEvents}
+                                    </Text>
+                                    <div className={classes.progressTrack}>
+                                        <div
+                                            className={classes.progressFill}
+                                            style={{
+                                                width: `${Math.min(
+                                                    100,
+                                                    (activeRun.completedEvents /
+                                                        Math.max(1, activeRun.totalEvents)) *
+                                                        100,
+                                                )}%`,
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                                <Button
+                                    className={classes.cancelRunButton}
+                                    appearance="outline"
+                                    size="small"
+                                    onClick={() => cancelReplayRun(activeRun.id)}>
+                                    Cancel queue
+                                </Button>
+                            </div>
+                        ) : null}
                         <InlineCompletionDebugEventGrid
                             events={filteredEvents}
                             onSelectEvent={selectEvent}
                             autoScroll={autoScroll}
                             resizeToken={gridResizeToken}
+                            showReplay={true}
                         />
                     </div>
                 </Panel>
@@ -284,17 +376,26 @@ function getFieldValueGetter(field: string):
         case "model":
             return {
                 type: "string",
-                get: (event) => `${event.modelFamily ?? ""} ${event.modelId ?? ""}`.trim(),
+                get: (event) =>
+                    `${event.modelVendor ?? ""} ${event.modelFamily ?? ""} ${
+                        event.modelId ?? ""
+                    }`.trim(),
             };
         case "mode":
             return {
                 type: "string",
-                get: (event) => (event.intentMode ? "intent" : "continuation"),
+                get: (event) =>
+                    event.completionCategory ?? (event.intentMode ? "intent" : "continuation"),
             };
         case "trigger":
             return {
                 type: "string",
-                get: (event) => (event.explicitFromUser ? "explicit" : "automatic"),
+                get: (event) =>
+                    getReplayTag(event, "replayRunId")
+                        ? "replay"
+                        : event.explicitFromUser
+                          ? "explicit"
+                          : "automatic",
             };
         case "latency":
             return { type: "number", get: (event) => event.latencyMs };
@@ -302,6 +403,21 @@ function getFieldValueGetter(field: string):
             return { type: "string", get: (event) => event.id };
         case "info":
             return { type: "string", get: getInfoText };
+        case "replayrun":
+            return { type: "string", get: (event) => getReplayTag(event, "replayRunId") ?? "" };
+        case "replaytrace":
+            return { type: "string", get: (event) => getReplayTag(event, "replayTraceId") ?? "" };
+        case "replaycell":
+        case "matrixcell":
+            return {
+                type: "string",
+                get: (event) => getReplayTag(event, "replayMatrixCellId") ?? "",
+            };
+        case "replaysource":
+            return {
+                type: "string",
+                get: (event) => getReplayTag(event, "replaySourceEventId") ?? "",
+            };
         default:
             return undefined;
     }
@@ -354,6 +470,14 @@ function stripQuotes(value: string): string {
 }
 
 export function getInfoText(event: InlineCompletionDebugEvent): string {
+    if (event.result === "queued") {
+        return "Queued for replay...";
+    }
+
+    if (event.result === "pending") {
+        return "Waiting for model response...";
+    }
+
     return (
         event.finalCompletionText ??
         event.sanitizedResponse ??
@@ -361,4 +485,9 @@ export function getInfoText(event: InlineCompletionDebugEvent): string {
         event.rawResponse ??
         ""
     );
+}
+
+function getReplayTag(event: InlineCompletionDebugEvent, key: string): string | undefined {
+    const localValue = event.locals[key];
+    return event.tags?.[key] ?? (typeof localValue === "string" ? localValue : undefined);
 }

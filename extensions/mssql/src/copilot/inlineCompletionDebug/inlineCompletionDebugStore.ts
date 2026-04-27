@@ -6,10 +6,16 @@
 import * as vscode from "vscode";
 import { logger2 } from "../../models/logger2";
 import {
+    InlineCompletionCategory,
     InlineCompletionDebugEvent,
     InlineCompletionDebugOverrides,
     InlineCompletionDebugExportData,
+    InlineCompletionDebugProfileId,
+    InlineCompletionDebugSchemaContextOverrides,
+    inlineCompletionCategories,
 } from "../../sharedInterfaces/inlineCompletionDebug";
+import { isInlineCompletionDebugProfileId } from "./inlineCompletionDebugProfiles";
+import { serializeSessionTrace } from "./traceSerializer";
 
 const DEFAULT_EVENT_CAPACITY = 500;
 const MAX_PROMPT_AND_SCHEMA_CHARS = 64 * 1024;
@@ -17,13 +23,17 @@ const TRUNCATION_SUFFIX_PREFIX = "... [truncated, ";
 const TRUNCATION_SUFFIX_SUFFIX = " more chars]";
 
 const defaultOverrides: InlineCompletionDebugOverrides = {
-    modelFamily: null,
+    profileId: null,
+    modelSelector: null,
+    continuationModelSelector: null,
     useSchemaContext: null,
     debounceMs: null,
     maxTokens: null,
+    enabledCategories: null,
     forceIntentMode: null,
     customSystemPrompt: null,
     allowAutomaticTriggers: null,
+    schemaContext: null,
 };
 
 class InlineCompletionDebugStore {
@@ -46,6 +56,12 @@ class InlineCompletionDebugStore {
             ...normalizePartialOverrides(overrides),
         };
         this._onDidChange.fire();
+    }
+
+    public setSchemaContextOverride(
+        value: InlineCompletionDebugSchemaContextOverrides | null | undefined,
+    ): void {
+        this.updateOverrides({ schemaContext: value ?? null });
     }
 
     public replaceOverrides(overrides: InlineCompletionDebugOverrides): void {
@@ -73,6 +89,26 @@ class InlineCompletionDebugStore {
             this._events.splice(0, this._events.length - DEFAULT_EVENT_CAPACITY);
         }
 
+        this._onDidChange.fire();
+        return storedEvent;
+    }
+
+    public updateEvent(
+        eventId: string,
+        event: Omit<InlineCompletionDebugEvent, "id">,
+    ): InlineCompletionDebugEvent | undefined {
+        const index = this._events.findIndex((storedEvent) => storedEvent.id === eventId);
+        if (index < 0) {
+            return undefined;
+        }
+
+        const storedEvent: InlineCompletionDebugEvent = {
+            ...event,
+            id: eventId,
+        };
+
+        this.applyPromptAndSchemaBudget(storedEvent);
+        this._events[index] = storedEvent;
         this._onDidChange.fire();
         return storedEvent;
     }
@@ -110,7 +146,9 @@ class InlineCompletionDebugStore {
 
         this._events = importedEvents;
         this._eventCounter = this.getHighestImportedCounter(importedEvents);
-        this._overrides = normalizeOverrides(data.overrides ?? defaultOverrides);
+        this._overrides = normalizeOverrides(
+            normalizeImportedOverrides(data.overrides) ?? defaultOverrides,
+        );
         this._logger.info(
             `Imported ${importedEvents.length} inline completion debug events into the store.`,
         );
@@ -119,16 +157,23 @@ class InlineCompletionDebugStore {
 
     public exportSession(
         recordWhenClosed: boolean,
+        extensionVersion: string,
         customPromptLastSavedAt?: number,
+        options?: {
+            redactPrompts?: boolean;
+            maxFileSizeMB?: number;
+        },
     ): InlineCompletionDebugExportData {
-        return {
-            version: 1,
-            exportedAt: Date.now(),
-            overrides: this.getOverrides(),
-            recordWhenClosed,
-            customPromptLastSavedAt,
-            events: this.getEvents(),
-        };
+        return serializeSessionTrace(
+            this.getEvents(),
+            {
+                extensionVersion,
+                overrides: this.getOverrides(),
+                recordWhenClosed,
+                customPromptLastSavedAt,
+            },
+            options,
+        );
     }
 
     public setPanelOpen(isOpen: boolean): void {
@@ -195,13 +240,17 @@ function normalizeOverrides(
     overrides: Partial<InlineCompletionDebugOverrides>,
 ): InlineCompletionDebugOverrides {
     return {
-        modelFamily: normalizeNullableString(overrides.modelFamily),
+        profileId: normalizeNullableProfileId(overrides.profileId),
+        modelSelector: normalizeNullableString(overrides.modelSelector),
+        continuationModelSelector: normalizeNullableString(overrides.continuationModelSelector),
         useSchemaContext: normalizeNullableBoolean(overrides.useSchemaContext),
         debounceMs: normalizeNullableNumber(overrides.debounceMs),
         maxTokens: normalizeNullableNumber(overrides.maxTokens),
+        enabledCategories: normalizeNullableCompletionCategories(overrides.enabledCategories),
         forceIntentMode: normalizeNullableBoolean(overrides.forceIntentMode),
         customSystemPrompt: normalizeNullableString(overrides.customSystemPrompt, true),
         allowAutomaticTriggers: normalizeNullableBoolean(overrides.allowAutomaticTriggers),
+        schemaContext: normalizeNullableObject(overrides.schemaContext),
     };
 }
 
@@ -210,8 +259,16 @@ function normalizePartialOverrides(
 ): Partial<InlineCompletionDebugOverrides> {
     const normalized: Partial<InlineCompletionDebugOverrides> = {};
 
-    if (Object.prototype.hasOwnProperty.call(overrides, "modelFamily")) {
-        normalized.modelFamily = normalizeNullableString(overrides.modelFamily);
+    if (Object.prototype.hasOwnProperty.call(overrides, "profileId")) {
+        normalized.profileId = normalizeNullableProfileId(overrides.profileId);
+    }
+    if (Object.prototype.hasOwnProperty.call(overrides, "modelSelector")) {
+        normalized.modelSelector = normalizeNullableString(overrides.modelSelector);
+    }
+    if (Object.prototype.hasOwnProperty.call(overrides, "continuationModelSelector")) {
+        normalized.continuationModelSelector = normalizeNullableString(
+            overrides.continuationModelSelector,
+        );
     }
     if (Object.prototype.hasOwnProperty.call(overrides, "useSchemaContext")) {
         normalized.useSchemaContext = normalizeNullableBoolean(overrides.useSchemaContext);
@@ -221,6 +278,11 @@ function normalizePartialOverrides(
     }
     if (Object.prototype.hasOwnProperty.call(overrides, "maxTokens")) {
         normalized.maxTokens = normalizeNullableNumber(overrides.maxTokens);
+    }
+    if (Object.prototype.hasOwnProperty.call(overrides, "enabledCategories")) {
+        normalized.enabledCategories = normalizeNullableCompletionCategories(
+            overrides.enabledCategories,
+        );
     }
     if (Object.prototype.hasOwnProperty.call(overrides, "forceIntentMode")) {
         normalized.forceIntentMode = normalizeNullableBoolean(overrides.forceIntentMode);
@@ -233,8 +295,30 @@ function normalizePartialOverrides(
             overrides.allowAutomaticTriggers,
         );
     }
+    if (Object.prototype.hasOwnProperty.call(overrides, "schemaContext")) {
+        normalized.schemaContext = normalizeNullableObject(overrides.schemaContext);
+    }
 
     return normalized;
+}
+
+function normalizeImportedOverrides(
+    overrides: InlineCompletionDebugOverrides | undefined,
+): InlineCompletionDebugOverrides | undefined {
+    if (!overrides) {
+        return undefined;
+    }
+
+    if (overrides.modelSelector !== undefined && overrides.modelSelector !== null) {
+        return overrides;
+    }
+
+    const legacy = (overrides as unknown as { modelFamily?: string | null }).modelFamily;
+    if (typeof legacy === "string") {
+        return { ...overrides, modelSelector: legacy };
+    }
+
+    return overrides;
 }
 
 function normalizeNullableString(
@@ -249,12 +333,87 @@ function normalizeNullableString(
     return normalized.length > 0 ? normalized : null;
 }
 
+function normalizeNullableProfileId(
+    value: InlineCompletionDebugProfileId | string | null | undefined,
+): InlineCompletionDebugProfileId | null {
+    if (!isInlineCompletionDebugProfileId(value)) {
+        return null;
+    }
+
+    return value;
+}
+
 function normalizeNullableBoolean(value: boolean | null | undefined): boolean | null {
     return typeof value === "boolean" ? value : null;
 }
 
 function normalizeNullableNumber(value: number | null | undefined): number | null {
     return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function normalizeNullableCompletionCategories(
+    value: InlineCompletionCategory[] | null | undefined,
+): InlineCompletionCategory[] | null {
+    if (!Array.isArray(value)) {
+        return null;
+    }
+
+    const enabled = new Set<InlineCompletionCategory>();
+    for (const category of value) {
+        if (inlineCompletionCategories.includes(category)) {
+            enabled.add(category);
+        }
+    }
+
+    return inlineCompletionCategories.filter((category) => enabled.has(category));
+}
+
+function normalizeNullableObject(
+    value: unknown,
+): InlineCompletionDebugSchemaContextOverrides | null {
+    if (!isRecord(value)) {
+        return null;
+    }
+
+    return normalizeJsonRecord(value);
+}
+
+function normalizeJsonRecord(
+    value: Record<string, unknown>,
+): InlineCompletionDebugSchemaContextOverrides {
+    const normalized: InlineCompletionDebugSchemaContextOverrides = {};
+    for (const [key, rawValue] of Object.entries(value)) {
+        const normalizedValue = normalizeJsonValue(rawValue);
+        if (normalizedValue !== undefined) {
+            normalized[key] = normalizedValue;
+        }
+    }
+    return normalized;
+}
+
+function normalizeJsonValue(value: unknown): unknown {
+    if (
+        value === null ||
+        typeof value === "string" ||
+        typeof value === "number" ||
+        typeof value === "boolean"
+    ) {
+        return value;
+    }
+
+    if (Array.isArray(value)) {
+        return value.map((item) => normalizeJsonValue(item)).filter((item) => item !== undefined);
+    }
+
+    if (isRecord(value)) {
+        return normalizeJsonRecord(value);
+    }
+
+    return undefined;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null;
 }
 
 function truncateToBudget(
