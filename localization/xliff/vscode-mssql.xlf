@@ -1922,7 +1922,7 @@
     </trans-unit>
     <trans-unit id="++CODE++3583e2d377f9ee2c31596d15752d65fddec82de715720b2c43fad0756d6fda28">
       <source xml:lang="en">Disable all entities</source>
-    </trans-unit>    
+    </trans-unit>
     <trans-unit id="++CODE++bcd054524a893b2ece4c1e612a0d118b1e9ff220f4575849d69cd832577a9065">
       <source xml:lang="en">Disable for SQL</source>
     </trans-unit>
