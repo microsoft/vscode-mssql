@@ -5,6 +5,7 @@
 
 import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
 import { CopilotChat } from "./copilotChat";
+import { Dab } from "./dab";
 
 export namespace SchemaDesigner {
     /**
@@ -394,6 +395,10 @@ export namespace SchemaDesigner {
          * Used as the baseline for diffing against current edits.
          */
         baselineSchema: Schema;
+        /**
+         * Cached Data API builder configuration for the active designer session.
+         */
+        dabConfig?: Dab.DabConfig;
         isDirty: boolean;
     }
 
