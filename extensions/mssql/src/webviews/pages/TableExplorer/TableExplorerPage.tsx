@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import React, { useRef, useState, useEffect, useCallback } from "react";
+import React, { useRef, useEffect, useCallback } from "react";
 import { useTableExplorerContext } from "./TableExplorerStateProvider";
 import { TableDataGrid, TableDataGridRef } from "./TableDataGrid";
 import { TableExplorerToolbar } from "./TableExplorerToolbar";
@@ -12,8 +12,7 @@ import {
     DefinitionPanelCustomTab,
     DesignerDefinitionTabs,
 } from "../../common/definitionPanel";
-import { Button, makeStyles, shorthands, Spinner } from "@fluentui/react-components";
-import { PlayRegular, StopRegular } from "@fluentui/react-icons";
+import { makeStyles, shorthands, Spinner } from "@fluentui/react-components";
 import { locConstants as loc } from "../../common/locConstants";
 import { useTableExplorerSelector } from "./tableExplorerSelector";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
@@ -117,7 +116,6 @@ export const TableExplorerPage: React.FC = () => {
     const sqlPaneMode = useTableExplorerSelector((s) => s.sqlPaneMode);
     const tableQuery = useTableExplorerSelector((s) => s.tableQuery);
     const ownerUri = useTableExplorerSelector((s) => s.ownerUri);
-    const isCustomQueryRunning = useTableExplorerSelector((s) => s.isCustomQueryRunning);
 
     const isLoading = loadStatus === ApiStatus.Loading;
 
@@ -138,7 +136,6 @@ export const TableExplorerPage: React.FC = () => {
     const shouldFocusEditorRef = useRef(false);
     const runQueryRef = useRef<() => void>(() => {});
     const cancelQueryRef = useRef<() => void>(() => {});
-    const [isQueryEmpty, setIsQueryEmpty] = useState(true);
 
     useEffect(() => {
         runQueryRef.current = () => {
@@ -419,7 +416,6 @@ export const TableExplorerPage: React.FC = () => {
         }
         lastSyncedTableQueryRef.current = tableQuery;
         editableQueryRef.current = tableQuery;
-        setIsQueryEmpty(!tableQuery.trim());
 
         const editor = editorRef.current;
         if (editor && editor.getValue() !== tableQuery) {
@@ -563,42 +559,19 @@ export const TableExplorerPage: React.FC = () => {
                                                 themeKind={themeKind}
                                                 defaultValue={editableQueryRef.current}
                                                 options={{
-                                                    readOnly: false,
+                                                    readOnly: true,
                                                     fixedOverflowWidgets: true,
                                                     tabFocusMode: false,
                                                 }}
                                                 onChange={(value) => {
                                                     const text = value ?? "";
                                                     editableQueryRef.current = text;
-                                                    setIsQueryEmpty(!text.trim());
                                                     onContentChange(text);
                                                 }}
                                                 onMount={handleEditorMount}
                                                 beforeMount={beforeMount}
                                             />
                                         </div>
-                                    ),
-                                    headerActions: (
-                                        <>
-                                            <Button
-                                                size="small"
-                                                appearance="primary"
-                                                icon={<PlayRegular />}
-                                                onClick={() =>
-                                                    context.runTableQuery(editableQueryRef.current)
-                                                }
-                                                disabled={isQueryEmpty || isLoading}>
-                                                {loc.tableExplorer.runQuery}
-                                            </Button>
-                                            <Button
-                                                size="small"
-                                                appearance="subtle"
-                                                icon={<StopRegular />}
-                                                onClick={() => context.cancelTableQuery()}
-                                                disabled={!isCustomQueryRunning}>
-                                                {loc.tableExplorer.cancelQuery}
-                                            </Button>
-                                        </>
                                     ),
                                 } satisfies DefinitionPanelCustomTab<"tableQuery">,
                             ]}

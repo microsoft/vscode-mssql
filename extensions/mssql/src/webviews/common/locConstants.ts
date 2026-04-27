@@ -2008,8 +2008,6 @@ export class LocConstants {
             hideSqlPane: l10n.t("Hide SQL Pane"),
             scriptChanges: l10n.t("Script Changes"),
             tableQuery: l10n.t("Table Query"),
-            runQuery: l10n.t("Run"),
-            cancelQuery: this.common.cancel,
         };
     }
 
