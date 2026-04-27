@@ -28,6 +28,7 @@ interface DabContextProps {
     setDabTextFilter: (text: string) => void;
     dabConfigTextFileContent: string;
     openDabConfigInEditor: (configContent: string) => void;
+    addDabConfigToWorkspace: (configContent: string) => void;
     dabDeploymentState: Dab.DabDeploymentState;
     openDabDeploymentDialog: () => void;
     closeDabDeploymentDialog: () => void;
@@ -270,6 +271,15 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         [extensionRpc],
     );
 
+    const addDabConfigToWorkspace = useCallback(
+        (configContent: string) => {
+            void extensionRpc.sendNotification(Dab.AddConfigToWorkspaceNotification.type, {
+                configContent,
+            });
+        },
+        [extensionRpc],
+    );
+
     const openLogsInNewTab = useCallback(
         (logsContent: string) => {
             void extensionRpc.sendNotification(Dab.OpenLogsInNewTabNotification.type, {
@@ -477,6 +487,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 setDabTextFilter,
                 dabConfigTextFileContent,
                 openDabConfigInEditor,
+                addDabConfigToWorkspace,
                 dabDeploymentState,
                 openDabDeploymentDialog,
                 closeDabDeploymentDialog,
