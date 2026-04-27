@@ -37,6 +37,7 @@ export interface InlineCompletionDebugContextProps {
     sessionsLoadIncluded: () => void;
     sessionsAddFile: () => void;
     sessionsChangeFolder: () => void;
+    sessionsEnableTraceCollection: () => void;
     sessionsSyncToDatabase: () => void;
     replayEvent: (eventId: string) => void;
     replaySessionEvent: (event: InlineCompletionDebugEvent) => void;
@@ -185,6 +186,10 @@ export const InlineCompletionDebugStateProvider = ({ children }: { children: Rea
 
     const sessionsChangeFolder = useCallback(() => {
         extensionRpc.action("sessionsChangeFolder", {});
+    }, [extensionRpc]);
+
+    const sessionsEnableTraceCollection = useCallback(() => {
+        extensionRpc.action("sessionsEnableTraceCollection", {});
     }, [extensionRpc]);
 
     const sessionsSyncToDatabase = useCallback(() => {
@@ -337,6 +342,7 @@ export const InlineCompletionDebugStateProvider = ({ children }: { children: Rea
                 sessionsLoadIncluded,
                 sessionsAddFile,
                 sessionsChangeFolder,
+                sessionsEnableTraceCollection,
                 sessionsSyncToDatabase,
                 replayEvent,
                 replaySessionEvent,

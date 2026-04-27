@@ -8,6 +8,7 @@ import {
     InlineCompletionDebugOverrides,
     InlineCompletionDebugProfileId,
     InlineCompletionDebugProfileOption,
+    InlineCompletionDebugSchemaContextOverrides,
 } from "../../sharedInterfaces/inlineCompletionDebug";
 
 export interface InlineCompletionModelPreference {
@@ -17,26 +18,40 @@ export interface InlineCompletionModelPreference {
 
 export interface InlineCompletionDebugProfileDefinition extends InlineCompletionDebugProfileOption {
     modelPreference: InlineCompletionModelPreference;
+    continuationModelPreference?: InlineCompletionModelPreference;
     forceIntentMode: boolean | null;
     enabledCategories: readonly InlineCompletionCategory[];
+    useSchemaContext: boolean | null;
+    schemaContext: InlineCompletionDebugSchemaContextOverrides | null;
     debounceMs: number;
     maxTokens: number | null;
 }
 
 export const inlineCompletionDebugCustomProfileId = "custom";
-export const inlineCompletionConfiguredDefaultProfileId = "default";
+export const inlineCompletionConfiguredDefaultProfileId: InlineCompletionDebugProfileId =
+    "balanced";
+
+export const defaultInlineCompletionModelVendors = [
+    "copilot",
+    "anthropic-api",
+    "openai-api",
+    "xai-api",
+] as const;
 
 export const defaultInlineCompletionModelPreference: InlineCompletionModelPreference = {
-    providerVendors: ["copilot", "anthropic-api", "openai-api", "xai-api"],
+    providerVendors: defaultInlineCompletionModelVendors,
     familyPatterns: [
+        /^claude-sonnet-4-(6|5)/i,
+        /^gpt-5\.5(?!.*mini)/i,
+        /^gpt-5\.[0-9]+(?!.*mini)/i,
+        /^gpt-5(?!.*(mini|codex))/i,
+        /^grok-4\.20/i,
+        /^grok-4/i,
         /^claude-sonnet/i,
         /^claude-opus/i,
         /^gpt-5.*codex/i,
-        /^gpt-5(?!.*(mini|codex))/i,
         /^gpt-5.*mini/i,
         /^grok-4\.1.*fast/i,
-        /^grok-4\.20/i,
-        /^grok-4/i,
         /^grok.*mini/i,
         /^gpt-4o(?!-mini)/i,
         /^gpt-4o-mini/i,
@@ -45,22 +60,38 @@ export const defaultInlineCompletionModelPreference: InlineCompletionModelPrefer
     ],
 };
 
-const lowTokenModelPreference: InlineCompletionModelPreference = {
-    providerVendors: defaultInlineCompletionModelPreference.providerVendors,
+const intentModelPreference: InlineCompletionModelPreference = {
+    providerVendors: ["copilot", "anthropic-api", "openai-api", "xai-api"],
     familyPatterns: [
-        /^claude.*haiku/i,
+        /^claude-sonnet-4-(6|5)/i,
+        /^gpt-5\.5(?!.*mini)/i,
+        /^gpt-5\.[0-9]+(?!.*mini)/i,
+        /^gpt-5(?!.*(mini|codex))/i,
+        /^grok-4\.20/i,
+        /^grok-4/i,
+        /^claude-sonnet/i,
+        /^claude-opus/i,
+        /^gpt-4o(?!-mini)/i,
+        /.*/i,
+    ],
+};
+
+const continuationModelPreference: InlineCompletionModelPreference = {
+    providerVendors: defaultInlineCompletionModelVendors,
+    familyPatterns: [
+        /^claude-haiku-4-5/i,
+        /^gpt-5\.5.*mini/i,
         /^gpt-5.*mini/i,
+        /^gpt-4o-mini/i,
         /^grok-4\.1.*fast/i,
         /^grok.*mini/i,
-        /^gpt-4o-mini/i,
-        /^claude-sonnet/i,
-        /^gpt-5(?!.*(mini|codex))/i,
+        /^claude.*haiku/i,
         /.*/i,
     ],
 };
 
 const middleModelPreference: InlineCompletionModelPreference = {
-    providerVendors: defaultInlineCompletionModelPreference.providerVendors,
+    providerVendors: defaultInlineCompletionModelVendors,
     familyPatterns: [
         /^claude-sonnet/i,
         /^gpt-5(?!.*(mini|codex))/i,
@@ -82,19 +113,24 @@ export const inlineCompletionDebugPresetProfiles: readonly InlineCompletionDebug
             id: "focused",
             label: "Focused",
             description: "Intent-only completions with the lowest automatic request volume.",
-            modelPreference: lowTokenModelPreference,
+            modelPreference: intentModelPreference,
             forceIntentMode: null,
             enabledCategories: ["intent"],
+            useSchemaContext: true,
+            schemaContext: { budgetProfile: "balanced" },
             debounceMs: 1000,
             maxTokens: null,
         },
         {
             id: "balanced",
             label: "Balanced",
-            description: "Intent-only completions with a moderate automatic debounce.",
-            modelPreference: middleModelPreference,
+            description: "Intent and continuation completions with a moderate automatic debounce.",
+            modelPreference: intentModelPreference,
+            continuationModelPreference,
             forceIntentMode: null,
-            enabledCategories: ["intent"],
+            enabledCategories: ["continuation", "intent"],
+            useSchemaContext: true,
+            schemaContext: { budgetProfile: "balanced" },
             debounceMs: 500,
             maxTokens: null,
         },
@@ -105,6 +141,8 @@ export const inlineCompletionDebugPresetProfiles: readonly InlineCompletionDebug
             modelPreference: middleModelPreference,
             forceIntentMode: null,
             enabledCategories: ["continuation", "intent"],
+            useSchemaContext: true,
+            schemaContext: { budgetProfile: "generous" },
             debounceMs: 350,
             maxTokens: null,
         },
@@ -131,6 +169,41 @@ export function getInlineCompletionDebugPresetProfile(
     }
 
     return inlineCompletionDebugPresetProfiles.find((profile) => profile.id === profileId);
+}
+
+export function getInlineCompletionModelPreferenceForCategory(
+    profile: InlineCompletionDebugProfileDefinition | undefined,
+    category: InlineCompletionCategory,
+): InlineCompletionModelPreference | undefined {
+    if (!profile) {
+        return undefined;
+    }
+
+    if (category === "continuation") {
+        return profile.continuationModelPreference ?? profile.modelPreference;
+    }
+
+    return profile.modelPreference;
+}
+
+export function getInlineCompletionProfileSchemaContextOverrides(
+    profile: InlineCompletionDebugProfileDefinition | undefined,
+    overrides: InlineCompletionDebugSchemaContextOverrides | null | undefined,
+): InlineCompletionDebugSchemaContextOverrides | undefined {
+    const profileSchemaContext = profile?.schemaContext ?? undefined;
+    const overrideSchemaContext = overrides ?? undefined;
+    if (!profileSchemaContext && !overrideSchemaContext) {
+        return undefined;
+    }
+
+    return {
+        ...(profileSchemaContext ?? {}),
+        ...(overrideSchemaContext ?? {}),
+        budgetOverrides: {
+            ...(profileSchemaContext?.budgetOverrides ?? {}),
+            ...(overrideSchemaContext?.budgetOverrides ?? {}),
+        },
+    };
 }
 
 export function getInlineCompletionPresetProfileId(
@@ -166,9 +239,11 @@ export function createInlineCompletionDebugPresetOverrides(
         modelSelector: null,
         continuationModelSelector: null,
         forceIntentMode: null,
+        useSchemaContext: null,
         enabledCategories: null,
         debounceMs: null,
         maxTokens: null,
+        schemaContext: null,
         customSystemPrompt: null,
     };
 }

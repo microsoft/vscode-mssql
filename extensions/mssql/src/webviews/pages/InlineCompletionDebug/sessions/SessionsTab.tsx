@@ -26,6 +26,7 @@ import {
     ChevronLeft16Regular,
     ChevronRight16Regular,
     FolderOpenRegular,
+    SaveRegular,
 } from "@fluentui/react-icons";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import {
@@ -132,6 +133,9 @@ const useStyles = makeStyles({
         display: "flex",
         gap: "4px",
         alignItems: "center",
+    },
+    enableTraceButton: {
+        maxWidth: "190px",
     },
     traceToggleActions: {
         display: "flex",
@@ -428,6 +432,14 @@ const useStyles = makeStyles({
         width: "100%",
         height: "132px",
     },
+    chartEmpty: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "var(--vscode-descriptionForeground)",
+        fontSize: tokens.fontSizeBase200,
+        minHeight: "132px",
+    },
     chartTitle: {
         color: "var(--vscode-descriptionForeground)",
         textTransform: "uppercase",
@@ -512,6 +524,40 @@ const useStyles = makeStyles({
         ...shorthands.padding("24px"),
         textAlign: "center",
     },
+    emptyState: {
+        flex: 1,
+        minHeight: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        ...shorthands.padding("32px"),
+        textAlign: "center",
+    },
+    emptyStateContent: {
+        display: "grid",
+        gap: "10px",
+        justifyItems: "center",
+        maxWidth: "620px",
+    },
+    emptyTitle: {
+        fontSize: tokens.fontSizeBase500,
+        fontWeight: tokens.fontWeightSemibold,
+    },
+    emptyDescription: {
+        color: "var(--vscode-descriptionForeground)",
+        lineHeight: tokens.lineHeightBase400,
+    },
+    emptyPath: {
+        fontFamily: "var(--vscode-editor-font-family, Consolas, monospace)",
+        overflowWrap: "anywhere",
+    },
+    emptyActions: {
+        display: "flex",
+        flexWrap: "wrap",
+        justifyContent: "center",
+        gap: "8px",
+        marginTop: "4px",
+    },
 });
 
 export function SessionsTab({ active }: { active: boolean }) {
@@ -525,6 +571,7 @@ export function SessionsTab({ active }: { active: boolean }) {
         sessionsLoadIncluded,
         sessionsAddFile,
         sessionsChangeFolder,
+        sessionsEnableTraceCollection,
         replaySessionEvent,
         addEventsToReplayCart,
     } = useInlineCompletionDebugContext();
@@ -691,21 +738,35 @@ export function SessionsTab({ active }: { active: boolean }) {
         },
         [addEventsToReplayCart, sessionEventDataset],
     );
+    const showTraceCollectionEmptyState =
+        !sessions.traceCaptureEnabled &&
+        sessions.traceIndex.length === 0 &&
+        sessions.loadedTraces.length === 0 &&
+        !sessions.loading;
 
     return (
         <div className={classes.root}>
             <DatasetSelector
                 traceFolder={sessions.traceFolder}
+                traceCaptureEnabled={sessions.traceCaptureEnabled}
                 entries={sessions.traceIndex}
                 loading={sessions.loading}
                 onRefresh={sessionsRefresh}
                 onChangeFolder={sessionsChangeFolder}
+                onEnableTraceCollection={sessionsEnableTraceCollection}
                 onAddFile={sessionsAddFile}
                 onToggleTrace={sessionsToggleTrace}
                 onSetAllTraces={sessionsSetAllTraces}
             />
             {sessions.error ? <div className={classes.empty}>{sessions.error}</div> : null}
-            {!sessions.error ? (
+            {!sessions.error && showTraceCollectionEmptyState ? (
+                <TraceCollectionEmptyState
+                    traceFolder={sessions.traceFolder}
+                    onEnableTraceCollection={sessionsEnableTraceCollection}
+                    onAddFile={sessionsAddFile}
+                />
+            ) : null}
+            {!sessions.error && !showTraceCollectionEmptyState ? (
                 <>
                     <SummaryTiles
                         metrics={summaryMetrics}
@@ -864,21 +925,60 @@ export function SessionsTab({ active }: { active: boolean }) {
     );
 }
 
+function TraceCollectionEmptyState({
+    traceFolder,
+    onEnableTraceCollection,
+    onAddFile,
+}: {
+    traceFolder: string;
+    onEnableTraceCollection: () => void;
+    onAddFile: () => void;
+}) {
+    const classes = useStyles();
+    return (
+        <div className={classes.emptyState}>
+            <div className={classes.emptyStateContent}>
+                <Text className={classes.emptyTitle}>Trace collection is off</Text>
+                <Text className={classes.emptyDescription}>
+                    Enable collection to save inline completion sessions to{" "}
+                    <span className={classes.emptyPath}>{traceFolder}</span>, or add existing trace
+                    JSON files.
+                </Text>
+                <div className={classes.emptyActions}>
+                    <Button
+                        appearance="primary"
+                        icon={<SaveRegular />}
+                        onClick={onEnableTraceCollection}>
+                        Enable Trace Collection
+                    </Button>
+                    <Button icon={<AddRegular />} onClick={onAddFile}>
+                        Add Trace File
+                    </Button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function DatasetSelector({
     traceFolder,
+    traceCaptureEnabled,
     entries,
     loading,
     onRefresh,
     onChangeFolder,
+    onEnableTraceCollection,
     onAddFile,
     onToggleTrace,
     onSetAllTraces,
 }: {
     traceFolder: string;
+    traceCaptureEnabled: boolean;
     entries: InlineCompletionDebugTraceIndexEntry[];
     loading: boolean;
     onRefresh: () => void;
     onChangeFolder: () => void;
+    onEnableTraceCollection: () => void;
     onAddFile: () => void;
     onToggleTrace: (fileKey: string, included: boolean) => void;
     onSetAllTraces: (included: boolean) => void;
@@ -916,6 +1016,19 @@ function DatasetSelector({
                         events{range ? ` · ${range}` : ""}
                     </Text>
                     <ReplayCartButton />
+                    {!traceCaptureEnabled ? (
+                        <Button
+                            className={mergeClasses(
+                                classes.compactButton,
+                                classes.enableTraceButton,
+                            )}
+                            appearance="primary"
+                            icon={<SaveRegular />}
+                            size="small"
+                            onClick={onEnableTraceCollection}>
+                            Enable trace collection
+                        </Button>
+                    ) : null}
                     <div className={classes.traceToggleActions}>
                         <FluentTooltip content="Select all traces" relationship="label">
                             <Button
@@ -1405,99 +1518,129 @@ function ChartsPanel({
     }));
     const timeSeriesData = useMemo(() => createTimeSeriesPoints(events), [events]);
     const groupChartHeight = getGroupChartHeight(groupData.length);
+    const hasGroupData = groupData.length > 0;
+    const hasTimeSeriesData = timeSeriesData.length > 0;
     return (
         <div className={classes.sideCharts}>
             <div className={classes.chartPanel}>
                 <div className={classes.chartTitle}>By group · latency p95</div>
                 <div className={classes.chartBox} style={{ height: groupChartHeight }}>
-                    <ResponsiveContainer>
-                        <BarChart data={groupData} layout="vertical" margin={chartMargin}>
-                            <CartesianGrid stroke="var(--vscode-panel-border)" horizontal={false} />
-                            <XAxis type="number" hide />
-                            <YAxis
-                                type="category"
-                                dataKey="name"
-                                width={112}
-                                tick={axisTick}
-                                interval={0}
-                            />
-                            <RechartsTooltip
-                                contentStyle={tooltipStyle}
-                                formatter={(value) => `${value} ms`}
-                            />
-                            <Bar dataKey="latencyP95" fill="#5aa9e6" />
-                        </BarChart>
-                    </ResponsiveContainer>
+                    {hasGroupData ? (
+                        <ResponsiveContainer>
+                            <BarChart data={groupData} layout="vertical" margin={chartMargin}>
+                                <CartesianGrid
+                                    stroke="var(--vscode-panel-border)"
+                                    horizontal={false}
+                                />
+                                <XAxis type="number" hide />
+                                <YAxis
+                                    type="category"
+                                    dataKey="name"
+                                    width={112}
+                                    tick={axisTick}
+                                    interval={0}
+                                />
+                                <RechartsTooltip
+                                    contentStyle={tooltipStyle}
+                                    formatter={(value) => `${value} ms`}
+                                />
+                                <Bar dataKey="latencyP95" fill="#5aa9e6" />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div className={classes.chartEmpty}>No data</div>
+                    )}
                 </div>
             </div>
             <div className={classes.chartPanel}>
                 <div className={classes.chartTitle}>Acceptance funnel</div>
                 <div className={classes.chartBox} style={{ height: groupChartHeight }}>
-                    <ResponsiveContainer>
-                        <BarChart data={groupData} layout="vertical" margin={chartMargin}>
-                            <CartesianGrid stroke="var(--vscode-panel-border)" horizontal={false} />
-                            <XAxis type="number" hide />
-                            <YAxis
-                                type="category"
-                                dataKey="name"
-                                width={112}
-                                tick={axisTick}
-                                interval={0}
-                            />
-                            <RechartsTooltip contentStyle={tooltipStyle} />
-                            <Bar dataKey="accepted" stackId="result" fill="#53cdb8" />
-                            <Bar dataKey="rejected" stackId="result" fill="#d7daa0" />
-                            <Bar dataKey="cancelled" stackId="result" fill="#8f8f8f" />
-                            <Bar dataKey="error" stackId="result" fill="#e06c75" />
-                        </BarChart>
-                    </ResponsiveContainer>
+                    {hasGroupData ? (
+                        <ResponsiveContainer>
+                            <BarChart data={groupData} layout="vertical" margin={chartMargin}>
+                                <CartesianGrid
+                                    stroke="var(--vscode-panel-border)"
+                                    horizontal={false}
+                                />
+                                <XAxis type="number" hide />
+                                <YAxis
+                                    type="category"
+                                    dataKey="name"
+                                    width={112}
+                                    tick={axisTick}
+                                    interval={0}
+                                />
+                                <RechartsTooltip contentStyle={tooltipStyle} />
+                                <Bar dataKey="accepted" stackId="result" fill="#53cdb8" />
+                                <Bar dataKey="rejected" stackId="result" fill="#d7daa0" />
+                                <Bar dataKey="cancelled" stackId="result" fill="#8f8f8f" />
+                                <Bar dataKey="error" stackId="result" fill="#e06c75" />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div className={classes.chartEmpty}>No data</div>
+                    )}
                 </div>
             </div>
             <div className={classes.chartPanel}>
                 <div className={classes.chartTitle}>Token cost in / out</div>
                 <div className={classes.chartBox} style={{ height: groupChartHeight }}>
-                    <ResponsiveContainer>
-                        <BarChart data={groupData} layout="vertical" margin={chartMargin}>
-                            <CartesianGrid stroke="var(--vscode-panel-border)" horizontal={false} />
-                            <XAxis type="number" hide />
-                            <YAxis
-                                type="category"
-                                dataKey="name"
-                                width={112}
-                                tick={axisTick}
-                                interval={0}
-                            />
-                            <RechartsTooltip contentStyle={tooltipStyle} />
-                            <Bar dataKey="inputTokens" stackId="tokens" fill="#5aa9e6" />
-                            <Bar dataKey="outputTokens" stackId="tokens" fill="#53cdb8" />
-                        </BarChart>
-                    </ResponsiveContainer>
+                    {hasGroupData ? (
+                        <ResponsiveContainer>
+                            <BarChart data={groupData} layout="vertical" margin={chartMargin}>
+                                <CartesianGrid
+                                    stroke="var(--vscode-panel-border)"
+                                    horizontal={false}
+                                />
+                                <XAxis type="number" hide />
+                                <YAxis
+                                    type="category"
+                                    dataKey="name"
+                                    width={112}
+                                    tick={axisTick}
+                                    interval={0}
+                                />
+                                <RechartsTooltip contentStyle={tooltipStyle} />
+                                <Bar dataKey="inputTokens" stackId="tokens" fill="#5aa9e6" />
+                                <Bar dataKey="outputTokens" stackId="tokens" fill="#53cdb8" />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div className={classes.chartEmpty}>No data</div>
+                    )}
                 </div>
             </div>
             <div className={classes.chartPanel}>
                 <div className={classes.chartTitle}>Time series · latency p95</div>
                 <div className={classes.chartBox}>
-                    <ResponsiveContainer>
-                        <LineChart data={timeSeriesData} margin={chartMargin}>
-                            <CartesianGrid stroke="var(--vscode-panel-border)" vertical={false} />
-                            <XAxis dataKey="bucket" tick={axisTick} minTickGap={16} />
-                            <YAxis tick={axisTick} width={42} />
-                            <RechartsTooltip
-                                contentStyle={tooltipStyle}
-                                labelFormatter={(_, points) =>
-                                    points?.[0]?.payload?.range ?? "No events"
-                                }
-                                formatter={(value) => `${value} ms`}
-                            />
-                            <Line
-                                type="monotone"
-                                dataKey="latencyP95"
-                                stroke="#53cdb8"
-                                dot={false}
-                                strokeWidth={2}
-                            />
-                        </LineChart>
-                    </ResponsiveContainer>
+                    {hasTimeSeriesData ? (
+                        <ResponsiveContainer>
+                            <LineChart data={timeSeriesData} margin={chartMargin}>
+                                <CartesianGrid
+                                    stroke="var(--vscode-panel-border)"
+                                    vertical={false}
+                                />
+                                <XAxis dataKey="bucket" tick={axisTick} minTickGap={16} />
+                                <YAxis tick={axisTick} width={42} />
+                                <RechartsTooltip
+                                    contentStyle={tooltipStyle}
+                                    labelFormatter={(_, points) =>
+                                        points?.[0]?.payload?.range ?? "No events"
+                                    }
+                                    formatter={(value) => `${value} ms`}
+                                />
+                                <Line
+                                    type="monotone"
+                                    dataKey="latencyP95"
+                                    stroke="#53cdb8"
+                                    dot={false}
+                                    strokeWidth={2}
+                                />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div className={classes.chartEmpty}>No data</div>
+                    )}
                 </div>
             </div>
         </div>

@@ -323,6 +323,7 @@ export interface InlineCompletionDebugReducers {
     sessionsLoadIncluded: Record<string, never>;
     sessionsAddFile: Record<string, never>;
     sessionsChangeFolder: Record<string, never>;
+    sessionsEnableTraceCollection: Record<string, never>;
     sessionsSyncToDatabase: Record<string, never>;
     replayEvent: {
         eventId: string;
@@ -423,6 +424,7 @@ export interface InlineCompletionDebugLoadedTrace {
 
 export interface InlineCompletionDebugSessionsState {
     traceFolder: string;
+    traceCaptureEnabled: boolean;
     traceIndex: InlineCompletionDebugTraceIndexEntry[];
     loadedTraces: InlineCompletionDebugLoadedTrace[];
     loading: boolean;

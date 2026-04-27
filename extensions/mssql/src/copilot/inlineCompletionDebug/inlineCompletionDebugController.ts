@@ -17,7 +17,11 @@ import {
     normalizeTraceFile,
     scanTraceFolder,
 } from "./traceLoader";
-import { getConfiguredTraceFolder, saveInlineCompletionTraceNow } from "./tracePersistence";
+import {
+    getConfiguredTraceFolder,
+    getTraceCaptureEnabledSetting,
+    saveInlineCompletionTraceNow,
+} from "./tracePersistence";
 import {
     automaticTriggerDebounceMs,
     buildCompletionRules,
@@ -53,7 +57,10 @@ import {
 import {
     createInlineCompletionDebugPresetOverrides,
     getInlineCompletionDebugPresetProfile,
+    getInlineCompletionModelPreferenceForCategory,
     getInlineCompletionPresetProfileId,
+    getInlineCompletionProfileSchemaContextOverrides,
+    inlineCompletionConfiguredDefaultProfileId,
     inlineCompletionDebugCustomProfileId,
     inlineCompletionDebugProfileOptions,
     InlineCompletionModelPreference,
@@ -189,6 +196,9 @@ export class InlineCompletionDebugController extends WebviewPanelController<
                 if (
                     e.affectsConfiguration(
                         Constants.configCopilotInlineCompletionsDebugRecordWhenClosed,
+                    ) ||
+                    e.affectsConfiguration(
+                        Constants.configCopilotInlineCompletionsTraceCaptureEnabled,
                     ) ||
                     e.affectsConfiguration(Constants.configCopilotInlineCompletionsProfile) ||
                     e.affectsConfiguration(
@@ -408,6 +418,14 @@ export class InlineCompletionDebugController extends WebviewPanelController<
             });
         });
 
+        this.registerReducer("sessionsEnableTraceCollection", async (state) => {
+            await this.enableTraceCollection();
+            return this.createState({
+                selectedEventId: state.selectedEventId,
+                customPromptDialogOpen: state.customPrompt.dialogOpen,
+            });
+        });
+
         this.registerReducer("sessionsSyncToDatabase", async (state) => {
             await this.showSyncToDatabaseNotImplemented();
             return this.createState({
@@ -601,7 +619,10 @@ export class InlineCompletionDebugController extends WebviewPanelController<
         return createState({
             availableModels: this._availableModels,
             effectiveDefaultModelOption: this._effectiveDefaultModelOption,
-            sessions: this._sessionsState,
+            sessions: {
+                ...this._sessionsState,
+                traceCaptureEnabled: getTraceCaptureEnabledSetting(),
+            },
             replay: this._replayState,
             selectedEventId: overrides?.selectedEventId ?? this.state?.selectedEventId,
             customPromptDialogOpen:
@@ -689,6 +710,7 @@ export class InlineCompletionDebugController extends WebviewPanelController<
             Object.prototype.hasOwnProperty.call(update, "modelSelector") ||
             Object.prototype.hasOwnProperty.call(update, "continuationModelSelector") ||
             Object.prototype.hasOwnProperty.call(update, "forceIntentMode") ||
+            Object.prototype.hasOwnProperty.call(update, "useSchemaContext") ||
             Object.prototype.hasOwnProperty.call(update, "enabledCategories") ||
             Object.prototype.hasOwnProperty.call(update, "debounceMs") ||
             Object.prototype.hasOwnProperty.call(update, "maxTokens") ||
@@ -712,16 +734,33 @@ export class InlineCompletionDebugController extends WebviewPanelController<
             getConfiguredModelSelector(),
             profile.modelPreference,
         );
+        const configuredContinuationModelSelector = getConfiguredContinuationModelSelector();
+        const continuationModelPreference = getInlineCompletionModelPreferenceForCategory(
+            profile,
+            "continuation",
+        );
+        const continuationModelOption = configuredContinuationModelSelector
+            ? pickConfiguredModelOption(
+                  this._availableModels,
+                  configuredContinuationModelSelector,
+                  continuationModelPreference,
+              )
+            : pickDefaultModelOption(this._availableModels, undefined, continuationModelPreference);
 
         return {
             profileId: inlineCompletionDebugCustomProfileId,
             modelSelector: current.modelSelector ?? modelOption?.selector ?? null,
-            continuationModelSelector: current.continuationModelSelector,
+            continuationModelSelector:
+                current.continuationModelSelector ?? continuationModelOption?.selector ?? null,
             forceIntentMode: current.forceIntentMode ?? profile.forceIntentMode,
+            useSchemaContext:
+                current.useSchemaContext ??
+                profile.useSchemaContext ??
+                getConfiguredUseSchemaContext(),
             enabledCategories: current.enabledCategories ?? [...profile.enabledCategories],
             debounceMs: current.debounceMs ?? profile.debounceMs,
             maxTokens: current.maxTokens ?? profile.maxTokens,
-            schemaContext: current.schemaContext,
+            schemaContext: current.schemaContext ?? profile.schemaContext,
         };
     }
 
@@ -1011,6 +1050,54 @@ export class InlineCompletionDebugController extends WebviewPanelController<
                 getConfigurationTarget(),
             );
         await this.refreshSessions({ resetFolder: true });
+    }
+
+    private async enableTraceCollection(): Promise<void> {
+        const currentFolder = getConfiguredTraceFolder(this._extensionContext);
+        const useFolder = "Use this folder";
+        const chooseOtherFolder = "Choose other folder";
+        const selection = await vscode.window.showInformationMessage(
+            `Enable inline completion trace collection and save trace files to ${currentFolder}?`,
+            useFolder,
+            chooseOtherFolder,
+        );
+
+        if (!selection) {
+            return;
+        }
+
+        let resetFolder = false;
+        if (selection === chooseOtherFolder) {
+            const selectedFolders = await vscode.window.showOpenDialog({
+                title: "Choose Inline Completion Trace Folder",
+                canSelectFiles: false,
+                canSelectFolders: true,
+                canSelectMany: false,
+                defaultUri: vscode.Uri.file(currentFolder),
+            });
+            const selectedFolder = selectedFolders?.[0];
+            if (!selectedFolder) {
+                return;
+            }
+
+            await vscode.workspace
+                .getConfiguration()
+                .update(
+                    Constants.configCopilotInlineCompletionsTraceFolder,
+                    selectedFolder.fsPath,
+                    getConfigurationTarget(),
+                );
+            resetFolder = true;
+        }
+
+        await vscode.workspace
+            .getConfiguration()
+            .update(
+                Constants.configCopilotInlineCompletionsTraceCaptureEnabled,
+                true,
+                getConfigurationTarget(),
+            );
+        await this.refreshSessions({ resetFolder });
     }
 
     private async showSyncToDatabaseNotImplemented(): Promise<void> {
@@ -1584,13 +1671,17 @@ export class InlineCompletionDebugController extends WebviewPanelController<
         const intentMode =
             overrides.forceIntentMode ?? profile?.forceIntentMode ?? sourceEvent.intentMode;
         const completionCategory = getInlineCompletionCategory(intentMode);
+        const modelPreference = getInlineCompletionModelPreferenceForCategory(
+            profile,
+            completionCategory,
+        );
         const selectedModel = await this.selectReplayModel(
             getModelSelectorForCompletionCategory(
                 overrides,
                 completionCategory,
                 getConfiguredContinuationModelSelector(),
             ),
-            profile?.modelPreference,
+            modelPreference,
         );
         if (!selectedModel) {
             return inlineCompletionDebugStore.addEvent({
@@ -1656,17 +1747,24 @@ export class InlineCompletionDebugController extends WebviewPanelController<
             });
         }
 
-        const useSchemaContext = overrides.useSchemaContext ?? getConfiguredUseSchemaContext();
+        const useSchemaContext =
+            overrides.useSchemaContext ??
+            profile?.useSchemaContext ??
+            getConfiguredUseSchemaContext();
+        const schemaContextOverrides = getInlineCompletionProfileSchemaContextOverrides(
+            profile,
+            overrides.schemaContext,
+        );
         const schemaContextSettings = getSqlInlineCompletionSchemaContextRuntimeSettings(
             selectedModel.maxInputTokens,
-            overrides.schemaContext,
+            schemaContextOverrides,
         );
         const replaySchemaContext = useSchemaContext
             ? await this.getReplaySchemaContext(
                   sourceEvent,
                   statementPrefix,
                   selectedModel.maxInputTokens,
-                  overrides.schemaContext,
+                  schemaContextOverrides,
               )
             : {
                   schemaContext: undefined,
@@ -1975,6 +2073,7 @@ function createState(options: {
     const profile = getInlineCompletionDebugPresetProfile(effectiveProfileId);
     const configuredModelSelector = getConfiguredModelSelector();
     const configuredContinuationModelSelector = getConfiguredContinuationModelSelector();
+    const continuationModelPreference = profile?.continuationModelPreference;
     const effectiveOption =
         (profile ? undefined : options.effectiveDefaultModelOption) ??
         pickDefaultModelOption(
@@ -1986,9 +2085,12 @@ function createState(options: {
         ? pickConfiguredModelOption(
               options.availableModels,
               configuredContinuationModelSelector,
-              profile?.modelPreference,
+              continuationModelPreference ?? profile?.modelPreference,
           )
-        : undefined;
+        : continuationModelPreference
+          ? pickDefaultModelOption(options.availableModels, undefined, continuationModelPreference)
+          : undefined;
+    const configuredSchemaContext = getConfiguredSchemaContextSetting();
     return {
         events: inlineCompletionDebugStore.getEvents(),
         overrides,
@@ -2001,7 +2103,7 @@ function createState(options: {
             effectiveModelLabel: effectiveOption?.label,
             effectiveContinuationModelSelector: effectiveContinuationOption?.selector,
             effectiveContinuationModelLabel: effectiveContinuationOption?.label,
-            useSchemaContext: getConfiguredUseSchemaContext(),
+            useSchemaContext: profile?.useSchemaContext ?? getConfiguredUseSchemaContext(),
             debounceMs: profile?.debounceMs ?? automaticTriggerDebounceMs,
             continuationMaxTokens: continuationModeMaxTokens,
             intentMaxTokens: intentModeMaxTokens,
@@ -2009,7 +2111,10 @@ function createState(options: {
                 ? [...profile.enabledCategories]
                 : getConfiguredEnabledCategories(),
             allowAutomaticTriggers: true,
-            schemaContext: getConfiguredSchemaContextSetting(),
+            schemaContext: mergeSchemaContextDefaults(
+                configuredSchemaContext,
+                profile?.schemaContext,
+            ),
         },
         profiles: [...inlineCompletionDebugProfileOptions],
         availableModels: options.availableModels,
@@ -2038,6 +2143,7 @@ function createEmptyReplayState(): InlineCompletionDebugReplayState {
 function createEmptySessionsState(traceFolder: string): InlineCompletionDebugSessionsState {
     return {
         traceFolder,
+        traceCaptureEnabled: getTraceCaptureEnabledSetting(),
         traceIndex: [],
         loadedTraces: [],
         loading: false,
@@ -2149,8 +2255,13 @@ function getConfiguredContinuationModelSelector(): string | undefined {
 function getConfiguredInlineCompletionProfileId(): InlineCompletionDebugProfileId | undefined {
     const configured = vscode.workspace
         .getConfiguration()
-        .get<string>(Constants.configCopilotInlineCompletionsProfile, "default");
-    return getInlineCompletionPresetProfileId(configured);
+        .get<string>(
+            Constants.configCopilotInlineCompletionsProfile,
+            inlineCompletionConfiguredDefaultProfileId,
+        );
+    return (
+        getInlineCompletionPresetProfileId(configured) ?? inlineCompletionConfiguredDefaultProfileId
+    );
 }
 
 function getEffectiveOverridesWithConfiguredProfile(
@@ -2198,6 +2309,24 @@ function getConfiguredSchemaContextSetting(): InlineCompletionDebugSchemaContext
     return isRecord(configured)
         ? (configured as InlineCompletionDebugSchemaContextOverrides)
         : null;
+}
+
+function mergeSchemaContextDefaults(
+    configured: InlineCompletionDebugSchemaContextOverrides | null,
+    profileSchemaContext: InlineCompletionDebugSchemaContextOverrides | null | undefined,
+): InlineCompletionDebugSchemaContextOverrides | null {
+    if (!configured && !profileSchemaContext) {
+        return null;
+    }
+
+    return {
+        ...(configured ?? {}),
+        ...(profileSchemaContext ?? {}),
+        budgetOverrides: {
+            ...(configured?.budgetOverrides ?? {}),
+            ...(profileSchemaContext?.budgetOverrides ?? {}),
+        },
+    };
 }
 
 function getConfiguredEnabledCategories() {

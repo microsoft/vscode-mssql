@@ -56,22 +56,26 @@ export function registerSdkLanguageModelProviders(context: vscode.ExtensionConte
         return;
     }
 
-    if (isSettingEnabled(Constants.configCopilotSdkProvidersAnthropicEnabled, true)) {
+    const enabledProviderKinds = getEnabledProviderKinds();
+
+    if (enabledProviderKinds.has("anthropic")) {
         const provider = new AnthropicSdkLanguageModelProvider(context, { apiKeys });
         context.subscriptions.push(registerLanguageModelChatProvider("anthropic-api", provider));
     }
 
-    if (isSettingEnabled(Constants.configCopilotSdkProvidersOpenAiEnabled, true)) {
+    if (enabledProviderKinds.has("openai")) {
         const provider = new OpenAiSdkLanguageModelProvider(context, { apiKeys });
         context.subscriptions.push(registerLanguageModelChatProvider("openai-api", provider));
     }
 
-    if (isSettingEnabled(Constants.configCopilotSdkProvidersXAiEnabled, true)) {
+    if (enabledProviderKinds.has("xai")) {
         const provider = new XAiSdkLanguageModelProvider(context, { apiKeys });
         context.subscriptions.push(registerLanguageModelChatProvider("xai-api", provider));
     }
 
-    void showNoExternalProviderAvailableMessage(context, apiKeys);
+    if (enabledProviderKinds.size > 0) {
+        void showNoExternalProviderAvailableMessage(context, apiKeys);
+    }
 }
 
 async function promptAndStoreApiKey(
@@ -163,6 +167,20 @@ async function showNoExternalProviderAvailableMessage(
     } else if (selection === dontShow) {
         await context.globalState.update(dontShowKey, true);
     }
+}
+
+function getEnabledProviderKinds(): Set<SdkProviderKind> {
+    const enabledProviderKinds = new Set<SdkProviderKind>();
+    if (isSettingEnabled(Constants.configCopilotSdkProvidersAnthropicEnabled, false)) {
+        enabledProviderKinds.add("anthropic");
+    }
+    if (isSettingEnabled(Constants.configCopilotSdkProvidersOpenAiEnabled, false)) {
+        enabledProviderKinds.add("openai");
+    }
+    if (isSettingEnabled(Constants.configCopilotSdkProvidersXAiEnabled, false)) {
+        enabledProviderKinds.add("xai");
+    }
+    return enabledProviderKinds;
 }
 
 function isSettingEnabled(setting: string, defaultValue: boolean): boolean {

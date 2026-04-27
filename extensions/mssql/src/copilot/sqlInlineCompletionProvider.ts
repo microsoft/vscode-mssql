@@ -13,7 +13,10 @@ import { getErrorMessage } from "../utils/utils";
 import {
     defaultInlineCompletionModelPreference,
     getInlineCompletionDebugPresetProfile,
+    getInlineCompletionModelPreferenceForCategory,
     getInlineCompletionPresetProfileId,
+    getInlineCompletionProfileSchemaContextOverrides,
+    inlineCompletionConfiguredDefaultProfileId,
     InlineCompletionModelPreference,
 } from "./inlineCompletionDebug/inlineCompletionDebugProfiles";
 import { inlineCompletionDebugStore } from "./inlineCompletionDebug/inlineCompletionDebugStore";
@@ -187,6 +190,10 @@ export class SqlInlineCompletionProvider
         const intentMode =
             overrides.forceIntentMode ?? profile?.forceIntentMode ?? detectedIntentMode;
         const completionCategory = getInlineCompletionCategory(intentMode);
+        const modelPreference = getInlineCompletionModelPreferenceForCategory(
+            profile,
+            completionCategory,
+        );
         const enabledCategories =
             overrides.enabledCategories ??
             (profile ? [...profile.enabledCategories] : this.getConfiguredEnabledCategories());
@@ -198,11 +205,21 @@ export class SqlInlineCompletionProvider
             intentMode ? intentModeMaxChars : maxCompletionChars,
             overrides.maxTokens ?? profile?.maxTokens,
         );
-        const useSchemaContext = overrides.useSchemaContext ?? this.getConfiguredUseSchemaContext();
+        const useSchemaContext =
+            overrides.useSchemaContext ??
+            profile?.useSchemaContext ??
+            this.getConfiguredUseSchemaContext();
         const shouldCaptureDebug = inlineCompletionDebugStore.shouldCapture(
             this.getRecordWhenClosedSetting(),
         );
-        let schemaContextSettings = getSqlInlineCompletionSchemaContextRuntimeSettings();
+        const schemaContextOverrides = getInlineCompletionProfileSchemaContextOverrides(
+            profile,
+            overrides.schemaContext,
+        );
+        let schemaContextSettings = getSqlInlineCompletionSchemaContextRuntimeSettings(
+            undefined,
+            schemaContextOverrides,
+        );
 
         if (!isInlineCompletionCategoryEnabled(completionCategory, enabledCategories)) {
             return [];
@@ -379,7 +396,7 @@ export class SqlInlineCompletionProvider
                     completionCategory,
                     this.getConfiguredContinuationModelSelector(),
                 ),
-                profile?.modelPreference,
+                modelPreference,
             );
             if (!selectedModel) {
                 const telemetrySnapshot = createInlineTelemetrySnapshot(
@@ -397,6 +414,7 @@ export class SqlInlineCompletionProvider
 
             schemaContextSettings = getSqlInlineCompletionSchemaContextRuntimeSettings(
                 selectedModel.maxInputTokens,
+                schemaContextOverrides,
             );
             recordDebugEvent("pending");
 
@@ -425,6 +443,7 @@ export class SqlInlineCompletionProvider
                     document,
                     statementPrefix,
                     selectedModel.maxInputTokens,
+                    schemaContextOverrides,
                 );
             }
 
@@ -740,8 +759,13 @@ function getModelSelectorForCompletionCategory(
 function getConfiguredInlineCompletionProfileId() {
     const configured = vscode.workspace
         .getConfiguration()
-        .get<string>(Constants.configCopilotInlineCompletionsProfile, "default");
-    return getInlineCompletionPresetProfileId(configured);
+        .get<string>(
+            Constants.configCopilotInlineCompletionsProfile,
+            inlineCompletionConfiguredDefaultProfileId,
+        );
+    return (
+        getInlineCompletionPresetProfileId(configured) ?? inlineCompletionConfiguredDefaultProfileId
+    );
 }
 
 export function getInlineCompletionCategory(intentMode: boolean): InlineCompletionCategory {
@@ -1055,9 +1079,19 @@ function modelMatchesPreferencePattern(
             return false;
         }
 
-        pattern.lastIndex = 0;
-        return pattern.test(value);
+        return [value, normalizeModelPreferenceText(value)].some((candidate) => {
+            pattern.lastIndex = 0;
+            return pattern.test(candidate);
+        });
     });
+}
+
+function normalizeModelPreferenceText(value: string): string {
+    return value
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
 }
 
 export async function collectText(

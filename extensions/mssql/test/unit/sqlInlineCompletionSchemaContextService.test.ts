@@ -137,6 +137,40 @@ suite("SqlInlineCompletionSchemaContextService Tests", () => {
         expect(queryString.trimStart()).to.match(/^SET NOCOUNT ON;/);
         expect(queryString).to.not.include("INSERT INTO @relevanceTerms");
         expect(queryString).to.not.include("@relevanceTerms");
+        expect(queryString).to.include("SUBSTRING(@schemaContextJson, chunkStart, 4000)");
+        expect(queryString).to.include("OPTION (MAXRECURSION 0)");
+    });
+
+    test("reassembles schema context returned across multiple simple execute rows", async () => {
+        connectionManager.getConnectionInfo.returns(createConnectionInfo("Sales"));
+        const payload = {
+            server: "localhost",
+            database: "Sales",
+            defaultSchema: "dbo",
+            schemas: [{ name: "dbo" }],
+            tables: [
+                {
+                    schema: "dbo",
+                    name: "Customers",
+                    columns: [{ name: "CustomerId" }, { name: "Name" }],
+                },
+                {
+                    schema: "sales",
+                    name: "Purchases",
+                    columns: [{ name: "PurchaseId" }, { name: "CustomerId" }],
+                },
+            ],
+            views: [],
+            masterSymbols: [],
+        };
+        serviceClient.sendRequest.resolves(createChunkedSimpleExecuteResult(payload, 37));
+
+        const result = await service.getSchemaContext(createTestDocument("SELECT ", ownerUri));
+
+        expect(result?.tables.map((table) => table.name)).to.deep.equal([
+            "dbo.Customers",
+            "sales.Purchases",
+        ]);
     });
 
     test("reserves detailed table slots for foreign-key expansion before topping up by relevance", async () => {
@@ -335,5 +369,22 @@ function createSimpleExecuteResult(payload: unknown): SimpleExecuteResult {
         rowCount: 1,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         rows: [[{ displayValue: JSON.stringify(payload), isNull: false }]] as any,
+    } as SimpleExecuteResult;
+}
+
+function createChunkedSimpleExecuteResult(
+    payload: unknown,
+    chunkSize: number,
+): SimpleExecuteResult {
+    const serialized = JSON.stringify(payload);
+    const rows = [];
+    for (let index = 0; index < serialized.length; index += chunkSize) {
+        rows.push([{ displayValue: serialized.slice(index, index + chunkSize), isNull: false }]);
+    }
+
+    return {
+        rowCount: rows.length,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        rows: rows as any,
     } as SimpleExecuteResult;
 }

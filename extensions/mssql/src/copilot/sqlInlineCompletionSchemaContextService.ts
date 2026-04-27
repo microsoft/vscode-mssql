@@ -3222,6 +3222,7 @@ DECLARE @maxMasterSymbols int = ${sqlInt(budget.maxMasterSymbols)};
 DECLARE @maxSystemObjects int = ${sqlInt(budget.maxSystemObjects)};
 DECLARE @maxForeignKeys int = ${sqlInt(maxFetchForeignKeys)};
 DECLARE @maxParametersPerRoutine int = ${sqlInt(budget.maxParametersPerRoutine)};
+DECLARE @schemaContextJson nvarchar(max);
 
 WITH preferredSystemObjects AS (
     -- scope=all: catalog/info-schema objects that are broadly valid when present.
@@ -3415,7 +3416,7 @@ rankedColumnForeignKeys AS (
     FROM rankedForeignKeys rfk
     WHERE rfk.foreignKeyRank <= @maxForeignKeys
 )
-SELECT (
+SELECT @schemaContextJson = (
     SELECT
         @@SERVERNAME AS [server],
         DB_NAME() AS [database],
@@ -3615,6 +3616,19 @@ SELECT (
             FOR JSON PATH
         )) AS [masterSymbols]
     FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
-) AS schemaContextJson;
+);
+
+WITH schemaContextChunks AS (
+    SELECT 1 AS chunkStart
+    WHERE @schemaContextJson IS NOT NULL AND LEN(@schemaContextJson) > 0
+    UNION ALL
+    SELECT chunkStart + 4000
+    FROM schemaContextChunks
+    WHERE chunkStart + 4000 <= LEN(@schemaContextJson)
+)
+SELECT SUBSTRING(@schemaContextJson, chunkStart, 4000) AS schemaContextJson
+FROM schemaContextChunks
+ORDER BY chunkStart
+OPTION (MAXRECURSION 0);
 `.trim();
 }

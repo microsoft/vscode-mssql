@@ -31,7 +31,7 @@ suite("SqlInlineCompletionProvider Tests", () => {
     let countTokensStub: sinon.SinonStub;
     let experimentalFeaturesEnabled: boolean;
     let inlineCompletionFeatureEnabled: boolean;
-    let configuredProfile: string;
+    let configuredProfile: string | undefined;
     let configuredModelFamily: string;
     let enabledCategories: string[];
 
@@ -40,7 +40,7 @@ suite("SqlInlineCompletionProvider Tests", () => {
         stubTelemetry(sandbox);
         experimentalFeaturesEnabled = true;
         inlineCompletionFeatureEnabled = true;
-        configuredProfile = "default";
+        configuredProfile = "balanced";
         configuredModelFamily = "";
         enabledCategories = ["continuation", "intent"];
 
@@ -64,7 +64,7 @@ suite("SqlInlineCompletionProvider Tests", () => {
                     }
 
                     if (key === Constants.configCopilotInlineCompletionsProfile) {
-                        return configuredProfile;
+                        return configuredProfile === undefined ? defaultValue : configuredProfile;
                     }
 
                     if (key === Constants.configCopilotInlineCompletionsModelFamily) {
@@ -573,6 +573,7 @@ ORDER BY qs.total_worker_time DESC;`,
 
     test("returns no completions when the continuation category is disabled", async () => {
         enabledCategories = ["intent"];
+        inlineCompletionDebugStore.updateOverrides({ profileId: "custom" });
 
         const items = await provider.provideInlineCompletionItems(
             createTestDocument("SELECT *", "file:///query.sql"),
@@ -589,6 +590,7 @@ ORDER BY qs.total_worker_time DESC;`,
 
     test("returns no completions when the intent category is disabled", async () => {
         enabledCategories = ["continuation"];
+        inlineCompletionDebugStore.updateOverrides({ profileId: "custom" });
 
         const line = "-- Write a query to show all customers";
         const items = await provider.provideInlineCompletionItems(
@@ -650,6 +652,89 @@ ORDER BY qs.total_worker_time DESC;`,
 
         expect(items).to.deep.equal([]);
         expect(sendRequestStub).to.not.have.been.called;
+    });
+
+    test("uses balanced as the fallback profile when no profile setting is available", async () => {
+        configuredProfile = undefined;
+        schemaContextService.getSchemaContext.resolves(undefined);
+
+        const items = await provider.provideInlineCompletionItems(
+            createTestDocument("SELECT *", "file:///query.sql"),
+            new vscode.Position(0, "SELECT *".length),
+            {
+                triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
+            } as vscode.InlineCompletionContext,
+            { isCancellationRequested: false } as vscode.CancellationToken,
+        );
+
+        expect(items).to.have.lengthOf(1);
+        expect(sendRequestStub).to.have.been.calledOnce;
+    });
+
+    test("uses balanced profile big intent and small continuation model preferences", async () => {
+        const sonnetSendRequest = sandbox.stub().resolves(createChatResponse("SELECT 1;"));
+        const haikuSendRequest = sandbox.stub().resolves(createChatResponse("FROM dbo.Customers"));
+        const gptSendRequest = sandbox.stub().resolves(createChatResponse("SELECT 2;"));
+        (vscode.lm.selectChatModels as sinon.SinonStub).callsFake(async ({ vendor }) => {
+            if (vendor === "copilot") {
+                return [
+                    {
+                        id: "copilot-sonnet",
+                        name: "Claude Sonnet 4.6",
+                        family: "claude-sonnet",
+                        vendor: "copilot",
+                        sendRequest: sonnetSendRequest,
+                        countTokens: countTokensStub,
+                    },
+                    {
+                        id: "copilot-haiku",
+                        name: "Claude Haiku 4.5",
+                        family: "claude-haiku",
+                        vendor: "copilot",
+                        sendRequest: haikuSendRequest,
+                        countTokens: countTokensStub,
+                    },
+                ];
+            }
+
+            if (vendor === "openai-api") {
+                return [
+                    {
+                        id: "gpt-5.5",
+                        name: "GPT-5.5",
+                        family: "gpt-5.5",
+                        vendor: "openai-api",
+                        sendRequest: gptSendRequest,
+                        countTokens: countTokensStub,
+                    },
+                ];
+            }
+
+            return [];
+        });
+        schemaContextService.getSchemaContext.resolves(undefined);
+
+        await provider.provideInlineCompletionItems(
+            createTestDocument("SELECT *", "file:///query.sql"),
+            new vscode.Position(0, "SELECT *".length),
+            {
+                triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
+            } as vscode.InlineCompletionContext,
+            { isCancellationRequested: false } as vscode.CancellationToken,
+        );
+
+        await provider.provideInlineCompletionItems(
+            createTestDocument("-- Write a query to show one row\n", "file:///query.sql"),
+            new vscode.Position(1, 0),
+            {
+                triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
+            } as vscode.InlineCompletionContext,
+            { isCancellationRequested: false } as vscode.CancellationToken,
+        );
+
+        expect(haikuSendRequest).to.have.been.calledOnce;
+        expect(sonnetSendRequest).to.have.been.calledOnce;
+        expect(gptSendRequest).to.not.have.been.called;
     });
 
     test("uses runtime category overrides over the configured default profile", async () => {

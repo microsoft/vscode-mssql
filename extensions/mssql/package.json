@@ -2546,17 +2546,15 @@
                 },
                 "mssql.copilot.inlineCompletions.profile": {
                     "type": "string",
-                    "default": "default",
+                    "default": "balanced",
                     "enum": [
-                        "default",
                         "focused",
                         "balanced",
                         "broad"
                     ],
                     "enumDescriptions": [
-                        "Use the standard inline completion behavior.",
                         "Intent-only completions with the lowest automatic request volume.",
-                        "Intent-only completions with a moderate automatic debounce.",
+                        "Intent and continuation completions with a moderate automatic debounce.",
                         "Intent and continuation completions with the quickest debounce."
                     ],
                     "description": "%mssql.copilot.inlineCompletions.profile.description%",
@@ -2564,7 +2562,7 @@
                 },
                 "mssql.copilot.inlineCompletions.modelFamily": {
                     "type": "string",
-                    "default": "claude-sonnet-4-5",
+                    "default": "claude-sonnet-4-6",
                     "description": "%mssql.copilot.inlineCompletions.modelFamily.description%",
                     "scope": "window"
                 },
@@ -2638,8 +2636,8 @@
                 },
                 "mssql.copilot.sdkProviders.anthropic.enabled": {
                     "type": "boolean",
-                    "default": true,
-                    "description": "Register the Anthropic API language model provider. Reload VS Code after changing this setting.",
+                    "default": false,
+                    "description": "Register the Anthropic API language model provider for MSSQL inline completions. Enable this only when you want to use Anthropic API models. Reload VS Code after changing this setting.",
                     "scope": "application"
                 },
                 "mssql.copilot.sdkProviders.anthropic.additionalModels": {
@@ -2699,8 +2697,8 @@
                 },
                 "mssql.copilot.sdkProviders.openai.enabled": {
                     "type": "boolean",
-                    "default": true,
-                    "description": "Register the OpenAI API language model provider. Reload VS Code after changing this setting.",
+                    "default": false,
+                    "description": "Register the OpenAI API language model provider for MSSQL inline completions. Enable this only when you want to use OpenAI API models. Reload VS Code after changing this setting.",
                     "scope": "application"
                 },
                 "mssql.copilot.sdkProviders.openai.additionalModels": {
@@ -2760,8 +2758,8 @@
                 },
                 "mssql.copilot.sdkProviders.xai.enabled": {
                     "type": "boolean",
-                    "default": true,
-                    "description": "Register the xAI API language model provider. Reload VS Code after changing this setting.",
+                    "default": false,
+                    "description": "Register the xAI API language model provider for MSSQL inline completions. Enable this only when you want to use xAI API models. Reload VS Code after changing this setting.",
                     "scope": "application"
                 },
                 "mssql.copilot.sdkProviders.xai.additionalModels": {

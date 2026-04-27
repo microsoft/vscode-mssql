@@ -1002,7 +1002,8 @@ export const InlineCompletionDebugToolbar = ({
                     <span className={classes.statusToken}>| {selectedProfileDisplayValue}</span>
                     {continuationEnabled &&
                     (state.overrides.continuationModelSelector ||
-                        state.defaults.configuredContinuationModelSelector) ? (
+                        state.defaults.configuredContinuationModelSelector ||
+                        state.defaults.effectiveContinuationModelLabel) ? (
                         <span
                             className={classes.statusToken}
                             title={selectedContinuationModelDisplayValue}>
@@ -1692,7 +1693,9 @@ function getDefaultModelLabel(state: InlineCompletionDebugWebviewState): string 
 
 function getDefaultContinuationModelLabel(state: InlineCompletionDebugWebviewState): string {
     if (!state.defaults.configuredContinuationModelSelector) {
-        return "Use default model";
+        return state.defaults.effectiveContinuationModelLabel
+            ? `${state.defaults.effectiveContinuationModelLabel} (profile continuation)`
+            : "Use default model";
     }
 
     return state.defaults.effectiveContinuationModelLabel

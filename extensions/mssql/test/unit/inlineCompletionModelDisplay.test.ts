@@ -13,7 +13,10 @@ import {
 } from "../../src/copilot/languageModels/shared/modelDisplay";
 import { matchLanguageModelChatToSelector } from "../../src/copilot/languageModelSelection";
 import { selectPreferredModel } from "../../src/copilot/sqlInlineCompletionProvider";
-import { inlineCompletionDebugPresetProfiles } from "../../src/copilot/inlineCompletionDebug/inlineCompletionDebugProfiles";
+import {
+    getInlineCompletionModelPreferenceForCategory,
+    inlineCompletionDebugPresetProfiles,
+} from "../../src/copilot/inlineCompletionDebug/inlineCompletionDebugProfiles";
 
 function fakeModel(
     overrides: Partial<vscode.LanguageModelChat> & { vendor: string; id: string },
@@ -90,25 +93,27 @@ suite("matchLanguageModelChatToSelector", () => {
 });
 
 suite("selectPreferredModel", () => {
-    test("uses provider order as the tie-breaker for matching model families", () => {
+    test("prefers the latest Sonnet target before older same-family provider matches", () => {
         const models = [
             fakeModel({
                 vendor: "anthropic-api",
-                id: "claude-sonnet-4-6",
+                id: "anthropic-claude-sonnet",
+                name: "Claude Sonnet 4.6",
                 family: "claude-sonnet",
-                version: "claude-sonnet-4-6",
+                version: "2026-01-01",
             }),
             fakeModel({
                 vendor: "copilot",
-                id: "claude-sonnet-4-5",
+                id: "copilot-claude-sonnet",
+                name: "Claude Sonnet 4.5",
                 family: "claude-sonnet",
-                version: "claude-sonnet-4-5",
+                version: "2026-01-01",
             }),
         ];
 
         const matched = selectPreferredModel(models);
         expect(matched?.vendor).to.equal("copilot");
-        expect(matched?.id).to.equal("claude-sonnet-4-5");
+        expect(matched?.name).to.equal("Claude Sonnet 4.5");
     });
 
     test("chooses the best available version inside a preferred provider", () => {
@@ -131,7 +136,7 @@ suite("selectPreferredModel", () => {
         expect(matched?.id).to.equal("claude-sonnet-4-6");
     });
 
-    test("focused profile prefers lower-token model families before middle models", () => {
+    test("focused profile prefers the intent model preference", () => {
         const focused = inlineCompletionDebugPresetProfiles.find(
             (profile) => profile.id === "focused",
         );
@@ -149,6 +154,33 @@ suite("selectPreferredModel", () => {
         ];
 
         const matched = selectPreferredModel(models, focused?.modelPreference);
+        expect(matched?.family).to.equal("claude-sonnet");
+    });
+
+    test("balanced continuation profile prefers the small model preference", () => {
+        const balanced = inlineCompletionDebugPresetProfiles.find(
+            (profile) => profile.id === "balanced",
+        );
+        const models = [
+            fakeModel({
+                vendor: "copilot",
+                id: "copilot-gpt-mini",
+                name: "GPT-5.5 mini",
+                family: "gpt-5.5-mini",
+            }),
+            fakeModel({
+                vendor: "copilot",
+                id: "copilot-haiku",
+                name: "Claude Haiku 4.5",
+                family: "claude-haiku",
+            }),
+        ];
+
+        const matched = selectPreferredModel(
+            models,
+            getInlineCompletionModelPreferenceForCategory(balanced, "continuation"),
+        );
+        expect(matched?.vendor).to.equal("copilot");
         expect(matched?.family).to.equal("claude-haiku");
     });
 });
