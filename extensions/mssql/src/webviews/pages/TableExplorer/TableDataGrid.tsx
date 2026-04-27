@@ -872,6 +872,57 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             }
         }
 
+        // Implements a tri-state cycle (unsorted → asc → desc → unsorted) on top
+        // of slickgrid's built-in two-state toggle. When a column flips from
+        // desc(false) → asc(true) — the would-be third click — and that's the
+        // ONLY column being sorted, we delegate to SortService.clearSorting()
+        // (the same API the column-header "Remove sort" menu uses). It clears
+        // the sort icons AND re-sorts the dataView by the default field id,
+        // restoring the original row order.
+        const sortReentryRef = useRef(false);
+        function handleSort(_e: any, args: any) {
+            if (sortReentryRef.current) {
+                return;
+            }
+            const reactGrid = reactGridRef.current;
+            if (!reactGrid?.slickGrid) {
+                return;
+            }
+
+            const newCols: Array<{ columnId: any; sortAsc: boolean }> = args?.multiColumnSort
+                ? (args.sortCols ?? [])
+                : args?.sortCol
+                  ? [{ columnId: args.sortCol.id, sortAsc: args.sortAsc }]
+                  : [];
+            const previousCols: Array<{ columnId: any; sortAsc: boolean }> =
+                args?.previousSortColumns ?? [];
+
+            const wouldRemove = newCols.filter((c) => {
+                const prev = previousCols.find((p) => p.columnId === c.columnId);
+                return prev && prev.sortAsc === false && c.sortAsc === true;
+            });
+
+            if (wouldRemove.length === 0) {
+                return;
+            }
+
+            // Only handle the single-column tri-state case for now: every
+            // currently-sorted column matches the "third click" pattern, so
+            // clearing all sort is safe. Multi-column reductions (clicking
+            // one of several sorted columns) are intentionally left alone —
+            // slickgrid's default flip-back-to-asc behavior will apply there.
+            if (wouldRemove.length !== newCols.length) {
+                return;
+            }
+
+            sortReentryRef.current = true;
+            try {
+                reactGrid.sortService?.clearSorting(true);
+            } finally {
+                sortReentryRef.current = false;
+            }
+        }
+
         // Handle row selection changes
         function handleSelectedRowsChanged(_e: any, _args: any) {
             if (onSelectedRowsChanged && reactGridRef.current?.dataView) {
@@ -1234,6 +1285,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     onSelectedRowsChanged={($event) =>
                         handleSelectedRowsChanged($event, $event.detail.args)
                     }
+                    onSort={($event) => handleSort($event, $event.detail.args)}
                 />
             </div>
         );

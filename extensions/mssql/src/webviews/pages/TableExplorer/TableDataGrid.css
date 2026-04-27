@@ -328,6 +328,51 @@
     opacity: 0.85;
 }
 
+/* The select-all checkbox lives in a `slick-header-column` whose default
+   background is the slickgrid header panel color — slightly lighter than the
+   editor background used by row cells. That makes the header checkbox look
+   visually heavier than the row checkboxes. Match the cell background so all
+   checkboxes read the same. */
+/* Match by content via :has() rather than slickgrid's `header-checkbox-selectall`
+   class — that class isn't added until the first time renderSelectAllCheckbox
+   runs (after a selection event), so before any click the header cell still
+   shows the slickgrid panel background. */
+#tableExplorerGrid .slick-header-column:has(.checkbox-selector-label),
+#tableExplorerGrid .slick-header-column.header-checkbox-selectall {
+    background-color: var(--vscode-editor-background) !important;
+}
+
+/* Center the checkbox in both the header and the body cells. The body cells
+   inherit a 4px horizontal padding from the global .slick-cell rule, which
+   shifts row checkboxes to the right of the header one. Zero it out for the
+   checkbox column and center the content so all checkboxes line up. */
+#tableExplorerGrid .slick-cell:has(.checkbox-selector-label) {
+    padding-left: 0;
+    padding-right: 0;
+    justify-content: center;
+}
+#tableExplorerGrid .slick-header-column.header-checkbox-selectall .checkbox-selector-label {
+    display: flex;
+    justify-content: center;
+}
+
+/* Always show a "both directions" sort indicator on sortable columns that are
+   not currently sorted, so users can see at a glance which columns are
+   sortable. SlickGrid's own .slick-sort-indicator-asc / -desc rules take
+   over once a sort is applied (and our :not() selector here stops matching). */
+#tableExplorerGrid
+    .slick-header-column.slick-header-sortable:not(.slick-header-column-sorted)
+    .slick-sort-indicator:not(.slick-sort-indicator-asc):not(.slick-sort-indicator-desc) {
+    opacity: 0.55;
+    background-color: currentColor;
+    -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path fill='black' d='M8 1.5l3.2 3.6H4.8z M8 14.5l3.2-3.6H4.8z'/></svg>")
+        no-repeat center;
+    mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path fill='black' d='M8 1.5l3.2 3.6H4.8z M8 14.5l3.2-3.6H4.8z'/></svg>")
+        no-repeat center;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+}
+
 /* Cell range selection styles (for Excel copy buffer / Ctrl+drag selection) */
 #tableExplorerGrid .slick-cell.selected {
     background-color: var(--vscode-editor-selectionBackground, rgba(0, 120, 215, 0.3)) !important;
