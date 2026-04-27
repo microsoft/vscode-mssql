@@ -167,14 +167,14 @@ function inferProfile(trace: InlineCompletionDebugExportData): string | undefine
 }
 
 function inferSchemaMode(event: InlineCompletionDebugEvent | undefined): string | undefined {
-    const overrideMode = event?.overridesApplied.schemaContext?.columnRepresentation;
-    if (typeof overrideMode === "string") {
-        return overrideMode;
+    const overrideProfile = event?.overridesApplied.schemaContext?.budgetProfile;
+    if (typeof overrideProfile === "string") {
+        return overrideProfile;
     }
 
     const formatted = event?.schemaContextFormatted;
-    const match = formatted?.match(/columns\s+([a-z-]+)/i);
-    return match?.[1] ?? asString(event?.locals?.schemaColumnRepresentation);
+    const match = formatted?.match(/schema\s+budget:\s+profile\s+([a-z-]+)/i);
+    return match?.[1] ?? asString(event?.locals?.schemaBudgetProfile);
 }
 
 function inferSchemaSizeKind(event: InlineCompletionDebugEvent | undefined): string | undefined {

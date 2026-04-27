@@ -77,6 +77,7 @@ function createMetadata() {
             modelSelector: null,
             continuationModelSelector: null,
             useSchemaContext: true,
+            includeSqlDiagnostics: null,
             debounceMs: null,
             maxTokens: null,
             enabledCategories: null,

@@ -240,6 +240,7 @@ export function createInlineCompletionDebugPresetOverrides(
         continuationModelSelector: null,
         forceIntentMode: null,
         useSchemaContext: null,
+        includeSqlDiagnostics: null,
         enabledCategories: null,
         debounceMs: null,
         maxTokens: null,

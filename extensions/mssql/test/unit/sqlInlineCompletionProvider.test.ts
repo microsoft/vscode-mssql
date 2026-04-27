@@ -86,6 +86,9 @@ suite("SqlInlineCompletionProvider Tests", () => {
         });
         sandbox.stub(vscode.lm, "selectChatModels").resolves([
             {
+                id: "claude-haiku-4.5",
+                family: "claude-haiku-4.5",
+                vendor: "copilot",
                 sendRequest: sendRequestStub,
                 countTokens: countTokensStub,
             } as unknown as vscode.LanguageModelChat,
@@ -103,6 +106,7 @@ suite("SqlInlineCompletionProvider Tests", () => {
             modelSelector: null,
             continuationModelSelector: null,
             useSchemaContext: null,
+            includeSqlDiagnostics: null,
             debounceMs: null,
             maxTokens: null,
             enabledCategories: null,
@@ -499,6 +503,109 @@ ORDER BY qs.total_worker_time DESC;`,
         expect(event.completionCategory).to.equal("continuation");
     });
 
+    test("skips continuation requests inside comments without calling the language model", async () => {
+        inlineCompletionDebugStore.setPanelOpen(true);
+
+        const line = "-- whar";
+        const items = await provider.provideInlineCompletionItems(
+            createTestDocument(line, "file:///query.sql"),
+            new vscode.Position(0, line.length),
+            {
+                triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
+            } as vscode.InlineCompletionContext,
+            { isCancellationRequested: false } as vscode.CancellationToken,
+        );
+
+        expect(items).to.deep.equal([]);
+        expect(sendRequestStub).to.not.have.been.called;
+
+        const event = inlineCompletionDebugStore.getEvents()[0];
+        expect(event.result).to.equal("skipped");
+        expect(event.modelId).to.equal("claude-haiku-4.5");
+        expect(event.modelFamily).to.equal("claude-haiku-4.5");
+        expect(event.modelVendor).to.equal("copilot");
+        expect(event.inputTokens).to.equal(0);
+        expect(event.outputTokens).to.equal(0);
+        expect(event.locals.languageModelRequestSent).to.equal(false);
+        expect(event.locals.skipReason).to.equal("continuationInComment");
+    });
+
+    test("skips automatic continuations immediately after accepting an intent completion", async () => {
+        inlineCompletionDebugStore.setPanelOpen(true);
+        inlineCompletionDebugStore.updateOverrides({ debounceMs: 0 });
+        schemaContextService.getSchemaContext.resolves(undefined);
+        sendRequestStub.resolves(createChatResponse("SELECT CustomerID\nFROM dbo.Customers;"));
+
+        const intentItems = await provider.provideInlineCompletionItems(
+            createTestDocument("-- which customers?\n", "file:///query.sql"),
+            new vscode.Position(1, 0),
+            {
+                triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
+            } as vscode.InlineCompletionContext,
+            { isCancellationRequested: false } as vscode.CancellationToken,
+        );
+
+        const acceptCommand = (intentItems as vscode.InlineCompletionItem[])[0].command;
+        await vscode.commands.executeCommand(
+            acceptCommand!.command,
+            ...(acceptCommand!.arguments ?? []),
+        );
+        sendRequestStub.resetHistory();
+
+        const acceptedDocument = createTestDocument(
+            "-- which customers?\nSELECT CustomerID\nFROM dbo.Customers;",
+            "file:///query.sql",
+        );
+        const continuationItems = await provider.provideInlineCompletionItems(
+            acceptedDocument,
+            new vscode.Position(2, "FROM dbo.Customers;".length),
+            {
+                triggerKind: vscode.InlineCompletionTriggerKind.Automatic,
+            } as vscode.InlineCompletionContext,
+            { isCancellationRequested: false } as vscode.CancellationToken,
+        );
+
+        expect(continuationItems).to.deep.equal([]);
+        expect(sendRequestStub).to.not.have.been.called;
+
+        const event = inlineCompletionDebugStore.getEvents().at(-1)!;
+        expect(event.result).to.equal("skipped");
+        expect(event.inputTokens).to.equal(0);
+        expect(event.outputTokens).to.equal(0);
+        expect(event.locals.languageModelRequestSent).to.equal(false);
+        expect(event.locals.skipReason).to.equal("continuationAfterAcceptedIntent");
+    });
+
+    test("includes nearby SQL error diagnostics in the prompt without full paths", async () => {
+        const diagnostic = new vscode.Diagnostic(
+            new vscode.Range(new vscode.Position(0, 7), new vscode.Position(0, 13)),
+            "Incorrect syntax near 'GROUP BY' in C:\\Users\\karlb\\secret\\query.sql.",
+            vscode.DiagnosticSeverity.Error,
+        );
+        diagnostic.code = "SQL102";
+        const getDiagnosticsStub = sandbox.stub(
+            vscode.languages,
+            "getDiagnostics",
+        ) as unknown as sinon.SinonStub<[vscode.Uri], vscode.Diagnostic[]>;
+        getDiagnosticsStub.returns([diagnostic]);
+        schemaContextService.getSchemaContext.resolves(undefined);
+
+        await provider.provideInlineCompletionItems(
+            createTestDocument("SELECT ", "file:///query.sql"),
+            new vscode.Position(0, "SELECT ".length),
+            {
+                triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
+            } as vscode.InlineCompletionContext,
+            { isCancellationRequested: false } as vscode.CancellationToken,
+        );
+
+        const userMessageText = getMessageText(sendRequestStub.firstCall.args[0][1]);
+        expect(userMessageText).to.include("<nearby_sql_diagnostics>");
+        expect(userMessageText).to.include("query.sql:1:8 error SQL102");
+        expect(userMessageText).to.include("Incorrect syntax near 'GROUP BY'");
+        expect(userMessageText).to.not.include("C:\\Users");
+    });
+
     test("skips exact token counting when a non-debug prompt is well under the model window", async () => {
         schemaContextService.getSchemaContext.resolves(undefined);
         (vscode.lm.selectChatModels as sinon.SinonStub).resolves([
@@ -893,6 +1000,22 @@ ORDER BY qs.total_worker_time DESC;`,
         expect(detectIntentComment("-- What are all the active sessions", "")).to.equal(true);
     });
 
+    test("detects intent mode for leading auxiliary question comments", () => {
+        expect(detectIntentComment("-- are there any unused indexes in the database", "")).to.equal(
+            true,
+        );
+        expect(detectIntentComment("-- do any orders have no customer", "")).to.equal(true);
+    });
+
+    test("does not trigger intent mode for auxiliary words later in documentation comments", () => {
+        expect(detectIntentComment("-- indexes are expensive to maintain", "")).to.equal(false);
+        expect(detectIntentComment("-- orders have customer references", "")).to.equal(false);
+    });
+
+    test("detects intent mode for trailing question comments without an instruction verb", () => {
+        expect(detectIntentComment("-- the top sales people in US?", "")).to.equal(true);
+    });
+
     test("builds prompt rules that prefer empty output for unnatural completions and stable intent formatting", () => {
         const intentRules = buildCompletionRules(false, true);
         const continuationRules = buildCompletionRules(false, false);
@@ -911,6 +1034,9 @@ ORDER BY qs.total_worker_time DESC;`,
         expect(intentRules).to.include("Prefer uppercase SQL keywords");
         expect(continuationRules).to.include(
             "If no natural single-unit continuation fits the current line suffix and document suffix",
+        );
+        expect(continuationRules).to.include(
+            "Do not provide an explanation, diagnosis, apology, note, or reason",
         );
     });
 
@@ -1116,6 +1242,95 @@ ORDER BY qs.total_worker_time DESC;`;
         );
 
         expect(sanitized).to.equal("WHERE NoteText = 'line one\n\nline two'");
+    });
+
+    test("drops continuation-mode prose explanations from small models", () => {
+        const sanitized = sanitizeInlineCompletionText(
+            "The current statement is malformed-it contains `GROUP BY` followed by a `SELECT` with no natural single-unit continuation.",
+            400,
+            "inner join sys.dm_os_sys_info",
+            false,
+        );
+
+        expect(sanitized).to.equal(undefined);
+    });
+
+    test("drops parenthesized empty-string sentinel replies", () => {
+        for (const response of [
+            "(empty string)",
+            "`empty string`",
+            "<empty>",
+            "(empty response)",
+            "No response",
+            "No SQL",
+        ]) {
+            const sanitized = sanitizeInlineCompletionText(response, 400, "", false);
+            expect(sanitized, response).to.equal(undefined);
+        }
+    });
+
+    test("drops leaked reasoning tags and leading no-schema prose", () => {
+        expect(sanitizeInlineCompletionText("</think>", 400, "", true)).to.equal(undefined);
+        expect(
+            sanitizeInlineCompletionText("<think>checking schema</think>\nSELECT 1", 400, "", true),
+        ).to.equal("SELECT 1");
+        expect(
+            sanitizeInlineCompletionText(
+                'No InvoiceLines columns are available, and "area" cannot be resolved against detailed schema columns.',
+                400,
+                "",
+                true,
+            ),
+        ).to.equal(undefined);
+    });
+
+    test("drops standalone XML-like model control responses", () => {
+        for (const response of ["</s>", "<sql>SELECT 1</sql>", '<?xml version="1.0"?><x />']) {
+            expect(sanitizeInlineCompletionText(response, 400, "", true), response).to.equal(
+                undefined,
+            );
+        }
+
+        expect(
+            sanitizeInlineCompletionText("SELECT 1 FOR XML PATH('row')", 400, "", true),
+        ).to.equal("SELECT 1 FOR XML PATH('row')");
+        expect(sanitizeInlineCompletionText("SELECT '<row />' AS Payload", 400, "", true)).to.equal(
+            "SELECT '<row />' AS Payload",
+        );
+    });
+
+    test("starts longer generated SELECT statements on a new line", async () => {
+        schemaContextService.getSchemaContext.resolves(undefined);
+        sendRequestStub.resolves(createChatResponse("SELECT TOP 10 * FROM dbo.Customers"));
+
+        const items = await provider.provideInlineCompletionItems(
+            createTestDocument("GROUP BY ", "file:///query.sql"),
+            new vscode.Position(0, "GROUP BY ".length),
+            {
+                triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
+            } as vscode.InlineCompletionContext,
+            { isCancellationRequested: false } as vscode.CancellationToken,
+        );
+
+        expect((items as vscode.InlineCompletionItem[])[0].insertText).to.equal(
+            "\nSELECT TOP 10 * FROM dbo.Customers",
+        );
+    });
+
+    test("keeps very short SELECT completions on the current line", async () => {
+        schemaContextService.getSchemaContext.resolves(undefined);
+        sendRequestStub.resolves(createChatResponse("SELECT 1"));
+
+        const items = await provider.provideInlineCompletionItems(
+            createTestDocument("IF EXISTS ", "file:///query.sql"),
+            new vscode.Position(0, "IF EXISTS ".length),
+            {
+                triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
+            } as vscode.InlineCompletionContext,
+            { isCancellationRequested: false } as vscode.CancellationToken,
+        );
+
+        expect((items as vscode.InlineCompletionItem[])[0].insertText).to.equal("SELECT 1");
     });
 
     test("returns no completion when intent mode produces an explanation instead of SQL", async () => {

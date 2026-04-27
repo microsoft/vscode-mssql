@@ -1344,6 +1344,8 @@ function getLiveReplayConfig(
             null,
         useSchemaContext:
             state.overrides.useSchemaContext ?? state.defaults.useSchemaContext ?? null,
+        includeSqlDiagnostics:
+            state.overrides.includeSqlDiagnostics ?? state.defaults.includeSqlDiagnostics ?? null,
         debounceMs: state.overrides.debounceMs ?? state.defaults.debounceMs ?? null,
         maxTokens: state.overrides.maxTokens,
         enabledCategories:

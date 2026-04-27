@@ -6,6 +6,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Column, GridOption, SlickgridReactInstance } from "slickgrid-react";
 import { makeStyles } from "@fluentui/react-components";
+import { getEventModelLabel } from "../../../../sharedInterfaces/inlineCompletionAnalysis";
 import { ColorThemeKind } from "../../../../sharedInterfaces/webview";
 import { InlineCompletionDebugEvent } from "../../../../sharedInterfaces/inlineCompletionDebug";
 import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
@@ -42,6 +43,7 @@ export const InlineCompletionDebugEventGrid = ({
     onReplayEvent,
     onAddEventsToReplayCart,
     showReplay = true,
+    alwaysShowVerticalScroll = true,
     getEventKey,
 }: {
     events: InlineCompletionDebugEvent[];
@@ -55,6 +57,7 @@ export const InlineCompletionDebugEventGrid = ({
     onReplayEvent?: (event: InlineCompletionDebugEvent) => void;
     onAddEventsToReplayCart?: (events: InlineCompletionDebugEvent[]) => void;
     showReplay?: boolean;
+    alwaysShowVerticalScroll?: boolean;
     getEventKey?: (event: InlineCompletionDebugEvent, index: number) => string;
 }) => {
     const classes = useStyles();
@@ -220,7 +223,8 @@ export const InlineCompletionDebugEventGrid = ({
                 name: "Model",
                 field: "modelFamily",
                 minWidth: 148,
-                formatter: (_row, _cell, value) => monoFormatter(String(value ?? "default")),
+                formatter: (_row, _cell, _value, _column, event) =>
+                    monoFormatter(getEventModelLabel(event)),
             },
             {
                 id: "latency",
@@ -256,11 +260,11 @@ export const InlineCompletionDebugEventGrid = ({
                 name: "Result",
                 field: "result",
                 minWidth: 132,
-                formatter: (_row, _cell, value, _column, event) => {
+                formatter: (_row, _cell, value, _column, _) => {
                     if (value === "queued") {
                         return badgeFormatter("queued", resultTone(String(value)));
                     }
-                    if (value === "pending" && getReplayRunId(event)) {
+                    if (value === "pending") {
                         return badgeFormatter("in flight", "intent");
                     }
                     return badgeFormatter(String(value), resultTone(String(value)));
@@ -283,6 +287,7 @@ export const InlineCompletionDebugEventGrid = ({
             ...baseFluentReadOnlyGridOption,
             datasetIdPropertyName: GRID_ROW_ID_PROPERTY,
             autoResize: createFluentAutoResizeOptions(`#${containerId}`, {
+                autoHeight: false,
                 bottomPadding: 0,
                 minHeight: 120,
             }),
@@ -294,6 +299,7 @@ export const InlineCompletionDebugEventGrid = ({
             enableCellNavigation: true,
             enableColumnReorder: true,
             enableSelection: true,
+            alwaysShowVerticalScroll,
             multiSelect: true,
             selectionOptions: {
                 selectActiveRow: true,
@@ -402,6 +408,7 @@ export const InlineCompletionDebugEventGrid = ({
             replayEvent,
             showReplay,
             themeKind,
+            alwaysShowVerticalScroll,
         ],
     );
 
@@ -682,6 +689,7 @@ function resultTone(result: string): "success" | "warning" | "danger" | "neutral
         case "error":
             return "danger";
         case "cancelled":
+        case "skipped":
             return "neutral";
         default:
             return "warning";

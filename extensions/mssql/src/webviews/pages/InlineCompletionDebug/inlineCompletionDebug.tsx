@@ -475,7 +475,15 @@ export function getInfoText(event: InlineCompletionDebugEvent): string {
     }
 
     if (event.result === "pending") {
-        return "Waiting for model response...";
+        const stage = event.locals.pendingStage;
+        return typeof stage === "string"
+            ? `In flight: ${formatPendingStage(stage)}...`
+            : "In flight...";
+    }
+
+    if (event.result === "skipped") {
+        const reason = event.locals.skipReason;
+        return `Skipped${typeof reason === "string" ? `: ${reason}` : ""}`;
     }
 
     return (
@@ -485,6 +493,29 @@ export function getInfoText(event: InlineCompletionDebugEvent): string {
         event.rawResponse ??
         ""
     );
+}
+
+function formatPendingStage(stage: string): string {
+    switch (stage) {
+        case "selectingModel":
+            return "selecting model";
+        case "checkingModelAccess":
+            return "checking model access";
+        case "buildingSchemaContext":
+            return "building schema context";
+        case "countingInputTokens":
+            return "counting input tokens";
+        case "countingTrimmedInputTokens":
+            return "counting trimmed input tokens";
+        case "waitingForModelResponse":
+            return "waiting for model response";
+        case "readingModelResponse":
+            return "reading model response";
+        case "countingOutputTokens":
+            return "counting output tokens";
+        default:
+            return stage.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase();
+    }
 }
 
 function getReplayTag(event: InlineCompletionDebugEvent, key: string): string | undefined {

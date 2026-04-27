@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { type ReactNode, type Ref, useCallback, useMemo, useState } from "react";
+import { type ReactNode, type Ref, type WheelEvent, useCallback, useMemo, useState } from "react";
 import {
     Button,
     Dropdown,
@@ -79,6 +79,27 @@ interface SchemaBudgetBaseline {
     relevanceTermRecencyBias: boolean;
     schemaSizeAdaptive: boolean;
     columnNameRelevanceWeight: number;
+}
+
+function scrollHorizontallyOnWheel(event: WheelEvent<HTMLElement>): void {
+    const element = event.currentTarget;
+    const maxScrollLeft = element.scrollWidth - element.clientWidth;
+    if (maxScrollLeft <= 0) {
+        return;
+    }
+
+    const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+    if (delta === 0) {
+        return;
+    }
+
+    const nextScrollLeft = Math.max(0, Math.min(maxScrollLeft, element.scrollLeft + delta));
+    if (nextScrollLeft === element.scrollLeft) {
+        return;
+    }
+
+    element.scrollLeft = nextScrollLeft;
+    event.preventDefault();
 }
 
 interface SchemaNumberControl {
@@ -711,6 +732,8 @@ export const InlineCompletionDebugToolbar = ({
         defaultContinuationModelLabel;
     const enabledCategories = state.overrides.enabledCategories ?? state.defaults.enabledCategories;
     const debounceValue = state.overrides.debounceMs ?? state.defaults.debounceMs;
+    const includeSqlDiagnostics =
+        state.overrides.includeSqlDiagnostics ?? state.defaults.includeSqlDiagnostics;
     const customPromptIsActive = !!state.overrides.customSystemPrompt;
     const textureValue = useMemo(() => {
         if (customPromptIsActive) {
@@ -1011,6 +1034,9 @@ export const InlineCompletionDebugToolbar = ({
                         </span>
                     ) : null}
                     <span className={classes.statusToken}>| {schemaDisplayValue}</span>
+                    <span className={classes.statusToken}>
+                        | diagnostics {includeSqlDiagnostics ? "on" : "off"}
+                    </span>
                     <span className={classes.statusToken}>| {categorySummary}</span>
                     <span className={classes.statusToken}>| eagerness {debounceValue}ms</span>
                 </div>
@@ -1019,7 +1045,7 @@ export const InlineCompletionDebugToolbar = ({
                 </div>
             </div>
 
-            <div className={classes.controlRow}>
+            <div className={classes.controlRow} onWheel={scrollHorizontallyOnWheel}>
                 <div className={classes.controlGroup}>
                     <Tooltip
                         content="Keep recording while the debug panel is closed"
@@ -1199,6 +1225,27 @@ export const InlineCompletionDebugToolbar = ({
                         }}>
                         Customize
                     </ToggleButton>
+
+                    <Tooltip
+                        content="Include nearby SQL error diagnostics in the completion prompt"
+                        relationship="label">
+                        <ToggleButton
+                            className={classes.compactButton}
+                            size="small"
+                            checked={includeSqlDiagnostics}
+                            onClick={() => {
+                                const nextValue = !includeSqlDiagnostics;
+                                updateOverrides({
+                                    includeSqlDiagnostics:
+                                        nextValue === state.defaults.includeSqlDiagnostics
+                                            ? null
+                                            : nextValue,
+                                });
+                                blurActiveElementSoon();
+                            }}>
+                            Diagnostics
+                        </ToggleButton>
+                    </Tooltip>
                 </div>
 
                 <span className={classes.toolbarSeparator} />

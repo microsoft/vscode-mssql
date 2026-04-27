@@ -15,6 +15,7 @@ import {
     tokens,
 } from "@fluentui/react-components";
 import { CopyRegular } from "@fluentui/react-icons";
+import { getEventModelLabel } from "../../../../sharedInterfaces/inlineCompletionAnalysis";
 import { InlineCompletionDebugEvent } from "../../../../sharedInterfaces/inlineCompletionDebug";
 import { getLatencyBucket } from "../../../../sharedInterfaces/latencyBuckets";
 import { useInlineCompletionDebugContext } from "../inlineCompletionDebugStateProvider";
@@ -264,6 +265,7 @@ export const InlineCompletionDebugDetailPane = ({
                                 )}`,
                                 classes,
                             )}
+                            {summaryRow("LM Request", formatLanguageModelRequest(event), classes)}
                             {summaryRow(
                                 "Schema",
                                 `${event.schemaObjectCount} objs | system=${event.schemaSystemObjectCount} | fks=${event.schemaForeignKeyCount}`,
@@ -401,6 +403,22 @@ function formatLatency(event: InlineCompletionDebugEvent): string {
     return `${Math.max(0, Date.now() - event.timestamp).toLocaleString()} ms (pending)`;
 }
 
+function formatLanguageModelRequest(event: InlineCompletionDebugEvent): string {
+    const sent = event.locals.languageModelRequestSent;
+    if (typeof sent !== "boolean") {
+        return "unknown";
+    }
+
+    if (sent) {
+        return "sent";
+    }
+
+    const unsentInputTokens = event.locals.unsentInputTokens;
+    return typeof unsentInputTokens === "number"
+        ? `not sent | unsent input=${unsentInputTokens.toLocaleString()}`
+        : "not sent";
+}
+
 function bucketCount(count: number): string {
     if (count === 0) {
         return "0";
@@ -425,5 +443,5 @@ function formatEventModel(event: InlineCompletionDebugEvent): string {
                 : "";
         return `${event.modelVendor}/${event.modelId}${familySuffix}`;
     }
-    return event.modelFamily ?? "default";
+    return getEventModelLabel(event);
 }

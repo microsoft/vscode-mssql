@@ -41,6 +41,7 @@ suite("Inline completion trace loader", () => {
             start: 1000,
             end: 3000,
         });
+        expect(index.find((entry) => entry.eventCount === 2)?.schemaMode).to.equal("balanced");
         expect(index.every((entry) => entry.included)).to.equal(true);
     });
 
@@ -79,7 +80,7 @@ suite("Inline completion trace loader", () => {
                     forceIntentMode: null,
                     customSystemPrompt: null,
                     allowAutomaticTriggers: null,
-                    schemaContext: { columnRepresentation: "compact" },
+                    schemaContext: { budgetProfile: "balanced", columnRepresentation: "compact" },
                 },
                 recordWhenClosed: true,
                 events: events.map((event) => ({
@@ -106,13 +107,17 @@ suite("Inline completion trace loader", () => {
                     usedSchemaContext: true,
                     overridesApplied: {
                         profileId: "balanced",
-                        schemaContext: { columnRepresentation: "compact" },
+                        schemaContext: {
+                            budgetProfile: "balanced",
+                            columnRepresentation: "compact",
+                        },
                         customSystemPromptUsed: false,
                     },
                     promptMessages: [],
                     rawResponse: "",
                     locals: {
                         "document.languageId": "sql",
+                        schemaBudgetProfile: "balanced",
                         schemaSizeKind: "small",
                     },
                 })),

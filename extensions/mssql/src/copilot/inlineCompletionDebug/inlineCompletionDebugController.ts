@@ -72,6 +72,7 @@ import {
     InlineCompletionDebugEventTags,
     InlineCompletionDebugModelOption,
     InlineCompletionDebugOverrides,
+    InlineCompletionDebugPromptMessage,
     InlineCompletionDebugProfileId,
     InlineCompletionDebugReplayCartAddItem,
     InlineCompletionDebugReplayCartConfigMode,
@@ -203,6 +204,9 @@ export class InlineCompletionDebugController extends WebviewPanelController<
                     e.affectsConfiguration(Constants.configCopilotInlineCompletionsProfile) ||
                     e.affectsConfiguration(
                         Constants.configCopilotInlineCompletionsUseSchemaContext,
+                    ) ||
+                    e.affectsConfiguration(
+                        Constants.configCopilotInlineCompletionsIncludeSqlDiagnostics,
                     ) ||
                     e.affectsConfiguration(Constants.configCopilotInlineCompletionsSchemaContext) ||
                     e.affectsConfiguration(Constants.configCopilotInlineCompletionsTraceFolder)
@@ -451,7 +455,7 @@ export class InlineCompletionDebugController extends WebviewPanelController<
         });
 
         this.registerReducer("replaySessionEvent", async (state, payload) => {
-            await this.replaySourceEvent(payload.event);
+            await this.replaySourceEvent(payload.event, { showPendingInLive: true });
             return this.createState({
                 selectedEventId: state.selectedEventId,
                 customPromptDialogOpen: state.customPrompt.dialogOpen,
@@ -711,6 +715,7 @@ export class InlineCompletionDebugController extends WebviewPanelController<
             Object.prototype.hasOwnProperty.call(update, "continuationModelSelector") ||
             Object.prototype.hasOwnProperty.call(update, "forceIntentMode") ||
             Object.prototype.hasOwnProperty.call(update, "useSchemaContext") ||
+            Object.prototype.hasOwnProperty.call(update, "includeSqlDiagnostics") ||
             Object.prototype.hasOwnProperty.call(update, "enabledCategories") ||
             Object.prototype.hasOwnProperty.call(update, "debounceMs") ||
             Object.prototype.hasOwnProperty.call(update, "maxTokens") ||
@@ -757,6 +762,8 @@ export class InlineCompletionDebugController extends WebviewPanelController<
                 current.useSchemaContext ??
                 profile.useSchemaContext ??
                 getConfiguredUseSchemaContext(),
+            includeSqlDiagnostics:
+                current.includeSqlDiagnostics ?? getConfiguredIncludeSqlDiagnostics(),
             enabledCategories: current.enabledCategories ?? [...profile.enabledCategories],
             debounceMs: current.debounceMs ?? profile.debounceMs,
             maxTokens: current.maxTokens ?? profile.maxTokens,
@@ -1295,6 +1302,8 @@ export class InlineCompletionDebugController extends WebviewPanelController<
                 event.overridesApplied.continuationModelSelector ??
                 current.continuationModelSelector,
             useSchemaContext: event.overridesApplied.useSchemaContext ?? current.useSchemaContext,
+            includeSqlDiagnostics:
+                event.overridesApplied.includeSqlDiagnostics ?? current.includeSqlDiagnostics,
             debounceMs: event.overridesApplied.debounceMs ?? current.debounceMs,
             maxTokens: event.overridesApplied.maxTokens ?? current.maxTokens,
             enabledCategories: event.overridesApplied.enabledCategories
@@ -1649,7 +1658,7 @@ export class InlineCompletionDebugController extends WebviewPanelController<
             return;
         }
 
-        await this.replaySourceEvent(sourceEvent);
+        await this.replaySourceEvent(sourceEvent, { showPendingInLive: true });
     }
 
     private async replaySourceEvent(
@@ -1657,6 +1666,7 @@ export class InlineCompletionDebugController extends WebviewPanelController<
         options: {
             overrides?: InlineCompletionDebugReplayConfig;
             tags?: InlineCompletionDebugEventTags;
+            showPendingInLive?: boolean;
         } = {},
     ): Promise<InlineCompletionDebugEvent | undefined> {
         const overrides = options.overrides ?? inlineCompletionDebugStore.getOverrides();
@@ -1675,6 +1685,52 @@ export class InlineCompletionDebugController extends WebviewPanelController<
             profile,
             completionCategory,
         );
+        const replayStartedAt = Date.now();
+        let pendingEventId: string | undefined;
+        const recordReplayEvent = (
+            event: Omit<InlineCompletionDebugEvent, "id">,
+        ): InlineCompletionDebugEvent => {
+            if (!pendingEventId) {
+                return inlineCompletionDebugStore.addEvent(event);
+            }
+
+            return (
+                inlineCompletionDebugStore.updateEvent(pendingEventId, event) ??
+                inlineCompletionDebugStore.addEvent(event)
+            );
+        };
+        if (options.showPendingInLive) {
+            pendingEventId = inlineCompletionDebugStore.addEvent({
+                ...cloneBaseEvent(sourceEvent),
+                timestamp: replayStartedAt,
+                completionCategory,
+                intentMode,
+                result: "pending",
+                latencyMs: 0,
+                inputTokens: undefined,
+                outputTokens: undefined,
+                usedSchemaContext: false,
+                schemaObjectCount: 0,
+                schemaSystemObjectCount: 0,
+                schemaForeignKeyCount: 0,
+                overridesApplied: getOverridesApplied(overrides),
+                promptMessages: sourceEvent.promptMessages,
+                rawResponse: "",
+                sanitizedResponse: undefined,
+                finalCompletionText: undefined,
+                schemaContextFormatted: undefined,
+                tags,
+                locals: {
+                    ...sourceEvent.locals,
+                    profileId: overrides.profileId,
+                    completionCategory,
+                    intentMode,
+                    ...replayTagLocals,
+                    replayedAt: new Date(replayStartedAt).toISOString(),
+                },
+            }).id;
+        }
+
         const selectedModel = await this.selectReplayModel(
             getModelSelectorForCompletionCategory(
                 overrides,
@@ -1684,7 +1740,7 @@ export class InlineCompletionDebugController extends WebviewPanelController<
             modelPreference,
         );
         if (!selectedModel) {
-            return inlineCompletionDebugStore.addEvent({
+            return recordReplayEvent({
                 ...cloneBaseEvent(sourceEvent),
                 timestamp: Date.now(),
                 completionCategory,
@@ -1717,7 +1773,7 @@ export class InlineCompletionDebugController extends WebviewPanelController<
         const canSendRequest =
             this._extensionContext.languageModelAccessInformation?.canSendRequest(selectedModel);
         if (canSendRequest === false) {
-            return inlineCompletionDebugStore.addEvent({
+            return recordReplayEvent({
                 ...cloneBaseEvent(sourceEvent),
                 timestamp: Date.now(),
                 completionCategory,
@@ -1751,6 +1807,11 @@ export class InlineCompletionDebugController extends WebviewPanelController<
             overrides.useSchemaContext ??
             profile?.useSchemaContext ??
             getConfiguredUseSchemaContext();
+        const includeSqlDiagnostics =
+            overrides.includeSqlDiagnostics ?? getConfiguredIncludeSqlDiagnostics();
+        const sqlDiagnosticsText = includeSqlDiagnostics
+            ? asString(sourceEvent.locals.sqlDiagnostics)
+            : "";
         const schemaContextOverrides = getInlineCompletionProfileSchemaContextOverrides(
             profile,
             overrides.schemaContext,
@@ -1783,6 +1844,7 @@ export class InlineCompletionDebugController extends WebviewPanelController<
             linePrefix,
             recentPrefix,
             statementPrefix,
+            sqlDiagnosticsText,
         });
         const promptMessages = buildInlineCompletionPromptMessages({
             rulesText,
@@ -1792,6 +1854,7 @@ export class InlineCompletionDebugController extends WebviewPanelController<
             suffix,
             linePrefix,
             lineSuffix,
+            sqlDiagnosticsText,
             schemaContextText,
             messageOrder: schemaContextSettings.messageOrder,
             schemaContextChannel: schemaContextSettings.schemaContextChannel,
@@ -1800,10 +1863,62 @@ export class InlineCompletionDebugController extends WebviewPanelController<
             overrides.maxTokens ??
             profile?.maxTokens ??
             (intentMode ? intentModeMaxTokens : continuationModeMaxTokens);
-        const startedAt = Date.now();
+        const startedAt = replayStartedAt;
         const cancellationTokenSource = new vscode.CancellationTokenSource();
         let replayInputTokens: number | undefined;
         let replayOutputTokens: number | undefined;
+        if (pendingEventId) {
+            recordReplayEvent({
+                ...cloneBaseEvent(sourceEvent),
+                timestamp: startedAt,
+                completionCategory,
+                intentMode,
+                modelFamily: selectedModel.family,
+                modelId: selectedModel.id,
+                modelVendor: selectedModel.vendor,
+                result: "pending",
+                latencyMs: 0,
+                inputTokens: undefined,
+                outputTokens: undefined,
+                usedSchemaContext: useSchemaContext && schemaContextText !== "-- unavailable",
+                schemaObjectCount: replaySchemaContext.schemaObjectCount,
+                schemaSystemObjectCount: replaySchemaContext.schemaSystemObjectCount,
+                schemaForeignKeyCount: replaySchemaContext.schemaForeignKeyCount,
+                overridesApplied: getOverridesApplied(overrides),
+                promptMessages: promptMessages.map(toDebugPromptMessage),
+                rawResponse: "",
+                sanitizedResponse: undefined,
+                finalCompletionText: undefined,
+                schemaContextFormatted:
+                    useSchemaContext && schemaContextText !== "-- unavailable"
+                        ? schemaContextText
+                        : undefined,
+                tags,
+                locals: {
+                    ...sourceEvent.locals,
+                    profileId: overrides.profileId,
+                    completionCategory,
+                    intentMode,
+                    useSchemaContext,
+                    includeSqlDiagnostics,
+                    effectiveMaxTokens: maxTokens,
+                    sqlDiagnostics: sqlDiagnosticsText,
+                    "sqlDiagnostics.length": sqlDiagnosticsText.length,
+                    ...replayTagLocals,
+                    replaySchemaContextSource: replaySchemaContext.schemaContextSource,
+                    schemaBudgetProfile: schemaContextSettings.budgetProfile,
+                    schemaSizeKind:
+                        replaySchemaContext.schemaContext?.selectionMetadata?.schemaSizeKind,
+                    schemaDegradationSteps:
+                        replaySchemaContext.schemaContext?.selectionMetadata?.degradationSteps.join(
+                            ",",
+                        ) ?? "",
+                    schemaMessageOrder: schemaContextSettings.messageOrder,
+                    schemaContextChannel: schemaContextSettings.schemaContextChannel,
+                    replayedAt: new Date(startedAt).toISOString(),
+                },
+            });
+        }
 
         try {
             replayInputTokens = await countLanguageModelTokens(
@@ -1850,7 +1965,7 @@ export class InlineCompletionDebugController extends WebviewPanelController<
                   ? "success"
                   : "emptyFromSanitizer";
 
-            return inlineCompletionDebugStore.addEvent({
+            return recordReplayEvent({
                 ...cloneBaseEvent(sourceEvent),
                 timestamp: Date.now(),
                 completionCategory,
@@ -1867,17 +1982,7 @@ export class InlineCompletionDebugController extends WebviewPanelController<
                 schemaSystemObjectCount: replaySchemaContext.schemaSystemObjectCount,
                 schemaForeignKeyCount: replaySchemaContext.schemaForeignKeyCount,
                 overridesApplied: getOverridesApplied(overrides),
-                promptMessages: promptMessages.map((message) => ({
-                    role:
-                        message.role === vscode.LanguageModelChatMessageRole.Assistant
-                            ? "assistant"
-                            : "user",
-                    content: message.content
-                        .map((part) =>
-                            part instanceof vscode.LanguageModelTextPart ? part.value : "",
-                        )
-                        .join(""),
-                })),
+                promptMessages: promptMessages.map(toDebugPromptMessage),
                 rawResponse,
                 sanitizedResponse,
                 finalCompletionText,
@@ -1892,7 +1997,10 @@ export class InlineCompletionDebugController extends WebviewPanelController<
                     completionCategory,
                     intentMode,
                     useSchemaContext,
+                    includeSqlDiagnostics,
                     effectiveMaxTokens: maxTokens,
+                    sqlDiagnostics: sqlDiagnosticsText,
+                    "sqlDiagnostics.length": sqlDiagnosticsText.length,
                     ...replayTagLocals,
                     replaySchemaContextSource: replaySchemaContext.schemaContextSource,
                     schemaBudgetProfile: schemaContextSettings.budgetProfile,
@@ -1908,7 +2016,7 @@ export class InlineCompletionDebugController extends WebviewPanelController<
                 },
             });
         } catch (error) {
-            return inlineCompletionDebugStore.addEvent({
+            return recordReplayEvent({
                 ...cloneBaseEvent(sourceEvent),
                 timestamp: Date.now(),
                 completionCategory,
@@ -1925,17 +2033,7 @@ export class InlineCompletionDebugController extends WebviewPanelController<
                 schemaSystemObjectCount: replaySchemaContext.schemaSystemObjectCount,
                 schemaForeignKeyCount: replaySchemaContext.schemaForeignKeyCount,
                 overridesApplied: getOverridesApplied(overrides),
-                promptMessages: promptMessages.map((message) => ({
-                    role:
-                        message.role === vscode.LanguageModelChatMessageRole.Assistant
-                            ? "assistant"
-                            : "user",
-                    content: message.content
-                        .map((part) =>
-                            part instanceof vscode.LanguageModelTextPart ? part.value : "",
-                        )
-                        .join(""),
-                })),
+                promptMessages: promptMessages.map(toDebugPromptMessage),
                 rawResponse: "",
                 sanitizedResponse: undefined,
                 finalCompletionText: undefined,
@@ -1950,7 +2048,10 @@ export class InlineCompletionDebugController extends WebviewPanelController<
                     completionCategory,
                     intentMode,
                     useSchemaContext,
+                    includeSqlDiagnostics,
                     effectiveMaxTokens: maxTokens,
+                    sqlDiagnostics: sqlDiagnosticsText,
+                    "sqlDiagnostics.length": sqlDiagnosticsText.length,
                     ...replayTagLocals,
                     replaySchemaContextSource: replaySchemaContext.schemaContextSource,
                     schemaBudgetProfile: schemaContextSettings.budgetProfile,
@@ -2104,6 +2205,7 @@ function createState(options: {
             effectiveContinuationModelSelector: effectiveContinuationOption?.selector,
             effectiveContinuationModelLabel: effectiveContinuationOption?.label,
             useSchemaContext: profile?.useSchemaContext ?? getConfiguredUseSchemaContext(),
+            includeSqlDiagnostics: getConfiguredIncludeSqlDiagnostics(),
             debounceMs: profile?.debounceMs ?? automaticTriggerDebounceMs,
             continuationMaxTokens: continuationModeMaxTokens,
             intentMaxTokens: intentModeMaxTokens,
@@ -2302,6 +2404,15 @@ function getConfiguredUseSchemaContext(): boolean {
     );
 }
 
+function getConfiguredIncludeSqlDiagnostics(): boolean {
+    return (
+        vscode.workspace
+            .getConfiguration()
+            .get<boolean>(Constants.configCopilotInlineCompletionsIncludeSqlDiagnostics, true) ??
+        true
+    );
+}
+
 function getConfiguredSchemaContextSetting(): InlineCompletionDebugSchemaContextOverrides | null {
     const configured = vscode.workspace
         .getConfiguration()
@@ -2374,6 +2485,7 @@ function compactReplayConfig(
         modelSelector: normalizeStringOrNull(config.modelSelector),
         continuationModelSelector: normalizeStringOrNull(config.continuationModelSelector),
         useSchemaContext: normalizeBooleanOrNull(config.useSchemaContext),
+        includeSqlDiagnostics: normalizeBooleanOrNull(config.includeSqlDiagnostics),
         debounceMs: normalizeNumberOrNull(config.debounceMs),
         maxTokens: normalizeNumberOrNull(config.maxTokens),
         enabledCategories: Array.isArray(config.enabledCategories)
@@ -2576,6 +2688,17 @@ function cloneBaseEvent(event: InlineCompletionDebugEvent): Omit<InlineCompletio
     };
 }
 
+function toDebugPromptMessage(
+    message: vscode.LanguageModelChatMessage,
+): InlineCompletionDebugPromptMessage {
+    return {
+        role: message.role === vscode.LanguageModelChatMessageRole.Assistant ? "assistant" : "user",
+        content: message.content
+            .map((part) => (part instanceof vscode.LanguageModelTextPart ? part.value : ""))
+            .join(""),
+    };
+}
+
 function getForeignKeyCount(schemaContext: SqlInlineCompletionSchemaContext | undefined): number {
     return (schemaContext?.tables ?? []).reduce(
         (sum, table) => sum + (table.foreignKeys?.length ?? 0),
@@ -2617,6 +2740,9 @@ function getOverridesApplied(overrides: InlineCompletionDebugOverrides) {
             : {}),
         ...(overrides.useSchemaContext !== null
             ? { useSchemaContext: overrides.useSchemaContext }
+            : {}),
+        ...(overrides.includeSqlDiagnostics !== null
+            ? { includeSqlDiagnostics: overrides.includeSqlDiagnostics }
             : {}),
         ...(overrides.debounceMs !== null ? { debounceMs: overrides.debounceMs } : {}),
         ...(overrides.maxTokens !== null ? { maxTokens: overrides.maxTokens } : {}),

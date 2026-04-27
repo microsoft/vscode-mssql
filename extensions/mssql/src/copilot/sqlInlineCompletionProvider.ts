@@ -57,10 +57,19 @@ const statementPrefixWindowChars = 2500;
 const recentPrefixWindowChars = 1500;
 const suffixWindowChars = 500;
 const maxCompletionChars = 400;
+const nearbyDiagnosticsLineRadius = 10;
+const maxNearbyDiagnostics = 8;
+const maxDiagnosticMessageChars = 220;
+const exactTokenCountEstimateLimit = 200_000;
+const exactTokenCountTimeoutMs = 5_000;
+const schemaContextBuildTimeoutMs = 6 * 60 * 1000;
+const languageModelRequestTimeoutMs = 120_000;
 export const continuationModeMaxTokens = 240;
 export const intentModeMaxChars = 2000;
 export const intentModeMaxTokens = 800;
 export const automaticTriggerDebounceMs = 350;
+const acceptedIntentContinuationCooldownMs = 10_000;
+const acceptedIntentContinuationLinePadding = 5;
 const inlineCompletionAcceptedCommand = "mssql.copilot.inlineCompletion.accepted";
 const statementInitiatingKeywordPattern =
     /^(?:select|with|insert|update|delete|merge|exec|execute|declare)$/i;
@@ -69,9 +78,11 @@ const statementInitiatingPostCommentPattern =
 const instructionalIntentWordPattern =
     /\b(?:write|give|get|show|list|find|return|display|compute|count|sum|report|select|fetch|query|retrieve|calculate|generate|estimate|pull|extract|aggregate|summarize|top|dump|export|match|plot|compare|rank|bucket)\b/i;
 const questionStyleIntentPattern = /\b(?:what|which|who|where|when|why|how)\b/i;
+const leadingQuestionIntentWordPattern =
+    /^(?:am|are|can|could|did|do|does|had|has|have|is|should|was|were|will|would)\b/i;
 const trailingQuestionIntentPattern = /\?\s*$/;
 const metaResponseInsteadOfSqlPattern =
-    /^(?:i\b|i[' ]|sorry\b|cannot\b|can't\b|unable\b|however\b|sure\b|here(?:'s| is)\b|of course\b|note:?\b|note that\b|important:?\b|yes,?\b|okay,?\b|there(?:'s| is)\b|the (?:document|query|statement|schema)\b|(?:this|that) (?:document|query|statement)\b|schema context\b|returning\b|not enough\b|insufficient\b|already (?:complete|done)\b|complete\b|done\b|no (?:further )?(?:completion|change|changes)\b)/i;
+    /^(?:i\b|i[' ]|sorry\b|cannot\b|can't\b|unable\b|however\b|sure\b|here(?:'s| is)\b|of course\b|note:?\b|note that\b|important:?\b|yes,?\b|okay,?\b|no\b|there(?:'s| is)\b|the (?:current )?(?:document|query|statement|schema)\b|(?:this|that|current) (?:document|query|statement)\b|schema context\b|returning\b|not enough\b|insufficient\b|malformed\b|invalid\b|since\b|because\b|already (?:complete|done)\b|complete\b|done\b)/i;
 const emptyStringInstructionEchoPattern =
     /\b(?:return|returns|returning|emit|emits|output|outputs)\s+(?:exactly\s+)?(?:an?\s+)?(?:empty|string empty|empty string)\b/i;
 
@@ -90,6 +101,16 @@ interface InlineCompletionTelemetrySnapshot {
     schemaBudgetProfile: string;
     schemaSizeKind: string;
     schemaDegradationStepCount: number;
+    documentUri?: string;
+    positionLine?: number;
+    completionLineCount?: number;
+}
+
+interface RecentAcceptedIntentCompletion {
+    documentUri: string;
+    acceptedAt: number;
+    startLine: number;
+    endLine: number;
 }
 
 export class SqlInlineCompletionProvider
@@ -98,6 +119,7 @@ export class SqlInlineCompletionProvider
     private readonly _logger = logger2.withPrefix("SqlInlineCompletion");
     private readonly _disposables: vscode.Disposable[] = [];
     private readonly _cachedModels = new Map<string, vscode.LanguageModelChat | undefined>();
+    private _recentAcceptedIntentCompletion: RecentAcceptedIntentCompletion | undefined;
 
     constructor(
         private readonly _context: vscode.ExtensionContext,
@@ -122,6 +144,7 @@ export class SqlInlineCompletionProvider
             vscode.commands.registerCommand(
                 inlineCompletionAcceptedCommand,
                 (snapshot?: InlineCompletionTelemetrySnapshot, eventId?: string) => {
+                    this.rememberAcceptedIntentCompletion(snapshot, eventId);
                     if (eventId) {
                         inlineCompletionDebugStore.markAccepted(eventId);
                     }
@@ -209,6 +232,11 @@ export class SqlInlineCompletionProvider
             overrides.useSchemaContext ??
             profile?.useSchemaContext ??
             this.getConfiguredUseSchemaContext();
+        const includeSqlDiagnostics =
+            overrides.includeSqlDiagnostics ?? this.getConfiguredIncludeSqlDiagnostics();
+        const sqlDiagnosticsText = includeSqlDiagnostics
+            ? formatNearbySqlDiagnosticsForPrompt(document, position)
+            : "";
         const shouldCaptureDebug = inlineCompletionDebugStore.shouldCapture(
             this.getRecordWhenClosedSetting(),
         );
@@ -241,6 +269,10 @@ export class SqlInlineCompletionProvider
         let inputTokens: number | undefined;
         let outputTokens: number | undefined;
         let modelCallStarted = false;
+        let estimatedInputTokens: number | undefined;
+        let inputTokensEstimated = false;
+        let skipReason: string | undefined;
+        let pendingStage = "starting";
 
         const modelStartedAt = Date.now();
         let pendingDebugEventId: string | undefined;
@@ -264,8 +296,8 @@ export class SqlInlineCompletionProvider
             modelVendor: selectedModel?.vendor,
             result,
             latencyMs: Date.now() - modelStartedAt,
-            inputTokens,
-            outputTokens,
+            inputTokens: getDebugInputTokens(result, modelCallStarted, inputTokens),
+            outputTokens: getDebugOutputTokens(result, modelCallStarted, outputTokens),
             schemaObjectCount:
                 (schemaContext?.tables.length ?? 0) + (schemaContext?.views.length ?? 0),
             schemaSystemObjectCount:
@@ -281,6 +313,9 @@ export class SqlInlineCompletionProvider
                     : {}),
                 ...(overrides.useSchemaContext !== null
                     ? { useSchemaContext: overrides.useSchemaContext }
+                    : {}),
+                ...(overrides.includeSqlDiagnostics !== null
+                    ? { includeSqlDiagnostics: overrides.includeSqlDiagnostics }
                     : {}),
                 ...(overrides.debounceMs !== null ? { debounceMs: overrides.debounceMs } : {}),
                 ...(overrides.maxTokens !== null ? { maxTokens: overrides.maxTokens } : {}),
@@ -316,11 +351,23 @@ export class SqlInlineCompletionProvider
                 detectedIntentMode,
                 inferredSystemQuery,
                 useSchemaContext,
+                includeSqlDiagnostics,
+                "sqlDiagnostics.length": sqlDiagnosticsText.length,
+                sqlDiagnostics: sqlDiagnosticsText,
                 effectiveMaxTokens,
                 effectiveMaxChars,
                 debounceMsApplied,
                 completionCategory,
                 enabledCategories,
+                languageModelRequestSent: modelCallStarted,
+                pendingStage: result === "pending" ? pendingStage : undefined,
+                estimatedInputTokens,
+                inputTokensEstimated,
+                unsentInputTokens:
+                    !modelCallStarted && result !== "pending"
+                        ? (inputTokens ?? estimatedInputTokens)
+                        : undefined,
+                skipReason,
                 selectedModelMaxInputTokens: selectedModel?.maxInputTokens,
                 selectedModelName: selectedModel?.name,
                 selectedModelVersion: selectedModel?.version,
@@ -371,6 +418,10 @@ export class SqlInlineCompletionProvider
                 inlineCompletionDebugStore.addEvent(debugEvent)
             );
         };
+        const recordPendingStage = (stage: string): void => {
+            pendingStage = stage;
+            recordDebugEvent("pending");
+        };
 
         const sendResultTelemetry = (
             result: InlineCompletionResult,
@@ -387,7 +438,29 @@ export class SqlInlineCompletionProvider
             return telemetrySnapshot;
         };
 
+        const skipCompletion = (reason: string): [] => {
+            skipReason = reason;
+            inputTokens = 0;
+            outputTokens = 0;
+            sendResultTelemetry("skipped");
+            recordDebugEvent("skipped");
+            return [];
+        };
+        const pendingSkipReason =
+            completionCategory === "continuation" &&
+            shouldSkipContinuationRequest(statementPrefix, lineSuffix)
+                ? "continuationInComment"
+                : completionCategory === "continuation" &&
+                    this.shouldSkipContinuationAfterAcceptedIntent(document, position, triggerKind)
+                  ? "continuationAfterAcceptedIntent"
+                  : undefined;
+
         try {
+            if (pendingSkipReason && !shouldCaptureDebug) {
+                return skipCompletion(pendingSkipReason);
+            }
+
+            pendingStage = "selectingModel";
             recordPendingDebugEvent();
 
             selectedModel = await this.getLanguageModel(
@@ -398,6 +471,10 @@ export class SqlInlineCompletionProvider
                 ),
                 modelPreference,
             );
+            if (pendingSkipReason) {
+                return skipCompletion(pendingSkipReason);
+            }
+
             if (!selectedModel) {
                 const telemetrySnapshot = createInlineTelemetrySnapshot(
                     undefined,
@@ -416,7 +493,7 @@ export class SqlInlineCompletionProvider
                 selectedModel.maxInputTokens,
                 schemaContextOverrides,
             );
-            recordDebugEvent("pending");
+            recordPendingStage("checkingModelAccess");
 
             const canSendRequest: boolean | undefined =
                 this._context.languageModelAccessInformation?.canSendRequest(selectedModel);
@@ -439,11 +516,16 @@ export class SqlInlineCompletionProvider
             }
 
             if (useSchemaContext) {
-                schemaContext = await this._schemaContextService.getSchemaContext(
-                    document,
-                    statementPrefix,
-                    selectedModel.maxInputTokens,
-                    schemaContextOverrides,
+                recordPendingStage("buildingSchemaContext");
+                schemaContext = await withTimeout(
+                    this._schemaContextService.getSchemaContext(
+                        document,
+                        statementPrefix,
+                        selectedModel.maxInputTokens,
+                        schemaContextOverrides,
+                    ),
+                    schemaContextBuildTimeoutMs,
+                    "Timed out building SQL schema context.",
                 );
             }
 
@@ -465,6 +547,7 @@ export class SqlInlineCompletionProvider
                 linePrefix,
                 recentPrefix,
                 statementPrefix,
+                sqlDiagnosticsText,
             });
             promptMessages = buildInlineCompletionPromptMessages({
                 rulesText,
@@ -474,6 +557,7 @@ export class SqlInlineCompletionProvider
                 suffix,
                 linePrefix,
                 lineSuffix,
+                sqlDiagnosticsText,
                 schemaContextText,
                 messageOrder: schemaContextSettings.messageOrder,
                 schemaContextChannel: schemaContextSettings.schemaContextChannel,
@@ -482,7 +566,7 @@ export class SqlInlineCompletionProvider
                 ? promptMessages.map(toDebugPromptMessage)
                 : [];
             const shouldCheckInputBudget = isFinitePositiveNumber(selectedModel.maxInputTokens);
-            let estimatedInputTokens = estimateLanguageModelTokens(promptMessages);
+            estimatedInputTokens = estimateLanguageModelTokens(promptMessages);
             let budgetInputTokens: number | undefined = shouldCheckInputBudget
                 ? estimatedInputTokens
                 : undefined;
@@ -490,7 +574,15 @@ export class SqlInlineCompletionProvider
                 shouldCaptureDebug ||
                 shouldCountPromptTokensForBudget(estimatedInputTokens, selectedModel.maxInputTokens)
             ) {
-                inputTokens = await countLanguageModelTokens(selectedModel, promptMessages, token);
+                recordPendingStage("countingInputTokens");
+                const countedInputTokens = await countLanguageModelTokensForPrompt(
+                    selectedModel,
+                    promptMessages,
+                    token,
+                    estimatedInputTokens,
+                );
+                inputTokens = countedInputTokens ?? estimatedInputTokens;
+                inputTokensEstimated = countedInputTokens === undefined;
                 budgetInputTokens = inputTokens ?? budgetInputTokens;
             }
 
@@ -512,6 +604,7 @@ export class SqlInlineCompletionProvider
                     suffix,
                     linePrefix,
                     lineSuffix,
+                    sqlDiagnosticsText,
                     schemaContextText,
                     messageOrder: schemaContextSettings.messageOrder,
                     schemaContextChannel: schemaContextSettings.schemaContextChannel,
@@ -528,35 +621,53 @@ export class SqlInlineCompletionProvider
                         selectedModel.maxInputTokens,
                     )
                 ) {
-                    inputTokens = await countLanguageModelTokens(
+                    recordPendingStage("countingTrimmedInputTokens");
+                    const countedInputTokens = await countLanguageModelTokensForPrompt(
                         selectedModel,
                         promptMessages,
                         token,
+                        estimatedInputTokens,
                     );
+                    inputTokens = countedInputTokens ?? estimatedInputTokens;
+                    inputTokensEstimated = countedInputTokens === undefined;
                     budgetInputTokens = inputTokens ?? budgetInputTokens;
                 }
             }
 
-            recordDebugEvent("pending");
+            recordPendingStage("waitingForModelResponse");
             modelCallStarted = true;
-            const response = await selectedModel.sendRequest(
-                promptMessages,
-                {
-                    justification:
-                        "MSSQL inline SQL completion uses a language model to generate ghost text.",
-                    modelOptions: createLanguageModelMaxTokenOptions(effectiveMaxTokens),
-                },
-                token,
+            const response = await withTimeout(
+                selectedModel.sendRequest(
+                    promptMessages,
+                    {
+                        justification:
+                            "MSSQL inline SQL completion uses a language model to generate ghost text.",
+                        modelOptions: createLanguageModelMaxTokenOptions(effectiveMaxTokens),
+                    },
+                    token,
+                ),
+                languageModelRequestTimeoutMs,
+                "Timed out waiting for language model response.",
             );
 
-            rawText = await collectText(response, token);
+            recordPendingStage("readingModelResponse");
+            rawText = await withTimeout(
+                collectText(response, token),
+                languageModelRequestTimeoutMs,
+                "Timed out reading language model response.",
+            );
             if (token.isCancellationRequested) {
                 recordDebugEvent("cancelled");
                 return [];
             }
-            outputTokens = shouldCaptureDebug
-                ? await countLanguageModelTokens(selectedModel, rawText, token)
-                : undefined;
+            if (shouldCaptureDebug) {
+                recordPendingStage("countingOutputTokens");
+                outputTokens = await countLanguageModelTokensWithTimeout(
+                    selectedModel,
+                    rawText,
+                    token,
+                );
+            }
 
             sanitizedText = sanitizeInlineCompletionText(
                 rawText,
@@ -587,6 +698,9 @@ export class SqlInlineCompletionProvider
             }
 
             const telemetrySnapshot = sendResultTelemetry("success");
+            telemetrySnapshot.documentUri = document.uri.toString();
+            telemetrySnapshot.positionLine = position.line;
+            telemetrySnapshot.completionLineCount = getCompletionLineCount(finalCompletionText);
             const storedEvent = recordDebugEvent("success");
 
             return [
@@ -636,6 +750,17 @@ export class SqlInlineCompletionProvider
                 .getConfiguration()
                 .get<boolean>(Constants.configCopilotInlineCompletionsUseSchemaContext, false) ??
             false
+        );
+    }
+
+    private getConfiguredIncludeSqlDiagnostics(): boolean {
+        return (
+            vscode.workspace
+                .getConfiguration()
+                .get<boolean>(
+                    Constants.configCopilotInlineCompletionsIncludeSqlDiagnostics,
+                    true,
+                ) ?? true
         );
     }
 
@@ -737,6 +862,62 @@ export class SqlInlineCompletionProvider
     private clearModelCache(): void {
         this._cachedModels.clear();
     }
+
+    private rememberAcceptedIntentCompletion(
+        snapshot: InlineCompletionTelemetrySnapshot | undefined,
+        eventId: string | undefined,
+    ): void {
+        const event = eventId ? inlineCompletionDebugStore.getEvent(eventId) : undefined;
+        if ((event?.completionCategory ?? snapshot?.completionCategory) !== "intent") {
+            return;
+        }
+
+        const documentUri = event?.documentUri ?? snapshot?.documentUri;
+        const startLine = getZeroBasedLine(event?.line) ?? snapshot?.positionLine;
+        if (!documentUri || !isFiniteNonNegativeNumber(startLine)) {
+            return;
+        }
+
+        const completionLineCount =
+            getCompletionLineCount(event?.finalCompletionText) ??
+            snapshot?.completionLineCount ??
+            1;
+        this._recentAcceptedIntentCompletion = {
+            documentUri,
+            acceptedAt: Date.now(),
+            startLine,
+            endLine:
+                startLine +
+                Math.max(1, completionLineCount) -
+                1 +
+                acceptedIntentContinuationLinePadding,
+        };
+    }
+
+    private shouldSkipContinuationAfterAcceptedIntent(
+        document: vscode.TextDocument,
+        position: vscode.Position,
+        triggerKind: vscode.InlineCompletionTriggerKind,
+    ): boolean {
+        if (triggerKind !== vscode.InlineCompletionTriggerKind.Automatic) {
+            return false;
+        }
+
+        const recentAcceptedIntent = this._recentAcceptedIntentCompletion;
+        if (!recentAcceptedIntent || recentAcceptedIntent.documentUri !== document.uri.toString()) {
+            return false;
+        }
+
+        if (Date.now() - recentAcceptedIntent.acceptedAt > acceptedIntentContinuationCooldownMs) {
+            this._recentAcceptedIntentCompletion = undefined;
+            return false;
+        }
+
+        return (
+            position.line >= recentAcceptedIntent.startLine &&
+            position.line <= recentAcceptedIntent.endLine
+        );
+    }
 }
 
 function getModelSelectorForCompletionCategory(
@@ -826,6 +1007,7 @@ function buildSharedPreamble(inferredSystemQuery: boolean): string {
 - If the schema context does not contain enough information to satisfy the request, return exactly an empty string. Do not explain why, apologize, mention missing schema context, emit placeholder text such as SELECT, or say that you are returning an empty string.
 - Empty string means emit no characters at all; never write prose such as "the document is complete", "done", or "return empty string".
 - The document suffix and current line suffix are authoritative context. Generate text that composes naturally with both; if no natural completion fits before the suffix, return exactly an empty string.
+- Nearby SQL diagnostics are advisory context for avoiding syntax errors. Use them only to improve the inserted SQL, never to explain an error.
 - Use the recent document prefix to avoid repeating nearby declarations, CTE names, temp tables, aliases, or setup statements.
 - Prefer the simplest canonical query that satisfies the request. Do not add extra joins, columns, filters, aliases, or system objects unless the request or schema context requires them.
 - System affinity: inferredSystemQuery=${inferredSystemQuery ? "true" : "false"} — if true, prefer sys.* / INFORMATION_SCHEMA.* / DMV objects from the listed system objects; if false, prefer user tables, views, procedures, and functions.
@@ -870,6 +1052,7 @@ Continuation-mode rules:
 - Return at most one logical unit: one JOIN with ON, one APPLY, one WHERE predicate, one SELECT expression, one identifier continuation, etc.
 - Do not repeat text already before the cursor. Continue from the current cursor exactly.
 - If no natural single-unit continuation fits the current line suffix and document suffix, return exactly an empty string. Do not invent a fresh standalone statement.
+- If you cannot generate SQL that should be inserted at the cursor, return exactly an empty string. Do not provide an explanation, diagnosis, apology, note, or reason.
 - Do not end with a semicolon. Do not emit multiple clauses chained together.
 - If the cursor is after a non-whitespace character, choose the right leading space or newline. New clauses such as WHERE, JOIN, APPLY, GROUP BY, ORDER BY, OPTION, FOR JSON, and FOR XML should start on a new line.
 - When completing a qualified name, preserve the dot. If the cursor is after sys and sys.databases is available, return .databases.
@@ -884,6 +1067,7 @@ interface InlineCompletionPromptBuildOptions {
     suffix: string;
     linePrefix: string;
     lineSuffix: string;
+    sqlDiagnosticsText: string;
     schemaContextText: string;
     messageOrder?: SqlInlineCompletionSchemaContextRuntimeSettings["messageOrder"];
     schemaContextChannel?: SqlInlineCompletionSchemaContextRuntimeSettings["schemaContextChannel"];
@@ -897,6 +1081,7 @@ interface InlineCompletionPromptRuleOptions {
     linePrefix: string;
     recentPrefix: string;
     statementPrefix: string;
+    sqlDiagnosticsText: string;
 }
 
 export function resolveInlineCompletionRules(options: InlineCompletionPromptRuleOptions): string {
@@ -919,6 +1104,7 @@ export function applyCustomSystemPromptTemplate(
         ["{{linePrefix}}", options.linePrefix],
         ["{{recentPrefix}}", options.recentPrefix],
         ["{{statementPrefix}}", options.statementPrefix],
+        ["{{sqlDiagnostics}}", options.sqlDiagnosticsText],
     ];
 
     for (const [placeholder, value] of replacements) {
@@ -976,6 +1162,7 @@ function buildPromptDataMessage(
         `<document_suffix>\n${options.suffix}\n</document_suffix>`,
         `<current_line_prefix>\n${options.linePrefix}\n</current_line_prefix>`,
         `<current_line_suffix>\n${options.lineSuffix}\n</current_line_suffix>`,
+        `<nearby_sql_diagnostics>\n${options.sqlDiagnosticsText || "-- unavailable"}\n</nearby_sql_diagnostics>`,
     ];
 
     if (includeSchemaContext) {
@@ -1232,8 +1419,86 @@ async function countLanguageModelTokens(
     }
 }
 
+async function countLanguageModelTokensForPrompt(
+    model: vscode.LanguageModelChat,
+    messages: vscode.LanguageModelChatMessage[],
+    token: vscode.CancellationToken,
+    estimatedInputTokens: number,
+): Promise<number | undefined> {
+    if (estimatedInputTokens > exactTokenCountEstimateLimit) {
+        return undefined;
+    }
+
+    return countLanguageModelTokensWithTimeout(model, messages, token);
+}
+
+async function countLanguageModelTokensWithTimeout(
+    model: vscode.LanguageModelChat,
+    textOrMessages: string | vscode.LanguageModelChatMessage[],
+    token: vscode.CancellationToken,
+): Promise<number | undefined> {
+    try {
+        return await withTimeout(
+            countLanguageModelTokens(model, textOrMessages, token),
+            exactTokenCountTimeoutMs,
+            "Timed out counting language model tokens.",
+        );
+    } catch {
+        return undefined;
+    }
+}
+
+function withTimeout<T>(thenable: PromiseLike<T>, timeoutMs: number, message: string): Promise<T> {
+    const promise = Promise.resolve(thenable);
+    if (timeoutMs <= 0) {
+        return promise;
+    }
+
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    return new Promise<T>((resolve, reject) => {
+        timeout = setTimeout(() => {
+            reject(new Error(message));
+        }, timeoutMs);
+
+        promise.then(
+            (value) => {
+                if (timeout !== undefined) {
+                    clearTimeout(timeout);
+                }
+                resolve(value);
+            },
+            (error) => {
+                if (timeout !== undefined) {
+                    clearTimeout(timeout);
+                }
+                reject(error);
+            },
+        );
+    });
+}
+
 function isFinitePositiveNumber(value: unknown): value is number {
     return typeof value === "number" && Number.isFinite(value) && value > 0;
+}
+
+function isFiniteNonNegativeNumber(value: unknown): value is number {
+    return typeof value === "number" && Number.isFinite(value) && value >= 0;
+}
+
+function getZeroBasedLine(oneBasedLine: number | undefined): number | undefined {
+    if (oneBasedLine === undefined || !Number.isFinite(oneBasedLine) || oneBasedLine <= 0) {
+        return undefined;
+    }
+
+    return oneBasedLine - 1;
+}
+
+function getCompletionLineCount(completionText: string | undefined): number | undefined {
+    if (completionText === undefined) {
+        return undefined;
+    }
+
+    return completionText.replace(/\r\n/g, "\n").split("\n").length;
 }
 
 function isPromptOverModelBudget(
@@ -1370,6 +1635,10 @@ export function fixLeadingWhitespace(
         return `\n${completionText.replace(/^\s+/, "")}`;
     }
 
+    if (shouldStartSelectStatementOnNewLine(completionText)) {
+        return `\n${completionText.replace(/^\s+/, "")}`;
+    }
+
     if (/[\s.]$/.test(linePrefix) || /^[\s.]/.test(completionText)) {
         return completionText;
     }
@@ -1398,6 +1667,12 @@ export function fixLeadingWhitespace(
 
 function isAfterStatementTerminator(linePrefix: string): boolean {
     return /;\s*$/.test(linePrefix);
+}
+
+function shouldStartSelectStatementOnNewLine(completionText: string): boolean {
+    const trimmedCompletion = completionText.trimStart();
+    const match = /^select\b([\s\S]*)$/i.exec(trimmedCompletion);
+    return !!match && match[1].trim().length > 10;
 }
 
 function isIntentCommentLinePrefix(linePrefix: string): boolean {
@@ -1524,7 +1799,7 @@ function isCancellation(token: vscode.CancellationToken, error: unknown): boolea
 }
 
 function delay(ms: number, token: vscode.CancellationToken): Promise<void> {
-    if (token.isCancellationRequested) {
+    if (ms <= 0 || token.isCancellationRequested) {
         return Promise.resolve();
     }
 
@@ -1539,6 +1814,125 @@ function delay(ms: number, token: vscode.CancellationToken): Promise<void> {
             resolve();
         });
     });
+}
+
+function getDebugInputTokens(
+    result: InlineCompletionDebugEventResult,
+    modelCallStarted: boolean,
+    inputTokens: number | undefined,
+): number | undefined {
+    if (result === "skipped") {
+        return 0;
+    }
+
+    if (result === "cancelled" && !modelCallStarted) {
+        return inputTokens ?? 0;
+    }
+
+    return inputTokens;
+}
+
+function getDebugOutputTokens(
+    result: InlineCompletionDebugEventResult,
+    modelCallStarted: boolean,
+    outputTokens: number | undefined,
+): number | undefined {
+    if (result === "skipped") {
+        return 0;
+    }
+
+    if (result === "cancelled" && !modelCallStarted) {
+        return 0;
+    }
+
+    return outputTokens;
+}
+
+function shouldSkipContinuationRequest(statementPrefix: string, lineSuffix: string): boolean {
+    return isCursorInSqlComment(`${statementPrefix}${lineSuffix}`, statementPrefix.length);
+}
+
+function isCursorInSqlComment(text: string, cursorOffset: number): boolean {
+    let inSingleQuotedString = false;
+    let inDoubleQuotedString = false;
+    let inBracketIdentifier = false;
+    let inLineComment = false;
+    let inBlockComment = false;
+
+    for (let index = 0; index < Math.min(text.length, cursorOffset); index++) {
+        const current = text[index];
+        const next = text[index + 1];
+
+        if (inLineComment) {
+            if (current === "\n" || current === "\r") {
+                inLineComment = false;
+            }
+            continue;
+        }
+
+        if (inBlockComment) {
+            if (current === "*" && next === "/") {
+                inBlockComment = false;
+                index++;
+            }
+            continue;
+        }
+
+        if (inSingleQuotedString) {
+            if (current === "'" && next === "'") {
+                index++;
+            } else if (current === "'") {
+                inSingleQuotedString = false;
+            }
+            continue;
+        }
+
+        if (inDoubleQuotedString) {
+            if (current === '"' && next === '"') {
+                index++;
+            } else if (current === '"') {
+                inDoubleQuotedString = false;
+            }
+            continue;
+        }
+
+        if (inBracketIdentifier) {
+            if (current === "]" && next === "]") {
+                index++;
+            } else if (current === "]") {
+                inBracketIdentifier = false;
+            }
+            continue;
+        }
+
+        if (current === "-" && next === "-") {
+            inLineComment = true;
+            index++;
+            continue;
+        }
+
+        if (current === "/" && next === "*") {
+            inBlockComment = true;
+            index++;
+            continue;
+        }
+
+        if (current === "'") {
+            inSingleQuotedString = true;
+            continue;
+        }
+
+        if (current === '"') {
+            inDoubleQuotedString = true;
+            continue;
+        }
+
+        if (current === "[") {
+            inBracketIdentifier = true;
+        }
+    }
+
+    return inLineComment || inBlockComment;
 }
 
 function getStatementAwarePrefixWindow(
@@ -1707,6 +2101,102 @@ function getSuffixWindow(
     return suffix.slice(0, maxChars);
 }
 
+function formatNearbySqlDiagnosticsForPrompt(
+    document: vscode.TextDocument,
+    position: vscode.Position,
+): string {
+    const diagnostics = vscode.languages
+        .getDiagnostics(document.uri)
+        .filter((diagnostic) => diagnostic.severity === vscode.DiagnosticSeverity.Error)
+        .filter((diagnostic) =>
+            isDiagnosticNearPosition(diagnostic, position, nearbyDiagnosticsLineRadius),
+        )
+        .sort((left, right) => compareDiagnosticDistance(left, right, position))
+        .slice(0, maxNearbyDiagnostics);
+
+    if (diagnostics.length === 0) {
+        return "";
+    }
+
+    const fileName = path.basename(document.fileName || document.uri.fsPath || "query.sql");
+    return diagnostics
+        .map((diagnostic) => {
+            const line = diagnostic.range.start.line + 1;
+            const column = diagnostic.range.start.character + 1;
+            const code = formatDiagnosticCode(diagnostic.code);
+            const message = truncateDiagnosticMessage(
+                sanitizeDiagnosticMessage(diagnostic.message),
+            );
+            return `${fileName}:${line}:${column} error${code ? ` ${code}` : ""}: ${message}`;
+        })
+        .join("\n");
+}
+
+function isDiagnosticNearPosition(
+    diagnostic: vscode.Diagnostic,
+    position: vscode.Position,
+    lineRadius: number,
+): boolean {
+    return (
+        diagnostic.range.start.line <= position.line + lineRadius &&
+        diagnostic.range.end.line >= position.line - lineRadius
+    );
+}
+
+function compareDiagnosticDistance(
+    left: vscode.Diagnostic,
+    right: vscode.Diagnostic,
+    position: vscode.Position,
+): number {
+    return (
+        getDiagnosticDistance(left, position) - getDiagnosticDistance(right, position) ||
+        left.range.start.line - right.range.start.line ||
+        left.range.start.character - right.range.start.character
+    );
+}
+
+function getDiagnosticDistance(diagnostic: vscode.Diagnostic, position: vscode.Position): number {
+    if (
+        diagnostic.range.start.line <= position.line &&
+        diagnostic.range.end.line >= position.line
+    ) {
+        return 0;
+    }
+
+    return Math.min(
+        Math.abs(diagnostic.range.start.line - position.line),
+        Math.abs(diagnostic.range.end.line - position.line),
+    );
+}
+
+function formatDiagnosticCode(code: vscode.Diagnostic["code"]): string {
+    if (code === undefined || code === null) {
+        return "";
+    }
+
+    if (typeof code === "number" || typeof code === "string") {
+        return String(code);
+    }
+
+    return String(code.value ?? "");
+}
+
+function sanitizeDiagnosticMessage(message: string): string {
+    return message
+        .replace(/\b[A-Za-z]:\\(?:[^\\\s:;,)]+\\)+([^\\\s:;,)]+)/g, "$1")
+        .replace(/\bfile:\/\/\/(?:[^/\s:;,)]+\/)+([^/\s:;,)]+)/gi, "$1")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+function truncateDiagnosticMessage(message: string): string {
+    if (message.length <= maxDiagnosticMessageChars) {
+        return message;
+    }
+
+    return `${message.slice(0, maxDiagnosticMessageChars - 3).trimEnd()}...`;
+}
+
 export function detectIntentComment(statementPrefix: string, linePrefix: string): boolean {
     const trimmedPrefix = statementPrefix.trimEnd();
     const intentComment = findIntentComment(trimmedPrefix);
@@ -1724,6 +2214,7 @@ export function detectIntentComment(statementPrefix: string, linePrefix: string)
 
     return (
         trailingQuestionIntentPattern.test(intentComment.commentText) ||
+        leadingQuestionIntentWordPattern.test(intentComment.commentText) ||
         instructionalIntentWordPattern.test(intentComment.commentText) ||
         questionStyleIntentPattern.test(intentComment.commentText)
     );
@@ -1761,11 +2252,12 @@ function sanitizeInlineCompletionTextWithOptions(
 ): string | undefined {
     let normalized = options.completionText.replace(/\r\n/g, "\n");
     normalized = stripMarkdownFences(normalized);
+    normalized = stripReasoningTags(normalized);
     normalized = stripModelPreamble(normalized);
     normalized = unwrapQuotedResponse(normalized);
     normalized = options.intentMode ? normalized.trimEnd() : normalized.trim();
 
-    if (isSentinelCompletion(normalized)) {
+    if (isSentinelCompletion(normalized) || isStandaloneXmlLikeResponse(normalized)) {
         return undefined;
     }
 
@@ -1789,7 +2281,7 @@ function sanitizeInlineCompletionTextWithOptions(
 
     // The second sentinel pass intentionally catches model replies that only become
     // empty-string sentinels after echo/preamble/meta cleanup above.
-    if (isSentinelCompletion(normalized)) {
+    if (isSentinelCompletion(normalized) || isStandaloneXmlLikeResponse(normalized)) {
         return undefined;
     }
 
@@ -1821,6 +2313,14 @@ function stripMarkdownFences(text: string): string {
     return text.replace(fenceLinePattern, "$1");
 }
 
+function stripReasoningTags(text: string): string {
+    return text
+        .replace(/^\s*<think>[\s\S]*?<\/think>\s*/i, "")
+        .replace(/<think>[\s\S]*?<\/think>/gi, "")
+        .replace(/^\s*<\/?think>\s*/i, "")
+        .replace(/(^|\n)[ \t]*<\/?think>[ \t]*(?=\n|$)/gi, "$1");
+}
+
 function stripModelPreamble(text: string): string {
     return text.replace(
         /^\s*(?:completion|insert text|ghost text|sql|query|answer|result|output)\s*:\s*/i,
@@ -1847,12 +2347,40 @@ function unwrapQuotedResponse(text: string): string {
 }
 
 function isSentinelCompletion(text: string): boolean {
+    const normalized = normalizeSentinelCandidate(text);
     return (
-        !text.trim() ||
-        /^(?:""|''|none|no completion|n\/a|null|undefined|empty|string empty|empty string|\(none\))$/i.test(
-            text.trim(),
+        !normalized ||
+        /^(?:""|''|none|no completion|no response|no sql|no valid sql|n\/a|null|undefined|empty|empty completion|empty output|empty response|empty result|string empty|empty string|nothing)$/i.test(
+            normalized,
         )
     );
+}
+
+function isStandaloneXmlLikeResponse(text: string): boolean {
+    const trimmed = text.trim();
+    if (!/^<[/!?]?[A-Za-z]/.test(trimmed)) {
+        return false;
+    }
+
+    return (
+        /^<\/?[A-Za-z][\w:.-]*(?:\s+[^<>]*)?\/?>$/s.test(trimmed) ||
+        /^<\?xml\b[\s\S]*$/i.test(trimmed) ||
+        /^<([A-Za-z][\w:.-]*)(?:\s+[^<>]*)?>[\s\S]*<\/\1>$/i.test(trimmed)
+    );
+}
+
+function normalizeSentinelCandidate(text: string): string {
+    let normalized = text.trim();
+    let previous = "";
+    while (normalized && normalized !== previous) {
+        previous = normalized;
+        normalized = normalized
+            .replace(/^`+|`+$/g, "")
+            .replace(/^[\s()[\]{}<>]+|[\s()[\]{}<>.]+$/g, "")
+            .replace(/^["']+|["']+$/g, "")
+            .trim();
+    }
+    return normalized;
 }
 
 function removeEchoedLinePrefix(completionText: string, linePrefix: string): string {

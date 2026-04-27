@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { type WheelEvent, useCallback, useEffect, useMemo, useState } from "react";
 import {
     Button,
     Checkbox,
@@ -63,7 +63,7 @@ import { ReplayCartButton } from "../components/ReplayCartButton";
 const dimensions: Array<{ key: InlineCompletionAnalysisDimension; label: string }> = [
     { key: "model", label: "Model" },
     { key: "profile", label: "Profile" },
-    { key: "schemaMode", label: "Schema mode" },
+    { key: "schemaMode", label: "Schema budget" },
     { key: "schemaSizeKind", label: "Schema size" },
     { key: "intentMode", label: "Intent" },
     { key: "result", label: "Result" },
@@ -76,6 +76,7 @@ const dimensions: Array<{ key: InlineCompletionAnalysisDimension; label: string 
     { key: "replaySourceEvent", label: "Replay source" },
     { key: "replayTrace", label: "Replay trace" },
 ];
+const visibleDimensions = dimensions.filter((dimension) => dimension.key !== "language");
 
 const chartMargin = { top: 0, right: 8, bottom: 0, left: 0 };
 const axisTick = {
@@ -87,6 +88,27 @@ const tooltipStyle = {
     borderColor: "var(--vscode-panel-border)",
     color: "var(--vscode-foreground)",
 };
+
+function scrollHorizontallyOnWheel(event: WheelEvent<HTMLElement>): void {
+    const element = event.currentTarget;
+    const maxScrollLeft = element.scrollWidth - element.clientWidth;
+    if (maxScrollLeft <= 0) {
+        return;
+    }
+
+    const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+    if (delta === 0) {
+        return;
+    }
+
+    const nextScrollLeft = Math.max(0, Math.min(maxScrollLeft, element.scrollLeft + delta));
+    if (nextScrollLeft === element.scrollLeft) {
+        return;
+    }
+
+    element.scrollLeft = nextScrollLeft;
+    event.preventDefault();
+}
 
 const useStyles = makeStyles({
     root: {
@@ -104,18 +126,22 @@ const useStyles = makeStyles({
         ...shorthands.borderBottom("1px", "solid", "var(--vscode-panel-border)"),
     },
     datasetHeader: {
-        display: "grid",
-        gridTemplateColumns: "minmax(220px, 1fr) auto",
-        columnGap: "8px",
+        display: "flex",
+        flexWrap: "nowrap",
+        gap: "8px",
         alignItems: "center",
         minHeight: "34px",
+        overflowX: "auto",
+        overflowY: "hidden",
         ...shorthands.padding("0", "8px"),
     },
     folderText: {
         display: "flex",
         alignItems: "center",
         gap: "6px",
-        minWidth: 0,
+        flexShrink: 0,
+        width: "min(520px, 42vw)",
+        minWidth: "220px",
         overflowX: "hidden",
         whiteSpace: "nowrap",
         fontFamily: "var(--vscode-editor-font-family, Consolas, monospace)",
@@ -133,6 +159,8 @@ const useStyles = makeStyles({
         display: "flex",
         gap: "4px",
         alignItems: "center",
+        flexShrink: 0,
+        whiteSpace: "nowrap",
     },
     enableTraceButton: {
         maxWidth: "190px",
@@ -310,18 +338,25 @@ const useStyles = makeStyles({
     controls: {
         display: "flex",
         alignItems: "center",
-        justifyContent: "space-between",
-        flexWrap: "wrap",
+        justifyContent: "flex-start",
+        flexWrap: "nowrap",
         gap: "8px",
         minHeight: "34px",
+        overflowX: "auto",
+        overflowY: "hidden",
         ...shorthands.padding("3px", "8px"),
         ...shorthands.borderBottom("1px", "solid", "var(--vscode-panel-border)"),
     },
     controlGroup: {
         display: "flex",
         alignItems: "center",
-        flexWrap: "wrap",
+        flexWrap: "nowrap",
         gap: "6px",
+        flexShrink: 0,
+        whiteSpace: "nowrap",
+    },
+    dimensionDropdown: {
+        minWidth: "220px",
     },
     compactButton: {
         flexShrink: 1,
@@ -472,6 +507,9 @@ const useStyles = makeStyles({
     },
     cancelled: {
         backgroundColor: "#8f8f8f",
+    },
+    skipped: {
+        backgroundColor: "#b8b8b8",
     },
     error: {
         backgroundColor: "#e06c75",
@@ -799,7 +837,7 @@ export function SessionsTab({ active }: { active: boolean }) {
                                     onLayout={() => setGridResizeToken((value) => value + 1)}>
                                     {!filtersCollapsed ? (
                                         <>
-                                            <Panel defaultSize={20} minSize={14} maxSize={34}>
+                                            <Panel defaultSize={14} minSize={14} maxSize={34}>
                                                 <FilterRail
                                                     events={events}
                                                     filters={filters}
@@ -814,9 +852,11 @@ export function SessionsTab({ active }: { active: boolean }) {
                                             />
                                         </>
                                     ) : null}
-                                    <Panel defaultSize={filtersCollapsed ? 64 : 48} minSize={34}>
+                                    <Panel defaultSize={filtersCollapsed ? 64 : 54} minSize={34}>
                                         <div className={classes.main}>
-                                            <div className={classes.controls}>
+                                            <div
+                                                className={classes.controls}
+                                                onWheel={scrollHorizontallyOnWheel}>
                                                 <div className={classes.controlGroup}>
                                                     <Text>Group by</Text>
                                                     <DimensionDropdown
@@ -899,6 +939,7 @@ export function SessionsTab({ active }: { active: boolean }) {
                                                         addSessionEventsToReplayCart
                                                     }
                                                     showReplay={true}
+                                                    alwaysShowVerticalScroll={false}
                                                     getEventKey={getSessionEventKey}
                                                 />
                                             </div>
@@ -993,7 +1034,7 @@ function DatasetSelector({
 
     return (
         <div className={classes.dataset}>
-            <div className={classes.datasetHeader}>
+            <div className={classes.datasetHeader} onWheel={scrollHorizontallyOnWheel}>
                 <div className={classes.folderText}>
                     <FluentTooltip
                         content={fileListOpen ? "Hide trace files" : "Show trace files"}
@@ -1260,7 +1301,7 @@ function FilterRail({
                     </FluentTooltip>
                 </div>
             </div>
-            {dimensions.map((dimension) => (
+            {visibleDimensions.map((dimension) => (
                 <Facet
                     key={dimension.key}
                     dimension={dimension.key}
@@ -1345,15 +1386,17 @@ function DimensionDropdown({
     value: InlineCompletionAnalysisDimension;
     onChange: (value: InlineCompletionAnalysisDimension) => void;
 }) {
+    const classes = useStyles();
     return (
         <Dropdown
             size="small"
+            className={classes.dimensionDropdown}
             selectedOptions={[value]}
-            value={dimensions.find((dimension) => dimension.key === value)?.label ?? value}
+            value={visibleDimensions.find((dimension) => dimension.key === value)?.label ?? value}
             onOptionSelect={(_, data) =>
                 onChange(data.optionValue as InlineCompletionAnalysisDimension)
             }>
-            {dimensions.map((dimension) => (
+            {visibleDimensions.map((dimension) => (
                 <Option key={dimension.key} value={dimension.key}>
                     {dimension.label}
                 </Option>
@@ -1369,20 +1412,22 @@ function SecondaryDimensionDropdown({
     value: InlineCompletionAnalysisDimension | "none";
     onChange: (value: InlineCompletionAnalysisDimension | "none") => void;
 }) {
+    const classes = useStyles();
     const label =
         value === "none"
             ? "(none)"
-            : (dimensions.find((dimension) => dimension.key === value)?.label ?? value);
+            : (visibleDimensions.find((dimension) => dimension.key === value)?.label ?? value);
     return (
         <Dropdown
             size="small"
+            className={classes.dimensionDropdown}
             selectedOptions={[value]}
             value={label}
             onOptionSelect={(_, data) =>
                 onChange(data.optionValue as InlineCompletionAnalysisDimension | "none")
             }>
             <Option value="none">(none)</Option>
-            {dimensions.map((dimension) => (
+            {visibleDimensions.map((dimension) => (
                 <Option key={dimension.key} value={dimension.key}>
                     {dimension.label}
                 </Option>
@@ -1514,6 +1559,7 @@ function ChartsPanel({
         accepted: row.metrics.acceptedCount,
         rejected: row.metrics.rejectedCount,
         cancelled: row.metrics.cancelledCount,
+        skipped: row.metrics.skippedCount,
         error: row.metrics.errorCount,
     }));
     const timeSeriesData = useMemo(() => createTimeSeriesPoints(events), [events]);
@@ -1574,6 +1620,7 @@ function ChartsPanel({
                                 <Bar dataKey="accepted" stackId="result" fill="#53cdb8" />
                                 <Bar dataKey="rejected" stackId="result" fill="#d7daa0" />
                                 <Bar dataKey="cancelled" stackId="result" fill="#8f8f8f" />
+                                <Bar dataKey="skipped" stackId="result" fill="#b8b8b8" />
                                 <Bar dataKey="error" stackId="result" fill="#e06c75" />
                             </BarChart>
                         </ResponsiveContainer>

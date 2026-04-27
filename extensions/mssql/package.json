@@ -2544,6 +2544,12 @@
                     "description": "%mssql.copilot.inlineCompletions.useSchemaContext.description%",
                     "scope": "window"
                 },
+                "mssql.copilot.inlineCompletions.includeSqlDiagnostics": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "%mssql.copilot.inlineCompletions.includeSqlDiagnostics.description%",
+                    "scope": "window"
+                },
                 "mssql.copilot.inlineCompletions.profile": {
                     "type": "string",
                     "default": "balanced",

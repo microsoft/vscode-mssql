@@ -23,7 +23,9 @@ const schemaContextRequest = new RequestType<
     void
 >("query/simpleexecute");
 
-const defaultCacheTtlMs = 5 * 60 * 1000;
+const defaultCacheTtlMs = 30 * 60 * 1000;
+const schemaContextFetchWaitTimeoutMs = 5 * 60 * 1000;
+const schemaContextFetchTimeoutBackoffTtlMs = 15 * 60 * 1000;
 const errorBackoffTtlMs = [30 * 1000, 60 * 1000, 120 * 1000, 300 * 1000];
 const maxCacheEntries = 32;
 const minimumPromptBudgetChars = 4096;
@@ -299,6 +301,13 @@ class SchemaContextParseError extends Error {
     }
 }
 
+class SchemaContextFetchTimeoutError extends Error {
+    public constructor() {
+        super(`Timed out waiting ${schemaContextFetchWaitTimeoutMs} ms for schema context fetch.`);
+        this.name = "SchemaContextFetchTimeoutError";
+    }
+}
+
 const schemaBudgetProfiles: Record<
     Exclude<SchemaBudgetProfileId, "custom">,
     SchemaBudgetProfile
@@ -568,7 +577,7 @@ export class SqlInlineCompletionSchemaContextService implements vscode.Disposabl
         const now = Date.now();
         const cachedEntry = this._cache.get(cacheKey);
         if (cachedEntry && cachedEntry.expiresAt > now) {
-            this.touchCacheEntry(cacheKey, cachedEntry);
+            this.touchCacheEntry(cacheKey, cachedEntry, settings.budget.cacheTtlMs);
             const selectedContext = selectSchemaContextForPrompt(
                 cachedEntry.value,
                 relevanceTerms,
@@ -590,7 +599,13 @@ export class SqlInlineCompletionSchemaContextService implements vscode.Disposabl
 
         const existingFetch = this._inFlight.get(cacheKey);
         if (existingFetch) {
-            const fetchedContext = await existingFetch.promise;
+            const fetchedContext = await this.waitForSchemaContextFetch(
+                cacheKey,
+                connectionFingerprint,
+                existingFetch.promise,
+                settings,
+                connectionInfo,
+            );
             return selectSchemaContextForPrompt(fetchedContext, relevanceTerms, settings);
         }
 
@@ -605,7 +620,13 @@ export class SqlInlineCompletionSchemaContextService implements vscode.Disposabl
             connectionFingerprint,
             promise: fetchPromise,
         });
-        const fetchedContext = await fetchPromise;
+        const fetchedContext = await this.waitForSchemaContextFetch(
+            cacheKey,
+            connectionFingerprint,
+            fetchPromise,
+            settings,
+            connectionInfo,
+        );
         const selectedContext = selectSchemaContextForPrompt(
             fetchedContext,
             relevanceTerms,
@@ -617,6 +638,51 @@ export class SqlInlineCompletionSchemaContextService implements vscode.Disposabl
         return selectedContext;
     }
 
+    private async waitForSchemaContextFetch(
+        cacheKey: string,
+        connectionFingerprint: string,
+        fetchPromise: Promise<SqlInlineCompletionSchemaContext | undefined>,
+        settings: SqlInlineCompletionSchemaContextRuntimeSettings,
+        connectionInfo: ConnectionInfo,
+    ): Promise<SqlInlineCompletionSchemaContext | undefined> {
+        try {
+            return await withSchemaContextFetchTimeout(fetchPromise);
+        } catch (error) {
+            if (!(error instanceof SchemaContextFetchTimeoutError)) {
+                throw error;
+            }
+
+            const failureCount = this.cacheFailure(
+                cacheKey,
+                connectionFingerprint,
+                () => schemaContextFetchTimeoutBackoffTtlMs,
+            );
+            this._logger.warn(
+                `Timed out waiting for inline completion schema context after ` +
+                    `${schemaContextFetchWaitTimeoutMs} ms; using no schema context for ` +
+                    `${schemaContextFetchTimeoutBackoffTtlMs} ms while the background fetch continues`,
+            );
+            this.sendSchemaContextTelemetry("cacheMissFailed", undefined, settings, failureCount);
+            sendErrorEvent(
+                TelemetryViews.MssqlCopilot,
+                TelemetryActions.InlineCompletionSchemaContext,
+                error,
+                false,
+                undefined,
+                undefined,
+                {
+                    stage: "fetchTimeout",
+                    failureCountBucket: getCountBucket(failureCount),
+                    budgetProfile: settings.budgetProfile,
+                },
+                undefined,
+                undefined,
+                connectionInfo.serverInfo,
+            );
+            return undefined;
+        }
+    }
+
     private async fetchAndCacheSchemaContext(
         cacheKey: string,
         connectionFingerprint: string,
@@ -624,23 +690,37 @@ export class SqlInlineCompletionSchemaContextService implements vscode.Disposabl
         connectionInfo: ConnectionInfo,
         settings: SqlInlineCompletionSchemaContextRuntimeSettings,
     ): Promise<SqlInlineCompletionSchemaContext | undefined> {
+        const startedAt = Date.now();
         try {
             this._logger.debug("Fetching schema context for inline completion");
             await this._connectionManager.refreshAzureAccountToken(ownerUri);
+            const tokenRefreshedAt = Date.now();
 
             const result = await this._client.sendRequest(schemaContextRequest, {
                 ownerUri,
                 queryString: buildSchemaContextQuery(settings.budget),
             });
+            const fetchedAt = Date.now();
 
             const parsed = this.parseSchemaContext(result, settings.budget);
+            const parsedAt = Date.now();
             this.cacheSuccess(cacheKey, connectionFingerprint, parsed, settings.budget.cacheTtlMs);
+            this._logger.debug(
+                `Fetched schema context for inline completion in ${parsedAt - startedAt} ms ` +
+                    `(token ${tokenRefreshedAt - startedAt} ms, query ${
+                        fetchedAt - tokenRefreshedAt
+                    } ms, parse ${parsedAt - fetchedAt} ms, ` +
+                    `tables ${parsed?.tables.length ?? 0}, views ${parsed?.views.length ?? 0}, ` +
+                    `routines ${parsed?.routines?.length ?? 0})`,
+            );
             return parsed;
         } catch (error) {
             const stage = error instanceof SchemaContextParseError ? "parseError" : "fetchError";
             const errorMessage = getErrorMessage(error);
             this._logger.warn(
-                `Failed to fetch inline completion schema context (${stage}): ${errorMessage}`,
+                `Failed to fetch inline completion schema context (${stage}) after ${
+                    Date.now() - startedAt
+                } ms: ${errorMessage}`,
             );
             const failureCount = this.cacheFailure(cacheKey, connectionFingerprint);
 
@@ -798,12 +878,16 @@ export class SqlInlineCompletionSchemaContextService implements vscode.Disposabl
         this.enforceCacheLimit();
     }
 
-    private cacheFailure(cacheKey: string, connectionFingerprint: string): number {
+    private cacheFailure(
+        cacheKey: string,
+        connectionFingerprint: string,
+        getBackoffTtlMs: (failureCount: number) => number = getErrorBackoffTtlMs,
+    ): number {
         const failureCount = (this._errorFailuresByCacheKey.get(cacheKey) ?? 0) + 1;
         this._errorFailuresByCacheKey.set(cacheKey, failureCount);
         this._cache.set(cacheKey, {
             connectionFingerprint,
-            expiresAt: Date.now() + getErrorBackoffTtlMs(failureCount),
+            expiresAt: Date.now() + getBackoffTtlMs(failureCount),
             value: undefined,
             failureCount,
         });
@@ -811,9 +895,12 @@ export class SqlInlineCompletionSchemaContextService implements vscode.Disposabl
         return failureCount;
     }
 
-    private touchCacheEntry(cacheKey: string, entry: CacheEntry): void {
+    private touchCacheEntry(cacheKey: string, entry: CacheEntry, cacheTtlMs: number): void {
         this._cache.delete(cacheKey);
-        this._cache.set(cacheKey, entry);
+        this._cache.set(cacheKey, {
+            ...entry,
+            expiresAt: Date.now() + cacheTtlMs,
+        });
     }
 
     private enforceCacheLimit(): void {
@@ -3108,6 +3195,25 @@ function normalizeCacheKeyPart(value: string | undefined): string {
 function getErrorBackoffTtlMs(failureCount: number): number {
     const index = Math.min(Math.max(failureCount, 1), errorBackoffTtlMs.length) - 1;
     return errorBackoffTtlMs[index];
+}
+
+function withSchemaContextFetchTimeout<T>(promise: Promise<T>): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+            reject(new SchemaContextFetchTimeoutError());
+        }, schemaContextFetchWaitTimeoutMs);
+
+        promise.then(
+            (value) => {
+                clearTimeout(timeout);
+                resolve(value);
+            },
+            (error) => {
+                clearTimeout(timeout);
+                reject(error);
+            },
+        );
+    });
 }
 
 function getSizeBucket(size: number): string {

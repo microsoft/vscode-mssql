@@ -9,6 +9,7 @@ export type InlineCompletionAnalysisResult =
     | "accepted"
     | "cancelled"
     | "rejected"
+    | "skipped"
     | "error"
     | "unknown";
 
@@ -70,10 +71,12 @@ export interface InlineCompletionAnalysisMetrics {
     acceptRate: number;
     cancelRate: number;
     rejectRate: number;
+    skipRate: number;
     errorRate: number;
     acceptedCount: number;
     cancelledCount: number;
     rejectedCount: number;
+    skippedCount: number;
     errorCount: number;
     unknownCount: number;
     meanCompletionLength: number;
@@ -265,10 +268,12 @@ export function computeInlineCompletionMetrics(
         acceptRate: resultCounts.accepted / denominator,
         cancelRate: resultCounts.cancelled / denominator,
         rejectRate: resultCounts.rejected / denominator,
+        skipRate: resultCounts.skipped / denominator,
         errorRate: resultCounts.error / denominator,
         acceptedCount: resultCounts.accepted,
         cancelledCount: resultCounts.cancelled,
         rejectedCount: resultCounts.rejected,
+        skippedCount: resultCounts.skipped,
         errorCount: resultCounts.error,
         unknownCount: resultCounts.unknown,
         meanCompletionLength: mean(completionLengths),
@@ -283,7 +288,7 @@ export function getEventDimension(
 ): string {
     switch (dimension) {
         case "model":
-            return event.modelId ?? event.modelFamily ?? event.modelVendor ?? "unknown";
+            return getEventModelLabel(event);
         case "profile":
             return (
                 event.overridesApplied.profileId ?? asString(event.locals.profileId) ?? "default"
@@ -321,6 +326,29 @@ export function getEventDimension(
     }
 }
 
+export function getEventModelLabel(event: InlineCompletionDebugEvent): string {
+    const recordedModel = asModelIdentifier(event.modelId) ?? asModelIdentifier(event.modelFamily);
+    if (recordedModel) {
+        return recordedModel;
+    }
+
+    const selector =
+        event.completionCategory === "continuation"
+            ? (event.overridesApplied?.continuationModelSelector ??
+              event.overridesApplied?.modelSelector)
+            : event.overridesApplied?.modelSelector;
+    const selectorModel = getModelIdFromSelector(selector);
+    if (selectorModel) {
+        return selectorModel;
+    }
+
+    return (
+        asModelIdentifier(asString(event.locals.selectedModelName)) ??
+        asModelIdentifier(event.modelVendor) ??
+        "unknown"
+    );
+}
+
 export function getAnalysisResult(result: string | undefined): InlineCompletionAnalysisResult {
     switch (result) {
         case "accepted":
@@ -331,6 +359,8 @@ export function getAnalysisResult(result: string | undefined): InlineCompletionA
         case "emptyFromModel":
         case "emptyFromSanitizer":
             return "rejected";
+        case "skipped":
+            return "skipped";
         case "error":
         case "noModel":
         case "noPermission":
@@ -355,6 +385,7 @@ function countResults(events: InlineCompletionDebugEvent[]) {
         accepted: 0,
         cancelled: 0,
         rejected: 0,
+        skipped: 0,
         error: 0,
         unknown: 0,
     };
@@ -365,13 +396,15 @@ function countResults(events: InlineCompletionDebugEvent[]) {
 }
 
 function inferSchemaMode(event: InlineCompletionDebugEvent): string {
-    const overrideMode = event.overridesApplied.schemaContext?.columnRepresentation;
-    if (overrideMode) {
-        return overrideMode;
+    const overrideProfile = event.overridesApplied.schemaContext?.budgetProfile;
+    if (overrideProfile) {
+        return overrideProfile;
     }
 
-    const match = event.schemaContextFormatted?.match(/columns\s+([a-z-]+)/i);
-    return match?.[1] ?? asString(event.locals.schemaColumnRepresentation) ?? "unknown";
+    const formattedProfile = event.schemaContextFormatted?.match(
+        /schema\s+budget:\s+profile\s+([a-z-]+)/i,
+    );
+    return formattedProfile?.[1] ?? asString(event.locals.schemaBudgetProfile) ?? "unknown";
 }
 
 function percentile(values: number[], p: number): number {
@@ -401,6 +434,21 @@ function isFiniteNumber(value: unknown): value is number {
 
 function asString(value: unknown): string | undefined {
     return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
+function asModelIdentifier(value: unknown): string | undefined {
+    const text = asString(value)?.trim();
+    return text && text.toLowerCase() !== "default" ? text : undefined;
+}
+
+function getModelIdFromSelector(selector: unknown): string | undefined {
+    const text = asModelIdentifier(selector);
+    if (!text) {
+        return undefined;
+    }
+
+    const parts = text.split("/").filter(Boolean);
+    return asModelIdentifier(parts[parts.length - 1]) ?? text;
 }
 
 function getEventTag(event: InlineCompletionDebugEvent, key: string): string | undefined {

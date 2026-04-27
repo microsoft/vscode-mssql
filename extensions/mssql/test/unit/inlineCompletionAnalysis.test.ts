@@ -9,6 +9,7 @@ import {
     createFacetCounts,
     filterInlineCompletionEvents,
     getAnalysisResult,
+    getEventDimension,
     pivotInlineCompletionEvents,
 } from "../../src/sharedInterfaces/inlineCompletionAnalysis";
 import { InlineCompletionDebugEvent } from "../../src/sharedInterfaces/inlineCompletionDebug";
@@ -19,17 +20,18 @@ suite("Inline completion sessions analysis", () => {
         expect(getAnalysisResult("cancelled")).to.equal("cancelled");
         expect(getAnalysisResult("success")).to.equal("rejected");
         expect(getAnalysisResult("emptyFromSanitizer")).to.equal("rejected");
+        expect(getAnalysisResult("skipped")).to.equal("skipped");
         expect(getAnalysisResult("noModel")).to.equal("error");
         expect(getAnalysisResult("something-new")).to.equal("unknown");
     });
 
-    test("filters by model, profile, schema mode, result, trigger, and latency", () => {
+    test("filters by model, profile, schema budget, result, trigger, and latency", () => {
         const events = createEvents();
 
         const filtered = filterInlineCompletionEvents(events, {
             models: ["claude-sonnet-4-6"],
             profiles: ["balanced"],
-            schemaModes: ["compact"],
+            schemaModes: ["balanced"],
             results: ["accepted"],
             triggers: ["automatic"],
             latencyRange: { max: 200 },
@@ -66,12 +68,64 @@ suite("Inline completion sessions analysis", () => {
     });
 
     test("builds facet counts", () => {
-        const counts = createFacetCounts(createEvents(), "result");
+        const counts = createFacetCounts(
+            [...createEvents(), createEvent({ id: "E-5", result: "skipped" })],
+            "result",
+        );
 
         expect(counts).to.deep.include({ value: "accepted", count: 1 });
         expect(counts).to.deep.include({ value: "rejected", count: 1 });
         expect(counts).to.deep.include({ value: "cancelled", count: 1 });
+        expect(counts).to.deep.include({ value: "skipped", count: 1 });
         expect(counts).to.deep.include({ value: "error", count: 1 });
+    });
+
+    test("falls back to model selectors for skipped events without model metadata", () => {
+        const event = createEvent({
+            completionCategory: "continuation",
+            modelFamily: undefined,
+            modelId: undefined,
+            modelVendor: undefined,
+            result: "skipped",
+            overridesApplied: {
+                continuationModelSelector: "copilot/claude-haiku-4.5",
+                customSystemPromptUsed: false,
+            },
+        });
+
+        expect(getEventDimension(event, "model")).to.equal("claude-haiku-4.5");
+    });
+
+    test("uses schema budget profile for the schema mode dimension", () => {
+        const event = createEvent({
+            overridesApplied: {
+                schemaContext: {
+                    budgetProfile: "generous",
+                    columnRepresentation: "compact",
+                },
+                customSystemPromptUsed: false,
+            },
+            locals: {
+                "document.languageId": "sql",
+                schemaBudgetProfile: "balanced",
+                schemaColumnRepresentation: "verbose",
+            },
+        });
+
+        expect(getEventDimension(event, "schemaMode")).to.equal("generous");
+    });
+
+    test("falls back to recorded schema budget locals", () => {
+        const event = createEvent({
+            schemaContextFormatted: undefined,
+            locals: {
+                "document.languageId": "sql",
+                schemaBudgetProfile: "tight",
+                schemaColumnRepresentation: "verbose",
+            },
+        });
+
+        expect(getEventDimension(event, "schemaMode")).to.equal("tight");
     });
 });
 
@@ -87,7 +141,7 @@ function createEvents(): InlineCompletionDebugEvent[] {
             schemaObjectCount: 10,
             overridesApplied: {
                 profileId: "balanced",
-                schemaContext: { columnRepresentation: "compact" },
+                schemaContext: { budgetProfile: "balanced", columnRepresentation: "compact" },
                 customSystemPromptUsed: false,
             },
         }),
@@ -103,7 +157,7 @@ function createEvents(): InlineCompletionDebugEvent[] {
             triggerKind: "invoke",
             overridesApplied: {
                 profileId: "balanced",
-                schemaContext: { columnRepresentation: "compact" },
+                schemaContext: { budgetProfile: "balanced", columnRepresentation: "compact" },
                 customSystemPromptUsed: false,
             },
         }),
@@ -117,7 +171,7 @@ function createEvents(): InlineCompletionDebugEvent[] {
             schemaObjectCount: 4,
             overridesApplied: {
                 profileId: "focused",
-                schemaContext: { columnRepresentation: "types" },
+                schemaContext: { budgetProfile: "tight", columnRepresentation: "types" },
                 customSystemPromptUsed: false,
             },
         }),
@@ -131,7 +185,7 @@ function createEvents(): InlineCompletionDebugEvent[] {
             schemaObjectCount: 6,
             overridesApplied: {
                 profileId: "focused",
-                schemaContext: { columnRepresentation: "types" },
+                schemaContext: { budgetProfile: "tight", columnRepresentation: "types" },
                 customSystemPromptUsed: false,
             },
         }),
@@ -172,6 +226,7 @@ function createEvent(overrides: Partial<InlineCompletionDebugEvent>): InlineComp
         schemaContextFormatted: "-- schema budget: profile balanced, size small, columns compact",
         locals: {
             "document.languageId": "sql",
+            schemaBudgetProfile: "balanced",
             schemaSizeKind: "small",
         },
         ...overrides,

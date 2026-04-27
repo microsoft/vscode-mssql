@@ -6,6 +6,7 @@
 export type InlineCompletionResult =
     | "success"
     | "accepted"
+    | "skipped"
     | "emptyFromModel"
     | "emptyFromSanitizer"
     | "noModel"
@@ -59,6 +60,7 @@ export interface InlineCompletionDebugOverridesApplied {
     modelSelector?: string;
     continuationModelSelector?: string;
     useSchemaContext?: boolean;
+    includeSqlDiagnostics?: boolean;
     debounceMs?: number;
     maxTokens?: number;
     enabledCategories?: InlineCompletionCategory[];
@@ -161,6 +163,7 @@ export interface InlineCompletionDebugOverrides {
     // or the active profile/configured default model.
     continuationModelSelector: string | null;
     useSchemaContext: boolean | null;
+    includeSqlDiagnostics: boolean | null;
     debounceMs: number | null;
     maxTokens: number | null;
     enabledCategories: InlineCompletionCategory[] | null;
@@ -191,6 +194,7 @@ export interface InlineCompletionDebugDefaults {
     effectiveContinuationModelSelector?: string;
     effectiveContinuationModelLabel?: string;
     useSchemaContext: boolean;
+    includeSqlDiagnostics: boolean;
     debounceMs: number;
     continuationMaxTokens: number;
     intentMaxTokens: number;

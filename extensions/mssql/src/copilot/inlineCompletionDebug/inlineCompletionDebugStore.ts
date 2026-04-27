@@ -27,6 +27,7 @@ const defaultOverrides: InlineCompletionDebugOverrides = {
     modelSelector: null,
     continuationModelSelector: null,
     useSchemaContext: null,
+    includeSqlDiagnostics: null,
     debounceMs: null,
     maxTokens: null,
     enabledCategories: null,
@@ -244,6 +245,7 @@ function normalizeOverrides(
         modelSelector: normalizeNullableString(overrides.modelSelector),
         continuationModelSelector: normalizeNullableString(overrides.continuationModelSelector),
         useSchemaContext: normalizeNullableBoolean(overrides.useSchemaContext),
+        includeSqlDiagnostics: normalizeNullableBoolean(overrides.includeSqlDiagnostics),
         debounceMs: normalizeNullableNumber(overrides.debounceMs),
         maxTokens: normalizeNullableNumber(overrides.maxTokens),
         enabledCategories: normalizeNullableCompletionCategories(overrides.enabledCategories),
@@ -272,6 +274,11 @@ function normalizePartialOverrides(
     }
     if (Object.prototype.hasOwnProperty.call(overrides, "useSchemaContext")) {
         normalized.useSchemaContext = normalizeNullableBoolean(overrides.useSchemaContext);
+    }
+    if (Object.prototype.hasOwnProperty.call(overrides, "includeSqlDiagnostics")) {
+        normalized.includeSqlDiagnostics = normalizeNullableBoolean(
+            overrides.includeSqlDiagnostics,
+        );
     }
     if (Object.prototype.hasOwnProperty.call(overrides, "debounceMs")) {
         normalized.debounceMs = normalizeNullableNumber(overrides.debounceMs);

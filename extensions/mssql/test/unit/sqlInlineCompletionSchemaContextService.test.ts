@@ -141,6 +141,93 @@ suite("SqlInlineCompletionSchemaContextService Tests", () => {
         expect(queryString).to.include("OPTION (MAXRECURSION 0)");
     });
 
+    test("extends successful schema context cache lifetime while it is actively used", async () => {
+        const clock = sandbox.useFakeTimers({ now: 0, toFake: ["Date"] });
+        connectionManager.getConnectionInfo.returns(createConnectionInfo("Sales"));
+        serviceClient.sendRequest.resolves(
+            createSimpleExecuteResult({
+                server: "localhost",
+                database: "Sales",
+                defaultSchema: "dbo",
+                schemas: [{ name: "dbo" }],
+                tables: [
+                    {
+                        schema: "dbo",
+                        name: "Customers",
+                        columns: [{ name: "CustomerId" }],
+                    },
+                ],
+                views: [],
+                masterSymbols: [],
+            }),
+        );
+
+        const document = createTestDocument("SELECT ", ownerUri);
+        const schemaOverrides = { budgetOverrides: { cacheTtlMs: 30_000 } };
+
+        await service.getSchemaContext(document, "customers", undefined, schemaOverrides);
+        clock.setSystemTime(20_000);
+        await service.getSchemaContext(document, "customers", undefined, schemaOverrides);
+        clock.setSystemTime(40_000);
+        await service.getSchemaContext(document, "customers", undefined, schemaOverrides);
+
+        expect(serviceClient.sendRequest).to.have.been.calledOnce;
+
+        clock.setSystemTime(71_000);
+        await service.getSchemaContext(document, "customers", undefined, schemaOverrides);
+
+        expect(serviceClient.sendRequest).to.have.been.calledTwice;
+    });
+
+    test("backs off schema context waits after a slow fetch timeout while the background fetch can still warm the cache", async () => {
+        const clock = sandbox.useFakeTimers({
+            now: 0,
+            toFake: ["Date", "setTimeout", "clearTimeout"],
+            shouldClearNativeTimers: true,
+        });
+        const fetch = createDeferred<SimpleExecuteResult>();
+        connectionManager.getConnectionInfo.returns(createConnectionInfo("Sales"));
+        serviceClient.sendRequest.callsFake(async () => fetch.promise);
+
+        const document = createTestDocument("SELECT ", ownerUri);
+        const firstFetch = service.getSchemaContext(document, "customers");
+        await Promise.resolve();
+        await clock.tickAsync(5 * 60 * 1000);
+
+        expect(await firstFetch).to.equal(undefined);
+        expect(serviceClient.sendRequest).to.have.been.calledOnce;
+
+        const backedOffResult = await service.getSchemaContext(document, "customers");
+
+        expect(backedOffResult).to.equal(undefined);
+        expect(serviceClient.sendRequest).to.have.been.calledOnce;
+
+        fetch.resolve(
+            createSimpleExecuteResult({
+                server: "localhost",
+                database: "Sales",
+                defaultSchema: "dbo",
+                schemas: [{ name: "dbo" }],
+                tables: [
+                    {
+                        schema: "dbo",
+                        name: "Customers",
+                        columns: [{ name: "CustomerId" }],
+                    },
+                ],
+                views: [],
+                masterSymbols: [],
+            }),
+        );
+        await Promise.resolve();
+        await Promise.resolve();
+
+        const warmedResult = await service.getSchemaContext(document, "customers");
+
+        expect(warmedResult?.tables[0].name).to.equal("dbo.Customers");
+        expect(serviceClient.sendRequest).to.have.been.calledOnce;
+    });
+
     test("reassembles schema context returned across multiple simple execute rows", async () => {
         connectionManager.getConnectionInfo.returns(createConnectionInfo("Sales"));
         const payload = {
@@ -387,4 +474,19 @@ function createChunkedSimpleExecuteResult(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         rows: rows as any,
     } as SimpleExecuteResult;
+}
+
+function createDeferred<T>(): {
+    promise: Promise<T>;
+    resolve: (value: T) => void;
+    reject: (error: unknown) => void;
+} {
+    let resolve: (value: T) => void = () => {};
+    let reject: (error: unknown) => void = () => {};
+    const promise = new Promise<T>((promiseResolve, promiseReject) => {
+        resolve = promiseResolve;
+        reject = promiseReject;
+    });
+
+    return { promise, resolve, reject };
 }
