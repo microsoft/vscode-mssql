@@ -18,9 +18,6 @@ import { isInlineCompletionDebugProfileId } from "./inlineCompletionDebugProfile
 import { serializeSessionTrace } from "./traceSerializer";
 
 const DEFAULT_EVENT_CAPACITY = 500;
-const MAX_PROMPT_AND_SCHEMA_CHARS = 64 * 1024;
-const TRUNCATION_SUFFIX_PREFIX = "... [truncated, ";
-const TRUNCATION_SUFFIX_SUFFIX = " more chars]";
 
 const defaultOverrides: InlineCompletionDebugOverrides = {
     profileId: null,
@@ -84,7 +81,6 @@ class InlineCompletionDebugStore {
             id: `E-${++this._eventCounter}`,
         };
 
-        this.applyPromptAndSchemaBudget(storedEvent);
         this._events.push(storedEvent);
         if (this._events.length > DEFAULT_EVENT_CAPACITY) {
             this._events.splice(0, this._events.length - DEFAULT_EVENT_CAPACITY);
@@ -108,7 +104,6 @@ class InlineCompletionDebugStore {
             id: eventId,
         };
 
-        this.applyPromptAndSchemaBudget(storedEvent);
         this._events[index] = storedEvent;
         this._onDidChange.fire();
         return storedEvent;
@@ -136,14 +131,10 @@ class InlineCompletionDebugStore {
     public importSession(data: InlineCompletionDebugExportData): void {
         const importedEvents = [...(data.events ?? [])]
             .slice(-DEFAULT_EVENT_CAPACITY)
-            .map((event) => {
-                const importedEvent = {
-                    ...event,
-                    promptMessages: [...(event.promptMessages ?? [])],
-                };
-                this.applyPromptAndSchemaBudget(importedEvent);
-                return importedEvent;
-            });
+            .map((event) => ({
+                ...event,
+                promptMessages: [...(event.promptMessages ?? [])],
+            }));
 
         this._events = importedEvents;
         this._eventCounter = this.getHighestImportedCounter(importedEvents);
@@ -187,41 +178,6 @@ class InlineCompletionDebugStore {
 
     public shouldCapture(recordWhenClosed: boolean): boolean {
         return this._panelOpen || recordWhenClosed;
-    }
-
-    private applyPromptAndSchemaBudget(event: InlineCompletionDebugEvent): void {
-        const promptMessages = event.promptMessages ?? [];
-        const promptLength = promptMessages.reduce(
-            (sum, message) => sum + message.content.length,
-            0,
-        );
-
-        if (promptLength > MAX_PROMPT_AND_SCHEMA_CHARS) {
-            let remainingBudget = MAX_PROMPT_AND_SCHEMA_CHARS;
-            event.promptMessages = promptMessages.map((message) => {
-                const truncated = truncateToBudget(message.content, remainingBudget);
-                remainingBudget = Math.max(0, remainingBudget - truncated.originalLengthKept);
-                return {
-                    role: message.role,
-                    content: truncated.text,
-                };
-            });
-            event.schemaContextFormatted = undefined;
-            return;
-        }
-
-        const remainingBudget = MAX_PROMPT_AND_SCHEMA_CHARS - promptLength;
-        if (
-            !event.schemaContextFormatted ||
-            event.schemaContextFormatted.length <= remainingBudget
-        ) {
-            return;
-        }
-
-        event.schemaContextFormatted = truncateToBudget(
-            event.schemaContextFormatted,
-            remainingBudget,
-        ).text;
     }
 
     private getHighestImportedCounter(events: InlineCompletionDebugEvent[]): number {
@@ -421,27 +377,6 @@ function normalizeJsonValue(value: unknown): unknown {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === "object" && value !== null;
-}
-
-function truncateToBudget(
-    text: string,
-    budget: number,
-): { text: string; originalLengthKept: number } {
-    if (budget <= 0) {
-        return { text: "", originalLengthKept: 0 };
-    }
-
-    if (text.length <= budget) {
-        return { text, originalLengthKept: text.length };
-    }
-
-    const omittedChars = text.length - budget;
-    const suffix = `${TRUNCATION_SUFFIX_PREFIX}${omittedChars}${TRUNCATION_SUFFIX_SUFFIX}`;
-    const prefixBudget = Math.max(0, budget - suffix.length);
-    return {
-        text: `${text.slice(0, prefixBudget)}${suffix}`,
-        originalLengthKept: budget,
-    };
 }
 
 export const inlineCompletionDebugStore = new InlineCompletionDebugStore();

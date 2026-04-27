@@ -82,7 +82,7 @@ const leadingQuestionIntentWordPattern =
     /^(?:am|are|can|could|did|do|does|had|has|have|is|should|was|were|will|would)\b/i;
 const trailingQuestionIntentPattern = /\?\s*$/;
 const metaResponseInsteadOfSqlPattern =
-    /^(?:i\b|i[' ]|sorry\b|cannot\b|can't\b|unable\b|however\b|sure\b|here(?:'s| is)\b|of course\b|note:?\b|note that\b|important:?\b|yes,?\b|okay,?\b|no\b|there(?:'s| is)\b|the (?:current )?(?:document|query|statement|schema)\b|(?:this|that|current) (?:document|query|statement)\b|schema context\b|returning\b|not enough\b|insufficient\b|malformed\b|invalid\b|since\b|because\b|already (?:complete|done)\b|complete\b|done\b)/i;
+    /^(?:human\s*:|assistant\s*:|i\b|i[' ]|sorry\b|cannot\b|can't\b|unable\b|however\b|sure\b|here(?:'s| is)\b|of course\b|note:?\b|note that\b|important:?\b|yes,?\b|okay,?\b|no\b|there(?:'s| is)\b|the (?:current )?(?:document|query|statement|schema)\b|(?:this|that|current) (?:document|query|statement)\b|schema context\b|returning\b|not enough\b|insufficient\b|malformed\b|invalid\b|since\b|because\b|already (?:complete|done)\b|complete\b|done\b)/i;
 const emptyStringInstructionEchoPattern =
     /\b(?:return|returns|returning|emit|emits|output|outputs)\s+(?:exactly\s+)?(?:an?\s+)?(?:empty|string empty|empty string)\b/i;
 

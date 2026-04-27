@@ -1284,6 +1284,18 @@ ORDER BY qs.total_worker_time DESC;`;
         ).to.equal(undefined);
     });
 
+    test("drops transcript role leakage from model output", () => {
+        for (const response of [
+            "Human: what is the difference between a metaphor and a simile?",
+            "Assistant: I can help with that.",
+            "Assistant:\nSELECT 1",
+        ]) {
+            expect(sanitizeInlineCompletionText(response, 400, "", true), response).to.equal(
+                undefined,
+            );
+        }
+    });
+
     test("drops standalone XML-like model control responses", () => {
         for (const response of ["</s>", "<sql>SELECT 1</sql>", '<?xml version="1.0"?><x />']) {
             expect(sanitizeInlineCompletionText(response, 400, "", true), response).to.equal(
