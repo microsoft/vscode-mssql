@@ -26,6 +26,7 @@ import {
     ColumnRegular,
     DeleteRegular,
     DocumentTextRegular,
+    FilterRegular,
 } from "@fluentui/react-icons";
 import { locConstants as loc } from "../../common/locConstants";
 import { useTableExplorerContext } from "./TableExplorerStateProvider";
@@ -45,6 +46,8 @@ interface TableExplorerToolbarProps {
     onShowSql?: () => void;
     selectedRowCount?: number;
     onDeleteSelected?: () => void;
+    onToggleFilters?: () => void;
+    filtersOpen?: boolean;
 }
 
 interface ColumnsMenuProps {
@@ -120,6 +123,8 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
     onShowSql,
     selectedRowCount = 0,
     onDeleteSelected,
+    onToggleFilters,
+    filtersOpen = false,
 }) => {
     const context = useTableExplorerContext();
     const DEFAULT_ROW_COUNT = 100;
@@ -255,6 +260,17 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
             )}
             {onExport && (
                 <Menu>
+                    {onToggleFilters && (
+                        <ToolbarButton
+                            aria-label={loc.tableExplorer.filters}
+                            aria-pressed={filtersOpen}
+                            title={loc.tableExplorer.filters}
+                            icon={<FilterRegular />}
+                            onClick={onToggleFilters}
+                            disabled={isLoading}>
+                            {loc.tableExplorer.filters}
+                        </ToolbarButton>
+                    )}
                     <MenuTrigger disableButtonEnhancement>
                         <ToolbarButton
                             aria-label={loc.tableExplorer.export}

@@ -8,6 +8,11 @@ import { useTableExplorerContext } from "./TableExplorerStateProvider";
 import { TableDataGrid, TableDataGridRef } from "./TableDataGrid";
 import { TableExplorerToolbar } from "./TableExplorerToolbar";
 import {
+    TableExplorerFilterBar,
+    AppliedFilter,
+    composeFilteredQuery,
+} from "./TableExplorerFilterBar";
+import {
     DefinitionPanel,
     DefinitionPanelCustomTab,
     DesignerDefinitionTabs,
@@ -443,6 +448,48 @@ export const TableExplorerPage: React.FC = () => {
     const [cellChangeCount, setCellChangeCount] = React.useState(0);
     const [deletionCount, setDeletionCount] = React.useState(0);
     const [selectedRowIds, setSelectedRowIds] = React.useState<number[]>([]);
+    const [filtersOpen, setFiltersOpen] = React.useState(false);
+    const [activeFilters, setActiveFilters] = React.useState<AppliedFilter[]>([]);
+    // Snapshot the unfiltered query so successive Apply clicks compose against
+    // the original, not the previously-filtered result. Updates whenever the
+    // tableQuery changes while no filters are active (initial load, or a
+    // user-authored custom query).
+    const baseQueryRef = useRef<string | undefined>(undefined);
+    useEffect(() => {
+        if (activeFilters.length === 0 && tableQuery) {
+            baseQueryRef.current = tableQuery;
+        }
+    }, [tableQuery, activeFilters.length]);
+
+    const handleApplyFilters = useCallback(
+        (filters: AppliedFilter[]) => {
+            const base = baseQueryRef.current ?? tableQuery;
+            if (!base) {
+                return;
+            }
+            setActiveFilters(filters);
+            const composed = composeFilteredQuery(base, filters);
+            context.runTableQuery(composed);
+        },
+        [tableQuery, context],
+    );
+
+    const handleClearFilters = useCallback(() => {
+        const base = baseQueryRef.current;
+        setActiveFilters([]);
+        if (base) {
+            context.runTableQuery(base);
+        }
+    }, [context]);
+
+    const filterColumns = React.useMemo(
+        () =>
+            (resultSet?.columnInfo ?? []).map((c, i) => ({
+                id: `col${i}`,
+                name: c.name,
+            })),
+        [resultSet],
+    );
 
     const handleExport = useCallback((format: "csv" | "excel" | "json") => {
         gridRef.current?.exportData(format);
@@ -524,7 +571,17 @@ export const TableExplorerPage: React.FC = () => {
                             onShowSql={handleShowSql}
                             selectedRowCount={selectedRowIds.length}
                             onDeleteSelected={handleDeleteSelected}
+                            onToggleFilters={() => setFiltersOpen((prev) => !prev)}
+                            filtersOpen={filtersOpen}
                         />
+                        {filtersOpen && filterColumns.length > 0 && (
+                            <TableExplorerFilterBar
+                                columns={filterColumns}
+                                onApply={handleApplyFilters}
+                                onClear={handleClearFilters}
+                                disabled={isLoading}
+                            />
+                        )}
                         {resultSet ? (
                             <div className={classes.dataGridContainer}>
                                 {isLoading && (
