@@ -343,6 +343,8 @@
     "Connection Authentication": "Connection Authentication",
     "Advanced Options": "Advanced Options",
     "Import from Azure Data Studio": "Import from Azure Data Studio",
+    "Add to favorites": "Add to favorites",
+    "Remove from favorites": "Remove from favorites",
     "Azure Subscriptions": "Azure Subscriptions",
     "Search subscriptions...": "Search subscriptions...",
     "No subscriptions found": "No subscriptions found",
@@ -3556,6 +3558,6 @@
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
     "Invalid connection string: {0}": "Invalid connection string: {0}",
-    "No subscriptions available.  Adjust your subscription filters to try again.": "No subscriptions available.  Adjust your subscription filters to try again.",
+    "No subscriptions available.": "No subscriptions available.",
     "Error loading Azure databases.": "Error loading Azure databases."
 }

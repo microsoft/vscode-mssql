@@ -211,6 +211,9 @@
     <trans-unit id="++CODE++4eeee164cd7b783f58eca583f898bdb923ed56ab94ae7d3604dc11738090fe7f">
       <source xml:lang="en">Add to VS Code</source>
     </trans-unit>
+    <trans-unit id="++CODE++7f3c0782afd7e95577665f17f90a5890669c0f3a33850a85278c7432e5b00fec">
+      <source xml:lang="en">Add to favorites</source>
+    </trans-unit>
     <trans-unit id="++CODE++6b02e0d363a4af1c95eef50364bb0202c8b250aa05a48a69e68fd7787b4b0632">
       <source xml:lang="en">Added</source>
     </trans-unit>
@@ -4303,8 +4306,8 @@
     <trans-unit id="++CODE++ca74b0c5b8a73c286ae5bc0d7802f72e6e591364956dd16f3a5210582b6f4212">
       <source xml:lang="en">No storage accounts found</source>
     </trans-unit>
-    <trans-unit id="++CODE++548271493601de8634bf0793fb0e09522c1bcce8e1e61c9e51186c9661137729">
-      <source xml:lang="en">No subscriptions available.  Adjust your subscription filters to try again.</source>
+    <trans-unit id="++CODE++6d44ee8a8600f605c0807ac03a996963d851dedb8fb48e6fe3cfa3879328ad50">
+      <source xml:lang="en">No subscriptions available.</source>
     </trans-unit>
     <trans-unit id="++CODE++2d7cb28a8d1ce5542ed3f5c73805f318fa5a52d02a6f03e4a008093d1ee3e538">
       <source xml:lang="en">No subscriptions found</source>
@@ -5021,6 +5024,9 @@
     <trans-unit id="++CODE++094e39c37800d5830e170aa0fbb976b10df2e3a9b847a6ec019c1e304bc509a6">
       <source xml:lang="en">Remove filter for {0}</source>
       <note>{0} is the column name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++18720329ca307c792fee6c6c1f707145c981d07c2b5a1b7127732ccd6e7203eb">
+      <source xml:lang="en">Remove from favorites</source>
     </trans-unit>
     <trans-unit id="++CODE++7024a828547b51d9fb11f26d4d1d472691dd7e6ec7d7a2f499cb08731a63e943">
       <source xml:lang="en">Remove recent connection</source>
