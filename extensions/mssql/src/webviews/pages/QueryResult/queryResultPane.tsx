@@ -309,10 +309,10 @@ export const QueryResultPane = () => {
                 <div
                     className={classes.tabContent}
                     style={{
-                        visibility:
+                        display:
                             tabStates!.resultPaneTab === qr.QueryResultPaneTabs.Results
-                                ? "visible"
-                                : "hidden",
+                                ? "block"
+                                : "none",
                     }}
                     aria-hidden={tabStates!.resultPaneTab !== qr.QueryResultPaneTabs.Results}>
                     <QueryResultsTab />
@@ -321,10 +321,10 @@ export const QueryResultPane = () => {
                 <div
                     className={classes.tabContent}
                     style={{
-                        visibility:
+                        display:
                             tabStates!.resultPaneTab === qr.QueryResultPaneTabs.Messages
-                                ? "visible"
-                                : "hidden",
+                                ? "block"
+                                : "none",
                     }}
                     aria-hidden={tabStates!.resultPaneTab !== qr.QueryResultPaneTabs.Messages}>
                     <QueryMessageTab />
@@ -333,10 +333,10 @@ export const QueryResultPane = () => {
                 <div
                     className={classes.tabContent}
                     style={{
-                        visibility:
+                        display:
                             tabStates!.resultPaneTab === qr.QueryResultPaneTabs.ExecutionPlan
-                                ? "visible"
-                                : "hidden",
+                                ? "block"
+                                : "none",
                     }}
                     aria-hidden={tabStates!.resultPaneTab !== qr.QueryResultPaneTabs.ExecutionPlan}>
                     <QueryExecutionPlanTab />

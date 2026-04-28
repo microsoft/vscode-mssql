@@ -7,8 +7,30 @@ import * as ep from "../../../sharedInterfaces/executionPlan";
 import { locConstants } from "../../common/locConstants";
 import { uuid } from "../../common/utils";
 
+export interface ExecutionPlanDiagramController {
+    zoomIn(): void;
+    zoomOut(): void;
+    zoomToFit(): void;
+    setZoomLevel(level: number): void;
+    getZoomLevel(): number;
+    selectElement(
+        element: ep.InternalExecutionPlanElement | undefined,
+        bringToCenter?: boolean,
+    ): void;
+    centerElement(element: ep.InternalExecutionPlanElement): void;
+    toggleTooltip(): boolean;
+    clearExpensiveOperatorHighlighting(): void;
+    highlightExpensiveOperator(
+        predicate: (cell: ep.AzDataGraphCell) => number | undefined,
+    ): string | undefined;
+    drawSubtreePolygon(subtreeRoot: string, fillColor: string, borderColor: string): void;
+    clearSubtreePolygon(): void;
+    disableNodeCollapse(disable: boolean): void;
+    getSelectedElementId(): string | undefined;
+}
+
 export class ExecutionPlanView {
-    private _diagram: any;
+    private _diagram?: ExecutionPlanDiagramController;
     public expensiveMetricTypes: Set<ep.ExpensiveMetricType> = new Set();
     private _graphElementPropertiesSet: Set<string> = new Set();
     private _executionPlanRootNode: ep.ExecutionPlanNode;
@@ -27,11 +49,11 @@ export class ExecutionPlanView {
         return this._executionPlanRootNode.cost + this._executionPlanRootNode.subTreeCost;
     }
 
-    public getDiagram(): any {
+    public getDiagram(): ExecutionPlanDiagramController | undefined {
         return this._diagram;
     }
 
-    public setDiagram(model: any): void {
+    public setDiagram(model: ExecutionPlanDiagramController): void {
         this._diagram = model;
     }
 
@@ -209,30 +231,28 @@ export class ExecutionPlanView {
      * @returns state of the tooltip after toggling
      */
     public toggleTooltip(): boolean {
-        this._diagram.showTooltip(!this._diagram.graph.showTooltip);
-        return this._diagram.graph.showTooltip;
+        return this._diagram?.toggleTooltip() ?? false;
     }
 
     public drawSubtreePolygon(subtreeRoot: string, fillColor: string, borderColor: string): void {
-        const drawPolygon = this._diagram.graph.model.getCell(`element-${subtreeRoot}`);
-        this._diagram.drawPolygon(drawPolygon, fillColor, borderColor);
+        this._diagram?.drawSubtreePolygon(subtreeRoot, fillColor, borderColor);
     }
 
     public clearSubtreePolygon(): void {
-        this._diagram.removeDrawnPolygons();
+        this._diagram?.clearSubtreePolygon();
     }
 
     public disableNodeCollapse(disable: boolean): void {
-        this._diagram.disableNodeCollapse(disable);
+        this._diagram?.disableNodeCollapse(disable);
     }
 
     /**
      * Returns the currently selected graph element.
      */
     public getSelectedElement(): ep.InternalExecutionPlanElement | undefined {
-        const cell = this._diagram.graph.getSelectionCell();
-        if (cell?.id) {
-            return this.getElementById(cell.id);
+        const selectedElementId = this._diagram?.getSelectedElementId();
+        if (selectedElementId) {
+            return this.getElementById(selectedElementId);
         }
 
         return undefined;
@@ -242,21 +262,21 @@ export class ExecutionPlanView {
      * Zooms in to the diagram.
      */
     public zoomIn(): void {
-        this._diagram.zoomIn();
+        this._diagram?.zoomIn();
     }
 
     /**
      * Zooms out of the diagram
      */
     public zoomOut(): void {
-        this._diagram.zoomOut();
+        this._diagram?.zoomOut();
     }
 
     /**
      * Fits the diagram into the parent container size.
      */
     public zoomToFit(): void {
-        this._diagram.zoomToFit();
+        this._diagram?.zoomToFit();
         if (this.getZoomLevel() > 200) {
             this.setZoomLevel(200);
         }
@@ -266,7 +286,7 @@ export class ExecutionPlanView {
      * Gets the current zoom level of the diagram.
      */
     public getZoomLevel(): number {
-        return this._diagram.graph.view.getScale() * 100;
+        return this._diagram?.getZoomLevel() ?? 100;
     }
 
     /**
@@ -278,7 +298,7 @@ export class ExecutionPlanView {
             throw new Error("Zoom level cannot be 0 or negative");
         }
 
-        this._diagram.zoomTo(level);
+        this._diagram?.setZoomLevel(level);
     }
 
     /**
@@ -358,38 +378,7 @@ export class ExecutionPlanView {
          *  6. Smoothly scroll to the left top x and y calculated in step 4, 5.
          */
 
-        if (!node) {
-            return;
-        }
-        const cell = this._diagram.graph.model.getCell(node.id);
-        if (!cell) {
-            return;
-        }
-
-        const cellRect = this._diagram.graph.getCellBounds(cell);
-
-        const cellMidPoint: ep.Point = {
-            x: cellRect.x + cellRect.width / 2,
-            y: cellRect.y + cellRect.height / 2,
-        };
-
-        const graphContainer = <HTMLElement>this._diagram.graph.container;
-
-        const diagramContainerRect = graphContainer.getBoundingClientRect();
-
-        const leftTopScrollPoint: ep.Point = {
-            x: cellMidPoint.x - diagramContainerRect.width / 2,
-            y: cellMidPoint.y - diagramContainerRect.height / 2,
-        };
-
-        leftTopScrollPoint.x = leftTopScrollPoint.x < 0 ? 0 : leftTopScrollPoint.x;
-        leftTopScrollPoint.y = leftTopScrollPoint.y < 0 ? 0 : leftTopScrollPoint.y;
-
-        graphContainer.scrollTo({
-            left: leftTopScrollPoint.x,
-            top: leftTopScrollPoint.y,
-            behavior: "smooth",
-        });
+        this._diagram?.centerElement(node);
     }
 
     /**
@@ -401,30 +390,17 @@ export class ExecutionPlanView {
         element: ep.InternalExecutionPlanElement | undefined,
         bringToCenter: boolean = false,
     ): void {
-        let cell;
-        if (element) {
-            cell = this._diagram.graph.model.getCell(element.id);
-        } else {
-            cell = this._diagram.graph.model.getCell(
-                (<ep.ExecutionPlanNode>this._executionPlanRootNode).id,
-            );
-        }
-
-        this._diagram.graph.getSelectionModel().setCell(cell);
-
-        if (bringToCenter) {
-            this.centerElement(element!);
-        }
+        this._diagram?.selectElement(element, bringToCenter);
     }
 
     public clearExpensiveOperatorHighlighting(): void {
-        this._diagram.clearExpensiveOperatorHighlighting();
+        this._diagram?.clearExpensiveOperatorHighlighting();
     }
 
     public highlightExpensiveOperator(
         predicate: (cell: ep.AzDataGraphCell) => number | undefined,
-    ): string {
-        return this._diagram.highlightExpensiveOperator(predicate);
+    ): string | undefined {
+        return this._diagram?.highlightExpensiveOperator(predicate);
     }
 
     /**

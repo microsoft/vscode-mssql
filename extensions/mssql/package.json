@@ -111,7 +111,6 @@
         "@vscode/vsce": "^3.7.1",
         "@xyflow/react": "^12.4.4",
         "assert": "^1.4.1",
-        "azdataGraph": "github:Microsoft/azdataGraph#0.0.137",
         "chai": "^5.3.3",
         "cli-color": "^2.0.4",
         "esbuild": "^0.25.0",

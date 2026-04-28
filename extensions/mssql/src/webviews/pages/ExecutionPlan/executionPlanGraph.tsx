@@ -3,18 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import "azdataGraph/src/css/common.css";
-import "azdataGraph/src/css/explorer.css";
 import "./executionPlan.css";
-
-import * as azdataGraph from "azdataGraph";
-import * as utils from "./queryPlanSetup";
 
 import { Button, Input, makeStyles, tokens } from "@fluentui/react-components";
 import { Checkmark20Regular, Dismiss20Regular } from "@fluentui/react-icons";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ExecutionPlanView } from "./executionPlanView";
+import { ExecutionPlanFlow } from "./executionPlanFlow";
 import { FindNode } from "./findNodes";
 import { HighlightExpensiveOperations } from "./highlightExpensiveOperations";
 import { IconStack } from "./iconMenu";
@@ -22,7 +18,7 @@ import { PropertiesPane } from "./properties";
 import { locConstants } from "../../common/locConstants";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { useExecutionPlanSelector } from "./executionPlanSelector";
-import { ExecutionPlanState } from "../../../sharedInterfaces/executionPlan";
+import { AzDataGraphCell, ExecutionPlanState } from "../../../sharedInterfaces/executionPlan";
 
 const useStyles = makeStyles({
     panelContainer: {
@@ -42,20 +38,47 @@ const useStyles = makeStyles({
     },
     inputContainer: {
         position: "absolute",
-        top: 0,
+        top: "8px",
         right: "35px",
-        padding: "10px",
-        border: "1px solid #ccc",
+        padding: "8px 10px",
+        border: `1px solid ${tokens.colorNeutralStroke1}`,
+        borderRadius: tokens.borderRadiusMedium,
         zIndex: "1",
-        boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+        boxShadow: tokens.shadow8,
         display: "flex",
         alignItems: "center",
-        gap: "2px",
+        gap: "4px",
         opacity: 1,
+        color: tokens.colorNeutralForeground1,
+        fontSize: tokens.fontSizeBase200,
     },
     queryCostContainer: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "2px",
         opacity: 1,
-        padding: "5px",
+        padding: "8px 12px",
+        borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+        boxSizing: "border-box",
+        color: tokens.colorNeutralForeground1,
+        overflow: "hidden",
+    },
+    queryCostText: {
+        fontSize: tokens.fontSizeBase300,
+        fontWeight: tokens.fontWeightSemibold,
+        lineHeight: tokens.lineHeightBase300,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+    },
+    queryText: {
+        fontFamily: tokens.fontFamilyMonospace,
+        fontSize: tokens.fontSizeBase200,
+        lineHeight: tokens.lineHeightBase200,
+        color: tokens.colorNeutralForeground2,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
     },
     queryPlanParent: {
         opacity: 1,
@@ -102,6 +125,8 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
     const [xml, setXml] = useState("");
     const [cost, setCost] = useState(0);
     const [executionPlanView, setExecutionPlanView] = useState<ExecutionPlanView | null>(null);
+    const [renderedExecutionPlanGraph, setRenderedExecutionPlanGraph] =
+        useState<AzDataGraphCell | null>(null);
     const [zoomNumber, setZoomNumber] = useState(100);
     const [customZoomClicked, setCustomZoomClicked] = useState(false);
     const [findNodeClicked, setFindNodeClicked] = useState(false);
@@ -123,44 +148,16 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                 : "100%",
         );
 
-        // @ts-ignore
-        window["mxLoadResources"] = false;
-        // @ts-ignore
-        window["mxForceIncludes"] = false;
-        // @ts-ignore
-        window["mxResourceExtension"] = ".txt";
-        // @ts-ignore
-        window["mxLoadStylesheets"] = false;
-        // @ts-ignore
-        window["mxBasePath"] = "./src/webviews/pages/ExecutionPlan/mxgraph";
-
-        const mxClient = azdataGraph.mx();
-
         function loadExecutionPlan() {
             if (executionPlanState && executionPlanState.executionPlanGraphs) {
                 const executionPlanRootNode =
                     executionPlanState.executionPlanGraphs[graphIndex].root;
                 const executionPlanView = new ExecutionPlanView(executionPlanRootNode);
-                const executionPlanGraph = executionPlanView.populate(executionPlanRootNode);
-
-                const div = document.getElementById(`queryPlanParent${graphIndex + 1}`);
-                // create a div to hold the graph
-                const queryPlanConfiguration = {
-                    container: div,
-                    queryPlanGraph: executionPlanGraph,
-                    iconPaths: utils.getIconPaths(),
-                    badgeIconPaths: utils.getBadgePaths(),
-                    expandCollapsePaths: utils.getCollapseExpandPaths(themeKind),
-                    showTooltipOnClick: true,
-                };
-                const pen = new mxClient.azdataQueryPlan(queryPlanConfiguration);
-                pen.setTextFontColor("var(--vscode-editor-foreground)"); // set text color
-                pen.setEdgeColor("var(--vscode-editor-foreground)"); // set edge color
-
-                executionPlanView.setDiagram(pen);
 
                 setExecutionPlanView(executionPlanView);
                 setIsExecutionPlanLoaded(true);
+                const graph = executionPlanView.populate(executionPlanRootNode);
+                setRenderedExecutionPlanGraph(graph);
                 setFindNodeOptions(executionPlanView.getUniqueElementProperties());
 
                 let tempQuery = executionPlanState.executionPlanGraphs[graphIndex].query;
@@ -182,6 +179,18 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
         }
         loadExecutionPlan();
     }, [executionPlanState]);
+
+    const handleFlowReady = useCallback(
+        ({ controller }: { controller: Parameters<ExecutionPlanView["setDiagram"]>[0] }) => {
+            if (!executionPlanView) {
+                return;
+            }
+
+            executionPlanView.setDiagram(controller);
+            setExecutionPlanView(executionPlanView);
+        },
+        [executionPlanView],
+    );
 
     useEffect(() => {
         if (inputRef && inputRef.current) {
@@ -261,9 +270,10 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                     }}
                     aria-live="polite"
                     aria-label={`${getQueryCostString()}, ${query}`}>
-                    {getQueryCostString()}
-                    <br />
-                    {query}
+                    <div className={classes.queryCostText}>{getQueryCostString()}</div>
+                    <div className={classes.queryText} title={query}>
+                        {query}
+                    </div>
                 </div>
                 <div
                     id={`queryPlanParent${graphIndex + 1}`}
@@ -273,7 +283,16 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                         width: propertiesClicked
                             ? `calc(100% - ${propertiesWidth}px - 35px)`
                             : "calc(100% - 35px)",
-                    }}></div>
+                    }}>
+                    {renderedExecutionPlanGraph && (
+                        <ExecutionPlanFlow
+                            graph={renderedExecutionPlanGraph}
+                            graphIndex={graphIndex}
+                            themeKind={themeKind}
+                            onReady={handleFlowReady}
+                        />
+                    )}
+                </div>
                 {customZoomClicked && (
                     <div
                         id="customZoomInputContainer"
@@ -282,6 +301,8 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                             background: tokens.colorNeutralBackground1,
                         }}
                         tabIndex={0}>
+                        <span>{locConstants.executionPlan.customZoom}</span>
+                        <div className={classes.spacer}></div>
                         <Input
                             ref={inputRef}
                             id="customZoomInputBox"

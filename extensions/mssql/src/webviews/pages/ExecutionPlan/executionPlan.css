@@ -1,28 +1,329 @@
-#queryPlanParent {
+#queryPlanParent,
+[id^="queryPlanParent"] {
     background-color: var(--vscode-editor-background);
 }
 
-.graph-cell .graph-icon-badge-expand {
+.execution-plan-flow {
+    width: 100%;
+    height: 100%;
+    background-color: var(--vscode-editor-background);
+    position: relative;
+}
+
+.execution-plan-flow .react-flow {
+    --xy-edge-stroke-default: var(--vscode-editor-foreground);
+    --xy-edge-stroke-selected-default: var(--vscode-focusBorder);
+    --xy-connectionline-stroke-default: var(--vscode-editor-foreground);
+    --xy-attribution-background-color-default: var(--vscode-editor-background);
+    --xy-background-color-default: var(--vscode-editor-background);
+    --xy-node-color-default: var(--vscode-editor-foreground);
+    --xy-node-background-color-default: var(--vscode-editor-background);
+    --xy-node-boxshadow-selected-default: 0 0 0 2px var(--vscode-focusBorder);
+    --xy-handle-background-color-default: var(--vscode-focusBorder);
+    --xy-handle-border-color-default: var(--vscode-editor-background);
+    --xy-selection-background-color-default: rgba(38, 79, 120, 0.25);
+    --xy-selection-border-default: 1px dotted var(--vscode-focusBorder);
+    --xy-controls-button-background-color-default: var(--vscode-editorWidget-background);
+    --xy-controls-button-background-color-hover-default: var(--vscode-toolbar-hoverBackground);
+    --xy-controls-button-color-default: var(--vscode-editor-foreground);
+    --xy-controls-button-color-hover-default: var(--vscode-editor-foreground);
+    --xy-controls-button-border-color-default: var(--vscode-editorWidget-border);
+    --xy-controls-box-shadow-default: var(--vscode-widget-shadow);
+}
+
+.execution-plan-flow .react-flow__controls-button {
+    background: var(--vscode-editorWidget-background);
+    border-bottom-color: var(--vscode-editorWidget-border);
+    color: var(--vscode-editor-foreground);
+    fill: var(--vscode-editor-foreground);
+}
+
+.execution-plan-flow .react-flow__controls-button:hover {
+    background: var(--vscode-toolbar-hoverBackground);
+}
+
+.execution-plan-flow .react-flow__controls-button svg {
+    fill: currentColor;
+}
+
+.execution-plan-flow .react-flow__node {
+    width: 80px;
+    height: 80px;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+.execution-plan-flow .react-flow__node.selected {
+    box-shadow: none;
+}
+
+.execution-plan-hidden-handle {
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.execution-plan-node-container {
+    align-items: center;
+    position: relative;
+    width: fit-content;
+    height: 80px;
+    font-size: 10px;
+    font-family: "Monaco", "Menlo", "Consolas";
+    color: var(--vscode-editor-foreground);
+}
+
+.graph-cell-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2px 0;
+    min-width: 70px;
+    outline: none;
+    white-space: pre-line;
+}
+
+.graph-cell-body.selected {
+    outline: 3px solid #4aa564;
+    outline-offset: 2px;
+}
+
+.graph-cell-body.expensive-highlight {
+    outline: 1px solid #cd2026;
+    outline-offset: 4px;
+}
+
+.graph-cell-icon {
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    width: 30px;
+    height: 30px;
+    align-self: center;
+    position: relative;
+}
+
+.graph-cell-icon .graph-icon-badge {
+    position: absolute;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    width: 12px;
+    height: 12px;
+    bottom: 0;
+    right: -5px;
+}
+
+.execution-plan-node-container .graph-cell-row-count {
+    position: absolute;
+    top: 30%;
+    left: calc(50% - 60px);
+    min-width: 20px;
+    text-align: right;
+    outline: none;
+}
+
+.graph-icon-badge-expand {
+    width: 12px;
+    height: 12px;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    appearance: none;
+    background-color: transparent;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 12px 12px;
+}
+
+.graph-icon-badge-expand:focus-visible {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: 2px;
+}
+
+.graph-cell-cost {
+    border-radius: 15px;
+    width: fit-content;
+    padding: 1px 8px 0 8px;
+}
+
+.graph-cell-label {
+    text-align: center;
+    white-space: pre;
+}
+
+.execution-plan-edge-path {
+    stroke: var(--vscode-editor-foreground);
+    stroke-linecap: square;
+    stroke-linejoin: miter;
+    fill: none;
+    shape-rendering: geometricPrecision;
+}
+
+.execution-plan-edge-path.selected {
+    stroke: var(--vscode-focusBorder);
+}
+
+.execution-plan-edge-hit-target {
+    fill: none;
+    stroke: transparent;
+    stroke-width: 24px;
+    cursor: pointer;
+    pointer-events: stroke;
+}
+
+.execution-plan-edge-hit-target.selected {
+    stroke: color-mix(in srgb, var(--vscode-focusBorder) 28%, transparent);
+}
+
+.execution-plan-edge-arrow {
+    fill: var(--vscode-editor-foreground);
+    stroke: var(--vscode-editor-foreground);
+    stroke-linejoin: miter;
+    pointer-events: none;
+}
+
+.execution-plan-edge-arrow.selected {
+    fill: var(--vscode-focusBorder);
+    stroke: var(--vscode-focusBorder);
+}
+
+.execution-plan-tooltip {
+    position: fixed;
+    z-index: 10;
+    width: min(420px, calc(100vw - 16px));
+    min-width: 260px;
+    max-height: calc(100vh - 16px);
+    overflow: auto;
+    padding: 0;
+    border: 1px solid var(--vscode-editorWidget-border);
+    border-radius: 5px;
+    box-shadow: 0 6px 22px var(--vscode-widget-shadow);
+    background: var(--vscode-editorWidget-background);
+    color: var(--vscode-editorWidget-foreground);
+    font-family: var(--vscode-font-family);
+    font-size: var(--vscode-font-size);
+    line-height: 1.35;
+    cursor: default;
+}
+
+.execution-plan-tooltip-header {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--vscode-editorWidget-border);
+    background: var(--vscode-editorWidget-background);
+}
+
+.execution-plan-tooltip-title {
+    font-weight: 600;
+    color: var(--vscode-editor-foreground);
+}
+
+.execution-plan-tooltip-subtitle {
+    margin-top: 1px;
+    color: var(--vscode-descriptionForeground);
+    font-size: 0.92em;
+}
+
+.execution-plan-tooltip-description {
+    margin-top: 6px;
+    color: var(--vscode-descriptionForeground);
+}
+
+.execution-plan-tooltip-metrics {
+    padding: 5px 0;
+}
+
+.execution-plan-tooltip-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    align-items: baseline;
+    padding: 2px 10px;
+}
+
+.execution-plan-tooltip-row:hover {
+    background: var(--vscode-list-hoverBackground);
+}
+
+.execution-plan-tooltip-label {
+    color: var(--vscode-descriptionForeground);
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.execution-plan-tooltip-value {
+    color: var(--vscode-editorWidget-foreground);
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    overflow-wrap: anywhere;
+}
+
+.execution-plan-tooltip-details {
+    border-top: 1px solid var(--vscode-editorWidget-border);
+}
+
+.execution-plan-tooltip-detail {
+    padding: 7px 10px;
+}
+
+.execution-plan-tooltip-detail + .execution-plan-tooltip-detail {
+    border-top: 1px solid var(--vscode-editorWidget-border);
+}
+
+.execution-plan-tooltip-detail-title {
+    margin-bottom: 3px;
+    font-size: 0.88em;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--vscode-editor-foreground);
+}
+
+.execution-plan-tooltip-detail-value {
+    color: var(--vscode-textPreformat-foreground, var(--vscode-editorWidget-foreground));
+    font-family: var(--vscode-editor-font-family);
+    font-size: 0.94em;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.execution-plan-subtree-polygon {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    overflow: visible;
+}
+
+.execution-plan-subtree-polygon polygon {
+    fill: rgba(74, 165, 100, 0.08);
+    stroke: #4aa564;
+    stroke-width: 1;
+    stroke-dasharray: 4 4;
+}
+
+.graph-icon-badge-expand {
     background-size: 12px 12px;
     background-color: transparent;
 }
 
-.vscode-light .graph-cell .graph-icon-badge-expand.collapsed,
-.vscode-high-contrast.vscode-high-contrast-light .graph-cell .graph-icon-badge-expand.collapsed {
+.vscode-light .graph-icon-badge-expand.collapsed,
+.vscode-high-contrast.vscode-high-contrast-light .graph-icon-badge-expand.collapsed {
     background-image: url("./icons/collapse_light.svg");
 }
 
-.vscode-light .graph-cell .graph-icon-badge-expand.expanded,
-.vscode-high-contrast.vscode-high-contrast-light .graph-cell .graph-icon-badge-expand.expanded {
+.vscode-light .graph-icon-badge-expand.expanded,
+.vscode-high-contrast.vscode-high-contrast-light .graph-icon-badge-expand.expanded {
     background-image: url("./icons/expand_light.svg");
 }
 
-.vscode-dark .graph-cell .graph-icon-badge-expand.collapsed,
-.vscode-high-contrast .graph-cell .graph-icon-badge-expand.collapsed {
+.vscode-dark .graph-icon-badge-expand.collapsed,
+.vscode-high-contrast .graph-icon-badge-expand.collapsed {
     background-image: url("./icons/collapse_dark.svg");
 }
 
-.vscode-dark .graph-cell .graph-icon-badge-expand.expanded,
-.vscode-high-contrast .graph-cell .graph-icon-badge-expand.expanded {
+.vscode-dark .graph-icon-badge-expand.expanded,
+.vscode-high-contrast .graph-icon-badge-expand.expanded {
     background-image: url("./icons/expand_dark.svg");
 }

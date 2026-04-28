@@ -57,7 +57,7 @@ interface IconStackProps {
 export const IconStack: React.FC<IconStackProps> = ({
     executionPlanView,
     setExecutionPlanView,
-    setZoomNumber,
+    setZoomNumber: _setZoomNumber,
     setCustomZoomClicked,
     setFindNodeClicked,
     setHighlightOpsClicked,
@@ -85,9 +85,6 @@ export const IconStack: React.FC<IconStackProps> = ({
     const SAVE_PLAN = locConstants.executionPlan.savePlan;
     const OPEN_XML = locConstants.executionPlan.openXml;
     const OPEN_QUERY = locConstants.executionPlan.openQuery;
-    const ZOOM_IN = locConstants.executionPlan.zoomIn;
-    const ZOOM_OUT = locConstants.executionPlan.zoomOut;
-    const ZOOM_TO_FIT = locConstants.executionPlan.zoomToFit;
     const CUSTOM_ZOOM = locConstants.executionPlan.customZoom;
     const FIND_NODE = locConstants.executionPlan.findNode;
     const PROPERTIES = locConstants.executionPlan.properties;
@@ -104,30 +101,6 @@ export const IconStack: React.FC<IconStackProps> = ({
 
     const handleShowQuery = async () => {
         await context.showQuery(query);
-    };
-
-    const handleZoomIn = async () => {
-        if (executionPlanView) {
-            executionPlanView.zoomIn();
-            setExecutionPlanView(executionPlanView);
-            setZoomNumber(executionPlanView.getZoomLevel());
-        }
-    };
-
-    const handleZoomOut = async () => {
-        if (executionPlanView) {
-            executionPlanView.zoomOut();
-            setExecutionPlanView(executionPlanView);
-            setZoomNumber(executionPlanView.getZoomLevel());
-        }
-    };
-
-    const handleZoomToFit = async () => {
-        if (executionPlanView) {
-            executionPlanView.zoomToFit();
-            setExecutionPlanView(executionPlanView);
-            setZoomNumber(executionPlanView.getZoomLevel());
-        }
     };
 
     const handleToggleTooltips = async () => {
@@ -211,38 +184,6 @@ export const IconStack: React.FC<IconStackProps> = ({
                 style={{
                     background: tokens.colorNeutralStroke1,
                 }}></hr>
-            <ToolbarButton
-                className={classes.button}
-                tabIndex={0}
-                icon={<img className={classes.buttonImg} src={utils.zoomIn(theme)} alt={ZOOM_IN} />}
-                onClick={handleZoomIn}
-                title={ZOOM_IN}
-                aria-label={ZOOM_IN}
-            />
-            <ToolbarButton
-                className={classes.button}
-                tabIndex={0}
-                icon={
-                    <img className={classes.buttonImg} src={utils.zoomOut(theme)} alt={ZOOM_OUT} />
-                }
-                onClick={handleZoomOut}
-                title={ZOOM_OUT}
-                aria-label={ZOOM_OUT}
-            />
-            <ToolbarButton
-                className={classes.button}
-                tabIndex={0}
-                icon={
-                    <img
-                        className={classes.buttonImg}
-                        src={utils.zoomToFit(theme)}
-                        alt={ZOOM_TO_FIT}
-                    />
-                }
-                onClick={handleZoomToFit}
-                title={ZOOM_TO_FIT}
-                aria-label={ZOOM_TO_FIT}
-            />
             <ToolbarButton
                 className={classes.button}
                 tabIndex={0}
