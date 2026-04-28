@@ -2004,7 +2004,7 @@ export class LocConstants {
             showSqlPane: l10n.t("Show SQL Pane"),
             hideSqlPane: l10n.t("Hide SQL Pane"),
             scriptChanges: l10n.t("Show Changes"),
-            tableQuery: l10n.t("Table Query"),
+            tableQuery: l10n.t("Show SQL"),
             export: l10n.t("Export"),
             columns: l10n.t("Columns"),
             deleteSelected: (count: number) =>
