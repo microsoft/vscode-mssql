@@ -279,6 +279,10 @@
         <source xml:lang="en">Add to VS Code</source>
         <target state="translated">Zu VS Code hinzufügen</target>
       </trans-unit>
+      <trans-unit id="++CODE++dcc475b31b6d6d1bc68eede1badaf4b6af93c3683fe3a25ae08c8544b572e7fa">
+        <source xml:lang="en">Add to workspace</source>
+        <target state="new">Add to workspace</target>
+      </trans-unit>
       <trans-unit id="++CODE++6b02e0d363a4af1c95eef50364bb0202c8b250aa05a48a69e68fd7787b4b0632">
         <source xml:lang="en">Added</source>
         <target state="translated">Hinzugefügt</target>
@@ -3359,6 +3363,11 @@ Fehler:
         <source xml:lang="en">Failed to add table.</source>
         <target state="translated">Beim Hinzufügen der Tabelle ist ein Fehler aufgetreten.</target>
       </trans-unit>
+      <trans-unit id="++CODE++49ef2a693ef05aa09893afe15b7f44c2c94cd84039e438baa9c76e7130c9baf7">
+        <source xml:lang="en">Failed to add text to workspace: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Failed to add text to workspace: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++65b387854eab2ea5751dfeaf4b61e988e28642ef25dc8c09b8bd4e4ee99f6372">
         <source xml:lang="en">Failed to apply changes: '{0}'</source>
         <note>{0} is the error message returned from the publish changes operation</note>
@@ -4083,6 +4092,11 @@ Fehler:
       <trans-unit id="++CODE++553f9778e20ce771fa5313659bcd804d36168900a284dde2d5f1cf7e1f43446b">
         <source xml:lang="en">Generate sqlpackage command</source>
         <target state="translated">SqlPackage-Befehl generieren</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2617124e87bf1506e42eea651c54fa179c29090a0a58e9829860984f03eca2fa">
+        <source xml:lang="en">Generated file added to {0}</source>
+        <note>{0} is the generated file path</note>
+        <target state="new">Generated file added to {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++15bb1f371098735851e4d1d531c37e3652b2ceaf16055231f0a38312650cb08b">
         <source xml:lang="en">Generating Report. This may take a while...</source>
@@ -5694,6 +5708,10 @@ Fehler:
       <trans-unit id="++CODE++751ae077912b834895870d0d5210c09ca02659375aab7843a26689a7aa50a0fc">
         <source xml:lang="en">No workspace folder is open. Open a folder to add the MCP server configuration.</source>
         <target state="translated">Kein Arbeitsbereichsordner geöffnet. Öffnen Sie einen Ordner, um die MCP-Serverkonfiguration hinzuzufügen.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2e2fde2243e1e09534c9955387549ec84e351284a8ef12942f9d1cbab4a58039">
+        <source xml:lang="en">No workspace folder is open. Open a folder to add the generated file.</source>
+        <target state="new">No workspace folder is open. Open a folder to add the generated file.</target>
       </trans-unit>
       <trans-unit id="++CODE++1507d637b267b1f20c1238414d7e51458fe7d6b98b292a8497d9982634fbe83c">
         <source xml:lang="en">No workspaces found</source>
