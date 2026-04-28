@@ -624,7 +624,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         // cell on every checkbox click. Setting selectActiveRow:false
                         // on selectionOptions keeps prior checkbox selections intact.
                         enableCheckboxSelector: true,
-                        enableRowSelection: true,
                         multiSelect: true,
                         checkboxSelector: {
                             hideInFilterHeaderRow: true,
