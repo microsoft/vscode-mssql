@@ -108,6 +108,10 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         const lastItemsPerPageRef = useRef<number>(pageSize);
         const previousResultSetRef = useRef<EditSubsetResult | undefined>(undefined);
         const isInitializedRef = useRef<boolean>(false);
+        // Tracks whether we've already auto-selected the first cell on initial load.
+        // Spec: "When user first enters Edit Data, auto-select the first column
+        // in the first row."
+        const firstCellSelectedRef = useRef<boolean>(false);
         // Mirror of all columns (including hidden) so imperative methods can recompose
         // the visible set without losing hidden columns.
         const columnsRef = useRef<Column[]>([]);
@@ -126,6 +130,42 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         function reactGridReady(reactGrid: SlickgridReactInstance) {
             reactGridRef.current = reactGrid;
             isInitializedRef.current = true;
+            tryAutoSelectFirstCell();
+        }
+
+        // Visible cell index of the first data column (skipping the
+        // checkbox-selector / delete / undo non-data columns).
+        function getFirstDataCellIndex(): number {
+            const grid = reactGridRef.current?.slickGrid;
+            if (!grid) {
+                return 1;
+            }
+            const cols = grid.getColumns();
+            for (let i = 0; i < cols.length; i++) {
+                const id = String(cols[i].id);
+                if (id !== "_checkbox_selector" && id !== "delete" && id !== "undo") {
+                    return i;
+                }
+            }
+            return 0;
+        }
+
+        // Spec: on first entry to Edit Data, auto-select the first column of
+        // the first row. The grid and dataset can become ready in either order,
+        // so this is called from both reactGridReady and the dataset effect; the
+        // ref guards against re-running once we've successfully auto-selected.
+        function tryAutoSelectFirstCell() {
+            if (firstCellSelectedRef.current) {
+                return;
+            }
+            const grid = reactGridRef.current?.slickGrid;
+            const dataView = reactGridRef.current?.dataView;
+            if (!grid || !dataView || dataView.getLength() === 0) {
+                return;
+            }
+            const cellIdx = getFirstDataCellIndex();
+            grid.setActiveCell(0, cellIdx);
+            firstCellSelectedRef.current = true;
         }
 
         // Clear all change tracking (called after successful save)
@@ -472,6 +512,12 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             }
         }, [newRowIds]);
 
+        // Auto-select the first cell once the dataset has rendered. Pairs with
+        // the same call inside reactGridReady to cover either ordering.
+        useEffect(() => {
+            tryAutoSelectFirstCell();
+        }, [dataset]);
+
         // Handle theme changes - just update state to trigger re-render
         useEffect(() => {
             if (themeKind !== currentTheme) {
@@ -631,26 +677,68 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 const dataView = reactGridRef.current.dataView;
                 const paginationService = reactGridRef.current.paginationService;
                 const currentLength = dataView.getLength();
-                // Insert each new row at the bottom of the page the user is currently
-                // viewing. With no pagination, this falls back to the end of the dataset.
-                let insertAt =
-                    paginationService && paginationService.itemsPerPage > 0
-                        ? Math.min(
-                              paginationService.pageNumber * paginationService.itemsPerPage,
-                              currentLength,
-                          )
-                        : currentLength;
+
+                // Spec: insert new rows directly below the currently selected
+                // (active) row. If the active row is the last visible slot of
+                // the current page, the row lands at the start of the next page
+                // and we navigate the user there. Falls back to current page
+                // bottom when there's no active cell.
+                const slickGrid = reactGridRef.current.slickGrid;
+                const activeCell = slickGrid?.getActiveCell();
+                const itemsPerPage = paginationService?.itemsPerPage ?? 0;
+                const pageNumber = paginationService?.pageNumber ?? 1;
+                const pageStart = itemsPerPage > 0 ? (pageNumber - 1) * itemsPerPage : 0;
+
+                let insertAt: number;
+                let advanceToNextPage = false;
+                if (activeCell && itemsPerPage > 0) {
+                    const activeAbsolute = pageStart + activeCell.row;
+                    insertAt = Math.min(activeAbsolute + 1, currentLength);
+                    if (activeCell.row === itemsPerPage - 1) {
+                        advanceToNextPage = true;
+                    }
+                } else if (itemsPerPage > 0) {
+                    insertAt = Math.min(pageNumber * itemsPerPage, currentLength);
+                } else {
+                    insertAt = currentLength;
+                }
+
+                const firstNewRowAbsoluteIndex = insertAt;
                 for (let i = 0; i < rowsToAdd.length; i++) {
                     const newRow = rowsToAdd[i];
                     const dataRow = convertRowToDataRow(newRow, resultSet.columnInfo, insertAt);
                     dataView.insertItem(insertAt, dataRow);
                     insertAt += 1;
                     console.log(
-                        `Inserted row ${dataRow.id} at index ${insertAt - 1} (current page bottom)`,
+                        `Inserted row ${dataRow.id} at index ${insertAt - 1} (below active row${
+                            advanceToNextPage ? ", advancing page" : ""
+                        })`,
                     );
                 }
-                if (rowsToAdd.length > 0 && reactGridRef.current.slickGrid) {
-                    reactGridRef.current.slickGrid.invalidate();
+                if (rowsToAdd.length > 0 && slickGrid) {
+                    slickGrid.invalidate();
+                }
+
+                // After inserting, move focus to the first new row so a follow-up
+                // Add Row click chains below it. Navigate pages first if needed.
+                if (rowsToAdd.length > 0 && slickGrid && itemsPerPage > 0) {
+                    const targetPage = Math.floor(firstNewRowAbsoluteIndex / itemsPerPage) + 1;
+                    const visibleRow = firstNewRowAbsoluteIndex % itemsPerPage;
+                    const cellIdx = getFirstDataCellIndex();
+                    const focusNewRow = () => {
+                        const grid = reactGridRef.current?.slickGrid;
+                        if (!grid) {
+                            return;
+                        }
+                        grid.setActiveCell(visibleRow, cellIdx);
+                        grid.scrollCellIntoView(visibleRow, cellIdx, false);
+                    };
+                    if (advanceToNextPage && paginationService) {
+                        lastPageRef.current = targetPage;
+                        void paginationService.goToPageNumber(targetPage).then(() => focusNewRow());
+                    } else {
+                        focusNewRow();
+                    }
                 }
 
                 // Remove deleted rows (rows in previous but not in current)
