@@ -1098,6 +1098,7 @@ export class LocConstants {
             definitionTypeDrizzle: l10n.t("Drizzle"),
             definitionTypeSqlAlchemy: l10n.t("SQLAlchemy"),
             definitionTypeEfCore: l10n.t("EF Core"),
+            addToWorkspace: l10n.t("Add to workspace"),
             copy: l10n.t("Copy"),
             close: l10n.t("Close"),
             deleteConfirmation: l10n.t("Delete Confirmation"),
