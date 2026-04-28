@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/microsoft-vscode-mssql-badge.png)](https://mseep.ai/app/microsoft-vscode-mssql)
+
 [![Roadmap 2026](https://img.shields.io/badge/Roadmap%202026-green?logo=github)](https://aka.ms/vscode-mssql-roadmap#2026)
 [![Report Bug](https://img.shields.io/badge/Report%20Bug-red?logo=github)](https://aka.ms/vscode-mssql-bug)
 [![Request Feature](https://img.shields.io/badge/Request%20Feature-blue?logo=github)](https://aka.ms/vscode-mssql-feature-request)
