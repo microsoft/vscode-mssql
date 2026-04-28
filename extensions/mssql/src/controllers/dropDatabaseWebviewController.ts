@@ -22,8 +22,8 @@ interface DropDatabaseViewInfo {
 }
 
 export class DropDatabaseWebviewController extends ObjectManagementWebviewController {
-    private databaseNameForDrop = "";
-    private objectInfo: { [key: string]: unknown } | undefined;
+    private _databaseNameForDrop = "";
+    private _objectInfo: { [key: string]: unknown } | undefined;
 
     public constructor(
         context: vscode.ExtensionContext,
@@ -56,7 +56,7 @@ export class DropDatabaseWebviewController extends ObjectManagementWebviewContro
             objectUrn,
         );
 
-        this.databaseNameForDrop = databaseName ?? "";
+        this._databaseNameForDrop = databaseName ?? "";
         this.start();
     }
 
@@ -78,16 +78,16 @@ export class DropDatabaseWebviewController extends ObjectManagementWebviewContro
                 ),
             );
 
-            this.objectInfo = viewInfo.objectInfo as { [key: string]: unknown };
+            this._objectInfo = viewInfo.objectInfo as { [key: string]: unknown };
             const viewModel: DropDatabaseViewModel = {
                 serverName: this.serverName,
                 databaseName:
-                    (this.objectInfo?.name as string | undefined) ?? this.databaseName ?? "",
-                owner: this.objectInfo?.owner as string | undefined,
-                status: this.objectInfo?.status as string | undefined,
+                    (this._objectInfo?.name as string | undefined) ?? this.databaseName ?? "",
+                owner: this._objectInfo?.owner as string | undefined,
+                status: this._objectInfo?.status as string | undefined,
             };
 
-            this.databaseNameForDrop = viewModel.databaseName;
+            this._databaseNameForDrop = viewModel.databaseName;
             this.updateWebviewState({
                 viewModel: {
                     dialogType: ObjectManagementDialogType.DropDatabase,
@@ -117,16 +117,32 @@ export class DropDatabaseWebviewController extends ObjectManagementWebviewContro
     ): Promise<ObjectManagementActionResult> {
         const typedParams = params as { dropConnections: boolean; deleteBackupHistory: boolean };
         try {
-            await this.objectManagementService.dropDatabase(
+            const dropResponse = await this.objectManagementService.dropDatabase(
                 this.connectionUri,
-                this.databaseNameForDrop,
+                this._databaseNameForDrop,
                 typedParams.dropConnections,
                 typedParams.deleteBackupHistory,
                 false,
             );
+
+            if (dropResponse.errorMessage) {
+                return {
+                    success: false,
+                    errorMessage: dropResponse.errorMessage,
+                    taskId: dropResponse.taskId,
+                };
+            }
+
+            if (!dropResponse.taskId) {
+                return {
+                    success: false,
+                    errorMessage: LocConstants.msgObjectManagementUnknownDialog,
+                };
+            }
+
             await this.disposeView();
-            this.closeDialog(this.databaseNameForDrop);
-            return { success: true };
+            this.closeDialog(this._databaseNameForDrop);
+            return { success: true, taskId: dropResponse.taskId };
         } catch (error) {
             return { success: false, errorMessage: getErrorMessage(error) };
         }
@@ -137,13 +153,14 @@ export class DropDatabaseWebviewController extends ObjectManagementWebviewContro
     ): Promise<ObjectManagementActionResult> {
         const typedParams = params as { dropConnections: boolean; deleteBackupHistory: boolean };
         try {
-            const script = await this.objectManagementService.dropDatabase(
+            const response = await this.objectManagementService.dropDatabase(
                 this.connectionUri,
-                this.databaseNameForDrop,
+                this._databaseNameForDrop,
                 typedParams.dropConnections,
                 typedParams.deleteBackupHistory,
                 true,
             );
+            const script = response.script;
 
             if (!script) {
                 void this.vscodeWrapper.showWarningMessage(LocConstants.msgNoScriptGenerated);

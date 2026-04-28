@@ -23,6 +23,10 @@ import { DabService } from "../services/dabService";
 import { Dab } from "../sharedInterfaces/dab";
 import { CopilotChat } from "../sharedInterfaces/copilotChat";
 import { addMcpServerToWorkspace } from "../copilot/copilotUtils";
+import {
+    getSchemaDesignerDefinitionOutput,
+    SchemaDesignerDefinitionOutput,
+} from "../sharedInterfaces/schemaDesignerDefinitionOutput";
 
 function isExpandCollapseButtonsEnabled(): boolean {
     return vscode.workspace
@@ -142,7 +146,10 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             );
             try {
                 let sessionResponse: SchemaDesigner.CreateSessionResponse;
-                if (!this.schemaDesignerCache.has(this._key)) {
+                const cacheItem = this.schemaDesignerCache.get(this._key);
+                const hasCachedSession = !!cacheItem?.schemaDesignerDetails?.sessionId;
+
+                if (!hasCachedSession) {
                     sessionResponse = await this.schemaDesignerService.createSession({
                         connectionString: this.connectionString,
                         accessToken: this.accessToken,
@@ -152,10 +159,10 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                     this.schemaDesignerCache.set(this._key, {
                         schemaDesignerDetails: sessionResponse,
                         baselineSchema: sessionResponse.schema,
-                        isDirty: false,
+                        dabConfig: cacheItem?.dabConfig,
+                        isDirty: cacheItem?.isDirty ?? false,
                     });
                 } else {
-                    const cacheItem = this.schemaDesignerCache.get(this._key)!;
                     sessionResponse = cacheItem.schemaDesignerDetails;
                     this.baselineSchema = cacheItem.baselineSchema;
                 }
@@ -327,19 +334,39 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         });
 
         this.onNotification(SchemaDesigner.CopyToClipboardNotification.type, async (params) => {
-            await vscode.env.clipboard.writeText(params.text);
-            await vscode.window.showInformationMessage(LocConstants.scriptCopiedToClipboard);
+            try {
+                const definition = await this.createDefinitionOutput(params);
+                await vscode.env.clipboard.writeText(definition.text);
+                await vscode.window.showInformationMessage(LocConstants.copied);
+            } catch (error) {
+                await vscode.window.showErrorMessage(
+                    LocConstants.failedToCopyTextToClipboard(getErrorMessage(error)),
+                );
+            }
         });
 
-        this.onNotification(SchemaDesigner.OpenInEditorNotification.type, async () => {
-            const definition = await this.schemaDesignerService.getDefinition({
-                updatedSchema: this.schemaDesignerDetails!.schema,
-                sessionId: this._sessionId,
-            });
-            await this.mainController.sqlDocumentService.newQuery({
-                content: definition.script,
-                connectionStrategy: ConnectionStrategy.DoNotConnect,
-            });
+        this.onNotification(SchemaDesigner.OpenInEditorNotification.type, async (params) => {
+            try {
+                const definition = await this.createDefinitionOutput(params);
+
+                if (definition.language === "sql") {
+                    await this.mainController.sqlDocumentService.newQuery({
+                        content: definition.text,
+                        connectionStrategy: ConnectionStrategy.DoNotConnect,
+                    });
+                    return;
+                }
+
+                const document = await vscode.workspace.openTextDocument({
+                    content: definition.text,
+                    language: definition.language,
+                });
+                await vscode.window.showTextDocument(document, { preview: false });
+            } catch (error) {
+                await vscode.window.showErrorMessage(
+                    LocConstants.failedToOpenTextInEditor(getErrorMessage(error)),
+                );
+            }
         });
 
         this.onNotification(SchemaDesigner.OpenInEditorWithConnectionNotification.type, () => {
@@ -430,6 +457,16 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 connectionString: this.connectionString,
                 sqlServerContainerName: this._sqlServerContainerName,
             });
+        });
+
+        this.onRequest(Dab.GetCachedConfigRequest.type, async () => {
+            return {
+                config: this.schemaDesignerCache.get(this._key)?.dabConfig,
+            };
+        });
+
+        this.onNotification(Dab.CacheConfigNotification.type, async (payload) => {
+            this.updateCacheItem(undefined, undefined, payload.config);
         });
 
         this.onNotification(Dab.OpenConfigInEditorNotification.type, async (payload) => {
@@ -578,6 +615,38 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         });
     }
 
+    private async createDefinitionOutput(
+        params?: SchemaDesigner.OpenInEditorOptions | SchemaDesigner.CopyToClipboardOptions,
+    ): Promise<SchemaDesignerDefinitionOutput> {
+        if (params?.text !== undefined) {
+            return {
+                text: params.text,
+                language: "language" in params ? (params.language ?? "sql") : "sql",
+            };
+        }
+
+        const updatedSchema = params?.updatedSchema ?? this.schemaDesignerDetails?.schema;
+        if (!updatedSchema) {
+            throw new Error(LocConstants.schemaDesignerDetailsUnavailable);
+        }
+
+        this.updateCacheItem(updatedSchema);
+
+        const definitionKind = params?.definitionKind ?? SchemaDesigner.DefinitionKind.Sql;
+        if (definitionKind === SchemaDesigner.DefinitionKind.Sql) {
+            const definition = await this.schemaDesignerService.getDefinition({
+                updatedSchema,
+                sessionId: this._sessionId || this.schemaDesignerDetails?.sessionId || "",
+            });
+            return {
+                text: definition.script,
+                language: "sql",
+            };
+        }
+
+        return getSchemaDesignerDefinitionOutput(updatedSchema, definitionKind);
+    }
+
     private setupConfigurationListener() {
         const configChangeDisposable = vscode.workspace.onDidChangeConfiguration((e) => {
             if (e.affectsConfiguration(configSchemaDesignerEnableExpandCollapseButtons)) {
@@ -595,11 +664,44 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     private updateCacheItem(
         updatedSchema?: SchemaDesigner.Schema,
         isDirty?: boolean,
+        dabConfig?: Dab.DabConfig,
     ): SchemaDesigner.SchemaDesignerCacheItem {
-        let schemaDesignerCacheItem = this.schemaDesignerCache.get(this._key)!;
+        let schemaDesignerCacheItem = this.schemaDesignerCache.get(this._key);
+        if (!schemaDesignerCacheItem) {
+            if (this.schemaDesignerDetails) {
+                schemaDesignerCacheItem = {
+                    schemaDesignerDetails: this.schemaDesignerDetails,
+                    baselineSchema: this.baselineSchema ?? this.schemaDesignerDetails.schema,
+                    isDirty: false,
+                };
+            } else {
+                schemaDesignerCacheItem = {
+                    schemaDesignerDetails: {
+                        schema: { tables: [] },
+                        dataTypes: [],
+                        schemaNames: [],
+                        sessionId: "",
+                    },
+                    baselineSchema: this.baselineSchema ?? { tables: [] },
+                    isDirty: false,
+                };
+            }
+        }
+        if (
+            !this.schemaDesignerDetails &&
+            schemaDesignerCacheItem.schemaDesignerDetails.sessionId
+        ) {
+            this.schemaDesignerDetails = schemaDesignerCacheItem.schemaDesignerDetails;
+        }
         if (updatedSchema) {
+            if (!this.schemaDesignerDetails) {
+                throw new Error(LocConstants.schemaDesignerDetailsUnavailable);
+            }
             this.schemaDesignerDetails!.schema = updatedSchema;
             schemaDesignerCacheItem.schemaDesignerDetails.schema = updatedSchema;
+        }
+        if (dabConfig) {
+            schemaDesignerCacheItem.dabConfig = dabConfig;
         }
         // if isDirty is not provided, set it to schemaDesignerCacheItem.isDirty
         // else, set it to the provided value

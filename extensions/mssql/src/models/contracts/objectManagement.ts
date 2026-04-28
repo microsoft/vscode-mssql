@@ -50,10 +50,18 @@ export interface SaveObjectRequestParams {
     object: ObjectManagementSqlObject;
 }
 
+export interface SaveObjectRequestResponse {
+    taskId?: string;
+    errorMessage?: string;
+}
+
 export namespace SaveObjectRequest {
-    export const type = new RequestType<SaveObjectRequestParams, void, void, void>(
-        "objectManagement/save",
-    );
+    export const type = new RequestType<
+        SaveObjectRequestParams,
+        SaveObjectRequestResponse,
+        void,
+        void
+    >("objectManagement/save");
 }
 
 export interface ScriptObjectRequestParams {
@@ -90,6 +98,29 @@ export namespace RenameObjectRequest {
     );
 }
 
+export interface RenameDatabaseRequestParams {
+    connectionUri: string;
+    database: string;
+    newName: string;
+    dropConnections: boolean;
+    generateScript: boolean;
+}
+
+export interface RenameDatabaseResponse {
+    taskId?: string;
+    script?: string;
+    errorMessage?: string;
+}
+
+export namespace RenameDatabaseRequest {
+    export const type = new RequestType<
+        RenameDatabaseRequestParams,
+        RenameDatabaseResponse,
+        void,
+        void
+    >("objectManagement/renameDatabase");
+}
+
 export interface DropDatabaseRequestParams {
     connectionUri: string;
     database: string;
@@ -98,10 +129,19 @@ export interface DropDatabaseRequestParams {
     generateScript: boolean;
 }
 
+export interface DropDatabaseResponse {
+    taskId?: string;
+    script?: string;
+    errorMessage?: string;
+}
+
 export namespace DropDatabaseRequest {
-    export const type = new RequestType<DropDatabaseRequestParams, string, void, void>(
-        "objectManagement/dropDatabase",
-    );
+    export const type = new RequestType<
+        DropDatabaseRequestParams,
+        DropDatabaseResponse,
+        void,
+        void
+    >("objectManagement/dropDatabase");
 }
 
 //#region Backup Database;

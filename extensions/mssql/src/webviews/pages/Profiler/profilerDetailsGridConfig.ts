@@ -6,7 +6,6 @@
 import { Column, GridOption } from "slickgrid-react";
 import { ProfilerEventProperty } from "../../../sharedInterfaces/profiler";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
-import { baseFluentGridOption } from "../../common/FluentSlickGrid/fluentGridOptions";
 
 export interface ProfilerDetailsGridRow {
     id: number;
@@ -64,7 +63,6 @@ export function getProfilerDetailsGridColumns(propertyLabel: string, valueLabel:
 
 export function getProfilerDetailsGridOptions(themeKind: ColorThemeKind): GridOption {
     return {
-        ...baseFluentGridOption,
         autoFitColumnsOnFirstLoad: false,
         autoResize: {
             container: `#${PROFILER_DETAILS_GRID_CONTAINER_ID}`,
@@ -73,9 +71,6 @@ export function getProfilerDetailsGridOptions(themeKind: ColorThemeKind): GridOp
             bottomPadding: 0,
             minHeight: 50,
         },
-        enableAutoResize: true,
-        enableCellNavigation: true,
-        enableColumnReorder: false,
         enableSorting: false,
         enableFiltering: false,
         enablePagination: false,
@@ -83,15 +78,14 @@ export function getProfilerDetailsGridOptions(themeKind: ColorThemeKind): GridOp
         enableGridMenu: false,
         enableHeaderMenu: false,
         enableAutoTooltip: true,
-        enableExcelCopyBuffer: true,
-        enableTextSelectionOnCells: false,
+        showHeaderRow: false,
+        rowHeight: 25,
+        enableColumnReorder: false,
         selectionOptions: {
             selectionType: "cell",
         },
-        showHeaderRow: false,
         showColumnHeader: false,
         forceFitColumns: true,
-        rowHeight: 25,
         headerRowHeight: 0,
         darkMode: themeKind === ColorThemeKind.Dark || themeKind === ColorThemeKind.HighContrast,
     };

@@ -5,6 +5,7 @@
 
 import { createContext, useCallback, useContext, useRef, useState } from "react";
 import { DefinitionPanelController } from "../../../common/definitionPanel";
+import { SchemaDesignerDefinitionKind } from "../../../../sharedInterfaces/schemaDesignerDefinitionOutput";
 
 export enum SchemaDesignerDefinitionPanelTab {
     Script = "script",
@@ -22,6 +23,8 @@ interface SchemaDesignerDefinitionPanelContextProps {
     setCode: React.Dispatch<React.SetStateAction<string>>;
     baselineDefinition: string;
     initializeBaselineDefinition: (value: string) => void;
+    selectedDefinitionKind: SchemaDesignerDefinitionKind;
+    setSelectedDefinitionKind: React.Dispatch<React.SetStateAction<SchemaDesignerDefinitionKind>>;
     changesViewMode: SchemaDesignerChangesViewMode;
     setChangesViewMode: React.Dispatch<React.SetStateAction<SchemaDesignerChangesViewMode>>;
     activeTab: SchemaDesignerDefinitionPanelTab;
@@ -54,6 +57,8 @@ export const SchemaDesignerDefinitionPanelProvider: React.FC<
 > = ({ children }) => {
     const [code, setCode] = useState<string>("");
     const [baselineDefinition, setBaselineDefinition] = useState<string>("");
+    const [selectedDefinitionKind, setSelectedDefinitionKind] =
+        useState<SchemaDesignerDefinitionKind>(SchemaDesignerDefinitionKind.Sql);
     const [changesViewMode, setChangesViewMode] = useState<SchemaDesignerChangesViewMode>(
         SchemaDesignerChangesViewMode.SchemaChanges,
     );
@@ -103,6 +108,8 @@ export const SchemaDesignerDefinitionPanelProvider: React.FC<
                 setCode,
                 baselineDefinition,
                 initializeBaselineDefinition,
+                selectedDefinitionKind,
+                setSelectedDefinitionKind,
                 changesViewMode,
                 setChangesViewMode,
                 activeTab,
