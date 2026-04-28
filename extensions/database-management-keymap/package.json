@@ -99,5 +99,8 @@
     },
     "devDependencies": {
         "@vscode/vsce": "^3.7.1"
+    },
+    "overrides": {
+        "uuid": "^14.0.0"
     }
 }
