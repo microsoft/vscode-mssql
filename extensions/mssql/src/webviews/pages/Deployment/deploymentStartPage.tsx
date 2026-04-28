@@ -14,9 +14,11 @@ import { DeploymentDatabaseIcon } from "../../common/icons/deploymentDatabase";
 import { DeploymentType } from "../../../sharedInterfaces/deployment";
 import { LocalContainersState } from "../../../sharedInterfaces/localContainers";
 import { FabricProvisioningState } from "../../../sharedInterfaces/fabricProvisioning";
+import { AzureSqlDatabaseState } from "../../../sharedInterfaces/azureSqlDatabase";
 import { ChooseDeploymentTypePage } from "./chooseDeploymentTypePage";
 import { LocalContainersDeploymentWizard } from "./LocalContainers/localContainersDeploymentWizard";
 import { FabricDeploymentWizard } from "./FabricProvisioning/fabricDeploymentWizard";
+import { AzureSqlDatabaseDeploymentWizard } from "./AzureSqlDatabase/azureSqlDatabaseDeploymentWizard";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -53,6 +55,11 @@ export const DeploymentStartPage = () => {
         );
     };
 
+    const isAzureSqlDatabaseStateReady = (state: unknown) => {
+        const azureState = state as AzureSqlDatabaseState | undefined;
+        return azureState?.loadState === ApiStatus.Loaded && !!azureState?.formState;
+    };
+
     useEffect(() => {
         if (pendingDeploymentType === undefined || deploymentType !== pendingDeploymentType) {
             return;
@@ -69,6 +76,12 @@ export const DeploymentStartPage = () => {
             isFabricStateReady(deploymentTypeState)
         ) {
             setActiveDeploymentType(DeploymentType.FabricProvisioning);
+            setPendingDeploymentType(undefined);
+        } else if (
+            pendingDeploymentType === DeploymentType.AzureSqlDatabase &&
+            isAzureSqlDatabaseStateReady(deploymentTypeState)
+        ) {
+            setActiveDeploymentType(DeploymentType.AzureSqlDatabase);
             setPendingDeploymentType(undefined);
         }
     }, [deploymentType, deploymentTypeState, pendingDeploymentType]);
@@ -99,6 +112,17 @@ export const DeploymentStartPage = () => {
         );
     }
 
+    if (activeDeploymentType === DeploymentType.AzureSqlDatabase) {
+        return (
+            <AzureSqlDatabaseDeploymentWizard
+                onBackToStart={() => {
+                    setActiveDeploymentType(undefined);
+                    setPendingDeploymentType(undefined);
+                }}
+            />
+        );
+    }
+
     const handleDeploymentTypeSelected = (deploymentType: DeploymentType) => {
         if (loadState !== ApiStatus.Loaded || pendingDeploymentType !== undefined) {
             return;
@@ -113,7 +137,9 @@ export const DeploymentStartPage = () => {
             ? locConstants.localContainers.loadingLocalContainers
             : pendingDeploymentType === DeploymentType.FabricProvisioning
               ? locConstants.fabricProvisioning.loadingFabricProvisioning
-              : undefined;
+              : pendingDeploymentType === DeploymentType.AzureSqlDatabase
+                ? locConstants.azureSqlDatabase.loadingAzureSqlDatabase
+                : undefined;
 
     return (
         <div className={classes.outerDiv}>

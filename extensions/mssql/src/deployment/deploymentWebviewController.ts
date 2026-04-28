@@ -25,8 +25,10 @@ import { ApiStatus } from "../sharedInterfaces/webview";
 import * as localContainers from "./localContainersHelpers";
 import { LocalContainersState } from "../sharedInterfaces/localContainers";
 import * as fabricProvisioning from "./fabricProvisioningHelpers";
+import * as azureSqlDatabase from "./azureSqlDatabaseHelpers";
 import { newDeployment } from "../constants/locConstants";
 import { FabricProvisioningState } from "../sharedInterfaces/fabricProvisioning";
+import { AzureSqlDatabaseState } from "../sharedInterfaces/azureSqlDatabase";
 
 export const DEPLOYMENT_VIEW_ID = "deployment";
 
@@ -98,6 +100,11 @@ export class DeploymentWebviewController extends FormWebviewController<
                     this,
                     state.connectionGroupOptions,
                     this.logger,
+                    selectedGroupId,
+                );
+            } else if (payload.deploymentType === DeploymentType.AzureSqlDatabase) {
+                newDeploymentTypeState = await azureSqlDatabase.initializeAzureSqlDatabaseState(
+                    state.connectionGroupOptions,
                     selectedGroupId,
                 );
             }
@@ -173,6 +180,10 @@ export class DeploymentWebviewController extends FormWebviewController<
                 fabricProvisioning.sendFabricProvisioningCloseEventTelemetry(
                     state.deploymentTypeState as FabricProvisioningState,
                 );
+            } else if (state.deploymentType === DeploymentType.AzureSqlDatabase) {
+                azureSqlDatabase.sendAzureSqlDatabaseCloseEventTelemetry(
+                    state.deploymentTypeState as AzureSqlDatabaseState,
+                );
             }
 
             this.panel.dispose();
@@ -182,6 +193,7 @@ export class DeploymentWebviewController extends FormWebviewController<
 
         localContainers.registerLocalContainersReducers(this);
         fabricProvisioning.registerFabricProvisioningReducers(this);
+        azureSqlDatabase.registerAzureSqlDatabaseReducers(this);
     }
 
     async updateItemVisibility() {}

@@ -1781,6 +1781,19 @@ export class LocConstants {
         };
     }
 
+    public get azureSqlDatabase() {
+        return {
+            loadingAzureSqlDatabase: l10n.t("Loading Azure SQL Database..."),
+            azureSqlDatabaseHeader: l10n.t("Azure SQL Database"),
+            azureSqlDatabaseDescription: l10n.t(
+                "Deploy a fully managed SQL database in the cloud with built-in intelligence, high availability, and elastic scaling on Microsoft Azure.",
+            ),
+            comingSoon: l10n.t(
+                "Azure SQL Database deployment is coming soon. This feature is currently under development.",
+            ),
+        };
+    }
+
     public get changePasswordDialog() {
         return {
             title: l10n.t("Change Password"),

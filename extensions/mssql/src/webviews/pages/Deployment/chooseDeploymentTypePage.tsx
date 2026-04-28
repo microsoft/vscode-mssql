@@ -8,6 +8,7 @@ import { DeploymentType } from "../../../sharedInterfaces/deployment";
 import { locConstants } from "../../common/locConstants";
 import { DockerIcon } from "../../common/icons/docker";
 import { SqlDbInFabricIcon } from "../../common/icons/sqlDbInFabric";
+import { CreateDatabaseIcon } from "../../common/icons/createDatabase";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -70,6 +71,10 @@ const useStyles = makeStyles({
         height: "32px",
     },
     sqlInFabricIcon: {
+        width: "32px",
+        height: "32px",
+    },
+    azureSqlIcon: {
         width: "32px",
         height: "32px",
     },
@@ -175,6 +180,38 @@ export const ChooseDeploymentTypePage: React.FC<ChooseDeploymentTypePageProps> =
                         </Text>
                         <Text className={classes.cardDescription}>
                             {locConstants.deployment.fabricProvisioningDescription}
+                        </Text>
+                    </div>
+                </Card>
+                <Card
+                    className={mergeClasses(
+                        classes.cardDiv,
+                        selectedDeploymentType === DeploymentType.AzureSqlDatabase
+                            ? classes.selectedCard
+                            : undefined,
+                    )}
+                    onClick={() => onDeploymentTypeChange(DeploymentType.AzureSqlDatabase)}
+                    onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            onDeploymentTypeChange(DeploymentType.AzureSqlDatabase);
+                        }
+                    }}
+                    tabIndex={0}
+                    role="button">
+                    <div className={classes.iconBadge}>
+                        <CreateDatabaseIcon
+                            className={classes.azureSqlIcon}
+                            role="img"
+                            aria-label={locConstants.azureSqlDatabase.azureSqlDatabaseHeader}
+                        />
+                    </div>
+                    <div className={classes.content}>
+                        <Text className={classes.cardHeader}>
+                            {locConstants.azureSqlDatabase.azureSqlDatabaseHeader}
+                        </Text>
+                        <Text className={classes.cardDescription}>
+                            {locConstants.azureSqlDatabase.azureSqlDatabaseDescription}
                         </Text>
                     </div>
                 </Card>
