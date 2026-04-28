@@ -2743,6 +2743,7 @@
         "comment": ["{0} is the error message from the connection attempt"]
     },
     "Loading Schema Designer Model...": "Loading Schema Designer Model...",
+    "Table Diagram": "Table Diagram",
     "Schema Designer Model is ready. Changes can now be published.": "Schema Designer Model is ready. Changes can now be published.",
     "Schema Designer": "Schema Designer",
     "Opening Publish Script. This may take a while...": "Opening Publish Script. This may take a while...",
