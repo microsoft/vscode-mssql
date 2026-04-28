@@ -176,6 +176,9 @@
         "yallist": "^5.0.0",
         "yauzl": "^3.2.1"
     },
+    "overrides": {
+        "uuid": "^14.0.0"
+    },
     "capabilities": {
         "untrustedWorkspaces": {
             "supported": true
