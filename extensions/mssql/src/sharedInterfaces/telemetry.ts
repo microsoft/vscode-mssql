@@ -214,6 +214,7 @@ export enum TelemetryActions {
     SendNotification = "SendNotification",
     onNotification = "onNotification",
     RefreshEntraToken = "RefreshEntraToken",
+    AcquireVsCodeAccountToken = "AcquireVsCodeAccountToken",
     ImportConfig = "ImportConfig",
     FileBrowserOpen = "FileBrowserOpen",
     FileBrowserExpand = "FileBrowserExpand",

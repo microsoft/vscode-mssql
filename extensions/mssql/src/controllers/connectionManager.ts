@@ -1123,12 +1123,6 @@ export default class ConnectionManager {
             return;
         }
 
-        // In VS Code accounts mode, STS acquires tokens via AccessTokenCallback —
-        // no upfront token fetch or refresh is needed from the extension side.
-        if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
-            return;
-        }
-
         // 2. Validate that the token needs refreshing (isn't expired)
         if (
             AzureController.isTokenValid(connectionInfo.azureAccountToken, connectionInfo.expiresOn)
@@ -2247,11 +2241,13 @@ export default class ConnectionManager {
         params: RequestSecurityTokenParams,
     ): Promise<RequestSecurityTokenResponse> {
         if (params.accountId) {
+            this._logger.verbose("VS Code accounts token request received");
             try {
                 const tokenInfo = await acquireSqlAccessTokenFromVscodeAccount(
                     params.accountId,
                     params.tenantId,
                 );
+                this._logger.verbose("VS Code accounts token acquired successfully");
                 return {
                     accountKey: params.accountId,
                     token: tokenInfo.token.token,
@@ -2259,7 +2255,16 @@ export default class ConnectionManager {
                 };
             } catch (error) {
                 this._logger.error(
-                    `Token request failed for account ${params.accountId}: ${getErrorMessage(error)}`,
+                    `VS Code accounts token acquisition failed: ${getErrorMessage(error)}`,
+                );
+                sendErrorEvent(
+                    TelemetryViews.ConnectionManager,
+                    TelemetryActions.AcquireVsCodeAccountToken,
+                    error instanceof Error ? error : new Error(getErrorMessage(error)),
+                    /* includeErrorMessage */ false,
+                    /* errorCode */ undefined,
+                    /* errorType */ undefined,
+                    {},
                 );
                 return { accountKey: "", token: "", expiresOn: 0 };
             }
