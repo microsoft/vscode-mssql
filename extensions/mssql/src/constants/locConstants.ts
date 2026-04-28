@@ -1975,6 +1975,7 @@ export class SchemaCompare {
 export class SchemaDesigner {
     public static LoadingSchemaDesginerModel = l10n.t("Loading Schema Designer Model...");
     public static PanelTitle = l10n.t("Visualize and Design Schema (Preview)");
+    public static ReadOnlyPanelTitle = l10n.t("Table Diagram");
     public static SchemaReady = l10n.t(
         "Schema Designer Model is ready. Changes can now be published.",
     );
