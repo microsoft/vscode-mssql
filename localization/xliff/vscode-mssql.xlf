@@ -6175,9 +6175,6 @@
     <trans-unit id="++CODE++77f37933f34ccf53cb9126d1a6cd95ac5b1b7c5df2f940fe66d1be7e20108847">
       <source xml:lang="en">Table Name</source>
     </trans-unit>
-    <trans-unit id="++CODE++690b805ac583aa25c26a753a11e0df87e088711db81eca155e30843899c324e7">
-      <source xml:lang="en">Table Query</source>
-    </trans-unit>
     <trans-unit id="++CODE++f95cb857da039127b754a5f2c8af4bcf9f023fb4dd3c9eb2a0181957fd0b8fdf">
       <source xml:lang="en">Table Schema</source>
     </trans-unit>
