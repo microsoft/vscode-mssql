@@ -817,6 +817,9 @@
 {1} is the server name
 {2} is the document name</note>
     </trans-unit>
+    <trans-unit id="++CODE++bbd4b6a86bc65b6ac8e79e97afc61499158edb40f7bb404c70637b46d80a7ad2">
+      <source xml:lang="en">Changes</source>
+    </trans-unit>
     <trans-unit id="++CODE++720013ab95347611fa0f2918e0e719accc806e30e5f0cb349c8594b2a0e46dc2">
       <source xml:lang="en">Changes ({0})</source>
       <note>{0} is the number of schema changes</note>
@@ -5248,6 +5251,9 @@
       <source xml:lang="en">Running query on connection &apos;{0}&apos; (ID: {1})</source>
       <note>{0} is the connection display name
 {1} is the connection ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++a7056a455639d1c7deec82ee787db24a0c1878e2792b4597709f0facf7cc7b35">
+      <source xml:lang="en">SQL</source>
     </trans-unit>
     <trans-unit id="++CODE++59b151f69d83edf3eb174ff38c0f77aebf28c9195c785f2003a1cd708de0dc77">
       <source xml:lang="en">SQL Analytics Endpoint</source>
