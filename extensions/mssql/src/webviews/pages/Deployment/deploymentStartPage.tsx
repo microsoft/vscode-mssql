@@ -57,7 +57,12 @@ export const DeploymentStartPage = () => {
 
     const isAzureSqlDatabaseStateReady = (state: unknown) => {
         const azureState = state as AzureSqlDatabaseState | undefined;
-        return azureState?.loadState === ApiStatus.Loaded && !!azureState?.formState;
+        return (
+            azureState?.loadState === ApiStatus.Loaded &&
+            !!azureState?.formState &&
+            !!azureState?.formComponents &&
+            "accountId" in azureState.formComponents
+        );
     };
 
     useEffect(() => {

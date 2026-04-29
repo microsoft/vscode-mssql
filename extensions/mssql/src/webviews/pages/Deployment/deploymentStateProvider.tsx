@@ -87,6 +87,16 @@ const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }
                 extensionRpc.action("resetFormValidationState", {});
             },
             //#endregion
+            //#region Azure SQL Database Reducers
+            loadAzureComponent: function (componentName: string): void {
+                extensionRpc.action("loadAzureComponent", {
+                    componentName: componentName,
+                });
+            },
+            startAzureSqlDatabaseDeployment: function (): void {
+                extensionRpc.action("startAzureSqlDatabaseDeployment", {});
+            },
+            //#endregion
         }),
         [extensionRpc],
     );

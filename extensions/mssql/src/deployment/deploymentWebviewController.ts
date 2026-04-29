@@ -28,7 +28,10 @@ import * as fabricProvisioning from "./fabricProvisioningHelpers";
 import * as azureSqlDatabase from "./azureSqlDatabaseHelpers";
 import { newDeployment } from "../constants/locConstants";
 import { FabricProvisioningState } from "../sharedInterfaces/fabricProvisioning";
-import { AzureSqlDatabaseState } from "../sharedInterfaces/azureSqlDatabase";
+import {
+    AzureSqlDatabaseState,
+    AZURE_SQL_DB_COMPONENT_ORDER,
+} from "../sharedInterfaces/azureSqlDatabase";
 
 export const DEPLOYMENT_VIEW_ID = "deployment";
 
@@ -104,7 +107,9 @@ export class DeploymentWebviewController extends FormWebviewController<
                 );
             } else if (payload.deploymentType === DeploymentType.AzureSqlDatabase) {
                 newDeploymentTypeState = await azureSqlDatabase.initializeAzureSqlDatabaseState(
+                    this,
                     state.connectionGroupOptions,
+                    this.logger,
                     selectedGroupId,
                 );
             }
@@ -223,6 +228,18 @@ export class DeploymentWebviewController extends FormWebviewController<
             this.state.deploymentTypeState.formState = state.formState;
             await this.validateDeploymentForm(payload.event.propertyName);
         }
+
+        // For Azure SQL Database, reset downstream components when an azure field changes
+        if (state.deploymentType === DeploymentType.AzureSqlDatabase) {
+            const componentOrder = AZURE_SQL_DB_COMPONENT_ORDER as readonly string[];
+            if (componentOrder.includes(payload.event.propertyName)) {
+                azureSqlDatabase.reloadAzureComponentsDownstream(
+                    state.deploymentTypeState as AzureSqlDatabaseState,
+                    payload.event.propertyName,
+                );
+            }
+        }
+
         await this.updateItemVisibility();
 
         return state;

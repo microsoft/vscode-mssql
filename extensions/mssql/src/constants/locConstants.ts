@@ -1364,6 +1364,28 @@ export class Accounts {
     public static clearedEntraTokenCache = l10n.t("Entra token cache cleared successfully.");
 }
 
+export class AzureSqlDatabase {
+    public static azureAccount = l10n.t("Azure Account");
+    public static azureAccountIsRequired = l10n.t("Azure Account is required");
+    public static subscription = l10n.t("Subscription");
+    public static selectASubscription = l10n.t("Select a subscription");
+    public static subscriptionIsRequired = l10n.t("Subscription is required");
+    public static resourceGroup = l10n.t("Resource Group");
+    public static selectAResourceGroup = l10n.t("Select a resource group");
+    public static resourceGroupIsRequired = l10n.t("Resource Group is required");
+    public static databaseName = l10n.t("Database Name");
+    public static enterDatabaseName = l10n.t("Enter database name");
+    public static databaseNameIsRequired = l10n.t("Database Name is required");
+    public static noAzureAccountsFound = l10n.t("No Azure accounts found");
+    public static noTenantsFound = l10n.t("No tenants found");
+    public static noSubscriptionsFound = l10n.t("No subscriptions found");
+    public static noResourceGroupsFound = l10n.t("No resource groups found");
+    public static sqlServer = l10n.t("SQL Server");
+    public static selectAServer = l10n.t("Select a server");
+    public static serverIsRequired = l10n.t("SQL Server is required");
+    public static noServersFound = l10n.t("No servers found");
+}
+
 export class FabricProvisioning {
     public static databaseName = l10n.t("Database Name");
     public static enterDatabaseName = l10n.t("Enter Database Name");

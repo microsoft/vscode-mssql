@@ -1791,6 +1791,32 @@ export class LocConstants {
             comingSoon: l10n.t(
                 "Azure SQL Database deployment is coming soon. This feature is currently under development.",
             ),
+            fullyManaged: l10n.t("Fully Managed"),
+            fullyManagedDescription: l10n.t(
+                "Azure SQL Database handles patching, backups, and infrastructure management so you can focus on building your application.",
+            ),
+            elasticScaling: l10n.t("Elastic Scaling"),
+            elasticScalingDescription: l10n.t(
+                "Scale compute and storage resources independently to match your workload demands with minimal downtime.",
+            ),
+            builtInIntelligence: l10n.t("Built-in Intelligence"),
+            builtInIntelligenceDescription: l10n.t(
+                "Automatic performance tuning, threat detection, and intelligent insights powered by AI help keep your database secure and optimized.",
+            ),
+            createDatabase: l10n.t("Create Database"),
+            provisioning: l10n.t("Provisioning"),
+            deploymentInProgress: l10n.t("Deployment in progress"),
+            finishedDeployment: l10n.t("Deployment finished"),
+            deploymentFailed: l10n.t("Deployment failed"),
+            deploymentName: l10n.t("Database"),
+            startTime: l10n.t("Start Time"),
+            subscription: l10n.t("Subscription"),
+            resourceGroup: l10n.t("Resource Group"),
+            loadingSubscriptions: l10n.t("Loading subscriptions"),
+            loadingResourceGroups: l10n.t("Loading resource groups"),
+            loadingAzureAccounts: l10n.t("Loading Azure accounts"),
+            loadingTenants: l10n.t("Loading tenants"),
+            loadingServers: l10n.t("Loading servers"),
         };
     }
 

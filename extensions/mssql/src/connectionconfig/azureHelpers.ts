@@ -44,6 +44,7 @@ import {
     StorageAccountsListKeysResponse,
     StorageManagementClient,
 } from "@azure/arm-storage";
+import { ResourceManagementClient } from "@azure/arm-resources";
 import {
     BlobServiceClient,
     ContainerClient,
@@ -203,6 +204,100 @@ export class VsCodeAzureHelper {
         // Filter subscriptions by tenant
         const subs = allSubs.filter((sub) => sub.tenantId === tenant.tenantId);
         return subs;
+    }
+
+    /**
+     * Gets the resource groups available for a specific Azure subscription
+     * @param subscription The subscription to get resource groups for
+     * @returns Array of resource group names sorted alphabetically
+     */
+    public static async getResourceGroupsForSubscription(
+        subscription: AzureSubscription,
+    ): Promise<string[]> {
+        try {
+            const client = new ResourceManagementClient(
+                subscription.credential,
+                subscription.subscriptionId,
+            );
+            const groups = await listAllIterator(client.resourceGroups.list());
+            return groups
+                .map((g) => g.name ?? "")
+                .filter((name) => name !== "")
+                .sort((a, b) => a.localeCompare(b));
+        } catch (error) {
+            console.error("Error fetching resource groups for subscription:", error);
+            return [];
+        }
+    }
+
+    public static async getDefaultLocationForResourceGroup(
+        resourceGroupName: string,
+        subscription: AzureSubscription,
+    ): Promise<string> {
+        try {
+            const client = new ResourceManagementClient(
+                subscription.credential,
+                subscription.subscriptionId,
+            );
+            const rg = await client.resourceGroups.get(resourceGroupName);
+            return rg.location;
+        } catch (error) {
+            console.error("Error fetching default location for resource group:", error);
+            return "";
+        }
+    }
+
+    /**
+     * Fetches the SQL servers within a given resource group.
+     */
+    public static async getSqlServersForResourceGroup(
+        subscription: AzureSubscription,
+        resourceGroupName: string,
+    ): Promise<Server[]> {
+        try {
+            const sql = new SqlManagementClient(
+                subscription.credential,
+                subscription.subscriptionId,
+                {
+                    endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+                },
+            );
+            const servers = await listAllIterator(
+                sql.servers.listByResourceGroup(resourceGroupName),
+            );
+            return servers.sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+        } catch (error) {
+            console.error("Error fetching logical servers for resource group:", error);
+            return [];
+        }
+    }
+
+    /**
+     * Creates or updates an Azure SQL Database using the ARM SDK.
+     * @returns The created/updated database resource.
+     */
+    public static async createAzureSqlDatabase(
+        subscription: AzureSubscription,
+        resourceGroupName: string,
+        serverName: string,
+        databaseName: string,
+    ): Promise<Database> {
+        const sql = new SqlManagementClient(subscription.credential, subscription.subscriptionId, {
+            endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+        });
+
+        const poller = await sql.databases.beginCreateOrUpdate(
+            resourceGroupName,
+            serverName,
+            databaseName,
+            {
+                location: await this.getDefaultLocationForResourceGroup(
+                    resourceGroupName,
+                    subscription,
+                ),
+            },
+        );
+        return poller.pollUntilDone();
     }
 
     public static async fetchSqlResourcesForSubscription<
