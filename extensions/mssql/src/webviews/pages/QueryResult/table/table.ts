@@ -26,6 +26,7 @@ import {
 import { QueryResultReactProvider } from "../queryResultStateProvider";
 import { CopyKeybind } from "./plugins/copyKeybind.plugin";
 import { AutoColumnSize } from "./plugins/autoColumnSize.plugin";
+import { ColumnResizeAutoScroll } from "./plugins/columnResizeAutoScroll.plugin";
 import { MouseButton } from "../../../common/utils";
 import { ColorThemeKind, WebviewKeyBindings } from "../../../../sharedInterfaces/webview";
 import debounce from "lodash/debounce";
@@ -167,6 +168,11 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             keyBindings,
         );
         this.registerPlugin(this._copyKeybindPlugin);
+        this.registerPlugin(
+            new ColumnResizeAutoScroll(() => {
+                this._lastScrollAt = Date.now();
+            }),
+        );
 
         const autoSizeOnRender = autoSizeColumnsMode !== ResultsGridAutoSizeStyle.Off;
         const includeHeadersInCalculation =
