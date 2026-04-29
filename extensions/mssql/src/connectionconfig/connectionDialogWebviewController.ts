@@ -2268,9 +2268,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 for (const s of tenantSubMap.get(t)) {
                     subs.push({
                         id: s.subscriptionId,
-                        name: s.name,
-                        loaded: false,
+                        displayName: s.name,
                         tenantId: t,
+                        databases: [],
+                        loadStatus: { status: ApiStatus.NotStarted },
                     });
                 }
             }
@@ -2387,20 +2388,28 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         const azSub = this._azureSubscriptions.get(subscriptionId);
         const stateSub = state.azureSubscriptions.find((s) => s.id === subscriptionId);
 
+        // Show loading spinner immediately
+        stateSub.loadStatus = { status: ApiStatus.Loading };
+        this.updateState(state);
+
         try {
             const servers = await VsCodeAzureHelper.fetchServersFromAzure(azSub);
             state.azureServers.push(...servers);
-            stateSub.loaded = true;
-            this.updateState();
+            stateSub.loadStatus = { status: ApiStatus.Loaded };
+            this.updateState(state);
             this.logger.log(
                 `Loaded ${servers.length} servers for subscription ${azSub.name} (${azSub.subscriptionId})`,
             );
         } catch (error) {
+            const errorMessage = getErrorMessage(error);
             this.logger.error(
                 Loc.errorLoadingAzureDatabases(azSub.name, azSub.subscriptionId) +
                     os.EOL +
-                    getErrorMessage(error),
+                    errorMessage,
             );
+
+            stateSub.loadStatus = { status: ApiStatus.Error, message: errorMessage };
+            this.updateState(state);
 
             sendErrorEvent(
                 TelemetryViews.ConnectionDialog,

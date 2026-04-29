@@ -143,21 +143,11 @@ export interface CreateConnectionGroupDialogProps extends IDialogProps {
     props: ConnectionGroupState;
 }
 
-export interface AzureSubscriptionInfo {
-    name: string;
-    id: string;
-    loaded: boolean;
-    tenantId: string;
-}
+/** @see SqlCollectionInfo */
+export type AzureSubscriptionInfo = SqlCollectionInfo;
 
-export interface AzureSqlServerInfo {
-    server: string;
-    databases: string[];
-    location: string;
-    resourceGroup: string;
-    subscription: string;
-    uri: string;
-}
+/** @see SqlDbInfo */
+export type AzureSqlServerInfo = SqlDbInfo;
 
 export interface ConnectionComponentsInfo {
     mainOptions: (keyof IConnectionDialogProfile)[];

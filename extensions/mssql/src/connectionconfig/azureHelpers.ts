@@ -22,6 +22,7 @@ import {
     AzureSqlServerInfo,
     ConnectionDialogWebviewState,
 } from "../sharedInterfaces/connectionDialog";
+import { SqlArtifactTypes } from "../sharedInterfaces/fabric";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendErrorEvent } from "../telemetry/telemetry";
 import { getErrorMessage, listAllIterator } from "../utils/utils";
@@ -452,18 +453,22 @@ export class VsCodeAzureHelper {
 
                     // Public endpoint URI is the private FQDN, but with ".public" inserted after the server name and on port 3342
                     const publicServerUri =
-                        serverEntry.uri?.replace(`${server.name}.`, `${server.name}.public.`) +
+                        serverEntry.server?.replace(`${server.name}.`, `${server.name}.public.`) +
                         `,${MANAGED_INSTANCE_PUBLIC_PORT}`;
 
+                    const publicDisplayName = `${serverEntry.displayName} (${LocCommon.publicString})`;
                     const publicServerEntry: AzureSqlServerInfo = {
                         ...serverEntry,
-                        server: `${serverEntry.server} (${LocCommon.publicString})`,
-                        uri: publicServerUri,
+                        id: publicDisplayName,
+                        displayName: publicDisplayName,
+                        server: publicServerUri,
                     };
-                    serverMap.set(publicServerEntry.server.toLowerCase(), publicServerEntry);
+                    serverMap.set(publicDisplayName.toLowerCase(), publicServerEntry);
 
                     // Label the existing endpoint as private
-                    serverEntry.server = `${serverEntry.server} (${LocCommon.privateString})`;
+                    const privateDisplayName = `${serverEntry.displayName} (${LocCommon.privateString})`;
+                    serverEntry.id = privateDisplayName;
+                    serverEntry.displayName = privateDisplayName;
                 }
             }
         }
@@ -480,12 +485,15 @@ export class VsCodeAzureHelper {
 
         for (const server of servers) {
             serverMap.set(server.name.toLowerCase(), {
-                server: server.name,
-                databases: [],
-                location: server.location,
+                id: server.name,
+                displayName: server.name,
+                server: server.fullyQualifiedDomainName,
+                database: "",
+                type: SqlArtifactTypes.AzureSqlServer,
+                collectionId: subscription.subscriptionId,
+                collectionName: subscription.name,
+                tenantId: subscription.tenantId,
                 resourceGroup: extractFromResourceId(server.id, "resourceGroups"),
-                subscription: `${subscription.name} (${subscription.subscriptionId})`,
-                uri: server.fullyQualifiedDomainName,
             });
         }
 

@@ -15,7 +15,7 @@ import {
     ConnectionInputMode,
     IConnectionDialogProfile,
 } from "../../../sharedInterfaces/connectionDialog";
-import { SqlCollectionInfo, SqlDbInfo } from "../../../sharedInterfaces/fabric";
+import { SqlCollectionInfo } from "../../../sharedInterfaces/fabric";
 import { locConstants as Loc } from "../../common/locConstants";
 import { ApiStatus, Status } from "../../../sharedInterfaces/webview";
 import EntraSignInEmpty from "./components/entraSignInEmpty.component";
@@ -68,41 +68,16 @@ export const AzureBrowsePage = () => {
         context!.formAction({ propertyName, value, isAction: false });
     }
 
-    // Map Azure subscriptions + servers to SqlCollectionInfo[] shape
+    // Associate loaded servers with their subscriptions
     const subscriptionWorkspaces = useMemo((): SqlCollectionInfo[] => {
         let subs = azureSubscriptions;
         if (selectedTenantId) {
             subs = subs.filter((sub) => sub.tenantId === selectedTenantId);
         }
-
-        return subs.map((sub) => {
-            const subKey = `${sub.name} (${sub.id})`;
-            const subServers = azureServers.filter((s) => s.subscription === subKey);
-
-            const databases: SqlDbInfo[] = subServers.map((srv) => ({
-                id: srv.server,
-                server: srv.uri,
-                displayName: srv.server,
-                database: "",
-                type: "AzureSqlServer",
-                collectionId: sub.id,
-                collectionName: sub.name,
-                tenantId: sub.tenantId,
-                resourceGroup: srv.resourceGroup,
-            }));
-
-            const loadStatus: Status = {
-                status: sub.loaded ? ApiStatus.Loaded : ApiStatus.Loading,
-            };
-
-            return {
-                id: sub.id,
-                displayName: sub.name,
-                tenantId: sub.tenantId,
-                databases,
-                loadStatus,
-            };
-        });
+        return subs.map((sub) => ({
+            ...sub,
+            databases: azureServers.filter((srv) => srv.collectionId === sub.id),
+        }));
     }, [azureSubscriptions, azureServers, selectedTenantId]);
 
     const subscriptionsLoadStatus = useMemo(

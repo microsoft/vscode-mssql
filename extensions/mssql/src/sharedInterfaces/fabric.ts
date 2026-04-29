@@ -34,6 +34,7 @@ export type FabricWorkspaceInfo = SqlCollectionInfo;
 export enum SqlArtifactTypes {
     SqlDatabase = "SQLDatabase",
     SqlAnalyticsEndpoint = "SQLEndpoint",
+    AzureSqlServer = "AzureSqlServer",
 }
 
 /**
