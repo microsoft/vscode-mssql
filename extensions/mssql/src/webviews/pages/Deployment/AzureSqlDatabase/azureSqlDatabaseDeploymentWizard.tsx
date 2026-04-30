@@ -33,6 +33,7 @@ export const AzureSqlDatabaseDeploymentWizard: React.FC<AzureSqlDatabaseDeployme
         (s) => s.formValidationLoadState,
     );
     const provisionLoadState = useAzureSqlDatabaseDeploymentSelector((s) => s.provisionLoadState);
+    const connectionLoadState = useAzureSqlDatabaseDeploymentSelector((s) => s.connectionLoadState);
 
     if (!context) {
         return undefined;
@@ -48,7 +49,8 @@ export const AzureSqlDatabaseDeploymentWizard: React.FC<AzureSqlDatabaseDeployme
         [formComponents, formState, loadState],
     );
 
-    const hasProvisioningError = provisionLoadState === ApiStatus.Error;
+    const hasProvisioningError =
+        provisionLoadState === ApiStatus.Error || connectionLoadState === ApiStatus.Error;
     const isStateReady = !!formState && !!formComponents && "accountId" in formComponents;
     const isFormValid =
         loadState === ApiStatus.Loaded &&
@@ -102,7 +104,7 @@ export const AzureSqlDatabaseDeploymentWizard: React.FC<AzureSqlDatabaseDeployme
             title: locConstants.azureSqlDatabase.provisioning,
             render: () => <AzureSqlDatabaseProvisioningPage />,
             canGoBack: () => hasProvisioningError,
-            canGoNext: () => provisionLoadState === ApiStatus.Loaded,
+            canGoNext: () => connectionLoadState === ApiStatus.Loaded,
             showCancel: () => hasProvisioningError,
             onPrevious: () => {
                 // Reset validation so the user can re-submit

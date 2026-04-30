@@ -1380,7 +1380,7 @@ export class AzureSqlDatabase {
     public static noTenantsFound = l10n.t("No tenants found");
     public static noSubscriptionsFound = l10n.t("No subscriptions found");
     public static noResourceGroupsFound = l10n.t("No resource groups found");
-    public static sqlServer = l10n.t("SQL Server");
+    public static server = l10n.t("Server");
     public static selectAServer = l10n.t("Select a server");
     public static serverIsRequired = l10n.t("SQL Server is required");
     public static noServersFound = l10n.t("No servers found");

@@ -6,7 +6,6 @@
 import { ApiStatus } from "./webview";
 import { FormContextProps, FormItemSpec, FormReducers, FormState } from "./form";
 import { IDialogProps } from "./connectionDialog";
-import { AzureSubscription } from "@microsoft/vscode-azext-azureauth";
 
 /**
  * Ordered list of Azure component names used for cascading load/reset.
@@ -35,7 +34,7 @@ export class AzureSqlDatabaseState
     formValidationLoadState: ApiStatus = ApiStatus.NotStarted;
     provisionLoadState: ApiStatus = ApiStatus.NotStarted;
     deploymentStartTime: string = "";
-    subscriptions: AzureSubscription[] = [];
+    connectionLoadState: ApiStatus = ApiStatus.NotStarted;
     azureComponentStatuses: Record<string, ApiStatus> = {
         accountId: ApiStatus.NotStarted,
         tenantId: ApiStatus.NotStarted,

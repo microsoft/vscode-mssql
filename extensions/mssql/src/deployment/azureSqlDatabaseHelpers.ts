@@ -8,11 +8,15 @@ import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
 import { AzureSqlDatabase, ConnectionDialog } from "../constants/locConstants";
 import { Logger } from "../models/logger";
 import * as asd from "../sharedInterfaces/azureSqlDatabase";
+import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { FormItemActionButton, FormItemOptions, FormItemType } from "../sharedInterfaces/form";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { sendActionEvent } from "../telemetry/telemetry";
-import { DeploymentWebviewController } from "./deploymentWebviewController";
+import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { ConnectionCredentials } from "../models/connectionCredentials";
+import { IConnectionProfile } from "../models/interfaces";
+import { DEPLOYMENT_VIEW_ID, DeploymentWebviewController } from "./deploymentWebviewController";
+import { UserSurvey } from "../nps/userSurvey";
 
 // Cached logger reference for use in helper functions that don't have
 // direct access to the controller's protected logger.
@@ -109,7 +113,16 @@ export function registerAzureSqlDatabaseReducers(
             updateAzureSqlDatabaseState(deploymentController, azureSqlState);
 
             try {
-                const subscription = azureSqlState.subscriptions.find(
+                const startTime = Date.now();
+                const tenant = await VsCodeAzureHelper.getTenant(
+                    azureSqlState.formState.accountId,
+                    azureSqlState.formState.tenantId,
+                );
+                if (!tenant) {
+                    throw new Error(AzureSqlDatabase.noTenantsFound);
+                }
+                const subscriptions = await VsCodeAzureHelper.getSubscriptionsForTenant(tenant);
+                const subscription = subscriptions.find(
                     (s) => s.subscriptionId === azureSqlState.formState.subscriptionId,
                 );
                 if (!subscription) {
@@ -124,6 +137,18 @@ export function registerAzureSqlDatabaseReducers(
                 );
 
                 azureSqlState.provisionLoadState = ApiStatus.Loaded;
+                updateAzureSqlDatabaseState(deploymentController, azureSqlState);
+
+                sendActionEvent(
+                    TelemetryViews.AzureSqlDatabase,
+                    TelemetryActions.ProvisionAzureSqlDatabase,
+                    {},
+                    {
+                        provisionDatabaseLoadTimeInMs: Date.now() - startTime,
+                    },
+                );
+
+                void connectToAzureSqlDatabase(deploymentController);
             } catch (error) {
                 azureSqlState.provisionLoadState = ApiStatus.Error;
                 azureSqlState.errorMessage = error instanceof Error ? error.message : String(error);
@@ -172,6 +197,60 @@ export function sendAzureSqlDatabaseCloseEventTelemetry(state: asd.AzureSqlDatab
             provisionState: state.provisionLoadState,
         },
     );
+}
+
+export async function connectToAzureSqlDatabase(
+    deploymentController: DeploymentWebviewController,
+): Promise<void> {
+    const state = deploymentController.state.deploymentTypeState as asd.AzureSqlDatabaseState;
+    const startTime = Date.now();
+    state.connectionLoadState = ApiStatus.Loading;
+    updateAzureSqlDatabaseState(deploymentController, state);
+
+    try {
+        const serverFqdn = `${state.formState.serverName}.database.windows.net`;
+        const connectionDetails =
+            await deploymentController.mainController.connectionManager.parseConnectionString(
+                `Server=${serverFqdn};Database=${state.formState.databaseName}`,
+            );
+
+        const connectionProfile: IConnectionDialogProfile =
+            await ConnectionCredentials.createConnectionInfo(connectionDetails);
+        connectionProfile.profileName = state.formState.profileName || state.formState.databaseName;
+        connectionProfile.groupId = state.formState.groupId;
+        connectionProfile.authenticationType = AuthenticationType.AzureMFA;
+        connectionProfile.accountId = state.formState.accountId;
+        connectionProfile.tenantId = state.formState.tenantId;
+
+        const profile =
+            await deploymentController.mainController.connectionManager.connectionUI.saveProfile(
+                connectionProfile as IConnectionProfile,
+            );
+        await deploymentController.mainController.createObjectExplorerSession(profile);
+        state.connectionLoadState = ApiStatus.Loaded;
+
+        sendActionEvent(
+            TelemetryViews.AzureSqlDatabase,
+            TelemetryActions.ConnectToAzureSqlDatabase,
+            {},
+            {
+                connectToDatabaseLoadTimeInMs: Date.now() - startTime,
+            },
+        );
+
+        UserSurvey.getInstance().promptUserForNPSFeedback(`${DEPLOYMENT_VIEW_ID}_azureSqlDatabase`);
+    } catch (err) {
+        state.connectionLoadState = ApiStatus.Error;
+        state.errorMessage = err instanceof Error ? err.message : String(err);
+        sendErrorEvent(
+            TelemetryViews.AzureSqlDatabase,
+            TelemetryActions.ConnectToAzureSqlDatabase,
+            err,
+            false,
+        );
+    }
+
+    updateAzureSqlDatabaseState(deploymentController, state);
 }
 
 // ─── Individual component loaders ────────────────────────────────────────────
@@ -244,7 +323,6 @@ async function loadSubscriptionComponent(azureSqlState: asd.AzureSqlDatabaseStat
     }
 
     const subscriptions = await VsCodeAzureHelper.getSubscriptionsForTenant(tenant);
-    azureSqlState.subscriptions = subscriptions;
 
     subscriptionComponent.options = subscriptions.map((sub) => ({
         displayName: `${sub.name} (${sub.subscriptionId})`,
@@ -459,7 +537,7 @@ function setAzureSqlDatabaseFormComponents(
         }),
         serverName: createFormItem({
             propertyName: "serverName",
-            label: AzureSqlDatabase.sqlServer,
+            label: AzureSqlDatabase.server,
             required: true,
             type: FormItemType.SearchableDropdown,
             options: [],

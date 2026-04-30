@@ -136,6 +136,8 @@ export enum TelemetryActions {
     FinishFabricProvisioningDeployment = "FinishFabricProvisioningDeployment",
     StartAzureSqlDatabaseDeployment = "StartAzureSqlDatabaseDeployment",
     FinishAzureSqlDatabaseDeployment = "FinishAzureSqlDatabaseDeployment",
+    ProvisionAzureSqlDatabase = "ProvisionAzureSqlDatabase",
+    ConnectToAzureSqlDatabase = "ConnectToAzureSqlDatabase",
     StartDocker = "StartDocker",
     SubmitContainerForm = "SubmitContainerForm",
     ConnectToContainer = "ConnectToContainer",

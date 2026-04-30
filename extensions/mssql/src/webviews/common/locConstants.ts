@@ -1817,6 +1817,8 @@ export class LocConstants {
             loadingAzureAccounts: l10n.t("Loading Azure accounts"),
             loadingTenants: l10n.t("Loading tenants"),
             loadingServers: l10n.t("Loading servers"),
+            connectingToDatabase: l10n.t("Connecting to database"),
+            connectionFailed: l10n.t("Connection failed"),
         };
     }
 

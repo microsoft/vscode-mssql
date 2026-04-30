@@ -67,6 +67,7 @@ const useStyles = makeStyles({
 export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
     const classes = useStyles();
     const provisionLoadState = useAzureSqlDatabaseDeploymentSelector((s) => s.provisionLoadState);
+    const connectionLoadState = useAzureSqlDatabaseDeploymentSelector((s) => s.connectionLoadState);
     const errorMessage = useAzureSqlDatabaseDeploymentSelector((s) => s.errorMessage);
     const databaseName = useAzureSqlDatabaseDeploymentSelector((s) => s.formState?.databaseName);
     const deploymentStartTime = useAzureSqlDatabaseDeploymentSelector((s) => s.deploymentStartTime);
@@ -77,12 +78,21 @@ export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
 
     if (!provisionLoadState) return undefined;
 
+    const stepStatus =
+        provisionLoadState !== ApiStatus.Loaded ? provisionLoadState : connectionLoadState;
+
     const getHeaderText = () => {
         if (provisionLoadState === ApiStatus.Error) {
             return locConstants.azureSqlDatabase.deploymentFailed;
         }
         if (provisionLoadState !== ApiStatus.Loaded) {
             return `${locConstants.azureSqlDatabase.deploymentInProgress}...`;
+        }
+        if (connectionLoadState === ApiStatus.Error) {
+            return locConstants.azureSqlDatabase.connectionFailed;
+        }
+        if (connectionLoadState !== ApiStatus.Loaded) {
+            return locConstants.azureSqlDatabase.connectingToDatabase;
         }
         return locConstants.azureSqlDatabase.finishedDeployment;
     };
@@ -94,7 +104,7 @@ export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
                     {locConstants.azureSqlDatabase.provisioning} {databaseName}
                 </div>
                 <DeploymentStepCard
-                    status={provisionLoadState}
+                    status={stepStatus}
                     title={getHeaderText()}
                     className={classes.cardDiv}
                     bodyClassName={classes.cardBody}>
