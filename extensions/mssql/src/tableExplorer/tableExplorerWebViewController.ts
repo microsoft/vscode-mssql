@@ -76,7 +76,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 > {
     private operationId: string;
     private _preserveTableQuery = false;
-    private _queryCancelled = false;
     private _expectedOwnerUri: string = "";
     private _documentVersions = new Map<string, number>();
     private _documentEndPosition = new Map<string, { line: number; character: number }>();
@@ -144,7 +143,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 showScriptPane: false, // Script pane hidden by default
                 sqlPaneMode: SqlPaneMode.ScriptChanges, // Default to script changes mode
                 tableQuery: undefined, // Populated after data loads
-                isCustomQueryRunning: false, // Set true only while runTableQuery is in flight
                 currentPage: 1, // Start on page 1
                 failedCells: [], // Track cells that failed to update
                 originalCellValues: new Map<string, DbCellValue>(), // Cache original values for reliable revert
@@ -191,21 +189,9 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         if (result.success) {
             this.state.ownerUri = result.ownerUri;
             this.state.loadStatus = ApiStatus.Loading;
-            // The server has finished executing the (possibly long-running) query —
-            // clear the in-flight flag so the Cancel button disables and Run re-enables
-            // even before loadResultSet finishes pulling the rows down.
-            this.state.isCustomQueryRunning = false;
             this.updateState();
 
             void this.loadResultSet();
-        } else if (this._queryCancelled) {
-            // Query was cancelled by the user - treat as "no results"
-            this._queryCancelled = false;
-            this.state.loadStatus = ApiStatus.Loaded;
-            this.state.resultSet = undefined;
-            this.state.isCustomQueryRunning = false;
-            this._preserveTableQuery = false;
-            this.updateState();
         } else {
             // Server reported the session failed without a user cancel (e.g. a syntax
             // error, multi-table/duplicate-column query, or missing object). Surface the
@@ -229,7 +215,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             );
             this.state.loadStatus = ApiStatus.Error;
             this.state.resultSet = undefined;
-            this.state.isCustomQueryRunning = false;
             this._preserveTableQuery = false;
             this.updateState();
 
@@ -1654,19 +1639,11 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             }
 
             state.loadStatus = ApiStatus.Loading;
-            // Mark a custom query as in flight so the Cancel button is enabled and the
-            // cancelTableQuery reducer is allowed to run. Other Loading states (e.g.
-            // loadSubset) leave this false so Cancel can't tear down the edit session.
-            // The flag is cleared by onEditSessionReady when the server signals that the
-            // query has finished executing — NOT when the initialize() RPC returns,
-            // since that returns as soon as the session is kicked off and long-running
-            // statements (e.g. WAITFOR DELAY) are still pending at that point.
-            state.isCustomQueryRunning = true;
+
             // Clear the stale result set so the frontend transitions from undefined → new data,
             // guaranteeing a full grid re-initialization (Scenario 1) rather than an incremental
             // update (Scenario 3) when the new result set arrives via loadResultSet().
             state.resultSet = undefined;
-            this._queryCancelled = false;
             this.updateState();
 
             // Dispose the current edit session — may already be disposed after a cancel
@@ -1692,7 +1669,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             try {
                 // Re-initialize with the custom query. This kicks off the session;
                 // the actual query execution completes asynchronously and is signalled
-                // by EditSessionReady, which clears isCustomQueryRunning.
+                // by EditSessionReady
                 await this._tableExplorerService.initialize(
                     state.ownerUri,
                     objectName,
@@ -1747,9 +1724,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     state.loadStatus = ApiStatus.Error;
                 }
 
-                // initialize() threw synchronously — no EditSessionReady will arrive,
-                // so clear the in-flight flag here so the UI can recover.
-                state.isCustomQueryRunning = false;
                 this.updateState();
 
                 endActivity.endFailed(
@@ -1765,39 +1739,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
                 vscode.window.showErrorMessage(
                     LocConstants.TableExplorer.failedToRunTableQuery(getErrorMessage(error)),
-                );
-            }
-
-            return state;
-        });
-
-        this.registerReducer("cancelTableQuery", async (state, _payload) => {
-            this.logger.verbose(`Cancelling table query - OperationId: ${this.operationId}`);
-
-            // Only allow cancelling when a user-initiated custom query is in flight.
-            // Other Loading states (e.g. loadSubset) must not be cancelled here, since
-            // cancelQuery + dispose would tear down the underlying edit session.
-            if (!state.isCustomQueryRunning || !state.ownerUri) {
-                return state;
-            }
-
-            this._queryCancelled = true;
-
-            try {
-                await this._tableExplorerService.cancelQuery(state.ownerUri);
-            } catch (error) {
-                this.logger.error(
-                    `Error cancelling query: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
-                );
-            }
-
-            // Dispose the partially-initialized session so STS cleans up
-            try {
-                await this._tableExplorerService.dispose(state.ownerUri);
-            } catch (error) {
-                // Session may not exist yet if still initializing
-                this.logger.verbose(
-                    `Dispose after cancel (may be expected): ${getErrorMessage(error)}`,
                 );
             }
 

@@ -119,19 +119,6 @@ export namespace EditRevertCellRequest {
 
 //#endregion
 
-//#region edit/cancel
-
-export namespace EditCancelRequest {
-    export const type = new RequestType<
-        tableExplorer.EditCancelParams,
-        tableExplorer.EditCancelResult,
-        void,
-        void
-    >("edit/cancel");
-}
-
-//#endregion
-
 //#region edit/dispose
 
 export namespace EditDisposeRequest {

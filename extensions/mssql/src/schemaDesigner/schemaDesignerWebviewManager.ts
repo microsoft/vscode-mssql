@@ -118,9 +118,9 @@ export class SchemaDesignerWebviewManager {
             azureAccountToken = connInfo.credentials.azureAccountToken;
         }
 
-        // Read-only and editable views for the same database are distinct
-        // panels — caching them under the same key would let one mode reuse
-        // the other's toolbar/state.
+        // Include the mode in the cache key so that opening a read-only and an
+        // editable view for the same database produces two separate panels rather
+        // than reusing one with the wrong toolbar and state.
         const key = `${connectionString}-${databaseName}-${isReadOnly ? "ro" : "rw"}`;
         if (!this.schemaDesigners.has(key) || this.schemaDesigners.get(key)?.isDisposed) {
             const schemaDesigner = new SchemaDesignerWebviewController(

@@ -5,7 +5,6 @@
 
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import {
-    EditCancelRequest,
     EditCommitRequest,
     EditCreateRowRequest,
     EditDeleteRowRequest,
@@ -31,8 +30,6 @@ import {
     EditCreateRowResult,
     EditDeleteRowParams,
     EditDeleteRowResult,
-    EditCancelParams,
-    EditCancelResult,
     EditDisposeParams,
     EditDisposeResult,
     EditInitializeFiltering,
@@ -149,14 +146,6 @@ export interface ITableExplorerService {
      * @returns A promise that resolves to the result of the revert cell operation
      */
     revertCell(ownerUri: string, rowId: number, columnId: number): Promise<EditRevertCellResult>;
-
-    /**
-     * Cancels an in-progress query for the specified owner URI.
-     *
-     * @param ownerUri - The URI identifying the connection whose query should be cancelled
-     * @returns A promise that resolves to the cancel result
-     */
-    cancelQuery(ownerUri: string): Promise<EditCancelResult>;
 
     /**
      * Disposes of resources associated with the specified owner URI.
@@ -423,28 +412,6 @@ export class TableExplorerService implements ITableExplorerService {
             };
 
             const result = await this._client.sendRequest(EditRevertCellRequest.type, params);
-
-            return result;
-        } catch (error) {
-            this._client.logger.error(getErrorMessage(error));
-            throw error;
-        }
-    }
-
-    /**
-     * Cancels an in-progress query for the specified owner URI.
-     *
-     * @param ownerUri - The URI identifying the connection whose query should be cancelled
-     * @returns A promise that resolves to the cancel result
-     * @throws Will throw an error if the cancel request fails
-     */
-    public async cancelQuery(ownerUri: string): Promise<EditCancelResult> {
-        try {
-            const params: EditCancelParams = {
-                ownerUri: ownerUri,
-            };
-
-            const result = await this._client.sendRequest(EditCancelRequest.type, params);
 
             return result;
         } catch (error) {

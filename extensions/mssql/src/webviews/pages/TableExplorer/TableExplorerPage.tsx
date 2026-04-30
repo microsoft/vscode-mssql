@@ -125,11 +125,10 @@ export const TableExplorerPage: React.FC = () => {
 
     const isLoading = loadStatus === ApiStatus.Loading;
 
-    const {
-        beforeMount,
-        onContentChange,
-        onMount: onIntellisenseMount,
-    } = useMonacoSqlIntellisense(ownerUri, extensionRpc);
+    const { beforeMount, onMount: onIntellisenseMount } = useMonacoSqlIntellisense(
+        ownerUri,
+        extensionRpc,
+    );
 
     // Track the editor's current text in a ref so React state changes never
     // round-trip through Monaco's `value` prop. The @monaco-editor/react value
@@ -140,20 +139,6 @@ export const TableExplorerPage: React.FC = () => {
     const lastSyncedTableQueryRef = useRef<string | undefined>(undefined);
     const editorRef = useRef<import("monaco-editor").editor.IStandaloneCodeEditor | null>(null);
     const shouldFocusEditorRef = useRef(false);
-    const runQueryRef = useRef<() => void>(() => {});
-    const cancelQueryRef = useRef<() => void>(() => {});
-
-    useEffect(() => {
-        runQueryRef.current = () => {
-            const text = editableQueryRef.current;
-            if (text.trim()) {
-                context.runTableQuery(text);
-            }
-        };
-        cancelQueryRef.current = () => {
-            context.cancelTableQuery();
-        };
-    });
 
     const handleEditorMount = useCallback(
         (
@@ -332,32 +317,6 @@ export const TableExplorerPage: React.FC = () => {
                 document.removeEventListener("click", pasteClickInterceptor, true);
             });
 
-            // F5 — run query
-            editor.addCommand(monaco.KeyCode.F5, () => {
-                runQueryRef.current();
-            });
-
-            // Ctrl+Shift+E / Cmd+Shift+E — run query
-            editor.addCommand(
-                monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyE,
-                () => {
-                    runQueryRef.current();
-                },
-            );
-
-            // Ctrl+Shift+C / Cmd+Shift+C — cancel query
-            editor.addCommand(
-                monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyC,
-                () => {
-                    cancelQueryRef.current();
-                },
-            );
-
-            // Shift+Alt+F — format document (standard VS Code shortcut)
-            editor.addCommand(monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyF, () => {
-                editor.trigger("keyboard", "editor.action.formatDocument", undefined);
-            });
-
             // Handle Tab at window capture phase — this fires BEFORE document capture,
             // which is where Fluent UI's Tabster registers. Using stopImmediatePropagation
             // here prevents the event from ever reaching Tabster, so focus stays in the
@@ -367,17 +326,8 @@ export const TableExplorerPage: React.FC = () => {
                 if (e.key !== "Tab") {
                     return;
                 }
-                // Check suggest widget visibility first — when fixedOverflowWidgets is true,
-                // Monaco renders the suggest widget in document.body (outside editorDomNode).
-                // Keyboard navigation can move DOM focus into that widget, making both
-                // editor.hasTextFocus() and editorDomNode.contains(activeElement) return
-                // false, which would cause the guard below to exit early and let Tabster
-                // steal focus instead of accepting the suggestion.
-                const suggestWidget = document.querySelector(".suggest-widget");
-                const isSuggestWidgetVisible =
-                    suggestWidget !== null && suggestWidget.classList.contains("visible");
+
                 const isMonacoFocused =
-                    isSuggestWidgetVisible ||
                     editor.hasTextFocus() ||
                     (editorDomNode !== null &&
                         (editorDomNode?.contains(document.activeElement) ?? false));
@@ -389,15 +339,7 @@ export const TableExplorerPage: React.FC = () => {
                 e.preventDefault();
                 e.stopImmediatePropagation();
 
-                if (isSuggestWidgetVisible) {
-                    // Restore editor text focus before triggering acceptSelectedSuggestion.
-                    // The textInputFocus context key must be true for the command to execute,
-                    // but if the suggest widget DOM node (in document.body) has focus,
-                    // that key is false. Calling editor.focus() returns focus to the
-                    // textarea without dismissing the widget.
-                    editor.focus();
-                    editor.trigger("keyboard", "acceptSelectedSuggestion", undefined);
-                } else if (e.shiftKey) {
+                if (e.shiftKey) {
                     editor.trigger("keyboard", "outdent", undefined);
                 } else {
                     editor.trigger("keyboard", "tab", undefined);
@@ -662,11 +604,6 @@ export const TableExplorerPage: React.FC = () => {
                                                     readOnly: true,
                                                     fixedOverflowWidgets: true,
                                                     tabFocusMode: false,
-                                                }}
-                                                onChange={(value) => {
-                                                    const text = value ?? "";
-                                                    editableQueryRef.current = text;
-                                                    onContentChange(text);
                                                 }}
                                                 onMount={handleEditorMount}
                                                 beforeMount={beforeMount}

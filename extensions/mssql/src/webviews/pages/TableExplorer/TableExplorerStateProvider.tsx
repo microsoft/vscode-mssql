@@ -85,10 +85,6 @@ export const TableExplorerStateProvider: React.FC<{
                 extensionRpc.action("runTableQuery", { queryString });
             },
 
-            cancelTableQuery: function (): void {
-                extensionRpc.action("cancelTableQuery", {});
-            },
-
             modifyTable: function (): void {
                 extensionRpc.action("modifyTable", {});
             },
