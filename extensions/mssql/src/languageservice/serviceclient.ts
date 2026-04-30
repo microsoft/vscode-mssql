@@ -63,7 +63,10 @@ export class LanguageClientErrorHandler {
      * Creates an instance of LanguageClientErrorHandler.
      * @memberOf LanguageClientErrorHandler
      */
-    constructor(private _name: string) {}
+    constructor(
+        private _name: string,
+        private _startupErrorHandler?: (error: Error) => boolean,
+    ) {}
 
     /**
      * Show an error message prompt with a link to known issues wiki page
@@ -95,7 +98,9 @@ export class LanguageClientErrorHandler {
      * @memberOf LanguageClientErrorHandler
      */
     error(error: Error, _message: IMessage, _count: number): ErrorAction {
-        this.showOnErrorPrompt(getErrorMessage(error));
+        if (!this._startupErrorHandler?.(error)) {
+            this.showOnErrorPrompt(getErrorMessage(error));
+        }
 
         // we don't retry running the service since crashes leave the extension
         // in a bad, unrecovered state
@@ -110,7 +115,10 @@ export class LanguageClientErrorHandler {
      * @memberOf LanguageClientErrorHandler
      */
     closed(): CloseAction {
-        this.showOnErrorPrompt("The service process was unexpectedly closed.");
+        const error = new Error("The service process was unexpectedly closed.");
+        if (!this._startupErrorHandler?.(error)) {
+            this.showOnErrorPrompt(error.message);
+        }
 
         // we don't retry running the service since crashes leave the extension
         // in a bad, unrecovered state
@@ -221,7 +229,6 @@ export default class SqlToolsServiceClient {
         const launchServer = async (serverInstallFolder: string, runtime: Runtime) => {
             this._sqlToolsServicePath = serverInstallFolder;
             await this.initializeLanguageClient(serverInstallFolder, runtime, context);
-            await this._client.onReady();
         };
 
         /**
@@ -384,7 +391,22 @@ export default class SqlToolsServiceClient {
             );
             throw new Error("Sql Tools Service executable was not found in expected location.");
         }
-        this.client = await this.createLanguageClient(sqlToolsServicePath);
+        let isStarting = true;
+        let languageClientStartupErrorHandler: (error: Error) => boolean = () => false;
+        const languageClientStartupError = new Promise<void>((_, reject) => {
+            languageClientStartupErrorHandler = (error: Error): boolean => {
+                if (!isStarting) {
+                    return false;
+                }
+                reject(error);
+                return true;
+            };
+        });
+
+        this.client = await this.createLanguageClient(
+            sqlToolsServicePath,
+            languageClientStartupErrorHandler,
+        );
 
         const resourceProviderServicePath = await this._server.tryGetExecutablePathInFolder(
             serverFolder,
@@ -399,7 +421,21 @@ export default class SqlToolsServiceClient {
                 "Resource Provider Service executable was not found in expected location.",
             );
         }
-        this._resourceClient = await this.createResourceClient(resourceProviderServicePath);
+        let resourceClientStartupErrorHandler: (error: Error) => boolean = () => false;
+        const resourceClientStartupError = new Promise<void>((_, reject) => {
+            resourceClientStartupErrorHandler = (error: Error): boolean => {
+                if (!isStarting) {
+                    return false;
+                }
+                reject(error);
+                return true;
+            };
+        });
+
+        this._resourceClient = await this.createResourceClient(
+            resourceProviderServicePath,
+            resourceClientStartupErrorHandler,
+        );
 
         if (context !== undefined) {
             // Create the language client and start the client.
@@ -412,10 +448,22 @@ export default class SqlToolsServiceClient {
             // client can be deactivated on extension deactivation
             context.subscriptions.push(disposable);
             context.subscriptions.push(resourceDisposable);
+
+            try {
+                await Promise.all([
+                    Promise.race([this.client.onReady(), languageClientStartupError]),
+                    Promise.race([this._resourceClient.onReady(), resourceClientStartupError]),
+                ]);
+            } finally {
+                isStarting = false;
+            }
         }
     }
 
-    private async createLanguageClient(executablePath: string): Promise<LanguageClient> {
+    private async createLanguageClient(
+        executablePath: string,
+        startupErrorHandler?: (error: Error) => boolean,
+    ): Promise<LanguageClient> {
         let serverOptions: ServerOptions =
             await this.generateSqlToolsServiceServerOptions(executablePath);
         // Options to control the language client
@@ -428,7 +476,10 @@ export default class SqlToolsServiceClient {
                     Constants.telemetryConfigSectionName,
                 ],
             },
-            errorHandler: new LanguageClientErrorHandler(Constants.sqlToolsServiceName),
+            errorHandler: new LanguageClientErrorHandler(
+                Constants.sqlToolsServiceName,
+                startupErrorHandler,
+            ),
         };
 
         // cache the client instance for later use
@@ -437,21 +488,30 @@ export default class SqlToolsServiceClient {
             serverOptions,
             clientOptions,
         );
-        void client.onReady().then(() => {
-            client.onNotification(
-                LanguageServiceContracts.StatusChangedNotification.type,
-                this.handleLanguageServiceStatusNotification(),
-            );
-        });
+        void client.onReady().then(
+            () => {
+                client.onNotification(
+                    LanguageServiceContracts.StatusChangedNotification.type,
+                    this.handleLanguageServiceStatusNotification(),
+                );
+            },
+            () => undefined,
+        );
 
         return client;
     }
 
-    private async createResourceClient(executablePath: string): Promise<LanguageClient> {
+    private async createResourceClient(
+        executablePath: string,
+        startupErrorHandler?: (error: Error) => boolean,
+    ): Promise<LanguageClient> {
         // add resource provider path here
         let serverOptions = await this.generateResourceServiceServerOptions(executablePath);
         const clientOptions: LanguageClientOptions = {
-            errorHandler: new LanguageClientErrorHandler(Constants.resourceServiceName),
+            errorHandler: new LanguageClientErrorHandler(
+                Constants.resourceServiceName,
+                startupErrorHandler,
+            ),
         };
         let client = new LanguageClient(
             Constants.resourceServiceName,
