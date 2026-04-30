@@ -17,7 +17,6 @@ import {
     SlickgridReactInstance,
     Column,
     GridOption,
-    SlickgridReact,
     Editors,
     ContextMenu,
 } from "slickgrid-react";
@@ -27,9 +26,11 @@ import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { locConstants as loc } from "../../common/locConstants";
 import TableExplorerCustomPager from "./TableExplorerCustomPager";
 import { slickGridLocales } from "./commonGridOptions";
-import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-fluent.css";
 import "./TableDataGrid.css";
-import { baseFluentGridOption } from "../base-fluent-grid-options";
+import {
+    createFluentAutoResizeOptions,
+    FluentSlickGrid,
+} from "../../common/FluentSlickGrid/FluentSlickGrid";
 
 interface TableDataGridProps {
     resultSet: EditSubsetResult | undefined;
@@ -440,27 +441,19 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     const FILTER_ROW_HEIGHT = 34;
 
                     setOptions({
-                        ...baseFluentGridOption,
-                        alwaysShowVerticalScroll: true,
                         autoEdit: false,
                         autoCommitEdit: true,
                         editable: true,
-                        enableAutoResize: true,
-                        autoResize: {
-                            container: "#grid-container",
-                            calculateAvailableSizeBy: "container",
-                            resizeDetection: "container",
+                        autoResize: createFluentAutoResizeOptions("#grid-container", {
                             autoHeight: false,
                             bottomPadding: 10,
                             minHeight: 180,
-                        },
-                        forceFitColumns: false, // Allow horizontal scrolling for many columns
+                        }),
 
                         // Localization for grid UI
                         locales: slickGridLocales,
 
                         // Column operations
-                        enableColumnReorder: true, // Allow column reordering via drag-and-drop
                         enableColumnPicker: true, // Allow hide/show columns from column picker
                         columnPicker: {
                             hideForceFitButton: true,
@@ -468,7 +461,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         },
                         enableHeaderMenu: true, // Enable header menu for column operations
                         headerMenu: {
-                            // v10+ prefers hideCommands over hide*Command flags.
                             hideCommands: ["freeze-columns"],
                         },
 
@@ -482,9 +474,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         headerRowHeight: FILTER_ROW_HEIGHT,
 
                         // Cell navigation and copy buffer
-                        enableCellNavigation: true,
-                        enableExcelCopyBuffer: true, // Enables cell range selection + copy/paste (Ctrl+C, Ctrl+V)
-
                         // Context menu
                         enableContextMenu: true,
                         contextMenu: getContextMenuOptions(),
@@ -1217,7 +1206,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             <div
                 id="grid-container"
                 className={`table-explorer-grid-container ${isDarkMode ? "dark-mode" : ""}`}>
-                <SlickgridReact
+                <FluentSlickGrid
                     gridId="tableExplorerGrid"
                     columns={columns}
                     options={options}

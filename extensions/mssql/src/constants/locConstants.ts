@@ -32,8 +32,7 @@ export let dropDatabaseDialogTitle = l10n.t("Drop Database");
 export let renameDatabaseDialogTitle = l10n.t("Rename Database");
 export let createDatabaseWebviewTitle = l10n.t("Create Database");
 export let dropDatabaseWebviewTitle = l10n.t("Drop Database");
-export let renameDatabaseInputPlaceholder = l10n.t("Enter the new database name");
-export let databaseNameRequired = l10n.t("Database name is required");
+export let renameDatabaseWebviewTitle = l10n.t("Rename Database");
 export let msgSelectServerNodeToCreateDatabase = l10n.t(
     "Please select a server node in Object Explorer to create a database.",
 );
@@ -777,6 +776,25 @@ export let executionPlan = l10n.t("Execution Plan");
 export let executionPlanFileFilter = l10n.t("SQL Plan Files");
 export let scriptCopiedToClipboard = l10n.t("Script copied to clipboard");
 export let copied = l10n.t("Copied");
+export let failedToOpenTextInEditor = (errorMessage: string) =>
+    l10n.t({
+        message: "Failed to open text in editor: {0}",
+        args: [errorMessage],
+        comment: ["{0} is the error message"],
+    });
+export let failedToCopyTextToClipboard = (errorMessage: string) =>
+    l10n.t({
+        message: "Failed to copy text to clipboard: {0}",
+        args: [errorMessage],
+        comment: ["{0} is the error message"],
+    });
+export let failedToAddTextToWorkspace = (errorMessage: string) =>
+    l10n.t({
+        message: "Failed to add text to workspace: {0}",
+        args: [errorMessage],
+        comment: ["{0} is the error message"],
+    });
+export let schemaDesignerDetailsUnavailable = l10n.t("Schema designer details are not available.");
 export let copyingResults = l10n.t("Copying results...");
 export let resultsCopiedToClipboard = l10n.t("Results copied to clipboard");
 
@@ -2000,6 +2018,15 @@ export class SchemaDesigner {
     public static noWorkspaceOpenForMcp = l10n.t(
         "No workspace folder is open. Open a folder to add the MCP server configuration.",
     );
+    public static noWorkspaceOpenForGeneratedFile = l10n.t(
+        "No workspace folder is open. Open a folder to add the generated file.",
+    );
+    public static generatedFileAddedToWorkspace = (filePath: string) =>
+        l10n.t({
+            message: "Generated file added to {0}",
+            args: [filePath],
+            comment: ["{0} is the generated file path"],
+        });
     public static configCopiedToClipboard = l10n.t("Config copied to clipboard");
     public static urlCopiedToClipboard = l10n.t("URL copied to clipboard");
     public static logsCopiedToClipboard = l10n.t("Logs copied to clipboard");
