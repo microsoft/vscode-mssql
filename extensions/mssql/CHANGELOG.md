@@ -1,5 +1,14 @@
 # Change Log
 
+## Version 1.42.2
+
+- Release date: May 4, 2026
+- Release status: GA
+
+### What's new in 1.42.2
+
+- Fixed an issue where the extension may not launch for some users in proxy or offline environments
+
 ## Version 1.42.1
 
 - Release date: April 28, 2026
