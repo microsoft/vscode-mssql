@@ -15,7 +15,7 @@ import {
 } from "../../src/connectionconfig/connectionDialogWebviewController";
 import {
     ConnectionDialog as Loc,
-    enableTrustServerCertificate,
+    Connection as ConnectionLoc,
     refreshTokenLabel,
 } from "../../src/constants/locConstants";
 import MainController from "../../src/controllers/mainController";
@@ -1505,7 +1505,9 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 const dbComponent = controller.state.formComponents["database"];
                 expect(dbComponent.loadStatus?.status).to.equal(ApiStatus.Error);
                 expect(dbComponent.loadStatus?.message).to.equal(
-                    Loc.unableToLoadDatabaseList(enableTrustServerCertificate),
+                    Loc.unableToLoadDatabaseList(
+                        ConnectionLoc.trustServerCertificateMustBeEnabledMessage,
+                    ),
                 );
             });
 
