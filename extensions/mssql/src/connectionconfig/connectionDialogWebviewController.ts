@@ -5,6 +5,7 @@
 
 import * as os from "os";
 import * as vscode from "vscode";
+import debounce from "lodash/debounce";
 import { shallowEqualObjects } from "shallow-equal";
 
 import {
@@ -984,25 +985,27 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         await this.handleAzureMFAEdits(propertyName);
 
         if (ConnectionDialogWebviewController._dbFetchTriggerProps.includes(propertyName)) {
-            // If the connection has enough information, attempt to populate the database list...
-            if (this.isConnectionReadyForDatabaseFetch(this.state.connectionProfile)) {
-                const fetchKey = this.buildDatabaseFetchKey();
+            debounce(() => this.triggerDatabaseFetchIfReady(), 300)();
+        }
+    }
 
-                if (fetchKey !== this._activeDbFetchKey) {
-                    void this.loadDatabaseList();
-                }
-            } else if (this._activeDbFetchKey !== "") {
-                // ...otherwise, clear the database list
-                const dbComponent = this.getFormComponent(this.state, "database");
+    private triggerDatabaseFetchIfReady() {
+        if (this.isConnectionReadyForDatabaseFetch(this.state.connectionProfile)) {
+            const fetchKey = this.buildDatabaseFetchKey();
 
-                if (dbComponent) {
-                    dbComponent.options = [];
-                    dbComponent.loadStatus = undefined;
-                }
-
-                this._activeDbFetchKey = "";
-                this.updateState();
+            if (fetchKey !== this._activeDbFetchKey) {
+                void this.loadDatabaseList();
             }
+        } else if (this._activeDbFetchKey !== "") {
+            const dbComponent = this.getFormComponent(this.state, "database");
+
+            if (dbComponent) {
+                dbComponent.options = [];
+                dbComponent.loadStatus = undefined;
+            }
+
+            this._activeDbFetchKey = "";
+            this.updateState();
         }
     }
 
