@@ -31,10 +31,7 @@ import * as Constants from "../constants/constants";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { ApiStatus } from "../sharedInterfaces/webview";
-import {
-    LanguageFlavorChangedNotification,
-    RebuildIntelliSenseNotification,
-} from "../models/contracts/languageService";
+import { LanguageFlavorChangedNotification } from "../models/contracts/languageService";
 
 export class TableExplorerWebViewController extends WebviewPanelController<
     TableExplorerWebViewState,
@@ -44,7 +41,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     private _preserveTableQuery = false;
     private _expectedOwnerUri: string = "";
     private _documentVersions = new Map<string, number>();
-    private _rebuildTimer: ReturnType<typeof setTimeout> | undefined;
 
     // Shared dispatcher state. vscode-languageclient 5.2.1's onNotification can't
     // return a Disposable, so registering one handler per controller would leak.
@@ -1778,21 +1774,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             language: "sql",
             flavor: "MSSQL",
         });
-
-        // Send an explicit rebuild after a delay so the STS has time to process the
-        // connection callback (UpdateLanguageServiceOnConnection) which creates the
-        // ScriptParseInfo and binding context. The handle is tracked so dispose()
-        // can clear it — otherwise a fast close-then-fire would push a rebuild for
-        // a document that's already been closed.
-        if (this._rebuildTimer !== undefined) {
-            clearTimeout(this._rebuildTimer);
-        }
-        this._rebuildTimer = setTimeout(() => {
-            this._rebuildTimer = undefined;
-            client.sendNotification(RebuildIntelliSenseNotification.type, {
-                ownerUri,
-            });
-        }, 2000);
     }
 
     /**
@@ -1865,13 +1846,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
      * This is called when the webview tab is closed (after any prompts are handled).
      */
     public override dispose(): void {
-        // Clear the rebuild timer first so a delayed RebuildIntelliSense never fires
-        // against a closed document.
-        if (this._rebuildTimer !== undefined) {
-            clearTimeout(this._rebuildTimer);
-            this._rebuildTimer = undefined;
-        }
-
         // Clean up the language service document using _expectedOwnerUri rather than
         // state.ownerUri. openLanguageServiceDocument() runs against _expectedOwnerUri
         // before EditSessionReady ever fires, so a fast close would otherwise leak the
