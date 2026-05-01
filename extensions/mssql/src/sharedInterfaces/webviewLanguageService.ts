@@ -3,26 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
-
-// ------------------------------- < Webview Document Sync > ------------------------------------
-
-/**
- * Parameters for syncing editor content from the webview to the extension host.
- * Sent on every editor change so the STS always has up-to-date document content
- * before completion requests arrive.
- */
-export interface WebviewDocumentSyncParams {
-    ownerUri: string;
-    fullText: string;
-}
-
-/**
- * Notification type for document content sync from webview Monaco editors.
- */
-export namespace WebviewDocumentSyncNotification {
-    export const type = new NotificationType<WebviewDocumentSyncParams>("webview/documentSync");
-}
+import { RequestType } from "vscode-jsonrpc/browser";
 
 // ------------------------------- < Webview Definition > ------------------------------------
 
@@ -161,15 +142,4 @@ export interface WebviewSignatureHelpResult {
     signatures: WebviewSignatureInformation[];
     activeSignature: number;
     activeParameter: number;
-}
-
-/**
- * Request type for signature help from webview Monaco editors.
- */
-export namespace WebviewSignatureHelpRequest {
-    export const type = new RequestType<
-        WebviewSignatureHelpParams,
-        WebviewSignatureHelpResult,
-        void
-    >("webview/signatureHelp");
 }

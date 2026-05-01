@@ -43,16 +43,13 @@ import {
     WebviewDefinitionParams,
     WebviewDefinitionResult,
     WebviewOpenDefinitionRequest,
-    WebviewDocumentSyncNotification,
     WebviewHoverRequest,
     WebviewHoverParams,
     WebviewHoverResult,
-    WebviewSignatureHelpRequest,
     WebviewSignatureHelpParams,
     WebviewSignatureHelpResult,
 } from "../sharedInterfaces/webviewLanguageService";
 import {
-    IntelliSenseReadyNotification,
     LanguageFlavorChangedNotification,
     RebuildIntelliSenseNotification,
 } from "../models/contracts/languageService";
@@ -89,11 +86,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 instance?.onEditSessionReady(params);
             },
         );
-
-        client.onNotification(IntelliSenseReadyNotification.type, (params) => {
-            const instance = TableExplorerWebViewController._liveInstances.get(params.ownerUri);
-            instance?.onIntelliSenseReady(params);
-        });
     }
 
     constructor(
@@ -207,14 +199,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
             void vscode.window.showErrorMessage(toastMessage);
         }
-    }
-
-    /**
-     * Invoked by the shared dispatcher when an IntelliSenseReady notification
-     * arrives for this controller's ownerUri.
-     */
-    private onIntelliSenseReady(params: { ownerUri: string }): void {
-        this.logger.verbose(`[IntelliSense] IntelliSenseReady received for "${params.ownerUri}"`);
     }
 
     /**
@@ -464,18 +448,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
         this.onRequest(WebviewHoverRequest.type, async (params) => {
             return await this.handleHoverRequest(params);
-        });
-
-        this.onRequest(WebviewSignatureHelpRequest.type, async (params) => {
-            return await this.handleSignatureHelpRequest(params);
-        });
-
-        // Sync document content on every editor change so the STS always has
-        // up-to-date text before completion requests arrive.
-        this.onNotification(WebviewDocumentSyncNotification.type, (params) => {
-            if (params.ownerUri) {
-                this.syncDocumentContent(params.ownerUri, params.fullText);
-            }
         });
 
         this.registerReducer("commitChanges", async (state) => {
