@@ -217,7 +217,9 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
                         disabled={isLoading}
                         size="small"
                         primaryActionButton={{
-                            onClick: showScriptPane ? () => context.toggleScriptPane() : undefined,
+                            onClick: showScriptPane
+                                ? () => context.toggleScriptPane()
+                                : () => context.generateScript(),
                         }}
                         menuButton={{
                             "aria-label": showScriptPane

@@ -29,7 +29,6 @@ import {
     TableExplorerReducers,
 } from "../../../sharedInterfaces/tableExplorer";
 import { VscodeEditor } from "../../common/vscodeMonaco";
-import { useMonacoSqlIntellisense } from "./useMonacoSqlIntellisense";
 
 const useStyles = makeStyles({
     root: {
@@ -105,10 +104,7 @@ const rewriteTopRowCount = (query: string, newCount: number): string => {
 export const TableExplorerPage: React.FC = () => {
     const classes = useStyles();
     const context = useTableExplorerContext();
-    const { themeKind, extensionRpc } = useVscodeWebview<
-        TableExplorerWebViewState,
-        TableExplorerReducers
-    >();
+    const { themeKind } = useVscodeWebview<TableExplorerWebViewState, TableExplorerReducers>();
 
     // Use selectors to access specific state properties
     const resultSet = useTableExplorerSelector((s) => s.resultSet);
@@ -121,14 +117,8 @@ export const TableExplorerPage: React.FC = () => {
     const updateScript = useTableExplorerSelector((s) => s.updateScript);
     const sqlPaneMode = useTableExplorerSelector((s) => s.sqlPaneMode);
     const tableQuery = useTableExplorerSelector((s) => s.tableQuery);
-    const ownerUri = useTableExplorerSelector((s) => s.ownerUri);
 
     const isLoading = loadStatus === ApiStatus.Loading;
-
-    const { beforeMount, onMount: onIntellisenseMount } = useMonacoSqlIntellisense(
-        ownerUri,
-        extensionRpc,
-    );
 
     // Track the editor's current text in a ref so React state changes never
     // round-trip through Monaco's `value` prop. The @monaco-editor/react value
@@ -143,7 +133,7 @@ export const TableExplorerPage: React.FC = () => {
     const handleEditorMount = useCallback(
         (
             editor: import("monaco-editor").editor.IStandaloneCodeEditor,
-            monaco: typeof import("monaco-editor"),
+            _monaco: typeof import("monaco-editor"),
         ) => {
             editorRef.current = editor;
             editor.onDidDispose(() => {
@@ -158,164 +148,6 @@ export const TableExplorerPage: React.FC = () => {
                 shouldFocusEditorRef.current = false;
                 editor.focus();
             }
-
-            onIntellisenseMount(editor, monaco);
-
-            // Register clipboard keybindings so copy/cut/paste work in VS Code webviews
-            editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyC, () => {
-                const selection = editor.getSelection();
-                const model = editor.getModel();
-                if (selection && model) {
-                    const text = selection.isEmpty()
-                        ? model.getLineContent(selection.startLineNumber) + model.getEOL()
-                        : model.getValueInRange(selection);
-                    navigator.clipboard.writeText(text).catch(() => {
-                        // Clipboard access may be denied; swallow the error
-                    });
-                }
-            });
-
-            editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyX, () => {
-                const selection = editor.getSelection();
-                const model = editor.getModel();
-                if (selection && model) {
-                    let range: import("monaco-editor").IRange;
-                    let text: string;
-                    if (selection.isEmpty()) {
-                        const lineCount = model.getLineCount();
-                        text = model.getLineContent(selection.startLineNumber) + model.getEOL();
-                        range =
-                            selection.startLineNumber < lineCount
-                                ? {
-                                      startLineNumber: selection.startLineNumber,
-                                      startColumn: 1,
-                                      endLineNumber: selection.startLineNumber + 1,
-                                      endColumn: 1,
-                                  }
-                                : {
-                                      startLineNumber: selection.startLineNumber,
-                                      startColumn: 1,
-                                      endLineNumber: selection.startLineNumber,
-                                      endColumn: model.getLineMaxColumn(selection.startLineNumber),
-                                  };
-                    } else {
-                        text = model.getValueInRange(selection);
-                        range = selection;
-                    }
-                    navigator.clipboard.writeText(text).catch(() => {
-                        // Clipboard access may be denied; swallow the error
-                    });
-                    editor.executeEdits("cut", [{ range, text: "" }]);
-                }
-            });
-
-            // Shared paste implementation — used by the Ctrl+V action, the
-            // context-menu click interceptor, and the execCommand override
-            // further down. Reads from navigator.clipboard (which works in
-            // webviews, unlike document.execCommand("paste")) and types the
-            // text into the editor at the current cursor / replaces the
-            // current selection.
-            const pasteFromClipboard = () => {
-                return navigator.clipboard
-                    .readText()
-                    .then((text) => {
-                        if (!text) {
-                            return;
-                        }
-                        editor.focus();
-                        editor.trigger("keyboard", "type", { text });
-                    })
-                    .catch(() => {
-                        // Swallow clipboard read failures (e.g. permission
-                        // denied) so they don't surface as unhandled promise
-                        // rejections.
-                    });
-            };
-
-            // Keep the Ctrl+V keybinding wired to pasteFromClipboard. We
-            // deliberately do NOT pass contextMenuGroupId here — Monaco's
-            // built-in Paste entry already appears in the context menu, and
-            // adding a second one would render a duplicate that's painful to
-            // reliably remove across Monaco DOM shapes. The click interceptor
-            // below redirects clicks on the built-in menu item to our handler
-            // instead.
-            editor.addAction({
-                id: "mssql.tableExplorer.pasteOverride",
-                label: "Paste",
-                keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyV],
-                run: () => pasteFromClipboard(),
-            });
-
-            // Redirect Monaco's built-in Paste action to our clipboard-based
-            // implementation by intercepting the one call it ultimately makes:
-            // document.execCommand("paste"). Browsers block that command in
-            // webview sandboxes, so the built-in menu item and palette entry
-            // silently fail. Every other code path for pasting in this webview
-            // goes through our own Ctrl+V action, so the only caller we expect
-            // to see for the "paste" command is Monaco itself — hijacking it
-            // is safe and class-name-agnostic (previous attempts at DOM
-            // selectors kept drifting across Monaco versions).
-            //
-            // We stash the original so onDidDispose can restore it if the
-            // editor is ever torn down while the webview stays alive.
-            const originalExecCommand = document.execCommand.bind(document);
-            const interceptedExecCommand = function (
-                this: Document,
-                commandId: string,
-                showUI?: boolean,
-                value?: string,
-            ): boolean {
-                if (commandId === "paste") {
-                    void pasteFromClipboard();
-                    // Return true so Monaco thinks the paste succeeded and
-                    // doesn't try any fallback behaviour.
-                    return true;
-                }
-                return originalExecCommand(commandId, showUI, value);
-            };
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (document as any).execCommand = interceptedExecCommand;
-            editor.onDidDispose(() => {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (document as any).execCommand = originalExecCommand;
-            });
-
-            // Monaco in this webview renders the context menu inside an OPEN
-            // Shadow DOM attached to a <div class="shadow-root-host">. When a
-            // click happens inside an open shadow root, the event.target seen
-            // from listeners outside the shadow boundary is retargeted to the
-            // host element — so document.querySelector / closest() against
-            // ".context-view" or "[role=menuitem]" can't see the menu items.
-            // event.composedPath() is the one API that returns the full path
-            // through shadow roots, which is how we find the actual clicked
-            // menu item and match it by label.
-            const pasteClickInterceptor = (evt: MouseEvent) => {
-                const path = evt.composedPath();
-                for (const node of path) {
-                    if (!(node instanceof Element)) {
-                        continue;
-                    }
-                    const role = node.getAttribute?.("role");
-                    const hasMenuItemClass =
-                        node.classList?.contains("action-menu-item") ||
-                        node.classList?.contains("action-item") ||
-                        node.classList?.contains("action-label");
-                    if (role !== "menuitem" && !hasMenuItemClass) {
-                        continue;
-                    }
-                    const label =
-                        node.querySelector?.(".action-label")?.textContent?.trim() ??
-                        node.textContent?.trim();
-                    if (label === "Paste") {
-                        void pasteFromClipboard();
-                        return;
-                    }
-                }
-            };
-            document.addEventListener("click", pasteClickInterceptor, true);
-            editor.onDidDispose(() => {
-                document.removeEventListener("click", pasteClickInterceptor, true);
-            });
 
             // Handle Tab at window capture phase — this fires BEFORE document capture,
             // which is where Fluent UI's Tabster registers. Using stopImmediatePropagation
@@ -606,7 +438,7 @@ export const TableExplorerPage: React.FC = () => {
                                                     tabFocusMode: false,
                                                 }}
                                                 onMount={handleEditorMount}
-                                                beforeMount={beforeMount}
+                                                // beforeMount={beforeMount}
                                             />
                                         </div>
                                     ),

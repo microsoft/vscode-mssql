@@ -184,16 +184,19 @@ export function composeFilteredQuery(baseQuery: string, filters: AppliedFilter[]
     const head = orderByMatch ? baseQuery.slice(0, orderByMatch.index) : baseQuery;
     const tail = orderByMatch ? baseQuery.slice(orderByMatch.index) : "";
 
-    const whereMatch = head.match(/\bWHERE\b/i);
+    const hadTrailingSemicolon = /;\s*$/.test(head);
+    const normalizedHead = head.replace(/;\s*$/, "");
+
+    const whereMatch = normalizedHead.match(/\bWHERE\b/i);
     let composedHead: string;
     if (whereMatch && whereMatch.index !== undefined) {
-        const beforeWhere = head.slice(0, whereMatch.index);
-        const existing = head.slice(whereMatch.index + "WHERE".length).trim();
+        const beforeWhere = normalizedHead.slice(0, whereMatch.index);
+        const existing = normalizedHead.slice(whereMatch.index + "WHERE".length).trim();
         composedHead = `${beforeWhere}WHERE (${existing}) AND ${newPredicate} `;
     } else {
-        composedHead = `${head.trimEnd()}\nWHERE ${newPredicate}\n`;
+        composedHead = `${normalizedHead.trimEnd()}\nWHERE ${newPredicate}\n`;
     }
-    return composedHead + tail;
+    return composedHead + tail + (hadTrailingSemicolon && tail === "" ? ";" : "");
 }
 
 function newRow(defaultColumn?: string): FilterRow {

@@ -3,9 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as fs from "fs";
 import * as os from "os";
-import * as path from "path";
 import * as vscode from "vscode";
 import { WebviewPanelController } from "../controllers/webviewPanelController";
 import {
@@ -22,12 +20,8 @@ import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { ITableExplorerService } from "../services/tableExplorerService";
 import { EditSessionReadyNotification } from "../models/contracts/tableExplorer";
 import {
-    DefinitionRequest,
-    DidChangeTextDocumentNotification,
     DidCloseTextDocumentNotification,
     DidOpenTextDocumentNotification,
-    HoverRequest,
-    SignatureHelpRequest,
 } from "vscode-languageclient";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import * as LocConstants from "../constants/locConstants";
@@ -37,18 +31,6 @@ import * as Constants from "../constants/constants";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { ApiStatus } from "../sharedInterfaces/webview";
-import {
-    WebviewDefinitionItem,
-    WebviewDefinitionRequest,
-    WebviewDefinitionParams,
-    WebviewDefinitionResult,
-    WebviewOpenDefinitionRequest,
-    WebviewHoverRequest,
-    WebviewHoverParams,
-    WebviewHoverResult,
-    WebviewSignatureHelpParams,
-    WebviewSignatureHelpResult,
-} from "../sharedInterfaces/webviewLanguageService";
 import {
     LanguageFlavorChangedNotification,
     RebuildIntelliSenseNotification,
@@ -62,7 +44,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     private _preserveTableQuery = false;
     private _expectedOwnerUri: string = "";
     private _documentVersions = new Map<string, number>();
-    private _documentEndPosition = new Map<string, { line: number; character: number }>();
     private _rebuildTimer: ReturnType<typeof setTimeout> | undefined;
 
     // Shared dispatcher state. vscode-languageclient 5.2.1's onNotification can't
@@ -438,18 +419,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     }
 
     private registerRpcHandlers(): void {
-        this.onRequest(WebviewDefinitionRequest.type, async (params) => {
-            return await this.handleDefinitionRequest(params);
-        });
-
-        this.onRequest(WebviewOpenDefinitionRequest.type, async (params) => {
-            return await this.handleOpenDefinitionRequest(params);
-        });
-
-        this.onRequest(WebviewHoverRequest.type, async (params) => {
-            return await this.handleHoverRequest(params);
-        });
-
         this.registerReducer("commitChanges", async (state) => {
             this.logger.verbose(
                 `Committing changes for: ${state.tableName} - OperationId: ${this.operationId}`,
@@ -1801,180 +1770,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
     }
 
-    private async handleDefinitionRequest(
-        params: WebviewDefinitionParams,
-    ): Promise<WebviewDefinitionResult> {
-        const ownerUri = params.ownerUri;
-        const client = this._tableExplorerService.sqlToolsClient;
-
-        if (!ownerUri || !this._connectionManager.isConnected(ownerUri)) {
-            return { definitions: [] };
-        }
-
-        try {
-            this.syncDocumentContent(ownerUri, params.fullText);
-
-            const lspPosition = {
-                line: params.position.lineNumber - 1,
-                character: params.position.column - 1,
-            };
-
-            const result = await client.sendRequest(DefinitionRequest.type, {
-                textDocument: { uri: ownerUri },
-                position: lspPosition,
-            });
-
-            if (!result) {
-                return { definitions: [] };
-            }
-
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const lspLocations: any[] = Array.isArray(result) ? result : [result];
-
-            const definitions: WebviewDefinitionItem[] = [];
-            for (const loc of lspLocations) {
-                if (!loc.range || !loc.uri) {
-                    continue;
-                }
-
-                let content = "";
-                try {
-                    const filePath = loc.uri.startsWith("file:///")
-                        ? vscode.Uri.parse(loc.uri).fsPath
-                        : loc.uri.startsWith("file:")
-                          ? loc.uri.substring(5)
-                          : loc.uri;
-                    content = fs.readFileSync(filePath, "utf-8");
-                } catch {
-                    continue;
-                }
-
-                const name = path
-                    .basename(loc.uri, path.extname(loc.uri))
-                    .replace(/_[a-f0-9-]+$/i, "");
-
-                definitions.push({
-                    name,
-                    content,
-                    range: {
-                        startLineNumber: loc.range.start.line + 1,
-                        startColumn: loc.range.start.character + 1,
-                        endLineNumber: loc.range.end.line + 1,
-                        endColumn: loc.range.end.character + 1,
-                    },
-                });
-            }
-
-            return { definitions };
-        } catch (error) {
-            this.logger.error(
-                `[Definition] handleDefinitionRequest failed: ${getErrorMessage(error)}`,
-            );
-            return { definitions: [] };
-        }
-    }
-
-    private async handleOpenDefinitionRequest(params: WebviewDefinitionParams): Promise<void> {
-        const ownerUri = params.ownerUri;
-        const client = this._tableExplorerService.sqlToolsClient;
-
-        if (!ownerUri || !this._connectionManager.isConnected(ownerUri)) {
-            return;
-        }
-
-        try {
-            this.syncDocumentContent(ownerUri, params.fullText);
-
-            const lspPosition = {
-                line: params.position.lineNumber - 1,
-                character: params.position.column - 1,
-            };
-
-            const result = await client.sendRequest(DefinitionRequest.type, {
-                textDocument: { uri: ownerUri },
-                position: lspPosition,
-            });
-
-            if (!result) {
-                return;
-            }
-
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const lspLocations: any[] = Array.isArray(result) ? result : [result];
-            const loc = lspLocations.find((l) => l.range && l.uri);
-            if (!loc) {
-                return;
-            }
-
-            const fileUri = vscode.Uri.parse(loc.uri);
-            const startLine = Math.max(0, loc.range.start.line);
-            await vscode.window.showTextDocument(fileUri, {
-                selection: new vscode.Range(
-                    startLine,
-                    loc.range.start.character,
-                    loc.range.end.line,
-                    loc.range.end.character,
-                ),
-                preview: true,
-            });
-        } catch (error) {
-            this.logger.error(
-                `[Definition] handleOpenDefinitionRequest failed: ${getErrorMessage(error)}`,
-            );
-        }
-    }
-
-    private async handleHoverRequest(params: WebviewHoverParams): Promise<WebviewHoverResult> {
-        const ownerUri = params.ownerUri;
-        const client = this._tableExplorerService.sqlToolsClient;
-
-        if (!ownerUri || !this._connectionManager.isConnected(ownerUri)) {
-            return { contents: [] };
-        }
-
-        try {
-            this.syncDocumentContent(ownerUri, params.fullText);
-
-            const lspPosition = {
-                line: params.position.lineNumber - 1,
-                character: params.position.column - 1,
-            };
-
-            const result = await client.sendRequest(HoverRequest.type, {
-                textDocument: { uri: ownerUri },
-                position: lspPosition,
-            });
-
-            if (!result || !result.contents) {
-                return { contents: [] };
-            }
-
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const rawContents: any[] = Array.isArray(result.contents)
-                ? result.contents
-                : [result.contents];
-
-            const contents = rawContents.map((c) => ({
-                value: typeof c === "string" ? c : (c.value ?? ""),
-            }));
-
-            let range: WebviewHoverResult["range"];
-            if (result.range) {
-                range = {
-                    startLineNumber: result.range.start.line + 1,
-                    startColumn: result.range.start.character + 1,
-                    endLineNumber: result.range.end.line + 1,
-                    endColumn: result.range.end.character + 1,
-                };
-            }
-
-            return { contents, range };
-        } catch (error) {
-            this.logger.error(`[Hover] handleHoverRequest failed: ${getErrorMessage(error)}`);
-            return { contents: [] };
-        }
-    }
-
     /**
      * Opens the language service document in the STS workspace so that
      * PrepopulateCommonMetadata can find the ScriptFile and pre-load
@@ -2024,40 +1819,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     }
 
     /**
-     * Syncs the editor document content with the SQL Tools Service.
-     * Sends a didChange with a range covering the entire previous document.
-     */
-    private syncDocumentContent(ownerUri: string, text: string): void {
-        const client = this._tableExplorerService.sqlToolsClient;
-        const version = (this._documentVersions.get(ownerUri) ?? 0) + 1;
-        this._documentVersions.set(ownerUri, version);
-
-        // The end position must be within the previous document's bounds.
-        const prevEnd = this._documentEndPosition.get(ownerUri) ?? { line: 0, character: 0 };
-
-        // Track the new content's end position for the next change
-        // Monaco always uses \n for line breaks regardless of platform
-        const lines = text.split(/\r?\n/);
-        this._documentEndPosition.set(ownerUri, {
-            line: lines.length - 1,
-            character: lines[lines.length - 1].length,
-        });
-
-        client.sendNotification(DidChangeTextDocumentNotification.type, {
-            textDocument: { uri: ownerUri, version },
-            contentChanges: [
-                {
-                    range: {
-                        start: { line: 0, character: 0 },
-                        end: prevEnd,
-                    },
-                    text,
-                },
-            ],
-        });
-    }
-
-    /**
      * Cleans up the language service document when the controller is disposed.
      */
     private disposeLanguageServiceDocument(ownerUri: string): void {
@@ -2071,7 +1832,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this._documentVersions.delete(ownerUri);
-        this._documentEndPosition.delete(ownerUri);
     }
 
     /**
@@ -2138,7 +1898,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         // Clean up the language service document using _expectedOwnerUri rather than
         // state.ownerUri. openLanguageServiceDocument() runs against _expectedOwnerUri
         // before EditSessionReady ever fires, so a fast close would otherwise leak the
-        // ScriptFile and the _documentVersions / _documentEndPosition entries.
+        // ScriptFile and the _documentVersions entries.
         if (this._expectedOwnerUri) {
             this.disposeLanguageServiceDocument(this._expectedOwnerUri);
             TableExplorerWebViewController._liveInstances.delete(this._expectedOwnerUri);

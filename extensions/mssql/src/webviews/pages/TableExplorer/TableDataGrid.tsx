@@ -250,14 +250,17 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     return;
                 }
                 const allColumns = columnsRef.current;
-                const visibleIds = new Set(grid.getColumns().map((c) => c.id));
+                const currentGridColumns = grid.getColumns();
+                const dataColumnIds = new Set(allColumns.map((c) => c.id));
+                const visibleIds = new Set(currentGridColumns.map((c) => c.id));
                 if (visible) {
                     visibleIds.add(id);
                 } else {
                     visibleIds.delete(id);
                 }
-                const nextVisible = allColumns.filter((c) => visibleIds.has(c.id));
-                grid.setColumns(nextVisible);
+                const nonDataColumns = currentGridColumns.filter((c) => !dataColumnIds.has(c.id));
+                const visibleDataColumns = allColumns.filter((c) => visibleIds.has(c.id));
+                grid.setColumns([...nonDataColumns, ...visibleDataColumns]);
             },
             deleteRows: (rowIds: number[]) => {
                 if (!onDeleteRow) {
