@@ -36,6 +36,12 @@ export const SchemaDesignerChangesDiffView = () => {
                 themeKind={themeKind}
                 options={{
                     readOnly: true,
+                    /**
+                     * Generated CREATE TABLE blocks often end with identical PRIMARY KEY/closing lines.
+                     * Monaco's advanced algorithm can anchor those repeated tails to the new table block,
+                     * which makes added tables look like they start inside the previous table.
+                     */
+                    diffAlgorithm: "legacy",
                     renderSideBySide: true,
                     renderOverviewRuler: true,
                 }}

@@ -279,6 +279,10 @@
         <source xml:lang="en">Add to VS Code</source>
         <target state="translated">Adicionar ao VS Code</target>
       </trans-unit>
+      <trans-unit id="++CODE++dcc475b31b6d6d1bc68eede1badaf4b6af93c3683fe3a25ae08c8544b572e7fa">
+        <source xml:lang="en">Add to workspace</source>
+        <target state="translated">Adicionar ao espaço de trabalho</target>
+      </trans-unit>
       <trans-unit id="++CODE++6b02e0d363a4af1c95eef50364bb0202c8b250aa05a48a69e68fd7787b4b0632">
         <source xml:lang="en">Added</source>
         <target state="translated">Adicionado</target>
@@ -906,6 +910,10 @@ Selecione "{0}" para estabelecer uma conexão.</target>
         <source xml:lang="en">Building {0}...</source>
         <target state="translated">Compilando {0}…</target>
       </trans-unit>
+      <trans-unit id="++CODE++24908cc5593d5d8ea1f67ad6b873dd49a8a045f441e35de15d8041d2caccfa93">
+        <source xml:lang="en">Bulk Actions</source>
+        <target state="translated">Ações em massa</target>
+      </trans-unit>
       <trans-unit id="++CODE++6f52d618fb243f0ae137c3c850eb0bda8b347766a553b613fc210f6eb6bb5c97">
         <source xml:lang="en">Bulk-logged</source>
         <target state="translated">Log em Massa</target>
@@ -1294,7 +1302,7 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       </trans-unit>
       <trans-unit id="++CODE++8108e330197c650c4af3d541da75c97d44600ab343742f5fbe5ee91d1ec042c0">
         <source xml:lang="en">Clear from recent connections list</source>
-        <target state="new">Clear from recent connections list</target>
+        <target state="translated">Limpar da lista de conexões recentes</target>
       </trans-unit>
       <trans-unit id="++CODE++21f5ea19572773c428e8375b3d63058ad4f04aea83df347deb633f9ddad9a643">
         <source xml:lang="en">Clear permissions for all extensions to access your connections</source>
@@ -2353,7 +2361,7 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       </trans-unit>
       <trans-unit id="++CODE++a50f9dadfc8b5f675d6d4d886d7ceb23b15051980b4de7a88e280264f3d9e9e7">
         <source xml:lang="en">Definition type</source>
-        <target state="new">Definition type</target>
+        <target state="translated">Tipo de definição</target>
       </trans-unit>
       <trans-unit id="++CODE++b6ca9a06ebcc8ea511648b46b103859960924b42fa98231c0ca4b69b84943687">
         <source xml:lang="en">DefinitionRequestCompleted</source>
@@ -2511,6 +2519,10 @@ Selecione "{0}" para estabelecer uma conexão.</target>
         <source xml:lang="en">Directory not found</source>
         <target state="translated">Diretório não encontrado</target>
       </trans-unit>
+      <trans-unit id="++CODE++3583e2d377f9ee2c31596d15752d65fddec82de715720b2c43fad0756d6fda28">
+        <source xml:lang="en">Disable all entities</source>
+        <target state="translated">Desabilitar todas as entidades</target>
+      </trans-unit>
       <trans-unit id="++CODE++6fbed214e0ea21c683db0ba2d648ef09b11edf4b4bb23835d4fdda84b5d097f3">
         <source xml:lang="en">Disable intellisense and syntax error checking on current document</source>
         <target state="translated">Desabilite o IntelliSense e a verificação de erros de sintaxe no documento atual</target>
@@ -2631,7 +2643,7 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       </trans-unit>
       <trans-unit id="++CODE++bb090d4cc6a01ecd80d943806719ce301ae1a90ca569a88735eb9c6e488cf828">
         <source xml:lang="en">Drizzle</source>
-        <target state="new">Drizzle</target>
+        <target state="translated">Regue</target>
       </trans-unit>
       <trans-unit id="++CODE++c8af9ae37a48273f981bc82af63517e3a2195c4076360e73546c306a044dd38b">
         <source xml:lang="en">Drop</source>
@@ -2661,7 +2673,7 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       </trans-unit>
       <trans-unit id="++CODE++4a87bc4a6f84b6911fabebc702ad8d32dbb799d7bec2abf53a05c86d91b456bf">
         <source xml:lang="en">EF Core</source>
-        <target state="new">EF Core</target>
+        <target state="translated">EF Core</target>
       </trans-unit>
       <trans-unit id="++CODE++8cbb7c26112408cd60a1c8ac0daff1b020815ad01c94df751ab7145dea824881">
         <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
@@ -2727,6 +2739,14 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
         <source xml:lang="en">Enable Trust Server Certificate</source>
         <target state="translated">Habilitar Confiar no certificado do servidor</target>
+      </trans-unit>
+      <trans-unit id="++CODE++efa7adedb651f5d8d6be99873aeb53ef49aa29f82f94aeaab24cd02f25ca6305">
+        <source xml:lang="en">Enable all CRUD operations</source>
+        <target state="translated">Habilitar todas as operações CRUD</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f4d8932f5f8ab4e79333deaf1d97a78038f5a4aea29334fd307612e1586d08a6">
+        <source xml:lang="en">Enable all entities</source>
+        <target state="translated">Habilitar todas as entidades</target>
       </trans-unit>
       <trans-unit id="++CODE++c60bd510aadca4cca8a64d535f63600d29ea21be9532ea0fa74c907d5c676311">
         <source xml:lang="en">Enable all rules in {0}</source>
@@ -2848,6 +2868,10 @@ Selecione "{0}" para estabelecer uma conexão.</target>
         <source xml:lang="en">Enter new column width</source>
         <target state="translated">Inserir nova largura da coluna</target>
       </trans-unit>
+      <trans-unit id="++CODE++b5812bf46901002496e2c4f090515599cfccbf65c585b1d4ca4346971d4eb504">
+        <source xml:lang="en">Enter new database name</source>
+        <target state="translated">Insira um nome de banco de dados</target>
+      </trans-unit>
       <trans-unit id="++CODE++15f691f800a4b76afbf264547e3718c96fbb46fc076005b8f12575eac2f1f136">
         <source xml:lang="en">Enter new password</source>
         <target state="translated">Inserir a nova senha</target>
@@ -2872,10 +2896,6 @@ Selecione "{0}" para estabelecer uma conexão.</target>
         <source xml:lang="en">Enter the SQL Login password for user '{0}'.</source>
         <note>{0} is the SQL Login username</note>
         <target state="translated">Insira a senha de logon do SQL para o usuário "{0}".</target>
-      </trans-unit>
-      <trans-unit id="++CODE++493f89b5d0c917509476602a7ad84ca70dd6bba7558fa30416f54c5c0458e15c">
-        <source xml:lang="en">Enter the new database name</source>
-        <target state="translated">Insira o novo nome do banco de dados</target>
       </trans-unit>
       <trans-unit id="++CODE++41058600ed8ab3d197264132f1b22ed25b7b2d9fa6afdffd559fc08bca9e6075">
         <source xml:lang="en">Enter the path for the output file</source>
@@ -3263,6 +3283,11 @@ Erro:
         <source xml:lang="en">Exporting BACPAC...</source>
         <target state="translated">Exportando BACPAC...</target>
       </trans-unit>
+      <trans-unit id="++CODE++7758738264236e2f15e315d6e6ebca6fb9192ce031207744cc9bdd4a5a052817">
+        <source xml:lang="en">Expose {0}</source>
+        <note>{0} is the backing database column name</note>
+        <target state="translated">Expor {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++c67415bcff328a59fd399e2a7ca9691e0044192fb7480ae501644339965d046d">
         <source xml:lang="en">Expression</source>
         <target state="translated">Expressão</target>
@@ -3338,6 +3363,11 @@ Erro:
         <source xml:lang="en">Failed to add table.</source>
         <target state="translated">Falha ao adicionar tabela.</target>
       </trans-unit>
+      <trans-unit id="++CODE++49ef2a693ef05aa09893afe15b7f44c2c94cd84039e438baa9c76e7130c9baf7">
+        <source xml:lang="en">Failed to add text to workspace: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="translated">Falha ao adicionar texto ao espaço de trabalho: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++65b387854eab2ea5751dfeaf4b61e988e28642ef25dc8c09b8bd4e4ee99f6372">
         <source xml:lang="en">Failed to apply changes: '{0}'</source>
         <note>{0} is the error message returned from the publish changes operation</note>
@@ -3381,7 +3411,7 @@ Erro:
       <trans-unit id="++CODE++5ba6b8c4deffdaec3b79ce938a2f937a653bc8f7557f8646f7d135d4945deaf7">
         <source xml:lang="en">Failed to copy text to clipboard: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to copy text to clipboard: {0}</target>
+        <target state="translated">Falha ao copiar texto para a área de transferência: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++707f0ef201b7dca62aa44100faafcd54168f7614d4966e200f9188b638abdd52">
         <source xml:lang="en">Failed to create a new row: {0}</source>
@@ -4063,6 +4093,11 @@ Erro:
         <source xml:lang="en">Generate sqlpackage command</source>
         <target state="translated">Gerar comando sqlpackage</target>
       </trans-unit>
+      <trans-unit id="++CODE++2617124e87bf1506e42eea651c54fa179c29090a0a58e9829860984f03eca2fa">
+        <source xml:lang="en">Generated file added to {0}</source>
+        <note>{0} is the generated file path</note>
+        <target state="translated">Arquivo gerado adicionado a {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++15bb1f371098735851e4d1d531c37e3652b2ceaf16055231f0a38312650cb08b">
         <source xml:lang="en">Generating Report. This may take a while...</source>
         <target state="translated">Gerando Relatório. Isso pode demorar um pouco...</target>
@@ -4184,7 +4219,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++e7a0f5d984721771397ee01588da1bac07c6f45150113d1ba8c4c3de194cfdb0">
         <source xml:lang="en">Group differences by</source>
-        <target state="new">Group differences by</target>
+        <target state="translated">Agrupar diferenças por</target>
       </trans-unit>
       <trans-unit id="++CODE++b79cac926e0b2e347e72cc91d5174037c9e17ae7733fd7bdb570f71b10cd7bfc">
         <source xml:lang="en">Help</source>
@@ -4395,6 +4430,10 @@ Erro:
       <trans-unit id="++CODE++e6918522718725ba7a74b087c48f889648bbfc7627b1d4ab826ac2cc1b30aa31">
         <source xml:lang="en">Include Object Types</source>
         <target state="translated">Incluir os Tipos de Objetos</target>
+      </trans-unit>
+      <trans-unit id="++CODE++224b991b88c5510627611bdb43e5a500f1660e212e0e74ed34dc53be87699169">
+        <source xml:lang="en">Include all columns</source>
+        <target state="translated">Incluir todas as colunas</target>
       </trans-unit>
       <trans-unit id="++CODE++ac665fafc5f9732c9d322749a1f726be51f8b31d2ec83ecde83a6e1d2b632eda">
         <source xml:lang="en">Include all object types</source>
@@ -4966,6 +5005,10 @@ Erro:
         <source xml:lang="en">MSSQL: What's new</source>
         <target state="translated">MSSQL: Novidades</target>
       </trans-unit>
+      <trans-unit id="++CODE++af56abadd6f783641801adf6ed9b7d1fcf4b7a5d207dab320252520f49d4894f">
+        <source xml:lang="en">Make everything read-only</source>
+        <target state="translated">Tornar tudo somente leitura</target>
+      </trans-unit>
       <trans-unit id="++CODE++614e5389e87ce465fe548a0665aeaa67a52a06ff792f2f791615cd37fb610178">
         <source xml:lang="en">Manage Connection Profiles</source>
         <target state="translated">Gerenciar Perfis de Conexão</target>
@@ -5253,6 +5296,10 @@ Erro:
         <source xml:lang="en">New Database</source>
         <target state="translated">Novo Banco de Dados</target>
       </trans-unit>
+      <trans-unit id="++CODE++7ac3db013474883f450cf9838db274c69c9df2dfc79212ed3436b4819f88d4be">
+        <source xml:lang="en">New Database Name</source>
+        <target state="translated">Novo Nome do Banco de Dados</target>
+      </trans-unit>
       <trans-unit id="++CODE++ab23a59c68316fe4f3a53c610bdf6d7a43090ced0e69ce60895361f176ce93f6">
         <source xml:lang="en">New Deployment</source>
         <target state="translated">Nova Implantação</target>
@@ -5304,6 +5351,10 @@ Erro:
       <trans-unit id="++CODE++d9c78424d66905fdeabfc255d8900ff5c10df41268f883660b400d4dad09cfbd">
         <source xml:lang="en">New column mapping</source>
         <target state="translated">Novo mapeamento de coluna</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4f892896fe4d51df804e3c51630936afa5e8326e519f40158b4c60800a8d85fb">
+        <source xml:lang="en">New database name must be different from the current name</source>
+        <target state="translated">O novo nome do banco de dados precisa ser diferente do nome atual</target>
       </trans-unit>
       <trans-unit id="++CODE++48f1dcb4a6002e872ccadde9ece53ebc6da7168299656a635450ec7d66fcfbee">
         <source xml:lang="en">New media set description</source>
@@ -5657,6 +5708,10 @@ Erro:
       <trans-unit id="++CODE++751ae077912b834895870d0d5210c09ca02659375aab7843a26689a7aa50a0fc">
         <source xml:lang="en">No workspace folder is open. Open a folder to add the MCP server configuration.</source>
         <target state="translated">Nenhuma pasta de espaço de trabalho está aberta. Abra uma pasta para adicionar a configuração do servidor MCP.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2e2fde2243e1e09534c9955387549ec84e351284a8ef12942f9d1cbab4a58039">
+        <source xml:lang="en">No workspace folder is open. Open a folder to add the generated file.</source>
+        <target state="translated">Nenhuma pasta do espaço de trabalho está aberta. Abra uma pasta para adicionar o arquivo gerado.</target>
       </trans-unit>
       <trans-unit id="++CODE++1507d637b267b1f20c1238414d7e51458fe7d6b98b292a8497d9982634fbe83c">
         <source xml:lang="en">No workspaces found</source>
@@ -6199,7 +6254,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++e4b88de23274e99ca98b822e9f304564c85d96333a5d35bb218b95654a03c7ab">
         <source xml:lang="en">Prisma</source>
-        <target state="new">Prisma</target>
+        <target state="translated">Prisma</target>
       </trans-unit>
       <trans-unit id="++CODE++25f4fe8cd149e57de765fa487f6e70395ed29ad8d1f2b9c116f9efa24262b420">
         <source xml:lang="en">Privacy Statement</source>
@@ -6582,9 +6637,27 @@ Erro:
         <note>{0} is the object type</note>
         <target state="translated">Remover {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++3064d79a295cefe4b384b8fe5cb29fd6b06d7eb1ad94b8895f4148039d06b330">
+        <source xml:lang="en">Rename</source>
+        <target state="translated">Renomear</target>
+      </trans-unit>
+      <trans-unit id="++CODE++10e34a5a019af13deebf67c5646d7198447544bd5425816eae6136418c946756">
+        <source xml:lang="en">Rename '{0}' on '{1}'.</source>
+        <note>{0} is the current database name
+{1} is the server name</note>
+        <target state="translated">Renomeie '{0}' em '{1}'.</target>
+      </trans-unit>
       <trans-unit id="++CODE++90d9ab3255a92db5b378418ece6b230df904cb32837a59f146c96966f659a683">
         <source xml:lang="en">Rename Database</source>
         <target state="translated">Renomear Banco de Dados</target>
+      </trans-unit>
+      <trans-unit id="++CODE++39b10e9a29841c96618fdf773450de8dbc3c86e0d4392b03e0c13ae1c6dfd938">
+        <source xml:lang="en">Rename Options</source>
+        <target state="translated">Opções de Renomeação</target>
+      </trans-unit>
+      <trans-unit id="++CODE++765f920dea2bbe32e15041c0045002e4888642f0e6e49e5888275518cb3f9a97">
+        <source xml:lang="en">Renaming database</source>
+        <target state="translated">Renomeando banco de dados</target>
       </trans-unit>
       <trans-unit id="++CODE++3426e6a23fe6e9ab8ec4d59a46f5e26596e94b9712da61c7a323e0cb0a6ecd25">
         <source xml:lang="en">Renaming database '{0}' to '{1}'...</source>
@@ -6887,7 +6960,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++dd0804b065a533eb0198e076460421ada3d861683b408ef39daea67e9aad46a6">
         <source xml:lang="en">SQLAlchemy</source>
-        <target state="new">SQLAlchemy</target>
+        <target state="translated">SQLAlchemy</target>
       </trans-unit>
       <trans-unit id="++CODE++33c911ed6f7c6e8d0093aecd7c73564bf2ef2992db044a0892fc3de8b92cdb71">
         <source xml:lang="en">SQLCMD Variables</source>
@@ -7067,7 +7140,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++a94ae9ca78147a7fc9bac5fbe59284cb1cbdcc897f002bd839fe49769ab093aa">
         <source xml:lang="en">Schema designer details are not available.</source>
-        <target state="new">Schema designer details are not available.</target>
+        <target state="translated">Os detalhes do designer de esquema não estão disponíveis.</target>
       </trans-unit>
       <trans-unit id="++CODE++bcfd627eae48fe0460c71c47de6ce52a35780136e70593d6f17da5f3ba3ec894">
         <source xml:lang="en">Schema designer is not initialized.</source>
@@ -7392,7 +7465,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++803814693885dfb92ec8373f4c02f31015541e0e97e437287cdd0db681e0dae6">
         <source xml:lang="en">Select session</source>
-        <target state="new">Select session</target>
+        <target state="translated">Selecionar sessão</target>
       </trans-unit>
       <trans-unit id="++CODE++31c1868de5b07d10224f472d3f5957b4502175ab68a89839134a1f1dd747ab3b">
         <source xml:lang="en">Select subscriptions</source>
@@ -7420,7 +7493,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++79dc22c7292b82bb5b10f7fe3e4196400d86127a91507e8487c7d2da0f6a8283">
         <source xml:lang="en">Sequelize</source>
-        <target state="new">Sequelize</target>
+        <target state="translated">Sequelize</target>
       </trans-unit>
       <trans-unit id="++CODE++aef7de28d52977f1b5cd0fecfdc151717610adf41e0aa33b4d9f7522a43337ef">
         <source xml:lang="en">Server</source>
@@ -7478,7 +7551,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++6959b4159575d8dd76d9f3bbe2c6437904f861e7860c35abd18deffb1c3425a0">
         <source xml:lang="en">Session</source>
-        <target state="new">Session</target>
+        <target state="translated">Sessão</target>
       </trans-unit>
       <trans-unit id="++CODE++4bebad98ba216d42e88b8a86cb19d459eb5be5ce6b74251e2b94ca0da9722a6e">
         <source xml:lang="en">Session creation timed out</source>
@@ -8017,7 +8090,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++b27ba710997adaf6099374edb801d44bef36c92e6d37e0190c7c1d12d4b32209">
         <source xml:lang="en">T-SQL</source>
-        <target state="new">T-SQL</target>
+        <target state="translated">T-SQL</target>
       </trans-unit>
       <trans-unit id="++CODE++16d1c9050a0b32e83764a81d801a880773abedfd7f8b0b08a1cd87ca0e404f12">
         <source xml:lang="en">Table</source>
@@ -8422,6 +8495,11 @@ Consulta: {2}</target>
         <note>{0} is the schema name</note>
         <target state="translated">Ativar/desativar todas as entidades em {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++c7b96245094d8cc24762fbd0211e44291f3224450089189c452ce1985982dd94">
+        <source xml:lang="en">Toggle columns for {0}</source>
+        <note>{0} is the entity name</note>
+        <target state="translated">Alternar colunas para {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++ffe32a004b062d5e8252cac4729963ba6ff129023ea0b33c6aa3f0a9e725f157">
         <source xml:lang="en">Toggle dark mode</source>
         <target state="translated">Ativar/desativar modo escuro</target>
@@ -8485,7 +8563,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++eab9bd4ed6506f418e00977a0a7bcc445774cac844a2f6debffeff1efc0b75f2">
         <source xml:lang="en">TypeORM</source>
-        <target state="new">TypeORM</target>
+        <target state="translated">TypeORM</target>
       </trans-unit>
       <trans-unit id="++CODE++e7a241debad56609ee660a5d2ef258a1aceb7357ff210ac66d7280b3add02a9a">
         <source xml:lang="en">URL</source>
@@ -9215,6 +9293,11 @@ Consulta: {2}</target>
         <source xml:lang="en">{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again.</source>
         <note>{0} is the number of invalid accounts that have been removed</note>
         <target state="translated">{0} contas Entra inválidas foram removidas; pode ser necessário executar `MS SQL: Clear Microsoft Entra account token cache` e entrar novamente.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8ee4e65df77291c702e67b2a14060cddd3d53d15c05a64ed6a95e8ef5c53441b">
+        <source xml:lang="en">{0} is a primary key column and can't be disabled.</source>
+        <note>{0} is the backing database column name</note>
+        <target state="translated">{0} é uma coluna de chave primária e não pode ser desabilitada.</target>
       </trans-unit>
       <trans-unit id="++CODE++e3620e8a37371c6057d768faed05a7608c6e5ee783372a58b137b047300e8b7a">
         <source xml:lang="en">{0} issue</source>

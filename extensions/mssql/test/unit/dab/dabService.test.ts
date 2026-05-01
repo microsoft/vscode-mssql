@@ -24,6 +24,7 @@ function createTestEntity(overrides?: Partial<Dab.DabEntityConfig>): Dab.DabEnti
             Dab.EntityAction.Update,
             Dab.EntityAction.Delete,
         ],
+        columns: [],
         advancedSettings: {
             entityName: "Users",
             authorizationRole: Dab.AuthorizationRole.Anonymous,

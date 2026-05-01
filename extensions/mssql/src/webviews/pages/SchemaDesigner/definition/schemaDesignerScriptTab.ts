@@ -21,6 +21,7 @@ type SchemaDesignerScriptTabOptions = {
     language: string;
     themeKind: ColorThemeKind;
     headerActions?: ReactNode;
+    addToWorkspace?: (script: string) => void;
     openInEditor: (script: string) => void;
     copyToClipboard: (script: string) => void;
 };
@@ -30,6 +31,7 @@ export const getSchemaDesignerScriptTab = ({
     language,
     themeKind,
     headerActions,
+    addToWorkspace,
     openInEditor,
     copyToClipboard,
 }: SchemaDesignerScriptTabOptions): ScriptTabProps => ({
@@ -37,13 +39,14 @@ export const getSchemaDesignerScriptTab = ({
     language,
     themeKind,
     headerActions,
+    addToWorkspace,
     openInEditor,
     copyToClipboard,
 });
 
 export const useSchemaDesignerScriptTab = (): ScriptTabProps => {
     const context = useContext(SchemaDesignerContext);
-    const { copyToClipboard, extractSchema, openInEditor } = context;
+    const { addDefinitionToWorkspace, copyToClipboard, extractSchema, openInEditor } = context;
     const { code, selectedDefinitionKind } = useSchemaDesignerDefinitionPanelContext();
     const { themeKind } = useVscodeWebview<
         SchemaDesigner.SchemaDesignerWebviewState,
@@ -68,10 +71,15 @@ export const useSchemaDesignerScriptTab = (): ScriptTabProps => {
                 language: definitionOutput.language,
                 themeKind: themeKind as ColorThemeKind,
                 headerActions: createElement(SchemaDesignerDefinitionTypePicker),
+                addToWorkspace:
+                    selectedDefinitionKind === SchemaDesignerDefinitionKind.Sql
+                        ? undefined
+                        : () => addDefinitionToWorkspace(selectedDefinitionKind),
                 openInEditor: () => openInEditor(selectedDefinitionKind),
                 copyToClipboard: () => copyToClipboard(selectedDefinitionKind),
             }),
         [
+            addDefinitionToWorkspace,
             copyToClipboard,
             definitionOutput.language,
             definitionOutput.text,

@@ -5,10 +5,11 @@
 
 import * as vscode from "vscode";
 import {
-    DropDatabaseViewModel,
     ObjectManagementActionParams,
     ObjectManagementActionResult,
     ObjectManagementDialogType,
+    RenameDatabaseParams,
+    RenameDatabaseViewModel,
 } from "../sharedInterfaces/objectManagement";
 import * as Constants from "../constants/constants";
 import * as LocConstants from "../constants/locConstants";
@@ -17,13 +18,12 @@ import { getErrorMessage } from "../utils/utils";
 import VscodeWrapper from "./vscodeWrapper";
 import { ObjectManagementWebviewController } from "./objectManagementWebviewController";
 
-interface DropDatabaseViewInfo {
+interface RenameDatabaseViewInfo {
     objectInfo: { [key: string]: unknown };
 }
 
-export class DropDatabaseWebviewController extends ObjectManagementWebviewController {
-    private _databaseNameForDrop = "";
-    private _objectInfo: { [key: string]: unknown } | undefined;
+export class RenameDatabaseWebviewController extends ObjectManagementWebviewController {
+    private _databaseNameForRename = "";
 
     public constructor(
         context: vscode.ExtensionContext,
@@ -41,14 +41,14 @@ export class DropDatabaseWebviewController extends ObjectManagementWebviewContro
             context,
             vscodeWrapper,
             objectManagementService,
-            ObjectManagementDialogType.DropDatabase,
-            dialogTitle ?? LocConstants.dropDatabaseDialogTitle,
-            webviewTitle ?? LocConstants.dropDatabaseWebviewTitle,
+            ObjectManagementDialogType.RenameDatabase,
+            dialogTitle ?? LocConstants.renameDatabaseDialogTitle,
+            webviewTitle ?? LocConstants.renameDatabaseWebviewTitle,
             {
-                light: "dropDatabase_light.svg",
-                dark: "dropDatabase_dark.svg",
+                light: "renameDatabase_light.svg",
+                dark: "renameDatabase_dark.svg",
             },
-            "dropDatabaseDialog",
+            "renameDatabaseDialog",
             connectionUri,
             serverName,
             databaseName,
@@ -56,12 +56,12 @@ export class DropDatabaseWebviewController extends ObjectManagementWebviewContro
             objectUrn,
         );
 
-        this._databaseNameForDrop = databaseName ?? "";
+        this._databaseNameForRename = databaseName ?? "";
         this.start();
     }
 
     protected get helpLink(): string {
-        return Constants.dropDatabaseHelpLink;
+        return Constants.renameDatabaseHelpLink;
     }
 
     protected async initializeDialog(): Promise<void> {
@@ -78,32 +78,35 @@ export class DropDatabaseWebviewController extends ObjectManagementWebviewContro
                 ),
             );
 
-            this._objectInfo = viewInfo.objectInfo as { [key: string]: unknown };
-            const viewModel: DropDatabaseViewModel = {
+            const objectInfo = viewInfo.objectInfo as { [key: string]: unknown };
+            const databaseName =
+                (objectInfo?.name as string | undefined) ?? this.databaseName ?? "";
+            const viewModel: RenameDatabaseViewModel = {
                 serverName: this.serverName,
-                databaseName:
-                    (this._objectInfo?.name as string | undefined) ?? this.databaseName ?? "",
-                owner: this._objectInfo?.owner as string | undefined,
-                status: this._objectInfo?.status as string | undefined,
+                databaseName,
+                newDatabaseName: databaseName,
+                owner: objectInfo?.owner as string | undefined,
+                status: objectInfo?.status as string | undefined,
             };
 
-            this._databaseNameForDrop = viewModel.databaseName;
+            this._databaseNameForRename = databaseName;
             this.updateWebviewState({
                 viewModel: {
-                    dialogType: ObjectManagementDialogType.DropDatabase,
+                    dialogType: ObjectManagementDialogType.RenameDatabase,
                     model: viewModel,
                 },
                 isLoading: false,
             });
         } catch (error) {
             const errorMessage = getErrorMessage(error);
-            this.logger.error(`Drop database initialization failed: ${errorMessage}`);
+            this.logger.error(`Rename database initialization failed: ${errorMessage}`);
             this.updateWebviewState({
                 viewModel: {
-                    dialogType: ObjectManagementDialogType.DropDatabase,
+                    dialogType: ObjectManagementDialogType.RenameDatabase,
                     model: {
                         serverName: this.serverName,
                         databaseName: this.databaseName ?? "",
+                        newDatabaseName: this.databaseName ?? "",
                     },
                 },
                 errorMessage,
@@ -115,25 +118,25 @@ export class DropDatabaseWebviewController extends ObjectManagementWebviewContro
     protected async handleSubmit(
         params: ObjectManagementActionParams["params"],
     ): Promise<ObjectManagementActionResult> {
-        const typedParams = params as { dropConnections: boolean; deleteBackupHistory: boolean };
+        const typedParams = params as RenameDatabaseParams;
         try {
-            const dropResponse = await this.objectManagementService.dropDatabase(
+            const renameResponse = await this.objectManagementService.renameDatabase(
                 this.connectionUri,
-                this._databaseNameForDrop,
+                this._databaseNameForRename,
+                typedParams.newName,
                 typedParams.dropConnections,
-                typedParams.deleteBackupHistory,
                 false,
             );
 
-            if (dropResponse.errorMessage) {
+            if (renameResponse.errorMessage) {
                 return {
                     success: false,
-                    errorMessage: dropResponse.errorMessage,
-                    taskId: dropResponse.taskId,
+                    errorMessage: renameResponse.errorMessage,
+                    taskId: renameResponse.taskId,
                 };
             }
 
-            if (!dropResponse.taskId) {
+            if (!renameResponse.taskId) {
                 return {
                     success: false,
                     errorMessage: LocConstants.msgObjectManagementUnknownDialog,
@@ -141,8 +144,8 @@ export class DropDatabaseWebviewController extends ObjectManagementWebviewContro
             }
 
             await this.disposeView();
-            this.closeDialog(this._databaseNameForDrop);
-            return { success: true, taskId: dropResponse.taskId };
+            this.closeDialog(typedParams.newName);
+            return { success: true, taskId: renameResponse.taskId };
         } catch (error) {
             return { success: false, errorMessage: getErrorMessage(error) };
         }
@@ -151,22 +154,23 @@ export class DropDatabaseWebviewController extends ObjectManagementWebviewContro
     protected async handleScript(
         params: ObjectManagementActionParams["params"],
     ): Promise<ObjectManagementActionResult> {
-        const typedParams = params as { dropConnections: boolean; deleteBackupHistory: boolean };
+        const typedParams = params as RenameDatabaseParams;
         try {
-            const response = await this.objectManagementService.dropDatabase(
+            const response = await this.objectManagementService.renameDatabase(
                 this.connectionUri,
-                this._databaseNameForDrop,
+                this._databaseNameForRename,
+                typedParams.newName,
                 typedParams.dropConnections,
-                typedParams.deleteBackupHistory,
                 true,
             );
             const script = response.script;
 
             if (!script) {
-                void this.vscodeWrapper.showWarningMessage(LocConstants.msgNoScriptGenerated);
+                const errorMessage = response.errorMessage ?? LocConstants.msgNoScriptGenerated;
+                void this.vscodeWrapper.showWarningMessage(errorMessage);
                 return {
                     success: false,
-                    errorMessage: LocConstants.msgNoScriptGenerated,
+                    errorMessage,
                 };
             }
 
@@ -178,7 +182,7 @@ export class DropDatabaseWebviewController extends ObjectManagementWebviewContro
         }
     }
 
-    private asViewInfo(viewInfo: unknown): DropDatabaseViewInfo {
-        return viewInfo as DropDatabaseViewInfo;
+    private asViewInfo(viewInfo: unknown): RenameDatabaseViewInfo {
+        return viewInfo as RenameDatabaseViewInfo;
     }
 }

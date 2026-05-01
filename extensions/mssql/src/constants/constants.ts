@@ -210,6 +210,8 @@ export const createDatabaseHelpLink =
     "https://learn.microsoft.com/sql/t-sql/statements/create-database-transact-sql";
 export const dropDatabaseHelpLink =
     "https://learn.microsoft.com/sql/t-sql/statements/drop-database-transact-sql";
+export const renameDatabaseHelpLink =
+    "https://learn.microsoft.com/sql/t-sql/statements/alter-database-transact-sql";
 export const backupDatabaseHelpLink =
     "https://learn.microsoft.com/sql/t-sql/statements/backup-transact-sql";
 export const restoreDatabaseHelpLink =

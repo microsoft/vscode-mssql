@@ -71,6 +71,8 @@ export class LocConstants {
             loading: l10n.t("Loading"),
             loadingWithEllipsis: l10n.t("Loading..."),
             general: l10n.t("General"),
+            databaseNameRequired: l10n.t("Database name is required"),
+            databaseNameTooLong: l10n.t("Database name must be 128 characters or fewer"),
             previous: l10n.t("Previous"),
             ok: l10n.t("OK"),
             groupBy: l10n.t("Group by"),
@@ -1096,6 +1098,7 @@ export class LocConstants {
             definitionTypeDrizzle: l10n.t("Drizzle"),
             definitionTypeSqlAlchemy: l10n.t("SQLAlchemy"),
             definitionTypeEfCore: l10n.t("EF Core"),
+            addToWorkspace: l10n.t("Add to workspace"),
             copy: l10n.t("Copy"),
             close: l10n.t("Close"),
             deleteConfirmation: l10n.t("Delete Confirmation"),
@@ -1362,6 +1365,12 @@ export class LocConstants {
             create: l10n.t("Create"),
             read: l10n.t("Read"),
             update: l10n.t("Update"),
+            bulkActions: l10n.t("Bulk Actions"),
+            enableAllEntities: l10n.t("Enable all entities"),
+            disableAllEntities: l10n.t("Disable all entities"),
+            makeReadOnly: l10n.t("Make everything read-only"),
+            enableAllCruds: l10n.t("Enable all CRUD operations"),
+            includeAllColumns: l10n.t("Include all columns"),
             entityNameDescription: l10n.t("Entity name used in API routes"),
             viewConfig: l10n.t("View Config"),
             deploy: l10n.t("Deploy"),
@@ -1409,6 +1418,24 @@ export class LocConstants {
                     message: "Enable {0}",
                     args: [entityName],
                     comment: ["{0} is the entity name"],
+                }),
+            toggleEntityColumns: (entityName: string) =>
+                l10n.t({
+                    message: "Toggle columns for {0}",
+                    args: [entityName],
+                    comment: ["{0} is the entity name"],
+                }),
+            exposeColumn: (columnName: string) =>
+                l10n.t({
+                    message: "Expose {0}",
+                    args: [columnName],
+                    comment: ["{0} is the backing database column name"],
+                }),
+            primaryKeyColumnExposureLocked: (columnName: string) =>
+                l10n.t({
+                    message: "{0} is a primary key column and can't be disabled.",
+                    args: [columnName],
+                    comment: ["{0} is the backing database column name"],
                 }),
             actionForEntity: (action: string, entityName: string) =>
                 l10n.t({
@@ -1824,8 +1851,8 @@ export class LocConstants {
             optionsSection: l10n.t("Advanced Options"),
             nameLabel: l10n.t("Database Name"),
             namePlaceholder: l10n.t("Enter database name"),
-            nameRequired: l10n.t("Database name is required"),
-            nameTooLong: l10n.t("Database name must be 128 characters or fewer"),
+            nameRequired: this.common.databaseNameRequired,
+            nameTooLong: this.common.databaseNameTooLong,
             ownerLabel: l10n.t("Owner"),
             collationLabel: l10n.t("Collation"),
             recoveryModelLabel: l10n.t("Recovery Model"),
@@ -1865,6 +1892,36 @@ export class LocConstants {
             dropButton: l10n.t("Drop"),
             cancelButton: l10n.t("Cancel"),
             droppingDatabase: l10n.t("Dropping database"),
+        };
+    }
+
+    public get renameDatabase() {
+        return {
+            title: l10n.t("Rename Database"),
+            description: (databaseName: string, serverName: string) =>
+                l10n.t({
+                    message: "Rename '{0}' on '{1}'.",
+                    args: [databaseName, serverName],
+                    comment: ["{0} is the current database name", "{1} is the server name"],
+                }),
+            loading: l10n.t("Loading..."),
+            detailsSection: l10n.t("Database Details"),
+            optionsSection: l10n.t("Rename Options"),
+            nameColumn: l10n.t("Name"),
+            ownerColumn: l10n.t("Owner"),
+            statusColumn: l10n.t("Status"),
+            valueUnknown: l10n.t("-"),
+            newNameLabel: l10n.t("New Database Name"),
+            newNamePlaceholder: l10n.t("Enter new database name"),
+            newNameRequired: this.common.databaseNameRequired,
+            newNameTooLong: this.common.databaseNameTooLong,
+            newNameUnchanged: l10n.t("New database name must be different from the current name"),
+            dropConnections: l10n.t("Drop active connections"),
+            helpButton: l10n.t("Help"),
+            scriptButton: l10n.t("Script"),
+            renameButton: l10n.t("Rename"),
+            cancelButton: l10n.t("Cancel"),
+            renamingDatabase: l10n.t("Renaming database"),
         };
     }
 
@@ -1913,7 +1970,7 @@ export class LocConstants {
             execute: l10n.t("Execute"),
             filePathRequired: l10n.t("File path is required"),
             invalidFile: l10n.t("Invalid file"),
-            databaseNameRequired: l10n.t("Database name is required"),
+            databaseNameRequired: this.common.databaseNameRequired,
             invalidDatabase: l10n.t("Invalid database"),
             validationFailed: l10n.t("Validation failed"),
             deployingDacpac: l10n.t("Deploying DACPAC..."),

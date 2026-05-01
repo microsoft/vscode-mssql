@@ -1015,6 +1015,7 @@ function cloneDabConfig(config: Dab.DabConfig): Dab.DabConfig {
         entities: config.entities.map((entity) => ({
             ...entity,
             enabledActions: [...entity.enabledActions],
+            columns: entity.columns.map((column) => ({ ...column })),
             unsupportedReasons: entity.unsupportedReasons?.map((reason) => ({ ...reason })),
             advancedSettings: { ...entity.advancedSettings },
         })),
@@ -1109,6 +1110,21 @@ function normalizeDabConfigForVersion(config: Dab.DabConfig) {
                 enabledActions: [...entity.enabledActions]
                     .map(normalizeIdentifier)
                     .sort((a, b) => a.localeCompare(b)),
+                columns: [...entity.columns]
+                    .map((column) => ({
+                        id: normalizeIdentifier(column.id),
+                        name: normalizeIdentifier(column.name),
+                        dataType: normalizeIdentifier(column.dataType),
+                        isSupported: column.isSupported,
+                        isExposed: column.isExposed,
+                    }))
+                    .sort((a, b) => {
+                        const byName = a.name.localeCompare(b.name);
+                        if (byName !== 0) {
+                            return byName;
+                        }
+                        return a.id.localeCompare(b.id);
+                    }),
                 advancedSettings: {
                     entityName: normalizeIdentifier(entity.advancedSettings.entityName),
                     authorizationRole: normalizeIdentifier(
@@ -1224,6 +1240,65 @@ function resolveEntityRef(
     return {
         success: true,
         entity: matches[0].entity,
+        index: matches[0].index,
+    };
+}
+
+function resolveColumnRef(
+    entity: Dab.DabEntityConfig,
+    columnRef: Dab.DabColumnRef,
+):
+    | { success: true; column: Dab.DabColumnConfig; index: number }
+    | { success: false; reason: DabApplyFailureReason; message: string } {
+    const hasId = typeof (columnRef as { id?: unknown }).id === "string";
+    const hasName = typeof (columnRef as { name?: unknown }).name === "string";
+
+    if (hasId === hasName) {
+        return {
+            success: false,
+            reason: "invalid_request",
+            message: "Invalid column reference. Use either id OR name.",
+        };
+    }
+
+    if (hasId) {
+        const id = (columnRef as { id: string }).id;
+        const index = entity.columns.findIndex((column) => column.id === id);
+        if (index < 0) {
+            return {
+                success: false,
+                reason: "not_found",
+                message: `Column not found: ${id}`,
+            };
+        }
+
+        return { success: true, column: entity.columns[index], index };
+    }
+
+    const name = normalizeIdentifier((columnRef as { name: string }).name);
+    const matches = entity.columns
+        .map((column, index) => ({ column, index }))
+        .filter(({ column }) => normalizeIdentifier(column.name) === name);
+
+    if (matches.length === 0) {
+        return {
+            success: false,
+            reason: "not_found",
+            message: `Column not found: ${(columnRef as { name: string }).name}`,
+        };
+    }
+
+    if (matches.length > 1) {
+        return {
+            success: false,
+            reason: "validation_error",
+            message: `Column reference resolved to more than one column: ${(columnRef as { name: string }).name}`,
+        };
+    }
+
+    return {
+        success: true,
+        column: matches[0].column,
         index: matches[0].index,
     };
 }
@@ -1365,6 +1440,37 @@ function applyDabToolChange(
                 resolvedEntity.entity,
                 change.enabledActions,
             );
+            return { success: true };
+        }
+
+        case "set_column_exposed": {
+            const resolvedEntity = resolveEntityRef(config, change.entity);
+            if (resolvedEntity.success === false) {
+                return resolvedEntity;
+            }
+
+            const supportValidation = validateSupportedEntityForMutation(resolvedEntity.entity);
+            if (supportValidation.success === false) {
+                return supportValidation;
+            }
+
+            const resolvedColumn = resolveColumnRef(resolvedEntity.entity, change.column);
+            if (resolvedColumn.success === false) {
+                return resolvedColumn;
+            }
+
+            if (resolvedColumn.column.isPrimaryKey && !change.isExposed) {
+                return createDabValidationError("Primary key columns must remain exposed.");
+            }
+
+            config.entities[resolvedEntity.index] = {
+                ...resolvedEntity.entity,
+                columns: resolvedEntity.entity.columns.map((column, index) =>
+                    index === resolvedColumn.index
+                        ? { ...column, isExposed: change.isExposed }
+                        : column,
+                ),
+            };
             return { success: true };
         }
 
