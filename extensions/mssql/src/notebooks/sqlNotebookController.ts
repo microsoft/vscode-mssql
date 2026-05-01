@@ -6,7 +6,6 @@
 import * as os from "os";
 import * as vscode from "vscode";
 import type { IConnectionInfo } from "vscode-mssql";
-import merge from "lodash/merge";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import ConnectionManager from "../controllers/connectionManager";
@@ -36,7 +35,14 @@ type NotebookTextualResultBlock = Exclude<NotebookQueryResultBlock, NotebookQuer
  * and https://github.com/microsoft/vscode/blob/main/extensions/ipynb/src/deserializers.ts#L371).
  * This allows setAffinityIfSql to re-detect the notebook as SQL on reopen.
  */
-function sqlNotebookMetadata(): Record<string, unknown> {
+interface SqlNotebookMetadata {
+    metadata: {
+        kernelspec: { name: string; display_name: string; language: string };
+        language_info: { name: string };
+    };
+}
+
+function sqlNotebookMetadata(): SqlNotebookMetadata {
     return {
         metadata: {
             kernelspec: {
@@ -304,7 +310,15 @@ export class SqlNotebookController implements vscode.Disposable {
         if (name === "sql-notebook") {
             return;
         }
-        const mergedMetadata = merge({}, notebook.metadata, sqlNotebookMetadata());
+        const sqlMeta = sqlNotebookMetadata();
+        const mergedMetadata = {
+            ...notebook.metadata,
+            metadata: {
+                ...(notebook.metadata?.metadata as Record<string, unknown>),
+                kernelspec: sqlMeta.metadata.kernelspec,
+                language_info: sqlMeta.metadata.language_info,
+            },
+        };
         const edit = new vscode.WorkspaceEdit();
         edit.set(notebook.uri, [vscode.NotebookEdit.updateNotebookMetadata(mergedMetadata)]);
         try {
