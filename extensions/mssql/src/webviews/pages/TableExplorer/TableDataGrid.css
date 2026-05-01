@@ -370,17 +370,16 @@
 /* Always show a "both directions" sort indicator on sortable columns that are
    not currently sorted, so users can see at a glance which columns are
    sortable. SlickGrid's own .slick-sort-indicator-asc / -desc rules take
-   over once a sort is applied (and our :not() selector here stops matching). 
-   Uses a double arrow SVG to match the query results grid. */
+   over once a sort is applied (and our :not() selector here stops matching).
+   Reuses the same sort.svg asset the query results grid uses; mask +
+   currentColor keeps the icon themed via --vscode-foreground. */
 #tableExplorerGrid
     .slick-header-column.slick-header-sortable:not(.slick-header-column-sorted)
     .slick-sort-indicator:not(.slick-sort-indicator-asc):not(.slick-sort-indicator-desc) {
     opacity: 0.55;
     background-color: currentColor;
-    -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M11.891 9.992a1 1 0 1 1 1.416 1.415l-4.3 4.3a1 1 0 0 1-1.414 0l-4.3-4.3A1 1 0 0 1 4.71 9.992L8 13.283l3.293-3.29zm-7.183-3.984a1 1 0 1 1-1.416-1.415l4.3-4.3a1 1 0 0 1 1.414 0l4.3 4.3A1 1 0 1 1 11.89 6.008L8.002 2.717l-3.293 3.29z'/></svg>")
-        no-repeat center;
-    mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M11.891 9.992a1 1 0 1 1 1.416 1.415l-4.3 4.3a1 1 0 0 1-1.414 0l-4.3-4.3A1 1 0 0 1 4.71 9.992L8 13.283l3.293-3.29zm-7.183-3.984a1 1 0 1 1-1.416-1.415l4.3-4.3a1 1 0 0 1 1.414 0l4.3 4.3A1 1 0 1 1 11.89 6.008L8.002 2.717l-3.293 3.29z'/></svg>")
-        no-repeat center;
+    -webkit-mask: url("../../media/sort.svg") no-repeat center;
+    mask: url("../../media/sort.svg") no-repeat center;
     -webkit-mask-size: contain;
     mask-size: contain;
 }
