@@ -17,18 +17,9 @@ const MIME_STDERR = "application/vnd.code.notebook.stderr";
 const MIME_NOTEBOOK_QUERY_RESULT = "application/vnd.mssql.query-result";
 
 /**
- * Adds a "Copy messages" status bar item to SQL notebook cells that emit
- * text-only output (PRINT, RAISERROR, row-count, execution time, errors).
- *
- * The built-in text/plain renderer virtualizes long output, which breaks
- * cross-viewport selection (vscode-mssql#21378). This provider reads raw
- * output data from the cell model instead of the rendered DOM, so the
- * full content copies regardless of virtualization.
- *
- * When a cell emits a result grid, the controller bundles grid + messages
- * into a single rich output. We unpack its JSON payload and copy only the
- * text/error blocks, skipping the tabular data — users copy grid contents
- * through the grid itself, not this command.
+ * Registers a "Copy messages" status bar item for SQL notebook cells.
+ * Reads raw output from the cell model to avoid virtualization issues (#21378).
+ * For rich outputs (result grids), copies only text/error blocks.
  */
 export function registerNotebookCopyOutput(context: vscode.ExtensionContext): void {
     context.subscriptions.push(
