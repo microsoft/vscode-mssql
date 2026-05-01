@@ -22,13 +22,10 @@ import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { ITableExplorerService } from "../services/tableExplorerService";
 import { EditSessionReadyNotification } from "../models/contracts/tableExplorer";
 import {
-    CompletionRequest,
     DefinitionRequest,
     DidChangeTextDocumentNotification,
     DidCloseTextDocumentNotification,
     DidOpenTextDocumentNotification,
-    DocumentFormattingRequest,
-    DocumentRangeFormattingRequest,
     HoverRequest,
     SignatureHelpRequest,
 } from "vscode-languageclient";
@@ -41,28 +38,18 @@ import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import {
-    WebviewCompletionRequest,
-    WebviewCompletionParams,
-    WebviewCompletionResult,
     WebviewDefinitionItem,
     WebviewDefinitionRequest,
     WebviewDefinitionParams,
     WebviewDefinitionResult,
     WebviewOpenDefinitionRequest,
-    WebviewDiagnostic,
-    WebviewDiagnosticsNotification,
     WebviewDocumentSyncNotification,
-    WebviewFormatDocumentRequest,
-    WebviewFormatDocumentParams,
-    WebviewFormatDocumentResult,
-    WebviewFormatTextEdit,
     WebviewHoverRequest,
     WebviewHoverParams,
     WebviewHoverResult,
     WebviewSignatureHelpRequest,
     WebviewSignatureHelpParams,
     WebviewSignatureHelpResult,
-    mapLspKindToMonaco,
 } from "../sharedInterfaces/webviewLanguageService";
 import {
     IntelliSenseReadyNotification,
@@ -467,14 +454,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     }
 
     private registerRpcHandlers(): void {
-        this.onRequest(WebviewCompletionRequest.type, async (params) => {
-            return await this.handleCompletionRequest(params);
-        });
-
-        this.onRequest(WebviewFormatDocumentRequest.type, async (params) => {
-            return await this.handleFormatDocumentRequest(params);
-        });
-
         this.onRequest(WebviewDefinitionRequest.type, async (params) => {
             return await this.handleDefinitionRequest(params);
         });
@@ -498,37 +477,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 this.syncDocumentContent(params.ownerUri, params.fullText);
             }
         });
-
-        // Forward LSP diagnostics from STS (delivered via the language client's
-        // DiagnosticCollection) into the webview so the Monaco editor can draw
-        // syntax/semantic squiggles. STS publishes these automatically ~750ms
-        // after each didChange, and the language client feature populates the
-        // collection, which fires onDidChangeDiagnostics. We filter to our
-        // ownerUri and push the full replacement set on every change.
-        this.registerDisposable(
-            vscode.languages.onDidChangeDiagnostics((event) => {
-                const ownerUri = this.state.ownerUri;
-                if (!ownerUri) {
-                    return;
-                }
-                // Compare using the normalized Uri form — vscode's Uri.toString()
-                // canonicalizes scheme, authority, and path encoding, so the raw
-                // input string we stashed in state may not be byte-identical to
-                // the event URI even though they point at the same document.
-                let expected: vscode.Uri;
-                try {
-                    expected = vscode.Uri.parse(ownerUri);
-                } catch {
-                    return;
-                }
-                const expectedKey = expected.toString();
-                const affected = event.uris.some((u) => u.toString() === expectedKey);
-                if (!affected) {
-                    return;
-                }
-                this.publishDiagnosticsToWebview(ownerUri);
-            }),
-        );
 
         this.registerReducer("commitChanges", async (state) => {
             this.logger.verbose(
@@ -1881,154 +1829,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
     }
 
-    /**
-     * Handles a completion request from the webview Monaco editor by forwarding it
-     * to the SQL Tools Service and mapping the results to Monaco's format.
-     */
-    private async handleCompletionRequest(
-        params: WebviewCompletionParams,
-    ): Promise<WebviewCompletionResult> {
-        const ownerUri = params.ownerUri;
-        const client = this._tableExplorerService.sqlToolsClient;
-
-        if (!ownerUri) {
-            return { suggestions: [] };
-        }
-
-        if (!this._connectionManager.isConnected(ownerUri)) {
-            return { suggestions: [] };
-        }
-
-        // Diagnostic trace at verbose level. Intentionally excludes textUntilPosition /
-        // fullText so we never log user-entered SQL into the extension host log.
-        this.logger.verbose(
-            `[IntelliSense] handleCompletionRequest ownerUri: "${ownerUri}", ` +
-                `pos: (${params.position.lineNumber},${params.position.column}), ` +
-                `fullText length: ${params.fullText.length}, ` +
-                `docVersion: ${this._documentVersions.get(ownerUri) ?? "NOT_FOUND"}`,
-        );
-
-        try {
-            this.syncDocumentContent(ownerUri, params.fullText);
-
-            const lspPosition = {
-                line: params.position.lineNumber - 1,
-                character: params.position.column - 1,
-            };
-
-            const completionResult = await client.sendRequest(CompletionRequest.type, {
-                textDocument: { uri: ownerUri },
-                position: lspPosition,
-            });
-
-            if (!completionResult) {
-                return { suggestions: [] };
-            }
-
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const items: any[] = Array.isArray(completionResult)
-                ? completionResult
-                : ((completionResult as any).items ?? []);
-
-            const suggestions = items.map((item) => ({
-                label: typeof item.label === "string" ? item.label : item.label.label,
-                kind: mapLspKindToMonaco(item.kind),
-                insertText:
-                    item.insertText ??
-                    (typeof item.label === "string" ? item.label : item.label.label),
-                detail: item.detail,
-                documentation:
-                    typeof item.documentation === "string"
-                        ? item.documentation
-                        : item.documentation?.value,
-                sortText: item.sortText,
-                filterText: item.filterText,
-                preselect: item.preselect,
-            }));
-
-            return { suggestions };
-        } catch (error) {
-            this.logger.error(
-                `[IntelliSense] handleCompletionRequest failed: ${getErrorMessage(error)}`,
-            );
-            return { suggestions: [] };
-        }
-    }
-
-    /**
-     * Handles a document/range formatting request from the webview Monaco editor
-     * by forwarding it to the SQL Tools Service and mapping the results back to
-     * Monaco's 1-based range convention.
-     */
-    private async handleFormatDocumentRequest(
-        params: WebviewFormatDocumentParams,
-    ): Promise<WebviewFormatDocumentResult> {
-        const ownerUri = params.ownerUri;
-        const client = this._tableExplorerService.sqlToolsClient;
-
-        if (!ownerUri) {
-            return { edits: [] };
-        }
-
-        if (!this._connectionManager.isConnected(ownerUri)) {
-            return { edits: [] };
-        }
-
-        try {
-            this.syncDocumentContent(ownerUri, params.fullText);
-
-            const lspOptions = {
-                tabSize: params.options.tabSize,
-                insertSpaces: params.options.insertSpaces,
-            };
-
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            let lspEdits: any[] | null;
-            if (params.range) {
-                lspEdits = await client.sendRequest(DocumentRangeFormattingRequest.type, {
-                    textDocument: { uri: ownerUri },
-                    options: lspOptions,
-                    range: {
-                        start: {
-                            line: params.range.startLineNumber - 1,
-                            character: params.range.startColumn - 1,
-                        },
-                        end: {
-                            line: params.range.endLineNumber - 1,
-                            character: params.range.endColumn - 1,
-                        },
-                    },
-                });
-            } else {
-                lspEdits = await client.sendRequest(DocumentFormattingRequest.type, {
-                    textDocument: { uri: ownerUri },
-                    options: lspOptions,
-                });
-            }
-
-            if (!lspEdits || lspEdits.length === 0) {
-                return { edits: [] };
-            }
-
-            const edits: WebviewFormatTextEdit[] = lspEdits.map((edit) => ({
-                range: {
-                    startLineNumber: edit.range.start.line + 1,
-                    startColumn: edit.range.start.character + 1,
-                    endLineNumber: edit.range.end.line + 1,
-                    endColumn: edit.range.end.character + 1,
-                },
-                text: edit.newText ?? "",
-            }));
-
-            return { edits };
-        } catch (error) {
-            this.logger.error(
-                `[Formatter] handleFormatDocumentRequest failed: ${getErrorMessage(error)}`,
-            );
-            return { edits: [] };
-        }
-    }
-
     private async handleDefinitionRequest(
         params: WebviewDefinitionParams,
     ): Promise<WebviewDefinitionResult> {
@@ -2307,54 +2107,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 ownerUri,
             });
         }, 2000);
-    }
-
-    /**
-     * Reads the current LSP diagnostics for the Table Explorer's document from
-     * the language client's collection, maps them to Monaco's marker format,
-     * and pushes the full replacement set to the webview. Called in response to
-     * vscode.languages.onDidChangeDiagnostics events filtered by ownerUri.
-     */
-    private publishDiagnosticsToWebview(ownerUri: string): void {
-        let vscodeDiagnostics: readonly vscode.Diagnostic[];
-        try {
-            vscodeDiagnostics = vscode.languages.getDiagnostics(vscode.Uri.parse(ownerUri));
-        } catch (error) {
-            this.logger.verbose(
-                `[Diagnostics] getDiagnostics failed for ${ownerUri}: ${getErrorMessage(error)}`,
-            );
-            return;
-        }
-
-        const mapped: WebviewDiagnostic[] = vscodeDiagnostics.map((d) => ({
-            startLineNumber: d.range.start.line + 1,
-            startColumn: d.range.start.character + 1,
-            endLineNumber: d.range.end.line + 1,
-            endColumn: d.range.end.character + 1,
-            message: d.message,
-            // vscode.DiagnosticSeverity (Error=0, Warning=1, Information=2, Hint=3)
-            // → Monaco MarkerSeverity (Error=8, Warning=4, Info=2, Hint=1).
-            severity:
-                d.severity === vscode.DiagnosticSeverity.Error
-                    ? 8
-                    : d.severity === vscode.DiagnosticSeverity.Warning
-                      ? 4
-                      : d.severity === vscode.DiagnosticSeverity.Information
-                        ? 2
-                        : 1,
-            source: d.source,
-            code:
-                typeof d.code === "string" || typeof d.code === "number"
-                    ? String(d.code)
-                    : d.code?.value !== undefined
-                      ? String(d.code.value)
-                      : undefined,
-        }));
-
-        void this.sendNotification(WebviewDiagnosticsNotification.type, {
-            ownerUri,
-            diagnostics: mapped,
-        });
     }
 
     /**
