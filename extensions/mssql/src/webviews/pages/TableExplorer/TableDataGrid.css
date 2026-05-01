@@ -356,6 +356,17 @@
     justify-content: center;
 }
 
+/* Override SlickGrid checkbox icon color to match the VS Code theme instead of
+   the default Bootstrap blue (#0f6cbd). The .sgi icon divs render via CSS mask
+   (SVG clipped from background-color:currentColor), so setting color here is
+   what drives the icon fill color. The unchecked state uses 0.25 opacity to
+   show the icon dimmed; the checked state is full opacity. */
+#tableExplorerGrid .slick-cell-checkboxsel .icon-checkbox-container div.sgi,
+#tableExplorerGrid .slick-column-name .icon-checkbox-container div.sgi,
+#tableExplorerGrid .slick-headerrow-column .icon-checkbox-container div.sgi {
+    color: var(--vscode-foreground);
+}
+
 /* Always show a "both directions" sort indicator on sortable columns that are
    not currently sorted, so users can see at a glance which columns are
    sortable. SlickGrid's own .slick-sort-indicator-asc / -desc rules take
