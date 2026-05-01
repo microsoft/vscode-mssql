@@ -89,16 +89,25 @@ const useStyles = makeStyles({
     },
 });
 
+const escapeIdentifier = (name: string): string => `[${name.replace(/]/g, "]]")}]`;
+
 /**
- * Rewrites the numeric operand of an existing `SELECT TOP N` / `TOP (N)` clause.
- * Returns the original string unchanged when no rewritable TOP clause is present.
+ * Builds the default `SELECT TOP N <columns> FROM [schema].[table]` query the
+ * table explorer always shows. Mirrors the controller-side
+ * `buildDefaultSelectQuery` so the webview can regenerate the query (e.g. when
+ * the toolbar row count changes) without resorting to string-mutation regexes.
  */
-const rewriteTopRowCount = (query: string, newCount: number): string => {
-    return query.replace(
-        /(\bSELECT\b(?:\s+(?:ALL|DISTINCT))?\s+TOP\s*\(?\s*)(\d+)(\s*\)?)(?!\s*PERCENT)/i,
-        (_match: string, prefix: string, _oldCount: string, suffix: string) =>
-            `${prefix}${newCount}${suffix}`,
-    );
+const buildDefaultSelectQuery = (
+    schemaName: string | undefined,
+    tableName: string,
+    columnNames: readonly string[],
+    rowCount: number,
+): string => {
+    const columnList = columnNames.map((c) => `    ${escapeIdentifier(c)}`).join(",\n");
+    const qualifiedName = schemaName
+        ? `${escapeIdentifier(schemaName)}.${escapeIdentifier(tableName)}`
+        : escapeIdentifier(tableName);
+    return `SELECT TOP ${rowCount}\n${columnList}\nFROM ${qualifiedName}`;
 };
 
 export const TableExplorerPage: React.FC = () => {
@@ -117,6 +126,8 @@ export const TableExplorerPage: React.FC = () => {
     const updateScript = useTableExplorerSelector((s) => s.updateScript);
     const sqlPaneMode = useTableExplorerSelector((s) => s.sqlPaneMode);
     const tableQuery = useTableExplorerSelector((s) => s.tableQuery);
+    const schemaName = useTableExplorerSelector((s) => s.schemaName);
+    const tableName = useTableExplorerSelector((s) => s.tableName);
 
     const isLoading = loadStatus === ApiStatus.Loading;
 
@@ -291,23 +302,22 @@ export const TableExplorerPage: React.FC = () => {
         }
     }, [context]);
 
-    // When a TOP clause is present in the current query, rewrite it with the new
-    // count and re-execute via runTableQuery so the underlying edit session is
-    // re-initialized (the existing session is limited to the rows returned by the
-    // original query and cannot supply additional rows). Fall back to loadSubset
-    // when no TOP clause is detected.
+    // The edit session is bounded by the TOP N from the query that opened it,
+    // so changing the toolbar row count requires re-initializing the session
+    // with a freshly-built query. The default query shape is always
+    // `SELECT TOP N <cols> FROM [schema].[table]`, so we can regenerate it
+    // from state instead of trying to surgically rewrite the TOP operand.
     const handleLoadSubset = useCallback(
         (rowCount: number) => {
-            if (tableQuery) {
-                const updatedQuery = rewriteTopRowCount(tableQuery, rowCount);
-                if (updatedQuery !== tableQuery) {
-                    context.runTableQuery(updatedQuery);
-                    return;
-                }
+            const columnNames = resultSet?.columnInfo?.map((c) => c.name) ?? [];
+            if (!tableName || columnNames.length === 0) {
+                context.loadSubset(rowCount);
+                return;
             }
-            context.loadSubset(rowCount);
+            const newQuery = buildDefaultSelectQuery(schemaName, tableName, columnNames, rowCount);
+            context.runTableQuery(newQuery);
         },
-        [tableQuery, context],
+        [resultSet, schemaName, tableName, context],
     );
 
     // Clear cell highlights when the query changes (pending changes are stale)
@@ -386,7 +396,6 @@ export const TableExplorerPage: React.FC = () => {
                                     onUpdateCell={context?.updateCell}
                                     onRevertCell={context?.revertCell}
                                     onRevertRow={context?.revertRow}
-                                    onLoadSubset={context?.loadSubset}
                                     onCellChangeCountChanged={handleCellChangeCountChanged}
                                     onDeletionCountChanged={handleDeletionCountChanged}
                                     onSelectedRowsChanged={setSelectedRowIds}

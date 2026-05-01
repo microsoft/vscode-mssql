@@ -380,19 +380,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     }
 
     /**
-     * Rewrites the numeric operand of an existing `SELECT TOP N` / `TOP (N)`
-     * clause without disturbing the rest of the query. Returns the original
-     * string unchanged if no rewritable TOP clause is present.
-     */
-    private static rewriteTopRowCount(query: string, newCount: number): string {
-        return query.replace(
-            /(\bSELECT\b(?:\s+(?:ALL|DISTINCT))?\s+TOP\s*\(?\s*)(\d+)(\s*\)?)(?!\s*PERCENT)/i,
-            (_match, prefix: string, _oldCount: string, suffix: string) =>
-                `${prefix}${newCount}${suffix}`,
-        );
-    }
-
-    /**
      * Helper method to regenerate the script and update state.
      * Used when script pane is visible and data changes occur.
      */
@@ -528,20 +515,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 state.currentRowCount = payload.rowCount;
                 state.loadStatus = ApiStatus.Loaded;
 
-                // Mirror the new row count into the query's TOP clause so the
-                // editor stays in sync with the toolbar. We only rewrite when a
-                // TOP clause is already present — injecting one into a custom
-                // query that intentionally omitted it would silently change the
-                // user's intent.
-                if (state.tableQuery) {
-                    const updatedQuery = TableExplorerWebViewController.rewriteTopRowCount(
-                        state.tableQuery,
-                        payload.rowCount,
-                    );
-                    if (updatedQuery !== state.tableQuery) {
-                        state.tableQuery = updatedQuery;
-                    }
-                }
+                // Regenerate the displayed query so the toolbar's row count
+                // and the SQL pane stay in sync. buildDefaultSelectQuery reads
+                // currentRowCount, which we just updated.
+                state.tableQuery = this.buildDefaultSelectQuery();
 
                 this.updateState();
 
