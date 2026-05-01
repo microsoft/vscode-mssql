@@ -106,7 +106,7 @@ suite("registerNotebookCopyOutput", () => {
     suite("registration", () => {
         test("registers the copy command", () => {
             expect(registerCommandStub).to.have.been.calledOnceWith(
-                Constants.cmdNotebooksCopyCellOutput,
+                Constants.cmdNotebooksCopyCellMessages,
             );
         });
 
@@ -192,7 +192,7 @@ suite("registerNotebookCopyOutput", () => {
             const item = runProvider(cell) as vscode.NotebookCellStatusBarItem;
 
             const command = item.command as vscode.Command;
-            expect(command.command).to.equal(Constants.cmdNotebooksCopyCellOutput);
+            expect(command.command).to.equal(Constants.cmdNotebooksCopyCellMessages);
             expect(command.arguments).to.deep.equal([cell]);
         });
     });

@@ -7406,7 +7406,7 @@
     <trans-unit id="mssql.copyAll">
       <source xml:lang="en">Copy All</source>
     </trans-unit>
-    <trans-unit id="mssql.notebooks.copyCellOutput">
+    <trans-unit id="mssql.notebooks.copyCellMessages">
       <source xml:lang="en">Copy Cell Messages</source>
     </trans-unit>
     <trans-unit id="mssql.copyConnectionString">

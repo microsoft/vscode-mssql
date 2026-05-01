@@ -158,7 +158,7 @@ export const cmdFlatFileImport = "mssql.flatFileImport";
 export const cmdNotebooksCreate = "mssql.notebooks.createNotebook";
 export const cmdNotebooksChangeDatabase = "mssql.notebooks.changeDatabase";
 export const cmdNotebooksChangeConnection = "mssql.notebooks.changeConnection";
-export const cmdNotebooksCopyCellOutput = "mssql.notebooks.copyCellOutput";
+export const cmdNotebooksCopyCellMessages = "mssql.notebooks.copyCellMessages";
 
 export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";

@@ -24,7 +24,7 @@ const MIME_NOTEBOOK_QUERY_RESULT = "application/vnd.mssql.query-result";
 export function registerNotebookCopyOutput(context: vscode.ExtensionContext): void {
     context.subscriptions.push(
         vscode.commands.registerCommand(
-            Constants.cmdNotebooksCopyCellOutput,
+            Constants.cmdNotebooksCopyCellMessages,
             async (cell: vscode.NotebookCell | undefined) => {
                 if (!cell) {
                     return;
@@ -56,7 +56,7 @@ export function registerNotebookCopyOutput(context: vscode.ExtensionContext): vo
                     vscode.NotebookCellStatusBarAlignment.Right,
                 );
                 item.command = {
-                    command: Constants.cmdNotebooksCopyCellOutput,
+                    command: Constants.cmdNotebooksCopyCellMessages,
                     title: LocalizedConstants.Notebooks.copyMessages,
                     arguments: [cell],
                 };
@@ -73,9 +73,19 @@ function isCopyableTextOutput(output: vscode.NotebookCellOutput): boolean {
     }
     const rich = findRichItem(output);
     if (rich) {
-        return extractRichMessageText(rich).length > 0;
+        return hasNonResultSetBlock(rich);
     }
     return output.items.some((item) => item.mime === MIME_TEXT_PLAIN || item.mime === MIME_STDERR);
+}
+
+/**
+ * Checks whether a rich output contains any non-resultSet blocks (text/error)
+ * without deserializing the full JSON payload. This avoids the cost of
+ * materializing large resultSet row arrays during frequent status-bar updates.
+ */
+function hasNonResultSetBlock(item: vscode.NotebookCellOutputItem): boolean {
+    const raw = Buffer.from(item.data).toString("utf8");
+    return /\"type\"\s*:\s*\"(?:text|error)\"/.test(raw);
 }
 
 function collectTextOutput(cell: vscode.NotebookCell): string {
