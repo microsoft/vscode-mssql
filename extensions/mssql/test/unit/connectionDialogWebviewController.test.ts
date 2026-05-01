@@ -1557,10 +1557,18 @@ suite("ConnectionDialogWebviewController Tests", () => {
             async function setFormProperty(
                 propertyName: keyof IConnectionDialogProfile,
                 value: string,
+                isBlur = false,
             ) {
                 await controller["_reducerHandlers"].get("formAction")(controller.state, {
-                    event: { propertyName, value, isAction: false },
+                    event: { propertyName, value, isAction: false, updateValidation: isBlur },
                 });
+            }
+
+            async function blurFormProperty(
+                propertyName: keyof IConnectionDialogProfile,
+                value: string,
+            ) {
+                return setFormProperty(propertyName, value, true);
             }
 
             async function flushMicrotasks() {
@@ -1568,17 +1576,28 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 await new Promise<void>((resolve) => setImmediate(resolve));
             }
 
-            test("triggers fetch when sufficient SqlLogin credentials are set", async () => {
-                // Set up profile to be almost complete, then set the last field
+            test("triggers fetch on blur when sufficient SqlLogin credentials are set", async () => {
+                controller.state.connectionProfile = { ...sqlLoginProfile };
+
+                await blurFormProperty("server", "localhost");
+                await flushMicrotasks();
+
+                expect(
+                    connectionManager.connect.calledOnce,
+                    "should connect when all SqlLogin fields are present and field is blurred",
+                ).to.be.true;
+            });
+
+            test("does not trigger fetch on change (only on blur)", async () => {
                 controller.state.connectionProfile = { ...sqlLoginProfile };
 
                 await setFormProperty("server", "localhost");
                 await flushMicrotasks();
 
                 expect(
-                    connectionManager.connect.calledOnce,
-                    "should connect when all SqlLogin fields are present",
-                ).to.be.true;
+                    connectionManager.connect.called,
+                    "should not connect on keystroke change, only on blur",
+                ).to.be.false;
             });
 
             test("clears database options when auth info becomes insufficient", async () => {
@@ -1588,8 +1607,8 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 await controller["loadDatabaseList"]();
                 expect(controller.state.formComponents["database"].options).to.have.lengthOf(3);
 
-                // Now remove the user, making info insufficient
-                await setFormProperty("user", "");
+                // Now remove the user on blur, making info insufficient
+                await blurFormProperty("user", "");
 
                 const dbComponent = controller.state.formComponents["database"];
                 expect(dbComponent.options).to.deep.equal(
@@ -1605,8 +1624,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 await controller["loadDatabaseList"]();
                 expect(connectionManager.connect.calledOnce).to.be.true;
 
-                // Trigger afterSetFormProperty with a non-cache-busting property (password doesn't change key)
-                await setFormProperty("server", sqlLoginProfile.server);
+                await blurFormProperty("server", sqlLoginProfile.server);
                 await flushMicrotasks();
 
                 expect(

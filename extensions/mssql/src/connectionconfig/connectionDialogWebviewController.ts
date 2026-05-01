@@ -5,7 +5,6 @@
 
 import * as os from "os";
 import * as vscode from "vscode";
-import debounce from "lodash/debounce";
 import { shallowEqualObjects } from "shallow-equal";
 
 import {
@@ -978,14 +977,18 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
     override async afterSetFormProperty(
         propertyName: keyof IConnectionDialogProfile,
+        isBlur: boolean,
     ): Promise<void> {
         if (propertyName !== "profileName" && propertyName !== "groupId") {
             this.state.testConnectionSucceeded = false;
         }
         await this.handleAzureMFAEdits(propertyName);
 
-        if (ConnectionDialogWebviewController._dbFetchTriggerProps.includes(propertyName)) {
-            debounce(() => this.triggerDatabaseFetchIfReady(), 300)();
+        if (
+            isBlur &&
+            ConnectionDialogWebviewController._dbFetchTriggerProps.includes(propertyName)
+        ) {
+            this.triggerDatabaseFetchIfReady();
         }
     }
 
