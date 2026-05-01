@@ -91,6 +91,7 @@ export interface ScriptTabProps {
     language?: string;
     label?: string;
     headerActions?: ReactNode;
+    addToWorkspace?: (script: string) => void;
     openInEditor: (script: string) => void;
     copyToClipboard: (script: string) => void;
 }
@@ -128,6 +129,16 @@ function getScriptTab(
         headerActions: (
             <>
                 {props.headerActions}
+                {props.addToWorkspace && (
+                    <Button
+                        size="small"
+                        appearance="subtle"
+                        title={locConstants.schemaDesigner.addToWorkspace}
+                        icon={<FluentIcons.DocumentAdd16Regular />}
+                        onClick={() => props.addToWorkspace?.(props.value)}>
+                        {locConstants.schemaDesigner.addToWorkspace}
+                    </Button>
+                )}
                 <Button
                     size="small"
                     appearance="subtle"

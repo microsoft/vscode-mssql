@@ -43,6 +43,7 @@ export const DabDefinitionsPanel = forwardRef<DabDefinitionsPanelRef, {}>((_, re
                 value: context.dabConfigTextFileContent,
                 language: "json",
                 themeKind,
+                addToWorkspace: context.addDabConfigToWorkspace,
                 openInEditor: context.openDabConfigInEditor,
                 copyToClipboard: (text: string) =>
                     context.copyToClipboard(text, Dab.CopyTextType.Config),

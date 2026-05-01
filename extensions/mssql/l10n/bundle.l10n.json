@@ -715,6 +715,7 @@
     "Drizzle": "Drizzle",
     "SQLAlchemy": "SQLAlchemy",
     "EF Core": "EF Core",
+    "Add to workspace": "Add to workspace",
     "Delete Confirmation": "Delete Confirmation",
     "Are you sure you want to delete the selected items?": "Are you sure you want to delete the selected items?",
     "Undo": "Undo",
@@ -877,6 +878,12 @@
     "Create": "Create",
     "Read": "Read",
     "Update": "Update",
+    "Bulk Actions": "Bulk Actions",
+    "Enable all entities": "Enable all entities",
+    "Disable all entities": "Disable all entities",
+    "Make everything read-only": "Make everything read-only",
+    "Enable all CRUD operations": "Enable all CRUD operations",
+    "Include all columns": "Include all columns",
     "Entity name used in API routes": "Entity name used in API routes",
     "View Config": "View Config",
     "Deploy": "Deploy",
@@ -911,6 +918,18 @@
     "Enable {0}/{0} is the entity name": {
         "message": "Enable {0}",
         "comment": ["{0} is the entity name"]
+    },
+    "Toggle columns for {0}/{0} is the entity name": {
+        "message": "Toggle columns for {0}",
+        "comment": ["{0} is the entity name"]
+    },
+    "Expose {0}/{0} is the backing database column name": {
+        "message": "Expose {0}",
+        "comment": ["{0} is the backing database column name"]
+    },
+    "{0} is a primary key column and can't be disabled./{0} is the backing database column name": {
+        "message": "{0} is a primary key column and can't be disabled.",
+        "comment": ["{0} is the backing database column name"]
     },
     "{0} action for {1}/{0} is the action name (Create, Read, etc.){1} is the entity name": {
         "message": "{0} action for {1}",
@@ -2190,6 +2209,10 @@
         "message": "Failed to copy text to clipboard: {0}",
         "comment": ["{0} is the error message"]
     },
+    "Failed to add text to workspace: {0}/{0} is the error message": {
+        "message": "Failed to add text to workspace: {0}",
+        "comment": ["{0} is the error message"]
+    },
     "Schema designer details are not available.": "Schema designer details are not available.",
     "Copying results...": "Copying results...",
     "Results copied to clipboard": "Results copied to clipboard",
@@ -2761,6 +2784,11 @@
         "comment": ["{0} is the file path where the MCP server configuration exists"]
     },
     "No workspace folder is open. Open a folder to add the MCP server configuration.": "No workspace folder is open. Open a folder to add the MCP server configuration.",
+    "No workspace folder is open. Open a folder to add the generated file.": "No workspace folder is open. Open a folder to add the generated file.",
+    "Generated file added to {0}/{0} is the generated file path": {
+        "message": "Generated file added to {0}",
+        "comment": ["{0} is the generated file path"]
+    },
     "Config copied to clipboard": "Config copied to clipboard",
     "URL copied to clipboard": "URL copied to clipboard",
     "Logs copied to clipboard": "Logs copied to clipboard",

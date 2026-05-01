@@ -1098,6 +1098,7 @@ export class LocConstants {
             definitionTypeDrizzle: l10n.t("Drizzle"),
             definitionTypeSqlAlchemy: l10n.t("SQLAlchemy"),
             definitionTypeEfCore: l10n.t("EF Core"),
+            addToWorkspace: l10n.t("Add to workspace"),
             copy: l10n.t("Copy"),
             close: l10n.t("Close"),
             deleteConfirmation: l10n.t("Delete Confirmation"),
@@ -1364,6 +1365,12 @@ export class LocConstants {
             create: l10n.t("Create"),
             read: l10n.t("Read"),
             update: l10n.t("Update"),
+            bulkActions: l10n.t("Bulk Actions"),
+            enableAllEntities: l10n.t("Enable all entities"),
+            disableAllEntities: l10n.t("Disable all entities"),
+            makeReadOnly: l10n.t("Make everything read-only"),
+            enableAllCruds: l10n.t("Enable all CRUD operations"),
+            includeAllColumns: l10n.t("Include all columns"),
             entityNameDescription: l10n.t("Entity name used in API routes"),
             viewConfig: l10n.t("View Config"),
             deploy: l10n.t("Deploy"),
@@ -1411,6 +1418,24 @@ export class LocConstants {
                     message: "Enable {0}",
                     args: [entityName],
                     comment: ["{0} is the entity name"],
+                }),
+            toggleEntityColumns: (entityName: string) =>
+                l10n.t({
+                    message: "Toggle columns for {0}",
+                    args: [entityName],
+                    comment: ["{0} is the entity name"],
+                }),
+            exposeColumn: (columnName: string) =>
+                l10n.t({
+                    message: "Expose {0}",
+                    args: [columnName],
+                    comment: ["{0} is the backing database column name"],
+                }),
+            primaryKeyColumnExposureLocked: (columnName: string) =>
+                l10n.t({
+                    message: "{0} is a primary key column and can't be disabled.",
+                    args: [columnName],
+                    comment: ["{0} is the backing database column name"],
                 }),
             actionForEntity: (action: string, entityName: string) =>
                 l10n.t({

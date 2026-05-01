@@ -39,6 +39,31 @@ function isCopilotChatInstalled(): boolean {
 }
 
 const SCHEMA_DESIGNER_VIEW_ID = "schemaDesigner";
+const DAB_CONFIG_FILE_EXTENSION = "json";
+const DEFINITION_FILE_EXTENSION_BY_KIND: Record<SchemaDesigner.DefinitionKind, string> = {
+    [SchemaDesigner.DefinitionKind.Sql]: "sql",
+    [SchemaDesigner.DefinitionKind.Prisma]: "prisma",
+    [SchemaDesigner.DefinitionKind.Sequelize]: "ts",
+    [SchemaDesigner.DefinitionKind.TypeOrm]: "ts",
+    [SchemaDesigner.DefinitionKind.Drizzle]: "ts",
+    [SchemaDesigner.DefinitionKind.SqlAlchemy]: "py",
+    [SchemaDesigner.DefinitionKind.EfCore]: "cs",
+};
+
+function sanitizeFileNamePart(value: string): string {
+    const sanitized = value
+        .trim()
+        .replace(/[^A-Za-z0-9._-]+/g, "_")
+        .replace(/^_+|_+$/g, "");
+    return sanitized || "database";
+}
+
+function getDateFileNamePart(date = new Date()): string {
+    const year = date.getFullYear().toString();
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const day = date.getDate().toString().padStart(2, "0");
+    return `${year}${month}${day}`;
+}
 
 function getCopilotChatDiscoveryDismissedState(
     context: vscode.ExtensionContext,
@@ -152,7 +177,10 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             );
             try {
                 let sessionResponse: SchemaDesigner.CreateSessionResponse;
-                if (!this.schemaDesignerCache.has(this._key)) {
+                const cacheItem = this.schemaDesignerCache.get(this._key);
+                const hasCachedSession = !!cacheItem?.schemaDesignerDetails?.sessionId;
+
+                if (!hasCachedSession) {
                     sessionResponse = await this.schemaDesignerService.createSession({
                         connectionString: this.connectionString,
                         accessToken: this.accessToken,
@@ -162,10 +190,10 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                     this.schemaDesignerCache.set(this._key, {
                         schemaDesignerDetails: sessionResponse,
                         baselineSchema: sessionResponse.schema,
-                        isDirty: false,
+                        dabConfig: cacheItem?.dabConfig,
+                        isDirty: cacheItem?.isDirty ?? false,
                     });
                 } else {
-                    const cacheItem = this.schemaDesignerCache.get(this._key)!;
                     sessionResponse = cacheItem.schemaDesignerDetails;
                     this.baselineSchema = cacheItem.baselineSchema;
                 }
@@ -372,6 +400,23 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             }
         });
 
+        this.onNotification(
+            SchemaDesigner.AddDefinitionToWorkspaceNotification.type,
+            async (params) => {
+                try {
+                    const definition = await this.createDefinitionOutput(params);
+                    await this.addTextToWorkspace(
+                        definition.text,
+                        DEFINITION_FILE_EXTENSION_BY_KIND[params.definitionKind],
+                    );
+                } catch (error) {
+                    await vscode.window.showErrorMessage(
+                        LocConstants.failedToAddTextToWorkspace(getErrorMessage(error)),
+                    );
+                }
+            },
+        );
+
         this.onNotification(SchemaDesigner.OpenInEditorWithConnectionNotification.type, () => {
             const generateScriptActivity = startActivity(
                 TelemetryViews.SchemaDesigner,
@@ -462,6 +507,16 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             });
         });
 
+        this.onRequest(Dab.GetCachedConfigRequest.type, async () => {
+            return {
+                config: this.schemaDesignerCache.get(this._key)?.dabConfig,
+            };
+        });
+
+        this.onNotification(Dab.CacheConfigNotification.type, async (payload) => {
+            this.updateCacheItem(undefined, undefined, payload.config);
+        });
+
         this.onNotification(Dab.OpenConfigInEditorNotification.type, async (payload) => {
             const doc = await vscode.workspace.openTextDocument({
                 content: payload.configContent,
@@ -473,6 +528,21 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             });
 
             await vscode.window.showTextDocument(doc);
+        });
+
+        this.onNotification(Dab.AddConfigToWorkspaceNotification.type, async (payload) => {
+            try {
+                await this.addTextToWorkspace(payload.configContent, DAB_CONFIG_FILE_EXTENSION);
+
+                sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.ExportDabConfig, {
+                    language: "json",
+                    target: "workspace",
+                });
+            } catch (error) {
+                await vscode.window.showErrorMessage(
+                    LocConstants.failedToAddTextToWorkspace(getErrorMessage(error)),
+                );
+            }
         });
 
         this.onNotification(Dab.OpenLogsInNewTabNotification.type, async (payload) => {
@@ -640,6 +710,24 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         return getSchemaDesignerDefinitionOutput(updatedSchema, definitionKind);
     }
 
+    private async addTextToWorkspace(text: string, fileExtension: string): Promise<vscode.Uri> {
+        const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
+        if (!workspaceFolder) {
+            throw new Error(LocConstants.SchemaDesigner.noWorkspaceOpenForGeneratedFile);
+        }
+
+        const baseName = `${sanitizeFileNamePart(this.databaseName)}_${getDateFileNamePart()}`;
+        const outputUri = await getUniqueFilePath(workspaceFolder, baseName, fileExtension);
+        await vscode.workspace.fs.writeFile(outputUri, Buffer.from(text, "utf8"));
+
+        const document = await vscode.workspace.openTextDocument(outputUri);
+        await vscode.window.showTextDocument(document, { preview: false });
+        await vscode.window.showInformationMessage(
+            LocConstants.SchemaDesigner.generatedFileAddedToWorkspace(outputUri.fsPath),
+        );
+        return outputUri;
+    }
+
     private setupConfigurationListener() {
         const configChangeDisposable = vscode.workspace.onDidChangeConfiguration((e) => {
             if (e.affectsConfiguration(configSchemaDesignerEnableExpandCollapseButtons)) {
@@ -657,23 +745,44 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     private updateCacheItem(
         updatedSchema?: SchemaDesigner.Schema,
         isDirty?: boolean,
+        dabConfig?: Dab.DabConfig,
     ): SchemaDesigner.SchemaDesignerCacheItem {
         let schemaDesignerCacheItem = this.schemaDesignerCache.get(this._key);
         if (!schemaDesignerCacheItem) {
+            if (this.schemaDesignerDetails) {
+                schemaDesignerCacheItem = {
+                    schemaDesignerDetails: this.schemaDesignerDetails,
+                    baselineSchema: this.baselineSchema ?? this.schemaDesignerDetails.schema,
+                    isDirty: false,
+                };
+            } else {
+                schemaDesignerCacheItem = {
+                    schemaDesignerDetails: {
+                        schema: { tables: [] },
+                        dataTypes: [],
+                        schemaNames: [],
+                        sessionId: "",
+                    },
+                    baselineSchema: this.baselineSchema ?? { tables: [] },
+                    isDirty: false,
+                };
+            }
+        }
+        if (
+            !this.schemaDesignerDetails &&
+            schemaDesignerCacheItem.schemaDesignerDetails.sessionId
+        ) {
+            this.schemaDesignerDetails = schemaDesignerCacheItem.schemaDesignerDetails;
+        }
+        if (updatedSchema) {
             if (!this.schemaDesignerDetails) {
                 throw new Error(LocConstants.schemaDesignerDetailsUnavailable);
             }
-
-            schemaDesignerCacheItem = {
-                schemaDesignerDetails: this.schemaDesignerDetails,
-                baselineSchema: this.baselineSchema ?? this.schemaDesignerDetails.schema,
-                isDirty: false,
-            };
-        }
-        this.schemaDesignerDetails ??= schemaDesignerCacheItem.schemaDesignerDetails;
-        if (updatedSchema) {
             this.schemaDesignerDetails!.schema = updatedSchema;
             schemaDesignerCacheItem.schemaDesignerDetails.schema = updatedSchema;
+        }
+        if (dabConfig) {
+            schemaDesignerCacheItem.dabConfig = dabConfig;
         }
         // if isDirty is not provided, set it to schemaDesignerCacheItem.isDirty
         // else, set it to the provided value

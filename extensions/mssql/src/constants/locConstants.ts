@@ -791,6 +791,12 @@ export let failedToCopyTextToClipboard = (errorMessage: string) =>
         args: [errorMessage],
         comment: ["{0} is the error message"],
     });
+export let failedToAddTextToWorkspace = (errorMessage: string) =>
+    l10n.t({
+        message: "Failed to add text to workspace: {0}",
+        args: [errorMessage],
+        comment: ["{0} is the error message"],
+    });
 export let schemaDesignerDetailsUnavailable = l10n.t("Schema designer details are not available.");
 export let copyingResults = l10n.t("Copying results...");
 export let resultsCopiedToClipboard = l10n.t("Results copied to clipboard");
@@ -2005,6 +2011,15 @@ export class SchemaDesigner {
     public static noWorkspaceOpenForMcp = l10n.t(
         "No workspace folder is open. Open a folder to add the MCP server configuration.",
     );
+    public static noWorkspaceOpenForGeneratedFile = l10n.t(
+        "No workspace folder is open. Open a folder to add the generated file.",
+    );
+    public static generatedFileAddedToWorkspace = (filePath: string) =>
+        l10n.t({
+            message: "Generated file added to {0}",
+            args: [filePath],
+            comment: ["{0} is the generated file path"],
+        });
     public static configCopiedToClipboard = l10n.t("Config copied to clipboard");
     public static urlCopiedToClipboard = l10n.t("URL copied to clipboard");
     public static logsCopiedToClipboard = l10n.t("Logs copied to clipboard");

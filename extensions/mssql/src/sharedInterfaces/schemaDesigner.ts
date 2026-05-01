@@ -5,6 +5,7 @@
 
 import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
 import { CopilotChat } from "./copilotChat";
+import { Dab } from "./dab";
 
 export namespace SchemaDesigner {
     /**
@@ -383,6 +384,11 @@ export namespace SchemaDesigner {
         definitionKind?: DefinitionKind;
     }
 
+    export interface AddDefinitionToWorkspaceOptions {
+        updatedSchema: Schema;
+        definitionKind: DefinitionKind;
+    }
+
     export interface SchemaDesignerReducers {
         exportToFile: ExportFileOptions;
         getScript: GetScriptOptions;
@@ -399,6 +405,10 @@ export namespace SchemaDesigner {
          * Used as the baseline for diffing against current edits.
          */
         baselineSchema: Schema;
+        /**
+         * Cached Data API builder configuration for the active designer session.
+         */
+        dabConfig?: Dab.DabConfig;
         isDirty: boolean;
     }
 
@@ -424,6 +434,12 @@ export namespace SchemaDesigner {
     }
     export namespace OpenInEditorNotification {
         export const type = new NotificationType<OpenInEditorOptions>("openInEditor");
+    }
+
+    export namespace AddDefinitionToWorkspaceNotification {
+        export const type = new NotificationType<AddDefinitionToWorkspaceOptions>(
+            "addDefinitionToWorkspace",
+        );
     }
 
     export namespace CopyToClipboardNotification {

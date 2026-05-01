@@ -1,0 +1,15 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/* Icon colors using VS Code symbol tokens */
+.dab-icon-schema {
+    color: var(--vscode-symbolIcon-namespaceForeground, var(--vscode-descriptionForeground));
+    flex-shrink: 0;
+}
+
+.dab-icon-table {
+    color: var(--vscode-symbolIcon-structForeground, var(--vscode-descriptionForeground));
+    flex-shrink: 0;
+}
