@@ -1975,64 +1975,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         }
     }
 
-    private async handleSignatureHelpRequest(
-        params: WebviewSignatureHelpParams,
-    ): Promise<WebviewSignatureHelpResult> {
-        const ownerUri = params.ownerUri;
-        const client = this._tableExplorerService.sqlToolsClient;
-
-        if (!ownerUri || !this._connectionManager.isConnected(ownerUri)) {
-            return { signatures: [], activeSignature: 0, activeParameter: 0 };
-        }
-
-        try {
-            this.syncDocumentContent(ownerUri, params.fullText);
-
-            const lspPosition = {
-                line: params.position.lineNumber - 1,
-                character: params.position.column - 1,
-            };
-
-            const result = await client.sendRequest(SignatureHelpRequest.type, {
-                textDocument: { uri: ownerUri },
-                position: lspPosition,
-            });
-
-            if (!result || !result.signatures || result.signatures.length === 0) {
-                return { signatures: [], activeSignature: 0, activeParameter: 0 };
-            }
-
-            const signatures = result.signatures.map((sig) => ({
-                label: sig.label,
-                documentation:
-                    typeof sig.documentation === "string"
-                        ? sig.documentation
-                        : sig.documentation?.value,
-                parameters: (sig.parameters ?? []).map((p) => ({
-                    label:
-                        typeof p.label === "string"
-                            ? p.label
-                            : sig.label.substring(p.label[0], p.label[1]),
-                    documentation:
-                        typeof p.documentation === "string"
-                            ? p.documentation
-                            : p.documentation?.value,
-                })),
-            }));
-
-            return {
-                signatures,
-                activeSignature: result.activeSignature ?? 0,
-                activeParameter: result.activeParameter ?? 0,
-            };
-        } catch (error) {
-            this.logger.error(
-                `[SignatureHelp] handleSignatureHelpRequest failed: ${getErrorMessage(error)}`,
-            );
-            return { signatures: [], activeSignature: 0, activeParameter: 0 };
-        }
-    }
-
     /**
      * Opens the language service document in the STS workspace so that
      * PrepopulateCommonMetadata can find the ScriptFile and pre-load
