@@ -6,7 +6,7 @@
 import * as os from "os";
 import * as vscode from "vscode";
 import type { IConnectionInfo } from "vscode-mssql";
-import merge = require("lodash/merge");
+import merge from "lodash/merge";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import ConnectionManager from "../controllers/connectionManager";
