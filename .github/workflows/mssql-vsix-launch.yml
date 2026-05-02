@@ -32,6 +32,8 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: "24"
+          cache: npm
+          cache-dependency-path: package-lock.json
 
       - name: Install root dependencies
         run: npm ci
@@ -107,8 +109,11 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: "24"
+          cache: npm
+          cache-dependency-path: extensions/mssql/package-lock.json
 
-      - name: Install root dependencies
+      - name: MSSQL - Install test dependencies
+        working-directory: ./extensions/mssql
         run: npm ci
 
       - name: Download MSSQL VSIX files
