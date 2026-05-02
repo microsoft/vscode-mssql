@@ -333,30 +333,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     }
 
     /**
-     * Extracts the numeric row count from a `SELECT TOP N` / `SELECT TOP (N)`
-     * clause. Returns undefined when no TOP is present, when PERCENT/WITH TIES
-     * are used, or when the count isn't a plain integer — those cases can't be
-     * meaningfully mirrored into the toolbar's "Total rows to fetch" field.
-     */
-    private static parseTopRowCount(query: string | undefined): number | undefined {
-        if (!query) {
-            return undefined;
-        }
-        // Strip -- line comments and /* ... */ block comments so a commented-out
-        // TOP clause doesn't leak through.
-        const stripped = query.replace(/--[^\n\r]*/g, "").replace(/\/\*[\s\S]*?\*\//g, "");
-        const match =
-            /\bSELECT\b(?:\s+(?:ALL|DISTINCT))?\s+TOP\s*\(?\s*(\d+)\s*\)?(?!\s*(?:PERCENT|WITH\s+TIES))/i.exec(
-                stripped,
-            );
-        if (!match) {
-            return undefined;
-        }
-        const value = parseInt(match[1], 10);
-        return Number.isFinite(value) && value > 0 ? value : undefined;
-    }
-
-    /**
      * Helper method to regenerate the script and update state.
      * Used when script pane is visible and data changes occur.
      */
@@ -1519,15 +1495,12 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 state.tableQuery = payload.queryString;
                 this._preserveTableQuery = true;
 
-                // Mirror the query's TOP N into the toolbar's "Total rows to fetch"
-                // so the two stay visually in sync after a custom query runs. Only
-                // applies when the query exposes a plain integer TOP count — see
-                // parseTopRowCount for the cases we deliberately ignore.
-                const parsedTop = TableExplorerWebViewController.parseTopRowCount(
-                    payload.queryString,
-                );
-                if (parsedTop !== undefined) {
-                    state.currentRowCount = parsedTop;
+                // Callers that change the row count (e.g. the toolbar selector)
+                // pass the new count alongside the query so the toolbar stays in
+                // sync. Filter apply/clear paths leave it undefined since they
+                // don't change the count.
+                if (payload.rowCount !== undefined) {
+                    state.currentRowCount = payload.rowCount;
                 }
 
                 this.logger.info(

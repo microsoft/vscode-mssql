@@ -218,7 +218,7 @@ export interface TableExplorerContextProps {
     setCurrentPage: (pageNumber: number) => void;
     saveResults: (format: SupportedSaveFormats, data: ExportData) => void;
     showTableQuery: () => void;
-    runTableQuery: (queryString: string) => void;
+    runTableQuery: (queryString: string, rowCount?: number) => void;
     modifyTable: () => void;
     viewTableDiagram: () => void;
     showSql: (sqlText: string) => void;
@@ -239,7 +239,7 @@ export interface TableExplorerReducers {
     setCurrentPage: { pageNumber: number };
     saveResults: { format: SupportedSaveFormats; data: ExportData };
     showTableQuery: {};
-    runTableQuery: { queryString: string };
+    runTableQuery: { queryString: string; rowCount?: number };
     modifyTable: {};
     viewTableDiagram: {};
     showSql: { sqlText: string };

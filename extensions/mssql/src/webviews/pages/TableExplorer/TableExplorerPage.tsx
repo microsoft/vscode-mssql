@@ -315,7 +315,7 @@ export const TableExplorerPage: React.FC = () => {
                 return;
             }
             const newQuery = buildDefaultSelectQuery(schemaName, tableName, columnNames, rowCount);
-            context.runTableQuery(newQuery);
+            context.runTableQuery(newQuery, rowCount);
         },
         [resultSet, schemaName, tableName, context],
     );
