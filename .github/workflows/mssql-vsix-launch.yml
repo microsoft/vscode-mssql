@@ -137,6 +137,7 @@ jobs:
           CI: "true"
           VS_CODE_VERSION: stable
           SKIP_DOTNET_RUNTIME_EXTENSION_INSTALL: "true"
+          DISABLE_ELECTRON_VIDEO_RECORDING: "true"
         run: |
           set -euo pipefail
 
