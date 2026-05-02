@@ -1,0 +1,160 @@
+name: MSSQL VSIX Launch Verification
+
+on:
+  pull_request:
+    branches:
+      - main
+      - "release/**"
+    paths:
+      - ".github/workflows/mssql-vsix-launch.yml"
+      - ".github/actions/build-mssql/**"
+      - "extensions/mssql/**"
+      - "package.json"
+      - "package-lock.json"
+      - "scripts/**"
+  workflow_dispatch:
+
+jobs:
+  package-mssql-vsixes:
+    name: Package MSSQL VSIX files
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: MSSQL - Install dependencies and build
+        uses: ./.github/actions/build-mssql
+
+      - name: MSSQL - Package offline VSIX files
+        run: npm run package -- --target mssql --offline
+
+      - name: MSSQL - Verify all platform VSIX files were packaged
+        run: |
+          set -euo pipefail
+
+          expected_platforms=(
+            "linux-arm64"
+            "linux-x64"
+            "osx"
+            "osx-arm64"
+            "win-arm64"
+            "win-x64"
+          )
+
+          for platform in "${expected_platforms[@]}"; do
+            mapfile -t matches < <(find ./extensions/mssql -maxdepth 1 -name "mssql-*-${platform}.vsix" -print | sort)
+            if [ "${#matches[@]}" -ne 1 ]; then
+              echo "Expected exactly one ${platform} VSIX, found ${#matches[@]}."
+              printf '%s\n' "${matches[@]}"
+              exit 1
+            fi
+          done
+
+          find ./extensions/mssql -maxdepth 1 -name "*.vsix" -print | sort
+
+      - name: MSSQL - Upload VSIX files
+        uses: actions/upload-artifact@v6
+        with:
+          name: mssql-offline-vsix
+          path: ./extensions/mssql/*.vsix
+
+  verify-mssql-vsixes-launch:
+    name: Verify ${{ matrix.platform }} VSIX launch
+    needs: package-mssql-vsixes
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux-x64
+            runner: ubuntu-latest
+          - platform: linux-arm64
+            runner: ubuntu-24.04-arm
+          - platform: osx
+            runner: macos-15-intel
+          - platform: osx-arm64
+            runner: macos-15
+          - platform: win-x64
+            runner: windows-latest
+          - platform: win-arm64
+            runner: windows-11-arm
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Download MSSQL VSIX files
+        uses: actions/download-artifact@v6
+        with:
+          name: mssql-offline-vsix
+          path: ./extensions/mssql
+
+      - name: MSSQL - Set up Linux display
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y libxkbfile-dev pkg-config libsecret-1-dev libkrb5-dev libxss1 dbus xvfb libgtk-3-0 libgbm1
+          sudo cp extensions/mssql/build/xvfb.init /etc/init.d/xvfb
+          sudo chmod +x /etc/init.d/xvfb
+          sudo update-rc.d xvfb defaults
+          sudo service xvfb start
+
+      - name: MSSQL - Verify platform VSIX launches
+        working-directory: ./extensions/mssql
+        shell: bash
+        env:
+          DISPLAY: ":10"
+          CI: "true"
+          VS_CODE_VERSION: stable
+          SKIP_DOTNET_RUNTIME_EXTENSION_INSTALL: "true"
+        run: |
+          set -euo pipefail
+
+          mapfile -t matches < <(find . -maxdepth 1 -name "mssql-*-${{ matrix.platform }}.vsix" -print | sort)
+          if [ "${#matches[@]}" -ne 1 ]; then
+            echo "Expected exactly one ${{ matrix.platform }} VSIX, found ${#matches[@]}."
+            printf '%s\n' "${matches[@]}"
+            exit 1
+          fi
+
+          export BUILT_VSIX_PATH="$(realpath "${matches[0]}")"
+          npx playwright test test/e2e/vsix.spec.ts
+
+      - name: MSSQL - Upload launch test artifacts
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: mssql-vsix-launch-test-artifacts-${{ matrix.platform }}
+          path: |
+            ./extensions/mssql/test-results/**/
+            ./extensions/mssql/test-reports/**/
+          retention-days: 7

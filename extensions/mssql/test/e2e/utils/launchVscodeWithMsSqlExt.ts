@@ -106,8 +106,12 @@ export async function launchVsCodeWithMssqlExtension(
         `--extensions-dir=${extensionsDir}`,
     ];
 
-    console.log(`Installing ${DOTNET_RUNTIME_EXTENSION_ID} before launch...`);
-    installExtension(cliPath, DOTNET_RUNTIME_EXTENSION_ID, userDataDir, extensionsDir);
+    if (process.env["SKIP_DOTNET_RUNTIME_EXTENSION_INSTALL"] === "true") {
+        console.log(`Skipping ${DOTNET_RUNTIME_EXTENSION_ID} install before launch.`);
+    } else {
+        console.log(`Installing ${DOTNET_RUNTIME_EXTENSION_ID} before launch...`);
+        installExtension(cliPath, DOTNET_RUNTIME_EXTENSION_ID, userDataDir, extensionsDir);
+    }
 
     if (config.useVsix) {
         const vsixPath = process.env["BUILT_VSIX_PATH"];
