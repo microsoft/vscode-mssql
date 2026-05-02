@@ -82,7 +82,7 @@ export function useSharedVsCodeLifecycle(
         }
         const currentContext = getContext();
         await hooks.beforeClose?.(currentContext);
-        await closeElectronApp(currentContext.electronApp);
+        await currentContext.electronApp.close();
         if (failedTests.length === 0) {
             await cleanupDirectories(currentContext.videoDir);
         } else {
@@ -119,7 +119,7 @@ export function usePerTestVsCodeLifecycle(
 
         await screenshotOnFailure(currentContext.page, testInfo);
         await hooks.beforeClose?.(currentContext, testInfo);
-        await closeElectronApp(currentContext.electronApp);
+        await currentContext.electronApp.close();
 
         if (!shouldKeepVideo) {
             await cleanupDirectories(currentContext.videoDir);
@@ -173,33 +173,6 @@ async function storeRecordedVideos(
     }
 
     await cleanupDirectories(videoDir);
-}
-
-async function closeElectronApp(electronApp: VsCodeAppHandle): Promise<void> {
-    const closeTimeoutMs = 30_000;
-    let closeTimeout: NodeJS.Timeout | undefined;
-
-    try {
-        await Promise.race([
-            electronApp.close(),
-            new Promise<never>((_, reject) => {
-                closeTimeout = setTimeout(
-                    () => reject(new Error(`Timed out closing VS Code after ${closeTimeoutMs}ms`)),
-                    closeTimeoutMs,
-                );
-            }),
-        ]);
-    } catch (error) {
-        console.warn(error instanceof Error ? error.message : String(error));
-        const process = electronApp.process();
-        if (process && !process.killed) {
-            process.kill();
-        }
-    } finally {
-        if (closeTimeout) {
-            clearTimeout(closeTimeout);
-        }
-    }
 }
 
 async function findWebmFiles(directory: string): Promise<string[]> {
