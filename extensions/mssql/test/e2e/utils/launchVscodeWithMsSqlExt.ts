@@ -46,6 +46,7 @@ function installExtension(
         {
             encoding: "utf-8",
             stdio: "pipe",
+            shell: process.platform === "win32",
         },
     );
 

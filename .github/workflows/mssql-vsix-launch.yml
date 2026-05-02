@@ -56,10 +56,11 @@ jobs:
           )
 
           for platform in "${expected_platforms[@]}"; do
-            mapfile -t matches < <(find ./extensions/mssql -maxdepth 1 -name "mssql-*-${platform}.vsix" -print | sort)
-            if [ "${#matches[@]}" -ne 1 ]; then
-              echo "Expected exactly one ${platform} VSIX, found ${#matches[@]}."
-              printf '%s\n' "${matches[@]}"
+            matches="$(find ./extensions/mssql -maxdepth 1 -name "mssql-*-${platform}.vsix" -print | sort)"
+            match_count="$(printf '%s\n' "$matches" | sed '/^$/d' | wc -l | tr -d ' ')"
+            if [ "$match_count" -ne 1 ]; then
+              echo "Expected exactly one ${platform} VSIX, found ${match_count}."
+              printf '%s\n' "$matches"
               exit 1
             fi
           done
@@ -139,14 +140,15 @@ jobs:
         run: |
           set -euo pipefail
 
-          mapfile -t matches < <(find . -maxdepth 1 -name "mssql-*-${{ matrix.platform }}.vsix" -print | sort)
-          if [ "${#matches[@]}" -ne 1 ]; then
-            echo "Expected exactly one ${{ matrix.platform }} VSIX, found ${#matches[@]}."
-            printf '%s\n' "${matches[@]}"
+          matches="$(find . -maxdepth 1 -name "mssql-*-${{ matrix.platform }}.vsix" -print | sort)"
+          match_count="$(printf '%s\n' "$matches" | sed '/^$/d' | wc -l | tr -d ' ')"
+          if [ "$match_count" -ne 1 ]; then
+            echo "Expected exactly one ${{ matrix.platform }} VSIX, found ${match_count}."
+            printf '%s\n' "$matches"
             exit 1
           fi
 
-          export BUILT_VSIX_PATH="$(realpath "${matches[0]}")"
+          export BUILT_VSIX_PATH="$(realpath "$matches")"
           npx playwright test test/e2e/vsix.spec.ts
 
       - name: MSSQL - Upload launch test artifacts
