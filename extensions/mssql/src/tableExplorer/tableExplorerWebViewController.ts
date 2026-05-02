@@ -143,18 +143,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
             void this.loadResultSet();
         } else {
-            // Server reported the session failed without a user cancel (e.g. a syntax
-            // error, multi-table/duplicate-column query, or missing object). Surface the
-            // failure to the user and flip the grid out of its Loading state so the
-            // custom query editor can be fixed and re-run. Leave tableQuery intact so
-            // the user's typed text isn't lost.
-            // STS's EditSession surfaces human-readable messages for the cases we
-            // care about here ("EditData queries targeting multiple tables are not
-            // supported", "EditData queries with duplicate columns are not
-            // supported", syntax errors, missing object, etc.). Pass the server
-            // message through verbatim so the user sees the same text STS intended,
-            // and only fall back to our generic wrapper when the server didn't
-            // supply one.
+            // STS surfaces human-readable messages for syntax errors, multi-table /
+            // duplicate-column queries, missing objects, etc. — pass those through
+            // verbatim instead of wrapping in our generic toast, falling back only
+            // when the server didn't supply one.
             const serverMessage = result.message?.trim() ?? "";
             const toastMessage =
                 serverMessage.length > 0
@@ -1780,10 +1772,9 @@ export class TableExplorerWebViewController extends WebviewPanelController<
      * This is called when the webview tab is closed (after any prompts are handled).
      */
     public override dispose(): void {
-        // Clean up the language service document using _expectedOwnerUri rather than
-        // state.ownerUri. openLanguageServiceDocument() runs against _expectedOwnerUri
-        // before EditSessionReady ever fires, so a fast close would otherwise leak the
-        // ScriptFile and the _documentVersions entries.
+        // Use _expectedOwnerUri rather than state.ownerUri: state.ownerUri is set
+        // by onEditSessionReady, so a tab closed before that notification fires
+        // would otherwise leak this controller in _liveInstances.
         if (this._expectedOwnerUri) {
             TableExplorerWebViewController._liveInstances.delete(this._expectedOwnerUri);
         }
