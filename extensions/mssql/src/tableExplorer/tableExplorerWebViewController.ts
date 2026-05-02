@@ -19,10 +19,6 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { ITableExplorerService } from "../services/tableExplorerService";
 import { EditSessionReadyNotification } from "../models/contracts/tableExplorer";
-import {
-    DidCloseTextDocumentNotification,
-    DidOpenTextDocumentNotification,
-} from "vscode-languageclient";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import * as LocConstants from "../constants/locConstants";
 import { getErrorMessage, uuid } from "../utils/utils";
@@ -31,7 +27,6 @@ import * as Constants from "../constants/constants";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { ApiStatus } from "../sharedInterfaces/webview";
-import { LanguageFlavorChangedNotification } from "../models/contracts/languageService";
 
 export class TableExplorerWebViewController extends WebviewPanelController<
     TableExplorerWebViewState,
@@ -40,7 +35,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     private operationId: string;
     private _preserveTableQuery = false;
     private _expectedOwnerUri: string = "";
-    private _documentVersions = new Map<string, number>();
 
     // Shared dispatcher state. vscode-languageclient 5.2.1's onNotification can't
     // return a Disposable, so registering one handler per controller would leak.
@@ -245,11 +239,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     await this._connectionManager.connect(ownerUri, connectionCreds);
                 }
             }
-
-            // Open the language service document immediately after connecting so that
-            // the STS's PrepopulateCommonMetadata can find the ScriptFile and pre-load
-            // table/column metadata while the edit session initializes.
-            this.openLanguageServiceDocument(ownerUri);
 
             await this._tableExplorerService.initialize(
                 ownerUri,
@@ -1738,55 +1727,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     }
 
     /**
-     * Opens the language service document in the STS workspace so that
-     * PrepopulateCommonMetadata can find the ScriptFile and pre-load
-     * table/column metadata when the connection is established.
-     *
-     * This must be called BEFORE or immediately after connectionManager.connect()
-     * so the STS's UpdateLanguageServiceOnConnection callback finds the ScriptFile.
-     */
-    private openLanguageServiceDocument(ownerUri: string): void {
-        const client = this._tableExplorerService.sqlToolsClient;
-        const version = 1;
-        this._documentVersions.set(ownerUri, version);
-
-        this.logger.verbose(
-            `[IntelliSense] openLanguageServiceDocument uri: "${ownerUri}", version: ${version}`,
-        );
-
-        client.sendNotification(DidOpenTextDocumentNotification.type, {
-            textDocument: {
-                uri: ownerUri,
-                languageId: "sql",
-                version,
-                text: "",
-            },
-        });
-
-        client.sendNotification(LanguageFlavorChangedNotification.type, {
-            uri: ownerUri,
-            language: "sql",
-            flavor: "MSSQL",
-        });
-    }
-
-    /**
-     * Cleans up the language service document when the controller is disposed.
-     */
-    private disposeLanguageServiceDocument(ownerUri: string): void {
-        if (!ownerUri || !this._documentVersions.has(ownerUri)) {
-            return;
-        }
-
-        const client = this._tableExplorerService.sqlToolsClient;
-        client.sendNotification(DidCloseTextDocumentNotification.type, {
-            textDocument: { uri: ownerUri },
-        });
-
-        this._documentVersions.delete(ownerUri);
-    }
-
-    /**
      * Override the base class's showRestorePrompt to handle unsaved changes.
      * This is called from the onDidDispose handler in the base class.
      * Prompts the user to save or discard changes, then allows disposal to continue.
@@ -1845,7 +1785,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         // before EditSessionReady ever fires, so a fast close would otherwise leak the
         // ScriptFile and the _documentVersions entries.
         if (this._expectedOwnerUri) {
-            this.disposeLanguageServiceDocument(this._expectedOwnerUri);
             TableExplorerWebViewController._liveInstances.delete(this._expectedOwnerUri);
         }
 
