@@ -306,9 +306,6 @@ export let msgGetTokenFail = l10n.t("Failed to fetch user tokens.");
 export let msgPromptRetryConnectionDifferentCredentials = l10n.t(
     "Error: Login failed. Retry using different credentials?",
 );
-export let msgPromptSSLCertificateValidationFailed = l10n.t(
-    "Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?",
-);
 export let msgPromptRetryFirewallRuleNotSignedIn = l10n.t(
     "Your client IP address does not have access to the server. Add a Microsoft Entra account and create a new firewall rule to enable access.",
 );
@@ -1081,6 +1078,17 @@ export class ConnectionDialog {
     public static noWorkspacesFound = l10n.t(
         "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
     );
+
+    public static selectDatabase = l10n.t("Select a database");
+    public static userDatabasesGroup = l10n.t("User databases");
+    public static systemDatabasesGroup = l10n.t("System databases");
+    public static unableToLoadDatabaseList(errorMessage: string) {
+        return l10n.t({
+            message: "Unable to load database list from server: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the connection error message"],
+        });
+    }
 
     public static unsupportedAuthType(authenticationType: string) {
         return l10n.t({
@@ -2118,6 +2126,14 @@ export class Connection {
     public static SelectTenant = l10n.t("Select a tenant");
 
     public static ChangePassword = l10n.t("Change Password");
+
+    public static trustServerCertificateMustBeEnabledMessage = l10n.t(
+        "Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true'. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments.",
+    );
+
+    public static trustServerCertificateMustBeEnabledPrompt = l10n.t(
+        "Do you want to enable 'Trust server certificate' on this connection and retry?",
+    );
 }
 
 export class MssqlChatAgent {

@@ -448,9 +448,7 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
                 propertyName: "targetDatabaseName",
                 label: LocConstants.RestoreDatabase.targetDatabase,
                 options: [],
-                componentProps: {
-                    freeform: true,
-                },
+                freeform: true,
             }),
 
             accountId: createFormItem({

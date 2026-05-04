@@ -292,6 +292,16 @@ export async function completeFormComponents(
     }
 
     // add missing validation functions for generated components
+    if (components["database"]) {
+        components["database"] = {
+            ...components["database"],
+            type: FormItemType.Combobox,
+            options: [],
+            freeform: true, // allow users to enter a database that isn't populated automatically (e.g. user doesn't have LIST permission)
+            placeholder: Loc.selectDatabase,
+        };
+    }
+
     components["server"].validate = (state: ConnectionDialogWebviewState, value: string) => {
         if (!value) {
             return {
