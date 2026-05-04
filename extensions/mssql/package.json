@@ -21,7 +21,7 @@
     },
     "homepage": "https://github.com/Microsoft/vscode-mssql/blob/main/mssql/README.md",
     "engines": {
-        "vscode": "^1.98.0"
+        "vscode": "^1.101.0"
     },
     "categories": [
         "Programming Languages",
@@ -101,7 +101,7 @@
         "@types/sinon-chai": "^4.0.0",
         "@types/tmp": "0.0.28",
         "@types/tunnel": "0.0.1",
-        "@types/vscode": "1.98.0",
+        "@types/vscode": "1.101.0",
         "@types/vscode-webview": "^1.57.5",
         "@types/xmldom": "^0.1.34",
         "@vscode/l10n": "^0.0.18",
@@ -188,6 +188,12 @@
         "vscode-sql-common-features": {
             "uriOwnershipApi": true
         },
+        "mcpServerDefinitionProviders": [
+            {
+                "id": "mssql-sqltools-mcp",
+                "label": "SQL Tools MCP (mssql)"
+            }
+        ],
         "viewsContainers": {
             "activitybar": [
                 {

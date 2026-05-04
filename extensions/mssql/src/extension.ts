@@ -28,6 +28,7 @@ import {
     createUriOwnershipCoordinator,
     initializeUriOwnershipCoordinator,
 } from "./uriOwnership/uriOwnershipInitialization";
+import { registerSqlToolsMcpServer } from "./sqlToolsMcp/registerSqlToolsMcpServer";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -58,6 +59,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
     await controller.activate();
 
     initializeUriOwnershipCoordinator(uriOwnershipCoordinator, controller.connectionManager);
+    registerSqlToolsMcpServer(
+        context,
+        controller.connectionManager,
+        SqlToolsServerClient.instance,
+        vscodeWrapper,
+    );
 
     const participant = vscode.chat.createChatParticipant(
         "mssql.agent",
