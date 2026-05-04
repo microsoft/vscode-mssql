@@ -46,6 +46,7 @@ function installExtension(
         {
             encoding: "utf-8",
             stdio: "pipe",
+            shell: process.platform === "win32",
         },
     );
 
@@ -106,8 +107,12 @@ export async function launchVsCodeWithMssqlExtension(
         `--extensions-dir=${extensionsDir}`,
     ];
 
-    console.log(`Installing ${DOTNET_RUNTIME_EXTENSION_ID} before launch...`);
-    installExtension(cliPath, DOTNET_RUNTIME_EXTENSION_ID, userDataDir, extensionsDir);
+    if (process.env["SKIP_DOTNET_RUNTIME_EXTENSION_INSTALL"] === "true") {
+        console.log(`Skipping ${DOTNET_RUNTIME_EXTENSION_ID} install before launch.`);
+    } else {
+        console.log(`Installing ${DOTNET_RUNTIME_EXTENSION_ID} before launch...`);
+        installExtension(cliPath, DOTNET_RUNTIME_EXTENSION_ID, userDataDir, extensionsDir);
+    }
 
     if (config.useVsix) {
         const vsixPath = process.env["BUILT_VSIX_PATH"];
@@ -124,17 +129,22 @@ export async function launchVsCodeWithMssqlExtension(
         launchArgs.push("--temp-profile");
     }
 
-    console.log("Launching VS Code with:", vscodePath, launchArgs);
-    console.log("Staging Playwright videos in:", videoDir);
+    const shouldRecordVideo =
+        process.env.CI && process.env["DISABLE_ELECTRON_VIDEO_RECORDING"] !== "true";
 
-    const electronApp = await electron.launch({
+    console.log("Launching VS Code with:", vscodePath, launchArgs);
+    if (shouldRecordVideo) {
+        console.log("Staging Playwright videos in:", videoDir);
+    }
+
+    // Video recording interferes with Playwright's window detection locally (causes a
+    // blank window to be captured instead of the VS Code workbench). Only enable in CI.
+    const electronLaunchOptions = {
         executablePath: vscodePath,
         args: config.useVsix
             ? launchArgs
             : [...launchArgs, `--extensionDevelopmentPath=${devExtensionPath}`],
-        // Video recording interferes with Playwright's window detection locally (causes a
-        // blank window to be captured instead of the VS Code workbench). Only enable in CI.
-        ...(process.env.CI
+        ...(shouldRecordVideo
             ? {
                   recordVideo: {
                       dir: videoDir,
@@ -142,7 +152,9 @@ export async function launchVsCodeWithMssqlExtension(
                   },
               }
             : {}),
-    });
+    };
+
+    const electronApp = await electron.launch(electronLaunchOptions);
 
     const page = await electronApp.firstWindow({ timeout: 10_000 });
 
