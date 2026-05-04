@@ -39,6 +39,31 @@ function isCopilotChatInstalled(): boolean {
 }
 
 const SCHEMA_DESIGNER_VIEW_ID = "schemaDesigner";
+const DAB_CONFIG_FILE_EXTENSION = "json";
+const DEFINITION_FILE_EXTENSION_BY_KIND: Record<SchemaDesigner.DefinitionKind, string> = {
+    [SchemaDesigner.DefinitionKind.Sql]: "sql",
+    [SchemaDesigner.DefinitionKind.Prisma]: "prisma",
+    [SchemaDesigner.DefinitionKind.Sequelize]: "ts",
+    [SchemaDesigner.DefinitionKind.TypeOrm]: "ts",
+    [SchemaDesigner.DefinitionKind.Drizzle]: "ts",
+    [SchemaDesigner.DefinitionKind.SqlAlchemy]: "py",
+    [SchemaDesigner.DefinitionKind.EfCore]: "cs",
+};
+
+function sanitizeFileNamePart(value: string): string {
+    const sanitized = value
+        .trim()
+        .replace(/[^A-Za-z0-9._-]+/g, "_")
+        .replace(/^_+|_+$/g, "");
+    return sanitized || "database";
+}
+
+function getDateFileNamePart(date = new Date()): string {
+    const year = date.getFullYear().toString();
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const day = date.getDate().toString().padStart(2, "0");
+    return `${year}${month}${day}`;
+}
 
 function getCopilotChatDiscoveryDismissedState(
     context: vscode.ExtensionContext,
@@ -369,6 +394,23 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             }
         });
 
+        this.onNotification(
+            SchemaDesigner.AddDefinitionToWorkspaceNotification.type,
+            async (params) => {
+                try {
+                    const definition = await this.createDefinitionOutput(params);
+                    await this.addTextToWorkspace(
+                        definition.text,
+                        DEFINITION_FILE_EXTENSION_BY_KIND[params.definitionKind],
+                    );
+                } catch (error) {
+                    await vscode.window.showErrorMessage(
+                        LocConstants.failedToAddTextToWorkspace(getErrorMessage(error)),
+                    );
+                }
+            },
+        );
+
         this.onNotification(SchemaDesigner.OpenInEditorWithConnectionNotification.type, () => {
             const generateScriptActivity = startActivity(
                 TelemetryViews.SchemaDesigner,
@@ -480,6 +522,21 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             });
 
             await vscode.window.showTextDocument(doc);
+        });
+
+        this.onNotification(Dab.AddConfigToWorkspaceNotification.type, async (payload) => {
+            try {
+                await this.addTextToWorkspace(payload.configContent, DAB_CONFIG_FILE_EXTENSION);
+
+                sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.ExportDabConfig, {
+                    language: "json",
+                    target: "workspace",
+                });
+            } catch (error) {
+                await vscode.window.showErrorMessage(
+                    LocConstants.failedToAddTextToWorkspace(getErrorMessage(error)),
+                );
+            }
         });
 
         this.onNotification(Dab.OpenLogsInNewTabNotification.type, async (payload) => {
@@ -645,6 +702,24 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         }
 
         return getSchemaDesignerDefinitionOutput(updatedSchema, definitionKind);
+    }
+
+    private async addTextToWorkspace(text: string, fileExtension: string): Promise<vscode.Uri> {
+        const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
+        if (!workspaceFolder) {
+            throw new Error(LocConstants.SchemaDesigner.noWorkspaceOpenForGeneratedFile);
+        }
+
+        const baseName = `${sanitizeFileNamePart(this.databaseName)}_${getDateFileNamePart()}`;
+        const outputUri = await getUniqueFilePath(workspaceFolder, baseName, fileExtension);
+        await vscode.workspace.fs.writeFile(outputUri, Buffer.from(text, "utf8"));
+
+        const document = await vscode.workspace.openTextDocument(outputUri);
+        await vscode.window.showTextDocument(document, { preview: false });
+        await vscode.window.showInformationMessage(
+            LocConstants.SchemaDesigner.generatedFileAddedToWorkspace(outputUri.fsPath),
+        );
+        return outputUri;
     }
 
     private setupConfigurationListener() {
