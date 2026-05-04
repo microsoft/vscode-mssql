@@ -156,12 +156,6 @@ export class ProjectRootTreeItem extends BaseProjectTreeItem {
                     this.projectFileUri,
                     entry.relativePath,
                 );
-            } else if (entry.containsCreateTableStatement) {
-                newNode = new fileTree.TableFileNode(
-                    entry.fsUri,
-                    this.projectFileUri,
-                    entry.relativePath,
-                );
             } else {
                 newNode = new fileTree.SqlObjectFileNode(
                     entry.fsUri,
