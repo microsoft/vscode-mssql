@@ -79,7 +79,7 @@ export const useFormStyles = makeStyles({
     labelDecoration: {
         display: "inline-flex",
         alignItems: "center",
-        columnGap: "0px",
+        gap: "4px",
     },
 });
 
@@ -241,10 +241,23 @@ export const FormField = <
                         const tooltipProps = component.tooltip ? { info: component.tooltip } : {};
                         return (
                             <span className={formStyles.labelDecoration}>
-                                <LabelComponent {...slotProps} {...tooltipProps}>
+                                <LabelComponent
+                                    {...slotProps}
+                                    {...tooltipProps}
+                                    required={!component.loading && slotProps.required}>
                                     {labelContent}
                                 </LabelComponent>
-                                {component.loading && <Spinner size="extra-tiny" />}
+                                {component.loading && (
+                                    <Spinner
+                                        size="extra-tiny"
+                                        style={{ transform: "scale(0.8)" }}
+                                    />
+                                )}
+                                {component.loading && slotProps.required && (
+                                    <span style={{ color: tokens.colorPaletteRedForeground3 }}>
+                                        {" *"}
+                                    </span>
+                                )}
                             </span>
                         );
                     },

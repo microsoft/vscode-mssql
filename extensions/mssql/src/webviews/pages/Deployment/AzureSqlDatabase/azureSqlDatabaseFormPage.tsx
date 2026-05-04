@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useEffect } from "react";
-import { Dropdown, Field, makeStyles, Spinner, Text } from "@fluentui/react-components";
+import { makeStyles, Spinner, Text } from "@fluentui/react-components";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { FormField } from "../../../common/forms/form.component";
 import {
@@ -13,6 +13,7 @@ import {
     AzureSqlDatabaseFormState,
     AzureSqlDatabaseState,
     AZURE_SQL_DB_COMPONENT_ORDER,
+    CreateResourceGroupDialogProps,
 } from "../../../../sharedInterfaces/azureSqlDatabase";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../common/locConstants";
@@ -25,6 +26,7 @@ import {
     SearchableDropdownOptions,
 } from "../../../common/searchableDropdown.component";
 import { ConnectionGroupDialog } from "../../ConnectionGroup/connectionGroup.component";
+import { CreateResourceGroupDialog } from "./createResourceGroupDialog";
 import { DeploymentContext } from "../deploymentStateProvider";
 import { useAzureSqlDatabaseDeploymentSelector } from "../deploymentSelector";
 
@@ -67,12 +69,6 @@ const useStyles = makeStyles({
         whiteSpace: "normal",
         overflowWrap: "break-word",
         wordBreak: "break-word",
-    },
-    formLoadingLabel: {
-        display: "flex",
-        alignItems: "center",
-        marginTop: 0,
-        marginBottom: 0,
     },
     bottomDiv: {
         paddingBottom: "8px",
@@ -177,40 +173,27 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
             handleLoadAzureComponents();
         }
 
-        if (loadStatus === ApiStatus.Loaded || loadStatus === ApiStatus.Error) {
-            return (
-                <div className={classes.fieldContainer}>
-                    <FormField<
-                        AzureSqlDatabaseFormState,
-                        AzureSqlDatabaseState,
-                        AzureSqlDatabaseFormItemSpec,
-                        AzureSqlDatabaseContextProps
-                    >
-                        context={context}
-                        formState={formState}
-                        component={component}
-                        idx={0}
-                    />
-                </div>
-            );
+        const isLoading = loadStatus === ApiStatus.Loading || loadStatus === ApiStatus.NotStarted;
+        if (isLoading) {
+            component.loading = true;
+            component.placeholder = getLoadingPlaceholder(propertyName);
+        } else {
+            component.loading = false;
         }
 
-        // Loading or NotStarted — show spinner placeholder
         return (
-            <div style={{ marginBottom: "2px" }}>
-                <Field
-                    label={
-                        <div className={classes.formLoadingLabel}>
-                            <Text>{component.label}</Text>
-                            <Spinner size="extra-tiny" style={{ transform: "scale(0.8)" }} />
-                        </div>
-                    }>
-                    <Dropdown
-                        size="small"
-                        placeholder={getLoadingPlaceholder(propertyName)}
-                        style={{ marginTop: 0, width: "min(100%, 630px)" }}
-                    />
-                </Field>
+            <div className={classes.fieldContainer}>
+                <FormField<
+                    AzureSqlDatabaseFormState,
+                    AzureSqlDatabaseState,
+                    AzureSqlDatabaseFormItemSpec,
+                    AzureSqlDatabaseContextProps
+                >
+                    context={context}
+                    formState={formState}
+                    component={component}
+                    idx={0}
+                />
             </div>
         );
     };
@@ -244,6 +227,18 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                         state={(dialog as CreateConnectionGroupDialogProps).props}
                         saveConnectionGroup={context.createConnectionGroup}
                         closeDialog={() => context.setConnectionGroupDialogState(false)}
+                    />
+                )}
+                {dialog?.type === "createResourceGroup" && (
+                    <CreateResourceGroupDialog
+                        state={(dialog as CreateResourceGroupDialogProps).props}
+                        onSubmit={(resourceGroupName, location) => {
+                            context.submitCreateResourceGroup({
+                                resourceGroupName,
+                                location,
+                            });
+                        }}
+                        onClose={() => context.setCreateResourceGroupDialogState(false)}
                     />
                 )}
                 {renderAzureField("accountId")}

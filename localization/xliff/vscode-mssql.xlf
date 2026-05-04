@@ -1264,6 +1264,9 @@
     <trans-unit id="++CODE++bd02214c7799ec6a69018761f76fed82a6516c170ddbc3fdbf6f0c2a7b566d9f">
       <source xml:lang="en">Connecting to Database</source>
     </trans-unit>
+    <trans-unit id="++CODE++2e2706212eec134e00b88651a09bcbab6a28eb15560d24a9c6d3690d6c06b57b">
+      <source xml:lang="en">Connecting to database</source>
+    </trans-unit>
     <trans-unit id="++CODE++4f7403da68117c9595b82a6c264837910b1421a60537bcfa77a004a58b0a4c7a">
       <source xml:lang="en">Connecting to server &quot;{0}&quot; on document &quot;{1}&quot;.</source>
       <note>{0} is the server name
@@ -1580,6 +1583,9 @@
     <trans-unit id="++CODE++037da908d1a0194c30554abfd678cc6ecc4762a021237b597c1205add3de7a4f">
       <source xml:lang="en">Create New Connection Group</source>
     </trans-unit>
+    <trans-unit id="++CODE++9d81b93dc08c52e0f2e02d5397b390f7a94f0d4621c48a18a1a59b163acfda78">
+      <source xml:lang="en">Create New Resource Group</source>
+    </trans-unit>
     <trans-unit id="++CODE++12d088d1b1386a6196de28580f5092baa6b0e0241453a084aa45af5d5b218d4f">
       <source xml:lang="en">Create REST, GraphQL, and MCP endpoints for your SQL database tables from a visual interface within Visual Studio Code. Configure entities, permissions, and deployment settings — then deploy locally with Docker.</source>
     </trans-unit>
@@ -1638,6 +1644,9 @@
     </trans-unit>
     <trans-unit id="++CODE++725716b6df2a2ce3060b1681ae49712313e3156ab2af1b2ee7585b72b69dc7d5">
       <source xml:lang="en">Creating database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++db8b5a02307f785d43d26d74dc565aea97f8ac3f8ff36d6f7979440b000973c0">
+      <source xml:lang="en">Creating resource group...</source>
     </trans-unit>
     <trans-unit id="++CODE++aafbad1d95b40db9d90a7665175501a1a2717b2b4ce3ab2e91b9d58ef5c4bb5b">
       <source xml:lang="en">Creating session...</source>
@@ -2170,6 +2179,9 @@
     <trans-unit id="++CODE++257f4b44f86615c224d4cb6cc6a793ddeecb31c45f98b2ab57104d09a2b70171">
       <source xml:lang="en">Enter a name for the new profiler session</source>
     </trans-unit>
+    <trans-unit id="++CODE++66b21d157405ff2789b283f4f29e225854443edee43a0694233cdd063de255dc">
+      <source xml:lang="en">Enter a name for the new resource group</source>
+    </trans-unit>
     <trans-unit id="++CODE++8c50a1a6a69f19f52d48a8ec9ac6d8fa30c1b8ae5f3b9448aabffc2dd94184c9">
       <source xml:lang="en">Enter a number...</source>
     </trans-unit>
@@ -2211,6 +2223,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0a6b9ae24f863f5d06e0151c62f16b9327fdac6783807dc163e953559aa8287f">
       <source xml:lang="en">Enter profile name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++aae46441eaafc59419fdc91d2a14f13e534b533fecd19a1b47833c18862731fe">
+      <source xml:lang="en">Enter resource group name</source>
     </trans-unit>
     <trans-unit id="++CODE++a462b8c590652563cb55e5dc6e55e0b7ac0123f0a5dd70f9043bdef3d4fa5417">
       <source xml:lang="en">Enter text...</source>
@@ -3714,6 +3729,9 @@
     <trans-unit id="++CODE++934bbb16d95b8f72c6353bba1afc96aee3975ae50aaca4b3abe9389f292b4987">
       <source xml:lang="en">Loading local containers...</source>
     </trans-unit>
+    <trans-unit id="++CODE++93f000d094c33f601abe918b123741f26201c34c891d36c1358c862e209bdf14">
+      <source xml:lang="en">Loading locations</source>
+    </trans-unit>
     <trans-unit id="++CODE++c81954973ca0121a610a95a9872f6e71c08df9f100dd5dfb65dfee8545d2df2f">
       <source xml:lang="en">Loading resource groups</source>
     </trans-unit>
@@ -5135,8 +5153,14 @@
     <trans-unit id="++CODE++ae6d9c313ef115d3be932d158acd74f5ab4db5c068cdc2c10ade081168b185d5">
       <source xml:lang="en">Resource Group</source>
     </trans-unit>
+    <trans-unit id="++CODE++fe2fcab4acca97ade901dba3dcfe91a73a08201d713ff737a3bbecdeb78dc0c8">
+      <source xml:lang="en">Resource Group Name</source>
+    </trans-unit>
     <trans-unit id="++CODE++2f15b48a0d26c41fdc8a6d366cfc1ab170dc26794f40856a804b062614c02d9b">
       <source xml:lang="en">Resource Group is required</source>
+    </trans-unit>
+    <trans-unit id="++CODE++575874d7f7e259d7f9b8c15418105d5f0bac4a56e628837e68b5513a504b6a93">
+      <source xml:lang="en">Resource group name is required</source>
     </trans-unit>
     <trans-unit id="++CODE++e89b30aa1dc30a6ad8c34610689bede83b3ef645a24c3a84a0990826687fb735">
       <source xml:lang="en">Resources</source>
@@ -5307,9 +5331,6 @@
     </trans-unit>
     <trans-unit id="++CODE++2ea04a74395b2376e4dd5e83ffd39385d7b3dbfe4af1cb43bc8080b8b91c548e">
       <source xml:lang="en">SQL Plan Files</source>
-    </trans-unit>
-    <trans-unit id="++CODE++c8d61c28ed91dffc0e511145863ebfefa0b08273ba54dca78d9bdf9b2e726b52">
-      <source xml:lang="en">SQL Server</source>
     </trans-unit>
     <trans-unit id="++CODE++8553f640204422619af23f71ce8e01bb39f23579ff44b08e5da1cd2eb4482c27">
       <source xml:lang="en">SQL Server Container SA Password</source>
@@ -5637,6 +5658,9 @@
     <trans-unit id="++CODE++74bed7b49a5d8b99451913d44c2a60cce198c1d94b408e4f19a09ce0cc1d2a47">
       <source xml:lang="en">Select a folder</source>
     </trans-unit>
+    <trans-unit id="++CODE++741a06b13d57f36b0e124ffa0f78c13e53741b902f999b2656bbc8e7f75d625a">
+      <source xml:lang="en">Select a location for the resource group</source>
+    </trans-unit>
     <trans-unit id="++CODE++a54be20a16dd8a5a2524e93c5127f2965bd47dc3ee2f00eed80390be902e3f74">
       <source xml:lang="en">Select a profiler template</source>
     </trans-unit>
@@ -5702,6 +5726,9 @@
     </trans-unit>
     <trans-unit id="++CODE++6a8027c451f5eed5d0e62f3f599e8d39a787706b19612279423f6b706b1751f3">
       <source xml:lang="en">Select image</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a8cde5c6159c971e8c8d7cbb13844a520f02109201678c5934c9ecc190000ebd">
+      <source xml:lang="en">Select location</source>
     </trans-unit>
     <trans-unit id="++CODE++154f133b3d7ef488e01090c00b0104ba7bf48bf4368e2ad71333fd3d863fb270">
       <source xml:lang="en">Select new permission for extension: &apos;{0}&apos;</source>

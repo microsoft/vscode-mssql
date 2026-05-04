@@ -44,7 +44,14 @@ export async function initializeAzureSqlDatabaseState(
     };
 
     deploymentController.state.deploymentTypeState = state;
-    state.formComponents = setAzureSqlDatabaseFormComponents([], [], groupOptions, [], []);
+    state.formComponents = setAzureSqlDatabaseFormComponents(
+        [],
+        [],
+        groupOptions,
+        [],
+        [],
+        getResourceGroupActionButton(deploymentController),
+    );
     state.loadState = ApiStatus.Loaded;
     sendActionEvent(
         TelemetryViews.AzureSqlDatabase,
@@ -161,6 +168,119 @@ export function registerAzureSqlDatabaseReducers(
             return state;
         },
     );
+
+    deploymentController.registerReducer(
+        "setCreateResourceGroupDialogState",
+        async (state, payload) => {
+            const azureSqlState = state.deploymentTypeState as asd.AzureSqlDatabaseState;
+
+            if (payload.shouldOpen) {
+                // Open dialog immediately with loading state for locations
+                state.dialog = {
+                    type: "createResourceGroup",
+                    props: {
+                        locationOptions: [],
+                        locationsLoadState: ApiStatus.Loading,
+                        createLoadState: ApiStatus.NotStarted,
+                    },
+                } as asd.CreateResourceGroupDialogProps;
+                azureSqlState.dialog = state.dialog;
+                state.deploymentTypeState = azureSqlState;
+                updateAzureSqlDatabaseState(deploymentController, azureSqlState);
+
+                // Fetch locations in the background
+                const { accountId, tenantId, subscriptionId } = azureSqlState.formState;
+                let locationOptions: { name: string; displayName: string }[] = [];
+
+                if (accountId && tenantId && subscriptionId) {
+                    const tenant = await VsCodeAzureHelper.getTenant(accountId, tenantId);
+                    if (tenant) {
+                        const subscriptions =
+                            await VsCodeAzureHelper.getSubscriptionsForTenant(tenant);
+                        const subscription = subscriptions.find(
+                            (s) => s.subscriptionId === subscriptionId,
+                        );
+                        if (subscription) {
+                            locationOptions =
+                                await VsCodeAzureHelper.getLocationsForSubscription(subscription);
+                        }
+                    }
+                }
+
+                // Update dialog with loaded locations
+                state.dialog = {
+                    type: "createResourceGroup",
+                    props: {
+                        locationOptions,
+                        locationsLoadState: ApiStatus.Loaded,
+                        createLoadState: ApiStatus.NotStarted,
+                    },
+                } as asd.CreateResourceGroupDialogProps;
+            } else {
+                state.dialog = undefined;
+            }
+
+            azureSqlState.dialog = state.dialog;
+            state.deploymentTypeState = azureSqlState;
+            return state;
+        },
+    );
+
+    deploymentController.registerReducer("submitCreateResourceGroup", async (state, payload) => {
+        const azureSqlState = state.deploymentTypeState as asd.AzureSqlDatabaseState;
+        const { resourceGroupName, location } = payload.spec;
+
+        // Show creating state in the dialog
+        const dialogProps = (state.dialog as asd.CreateResourceGroupDialogProps)?.props;
+        if (dialogProps) {
+            dialogProps.createLoadState = ApiStatus.Loading;
+            azureSqlState.dialog = state.dialog;
+            state.deploymentTypeState = azureSqlState;
+            updateAzureSqlDatabaseState(deploymentController, azureSqlState);
+        }
+
+        try {
+            const tenant = await VsCodeAzureHelper.getTenant(
+                azureSqlState.formState.accountId,
+                azureSqlState.formState.tenantId,
+            );
+            if (!tenant) {
+                throw new Error(AzureSqlDatabase.noTenantsFound);
+            }
+            const subscriptions = await VsCodeAzureHelper.getSubscriptionsForTenant(tenant);
+            const subscription = subscriptions.find(
+                (s) => s.subscriptionId === azureSqlState.formState.subscriptionId,
+            );
+            if (!subscription) {
+                throw new Error(AzureSqlDatabase.noSubscriptionsFound);
+            }
+
+            await VsCodeAzureHelper.createResourceGroup(subscription, resourceGroupName, location);
+
+            // Set the new resource group as selected and reload downstream
+            azureSqlState.formState.resourceGroup = resourceGroupName;
+            azureSqlState.azureComponentStatuses["resourceGroup"] = ApiStatus.NotStarted;
+            azureSqlState.azureComponentStatuses["serverName"] = ApiStatus.NotStarted;
+            azureSqlState.formState.serverName = "";
+
+            // Close dialog on success
+            state.dialog = undefined;
+            azureSqlState.dialog = undefined;
+        } catch (error) {
+            cachedLogger?.error(
+                `Failed to create resource group: ${error instanceof Error ? error.message : String(error)}`,
+            );
+            // Keep dialog open and reset create state so user can retry
+            if (dialogProps) {
+                dialogProps.createLoadState = ApiStatus.Error;
+                dialogProps.message = error instanceof Error ? error.message : String(error);
+                azureSqlState.dialog = state.dialog;
+            }
+        }
+
+        state.deploymentTypeState = azureSqlState;
+        return state;
+    });
 }
 
 /**
@@ -469,12 +589,68 @@ async function getAzureActionButton(
     return actionButtons;
 }
 
+function getResourceGroupActionButton(
+    deploymentController: DeploymentWebviewController,
+): FormItemActionButton[] {
+    return [
+        {
+            label: AzureSqlDatabase.createNew,
+            id: "createResourceGroup",
+            callback: async () => {
+                const state = deploymentController.state;
+                const azureSqlState = state.deploymentTypeState as asd.AzureSqlDatabaseState;
+                const { accountId, tenantId, subscriptionId } = azureSqlState.formState;
+
+                if (!accountId || !tenantId || !subscriptionId) {
+                    return;
+                }
+
+                // Open dialog immediately with loading state
+                state.dialog = {
+                    type: "createResourceGroup",
+                    props: {
+                        locationOptions: [],
+                        locationsLoadState: ApiStatus.Loading,
+                        createLoadState: ApiStatus.NotStarted,
+                    },
+                } as asd.CreateResourceGroupDialogProps;
+                azureSqlState.dialog = state.dialog;
+                state.deploymentTypeState = azureSqlState;
+                deploymentController.updateState(state);
+
+                // Fetch locations asynchronously
+                let locationOptions: { name: string; displayName: string }[] = [];
+                const tenant = await VsCodeAzureHelper.getTenant(accountId, tenantId);
+                if (tenant) {
+                    const subscriptions = await VsCodeAzureHelper.getSubscriptionsForTenant(tenant);
+                    const subscription = subscriptions.find(
+                        (s) => s.subscriptionId === subscriptionId,
+                    );
+                    if (subscription) {
+                        locationOptions =
+                            await VsCodeAzureHelper.getLocationsForSubscription(subscription);
+                    }
+                }
+
+                // Update dialog with loaded locations
+                const dialogProps = (state.dialog as asd.CreateResourceGroupDialogProps)?.props;
+                if (dialogProps) {
+                    dialogProps.locationOptions = locationOptions;
+                    dialogProps.locationsLoadState = ApiStatus.Loaded;
+                    deploymentController.updateState(state);
+                }
+            },
+        },
+    ];
+}
+
 function setAzureSqlDatabaseFormComponents(
     azureAccountOptions: FormItemOptions[],
     azureActionButtons: FormItemActionButton[],
     groupOptions: FormItemOptions[],
     tenantOptions: FormItemOptions[],
     subscriptionOptions: FormItemOptions[],
+    resourceGroupActionButtons: FormItemActionButton[] = [],
 ): Record<string, asd.AzureSqlDatabaseFormItemSpec> {
     const createFormItem = (
         spec: Partial<asd.AzureSqlDatabaseFormItemSpec>,
@@ -530,6 +706,7 @@ function setAzureSqlDatabaseFormComponents(
             type: FormItemType.SearchableDropdown,
             options: [],
             placeholder: AzureSqlDatabase.selectAResourceGroup,
+            actionButtons: resourceGroupActionButtons,
             validate: (_state: asd.AzureSqlDatabaseState, value: string) => ({
                 isValid: !!value,
                 validationMessage: value ? "" : AzureSqlDatabase.resourceGroupIsRequired,

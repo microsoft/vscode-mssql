@@ -1819,6 +1819,14 @@ export class LocConstants {
             loadingServers: l10n.t("Loading servers"),
             connectingToDatabase: l10n.t("Connecting to database"),
             connectionFailed: l10n.t("Connection failed"),
+            createNewResourceGroup: l10n.t("Create New Resource Group"),
+            resourceGroupName: l10n.t("Resource Group Name"),
+            location: l10n.t("Location"),
+            enterResourceGroupName: l10n.t("Enter resource group name"),
+            selectLocation: l10n.t("Select location"),
+            loadingLocations: l10n.t("Loading locations"),
+            creatingResourceGroup: l10n.t("Creating resource group..."),
+            create: l10n.t("Create"),
         };
     }
 

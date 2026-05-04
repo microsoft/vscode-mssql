@@ -96,6 +96,16 @@ const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }
             startAzureSqlDatabaseDeployment: function (): void {
                 extensionRpc.action("startAzureSqlDatabaseDeployment", {});
             },
+            setCreateResourceGroupDialogState: function (shouldOpen: boolean): void {
+                extensionRpc.action("setCreateResourceGroupDialogState", {
+                    shouldOpen: shouldOpen,
+                });
+            },
+            submitCreateResourceGroup: function (spec): void {
+                extensionRpc.action("submitCreateResourceGroup", {
+                    spec: spec,
+                });
+            },
             //#endregion
         }),
         [extensionRpc],

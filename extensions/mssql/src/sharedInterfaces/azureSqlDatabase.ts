@@ -73,12 +73,33 @@ export interface AzureSqlDatabaseFormItemSpec
     componentWidth: string;
 }
 
+export interface CreateResourceGroupDialogState {
+    locationOptions: { name: string; displayName: string }[];
+    locationsLoadState: ApiStatus;
+    createLoadState: ApiStatus;
+    message?: string;
+}
+
+export interface CreateResourceGroupDialogProps extends IDialogProps {
+    type: "createResourceGroup";
+    props: CreateResourceGroupDialogState;
+}
+
+export interface CreateResourceGroupSpec {
+    resourceGroupName: string;
+    location: string;
+}
+
 export interface AzureSqlDatabaseContextProps extends FormContextProps<AzureSqlDatabaseFormState> {
     loadAzureComponent(componentName: string): void;
     startAzureSqlDatabaseDeployment(): void;
+    setCreateResourceGroupDialogState(shouldOpen: boolean): void;
+    submitCreateResourceGroup(spec: CreateResourceGroupSpec): void;
 }
 
 export interface AzureSqlDatabaseReducers extends FormReducers<AzureSqlDatabaseFormState> {
     loadAzureComponent: { componentName: string };
     startAzureSqlDatabaseDeployment: {};
+    setCreateResourceGroupDialogState: { shouldOpen: boolean };
+    submitCreateResourceGroup: { spec: CreateResourceGroupSpec };
 }

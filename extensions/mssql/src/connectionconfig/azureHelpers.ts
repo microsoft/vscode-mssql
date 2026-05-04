@@ -44,7 +44,8 @@ import {
     StorageAccountsListKeysResponse,
     StorageManagementClient,
 } from "@azure/arm-storage";
-import { ResourceManagementClient } from "@azure/arm-resources";
+import { ResourceManagementClient, ResourceGroup } from "@azure/arm-resources";
+import { SubscriptionClient } from "@azure/arm-subscriptions";
 import {
     BlobServiceClient,
     ContainerClient,
@@ -245,6 +246,45 @@ export class VsCodeAzureHelper {
             console.error("Error fetching default location for resource group:", error);
             return "";
         }
+    }
+
+    /**
+     * Fetches available Azure locations for a subscription.
+     */
+    public static async getLocationsForSubscription(
+        subscription: AzureSubscription,
+    ): Promise<{ name: string; displayName: string }[]> {
+        try {
+            const client = new SubscriptionClient(subscription.credential);
+            const locations = await listAllIterator(
+                client.subscriptions.listLocations(subscription.subscriptionId),
+            );
+            return locations
+                .map((loc) => ({
+                    name: loc.name ?? "",
+                    displayName: loc.displayName ?? loc.name ?? "",
+                }))
+                .filter((loc) => loc.name !== "")
+                .sort((a, b) => a.displayName.localeCompare(b.displayName));
+        } catch (error) {
+            console.error("Error fetching locations for subscription:", error);
+            return [];
+        }
+    }
+
+    /**
+     * Creates a new resource group in the given subscription and location.
+     */
+    public static async createResourceGroup(
+        subscription: AzureSubscription,
+        resourceGroupName: string,
+        location: string,
+    ): Promise<ResourceGroup> {
+        const client = new ResourceManagementClient(
+            subscription.credential,
+            subscription.subscriptionId,
+        );
+        return client.resourceGroups.createOrUpdate(resourceGroupName, { location });
     }
 
     /**
