@@ -27,8 +27,8 @@ import {
     SearchableDropdownOptions,
 } from "../../../common/searchableDropdown.component";
 import { ConnectionGroupDialog } from "../../ConnectionGroup/connectionGroup.component";
-import { CreateResourceGroupDialog } from "./createResourceGroupDialog";
-import { CreateServerDialog } from "./createServerDialog";
+import { CreateResourceGroupDrawer } from "./createResourceGroupDrawer";
+import { CreateServerDrawer } from "./createServerDrawer";
 import { DeploymentContext } from "../deploymentStateProvider";
 import { useAzureSqlDatabaseDeploymentSelector } from "../deploymentSelector";
 
@@ -232,7 +232,7 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                     />
                 )}
                 {dialog?.type === "createResourceGroup" && (
-                    <CreateResourceGroupDialog
+                    <CreateResourceGroupDrawer
                         state={(dialog as CreateResourceGroupDialogProps).props}
                         onSubmit={(resourceGroupName, location) => {
                             context.submitCreateResourceGroup({
@@ -244,7 +244,7 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                     />
                 )}
                 {dialog?.type === "createServer" && (
-                    <CreateServerDialog
+                    <CreateServerDrawer
                         state={(dialog as CreateServerDialogProps).props}
                         onSubmit={(serverName, location) => {
                             context.submitCreateServer({
