@@ -3308,6 +3308,7 @@
         "message": "Failed to run table query: {0}",
         "comment": ["{0} is the error message"]
     },
+    "Failed to run table query.": "Failed to run table query.",
     "Running a custom query will discard all pending changes. Do you want to continue?": "Running a custom query will discard all pending changes. Do you want to continue?",
     "Continue": "Continue",
     "Locate an Azure Data Studio settings.json file to import": "Locate an Azure Data Studio settings.json file to import",

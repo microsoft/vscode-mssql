@@ -2806,6 +2806,9 @@
       <source xml:lang="en">Failed to revert row: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++9b81b5011a165afc4b0dccfe4e1844cb34942cc91f07317e1a9731706c80804d">
+      <source xml:lang="en">Failed to run table query.</source>
+    </trans-unit>
     <trans-unit id="++CODE++10f7faa3b83b31a2dcc21bc5b0517143a936fee3e48b0291f480f0d2287d3d51">
       <source xml:lang="en">Failed to run table query: {0}</source>
       <note>{0} is the error message</note>
