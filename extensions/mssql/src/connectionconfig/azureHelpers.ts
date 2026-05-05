@@ -340,6 +340,30 @@ export class VsCodeAzureHelper {
         return poller.pollUntilDone();
     }
 
+    /**
+     * Creates a new Azure SQL Server using the ARM SDK.
+     * Uses Entra-only authentication (no SQL admin password required).
+     */
+    public static async createSqlServer(
+        subscription: AzureSubscription,
+        resourceGroupName: string,
+        serverName: string,
+        location: string,
+    ): Promise<Server> {
+        const sql = new SqlManagementClient(subscription.credential, subscription.subscriptionId, {
+            endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+        });
+
+        const poller = await sql.servers.beginCreateOrUpdate(resourceGroupName, serverName, {
+            location,
+            administrators: {
+                administratorType: "ActiveDirectory",
+                azureADOnlyAuthentication: true,
+            },
+        });
+        return poller.pollUntilDone();
+    }
+
     public static async fetchSqlResourcesForSubscription<
         TServer extends TrackedResource,
         TDatabase extends TrackedResource,

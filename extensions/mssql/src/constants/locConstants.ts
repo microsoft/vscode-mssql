@@ -1389,6 +1389,9 @@ export class AzureSqlDatabase {
     public static selectLocation = l10n.t("Select a location for the resource group");
     public static resourceGroupNameIsRequired = l10n.t("Resource group name is required");
     public static creating = l10n.t("Creating...");
+    public static enterServerName = l10n.t("Enter a name for the new server");
+    public static serverNameIsRequired = l10n.t("Server name is required");
+    public static creatingServer = l10n.t("Creating server...");
 }
 
 export class FabricProvisioning {

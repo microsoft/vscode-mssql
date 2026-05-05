@@ -1827,6 +1827,10 @@ export class LocConstants {
             loadingLocations: l10n.t("Loading locations"),
             creatingResourceGroup: l10n.t("Creating resource group..."),
             create: l10n.t("Create"),
+            createNewServer: l10n.t("Create New Server"),
+            serverName: l10n.t("Server Name"),
+            enterServerName: l10n.t("Enter server name"),
+            creatingServer: l10n.t("Creating server..."),
         };
     }
 

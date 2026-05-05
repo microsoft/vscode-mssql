@@ -106,6 +106,16 @@ const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }
                     spec: spec,
                 });
             },
+            setCreateServerDialogState: function (shouldOpen: boolean): void {
+                extensionRpc.action("setCreateServerDialogState", {
+                    shouldOpen: shouldOpen,
+                });
+            },
+            submitCreateServer: function (spec): void {
+                extensionRpc.action("submitCreateServer", {
+                    spec: spec,
+                });
+            },
             //#endregion
         }),
         [extensionRpc],

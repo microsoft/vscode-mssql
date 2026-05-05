@@ -14,6 +14,7 @@ import {
     AzureSqlDatabaseState,
     AZURE_SQL_DB_COMPONENT_ORDER,
     CreateResourceGroupDialogProps,
+    CreateServerDialogProps,
 } from "../../../../sharedInterfaces/azureSqlDatabase";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../common/locConstants";
@@ -27,6 +28,7 @@ import {
 } from "../../../common/searchableDropdown.component";
 import { ConnectionGroupDialog } from "../../ConnectionGroup/connectionGroup.component";
 import { CreateResourceGroupDialog } from "./createResourceGroupDialog";
+import { CreateServerDialog } from "./createServerDialog";
 import { DeploymentContext } from "../deploymentStateProvider";
 import { useAzureSqlDatabaseDeploymentSelector } from "../deploymentSelector";
 
@@ -239,6 +241,18 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                             });
                         }}
                         onClose={() => context.setCreateResourceGroupDialogState(false)}
+                    />
+                )}
+                {dialog?.type === "createServer" && (
+                    <CreateServerDialog
+                        state={(dialog as CreateServerDialogProps).props}
+                        onSubmit={(serverName, location) => {
+                            context.submitCreateServer({
+                                serverName,
+                                location,
+                            });
+                        }}
+                        onClose={() => context.setCreateServerDialogState(false)}
                     />
                 )}
                 {renderAzureField("accountId")}

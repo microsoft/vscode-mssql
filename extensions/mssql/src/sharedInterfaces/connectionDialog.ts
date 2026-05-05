@@ -114,7 +114,8 @@ export interface IDialogProps {
         | "createConnectionGroup"
         | "changePassword"
         | "fileBrowser"
-        | "createResourceGroup";
+        | "createResourceGroup"
+        | "createServer";
 }
 
 export interface TrustServerCertDialogProps extends IDialogProps {

@@ -90,11 +90,30 @@ export interface CreateResourceGroupSpec {
     location: string;
 }
 
+export interface CreateServerDialogState {
+    locationOptions: { name: string; displayName: string }[];
+    locationsLoadState: ApiStatus;
+    createLoadState: ApiStatus;
+    message?: string;
+}
+
+export interface CreateServerDialogProps extends IDialogProps {
+    type: "createServer";
+    props: CreateServerDialogState;
+}
+
+export interface CreateServerSpec {
+    serverName: string;
+    location: string;
+}
+
 export interface AzureSqlDatabaseContextProps extends FormContextProps<AzureSqlDatabaseFormState> {
     loadAzureComponent(componentName: string): void;
     startAzureSqlDatabaseDeployment(): void;
     setCreateResourceGroupDialogState(shouldOpen: boolean): void;
     submitCreateResourceGroup(spec: CreateResourceGroupSpec): void;
+    setCreateServerDialogState(shouldOpen: boolean): void;
+    submitCreateServer(spec: CreateServerSpec): void;
 }
 
 export interface AzureSqlDatabaseReducers extends FormReducers<AzureSqlDatabaseFormState> {
@@ -102,4 +121,6 @@ export interface AzureSqlDatabaseReducers extends FormReducers<AzureSqlDatabaseF
     startAzureSqlDatabaseDeployment: {};
     setCreateResourceGroupDialogState: { shouldOpen: boolean };
     submitCreateResourceGroup: { spec: CreateResourceGroupSpec };
+    setCreateServerDialogState: { shouldOpen: boolean };
+    submitCreateServer: { spec: CreateServerSpec };
 }

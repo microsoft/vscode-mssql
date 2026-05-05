@@ -1586,6 +1586,9 @@
     <trans-unit id="++CODE++9d81b93dc08c52e0f2e02d5397b390f7a94f0d4621c48a18a1a59b163acfda78">
       <source xml:lang="en">Create New Resource Group</source>
     </trans-unit>
+    <trans-unit id="++CODE++bab90f75906255b3122103084e6016632ae14f76d6447b95c84c4e4d7db51ec1">
+      <source xml:lang="en">Create New Server</source>
+    </trans-unit>
     <trans-unit id="++CODE++12d088d1b1386a6196de28580f5092baa6b0e0241453a084aa45af5d5b218d4f">
       <source xml:lang="en">Create REST, GraphQL, and MCP endpoints for your SQL database tables from a visual interface within Visual Studio Code. Configure entities, permissions, and deployment settings — then deploy locally with Docker.</source>
     </trans-unit>
@@ -1647,6 +1650,9 @@
     </trans-unit>
     <trans-unit id="++CODE++db8b5a02307f785d43d26d74dc565aea97f8ac3f8ff36d6f7979440b000973c0">
       <source xml:lang="en">Creating resource group...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f0484b375485ef8d2883902cf1f5e0c2a204fc76cae01d6b3864c461c55df828">
+      <source xml:lang="en">Creating server...</source>
     </trans-unit>
     <trans-unit id="++CODE++aafbad1d95b40db9d90a7665175501a1a2717b2b4ce3ab2e91b9d58ef5c4bb5b">
       <source xml:lang="en">Creating session...</source>
@@ -2182,6 +2188,9 @@
     <trans-unit id="++CODE++66b21d157405ff2789b283f4f29e225854443edee43a0694233cdd063de255dc">
       <source xml:lang="en">Enter a name for the new resource group</source>
     </trans-unit>
+    <trans-unit id="++CODE++f302fdbca94d65797221e8c829c55961e7b47aebf753ca2dd797862c8453649a">
+      <source xml:lang="en">Enter a name for the new server</source>
+    </trans-unit>
     <trans-unit id="++CODE++8c50a1a6a69f19f52d48a8ec9ac6d8fa30c1b8ae5f3b9448aabffc2dd94184c9">
       <source xml:lang="en">Enter a number...</source>
     </trans-unit>
@@ -2226,6 +2235,9 @@
     </trans-unit>
     <trans-unit id="++CODE++aae46441eaafc59419fdc91d2a14f13e534b533fecd19a1b47833c18862731fe">
       <source xml:lang="en">Enter resource group name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++01361e7512312c886672147a57fe766787e82c148e04d8c5e26897ff5bba3bef">
+      <source xml:lang="en">Enter server name</source>
     </trans-unit>
     <trans-unit id="++CODE++a462b8c590652563cb55e5dc6e55e0b7ac0123f0a5dd70f9043bdef3d4fa5417">
       <source xml:lang="en">Enter text...</source>
@@ -5800,6 +5812,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a0c0b90c3260929ade879e7cfe35629e6ed60fb62be887a77fe8ada9376a7ba7">
       <source xml:lang="en">Server is required</source>
+    </trans-unit>
+    <trans-unit id="++CODE++065750f922eb26ea9f58d758bc1adbc7a22a2c8642a4f5f2b82e27c31e053d3a">
+      <source xml:lang="en">Server name is required</source>
     </trans-unit>
     <trans-unit id="++CODE++9e28d8dd2c02f540827e4ea6f0fb6d1340a82e35a653a2ea2cc3ef0ce1ba0ce3">
       <source xml:lang="en">Server name not set.</source>
