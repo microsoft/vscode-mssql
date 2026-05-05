@@ -329,6 +329,39 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             return dataRow;
         }
 
+        // Inline action column (right of the checkbox selector) that shows an
+        // undo arrow on rows marked for delete. The icon is dimmed on rows that
+        // aren't deleted so the column has a consistent visual width.
+        function createUndoColumn(): Column {
+            return {
+                id: "undo",
+                field: "id",
+                name: "",
+                excludeFromColumnPicker: true,
+                excludeFromGridMenu: true,
+                excludeFromHeaderMenu: true,
+                formatter: (
+                    _row: number,
+                    _cell: number,
+                    _value: any,
+                    _columnDef: any,
+                    dataContext: any,
+                ) => {
+                    const rowId = dataContext.id;
+                    const isDeleted = deletedRowsRef.current.has(rowId);
+                    const iconClass = isDeleted
+                        ? "fi fi-arrow-undo action-icon pointer"
+                        : "fi fi-arrow-undo action-icon disabled";
+                    return createDomElement("i", {
+                        className: iconClass,
+                        title: isDeleted ? loc.tableExplorer.revertRow : "",
+                    });
+                },
+                minWidth: 30,
+                maxWidth: 30,
+            };
+        }
+
         // Create columns from columnInfo
         function createColumns(columnInfo: any[], currentThemeKind?: ColorThemeKind): Column[] {
             // Data columns
@@ -558,9 +591,12 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             if (isInitialLoad || columnCountChanged) {
                 console.log("Full grid initialization");
 
-                const newColumns = createColumns(resultSet.columnInfo, currentTheme);
+                const dataColumns = createColumns(resultSet.columnInfo, currentTheme);
+                const newColumns = [createUndoColumn(), ...dataColumns];
                 setColumns(newColumns);
-                columnsRef.current = newColumns;
+                // columnsRef tracks data columns only; the undo column is excluded
+                // so column-picker / visibility logic doesn't try to manage it.
+                columnsRef.current = dataColumns;
                 const displayNames = new Map<string | number, string>();
                 resultSet.columnInfo.forEach((c: any, i: number) => {
                     displayNames.set(`col${i}`, c.name);
@@ -858,6 +894,85 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             }
         }
 
+        // Shared revert-row logic used by both the inline undo button and the
+        // context menu's "Revert Row" command. Notifies the backend, clears
+        // local deletion / cell-change tracking for the row, and updates parent
+        // counters.
+        function revertRow(rowId: number) {
+            if (onRevertRow) {
+                onRevertRow(rowId);
+            }
+
+            deletedRowsRef.current.delete(rowId);
+
+            const keysToDelete: string[] = [];
+            cellChangesRef.current.forEach((_, key) => {
+                if (key.startsWith(`${rowId}-`)) {
+                    keysToDelete.push(key);
+                }
+            });
+            keysToDelete.forEach((key) => {
+                cellChangesRef.current.delete(key);
+                failedCellsRef.current.delete(key);
+            });
+
+            if (onCellChangeCountChanged) {
+                onCellChangeCountChanged(cellChangesRef.current.size);
+            }
+            if (onDeletionCountChanged) {
+                onDeletionCountChanged(deletedRowsRef.current.size);
+            }
+        }
+
+        function handleCellClick(_e: Event, args: any) {
+            const metadata = reactGridRef.current?.gridService.getColumnFromEventArguments(args);
+            if (metadata?.columnDef.id !== "undo") {
+                return;
+            }
+            const rowId = metadata?.dataContext?.id;
+            if (rowId === undefined || !deletedRowsRef.current.has(rowId)) {
+                return;
+            }
+
+            if (reactGridRef.current?.paginationService) {
+                lastPageRef.current = reactGridRef.current.paginationService.pageNumber;
+                lastItemsPerPageRef.current = reactGridRef.current.paginationService.itemsPerPage;
+            }
+
+            revertRow(rowId);
+        }
+
+        function handleCellKeyDown(e: KeyboardEvent, _args: any) {
+            if (e.key !== "Enter") {
+                return;
+            }
+            const grid = reactGridRef.current?.slickGrid;
+            if (!grid) {
+                return;
+            }
+            const activeCell = grid.getActiveCell();
+            if (!activeCell) {
+                return;
+            }
+            const column = grid.getVisibleColumns()[activeCell.cell];
+            if (column?.id !== "undo") {
+                return;
+            }
+            const dataItem = grid.getDataItem(activeCell.row);
+            if (!dataItem || !deletedRowsRef.current.has(dataItem.id)) {
+                return;
+            }
+
+            if (reactGridRef.current?.paginationService) {
+                lastPageRef.current = reactGridRef.current.paginationService.pageNumber;
+                lastItemsPerPageRef.current = reactGridRef.current.paginationService.itemsPerPage;
+            }
+
+            revertRow(dataItem.id);
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
         function handleContextMenuCommand(_e: any, args: any) {
             // Capture pagination state
             if (reactGridRef.current?.paginationService) {
@@ -924,33 +1039,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     break;
 
                 case "revert-row":
-                    if (onRevertRow) {
-                        onRevertRow(rowId);
-                    }
-
-                    // Remove from deletion tracking if it was deleted
-                    deletedRowsRef.current.delete(rowId);
-
-                    // Remove tracked changes and failed cells for this row
-                    const keysToDeleteForRevert: string[] = [];
-                    cellChangesRef.current.forEach((_, key) => {
-                        if (key.startsWith(`${rowId}-`)) {
-                            keysToDeleteForRevert.push(key);
-                        }
-                    });
-                    keysToDeleteForRevert.forEach((key) => {
-                        cellChangesRef.current.delete(key);
-                        failedCellsRef.current.delete(key);
-                    });
-                    console.log(`Reverted row with ID ${rowId}`);
-
-                    // Notify parent of change count update
-                    if (onCellChangeCountChanged) {
-                        onCellChangeCountChanged(cellChangesRef.current.size);
-                    }
-                    if (onDeletionCountChanged) {
-                        onDeletionCountChanged(deletedRowsRef.current.size);
-                    }
+                    revertRow(rowId);
                     break;
 
                 case "modify-table":
@@ -1373,6 +1462,12 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     onCellChange={($event) => handleCellChange($event, $event.detail.args)}
                     onSelectedRowsChanged={($event) =>
                         handleSelectedRowsChanged($event, $event.detail.args)
+                    }
+                    onClick={($event) =>
+                        handleCellClick($event.detail.eventData, $event.detail.args)
+                    }
+                    onKeyDown={($event) =>
+                        handleCellKeyDown($event.detail.eventData, $event.detail.args)
                     }
                     onSort={($event) => handleSort($event, $event.detail.args)}
                 />
