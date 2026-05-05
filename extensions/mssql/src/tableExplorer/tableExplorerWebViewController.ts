@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as os from "os";
 import * as vscode from "vscode";
 import { WebviewPanelController } from "../controllers/webviewPanelController";
 import {
@@ -10,6 +11,7 @@ import {
     TableExplorerReducers,
     EditSessionReadyParams,
     DbCellValue,
+    SqlPaneMode,
 } from "../sharedInterfaces/tableExplorer";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import ConnectionManager from "../controllers/connectionManager";
@@ -17,9 +19,10 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { ITableExplorerService } from "../services/tableExplorerService";
 import { EditSessionReadyNotification } from "../models/contracts/tableExplorer";
-import { NotificationHandler } from "vscode-languageclient";
+import SqlToolsServiceClient from "../languageservice/serviceclient";
 import * as LocConstants from "../constants/locConstants";
 import { getErrorMessage, uuid } from "../utils/utils";
+import { bracketEscapeSqlIdentifier } from "../models/utils";
 import * as Constants from "../constants/constants";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
@@ -30,6 +33,31 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     TableExplorerReducers
 > {
     private operationId: string;
+    private _preserveTableQuery = false;
+    private _expectedOwnerUri: string = "";
+
+    // Shared dispatcher state. vscode-languageclient 5.2.1's onNotification can't
+    // return a Disposable, so registering one handler per controller would leak.
+    // Instead we register at the class level once and dispatch to live instances
+    // via _liveInstances. Each controller adds itself on initialize() and removes
+    // itself on dispose().
+    private static _sharedNotificationsRegistered = false;
+    private static _liveInstances = new Map<string, TableExplorerWebViewController>();
+
+    private static ensureSharedNotificationHandlers(client: SqlToolsServiceClient): void {
+        if (TableExplorerWebViewController._sharedNotificationsRegistered) {
+            return;
+        }
+        TableExplorerWebViewController._sharedNotificationsRegistered = true;
+
+        client.onNotification(
+            EditSessionReadyNotification.type,
+            (params: EditSessionReadyParams) => {
+                const instance = TableExplorerWebViewController._liveInstances.get(params.ownerUri);
+                instance?.onEditSessionReady(params);
+            },
+        );
+    }
 
     constructor(
         context: vscode.ExtensionContext,
@@ -63,6 +91,8 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 deletedRows: [], // Track rows marked for deletion
                 updateScript: undefined, // No script initially
                 showScriptPane: false, // Script pane hidden by default
+                sqlPaneMode: SqlPaneMode.ScriptChanges, // Default to script changes mode
+                tableQuery: undefined, // Populated after data loads
                 currentPage: 1, // Start on page 1
                 failedCells: [], // Track cells that failed to update
                 originalCellValues: new Map<string, DbCellValue>(), // Cache original values for reliable revert
@@ -93,13 +123,45 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             `TableExplorerWebViewController created for table: ${tableName} in database: ${databaseName} - OperationId: ${this.operationId}`,
         );
 
-        this._tableExplorerService.sqlToolsClient.onNotification(
-            EditSessionReadyNotification.type,
-            this.handleEditSessionReadyNotification(),
+        TableExplorerWebViewController.ensureSharedNotificationHandlers(
+            this._tableExplorerService.sqlToolsClient,
         );
 
         void this.initialize();
         this.registerRpcHandlers();
+    }
+
+    /**
+     * Invoked by the shared dispatcher when an EditSessionReady notification arrives
+     * for this controller's ownerUri.
+     */
+    private onEditSessionReady(result: EditSessionReadyParams): void {
+        if (result.success) {
+            this.state.ownerUri = result.ownerUri;
+            this.state.loadStatus = ApiStatus.Loading;
+            this.updateState();
+
+            void this.loadResultSet();
+        } else {
+            // STS surfaces human-readable messages for syntax errors, multi-table /
+            // duplicate-column queries, missing objects, etc. — pass those through
+            // verbatim instead of wrapping in our generic toast, falling back only
+            // when the server didn't supply one.
+            const serverMessage = result.message?.trim() ?? "";
+            const toastMessage =
+                serverMessage.length > 0
+                    ? serverMessage
+                    : LocConstants.TableExplorer.failedToRunTableQuery("");
+            this.logger.error(
+                `Edit session failed to initialize: ${toastMessage} - OperationId: ${this.operationId}`,
+            );
+            this.state.loadStatus = ApiStatus.Error;
+            this.state.resultSet = undefined;
+            this._preserveTableQuery = false;
+            this.updateState();
+
+            void vscode.window.showErrorMessage(toastMessage);
+        }
     }
 
     /**
@@ -147,6 +209,12 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
             const objectType = this._targetNode.metadata.metadataTypeName.toUpperCase();
 
+            // Track the expected ownerUri up-front so the shared notification dispatcher
+            // can route notifications to this controller as soon as they start arriving,
+            // even before EditSessionReady sets state.ownerUri.
+            this._expectedOwnerUri = ownerUri;
+            TableExplorerWebViewController._liveInstances.set(ownerUri, this);
+
             let connectionCreds = Object.assign({}, this._targetNode.connectionProfile);
             const databaseName = ObjectExplorerUtils.getDatabaseName(this._targetNode);
 
@@ -167,7 +235,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             await this._tableExplorerService.initialize(
                 ownerUri,
                 objectName,
-                schemaName,
+                schemaName ?? "",
                 objectType,
                 undefined,
             );
@@ -200,25 +268,68 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         }
     }
 
-    private handleEditSessionReadyNotification(): NotificationHandler<EditSessionReadyParams> {
-        const self = this;
-        return (result: EditSessionReadyParams): void => {
-            if (result.success) {
-                self.state.ownerUri = result.ownerUri;
-                self.state.loadStatus = ApiStatus.Loading;
-                self.updateState();
+    private async loadResultSet(): Promise<void> {
+        try {
+            const subsetResult = await this._tableExplorerService.subset(
+                this.state.ownerUri,
+                0,
+                this.state.currentRowCount,
+            );
+            this.state.resultSet = subsetResult;
+            this.state.loadStatus = ApiStatus.Loaded;
 
-                void self.loadResultSet();
+            if (this._preserveTableQuery) {
+                this._preserveTableQuery = false;
+            } else {
+                this.state.tableQuery = this.buildDefaultSelectQuery();
             }
-        };
+
+            this.updateState();
+        } catch (error) {
+            // subset() is invoked fire-and-forget from onEditSessionReady, so an
+            // unhandled rejection here would leave the grid stuck in the Loading
+            // overlay forever. Surface the failure and drop the stale result set
+            // so the UI can transition to the error state.
+            this.logger.error(
+                `Error loading result set: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+            );
+            this.state.loadStatus = ApiStatus.Error;
+            this.state.resultSet = undefined;
+            this._preserveTableQuery = false;
+            this.updateState();
+
+            void vscode.window.showErrorMessage(
+                LocConstants.TableExplorer.failedToLoadData(getErrorMessage(error)),
+            );
+        }
     }
 
-    private async loadResultSet(): Promise<void> {
-        const subsetResult = await this._tableExplorerService.subset(this.state.ownerUri, 0, 100);
-        this.state.resultSet = subsetResult;
-        this.state.loadStatus = ApiStatus.Loaded;
+    /**
+     * Builds a default SELECT query based on the current result set columns and table metadata.
+     * Format:
+     *   SELECT TOP {currentRowCount}
+     *       [col1],
+     *       [col2],
+     *       ...
+     *   FROM [schema].[table]
+     */
+    private buildDefaultSelectQuery(): string {
+        const columns = this.state.resultSet?.columnInfo;
+        if (!columns || columns.length === 0) {
+            return "";
+        }
 
-        this.updateState();
+        const columnList = columns
+            .map((col) => `    ${bracketEscapeSqlIdentifier(col.name)}`)
+            .join("," + os.EOL);
+        const schemaName = this.state.schemaName;
+        const tableName = this.state.tableName;
+        const escapedTable = bracketEscapeSqlIdentifier(tableName);
+        const qualifiedName = schemaName
+            ? `${bracketEscapeSqlIdentifier(schemaName)}.${escapedTable}`
+            : escapedTable;
+
+        return `SELECT TOP ${this.state.currentRowCount}${os.EOL}${columnList}${os.EOL}FROM ${qualifiedName}`;
     }
 
     /**
@@ -228,7 +339,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     private async regenerateScript(state: TableExplorerWebViewState): Promise<void> {
         try {
             const scriptResult = await this._tableExplorerService.generateScripts(state.ownerUri);
-            const combinedScript = scriptResult.scripts?.join("\n") || "";
+            const combinedScript = scriptResult.scripts?.join(os.EOL) || "";
             state.updateScript = combinedScript;
             this.updateState();
             this.logger.info("Script regenerated successfully in real-time");
@@ -242,7 +353,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
      * Call this after updating state when data changes occur.
      */
     private async regenerateScriptIfVisible(state: TableExplorerWebViewState): Promise<void> {
-        if (state.showScriptPane) {
+        if (state.showScriptPane && state.sqlPaneMode === SqlPaneMode.ScriptChanges) {
             await this.regenerateScript(state);
         }
     }
@@ -356,6 +467,11 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
                 state.currentRowCount = payload.rowCount;
                 state.loadStatus = ApiStatus.Loaded;
+
+                // Regenerate the displayed query so the toolbar's row count
+                // and the SQL pane stay in sync. buildDefaultSelectQuery reads
+                // currentRowCount, which we just updated.
+                state.tableQuery = this.buildDefaultSelectQuery();
 
                 this.updateState();
 
@@ -1013,7 +1129,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 );
 
                 // Combine script array into single string
-                const combinedScript = scriptResult.scripts?.join("\n") || "";
+                const combinedScript = scriptResult.scripts?.join(os.EOL) || "";
                 this.logger.info(
                     `Script result received: ${scriptResult.scripts?.length} script(s), combined length: ${combinedScript.length} - OperationId: ${this.operationId}`,
                 );
@@ -1021,6 +1137,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 // Update state with script and show pane
                 state.updateScript = combinedScript;
                 state.showScriptPane = true;
+                state.sqlPaneMode = SqlPaneMode.ScriptChanges;
 
                 this.logger.info(
                     `State before updateState - updateScript length: ${state.updateScript?.length}, showScriptPane: ${state.showScriptPane}`,
@@ -1254,6 +1371,190 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             return state;
         });
 
+        this.registerReducer("showTableQuery", async (state) => {
+            this.logger.info(`Showing table query pane - OperationId: ${this.operationId}`);
+
+            sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.ShowTableQuery, {
+                operationId: this.operationId,
+            });
+
+            state.showScriptPane = true;
+            state.sqlPaneMode = SqlPaneMode.TableQuery;
+            this.updateState();
+
+            return state;
+        });
+
+        this.registerReducer("runTableQuery", async (state, payload) => {
+            this.logger.info(`Running custom table query - OperationId: ${this.operationId}`);
+
+            const startTime = Date.now();
+            const endActivity = startActivity(
+                TelemetryViews.TableExplorer,
+                TelemetryActions.RunTableQuery,
+                uuid(),
+                {
+                    startTime: startTime.toString(),
+                    operationId: this.operationId,
+                },
+            );
+
+            // Validate input before tearing down the session
+            if (!payload.queryString || !payload.queryString.trim()) {
+                this.logger.info("Empty query string provided, skipping custom query");
+                endActivity.end(ActivityStatus.Succeeded, {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                    cancelled: "true",
+                });
+                return state;
+            }
+
+            if (!state.ownerUri) {
+                this.logger.error(
+                    "Cannot run custom query without an active session (missing ownerUri)",
+                );
+                endActivity.endFailed(
+                    new Error("No active session"),
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
+                    {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
+                );
+                return state;
+            }
+
+            // Check for pending changes and warn the user
+            const hasPendingChanges =
+                state.newRows.length > 0 ||
+                state.deletedRows.length > 0 ||
+                (state.originalCellValues && state.originalCellValues.size > 0);
+
+            if (hasPendingChanges) {
+                const result = await vscode.window.showWarningMessage(
+                    LocConstants.TableExplorer.pendingChangesWillBeLost,
+                    { modal: true },
+                    LocConstants.TableExplorer.Continue,
+                );
+
+                if (result !== LocConstants.TableExplorer.Continue) {
+                    this.logger.info("User cancelled custom query due to pending changes");
+                    endActivity.end(ActivityStatus.Succeeded, {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                        cancelled: "true",
+                    });
+                    return state;
+                }
+            }
+
+            state.loadStatus = ApiStatus.Loading;
+
+            // Clear the stale result set so the frontend transitions from undefined → new data,
+            // guaranteeing a full grid re-initialization (Scenario 1) rather than an incremental
+            // update (Scenario 3) when the new result set arrives via loadResultSet().
+            state.resultSet = undefined;
+            this.updateState();
+
+            // Dispose the current edit session — may already be disposed after a cancel
+            try {
+                await this._tableExplorerService.dispose(state.ownerUri);
+            } catch {
+                // Session may already be disposed (e.g., after cancel) — safe to ignore
+            }
+
+            // Clear pending changes immediately after dispose — the backend session
+            // is gone so these are stale regardless of whether re-initialize succeeds
+            state.newRows = [];
+            state.deletedRows = [];
+            state.failedCells = [];
+            state.originalCellValues?.clear();
+            state.updateScript = undefined;
+            this.showRestorePromptAfterClose = false;
+
+            const objectName = state.tableName;
+            const schemaName = state.schemaName;
+            const objectType = this._targetNode.metadata.metadataTypeName.toUpperCase();
+
+            try {
+                // Re-initialize with the custom query. This kicks off the session;
+                // the actual query execution completes asynchronously and is signalled
+                // by EditSessionReady
+                await this._tableExplorerService.initialize(
+                    state.ownerUri,
+                    objectName,
+                    schemaName ?? "",
+                    objectType,
+                    payload.queryString,
+                );
+
+                // Persist the custom query so loadResultSet won't overwrite it with the default
+                state.tableQuery = payload.queryString;
+                this._preserveTableQuery = true;
+
+                // Callers that change the row count (e.g. the toolbar selector)
+                // pass the new count alongside the query so the toolbar stays in
+                // sync. Filter apply/clear paths leave it undefined since they
+                // don't change the count.
+                if (payload.rowCount !== undefined) {
+                    state.currentRowCount = payload.rowCount;
+                }
+
+                this.logger.info(
+                    `Custom query session re-initialized successfully - OperationId: ${this.operationId}`,
+                );
+
+                endActivity.end(ActivityStatus.Succeeded, {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                });
+            } catch (error) {
+                this.logger.error(
+                    `Error running custom table query: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                );
+
+                // Attempt to restore original session
+                try {
+                    await this._tableExplorerService.initialize(
+                        state.ownerUri,
+                        objectName,
+                        schemaName ?? "",
+                        objectType,
+                        undefined,
+                    );
+
+                    this.logger.info("Restored original session after custom query failure");
+                } catch (restoreError) {
+                    this.logger.error(
+                        `Failed to restore original session: ${getErrorMessage(restoreError)}`,
+                    );
+                    state.loadStatus = ApiStatus.Error;
+                }
+
+                this.updateState();
+
+                endActivity.endFailed(
+                    new Error("Failed to run custom table query"),
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
+                    {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
+                );
+
+                vscode.window.showErrorMessage(
+                    LocConstants.TableExplorer.failedToRunTableQuery(getErrorMessage(error)),
+                );
+            }
+
+            return state;
+        });
+
         this.registerReducer("modifyTable", async (state, _payload) => {
             this.logger.info(`Opening Table Designer - OperationId: ${this.operationId}`);
 
@@ -1361,6 +1662,33 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
             return state;
         });
+
+        this.registerReducer("showSql", async (state, payload) => {
+            const sqlText = (payload?.sqlText ?? state.tableQuery ?? "").toString();
+            if (!sqlText.trim()) {
+                vscode.window.showWarningMessage(LocConstants.TableExplorer.noScriptToOpen);
+                return state;
+            }
+            try {
+                const doc = await vscode.workspace.openTextDocument({
+                    content: sqlText,
+                    language: "sql",
+                });
+                await vscode.window.showTextDocument(doc, { preview: false });
+                sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.Open, {
+                    operationId: this.operationId,
+                    context: "showSql",
+                });
+            } catch (error) {
+                this.logger.error(
+                    `Error opening SQL in editor: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                );
+                vscode.window.showErrorMessage(
+                    LocConstants.TableExplorer.failedToOpenScript(getErrorMessage(error)),
+                );
+            }
+            return state;
+        });
     }
 
     /**
@@ -1369,10 +1697,13 @@ export class TableExplorerWebViewController extends WebviewPanelController<
      * Prompts the user to save or discard changes, then allows disposal to continue.
      * Always returns undefined to allow the close to proceed after handling the user's choice.
      */
-    protected override async showRestorePrompt(): Promise<{
-        title: string;
-        run: () => Promise<void>;
-    }> {
+    protected override async showRestorePrompt(): Promise<
+        | {
+              title: string;
+              run: () => Promise<void>;
+          }
+        | undefined
+    > {
         const result = await vscode.window.showWarningMessage(
             LocConstants.TableExplorer.unsavedChangesPrompt(this.state.tableName),
             {
@@ -1414,10 +1745,18 @@ export class TableExplorerWebViewController extends WebviewPanelController<
      * This is called when the webview tab is closed (after any prompts are handled).
      */
     public override dispose(): void {
+        // Use _expectedOwnerUri rather than state.ownerUri: state.ownerUri is set
+        // by onEditSessionReady, so a tab closed before that notification fires
+        // would otherwise leak this controller in _liveInstances.
+        if (this._expectedOwnerUri) {
+            TableExplorerWebViewController._liveInstances.delete(this._expectedOwnerUri);
+        }
+
         if (this.state.ownerUri) {
             this.logger.info(
                 `Disposing Table Explorer resources for ownerUri: ${this.state.ownerUri}`,
             );
+
             void this._tableExplorerService.dispose(this.state.ownerUri).catch((error) => {
                 this.logger.error(
                     `Error disposing table explorer service: ${getErrorMessage(error)}`,

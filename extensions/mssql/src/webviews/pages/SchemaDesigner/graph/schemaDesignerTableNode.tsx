@@ -354,6 +354,7 @@ const TableHeader = ({ table }: { table: SchemaDesigner.TableWithDeletedFlag }) 
     const styles = useStyles();
     const context = useContext(SchemaDesignerContext);
     const changeContext = useSchemaDesignerChangeContext();
+    const isReadOnly = useSchemaDesignerSelector((s) => s?.isReadOnly) ?? false;
     const isDeletedTable = table.isDeleted === true;
     const tableHighlight = changeContext.modifiedTableHighlights.get(table.id);
     const showQualifiedDiff =
@@ -431,7 +432,9 @@ const TableHeader = ({ table }: { table: SchemaDesigner.TableWithDeletedFlag }) 
                         )}
                     </Text>
                 </ConditionalTooltip>
-                {!context.isExporting && !isDeletedTable && <TableHeaderActions table={table} />}
+                {!context.isExporting && !isDeletedTable && !isReadOnly && (
+                    <TableHeaderActions table={table} />
+                )}
             </div>
             <div className={styles.tableSubtitle}>
                 {locConstants.schemaDesigner.tableNodeSubText(table.columns.length)}

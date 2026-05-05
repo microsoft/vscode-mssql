@@ -112,6 +112,20 @@
     padding-left: 8px;
 }
 
+/* Newly inserted row highlight (persists until saved or reverted) */
+#tableExplorerGrid .slick-row.new-row {
+    background-color: var(--vscode-editorWarning-background, rgba(255, 235, 110, 0.35)) !important;
+    border-left: 3px solid var(--vscode-editorWarning-foreground, #d7ba7d);
+}
+
+#tableExplorerGrid .slick-row.new-row:hover {
+    background-color: var(--vscode-editorWarning-background, rgba(255, 235, 110, 0.5)) !important;
+}
+
+#tableExplorerGrid .slick-row.new-row.selected {
+    background-color: var(--vscode-list-activeSelectionBackground) !important;
+}
+
 /* Deleted row styles - uses VS Code theme variables for automatic light/dark theme support */
 #tableExplorerGrid .slick-row.deleted-row {
     background-color: var(--vscode-diffEditor-removedLineBackground) !important;
@@ -129,6 +143,46 @@
     text-decoration: line-through;
     color: var(--vscode-disabledForeground) !important;
     opacity: 0.7;
+}
+
+/* Action icon styles for the inline undo button */
+.action-icon {
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.action-icon.pointer {
+    cursor: pointer;
+    color: var(--vscode-foreground);
+}
+
+.action-icon.pointer:hover {
+    color: var(--vscode-focusBorder);
+}
+
+.action-icon.disabled {
+    cursor: default;
+    color: var(--vscode-disabledForeground);
+    opacity: 0.4;
+}
+
+/* Keep the action icon legible on deleted rows — strip the row's
+   strikethrough/dim styling so the active undo arrow stands out. */
+#tableExplorerGrid .slick-row.deleted-row .slick-cell .action-icon {
+    text-decoration: none;
+    opacity: 1;
+}
+
+#tableExplorerGrid .slick-row.deleted-row .slick-cell .action-icon.disabled {
+    opacity: 0.4;
+}
+
+#tableExplorerGrid .slick-row.deleted-row .slick-cell .action-icon.pointer {
+    color: var(--vscode-foreground);
 }
 
 /* Search bar styles */
@@ -301,43 +355,73 @@
     color: var(--vscode-list-activeSelectionForeground) !important;
 }
 
-/* Action icon styles for delete and undo buttons */
-.action-icon {
-    font-size: 16px;
-    display: flex;
-    align-items: center;
+/* Column header with data type beside the column name */
+#tableExplorerGrid .slick-header-column .column-name {
+    font-weight: 600;
+}
+
+#tableExplorerGrid .slick-header-column .column-data-type {
+    margin-left: 6px;
+    font-weight: normal;
+    font-style: italic;
+    color: var(--vscode-descriptionForeground);
+    opacity: 0.85;
+}
+
+/* The select-all checkbox lives in a `slick-header-column` whose default
+   background is the slickgrid header panel color — slightly lighter than the
+   editor background used by row cells. That makes the header checkbox look
+   visually heavier than the row checkboxes. Match the cell background so all
+   checkboxes read the same. */
+/* Match by content via :has() rather than slickgrid's `header-checkbox-selectall`
+   class — that class isn't added until the first time renderSelectAllCheckbox
+   runs (after a selection event), so before any click the header cell still
+   shows the slickgrid panel background. */
+#tableExplorerGrid .slick-header-column:has(.checkbox-selector-label),
+#tableExplorerGrid .slick-header-column.header-checkbox-selectall {
+    background-color: var(--vscode-editor-background) !important;
+}
+
+/* Center the checkbox in both the header and the body cells. The body cells
+   inherit a 4px horizontal padding from the global .slick-cell rule, which
+   shifts row checkboxes to the right of the header one. Zero it out for the
+   checkbox column and center the content so all checkboxes line up. */
+#tableExplorerGrid .slick-cell:has(.checkbox-selector-label) {
+    padding-left: 0;
+    padding-right: 0;
     justify-content: center;
-    width: 100%;
-    height: 100%;
+}
+#tableExplorerGrid .slick-header-column.header-checkbox-selectall .checkbox-selector-label {
+    display: flex;
+    justify-content: center;
 }
 
-.action-icon.pointer {
-    cursor: pointer;
+/* Override SlickGrid checkbox icon color to match the VS Code theme instead of
+   the default Bootstrap blue (#0f6cbd). The .sgi icon divs render via CSS mask
+   (SVG clipped from background-color:currentColor), so setting color here is
+   what drives the icon fill color. The unchecked state uses 0.25 opacity to
+   show the icon dimmed; the checked state is full opacity. */
+#tableExplorerGrid .slick-cell-checkboxsel .icon-checkbox-container div.sgi,
+#tableExplorerGrid .slick-column-name .icon-checkbox-container div.sgi,
+#tableExplorerGrid .slick-headerrow-column .icon-checkbox-container div.sgi {
     color: var(--vscode-foreground);
 }
 
-.action-icon.pointer:hover {
-    color: var(--vscode-focusBorder);
-}
-
-.action-icon.disabled {
-    cursor: default;
-    color: var(--vscode-disabledForeground);
-    opacity: 0.4;
-}
-
-/* Ensure action icons in deleted rows don't get line-through */
-#tableExplorerGrid .slick-row.deleted-row .slick-cell .action-icon {
-    text-decoration: none;
-    opacity: 1;
-}
-
-#tableExplorerGrid .slick-row.deleted-row .slick-cell .action-icon.disabled {
-    opacity: 0.4;
-}
-
-#tableExplorerGrid .slick-row.deleted-row .slick-cell .action-icon.pointer {
-    color: var(--vscode-foreground);
+/* Always show a "both directions" sort indicator on sortable columns that are
+   not currently sorted, so users can see at a glance which columns are
+   sortable. SlickGrid's own .slick-sort-indicator-asc / -desc rules take
+   over once a sort is applied (and our :not() selector here stops matching).
+   Reuses the same sort.svg asset the query results grid uses; mask +
+   currentColor keeps the icon themed via --vscode-foreground. */
+#tableExplorerGrid
+    .slick-header-column.slick-header-sortable:not(.slick-header-column-sorted)
+    .slick-sort-indicator:not(.slick-sort-indicator-asc):not(.slick-sort-indicator-desc) {
+    opacity: 0.55;
+    background-color: currentColor;
+    -webkit-mask: url("../../media/sort.svg") no-repeat center;
+    mask: url("../../media/sort.svg") no-repeat center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
 }
 
 /* Cell range selection styles (for Excel copy buffer / Ctrl+drag selection) */

@@ -77,12 +77,24 @@ export const TableExplorerStateProvider: React.FC<{
                 extensionRpc.action("saveResults", { format, data });
             },
 
+            showTableQuery: function (): void {
+                extensionRpc.action("showTableQuery", {});
+            },
+
+            runTableQuery: function (queryString: string, rowCount?: number): void {
+                extensionRpc.action("runTableQuery", { queryString, rowCount });
+            },
+
             modifyTable: function (): void {
                 extensionRpc.action("modifyTable", {});
             },
 
             viewTableDiagram: function (): void {
                 extensionRpc.action("viewTableDiagram", {});
+            },
+
+            showSql: function (sqlText: string): void {
+                extensionRpc.action("showSql", { sqlText });
             },
         }),
         [extensionRpc],

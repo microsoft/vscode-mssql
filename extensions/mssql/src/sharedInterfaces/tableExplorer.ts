@@ -5,6 +5,11 @@
 
 import { ApiStatus } from "./webview";
 
+export enum SqlPaneMode {
+    ScriptChanges = "scriptChanges",
+    TableQuery = "tableQuery",
+}
+
 export interface IEditSessionOperationParams {
     ownerUri: string;
 }
@@ -89,6 +94,7 @@ export interface EditColumnInfo {
     name: string;
     isEditable: boolean;
     isNullable?: boolean;
+    dataTypeName?: string;
 }
 
 export interface EditSubsetResult {
@@ -190,6 +196,8 @@ export interface TableExplorerWebViewState {
     deletedRows: number[]; // Track row IDs marked for deletion (not yet committed)
     updateScript?: string; // SQL script generated from pending changes
     showScriptPane: boolean; // Whether to show the script pane
+    sqlPaneMode: SqlPaneMode; // Which mode the SQL pane is showing
+    tableQuery?: string; // The default SELECT query (constructed after data loads)
     currentPage?: number; // Track the current page number in the data grid
     failedCells?: string[]; // Track cells that failed to update (format: "rowId-columnId")
     originalCellValues?: Map<string, DbCellValue>; // Cache original cell values for reliable revert (key: "rowId-columnId")
@@ -209,8 +217,11 @@ export interface TableExplorerContextProps {
     toggleScriptPane: () => void;
     setCurrentPage: (pageNumber: number) => void;
     saveResults: (format: SupportedSaveFormats, data: ExportData) => void;
+    showTableQuery: () => void;
+    runTableQuery: (queryString: string, rowCount?: number) => void;
     modifyTable: () => void;
     viewTableDiagram: () => void;
+    showSql: (sqlText: string) => void;
 }
 
 export interface TableExplorerReducers {
@@ -227,8 +238,11 @@ export interface TableExplorerReducers {
     toggleScriptPane: {};
     setCurrentPage: { pageNumber: number };
     saveResults: { format: SupportedSaveFormats; data: ExportData };
+    showTableQuery: {};
+    runTableQuery: { queryString: string; rowCount?: number };
     modifyTable: {};
     viewTableDiagram: {};
+    showSql: { sqlText: string };
 }
 
 export interface ExportData {

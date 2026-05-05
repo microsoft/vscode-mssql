@@ -100,6 +100,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         private schemaDesignerCache: Map<string, SchemaDesigner.SchemaDesignerCacheItem>,
         private treeNode?: TreeNodeInfo,
         private connectionUri?: string,
+        isReadOnly: boolean = false,
     ) {
         super(
             context,
@@ -111,9 +112,14 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 isCopilotChatInstalled: isCopilotChatInstalled(),
                 copilotChatDiscoveryDismissed: getCopilotChatDiscoveryDismissedState(context),
                 activeView: SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner,
+                isReadOnly,
             },
             {
-                title: `${LocConstants.SchemaDesigner.PanelTitle} - ${databaseName}`,
+                // Drop the "(Preview)" suffix when launched read-only from the
+                // Table Explorer's table-diagram entry point.
+                title: isReadOnly
+                    ? `${LocConstants.SchemaDesigner.ReadOnlyPanelTitle} - ${databaseName}`
+                    : `${LocConstants.SchemaDesigner.PanelTitle} - ${databaseName}`,
                 viewColumn: vscode.ViewColumn.One,
                 iconPath: {
                     light: vscode.Uri.joinPath(

@@ -39,16 +39,23 @@ interface TableDataGridProps {
     currentRowCount?: number;
     failedCells?: string[];
     deletedRows?: number[];
+    newRowIds?: number[];
+    tableQuery?: string;
     onDeleteRow?: (rowId: number) => void;
     onUpdateCell?: (rowId: number, columnId: number, newValue: string) => void;
     onRevertCell?: (rowId: number, columnId: number) => void;
     onRevertRow?: (rowId: number) => void;
-    onLoadSubset?: (rowCount: number) => void;
     onCellChangeCountChanged?: (count: number) => void;
     onDeletionCountChanged?: (count: number) => void;
     onSelectedRowsChanged?: (selectedRowIds: number[]) => void;
     onSaveResults?: (format: "csv" | "json" | "excel", data: ExportData) => void;
     onModifyTable?: () => void;
+}
+
+export interface DataColumnVisibility {
+    id: string;
+    name: string;
+    visible: boolean;
 }
 
 export interface TableDataGridRef {
@@ -58,6 +65,11 @@ export interface TableDataGridRef {
     goToFirstPage: () => void;
     getSelectedRowIds: () => number[];
     clearSelection: () => void;
+    exportData: (format: "csv" | "excel" | "json") => void;
+    getDataColumns: () => DataColumnVisibility[];
+    setDataColumnVisibility: (id: string, visible: boolean) => void;
+    deleteRows: (rowIds: number[]) => void;
+    getSqlForCurrentView: () => string;
 }
 
 export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
@@ -68,6 +80,8 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             pageSize = 50,
             failedCells,
             deletedRows,
+            newRowIds,
+            tableQuery,
             onDeleteRow,
             onUpdateCell,
             onRevertCell,
@@ -87,11 +101,21 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         const reactGridRef = useRef<SlickgridReactInstance | null>(null);
         const cellChangesRef = useRef<Map<string, any>>(new Map());
         const deletedRowsRef = useRef<Set<number>>(new Set());
+        const newRowIdsRef = useRef<Set<number>>(new Set());
         const failedCellsRef = useRef<Set<string>>(new Set());
         const lastPageRef = useRef<number>(1);
         const lastItemsPerPageRef = useRef<number>(pageSize);
         const previousResultSetRef = useRef<EditSubsetResult | undefined>(undefined);
         const isInitializedRef = useRef<boolean>(false);
+        // Tracks whether we've already auto-selected the first cell on initial load.
+        // Spec: "When user first enters Edit Data, auto-select the first column
+        // in the first row."
+        const firstCellSelectedRef = useRef<boolean>(false);
+        // Mirror of all columns (including hidden) so imperative methods can recompose
+        // the visible set without losing hidden columns.
+        const columnsRef = useRef<Column[]>([]);
+        // Plain-text column names for callers that need a label without HTML.
+        const columnDisplayNamesRef = useRef<Map<string | number, string>>(new Map());
 
         // Create a custom pager component
         const BoundCustomPager = useMemo(
@@ -105,6 +129,42 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         function reactGridReady(reactGrid: SlickgridReactInstance) {
             reactGridRef.current = reactGrid;
             isInitializedRef.current = true;
+            tryAutoSelectFirstCell();
+        }
+
+        // Visible cell index of the first data column (skipping the
+        // checkbox-selector / delete / undo non-data columns).
+        function getFirstDataCellIndex(): number {
+            const grid = reactGridRef.current?.slickGrid;
+            if (!grid) {
+                return 1;
+            }
+            const cols = grid.getColumns();
+            for (let i = 0; i < cols.length; i++) {
+                const id = String(cols[i].id);
+                if (id !== "_checkbox_selector" && id !== "delete" && id !== "undo") {
+                    return i;
+                }
+            }
+            return 0;
+        }
+
+        // Spec: on first entry to Edit Data, auto-select the first column of
+        // the first row. The grid and dataset can become ready in either order,
+        // so this is called from both reactGridReady and the dataset effect; the
+        // ref guards against re-running once we've successfully auto-selected.
+        function tryAutoSelectFirstCell() {
+            if (firstCellSelectedRef.current) {
+                return;
+            }
+            const grid = reactGridRef.current?.slickGrid;
+            const dataView = reactGridRef.current?.dataView;
+            if (!grid || !dataView || dataView.getLength() === 0) {
+                return;
+            }
+            const cellIdx = getFirstDataCellIndex();
+            grid.setActiveCell(0, cellIdx);
+            firstCellSelectedRef.current = true;
         }
 
         // Clear all change tracking (called after successful save)
@@ -155,6 +215,97 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     reactGridRef.current.slickGrid.setSelectedRows([]);
                 }
             },
+            exportData: (format: "csv" | "excel" | "json") => {
+                if (format === "csv") {
+                    exportToFile();
+                } else if (format === "excel") {
+                    exportToExcel();
+                } else {
+                    exportToJson();
+                }
+            },
+            getDataColumns: () => {
+                const grid = reactGridRef.current?.slickGrid;
+                if (!grid) {
+                    return [];
+                }
+                const visibleIds = new Set(grid.getColumns().map((c) => c.id));
+                return columnsRef.current
+                    .filter(
+                        (c) =>
+                            c.id !== "delete" && c.id !== "undo" && c.id !== "_checkbox_selector",
+                    )
+                    .map((c) => ({
+                        id: String(c.id),
+                        name:
+                            columnDisplayNamesRef.current.get(c.id) ??
+                            (typeof c.name === "string" ? c.name : String(c.id)),
+                        visible: visibleIds.has(c.id),
+                    }));
+            },
+            setDataColumnVisibility: (id: string, visible: boolean) => {
+                const grid = reactGridRef.current?.slickGrid;
+                if (!grid) {
+                    return;
+                }
+                const allColumns = columnsRef.current;
+                const currentGridColumns = grid.getColumns();
+                const dataColumnIds = new Set(allColumns.map((c) => c.id));
+                const visibleIds = new Set(currentGridColumns.map((c) => c.id));
+                if (visible) {
+                    visibleIds.add(id);
+                } else {
+                    visibleIds.delete(id);
+                }
+                const nonDataColumns = currentGridColumns.filter((c) => !dataColumnIds.has(c.id));
+                const visibleDataColumns = allColumns.filter((c) => visibleIds.has(c.id));
+                grid.setColumns([...nonDataColumns, ...visibleDataColumns]);
+            },
+            deleteRows: (rowIds: number[]) => {
+                if (!onDeleteRow) {
+                    return;
+                }
+                if (reactGridRef.current?.paginationService) {
+                    lastPageRef.current = reactGridRef.current.paginationService.pageNumber;
+                    lastItemsPerPageRef.current =
+                        reactGridRef.current.paginationService.itemsPerPage;
+                }
+                for (const rowId of rowIds) {
+                    if (!deletedRowsRef.current.has(rowId)) {
+                        onDeleteRow(rowId);
+                    }
+                }
+                if (reactGridRef.current?.slickGrid) {
+                    reactGridRef.current.slickGrid.setSelectedRows([]);
+                    reactGridRef.current.slickGrid.invalidate();
+                }
+            },
+            getSqlForCurrentView: () => {
+                const base = (tableQuery ?? "").trimEnd();
+                const grid = reactGridRef.current?.slickGrid;
+                if (!grid || !base) {
+                    return base;
+                }
+                const sortCols = grid.getSortColumns?.() ?? [];
+                if (sortCols.length === 0) {
+                    return base;
+                }
+                const orderParts = sortCols
+                    .map((s: any) => {
+                        const colName = columnDisplayNamesRef.current.get(s.columnId);
+                        if (!colName) {
+                            return undefined;
+                        }
+                        return `[${colName.replace(/]/g, "]]")}] ${s.sortAsc ? "ASC" : "DESC"}`;
+                    })
+                    .filter((p): p is string => Boolean(p));
+                if (orderParts.length === 0) {
+                    return base;
+                }
+                // Strip a trailing semicolon if present so the appended ORDER BY is valid.
+                const stripped = base.replace(/;\s*$/, "");
+                return `${stripped}\nORDER BY ${orderParts.join(", ")}`;
+            },
         }));
 
         // Convert a single row to grid format
@@ -178,71 +329,52 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             return dataRow;
         }
 
+        // Inline action column (right of the checkbox selector) that shows an
+        // undo arrow on rows marked for delete. The icon is dimmed on rows that
+        // aren't deleted so the column has a consistent visual width.
+        function createUndoColumn(): Column {
+            return {
+                id: "undo",
+                field: "id",
+                name: "",
+                excludeFromColumnPicker: true,
+                excludeFromGridMenu: true,
+                excludeFromHeaderMenu: true,
+                formatter: (
+                    _row: number,
+                    _cell: number,
+                    _value: any,
+                    _columnDef: any,
+                    dataContext: any,
+                ) => {
+                    const rowId = dataContext.id;
+                    const isDeleted = deletedRowsRef.current.has(rowId);
+                    const iconClass = isDeleted
+                        ? "fi fi-arrow-undo action-icon pointer"
+                        : "fi fi-arrow-undo action-icon disabled";
+                    return createDomElement("i", {
+                        className: iconClass,
+                        title: isDeleted ? loc.tableExplorer.revertRow : "",
+                    });
+                },
+                minWidth: 30,
+                maxWidth: 30,
+            };
+        }
+
         // Create columns from columnInfo
         function createColumns(columnInfo: any[], currentThemeKind?: ColorThemeKind): Column[] {
-            // Action columns (delete and undo)
-            const actionColumns: Column[] = [
-                {
-                    id: "delete",
-                    field: "id",
-                    name: "",
-                    excludeFromColumnPicker: true,
-                    excludeFromGridMenu: true,
-                    excludeFromHeaderMenu: true,
-                    formatter: (
-                        _row: number,
-                        _cell: number,
-                        _value: any,
-                        _columnDef: any,
-                        dataContext: any,
-                    ) => {
-                        const rowId = dataContext.id;
-                        const isDeleted = deletedRowsRef.current.has(rowId);
-                        const iconClass = isDeleted
-                            ? "fi fi-delete action-icon disabled"
-                            : "fi fi-delete action-icon pointer";
-                        return createDomElement("i", {
-                            className: iconClass,
-                            title: isDeleted ? "" : loc.tableExplorer.deleteRow,
-                        });
-                    },
-                    minWidth: 30,
-                    maxWidth: 30,
-                },
-                {
-                    id: "undo",
-                    field: "id",
-                    name: "",
-                    excludeFromColumnPicker: true,
-                    excludeFromGridMenu: true,
-                    excludeFromHeaderMenu: true,
-                    formatter: (
-                        _row: number,
-                        _cell: number,
-                        _value: any,
-                        _columnDef: any,
-                        dataContext: any,
-                    ) => {
-                        const rowId = dataContext.id;
-                        const isDeleted = deletedRowsRef.current.has(rowId);
-                        const iconClass = isDeleted
-                            ? "fi fi-arrow-undo action-icon pointer"
-                            : "fi fi-arrow-undo action-icon disabled";
-                        return createDomElement("i", {
-                            className: iconClass,
-                            title: isDeleted ? loc.tableExplorer.revertRow : "",
-                        });
-                    },
-                    minWidth: 30,
-                    maxWidth: 30,
-                },
-            ];
-
             // Data columns
             const dataColumns: Column[] = columnInfo.map((colInfo, index) => {
+                const headerName = colInfo.dataTypeName
+                    ? `<span class="column-name">${htmlEncode(colInfo.name)}</span><span class="column-data-type">${htmlEncode(colInfo.dataTypeName)}</span>`
+                    : htmlEncode(colInfo.name);
                 const column: Column = {
                     id: `col${index}`,
-                    name: colInfo.name,
+                    name: headerName,
+                    toolTip: colInfo.dataTypeName
+                        ? `${colInfo.name} (${colInfo.dataTypeName})`
+                        : colInfo.name,
                     field: `col${index}`,
                     sortable: true,
                     filterable: true,
@@ -309,7 +441,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 return column;
             });
 
-            return [...actionColumns, ...dataColumns];
+            return dataColumns;
         }
 
         // Handle page size changes from props
@@ -387,6 +519,14 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                                 : "deleted-row";
                         }
 
+                        // Check if this row is a newly inserted row
+                        if (item && newRowIdsRef.current.has(item.id)) {
+                            metadata = metadata || {};
+                            metadata.cssClasses = metadata.cssClasses
+                                ? `${metadata.cssClasses} new-row`
+                                : "new-row";
+                        }
+
                         return metadata;
                     };
 
@@ -398,6 +538,21 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             }
         }, [deletedRows]);
 
+        // Sync new row IDs from props to ref so the row-metadata override
+        // applies the yellow highlight to newly inserted rows.
+        useEffect(() => {
+            newRowIdsRef.current = new Set(newRowIds ?? []);
+            if (reactGridRef.current?.slickGrid) {
+                reactGridRef.current.slickGrid.invalidate();
+            }
+        }, [newRowIds]);
+
+        // Auto-select the first cell once the dataset has rendered. Pairs with
+        // the same call inside reactGridReady to cover either ordering.
+        useEffect(() => {
+            tryAutoSelectFirstCell();
+        }, [dataset]);
+
         // Handle theme changes - just update state to trigger re-render
         useEffect(() => {
             if (themeKind !== currentTheme) {
@@ -405,6 +560,16 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 setCurrentTheme(themeKind);
             }
         }, [themeKind, currentTheme]);
+
+        // When the table query changes (custom query run), reset the previous result set
+        // reference so the next resultSet update triggers a full grid re-initialization
+        // (Scenario 1) instead of an incremental update (Scenario 2). This is necessary
+        // because the backend assigns position-based row IDs (0, 1, 2, ...), so
+        // incremental ID-based comparison would incorrectly keep stale data for
+        // overlapping IDs.
+        useEffect(() => {
+            previousResultSetRef.current = undefined;
+        }, [tableQuery]);
 
         // Main effect: Handle resultSet changes
         useEffect(() => {
@@ -426,13 +591,29 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             if (isInitialLoad || columnCountChanged) {
                 console.log("Full grid initialization");
 
-                const newColumns = createColumns(resultSet.columnInfo, currentTheme);
+                const dataColumns = createColumns(resultSet.columnInfo, currentTheme);
+                const newColumns = [createUndoColumn(), ...dataColumns];
                 setColumns(newColumns);
+                // columnsRef tracks data columns only; the undo column is excluded
+                // so column-picker / visibility logic doesn't try to manage it.
+                columnsRef.current = dataColumns;
+                const displayNames = new Map<string | number, string>();
+                resultSet.columnInfo.forEach((c: any, i: number) => {
+                    displayNames.set(`col${i}`, c.name);
+                });
+                columnDisplayNamesRef.current = displayNames;
 
                 const convertedDataset = resultSet.subset.map((row, index) =>
                     convertRowToDataRow(row, resultSet.columnInfo, index),
                 );
                 setDataset(convertedDataset);
+
+                // If the grid is already initialized (e.g. after a custom query),
+                // explicitly replace the DataView items so slickgrid re-renders
+                if (reactGridRef.current?.dataView) {
+                    reactGridRef.current.dataView.setItems(convertedDataset);
+                    reactGridRef.current.slickGrid?.invalidate();
+                }
 
                 // Set grid options only on initial load
                 if (!options) {
@@ -473,6 +654,25 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         showHeaderRow: true, // Show filter row
                         headerRowHeight: FILTER_ROW_HEIGHT,
 
+                        // Row selection (checkbox column for multi-select).
+                        // Excel copy buffer is also on, so slickgrid uses the hybrid
+                        // selection model. The hybrid model's default selectActiveRow:true
+                        // collapses multi-select down to one row whenever the active
+                        // cell changes — and CheckboxSelectColumn moves the active
+                        // cell on every checkbox click. Setting selectActiveRow:false
+                        // on selectionOptions keeps prior checkbox selections intact.
+                        enableCheckboxSelector: true,
+                        multiSelect: true,
+                        checkboxSelector: {
+                            hideInFilterHeaderRow: true,
+                            hideInColumnTitleRow: false,
+                            applySelectOnAllPages: false,
+                            columnIndexPosition: 0,
+                        },
+                        selectionOptions: {
+                            selectActiveRow: false,
+                        },
+
                         // Cell navigation and copy buffer
                         // Context menu
                         enableContextMenu: true,
@@ -511,23 +711,71 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 // Add new rows (rows in current but not in previous)
                 const rowsToAdd = resultSet.subset.filter((row: any) => !previousIds.has(row.id));
                 console.log(`Adding ${rowsToAdd.length} new row(s) by ID`);
-                const currentLength = reactGridRef.current.dataView.getLength();
+                const dataView = reactGridRef.current.dataView;
+                const paginationService = reactGridRef.current.paginationService;
+                const currentLength = dataView.getLength();
+
+                // Spec: insert new rows directly below the currently selected
+                // (active) row. If the active row is the last visible slot of
+                // the current page, the row lands at the start of the next page
+                // and we navigate the user there. Falls back to current page
+                // bottom when there's no active cell.
+                const slickGrid = reactGridRef.current.slickGrid;
+                const activeCell = slickGrid?.getActiveCell();
+                const itemsPerPage = paginationService?.itemsPerPage ?? 0;
+                const pageNumber = paginationService?.pageNumber ?? 1;
+                const pageStart = itemsPerPage > 0 ? (pageNumber - 1) * itemsPerPage : 0;
+
+                let insertAt: number;
+                let advanceToNextPage = false;
+                if (activeCell && itemsPerPage > 0) {
+                    const activeAbsolute = pageStart + activeCell.row;
+                    insertAt = Math.min(activeAbsolute + 1, currentLength);
+                    if (activeCell.row === itemsPerPage - 1) {
+                        advanceToNextPage = true;
+                    }
+                } else if (itemsPerPage > 0) {
+                    insertAt = Math.min(pageNumber * itemsPerPage, currentLength);
+                } else {
+                    insertAt = currentLength;
+                }
+
+                const firstNewRowAbsoluteIndex = insertAt;
                 for (let i = 0; i < rowsToAdd.length; i++) {
                     const newRow = rowsToAdd[i];
-                    const dataRow = convertRowToDataRow(
-                        newRow,
-                        resultSet.columnInfo,
-                        currentLength + i,
+                    const dataRow = convertRowToDataRow(newRow, resultSet.columnInfo, insertAt);
+                    dataView.insertItem(insertAt, dataRow);
+                    insertAt += 1;
+                    console.log(
+                        `Inserted row ${dataRow.id} at index ${insertAt - 1} (below active row${
+                            advanceToNextPage ? ", advancing page" : ""
+                        })`,
                     );
-                    // Use gridService.addItem with position 'bottom' and scrollRowIntoView
-                    // gridService automatically handles pagination updates
-                    reactGridRef.current.gridService.addItem(dataRow, {
-                        position: "bottom",
-                        highlightRow: true,
-                        scrollRowIntoView: true,
-                        triggerEvent: true,
-                    });
-                    console.log(`Added row ${dataRow.id} at bottom using gridService`);
+                }
+                if (rowsToAdd.length > 0 && slickGrid) {
+                    slickGrid.invalidate();
+                }
+
+                // After inserting, move focus to the first new row so a follow-up
+                // Add Row click chains below it. Navigate pages first if needed.
+                if (rowsToAdd.length > 0 && slickGrid && itemsPerPage > 0) {
+                    const targetPage = Math.floor(firstNewRowAbsoluteIndex / itemsPerPage) + 1;
+                    const visibleRow = firstNewRowAbsoluteIndex % itemsPerPage;
+                    const cellIdx = getFirstDataCellIndex();
+                    const focusNewRow = () => {
+                        const grid = reactGridRef.current?.slickGrid;
+                        if (!grid) {
+                            return;
+                        }
+                        grid.setActiveCell(visibleRow, cellIdx);
+                        grid.scrollCellIntoView(visibleRow, cellIdx, false);
+                    };
+                    if (advanceToNextPage && paginationService) {
+                        lastPageRef.current = targetPage;
+                        void paginationService.goToPageNumber(targetPage).then(() => focusNewRow());
+                    } else {
+                        focusNewRow();
+                    }
                 }
 
                 // Remove deleted rows (rows in previous but not in current)
@@ -646,109 +894,83 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             }
         }
 
-        function handleDeleteRow(rowId: number) {
-            // Only handle if row is not already deleted
-            if (deletedRowsRef.current.has(rowId)) {
-                return;
-            }
-
-            // Capture pagination state
-            if (reactGridRef.current?.paginationService) {
-                lastPageRef.current = reactGridRef.current.paginationService.pageNumber;
-                lastItemsPerPageRef.current = reactGridRef.current.paginationService.itemsPerPage;
-            }
-
-            if (onDeleteRow) {
-                onDeleteRow(rowId);
-            }
-
-            // Refresh the grid to update button states
-            if (reactGridRef.current?.slickGrid) {
-                reactGridRef.current.slickGrid.invalidate();
-            }
-        }
-
-        function handleUndoDelete(rowId: number) {
-            // Only handle if row is deleted
-            if (!deletedRowsRef.current.has(rowId)) {
-                return;
-            }
-
-            // Capture pagination state
-            if (reactGridRef.current?.paginationService) {
-                lastPageRef.current = reactGridRef.current.paginationService.pageNumber;
-                lastItemsPerPageRef.current = reactGridRef.current.paginationService.itemsPerPage;
-            }
-
+        // Shared revert-row logic used by both the inline undo button and the
+        // context menu's "Revert Row" command. Notifies the backend, clears
+        // local deletion / cell-change tracking for the row, and updates parent
+        // counters.
+        function revertRow(rowId: number) {
             if (onRevertRow) {
                 onRevertRow(rowId);
             }
 
-            // Remove from deletion tracking
             deletedRowsRef.current.delete(rowId);
 
-            // Notify parent of deletion count update
+            const keysToDelete: string[] = [];
+            cellChangesRef.current.forEach((_, key) => {
+                if (key.startsWith(`${rowId}-`)) {
+                    keysToDelete.push(key);
+                }
+            });
+            keysToDelete.forEach((key) => {
+                cellChangesRef.current.delete(key);
+                failedCellsRef.current.delete(key);
+            });
+
+            if (onCellChangeCountChanged) {
+                onCellChangeCountChanged(cellChangesRef.current.size);
+            }
             if (onDeletionCountChanged) {
                 onDeletionCountChanged(deletedRowsRef.current.size);
-            }
-
-            // Refresh the grid to update button states
-            if (reactGridRef.current?.slickGrid) {
-                reactGridRef.current.slickGrid.invalidate();
             }
         }
 
         function handleCellClick(_e: Event, args: any) {
             const metadata = reactGridRef.current?.gridService.getColumnFromEventArguments(args);
-            const rowId = metadata?.dataContext?.id;
-
-            if (metadata?.columnDef.id === "delete") {
-                handleDeleteRow(rowId);
-            } else if (metadata?.columnDef.id === "undo") {
-                handleUndoDelete(rowId);
+            if (metadata?.columnDef.id !== "undo") {
+                return;
             }
-        }
-
-        function handleKeyDown(e: KeyboardEvent, _: any) {
-            // Only handle Enter key
-            if (e.key !== "Enter") {
+            const rowId = metadata?.dataContext?.id;
+            if (rowId === undefined || !deletedRowsRef.current.has(rowId)) {
                 return;
             }
 
+            if (reactGridRef.current?.paginationService) {
+                lastPageRef.current = reactGridRef.current.paginationService.pageNumber;
+                lastItemsPerPageRef.current = reactGridRef.current.paginationService.itemsPerPage;
+            }
+
+            revertRow(rowId);
+        }
+
+        function handleCellKeyDown(e: KeyboardEvent, _args: any) {
+            if (e.key !== "Enter") {
+                return;
+            }
             const grid = reactGridRef.current?.slickGrid;
             if (!grid) {
                 return;
             }
-
             const activeCell = grid.getActiveCell();
             if (!activeCell) {
                 return;
             }
-
             const column = grid.getVisibleColumns()[activeCell.cell];
-            if (!column) {
+            if (column?.id !== "undo") {
+                return;
+            }
+            const dataItem = grid.getDataItem(activeCell.row);
+            if (!dataItem || !deletedRowsRef.current.has(dataItem.id)) {
                 return;
             }
 
-            // Check if the active cell is in the delete or undo column
-            if (column.id === "delete" || column.id === "undo") {
-                const dataItem = grid.getDataItem(activeCell.row);
-                if (!dataItem) {
-                    return;
-                }
-
-                const rowId = dataItem.id;
-
-                if (column.id === "delete") {
-                    handleDeleteRow(rowId);
-                } else if (column.id === "undo") {
-                    handleUndoDelete(rowId);
-                }
-
-                // Prevent default behavior (e.g., editing the cell)
-                e.preventDefault();
-                e.stopPropagation();
+            if (reactGridRef.current?.paginationService) {
+                lastPageRef.current = reactGridRef.current.paginationService.pageNumber;
+                lastItemsPerPageRef.current = reactGridRef.current.paginationService.itemsPerPage;
             }
+
+            revertRow(dataItem.id);
+            e.preventDefault();
+            e.stopPropagation();
         }
 
         function handleContextMenuCommand(_e: any, args: any) {
@@ -817,33 +1039,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     break;
 
                 case "revert-row":
-                    if (onRevertRow) {
-                        onRevertRow(rowId);
-                    }
-
-                    // Remove from deletion tracking if it was deleted
-                    deletedRowsRef.current.delete(rowId);
-
-                    // Remove tracked changes and failed cells for this row
-                    const keysToDeleteForRevert: string[] = [];
-                    cellChangesRef.current.forEach((_, key) => {
-                        if (key.startsWith(`${rowId}-`)) {
-                            keysToDeleteForRevert.push(key);
-                        }
-                    });
-                    keysToDeleteForRevert.forEach((key) => {
-                        cellChangesRef.current.delete(key);
-                        failedCellsRef.current.delete(key);
-                    });
-                    console.log(`Reverted row with ID ${rowId}`);
-
-                    // Notify parent of change count update
-                    if (onCellChangeCountChanged) {
-                        onCellChangeCountChanged(cellChangesRef.current.size);
-                    }
-                    if (onDeletionCountChanged) {
-                        onDeletionCountChanged(deletedRowsRef.current.size);
-                    }
+                    revertRow(rowId);
                     break;
 
                 case "modify-table":
@@ -851,6 +1047,57 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         onModifyTable();
                     }
                     break;
+            }
+        }
+
+        // Implements a tri-state cycle (unsorted → asc → desc → unsorted) on top
+        // of slickgrid's built-in two-state toggle. When a column flips from
+        // desc(false) → asc(true) — the would-be third click — and that's the
+        // ONLY column being sorted, we delegate to SortService.clearSorting()
+        // (the same API the column-header "Remove sort" menu uses). It clears
+        // the sort icons AND re-sorts the dataView by the default field id,
+        // restoring the original row order.
+        const sortReentryRef = useRef(false);
+        function handleSort(_e: any, args: any) {
+            if (sortReentryRef.current) {
+                return;
+            }
+            const reactGrid = reactGridRef.current;
+            if (!reactGrid?.slickGrid) {
+                return;
+            }
+
+            const newCols: Array<{ columnId: any; sortAsc: boolean }> = args?.multiColumnSort
+                ? (args.sortCols ?? [])
+                : args?.sortCol
+                  ? [{ columnId: args.sortCol.id, sortAsc: args.sortAsc }]
+                  : [];
+            const previousCols: Array<{ columnId: any; sortAsc: boolean }> =
+                args?.previousSortColumns ?? [];
+
+            const wouldRemove = newCols.filter((c) => {
+                const prev = previousCols.find((p) => p.columnId === c.columnId);
+                return prev && prev.sortAsc === false && c.sortAsc === true;
+            });
+
+            if (wouldRemove.length === 0) {
+                return;
+            }
+
+            // Only handle the single-column tri-state case for now: every
+            // currently-sorted column matches the "third click" pattern, so
+            // clearing all sort is safe. Multi-column reductions (clicking
+            // one of several sorted columns) are intentionally left alone —
+            // slickgrid's default flip-back-to-asc behavior will apply there.
+            if (wouldRemove.length !== newCols.length) {
+                return;
+            }
+
+            sortReentryRef.current = true;
+            try {
+                reactGrid.sortService?.clearSorting(true);
+            } finally {
+                sortReentryRef.current = false;
             }
         }
 
@@ -1220,8 +1467,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         handleCellClick($event.detail.eventData, $event.detail.args)
                     }
                     onKeyDown={($event) =>
-                        handleKeyDown($event.detail.eventData, $event.detail.args)
+                        handleCellKeyDown($event.detail.eventData, $event.detail.args)
                     }
+                    onSort={($event) => handleSort($event, $event.detail.args)}
                 />
             </div>
         );
