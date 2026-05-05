@@ -87,13 +87,11 @@ suite("SqlNotebookController", () => {
         supportedLanguages: string[] | undefined;
         supportsExecutionOrder: boolean | undefined;
         description: string | undefined;
-        executeHandler:
-            | ((
-                  cells: vscode.NotebookCell[],
-                  notebook: vscode.NotebookDocument,
-                  controller: vscode.NotebookController,
-              ) => void | Thenable<void>)
-            | undefined;
+        executeHandler: (
+            cells: vscode.NotebookCell[],
+            notebook: vscode.NotebookDocument,
+            controller: vscode.NotebookController,
+        ) => void | Thenable<void>;
         updateNotebookAffinity: sinon.SinonStub;
         createNotebookCellExecution: sinon.SinonStub;
         onDidChangeSelectedNotebooks: sinon.SinonStub;
@@ -212,7 +210,7 @@ suite("SqlNotebookController", () => {
             supportedLanguages: undefined,
             supportsExecutionOrder: undefined,
             description: undefined,
-            executeHandler: undefined,
+            executeHandler: sandbox.stub(),
             updateNotebookAffinity: sandbox.stub(),
             createNotebookCellExecution: sandbox.stub().returns(mockExecution),
             onDidChangeSelectedNotebooks: sandbox.stub().returns({ dispose: sandbox.stub() }),
@@ -858,7 +856,7 @@ suite("SqlNotebookController", () => {
             sandbox = sinon.createSandbox();
 
             const mockNotebook = makeNotebook([], {
-                kernelspec: { name: "sql", display_name: "SQL" },
+                metadata: { kernelspec: { name: "sql", display_name: "SQL" } },
             });
 
             // Re-stub everything
@@ -869,7 +867,7 @@ suite("SqlNotebookController", () => {
                 supportedLanguages: undefined,
                 supportsExecutionOrder: undefined,
                 description: undefined,
-                executeHandler: undefined,
+                executeHandler: sandbox.stub(),
                 updateNotebookAffinity: sandbox.stub(),
                 createNotebookCellExecution: sandbox.stub().returns(mockExecution),
                 onDidChangeSelectedNotebooks: sandbox.stub().returns({ dispose: sandbox.stub() }),
@@ -934,7 +932,21 @@ suite("SqlNotebookController", () => {
 
             await controller.createNotebookWithConnection();
 
-            expect(vscode.workspace.openNotebookDocument).to.have.been.calledOnce;
+            expect(vscode.workspace.openNotebookDocument).to.have.been.calledWithMatch(
+                "jupyter-notebook",
+                sinon.match({
+                    metadata: {
+                        metadata: {
+                            kernelspec: {
+                                name: "sql-notebook",
+                                display_name: "SQL",
+                                language: "sql",
+                            },
+                            language_info: { name: "sql" },
+                        },
+                    },
+                }),
+            );
             expect(mockController.updateNotebookAffinity).to.have.been.calledWith(
                 mockNotebook,
                 vscode.NotebookControllerAffinity.Preferred,
