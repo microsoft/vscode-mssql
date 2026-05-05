@@ -201,7 +201,7 @@ export function composeFilteredQuery(baseQuery: string, filters: AppliedFilter[]
 
 function newRow(defaultColumn?: string): FilterRow {
     return {
-        id: Math.random().toString(36).slice(2),
+        id: crypto.randomUUID(),
         column: defaultColumn ?? "",
         operator: "equals",
         value: "",

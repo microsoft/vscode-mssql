@@ -15,7 +15,6 @@ import {
     MenuPopover,
     MenuTrigger,
     SplitButton,
-    Checkbox,
 } from "@fluentui/react-components";
 import {
     SaveRegular,
@@ -27,6 +26,7 @@ import {
     DeleteRegular,
     DocumentTextRegular,
     FilterRegular,
+    Checkmark16Regular,
 } from "@fluentui/react-icons";
 import { locConstants as loc } from "../../common/locConstants";
 import { useTableExplorerContext } from "./TableExplorerStateProvider";
@@ -91,18 +91,12 @@ const ColumnsMenu: React.FC<ColumnsMenuProps> = ({
                         <MenuItem
                             key={col.id}
                             persistOnClick
+                            icon={col.visible ? <Checkmark16Regular /> : undefined}
                             onClick={() => {
                                 onSetColumnVisibility(col.id, !col.visible);
                                 refresh();
                             }}>
-                            <Checkbox
-                                checked={col.visible}
-                                label={col.name}
-                                // Visual only — the parent MenuItem owns the click handler.
-                                // Without onChange, Fluent treats the checkbox as controlled-readonly
-                                // and won't fire its own toggle on click.
-                                onChange={() => undefined}
-                            />
+                            {col.name}
                         </MenuItem>
                     ))}
                 </MenuList>

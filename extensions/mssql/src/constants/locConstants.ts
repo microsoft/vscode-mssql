@@ -3083,6 +3083,8 @@ export class TableExplorer {
             comment: ["{0} is the error message"],
         });
 
+    public static failedToRunTableQueryUnknown = l10n.t("Failed to run table query.");
+
     public static pendingChangesWillBeLost = l10n.t(
         "Running a custom query will discard all pending changes. Do you want to continue?",
     );

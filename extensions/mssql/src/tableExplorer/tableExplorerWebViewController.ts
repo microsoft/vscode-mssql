@@ -150,8 +150,8 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             const serverMessage = result.message?.trim() ?? "";
             const toastMessage =
                 serverMessage.length > 0
-                    ? serverMessage
-                    : LocConstants.TableExplorer.failedToRunTableQuery("");
+                    ? LocConstants.TableExplorer.failedToRunTableQuery(serverMessage)
+                    : LocConstants.TableExplorer.failedToRunTableQueryUnknown;
             this.logger.error(
                 `Edit session failed to initialize: ${toastMessage} - OperationId: ${this.operationId}`,
             );
@@ -1474,6 +1474,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             state.originalCellValues?.clear();
             state.updateScript = undefined;
             this.showRestorePromptAfterClose = false;
+            this.updateState();
 
             const objectName = state.tableName;
             const schemaName = state.schemaName;
