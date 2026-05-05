@@ -824,6 +824,13 @@ export class Notebooks {
     public static noActiveConnection = l10n.t("No active connection.");
     public static noConnectionSelected = l10n.t("No connection selected.");
 
+    // Copy cell output
+    public static copyMessages = l10n.t("Copy messages");
+    public static copyMessagesTooltip = l10n.t(
+        "Copy all text output for this cell (messages, PRINT, errors)",
+    );
+    public static copiedMessages = l10n.t("$(check) Copied messages");
+
     // Execution results
     public static rowsAffected(count: number) {
         return l10n.t({
