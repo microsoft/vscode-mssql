@@ -17,7 +17,8 @@ import {
     DefinitionPanelCustomTab,
     DesignerDefinitionTabs,
 } from "../../common/definitionPanel";
-import { makeStyles, shorthands, Spinner } from "@fluentui/react-components";
+import { Button, makeStyles, shorthands, Spinner } from "@fluentui/react-components";
+import { Open12Regular, Copy16Regular } from "@fluentui/react-icons";
 import { locConstants as loc } from "../../common/locConstants";
 import { useTableExplorerSelector } from "./tableExplorerSelector";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
@@ -431,6 +432,33 @@ export const TableExplorerPage: React.FC = () => {
                                 {
                                     id: "tableQuery" as const,
                                     label: loc.tableExplorer.tableQuery,
+                                    headerActions: (
+                                        <>
+                                            <Button
+                                                size="small"
+                                                appearance="subtle"
+                                                title={loc.tableExplorer.openInEditor}
+                                                icon={<Open12Regular />}
+                                                disabled={!tableQuery}
+                                                onClick={() => context.showSql(tableQuery ?? "")}>
+                                                {loc.tableExplorer.openInEditor}
+                                            </Button>
+                                            <Button
+                                                size="small"
+                                                appearance="subtle"
+                                                title={loc.schemaDesigner.copy}
+                                                icon={<Copy16Regular />}
+                                                disabled={!tableQuery}
+                                                onClick={() => {
+                                                    if (tableQuery) {
+                                                        void navigator.clipboard.writeText(
+                                                            tableQuery,
+                                                        );
+                                                    }
+                                                }}
+                                            />
+                                        </>
+                                    ),
                                     content: (
                                         <div
                                             className={classes.editorPane}
