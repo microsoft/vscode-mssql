@@ -19,8 +19,10 @@ import {
     GridOption,
     Editors,
     ContextMenu,
+    CurrentSorter,
 } from "slickgrid-react";
 import { FluentCompoundFilter } from "./fluentCompoundFilter";
+import { stripTrailingOrderByAndSemicolon } from "./TableExplorerFilterBar";
 import { EditSubsetResult, ExportData } from "../../../sharedInterfaces/tableExplorer";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { locConstants as loc } from "../../common/locConstants";
@@ -31,6 +33,11 @@ import {
     createFluentAutoResizeOptions,
     FluentSlickGrid,
 } from "../../common/FluentSlickGrid/FluentSlickGrid";
+
+export interface AppliedSortColumn {
+    columnName: string;
+    sortAsc: boolean;
+}
 
 interface TableDataGridProps {
     resultSet: EditSubsetResult | undefined;
@@ -50,6 +57,7 @@ interface TableDataGridProps {
     onSelectedRowsChanged?: (selectedRowIds: number[]) => void;
     onSaveResults?: (format: "csv" | "json" | "excel", data: ExportData) => void;
     onModifyTable?: () => void;
+    onSortChanged?: (sortColumns: AppliedSortColumn[]) => void;
 }
 
 export interface DataColumnVisibility {
@@ -91,6 +99,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             onSelectedRowsChanged,
             onSaveResults,
             onModifyTable,
+            onSortChanged,
         },
         ref,
     ) => {
@@ -302,8 +311,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 if (orderParts.length === 0) {
                     return base;
                 }
-                // Strip a trailing semicolon if present so the appended ORDER BY is valid.
-                const stripped = base.replace(/;\s*$/, "");
+                // Strip the trailing semicolon and any existing trailing ORDER BY
+                // before appending the grid-driven one — otherwise re-running with
+                // a previous sort embedded (or a custom query that already had one)
+                // produces two ORDER BY clauses.
+                const stripped = stripTrailingOrderByAndSemicolon(base);
                 return `${stripped}\nORDER BY ${orderParts.join(", ")}`;
             },
         }));
@@ -1058,6 +1070,12 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         // the sort icons AND re-sorts the dataView by the default field id,
         // restoring the original row order.
         const sortReentryRef = useRef(false);
+
+        // Tri-state intercept only — does NOT emit sort changes upstream.
+        // Emission is handled by handleSlickSortChanged / handleSlickSortCleared
+        // below, which subscribe to slickgrid-universal's pubsub events. Those
+        // fire for every sort path, including header-menu "Remove sort" and
+        // grid-menu "Clear all sorting", which never reach grid.onSort.
         function handleSort(_e: any, args: any) {
             if (sortReentryRef.current) {
                 return;
@@ -1080,25 +1098,41 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 return prev && prev.sortAsc === false && c.sortAsc === true;
             });
 
-            if (wouldRemove.length === 0) {
+            // Only the single-column tri-state case (every currently-sorted column
+            // matches the "third click" pattern) collapses to a clearSorting()
+            // call. Otherwise slickgrid's default sort handling applies — either
+            // a normal asc/desc flip, or a multi-column reduction back to asc.
+            const isTriStateClear = wouldRemove.length > 0 && wouldRemove.length === newCols.length;
+            if (isTriStateClear) {
+                sortReentryRef.current = true;
+                try {
+                    reactGrid.sortService?.clearSorting(true);
+                } finally {
+                    sortReentryRef.current = false;
+                }
+            }
+        }
+
+        // Pubsub-driven sort handlers. SortService publishes 'onSortChanged'
+        // for asc/desc clicks and the header-menu "Remove sort" command, and
+        // 'onSortCleared' for full clears (our tri-state clearSorting() call,
+        // grid-menu "Clear all sorting"). Subscribing here means every sort
+        // path eventually surfaces upstream, regardless of how it was driven.
+        function handleSlickSortChanged(currentSorters: CurrentSorter[]) {
+            if (!onSortChanged) {
                 return;
             }
+            const mapped = currentSorters
+                .map((s) => ({
+                    columnName: columnDisplayNamesRef.current.get(s.columnId),
+                    sortAsc: s.direction === "ASC",
+                }))
+                .filter((c): c is AppliedSortColumn => Boolean(c.columnName));
+            onSortChanged(mapped);
+        }
 
-            // Only handle the single-column tri-state case for now: every
-            // currently-sorted column matches the "third click" pattern, so
-            // clearing all sort is safe. Multi-column reductions (clicking
-            // one of several sorted columns) are intentionally left alone —
-            // slickgrid's default flip-back-to-asc behavior will apply there.
-            if (wouldRemove.length !== newCols.length) {
-                return;
-            }
-
-            sortReentryRef.current = true;
-            try {
-                reactGrid.sortService?.clearSorting(true);
-            } finally {
-                sortReentryRef.current = false;
-            }
+        function handleSlickSortCleared() {
+            onSortChanged?.([]);
         }
 
         // Handle row selection changes
@@ -1470,6 +1504,8 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         handleCellKeyDown($event.detail.eventData, $event.detail.args)
                     }
                     onSort={($event) => handleSort($event, $event.detail.args)}
+                    onSortChanged={($event) => handleSlickSortChanged($event.detail)}
+                    onSortCleared={() => handleSlickSortCleared()}
                 />
             </div>
         );

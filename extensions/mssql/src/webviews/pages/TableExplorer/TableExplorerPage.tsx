@@ -3,14 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import React, { useRef, useEffect, useCallback } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import { useTableExplorerContext } from "./TableExplorerStateProvider";
-import { TableDataGrid, TableDataGridRef } from "./TableDataGrid";
+import { TableDataGrid, TableDataGridRef, AppliedSortColumn } from "./TableDataGrid";
 import { TableExplorerToolbar } from "./TableExplorerToolbar";
 import {
     TableExplorerFilterBar,
     AppliedFilter,
     composeFilteredQuery,
+    composeSortedQuery,
+    stripTrailingOrderByAndSemicolon,
 } from "./TableExplorerFilterBar";
 import {
     DefinitionPanel,
@@ -196,25 +198,6 @@ export const TableExplorerPage: React.FC = () => {
         [],
     );
 
-    // Sync editor content from tableQuery only when the reducer updates it
-    // externally (initial data load, running a custom query). Imperative
-    // setValue keeps the editor uncontrolled during normal typing.
-    useEffect(() => {
-        if (tableQuery === undefined) {
-            return;
-        }
-        if (tableQuery === lastSyncedTableQueryRef.current) {
-            return;
-        }
-        lastSyncedTableQueryRef.current = tableQuery;
-        editableQueryRef.current = tableQuery;
-
-        const editor = editorRef.current;
-        if (editor && editor.getValue() !== tableQuery) {
-            editor.setValue(tableQuery);
-        }
-    }, [tableQuery]);
-
     // Focus the Monaco editor whenever the Table Query tab becomes active so
     // the user can start editing without an extra click. The editor may not be
     // mounted yet on the first activation, so we retry once it's available.
@@ -236,6 +219,48 @@ export const TableExplorerPage: React.FC = () => {
     const [selectedRowIds, setSelectedRowIds] = React.useState<number[]>([]);
     const [filtersOpen, setFiltersOpen] = React.useState(false);
     const [activeFilters, setActiveFilters] = React.useState<AppliedFilter[]>([]);
+    // Sort columns reflected in the SQL pane and appended to outgoing queries.
+    // Updates whenever the user clicks a sortable column header (driven by
+    // TableDataGrid's onSortChanged callback). We don't dispatch a query on
+    // every change — the ORDER BY rides along the next time something else
+    // (load subset, filter apply/clear) actually re-runs the query.
+    const [sortColumns, setSortColumns] = useState<AppliedSortColumn[]>([]);
+
+    // The SQL pane displays `tableQuery` rebased onto the current UI sort:
+    //   - sort active   → strip any embedded ORDER BY and append the UI one
+    //   - sort cleared  → strip any embedded ORDER BY (this is the case after
+    //                     a re-fetch sent our ORDER BY along — once the user
+    //                     clears the sort here we want the pane to drop it,
+    //                     even though tableQuery still contains it)
+    // This means clicking a column header updates the SQL live without
+    // re-running anything against the database.
+    const displayedSql = React.useMemo(() => {
+        const base = tableQuery ?? "";
+        if (sortColumns.length === 0) {
+            return stripTrailingOrderByAndSemicolon(base);
+        }
+        return composeSortedQuery(base, sortColumns);
+    }, [tableQuery, sortColumns]);
+
+    // Sync editor content from displayedSql when it changes (reducer updated
+    // tableQuery, or the user clicked a sort indicator). Imperative setValue
+    // keeps the editor uncontrolled during normal typing.
+    useEffect(() => {
+        if (tableQuery === undefined) {
+            return;
+        }
+        if (displayedSql === lastSyncedTableQueryRef.current) {
+            return;
+        }
+        lastSyncedTableQueryRef.current = displayedSql;
+        editableQueryRef.current = displayedSql;
+
+        const editor = editorRef.current;
+        if (editor && editor.getValue() !== displayedSql) {
+            editor.setValue(displayedSql);
+        }
+    }, [displayedSql, tableQuery]);
+
     // Snapshot the unfiltered query so successive Apply clicks compose against
     // the original, not the previously-filtered result. Updates whenever the
     // tableQuery changes while no filters are active (initial load, or a
@@ -255,18 +280,18 @@ export const TableExplorerPage: React.FC = () => {
             }
             setActiveFilters(filters);
             const composed = composeFilteredQuery(base, filters);
-            context.runTableQuery(composed);
+            context.runTableQuery(composeSortedQuery(composed, sortColumns));
         },
-        [tableQuery, context],
+        [tableQuery, context, sortColumns],
     );
 
     const handleClearFilters = useCallback(() => {
         const base = baseQueryRef.current;
         setActiveFilters([]);
         if (base) {
-            context.runTableQuery(base);
+            context.runTableQuery(composeSortedQuery(base, sortColumns));
         }
-    }, [context]);
+    }, [context, sortColumns]);
 
     const filterColumns = React.useMemo(
         () =>
@@ -316,14 +341,18 @@ export const TableExplorerPage: React.FC = () => {
                 return;
             }
             const newQuery = buildDefaultSelectQuery(schemaName, tableName, columnNames, rowCount);
-            context.runTableQuery(newQuery, rowCount);
+            context.runTableQuery(composeSortedQuery(newQuery, sortColumns), rowCount);
         },
-        [resultSet, schemaName, tableName, context],
+        [resultSet, schemaName, tableName, context, sortColumns],
     );
 
-    // Clear cell highlights when the query changes (pending changes are stale)
+    // Clear cell highlights and reset sort tracking when the query changes
+    // (pending changes are stale, and slickgrid's sort indicators are dropped
+    // when the grid re-initializes — keeping our sortColumns aligned with what
+    // the grid actually shows avoids spurious ORDER BYs on the next re-fetch).
     useEffect(() => {
         gridRef.current?.clearAllChangeTracking();
+        setSortColumns([]);
     }, [tableQuery]);
 
     const handleSaveComplete = () => {
@@ -402,6 +431,7 @@ export const TableExplorerPage: React.FC = () => {
                                     onSelectedRowsChanged={setSelectedRowIds}
                                     onSaveResults={context?.saveResults}
                                     onModifyTable={context?.modifyTable}
+                                    onSortChanged={setSortColumns}
                                 />
                             </div>
                         ) : isLoading ? (
@@ -439,8 +469,8 @@ export const TableExplorerPage: React.FC = () => {
                                                 appearance="subtle"
                                                 title={loc.tableExplorer.openInEditor}
                                                 icon={<Open12Regular />}
-                                                disabled={!tableQuery}
-                                                onClick={() => context.showSql(tableQuery ?? "")}>
+                                                disabled={!displayedSql}
+                                                onClick={() => context.showSql(displayedSql)}>
                                                 {loc.tableExplorer.openInEditor}
                                             </Button>
                                             <Button
@@ -448,11 +478,11 @@ export const TableExplorerPage: React.FC = () => {
                                                 appearance="subtle"
                                                 title={loc.schemaDesigner.copy}
                                                 icon={<Copy16Regular />}
-                                                disabled={!tableQuery}
+                                                disabled={!displayedSql}
                                                 onClick={() => {
-                                                    if (tableQuery) {
+                                                    if (displayedSql) {
                                                         void navigator.clipboard.writeText(
-                                                            tableQuery,
+                                                            displayedSql,
                                                         );
                                                     }
                                                 }}

@@ -168,6 +168,50 @@ function buildPredicate(f: AppliedFilter): string {
 }
 
 /**
+ * Strip a trailing semicolon and the LAST top-level `ORDER BY ...` clause
+ * from `sql`. Used before appending a grid-driven ORDER BY so we don't end
+ * up with two stacked clauses (a custom query that already had one, or our
+ * own ORDER BY persisted into `tableQuery` after a previous re-run).
+ *
+ * Caveat: this is a regex strip and can't tell ORDER BY at the end of the
+ * outer query from one inside a subquery, comment, or string literal. It's
+ * fine for the default `SELECT TOP N ... FROM [s].[t]` query shape this UI
+ * emits; custom queries with nested ORDER BY may need a real parser later.
+ */
+export function stripTrailingOrderByAndSemicolon(sql: string): string {
+    let s = sql.trimEnd();
+    if (s.endsWith(";")) {
+        s = s.slice(0, -1).trimEnd();
+    }
+    const matches = [...s.matchAll(/\bORDER\s+BY\b/gi)];
+    if (matches.length > 0) {
+        const last = matches[matches.length - 1];
+        if (last.index !== undefined) {
+            s = s.slice(0, last.index).trimEnd();
+        }
+    }
+    return s;
+}
+
+/**
+ * Compose `ORDER BY ...` from `sortColumns` and append it to `baseQuery`,
+ * stripping any pre-existing trailing ORDER BY first. Returns `baseQuery`
+ * unchanged when no sort is active.
+ */
+export function composeSortedQuery(
+    baseQuery: string,
+    sortColumns: Array<{ columnName: string; sortAsc: boolean }>,
+): string {
+    if (!baseQuery || sortColumns.length === 0) {
+        return baseQuery;
+    }
+    const orderParts = sortColumns.map(
+        (s) => `[${s.columnName.replace(/]/g, "]]")}] ${s.sortAsc ? "ASC" : "DESC"}`,
+    );
+    return `${stripTrailingOrderByAndSemicolon(baseQuery)}\nORDER BY ${orderParts.join(", ")}`;
+}
+
+/**
  * Inject a WHERE clause built from `filters` into `baseQuery`. If `baseQuery`
  * already has a WHERE, the new predicate is appended with AND. If it has an
  * ORDER BY, the WHERE is inserted before it. Returns the original query
