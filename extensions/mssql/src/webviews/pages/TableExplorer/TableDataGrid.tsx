@@ -120,9 +120,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         // Spec: "When user first enters Edit Data, auto-select the first column
         // in the first row."
         const firstCellSelectedRef = useRef<boolean>(false);
-        // Mirror of all columns (including hidden) so imperative methods can recompose
-        // the visible set without losing hidden columns.
-        const columnsRef = useRef<Column[]>([]);
         // Plain-text column names for callers that need a label without HTML.
         const columnDisplayNamesRef = useRef<Map<string | number, string>>(new Map());
 
@@ -142,13 +139,15 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         }
 
         // Visible cell index of the first data column (skipping the
-        // checkbox-selector / delete / undo non-data columns).
+        // checkbox-selector / delete / undo non-data columns). Uses
+        // getVisibleColumns() so the index matches setActiveCell's coord space
+        // when the user has hidden columns.
         function getFirstDataCellIndex(): number {
             const grid = reactGridRef.current?.slickGrid;
             if (!grid) {
                 return 1;
             }
-            const cols = grid.getColumns();
+            const cols = grid.getVisibleColumns();
             for (let i = 0; i < cols.length; i++) {
                 const id = String(cols[i].id);
                 if (id !== "_checkbox_selector" && id !== "delete" && id !== "undo") {
@@ -238,8 +237,10 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 if (!grid) {
                     return [];
                 }
-                const visibleIds = new Set(grid.getColumns().map((c) => c.id));
-                return columnsRef.current
+                // In slickgrid-react v10, getColumns() returns all columns
+                // including hidden ones; visibility is read from `c.hidden`.
+                return grid
+                    .getColumns()
                     .filter(
                         (c) =>
                             c.id !== "delete" && c.id !== "undo" && c.id !== "_checkbox_selector",
@@ -249,7 +250,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         name:
                             columnDisplayNamesRef.current.get(c.id) ??
                             (typeof c.name === "string" ? c.name : String(c.id)),
-                        visible: visibleIds.has(c.id),
+                        visible: !c.hidden,
                     }));
             },
             setDataColumnVisibility: (id: string, visible: boolean) => {
@@ -257,18 +258,8 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 if (!grid) {
                     return;
                 }
-                const allColumns = columnsRef.current;
-                const currentGridColumns = grid.getColumns();
-                const dataColumnIds = new Set(allColumns.map((c) => c.id));
-                const visibleIds = new Set(currentGridColumns.map((c) => c.id));
-                if (visible) {
-                    visibleIds.add(id);
-                } else {
-                    visibleIds.delete(id);
-                }
-                const nonDataColumns = currentGridColumns.filter((c) => !dataColumnIds.has(c.id));
-                const visibleDataColumns = allColumns.filter((c) => visibleIds.has(c.id));
-                grid.setColumns([...nonDataColumns, ...visibleDataColumns]);
+                grid.updateColumnById(id, { hidden: !visible });
+                grid.updateColumns();
             },
             deleteRows: (rowIds: number[]) => {
                 if (!onDeleteRow) {
@@ -606,9 +597,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 const dataColumns = createColumns(resultSet.columnInfo, currentTheme);
                 const newColumns = [createUndoColumn(), ...dataColumns];
                 setColumns(newColumns);
-                // columnsRef tracks data columns only; the undo column is excluded
-                // so column-picker / visibility logic doesn't try to manage it.
-                columnsRef.current = dataColumns;
                 const displayNames = new Map<string | number, string>();
                 resultSet.columnInfo.forEach((c: any, i: number) => {
                     displayNames.set(`col${i}`, c.name);
