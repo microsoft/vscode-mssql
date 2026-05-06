@@ -1157,6 +1157,7 @@
     "Server Name": "Server Name",
     "Enter server name": "Enter server name",
     "Creating server...": "Creating server...",
+    "Create new": "Create new",
     "Change Password": "Change Password",
     "Password must be changed to continue logging into '{0}'/{0} is the name of the server": {
         "message": "Password must be changed to continue logging into '{0}'",

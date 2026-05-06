@@ -1832,6 +1832,26 @@ export class LocConstants {
             enterServerName: l10n.t("Enter server name"),
             creatingServer: l10n.t("Creating server..."),
             createNew: l10n.t("Create new"),
+            authenticationType: l10n.t("Authentication Type"),
+            sqlLogin: l10n.t("SQL Authentication"),
+            azureMFA: l10n.t("Microsoft Entra ID"),
+            azureMFAAndUser: l10n.t("Both"),
+            userName: l10n.t("User Name"),
+            enterUserName: l10n.t("Enter user name"),
+            password: l10n.t("Password"),
+            enterPassword: l10n.t("Enter password"),
+            savePassword: l10n.t("Save password"),
+            userNameIsRequired: l10n.t("User name is required"),
+            passwordIsRequired: l10n.t("Password is required"),
+            freeLimitBehavior: l10n.t("Behavior when free offer limit is reached"),
+            autoPauseOption: l10n.t("Auto-pause the database until next month"),
+            autoPauseDescription: l10n.t(
+                "Database pauses until the next billing cycle when free amount is renewed.",
+            ),
+            continueChargesOption: l10n.t("Continue using for additional charges"),
+            continueChargesDescription: l10n.t(
+                "Additional usage beyond the free amount will be charged at serverless rates.",
+            ),
         };
     }
 

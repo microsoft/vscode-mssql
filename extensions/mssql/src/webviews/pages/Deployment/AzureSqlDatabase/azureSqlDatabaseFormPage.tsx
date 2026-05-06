@@ -3,8 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect } from "react";
-import { Link, makeStyles, Spinner, Text } from "@fluentui/react-components";
+import { useContext, useEffect, useState } from "react";
+import {
+    Link,
+    Label,
+    makeStyles,
+    Radio,
+    RadioGroup,
+    Spinner,
+    Text,
+} from "@fluentui/react-components";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { FormField } from "../../../common/forms/form.component";
 import {
@@ -17,6 +25,7 @@ import {
     CreateServerDrawerProps,
 } from "../../../../sharedInterfaces/azureSqlDatabase";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
+import { AuthenticationType } from "../../../../sharedInterfaces/connectionDialog";
 import { locConstants } from "../../../common/locConstants";
 import {
     CREATE_NEW_GROUP_ID,
@@ -98,6 +107,14 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
     const azureComponentStatuses = useAzureSqlDatabaseDeploymentSelector(
         (s) => s.azureComponentStatuses,
     );
+
+    const [localAutoPauseDelay, setLocalAutoPauseDelay] = useState(
+        String(formState.autoPauseDelay),
+    );
+
+    useEffect(() => {
+        setLocalAutoPauseDelay(String(formState.autoPauseDelay));
+    }, [formState.autoPauseDelay]);
 
     useEffect(() => {
         if (formValidationLoadState === ApiStatus.Loaded) {
@@ -295,6 +312,78 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                     onClick: () => context.setCreateServerDrawerState(true),
                 })}
                 {renderFormField("databaseName")}
+                {renderFormField("authenticationType")}
+                {formState.authenticationType !== AuthenticationType.AzureMFA && (
+                    <>
+                        {renderFormField("userName")}
+                        {renderFormField("password")}
+                        <div style={{ width: "600px" }}>
+                            <FormField<
+                                AzureSqlDatabaseFormState,
+                                AzureSqlDatabaseState,
+                                AzureSqlDatabaseFormItemSpec,
+                                AzureSqlDatabaseContextProps
+                            >
+                                context={context}
+                                formState={formState}
+                                component={
+                                    formComponents["savePassword"] as AzureSqlDatabaseFormItemSpec
+                                }
+                                idx={0}
+                            />
+                        </div>
+                    </>
+                )}
+                <div className={classes.fieldContainer}>
+                    <div style={{ flex: 1, width: "100%" }}>
+                        <Label weight="semibold">
+                            {locConstants.azureSqlDatabase.freeLimitBehavior}
+                        </Label>
+                        <RadioGroup
+                            value={localAutoPauseDelay}
+                            onChange={(_e, data) => {
+                                setLocalAutoPauseDelay(data.value);
+                                context.formAction({
+                                    propertyName: "autoPauseDelay",
+                                    isAction: false,
+                                    value: Number(data.value),
+                                });
+                            }}>
+                            <div>
+                                <Radio
+                                    value="60"
+                                    label={locConstants.azureSqlDatabase.autoPauseOption}
+                                />
+                                <Text
+                                    size={200}
+                                    style={{
+                                        display: "block",
+                                        color: "var(--vscode-descriptionForeground)",
+                                        marginLeft: "28px",
+                                        marginTop: "-4px",
+                                    }}>
+                                    {locConstants.azureSqlDatabase.autoPauseDescription}
+                                </Text>
+                            </div>
+                            <div>
+                                <Radio
+                                    value="-1"
+                                    label={locConstants.azureSqlDatabase.continueChargesOption}
+                                />
+                                <Text
+                                    size={200}
+                                    style={{
+                                        display: "block",
+                                        color: "var(--vscode-descriptionForeground)",
+                                        marginLeft: "28px",
+                                        marginTop: "-4px",
+                                    }}>
+                                    {locConstants.azureSqlDatabase.continueChargesDescription}
+                                </Text>
+                            </div>
+                        </RadioGroup>
+                    </div>
+                </div>
                 {renderFormField("profileName")}
                 <div className={classes.fieldContainer}>
                     <div style={{ flex: 1, width: "100%" }}>

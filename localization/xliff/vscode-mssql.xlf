@@ -1617,6 +1617,9 @@
     <trans-unit id="++CODE++920a110919d9017fb66218139efb71c5907532cbe6292a1db645f05d06a171ae">
       <source xml:lang="en">Create as Script</source>
     </trans-unit>
+    <trans-unit id="++CODE++9f3df753a41ae98ee68246dcf9727a0e2c18af3b99e9921a55b7d75aed543f44">
+      <source xml:lang="en">Create new</source>
+    </trans-unit>
     <trans-unit id="++CODE++df70f437cafdeb7517ec4a9fd9ce6fc0c92b4b70ef5e7c79436341201f731fdb">
       <source xml:lang="en">Create new connection copied from {0}</source>
       <note>{0} is the name of the connection profile</note>

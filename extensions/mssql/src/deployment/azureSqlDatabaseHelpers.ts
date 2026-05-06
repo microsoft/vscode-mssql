@@ -85,6 +85,11 @@ export async function initializeAzureSqlDatabaseState(
         resourceGroup: "",
         serverName: "",
         databaseName: "",
+        authenticationType: AuthenticationType.SqlLogin,
+        userName: "",
+        password: "",
+        savePassword: false,
+        autoPauseDelay: 60,
         profileName: "",
         groupId: selectedGroupId || groupOptions[0]?.value || "",
     };
@@ -145,7 +150,12 @@ export function registerAzureSqlDatabaseReducers(
             azureSqlState.formValidationLoadState = ApiStatus.Loading;
             updateAzureSqlDatabaseState(deploymentController, azureSqlState);
 
-            azureSqlState.formErrors = await deploymentController.validateDeploymentForm();
+            try {
+                azureSqlState.formErrors = await deploymentController.validateDeploymentForm();
+            } catch (error) {
+                cachedLogger?.error(`Form validation failed: ${error}`);
+                azureSqlState.formErrors = [];
+            }
             if (azureSqlState.formErrors.length > 0) {
                 azureSqlState.formValidationLoadState = ApiStatus.NotStarted;
                 state.deploymentTypeState = azureSqlState;
@@ -443,9 +453,25 @@ export async function connectToAzureSqlDatabase(
             await ConnectionCredentials.createConnectionInfo(connectionDetails);
         connectionProfile.profileName = state.formState.profileName || state.formState.databaseName;
         connectionProfile.groupId = state.formState.groupId;
-        connectionProfile.authenticationType = AuthenticationType.AzureMFA;
-        connectionProfile.accountId = state.formState.accountId;
-        connectionProfile.tenantId = state.formState.tenantId;
+        connectionProfile.authenticationType = state.formState
+            .authenticationType as AuthenticationType;
+
+        if (
+            state.formState.authenticationType === AuthenticationType.AzureMFA ||
+            state.formState.authenticationType === AuthenticationType.AzureMFAAndUser
+        ) {
+            connectionProfile.accountId = state.formState.accountId;
+            connectionProfile.tenantId = state.formState.tenantId;
+        }
+
+        if (
+            state.formState.authenticationType === AuthenticationType.SqlLogin ||
+            state.formState.authenticationType === AuthenticationType.AzureMFAAndUser
+        ) {
+            connectionProfile.user = state.formState.userName;
+            connectionProfile.password = state.formState.password;
+            connectionProfile.savePassword = state.formState.savePassword;
+        }
 
         const profile =
             await deploymentController.mainController.connectionManager.connectionUI.saveProfile(
@@ -760,6 +786,58 @@ function setAzureSqlDatabaseFormComponents(
                 isValid: !!value,
                 validationMessage: value ? "" : AzureSqlDatabase.databaseNameIsRequired,
             }),
+        }),
+        authenticationType: createFormItem({
+            propertyName: "authenticationType",
+            type: FormItemType.Dropdown,
+            required: true,
+            label: AzureSqlDatabase.authenticationType,
+            options: [
+                { displayName: AzureSqlDatabase.sqlLogin, value: AuthenticationType.SqlLogin },
+                { displayName: AzureSqlDatabase.azureMFA, value: AuthenticationType.AzureMFA },
+                {
+                    displayName: AzureSqlDatabase.azureMFAAndUser,
+                    value: AuthenticationType.AzureMFAAndUser,
+                },
+            ],
+        }),
+        userName: createFormItem({
+            propertyName: "userName",
+            type: FormItemType.Input,
+            required: true,
+            label: AzureSqlDatabase.userName,
+            placeholder: AzureSqlDatabase.enterUserName,
+            validate: (state: asd.AzureSqlDatabaseState, value: string) => {
+                if (state.formState.authenticationType === AuthenticationType.AzureMFA) {
+                    return { isValid: true, validationMessage: "" };
+                }
+                return {
+                    isValid: !!value,
+                    validationMessage: value ? "" : AzureSqlDatabase.userNameIsRequired,
+                };
+            },
+        }),
+        password: createFormItem({
+            propertyName: "password",
+            type: FormItemType.Password,
+            required: true,
+            label: AzureSqlDatabase.password,
+            placeholder: AzureSqlDatabase.enterPassword,
+            validate: (state: asd.AzureSqlDatabaseState, value: string) => {
+                if (state.formState.authenticationType === AuthenticationType.AzureMFA) {
+                    return { isValid: true, validationMessage: "" };
+                }
+                return {
+                    isValid: !!value,
+                    validationMessage: value ? "" : AzureSqlDatabase.passwordIsRequired,
+                };
+            },
+        }),
+        savePassword: createFormItem({
+            propertyName: "savePassword",
+            type: FormItemType.Checkbox,
+            required: false,
+            label: AzureSqlDatabase.savePassword,
         }),
         profileName: createFormItem({
             propertyName: "profileName",

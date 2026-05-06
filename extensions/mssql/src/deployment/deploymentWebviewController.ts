@@ -253,7 +253,7 @@ export class DeploymentWebviewController extends FormWebviewController<
         let errors: string[] = [];
         if (propertyName) {
             const component = state.formComponents[propertyName];
-            if (!component.validate) return errors;
+            if (!component?.validate) return errors;
             const componentValidation = component.validate(
                 state as any,
                 state.formState[propertyName],
@@ -265,7 +265,7 @@ export class DeploymentWebviewController extends FormWebviewController<
         } else {
             for (const componentKey of Object.keys(state.formState)) {
                 const component = state.formComponents[componentKey];
-                if (!component.validate) continue;
+                if (!component?.validate) continue;
                 const componentValidation = component.validate(
                     state as any,
                     state.formState[componentKey],

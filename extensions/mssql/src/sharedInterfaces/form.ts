@@ -151,7 +151,7 @@ export interface FormEvent<T> {
      * Contains the updated value of the form item that triggered the event.
      * In case of isAction being true, this will contain the id of the action button that was clicked
      */
-    value: string | boolean;
+    value: string | boolean | number;
 
     /**
      * Whether to update the validation state of the form item

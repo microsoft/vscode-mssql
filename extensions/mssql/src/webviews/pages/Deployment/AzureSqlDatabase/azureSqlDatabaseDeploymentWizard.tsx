@@ -11,6 +11,7 @@ import {
     AzureSqlDatabaseFormItemSpec,
     AzureSqlDatabaseState,
 } from "../../../../sharedInterfaces/azureSqlDatabase";
+import { AuthenticationType } from "../../../../sharedInterfaces/connectionDialog";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { DeploymentContext } from "../deploymentStateProvider";
 import { useAzureSqlDatabaseDeploymentSelector } from "../deploymentSelector";
@@ -62,6 +63,17 @@ export const AzureSqlDatabaseDeploymentWizard: React.FC<AzureSqlDatabaseDeployme
 
             const value = formState?.[formComponent.propertyName];
             const normalizedValue = (value ?? "") as string | number | boolean;
+
+            // validate functions don't survive JSON serialization to the webview,
+            // so replicate auth-type-conditional logic for userName/password here
+            if (
+                (formComponent.propertyName === "userName" ||
+                    formComponent.propertyName === "password") &&
+                formState?.authenticationType === AuthenticationType.AzureMFA
+            ) {
+                return true;
+            }
+
             if (formComponent.validate) {
                 return formComponent.validate(validationState, normalizedValue).isValid;
             }

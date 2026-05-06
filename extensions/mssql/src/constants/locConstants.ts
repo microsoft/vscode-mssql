@@ -1392,6 +1392,17 @@ export class AzureSqlDatabase {
     public static enterServerName = l10n.t("Enter a name for the new server");
     public static serverNameIsRequired = l10n.t("Server name is required");
     public static creatingServer = l10n.t("Creating server...");
+    public static authenticationType = l10n.t("Authentication Type");
+    public static sqlLogin = l10n.t("SQL Authentication");
+    public static azureMFA = l10n.t("Microsoft Entra ID");
+    public static azureMFAAndUser = l10n.t("Both");
+    public static userName = l10n.t("User Name");
+    public static enterUserName = l10n.t("Enter user name");
+    public static password = l10n.t("Password");
+    public static enterPassword = l10n.t("Enter password");
+    public static savePassword = l10n.t("Save password");
+    public static userNameIsRequired = l10n.t("User name is required");
+    public static passwordIsRequired = l10n.t("Password is required");
 }
 
 export class FabricProvisioning {

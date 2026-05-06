@@ -60,6 +60,11 @@ export interface AzureSqlDatabaseFormState {
     resourceGroup: string;
     serverName: string;
     databaseName: string;
+    authenticationType: string;
+    userName: string;
+    password: string;
+    savePassword: boolean;
+    autoPauseDelay: number;
     profileName: string;
     groupId: string;
 }

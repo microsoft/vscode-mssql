@@ -326,6 +326,9 @@ export class VsCodeAzureHelper {
             endpoint: getCloudProviderSettings().settings.armResource.endpoint,
         });
 
+        const db = await sql.databases.get(resourceGroupName, serverName, "laurennatdb");
+        console.log(db);
+
         const poller = await sql.databases.beginCreateOrUpdate(
             resourceGroupName,
             serverName,
