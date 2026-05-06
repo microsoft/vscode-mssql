@@ -326,7 +326,10 @@ export class FlatFileImportWebviewController extends FormWebviewController<
         return Object.keys(state.formComponents) as (keyof FlatFileImportFormState)[];
     }
 
-    async afterSetFormProperty(propertyName: keyof FlatFileImportFormState): Promise<void> {
+    async afterSetFormProperty(
+        propertyName: keyof FlatFileImportFormState,
+        _isBlur: boolean,
+    ): Promise<void> {
         if (propertyName === "databaseName") {
             void this.handleLoadSchemas();
         }

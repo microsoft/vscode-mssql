@@ -1646,7 +1646,10 @@ export class PublishProjectWebViewController extends FormWebviewController<
      * Called after a form property is set and validated.
      * Handles publish target changes for both validation and database dropdown management.
      */
-    public async afterSetFormProperty(propertyName: keyof IPublishForm): Promise<void> {
+    public async afterSetFormProperty(
+        propertyName: keyof IPublishForm,
+        _isBlur: boolean,
+    ): Promise<void> {
         if (propertyName === PublishFormFields.PublishTarget) {
             const databaseComponent = this.state.formComponents[PublishFormFields.DatabaseName];
             if (!databaseComponent) return;
