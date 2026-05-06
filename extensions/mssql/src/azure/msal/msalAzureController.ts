@@ -207,7 +207,9 @@ export class MsalAzureController extends AzureController {
                     key: result.account.homeAccountId,
                     token: result.accessToken,
                     tokenType: result.tokenType,
-                    expiresOn: result.expiresOn ? result.expiresOn.getTime() / 1000 : undefined,
+                    expiresOn: result.expiresOn
+                        ? Math.floor(result.expiresOn.getTime() / 1000)
+                        : undefined,
                 };
                 return token;
             }

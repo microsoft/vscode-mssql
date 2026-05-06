@@ -259,7 +259,7 @@ export abstract class MsalAzureAuth {
                     token: tokenResult.accessToken,
                     tokenType: tokenResult.tokenType,
                     expiresOn: tokenResult.expiresOn
-                        ? tokenResult.expiresOn.getTime() / 1000
+                        ? Math.floor(tokenResult.expiresOn.getTime() / 1000)
                         : undefined,
                 };
 
