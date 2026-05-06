@@ -2033,6 +2033,12 @@
                     "default": null,
                     "scope": "resource"
                 },
+                "mssql.results.openAfterSave": {
+                    "type": "boolean",
+                    "description": "%mssql.results.openAfterSave%",
+                    "default": true,
+                    "scope": "resource"
+                },
                 "mssql.saveAsCsv.includeHeaders": {
                     "type": "boolean",
                     "description": "%mssql.saveAsCsv.includeHeaders%",

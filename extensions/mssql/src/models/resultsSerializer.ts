@@ -74,7 +74,7 @@ export default class ResultsSerializer {
 
     private getConfigForCsv(): Contracts.SaveResultsAsCsvRequestParams {
         // get save results config from vscode config
-        let config = this._vscodeWrapper.getConfiguration(
+        const config = this._vscodeWrapper.getConfiguration(
             Constants.extensionConfigSectionName,
             this._uri,
         );
@@ -201,6 +201,18 @@ export default class ResultsSerializer {
         );
     }
 
+    private shouldOpenSavedFile(): boolean {
+        const config = this._vscodeWrapper.getConfiguration(
+            Constants.extensionConfigSectionName,
+            this._uri,
+        );
+        const configuredValue =
+            typeof config.get === "function"
+                ? config.get<boolean>(Constants.configResultsOpenAfterSave)
+                : config[Constants.configResultsOpenAfterSave];
+        return configuredValue ?? true;
+    }
+
     /**
      * Send request to sql tools service to save a result set
      */
@@ -254,7 +266,9 @@ export default class ResultsSerializer {
                     self._vscodeWrapper.logToOutputChannel(
                         LocalizedConstants.msgSaveSucceeded + filePath,
                     );
-                    self.openSavedFile(self._filePath, format);
+                    if (self.shouldOpenSavedFile()) {
+                        self.openSavedFile(self._filePath, format);
+                    }
                 }
             },
             (error) => {
