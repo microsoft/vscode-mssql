@@ -7985,6 +7985,9 @@
     <trans-unit id="mssql.objectExplorer.collapseConnectionGroupsOnStartupDescription">
       <source xml:lang="en">When enabled, connection groups will be collapsed instead of expanded at startup.</source>
     </trans-unit>
+    <trans-unit id="mssql.results.openAfterSave">
+      <source xml:lang="en">When enabled, saved query result exports are opened after export. Excel exports open with the system file handler; text exports open in VS Code.</source>
+    </trans-unit>
     <trans-unit id="mssql.objectExplorer.groupBySchema">
       <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
     </trans-unit>
