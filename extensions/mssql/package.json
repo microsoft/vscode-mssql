@@ -1656,7 +1656,7 @@
                         "boolean",
                         "null"
                     ],
-                    "default": null,
+                    "default": true,
                     "description": "%mssql.preview.useVscodeAccountsForEntraMFA.description%",
                     "scope": "application"
                 },
