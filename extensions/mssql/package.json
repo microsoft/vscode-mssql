@@ -841,6 +841,11 @@
                     "group": "inline@9999"
                 },
                 {
+                    "command": "mssql.objectExplorer.cancelTask",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(ObjectExplorerLoading)\\b.*\\bcancelable=true\\b/",
+                    "group": "inline@1"
+                },
+                {
                     "command": "mssql.openQueryHistory",
                     "when": "view == queryHistory && viewItem == queryHistoryNode",
                     "group": "MS_SQL@1"
@@ -1274,6 +1279,12 @@
                 "title": "%mssql.refreshObjectExplorerNode%",
                 "category": "MS SQL",
                 "icon": "$(refresh)"
+            },
+            {
+                "command": "mssql.objectExplorer.cancelTask",
+                "title": "%mssql.objectExplorer.cancelTask%",
+                "category": "MS SQL",
+                "icon": "$(debug-stop)"
             },
             {
                 "command": "mssql.disconnectObjectExplorerNode",

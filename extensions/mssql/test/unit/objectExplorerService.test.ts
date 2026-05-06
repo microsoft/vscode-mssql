@@ -36,6 +36,7 @@ import {
 import * as telemetry from "../../src/telemetry/telemetry";
 import { RefreshRequest } from "../../src/models/contracts/objectExplorer/refreshSessionRequest";
 import { ExpandErrorNode } from "../../src/objectExplorer/nodes/expandErrorNode";
+import { ObjectExplorerLoadingNode } from "../../src/objectExplorer/nodes/loadingNode";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import { IConnectionInfo } from "vscode-mssql";
 import { ConnectionUI } from "../../src/views/connectionUI";
@@ -53,6 +54,7 @@ import {
     GetSessionIdRequest,
     GetSessionIdResponse,
 } from "../../src/models/contracts/objectExplorer/getSessionIdRequest";
+import { CancelObjectExplorerTaskRequest } from "../../src/models/contracts/objectExplorer/cancelTaskRequest";
 import { uuid } from "../e2e/baseFixtures";
 import { ConnectionGroupNode } from "../../src/objectExplorer/nodes/connectionGroupNode";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
@@ -368,6 +370,65 @@ suite("OE Service Tests", () => {
 
             // Verify shouldRefresh was reset
             expect(mockNode.shouldRefresh, "Node shouldRefresh should be false").to.be.false;
+        });
+
+        test("cancelTask should cancel a loading expansion and replace it with a canceled node", async () => {
+            sandbox.stub(ObjectExplorerUtils, "iconPath").callsFake((_: string) => undefined);
+            const mockNode = new TreeNodeInfo(
+                "testNode",
+                {
+                    type: "server",
+                    filterable: false,
+                    hasFilters: false,
+                    subType: "",
+                },
+                vscode.TreeItemCollapsibleState.Collapsed,
+                "server/testNode",
+                undefined,
+                "server",
+                "session123",
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+            );
+
+            mockClient.sendRequest.withArgs(ExpandRequest.type, sinon.match.any).resolves(true);
+            mockClient.sendRequest
+                .withArgs(CancelObjectExplorerTaskRequest.type, sinon.match.any)
+                .resolves(true);
+
+            const children = await objectExplorerService.getChildren(mockNode);
+            expect(children[0], "Loading child should be cancellable").to.be.instanceOf(
+                ObjectExplorerLoadingNode,
+            );
+
+            await objectExplorerService.cancelTask(
+                (children[0] as ObjectExplorerLoadingNode).taskId!,
+            );
+
+            expect(
+                mockClient.sendRequest.calledWith(
+                    CancelObjectExplorerTaskRequest.type,
+                    sinon.match({
+                        sessionId: "session123",
+                        nodePath: "server/testNode",
+                    }),
+                ),
+                "Cancel request should be sent to STS",
+            ).to.be.true;
+
+            const mappedChildren = (objectExplorerService as any)._treeNodeToChildrenMap.get(
+                mockNode,
+            );
+            expect(mappedChildren[0], "Canceled node should replace loading").to.be.instanceOf(
+                ExpandErrorNode,
+            );
+            expect(mappedChildren[0].tooltip, "Canceled tooltip should be shown").to.equal(
+                LocalizedConstants.ObjectExplorer.LoadingCanceled,
+            );
         });
 
         test("expandNode should use RefreshRequest if node.shouldRefresh is true", async () => {

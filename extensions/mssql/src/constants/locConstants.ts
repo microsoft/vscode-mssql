@@ -944,6 +944,8 @@ export class ObjectExplorer {
     public static NodeDeletionConfirmationYes = l10n.t("Yes");
     public static NodeDeletionConfirmationNo = l10n.t("No");
     public static LoadingNodeLabel = l10n.t("Loading...");
+    public static LoadingCanceled = l10n.t("Loading canceled; refresh to try again");
+    public static ConnectingCanceled = l10n.t("Connection canceled");
     public static GeneratingScript = l10n.t("Generating script...");
     public static FetchingScriptLabel(scriptType: string) {
         return l10n.t({

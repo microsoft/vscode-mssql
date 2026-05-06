@@ -102,6 +102,7 @@ export const cmdDisconnectObjectExplorerNode = "mssql.disconnectObjectExplorerNo
 export const cmdObjectExplorerNodeSignIn = "mssql.objectExplorerNodeSignIn";
 export const cmdConnectObjectExplorerNode = "mssql.connectObjectExplorerNode";
 export const cmdConnectObjectExplorerProfile = "mssql.connectObjectExplorerProfile";
+export const cmdCancelObjectExplorerTask = "mssql.objectExplorer.cancelTask";
 export const cmdOpenObjectExplorerCommand = "workbench.view.extension.objectExplorer";
 export const cmdObjectExplorerGroupBySchemaFlagName = "mssql.objectExplorer.groupBySchema";
 export const cmdObjectExplorerEnableGroupBySchemaCommand =

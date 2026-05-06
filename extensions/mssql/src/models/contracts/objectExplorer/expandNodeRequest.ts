@@ -54,6 +54,11 @@ export class ExpandParams {
      * Filters to apply to the child nodes being returned
      */
     filters?: vscodeMssql.NodeFilter[];
+
+    /**
+     * Optional task ID used to cancel this expansion.
+     */
+    taskId?: string;
 }
 
 // ------------------------------- < Expand Node Request > ----------------------------------------------

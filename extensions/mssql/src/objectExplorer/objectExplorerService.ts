@@ -53,6 +53,7 @@ import { ExpandErrorNode } from "./nodes/expandErrorNode";
 import { NoItemsNode } from "./nodes/noItemNode";
 import { ConnectionNode } from "./nodes/connectionNode";
 import { ConnectionGroupNode } from "./nodes/connectionGroupNode";
+import { ObjectExplorerLoadingNode } from "./nodes/loadingNode";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 import { NewDeploymentTreeNode } from "../deployment/newDeploymentTreeNode";
 import { getErrorMessage, uuid } from "../utils/utils";
@@ -60,11 +61,24 @@ import { ConnectionConfig } from "../connectionconfig/connectionconfig";
 import { MissingEntraAuthAccountError } from "../azure/vscodeEntraMfaUtils";
 import { VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { PreviewFeature, previewService } from "../previews/previewService";
+import {
+    CancelObjectExplorerTaskParams,
+    CancelObjectExplorerTaskRequest,
+} from "../models/contracts/objectExplorer/cancelTaskRequest";
+import {
+    ObjectExplorerTask,
+    ObjectExplorerTaskKind,
+    ObjectExplorerTaskManager,
+} from "./objectExplorerTask";
 
 export interface CreateSessionResult {
     sessionId?: string;
     connectionNode?: ConnectionNode;
     shouldRetryOnFailure?: boolean;
+}
+
+interface ExpandNodeOptions {
+    task?: ObjectExplorerTask;
 }
 
 export class ObjectExplorerService {
@@ -113,6 +127,9 @@ export class ObjectExplorerService {
         string,
         Deferred<ExpandResponse>
     >();
+    private readonly _objectExplorerTaskManager = new ObjectExplorerTaskManager();
+    private readonly _canceledSessionCreations = new Set<string>();
+    private readonly _canceledExpands = new Set<string>();
 
     constructor(
         private _vscodeWrapper: VscodeWrapper,
@@ -138,6 +155,10 @@ export class ObjectExplorerService {
         void this.initialize();
     }
 
+    private getExpandKey(sessionId: string, nodePath: string): string {
+        return `${sessionId}${nodePath}`;
+    }
+
     /**
      * Handles the session created notification from the SQL Tools Service.
      * @param result The result of the session creation request.
@@ -146,6 +167,10 @@ export class ObjectExplorerService {
         const promise = this._pendingSessionCreations.get(result.sessionId);
         if (promise) {
             promise.resolve(result);
+        } else if (this._canceledSessionCreations.delete(result.sessionId)) {
+            this._logger.verbose(
+                `Ignoring canceled session created notification for sessionId ${result.sessionId}.`,
+            );
         } else {
             this._logger.error(
                 `Session created notification received for sessionId ${result.sessionId} but no promise found.`,
@@ -158,9 +183,14 @@ export class ObjectExplorerService {
      * @param result The result of the expand node request.
      */
     public handleExpandNodeNotification(result: ExpandResponse): void {
-        const promise = this._pendingExpands.get(`${result.sessionId}${result.nodePath}`);
+        const expandKey = this.getExpandKey(result.sessionId, result.nodePath);
+        const promise = this._pendingExpands.get(expandKey);
         if (promise) {
             promise.resolve(result);
+        } else if (this._canceledExpands.delete(expandKey)) {
+            this._logger.verbose(
+                `Ignoring canceled expand notification for sessionId ${result.sessionId} and nodePath ${result.nodePath}.`,
+            );
         } else {
             this._logger.error(
                 `Expand node notification received for sessionId ${result.sessionId} but no promise found.`,
@@ -190,6 +220,7 @@ export class ObjectExplorerService {
     public async expandNode(
         node: TreeNodeInfo,
         sessionId: string,
+        options?: ExpandNodeOptions,
     ): Promise<vscode.TreeItem[] | undefined> {
         const expandActivity = startActivity(
             TelemetryViews.ObjectExplorer,
@@ -208,8 +239,15 @@ export class ObjectExplorerService {
                 nodePath: node.nodePath,
                 filters: node.filters,
             };
+            if (options?.task) {
+                options.task.serviceTaskId = options.task.id;
+                options.task.sessionId = sessionId;
+                options.task.nodePath = node.nodePath;
+                expandParams.taskId = options.task.id;
+            }
             const expandResponse = new Deferred<ExpandResponse>();
-            this._pendingExpands.set(`${sessionId}${node.nodePath}`, expandResponse);
+            const expandKey = this.getExpandKey(sessionId, node.nodePath);
+            this._pendingExpands.set(expandKey, expandResponse);
 
             let response: boolean;
             if (node.shouldRefresh) {
@@ -227,7 +265,10 @@ export class ObjectExplorerService {
             }
 
             if (response) {
-                const result = await expandResponse;
+                const result = await this.waitForTaskOrCancellation(expandResponse, options?.task);
+                if (options?.task?.token.isCancellationRequested) {
+                    return undefined;
+                }
                 this._logger.verbose(
                     `Expand node response: ${JSON.stringify(result)} for sessionId ${sessionId}`,
                 );
@@ -274,8 +315,40 @@ export class ObjectExplorerService {
                 return undefined;
             }
         } finally {
+            this._pendingExpands.delete(this.getExpandKey(sessionId, node.nodePath));
             node.shouldRefresh = false;
         }
+    }
+
+    private async waitForTaskOrCancellation<T>(
+        deferred: Deferred<T>,
+        task?: ObjectExplorerTask,
+    ): Promise<T | undefined> {
+        if (!task) {
+            return deferred.promise;
+        }
+
+        if (task.token.isCancellationRequested) {
+            return undefined;
+        }
+
+        return new Promise<T | undefined>((resolve, reject) => {
+            const disposable = task.token.onCancellationRequested(() => {
+                disposable.dispose();
+                resolve(undefined);
+            });
+
+            deferred.then(
+                (value) => {
+                    disposable.dispose();
+                    resolve(value);
+                },
+                (error) => {
+                    disposable.dispose();
+                    reject(error);
+                },
+            );
+        });
     }
 
     /**
@@ -503,8 +576,12 @@ export class ObjectExplorerService {
          * Tree expansion is queued, so without this if multiple connections are expanding,
          * one blocked operation can delay the other.
          */
-        void this.getOrCreateNodeChildrenWithSession(element);
-        return this.setLoadingUiForNode(element);
+        const task = this.createLoadingTask(
+            element,
+            element.sessionId ? ObjectExplorerTaskKind.Expand : ObjectExplorerTaskKind.Connect,
+        );
+        void this.getOrCreateNodeChildrenWithSession(element, task);
+        return this.setLoadingUiForNode(element, task);
     }
 
     /**
@@ -513,16 +590,80 @@ export class ObjectExplorerService {
      * @param element The node to set the loading UI for
      * @returns A loading node that will be displayed in the tree
      */
-    public async setLoadingUiForNode(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
-        const loadingNode = new vscode.TreeItem(
-            element.loadingLabel ?? LocalizedConstants.ObjectExplorer.LoadingNodeLabel,
-            vscode.TreeItemCollapsibleState.None,
-        );
-        loadingNode.iconPath = new vscode.ThemeIcon("loading~spin");
+    public async setLoadingUiForNode(
+        element: TreeNodeInfo,
+        task?: ObjectExplorerTask,
+    ): Promise<vscode.TreeItem[]> {
+        const loadingNode = this.createLoadingNode(element, task);
         this._treeNodeToChildrenMap.set(element, [loadingNode]);
         this._refreshCallback(element);
 
         return this._treeNodeToChildrenMap.get(element);
+    }
+
+    private createLoadingTask(
+        element: TreeNodeInfo,
+        kind: ObjectExplorerTaskKind,
+    ): ObjectExplorerTask {
+        return this._objectExplorerTaskManager.create({
+            kind,
+            node: element,
+            onCancel: async (task) => {
+                await this.cancelServiceTask(task);
+                this.showCanceledTaskUi(task);
+            },
+        });
+    }
+
+    private createLoadingNode(
+        element: TreeNodeInfo,
+        task?: ObjectExplorerTask,
+    ): ObjectExplorerLoadingNode {
+        const label =
+            element.loadingLabel ??
+            (task?.kind === ObjectExplorerTaskKind.Connect
+                ? LocalizedConstants.ObjectExplorer.Connecting
+                : LocalizedConstants.ObjectExplorer.LoadingNodeLabel);
+        return new ObjectExplorerLoadingNode(element, label, task);
+    }
+
+    public async cancelTask(taskId: string): Promise<void> {
+        await this._objectExplorerTaskManager.cancel(taskId);
+    }
+
+    private async cancelServiceTask(task: ObjectExplorerTask): Promise<void> {
+        const cancelParams: CancelObjectExplorerTaskParams = {
+            taskId: task.serviceTaskId ?? task.id,
+            sessionId: task.sessionId ?? task.node.sessionId,
+            nodePath: task.nodePath ?? task.node.nodePath,
+        };
+
+        try {
+            await this._connectionManager.client.sendRequest(
+                CancelObjectExplorerTaskRequest.type,
+                cancelParams,
+            );
+        } catch (error) {
+            this._logger.warn(`Failed to cancel Object Explorer task: ${getErrorMessage(error)}`);
+        }
+    }
+
+    private showCanceledTaskUi(task: ObjectExplorerTask): void {
+        if (task.kind === ObjectExplorerTaskKind.Connect) {
+            this._treeNodeToChildrenMap.set(task.node, [new ConnectTreeNode(task.node)]);
+        } else {
+            this._treeNodeToChildrenMap.set(task.node, [
+                new ExpandErrorNode(task.node, LocalizedConstants.ObjectExplorer.LoadingCanceled),
+            ]);
+        }
+
+        if (task.kind === ObjectExplorerTaskKind.Connect && task.sessionId) {
+            this._canceledSessionCreations.add(task.sessionId);
+        } else if (task.sessionId && task.nodePath) {
+            this._canceledExpands.add(this.getExpandKey(task.sessionId, task.nodePath));
+        }
+
+        this._refreshCallback(task.node);
     }
 
     /**
@@ -531,14 +672,24 @@ export class ObjectExplorerService {
      * @param element The node to get or create children for
      * @returns The children of the node
      */
-    private async getOrCreateNodeChildrenWithSession(element: TreeNodeInfo): Promise<void> {
-        if (element.sessionId) {
-            await this.expandExistingNode(element);
-        } else {
-            await this.createSessionAndExpandNode(element);
+    private async getOrCreateNodeChildrenWithSession(
+        element: TreeNodeInfo,
+        task: ObjectExplorerTask,
+    ): Promise<void> {
+        try {
+            if (element.sessionId) {
+                await this.expandExistingNode(element, task);
+            } else {
+                await this.createSessionAndExpandNode(element, task);
+            }
+
+            if (!task.token.isCancellationRequested) {
+                element.shouldRefresh = false;
+                this._refreshCallback(element);
+            }
+        } finally {
+            this._objectExplorerTaskManager.complete(task.id);
         }
-        element.shouldRefresh = false;
-        this._refreshCallback(element);
     }
 
     /**
@@ -546,8 +697,13 @@ export class ObjectExplorerService {
      * @param element The node to expand
      * @returns The children of the node
      */
-    private async expandExistingNode(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
-        const children = await this.expandNode(element, element.sessionId);
+    private async expandExistingNode(
+        element: TreeNodeInfo,
+        task?: ObjectExplorerTask,
+    ): Promise<vscode.TreeItem[] | undefined> {
+        const children = await this.expandNode(element, element.sessionId, {
+            task,
+        });
         if (children?.length === 0) {
             const noItemsNode = [new NoItemsNode(element)];
             this._treeNodeToChildrenMap.set(element, noItemsNode);
@@ -564,8 +720,15 @@ export class ObjectExplorerService {
      * @param element The node to create a session for and expand
      * @returns The children of the node
      */
-    private async createSessionAndExpandNode(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
-        const sessionResult = await this.createSession(element.connectionProfile);
+    private async createSessionAndExpandNode(
+        element: TreeNodeInfo,
+        task: ObjectExplorerTask,
+    ): Promise<vscode.TreeItem[] | undefined> {
+        const sessionResult = await this.createSession(element.connectionProfile, task);
+
+        if (task.token.isCancellationRequested) {
+            return undefined;
+        }
 
         if (sessionResult?.shouldRetryOnFailure) {
             setTimeout(() => void this.reconnectProfile(element.connectionProfile), 0);
@@ -581,7 +744,7 @@ export class ObjectExplorerService {
         if (!sessionResult.connectionNode) {
             return this.createSignInNode(element);
         } else {
-            const children = this.expandExistingNode(element);
+            const children = this.expandExistingNode(element, task);
             setTimeout(() => this._refreshCallback(element), 0);
             return children;
         }
@@ -602,8 +765,12 @@ export class ObjectExplorerService {
      */
     public async createSession(
         connectionInfo?: IConnectionInfo,
+        task?: ObjectExplorerTask,
     ): Promise<CreateSessionResult | undefined> {
         await this.initialized;
+        if (task?.token.isCancellationRequested) {
+            return undefined;
+        }
         if (!this._rootTreeNodeArray) {
             // Ensure root nodes are loaded.
             // This is needed when connection attempts are made before OE has been activated
@@ -623,6 +790,13 @@ export class ObjectExplorerService {
 
         const connectionProfile = await this.prepareConnectionProfile(connectionInfo);
 
+        if (task?.token.isCancellationRequested) {
+            createSessionActivity.end(ActivityStatus.Canceled, {
+                connectionType: connectionInfo?.authenticationType ?? "newConnection",
+            });
+            return undefined;
+        }
+
         if (!connectionProfile) {
             this._logger.error("Failed to prepare connection profile");
             return undefined;
@@ -635,6 +809,16 @@ export class ObjectExplorerService {
                 GetSessionIdRequest.type,
                 connectionDetails,
             );
+        if (task) {
+            task.sessionId = sessionIdResponse.sessionId;
+            task.serviceTaskId = `createSession:${sessionIdResponse.sessionId}`;
+        }
+        if (task?.token.isCancellationRequested) {
+            createSessionActivity.end(ActivityStatus.Canceled, {
+                connectionType: connectionProfile.authenticationType,
+            });
+            return undefined;
+        }
 
         const sessionCreatedResponse: Deferred<SessionCreatedParameters> =
             new Deferred<SessionCreatedParameters>();
@@ -648,7 +832,18 @@ export class ObjectExplorerService {
             );
 
         if (createSessionResponse) {
-            const sessionCreationResult = await sessionCreatedResponse;
+            const sessionCreationResult = await this.waitForTaskOrCancellation(
+                sessionCreatedResponse,
+                task,
+            );
+            if (!sessionCreationResult || task?.token.isCancellationRequested) {
+                this._pendingSessionCreations.delete(sessionIdResponse.sessionId);
+                this._canceledSessionCreations.add(sessionIdResponse.sessionId);
+                createSessionActivity.end(ActivityStatus.Canceled, {
+                    connectionType: connectionProfile.authenticationType,
+                });
+                return undefined;
+            }
             if (sessionCreationResult.success) {
                 this._logger.verbose(
                     `Session created successfully with session ID ${sessionCreationResult.sessionId}`,
@@ -658,6 +853,15 @@ export class ObjectExplorerService {
                     sessionCreationResult,
                     connectionProfile,
                 );
+                if (task?.token.isCancellationRequested) {
+                    if (successResponse?.connectionNode) {
+                        await this.disconnectNode(successResponse.connectionNode);
+                    }
+                    createSessionActivity.end(ActivityStatus.Canceled, {
+                        connectionType: connectionProfile.authenticationType,
+                    });
+                    return undefined;
+                }
                 createSessionActivity.end(ActivityStatus.Succeeded, {
                     connectionType: connectionProfile.authenticationType,
                 });

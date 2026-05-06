@@ -23,6 +23,7 @@ import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import * as Utils from "../models/utils";
 import { AccountSignInTreeNode } from "../objectExplorer/nodes/accountSignInTreeNode";
 import { ConnectTreeNode } from "../objectExplorer/nodes/connectTreeNode";
+import { ObjectExplorerLoadingNode } from "../objectExplorer/nodes/loadingNode";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
@@ -1304,6 +1305,17 @@ export default class MainController implements vscode.Disposable {
                 Constants.cmdRefreshObjectExplorerNode,
                 async (treeNodeInfo: TreeNodeInfo) => {
                     await this._objectExplorerProvider.refreshNode(treeNodeInfo);
+                },
+            ),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdCancelObjectExplorerTask,
+                async (loadingNode: ObjectExplorerLoadingNode) => {
+                    if (loadingNode?.taskId) {
+                        await this._objectExplorerProvider.cancelTask(loadingNode.taskId);
+                    }
                 },
             ),
         );

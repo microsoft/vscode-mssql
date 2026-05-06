@@ -89,6 +89,10 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         return this._objectExplorerService.expandNode(node, sessionId);
     }
 
+    public async cancelTask(taskId: string): Promise<void> {
+        await this._objectExplorerService.cancelTask(taskId);
+    }
+
     public async removeNode(
         node: ConnectionNode,
         showUserConfirmationPrompt?: boolean,

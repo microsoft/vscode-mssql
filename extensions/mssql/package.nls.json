@@ -35,6 +35,7 @@
     "mssql.commandPaletteQueryHistory": "Open Query History in Command Palette",
     "mssql.removeObjectExplorerNode": "Remove Connection",
     "mssql.refreshObjectExplorerNode": "Refresh",
+    "mssql.objectExplorer.cancelTask": "Cancel",
     "extension.connections": "Connections",
     "extension.queryHistory": "Query History",
     "extension.backgroundTasks": "Background Tasks",
