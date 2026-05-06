@@ -7653,7 +7653,7 @@
       <source xml:lang="en">New Query</source>
     </trans-unit>
     <trans-unit id="mssql.notebooks.createNotebook">
-      <source xml:lang="en">New SQL Notebook (Preview)</source>
+      <source xml:lang="en">New SQL Notebook</source>
     </trans-unit>
     <trans-unit id="mssql.newTable">
       <source xml:lang="en">New Table</source>
