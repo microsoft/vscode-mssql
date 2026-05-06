@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useEffect } from "react";
-import { makeStyles, Spinner, Text } from "@fluentui/react-components";
+import { Link, makeStyles, Spinner, Text } from "@fluentui/react-components";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { FormField } from "../../../common/forms/form.component";
 import {
@@ -13,8 +13,8 @@ import {
     AzureSqlDatabaseFormState,
     AzureSqlDatabaseState,
     AZURE_SQL_DB_COMPONENT_ORDER,
-    CreateResourceGroupDialogProps,
-    CreateServerDialogProps,
+    CreateResourceGroupDrawerProps,
+    CreateServerDrawerProps,
 } from "../../../../sharedInterfaces/azureSqlDatabase";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../common/locConstants";
@@ -67,7 +67,8 @@ const useStyles = makeStyles({
     },
     fieldContainer: {
         width: "100%",
-        minWidth: 0,
+        display: "flex",
+        flexDirection: "row",
         whiteSpace: "normal",
         overflowWrap: "break-word",
         wordBreak: "break-word",
@@ -166,7 +167,14 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
         }
     };
 
-    const renderAzureField = (propertyName: keyof AzureSqlDatabaseFormState) => {
+    const isComponentReady = (propertyName: string): boolean => {
+        return azureComponentStatuses[propertyName] === ApiStatus.Loaded;
+    };
+
+    const renderAzureField = (
+        propertyName: keyof AzureSqlDatabaseFormState,
+        createNewAction?: { label: string; disabled: boolean; onClick: () => void },
+    ) => {
         const component = formComponents[propertyName];
         if (!component) return undefined;
 
@@ -185,17 +193,33 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
 
         return (
             <div className={classes.fieldContainer}>
-                <FormField<
-                    AzureSqlDatabaseFormState,
-                    AzureSqlDatabaseState,
-                    AzureSqlDatabaseFormItemSpec,
-                    AzureSqlDatabaseContextProps
-                >
-                    context={context}
-                    formState={formState}
-                    component={component}
-                    idx={0}
-                />
+                <div style={{ flex: 1, width: "100%" }}>
+                    <FormField<
+                        AzureSqlDatabaseFormState,
+                        AzureSqlDatabaseState,
+                        AzureSqlDatabaseFormItemSpec,
+                        AzureSqlDatabaseContextProps
+                    >
+                        context={context}
+                        formState={formState}
+                        component={component}
+                        idx={0}
+                    />
+                </div>
+                {createNewAction && (
+                    <Link
+                        as="button"
+                        disabled={createNewAction.disabled}
+                        onClick={createNewAction.onClick}
+                        style={{
+                            textDecoration: "none",
+                            fontSize: "12px",
+                            alignSelf: "flex-end",
+                            marginBottom: "12px",
+                        }}>
+                        {createNewAction.label}
+                    </Link>
+                )}
             </div>
         );
     };
@@ -205,17 +229,19 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
         if (!component) return undefined;
         return (
             <div className={classes.fieldContainer}>
-                <FormField<
-                    AzureSqlDatabaseFormState,
-                    AzureSqlDatabaseState,
-                    AzureSqlDatabaseFormItemSpec,
-                    AzureSqlDatabaseContextProps
-                >
-                    context={context}
-                    formState={formState}
-                    component={component}
-                    idx={0}
-                />
+                <div style={{ flex: 1, width: "100%" }}>
+                    <FormField<
+                        AzureSqlDatabaseFormState,
+                        AzureSqlDatabaseState,
+                        AzureSqlDatabaseFormItemSpec,
+                        AzureSqlDatabaseContextProps
+                    >
+                        context={context}
+                        formState={formState}
+                        component={component}
+                        idx={0}
+                    />
+                </div>
             </div>
         );
     };
@@ -233,63 +259,73 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                 )}
                 {dialog?.type === "createResourceGroup" && (
                     <CreateResourceGroupDrawer
-                        state={(dialog as CreateResourceGroupDialogProps).props}
+                        state={(dialog as CreateResourceGroupDrawerProps).props}
                         onSubmit={(resourceGroupName, location) => {
                             context.submitCreateResourceGroup({
                                 resourceGroupName,
                                 location,
                             });
                         }}
-                        onClose={() => context.setCreateResourceGroupDialogState(false)}
+                        onClose={() => context.setCreateResourceGroupDrawerState(false)}
                     />
                 )}
                 {dialog?.type === "createServer" && (
                     <CreateServerDrawer
-                        state={(dialog as CreateServerDialogProps).props}
+                        state={(dialog as CreateServerDrawerProps).props}
                         onSubmit={(serverName, location) => {
                             context.submitCreateServer({
                                 serverName,
                                 location,
                             });
                         }}
-                        onClose={() => context.setCreateServerDialogState(false)}
+                        onClose={() => context.setCreateServerDrawerState(false)}
                     />
                 )}
                 {renderAzureField("accountId")}
                 {renderAzureField("tenantId")}
                 {renderAzureField("subscriptionId")}
-                {renderAzureField("resourceGroup")}
-                {renderAzureField("serverName")}
+                {renderAzureField("resourceGroup", {
+                    label: locConstants.azureSqlDatabase.createNew,
+                    disabled: !isComponentReady("subscriptionId"),
+                    onClick: () => context.setCreateResourceGroupDrawerState(true),
+                })}
+                {renderAzureField("serverName", {
+                    label: locConstants.azureSqlDatabase.createNew,
+                    disabled: !isComponentReady("resourceGroup"),
+                    onClick: () => context.setCreateServerDrawerState(true),
+                })}
                 {renderFormField("databaseName")}
                 {renderFormField("profileName")}
                 <div className={classes.fieldContainer}>
-                    <FormField<
-                        AzureSqlDatabaseFormState,
-                        AzureSqlDatabaseState,
-                        AzureSqlDatabaseFormItemSpec,
-                        AzureSqlDatabaseContextProps
-                    >
-                        context={context}
-                        formState={formState}
-                        component={formComponents["groupId"] as AzureSqlDatabaseFormItemSpec}
-                        idx={0}
-                        componentProps={{
-                            onSelect: (option: SearchableDropdownOptions) => {
-                                if (option.value === CREATE_NEW_GROUP_ID) {
-                                    context.setConnectionGroupDialogState(true);
-                                } else {
-                                    context.formAction({
-                                        propertyName: "groupId",
-                                        isAction: false,
-                                        value: option.value,
-                                    });
-                                }
-                            },
-                            renderDecoration: (option: SearchableDropdownOptions) => {
-                                return renderColorSwatch(option.color);
-                            },
-                        }}
-                    />
+                    <div style={{ flex: 1, width: "100%" }}>
+                        <FormField<
+                            AzureSqlDatabaseFormState,
+                            AzureSqlDatabaseState,
+                            AzureSqlDatabaseFormItemSpec,
+                            AzureSqlDatabaseContextProps
+                        >
+                            context={context}
+                            formState={formState}
+                            component={formComponents["groupId"] as AzureSqlDatabaseFormItemSpec}
+                            idx={0}
+                            componentProps={{
+                                onSelect: (option: SearchableDropdownOptions) => {
+                                    if (option.value === CREATE_NEW_GROUP_ID) {
+                                        context.setConnectionGroupDialogState(true);
+                                    } else {
+                                        context.formAction({
+                                            propertyName: "groupId",
+                                            isAction: false,
+                                            value: option.value,
+                                        });
+                                    }
+                                },
+                                renderDecoration: (option: SearchableDropdownOptions) => {
+                                    return renderColorSwatch(option.color);
+                                },
+                            }}
+                        />
+                    </div>
                 </div>
             </div>
             <div className={classes.bottomDiv} />

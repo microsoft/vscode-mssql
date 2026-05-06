@@ -20,16 +20,16 @@ import {
 } from "@fluentui/react-components";
 import { Dismiss24Regular } from "@fluentui/react-icons";
 import { locConstants as Loc } from "../../../common/locConstants";
-import { CreateServerDialogState } from "../../../../sharedInterfaces/azureSqlDatabase";
+import { CreateServerDrawerState } from "../../../../sharedInterfaces/azureSqlDatabase";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export const CreateServerDrawer = ({
     state,
     onSubmit,
     onClose,
 }: {
-    state: CreateServerDialogState;
+    state: CreateServerDrawerState;
     onSubmit: (serverName: string, location: string) => void;
     onClose: () => void;
 }) => {
@@ -39,6 +39,20 @@ export const CreateServerDrawer = ({
 
     const isLocationsLoading = state.locationsLoadState === ApiStatus.Loading;
     const isCreating = state.createLoadState === ApiStatus.Loading;
+
+    // Pre-select the resource group's location as default once locations finish loading
+    useEffect(() => {
+        if (
+            state.locationsLoadState === ApiStatus.Loaded &&
+            !selectedLocation &&
+            state.defaultLocation
+        ) {
+            const match = state.locationOptions.find((l) => l.name === state.defaultLocation);
+            if (match) {
+                setSelectedLocation(match.name);
+            }
+        }
+    }, [state.locationsLoadState, state.defaultLocation, state.locationOptions, selectedLocation]);
 
     function isReadyToSubmit(): boolean {
         return serverName.trim() !== "" && selectedLocation !== "" && !isCreating;
@@ -141,7 +155,7 @@ export const CreateServerDrawer = ({
                 <div
                     style={{
                         display: "flex",
-                        justifyContent: "flex-end",
+                        justifyContent: "flex-start",
                         gap: "8px",
                         paddingBottom: "16px",
                     }}>

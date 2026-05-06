@@ -20,7 +20,7 @@ import {
 } from "@fluentui/react-components";
 import { Dismiss24Regular } from "@fluentui/react-icons";
 import { locConstants as Loc } from "../../../common/locConstants";
-import { CreateResourceGroupDialogState } from "../../../../sharedInterfaces/azureSqlDatabase";
+import { CreateResourceGroupDrawerState } from "../../../../sharedInterfaces/azureSqlDatabase";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { useState } from "react";
 
@@ -29,7 +29,7 @@ export const CreateResourceGroupDrawer = ({
     onSubmit,
     onClose,
 }: {
-    state: CreateResourceGroupDialogState;
+    state: CreateResourceGroupDrawerState;
     onSubmit: (resourceGroupName: string, location: string) => void;
     onClose: () => void;
 }) => {

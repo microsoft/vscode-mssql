@@ -1831,6 +1831,7 @@ export class LocConstants {
             serverName: l10n.t("Server Name"),
             enterServerName: l10n.t("Enter server name"),
             creatingServer: l10n.t("Creating server..."),
+            createNew: l10n.t("Create new"),
         };
     }
 

@@ -96,8 +96,8 @@ const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }
             startAzureSqlDatabaseDeployment: function (): void {
                 extensionRpc.action("startAzureSqlDatabaseDeployment", {});
             },
-            setCreateResourceGroupDialogState: function (shouldOpen: boolean): void {
-                extensionRpc.action("setCreateResourceGroupDialogState", {
+            setCreateResourceGroupDrawerState: function (shouldOpen: boolean): void {
+                extensionRpc.action("setCreateResourceGroupDrawerState", {
                     shouldOpen: shouldOpen,
                 });
             },
@@ -106,8 +106,8 @@ const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }
                     spec: spec,
                 });
             },
-            setCreateServerDialogState: function (shouldOpen: boolean): void {
-                extensionRpc.action("setCreateServerDialogState", {
+            setCreateServerDrawerState: function (shouldOpen: boolean): void {
+                extensionRpc.action("setCreateServerDrawerState", {
                     shouldOpen: shouldOpen,
                 });
             },

@@ -73,16 +73,16 @@ export interface AzureSqlDatabaseFormItemSpec
     componentWidth: string;
 }
 
-export interface CreateResourceGroupDialogState {
+export interface CreateResourceGroupDrawerState {
     locationOptions: { name: string; displayName: string }[];
     locationsLoadState: ApiStatus;
     createLoadState: ApiStatus;
     message?: string;
 }
 
-export interface CreateResourceGroupDialogProps extends IDialogProps {
+export interface CreateResourceGroupDrawerProps extends IDialogProps {
     type: "createResourceGroup";
-    props: CreateResourceGroupDialogState;
+    props: CreateResourceGroupDrawerState;
 }
 
 export interface CreateResourceGroupSpec {
@@ -90,16 +90,17 @@ export interface CreateResourceGroupSpec {
     location: string;
 }
 
-export interface CreateServerDialogState {
+export interface CreateServerDrawerState {
     locationOptions: { name: string; displayName: string }[];
     locationsLoadState: ApiStatus;
     createLoadState: ApiStatus;
+    defaultLocation?: string;
     message?: string;
 }
 
-export interface CreateServerDialogProps extends IDialogProps {
+export interface CreateServerDrawerProps extends IDialogProps {
     type: "createServer";
-    props: CreateServerDialogState;
+    props: CreateServerDrawerState;
 }
 
 export interface CreateServerSpec {
@@ -110,17 +111,17 @@ export interface CreateServerSpec {
 export interface AzureSqlDatabaseContextProps extends FormContextProps<AzureSqlDatabaseFormState> {
     loadAzureComponent(componentName: string): void;
     startAzureSqlDatabaseDeployment(): void;
-    setCreateResourceGroupDialogState(shouldOpen: boolean): void;
+    setCreateResourceGroupDrawerState(shouldOpen: boolean): void;
     submitCreateResourceGroup(spec: CreateResourceGroupSpec): void;
-    setCreateServerDialogState(shouldOpen: boolean): void;
+    setCreateServerDrawerState(shouldOpen: boolean): void;
     submitCreateServer(spec: CreateServerSpec): void;
 }
 
 export interface AzureSqlDatabaseReducers extends FormReducers<AzureSqlDatabaseFormState> {
     loadAzureComponent: { componentName: string };
     startAzureSqlDatabaseDeployment: {};
-    setCreateResourceGroupDialogState: { shouldOpen: boolean };
+    setCreateResourceGroupDrawerState: { shouldOpen: boolean };
     submitCreateResourceGroup: { spec: CreateResourceGroupSpec };
-    setCreateServerDialogState: { shouldOpen: boolean };
+    setCreateServerDrawerState: { shouldOpen: boolean };
     submitCreateServer: { spec: CreateServerSpec };
 }

@@ -22,6 +22,52 @@ import { UserSurvey } from "../nps/userSurvey";
 // direct access to the controller's protected logger.
 let cachedLogger: Logger | undefined;
 
+// ─── Cached Azure data ───────────────────────────────────────────────────────
+// These caches reduce redundant Azure API calls. They are populated during
+// component loading and invalidated when upstream selections change.
+import type { AzureSubscription, AzureTenant } from "@microsoft/vscode-azext-azureauth";
+import type { Server } from "@azure/arm-sql";
+import type * as vscode from "vscode";
+
+let cachedAccounts: vscode.AuthenticationSessionAccountInformation[] = [];
+let cachedTenants: AzureTenant[] = [];
+let cachedSubscriptions: AzureSubscription[] = [];
+let cachedResourceGroups: string[] = [];
+let cachedServers: Server[] = [];
+let cachedLocations: { name: string; displayName: string }[] = [];
+
+function clearCacheDownstream(fromComponent: string): void {
+    const order = asd.AZURE_SQL_DB_COMPONENT_ORDER as readonly string[];
+    const idx = order.indexOf(fromComponent);
+    if (idx === -1) return;
+
+    for (let i = idx + 1; i < order.length; i++) {
+        switch (order[i]) {
+            case "tenantId":
+                cachedTenants = [];
+                break;
+            case "subscriptionId":
+                cachedSubscriptions = [];
+                break;
+            case "resourceGroup":
+                cachedResourceGroups = [];
+                break;
+            case "serverName":
+                cachedServers = [];
+                break;
+        }
+    }
+    cachedLocations = [];
+}
+
+function getCachedSubscription(subscriptionId: string): AzureSubscription | undefined {
+    return cachedSubscriptions.find((s) => s.subscriptionId === subscriptionId);
+}
+
+function getCachedTenant(tenantId: string): AzureTenant | undefined {
+    return cachedTenants.find((t) => t.tenantId === tenantId);
+}
+
 export async function initializeAzureSqlDatabaseState(
     deploymentController: DeploymentWebviewController,
     groupOptions: FormItemOptions[],
@@ -44,15 +90,7 @@ export async function initializeAzureSqlDatabaseState(
     };
 
     deploymentController.state.deploymentTypeState = state;
-    state.formComponents = setAzureSqlDatabaseFormComponents(
-        [],
-        [],
-        groupOptions,
-        [],
-        [],
-        getResourceGroupActionButton(deploymentController),
-        getServerActionButton(deploymentController),
-    );
+    state.formComponents = setAzureSqlDatabaseFormComponents([], [], groupOptions, [], []);
     state.loadState = ApiStatus.Loaded;
     sendActionEvent(
         TelemetryViews.AzureSqlDatabase,
@@ -122,17 +160,7 @@ export function registerAzureSqlDatabaseReducers(
 
             try {
                 const startTime = Date.now();
-                const tenant = await VsCodeAzureHelper.getTenant(
-                    azureSqlState.formState.accountId,
-                    azureSqlState.formState.tenantId,
-                );
-                if (!tenant) {
-                    throw new Error(AzureSqlDatabase.noTenantsFound);
-                }
-                const subscriptions = await VsCodeAzureHelper.getSubscriptionsForTenant(tenant);
-                const subscription = subscriptions.find(
-                    (s) => s.subscriptionId === azureSqlState.formState.subscriptionId,
-                );
+                const subscription = getCachedSubscription(azureSqlState.formState.subscriptionId);
                 if (!subscription) {
                     throw new Error(AzureSqlDatabase.noSubscriptionsFound);
                 }
@@ -171,7 +199,7 @@ export function registerAzureSqlDatabaseReducers(
     );
 
     deploymentController.registerReducer(
-        "setCreateResourceGroupDialogState",
+        "setCreateResourceGroupDrawerState",
         async (state, payload) => {
             const azureSqlState = state.deploymentTypeState as asd.AzureSqlDatabaseState;
 
@@ -184,39 +212,28 @@ export function registerAzureSqlDatabaseReducers(
                         locationsLoadState: ApiStatus.Loading,
                         createLoadState: ApiStatus.NotStarted,
                     },
-                } as asd.CreateResourceGroupDialogProps;
+                } as asd.CreateResourceGroupDrawerProps;
                 azureSqlState.dialog = state.dialog;
                 state.deploymentTypeState = azureSqlState;
                 updateAzureSqlDatabaseState(deploymentController, azureSqlState);
 
                 // Fetch locations in the background
-                const { accountId, tenantId, subscriptionId } = azureSqlState.formState;
-                let locationOptions: { name: string; displayName: string }[] = [];
-
-                if (accountId && tenantId && subscriptionId) {
-                    const tenant = await VsCodeAzureHelper.getTenant(accountId, tenantId);
-                    if (tenant) {
-                        const subscriptions =
-                            await VsCodeAzureHelper.getSubscriptionsForTenant(tenant);
-                        const subscription = subscriptions.find(
-                            (s) => s.subscriptionId === subscriptionId,
-                        );
-                        if (subscription) {
-                            locationOptions =
-                                await VsCodeAzureHelper.getLocationsForSubscription(subscription);
-                        }
-                    }
+                const { subscriptionId } = azureSqlState.formState;
+                const subscription = getCachedSubscription(subscriptionId);
+                if (subscription) {
+                    cachedLocations =
+                        await VsCodeAzureHelper.getLocationsForSubscription(subscription);
                 }
 
                 // Update dialog with loaded locations
                 state.dialog = {
                     type: "createResourceGroup",
                     props: {
-                        locationOptions,
+                        locationOptions: cachedLocations,
                         locationsLoadState: ApiStatus.Loaded,
                         createLoadState: ApiStatus.NotStarted,
                     },
-                } as asd.CreateResourceGroupDialogProps;
+                } as asd.CreateResourceGroupDrawerProps;
             } else {
                 state.dialog = undefined;
             }
@@ -232,7 +249,7 @@ export function registerAzureSqlDatabaseReducers(
         const { resourceGroupName, location } = payload.spec;
 
         // Show creating state in the dialog
-        const dialogProps = (state.dialog as asd.CreateResourceGroupDialogProps)?.props;
+        const dialogProps = (state.dialog as asd.CreateResourceGroupDrawerProps)?.props;
         if (dialogProps) {
             dialogProps.createLoadState = ApiStatus.Loading;
             azureSqlState.dialog = state.dialog;
@@ -241,17 +258,7 @@ export function registerAzureSqlDatabaseReducers(
         }
 
         try {
-            const tenant = await VsCodeAzureHelper.getTenant(
-                azureSqlState.formState.accountId,
-                azureSqlState.formState.tenantId,
-            );
-            if (!tenant) {
-                throw new Error(AzureSqlDatabase.noTenantsFound);
-            }
-            const subscriptions = await VsCodeAzureHelper.getSubscriptionsForTenant(tenant);
-            const subscription = subscriptions.find(
-                (s) => s.subscriptionId === azureSqlState.formState.subscriptionId,
-            );
+            const subscription = getCachedSubscription(azureSqlState.formState.subscriptionId);
             if (!subscription) {
                 throw new Error(AzureSqlDatabase.noSubscriptionsFound);
             }
@@ -283,7 +290,7 @@ export function registerAzureSqlDatabaseReducers(
         return state;
     });
 
-    deploymentController.registerReducer("setCreateServerDialogState", async (state, payload) => {
+    deploymentController.registerReducer("setCreateServerDrawerState", async (state, payload) => {
         const azureSqlState = state.deploymentTypeState as asd.AzureSqlDatabaseState;
 
         if (payload.shouldOpen) {
@@ -295,37 +302,34 @@ export function registerAzureSqlDatabaseReducers(
                     locationsLoadState: ApiStatus.Loading,
                     createLoadState: ApiStatus.NotStarted,
                 },
-            } as asd.CreateServerDialogProps;
+            } as asd.CreateServerDrawerProps;
             azureSqlState.dialog = state.dialog;
             state.deploymentTypeState = azureSqlState;
             updateAzureSqlDatabaseState(deploymentController, azureSqlState);
 
-            // Fetch locations in the background
-            const { accountId, tenantId, subscriptionId } = azureSqlState.formState;
-            let locationOptions: { name: string; displayName: string }[] = [];
-
-            if (accountId && tenantId && subscriptionId) {
-                const tenant = await VsCodeAzureHelper.getTenant(accountId, tenantId);
-                if (tenant) {
-                    const subscriptions = await VsCodeAzureHelper.getSubscriptionsForTenant(tenant);
-                    const subscription = subscriptions.find(
-                        (s) => s.subscriptionId === subscriptionId,
+            // Fetch locations and resource group default location
+            const { subscriptionId, resourceGroup } = azureSqlState.formState;
+            const subscription = getCachedSubscription(subscriptionId);
+            let defaultLocation = "";
+            if (subscription) {
+                cachedLocations = await VsCodeAzureHelper.getLocationsForSubscription(subscription);
+                if (resourceGroup) {
+                    defaultLocation = await VsCodeAzureHelper.getDefaultLocationForResourceGroup(
+                        resourceGroup,
+                        subscription,
                     );
-                    if (subscription) {
-                        locationOptions =
-                            await VsCodeAzureHelper.getLocationsForSubscription(subscription);
-                    }
                 }
             }
 
             state.dialog = {
                 type: "createServer",
                 props: {
-                    locationOptions,
+                    locationOptions: cachedLocations,
                     locationsLoadState: ApiStatus.Loaded,
                     createLoadState: ApiStatus.NotStarted,
+                    defaultLocation,
                 },
-            } as asd.CreateServerDialogProps;
+            } as asd.CreateServerDrawerProps;
         } else {
             state.dialog = undefined;
         }
@@ -340,7 +344,7 @@ export function registerAzureSqlDatabaseReducers(
         const { serverName, location } = payload.spec;
 
         // Show creating state in the dialog
-        const dialogProps = (state.dialog as asd.CreateServerDialogProps)?.props;
+        const dialogProps = (state.dialog as asd.CreateServerDrawerProps)?.props;
         if (dialogProps) {
             dialogProps.createLoadState = ApiStatus.Loading;
             azureSqlState.dialog = state.dialog;
@@ -349,17 +353,7 @@ export function registerAzureSqlDatabaseReducers(
         }
 
         try {
-            const tenant = await VsCodeAzureHelper.getTenant(
-                azureSqlState.formState.accountId,
-                azureSqlState.formState.tenantId,
-            );
-            if (!tenant) {
-                throw new Error(AzureSqlDatabase.noTenantsFound);
-            }
-            const subscriptions = await VsCodeAzureHelper.getSubscriptionsForTenant(tenant);
-            const subscription = subscriptions.find(
-                (s) => s.subscriptionId === azureSqlState.formState.subscriptionId,
-            );
+            const subscription = getCachedSubscription(azureSqlState.formState.subscriptionId);
             if (!subscription) {
                 throw new Error(AzureSqlDatabase.noSubscriptionsFound);
             }
@@ -493,18 +487,20 @@ async function loadAccountComponent(
     const accountComponent = azureSqlState.formComponents.accountId;
     if (!accountComponent) return;
 
-    const azureAccounts = await VsCodeAzureHelper.getAccounts();
-    accountComponent.options = azureAccounts.map((account) => ({
+    cachedAccounts = await VsCodeAzureHelper.getAccounts();
+    clearCacheDownstream("accountId");
+
+    accountComponent.options = cachedAccounts.map((account) => ({
         displayName: account.label,
         value: account.id,
     }));
     accountComponent.actionButtons = await getAzureActionButton(deploymentController);
 
-    if (azureAccounts.length === 0) {
+    if (cachedAccounts.length === 0) {
         accountComponent.placeholder = AzureSqlDatabase.noAzureAccountsFound;
     }
 
-    azureSqlState.formState.accountId = azureAccounts.length > 0 ? azureAccounts[0].id : "";
+    azureSqlState.formState.accountId = cachedAccounts.length > 0 ? cachedAccounts[0].id : "";
 }
 
 async function loadTenantComponent(azureSqlState: asd.AzureSqlDatabaseState): Promise<void> {
@@ -517,18 +513,19 @@ async function loadTenantComponent(azureSqlState: asd.AzureSqlDatabaseState): Pr
         return;
     }
 
-    const tenants = await VsCodeAzureHelper.getTenantsForAccount(azureSqlState.formState.accountId);
+    cachedTenants = await VsCodeAzureHelper.getTenantsForAccount(azureSqlState.formState.accountId);
+    clearCacheDownstream("tenantId");
 
-    tenantComponent.options = tenants.map((t) => ({
+    tenantComponent.options = cachedTenants.map((t) => ({
         displayName: t.displayName,
         value: t.tenantId,
     }));
     tenantComponent.placeholder =
-        tenants.length > 0 ? ConnectionDialog.selectATenant : AzureSqlDatabase.noTenantsFound;
+        cachedTenants.length > 0 ? ConnectionDialog.selectATenant : AzureSqlDatabase.noTenantsFound;
 
     azureSqlState.formState.tenantId = getDefaultTenantId(
         azureSqlState.formState.accountId,
-        tenants,
+        cachedTenants,
     );
 }
 
@@ -542,30 +539,27 @@ async function loadSubscriptionComponent(azureSqlState: asd.AzureSqlDatabaseStat
         return;
     }
 
-    const tenant = await VsCodeAzureHelper.getTenant(
-        azureSqlState.formState.accountId,
-        azureSqlState.formState.tenantId,
-    );
-
+    const tenant = getCachedTenant(azureSqlState.formState.tenantId);
     if (!tenant) {
         azureSqlState.azureComponentStatuses["subscriptionId"] = ApiStatus.Error;
         subscriptionComponent.placeholder = AzureSqlDatabase.noSubscriptionsFound;
         return;
     }
 
-    const subscriptions = await VsCodeAzureHelper.getSubscriptionsForTenant(tenant);
+    cachedSubscriptions = await VsCodeAzureHelper.getSubscriptionsForTenant(tenant);
+    clearCacheDownstream("subscriptionId");
 
-    subscriptionComponent.options = subscriptions.map((sub) => ({
+    subscriptionComponent.options = cachedSubscriptions.map((sub) => ({
         displayName: `${sub.name} (${sub.subscriptionId})`,
         value: sub.subscriptionId,
     }));
     subscriptionComponent.placeholder =
-        subscriptions.length > 0
+        cachedSubscriptions.length > 0
             ? AzureSqlDatabase.selectASubscription
             : AzureSqlDatabase.noSubscriptionsFound;
 
     azureSqlState.formState.subscriptionId =
-        subscriptions.length > 0 ? subscriptions[0].subscriptionId : "";
+        cachedSubscriptions.length > 0 ? cachedSubscriptions[0].subscriptionId : "";
 }
 
 async function loadResourceGroupComponent(azureSqlState: asd.AzureSqlDatabaseState): Promise<void> {
@@ -578,38 +572,27 @@ async function loadResourceGroupComponent(azureSqlState: asd.AzureSqlDatabaseSta
         return;
     }
 
-    const tenant = await VsCodeAzureHelper.getTenant(
-        azureSqlState.formState.accountId,
-        azureSqlState.formState.tenantId,
-    );
-    if (!tenant) {
-        azureSqlState.azureComponentStatuses["resourceGroup"] = ApiStatus.Error;
-        resourceGroupComponent.placeholder = AzureSqlDatabase.noResourceGroupsFound;
-        return;
-    }
-
-    const subscriptions = await VsCodeAzureHelper.getSubscriptionsForTenant(tenant);
-    const subscription = subscriptions.find(
-        (s) => s.subscriptionId === azureSqlState.formState.subscriptionId,
-    );
+    const subscription = getCachedSubscription(azureSqlState.formState.subscriptionId);
     if (!subscription) {
         azureSqlState.azureComponentStatuses["resourceGroup"] = ApiStatus.Error;
         resourceGroupComponent.placeholder = AzureSqlDatabase.noResourceGroupsFound;
         return;
     }
 
-    const resourceGroups = await VsCodeAzureHelper.getResourceGroupsForSubscription(subscription);
+    cachedResourceGroups = await VsCodeAzureHelper.getResourceGroupsForSubscription(subscription);
+    clearCacheDownstream("resourceGroup");
 
-    resourceGroupComponent.options = resourceGroups.map((name) => ({
+    resourceGroupComponent.options = cachedResourceGroups.map((name) => ({
         displayName: name,
         value: name,
     }));
     resourceGroupComponent.placeholder =
-        resourceGroups.length > 0
+        cachedResourceGroups.length > 0
             ? AzureSqlDatabase.selectAResourceGroup
             : AzureSqlDatabase.noResourceGroupsFound;
 
-    azureSqlState.formState.resourceGroup = resourceGroups.length > 0 ? resourceGroups[0] : "";
+    azureSqlState.formState.resourceGroup =
+        cachedResourceGroups.length > 0 ? cachedResourceGroups[0] : "";
 }
 
 async function loadServerComponent(azureSqlState: asd.AzureSqlDatabaseState): Promise<void> {
@@ -626,39 +609,27 @@ async function loadServerComponent(azureSqlState: asd.AzureSqlDatabaseState): Pr
         return;
     }
 
-    const tenant = await VsCodeAzureHelper.getTenant(
-        azureSqlState.formState.accountId,
-        azureSqlState.formState.tenantId,
-    );
-    if (!tenant) {
-        azureSqlState.azureComponentStatuses["serverName"] = ApiStatus.Error;
-        serverComponent.placeholder = AzureSqlDatabase.noServersFound;
-        return;
-    }
-
-    const subscriptions = await VsCodeAzureHelper.getSubscriptionsForTenant(tenant);
-    const subscription = subscriptions.find(
-        (s) => s.subscriptionId === azureSqlState.formState.subscriptionId,
-    );
+    const subscription = getCachedSubscription(azureSqlState.formState.subscriptionId);
     if (!subscription) {
         azureSqlState.azureComponentStatuses["serverName"] = ApiStatus.Error;
         serverComponent.placeholder = AzureSqlDatabase.noServersFound;
         return;
     }
 
-    const servers = await VsCodeAzureHelper.getSqlServersForResourceGroup(
+    cachedServers = await VsCodeAzureHelper.getSqlServersForResourceGroup(
         subscription,
         azureSqlState.formState.resourceGroup,
     );
 
-    serverComponent.options = servers.map((s) => ({
+    serverComponent.options = cachedServers.map((s) => ({
         displayName: s.name ?? "",
         value: s.name ?? "",
     }));
     serverComponent.placeholder =
-        servers.length > 0 ? AzureSqlDatabase.selectAServer : AzureSqlDatabase.noServersFound;
+        cachedServers.length > 0 ? AzureSqlDatabase.selectAServer : AzureSqlDatabase.noServersFound;
 
-    azureSqlState.formState.serverName = servers.length > 0 ? (servers[0].name ?? "") : "";
+    azureSqlState.formState.serverName =
+        cachedServers.length > 0 ? (cachedServers[0].name ?? "") : "";
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -687,8 +658,9 @@ async function getAzureActionButton(
                 cachedLogger?.error("Account component not found");
                 return;
             }
-            const azureAccounts = await VsCodeAzureHelper.getAccounts();
-            accountsComponent.options = azureAccounts.map((account) => ({
+            cachedAccounts = await VsCodeAzureHelper.getAccounts();
+            clearCacheDownstream("accountId");
+            accountsComponent.options = cachedAccounts.map((account) => ({
                 displayName: account.label,
                 value: account.id,
             }));
@@ -700,125 +672,12 @@ async function getAzureActionButton(
     return actionButtons;
 }
 
-function getResourceGroupActionButton(
-    deploymentController: DeploymentWebviewController,
-): FormItemActionButton[] {
-    return [
-        {
-            label: AzureSqlDatabase.createNew,
-            id: "createResourceGroup",
-            callback: async () => {
-                const state = deploymentController.state;
-                const azureSqlState = state.deploymentTypeState as asd.AzureSqlDatabaseState;
-                const { accountId, tenantId, subscriptionId } = azureSqlState.formState;
-
-                if (!accountId || !tenantId || !subscriptionId) {
-                    return;
-                }
-
-                // Open dialog immediately with loading state
-                state.dialog = {
-                    type: "createResourceGroup",
-                    props: {
-                        locationOptions: [],
-                        locationsLoadState: ApiStatus.Loading,
-                        createLoadState: ApiStatus.NotStarted,
-                    },
-                } as asd.CreateResourceGroupDialogProps;
-                azureSqlState.dialog = state.dialog;
-                state.deploymentTypeState = azureSqlState;
-                deploymentController.updateState(state);
-
-                // Fetch locations asynchronously
-                let locationOptions: { name: string; displayName: string }[] = [];
-                const tenant = await VsCodeAzureHelper.getTenant(accountId, tenantId);
-                if (tenant) {
-                    const subscriptions = await VsCodeAzureHelper.getSubscriptionsForTenant(tenant);
-                    const subscription = subscriptions.find(
-                        (s) => s.subscriptionId === subscriptionId,
-                    );
-                    if (subscription) {
-                        locationOptions =
-                            await VsCodeAzureHelper.getLocationsForSubscription(subscription);
-                    }
-                }
-
-                // Update dialog with loaded locations
-                const dialogProps = (state.dialog as asd.CreateResourceGroupDialogProps)?.props;
-                if (dialogProps) {
-                    dialogProps.locationOptions = locationOptions;
-                    dialogProps.locationsLoadState = ApiStatus.Loaded;
-                    deploymentController.updateState(state);
-                }
-            },
-        },
-    ];
-}
-
-function getServerActionButton(
-    deploymentController: DeploymentWebviewController,
-): FormItemActionButton[] {
-    return [
-        {
-            label: AzureSqlDatabase.createNew,
-            id: "createServer",
-            callback: async () => {
-                const state = deploymentController.state;
-                const azureSqlState = state.deploymentTypeState as asd.AzureSqlDatabaseState;
-                const { accountId, tenantId, subscriptionId, resourceGroup } =
-                    azureSqlState.formState;
-
-                if (!accountId || !tenantId || !subscriptionId || !resourceGroup) {
-                    return;
-                }
-
-                // Open dialog immediately with loading state
-                state.dialog = {
-                    type: "createServer",
-                    props: {
-                        locationOptions: [],
-                        locationsLoadState: ApiStatus.Loading,
-                        createLoadState: ApiStatus.NotStarted,
-                    },
-                } as asd.CreateServerDialogProps;
-                azureSqlState.dialog = state.dialog;
-                state.deploymentTypeState = azureSqlState;
-                deploymentController.updateState(state);
-
-                // Fetch locations asynchronously
-                let locationOptions: { name: string; displayName: string }[] = [];
-                const tenant = await VsCodeAzureHelper.getTenant(accountId, tenantId);
-                if (tenant) {
-                    const subscriptions = await VsCodeAzureHelper.getSubscriptionsForTenant(tenant);
-                    const subscription = subscriptions.find(
-                        (s) => s.subscriptionId === subscriptionId,
-                    );
-                    if (subscription) {
-                        locationOptions =
-                            await VsCodeAzureHelper.getLocationsForSubscription(subscription);
-                    }
-                }
-
-                // Update dialog with loaded locations
-                const dialogProps = (state.dialog as asd.CreateServerDialogProps)?.props;
-                if (dialogProps) {
-                    dialogProps.locationOptions = locationOptions;
-                    dialogProps.locationsLoadState = ApiStatus.Loaded;
-                    deploymentController.updateState(state);
-                }
-            },
-        },
-    ];
-}
-
 function setAzureSqlDatabaseFormComponents(
     azureAccountOptions: FormItemOptions[],
     azureActionButtons: FormItemActionButton[],
     groupOptions: FormItemOptions[],
     tenantOptions: FormItemOptions[],
     subscriptionOptions: FormItemOptions[],
-    resourceGroupActionButtons: FormItemActionButton[] = [],
-    serverActionButtons: FormItemActionButton[] = [],
 ): Record<string, asd.AzureSqlDatabaseFormItemSpec> {
     const createFormItem = (
         spec: Partial<asd.AzureSqlDatabaseFormItemSpec>,
@@ -874,7 +733,6 @@ function setAzureSqlDatabaseFormComponents(
             type: FormItemType.SearchableDropdown,
             options: [],
             placeholder: AzureSqlDatabase.selectAResourceGroup,
-            actionButtons: resourceGroupActionButtons,
             validate: (_state: asd.AzureSqlDatabaseState, value: string) => ({
                 isValid: !!value,
                 validationMessage: value ? "" : AzureSqlDatabase.resourceGroupIsRequired,
@@ -887,7 +745,6 @@ function setAzureSqlDatabaseFormComponents(
             type: FormItemType.SearchableDropdown,
             options: [],
             placeholder: AzureSqlDatabase.selectAServer,
-            actionButtons: serverActionButtons,
             validate: (_state: asd.AzureSqlDatabaseState, value: string) => ({
                 isValid: !!value,
                 validationMessage: value ? "" : AzureSqlDatabase.serverIsRequired,
