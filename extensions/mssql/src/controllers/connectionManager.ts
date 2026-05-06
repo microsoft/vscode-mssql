@@ -2408,6 +2408,7 @@ function needsAccountRefresh(errorMessage: string, username: string): boolean {
         errorMessage.includes(AzureConstants.AADSTS70043) ||
         errorMessage.includes(AzureConstants.AADSTS50173) ||
         errorMessage.includes(AzureConstants.AADSTS50020) ||
+        errorMessage.includes(AzureConstants.AADSTS50078) ||
         errorMessage.includes(AzureConstants.mdsUserAccountNotReceived) ||
         errorMessage.includes(Utils.formatString(AzureConstants.mdsUserAccountNotFound, email))
     );

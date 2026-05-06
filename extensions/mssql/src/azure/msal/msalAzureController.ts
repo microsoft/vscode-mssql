@@ -207,7 +207,7 @@ export class MsalAzureController extends AzureController {
                     key: result.account.homeAccountId,
                     token: result.accessToken,
                     tokenType: result.tokenType,
-                    expiresOn: result.account.idTokenClaims.exp,
+                    expiresOn: result.expiresOn ? result.expiresOn.getTime() / 1000 : undefined,
                 };
                 return token;
             }
@@ -264,8 +264,8 @@ export class MsalAzureController extends AzureController {
 
             await accountStore.addAccount(newAccount!);
             return await this.getAccountSecurityToken(
-                account,
-                tenantId ?? account.properties.owningTenant.id,
+                newAccount!,
+                tenantId ?? newAccount!.properties.owningTenant.id,
                 settings,
             );
         } catch (ex) {
@@ -279,13 +279,16 @@ export class MsalAzureController extends AzureController {
                         account.properties.azureAuthType,
                         getCloudId(account.key.providerId),
                     );
-                    if (newAccount!.isStale === true) {
+                    if (!newAccount) {
+                        return undefined;
+                    }
+                    if (newAccount.isStale === true) {
                         return undefined;
                     }
                     await accountStore.addAccount(newAccount!);
                     return await this.getAccountSecurityToken(
-                        account,
-                        tenantId ?? account.properties.owningTenant.id,
+                        newAccount!,
+                        tenantId ?? newAccount!.properties.owningTenant.id,
                         settings,
                     );
                 } catch (ex) {
