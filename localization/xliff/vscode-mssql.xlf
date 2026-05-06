@@ -1326,6 +1326,9 @@
     <trans-unit id="++CODE++9e1bbb65014b6b6675d9921d3f4f67079e6646332e4bc7aff7f12acfc0b9d3d4">
       <source xml:lang="en">Connection actions</source>
     </trans-unit>
+    <trans-unit id="++CODE++9198736066a6939b6be7efd68af9cbe469ddf89d117bba00c47579c7aa6bf5fd">
+      <source xml:lang="en">Connection canceled</source>
+    </trans-unit>
     <trans-unit id="++CODE++8d137af9c64fba09bbb003aba93f0b029898fe19e7927cd696f4c3e2b69f538d">
       <source xml:lang="en">Connection error</source>
     </trans-unit>
@@ -3682,6 +3685,9 @@
     </trans-unit>
     <trans-unit id="++CODE++6880273ecc41baec6f34c9193fcbb8e2a6b7497d5ba44b0e7b683351954f6f51">
       <source xml:lang="en">Loading backup database...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++754d5b19add4a29020ffa334751cfd9adc124c83e590a41bb03e5d649b3f5bfe">
+      <source xml:lang="en">Loading canceled; refresh to try again</source>
     </trans-unit>
     <trans-unit id="++CODE++f42dc68b6c07746e76ce1891ba437df7a1d82524ba74c2ef4c9c770bfe5b787f">
       <source xml:lang="en">Loading code analysis rules...</source>
@@ -7312,6 +7318,9 @@
     </trans-unit>
     <trans-unit id="mssql.buildDataApi">
       <source xml:lang="en">Build Data API (Preview)...</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.cancelTask">
+      <source xml:lang="en">Cancel</source>
     </trans-unit>
     <trans-unit id="mssql.cancelConnect">
       <source xml:lang="en">Cancel Connection (MSSQL)</source>
