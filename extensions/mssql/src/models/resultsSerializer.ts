@@ -206,11 +206,7 @@ export default class ResultsSerializer {
             Constants.extensionConfigSectionName,
             this._uri,
         );
-        const configuredValue =
-            typeof config.get === "function"
-                ? config.get<boolean>(Constants.configResultsOpenAfterSave)
-                : config[Constants.configResultsOpenAfterSave];
-        return configuredValue ?? true;
+        return config.get<boolean>(Constants.configResultsOpenAfterSave, true);
     }
 
     /**
