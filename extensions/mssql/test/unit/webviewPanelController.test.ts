@@ -140,19 +140,20 @@ suite("WebviewPanelController", () => {
         ).to.equal("function");
     });
 
-    test("Should reveal the panel to the foreground", () => {
-        const controller = createController();
+    test("Should reveal the panel without forcing a view column by default", () => {
+        const controller = createController({ viewColumn: vscode.ViewColumn.Two });
         const revealSpy = mockPanel.reveal as sinon.SinonSpy;
         controller.revealToForeground();
-        expect(revealSpy, "reveal should be called once").to.have.been.calledOnce;
-        expect(revealSpy).to.have.been.calledWith(vscode.ViewColumn.One, true);
+        // Pass undefined so VS Code keeps the panel in its current column;
+        // forcing a column on a freshly-created Beside panel was leaving the
+        // iframe blank (issue #21940).
+        expect(revealSpy).to.have.been.calledWith(undefined, true);
     });
 
     test("Should reveal the panel to the foreground with the specified view column", () => {
         const controller = createController();
         const revealSpy = mockPanel.reveal as sinon.SinonSpy;
         controller.revealToForeground(vscode.ViewColumn.Two);
-        expect(revealSpy, "reveal should be called once").to.have.been.calledOnce;
         expect(revealSpy).to.have.been.calledWith(vscode.ViewColumn.Two, true);
     });
 

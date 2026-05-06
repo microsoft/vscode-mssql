@@ -49,7 +49,10 @@ export abstract class FormWebviewController<
                     payload.event.propertyName,
                     payload.event.updateValidation,
                 );
-                await this.afterSetFormProperty(payload.event.propertyName);
+                await this.afterSetFormProperty(
+                    payload.event.propertyName,
+                    !!payload.event.updateValidation,
+                );
             }
             await this.updateItemVisibility();
 
@@ -117,7 +120,7 @@ export abstract class FormWebviewController<
      * Override to perform additional actions after setting a form property.
      */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async afterSetFormProperty(propertyName: keyof TForm): Promise<void> {
+    async afterSetFormProperty(propertyName: keyof TForm, isBlur: boolean): Promise<void> {
         return;
     }
 

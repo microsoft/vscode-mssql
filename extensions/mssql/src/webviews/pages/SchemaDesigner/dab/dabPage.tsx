@@ -24,8 +24,21 @@ const useStyles = makeStyles({
         overflow: "hidden",
     },
     content: {
+        display: "flex",
+        flexDirection: "column",
         flex: 1,
-        overflow: "auto",
+        minHeight: 0,
+        overflow: "hidden",
+    },
+    panelGroup: {
+        flex: 1,
+        minHeight: 0,
+    },
+    panelContent: {
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        minHeight: 0,
     },
     loadingContainer: {
         display: "flex",
@@ -121,9 +134,9 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
                     learnMoreUrl="https://aka.ms/dab-datatype-limitation"
                 />
             )}
-            <PanelGroup direction="vertical">
+            <PanelGroup direction="vertical" className={classes.panelGroup}>
                 <Panel defaultSize={100}>
-                    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+                    <div className={classes.panelContent}>
                         <DabToolbar
                             showDiscovery={canShowDiscovery}
                             onNavigateToSchema={onNavigateToSchema}

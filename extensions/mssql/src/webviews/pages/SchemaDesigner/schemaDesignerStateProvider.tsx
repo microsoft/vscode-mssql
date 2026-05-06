@@ -44,9 +44,10 @@ export interface SchemaDesignerContextProps extends CoreRPCs {
     }>;
     saveAsFile: (fileProps: SchemaDesigner.ExportFileOptions) => void;
     getReport: () => Promise<SchemaDesigner.GetReportWebviewResponse | undefined>;
-    openInEditor: (text: string) => void;
+    openInEditor: (definitionKind?: SchemaDesigner.DefinitionKind) => void;
+    addDefinitionToWorkspace: (definitionKind: SchemaDesigner.DefinitionKind) => void;
     openInEditorWithConnection: () => void;
-    copyToClipboard: (text: string) => void;
+    copyToClipboard: (definitionKind?: SchemaDesigner.DefinitionKind) => void;
     extractSchema: () => SchemaDesigner.Schema;
     addTable: (table: SchemaDesigner.Table) => Promise<boolean>;
     updateTable: (table: SchemaDesigner.Table) => Promise<boolean>;
@@ -322,15 +323,38 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         return result;
     };
 
-    const copyToClipboard = (text: string) => {
-        void extensionRpc.sendNotification(SchemaDesigner.CopyToClipboardNotification.type, {
-            text: text,
-        });
-    };
+    const copyToClipboard = useCallback(
+        (definitionKind: SchemaDesigner.DefinitionKind = SchemaDesigner.DefinitionKind.Sql) => {
+            void extensionRpc.sendNotification(SchemaDesigner.CopyToClipboardNotification.type, {
+                updatedSchema: extractSchema(),
+                definitionKind,
+            });
+        },
+        [extensionRpc, extractSchema],
+    );
 
-    const openInEditor = () => {
-        void extensionRpc.sendNotification(SchemaDesigner.OpenInEditorNotification.type);
-    };
+    const openInEditor = useCallback(
+        (definitionKind: SchemaDesigner.DefinitionKind = SchemaDesigner.DefinitionKind.Sql) => {
+            void extensionRpc.sendNotification(SchemaDesigner.OpenInEditorNotification.type, {
+                updatedSchema: extractSchema(),
+                definitionKind,
+            });
+        },
+        [extensionRpc, extractSchema],
+    );
+
+    const addDefinitionToWorkspace = useCallback(
+        (definitionKind: SchemaDesigner.DefinitionKind) => {
+            void extensionRpc.sendNotification(
+                SchemaDesigner.AddDefinitionToWorkspaceNotification.type,
+                {
+                    updatedSchema: extractSchema(),
+                    definitionKind,
+                },
+            );
+        },
+        [extensionRpc, extractSchema],
+    );
 
     const openInEditorWithConnection = () => {
         void extensionRpc.sendNotification(
@@ -559,6 +583,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 saveAsFile,
                 getReport,
                 openInEditor,
+                addDefinitionToWorkspace,
                 openInEditorWithConnection,
                 copyToClipboard,
                 extractSchema,

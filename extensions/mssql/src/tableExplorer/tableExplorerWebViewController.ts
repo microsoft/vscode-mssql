@@ -74,14 +74,12 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     dark: vscode.Uri.joinPath(
                         context.extensionUri,
                         "media",
-                        "objectTypes",
-                        "EditTableData_Dark.svg",
+                        "tableExplorerEditor_dark.svg",
                     ),
                     light: vscode.Uri.joinPath(
                         context.extensionUri,
                         "media",
-                        "objectTypes",
-                        "EditTableData_Light.svg",
+                        "tableExplorerEditor_light.svg",
                     ),
                 },
                 showRestorePromptAfterClose: false, // Will be set to true when changes are made

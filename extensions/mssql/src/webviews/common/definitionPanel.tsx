@@ -37,7 +37,10 @@ const useStyles = makeStyles({
         gap: "10px",
     },
     headerToolbar: {
+        flex: "1 1 auto",
+        minWidth: 0,
         gap: "3px",
+        justifyContent: "flex-end",
     },
     tabContent: {
         flex: "1 1 auto",
@@ -86,6 +89,8 @@ export interface ScriptTabProps {
     value: string;
     themeKind: ColorThemeKind;
     language?: string;
+    headerActions?: ReactNode;
+    addToWorkspace?: (script: string) => void;
     openInEditor: (script: string) => void;
     copyToClipboard: (script: string) => void;
 }
@@ -122,6 +127,17 @@ function getScriptTab(
         ),
         headerActions: (
             <>
+                {props.headerActions}
+                {props.addToWorkspace && (
+                    <Button
+                        size="small"
+                        appearance="subtle"
+                        title={locConstants.schemaDesigner.addToWorkspace}
+                        icon={<FluentIcons.DocumentAdd16Regular />}
+                        onClick={() => props.addToWorkspace?.(props.value)}>
+                        {locConstants.schemaDesigner.addToWorkspace}
+                    </Button>
+                )}
                 <Button
                     size="small"
                     appearance="subtle"

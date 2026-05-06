@@ -35,8 +35,8 @@ import { getAppDataPath, getEnableConnectionPoolingConfig } from "../azure/utils
 import { serviceName } from "../azure/constants";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { ServiceExecutable } from "./serviceExecutablePaths";
 import { PreviewFeature, previewService } from "../previews/previewService";
+import { getRuntimeConfigPath, ServiceExecutable } from "./serviceExecutablePaths";
 
 const STS_OVERRIDE_ENV_VAR = "MSSQL_SQLTOOLSSERVICE";
 const SERVICE_LAUNCH_TELEMETRY_VIEW = TelemetryViews.ServiceClient;
@@ -499,7 +499,9 @@ export default class SqlToolsServiceClient {
         if (executablePath.endsWith(".dll")) {
             try {
                 return {
-                    command: await this._dotnetRuntimeProvider.acquireDotnetRuntime(),
+                    command: await this._dotnetRuntimeProvider.acquireDotnetRuntime(
+                        getRuntimeConfigPath(executablePath),
+                    ),
                     args: [executablePath],
                 };
             } catch (err) {

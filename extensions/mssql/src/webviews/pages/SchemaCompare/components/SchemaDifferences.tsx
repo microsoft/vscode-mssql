@@ -14,6 +14,7 @@ import {
     DataGridHeaderCell,
     Text,
     TableColumnSizingOptions,
+    mergeClasses,
 } from "@fluentui/react-components";
 import {
     DataGridBody,
@@ -22,12 +23,37 @@ import {
     DataGridCell,
     RowRenderer,
 } from "@fluentui-contrib/react-data-grid-react-window";
+import { ChevronDownRegular, ChevronRightRegular } from "@fluentui/react-icons";
 import { SchemaUpdateAction } from "../../../../sharedInterfaces/schemaCompare";
 import { locConstants as loc } from "../../../common/locConstants";
 import { DiffEntry } from "vscode-mssql";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { useSchemaCompareSelector } from "../schemaCompareSelector";
 import { useResizable } from "../../../hooks/useResizable";
+import { SchemaCompareGroupBy } from "../SchemaCompare";
+
+type DiffRow = { kind: "diff" } & DiffEntry;
+type GroupRow = {
+    kind: "group";
+    key: string;
+    label: string;
+    count: number;
+    collapsed: boolean;
+};
+type Row = DiffRow | GroupRow;
+
+const getLabelForAction = (action: SchemaUpdateAction): string => {
+    switch (action) {
+        case SchemaUpdateAction.Add:
+            return loc.schemaCompare.add;
+        case SchemaUpdateAction.Change:
+            return loc.schemaCompare.change;
+        case SchemaUpdateAction.Delete:
+            return loc.schemaCompare.delete;
+        default:
+            return "";
+    }
+};
 
 const useStyles = makeStyles({
     HeaderCellPadding: {
@@ -82,16 +108,56 @@ const useStyles = makeStyles({
     dataGridHeader: {
         backgroundColor: "var(--vscode-keybindingTable-headerBackground)",
     },
+    groupHeaderRow: {
+        backgroundColor: "var(--vscode-sideBarSectionHeader-background)",
+        color: "var(--vscode-sideBarSectionHeader-foreground)",
+        boxSizing: "border-box",
+        borderBottom: "1px solid var(--vscode-sideBarSectionHeader-border)",
+        "&:hover": {
+            backgroundColor: "var(--vscode-list-hoverBackground)",
+        },
+    },
+    groupHeaderCell: {
+        width: "100%",
+        height: "100%",
+        padding: 0,
+    },
+    groupHeaderButton: {
+        display: "flex",
+        alignItems: "center",
+        gap: "4px",
+        padding: "0 8px",
+        width: "100%",
+        height: "100%",
+        background: "transparent",
+        border: "none",
+        color: "inherit",
+        font: "inherit",
+        cursor: "pointer",
+        textAlign: "left",
+        userSelect: "none",
+    },
+    groupHeaderLabel: {
+        fontWeight: 600,
+    },
+    groupHeaderCount: {
+        opacity: 0.75,
+    },
+    groupHeaderChevron: {
+        display: "flex",
+        alignItems: "center",
+    },
 });
 
 interface Props {
     onDiffSelected: (id: number) => void;
     selectedDiffId: number;
     siblingRef?: React.RefObject<HTMLDivElement | null>;
+    groupBy: SchemaCompareGroupBy;
 }
 
 export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
-    ({ onDiffSelected, selectedDiffId, siblingRef }, ref) => {
+    ({ onDiffSelected, selectedDiffId, siblingRef, groupBy }, ref) => {
         const classes = useStyles();
         const context = React.useContext(schemaCompareContext);
         const schemaCompareResult = useSchemaCompareSelector((s) => s.schemaCompareResult);
@@ -167,28 +233,14 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
             }
         };
 
-        const getLabelForAction = (action: SchemaUpdateAction): string => {
-            let actionLabel = "";
-            switch (action) {
-                case SchemaUpdateAction.Add:
-                    actionLabel = loc.schemaCompare.add;
-                    break;
-                case SchemaUpdateAction.Change:
-                    actionLabel = loc.schemaCompare.change;
-                    break;
-                case SchemaUpdateAction.Delete:
-                    actionLabel = loc.schemaCompare.delete;
-                    break;
-            }
+        const emptyCell = <DataGridCell />;
 
-            return actionLabel;
-        };
-
-        const columns: TableColumnDefinition<DiffEntry>[] = [
-            createTableColumn<DiffEntry>({
+        const columns: TableColumnDefinition<Row>[] = [
+            createTableColumn<Row>({
                 columnId: "type",
                 renderHeaderCell: () => loc.schemaCompare.type,
                 renderCell: (item) => {
+                    if (item.kind !== "diff") return emptyCell;
                     return (
                         <DataGridCell>
                             <Text truncate className={classes.hideTextOverflow}>
@@ -198,10 +250,11 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                     );
                 },
             }),
-            createTableColumn<DiffEntry>({
+            createTableColumn<Row>({
                 columnId: "sourceName",
                 renderHeaderCell: () => loc.schemaCompare.sourceName,
                 renderCell: (item) => {
+                    if (item.kind !== "diff") return emptyCell;
                     return (
                         <DataGridCell>
                             <Text truncate className={classes.hideTextOverflow}>
@@ -211,7 +264,7 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                     );
                 },
             }),
-            createTableColumn<DiffEntry>({
+            createTableColumn<Row>({
                 columnId: "include",
                 renderHeaderCell: () => {
                     if (isIncludeExcludeAllOperationInProgress) {
@@ -243,6 +296,7 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                     );
                 },
                 renderCell: (item) => {
+                    if (item.kind !== "diff") return emptyCell;
                     return (
                         <DataGridCell>
                             <Checkbox
@@ -254,23 +308,25 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                     );
                 },
             }),
-            createTableColumn<DiffEntry>({
+            createTableColumn<Row>({
                 columnId: "action",
                 renderHeaderCell: () => loc.schemaCompare.action,
                 renderCell: (item) => {
+                    if (item.kind !== "diff") return emptyCell;
                     return (
                         <DataGridCell>
                             <Text truncate className={classes.hideTextOverflow}>
-                                {getLabelForAction(item.updateAction as number)}
+                                {getLabelForAction(item.updateAction)}
                             </Text>
                         </DataGridCell>
                     );
                 },
             }),
-            createTableColumn<DiffEntry>({
+            createTableColumn<Row>({
                 columnId: "targetName",
                 renderHeaderCell: () => loc.schemaCompare.targetName,
                 renderCell: (item) => {
+                    if (item.kind !== "diff") return emptyCell;
                     return (
                         <DataGridCell>
                             <Text truncate className={classes.hideTextOverflow}>
@@ -282,16 +338,100 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
             }),
         ];
 
-        let items: DiffEntry[] = [];
-        if (compareResult?.success) {
-            items = compareResult.differences.map(
-                (item, index) =>
-                    ({
-                        position: index,
-                        ...item,
-                    }) as DiffEntry,
-            );
-        }
+        const [collapsedGroups, setCollapsedGroups] = React.useState<Set<string>>(new Set());
+
+        React.useEffect(() => {
+            setCollapsedGroups(new Set());
+        }, [groupBy]);
+
+        const toggleGroupCollapsed = (key: string) => {
+            setCollapsedGroups((prev) => {
+                const next = new Set(prev);
+                if (next.has(key)) {
+                    next.delete(key);
+                } else {
+                    next.add(key);
+                }
+                return next;
+            });
+        };
+
+        const items = React.useMemo<Row[]>(() => {
+            if (!compareResult?.success) return [];
+
+            const diffs: DiffRow[] = compareResult.differences.map((item, index) => ({
+                kind: "diff",
+                ...item,
+                position: index,
+            }));
+
+            if (groupBy === "none") return diffs;
+
+            // Group keys are stable identifiers (enum values or raw names), not
+            // localized strings, so grouping survives language changes.
+            const getKey = (entry: DiffEntry): string => {
+                switch (groupBy) {
+                    case "type":
+                        return entry.name ?? "";
+                    case "action":
+                        return String(entry.updateAction);
+                    case "schema":
+                        return entry.sourceValue?.[0] ?? entry.targetValue?.[0] ?? "";
+                    default:
+                        return "";
+                }
+            };
+
+            const getLabel = (key: string): string =>
+                groupBy === "action" ? getLabelForAction(Number(key)) : key;
+
+            const groups = new Map<string, DiffRow[]>();
+            for (const d of diffs) {
+                const key = getKey(d);
+                const existing = groups.get(key);
+                if (existing) {
+                    existing.push(d);
+                } else {
+                    groups.set(key, [d]);
+                }
+            }
+
+            const keys = Array.from(groups.keys());
+            if (groupBy === "action") {
+                const actionOrder: SchemaUpdateAction[] = [
+                    SchemaUpdateAction.Delete,
+                    SchemaUpdateAction.Change,
+                    SchemaUpdateAction.Add,
+                ];
+                keys.sort((a, b) => {
+                    const ai = actionOrder.indexOf(Number(a));
+                    const bi = actionOrder.indexOf(Number(b));
+                    if (ai === -1 && bi === -1) return a.localeCompare(b);
+                    if (ai === -1) return 1;
+                    if (bi === -1) return -1;
+                    return ai - bi;
+                });
+            } else {
+                keys.sort((a, b) => a.localeCompare(b));
+            }
+
+            const result: Row[] = [];
+            for (const key of keys) {
+                const children = groups.get(key)!;
+                const collapsed = collapsedGroups.has(key);
+                result.push({
+                    kind: "group",
+                    key,
+                    label: getLabel(key),
+                    count: children.length,
+                    collapsed,
+                });
+                if (!collapsed) {
+                    result.push(...children);
+                }
+            }
+            return result;
+        }, [compareResult, groupBy, collapsedGroups]);
 
         const toggleAllKeydown = (e: React.KeyboardEvent<HTMLDivElement>) => {
             if (e.key === " ") {
@@ -300,7 +440,7 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
             }
         };
 
-        const toggleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>, diffEntry: DiffEntry) => {
+        const toggleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>, diffEntry: DiffRow) => {
             if (e.key === "Enter") {
                 if (diffEntry.position !== undefined) {
                     onDiffSelected(diffEntry.position);
@@ -309,9 +449,37 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
             }
         };
 
-        const renderRow: RowRenderer<DiffEntry> = ({ item, rowId }, style) => {
+        const renderRow: RowRenderer<Row> = ({ item, rowId }, style) => {
+            if (item.kind === "group") {
+                const Chevron = item.collapsed ? ChevronRightRegular : ChevronDownRegular;
+                return (
+                    <div key={rowId} role="row" style={style} className={classes.groupHeaderRow}>
+                        <div role="gridcell" className={classes.groupHeaderCell}>
+                            <button
+                                type="button"
+                                aria-expanded={!item.collapsed}
+                                className={classes.groupHeaderButton}
+                                onClick={() => toggleGroupCollapsed(item.key)}>
+                                <span className={classes.groupHeaderChevron}>
+                                    <Chevron />
+                                </span>
+                                <Text
+                                    truncate
+                                    className={mergeClasses(
+                                        classes.hideTextOverflow,
+                                        classes.groupHeaderLabel,
+                                    )}>
+                                    {item.label}
+                                </Text>
+                                <Text className={classes.groupHeaderCount}>({item.count})</Text>
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
             return (
-                <DataGridRow<DiffEntry>
+                <DataGridRow<Row>
                     key={rowId}
                     className={item.position === selectedDiffId ? classes.selectedRow : undefined}
                     style={style}
@@ -357,7 +525,12 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                     focusMode="composite"
                     resizableColumns={true}
                     columnSizingOptions={columnSizingOptions}
-                    getRowId={(item) => (item as DiffEntry).position?.toString() ?? ""}
+                    getRowId={(item) => {
+                        const row = item as Row;
+                        return row.kind === "group"
+                            ? `group:${row.key}`
+                            : `diff:${row.position ?? ""}`;
+                    }}
                     size="extra-small">
                     <DataGridHeader className={classes.dataGridHeader}>
                         <DataGridRow>
@@ -366,7 +539,7 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                             )}
                         </DataGridRow>
                     </DataGridHeader>
-                    <DataGridBody<DiffEntry> itemSize={30} height={height - 40} width={"100%"}>
+                    <DataGridBody<Row> itemSize={30} height={height - 40} width={"100%"}>
                         {renderRow}
                     </DataGridBody>
                 </DataGrid>
