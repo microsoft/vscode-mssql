@@ -1291,6 +1291,7 @@
     "Filters": "Filters",
     "where": "where",
     "and": "and",
+    "or": "or",
     "Add filter": "Add filter",
     "Clear filters": "Clear filters",
     "Remove filter": "Remove filter",
