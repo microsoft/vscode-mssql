@@ -10504,6 +10504,10 @@ See the estimated plan without running the query, or view the actual query plan 
         <source xml:lang="en">When enabled, connection groups will be collapsed instead of expanded at startup.</source>
         <target state="translated">有効にすると、起動時に接続グループは展開されず、折りたたまれます。</target>
       </trans-unit>
+      <trans-unit id="mssql.results.openAfterSave">
+        <source xml:lang="en">When enabled, saved query result exports are opened after export. Excel exports open with the system file handler; text exports open in VS Code.</source>
+        <target state="new">When enabled, saved query result exports are opened after export. Excel exports open with the system file handler; text exports open in VS Code.</target>
+      </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
         <target state="translated">有効にすると、オブジェクト エクスプローラー内のデータベース オブジェクトがスキーマ別に分類されます。</target>
