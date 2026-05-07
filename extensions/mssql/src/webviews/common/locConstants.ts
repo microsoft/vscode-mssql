@@ -2039,6 +2039,7 @@ export class LocConstants {
             filters: l10n.t("Filters"),
             filterWhere: l10n.t("where"),
             filterAnd: l10n.t("and"),
+            filterOr: l10n.t("or"),
             filterApply: l10n.t("Apply"),
             filterAdd: l10n.t("Add filter"),
             filterClear: l10n.t("Clear filters"),

@@ -28,14 +28,18 @@ export type FilterOperator =
     | "isNull"
     | "isNotNull";
 
+export type FilterConjunction = "AND" | "OR";
+
 export interface AppliedFilter {
     column: string;
     operator: FilterOperator;
     value: string;
+    conjunction?: FilterConjunction;
 }
 
 interface FilterRow extends AppliedFilter {
     id: string;
+    conjunction: FilterConjunction;
 }
 
 interface ColumnOption {
@@ -69,6 +73,9 @@ const useStyles = makeStyles({
         fontSize: "12px",
         color: tokens.colorNeutralForeground2,
         textTransform: "lowercase",
+    },
+    conjunction: {
+        minWidth: "60px",
     },
     columnDropdown: {
         minWidth: "140px",
@@ -228,13 +235,22 @@ export function composeSortedQuery(
  * already has a WHERE, the new predicate is appended with AND. If it has an
  * ORDER BY, the WHERE is inserted before it. Returns the original query
  * unchanged when no filter is complete.
+ *
+ * Each filter can have a conjunction (AND/OR) that determines how it's combined
+ * with the previous filter. The first filter's conjunction is ignored.
  */
 export function composeFilteredQuery(baseQuery: string, filters: AppliedFilter[]): string {
     const predicates = filters.map(buildPredicate).filter((p) => p.length > 0);
     if (predicates.length === 0) {
         return baseQuery;
     }
-    const newPredicate = predicates.join(" AND ");
+
+    // Build the combined predicate respecting each filter's conjunction
+    let newPredicate = predicates[0];
+    for (let i = 1; i < predicates.length; i++) {
+        const conjunction = filters[i].conjunction || "AND";
+        newPredicate += ` ${conjunction} ${predicates[i]}`;
+    }
 
     const orderByMatch = baseQuery.match(/\bORDER\s+BY\b/i);
     const head = orderByMatch ? baseQuery.slice(0, orderByMatch.index) : baseQuery;
@@ -248,7 +264,7 @@ export function composeFilteredQuery(baseQuery: string, filters: AppliedFilter[]
     if (whereMatch && whereMatch.index !== undefined) {
         const beforeWhere = normalizedHead.slice(0, whereMatch.index);
         const existing = normalizedHead.slice(whereMatch.index + "WHERE".length).trim();
-        composedHead = `${beforeWhere}WHERE (${existing}) AND ${newPredicate} `;
+        composedHead = `${beforeWhere}WHERE (${existing}) AND (${newPredicate}) `;
     } else {
         composedHead = `${normalizedHead.trimEnd()}\nWHERE ${newPredicate}\n`;
     }
@@ -261,6 +277,7 @@ function newRow(defaultColumn?: string): FilterRow {
         column: defaultColumn ?? "",
         operator: "equals",
         value: "",
+        conjunction: "AND",
     };
 }
 
@@ -297,7 +314,12 @@ export const TableExplorerFilterBar: React.FC<TableExplorerFilterBarProps> = ({
     const handleApply = () => {
         const applied: AppliedFilter[] = rows
             .filter((r) => r.column && (operatorTakesValue(r.operator) ? r.value !== "" : true))
-            .map(({ column, operator, value }) => ({ column, operator, value }));
+            .map(({ column, operator, value, conjunction }) => ({
+                column,
+                operator,
+                value,
+                conjunction,
+            }));
         onApply(applied);
     };
 
@@ -310,9 +332,26 @@ export const TableExplorerFilterBar: React.FC<TableExplorerFilterBarProps> = ({
         <div className={classes.container}>
             {rows.map((row, i) => (
                 <div className={classes.row} key={row.id}>
-                    <span className={classes.conjunction}>
-                        {i === 0 ? loc.tableExplorer.filterWhere : loc.tableExplorer.filterAnd}
-                    </span>
+                    {i === 0 ? (
+                        <span className={classes.conjunction}>{loc.tableExplorer.filterWhere}</span>
+                    ) : (
+                        <Dropdown
+                            className={classes.conjunction}
+                            size="small"
+                            value={row.conjunction.toLowerCase()}
+                            selectedOptions={[row.conjunction]}
+                            disabled={disabled}
+                            onOptionSelect={(_, data) =>
+                                updateRow(row.id, {
+                                    conjunction:
+                                        (data.optionValue?.toUpperCase() as FilterConjunction) ??
+                                        "AND",
+                                })
+                            }>
+                            <Option value="AND">{loc.tableExplorer.filterAnd}</Option>
+                            <Option value="OR">{loc.tableExplorer.filterOr}</Option>
+                        </Dropdown>
+                    )}
                     <Dropdown
                         className={classes.columnDropdown}
                         size="small"
