@@ -869,9 +869,7 @@ export class LocConstants {
             askGithubCopilotToFixTooltip: l10n.t(
                 "Open GitHub Copilot Chat to help fix these errors",
             ),
-            schemaDesignerCopilotDiscoveryTitle: l10n.t(
-                "Design Schemas with GitHub Copilot (Preview)",
-            ),
+            schemaDesignerCopilotDiscoveryTitle: l10n.t("Design Schemas with GitHub Copilot"),
             schemaDesignerCopilotDiscoveryBody: l10n.t(
                 "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.",
             ),
@@ -1109,8 +1107,8 @@ export class LocConstants {
             redo: l10n.t("Redo"),
             searchTables: l10n.t("Search tables..."),
             showTableRelationships: l10n.t("Show table relationships"),
-            schemaDesignerNavLabel: l10n.t("Visualize and Design Schema (Preview)"),
-            dabNavLabel: l10n.t("Build Data API (Preview)"),
+            schemaDesignerNavLabel: l10n.t("Visualize and Design Schema"),
+            dabNavLabel: l10n.t("Build Data API"),
             showChangesButtonLabel: l10n.t("Show Changes"),
             hideChangesButtonLabel: l10n.t("Hide Changes"),
             showCopilotChangesButtonLabel: l10n.t("Copilot Changes"),
@@ -1344,7 +1342,7 @@ export class LocConstants {
                 }),
 
             // DAB (Data API builder) strings
-            dabTitle: l10n.t("Data API builder Configuration (Preview)"),
+            dabTitle: l10n.t("Data API builder Configuration"),
             apiType: l10n.t("API Type"),
             restApi: l10n.t("REST API"),
             graphql: l10n.t("GraphQL"),
@@ -1380,7 +1378,7 @@ export class LocConstants {
             atLeastOneApiTypeRequired: l10n.t("At least one API type must be selected."),
             authenticationNotSupported: l10n.t("Authentication not supported"),
             dabDeploymentNotSupportedBanner: l10n.t(
-                "In the Data API builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.",
+                "In the Data API builder experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.",
             ),
             unsupportedDataTypesDetected: l10n.t("Unsupported data types detected"),
             dabUnsupportedDataTypesBanner: l10n.t(

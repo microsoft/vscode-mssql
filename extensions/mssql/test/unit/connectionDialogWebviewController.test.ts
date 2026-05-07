@@ -13,7 +13,11 @@ import {
     CLEAR_TOKEN_CACHE,
     ConnectionDialogWebviewController,
 } from "../../src/connectionconfig/connectionDialogWebviewController";
-import { refreshTokenLabel } from "../../src/constants/locConstants";
+import {
+    ConnectionDialog as Loc,
+    Connection as ConnectionLoc,
+    refreshTokenLabel,
+} from "../../src/constants/locConstants";
 import MainController from "../../src/controllers/mainController";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { ObjectExplorerProvider } from "../../src/objectExplorer/objectExplorerProvider";
@@ -1339,6 +1343,296 @@ suite("ConnectionDialogWebviewController Tests", () => {
         } finally {
             clock.restore();
         }
+    });
+
+    suite("database loading", () => {
+        const sqlLoginProfile: IConnectionDialogProfile = {
+            server: "localhost",
+            authenticationType: AuthenticationType.SqlLogin,
+            user: "sa",
+            password: "Password1!",
+            groupId: ConnectionConfig.ROOT_GROUP_ID,
+        } as IConnectionDialogProfile;
+
+        setup(() => {
+            connectionManager.connect.resolves(true);
+            connectionManager.listDatabases.resolves(["master", "tempdb", "mydb"]);
+            connectionManager.disconnect.resolves();
+        });
+
+        test("isConnectionReadyForDatabaseFetch", () => {
+            const check = (profile: IConnectionDialogProfile) =>
+                controller["isConnectionReadyForDatabaseFetch"](profile);
+
+            // Missing server — always false
+            expect(check({ ...sqlLoginProfile, server: "" })).to.be.false;
+
+            // SqlLogin — requires user + password
+            expect(check({ ...sqlLoginProfile, user: "" })).to.be.false;
+            expect(check({ ...sqlLoginProfile, password: "" })).to.be.false;
+            expect(check({ ...sqlLoginProfile })).to.be.true;
+
+            // AzureMFA — requires accountId
+            expect(
+                check({
+                    server: "localhost",
+                    authenticationType: AuthenticationType.AzureMFA,
+                } as IConnectionDialogProfile),
+            ).to.be.false;
+            expect(
+                check({
+                    server: "localhost",
+                    authenticationType: AuthenticationType.AzureMFA,
+                    accountId: "user@example.com",
+                } as IConnectionDialogProfile),
+            ).to.be.true;
+
+            // Integrated and ActiveDirectoryDefault — server only
+            expect(
+                check({
+                    server: "localhost",
+                    authenticationType: AuthenticationType.Integrated,
+                } as IConnectionDialogProfile),
+            ).to.be.true;
+            expect(
+                check({
+                    server: "localhost",
+                    authenticationType: AuthenticationType.ActiveDirectoryDefault,
+                } as IConnectionDialogProfile),
+            ).to.be.true;
+        });
+
+        test("buildDatabaseFetchKey includes connection fields but excludes password", () => {
+            const base = {
+                server: "myServer",
+                authenticationType: AuthenticationType.SqlLogin,
+                user: "sa",
+                accountId: "acc1",
+                tenantId: "ten1",
+            } as IConnectionDialogProfile;
+
+            controller.state.connectionProfile = { ...base, password: "pw1" };
+            const key1 = controller["buildDatabaseFetchKey"]();
+            controller.state.connectionProfile = { ...base, password: "pw2" };
+            const key2 = controller["buildDatabaseFetchKey"]();
+
+            expect(key1)
+                .to.include("myServer")
+                .and.include("sa")
+                .and.include("acc1")
+                .and.include("ten1");
+            expect(key1).to.not.include("pw1");
+            expect(key1).to.equal(key2, "password changes should not bust the cache key");
+        });
+
+        suite("loadDatabaseList", () => {
+            test("success: populates options and clears loadStatus", async () => {
+                controller.state.connectionProfile = { ...sqlLoginProfile };
+                await controller["loadDatabaseList"]();
+
+                const dbComponent = controller.state.formComponents["database"];
+                expect(dbComponent.options).to.have.lengthOf(3);
+                // user DBs first, then system DBs, each group sorted alphabetically
+                expect(dbComponent.options.map((o) => o.value)).to.deep.equal([
+                    "mydb",
+                    "master",
+                    "tempdb",
+                ]);
+                expect(dbComponent.options.map((o) => o.groupName)).to.deep.equal([
+                    Loc.userDatabasesGroup,
+                    Loc.systemDatabasesGroup,
+                    Loc.systemDatabasesGroup,
+                ]);
+                expect(dbComponent.loadStatus).to.be.undefined;
+                expect(connectionManager.disconnect.calledOnce).to.be.true;
+            });
+
+            test("success: caches result so second call skips connect", async () => {
+                controller.state.connectionProfile = { ...sqlLoginProfile };
+                await controller["loadDatabaseList"]();
+                expect(connectionManager.connect.calledOnce).to.be.true;
+
+                await controller["loadDatabaseList"]();
+                expect(
+                    connectionManager.connect.calledOnce,
+                    "second call should be served from cache without connecting",
+                ).to.be.true;
+
+                const dbComponent = controller.state.formComponents["database"];
+                expect(dbComponent.options).to.have.lengthOf(3);
+                expect(dbComponent.loadStatus).to.be.undefined;
+            });
+
+            test("failed connection: sets error loadStatus with connection error message", async () => {
+                const errorMessage = "Login failed for user 'sa'";
+                connectionManager.connect.resolves(false);
+                connectionManager.getConnectionInfo.returns({
+                    errorMessage,
+                    errorNumber: 18456,
+                    messages: errorMessage,
+                    credentials: { server: "localhost", user: "sa" },
+                } as ConnectionInfo);
+                sandbox
+                    .stub(ConnectionManagerModule, "getSqlConnectionErrorType")
+                    .resolves(SqlConnectionErrorType.Generic);
+
+                controller.state.connectionProfile = { ...sqlLoginProfile };
+                await controller["loadDatabaseList"]();
+
+                const dbComponent = controller.state.formComponents["database"];
+                expect(dbComponent.loadStatus?.status).to.equal(ApiStatus.Error);
+                expect(dbComponent.loadStatus?.message).to.equal(
+                    Loc.unableToLoadDatabaseList(errorMessage),
+                );
+                expect(connectionManager.disconnect.calledOnce).to.be.true;
+            });
+
+            test("TrustServerCertificate error: message contains trust cert guidance", async () => {
+                connectionManager.connect.resolves(false);
+                connectionManager.getConnectionInfo.returns({
+                    errorMessage: "connection failed",
+                    errorNumber: 0,
+                    messages: "",
+                    credentials: { server: "localhost", user: "sa" },
+                } as ConnectionInfo);
+                sandbox
+                    .stub(ConnectionManagerModule, "getSqlConnectionErrorType")
+                    .resolves(SqlConnectionErrorType.TrustServerCertificateNotEnabled);
+
+                controller.state.connectionProfile = { ...sqlLoginProfile };
+                await controller["loadDatabaseList"]();
+
+                const dbComponent = controller.state.formComponents["database"];
+                expect(dbComponent.loadStatus?.status).to.equal(ApiStatus.Error);
+                expect(dbComponent.loadStatus?.message).to.equal(
+                    Loc.unableToLoadDatabaseList(
+                        ConnectionLoc.trustServerCertificateMustBeEnabledMessage,
+                    ),
+                );
+            });
+
+            test("exception during fetch: sets error loadStatus", async () => {
+                const errorMessage = "network timeout";
+                connectionManager.connect.rejects(new Error(errorMessage));
+
+                controller.state.connectionProfile = { ...sqlLoginProfile };
+                await controller["loadDatabaseList"]();
+
+                const dbComponent = controller.state.formComponents["database"];
+                expect(dbComponent.loadStatus?.status).to.equal(ApiStatus.Error);
+                expect(dbComponent.loadStatus?.message).to.include(errorMessage);
+                expect(connectionManager.disconnect.calledOnce).to.be.true;
+            });
+
+            test("superseded request does not update state", async () => {
+                let resolveConnect: (val: boolean) => void;
+                connectionManager.connect.returns(
+                    new Promise((res) => {
+                        resolveConnect = res;
+                    }),
+                );
+
+                controller.state.connectionProfile = { ...sqlLoginProfile };
+
+                // Start first fetch (will hang on connect)
+                const firstFetch = controller["loadDatabaseList"]();
+
+                // Increment token to supersede it
+                controller["_dbFetchCounter"]++;
+
+                // Resolve the connect so the first fetch can continue to completion
+                resolveConnect(true);
+                await firstFetch;
+
+                // State should not have been updated by the superseded first fetch
+                const dbComponent = controller.state.formComponents["database"];
+                expect(dbComponent.options).to.deep.equal(
+                    [],
+                    "superseded fetch should not populate options",
+                );
+            });
+        });
+
+        suite("afterSetFormProperty integration", () => {
+            async function setFormProperty(
+                propertyName: keyof IConnectionDialogProfile,
+                value: string,
+                isBlur = false,
+            ) {
+                await controller["_reducerHandlers"].get("formAction")(controller.state, {
+                    event: { propertyName, value, isAction: false, updateValidation: isBlur },
+                });
+            }
+
+            async function blurFormProperty(
+                propertyName: keyof IConnectionDialogProfile,
+                value: string,
+            ) {
+                return setFormProperty(propertyName, value, true);
+            }
+
+            async function flushMicrotasks() {
+                // Allow fire-and-forget loadDatabaseList to complete
+                await new Promise<void>((resolve) => setImmediate(resolve));
+            }
+
+            test("triggers fetch on blur when sufficient SqlLogin credentials are set", async () => {
+                controller.state.connectionProfile = { ...sqlLoginProfile };
+
+                await blurFormProperty("server", "localhost");
+                await flushMicrotasks();
+
+                expect(
+                    connectionManager.connect.calledOnce,
+                    "should connect when all SqlLogin fields are present and field is blurred",
+                ).to.be.true;
+            });
+
+            test("does not trigger fetch on change (only on blur)", async () => {
+                controller.state.connectionProfile = { ...sqlLoginProfile };
+
+                await setFormProperty("server", "localhost");
+                await flushMicrotasks();
+
+                expect(
+                    connectionManager.connect.called,
+                    "should not connect on keystroke change, only on blur",
+                ).to.be.false;
+            });
+
+            test("clears database options when auth info becomes insufficient", async () => {
+                controller.state.connectionProfile = { ...sqlLoginProfile };
+
+                // First load databases successfully
+                await controller["loadDatabaseList"]();
+                expect(controller.state.formComponents["database"].options).to.have.lengthOf(3);
+
+                // Now remove the user on blur, making info insufficient
+                await blurFormProperty("user", "");
+
+                const dbComponent = controller.state.formComponents["database"];
+                expect(dbComponent.options).to.deep.equal(
+                    [],
+                    "options should be cleared when auth is incomplete",
+                );
+                expect(dbComponent.loadStatus).to.be.undefined;
+            });
+
+            test("does not re-fetch when fetchKey is unchanged", async () => {
+                controller.state.connectionProfile = { ...sqlLoginProfile };
+
+                await controller["loadDatabaseList"]();
+                expect(connectionManager.connect.calledOnce).to.be.true;
+
+                await blurFormProperty("server", sqlLoginProfile.server);
+                await flushMicrotasks();
+
+                expect(
+                    connectionManager.connect.calledOnce,
+                    "should not re-fetch when fetchKey is unchanged",
+                ).to.be.true;
+            });
+        });
     });
 
     test("getAzureActionButtons uses VS Code sign-in when VS Code account mode is enabled", async () => {

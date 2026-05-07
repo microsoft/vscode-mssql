@@ -6,6 +6,10 @@ _The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [1.5.10] - 2026-06-02
+
+- Improved Publish Project dialog performance for faster initial loading, and improved port number validation in Publish Project dialog to correctly show available port.
+
 ## [1.5.9] - 2026-04-22
 
 - Added automatic folder creation (e.g. `dbo/Tables/`) when adding SQL objects to a project. Can be disabled via the `sqlDatabaseProjects.autoCreateFolders` setting.
