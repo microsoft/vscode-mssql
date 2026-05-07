@@ -69,13 +69,13 @@ const useStyles = makeStyles({
         alignItems: "center",
         ...shorthands.gap("8px"),
     },
-    conjunction: {
+    conjunctionLabel: {
         width: "40px",
         fontSize: "12px",
         color: tokens.colorNeutralForeground2,
         textTransform: "lowercase",
     },
-    conjunction: {
+    conjunctionDropdown: {
         minWidth: "60px",
     },
     columnDropdown: {
@@ -383,10 +383,12 @@ export const TableExplorerFilterBar: React.FC<TableExplorerFilterBarProps> = ({
             {rows.map((row, i) => (
                 <div className={classes.row} key={row.id}>
                     {i === 0 ? (
-                        <span className={classes.conjunction}>{loc.tableExplorer.filterWhere}</span>
+                        <span className={classes.conjunctionLabel}>
+                            {loc.tableExplorer.filterWhere}
+                        </span>
                     ) : (
                         <Dropdown
-                            className={classes.conjunction}
+                            className={classes.conjunctionDropdown}
                             size="small"
                             value={row.conjunction.toLowerCase()}
                             selectedOptions={[row.conjunction]}
