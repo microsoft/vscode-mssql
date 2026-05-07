@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
 
 node scripts/ensure-crlf.js || exit 1
-npm run localization
+node scripts/localization-extract.js --precommit || exit 1
 npm run precommit
