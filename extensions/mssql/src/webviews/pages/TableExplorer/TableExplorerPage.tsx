@@ -262,9 +262,9 @@ export const TableExplorerPage: React.FC = () => {
     }, [displayedSql, tableQuery]);
 
     // Snapshot the unfiltered query so successive Apply clicks compose against
-    // the original, not the previously-filtered result. Updates whenever the
-    // tableQuery changes while no filters are active (initial load, or a
-    // user-authored custom query).
+    // the original, not the previously-filtered result. Updates when tableQuery
+    // changes and no filters are active (initial load or user clears filters).
+    // When filters are active, we skip the update to preserve the base query.
     const baseQueryRef = useRef<string | undefined>(undefined);
     useEffect(() => {
         if (activeFilters.length === 0 && tableQuery) {
@@ -341,9 +341,19 @@ export const TableExplorerPage: React.FC = () => {
                 return;
             }
             const newQuery = buildDefaultSelectQuery(schemaName, tableName, columnNames, rowCount);
-            context.runTableQuery(composeSortedQuery(newQuery, sortColumns), rowCount);
+            let queryToRun = composeSortedQuery(newQuery, sortColumns);
+
+            // Update baseQueryRef with the new unfiltered query before applying filters
+            baseQueryRef.current = queryToRun;
+
+            // Reapply active filters to the new query
+            if (activeFilters.length > 0) {
+                queryToRun = composeFilteredQuery(queryToRun, activeFilters);
+            }
+
+            context.runTableQuery(queryToRun, rowCount);
         },
-        [resultSet, schemaName, tableName, context, sortColumns],
+        [resultSet, schemaName, tableName, context, sortColumns, activeFilters],
     );
 
     // Clear cell highlights and reset sort tracking when the query changes
@@ -479,11 +489,18 @@ export const TableExplorerPage: React.FC = () => {
                                                 title={loc.schemaDesigner.copy}
                                                 icon={<Copy16Regular />}
                                                 disabled={!displayedSql}
-                                                onClick={() => {
+                                                onClick={async () => {
                                                     if (displayedSql) {
-                                                        void navigator.clipboard.writeText(
-                                                            displayedSql,
-                                                        );
+                                                        try {
+                                                            await navigator.clipboard.writeText(
+                                                                displayedSql,
+                                                            );
+                                                        } catch (error) {
+                                                            console.error(
+                                                                "Failed to copy to clipboard:",
+                                                                error,
+                                                            );
+                                                        }
                                                     }
                                                 }}
                                             />

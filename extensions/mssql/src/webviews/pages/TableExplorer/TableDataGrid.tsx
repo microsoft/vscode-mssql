@@ -922,6 +922,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             if (onDeletionCountChanged) {
                 onDeletionCountChanged(deletedRowsRef.current.size);
             }
+
+            // Invalidate the grid to refresh UI immediately after revert
+            reactGridRef.current?.slickGrid?.invalidate();
         }
 
         function handleCellClick(_e: Event, args: any) {

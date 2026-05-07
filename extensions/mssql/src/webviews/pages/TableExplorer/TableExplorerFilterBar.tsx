@@ -129,6 +129,10 @@ function escapeStringLiteral(v: string): string {
     return v.replace(/'/g, "''");
 }
 
+function escapeLikePattern(value: string, escapeChar: string = "\\"): string {
+    return value.replace(/[%_\[\]\\]/g, `${escapeChar}$&`);
+}
+
 function buildPredicate(f: AppliedFilter): string {
     if (!f.column) {
         return "";
@@ -150,14 +154,22 @@ function buildPredicate(f: AppliedFilter): string {
             return `${col} = ${lit}`;
         case "notEquals":
             return `${col} <> ${lit}`;
-        case "contains":
-            return `${col} LIKE N'%${escaped}%'`;
-        case "notContains":
-            return `${col} NOT LIKE N'%${escaped}%'`;
-        case "startsWith":
-            return `${col} LIKE N'${escaped}%'`;
-        case "endsWith":
-            return `${col} LIKE N'%${escaped}'`;
+        case "contains": {
+            const likeEscaped = escapeLikePattern(escaped);
+            return `${col} LIKE N'%${likeEscaped}%' ESCAPE '\\'`;
+        }
+        case "notContains": {
+            const likeEscaped = escapeLikePattern(escaped);
+            return `${col} NOT LIKE N'%${likeEscaped}%' ESCAPE '\\'`;
+        }
+        case "startsWith": {
+            const likeEscaped = escapeLikePattern(escaped);
+            return `${col} LIKE N'${likeEscaped}%' ESCAPE '\\'`;
+        }
+        case "endsWith": {
+            const likeEscaped = escapeLikePattern(escaped);
+            return `${col} LIKE N'%${likeEscaped}' ESCAPE '\\'`;
+        }
         case "greaterThan":
             return `${col} > ${lit}`;
         case "lessThan":
