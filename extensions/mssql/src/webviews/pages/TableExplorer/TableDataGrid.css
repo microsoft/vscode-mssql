@@ -424,15 +424,6 @@
     mask-size: contain;
 }
 
-/* SlickGrid's fluent theme ships the asc/desc indicator SVGs flipped relative
-   to the SQL/Windows convention (asc renders ↓, desc renders ↑). The sort
-   itself works correctly — only the glyph is inverted. Mirror both indicators
-   vertically so asc shows ↑ and desc shows ↓. */
-#tableExplorerGrid .slick-sort-indicator-asc,
-#tableExplorerGrid .slick-sort-indicator-desc {
-    transform: scaleY(-1);
-}
-
 /* Cell range selection styles (for Excel copy buffer / Ctrl+drag selection) */
 #tableExplorerGrid .slick-cell.selected {
     background-color: var(--vscode-editor-selectionBackground, rgba(0, 120, 215, 0.3)) !important;
