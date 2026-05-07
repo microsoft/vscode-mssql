@@ -12,6 +12,7 @@
         "experimentalDecorators": true,
         "jsx": "react-jsx",
         "rootDir": ".",
+        "strict": false,
         "noUnusedLocals": true,
         "skipLibCheck": true,
         "types": ["node", "mocha"]
