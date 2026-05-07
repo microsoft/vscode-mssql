@@ -2601,6 +2601,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Do you want to always display query results in a new tab instead of the query pane?</source>
         <target state="translated">쿼리 창 대신 항상 새 탭에 쿼리 결과를 표시하시겠습니까?</target>
       </trans-unit>
+      <trans-unit id="++CODE++3c96c6d1388e41b0724659fa022b1843dea4a84d175a1d571bf72382fc0c3581">
+        <source xml:lang="en">Do you want to enable 'Trust server certificate' on this connection and retry?</source>
+        <target state="new">Do you want to enable 'Trust server certificate' on this connection and retry?</target>
+      </trans-unit>
       <trans-unit id="++CODE++f1286712850b10aee8607a93c2120e10316b5962b73c377860cd5cded5b98184">
         <source xml:lang="en">Docker Desktop must be installed and running on your machine.</source>
         <target state="translated">Docker Desktop이 여러분의 컴퓨터에 설치되어 실행 중이어야 합니다.</target>
@@ -2791,9 +2795,9 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or enable 'Trust server certificate' in the connection dialog.</source>
         <target state="translated">이 연결에서 암호화를 사용하도록 설정했습니다. 대상 SQL Server에 대한 SSL 및 인증서 구성을 검토하거나, 연결 대화 상자에서 '서버 인증서 신뢰'를 사용하도록 설정하세요.</target>
       </trans-unit>
-      <trans-unit id="++CODE++a04452986b48c7c3c21f78712b31a68f2aecb85566c134d87d55348c7b16b9a8">
-        <source xml:lang="en">Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?</source>
-        <target state="translated">이 연결에서 암호화를 사용하도록 설정했습니다. 대상 SQL Server에 대한 SSL 및 인증서 구성을 검토하거나, 설정 파일에서 '서버 인증서 신뢰'를 ‘true’로 설정하세요. 참고: 자체 서명된 인증서는 제한된 보호만 제공하며 프로덕션 환경에 권장되는 방법은 아닙니다. 이 연결에서 '서버 인증서 신뢰'를 사용하도록 설정하고 다시 시도하시겠습니까?</target>
+      <trans-unit id="++CODE++e03c1fa5598b1caba263d99a4896ddba797148eaca638348d48aa792db57f71e">
+        <source xml:lang="en">Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true'. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments.</source>
+        <target state="new">Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true'. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments.</target>
       </trans-unit>
       <trans-unit id="++CODE++6051d2070e8e51a99adfa6b3f5171cfa92107943f46417bcd51a8f5e995c881f">
         <source xml:lang="en">End IP Address</source>
@@ -8088,6 +8092,10 @@ Query: {2}</source>
         <source xml:lang="en">Synchronous resize</source>
         <target state="translated">동기 크기 조정</target>
       </trans-unit>
+      <trans-unit id="++CODE++ec45cfbf2af59ce8d7cc24d91cb00575e3c328bbb4101a8af85ef66b04333d36">
+        <source xml:lang="en">System databases</source>
+        <target state="new">System databases</target>
+      </trans-unit>
       <trans-unit id="++CODE++b27ba710997adaf6099374edb801d44bef36c92e6d37e0190c7c1d12d4b32209">
         <source xml:lang="en">T-SQL</source>
         <target state="translated">T-SQL</target>
@@ -8596,6 +8604,11 @@ Query: {2}</source>
         <source xml:lang="en">Unable to load backup configuration. Please try again.</source>
         <target state="translated">백업 구성을 로드할 수 없습니다. 다시 시도하세요.</target>
       </trans-unit>
+      <trans-unit id="++CODE++c8a8ab1cef4a26f5a47e6aff86611314a34effe284539cfe1421067648432eab">
+        <source xml:lang="en">Unable to load database list from server: {0}</source>
+        <note>{0} is the connection error message</note>
+        <target state="new">Unable to load database list from server: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++955b62784673f0081b2a54d867245fa50ca1e830cea22348ff69caa6317e7889">
         <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>
         <target state="translated">테이블 탐색기를 열 수 없습니다. 대상 노드가 제공되지 않았습니다.</target>
@@ -8762,6 +8775,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++7967e089a7b94464ee1b0c6d4b8271e99bcf36f9e5481e40a5eec5c5a5108d01">
         <source xml:lang="en">User ID</source>
         <target state="translated">사용자 ID</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7b2227d51ac2087125e6e9ef2fff2d56b0f6bf97b6698bf014026833e0e43cba">
+        <source xml:lang="en">User databases</source>
+        <target state="new">User databases</target>
       </trans-unit>
       <trans-unit id="++CODE++b82e11da3bc16786000d6e008e038f4d0272163a6476e0ca3c4b29d958051f9c">
         <source xml:lang="en">User name</source>
@@ -10040,8 +10057,8 @@ You can connect to a database by entering your connection information, using a c
         <target state="translated">새 쿼리</target>
       </trans-unit>
       <trans-unit id="mssql.notebooks.createNotebook">
-        <source xml:lang="en">New SQL Notebook (Preview)</source>
-        <target state="translated">새 SQL Notebook(미리 보기)</target>
+        <source xml:lang="en">New SQL Notebook</source>
+        <target state="new">New SQL Notebook</target>
       </trans-unit>
       <trans-unit id="mssql.newTable">
         <source xml:lang="en">New Table</source>
@@ -10486,6 +10503,10 @@ See the estimated plan without running the query, or view the actual query plan 
       <trans-unit id="mssql.objectExplorer.collapseConnectionGroupsOnStartupDescription">
         <source xml:lang="en">When enabled, connection groups will be collapsed instead of expanded at startup.</source>
         <target state="translated">사용하도록 설정하면 시작 시 연결 그룹이 확장되는 대신 축소됩니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.results.openAfterSave">
+        <source xml:lang="en">When enabled, saved query result exports are opened after export. Excel exports open with the system file handler; text exports open in VS Code.</source>
+        <target state="new">When enabled, saved query result exports are opened after export. Excel exports open with the system file handler; text exports open in VS Code.</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
