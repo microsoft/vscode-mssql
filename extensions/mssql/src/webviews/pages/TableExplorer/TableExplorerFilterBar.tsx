@@ -377,6 +377,37 @@ export const TableExplorerFilterBar: React.FC<TableExplorerFilterBarProps> = ({
         onClear();
     };
 
+    // Check if there are any valid filters that can be applied
+    const hasValidFilters = rows.some(
+        (r) => r.column && (operatorTakesValue(r.operator) ? r.value !== "" : true),
+    );
+
+    // Check if current filters differ from the initialFilters (last applied)
+    const hasChanges = React.useMemo(() => {
+        const currentValid = rows.filter(
+            (r) => r.column && (operatorTakesValue(r.operator) ? r.value !== "" : true),
+        );
+
+        // Different number of filters = changed
+        if (currentValid.length !== initialFilters.length) {
+            return true;
+        }
+
+        // Compare each filter
+        return currentValid.some((row, i) => {
+            const initial = initialFilters[i];
+            if (!initial) {
+                return true;
+            }
+            return (
+                row.column !== initial.column ||
+                row.operator !== initial.operator ||
+                row.value !== initial.value ||
+                row.conjunction !== initial.conjunction
+            );
+        });
+    }, [rows, initialFilters]);
+
     return (
         <div className={classes.container}>
             {rows.map((row, i) => (
@@ -461,9 +492,6 @@ export const TableExplorerFilterBar: React.FC<TableExplorerFilterBarProps> = ({
                 </div>
             ))}
             <div className={classes.actions}>
-                <Button appearance="primary" size="small" onClick={handleApply} disabled={disabled}>
-                    {loc.tableExplorer.filterApply}
-                </Button>
                 <Button
                     appearance="transparent"
                     size="small"
@@ -473,10 +501,17 @@ export const TableExplorerFilterBar: React.FC<TableExplorerFilterBarProps> = ({
                     {loc.tableExplorer.filterAdd}
                 </Button>
                 <Button
+                    appearance="primary"
+                    size="small"
+                    onClick={handleApply}
+                    disabled={disabled || !hasValidFilters || !hasChanges}>
+                    {loc.tableExplorer.filterApply}
+                </Button>
+                <Button
                     appearance="transparent"
                     size="small"
                     onClick={handleClear}
-                    disabled={disabled}>
+                    disabled={disabled || !hasValidFilters}>
                     {loc.tableExplorer.filterClear}
                 </Button>
             </div>
