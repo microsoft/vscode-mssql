@@ -169,6 +169,10 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
         }
     };
 
+    const onRowCountBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+        fetchRowsForValue(event.currentTarget.value);
+    };
+
     // Update loadRowCount when currentRowCount prop changes
     React.useEffect(() => {
         if (currentRowCount !== undefined) {
@@ -315,6 +319,7 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
                     onChange={onRowCountChange}
                     onOptionSelect={onRowCountSelect}
                     onKeyDown={onRowCountKeyDown}
+                    onBlur={onRowCountBlur}
                     size="small"
                     freeform
                     disabled={isLoading}>
