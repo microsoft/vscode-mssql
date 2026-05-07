@@ -166,21 +166,6 @@ export const TableExplorerPage: React.FC = () => {
         [],
     );
 
-    // Focus the Monaco editor whenever the Table Query tab becomes active so
-    // the user can start editing without an extra click. The editor may not be
-    // mounted yet on the first activation, so we retry once it's available.
-    useEffect(() => {
-        if (!showScriptPane || sqlPaneMode !== SqlPaneMode.TableQuery) {
-            return;
-        }
-        const editor = editorRef.current;
-        if (editor) {
-            editor.focus();
-        } else {
-            shouldFocusEditorRef.current = true;
-        }
-    }, [showScriptPane, sqlPaneMode]);
-
     const gridRef = useRef<TableDataGridRef>(null);
     const [cellChangeCount, setCellChangeCount] = React.useState(0);
     const [deletionCount, setDeletionCount] = React.useState(0);
