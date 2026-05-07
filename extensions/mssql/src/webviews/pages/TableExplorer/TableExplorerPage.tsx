@@ -410,6 +410,7 @@ export const TableExplorerPage: React.FC = () => {
                                     onApply={handleApplyFilters}
                                     onClear={handleClearFilters}
                                     disabled={isLoading}
+                                    initialFilters={activeFilters}
                                 />
                             </div>
                         )}

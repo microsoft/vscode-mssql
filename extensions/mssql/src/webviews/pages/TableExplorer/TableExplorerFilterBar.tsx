@@ -52,6 +52,7 @@ interface TableExplorerFilterBarProps {
     onApply: (filters: AppliedFilter[]) => void;
     onClear: () => void;
     disabled?: boolean;
+    initialFilters?: AppliedFilter[];
 }
 
 const useStyles = makeStyles({
@@ -281,15 +282,64 @@ function newRow(defaultColumn?: string): FilterRow {
     };
 }
 
+function appliedFilterToRow(filter: AppliedFilter, defaultColumn: string): FilterRow {
+    return {
+        id: crypto.randomUUID(),
+        column: filter.column || defaultColumn,
+        operator: filter.operator,
+        value: filter.value,
+        conjunction: filter.conjunction || "AND",
+    };
+}
+
 export const TableExplorerFilterBar: React.FC<TableExplorerFilterBarProps> = ({
     columns,
     onApply,
     onClear,
     disabled = false,
+    initialFilters = [],
 }) => {
     const classes = useStyles();
     const defaultColumn = columns[0]?.name ?? "";
-    const [rows, setRows] = React.useState<FilterRow[]>(() => [newRow(defaultColumn)]);
+    const prevInitialFiltersRef = React.useRef<AppliedFilter[]>([]);
+
+    const [rows, setRows] = React.useState<FilterRow[]>(() => {
+        if (initialFilters.length > 0) {
+            return initialFilters.map((f) => appliedFilterToRow(f, defaultColumn));
+        }
+        return [newRow(defaultColumn)];
+    });
+
+    // Update rows when initialFilters change (e.g., when filters are applied or cleared)
+    React.useEffect(() => {
+        const prev = prevInitialFiltersRef.current;
+
+        // Check if initialFilters actually changed
+        const filtersChanged =
+            prev.length !== initialFilters.length ||
+            prev.some((pf, i) => {
+                const cf = initialFilters[i];
+                return (
+                    !cf ||
+                    pf.column !== cf.column ||
+                    pf.operator !== cf.operator ||
+                    pf.value !== cf.value ||
+                    pf.conjunction !== cf.conjunction
+                );
+            });
+
+        if (!filtersChanged) {
+            return;
+        }
+
+        prevInitialFiltersRef.current = initialFilters;
+
+        if (initialFilters.length > 0) {
+            setRows(initialFilters.map((f) => appliedFilterToRow(f, defaultColumn)));
+        } else {
+            setRows([newRow(defaultColumn)]);
+        }
+    }, [initialFilters, defaultColumn]);
 
     // If columns load after mount, populate the first row's column.
     React.useEffect(() => {
