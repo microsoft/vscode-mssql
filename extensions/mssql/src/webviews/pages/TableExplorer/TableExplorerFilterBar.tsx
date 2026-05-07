@@ -73,7 +73,6 @@ const useStyles = makeStyles({
         width: "40px",
         fontSize: "12px",
         color: tokens.colorNeutralForeground2,
-        textTransform: "lowercase",
     },
     conjunctionDropdown: {
         minWidth: "60px",
@@ -390,7 +389,7 @@ export const TableExplorerFilterBar: React.FC<TableExplorerFilterBarProps> = ({
                         <Dropdown
                             className={classes.conjunctionDropdown}
                             size="small"
-                            value={row.conjunction.toLowerCase()}
+                            value={row.conjunction}
                             selectedOptions={[row.conjunction]}
                             disabled={disabled}
                             onOptionSelect={(_, data) =>
@@ -400,8 +399,8 @@ export const TableExplorerFilterBar: React.FC<TableExplorerFilterBarProps> = ({
                                         "AND",
                                 })
                             }>
-                            <Option value="AND">{loc.tableExplorer.filterAnd}</Option>
-                            <Option value="OR">{loc.tableExplorer.filterOr}</Option>
+                            <Option value="AND">AND</Option>
+                            <Option value="OR">OR</Option>
                         </Dropdown>
                     )}
                     <Dropdown

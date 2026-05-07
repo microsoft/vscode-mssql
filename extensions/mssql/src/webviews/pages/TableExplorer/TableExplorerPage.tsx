@@ -162,38 +162,6 @@ export const TableExplorerPage: React.FC = () => {
                 shouldFocusEditorRef.current = false;
                 editor.focus();
             }
-
-            // Handle Tab at window capture phase — this fires BEFORE document capture,
-            // which is where Fluent UI's Tabster registers. Using stopImmediatePropagation
-            // here prevents the event from ever reaching Tabster, so focus stays in the
-            // editor and Monaco's context keys remain correct.
-            const editorDomNode = editor.getDomNode();
-            const tabHandler = (e: KeyboardEvent) => {
-                if (e.key !== "Tab") {
-                    return;
-                }
-
-                const isMonacoFocused =
-                    editor.hasTextFocus() ||
-                    (editorDomNode !== null &&
-                        (editorDomNode?.contains(document.activeElement) ?? false));
-                if (!isMonacoFocused) {
-                    return;
-                }
-
-                // Stop Tabster (document capture) and the browser default from running.
-                e.preventDefault();
-                e.stopImmediatePropagation();
-
-                if (e.shiftKey) {
-                    editor.trigger("keyboard", "outdent", undefined);
-                } else {
-                    editor.trigger("keyboard", "tab", undefined);
-                }
-                queueMicrotask(() => editor.focus());
-            };
-            window.addEventListener("keydown", tabHandler, true);
-            editor.onDidDispose(() => window.removeEventListener("keydown", tabHandler, true));
         },
         [],
     );

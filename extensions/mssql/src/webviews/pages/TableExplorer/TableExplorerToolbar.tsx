@@ -150,8 +150,8 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
         }
     };
 
-    const onRowCountChange = (event: any) => {
-        const newValue = event.target.value;
+    const onRowCountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const newValue = event.currentTarget.value;
         setLoadRowCount(newValue);
     };
 
