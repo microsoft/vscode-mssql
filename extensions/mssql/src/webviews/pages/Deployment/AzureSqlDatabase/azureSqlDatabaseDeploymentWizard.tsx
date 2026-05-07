@@ -35,6 +35,9 @@ export const AzureSqlDatabaseDeploymentWizard: React.FC<AzureSqlDatabaseDeployme
     );
     const provisionLoadState = useAzureSqlDatabaseDeploymentSelector((s) => s.provisionLoadState);
     const connectionLoadState = useAzureSqlDatabaseDeploymentSelector((s) => s.connectionLoadState);
+    const serverCreatedWithAuth = useAzureSqlDatabaseDeploymentSelector(
+        (s) => s.serverCreatedWithAuth,
+    );
 
     if (!context) {
         return undefined;
@@ -69,8 +72,14 @@ export const AzureSqlDatabaseDeploymentWizard: React.FC<AzureSqlDatabaseDeployme
             if (
                 (formComponent.propertyName === "userName" ||
                     formComponent.propertyName === "password") &&
-                formState?.authenticationType === AuthenticationType.AzureMFA
+                (formState?.authenticationType === AuthenticationType.AzureMFA ||
+                    serverCreatedWithAuth)
             ) {
+                return true;
+            }
+
+            // savePassword is also not required when auth was set via the drawer
+            if (formComponent.propertyName === "savePassword" && serverCreatedWithAuth) {
                 return true;
             }
 

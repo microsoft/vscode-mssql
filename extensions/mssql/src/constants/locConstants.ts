@@ -1396,12 +1396,15 @@ export class AzureSqlDatabase {
     public static sqlLogin = l10n.t("SQL Authentication");
     public static azureMFA = l10n.t("Microsoft Entra ID");
     public static azureMFAAndUser = l10n.t("Both");
-    public static userName = l10n.t("User Name");
-    public static enterUserName = l10n.t("Enter user name");
+    public static userName = l10n.t("Username");
+    public static enterUserName = l10n.t("Enter username");
+    public static userNameTooltip = l10n.t(
+        "The SQL Authentication username is automatically populated through server properties.",
+    );
     public static password = l10n.t("Password");
     public static enterPassword = l10n.t("Enter password");
     public static savePassword = l10n.t("Save password");
-    public static userNameIsRequired = l10n.t("User name is required");
+    public static userNameIsRequired = l10n.t("Username is required");
     public static passwordIsRequired = l10n.t("Password is required");
 }
 

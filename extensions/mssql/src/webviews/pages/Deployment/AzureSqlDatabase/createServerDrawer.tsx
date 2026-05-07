@@ -6,6 +6,7 @@
 import { useFormStyles } from "../../../common/forms/form.component";
 import {
     Button,
+    Checkbox,
     DrawerBody,
     DrawerHeader,
     DrawerHeaderTitle,
@@ -18,9 +19,10 @@ import {
     Spinner,
     Text,
 } from "@fluentui/react-components";
-import { Dismiss24Regular } from "@fluentui/react-icons";
+import { Dismiss24Regular, EyeOffRegular, EyeRegular } from "@fluentui/react-icons";
 import { locConstants as Loc } from "../../../common/locConstants";
 import { CreateServerDrawerState } from "../../../../sharedInterfaces/azureSqlDatabase";
+import { AuthenticationType } from "../../../../sharedInterfaces/connectionDialog";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { useEffect, useState } from "react";
 
@@ -30,15 +32,32 @@ export const CreateServerDrawer = ({
     onClose,
 }: {
     state: CreateServerDrawerState;
-    onSubmit: (serverName: string, location: string) => void;
+    onSubmit: (
+        serverName: string,
+        location: string,
+        authenticationType: string,
+        adminLogin?: string,
+        adminPassword?: string,
+        savePassword?: boolean,
+    ) => void;
     onClose: () => void;
 }) => {
     const formStyles = useFormStyles();
     const [serverName, setServerName] = useState("");
     const [selectedLocation, setSelectedLocation] = useState("");
+    const [authType, setAuthType] = useState<string>(AuthenticationType.AzureMFA);
+    const [adminLogin, setAdminLogin] = useState("");
+    const [adminPassword, setAdminPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [savePassword, setSavePassword] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const isLocationsLoading = state.locationsLoadState === ApiStatus.Loading;
     const isCreating = state.createLoadState === ApiStatus.Loading;
+    const needsSqlAuth =
+        authType === AuthenticationType.SqlLogin || authType === AuthenticationType.AzureMFAAndUser;
+    const passwordsMatch = adminPassword === confirmPassword;
 
     // Pre-select the resource group's location as default once locations finish loading
     useEffect(() => {
@@ -55,18 +74,36 @@ export const CreateServerDrawer = ({
     }, [state.locationsLoadState, state.defaultLocation, state.locationOptions, selectedLocation]);
 
     function isReadyToSubmit(): boolean {
-        return serverName.trim() !== "" && selectedLocation !== "" && !isCreating;
+        if (serverName.trim() === "" || selectedLocation === "" || isCreating) {
+            return false;
+        }
+        if (needsSqlAuth) {
+            return adminLogin.trim() !== "" && adminPassword !== "" && passwordsMatch;
+        }
+        return true;
     }
 
     function handleSubmit(e?: React.FormEvent) {
         if (e) e.preventDefault();
         if (isReadyToSubmit()) {
-            onSubmit(serverName.trim(), selectedLocation);
+            onSubmit(
+                serverName.trim(),
+                selectedLocation,
+                authType,
+                needsSqlAuth ? adminLogin.trim() : undefined,
+                needsSqlAuth ? adminPassword : undefined,
+                needsSqlAuth ? savePassword : undefined,
+            );
         }
     }
 
     const locationLabel = isLocationsLoading ? (
-        <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+        <span
+            style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px",
+            }}>
             <Text>{Loc.azureSqlDatabase.location}</Text>
             <Spinner size="extra-tiny" style={{ transform: "scale(0.8)" }} />
         </span>
@@ -150,6 +187,127 @@ export const CreateServerDrawer = ({
                                 ))}
                             </Dropdown>
                         </Field>
+                        <Field
+                            className={formStyles.formComponentDiv}
+                            label={Loc.azureSqlDatabase.authenticationType}
+                            required>
+                            <Dropdown
+                                disabled={isCreating}
+                                value={
+                                    authType === AuthenticationType.SqlLogin
+                                        ? Loc.azureSqlDatabase.sqlLogin
+                                        : authType === AuthenticationType.AzureMFA
+                                          ? Loc.azureSqlDatabase.azureMFA
+                                          : Loc.azureSqlDatabase.azureMFAAndUser
+                                }
+                                selectedOptions={[authType]}
+                                onOptionSelect={(_e, data) => {
+                                    setAuthType(data.optionValue || AuthenticationType.AzureMFA);
+                                }}>
+                                <Option value={AuthenticationType.AzureMFA}>
+                                    {Loc.azureSqlDatabase.azureMFA}
+                                </Option>
+                                <Option value={AuthenticationType.SqlLogin}>
+                                    {Loc.azureSqlDatabase.sqlLogin}
+                                </Option>
+                                <Option value={AuthenticationType.AzureMFAAndUser}>
+                                    {Loc.azureSqlDatabase.azureMFAAndUser}
+                                </Option>
+                            </Dropdown>
+                        </Field>
+                        {needsSqlAuth && (
+                            <>
+                                <Field
+                                    className={formStyles.formComponentDiv}
+                                    label={Loc.azureSqlDatabase.adminLogin}
+                                    required>
+                                    <Input
+                                        value={adminLogin}
+                                        onChange={(_e, data) => setAdminLogin(data.value)}
+                                        disabled={isCreating}
+                                        placeholder={Loc.azureSqlDatabase.enterAdminLogin}
+                                    />
+                                </Field>
+                                <Field
+                                    className={formStyles.formComponentDiv}
+                                    label={Loc.azureSqlDatabase.adminPassword}
+                                    required>
+                                    <Input
+                                        type={showPassword ? "text" : "password"}
+                                        value={adminPassword}
+                                        onChange={(_e, data) => setAdminPassword(data.value)}
+                                        disabled={isCreating}
+                                        placeholder={Loc.azureSqlDatabase.enterAdminPassword}
+                                        contentAfter={
+                                            <Button
+                                                onClick={() => setShowPassword(!showPassword)}
+                                                icon={
+                                                    showPassword ? (
+                                                        <EyeRegular />
+                                                    ) : (
+                                                        <EyeOffRegular />
+                                                    )
+                                                }
+                                                appearance="transparent"
+                                                size="small"
+                                                aria-label={
+                                                    showPassword
+                                                        ? Loc.common.hidePassword
+                                                        : Loc.common.showPassword
+                                                }
+                                            />
+                                        }
+                                    />
+                                </Field>
+                                <Field
+                                    className={formStyles.formComponentDiv}
+                                    label={Loc.azureSqlDatabase.confirmPassword}
+                                    required
+                                    validationMessage={
+                                        confirmPassword && !passwordsMatch
+                                            ? Loc.azureSqlDatabase.passwordsDoNotMatch
+                                            : undefined
+                                    }
+                                    validationState={
+                                        confirmPassword && !passwordsMatch ? "error" : undefined
+                                    }>
+                                    <Input
+                                        type={showConfirmPassword ? "text" : "password"}
+                                        value={confirmPassword}
+                                        onChange={(_e, data) => setConfirmPassword(data.value)}
+                                        disabled={isCreating}
+                                        placeholder={Loc.azureSqlDatabase.enterConfirmPassword}
+                                        contentAfter={
+                                            <Button
+                                                onClick={() =>
+                                                    setShowConfirmPassword(!showConfirmPassword)
+                                                }
+                                                icon={
+                                                    showConfirmPassword ? (
+                                                        <EyeRegular />
+                                                    ) : (
+                                                        <EyeOffRegular />
+                                                    )
+                                                }
+                                                appearance="transparent"
+                                                size="small"
+                                                aria-label={
+                                                    showConfirmPassword
+                                                        ? Loc.common.hidePassword
+                                                        : Loc.common.showPassword
+                                                }
+                                            />
+                                        }
+                                    />
+                                </Field>
+                                <Checkbox
+                                    checked={savePassword}
+                                    onChange={(_e, data) => setSavePassword(!!data.checked)}
+                                    disabled={isCreating}
+                                    label={Loc.azureSqlDatabase.savePasswordForConnection}
+                                />
+                            </>
+                        )}
                     </form>
                 </div>
                 <div

@@ -225,6 +225,15 @@
     <trans-unit id="++CODE++69bcade64ab9094e6b5fd3b235f0dcc9e723977c25283af0fa746bd154fc386e">
       <source xml:lang="en">Additional parameters</source>
     </trans-unit>
+    <trans-unit id="++CODE++435a3f4d792a8772b32b4787b99aa0ecb672b0117b1ff49bd8f5f35046e055ed">
+      <source xml:lang="en">Additional usage beyond the free amount will be charged at serverless rates.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2e28aab93b90457d1678d144ede550e870c9826d92e8e4ca66e1d0ae05415fda">
+      <source xml:lang="en">Admin Password</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ecef2e758186fef1d545bd27435cb4a5a1e8ec826ca16f545247ce6216b8e1ff">
+      <source xml:lang="en">Admin Username</source>
+    </trans-unit>
     <trans-unit id="++CODE++9f088dbebd6c3c70a5ddbc2c943b11e4ca9acea5757b0b4f2b32479f0dbb747e">
       <source xml:lang="en">Advanced</source>
     </trans-unit>
@@ -468,6 +477,9 @@
     <trans-unit id="++CODE++a27adfa57c8938761efd3fc482ea8e81fc898b286f29d04c783c9d3b60b22824">
       <source xml:lang="en">Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you&apos;ve created will be lost. Do you want to proceed with auto-arranging your schema diagram?</source>
     </trans-unit>
+    <trans-unit id="++CODE++3be95ed18980393b7f3c2f3f80286751e450d52d3015de1965c1671a001c56d3">
+      <source xml:lang="en">Auto-pause the database until next month</source>
+    </trans-unit>
     <trans-unit id="++CODE++30fb5ec81b38c80bd2d85fce38abae5feb4cd8e3afcf2084fc37b76c8e2ae6a8">
       <source xml:lang="en">Auto-scroll</source>
     </trans-unit>
@@ -606,6 +618,9 @@
     <trans-unit id="++CODE++8915311eca19414aaa965b09dc2d3837b11600b7ddef68a3aaf3a0d304b052a8">
       <source xml:lang="en">Backup Name</source>
     </trans-unit>
+    <trans-unit id="++CODE++963f6af0c0aac8420cc06761893d8cd2c2196561f20f537a6b4073da6eda141a">
+      <source xml:lang="en">Backup Storage Redundancy</source>
+    </trans-unit>
     <trans-unit id="++CODE++767e443808512901f6097797d8054570a7bbd053e7db6fc556679e2757ac4162">
       <source xml:lang="en">Backup Type</source>
     </trans-unit>
@@ -624,6 +639,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9bb725005055412c75a8e8d1fb5a0780595174ac8bbe5a24f768647bd4e4debe">
       <source xml:lang="en">Before</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bd9e4be7933baafca2a9806ee618f7371c78f98b06064c26600bb18992282fde">
+      <source xml:lang="en">Behavior when free offer limit is reached</source>
     </trans-unit>
     <trans-unit id="++CODE++c1ea3f5e7aa473034872296473c7fcf9c79344355ba4fd003120627f6ec1a5f7">
       <source xml:lang="en">Between</source>
@@ -648,6 +666,9 @@
     </trans-unit>
     <trans-unit id="++CODE++886089b371ee3596c742b0c91467d1b7239b1d7f8f3eb86b88c1304644266abc">
       <source xml:lang="en">Block this extension from accessing your connections</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b6c1d862f9f75ec31eb9829b6a5968eb291dc8785e7fb59d4bc6ef00f292d3f7">
+      <source xml:lang="en">Both</source>
     </trans-unit>
     <trans-unit id="++CODE++ec811d30a89ce96d1c7555ffaede78b188fedb1d283adf7cdf55a4edae6697a7">
       <source xml:lang="en">Brightness</source>
@@ -1192,6 +1213,9 @@
     <trans-unit id="++CODE++73dd96f4085ccfca56f43ca281a29ab8d195fe5fc79b4cb45be11d7830230d63">
       <source xml:lang="en">Confirm SQL Server admin password</source>
     </trans-unit>
+    <trans-unit id="++CODE++8062e054268463a31bf1409a2928cb7e54cf8cdebadeef0e739dc55c473774c1">
+      <source xml:lang="en">Confirm admin password</source>
+    </trans-unit>
     <trans-unit id="++CODE++bf000421aeb39493cf8044ec73846d7da8ca97b7166208c0d1172a17ba23a388">
       <source xml:lang="en">Confirm new password</source>
     </trans-unit>
@@ -1335,6 +1359,9 @@
     <trans-unit id="++CODE++e4ce453aa184d4cd0a2051dfb91ab491ba8b19c756bd9f113b7a1ce1e807b02e">
       <source xml:lang="en">Connection Timeout</source>
     </trans-unit>
+    <trans-unit id="++CODE++bd5a82074112e68d5443f566c1472ae08dec8c6773160c6c6c4b9c37787bf984">
+      <source xml:lang="en">Connection Timeout (seconds)</source>
+    </trans-unit>
     <trans-unit id="++CODE++9e1bbb65014b6b6675d9921d3f4f67079e6646332e4bc7aff7f12acfc0b9d3d4">
       <source xml:lang="en">Connection actions</source>
     </trans-unit>
@@ -1451,6 +1478,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f331832c8bdfb5c52a1430795650caa56eb169ffa1dfea7084b518fcf9511d48">
       <source xml:lang="en">Continue on error</source>
+    </trans-unit>
+    <trans-unit id="++CODE++36788a4bbad501fe2c69d37d0d7ce128868a41848663752a28c886a54df70752">
+      <source xml:lang="en">Continue using for additional charges</source>
     </trans-unit>
     <trans-unit id="++CODE++8d525e5f158b9afe05f3122af363ac67763bdc4e1395b46597b320c289766ce3">
       <source xml:lang="en">Copied</source>
@@ -1809,6 +1839,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0c44c1ef5c326d66d59992daca9150070537b80433d82792a6f4a8451bbba635">
       <source xml:lang="en">Database not found on the server</source>
+    </trans-unit>
+    <trans-unit id="++CODE++74243f86c3e0868010e2216f08236ed91a5ca829759c64e8321c9eb1750dada1">
+      <source xml:lang="en">Database pauses until the next billing cycle when free amount is renewed.</source>
     </trans-unit>
     <trans-unit id="++CODE++dc235092072ac5817e5dbd55f1d76a649819cab27de89743dfd611f78bd52c5e">
       <source xml:lang="en">Database the table is created in</source>
@@ -2197,6 +2230,12 @@
     <trans-unit id="++CODE++8c50a1a6a69f19f52d48a8ec9ac6d8fa30c1b8ae5f3b9448aabffc2dd94184c9">
       <source xml:lang="en">Enter a number...</source>
     </trans-unit>
+    <trans-unit id="++CODE++6086fe9511daa7a6fa39f0af8abaf8b553c8292375dfd76bc8d583b28ce3c808">
+      <source xml:lang="en">Enter admin password</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2029b6cedb7a8d6b58872d33896e8d2d86134cb98d9194706758d32238c9dee2">
+      <source xml:lang="en">Enter admin username</source>
+    </trans-unit>
     <trans-unit id="++CODE++db8916a9e121c88e488cc019e97f752538fe362701a492cbf905fa8e1cddf4d1">
       <source xml:lang="en">Enter application name</source>
     </trans-unit>
@@ -2251,6 +2290,12 @@
     </trans-unit>
     <trans-unit id="++CODE++41058600ed8ab3d197264132f1b22ed25b7b2d9fa6afdffd559fc08bca9e6075">
       <source xml:lang="en">Enter the path for the output file</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4cd95a398bcc4e99d1d5ddc3f92702e41fa5ce370a10569104474d290505cf56">
+      <source xml:lang="en">Enter user name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1b216be66c84c2da4deaf986de6e71b165d9433c29e1790e5939f0f092eeaa1c">
+      <source xml:lang="en">Enter username</source>
     </trans-unit>
     <trans-unit id="++CODE++f889729267bd3b6e2a0a503ad9228cced8a1d16ad04a3384dc6df5dc89d6ba4c">
       <source xml:lang="en">Entity Endpoints</source>
@@ -3176,6 +3221,9 @@
     <trans-unit id="++CODE++915fc447c859d56fa8e745484ac300e07e104e9ef318105f82b578bedf32c405">
       <source xml:lang="en">Generating script...</source>
     </trans-unit>
+    <trans-unit id="++CODE++10990bf5e602e929a28b2b4c29a15161d0b50a53837cfaf936e89bed619098ac">
+      <source xml:lang="en">Geo-redundant backup storage</source>
+    </trans-unit>
     <trans-unit id="++CODE++fddd3d1537452414b2a4c7bb1b231ca37398b9f211c1e0d8d80e6f69a7f58f2d">
       <source xml:lang="en">Get Connection Details</source>
     </trans-unit>
@@ -3805,6 +3853,9 @@
     <trans-unit id="++CODE++b64b39db74a66e751069b0400f71efd0fb9a78f49fe418b7f73f9c96b173c105">
       <source xml:lang="en">Local container deployment is currently only supported with SQL Authentication connections.</source>
     </trans-unit>
+    <trans-unit id="++CODE++244f980d2c1c7cc5eb149270dda53e475cdf951f712ccb9a4039f295653912d1">
+      <source xml:lang="en">Locally-redundant backup storage</source>
+    </trans-unit>
     <trans-unit id="++CODE++a33a6dbd416ebaa5cdafa7c33ddc623bd52eb841a2206542a8f47b1d4eafa3b1">
       <source xml:lang="en">Locate an Azure Data Studio settings.json file to import</source>
     </trans-unit>
@@ -3945,6 +3996,9 @@
     </trans-unit>
     <trans-unit id="++CODE++73c5b19bd87f6238ea91f7a12afda7927ec9708f0d2a5ca86154b2e0bbe06109">
       <source xml:lang="en">Microsoft Entra Account</source>
+    </trans-unit>
+    <trans-unit id="++CODE++eda567f3ec45bd45068c5e275d9a4acdcf64217bc5c76c47427cda124aa7bed3">
+      <source xml:lang="en">Microsoft Entra ID</source>
     </trans-unit>
     <trans-unit id="++CODE++4cca27a3569729f8e3fa178db33f438eaa136c7491a5c3d26c807c876a02c292">
       <source xml:lang="en">Microsoft Entra Id</source>
@@ -5326,6 +5380,9 @@
     <trans-unit id="++CODE++59b151f69d83edf3eb174ff38c0f77aebf28c9195c785f2003a1cd708de0dc77">
       <source xml:lang="en">SQL Analytics Endpoint</source>
     </trans-unit>
+    <trans-unit id="++CODE++062e564e29f0e723196471058d927f3259686301de0e59f8f13938ec71d7994c">
+      <source xml:lang="en">SQL Authentication</source>
+    </trans-unit>
     <trans-unit id="++CODE++fa728e3cf6aa4aa3207afe540af912463db2631cd2358004e457e71dc0107148">
       <source xml:lang="en">SQL Container Name</source>
     </trans-unit>
@@ -5444,6 +5501,12 @@
     </trans-unit>
     <trans-unit id="++CODE++e7e6421e77a208718956538ea14f589ab43207800d985563be7e407d0a369c96">
       <source xml:lang="en">Save connection profile changes without establishing a connection</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e86cf7b88cde4602bf09208d61b915b3990896c08dfc027f85aaf61296311506">
+      <source xml:lang="en">Save password</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cad856c4e87b474f87bc981bb40a765ffaac90b048d7782606f8f9e1cdd6c6cc">
+      <source xml:lang="en">Save password for connection</source>
     </trans-unit>
     <trans-unit id="++CODE++bae1da28225af71a125385224716f5ff7870573e6c01494c597e8ed4168b12e3">
       <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
@@ -6375,6 +6438,9 @@
     <trans-unit id="++CODE++b0ccb68c36737cb5ef6c7a74871ab7845533f64d89c74dd7db735bb555c401e1">
       <source xml:lang="en">The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including {code-snippet-0} for lightweight T-SQL profiling.</source>
     </trans-unit>
+    <trans-unit id="++CODE++27adb272e4333f9ae1d57d713d3537abb8fd170369efa8bc33e07fb4bf43efd4">
+      <source xml:lang="en">The SQL Authentication username is automatically populated through server properties.</source>
+    </trans-unit>
     <trans-unit id="++CODE++ba973d3ac7388307810e82027b3e31a9c129166646b4dda5ec93c249f05e7431">
       <source xml:lang="en">The SQL Server extension couldn&apos;t start because its required background service failed to launch. Install the offline VSIX for your operating system, or check your network connection and try again. Details: {0}</source>
       <note>{0} is the error message</note>
@@ -6753,6 +6819,9 @@
     <trans-unit id="++CODE++7967e089a7b94464ee1b0c6d4b8271e99bcf36f9e5481e40a5eec5c5a5108d01">
       <source xml:lang="en">User ID</source>
     </trans-unit>
+    <trans-unit id="++CODE++a969d04ec2d003299e81414a53a2c4079a10d8f181ff0a10505a33caef8f3af5">
+      <source xml:lang="en">User Name</source>
+    </trans-unit>
     <trans-unit id="++CODE++b82e11da3bc16786000d6e008e038f4d0272163a6476e0ca3c4b29d958051f9c">
       <source xml:lang="en">User name</source>
     </trans-unit>
@@ -6764,6 +6833,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e3b89e9d33f88e523083d8b4436adcc3726c89e97fd3179a2e102d765d1b16ed">
       <source xml:lang="en">Username</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d18de1563a616cb53199d56202336f6b481375ac8ecb8d0eeafb53466f42c4bf">
+      <source xml:lang="en">Username is required</source>
     </trans-unit>
     <trans-unit id="++CODE++4c0f47c92a61b83f5a3505071ff1ba53361768bccee0021da6a0d341daa653a1">
       <source xml:lang="en">Uses the WITH KEEP_REPLICATION option during restore</source>
@@ -6985,6 +7057,9 @@
       <note>{0} is the tenant name
 {1} is the tenant id
 {2} is the resource</note>
+    </trans-unit>
+    <trans-unit id="++CODE++fabfc8c046b35f76ce8c88c7bae9507cdb100c97019311594afde7a283d3bb61">
+      <source xml:lang="en">Zone-redundant backup storage</source>
     </trans-unit>
     <trans-unit id="++CODE++5a982cf9dc11b4ec88b6151a75c4b45e269a5694c941c3c4c96689bed0c7d312">
       <source xml:lang="en">Zoom In</source>

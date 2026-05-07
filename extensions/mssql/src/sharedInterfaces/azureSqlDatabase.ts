@@ -35,6 +35,8 @@ export class AzureSqlDatabaseState
     provisionLoadState: ApiStatus = ApiStatus.NotStarted;
     deploymentStartTime: string = "";
     connectionLoadState: ApiStatus = ApiStatus.NotStarted;
+    /** True when the server was just created via the drawer with SQL auth credentials already provided */
+    serverCreatedWithAuth: boolean = false;
     azureComponentStatuses: Record<string, ApiStatus> = {
         accountId: ApiStatus.NotStarted,
         tenantId: ApiStatus.NotStarted,
@@ -111,6 +113,10 @@ export interface CreateServerDrawerProps extends IDialogProps {
 export interface CreateServerSpec {
     serverName: string;
     location: string;
+    authenticationType: string;
+    adminLogin?: string;
+    adminPassword?: string;
+    savePassword?: boolean;
 }
 
 export interface AzureSqlDatabaseContextProps extends FormContextProps<AzureSqlDatabaseFormState> {

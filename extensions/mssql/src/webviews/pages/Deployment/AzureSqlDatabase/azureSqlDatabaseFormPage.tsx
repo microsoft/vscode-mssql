@@ -5,6 +5,7 @@
 
 import { useContext, useEffect, useState } from "react";
 import {
+    Button,
     Link,
     Label,
     makeStyles,
@@ -38,6 +39,7 @@ import {
 import { ConnectionGroupDialog } from "../../ConnectionGroup/connectionGroup.component";
 import { CreateResourceGroupDrawer } from "./createResourceGroupDrawer";
 import { CreateServerDrawer } from "./createServerDrawer";
+import { AdvancedOptionsDrawer } from "./advancedOptionsDrawer";
 import { DeploymentContext } from "../deploymentStateProvider";
 import { useAzureSqlDatabaseDeploymentSelector } from "../deploymentSelector";
 
@@ -46,9 +48,7 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         gap: "12px",
-        width: "100%",
-        maxWidth: "100%",
-        minWidth: 0,
+        width: "75%",
         minHeight: "fit-content",
         padding: "4px 0 8px",
         boxSizing: "border-box",
@@ -107,10 +107,14 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
     const azureComponentStatuses = useAzureSqlDatabaseDeploymentSelector(
         (s) => s.azureComponentStatuses,
     );
+    const serverCreatedWithAuth = useAzureSqlDatabaseDeploymentSelector(
+        (s) => s.serverCreatedWithAuth,
+    );
 
     const [localAutoPauseDelay, setLocalAutoPauseDelay] = useState(
         String(formState.autoPauseDelay),
     );
+    const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
 
     useEffect(() => {
         setLocalAutoPauseDelay(String(formState.autoPauseDelay));
@@ -289,10 +293,21 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                 {dialog?.type === "createServer" && (
                     <CreateServerDrawer
                         state={(dialog as CreateServerDrawerProps).props}
-                        onSubmit={(serverName, location) => {
+                        onSubmit={(
+                            serverName,
+                            location,
+                            authenticationType,
+                            adminLogin,
+                            adminPassword,
+                            savePassword,
+                        ) => {
                             context.submitCreateServer({
                                 serverName,
                                 location,
+                                authenticationType,
+                                adminLogin,
+                                adminPassword,
+                                savePassword,
                             });
                         }}
                         onClose={() => context.setCreateServerDrawerState(false)}
@@ -312,28 +327,52 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                     onClick: () => context.setCreateServerDrawerState(true),
                 })}
                 {renderFormField("databaseName")}
-                {renderFormField("authenticationType")}
-                {formState.authenticationType !== AuthenticationType.AzureMFA && (
-                    <>
-                        {renderFormField("userName")}
-                        {renderFormField("password")}
-                        <div style={{ width: "600px" }}>
-                            <FormField<
-                                AzureSqlDatabaseFormState,
-                                AzureSqlDatabaseState,
-                                AzureSqlDatabaseFormItemSpec,
-                                AzureSqlDatabaseContextProps
-                            >
-                                context={context}
-                                formState={formState}
-                                component={
-                                    formComponents["savePassword"] as AzureSqlDatabaseFormItemSpec
-                                }
-                                idx={0}
-                            />
-                        </div>
-                    </>
-                )}
+                {formState.authenticationType !== AuthenticationType.AzureMFA &&
+                    !serverCreatedWithAuth &&
+                    !formState.savePassword && (
+                        <>
+                            <div className={classes.fieldContainer}>
+                                <div style={{ flex: 1, width: "100%" }}>
+                                    <FormField<
+                                        AzureSqlDatabaseFormState,
+                                        AzureSqlDatabaseState,
+                                        AzureSqlDatabaseFormItemSpec,
+                                        AzureSqlDatabaseContextProps
+                                    >
+                                        context={context}
+                                        formState={formState}
+                                        component={
+                                            formComponents[
+                                                "userName"
+                                            ] as AzureSqlDatabaseFormItemSpec
+                                        }
+                                        idx={0}
+                                        componentProps={{
+                                            readOnly: !!formState.userName,
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                            {renderFormField("password")}
+                            <div style={{ width: "320px" }}>
+                                <FormField<
+                                    AzureSqlDatabaseFormState,
+                                    AzureSqlDatabaseState,
+                                    AzureSqlDatabaseFormItemSpec,
+                                    AzureSqlDatabaseContextProps
+                                >
+                                    context={context}
+                                    formState={formState}
+                                    component={
+                                        formComponents[
+                                            "savePassword"
+                                        ] as AzureSqlDatabaseFormItemSpec
+                                    }
+                                    idx={0}
+                                />
+                            </div>
+                        </>
+                    )}
                 <div className={classes.fieldContainer}>
                     <div style={{ flex: 1, width: "100%" }}>
                         <Label weight="semibold">
@@ -359,7 +398,7 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                                     style={{
                                         display: "block",
                                         color: "var(--vscode-descriptionForeground)",
-                                        marginLeft: "28px",
+                                        marginLeft: "36px",
                                         marginTop: "-4px",
                                     }}>
                                     {locConstants.azureSqlDatabase.autoPauseDescription}
@@ -375,7 +414,7 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                                     style={{
                                         display: "block",
                                         color: "var(--vscode-descriptionForeground)",
-                                        marginLeft: "28px",
+                                        marginLeft: "36px",
                                         marginTop: "-4px",
                                     }}>
                                     {locConstants.azureSqlDatabase.continueChargesDescription}
@@ -416,6 +455,16 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                         />
                     </div>
                 </div>
+                <Button
+                    appearance="outline"
+                    style={{ alignSelf: "flex-start" }}
+                    onClick={() => setIsAdvancedDrawerOpen(true)}>
+                    {locConstants.azureSqlDatabase.advanced}
+                </Button>
+                <AdvancedOptionsDrawer
+                    open={isAdvancedDrawerOpen}
+                    onClose={() => setIsAdvancedDrawerOpen(false)}
+                />
             </div>
             <div className={classes.bottomDiv} />
         </div>

@@ -68,6 +68,69 @@ function getCachedTenant(tenantId: string): AzureTenant | undefined {
     return cachedTenants.find((t) => t.tenantId === tenantId);
 }
 
+/**
+ * Finds a cached server by name.
+ */
+function getCachedServer(serverName: string): Server | undefined {
+    return cachedServers.find((s) => s.name === serverName);
+}
+
+/**
+ * Detects the authentication type from a server's properties:
+ * - administrators exists + azureADOnlyAuthentication=true → AzureMFA
+ * - administrators exists + azureADOnlyAuthentication=false → AzureMFAAndUser
+ * - no administrators → SqlLogin
+ *
+ * Also returns the admin login for pre-filling the username field.
+ */
+function detectAuthType(server: Server): {
+    authType: AuthenticationType;
+    adminLogin: string;
+} {
+    if (server.administrators) {
+        if (server.administrators.azureADOnlyAuthentication) {
+            return { authType: AuthenticationType.AzureMFA, adminLogin: "" };
+        }
+        return {
+            authType: AuthenticationType.AzureMFAAndUser,
+            adminLogin: server.administratorLogin ?? "",
+        };
+    }
+    return {
+        authType: AuthenticationType.SqlLogin,
+        adminLogin: server.administratorLogin ?? "",
+    };
+}
+
+/**
+ * Applies auth settings to the form state based on the selected server's properties.
+ * Clears stale credentials when the server changes.
+ */
+export function applyServerAuthSettings(
+    azureSqlState: asd.AzureSqlDatabaseState,
+    serverName: string,
+): void {
+    // If auth was just provided via the Create New Server drawer, preserve those values
+    if (azureSqlState.serverCreatedWithAuth) {
+        return;
+    }
+
+    const server = getCachedServer(serverName);
+    if (!server) {
+        azureSqlState.formState.authenticationType = AuthenticationType.AzureMFA;
+        azureSqlState.formState.userName = "";
+        azureSqlState.formState.password = "";
+        azureSqlState.formState.savePassword = false;
+        return;
+    }
+
+    const { authType, adminLogin } = detectAuthType(server);
+    azureSqlState.formState.authenticationType = authType;
+    azureSqlState.formState.userName = adminLogin;
+    azureSqlState.formState.password = "";
+    azureSqlState.formState.savePassword = false;
+}
+
 export async function initializeAzureSqlDatabaseState(
     deploymentController: DeploymentWebviewController,
     groupOptions: FormItemOptions[],
@@ -85,7 +148,7 @@ export async function initializeAzureSqlDatabaseState(
         resourceGroup: "",
         serverName: "",
         databaseName: "",
-        authenticationType: AuthenticationType.SqlLogin,
+        authenticationType: AuthenticationType.AzureMFA,
         userName: "",
         password: "",
         savePassword: false,
@@ -351,7 +414,14 @@ export function registerAzureSqlDatabaseReducers(
 
     deploymentController.registerReducer("submitCreateServer", async (state, payload) => {
         const azureSqlState = state.deploymentTypeState as asd.AzureSqlDatabaseState;
-        const { serverName, location } = payload.spec;
+        const {
+            serverName,
+            location,
+            authenticationType,
+            adminLogin,
+            adminPassword,
+            savePassword,
+        } = payload.spec;
 
         // Show creating state in the dialog
         const dialogProps = (state.dialog as asd.CreateServerDrawerProps)?.props;
@@ -373,11 +443,29 @@ export function registerAzureSqlDatabaseReducers(
                 azureSqlState.formState.resourceGroup,
                 serverName,
                 location,
+                { authenticationType, adminLogin, adminPassword },
             );
 
             // Set the new server as selected and reload
             azureSqlState.formState.serverName = serverName;
             azureSqlState.azureComponentStatuses["serverName"] = ApiStatus.NotStarted;
+
+            // Apply auth settings from the drawer to the main form
+            azureSqlState.formState.authenticationType = authenticationType as AuthenticationType;
+            if (
+                authenticationType === AuthenticationType.SqlLogin ||
+                authenticationType === AuthenticationType.AzureMFAAndUser
+            ) {
+                azureSqlState.formState.userName = adminLogin ?? "";
+                azureSqlState.formState.password = adminPassword ?? "";
+                azureSqlState.formState.savePassword = savePassword ?? false;
+                azureSqlState.serverCreatedWithAuth = true;
+            } else {
+                azureSqlState.formState.userName = "";
+                azureSqlState.formState.password = "";
+                azureSqlState.formState.savePassword = false;
+                azureSqlState.serverCreatedWithAuth = false;
+            }
 
             // Close dialog on success
             state.dialog = undefined;
@@ -420,6 +508,15 @@ export function reloadAzureComponentsDownstream(
         }
         // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic property reset for cascading azure components
         (azureSqlState.formState as any)[componentName] = "";
+
+        // Clear auth-related fields when server resets
+        if (componentName === "serverName") {
+            azureSqlState.formState.authenticationType = AuthenticationType.SqlLogin;
+            azureSqlState.formState.userName = "";
+            azureSqlState.formState.password = "";
+            azureSqlState.formState.savePassword = false;
+            azureSqlState.serverCreatedWithAuth = false;
+        }
     }
 }
 
@@ -617,8 +714,14 @@ async function loadResourceGroupComponent(azureSqlState: asd.AzureSqlDatabaseSta
             ? AzureSqlDatabase.selectAResourceGroup
             : AzureSqlDatabase.noResourceGroupsFound;
 
-    azureSqlState.formState.resourceGroup =
-        cachedResourceGroups.length > 0 ? cachedResourceGroups[0] : "";
+    // Preserve the current selection if it exists in the loaded list (e.g., after creating a new one)
+    const currentRg = azureSqlState.formState.resourceGroup;
+    if (currentRg && cachedResourceGroups.includes(currentRg)) {
+        azureSqlState.formState.resourceGroup = currentRg;
+    } else {
+        azureSqlState.formState.resourceGroup =
+            cachedResourceGroups.length > 0 ? cachedResourceGroups[0] : "";
+    }
 }
 
 async function loadServerComponent(azureSqlState: asd.AzureSqlDatabaseState): Promise<void> {
@@ -654,8 +757,20 @@ async function loadServerComponent(azureSqlState: asd.AzureSqlDatabaseState): Pr
     serverComponent.placeholder =
         cachedServers.length > 0 ? AzureSqlDatabase.selectAServer : AzureSqlDatabase.noServersFound;
 
-    azureSqlState.formState.serverName =
-        cachedServers.length > 0 ? (cachedServers[0].name ?? "") : "";
+    // Preserve the current selection if it exists in the loaded list (e.g., after creating a new one)
+    const currentServer = azureSqlState.formState.serverName;
+    const matchedServer = currentServer
+        ? cachedServers.find((s) => s.name === currentServer)
+        : undefined;
+    if (matchedServer) {
+        azureSqlState.formState.serverName = currentServer;
+    } else {
+        azureSqlState.formState.serverName =
+            cachedServers.length > 0 ? (cachedServers[0].name ?? "") : "";
+    }
+
+    // Auto-detect auth type based on the selected server's properties
+    applyServerAuthSettings(azureSqlState, azureSqlState.formState.serverName);
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -786,20 +901,6 @@ function setAzureSqlDatabaseFormComponents(
                 isValid: !!value,
                 validationMessage: value ? "" : AzureSqlDatabase.databaseNameIsRequired,
             }),
-        }),
-        authenticationType: createFormItem({
-            propertyName: "authenticationType",
-            type: FormItemType.Dropdown,
-            required: true,
-            label: AzureSqlDatabase.authenticationType,
-            options: [
-                { displayName: AzureSqlDatabase.sqlLogin, value: AuthenticationType.SqlLogin },
-                { displayName: AzureSqlDatabase.azureMFA, value: AuthenticationType.AzureMFA },
-                {
-                    displayName: AzureSqlDatabase.azureMFAAndUser,
-                    value: AuthenticationType.AzureMFAAndUser,
-                },
-            ],
         }),
         userName: createFormItem({
             propertyName: "userName",

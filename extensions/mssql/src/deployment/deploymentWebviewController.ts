@@ -238,6 +238,16 @@ export class DeploymentWebviewController extends FormWebviewController<
                     payload.event.propertyName,
                 );
             }
+            // Re-detect auth type when user selects a different server
+            if (payload.event.propertyName === "serverName") {
+                const azureSqlState = state.deploymentTypeState as AzureSqlDatabaseState;
+                // Reset the flag so applyServerAuthSettings can detect auth from the new server
+                azureSqlState.serverCreatedWithAuth = false;
+                azureSqlDatabase.applyServerAuthSettings(
+                    azureSqlState,
+                    payload.event.value as string,
+                );
+            }
         }
 
         await this.updateItemVisibility();

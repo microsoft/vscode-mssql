@@ -1852,6 +1852,21 @@ export class LocConstants {
             continueChargesDescription: l10n.t(
                 "Additional usage beyond the free amount will be charged at serverless rates.",
             ),
+            advanced: l10n.t("Advanced"),
+            backupRedundancy: l10n.t("Backup Storage Redundancy"),
+            locallyRedundant: l10n.t("Locally-redundant backup storage"),
+            zoneRedundant: l10n.t("Zone-redundant backup storage"),
+            geoRedundant: l10n.t("Geo-redundant backup storage"),
+            collation: l10n.t("Collation"),
+            connectionTimeout: l10n.t("Connection Timeout (seconds)"),
+            adminLogin: l10n.t("Admin Username"),
+            enterAdminLogin: l10n.t("Enter admin username"),
+            adminPassword: l10n.t("Admin Password"),
+            enterAdminPassword: l10n.t("Enter admin password"),
+            confirmPassword: l10n.t("Confirm Password"),
+            enterConfirmPassword: l10n.t("Confirm admin password"),
+            passwordsDoNotMatch: l10n.t("Passwords do not match"),
+            savePasswordForConnection: l10n.t("Save password for connection"),
         };
     }
 

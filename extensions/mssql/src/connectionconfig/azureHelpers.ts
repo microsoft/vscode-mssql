@@ -326,9 +326,6 @@ export class VsCodeAzureHelper {
             endpoint: getCloudProviderSettings().settings.armResource.endpoint,
         });
 
-        const db = await sql.databases.get(resourceGroupName, serverName, "laurennatdb");
-        console.log(db);
-
         const poller = await sql.databases.beginCreateOrUpdate(
             resourceGroupName,
             serverName,
@@ -345,25 +342,55 @@ export class VsCodeAzureHelper {
 
     /**
      * Creates a new Azure SQL Server using the ARM SDK.
-     * Uses Entra-only authentication (no SQL admin password required).
      */
     public static async createSqlServer(
         subscription: AzureSubscription,
         resourceGroupName: string,
         serverName: string,
         location: string,
+        authConfig?: {
+            authenticationType: string;
+            adminLogin?: string;
+            adminPassword?: string;
+        },
     ): Promise<Server> {
         const sql = new SqlManagementClient(subscription.credential, subscription.subscriptionId, {
             endpoint: getCloudProviderSettings().settings.armResource.endpoint,
         });
 
-        const poller = await sql.servers.beginCreateOrUpdate(resourceGroupName, serverName, {
-            location,
-            administrators: {
+        const serverParams: Server = { location };
+
+        if (
+            authConfig?.authenticationType === "SqlLogin" ||
+            authConfig?.authenticationType === "AzureMFAAndUser"
+        ) {
+            serverParams.administratorLogin = authConfig.adminLogin;
+            serverParams.administratorLoginPassword = authConfig.adminPassword;
+        }
+
+        if (
+            authConfig?.authenticationType === "AzureMFA" ||
+            authConfig?.authenticationType === "AzureMFAAndUser"
+        ) {
+            serverParams.administrators = {
+                administratorType: "ActiveDirectory",
+                azureADOnlyAuthentication: authConfig.authenticationType === "AzureMFA",
+            };
+        }
+
+        // Default to Entra-only if no auth config provided
+        if (!authConfig) {
+            serverParams.administrators = {
                 administratorType: "ActiveDirectory",
                 azureADOnlyAuthentication: true,
-            },
-        });
+            };
+        }
+
+        const poller = await sql.servers.beginCreateOrUpdate(
+            resourceGroupName,
+            serverName,
+            serverParams,
+        );
         return poller.pollUntilDone();
     }
 
