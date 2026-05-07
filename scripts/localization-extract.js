@@ -20,23 +20,17 @@ const EXTENSION_CONFIG = {
     "data-workspace": "data-workspace",
 };
 
-const EXTENSION_INPUTS = {
-    mssql: ["extensions/mssql/src/", "extensions/mssql/package.nls.json"],
-    "sql-database-projects": [
-        "extensions/sql-database-projects/src/",
-        "extensions/sql-database-projects/package.nls.json",
-    ],
-    "data-workspace": [
-        "extensions/data-workspace/src/",
-        "extensions/data-workspace/package.nls.json",
-    ],
-};
-
-const LOCALIZATION_SCRIPT_INPUTS = [
+const PRECOMMIT_FULL_EXTRACTION_INPUTS = [
+    "package.json",
+    "package-lock.json",
     "scripts/localization-extract.js",
     "scripts/file-utils.js",
     "scripts/terminal-logger.js",
 ];
+
+function getExtensionInputs(extensionDir) {
+    return [`extensions/${extensionDir}/src/`, `extensions/${extensionDir}/package.nls.json`];
+}
 
 function getStagedFiles() {
     const output = execFileSync(
@@ -48,7 +42,7 @@ function getStagedFiles() {
     return output
         .toString("utf8")
         .split("\0")
-        .map((file) => file.replace(/\\/g, "/").trim())
+        .map((file) => file.replace(/\\/g, "/"))
         .filter(Boolean);
 }
 
@@ -59,15 +53,15 @@ function matchesInput(file, input) {
 function getAffectedExtensionsForPrecommit() {
     const stagedFiles = getStagedFiles();
 
-    if (stagedFiles.some((file) => LOCALIZATION_SCRIPT_INPUTS.includes(file))) {
+    if (stagedFiles.some((file) => PRECOMMIT_FULL_EXTRACTION_INPUTS.includes(file))) {
         return Object.keys(EXTENSION_CONFIG);
     }
 
-    return Object.entries(EXTENSION_INPUTS)
-        .filter(([, inputs]) =>
-            stagedFiles.some((file) => inputs.some((input) => matchesInput(file, input))),
-        )
-        .map(([extension]) => extension);
+    return Object.keys(EXTENSION_CONFIG).filter((extensionDir) =>
+        stagedFiles.some((file) =>
+            getExtensionInputs(extensionDir).some((input) => matchesInput(file, input)),
+        ),
+    );
 }
 
 /**
@@ -227,7 +221,7 @@ async function extractLocalizationStrings() {
 async function extractLocalizationForPrecommit() {
     const affectedExtensions = getAffectedExtensionsForPrecommit();
     if (!affectedExtensions.length) {
-        console.log("No staged localization inputs; skipping localization extraction.");
+        logger.info("No staged localization inputs; skipping localization extraction.");
         return;
     }
 
