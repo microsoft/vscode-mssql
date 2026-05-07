@@ -894,9 +894,9 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Build APIs with GitHub Copilot</source>
         <target state="translated">APIs mit GitHub Copilot erstellen</target>
       </trans-unit>
-      <trans-unit id="++CODE++0b7fa74a368845afd65888dc1e437a2afe5a96728dd43433760a2fe01c167033">
-        <source xml:lang="en">Build Data API (Preview)</source>
-        <target state="translated">Build Daten-API (Vorschau)...</target>
+      <trans-unit id="++CODE++8e86ef922196322045f4a646ef811f7df15a59da3a33b8180732d68155a7a652">
+        <source xml:lang="en">Build Data API</source>
+        <target state="new">Build Data API</target>
       </trans-unit>
       <trans-unit id="++CODE++00ea757097babdd3471ed3dbcef6f4a33b46658dfb023aa009b53fa1dd0ae30c">
         <source xml:lang="en">Build failed with exit code {0}</source>
@@ -2227,9 +2227,9 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Data API builder</source>
         <target state="translated">Data API Builder</target>
       </trans-unit>
-      <trans-unit id="++CODE++817f5f09a6d707d92c3926808ded36489dab38b529e972985cf5314eac7dbdbb">
-        <source xml:lang="en">Data API builder Configuration (Preview)</source>
-        <target state="translated">Daten-API-Generator-Konfiguration (Vorschau)</target>
+      <trans-unit id="++CODE++2154b11388f741094808a9e344ab0be7e4be3d2a989551deec3b43f35fc729e3">
+        <source xml:lang="en">Data API builder Configuration</source>
+        <target state="new">Data API builder Configuration</target>
       </trans-unit>
       <trans-unit id="++CODE++18c1620276c4ac7ddaec590de6087601cbfad39f0ef20e19c41db887fb760c00">
         <source xml:lang="en">Data API builder opened. Continue with {0} operations ({1}/{2}).</source>
@@ -2487,9 +2487,9 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Design API</source>
         <target state="translated">API entwerfen</target>
       </trans-unit>
-      <trans-unit id="++CODE++b14075f1961f95a9c65c61d8e0da7d32280678ff775e70b6c74a8c4966097838">
-        <source xml:lang="en">Design Schemas with GitHub Copilot (Preview)</source>
-        <target state="translated">Schemata entwerfen mit GitHub Copilot (Vorschau)</target>
+      <trans-unit id="++CODE++064ff20a39b16a49639c1d176496eb3078f7a0629c7bf854eb5021fc5a20aef8">
+        <source xml:lang="en">Design Schemas with GitHub Copilot</source>
+        <target state="new">Design Schemas with GitHub Copilot</target>
       </trans-unit>
       <trans-unit id="++CODE++45989de49fb7f66dfe17a8fc26f3a02c7abcd74f7e8e6cf9f39fa0e3775780df">
         <source xml:lang="en">Details</source>
@@ -4423,9 +4423,9 @@ Fehler:
         <source xml:lang="en">In progress</source>
         <target state="translated">In Bearbeitung</target>
       </trans-unit>
-      <trans-unit id="++CODE++8a95be6d8f6c4312ed4415b9bde10c28f765b025b375245f7f53575ccbe94183">
-        <source xml:lang="en">In the Data API builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.</source>
-        <target state="translated">Im Daten-API-Generator (Vorschau) ist die lokale Containerbereitstellung nur für Verbindungen mit SQL-Authentifizierung verfügbar. Ihr aktueller Verbindungstyp wird nicht unterstützt.</target>
+      <trans-unit id="++CODE++353bfeffa4a99ec1426a2426a764e92e5b9c2f00db3bf837d8f5a1e4f486117a">
+        <source xml:lang="en">In the Data API builder experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.</source>
+        <target state="new">In the Data API builder experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.</target>
       </trans-unit>
       <trans-unit id="++CODE++7285576bdacf86fe37274d3d0d399c29b4be2959005f60ac0729615d8fca9186">
         <source xml:lang="en">Include</source>
@@ -8915,9 +8915,9 @@ Abfrage: {2}</target>
         <source xml:lang="en">Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.</source>
         <target state="translated">Visual Studio Code muss neu gestartet werden, damit diese Einstellung wirksam wird.  Laden Sie Visual Studio Code neu.</target>
       </trans-unit>
-      <trans-unit id="++CODE++49a6dfed78fc8f501d94e0e7ce6d4f31c023a1a68b946f5faab2cba9950bf29c">
-        <source xml:lang="en">Visualize and Design Schema (Preview)</source>
-        <target state="translated">Schema visualisieren und entwerfen (Vorschau)</target>
+      <trans-unit id="++CODE++eab0f257866b670694bf52eec427b7799ca53883151d4d4526b0e57660ce65ab">
+        <source xml:lang="en">Visualize and Design Schema</source>
+        <target state="new">Visualize and Design Schema</target>
       </trans-unit>
       <trans-unit id="++CODE++e981ddae45d8f4ca53f1ccbe613ad254a041dacf65a06026099a6302d332113b">
         <source xml:lang="en">Warning</source>
@@ -9595,8 +9595,8 @@ Abfrage: {2}</target>
         <target state="translated">Datenbank sichern …</target>
       </trans-unit>
       <trans-unit id="mssql.buildDataApi">
-        <source xml:lang="en">Build Data API (Preview)...</source>
-        <target state="translated">Build Daten-API (Vorschau)...</target>
+        <source xml:lang="en">Build Data API...</source>
+        <target state="new">Build Data API...</target>
       </trans-unit>
       <trans-unit id="mssql.cancelConnect">
         <source xml:lang="en">Cancel Connection (MSSQL)</source>
@@ -10489,8 +10489,8 @@ Zeigen Sie den geschätzten Plan an, ohne die Abfrage auszuführen, oder zeigen 
         <target state="translated">Visualisieren eines Abfrageplans</target>
       </trans-unit>
       <trans-unit id="mssql.schemaDesigner">
-        <source xml:lang="en">Visualize and Design Schema (Preview)...</source>
-        <target state="translated">Schema visualisieren und entwerfen (Vorschau)...</target>
+        <source xml:lang="en">Visualize and Design Schema...</source>
+        <target state="new">Visualize and Design Schema...</target>
       </trans-unit>
       <trans-unit id="mssql.transferActiveEditorConnections.description">
         <source xml:lang="en">When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.</source>
