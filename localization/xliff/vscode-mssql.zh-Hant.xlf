@@ -10057,8 +10057,8 @@ You can connect to a database by entering your connection information, using a c
         <target state="translated">新增查詢</target>
       </trans-unit>
       <trans-unit id="mssql.notebooks.createNotebook">
-        <source xml:lang="en">New SQL Notebook (Preview)</source>
-        <target state="translated">建立 SQL 筆記本 (預覽)</target>
+        <source xml:lang="en">New SQL Notebook</source>
+        <target state="new">New SQL Notebook</target>
       </trans-unit>
       <trans-unit id="mssql.newTable">
         <source xml:lang="en">New Table</source>

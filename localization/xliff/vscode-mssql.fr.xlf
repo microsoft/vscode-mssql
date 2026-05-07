@@ -10057,8 +10057,8 @@ Vous pouvez vous connecter à une base de données en entrant vos informations d
         <target state="translated">Nouvelle requête</target>
       </trans-unit>
       <trans-unit id="mssql.notebooks.createNotebook">
-        <source xml:lang="en">New SQL Notebook (Preview)</source>
-        <target state="translated">Nouveau Notebook SQL (Aperçu)</target>
+        <source xml:lang="en">New SQL Notebook</source>
+        <target state="new">New SQL Notebook</target>
       </trans-unit>
       <trans-unit id="mssql.newTable">
         <source xml:lang="en">New Table</source>

@@ -10057,8 +10057,8 @@ Sie können eine Verbindung mit einer Datenbank herstellen, indem Sie Ihre Verbi
         <target state="translated">Neue Abfrage</target>
       </trans-unit>
       <trans-unit id="mssql.notebooks.createNotebook">
-        <source xml:lang="en">New SQL Notebook (Preview)</source>
-        <target state="translated">Neues SQL-Notebook (Vorschau)</target>
+        <source xml:lang="en">New SQL Notebook</source>
+        <target state="new">New SQL Notebook</target>
       </trans-unit>
       <trans-unit id="mssql.newTable">
         <source xml:lang="en">New Table</source>

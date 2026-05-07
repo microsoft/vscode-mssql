@@ -10057,8 +10057,8 @@ Puede conectarse a una base de datos escribiendo su información de conexión, u
         <target state="translated">Nueva consulta</target>
       </trans-unit>
       <trans-unit id="mssql.notebooks.createNotebook">
-        <source xml:lang="en">New SQL Notebook (Preview)</source>
-        <target state="translated">Nuevo cuaderno de SQL (versión preliminar)</target>
+        <source xml:lang="en">New SQL Notebook</source>
+        <target state="new">New SQL Notebook</target>
       </trans-unit>
       <trans-unit id="mssql.newTable">
         <source xml:lang="en">New Table</source>

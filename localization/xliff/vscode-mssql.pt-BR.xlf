@@ -10057,8 +10057,8 @@ Você pode se conectar a um banco de dados inserindo suas informações de conex
         <target state="translated">Nova Consulta</target>
       </trans-unit>
       <trans-unit id="mssql.notebooks.createNotebook">
-        <source xml:lang="en">New SQL Notebook (Preview)</source>
-        <target state="translated">Novo Notebook SQL (Versão Prévia)</target>
+        <source xml:lang="en">New SQL Notebook</source>
+        <target state="new">New SQL Notebook</target>
       </trans-unit>
       <trans-unit id="mssql.newTable">
         <source xml:lang="en">New Table</source>
