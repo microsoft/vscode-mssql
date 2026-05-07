@@ -38,17 +38,17 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
     // Shared dispatcher state. vscode-languageclient 5.2.1's onNotification can't
     // return a Disposable, so registering one handler per controller would leak.
-    // Instead we register at the class level once and dispatch to live instances
+    // Instead we register at the class level once per client and dispatch to live instances
     // via _liveInstances. Each controller adds itself on initialize() and removes
     // itself on dispose().
-    private static _sharedNotificationsRegistered = false;
+    private static _registeredClients = new WeakSet<SqlToolsServiceClient>();
     private static _liveInstances = new Map<string, TableExplorerWebViewController>();
 
     private static ensureSharedNotificationHandlers(client: SqlToolsServiceClient): void {
-        if (TableExplorerWebViewController._sharedNotificationsRegistered) {
+        if (TableExplorerWebViewController._registeredClients.has(client)) {
             return;
         }
-        TableExplorerWebViewController._sharedNotificationsRegistered = true;
+        TableExplorerWebViewController._registeredClients.add(client);
 
         client.onNotification(
             EditSessionReadyNotification.type,
