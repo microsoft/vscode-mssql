@@ -1615,7 +1615,13 @@
                 "command": "mssql.runQuery",
                 "key": "ctrl+shift+e",
                 "mac": "cmd+shift+e",
-                "when": "editorTextFocus && editorLangId == 'sql' && !notebookEditorFocused"
+                "when": "editorTextFocus && editorLangId == 'sql' && resourceScheme != 'vscode-notebook-cell'"
+            },
+            {
+                "command": "notebook.cell.execute",
+                "key": "ctrl+shift+e",
+                "mac": "cmd+shift+e",
+                "when": "editorTextFocus && editorLangId == 'sql' && resourceScheme == 'vscode-notebook-cell'"
             },
             {
                 "command": "mssql.connect",
