@@ -631,13 +631,15 @@ export default class ConnectionManager {
         const self = this;
         return (params: ConnectionContracts.RefreshTokenParams): void => {
             void (async () => {
+                const useVscodeAccountsForEntraMFA = previewService.isFeatureEnabled(
+                    PreviewFeature.UseVscodeAccountsForEntraMFA,
+                );
+
                 try {
                     let token: string | undefined;
                     let expiresOn: number | undefined;
 
-                    if (
-                        previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)
-                    ) {
+                    if (useVscodeAccountsForEntraMFA) {
                         const tokenInfo = await acquireTokenFromVscodeAccountForResource(
                             getCloudResourceEndpoint("sqlResource"),
                             params.accountId,
@@ -650,6 +652,22 @@ export default class ConnectionManager {
                             self._logger?.verbose(
                                 `Cannot refresh token: no accountId provided in refresh request for URI ${params.uri}`,
                             );
+                            sendErrorEvent(
+                                TelemetryViews.ConnectionManager,
+                                TelemetryActions.RefreshTokenNotification,
+                                new Error("Missing accountId in refresh token notification"),
+                                true, // includeErrorMessage
+                                "missingAccountId",
+                                undefined,
+                                {
+                                    useVscodeAccountsForEntraMFA: String(
+                                        useVscodeAccountsForEntraMFA,
+                                    ),
+                                },
+                                {
+                                    currentTimestamp: Math.floor(Date.now() / 1000),
+                                },
+                            );
                             return;
                         }
 
@@ -657,6 +675,22 @@ export default class ConnectionManager {
                         if (!account) {
                             self._logger?.verbose(
                                 `Cannot refresh token: account ${params.accountId} not found in account store`,
+                            );
+                            sendErrorEvent(
+                                TelemetryViews.ConnectionManager,
+                                TelemetryActions.RefreshTokenNotification,
+                                new Error("Account not found in account store"),
+                                true, // includeErrorMessage
+                                "accountNotFound",
+                                undefined,
+                                {
+                                    useVscodeAccountsForEntraMFA: String(
+                                        useVscodeAccountsForEntraMFA,
+                                    ),
+                                },
+                                {
+                                    currentTimestamp: Math.floor(Date.now() / 1000),
+                                },
                             );
                             return;
                         }
@@ -678,19 +712,91 @@ export default class ConnectionManager {
                         }
                     }
 
-                    if (token && self.client) {
-                        self.client.sendNotification(
-                            ConnectionContracts.TokenRefreshedNotification.type,
+                    if (!token) {
+                        sendErrorEvent(
+                            TelemetryViews.ConnectionManager,
+                            TelemetryActions.RefreshTokenNotification,
+                            new Error("Token refresh did not produce a token"),
+                            true, // includeErrorMessage
+                            "tokenNotRefreshed",
+                            undefined,
                             {
-                                token: token,
-                                expiresOn: expiresOn ?? 0,
-                                uri: params.uri,
+                                useVscodeAccountsForEntraMFA: String(useVscodeAccountsForEntraMFA),
+                            },
+                            {
+                                currentTimestamp: Math.floor(Date.now() / 1000),
+                                ...(expiresOn !== undefined
+                                    ? { refreshedTokenExpirationTimestamp: expiresOn }
+                                    : {}),
                             },
                         );
+
+                        return;
                     }
+
+                    if (!self.client) {
+                        sendErrorEvent(
+                            TelemetryViews.ConnectionManager,
+                            TelemetryActions.RefreshTokenNotification,
+                            new Error(
+                                "Service client unavailable while sending refreshed token notification",
+                            ),
+                            true, // includeErrorMessage
+                            "serviceClientUnavailable",
+                            undefined,
+                            {
+                                useVscodeAccountsForEntraMFA: String(useVscodeAccountsForEntraMFA),
+                            },
+                            {
+                                currentTimestamp: Math.floor(Date.now() / 1000),
+                                ...(expiresOn !== undefined
+                                    ? { refreshedTokenExpirationTimestamp: expiresOn }
+                                    : {}),
+                            },
+                        );
+
+                        return;
+                    }
+
+                    sendActionEvent(
+                        TelemetryViews.ConnectionManager,
+                        TelemetryActions.RefreshTokenNotification,
+                        {
+                            useVscodeAccountsForEntraMFA: String(useVscodeAccountsForEntraMFA),
+                        },
+                        {
+                            currentTimestamp: Math.floor(Date.now() / 1000),
+                            refreshedTokenExpirationTimestamp:
+                                expiresOn !== undefined ? expiresOn : -1,
+                        },
+                    );
+
+                    self.client.sendNotification(
+                        ConnectionContracts.TokenRefreshedNotification.type,
+                        {
+                            token: token,
+                            expiresOn: expiresOn ?? -1,
+                            uri: params.uri,
+                        },
+                    );
                 } catch (error) {
                     self._logger?.verbose(
-                        `Failed to refresh token for URI ${params.uri}: ${error}`,
+                        `Failed to refresh token for URI ${params.uri}: ${getErrorMessage(error)}`,
+                    );
+
+                    sendErrorEvent(
+                        TelemetryViews.ConnectionManager,
+                        TelemetryActions.RefreshTokenNotification,
+                        error instanceof Error ? error : new Error(getErrorMessage(error)),
+                        false, // includeErrorMessage
+                        "exception",
+                        undefined,
+                        {
+                            useVscodeAccountsForEntraMFA: String(useVscodeAccountsForEntraMFA),
+                        },
+                        {
+                            currentTimestamp: Math.floor(Date.now() / 1000),
+                        },
                     );
                 }
             })();
