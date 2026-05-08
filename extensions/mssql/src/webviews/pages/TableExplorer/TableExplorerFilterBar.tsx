@@ -423,6 +423,7 @@ export const TableExplorerFilterBar: React.FC<TableExplorerFilterBarProps> = ({
                             value={row.conjunction}
                             selectedOptions={[row.conjunction]}
                             disabled={disabled}
+                            aria-label={loc.tableExplorer.filterLogicalOperator}
                             onOptionSelect={(_, data) =>
                                 updateRow(row.id, {
                                     conjunction:
@@ -440,6 +441,7 @@ export const TableExplorerFilterBar: React.FC<TableExplorerFilterBarProps> = ({
                         value={row.column}
                         selectedOptions={[row.column]}
                         disabled={disabled}
+                        aria-label={loc.tableExplorer.filterColumn}
                         onOptionSelect={(_, data) =>
                             updateRow(row.id, { column: data.optionValue ?? "" })
                         }>
@@ -455,6 +457,7 @@ export const TableExplorerFilterBar: React.FC<TableExplorerFilterBarProps> = ({
                         value={OPERATOR_LABELS[row.operator]()}
                         selectedOptions={[row.operator]}
                         disabled={disabled}
+                        aria-label={loc.tableExplorer.filterOperator}
                         onOptionSelect={(_, data) =>
                             updateRow(row.id, {
                                 operator: (data.optionValue as FilterOperator) ?? "equals",
@@ -471,6 +474,7 @@ export const TableExplorerFilterBar: React.FC<TableExplorerFilterBarProps> = ({
                         size="small"
                         value={row.value}
                         placeholder={loc.tableExplorer.filterValuePlaceholder}
+                        aria-label={loc.tableExplorer.filterValue}
                         disabled={disabled || !operatorTakesValue(row.operator)}
                         onChange={(_, data) => updateRow(row.id, { value: data.value })}
                         onKeyDown={(e) => {

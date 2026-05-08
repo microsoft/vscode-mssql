@@ -440,7 +440,8 @@ export const TableExplorerPage: React.FC = () => {
                                             <Button
                                                 size="small"
                                                 appearance="subtle"
-                                                title={loc.schemaDesigner.copy}
+                                                title={loc.common.copy}
+                                                aria-label={loc.common.copy}
                                                 icon={<Copy16Regular />}
                                                 disabled={!displayedSql}
                                                 onClick={async () => {
