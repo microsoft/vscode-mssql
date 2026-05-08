@@ -2603,7 +2603,7 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       </trans-unit>
       <trans-unit id="++CODE++3c96c6d1388e41b0724659fa022b1843dea4a84d175a1d571bf72382fc0c3581">
         <source xml:lang="en">Do you want to enable 'Trust server certificate' on this connection and retry?</source>
-        <target state="new">Do you want to enable 'Trust server certificate' on this connection and retry?</target>
+        <target state="translated">Deseja habilitar "Confiar no certificado do servidor" nesta conexão e tentar novamente?</target>
       </trans-unit>
       <trans-unit id="++CODE++f1286712850b10aee8607a93c2120e10316b5962b73c377860cd5cded5b98184">
         <source xml:lang="en">Docker Desktop must be installed and running on your machine.</source>
@@ -2797,7 +2797,7 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       </trans-unit>
       <trans-unit id="++CODE++e03c1fa5598b1caba263d99a4896ddba797148eaca638348d48aa792db57f71e">
         <source xml:lang="en">Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true'. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments.</source>
-        <target state="new">Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true'. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments.</target>
+        <target state="translated">A criptografia foi habilitada nesta conexão; examine o SSL e a configuração do certificado do SQL Server de destino ou defina "Certificado do servidor de confiança" como "true". Observação: um certificado autoassinado oferece apenas proteção limitada e não é uma prática recomendada para ambientes de produção.</target>
       </trans-unit>
       <trans-unit id="++CODE++6051d2070e8e51a99adfa6b3f5171cfa92107943f46417bcd51a8f5e995c881f">
         <source xml:lang="en">End IP Address</source>
@@ -8094,7 +8094,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++ec45cfbf2af59ce8d7cc24d91cb00575e3c328bbb4101a8af85ef66b04333d36">
         <source xml:lang="en">System databases</source>
-        <target state="new">System databases</target>
+        <target state="translated">Bancos de dados do sistema</target>
       </trans-unit>
       <trans-unit id="++CODE++b27ba710997adaf6099374edb801d44bef36c92e6d37e0190c7c1d12d4b32209">
         <source xml:lang="en">T-SQL</source>
@@ -8607,7 +8607,7 @@ Consulta: {2}</target>
       <trans-unit id="++CODE++c8a8ab1cef4a26f5a47e6aff86611314a34effe284539cfe1421067648432eab">
         <source xml:lang="en">Unable to load database list from server: {0}</source>
         <note>{0} is the connection error message</note>
-        <target state="new">Unable to load database list from server: {0}</target>
+        <target state="translated">Não é possível carregar a lista de bancos de dados do servidor: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++955b62784673f0081b2a54d867245fa50ca1e830cea22348ff69caa6317e7889">
         <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>
@@ -8778,7 +8778,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++7b2227d51ac2087125e6e9ef2fff2d56b0f6bf97b6698bf014026833e0e43cba">
         <source xml:lang="en">User databases</source>
-        <target state="new">User databases</target>
+        <target state="translated">Bancos de dados do usuário</target>
       </trans-unit>
       <trans-unit id="++CODE++b82e11da3bc16786000d6e008e038f4d0272163a6476e0ca3c4b29d958051f9c">
         <source xml:lang="en">User name</source>
@@ -10058,7 +10058,7 @@ Você pode se conectar a um banco de dados inserindo suas informações de conex
       </trans-unit>
       <trans-unit id="mssql.notebooks.createNotebook">
         <source xml:lang="en">New SQL Notebook</source>
-        <target state="new">New SQL Notebook</target>
+        <target state="translated">Novo Notebook SQL</target>
       </trans-unit>
       <trans-unit id="mssql.newTable">
         <source xml:lang="en">New Table</source>
@@ -10506,7 +10506,7 @@ Confira o plano estimado sem executar a consulta ou visualize o plano de consult
       </trans-unit>
       <trans-unit id="mssql.results.openAfterSave">
         <source xml:lang="en">When enabled, saved query result exports are opened after export. Excel exports open with the system file handler; text exports open in VS Code.</source>
-        <target state="new">When enabled, saved query result exports are opened after export. Excel exports open with the system file handler; text exports open in VS Code.</target>
+        <target state="translated">Quando habilitado, as exportações de resultados de consulta salvas são abertas após a exportação. As exportações do Excel são abertas com o manipulador de arquivos do sistema; exportações de texto são abertas no VS Code.</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
