@@ -47,7 +47,6 @@ import {
     TelemetryActions,
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
-import { ApiStatus, isStatus, Status } from "../sharedInterfaces/webview";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { changeLanguageServiceForFile } from "../languageservice/utils";
 import { AddFirewallRuleWebviewController } from "./addFirewallRuleWebviewController";
@@ -126,11 +125,6 @@ export default class ConnectionManager {
         Deferred<ConnectionContracts.ConnectionCompleteParams>
     >;
     private _keyVaultTokenCache: Map<string, IToken> = new Map<string, IToken>();
-    private _entraSqlTokenCache: Map<string, IToken> = new Map<string, IToken>();
-    private _entraSqlTokenRefreshInFlight: Map<string, Promise<IToken>> = new Map<
-        string,
-        Promise<IToken>
-    >();
     private _accountService: AccountService;
     private _firewallService: FirewallService;
     public azureController: AzureController;
@@ -1047,19 +1041,21 @@ export default class ConnectionManager {
             return;
         }
 
-        // 2. Validate that the token needs refreshing (isn't expired)
-        if (
-            AzureController.isTokenValid(connectionInfo.azureAccountToken, connectionInfo.expiresOn)
-        ) {
-            this._logger?.verbose(
-                `Entra token for account ${connectionInfo.user} (${connectionInfo.email}) is still valid until ${connectionInfo.expiresOn}. No refresh needed.`,
-            );
-            return;
-        }
-
-        // 3. Refresh the token
-        // A3. If the user is using VS Code accounts for Entra MFA, use that flow to refresh the token
+        // 2. If the user is using VS Code accounts for Entra MFA, use that flow to refresh the token.
+        // STS cannot read VS Code auth sessions, so this path still needs to pass a token.
         if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+            if (
+                AzureController.isTokenValid(
+                    connectionInfo.azureAccountToken,
+                    connectionInfo.expiresOn,
+                )
+            ) {
+                this._logger?.verbose(
+                    `Entra token for account ${connectionInfo.user} (${connectionInfo.email}) is still valid until ${connectionInfo.expiresOn}. No refresh needed.`,
+                );
+                return;
+            }
+
             const tokenInfo = await acquireSqlAccessTokenFromVscodeAccount(
                 connectionInfo.accountId,
                 connectionInfo.tenantId,
@@ -1076,14 +1072,12 @@ export default class ConnectionManager {
             return;
         }
 
-        // B3. Otherwise, use the MSAL flow to refresh the token
-        // B3.1 Collect Entra account information
+        // 3. Otherwise, use the MSAL flow. STS registers a SqlAuthenticationProvider
+        // and reads the shared MSAL cache, so do not pass a pre-acquired SQL token.
         let account: IAccount | undefined;
-        let profile: ConnectionProfile;
 
         if (connectionInfo.accountId) {
             account = await this.accountStore.getAccount(connectionInfo.accountId);
-            profile = new ConnectionProfile(connectionInfo);
         } else {
             // Send telemetry to identify code paths where accountId is missing
             sendErrorEvent(
@@ -1109,150 +1103,29 @@ export default class ConnectionManager {
             //LocalizedConstants.msgAccountNotFound
         }
 
-        connectionInfo.user = account.displayInfo.displayName;
+        connectionInfo.user =
+            account.displayInfo.email ??
+            account.displayInfo.userId ??
+            account.displayInfo.displayName;
         connectionInfo.email = account.displayInfo.email;
-        profile.user = account.displayInfo.displayName;
-        profile.email = account.displayInfo.email;
+        connectionInfo.tenantId ??= account.properties?.owningTenant?.id;
 
-        // B4. Use cached token if present and valid/unexpired
-        const cacheKey = this.getEntraSqlTokenCacheKey(
-            connectionInfo,
-            account.properties?.owningTenant?.id,
+        // Keep the MSAL account cache fresh before handing SQL token acquisition to STS.
+        // This may prompt for sign-in if the account can no longer refresh silently,
+        // but the returned non-SQL token is intentionally not sent to SqlClient.
+        await this.azureController.refreshAccessToken(
+            account,
+            this.accountStore,
+            connectionInfo.tenantId,
+            getCloudProviderSettings(account.key.providerId).settings.armResource,
         );
-        const cachedToken = this._entraSqlTokenCache.get(cacheKey);
+
+        connectionInfo.azureAccountToken = undefined;
+        connectionInfo.expiresOn = undefined;
 
         this._logger?.verbose(
-            `Cached token ${cachedToken ? "found" : "not found"} for cache key ${cacheKey}.`,
+            `Using SQL Authentication Provider for MSAL Entra account ${connectionInfo.user} and tenant ${connectionInfo.tenantId}.`,
         );
-
-        if (cachedToken) {
-            // If there's a cached token, use it if still valid, or remove it from cache if expired
-            if (AzureController.isTokenValid(cachedToken.token, cachedToken.expiresOn)) {
-                this.applyEntraToken(connectionInfo, cachedToken);
-                this._logger?.verbose(
-                    `Using cached Entra token for account ${account.displayInfo.displayName} (${account.displayInfo.email}) and tenant ${profile.tenantId}. Cached token expires on ${cachedToken.expiresOn}. (currently ${Date.now() / 1000})`,
-                );
-
-                return;
-            } else {
-                this._logger?.verbose(
-                    `Cached token for cache key ${cacheKey} is expired. Removing from cache. (currently ${Date.now() / 1000})`,
-                );
-                this._entraSqlTokenCache.delete(cacheKey);
-            }
-        }
-
-        // B5. Lastly, refresh the token, cache the new token, and update the connection info with it
-        const refreshTask = async () => {
-            return await this.azureController.refreshAccessToken(
-                account,
-                this.accountStore,
-                profile.tenantId,
-                getCloudProviderSettings(account.key.providerId).settings.sqlResource!,
-            );
-        };
-
-        // Dedupe concurrent token refresh requests for the same account into a single request, and share the result
-        let refreshPromise = this._entraSqlTokenRefreshInFlight.get(cacheKey);
-        if (!refreshPromise) {
-            // Token refresh code cannot figure out if the user closed the browser window,
-            // so we wrap it in a cancellable progress dialog to allow the user to cancel
-            // the operation.
-            refreshPromise = new Promise<IToken>((resolve, reject) => {
-                void vscode.window.withProgress(
-                    {
-                        location: vscode.ProgressLocation.Notification,
-                        title: LocalizedConstants.ObjectExplorer.AzureSignInMessage(
-                            account.displayInfo.displayName || account.displayInfo.email,
-                        ),
-                        cancellable: true,
-                    },
-                    async (_progress, token) => {
-                        token.onCancellationRequested(() => {
-                            reject({
-                                status: ApiStatus.Cancelled,
-                                message: "Azure sign in cancelled by user.",
-                            } as Status);
-                        });
-                        try {
-                            const refreshedToken = await refreshTask();
-                            if (!refreshedToken) {
-                                reject({
-                                    status: ApiStatus.Error,
-                                    message: LocalizedConstants.msgAccountRefreshFailed(),
-                                } as Status);
-                                return;
-                            }
-                            this._logger?.verbose(
-                                `Successfully refreshed Entra token for account ${account.displayInfo.displayName} (${account.displayInfo.email}) and tenant ${profile.tenantId}; now expires on ${refreshedToken.expiresOn} (currently ${Date.now() / 1000}).`,
-                            );
-                            resolve(refreshedToken);
-                        } catch (error) {
-                            const refreshErrorStatus: Status = {
-                                status: ApiStatus.Error,
-                                message: getErrorMessage(error),
-                            };
-                            this._logger?.error(
-                                `Error refreshing Entra token for account ${account.displayInfo.displayName} (${account.displayInfo.email}) and tenant ${profile.tenantId}: ${refreshErrorStatus.message}`,
-                            );
-                            reject(refreshErrorStatus);
-                        }
-                    },
-                );
-            }).finally(() => {
-                this._entraSqlTokenRefreshInFlight.delete(cacheKey);
-            });
-            this._entraSqlTokenRefreshInFlight.set(cacheKey, refreshPromise);
-        }
-
-        try {
-            const azureAccountToken = await refreshPromise;
-            this.applyEntraToken(connectionInfo, azureAccountToken);
-            // Save refreshed token so other connections for the same account+tenant can reuse it.
-            this._entraSqlTokenCache.set(cacheKey, azureAccountToken);
-            this._logger?.verbose(
-                `Successfully refreshed Entra token for account ${account.displayInfo.displayName} (${account.displayInfo.email}) and tenant ${profile.tenantId}. Cached token for future use with cache key ${cacheKey}.`,
-            );
-        } catch (error) {
-            this._logger?.verbose(
-                `Failed to refresh Entra token for account ${account.displayInfo.displayName} (${account.displayInfo.email}) and tenant ${profile.tenantId}. Error: ${getErrorMessage(error)}`,
-            );
-            if (isStatus(error)) {
-                if (error.status === ApiStatus.Cancelled) {
-                    this._logger.verbose("Refresh cancelled: " + error.message);
-                    throw new Error(LocalizedConstants.cannotConnect);
-                }
-
-                if (error.status === ApiStatus.Error) {
-                    const message = LocalizedConstants.msgAccountRefreshFailed(error.message);
-                    this._logger.error("Error refreshing account: " + message);
-                    await this.vscodeWrapper.showErrorMessage(message);
-                    throw new Error(message);
-                }
-            }
-
-            throw error;
-        }
-    }
-
-    private getEntraSqlTokenCacheKey(
-        connectionInfo: IConnectionInfo,
-        defaultTenantId?: string,
-    ): string {
-        return `${connectionInfo.accountId ?? ""}|${connectionInfo.tenantId ?? defaultTenantId ?? ""}`;
-    }
-
-    private applyEntraToken(connectionInfo: IConnectionInfo, token: IToken): void {
-        connectionInfo.azureAccountToken = token.token;
-        connectionInfo.expiresOn = token.expiresOn;
-    }
-
-    /**
-     * Clears both token entries and any in-flight refresh promises.
-     */
-    private clearEntraSqlTokenCache(): void {
-        this._entraSqlTokenCache.clear();
-        this._entraSqlTokenRefreshInFlight.clear();
     }
 
     /**
@@ -2033,7 +1906,6 @@ export default class ConnectionManager {
 
     public onClearAzureTokenCache(): void {
         this.azureController.clearTokenCache();
-        this.clearEntraSqlTokenCache();
         this.vscodeWrapper.showInformationMessage(
             LocalizedConstants.Accounts.clearedEntraTokenCache,
         );
