@@ -4870,6 +4870,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++3c96c6d1388e41b0724659fa022b1843dea4a84d175a1d571bf72382fc0c3581" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Do you want to enable 'Trust server certificate' on this connection and retry?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Включить параметр "Доверять сертификату сервера" для этого подключения и повторить попытку?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++3c9c88307ac2637ebf206d18b530363f5b9a09fb9d44a6817d8da20da0b4f7d1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Collapse connections]]></Val>
@@ -9964,6 +9973,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++7b2227d51ac2087125e6e9ef2fff2d56b0f6bf97b6698bf014026833e0e43cba" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[User databases]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Пользовательские базы данных]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++7b48d5864d528c861a4bb45d1bf3fddab2186bb2d09deb1bce1c4730b72bf1f1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No data to display.]]></Val>
@@ -12696,15 +12714,6 @@
           <Val><![CDATA[Checking container readiness]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Проверка готовности контейнера]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++a04452986b48c7c3c21f78712b31a68f2aecb85566c134d87d55348c7b16b9a8" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Для этого подключения включено шифрование. Просмотрите SSL и конфигурацию сертификата для целевого сервера SQL Server или установите для параметра "Доверять сертификату сервера" значение "true" в файле настроек. Примечание. Самозаверяющий сертификат обеспечивает ограниченную защиту, и его не рекомендуется применять в производственных средах. Включить параметр "Доверять сертификату сервера" для этого подключения и повторить попытку?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15814,6 +15823,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++c8a8ab1cef4a26f5a47e6aff86611314a34effe284539cfe1421067648432eab" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unable to load database list from server: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Не удалось загрузить список баз данных с сервера: {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++c8af9ae37a48273f981bc82af63517e3a2195c4076360e73546c306a044dd38b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Drop]]></Val>
@@ -17677,6 +17695,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++e03c1fa5598b1caba263d99a4896ddba797148eaca638348d48aa792db57f71e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true'. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Для этого соединения включено шифрование; проверьте конфигурацию SSL и сертификатов для целевого SQL Server или установите для параметра "Trust server certificate" значение "true". Примечание. Самозаверяющий сертификат обеспечивает ограниченную защиту, и его не рекомендуется применять в производственных средах.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++e055f3ddb9f539f2c4d96b44e4821f09a1d8760a52da1eb0a8cdbf1002b3100e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add MCP server to workspace configuration]]></Val>
@@ -18726,6 +18753,15 @@
           <Val><![CDATA[Sort ascending]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Сортировать по возрастанию]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++ec45cfbf2af59ce8d7cc24d91cb00575e3c328bbb4101a8af85ef66b04333d36" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[System databases]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Системные базы данных]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21513,12 +21549,12 @@
       </Item>
       <Item ItemId=";package.mssql.notebooks.createNotebook" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[New SQL Notebook (Preview)]]></Val>
+          <Val><![CDATA[New SQL Notebook]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Новая записная книжка New SQL (предварительная версия)]]></Val>
+            <Val><![CDATA[Новая записная книжка SQL]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Create SQL Notebook (Preview)]]></Val>
+            <Val><![CDATA[New SQL Notebook (Preview)]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
@@ -22210,6 +22246,15 @@
           <Prev Cat="Text">
             <Val><![CDATA[Restore Database (Preview)...]]></Val>
           </Prev>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.results.openAfterSave" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[When enabled, saved query result exports are opened after export. Excel exports open with the system file handler; text exports open in VS Code.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Если включено, экспортированные результаты сохраненных запросов открываются сразу после экспорта. Экспортированные файлы Excel открываются системным обработчиком файлов, а текстовые — в VS Code.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
