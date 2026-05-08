@@ -4870,6 +4870,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++3c96c6d1388e41b0724659fa022b1843dea4a84d175a1d571bf72382fc0c3581" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Do you want to enable 'Trust server certificate' on this connection and retry?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[이 연결에서 '서버 인증서 신뢰'를 사용하도록 설정하고 다시 시도하시겠습니까?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++3c9c88307ac2637ebf206d18b530363f5b9a09fb9d44a6817d8da20da0b4f7d1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Collapse connections]]></Val>
@@ -9964,6 +9973,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++7b2227d51ac2087125e6e9ef2fff2d56b0f6bf97b6698bf014026833e0e43cba" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[User databases]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[사용자 데이터베이스]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++7b48d5864d528c861a4bb45d1bf3fddab2186bb2d09deb1bce1c4730b72bf1f1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No data to display.]]></Val>
@@ -12696,15 +12714,6 @@
           <Val><![CDATA[Checking container readiness]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[컨테이너 준비 상태를 확인하는 중]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++a04452986b48c7c3c21f78712b31a68f2aecb85566c134d87d55348c7b16b9a8" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[이 연결에서 암호화를 사용하도록 설정했습니다. 대상 SQL Server에 대한 SSL 및 인증서 구성을 검토하거나, 설정 파일에서 '서버 인증서 신뢰'를 ‘true’로 설정하세요. 참고: 자체 서명된 인증서는 제한된 보호만 제공하며 프로덕션 환경에 권장되는 방법은 아닙니다. 이 연결에서 '서버 인증서 신뢰'를 사용하도록 설정하고 다시 시도하시겠습니까?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15814,6 +15823,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++c8a8ab1cef4a26f5a47e6aff86611314a34effe284539cfe1421067648432eab" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unable to load database list from server: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[서버에서 데이터베이스 목록을 로드할 수 없습니다. {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++c8af9ae37a48273f981bc82af63517e3a2195c4076360e73546c306a044dd38b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Drop]]></Val>
@@ -17677,6 +17695,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++e03c1fa5598b1caba263d99a4896ddba797148eaca638348d48aa792db57f71e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true'. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[이 연결에서 암호화를 사용하도록 설정했습니다. 대상 SQL Server에 대한 SSL 및 인증서 구성을 검토하거나 '서버 인증서 신뢰'를 'true'로 설정하세요. 참고: 자체 서명된 인증서는 제한된 보호만 제공하며 프로덕션 환경에 권장되는 방법은 아닙니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++e055f3ddb9f539f2c4d96b44e4821f09a1d8760a52da1eb0a8cdbf1002b3100e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add MCP server to workspace configuration]]></Val>
@@ -18726,6 +18753,15 @@
           <Val><![CDATA[Sort ascending]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[오름차순 정렬]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++ec45cfbf2af59ce8d7cc24d91cb00575e3c328bbb4101a8af85ef66b04333d36" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[System databases]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[시스템 데이터베이스]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21513,12 +21549,12 @@
       </Item>
       <Item ItemId=";package.mssql.notebooks.createNotebook" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[New SQL Notebook (Preview)]]></Val>
+          <Val><![CDATA[New SQL Notebook]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[새 SQL Notebook(미리 보기)]]></Val>
+            <Val><![CDATA[새 SQL Notebook]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Create SQL Notebook (Preview)]]></Val>
+            <Val><![CDATA[New SQL Notebook (Preview)]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
@@ -22210,6 +22246,15 @@
           <Prev Cat="Text">
             <Val><![CDATA[Restore Database (Preview)...]]></Val>
           </Prev>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.results.openAfterSave" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[When enabled, saved query result exports are opened after export. Excel exports open with the system file handler; text exports open in VS Code.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[사용하도록 설정하면 저장된 쿼리 결과 내보내기가 내보내기 후 열립니다. Excel로 내보낸 파일은 시스템 파일 처리기로 열리고, 텍스트로 내보낸 파일은 VS Code에서 열립니다.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
