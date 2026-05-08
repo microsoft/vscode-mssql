@@ -1201,6 +1201,9 @@
     <trans-unit id="++CODE++99fb39ba4e498877a20049303aa3318b2004884dab008c65a3b5dd48f47cdd04">
       <source xml:lang="en">Confirm to remove this profile.</source>
     </trans-unit>
+    <trans-unit id="++CODE++3bec2df151fc5b4ef02b080b35228b4482f64c6d47f20c948867d1ec579b3c82">
+      <source xml:lang="en">Conjunction</source>
+    </trans-unit>
     <trans-unit id="++CODE++1a2303ede07493acc7caaa7c737f3c52bcc9cf04372be19ed1b0af6b9f2c791e">
       <source xml:lang="en">Connect</source>
     </trans-unit>
@@ -3799,6 +3802,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ddeb248a914ea9f6af2303de9341990c1da5d7dfdfc631d25734d57768e85394">
       <source xml:lang="en">Logical file name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++155952ddf38c19af2c08d64095b80c9fe510faade4f78b6f0c6113fda082eda0">
+      <source xml:lang="en">Logical operator</source>
     </trans-unit>
     <trans-unit id="++CODE++ea2100dc89ae9fe21fa9b08ab1bf18662dca1e53a3eebd7d03afebcaf5d57515">
       <source xml:lang="en">Logs</source>
