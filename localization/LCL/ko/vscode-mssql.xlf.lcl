@@ -523,6 +523,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++064ff20a39b16a49639c1d176496eb3078f7a0629c7bf854eb5021fc5a20aef8" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Design Schemas with GitHub Copilot]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[GitHub Copilot으로 스키마 디자인]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++06659b52e63599b06c4386ad5423c3dc67b010f0dbbd03cba2f48b68ed1b62f5" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Container does not exist. Would you like to remove the connection?]]></Val>
@@ -1005,15 +1014,6 @@
           <Val><![CDATA[List Schemas]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[스키마 목록]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++0b7fa74a368845afd65888dc1e437a2afe5a96728dd43433760a2fe01c167033" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Build Data API (Preview)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[데이터 API 빌드(미리 보기)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2661,6 +2661,15 @@
           <Val><![CDATA[No databases found to import into.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[정보를 가져올 데이터베이스를 찾을 수 없습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++2154b11388f741094808a9e344ab0be7e4be3d2a989551deec3b43f35fc729e3" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Data API builder Configuration]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[데이터 API 작성기 구성]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4375,6 +4384,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++353bfeffa4a99ec1426a2426a764e92e5b9c2f00db3bf837d8f5a1e4f486117a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[In the Data API builder experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[데이터 API 작성기 환경에서 로컬 컨테이너 배포는 SQL 인증을 사용하는 연결에만 사용할 수 있습니다. 현재 연결 유형은 지원되지 않습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++3549b0028b75d981cdda2e573e9cb49dedc200185876df299f912b79f69dabd8" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[database]]></Val>
@@ -4866,6 +4884,15 @@
           <Val><![CDATA[Code Analysis]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Code Analysis]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++3c96c6d1388e41b0724659fa022b1843dea4a84d175a1d571bf72382fc0c3581" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Do you want to enable 'Trust server certificate' on this connection and retry?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[이 연결에서 '서버 인증서 신뢰'를 사용하도록 설정하고 다시 시도하시겠습니까?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6018,15 +6045,6 @@
           <Val><![CDATA[Subscription]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[구독]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++49a6dfed78fc8f501d94e0e7ce6d4f31c023a1a68b946f5faab2cba9950bf29c" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Visualize and Design Schema (Preview)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[스키마 시각화 및 디자인(미리 보기)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9964,6 +9982,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++7b2227d51ac2087125e6e9ef2fff2d56b0f6bf97b6698bf014026833e0e43cba" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[User databases]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[사용자 데이터베이스]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++7b48d5864d528c861a4bb45d1bf3fddab2186bb2d09deb1bce1c4730b72bf1f1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No data to display.]]></Val>
@@ -10455,15 +10482,6 @@
           <Val><![CDATA[Select the Azure Data Studio settings.json file to scan for connection groups and connections.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Azure Data Studio settings.json 파일을 선택하여 연결 그룹 및 연결을 검색합니다.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++817f5f09a6d707d92c3926808ded36489dab38b529e972985cf5314eac7dbdbb" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Data API builder Configuration (Preview)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[데이터 API 작성기 구성(미리 보기)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11098,15 +11116,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++8a95be6d8f6c4312ed4415b9bde10c28f765b025b375245f7f53575ccbe94183" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[In the Data API builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[데이터 API 작성기(미리 보기) 환경에서 로컬 컨테이너 배포는 SQL 인증을 사용하는 연결에만 사용할 수 있습니다. 현재 연결 유형은 지원되지 않습니다.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++8a9889070cc5b808819105a414532c19eb1ace48a6acd6350d5e4aa7576f6ba8" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Data-Tier Application (DACPAC / BACPAC) Import & Export]]></Val>
@@ -11418,6 +11427,15 @@
           <Val><![CDATA[Summary]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[요약]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++8e86ef922196322045f4a646ef811f7df15a59da3a33b8180732d68155a7a652" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Build Data API]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[빌드 데이터 API]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12696,15 +12714,6 @@
           <Val><![CDATA[Checking container readiness]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[컨테이너 준비 상태를 확인하는 중]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++a04452986b48c7c3c21f78712b31a68f2aecb85566c134d87d55348c7b16b9a8" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[이 연결에서 암호화를 사용하도록 설정했습니다. 대상 SQL Server에 대한 SSL 및 인증서 구성을 검토하거나, 설정 파일에서 '서버 인증서 신뢰'를 ‘true’로 설정하세요. 참고: 자체 서명된 인증서는 제한된 보호만 제공하며 프로덕션 환경에 권장되는 방법은 아닙니다. 이 연결에서 '서버 인증서 신뢰'를 사용하도록 설정하고 다시 시도하시겠습니까?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14001,15 +14010,6 @@
           <Val><![CDATA[Password (SQL Login)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[암호(SQL 로그인)]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++b14075f1961f95a9c65c61d8e0da7d32280678ff775e70b6c74a8c4966097838" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Design Schemas with GitHub Copilot (Preview)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[GitHub Copilot을 사용하여 스키마 디자인(미리 보기)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15810,6 +15810,15 @@
           <Val><![CDATA[Close details panel]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[세부 정보 창 닫기]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++c8a8ab1cef4a26f5a47e6aff86611314a34effe284539cfe1421067648432eab" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unable to load database list from server: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[서버에서 데이터베이스 목록을 로드할 수 없습니다. {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17677,6 +17686,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++e03c1fa5598b1caba263d99a4896ddba797148eaca638348d48aa792db57f71e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true'. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[이 연결에서 암호화를 사용하도록 설정했습니다. 대상 SQL Server에 대한 SSL 및 인증서 구성을 검토하거나 '서버 인증서 신뢰'를 'true'로 설정하세요. 참고: 자체 서명된 인증서는 제한된 보호만 제공하며 프로덕션 환경에 권장되는 방법은 아닙니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++e055f3ddb9f539f2c4d96b44e4821f09a1d8760a52da1eb0a8cdbf1002b3100e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add MCP server to workspace configuration]]></Val>
@@ -18631,6 +18649,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++eab0f257866b670694bf52eec427b7799ca53883151d4d4526b0e57660ce65ab" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Visualize and Design Schema]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[스키마 시각화 및 디자인]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++eab9bd4ed6506f418e00977a0a7bcc445774cac844a2f6debffeff1efc0b75f2" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[TypeORM]]></Val>
@@ -18726,6 +18753,15 @@
           <Val><![CDATA[Sort ascending]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[오름차순 정렬]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++ec45cfbf2af59ce8d7cc24d91cb00575e3c328bbb4101a8af85ef66b04333d36" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[System databases]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[시스템 데이터베이스]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -20250,10 +20286,13 @@
       </Item>
       <Item ItemId=";package.mssql.buildDataApi" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Build Data API (Preview)...]]></Val>
+          <Val><![CDATA[Build Data API...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[데이터 API 빌드(미리 보기)...]]></Val>
+            <Val><![CDATA[빌드 데이터 API...]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Build Data API (Preview)...]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -21513,12 +21552,12 @@
       </Item>
       <Item ItemId=";package.mssql.notebooks.createNotebook" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[New SQL Notebook (Preview)]]></Val>
+          <Val><![CDATA[New SQL Notebook]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[새 SQL Notebook(미리 보기)]]></Val>
+            <Val><![CDATA[새 SQL Notebook]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Create SQL Notebook (Preview)]]></Val>
+            <Val><![CDATA[New SQL Notebook (Preview)]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
@@ -22213,6 +22252,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";package.mssql.results.openAfterSave" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[When enabled, saved query result exports are opened after export. Excel exports open with the system file handler; text exports open in VS Code.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[사용하도록 설정하면 저장된 쿼리 결과 내보내기가 내보내기 후 열립니다. Excel로 내보낸 파일은 시스템 파일 처리기로 열리고, 텍스트로 내보낸 파일은 VS Code에서 열립니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";package.mssql.resultsFontFamily" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Set the font family for the results grid; set to blank to use the editor font]]></Val>
@@ -22458,12 +22506,12 @@
       </Item>
       <Item ItemId=";package.mssql.schemaDesigner" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Visualize and Design Schema (Preview)...]]></Val>
+          <Val><![CDATA[Visualize and Design Schema...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[스키마 시각화 및 디자인(미리 보기)...]]></Val>
+            <Val><![CDATA[스키마 시각화 및 디자인...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Visualize and Design Schema...]]></Val>
+            <Val><![CDATA[Visualize and Design Schema (Preview)...]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />

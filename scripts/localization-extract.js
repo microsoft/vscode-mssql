@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 const vscodel10n = require("@vscode/l10n-dev");
+const { execFileSync } = require("child_process");
 const fs = require("fs").promises;
 const path = require("path");
 const logger = require("./terminal-logger");
@@ -18,6 +19,56 @@ const EXTENSION_CONFIG = {
     "sql-database-projects": "sql-database-projects",
     "data-workspace": "data-workspace",
 };
+
+const EXTENSION_INPUTS = {
+    mssql: ["extensions/mssql/src/", "extensions/mssql/package.nls.json"],
+    "sql-database-projects": [
+        "extensions/sql-database-projects/src/",
+        "extensions/sql-database-projects/package.nls.json",
+    ],
+    "data-workspace": [
+        "extensions/data-workspace/src/",
+        "extensions/data-workspace/package.nls.json",
+    ],
+};
+
+const LOCALIZATION_SCRIPT_INPUTS = [
+    "scripts/localization-extract.js",
+    "scripts/file-utils.js",
+    "scripts/terminal-logger.js",
+];
+
+function getStagedFiles() {
+    const output = execFileSync(
+        "git",
+        ["diff", "--cached", "--name-only", "--diff-filter=ACMRD", "-z"],
+        { encoding: "buffer" },
+    );
+
+    return output
+        .toString("utf8")
+        .split("\0")
+        .map((file) => file.replace(/\\/g, "/").trim())
+        .filter(Boolean);
+}
+
+function matchesInput(file, input) {
+    return input.endsWith("/") ? file.startsWith(input) : file === input;
+}
+
+function getAffectedExtensionsForPrecommit() {
+    const stagedFiles = getStagedFiles();
+
+    if (stagedFiles.some((file) => LOCALIZATION_SCRIPT_INPUTS.includes(file))) {
+        return Object.keys(EXTENSION_CONFIG);
+    }
+
+    return Object.entries(EXTENSION_INPUTS)
+        .filter(([, inputs]) =>
+            stagedFiles.some((file) => inputs.some((input) => matchesInput(file, input))),
+        )
+        .map(([extension]) => extension);
+}
 
 /**
  * Scans the src directory of an extension for TypeScript files and extracts their content
@@ -173,18 +224,42 @@ async function extractLocalizationStrings() {
     }
 }
 
+async function extractLocalizationForPrecommit() {
+    const affectedExtensions = getAffectedExtensionsForPrecommit();
+    if (!affectedExtensions.length) {
+        console.log("No staged localization inputs; skipping localization extraction.");
+        return;
+    }
+
+    for (const extensionDir of affectedExtensions) {
+        await extractLocalizationForExtension(extensionDir, EXTENSION_CONFIG[extensionDir]);
+    }
+}
+
 module.exports = {
     extractLocalizationStrings,
     extractLocalizationForExtension,
+    extractLocalizationForPrecommit,
     getL10nJson,
 };
 
 if (require.main === module) {
     // Check if a specific extension is requested via command line args
     const args = process.argv.slice(2);
-    const specificExtension = args[0];
+    const precommit = args.includes("--precommit");
+    const specificExtension = args.find((arg) => !arg.startsWith("--"));
 
-    if (specificExtension) {
+    if (precommit) {
+        extractLocalizationForPrecommit()
+            .then(() => {
+                logger.success("Script completed successfully!");
+                process.exit(0);
+            })
+            .catch((error) => {
+                logger.error(`Script failed: ${error.message}`);
+                process.exit(1);
+            });
+    } else if (specificExtension) {
         // Extract for specific extension
         const xliffName = EXTENSION_CONFIG[specificExtension];
         if (!xliffName) {
