@@ -8,7 +8,7 @@ import { DeploymentType } from "../../../sharedInterfaces/deployment";
 import { locConstants } from "../../common/locConstants";
 import { DockerIcon } from "../../common/icons/docker";
 import { SqlDbInFabricIcon } from "../../common/icons/sqlDbInFabric";
-import { CreateDatabaseIcon } from "../../common/icons/createDatabase";
+import { AzureSqlDatabaseIcon } from "../../common/icons/azureSqlDatabase";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -200,7 +200,7 @@ export const ChooseDeploymentTypePage: React.FC<ChooseDeploymentTypePageProps> =
                     tabIndex={0}
                     role="button">
                     <div className={classes.iconBadge}>
-                        <CreateDatabaseIcon
+                        <AzureSqlDatabaseIcon
                             className={classes.azureSqlIcon}
                             role="img"
                             aria-label={locConstants.azureSqlDatabase.azureSqlDatabaseHeader}

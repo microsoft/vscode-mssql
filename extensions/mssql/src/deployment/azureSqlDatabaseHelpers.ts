@@ -3,6 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { AzureSubscription, AzureTenant } from "@microsoft/vscode-azext-azureauth";
+import { KnownAlwaysEncryptedEnclaveType, Server, KnownSampleName } from "@azure/arm-sql";
+import * as vscode from "vscode";
 import { getDefaultTenantId, VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
 import { AzureSqlDatabase, ConnectionDialog } from "../constants/locConstants";
@@ -21,13 +24,6 @@ import { UserSurvey } from "../nps/userSurvey";
 // Cached logger reference for use in helper functions that don't have
 // direct access to the controller's protected logger.
 let cachedLogger: Logger | undefined;
-
-// ─── Cached Azure data ───────────────────────────────────────────────────────
-// These caches reduce redundant Azure API calls. They are populated during
-// component loading and invalidated when upstream selections change.
-import type { AzureSubscription, AzureTenant } from "@microsoft/vscode-azext-azureauth";
-import { KnownAlwaysEncryptedEnclaveType, type Server } from "@azure/arm-sql";
-import type * as vscode from "vscode";
 
 let cachedAccounts: vscode.AuthenticationSessionAccountInformation[] = [];
 let cachedTenants: AzureTenant[] = [];
@@ -77,6 +73,19 @@ const COLLATION_OPTIONS = [
     "Korean_Wansung_CI_AS",
     "Arabic_CI_AS",
     "Turkish_CI_AS",
+];
+
+const DATA_SOURCE_OPTIONS: FormItemOptions[] = [
+    { displayName: AzureSqlDatabase.noDataSource, value: "" },
+    { displayName: KnownSampleName.AdventureWorksLT, value: KnownSampleName.AdventureWorksLT },
+    {
+        displayName: KnownSampleName.WideWorldImportersStd,
+        value: KnownSampleName.WideWorldImportersStd,
+    },
+    {
+        displayName: KnownSampleName.WideWorldImportersFull,
+        value: KnownSampleName.WideWorldImportersFull,
+    },
 ];
 
 function getCachedTenant(tenantId: string): AzureTenant | undefined {
@@ -172,6 +181,7 @@ export async function initializeAzureSqlDatabaseState(
         groupId: selectedGroupId || groupOptions[0]?.value || "",
         collation: "SQL_Latin1_General_CP1_CI_AS",
         maintenanceConfig: "",
+        dataSource: "",
         enableAlwaysEncrypted: false,
     };
 
@@ -262,6 +272,7 @@ export function registerAzureSqlDatabaseReducers(
                     azureSqlState.formState.serverName,
                     azureSqlState.formState.databaseName,
                     {
+                        sampleName: azureSqlState.formState.dataSource || undefined,
                         collation: azureSqlState.formState.collation || undefined,
                         preferredEnclaveType: azureSqlState.formState.enableAlwaysEncrypted
                             ? KnownAlwaysEncryptedEnclaveType.Default
@@ -1015,7 +1026,7 @@ function setAzureSqlDatabaseFormComponents(
             type: FormItemType.Checkbox,
             required: false,
             label: AzureSqlDatabase.savePassword,
-            componentWidth: "320px",
+            componentWidth: "280px",
         }),
         profileName: createFormItem({
             propertyName: "profileName",
@@ -1028,6 +1039,14 @@ function setAzureSqlDatabaseFormComponents(
         groupId: createFormItem({
             ...getGroupIdFormItem(groupOptions),
         } as Partial<asd.AzureSqlDatabaseFormItemSpec>),
+        dataSource: createFormItem({
+            propertyName: "dataSource",
+            label: AzureSqlDatabase.dataSource,
+            type: FormItemType.Dropdown,
+            isAdvancedOption: true,
+            options: DATA_SOURCE_OPTIONS,
+            placeholder: AzureSqlDatabase.selectDataSource,
+        }),
         collation: createFormItem({
             propertyName: "collation",
             label: AzureSqlDatabase.collation,

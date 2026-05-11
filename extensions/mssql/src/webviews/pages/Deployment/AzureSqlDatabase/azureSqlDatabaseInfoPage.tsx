@@ -78,14 +78,14 @@ export const AzureSqlDatabaseInfoPage: React.FC = () => {
                         <BuiltOnAzureSqlIcon
                             className={classes.icon}
                             role="img"
-                            aria-label={locConstants.azureSqlDatabase.fullyManaged}
+                            aria-label={locConstants.azureSqlDatabase.oltpAzureSql}
                         />
                     </div>
                     <div className={classes.textDiv}>
                         <div className={classes.titleDiv}>
-                            {locConstants.azureSqlDatabase.fullyManaged}
+                            {locConstants.azureSqlDatabase.oltpAzureSql}
                         </div>
-                        <div>{locConstants.azureSqlDatabase.fullyManagedDescription}</div>
+                        <div>{locConstants.azureSqlDatabase.otlpAzureSqlDescription}</div>
                     </div>
                 </div>
                 <div className={classes.itemDiv}>
@@ -93,14 +93,14 @@ export const AzureSqlDatabaseInfoPage: React.FC = () => {
                         <AnalyticsReadyIcon
                             className={classes.icon}
                             role="img"
-                            aria-label={locConstants.azureSqlDatabase.elasticScaling}
+                            aria-label={locConstants.azureSqlDatabase.freeComputeAndScaling}
                         />
                     </div>
                     <div className={classes.textDiv}>
                         <div className={classes.titleDiv}>
-                            {locConstants.azureSqlDatabase.elasticScaling}
+                            {locConstants.azureSqlDatabase.freeComputeAndScaling}
                         </div>
-                        <div>{locConstants.azureSqlDatabase.elasticScalingDescription}</div>
+                        <div>{locConstants.azureSqlDatabase.freeComputeAndScalingDescription}</div>
                     </div>
                 </div>
                 <div className={classes.itemDiv}>
@@ -108,14 +108,14 @@ export const AzureSqlDatabaseInfoPage: React.FC = () => {
                         <InstantSetupIcon
                             className={classes.icon}
                             role="img"
-                            aria-label={locConstants.azureSqlDatabase.builtInIntelligence}
+                            aria-label={locConstants.azureSqlDatabase.integratedAndSecure}
                         />
                     </div>
                     <div className={classes.textDiv}>
                         <div className={classes.titleDiv}>
-                            {locConstants.azureSqlDatabase.builtInIntelligence}
+                            {locConstants.azureSqlDatabase.integratedAndSecure}
                         </div>
-                        <div>{locConstants.azureSqlDatabase.builtInIntelligenceDescription}</div>
+                        <div>{locConstants.azureSqlDatabase.integratedAndSecureDescription}</div>
                     </div>
                 </div>
             </div>

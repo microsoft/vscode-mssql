@@ -6,6 +6,7 @@
 import { ApiStatus } from "./webview";
 import { FormContextProps, FormItemSpec, FormReducers, FormState } from "./form";
 import { IDialogProps } from "./connectionDialog";
+import { KnownSampleName } from "@azure/arm-sql";
 
 /**
  * Ordered list of Azure component names used for cascading load/reset.
@@ -70,6 +71,7 @@ export interface AzureSqlDatabaseFormState {
     autoPauseDelay: number;
     profileName: string;
     groupId: string;
+    dataSource: KnownSampleName | "";
     collation: string;
     maintenanceConfig: string;
     enableAlwaysEncrypted: boolean;

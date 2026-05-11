@@ -1406,6 +1406,9 @@ export class AzureSqlDatabase {
     public static savePassword = l10n.t("Save password");
     public static userNameIsRequired = l10n.t("Username is required");
     public static passwordIsRequired = l10n.t("Password is required");
+    public static dataSource = l10n.t("Data Source");
+    public static selectDataSource = l10n.t("Select a data source");
+    public static noDataSource = l10n.t("None (empty database)");
     public static collation = l10n.t("Collation");
     public static selectCollation = l10n.t("Select a collation");
     public static loadingCollations = l10n.t("Loading collations...");

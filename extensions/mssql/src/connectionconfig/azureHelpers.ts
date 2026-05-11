@@ -32,6 +32,7 @@ import { groupQuickPickItems, MssqlQuickPickItem } from "../utils/quickpickHelpe
 import {
     AlwaysEncryptedEnclaveType,
     Database,
+    KnownSampleName,
     ManagedDatabase,
     ManagedInstance,
     Server,
@@ -324,6 +325,7 @@ export class VsCodeAzureHelper {
         serverName: string,
         databaseName: string,
         options: {
+            sampleName?: KnownSampleName;
             collation?: string;
             preferredEnclaveType?: AlwaysEncryptedEnclaveType;
             maintenanceConfigurationId?: string;

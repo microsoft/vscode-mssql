@@ -1784,25 +1784,26 @@ export class LocConstants {
     public get azureSqlDatabase() {
         return {
             loadingAzureSqlDatabase: l10n.t("Loading Azure SQL Database..."),
-            azureSqlDatabaseHeader: l10n.t("Azure SQL Database"),
+            azureSqlDatabaseHeader: l10n.t("Create an Azure SQL Database"),
             azureSqlDatabaseDescription: l10n.t(
-                "Deploy a fully managed SQL database in the cloud with built-in intelligence, high availability, and elastic scaling on Microsoft Azure.",
+                "Try Azure SQL Database at no cost with our free tier offer! Provision a fully managed cloud database directly from VS Code.",
             ),
-            comingSoon: l10n.t(
-                "Azure SQL Database deployment is coming soon. This feature is currently under development.",
+            oltpAzureSql: l10n.t("OLTP, built on Azure SQL"),
+            otlpAzureSqlDescription: l10n.t(
+                "Developer-friendly transactional database using the Azure SQL Database Engine — at no cost for prototyping and learning.",
             ),
-            fullyManaged: l10n.t("Fully Managed"),
-            fullyManagedDescription: l10n.t(
-                "Azure SQL Database handles patching, backups, and infrastructure management so you can focus on building your application.",
+            freeComputeAndScaling: l10n.t("Free compute & storage"),
+            freeComputeAndScalingDescription: l10n.t(
+                "Up to 10 databases with 100K vCore seconds, 32 GB storage, and backups renewed monthly.",
             ),
-            elasticScaling: l10n.t("Elastic Scaling"),
-            elasticScalingDescription: l10n.t(
-                "Scale compute and storage resources independently to match your workload demands with minimal downtime.",
+            integratedAndSecure: l10n.t("Integrated & secure"),
+            integratedAndSecureDescription: l10n.t(
+                "Built-in encryption, firewall rules, and Microsoft Entra ID integration to protect your data.",
             ),
-            builtInIntelligence: l10n.t("Built-in Intelligence"),
-            builtInIntelligenceDescription: l10n.t(
-                "Automatic performance tuning, threat detection, and intelligent insights powered by AI help keep your database secure and optimized.",
-            ),
+            learnMore: l10n.t("Learn more"),
+            learnMoreAboutFreeTier: l10n.t("Learn more about Azure SQL Database free tier"),
+            compareTiers: l10n.t("Compare Azure SQL Database service tiers"),
+            configureAndCustomize: l10n.t("Configure and customize Azure SQL Databases"),
             createDatabase: l10n.t("Create Database"),
             provisioning: l10n.t("Provisioning"),
             deploymentInProgress: l10n.t("Deployment in progress"),
@@ -1868,6 +1869,8 @@ export class LocConstants {
             passwordsDoNotMatch: l10n.t("Passwords do not match"),
             savePasswordForConnection: l10n.t("Save password for connection"),
             enableAlwaysEncrypted: l10n.t("Always Encrypted"),
+            dataSource: l10n.t("Data Source"),
+            selectDataSource: l10n.t("Select a data source"),
             loadingMaintenanceConfigs: l10n.t("Loading maintenance windows..."),
             loadingCollations: l10n.t("Loading collations..."),
             tags: l10n.t("Tags"),

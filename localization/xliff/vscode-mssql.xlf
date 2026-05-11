@@ -208,6 +208,9 @@
     <trans-unit id="++CODE++18ef399051716731a65e9412dca68fc9d35b38850e7dff905d9771fe15bde438">
       <source xml:lang="en">Add new foreign key</source>
     </trans-unit>
+    <trans-unit id="++CODE++3e10b08cc874514175b51ba372ff955b27e2817963bc53ab489344968d5a472d">
+      <source xml:lang="en">Add tag</source>
+    </trans-unit>
     <trans-unit id="++CODE++4eeee164cd7b783f58eca583f898bdb923ed56ab94ae7d3604dc11738090fe7f">
       <source xml:lang="en">Add to VS Code</source>
     </trans-unit>
@@ -489,9 +492,6 @@
     <trans-unit id="++CODE++70d2e37ffe6556af0cba5c43fa55ab55f9235530987956b396745510a5d4d471">
       <source xml:lang="en">Auto-scroll enabled</source>
     </trans-unit>
-    <trans-unit id="++CODE++18e28be674f1ab1a80ed24a6f2676c3a42d0567658c7bdc41749cb20d5f4cf07">
-      <source xml:lang="en">Automatic performance tuning, threat detection, and intelligent insights powered by AI help keep your database secure and optimized.</source>
-    </trans-unit>
     <trans-unit id="++CODE++0b88b412b158e1648835456305f857b2228f04cdd61b08afc1924ea48fcee4c0">
       <source xml:lang="en">Automatic tuning features like automatic index creation enabled by default.</source>
     </trans-unit>
@@ -541,15 +541,6 @@
     </trans-unit>
     <trans-unit id="++CODE++aa3e45296e9592fa302b1adc67d9b4467e467a4ffa11fee0c0430063a3372707">
       <source xml:lang="en">Azure MFA</source>
-    </trans-unit>
-    <trans-unit id="++CODE++bbe331f8e32243066afbce22f5a989fac4ccc48b7f8902da20c35b50117276af">
-      <source xml:lang="en">Azure SQL Database</source>
-    </trans-unit>
-    <trans-unit id="++CODE++c3c67f78dc56aeaa98b1507c38fbd6c30874019bb61c512a69e90e8523577200">
-      <source xml:lang="en">Azure SQL Database deployment is coming soon. This feature is currently under development.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++ffbda7c920e30aab861ca30f4e65549f0aa3b81bbf0441cd4e337b619d99bdc2">
-      <source xml:lang="en">Azure SQL Database handles patching, backups, and infrastructure management so you can focus on building your application.</source>
     </trans-unit>
     <trans-unit id="++CODE++ba5528fbaf5a47fa7cb9ab8214c97d40ed77a42a1258edd947bff8447eb8dabf">
       <source xml:lang="en">Azure SQL Database is not supported for backup.</source>
@@ -718,8 +709,8 @@
     <trans-unit id="++CODE++9168a1046e45504ed34edeecd99ec73be336161e82395399aa9a3c1d912be6b2">
       <source xml:lang="en">Building {0}...</source>
     </trans-unit>
-    <trans-unit id="++CODE++4f9ddafc0e0489ed2a8e432bb18b71475e0195a67d64bd15d0c4f4ab5244e3c3">
-      <source xml:lang="en">Built-in Intelligence</source>
+    <trans-unit id="++CODE++0e065649e8d08d5182df2d21e09c4601b250d55237faf7166fb300ea125f3d8b">
+      <source xml:lang="en">Built-in encryption, firewall rules, and Microsoft Entra ID integration to protect your data.</source>
     </trans-unit>
     <trans-unit id="++CODE++6f52d618fb243f0ae137c3c850eb0bda8b347766a553b613fc210f6eb6bb5c97">
       <source xml:lang="en">Bulk-logged</source>
@@ -1177,6 +1168,9 @@
     <trans-unit id="++CODE++e888155d8c7d2e3c3f9eb1bf57e8d81ba1a3c182b5e94b01e09de2cb2cca81f9">
       <source xml:lang="en">Compare</source>
     </trans-unit>
+    <trans-unit id="++CODE++ac33cc2b7f21b9e3f168a36d2c3c32a35216ffc2faf0630c9ae6aabc347c1b79">
+      <source xml:lang="en">Compare Azure SQL Database service tiers</source>
+    </trans-unit>
     <trans-unit id="++CODE++c76e4efa9bdedc294be4e0c0a7e42040e5c921d0b30a36e1c6249893b941b662">
       <source xml:lang="en">Compare SQL Server editions</source>
     </trans-unit>
@@ -1203,6 +1197,9 @@
     </trans-unit>
     <trans-unit id="++CODE++73b680fbf34c02acc61629ac870cb10a5f382c5379516f9dd96777d75a3086fe">
       <source xml:lang="en">Configure Rosetta in Docker Desktop</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c6cc40d1bb74f7c0333c4264cbd7d9ac832fcd4a39f54a4f044b54471beffd71">
+      <source xml:lang="en">Configure and customize Azure SQL Databases</source>
     </trans-unit>
     <trans-unit id="++CODE++33e3ae10b101f647412be0f940cfc04d7d17e7c6f8027b42ae6697852588d1fe">
       <source xml:lang="en">Configure and customize SQL Server containers</source>
@@ -1644,6 +1641,9 @@
     <trans-unit id="++CODE++80faaf9291799236b19a2c456248f32cf3aa3c5d9760093871da70c540cd9240">
       <source xml:lang="en">Create a new profiling session</source>
     </trans-unit>
+    <trans-unit id="++CODE++2dda2d5e705c870b4711000d9e6e1a1552a6426ff2835af34a45eb0ea5f3182b">
+      <source xml:lang="en">Create an Azure SQL Database</source>
+    </trans-unit>
     <trans-unit id="++CODE++920a110919d9017fb66218139efb71c5907532cbe6292a1db645f05d06a171ae">
       <source xml:lang="en">Create as Script</source>
     </trans-unit>
@@ -1762,6 +1762,9 @@
       <note>{0} is the command identifier &apos;mssql_dab&apos; and must not be translated
 {1} is the operation name &apos;get_state&apos; and must not be translated
 {2} is the operation name &apos;apply_changes&apos; and must not be translated</note>
+    </trans-unit>
+    <trans-unit id="++CODE++e136aee7826b55f91d1b030832bc4be35b9ee07563c09627052aeecb9335a039">
+      <source xml:lang="en">Data Source</source>
     </trans-unit>
     <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
       <source xml:lang="en">Data Type</source>
@@ -1915,9 +1918,6 @@
     <trans-unit id="++CODE++796590e031547b420cb30aea63caa00543f57651e3244a8823b769a5f1a1a74e">
       <source xml:lang="en">Deploy a .dacpac file to a new or existing SQL database</source>
     </trans-unit>
-    <trans-unit id="++CODE++22896dd0346228f24d633f6c2adce2436592e723f335e55db6df633d9991b5ae">
-      <source xml:lang="en">Deploy a fully managed SQL database in the cloud with built-in intelligence, high availability, and elastic scaling on Microsoft Azure.</source>
-    </trans-unit>
     <trans-unit id="++CODE++592bd375fa7c9d7ab616ecb3debb297c018a80c6a903167afbd6f1c4d68b0d0b">
       <source xml:lang="en">Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.</source>
     </trans-unit>
@@ -1978,6 +1978,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b77717c5f83b6e956ddee4a19420a4f7c0bed4934cd5d6cec4c61ac92420743e">
       <source xml:lang="en">Details tab - displays all event properties</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3ee76edbdcf0a31ed7285d2f1bc2de28bfa973b84056bc08fd6a6a4516152e49">
+      <source xml:lang="en">Developer-friendly transactional database using the Azure SQL Database Engine — at no cost for prototyping and learning.</source>
     </trans-unit>
     <trans-unit id="++CODE++4140839b57403cf1b132332262ad00592590d6f7970b0f83fc60fb9b8c53d707">
       <source xml:lang="en">Developer-friendly transactional database using the Azure SQL Database Engine.</source>
@@ -2144,9 +2147,6 @@
     <trans-unit id="++CODE++e451b91d33132634ff0a558d8d40b0e2daa3e392c45f0b75591924534362255d">
       <source xml:lang="en">Elapsed time: {0}</source>
       <note>{0} is the task elapsed time</note>
-    </trans-unit>
-    <trans-unit id="++CODE++8cf24bebcb83c686f0a1807f3a44c66e47dd40d4303b180a97a8776c9d825240">
-      <source xml:lang="en">Elastic Scaling</source>
     </trans-unit>
     <trans-unit id="++CODE++1e71b5c8f3211f1f01b27341d3ddc6a2ad651800264b495c12b50867f998662c">
       <source xml:lang="en">Enable &apos;Trust Server Certificate&apos;</source>
@@ -3168,6 +3168,9 @@
       <source xml:lang="en">Found {0} saved connection profile(s).</source>
       <note>{0} is the number of connection profiles</note>
     </trans-unit>
+    <trans-unit id="++CODE++101e791740d73043fdbe1492a661f8c4194d1881957dc2ba8f08d2739474ae53">
+      <source xml:lang="en">Free compute &amp; storage</source>
+    </trans-unit>
     <trans-unit id="++CODE++bb2f46cfafa54c18afeb7e7efc7ccf3b2d72b160c0381d2ad116e8f7139be42d">
       <source xml:lang="en">Freeze columns</source>
     </trans-unit>
@@ -3177,9 +3180,6 @@
     </trans-unit>
     <trans-unit id="++CODE++008dacb6d1e85bd8c0ae9661c4472810ef75537f690dd75d77fc74ca62f78fec">
       <source xml:lang="en">Full</source>
-    </trans-unit>
-    <trans-unit id="++CODE++eda388af5d14bd5cc3a61f0a2e43ffbc5ec4eed90b76d0474d8d0ef2f4f76204">
-      <source xml:lang="en">Fully Managed</source>
     </trans-unit>
     <trans-unit id="++CODE++c803710302d5769d8fcd51958c516ff27f2a3c5ad9373c348d1d180c04a74624">
       <source xml:lang="en">Function</source>
@@ -3577,6 +3577,9 @@
     <trans-unit id="++CODE++29b39d81b8651e8717f85c00002b2b087bafb969eb289ac991fa41b17522e775">
       <source xml:lang="en">Keep in query pane</source>
     </trans-unit>
+    <trans-unit id="++CODE++99a52df3ff3d499488e2fa28150c4106a2cb5e928891a830a9aa3922b2d32160">
+      <source xml:lang="en">Key</source>
+    </trans-unit>
     <trans-unit id="++CODE++a3c13b491573b0d54bf743caf0f5d59d5a791c42ae1072f16bb941be925fae18">
       <source xml:lang="en">Keys for token cache could not be saved in credential store, this may cause Microsoft Entra Id access token persistence issues and connection instabilities. It&apos;s likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with &quot;Microsoft.SqlTools|&quot; in Windows Credential Manager and reload.</source>
     </trans-unit>
@@ -3588,6 +3591,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1445799c033a2d17e2bad5d8610879e71ff0d73a8a3c2b932b43ad0449dac3a1">
       <source xml:lang="en">Learn more</source>
+    </trans-unit>
+    <trans-unit id="++CODE++51f271b7eaf83c5deef5741d74dab59a856cea83ec2362b518b5de09c5b1d9f5">
+      <source xml:lang="en">Learn more about Azure SQL Database free tier</source>
     </trans-unit>
     <trans-unit id="++CODE++51da53a813a79b97741fb115a94a72fe1629a0b0e9018767157ca28d863c53e3">
       <source xml:lang="en">Learn more about SQL Server 2025 features</source>
@@ -3770,6 +3776,9 @@
     <trans-unit id="++CODE++f42dc68b6c07746e76ce1891ba437df7a1d82524ba74c2ef4c9c770bfe5b787f">
       <source xml:lang="en">Loading code analysis rules...</source>
     </trans-unit>
+    <trans-unit id="++CODE++d7bd166a0fcb99c1a76bef916c6d48f1f627d8572d33c48399e2979659c8766f">
+      <source xml:lang="en">Loading collations...</source>
+    </trans-unit>
     <trans-unit id="++CODE++f2b912496817d1e0b2ab2560cbc08d38b2d5080aa631caffae27c4afa2f0c291">
       <source xml:lang="en">Loading database objects</source>
     </trans-unit>
@@ -3795,8 +3804,8 @@
     <trans-unit id="++CODE++93f000d094c33f601abe918b123741f26201c34c891d36c1358c862e209bdf14">
       <source xml:lang="en">Loading locations</source>
     </trans-unit>
-    <trans-unit id="++CODE++795ddcae94715b2dcbea84a913d047929169128d317450ad5314b87ffc450e3b">
-      <source xml:lang="en">Loading maintenance configurations...</source>
+    <trans-unit id="++CODE++b4eb78ee43fade6ba490bb64508b7dc359f5f67a8438030d28f54d46a222ee4b">
+      <source xml:lang="en">Loading maintenance windows...</source>
     </trans-unit>
     <trans-unit id="++CODE++c81954973ca0121a610a95a9872f6e71c08df9f100dd5dfb65dfee8545d2df2f">
       <source xml:lang="en">Loading resource groups</source>
@@ -4485,6 +4494,9 @@
     <trans-unit id="++CODE++dc937b59892604f5a86ac96936cd7ff09e25f18ae6b758e8014a24c7fa039e91">
       <source xml:lang="en">None</source>
     </trans-unit>
+    <trans-unit id="++CODE++4e936619770404c3fab784d2d0276b4f617b67ed037e49b3a36481f7929bcac7">
+      <source xml:lang="en">None (empty database)</source>
+    </trans-unit>
     <trans-unit id="++CODE++58601e3ffba5990d1be4db9f2bcc6107f9a72949aabd8f68f79bcb2c92195b5f">
       <source xml:lang="en">Not Between</source>
     </trans-unit>
@@ -5171,6 +5183,9 @@
     <trans-unit id="++CODE++d5001dd4aab39b12094fd9e9b68e3b8ab67a6437c8eeaf592f0943dcd5851890">
       <source xml:lang="en">Remove sort</source>
     </trans-unit>
+    <trans-unit id="++CODE++488464ba45b0e8e2bb24fac5530ec868c24851f486b82ab6e95c95e4f31ae79a">
+      <source xml:lang="en">Remove tag</source>
+    </trans-unit>
     <trans-unit id="++CODE++4f98318295cf61965501b5ff934574dfd3efea58641100c01dfa70131a732b31">
       <source xml:lang="en">Remove {0}</source>
       <note>{0} is the object type</note>
@@ -5538,9 +5553,6 @@
     <trans-unit id="++CODE++f102986b39effb31080ae442f61febe7ed58df1515c0711ccfadfe0311ccec81">
       <source xml:lang="en">Scale</source>
     </trans-unit>
-    <trans-unit id="++CODE++2ccfd8ea9563c2d2b56c7ca9d1eaba76d4ee4f690a0f561ba4864ce4772d489c">
-      <source xml:lang="en">Scale compute and storage resources independently to match your workload demands with minimal downtime.</source>
-    </trans-unit>
     <trans-unit id="++CODE++b8c590be37f9806eacc2f43e047d943cb0b51e96d92efe6f1549fd0d13d03a25">
       <source xml:lang="en">Scale mismatch between &apos;{0}&apos; and &apos;{1}&apos;</source>
       <note>{0} is source column
@@ -5727,8 +5739,14 @@
     <trans-unit id="++CODE++9573efb4cae60bea64a44f60c5b4cec045be244f211127eb0fd6d556d27449f1">
       <source xml:lang="en">Select a blob container</source>
     </trans-unit>
+    <trans-unit id="++CODE++c89b52fc072a9370c7bb8c9a726985b7632c38a45d1e06c14d8b650a87dc1e3c">
+      <source xml:lang="en">Select a collation</source>
+    </trans-unit>
     <trans-unit id="++CODE++c4300a3eee24147d9593a09a659650b44b4733e2979fef9cae3e3db10f116831">
       <source xml:lang="en">Select a connection group</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4e6644fdcf104792709d58c5309c2a4ec5a14b58e94a40bdd9da2af532e8e534">
+      <source xml:lang="en">Select a data source</source>
     </trans-unit>
     <trans-unit id="++CODE++c9e8c706a0db2ef84dc8a610e30fe22cb5709a146a0e76955dbd1f1444e5a0e6">
       <source xml:lang="en">Select a database</source>
@@ -6373,6 +6391,12 @@
     <trans-unit id="++CODE++e3fe2a3fe52c9c35874478d22328281ebf754f1b35747152c13e441a9eed92df">
       <source xml:lang="en">Tables</source>
     </trans-unit>
+    <trans-unit id="++CODE++ab25773875891beef60edb4b69226e94a44e347625f2188a767af0552f50f33f">
+      <source xml:lang="en">Tag keys must be unique.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1331275bc537b4c2bf1e46f7275677967515342e30b572e6852fa6f51b831fe8">
+      <source xml:lang="en">Tags</source>
+    </trans-unit>
     <trans-unit id="++CODE++51ce7311bb14de484f1ef7778458ba51f5948e01fc4a51fd53cd0437b188b2db">
       <source xml:lang="en">Tail-log backup</source>
     </trans-unit>
@@ -6665,6 +6689,9 @@
     <trans-unit id="++CODE++dadabe100e080a7068316b2a91caeb46ed5a60c2bf94a1a30acf4703bd3eb24d">
       <source xml:lang="en">Truncate the transaction log</source>
     </trans-unit>
+    <trans-unit id="++CODE++d7f5ff6e4dad9f838e47b0ebe6e7599c967ad07620a3329436b4887f723d649e">
+      <source xml:lang="en">Try Azure SQL Database at no cost with our free tier offer! Provision a fully managed cloud database directly from VS Code.</source>
+    </trans-unit>
     <trans-unit id="++CODE++54f7b4c24a0e08663b5d9d1cf65cdbb9e6e5e94413398f2480b1f2b717ab8ec4">
       <source xml:lang="en">Try adjusting your search or filters</source>
     </trans-unit>
@@ -6784,6 +6811,9 @@
     <trans-unit id="++CODE++c074b14299b30a8058e3609567b5d799180ac9d267fdf56a931e7bda37b36b29">
       <source xml:lang="en">Unsupported platform for Docker: {0}</source>
       <note>{0} is the platform name of the machine</note>
+    </trans-unit>
+    <trans-unit id="++CODE++31ab92c035a309794019f563cf5059e4ecc3e8ce19afc665de2b384d99e0fb61">
+      <source xml:lang="en">Up to 10 databases with 100K vCore seconds, 32 GB storage, and backups renewed monthly.</source>
     </trans-unit>
     <trans-unit id="++CODE++c1c1009d3f37ec058070a62e22caf9ac9dae2169d452487c5c271a8bcf57a291">
       <source xml:lang="en">Update</source>
