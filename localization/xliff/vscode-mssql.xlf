@@ -7569,11 +7569,11 @@
     <trans-unit id="mssql.showEstimatedPlan">
       <source xml:lang="en">Estimated Plan (MSSQL)</source>
     </trans-unit>
-    <trans-unit id="mssql.runCurrentStatement">
-      <source xml:lang="en">Execute Selection or Current Statement (MSSQL)</source>
-    </trans-unit>
     <trans-unit id="mssql.runQuery">
       <source xml:lang="en">Execute Query (MSSQL)</source>
+    </trans-unit>
+    <trans-unit id="mssql.runCurrentStatement">
+      <source xml:lang="en">Execute Selection or Current Statement (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.explainQuery">
       <source xml:lang="en">Explain Query</source>
