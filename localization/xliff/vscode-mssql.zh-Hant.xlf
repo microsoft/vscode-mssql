@@ -896,7 +896,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++8e86ef922196322045f4a646ef811f7df15a59da3a33b8180732d68155a7a652">
         <source xml:lang="en">Build Data API</source>
-        <target state="new">Build Data API</target>
+        <target state="translated">建立資料 API</target>
       </trans-unit>
       <trans-unit id="++CODE++00ea757097babdd3471ed3dbcef6f4a33b46658dfb023aa009b53fa1dd0ae30c">
         <source xml:lang="en">Build failed with exit code {0}</source>
@@ -2229,7 +2229,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++2154b11388f741094808a9e344ab0be7e4be3d2a989551deec3b43f35fc729e3">
         <source xml:lang="en">Data API builder Configuration</source>
-        <target state="new">Data API builder Configuration</target>
+        <target state="translated">資料 API 建立器設定</target>
       </trans-unit>
       <trans-unit id="++CODE++18c1620276c4ac7ddaec590de6087601cbfad39f0ef20e19c41db887fb760c00">
         <source xml:lang="en">Data API builder opened. Continue with {0} operations ({1}/{2}).</source>
@@ -2489,7 +2489,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++064ff20a39b16a49639c1d176496eb3078f7a0629c7bf854eb5021fc5a20aef8">
         <source xml:lang="en">Design Schemas with GitHub Copilot</source>
-        <target state="new">Design Schemas with GitHub Copilot</target>
+        <target state="translated">使用 GitHub Copilot 設計結構描述</target>
       </trans-unit>
       <trans-unit id="++CODE++45989de49fb7f66dfe17a8fc26f3a02c7abcd74f7e8e6cf9f39fa0e3775780df">
         <source xml:lang="en">Details</source>
@@ -4425,7 +4425,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++353bfeffa4a99ec1426a2426a764e92e5b9c2f00db3bf837d8f5a1e4f486117a">
         <source xml:lang="en">In the Data API builder experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.</source>
-        <target state="new">In the Data API builder experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.</target>
+        <target state="translated">在資料 API 建立器體驗中，只有使用 SQL 驗證的連線可以使用本機容器部署。不支援您目前的連線類型。</target>
       </trans-unit>
       <trans-unit id="++CODE++7285576bdacf86fe37274d3d0d399c29b4be2959005f60ac0729615d8fca9186">
         <source xml:lang="en">Include</source>
@@ -8917,7 +8917,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++eab0f257866b670694bf52eec427b7799ca53883151d4d4526b0e57660ce65ab">
         <source xml:lang="en">Visualize and Design Schema</source>
-        <target state="new">Visualize and Design Schema</target>
+        <target state="translated">視覺化與設計結構描述</target>
       </trans-unit>
       <trans-unit id="++CODE++e981ddae45d8f4ca53f1ccbe613ad254a041dacf65a06026099a6302d332113b">
         <source xml:lang="en">Warning</source>
@@ -9596,7 +9596,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="mssql.buildDataApi">
         <source xml:lang="en">Build Data API...</source>
-        <target state="new">Build Data API...</target>
+        <target state="translated">建立資料 API...</target>
       </trans-unit>
       <trans-unit id="mssql.cancelConnect">
         <source xml:lang="en">Cancel Connection (MSSQL)</source>
@@ -10490,7 +10490,7 @@ See the estimated plan without running the query, or view the actual query plan 
       </trans-unit>
       <trans-unit id="mssql.schemaDesigner">
         <source xml:lang="en">Visualize and Design Schema...</source>
-        <target state="new">Visualize and Design Schema...</target>
+        <target state="translated">視覺化與設計結構描述...</target>
       </trans-unit>
       <trans-unit id="mssql.transferActiveEditorConnections.description">
         <source xml:lang="en">When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.</source>
