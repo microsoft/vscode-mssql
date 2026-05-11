@@ -3,29 +3,96 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { useState } from "react";
 import {
     Button,
     DrawerBody,
     DrawerHeader,
     DrawerHeaderTitle,
-    Dropdown,
-    Field,
     Input,
-    Option,
+    Label,
     OverlayDrawer,
 } from "@fluentui/react-components";
-import { Dismiss24Regular } from "@fluentui/react-icons";
-import { useFormStyles } from "../../../common/forms/form.component";
+import { AddRegular, DeleteRegular, Dismiss24Regular } from "@fluentui/react-icons";
+import { FormField, useFormStyles } from "../../../common/forms/form.component";
 import { locConstants as Loc } from "../../../common/locConstants";
+import {
+    AzureSqlDatabaseContextProps,
+    AzureSqlDatabaseFormItemSpec,
+    AzureSqlDatabaseFormState,
+    AzureSqlDatabaseState,
+} from "../../../../sharedInterfaces/azureSqlDatabase";
+import { ApiStatus } from "../../../../sharedInterfaces/webview";
+import { TagEntry } from "./azureSqlDatabaseDeploymentWizard";
 
 export const AdvancedOptionsDrawer = ({
     open,
     onClose,
+    context,
+    formState,
+    formComponents,
+    azureComponentStatuses,
+    tags,
+    onTagsChange,
 }: {
     open: boolean;
     onClose: () => void;
+    context: AzureSqlDatabaseContextProps;
+    formState: AzureSqlDatabaseFormState;
+    formComponents: Partial<Record<keyof AzureSqlDatabaseFormState, AzureSqlDatabaseFormItemSpec>>;
+    azureComponentStatuses: Record<string, ApiStatus>;
+    tags: TagEntry[];
+    onTagsChange: (tags: TagEntry[]) => void;
 }) => {
     const formStyles = useFormStyles();
+    const [tagError, setTagError] = useState<string | undefined>(undefined);
+
+    const advancedComponents = Object.values(formComponents).filter(
+        (component): component is AzureSqlDatabaseFormItemSpec =>
+            !!component && !!component.isAdvancedOption,
+    );
+
+    // Map component property names to their loading text
+    const loadingTextMap: Record<string, string> = {
+        maintenanceConfig: Loc.azureSqlDatabase.loadingMaintenanceConfigs,
+    };
+
+    // Apply loading state from azureComponentStatuses to relevant components
+    for (const component of advancedComponents) {
+        const status = azureComponentStatuses[component.propertyName];
+        if (status !== undefined) {
+            const isLoading = status === ApiStatus.Loading || status === ApiStatus.NotStarted;
+            component.loading = isLoading;
+            if (isLoading) {
+                component.placeholder =
+                    loadingTextMap[component.propertyName] ?? component.placeholder;
+            }
+        }
+    }
+
+    const handleAddTag = () => {
+        setTagError(undefined);
+        onTagsChange([...tags, { key: "", value: "" }]);
+    };
+
+    const handleRemoveTag = (index: number) => {
+        setTagError(undefined);
+        onTagsChange(tags.filter((_, i) => i !== index));
+    };
+
+    const handleTagChange = (index: number, field: "key" | "value", newValue: string) => {
+        setTagError(undefined);
+        const updated = tags.map((tag, i) => (i === index ? { ...tag, [field]: newValue } : tag));
+
+        // Validate for duplicate keys
+        const keys = updated.map((t) => t.key.trim()).filter((k) => k.length > 0);
+        const hasDuplicates = new Set(keys).size !== keys.length;
+        if (hasDuplicates) {
+            setTagError(Loc.azureSqlDatabase.duplicateTagKeys);
+        }
+
+        onTagsChange(updated);
+    };
 
     return (
         <OverlayDrawer
@@ -52,28 +119,91 @@ export const AdvancedOptionsDrawer = ({
             </DrawerHeader>
 
             <DrawerBody style={{ display: "flex", flexDirection: "column" }}>
-                <div style={{ flex: 1 }}>
-                    <Field
-                        className={formStyles.formComponentDiv}
-                        label={Loc.azureSqlDatabase.backupRedundancy}>
-                        <Dropdown
-                            defaultValue={Loc.azureSqlDatabase.locallyRedundant}
-                            defaultSelectedOptions={["local"]}>
-                            <Option value="local">{Loc.azureSqlDatabase.locallyRedundant}</Option>
-                            <Option value="zone">{Loc.azureSqlDatabase.zoneRedundant}</Option>
-                            <Option value="geo">{Loc.azureSqlDatabase.geoRedundant}</Option>
-                        </Dropdown>
-                    </Field>
-                    <Field
-                        className={formStyles.formComponentDiv}
-                        label={Loc.azureSqlDatabase.collation}>
-                        <Input defaultValue="SQL_Latin1_General_CP1_CI_AS" />
-                    </Field>
-                    <Field
-                        className={formStyles.formComponentDiv}
-                        label={Loc.azureSqlDatabase.connectionTimeout}>
-                        <Input type="number" defaultValue="30" />
-                    </Field>
+                <div style={{ flex: 1 }} className={formStyles.formComponentDiv}>
+                    {advancedComponents.map((component, idx) => (
+                        <div style={{ width: component.componentWidth || "100%" }}>
+                            <FormField<
+                                AzureSqlDatabaseFormState,
+                                AzureSqlDatabaseState,
+                                AzureSqlDatabaseFormItemSpec,
+                                AzureSqlDatabaseContextProps
+                            >
+                                key={component.propertyName}
+                                context={context}
+                                formState={formState}
+                                component={component}
+                                idx={idx}
+                            />
+                        </div>
+                    ))}
+
+                    {/* Tags section */}
+                    <div style={{ margin: "5px", marginLeft: "10px" }}>
+                        <Label weight="semibold" style={{ marginBottom: "8px", display: "block" }}>
+                            {Loc.azureSqlDatabase.tags}
+                        </Label>
+
+                        {tags.map((tag, index) => (
+                            <div
+                                key={index}
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "8px",
+                                    marginBottom: "8px",
+                                }}>
+                                <Input
+                                    style={{ flex: 1 }}
+                                    size="small"
+                                    placeholder={Loc.azureSqlDatabase.tagKeyPlaceholder}
+                                    value={tag.key}
+                                    onChange={(_, data) =>
+                                        handleTagChange(index, "key", data.value)
+                                    }
+                                />
+                                <Input
+                                    style={{ flex: 1 }}
+                                    size="small"
+                                    placeholder={Loc.azureSqlDatabase.tagValuePlaceholder}
+                                    value={tag.value}
+                                    onChange={(_, data) =>
+                                        handleTagChange(index, "value", data.value)
+                                    }
+                                />
+                                <Button
+                                    appearance="subtle"
+                                    icon={<DeleteRegular />}
+                                    size="small"
+                                    aria-label={Loc.azureSqlDatabase.removeTag}
+                                    onClick={() => handleRemoveTag(index)}
+                                />
+                            </div>
+                        ))}
+
+                        {tagError && (
+                            <Label
+                                style={{
+                                    color: "var(--vscode-errorForeground)",
+                                    fontSize: "12px",
+                                }}>
+                                {tagError}
+                            </Label>
+                        )}
+
+                        <Button
+                            appearance="outline"
+                            icon={<AddRegular fontSize={12} />}
+                            size="small"
+                            onClick={handleAddTag}
+                            style={{
+                                paddingLeft: 0,
+                                paddingRight: 8,
+                                paddingTop: 2,
+                                paddingBottom: 2,
+                            }}>
+                            {Loc.azureSqlDatabase.addTag}
+                        </Button>
+                    </div>
                 </div>
                 <div
                     style={{

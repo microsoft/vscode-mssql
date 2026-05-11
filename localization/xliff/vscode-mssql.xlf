@@ -3795,6 +3795,9 @@
     <trans-unit id="++CODE++93f000d094c33f601abe918b123741f26201c34c891d36c1358c862e209bdf14">
       <source xml:lang="en">Loading locations</source>
     </trans-unit>
+    <trans-unit id="++CODE++795ddcae94715b2dcbea84a913d047929169128d317450ad5314b87ffc450e3b">
+      <source xml:lang="en">Loading maintenance configurations...</source>
+    </trans-unit>
     <trans-unit id="++CODE++c81954973ca0121a610a95a9872f6e71c08df9f100dd5dfb65dfee8545d2df2f">
       <source xml:lang="en">Loading resource groups</source>
     </trans-unit>
@@ -3924,6 +3927,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bc9503a89518d47aeceed119c50d8826d8ca48592bd977647da2b8e49a240ed3">
       <source xml:lang="en">MSSQL: What&apos;s new</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4812f4553152a2d4f7e8c4ddbd2740db0fd157638b9723fc369790631aa21061">
+      <source xml:lang="en">Maintenance Window</source>
     </trans-unit>
     <trans-unit id="++CODE++614e5389e87ce465fe548a0665aeaa67a52a06ff792f2f791615cd37fb610178">
       <source xml:lang="en">Manage Connection Profiles</source>
@@ -5738,6 +5744,9 @@
     </trans-unit>
     <trans-unit id="++CODE++741a06b13d57f36b0e124ffa0f78c13e53741b902f999b2656bbc8e7f75d625a">
       <source xml:lang="en">Select a location for the resource group</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cf093e7e2e997d1c42be65be5bd833c01393db39c48aa6dcf3bfc1675a4a83d0">
+      <source xml:lang="en">Select a maintenance window</source>
     </trans-unit>
     <trans-unit id="++CODE++a54be20a16dd8a5a2524e93c5127f2965bd47dc3ee2f00eed80390be902e3f74">
       <source xml:lang="en">Select a profiler template</source>

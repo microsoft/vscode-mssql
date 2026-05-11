@@ -87,12 +87,18 @@ const useStyles = makeStyles({
     },
 });
 
+import { TagEntry } from "./azureSqlDatabaseDeploymentWizard";
+
 interface AzureSqlDatabaseFormPageProps {
     onValidated?: () => void;
+    tags: TagEntry[];
+    onTagsChange: (tags: TagEntry[]) => void;
 }
 
 export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> = ({
     onValidated,
+    tags,
+    onTagsChange,
 }) => {
     const classes = useStyles();
     const context = useContext(DeploymentContext);
@@ -250,7 +256,7 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
         if (!component) return undefined;
         return (
             <div className={classes.fieldContainer}>
-                <div style={{ flex: 1, width: "100%" }}>
+                <div style={{ flex: 1, width: component.componentWidth || "100%" }}>
                     <FormField<
                         AzureSqlDatabaseFormState,
                         AzureSqlDatabaseState,
@@ -354,23 +360,7 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                                 </div>
                             </div>
                             {renderFormField("password")}
-                            <div style={{ width: "320px" }}>
-                                <FormField<
-                                    AzureSqlDatabaseFormState,
-                                    AzureSqlDatabaseState,
-                                    AzureSqlDatabaseFormItemSpec,
-                                    AzureSqlDatabaseContextProps
-                                >
-                                    context={context}
-                                    formState={formState}
-                                    component={
-                                        formComponents[
-                                            "savePassword"
-                                        ] as AzureSqlDatabaseFormItemSpec
-                                    }
-                                    idx={0}
-                                />
-                            </div>
+                            {renderFormField("savePassword")}
                         </>
                     )}
                 <div className={classes.fieldContainer}>
@@ -464,6 +454,12 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                 <AdvancedOptionsDrawer
                     open={isAdvancedDrawerOpen}
                     onClose={() => setIsAdvancedDrawerOpen(false)}
+                    context={context}
+                    formState={formState}
+                    formComponents={formComponents}
+                    azureComponentStatuses={azureComponentStatuses}
+                    tags={tags}
+                    onTagsChange={onTagsChange}
                 />
             </div>
             <div className={classes.bottomDiv} />

@@ -26,7 +26,7 @@ let cachedLogger: Logger | undefined;
 // These caches reduce redundant Azure API calls. They are populated during
 // component loading and invalidated when upstream selections change.
 import type { AzureSubscription, AzureTenant } from "@microsoft/vscode-azext-azureauth";
-import type { Server } from "@azure/arm-sql";
+import { KnownAlwaysEncryptedEnclaveType, type Server } from "@azure/arm-sql";
 import type * as vscode from "vscode";
 
 let cachedAccounts: vscode.AuthenticationSessionAccountInformation[] = [];
@@ -35,6 +35,7 @@ let cachedSubscriptions: AzureSubscription[] = [];
 let cachedResourceGroups: string[] = [];
 let cachedServers: Server[] = [];
 let cachedLocations: { name: string; displayName: string }[] = [];
+let cachedMaintenanceConfigs: { name: string; id: string }[] = [];
 
 function clearCacheDownstream(fromComponent: string): void {
     const order = asd.AZURE_SQL_DB_COMPONENT_ORDER as readonly string[];
@@ -48,6 +49,7 @@ function clearCacheDownstream(fromComponent: string): void {
                 break;
             case "subscriptionId":
                 cachedSubscriptions = [];
+                cachedMaintenanceConfigs = [];
                 break;
             case "resourceGroup":
                 cachedResourceGroups = [];
@@ -63,6 +65,19 @@ function clearCacheDownstream(fromComponent: string): void {
 function getCachedSubscription(subscriptionId: string): AzureSubscription | undefined {
     return cachedSubscriptions.find((s) => s.subscriptionId === subscriptionId);
 }
+
+const COLLATION_OPTIONS = [
+    "SQL_Latin1_General_CP1_CI_AS",
+    "Latin1_General_CI_AS",
+    "Latin1_General_CS_AS",
+    "SQL_Latin1_General_CP1_CS_AS",
+    "Latin1_General_BIN",
+    "Japanese_CI_AS",
+    "Chinese_PRC_CI_AS",
+    "Korean_Wansung_CI_AS",
+    "Arabic_CI_AS",
+    "Turkish_CI_AS",
+];
 
 function getCachedTenant(tenantId: string): AzureTenant | undefined {
     return cachedTenants.find((t) => t.tenantId === tenantId);
@@ -155,6 +170,9 @@ export async function initializeAzureSqlDatabaseState(
         autoPauseDelay: 60,
         profileName: "",
         groupId: selectedGroupId || groupOptions[0]?.value || "",
+        collation: "SQL_Latin1_General_CP1_CI_AS",
+        maintenanceConfig: "",
+        enableAlwaysEncrypted: false,
     };
 
     deploymentController.state.deploymentTypeState = state;
@@ -207,7 +225,7 @@ export function registerAzureSqlDatabaseReducers(
 
     deploymentController.registerReducer(
         "startAzureSqlDatabaseDeployment",
-        async (state, _payload) => {
+        async (state, payload) => {
             const azureSqlState = state.deploymentTypeState as asd.AzureSqlDatabaseState;
 
             azureSqlState.formValidationLoadState = ApiStatus.Loading;
@@ -243,6 +261,18 @@ export function registerAzureSqlDatabaseReducers(
                     azureSqlState.formState.resourceGroup,
                     azureSqlState.formState.serverName,
                     azureSqlState.formState.databaseName,
+                    {
+                        collation: azureSqlState.formState.collation || undefined,
+                        preferredEnclaveType: azureSqlState.formState.enableAlwaysEncrypted
+                            ? KnownAlwaysEncryptedEnclaveType.Default
+                            : undefined,
+                        maintenanceConfigurationId:
+                            azureSqlState.formState.maintenanceConfig || undefined,
+                        tags:
+                            payload.tags && Object.keys(payload.tags).length > 0
+                                ? payload.tags
+                                : undefined,
+                    },
                 );
 
                 azureSqlState.provisionLoadState = ApiStatus.Loaded;
@@ -517,6 +547,17 @@ export function reloadAzureComponentsDownstream(
             azureSqlState.formState.savePassword = false;
             azureSqlState.serverCreatedWithAuth = false;
         }
+
+        // Reset maintenance configs when subscription or upstream resets
+        if (componentName === "subscriptionId" || componentName === "resourceGroup") {
+            azureSqlState.azureComponentStatuses["maintenanceConfig"] = ApiStatus.NotStarted;
+            azureSqlState.formState.maintenanceConfig = "";
+            const maintenanceComponent = azureSqlState.formComponents.maintenanceConfig;
+            if (maintenanceComponent) {
+                maintenanceComponent.options = [];
+            }
+            cachedMaintenanceConfigs = [];
+        }
     }
 }
 
@@ -683,6 +724,41 @@ async function loadSubscriptionComponent(azureSqlState: asd.AzureSqlDatabaseStat
 
     azureSqlState.formState.subscriptionId =
         cachedSubscriptions.length > 0 ? cachedSubscriptions[0].subscriptionId : "";
+
+    // Load maintenance configurations for the selected subscription
+    await loadMaintenanceConfigs(azureSqlState);
+}
+
+async function loadMaintenanceConfigs(azureSqlState: asd.AzureSqlDatabaseState): Promise<void> {
+    const maintenanceComponent = azureSqlState.formComponents.maintenanceConfig;
+    if (!maintenanceComponent) return;
+
+    azureSqlState.azureComponentStatuses["maintenanceConfig"] = ApiStatus.Loading;
+
+    const subscription = getCachedSubscription(azureSqlState.formState.subscriptionId);
+    if (!subscription) {
+        maintenanceComponent.options = [];
+        azureSqlState.azureComponentStatuses["maintenanceConfig"] = ApiStatus.Error;
+        return;
+    }
+
+    const configs = await VsCodeAzureHelper.fetchPublicMaintenanceConfigurations(subscription);
+    cachedMaintenanceConfigs = configs
+        .filter((c) => c.name && c.id)
+        .map((c) => ({ name: c.name!, id: c.id! }));
+
+    maintenanceComponent.options = cachedMaintenanceConfigs.map((c) => ({
+        displayName: c.name,
+        value: c.id,
+    }));
+    maintenanceComponent.placeholder = AzureSqlDatabase.selectMaintenanceWindow;
+    azureSqlState.azureComponentStatuses["maintenanceConfig"] = ApiStatus.Loaded;
+
+    // Default to SQL_Default if available
+    const defaultConfig = cachedMaintenanceConfigs.find((c) => c.name === "SQL_Default");
+    if (defaultConfig) {
+        azureSqlState.formState.maintenanceConfig = defaultConfig.id;
+    }
 }
 
 async function loadResourceGroupComponent(azureSqlState: asd.AzureSqlDatabaseState): Promise<void> {
@@ -939,6 +1015,7 @@ function setAzureSqlDatabaseFormComponents(
             type: FormItemType.Checkbox,
             required: false,
             label: AzureSqlDatabase.savePassword,
+            componentWidth: "320px",
         }),
         profileName: createFormItem({
             propertyName: "profileName",
@@ -951,5 +1028,28 @@ function setAzureSqlDatabaseFormComponents(
         groupId: createFormItem({
             ...getGroupIdFormItem(groupOptions),
         } as Partial<asd.AzureSqlDatabaseFormItemSpec>),
+        collation: createFormItem({
+            propertyName: "collation",
+            label: AzureSqlDatabase.collation,
+            type: FormItemType.SearchableDropdown,
+            isAdvancedOption: true,
+            options: COLLATION_OPTIONS.map((c) => ({ displayName: c, value: c })),
+            placeholder: AzureSqlDatabase.selectCollation,
+        }),
+        maintenanceConfig: createFormItem({
+            propertyName: "maintenanceConfig",
+            label: AzureSqlDatabase.maintenanceWindow,
+            type: FormItemType.SearchableDropdown,
+            isAdvancedOption: true,
+            options: [],
+            placeholder: AzureSqlDatabase.selectMaintenanceWindow,
+        }),
+        enableAlwaysEncrypted: createFormItem({
+            propertyName: "enableAlwaysEncrypted",
+            label: AzureSqlDatabase.enableAlwaysEncrypted,
+            type: FormItemType.Checkbox,
+            isAdvancedOption: true,
+            componentWidth: "350px",
+        }),
     };
 }

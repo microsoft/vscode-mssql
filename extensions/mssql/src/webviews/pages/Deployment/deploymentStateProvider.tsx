@@ -4,7 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
-import { createContext, useMemo } from "react";
+import { createContext, useCallback, useMemo, useRef } from "react";
+import debounce from "lodash/debounce";
 import {
     DeploymentContextProps,
     DeploymentFormState,
@@ -25,6 +26,24 @@ interface DeploymentProviderProps {
 const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }) => {
     const { extensionRpc } = useVscodeWebview<DeploymentWebviewState, DeploymentReducers>();
 
+    const debouncedFormActionRef = useRef(
+        debounce((event: FormEvent<DeploymentFormState>) => {
+            extensionRpc.action("formAction", { event });
+        }, 200),
+    );
+
+    const formAction = useCallback(
+        (event: FormEvent<DeploymentFormState>) => {
+            if (!event.isAction && !event.updateValidation && typeof event.value === "string") {
+                debouncedFormActionRef.current(event);
+            } else {
+                debouncedFormActionRef.current.cancel();
+                extensionRpc.action("formAction", { event });
+            }
+        },
+        [extensionRpc],
+    );
+
     const commands = useMemo<DeploymentContextProps>(
         () => ({
             ...getCoreRPCs(extensionRpc),
@@ -34,11 +53,7 @@ const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }
                     deploymentType: deploymentType,
                 });
             },
-            formAction: function (event): void {
-                extensionRpc.action("formAction", {
-                    event: event as FormEvent<DeploymentFormState>,
-                });
-            },
+            formAction: formAction as DeploymentContextProps["formAction"],
             setConnectionGroupDialogState: function (shouldOpen: boolean): void {
                 extensionRpc.action("setConnectionGroupDialogState", {
                     shouldOpen: shouldOpen,
@@ -93,8 +108,8 @@ const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }
                     componentName: componentName,
                 });
             },
-            startAzureSqlDatabaseDeployment: function (): void {
-                extensionRpc.action("startAzureSqlDatabaseDeployment", {});
+            startAzureSqlDatabaseDeployment: function (tags: Record<string, string>): void {
+                extensionRpc.action("startAzureSqlDatabaseDeployment", { tags });
             },
             setCreateResourceGroupDrawerState: function (shouldOpen: boolean): void {
                 extensionRpc.action("setCreateResourceGroupDrawerState", {
@@ -118,7 +133,7 @@ const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }
             },
             //#endregion
         }),
-        [extensionRpc],
+        [extensionRpc, formAction],
     );
 
     return <DeploymentContext.Provider value={commands}>{children}</DeploymentContext.Provider>;

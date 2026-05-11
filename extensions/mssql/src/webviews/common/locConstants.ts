@@ -1867,6 +1867,15 @@ export class LocConstants {
             enterConfirmPassword: l10n.t("Confirm admin password"),
             passwordsDoNotMatch: l10n.t("Passwords do not match"),
             savePasswordForConnection: l10n.t("Save password for connection"),
+            enableAlwaysEncrypted: l10n.t("Always Encrypted"),
+            loadingMaintenanceConfigs: l10n.t("Loading maintenance windows..."),
+            loadingCollations: l10n.t("Loading collations..."),
+            tags: l10n.t("Tags"),
+            addTag: l10n.t("Add tag"),
+            removeTag: l10n.t("Remove tag"),
+            tagKeyPlaceholder: l10n.t("Key"),
+            tagValuePlaceholder: l10n.t("Value"),
+            duplicateTagKeys: l10n.t("Tag keys must be unique."),
         };
     }
 

@@ -30,6 +30,7 @@ import { configSelectedAzureSubscriptions, https } from "../constants/constants"
 import { Logger } from "../models/logger";
 import { groupQuickPickItems, MssqlQuickPickItem } from "../utils/quickpickHelpers";
 import {
+    AlwaysEncryptedEnclaveType,
     Database,
     ManagedDatabase,
     ManagedInstance,
@@ -52,6 +53,7 @@ import {
     BlobItem,
     StorageSharedKeyCredential,
 } from "@azure/storage-blob";
+import { MaintenanceManagementClient, MaintenanceConfiguration } from "@azure/arm-maintenance";
 
 export const azureSubscriptionFilterConfigKey = "mssql.selectedAzureSubscriptions";
 export const MANAGED_INSTANCE_PUBLIC_PORT = 3342;
@@ -321,21 +323,29 @@ export class VsCodeAzureHelper {
         resourceGroupName: string,
         serverName: string,
         databaseName: string,
+        options: {
+            collation?: string;
+            preferredEnclaveType?: AlwaysEncryptedEnclaveType;
+            maintenanceConfigurationId?: string;
+            tags?: {
+                [propertyName: string]: string;
+            };
+        },
     ): Promise<Database> {
         const sql = new SqlManagementClient(subscription.credential, subscription.subscriptionId, {
             endpoint: getCloudProviderSettings().settings.armResource.endpoint,
         });
 
+        const location = await this.getDefaultLocationForResourceGroup(
+            resourceGroupName,
+            subscription,
+        );
+
         const poller = await sql.databases.beginCreateOrUpdate(
             resourceGroupName,
             serverName,
             databaseName,
-            {
-                location: await this.getDefaultLocationForResourceGroup(
-                    resourceGroupName,
-                    subscription,
-                ),
-            },
+            { ...options, location },
         );
         return poller.pollUntilDone();
     }
@@ -586,6 +596,19 @@ export class VsCodeAzureHelper {
         }
     }
 
+    public static async fetchPublicMaintenanceConfigurations(
+        subscription: AzureSubscription,
+    ): Promise<MaintenanceConfiguration[]> {
+        const client = new MaintenanceManagementClient(
+            subscription.credential,
+            subscription.subscriptionId,
+            {
+                endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+            },
+        );
+        return await listAllIterator(client.publicMaintenanceConfigurations.list());
+    }
+
     /**
      * Gets the storage account keys for a given storage account.
      * @param sub The subscription to fetch storage account keys for.
@@ -777,6 +800,13 @@ export async function getSubscriptionQuickPickItems(
         .sort((a, b) => a.label.localeCompare(b.label));
 
     return groupQuickPickItems(quickPickItems);
+}
+
+// https://learn.microsoft.com/en-us/azure/azure-sql/database/maintenance-window-configure
+export enum MaintenanceSchedule {
+    Default = "Default",
+    Weekday = "DB_1",
+    Weekend = "DB_2",
 }
 
 //#endregion

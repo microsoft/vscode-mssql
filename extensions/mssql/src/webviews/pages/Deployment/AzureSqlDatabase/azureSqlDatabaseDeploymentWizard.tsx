@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useMemo } from "react";
+import { useContext, useMemo, useState } from "react";
 import { Wizard, WizardPageDefinition } from "../../../common/wizard";
 import { locConstants } from "../../../common/locConstants";
 import { CreateDatabaseIcon } from "../../../common/icons/createDatabase";
@@ -18,6 +18,11 @@ import { useAzureSqlDatabaseDeploymentSelector } from "../deploymentSelector";
 import { AzureSqlDatabaseInfoPage } from "./azureSqlDatabaseInfoPage";
 import { AzureSqlDatabaseFormPage } from "./azureSqlDatabaseFormPage";
 import { AzureSqlDatabaseProvisioningPage } from "./azureSqlDatabaseProvisioningPage";
+
+export interface TagEntry {
+    key: string;
+    value: string;
+}
 
 interface AzureSqlDatabaseDeploymentWizardProps {
     onBackToStart: () => void;
@@ -42,6 +47,8 @@ export const AzureSqlDatabaseDeploymentWizard: React.FC<AzureSqlDatabaseDeployme
     if (!context) {
         return undefined;
     }
+
+    const [tags, setTags] = useState<TagEntry[]>([]);
 
     const validationState = useMemo(
         () =>
@@ -108,6 +115,8 @@ export const AzureSqlDatabaseDeploymentWizard: React.FC<AzureSqlDatabaseDeployme
             render: (pageContext) => (
                 <AzureSqlDatabaseFormPage
                     onValidated={() => pageContext.goToPage("azure-sql-provisioning")}
+                    tags={tags}
+                    onTagsChange={setTags}
                 />
             ),
             nextLabel: locConstants.azureSqlDatabase.createDatabase,
@@ -116,7 +125,14 @@ export const AzureSqlDatabaseDeploymentWizard: React.FC<AzureSqlDatabaseDeployme
                 formValidationLoadState !== ApiStatus.Loading &&
                 !!formState?.accountId,
             onNext: () => {
-                context.startAzureSqlDatabaseDeployment();
+                const tagsRecord: Record<string, string> = {};
+                for (const tag of tags) {
+                    const trimmedKey = tag.key.trim();
+                    if (trimmedKey) {
+                        tagsRecord[trimmedKey] = tag.value;
+                    }
+                }
+                context.startAzureSqlDatabaseDeployment(tagsRecord);
                 return false;
             },
         },

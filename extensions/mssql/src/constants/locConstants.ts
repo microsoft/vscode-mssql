@@ -1406,6 +1406,13 @@ export class AzureSqlDatabase {
     public static savePassword = l10n.t("Save password");
     public static userNameIsRequired = l10n.t("Username is required");
     public static passwordIsRequired = l10n.t("Password is required");
+    public static collation = l10n.t("Collation");
+    public static selectCollation = l10n.t("Select a collation");
+    public static loadingCollations = l10n.t("Loading collations...");
+    public static enableAlwaysEncrypted = l10n.t("Always Encrypted");
+    public static maintenanceWindow = l10n.t("Maintenance Window");
+    public static selectMaintenanceWindow = l10n.t("Select a maintenance window");
+    public static loadingMaintenanceConfigs = l10n.t("Loading maintenance windows...");
 }
 
 export class FabricProvisioning {

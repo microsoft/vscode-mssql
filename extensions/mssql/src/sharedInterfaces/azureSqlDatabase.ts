@@ -43,6 +43,7 @@ export class AzureSqlDatabaseState
         subscriptionId: ApiStatus.NotStarted,
         resourceGroup: ApiStatus.NotStarted,
         serverName: ApiStatus.NotStarted,
+        maintenanceConfig: ApiStatus.NotStarted,
     };
     constructor(params?: Partial<AzureSqlDatabaseState>) {
         for (const key in params) {
@@ -69,6 +70,9 @@ export interface AzureSqlDatabaseFormState {
     autoPauseDelay: number;
     profileName: string;
     groupId: string;
+    collation: string;
+    maintenanceConfig: string;
+    enableAlwaysEncrypted: boolean;
 }
 
 export interface AzureSqlDatabaseFormItemSpec
@@ -121,7 +125,7 @@ export interface CreateServerSpec {
 
 export interface AzureSqlDatabaseContextProps extends FormContextProps<AzureSqlDatabaseFormState> {
     loadAzureComponent(componentName: string): void;
-    startAzureSqlDatabaseDeployment(): void;
+    startAzureSqlDatabaseDeployment(tags: Record<string, string>): void;
     setCreateResourceGroupDrawerState(shouldOpen: boolean): void;
     submitCreateResourceGroup(spec: CreateResourceGroupSpec): void;
     setCreateServerDrawerState(shouldOpen: boolean): void;
@@ -130,7 +134,7 @@ export interface AzureSqlDatabaseContextProps extends FormContextProps<AzureSqlD
 
 export interface AzureSqlDatabaseReducers extends FormReducers<AzureSqlDatabaseFormState> {
     loadAzureComponent: { componentName: string };
-    startAzureSqlDatabaseDeployment: {};
+    startAzureSqlDatabaseDeployment: { tags: Record<string, string> };
     setCreateResourceGroupDrawerState: { shouldOpen: boolean };
     submitCreateResourceGroup: { spec: CreateResourceGroupSpec };
     setCreateServerDrawerState: { shouldOpen: boolean };
