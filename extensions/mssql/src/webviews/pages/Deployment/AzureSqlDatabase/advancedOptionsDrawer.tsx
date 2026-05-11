@@ -6,6 +6,7 @@
 import { useState } from "react";
 import {
     Button,
+    Card,
     DrawerBody,
     DrawerHeader,
     DrawerHeaderTitle,
@@ -13,7 +14,12 @@ import {
     Label,
     OverlayDrawer,
 } from "@fluentui/react-components";
-import { AddRegular, DeleteRegular, Dismiss24Regular } from "@fluentui/react-icons";
+import {
+    AddRegular,
+    CheckmarkCircleFilled,
+    DeleteRegular,
+    Dismiss24Regular,
+} from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../../common/forms/form.component";
 import { locConstants as Loc } from "../../../common/locConstants";
 import {
@@ -32,6 +38,7 @@ export const AdvancedOptionsDrawer = ({
     formState,
     formComponents,
     azureComponentStatuses,
+    hostIp,
     tags,
     onTagsChange,
 }: {
@@ -41,6 +48,7 @@ export const AdvancedOptionsDrawer = ({
     formState: AzureSqlDatabaseFormState;
     formComponents: Partial<Record<keyof AzureSqlDatabaseFormState, AzureSqlDatabaseFormItemSpec>>;
     azureComponentStatuses: Record<string, ApiStatus>;
+    hostIp: string;
     tags: TagEntry[];
     onTagsChange: (tags: TagEntry[]) => void;
 }) => {
@@ -120,6 +128,31 @@ export const AdvancedOptionsDrawer = ({
 
             <DrawerBody style={{ display: "flex", flexDirection: "column" }}>
                 <div style={{ flex: 1 }} className={formStyles.formComponentDiv}>
+                    <div>
+                        <Label weight="semibold" style={{ marginBottom: "8px", display: "block" }}>
+                            {Loc.azureSqlDatabase.firewall}
+                        </Label>
+                        <Card
+                            style={{
+                                display: "flex",
+                                flexDirection: "row",
+                                alignItems: "center",
+                                backgroundColor: "var(--colorStatusSuccessBackground1)",
+                                borderLeft: "3px solid var(--colorStatusSuccessForeground1)",
+                                padding: "10px 12px",
+                                gap: "10px",
+                                marginLeft: "2px",
+                            }}>
+                            <CheckmarkCircleFilled
+                                style={{
+                                    color: "var(--colorStatusSuccessForeground1)",
+                                    fontSize: "20px",
+                                    flexShrink: 0,
+                                }}
+                            />
+                            <span>{Loc.azureSqlDatabase.firewallDescription(hostIp)}</span>
+                        </Card>
+                    </div>
                     {advancedComponents.map((component, idx) => (
                         <div style={{ width: component.componentWidth || "100%" }}>
                             <FormField<

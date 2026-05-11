@@ -20,6 +20,9 @@ import { ConnectionCredentials } from "../models/connectionCredentials";
 import { IConnectionProfile } from "../models/interfaces";
 import { DEPLOYMENT_VIEW_ID, DeploymentWebviewController } from "./deploymentWebviewController";
 import { UserSurvey } from "../nps/userSurvey";
+import publicIpv4 from "public-ip";
+import { FirewallService } from "../firewall/firewallService";
+import { FirewallRuleSpec } from "../sharedInterfaces/firewallRule";
 
 // Cached logger reference for use in helper functions that don't have
 // direct access to the controller's protected logger.
@@ -179,11 +182,12 @@ export async function initializeAzureSqlDatabaseState(
         autoPauseDelay: 60,
         profileName: "",
         groupId: selectedGroupId || groupOptions[0]?.value || "",
-        collation: "SQL_Latin1_General_CP1_CI_AS",
+        collation: COLLATION_OPTIONS[0],
         maintenanceConfig: "",
         dataSource: "",
         enableAlwaysEncrypted: false,
     };
+    state.publicIp = await publicIpv4.v4();
 
     deploymentController.state.deploymentTypeState = state;
     state.formComponents = setAzureSqlDatabaseFormComponents([], [], groupOptions, [], []);
@@ -200,6 +204,7 @@ export async function initializeAzureSqlDatabaseState(
 
 export function registerAzureSqlDatabaseReducers(
     deploymentController: DeploymentWebviewController,
+    firewallService: FirewallService,
 ) {
     deploymentController.registerReducer("loadAzureComponent", async (state, payload) => {
         const azureSqlState = state.deploymentTypeState as asd.AzureSqlDatabaseState;
@@ -255,8 +260,17 @@ export function registerAzureSqlDatabaseReducers(
 
             // Validation passed — navigate to the provisioning page
             azureSqlState.formValidationLoadState = ApiStatus.Loaded;
-            azureSqlState.deploymentStartTime = new Date().toUTCString();
+            azureSqlState.deploymentStartTime = new Date().toLocaleString();
             azureSqlState.provisionLoadState = ApiStatus.Loading;
+
+            // Resolve display names for the provisioning page
+            const deploySubscription = getCachedSubscription(
+                azureSqlState.formState.subscriptionId,
+            );
+            azureSqlState.subscriptionName = deploySubscription?.name ?? "";
+            const deployServer = getCachedServer(azureSqlState.formState.serverName);
+            azureSqlState.serverRegion = deployServer?.location ?? "";
+
             updateAzureSqlDatabaseState(deploymentController, azureSqlState);
 
             try {
@@ -298,6 +312,17 @@ export function registerAzureSqlDatabaseReducers(
                     },
                 );
 
+                void firewallService.createFirewallRuleWithVscodeAccount(
+                    {
+                        name: `mssql-${azureSqlState.formState.serverName}-firewall-rule`,
+                        azureAccountInfo: {
+                            accountId: azureSqlState.formState.accountId,
+                            tenantId: azureSqlState.formState.tenantId,
+                        },
+                        ip: azureSqlState.publicIp,
+                    } as FirewallRuleSpec,
+                    azureSqlState.formState.serverName,
+                );
                 void connectToAzureSqlDatabase(deploymentController);
             } catch (error) {
                 azureSqlState.provisionLoadState = ApiStatus.Error;

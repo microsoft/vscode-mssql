@@ -71,10 +71,10 @@ export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
     const errorMessage = useAzureSqlDatabaseDeploymentSelector((s) => s.errorMessage);
     const databaseName = useAzureSqlDatabaseDeploymentSelector((s) => s.formState?.databaseName);
     const deploymentStartTime = useAzureSqlDatabaseDeploymentSelector((s) => s.deploymentStartTime);
-    const subscriptionId = useAzureSqlDatabaseDeploymentSelector(
-        (s) => s.formState?.subscriptionId,
-    );
+    const subscriptionName = useAzureSqlDatabaseDeploymentSelector((s) => s.subscriptionName);
     const resourceGroup = useAzureSqlDatabaseDeploymentSelector((s) => s.formState?.resourceGroup);
+    const serverName = useAzureSqlDatabaseDeploymentSelector((s) => s.formState?.serverName);
+    const serverRegion = useAzureSqlDatabaseDeploymentSelector((s) => s.serverRegion);
 
     if (!provisionLoadState) return undefined;
 
@@ -110,7 +110,7 @@ export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
                     bodyClassName={classes.cardBody}>
                     <div className={classes.cardContentDiv}>
                         {errorMessage ? (
-                            <div className={classes.cardColumn}>
+                            <div className={classes.cardColumn} style={{ paddingRight: "5px" }}>
                                 <span className={classes.cardItem}>
                                     <span className={classes.cardItemLabel}>
                                         {locConstants.common.error}:
@@ -133,6 +133,12 @@ export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
                                         </span>
                                         {deploymentStartTime}
                                     </span>
+                                    <span className={classes.cardItem}>
+                                        <span className={classes.cardItemLabel}>
+                                            {locConstants.azureSqlDatabase.server}:
+                                        </span>
+                                        {serverName}
+                                    </span>
                                 </div>
                                 <div
                                     className={classes.cardColumn}
@@ -141,13 +147,19 @@ export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
                                         <span className={classes.cardItemLabel}>
                                             {locConstants.azureSqlDatabase.subscription}:
                                         </span>
-                                        {subscriptionId}
+                                        {subscriptionName}
                                     </span>
                                     <span className={classes.cardItem}>
                                         <span className={classes.cardItemLabel}>
                                             {locConstants.azureSqlDatabase.resourceGroup}:
                                         </span>
                                         {resourceGroup}
+                                    </span>
+                                    <span className={classes.cardItem}>
+                                        <span className={classes.cardItemLabel}>
+                                            {locConstants.azureSqlDatabase.region}:
+                                        </span>
+                                        {serverRegion}
                                     </span>
                                 </div>
                             </>

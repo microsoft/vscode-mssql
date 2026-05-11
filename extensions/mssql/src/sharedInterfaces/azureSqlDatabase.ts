@@ -46,6 +46,9 @@ export class AzureSqlDatabaseState
         serverName: ApiStatus.NotStarted,
         maintenanceConfig: ApiStatus.NotStarted,
     };
+    publicIp: string = "";
+    subscriptionName: string = "";
+    serverRegion: string = "";
     constructor(params?: Partial<AzureSqlDatabaseState>) {
         for (const key in params) {
             if (key in this) {

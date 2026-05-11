@@ -116,6 +116,7 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
     const serverCreatedWithAuth = useAzureSqlDatabaseDeploymentSelector(
         (s) => s.serverCreatedWithAuth,
     );
+    const hostIp = useAzureSqlDatabaseDeploymentSelector((s) => s.publicIp);
 
     const [localAutoPauseDelay, setLocalAutoPauseDelay] = useState(
         String(formState.autoPauseDelay),
@@ -458,6 +459,7 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                     formState={formState}
                     formComponents={formComponents}
                     azureComponentStatuses={azureComponentStatuses}
+                    hostIp={hostIp ?? ""}
                     tags={tags}
                     onTagsChange={onTagsChange}
                 />

@@ -165,6 +165,7 @@
         "opener": "1.5.2",
         "plist": "^3.0.6",
         "pretty-data": "^0.40.0",
+        "public-ip": "^5.0.0",
         "semver": "^7.7.4",
         "shallow-equal": "^3.1.0",
         "strip-json-comments": "^5.0.1",

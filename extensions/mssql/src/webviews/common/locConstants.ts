@@ -1813,6 +1813,8 @@ export class LocConstants {
             startTime: l10n.t("Start Time"),
             subscription: l10n.t("Subscription"),
             resourceGroup: l10n.t("Resource Group"),
+            server: l10n.t("Server"),
+            region: l10n.t("Region"),
             loadingSubscriptions: l10n.t("Loading subscriptions"),
             loadingResourceGroups: l10n.t("Loading resource groups"),
             loadingAzureAccounts: l10n.t("Loading Azure accounts"),
@@ -1879,6 +1881,13 @@ export class LocConstants {
             tagKeyPlaceholder: l10n.t("Key"),
             tagValuePlaceholder: l10n.t("Value"),
             duplicateTagKeys: l10n.t("Tag keys must be unique."),
+            firewall: l10n.t("Firewall"),
+            firewallDescription: (ip: string) =>
+                l10n.t({
+                    message: "Your current IP {0} will be added automatically.",
+                    args: [ip],
+                    comment: ["{0} is the current IP address"],
+                }),
         };
     }
 
