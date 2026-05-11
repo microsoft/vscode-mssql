@@ -1111,7 +1111,6 @@ export class ProjectsController {
 
             switch (node.type) {
                 case constants.DatabaseProjectItemType.sqlObjectScript:
-                case constants.DatabaseProjectItemType.table:
                 case constants.DatabaseProjectItemType.externalStreamingJob:
                     await project.excludeSqlObjectScript(node.entryKey);
                     break;
@@ -1186,7 +1185,6 @@ export class ProjectsController {
             } else if (node instanceof FileNode) {
                 switch (node.type) {
                     case constants.DatabaseProjectItemType.sqlObjectScript:
-                    case constants.DatabaseProjectItemType.table:
                     case constants.DatabaseProjectItemType.externalStreamingJob:
                         await project.deleteSqlObjectScript(node.entryKey);
                         break;
