@@ -11,8 +11,10 @@ import { AccountStore } from "../azure/accountStore";
 import { AzureController } from "../azure/azureController";
 import { MsalAzureController } from "../azure/msal/msalAzureController";
 import { getCloudId, getCloudProviderSettings } from "../azure/providerSettings";
+import { VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import {
-    acquireSqlAccessTokenFromVscodeAccount,
+    acquireTokenFromVscodeAccountForResource,
+    getCloudResourceEndpoint,
     MissingEntraAuthAccountError,
 } from "../azure/vscodeEntraMfaUtils";
 import * as Constants from "../constants/constants";
@@ -636,7 +638,8 @@ export default class ConnectionManager {
                     if (
                         previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)
                     ) {
-                        const tokenInfo = await acquireSqlAccessTokenFromVscodeAccount(
+                        const tokenInfo = await acquireTokenFromVscodeAccountForResource(
+                            getCloudResourceEndpoint("sqlResource"),
                             params.accountId,
                             params.tenantId,
                         );
@@ -1138,7 +1141,8 @@ export default class ConnectionManager {
         // 3. Refresh the token
         // A3. If the user is using VS Code accounts for Entra MFA, use that flow to refresh the token
         if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
-            const tokenInfo = await acquireSqlAccessTokenFromVscodeAccount(
+            const tokenInfo = await acquireTokenFromVscodeAccountForResource(
+                getCloudResourceEndpoint("sqlResource"),
                 connectionInfo.accountId,
                 connectionInfo.tenantId,
                 connectionInfo.email ?? connectionInfo.user,
@@ -2239,13 +2243,31 @@ export default class ConnectionManager {
     /**
      * Acquires a fresh token from VS Code for the specified account + tenant
      */
+    /**
+     * Handles the `account/securityTokenRequest` request from SQL Tools Service.
+     *
+     * This request is used for two distinct purposes:
+     *
+     * 1. **Entra MFA via VS Code accounts** (`params.accountId` present): STS is running in
+     *    `--request-mfa-token-from-client` mode (`useVscodeAccountsForEntraMFA` enabled) and
+     *    needs a SQL access token for the given Entra account + tenant. Returns a token acquired
+     *    from VS Code's authentication provider for `https://database.windows.net/`.
+     *
+     * 2. **Always Encrypted / Azure Key Vault** (`params.accountId` absent): STS needs a token
+     *    for `https://vault.azure.net/` to decrypt a Column Encryption Key protected by an
+     *    AKV-based Column Master Key. The user is prompted via QuickPick to select an account
+     *    and tenant. When `useVscodeAccountsForEntraMFA` is enabled the account list comes from
+     *    VS Code's authentication provider; otherwise it comes from the MSAL account store.
+     *    Acquired tokens are cached in `_keyVaultTokenCache` for the lifetime of the session.
+     */
     private async handleSecurityTokenRequest(
         params: RequestSecurityTokenParams,
     ): Promise<RequestSecurityTokenResponse> {
         if (params.accountId) {
             this._logger.verbose("VS Code accounts token request received");
             try {
-                const tokenInfo = await acquireSqlAccessTokenFromVscodeAccount(
+                const tokenInfo = await acquireTokenFromVscodeAccountForResource(
+                    getCloudResourceEndpoint("sqlResource"),
                     params.accountId,
                     params.tenantId,
                 );
@@ -2272,110 +2294,200 @@ export default class ConnectionManager {
             }
         }
 
-        // Key Vault / MSAL path
-        try {
-            if (this._keyVaultTokenCache.has(JSON.stringify(params))) {
-                const token = this._keyVaultTokenCache.get(JSON.stringify(params));
-                const isExpired = AzureController.isTokenExpired(token.expiresOn);
-                if (!isExpired) {
-                    return {
-                        accountKey: token.key,
-                        token: token.token,
-                    };
-                } else {
-                    this._keyVaultTokenCache.delete(JSON.stringify(params));
-                }
+        // Key Vault / Always Encrypted path
+        const cacheKey = JSON.stringify(params);
+
+        // Cache check is independent of auth provider
+        if (this._keyVaultTokenCache.has(cacheKey)) {
+            const cached = this._keyVaultTokenCache.get(cacheKey)!;
+            if (AzureController.isTokenExpired(cached.expiresOn)) {
+                this._keyVaultTokenCache.delete(cacheKey);
+            } else {
+                return {
+                    accountKey: cached.key,
+                    token: cached.token,
+                    expiresOn: cached.expiresOn,
+                };
             }
-            const account = await this.selectAccount();
-            const tenant = await this.selectTenantId(account);
+        }
 
-            const token = await this.azureController.getAccountSecurityToken(
-                account,
-                tenant,
-                getCloudProviderSettings(account.key.providerId).settings.azureKeyVaultResource,
-            );
+        try {
+            const activeAccountId =
+                this._connections[this._vscodeWrapper.activeTextEditorUri]?.credentials?.accountId;
 
-            this._keyVaultTokenCache.set(JSON.stringify(params), token);
+            let getAccounts: () => Promise<
+                { label: string; description: string | undefined; value: string }[]
+            >;
+            let getTenants: (accountId: string) => Promise<{ id: string; displayName: string }[]>;
+            let acquireToken: (accountId: string, tenantId: string) => Promise<IToken | undefined>;
+            let onSignIn: () => Promise<string | undefined>;
 
-            return {
-                accountKey: token.key,
-                token: token.token,
-            };
+            if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+                this._logger.verbose("AKV token request received (VS Code accounts path)");
+                getAccounts = async () => {
+                    const accounts = await VsCodeAzureHelper.getAccounts();
+                    return accounts.map((a) => ({
+                        label:
+                            a.id === activeAccountId
+                                ? LocalizedConstants.Connection.currentAccount(a.label)
+                                : a.label,
+                        description: a.id,
+                        value: a.id,
+                    }));
+                };
+                getTenants = async (accountId) => {
+                    const tenants = await VsCodeAzureHelper.getTenantsForAccount(accountId);
+                    return tenants.map((t) => ({
+                        id: t.tenantId ?? "",
+                        displayName: t.displayName ?? t.tenantId ?? "",
+                    }));
+                };
+                acquireToken = async (accountId, tenantId) => {
+                    const cloudSettings = getCloudProviderSettings();
+                    const akvResource = cloudSettings.settings.azureKeyVaultResource;
+                    if (!akvResource) {
+                        throw new Error(
+                            `No Azure Key Vault resource configured for cloud '${cloudSettings.displayName}'.`,
+                        );
+                    }
+                    const tokenInfo = await acquireTokenFromVscodeAccountForResource(
+                        getCloudResourceEndpoint("azureKeyVaultResource"),
+                        accountId,
+                        tenantId,
+                    );
+
+                    return tokenInfo.token;
+                };
+                onSignIn = async () => {
+                    const info = await VsCodeAzureHelper.signIn();
+                    if (!info) {
+                        throw new Error(LocalizedConstants.Connection.noAccountSelected);
+                    }
+                    return info.newAccountId;
+                };
+            } else {
+                getAccounts = async () => {
+                    const accounts = await this._accountStore.getAccounts();
+                    return accounts.map((a) => ({
+                        label:
+                            a.key.id === activeAccountId
+                                ? LocalizedConstants.Connection.currentAccount(a.displayInfo.name)
+                                : a.displayInfo.name,
+                        description: a.displayInfo.email,
+                        value: a.key.id,
+                    }));
+                };
+                getTenants = async (accountId) => {
+                    const account = await this._accountStore.getAccount(accountId);
+                    return (
+                        account?.properties?.tenants?.map((t) => ({
+                            id: t.id,
+                            displayName: t.displayName,
+                        })) ?? []
+                    );
+                };
+                acquireToken = async (accountId, tenantId) => {
+                    const account = await this._accountStore.getAccount(accountId);
+                    return this.azureController.getAccountSecurityToken(
+                        account,
+                        tenantId,
+                        getCloudProviderSettings(account.key.providerId).settings
+                            .azureKeyVaultResource,
+                    );
+                };
+                onSignIn = async () => {
+                    const newAccount = await this.addAccount();
+                    if (!newAccount) {
+                        throw new Error(LocalizedConstants.Connection.noAccountSelected);
+                    }
+                    return newAccount.key.id;
+                };
+            }
+
+            const accountId = await this.selectAccount(await getAccounts(), onSignIn);
+
+            if (!accountId) {
+                throw new Error("No account selected");
+            }
+
+            const tenantId = await this.selectTenantId(await getTenants(accountId));
+            const result = await acquireToken(accountId, tenantId);
+
+            if (!result) {
+                throw new Error(
+                    `Failed to acquire token for account ${accountId} and tenant ${tenantId} (undefined result)`,
+                );
+            }
+
+            this._keyVaultTokenCache.set(cacheKey, result);
+            return { accountKey: result.key, token: result.token, expiresOn: result.expiresOn };
         } catch (error) {
             this._logger.error(`Security token request failed: ${getErrorMessage(error)}`);
+            this.vscodeWrapper.showErrorMessage(
+                LocalizedConstants.Connection.securityTokenRequestFailed(
+                    getErrorMessage(error),
+                    "Azure Key Vault",
+                ),
+            );
             // Return empty response rather than letting the error propagate
             // to STS as a null reference
-            return {
-                accountKey: "",
-                token: "",
-            };
+            return { accountKey: "", token: "", expiresOn: 0 };
         }
     }
 
-    private async selectAccount(): Promise<IAccount> {
-        const activeEditorConnection =
-            this._connections[this._vscodeWrapper.activeTextEditorUri]?.credentials;
-        const currentAccountId = activeEditorConnection?.accountId;
-        const accounts = await this._accountStore.getAccounts();
+    /**
+     * Shows a QuickPick to select an account from a normalized list of items.
+     * If the user selects the "sign in" sentinel, `onSignIn` is called to obtain a new account.
+     * Throws if the QuickPick is dismissed without a selection.
+     */
+    private async selectAccount<T>(
+        items: Array<{ label: string; description: string | undefined; value: T }>,
+        onSignIn: () => Promise<T>,
+    ): Promise<T> {
+        const quickPickItems: ValueQuickPickItem<T>[] = items.map((item) => ({
+            label: item.label,
+            description: item.description,
+            value: item.value,
+        }));
+        quickPickItems.push({
+            label: LocalizedConstants.Connection.signInToAzure,
+            description: LocalizedConstants.Connection.signInToAzure,
+            value: undefined,
+        });
 
-        const quickPickItems = this.createAccountQuickPickItems(accounts, currentAccountId);
-        const selectedAccount = await this.showAccountQuickPick(quickPickItems);
+        const selected = await this.showValueQuickPick<T>(
+            quickPickItems,
+            LocalizedConstants.Connection.SelectAccountForKeyVault,
+        );
 
         // eslint-disable-next-line no-restricted-syntax
-        if (selectedAccount === null) {
-            // User selected "Sign in to Azure" — trigger sign-in and use the new account
-            const newAccount = await this.addAccount();
-            if (!newAccount) {
-                throw new Error(LocalizedConstants.Connection.noAccountSelected);
-            }
-            return newAccount;
+        if (selected === null) {
+            return onSignIn();
         }
 
-        if (!selectedAccount) {
+        if (!selected) {
             throw new Error(LocalizedConstants.Connection.noAccountSelected);
         }
 
-        return selectedAccount;
+        return selected;
     }
 
-    private createAccountQuickPickItems(
-        accounts: IAccount[],
-        currentAccountId?: string,
-    ): AccountQuickPickItem[] {
-        const accountItems: AccountQuickPickItem[] = accounts.map((account) => ({
-            label:
-                account.key.id === currentAccountId
-                    ? LocalizedConstants.Connection.currentAccount(account.displayInfo.name)
-                    : account.displayInfo.name,
-            description: account.displayInfo.email,
-            account,
-        }));
-
-        accountItems.push({
-            label: LocalizedConstants.Connection.signInToAzure,
-            description: LocalizedConstants.Connection.signInToAzure,
-            account: undefined,
-        });
-
-        return accountItems;
-    }
-
-    /*
-     * Shows a quick pick to select an account. Returns the selected account, null if "Sign in to Azure" was selected,
-     * or undefined if the quick pick was dismissed.
-     * @params items The quick pick items to show
-     * @returns The selected account, null if "Sign in to Azure" was selected, or undefined if the quick pick was dismissed
+    /**
+     * Shows a QuickPick to select from a list of labeled values.
+     * Returns the selected value, `null` if the "sign in" sentinel item (value === undefined)
+     * was chosen, or `undefined` if the QuickPick was dismissed.
      */
-    private async showAccountQuickPick(
-        items: AccountQuickPickItem[],
-    ): Promise<IAccount | null | undefined> {
-        const account = await new Promise<IAccount | null | undefined>((resolve, reject) => {
-            const quickPick = vscode.window.createQuickPick<AccountQuickPickItem>();
+    private async showValueQuickPick<T>(
+        items: ValueQuickPickItem<T>[],
+        placeholder: string,
+    ): Promise<T | null | undefined> {
+        return new Promise((resolve, reject) => {
+            const quickPick = vscode.window.createQuickPick<ValueQuickPickItem<T>>();
             quickPick.items = items;
-            quickPick.placeholder = LocalizedConstants.Connection.SelectAccountForKeyVault;
+            quickPick.placeholder = placeholder;
             let accepted = false;
 
-            quickPick.onDidAccept(async () => {
+            quickPick.onDidAccept(() => {
                 try {
                     accepted = true;
                     const selectedItem = quickPick.selectedItems[0];
@@ -2384,10 +2496,8 @@ export default class ConnectionManager {
                         resolve(undefined);
                         return;
                     }
-
-                    const account = selectedItem.account;
-                    // Return null to signal "sign in" was selected (account is undefined on that item)
-                    resolve(account ?? null); // eslint-disable-line no-restricted-syntax
+                    // eslint-disable-next-line no-restricted-syntax
+                    resolve(selectedItem.value ?? null);
                 } catch (error) {
                     quickPick.dispose();
                     reject(error);
@@ -2403,63 +2513,41 @@ export default class ConnectionManager {
 
             quickPick.show();
         });
-        return account;
     }
 
-    private async selectTenantId(account: IAccount): Promise<string> {
-        if (account.properties?.tenants?.length === 1) {
-            return account.properties.tenants[0].id;
+    /**
+     * Shows a QuickPick to select a tenant. Auto-selects if only one tenant is available.
+     * @param tenants Normalized list of tenants with `id` and `displayName`.
+     */
+    private async selectTenantId(
+        tenants: Array<{ id: string; displayName: string }>,
+    ): Promise<string> {
+        if (tenants.length === 1) {
+            return tenants[0].id;
         }
-        const tenantItems = account.properties.tenants.map((tenant) => ({
+
+        const items: ValueQuickPickItem<string>[] = tenants.map((tenant) => ({
             label: tenant.displayName,
             description: tenant.id,
-            tenant: tenant.id,
+            value: tenant.id,
         }));
 
-        const selectedTenant = await this.showTenantQuickPick(tenantItems);
-        if (!selectedTenant) {
+        const selectedTenantId = await this.showValueQuickPick<string>(
+            items,
+            LocalizedConstants.Connection.SelectTenant,
+        );
+
+        if (!selectedTenantId) {
             throw new Error(LocalizedConstants.Connection.NoTenantSelected);
         }
 
-        return selectedTenant;
-    }
-
-    private async showTenantQuickPick(items: TenantQuickPickItem[]): Promise<string | undefined> {
-        return new Promise((resolve, reject) => {
-            const quickPick = vscode.window.createQuickPick<TenantQuickPickItem>();
-            quickPick.items = items;
-            quickPick.placeholder = LocalizedConstants.Connection.SelectTenant;
-
-            quickPick.onDidAccept(() => {
-                const selectedItem = quickPick.selectedItems[0];
-                if (selectedItem) {
-                    quickPick.dispose();
-                    resolve(selectedItem.tenant);
-                } else {
-                    quickPick.dispose();
-                    resolve(undefined);
-                }
-            });
-
-            quickPick.onDidHide(() => {
-                quickPick.dispose();
-            });
-
-            quickPick.show();
-        });
+        return selectedTenantId;
     }
 }
 
-interface AccountQuickPickItem {
-    label: string;
-    description: string;
-    account?: IAccount;
-}
-
-interface TenantQuickPickItem {
-    label: string;
-    description: string;
-    tenant: string; // Replace with proper tenant type
+interface ValueQuickPickItem<T> extends vscode.QuickPickItem {
+    /** The value to return when this item is selected. `undefined` signals the "sign in" sentinel. */
+    value: T | undefined;
 }
 
 export interface SqlConnectionError {
