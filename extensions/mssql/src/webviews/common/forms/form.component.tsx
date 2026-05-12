@@ -250,13 +250,7 @@ export const FormField = <
                         const tooltipProps = component.tooltip ? { info: component.tooltip } : {};
                         return (
                             <span className={formStyles.labelDecoration}>
-                                <LabelComponent
-                                    {...slotProps}
-                                    {...tooltipProps}
-                                    required={
-                                        component.loadStatus?.status !== ApiStatus.Loading &&
-                                        slotProps.required
-                                    }>
+                                <LabelComponent {...slotProps} {...tooltipProps}>
                                     {labelContent}
                                 </LabelComponent>
                                 {component.loadStatus?.status === ApiStatus.Loading && (
