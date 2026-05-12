@@ -9,6 +9,7 @@ import { locConstants } from "../../common/locConstants";
 import { DockerIcon } from "../../common/icons/docker";
 import { SqlDbInFabricIcon } from "../../common/icons/sqlDbInFabric";
 import { AzureSqlDatabaseIcon } from "../../common/icons/azureSqlDatabase";
+import { KeyCode } from "../../common/keys";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -128,7 +129,7 @@ export const ChooseDeploymentTypePage: React.FC<ChooseDeploymentTypePageProps> =
                     )}
                     onClick={() => onDeploymentTypeChange(DeploymentType.LocalContainers)}
                     onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") {
+                        if (event.key === KeyCode.Enter || event.key === KeyCode.Space) {
                             event.preventDefault();
                             onDeploymentTypeChange(DeploymentType.LocalContainers);
                         }

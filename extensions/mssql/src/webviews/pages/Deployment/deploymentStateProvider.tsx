@@ -4,8 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
-import { createContext, useCallback, useMemo, useRef } from "react";
-import debounce from "lodash/debounce";
+import { createContext, useCallback, useMemo } from "react";
 import {
     DeploymentContextProps,
     DeploymentFormState,
@@ -26,20 +25,9 @@ interface DeploymentProviderProps {
 const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }) => {
     const { extensionRpc } = useVscodeWebview<DeploymentWebviewState, DeploymentReducers>();
 
-    const debouncedFormActionRef = useRef(
-        debounce((event: FormEvent<DeploymentFormState>) => {
-            extensionRpc.action("formAction", { event });
-        }, 200),
-    );
-
     const formAction = useCallback(
         (event: FormEvent<DeploymentFormState>) => {
-            if (!event.isAction && !event.updateValidation && typeof event.value === "string") {
-                debouncedFormActionRef.current(event);
-            } else {
-                debouncedFormActionRef.current.cancel();
-                extensionRpc.action("formAction", { event });
-            }
+            extensionRpc.action("formAction", { event });
         },
         [extensionRpc],
     );
