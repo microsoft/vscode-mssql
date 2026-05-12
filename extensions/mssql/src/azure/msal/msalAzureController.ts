@@ -12,7 +12,11 @@ import { ConnectionProfile } from "../../models/connectionProfile";
 import { AzureAuthType, IAADResource, IAccount, IToken } from "../../models/contracts/azure";
 import { AccountStore } from "../accountStore";
 import { AzureController } from "../azureController";
-import { getTokenExpirationInSeconds, MsalAzureAuth } from "./msalAzureAuth";
+import {
+    getTokenExpirationInSeconds,
+    isMsalInteractionRequiredError,
+    MsalAzureAuth,
+} from "./msalAzureAuth";
 import { MsalAzureCodeGrant } from "./msalAzureCodeGrant";
 import { MsalAzureDeviceCode } from "./msalAzureDeviceCode";
 import { MsalCachePluginProvider } from "./msalCachePlugin";
@@ -269,28 +273,13 @@ export class MsalAzureController extends AzureController {
                 settings,
             );
         } catch (ex) {
-            if (
-                ex instanceof ClientAuthError &&
-                ex.errorCode === AzureConstants.noAccountInSilentRequestError
-            ) {
-                try {
-                    // Account needs re-authentication
-                    newAccount = await this.login(
-                        account.properties.azureAuthType,
-                        getCloudId(account.key.providerId),
-                    );
-                    if (newAccount!.isStale === true) {
-                        return undefined;
-                    }
-                    await accountStore.addAccount(newAccount!);
-                    return await this.getAccountSecurityToken(
-                        account,
-                        tenantId ?? account.properties.owningTenant.id,
-                        settings,
-                    );
-                } catch (ex) {
-                    this._vscodeWrapper.showErrorMessage(ex);
-                }
+            if (this.isNoAccountInSilentRequestError(ex) || isMsalInteractionRequiredError(ex)) {
+                return await this.reauthenticateAndGetToken(
+                    account,
+                    accountStore,
+                    tenantId,
+                    settings,
+                );
             }
             if (getErrorMessage(ex).includes(AzureConstants.multiple_matching_tokens_error)) {
                 const response = await this._vscodeWrapper.showErrorMessage(
@@ -308,6 +297,41 @@ export class MsalAzureController extends AzureController {
             } else {
                 this._vscodeWrapper.showErrorMessage(ex);
             }
+        }
+    }
+
+    private isNoAccountInSilentRequestError(error: unknown): boolean {
+        return (
+            error instanceof ClientAuthError &&
+            error.errorCode === AzureConstants.noAccountInSilentRequestError
+        );
+    }
+
+    private async reauthenticateAndGetToken(
+        account: IAccount,
+        accountStore: AccountStore,
+        tenantId: string | undefined,
+        settings: IAADResource,
+    ): Promise<IToken | undefined> {
+        try {
+            const cloudAuth = this.getCloudAuthForAccount(account);
+            const newAccount = await cloudAuth
+                .msalAuthInstance(account.properties.azureAuthType)
+                .reauthenticate(account, tenantId ?? account.properties.owningTenant.id);
+
+            if (!newAccount || newAccount.isStale === true) {
+                return undefined;
+            }
+
+            await accountStore.addAccount(newAccount);
+            return await this.getAccountSecurityToken(
+                newAccount,
+                tenantId ?? newAccount.properties.owningTenant.id,
+                settings,
+            );
+        } catch (ex) {
+            this._vscodeWrapper.showErrorMessage(ex);
+            return undefined;
         }
     }
 

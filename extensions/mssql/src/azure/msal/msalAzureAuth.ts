@@ -48,6 +48,16 @@ export function getTokenExpirationInSeconds(result: AuthenticationResult): numbe
     return result.expiresOn ? Math.floor(result.expiresOn.getTime() / 1000) : undefined;
 }
 
+export function isMsalInteractionRequiredError(error: unknown): boolean {
+    const errorMessage = error instanceof AuthError ? error.errorMessage : getErrorMessage(error);
+    return (
+        error instanceof InteractionRequiredAuthError ||
+        errorMessage.includes(Constants.AADSTS70043) ||
+        errorMessage.includes(Constants.AADSTS50020) ||
+        errorMessage.includes(Constants.AADSTS50173)
+    );
+}
+
 export abstract class MsalAzureAuth {
     protected readonly loginEndpointUrl: string;
     protected readonly redirectUri: string;
@@ -132,6 +142,46 @@ export abstract class MsalAzureAuth {
                 error: getErrorMessage(ex),
             };
         }
+    }
+
+    public async reauthenticate(
+        account: IAccount,
+        tenantId?: string,
+    ): Promise<IAccount | undefined> {
+        const resolvedTenantId = tenantId ?? account.properties.owningTenant.id;
+        const tenant = account.properties.tenants.find((t) => t.id === resolvedTenantId) ?? {
+            id: resolvedTenantId,
+            displayName: resolvedTenantId,
+            userId: account.displayInfo.userId,
+        };
+
+        let accountInfo: AccountInfo | null = null;
+        try {
+            accountInfo = await this.getAccountFromMsalCache(account.key.id, resolvedTenantId);
+        } catch (ex) {
+            this.logger.verbose(
+                `Could not resolve MSAL account hint before reauthentication: ${getErrorMessage(ex)}`,
+            );
+        }
+
+        const result = await this.login(tenant, {
+            account: accountInfo ?? undefined,
+            loginHint: account.displayInfo.email ?? account.displayInfo.userId,
+        });
+
+        result?.authComplete?.resolve();
+        if (!result?.response?.account) {
+            this.logger.error("Reauthentication did not return an account.");
+            return undefined;
+        }
+
+        const token: IToken = {
+            token: result.response.accessToken,
+            key: result.response.account.homeAccountId,
+            tokenType: result.response.tokenType,
+        };
+
+        return await this.hydrateAccount(token, <ITokenClaims>result.response.idTokenClaims);
     }
 
     public async hydrateAccount(
@@ -219,7 +269,7 @@ export abstract class MsalAzureAuth {
             return await this.clientApplication.acquireTokenSilent(tokenRequest);
         } catch (e) {
             this.logger.error("Failed to acquireTokenSilent", e);
-            if (e instanceof AuthError && this.accountNeedsRefresh(e)) {
+            if (e instanceof AuthError && isMsalInteractionRequiredError(e)) {
                 this.logger.verbose(
                     "Silent token acquisition requires user interaction; not starting interactive authentication from getToken.",
                 );
@@ -230,20 +280,6 @@ export abstract class MsalAzureAuth {
             this.logger.error(`Failed to silently acquire token: ${getErrorMessage(e)}`);
             throw e;
         }
-    }
-
-    /**
-     * Determines whether the account needs to be refreshed based on received error instance
-     * and STS error codes from errorMessage.
-     * @param error AuthError instance
-     */
-    private accountNeedsRefresh(error: AuthError): boolean {
-        return (
-            error instanceof InteractionRequiredAuthError ||
-            error.errorMessage.includes(Constants.AADSTS70043) ||
-            error.errorMessage.includes(Constants.AADSTS50020) ||
-            error.errorMessage.includes(Constants.AADSTS50173)
-        );
     }
 
     public async refreshAccessToken(

@@ -32,6 +32,7 @@ import * as providerSettings from "../../src/azure/providerSettings";
 import * as msalNode from "@azure/msal-node";
 import * as azureUtils from "../../src/azure/utils";
 import { CredentialStore } from "../../src/credentialstore/credentialstore";
+import { AccountStore } from "../../src/azure/accountStore";
 import CodeAdapter from "../../src/prompts/adapter";
 import { createStubLogger } from "./utils";
 
@@ -390,6 +391,21 @@ suite("MsalAzureAuth Token Acquisition Tests", () => {
         expect(thrownError).to.equal(interactionError);
         expect(auth.loginCalls).to.be.empty;
     });
+
+    test("reauthenticate uses tenant account and login hint without forcing account picker", async () => {
+        const targetAccount = createMsalAccount(targetTenantId);
+        const { auth } = createAuth([targetAccount]);
+
+        const result = await auth.reauthenticate(createExtensionAccount(), targetTenantId);
+
+        expect(result).to.be.undefined;
+        expect(auth.loginCalls).to.have.length(1);
+        const loginCall = auth.loginCalls[0];
+        expect((loginCall.tenant as { id: string }).id).to.equal(targetTenantId);
+        expect(loginCall.options?.account).to.equal(targetAccount);
+        expect(loginCall.options?.loginHint).to.equal("test-user@example.com");
+        expect(loginCall.options?.prompt).to.be.undefined;
+    });
 });
 
 suite("MsalAzureController Tests", () => {
@@ -583,5 +599,60 @@ suite("MsalAzureController Tests", () => {
 
         expect(token!.expiresOn).to.equal(accessTokenExpiry);
         expect(token!.expiresOn).not.to.equal(idTokenExpiry);
+    });
+
+    test("refreshAccessToken reauthenticates once when silent refresh requires interaction", async () => {
+        const accessTokenExpiry = Math.floor(Date.now() / 1000) + 3600;
+        const originalAccount = createExtensionAccount(homeTenantId);
+        const reauthenticatedAccount = createExtensionAccount(targetTenantId);
+        const mockResult = createAuthenticationResult(
+            createMsalAccount(targetTenantId),
+            new Date(accessTokenExpiry * 1000),
+        );
+        const interactionError = new msalNode.InteractionRequiredAuthError(
+            "interaction_required",
+            "User interaction is required",
+        );
+
+        const mockMsalAuth = sandbox.createStubInstance(MsalAzureCodeGrant);
+        mockMsalAuth.refreshAccessToken.rejects(interactionError);
+        mockMsalAuth.reauthenticate.resolves(reauthenticatedAccount);
+        mockMsalAuth.getToken.resolves(mockResult);
+
+        const mockCloudAuth = sandbox.createStubInstance(CloudAuthApplication);
+        mockCloudAuth.msalAuthInstance.returns(mockMsalAuth);
+
+        const controller = new MsalAzureController(
+            mockContext,
+            mockPrompter,
+            mockCredentialStore,
+            mockSubscriptionClientFactory,
+        );
+        controller["_cloudAuthMappings"] = new Map();
+        controller["_cloudAuthMappings"].set(CloudId.AzureCloud, mockCloudAuth);
+
+        const mockAccountStore = {
+            addAccount: sandbox.stub().resolves(),
+        } as unknown as AccountStore;
+
+        const token = await controller.refreshAccessToken(
+            originalAccount,
+            mockAccountStore,
+            targetTenantId,
+            providerSettings.publicAzureProviderSettings.settings.sqlResource!,
+        );
+
+        expect(mockMsalAuth.refreshAccessToken).to.have.been.calledOnce;
+        expect(mockMsalAuth.reauthenticate).to.have.been.calledOnceWith(
+            originalAccount,
+            targetTenantId,
+        );
+        expect(mockAccountStore.addAccount).to.have.been.calledOnceWith(reauthenticatedAccount);
+        expect(mockMsalAuth.getToken).to.have.been.calledOnceWith(
+            reauthenticatedAccount,
+            targetTenantId,
+            providerSettings.publicAzureProviderSettings.settings.sqlResource!,
+        );
+        expect(token!.expiresOn).to.equal(accessTokenExpiry);
     });
 });
