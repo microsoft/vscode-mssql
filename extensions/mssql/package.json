@@ -1623,6 +1623,12 @@
                 "when": "editorTextFocus && editorLangId == 'sql' && !notebookEditorFocused"
             },
             {
+                "command": "notebook.cell.execute",
+                "key": "ctrl+shift+e",
+                "mac": "cmd+shift+e",
+                "when": "notebookCellListFocused && notebookMissingKernelExtension && !notebookCellExecuting && notebookCellType == 'code' || notebookCellListFocused && !notebookCellExecuting && notebookCellType == 'code' && notebookKernelCount > 0 || notebookCellListFocused && !notebookCellExecuting && notebookCellType == 'code' && notebookKernelSourceCount > 0"
+            },
+            {
                 "command": "mssql.connect",
                 "key": "ctrl+shift+c",
                 "mac": "cmd+shift+c",
