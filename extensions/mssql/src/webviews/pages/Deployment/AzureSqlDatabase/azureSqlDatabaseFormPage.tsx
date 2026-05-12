@@ -27,6 +27,7 @@ import {
     AzureSqlDatabaseContextProps,
     AzureSqlDatabaseFormItemSpec,
     AzureSqlDatabaseFormState,
+    AzureSqlDatabaseLinks,
     AzureSqlDatabaseState,
     AZURE_SQL_DB_COMPONENT_ORDER,
 } from "../../../../sharedInterfaces/azureSqlDatabase";
@@ -483,7 +484,7 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                             </div>
                             <Link
                                 className={classes.linkDiv}
-                                href="https://learn.microsoft.com/en-us/azure/azure-sql/database/free-offer">
+                                href={AzureSqlDatabaseLinks.freeOffer}>
                                 {locConstants.common.learnMore}
                                 <ArrowRight12Regular style={{ marginTop: "2px" }} />
                             </Link>

@@ -6,6 +6,7 @@
 import { makeStyles, tokens } from "@fluentui/react-components";
 import { DocsLinkCard } from "./docsLinkCard";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
+import { AzureSqlDatabaseLinks } from "../../../../sharedInterfaces/azureSqlDatabase";
 import { locConstants } from "../../../common/locConstants";
 import { useAzureSqlDatabaseDeploymentSelector } from "../deploymentSelector";
 import { DeploymentStepCard } from "../deploymentStepCard";
@@ -87,19 +88,19 @@ export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
 
     const whatsNextLinks = [
         {
-            href: "https://learn.microsoft.com/en-us/azure/azure-sql/database/connect-query-ssms",
+            href: AzureSqlDatabaseLinks.connectQuerySsms,
             label: locConstants.azureSqlDatabase.connectAndRunQuery,
         },
         {
-            href: "https://learn.microsoft.com/en-us/azure/azure-sql/database/single-database-create-quickstart",
+            href: AzureSqlDatabaseLinks.createQuickstart,
             label: locConstants.azureSqlDatabase.seedSampleData,
         },
         {
-            href: "https://learn.microsoft.com/en-us/azure/azure-sql/database/free-offer",
+            href: AzureSqlDatabaseLinks.freeOffer,
             label: locConstants.azureSqlDatabase.monitorUsage,
         },
         {
-            href: "https://learn.microsoft.com/en-us/azure/azure-sql/database/",
+            href: AzureSqlDatabaseLinks.azureSqlDocs,
             label: locConstants.azureSqlDatabase.browseTutorials,
         },
     ];

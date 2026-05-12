@@ -20,6 +20,18 @@ export const AZURE_SQL_DB_COMPONENT_ORDER = [
     "serverName",
 ] as const;
 
+/** Centralized Azure SQL documentation URLs used across wizard pages. */
+export const AzureSqlDatabaseLinks = {
+    freeOffer: "https://learn.microsoft.com/en-us/azure/azure-sql/database/free-offer",
+    serviceTiers:
+        "https://learn.microsoft.com/en-us/azure/azure-sql/database/service-tiers-sql-database-vcore",
+    createQuickstart:
+        "https://learn.microsoft.com/en-us/azure/azure-sql/database/single-database-create-quickstart",
+    connectQuerySsms:
+        "https://learn.microsoft.com/en-us/azure/azure-sql/database/connect-query-ssms",
+    azureSqlDocs: "https://learn.microsoft.com/en-us/azure/azure-sql/database/",
+} as const;
+
 export class AzureSqlDatabaseState
     implements
         FormState<AzureSqlDatabaseFormState, AzureSqlDatabaseState, AzureSqlDatabaseFormItemSpec>

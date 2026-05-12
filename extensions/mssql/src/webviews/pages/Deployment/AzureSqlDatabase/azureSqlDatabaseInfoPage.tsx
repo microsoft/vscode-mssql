@@ -5,6 +5,7 @@
 
 import { makeStyles } from "@fluentui/react-components";
 import { locConstants } from "../../../common/locConstants";
+import { AzureSqlDatabaseLinks } from "../../../../sharedInterfaces/azureSqlDatabase";
 import { DocsLinkCard } from "./docsLinkCard";
 import { BuiltOnAzureSqlIcon } from "../../../common/icons/builtOnAzureSql";
 import { AnalyticsReadyIcon } from "../../../common/icons/analyticsReady";
@@ -77,15 +78,15 @@ export const AzureSqlDatabaseInfoPage: React.FC = () => {
 
     const links = [
         {
-            href: "https://learn.microsoft.com/en-us/azure/azure-sql/database/free-offer",
+            href: AzureSqlDatabaseLinks.freeOffer,
             label: locConstants.azureSqlDatabase.learnMoreAboutFreeTier,
         },
         {
-            href: "https://learn.microsoft.com/en-us/azure/azure-sql/database/service-tiers-sql-database-vcore",
+            href: AzureSqlDatabaseLinks.serviceTiers,
             label: locConstants.azureSqlDatabase.compareTiers,
         },
         {
-            href: "https://learn.microsoft.com/en-us/azure/azure-sql/database/single-database-create-quickstart",
+            href: AzureSqlDatabaseLinks.createQuickstart,
             label: locConstants.azureSqlDatabase.configureAndCustomize,
         },
     ];
