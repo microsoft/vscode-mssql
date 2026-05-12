@@ -92,16 +92,20 @@ suite("save results tests", () => {
     function testSaveSuccess(format: string): Thenable<void> {
         configureSuccess();
         const saveResults = createSerializer();
+        const openSavedFileStub = sandbox.stub(saveResults, "openSavedFile");
         return saveResults.onSaveResults(testFile, 0, 0, format, undefined).then(() => {
             expect(vscodeWrapper.showInformationMessage).to.have.been.calledOnce;
+            expect(openSavedFileStub).to.have.been.calledOnceWith(fileUri.fsPath, format);
         });
     }
 
     function testSaveFailure(format: string): Thenable<void> {
         configureFailure("failure");
         const saveResults = createSerializer();
+        const openSavedFileStub = sandbox.stub(saveResults, "openSavedFile");
         return saveResults.onSaveResults(testFile, 0, 0, format, undefined).then(() => {
             expect(vscodeWrapper.showErrorMessage).to.have.been.calledOnce;
+            expect(openSavedFileStub).to.not.have.been.called;
         });
     }
 
@@ -127,6 +131,44 @@ suite("save results tests", () => {
 
     test("Save as Excel - test if error message is displayed on failure to save", () => {
         return testSaveFailure("excel");
+    });
+
+    test("Save as CSV - opens saved file when openAfterSave is enabled by default", () => {
+        configureSuccess();
+        const saveResults = createSerializer();
+        const openSavedFileStub = sandbox.stub(saveResults, "openSavedFile");
+
+        return saveResults.onSaveResults(testFile, 0, 0, "csv", undefined).then(() => {
+            expect(openSavedFileStub).to.have.been.calledOnceWith(fileUri.fsPath, "csv");
+        });
+    });
+
+    test("Save as CSV - does not open saved file when openAfterSave is disabled", () => {
+        configureSuccess();
+        (vscodeWrapper.getConfiguration as sinon.SinonStub).returns({
+            get: (key: string) => (key === "results.openAfterSave" ? false : undefined),
+        } as unknown as vscode.WorkspaceConfiguration);
+        const saveResults = createSerializer();
+        const openSavedFileStub = sandbox.stub(saveResults, "openSavedFile");
+
+        return saveResults.onSaveResults(testFile, 0, 0, "csv", undefined).then(() => {
+            expect(vscodeWrapper.showInformationMessage).to.have.been.calledOnce;
+            expect(openSavedFileStub).to.not.have.been.called;
+        });
+    });
+
+    test("Save as Excel - does not open saved file when openAfterSave is disabled", () => {
+        configureSuccess();
+        (vscodeWrapper.getConfiguration as sinon.SinonStub).returns({
+            get: (key: string) => (key === "results.openAfterSave" ? false : undefined),
+        } as unknown as vscode.WorkspaceConfiguration);
+        const saveResults = createSerializer();
+        const openSavedFileStub = sandbox.stub(saveResults, "openSavedFile");
+
+        return saveResults.onSaveResults(testFile, 0, 0, "excel", undefined).then(() => {
+            expect(vscodeWrapper.showInformationMessage).to.have.been.calledOnce;
+            expect(openSavedFileStub).to.not.have.been.called;
+        });
     });
 
     test("Save as with selection - test if selected range is passed in parameters", () => {
@@ -179,14 +221,22 @@ suite("save results tests", () => {
         (vscodeWrapper.showSaveDialog as sinon.SinonStub).resolves(undefined);
 
         const saveResults = createSerializer();
+        const openSavedFileStub = sandbox.stub(saveResults, "openSavedFile");
         await saveResults.onSaveResults(testFile, 0, 0, "csv", undefined);
 
         expect(serverClient.sendRequest).to.not.have.been.called;
+        expect(openSavedFileStub).to.not.have.been.called;
     });
 
     test("CSV configuration options are properly applied", (done) => {
         const customWrapper = stubVscodeWrapper(sandbox);
         (customWrapper.showSaveDialog as sinon.SinonStub).resolves(fileUri);
+        (customWrapper.openTextDocument as sinon.SinonStub).resolves(
+            undefined as unknown as vscode.TextDocument,
+        );
+        (customWrapper.showTextDocument as sinon.SinonStub).resolves(
+            undefined as unknown as vscode.TextEditor,
+        );
         (customWrapper.getConfiguration as sinon.SinonStub).returns({
             saveAsCsv: {
                 delimiter: "\t",
