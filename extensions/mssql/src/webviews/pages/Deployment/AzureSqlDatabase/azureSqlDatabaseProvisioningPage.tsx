@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { makeStyles, tokens } from "@fluentui/react-components";
+import { Link, makeStyles, Text, tokens } from "@fluentui/react-components";
+import { ArrowRight12Regular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../common/locConstants";
 import { useAzureSqlDatabaseDeploymentSelector } from "../deploymentSelector";
@@ -54,6 +55,9 @@ const useStyles = makeStyles({
     cardItem: {
         fontSize: "14px",
         padding: "10px 0",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
     },
     cardItemLabel: {
         color: tokens.colorNeutralForeground4,
@@ -61,6 +65,36 @@ const useStyles = makeStyles({
     },
     cardBody: {
         padding: "0",
+    },
+    docsCard: {
+        borderRadius: "12px",
+        border: "1px solid var(--vscode-editorWidget-border)",
+        backgroundColor: "var(--colorNeutralBackground1Hover)",
+        padding: "16px",
+        width: "100%",
+        boxSizing: "border-box",
+    },
+    docsTitle: {
+        display: "block",
+        marginBottom: "8px",
+        fontSize: "12px",
+        fontWeight: 600,
+        lineHeight: "16px",
+    },
+    docsActions: {
+        display: "flex",
+        flexDirection: "column",
+    },
+    docsAction: {
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        minHeight: "24px",
+        padding: "2px 0",
+        fontSize: "12px",
+        lineHeight: "16px",
+        color: "var(--vscode-textLink-foreground)",
+        textDecorationLine: "none",
     },
 });
 
@@ -77,6 +111,28 @@ export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
     const serverRegion = useAzureSqlDatabaseDeploymentSelector((s) => s.serverRegion);
 
     if (!provisionLoadState) return undefined;
+
+    const isDeploymentComplete =
+        provisionLoadState === ApiStatus.Loaded && connectionLoadState === ApiStatus.Loaded;
+
+    const whatsNextLinks = [
+        {
+            href: "https://learn.microsoft.com/en-us/azure/azure-sql/database/connect-query-ssms",
+            label: locConstants.azureSqlDatabase.connectAndRunQuery,
+        },
+        {
+            href: "https://learn.microsoft.com/en-us/azure/azure-sql/database/single-database-create-quickstart",
+            label: locConstants.azureSqlDatabase.seedSampleData,
+        },
+        {
+            href: "https://learn.microsoft.com/en-us/azure/azure-sql/database/free-offer",
+            label: locConstants.azureSqlDatabase.monitorUsage,
+        },
+        {
+            href: "https://learn.microsoft.com/en-us/azure/azure-sql/database/",
+            label: locConstants.azureSqlDatabase.browseTutorials,
+        },
+    ];
 
     const stepStatus =
         provisionLoadState !== ApiStatus.Loaded ? provisionLoadState : connectionLoadState;
@@ -140,9 +196,7 @@ export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
                                         {serverName}
                                     </span>
                                 </div>
-                                <div
-                                    className={classes.cardColumn}
-                                    style={{ paddingLeft: "100px" }}>
+                                <div className={classes.cardColumn}>
                                     <span className={classes.cardItem}>
                                         <span className={classes.cardItemLabel}>
                                             {locConstants.azureSqlDatabase.subscription}:
@@ -166,6 +220,26 @@ export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
                         )}
                     </div>
                 </DeploymentStepCard>
+                {isDeploymentComplete && (
+                    <div className={classes.docsCard}>
+                        <Text className={classes.docsTitle}>
+                            {locConstants.azureSqlDatabase.whatsNext}
+                        </Text>
+                        <div className={classes.docsActions}>
+                            {whatsNextLinks.map((link) => (
+                                <Link
+                                    key={link.href}
+                                    href={link.href}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={classes.docsAction}>
+                                    <span>{link.label}</span>
+                                    <ArrowRight12Regular />
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

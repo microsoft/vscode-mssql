@@ -96,7 +96,7 @@ const useStyles = makeStyles({
         alignItems: "center",
         gap: "6px",
         fontWeight: 600,
-        fontSize: "14px",
+        fontSize: "12px",
         paddingBottom: "8px",
     },
     sidebarDivider: {
@@ -311,7 +311,7 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
         if (!component) return undefined;
         return (
             <div className={classes.fieldContainer}>
-                <div style={{ flex: 1, width: component.componentWidth || "100%" }}>
+                <div style={{ width: component.componentWidth || "100%" }}>
                     <FormField<
                         AzureSqlDatabaseFormState,
                         AzureSqlDatabaseState,

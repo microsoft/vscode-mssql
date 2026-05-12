@@ -78,6 +78,21 @@
     <trans-unit id="++CODE++3973e022e93220f9212c18d0d0c543ae7c309e46640da93a4a0314de999f5112">
       <source xml:lang="en">-</source>
     </trans-unit>
+    <trans-unit id="++CODE++6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b">
+      <source xml:lang="en">1</source>
+    </trans-unit>
+    <trans-unit id="++CODE++88af2fae162f54cc7b5d4efe02c132217c5bccb05fd1b82cbbfee5b450dc9a44">
+      <source xml:lang="en">100K vCore seconds</source>
+    </trans-unit>
+    <trans-unit id="++CODE++edf70be4cc3997d84703d19bd61ed05b95494ec7d58abb5a78ae4250ddefadcf">
+      <source xml:lang="en">32 GB</source>
+    </trans-unit>
+    <trans-unit id="++CODE++346775f99a4124e307b5630841a9cb4c7644ebec17c660619ad58ec1caba4196">
+      <source xml:lang="en">32 GB storage + 32 GB backup</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b63f1f48f79dc3c0319a846b9df813b98c4882df4d8b885b7f74d4ad237cf24f">
+      <source xml:lang="en">60 min</source>
+    </trans-unit>
     <trans-unit id="++CODE++380918b946a526640a40df5dced6516794f3d97bbd9e6bb553d037c4439f31c3">
       <source xml:lang="en">=</source>
     </trans-unit>
@@ -479,6 +494,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a27adfa57c8938761efd3fc482ea8e81fc898b286f29d04c783c9d3b60b22824">
       <source xml:lang="en">Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you&apos;ve created will be lost. Do you want to proceed with auto-arranging your schema diagram?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4c5540399ea50cb52c6ca24ab5aebf272d0e39920af434bec1fa87fa821f1bbd">
+      <source xml:lang="en">Auto-pause</source>
     </trans-unit>
     <trans-unit id="++CODE++3be95ed18980393b7f3c2f3f80286751e450d52d3015de1965c1671a001c56d3">
       <source xml:lang="en">Auto-pause the database until next month</source>
@@ -1185,6 +1203,12 @@
     </trans-unit>
     <trans-unit id="++CODE++278b1b2a9c84730f37f6d36630281494544a27e37168b4c6e45859667777f609">
       <source xml:lang="en">Compression</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cedc516df056195108208c53c37b1b3ba2b1f25b3e0772e954b98b9bc4ec76ec">
+      <source xml:lang="en">Compute</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cbd2167917b36ef54fa6044f33009b01e0793c6fda74f2488762f9cdb26793fc">
+      <source xml:lang="en">Compute + Storage</source>
     </trans-unit>
     <trans-unit id="++CODE++7ddbffc16744c2642445a4ec489967d4201fe93f5ec6af10738ba783cbd78680">
       <source xml:lang="en">Config copied to clipboard</source>
@@ -3174,6 +3198,9 @@
     <trans-unit id="++CODE++101e791740d73043fdbe1492a661f8c4194d1881957dc2ba8f08d2739474ae53">
       <source xml:lang="en">Free compute &amp; storage</source>
     </trans-unit>
+    <trans-unit id="++CODE++1da20df88686d477364e048fe92b392449ad8e0f1226ff2903d0d54cae8a24c8">
+      <source xml:lang="en">Free offer applied</source>
+    </trans-unit>
     <trans-unit id="++CODE++bb2f46cfafa54c18afeb7e7efc7ccf3b2d72b160c0381d2ad116e8f7139be42d">
       <source xml:lang="en">Freeze columns</source>
     </trans-unit>
@@ -3195,6 +3222,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e6fcb24896423f9739a20e841d3c3f2ab319f222be60b150ed664e611be89ed4">
       <source xml:lang="en">General Options</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fe9fa5778e6299904ef31d5f6e87aed494f00eb96d5aba3ab8b23beed99759c9">
+      <source xml:lang="en">General Purpose</source>
     </trans-unit>
     <trans-unit id="++CODE++752307275e5358665596d28a3080462e4933b77005bbbf2ba1eca87f1dca1fcc">
       <source xml:lang="en">Generate Data API builder configurations using natural language through GitHub Copilot chat and agent tools. Describe your API requirements and let GitHub Copilot scaffold the configuration for you.</source>
@@ -3586,6 +3616,12 @@
     <trans-unit id="++CODE++a3c13b491573b0d54bf743caf0f5d59d5a791c42ae1072f16bb941be925fae18">
       <source xml:lang="en">Keys for token cache could not be saved in credential store, this may cause Microsoft Entra Id access token persistence issues and connection instabilities. It&apos;s likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with &quot;Microsoft.SqlTools|&quot; in Windows Credential Manager and reload.</source>
     </trans-unit>
+    <trans-unit id="++CODE++0ca9017c8fb85ae12ca8668af23d92b03040f0d7f3b3dc6df332a7ec59ef611f">
+      <source xml:lang="en">LRS</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f89417d53ba776c805f239fe55d55177f66764a88a5ae08085341e904985b900">
+      <source xml:lang="en">LRS backup (locally redundant)</source>
+    </trans-unit>
     <trans-unit id="++CODE++c7d299ed6b2896187b535a86fd6b04f01669a9b72528a8f2021fff2f42d9f6e3">
       <source xml:lang="en">Last Page</source>
     </trans-unit>
@@ -3955,6 +3991,9 @@
     <trans-unit id="++CODE++d54543fb6beb1b6dc5aaa5961c0d92fe25a4ae3bc6fe81b241bd9064e43f46d7">
       <source xml:lang="en">Mandatory (True)</source>
     </trans-unit>
+    <trans-unit id="++CODE++5493d99b17c225af455b0fdaa53425c8fadd62f34935b8c02b8c1504f281acba">
+      <source xml:lang="en">Max 10 databases / subscription</source>
+    </trans-unit>
     <trans-unit id="++CODE++305fd6adb2295a939e62e4fed83349c610aa4e1840280503e6b64c8042dccd16">
       <source xml:lang="en">Max Length</source>
     </trans-unit>
@@ -4103,6 +4142,9 @@
     </trans-unit>
     <trans-unit id="++CODE++999447c73dea8a58e7845ced946ec9030d22db88790df0320f35bf6bac6c588f">
       <source xml:lang="en">Modify Table</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7b2f513a67abc570d3348717ad85ae669570734afe2bf57015c2cc9b0dce3764">
+      <source xml:lang="en">Monthly limits</source>
     </trans-unit>
     <trans-unit id="++CODE++0149b409a73e8498a5256e13dbf70225738e9e1fed0d976e20ad8ef338cc2d22">
       <source xml:lang="en">More Query Actions</source>
@@ -5925,8 +5967,14 @@
       <source xml:lang="en">Server {0} not found.</source>
       <note>{0} is the server name</note>
     </trans-unit>
+    <trans-unit id="++CODE++a4469e8491766ec6b1f6d3c2f4e3861d58829898ba912fad682eb8133520cb6d">
+      <source xml:lang="en">Serverless</source>
+    </trans-unit>
     <trans-unit id="++CODE++dac743dff083eb4e7426ed1b0a586ff5ead5b87a35759f12eea61e57638fcbc3">
       <source xml:lang="en">Service installation failed.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e9cf6025703e6809e20b33168b1ad2c6120b938ab5fe8d648892d50ac54d3051">
+      <source xml:lang="en">Service tier</source>
     </trans-unit>
     <trans-unit id="++CODE++6959b4159575d8dd76d9f3bbe2c6437904f861e7860c35abd18deffb1c3425a0">
       <source xml:lang="en">Session</source>
@@ -5976,6 +6024,9 @@
     </trans-unit>
     <trans-unit id="++CODE++6211b4404e51962560c0371e86dbaf688cfbd5d1c08e6324222089404db2929e">
       <source xml:lang="en">Settings and Keybindings</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5074b0dd3fec65cf6816a26ce347ffaf826056d587bd830f605d29e34c2601ec">
+      <source xml:lang="en">Settings are fixed for free tier.</source>
     </trans-unit>
     <trans-unit id="++CODE++b22da542e3738190f2e199b6289592b40f09bcc9b373984a97bea17c1b5d619b">
       <source xml:lang="en">Settings for {0}</source>
@@ -6243,6 +6294,9 @@
     <trans-unit id="++CODE++2ee872ecd1c6074e5ce040609b1ba3ec2a9d987d039fd9e913cafeeba666d1e7">
       <source xml:lang="en">Stopping profiler session &quot;{0}&quot;...</source>
       <note>{0} is the session name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++a69c4dece144a46e40d430726395533d8f335a7d601d8ca292220b3a4a7faca4">
+      <source xml:lang="en">Storage</source>
     </trans-unit>
     <trans-unit id="++CODE++1755a01ae9117c06e6710451545424a51fd152c0e0d4609bd9db3732ae4b24f7">
       <source xml:lang="en">Storage Account</source>
@@ -7098,6 +7152,9 @@
       <source xml:lang="en">Your current IP {0} will be added automatically.</source>
       <note>{0} is the current IP address</note>
     </trans-unit>
+    <trans-unit id="++CODE++fba27c1cc726f650cd3eceb3a036cce31854cde7aa2ad9fe4a073c12417098c4">
+      <source xml:lang="en">Your database will continue running after the free offer limit and you will be charged for overages.</source>
+    </trans-unit>
     <trans-unit id="++CODE++e22a8e55997a44b12ff4f976b12df9cf1fd9b41a7521198b72b15a3cb9952ed0">
       <source xml:lang="en">Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).</source>
     </trans-unit>
@@ -7196,6 +7253,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f39d8207a23b19fa52f06809909505464af2764c6b3ade40db823f0a46b33487">
       <source xml:lang="en">updatingIntelliSense</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7ff2c6370613ed94cff5b41da2922691d968855c00b28dc39d101079cc59f673">
+      <source xml:lang="en">vCores</source>
     </trans-unit>
     <trans-unit id="++CODE++a48f10647cec7ba3f44b4b4623080abee3b5f7ffee7929db6581a2eee9b4f136">
       <source xml:lang="en">x of y selected</source>

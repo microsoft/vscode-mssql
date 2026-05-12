@@ -213,6 +213,10 @@ export function registerAzureSqlDatabaseReducers(
             return state;
         }
 
+        // Capture user-editable fields that load functions don't manage,
+        // so concurrent formAction changes aren't lost during the await.
+        const preservedMaintenanceConfig = azureSqlState.formState.maintenanceConfig;
+
         switch (payload.componentName) {
             case "accountId":
                 await loadAccountComponent(deploymentController, azureSqlState);
@@ -231,6 +235,22 @@ export function registerAzureSqlDatabaseReducers(
                 break;
             default:
                 return state;
+        }
+
+        // Restore maintenance config if it wasn't explicitly reset by the load
+        // (subscriptionId load resets it via reloadAzureComponentsDownstream)
+        if (
+            payload.componentName !== "subscriptionId" &&
+            payload.componentName !== "accountId" &&
+            payload.componentName !== "tenantId"
+        ) {
+            // Check if a concurrent formAction updated maintenanceConfig;
+            // prefer the latest value from the controller's live state.
+            const liveMaintenanceConfig = (
+                deploymentController.state.deploymentTypeState as asd.AzureSqlDatabaseState
+            ).formState.maintenanceConfig;
+            azureSqlState.formState.maintenanceConfig =
+                liveMaintenanceConfig || preservedMaintenanceConfig;
         }
 
         azureSqlState.azureComponentStatuses[payload.componentName] = ApiStatus.Loaded;
@@ -790,9 +810,9 @@ async function loadMaintenanceConfigs(azureSqlState: asd.AzureSqlDatabaseState):
     maintenanceComponent.placeholder = AzureSqlDatabase.selectMaintenanceWindow;
     azureSqlState.azureComponentStatuses["maintenanceConfig"] = ApiStatus.Loaded;
 
-    // Default to SQL_Default if available
+    // Default to SQL_Default if available and user hasn't already selected a value
     const defaultConfig = cachedMaintenanceConfigs.find((c) => c.name === "SQL_Default");
-    if (defaultConfig) {
+    if (defaultConfig && !azureSqlState.formState.maintenanceConfig) {
         azureSqlState.formState.maintenanceConfig = defaultConfig.id;
     }
 }
@@ -1051,7 +1071,7 @@ function setAzureSqlDatabaseFormComponents(
             type: FormItemType.Checkbox,
             required: false,
             label: AzureSqlDatabase.savePassword,
-            componentWidth: "280px",
+            componentWidth: "320px",
         }),
         profileName: createFormItem({
             propertyName: "profileName",

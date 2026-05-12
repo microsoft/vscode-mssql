@@ -1,4 +1,5 @@
 {
+    "1": "1",
     "{0} issue/{0} is the number of issues": {
         "message": "{0} issue",
         "comment": ["{0} is the number of issues"]
@@ -1174,6 +1175,20 @@
     "Database pauses until the next billing cycle when free amount is renewed.": "Database pauses until the next billing cycle when free amount is renewed.",
     "Continue using for additional charges": "Continue using for additional charges",
     "Additional usage beyond the free amount will be charged at serverless rates.": "Additional usage beyond the free amount will be charged at serverless rates.",
+    "Your database will continue running after the free offer limit and you will be charged for overages.": "Your database will continue running after the free offer limit and you will be charged for overages.",
+    "Free offer applied": "Free offer applied",
+    "Monthly limits": "Monthly limits",
+    "100K vCore seconds": "100K vCore seconds",
+    "32 GB storage + 32 GB backup": "32 GB storage + 32 GB backup",
+    "Max 10 databases / subscription": "Max 10 databases / subscription",
+    "LRS backup (locally redundant)": "LRS backup (locally redundant)",
+    "Settings are fixed for free tier.": "Settings are fixed for free tier.",
+    "Compute + Storage": "Compute + Storage",
+    "Service tier": "Service tier",
+    "Compute": "Compute",
+    "Storage": "Storage",
+    "Backup": "Backup",
+    "Auto-pause": "Auto-pause",
     "Backup Storage Redundancy": "Backup Storage Redundancy",
     "Locally-redundant backup storage": "Locally-redundant backup storage",
     "Zone-redundant backup storage": "Zone-redundant backup storage",
@@ -1199,6 +1214,12 @@
     "Key": "Key",
     "Tag keys must be unique.": "Tag keys must be unique.",
     "Firewall": "Firewall",
+    "General Purpose": "General Purpose",
+    "Serverless": "Serverless",
+    "vCores": "vCores",
+    "32 GB": "32 GB",
+    "LRS": "LRS",
+    "60 min": "60 min",
     "Your current IP {0} will be added automatically./{0} is the current IP address": {
         "message": "Your current IP {0} will be added automatically.",
         "comment": ["{0} is the current IP address"]
@@ -1542,7 +1563,6 @@
         "comment": ["{0} is the database name"]
     },
     "Loading backup database...": "Loading backup database...",
-    "Backup": "Backup",
     "Advanced Backup Options": "Advanced Backup Options",
     "Search options": "Search options",
     "Save to URL": "Save to URL",

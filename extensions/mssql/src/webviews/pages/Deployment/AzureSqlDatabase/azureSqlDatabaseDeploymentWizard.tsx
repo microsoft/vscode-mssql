@@ -6,7 +6,7 @@
 import { useContext, useMemo, useState } from "react";
 import { Wizard, WizardPageDefinition } from "../../../common/wizard";
 import { locConstants } from "../../../common/locConstants";
-import { CreateDatabaseIcon } from "../../../common/icons/createDatabase";
+import { AzureSqlDatabaseIcon } from "../../../common/icons/azureSqlDatabase";
 import {
     AzureSqlDatabaseFormItemSpec,
     AzureSqlDatabaseState,
@@ -160,7 +160,7 @@ export const AzureSqlDatabaseDeploymentWizard: React.FC<AzureSqlDatabaseDeployme
 
     return (
         <Wizard
-            icon={<CreateDatabaseIcon aria-hidden="true" />}
+            icon={<AzureSqlDatabaseIcon aria-hidden="true" />}
             title={locConstants.deployment.deploymentHeader}
             pages={pages}
             onCancel={() => context.dispose()}
