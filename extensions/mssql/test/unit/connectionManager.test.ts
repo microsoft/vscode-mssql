@@ -18,12 +18,7 @@ import StatusView from "../../src/views/statusView";
 import { CredentialStore } from "../../src/credentialstore/credentialstore";
 import { IConnectionProfile, IConnectionProfileWithSource } from "../../src/models/interfaces";
 import { ParseConnectionStringRequest } from "../../src/models/contracts/connection";
-import {
-    AccountType,
-    AzureAuthType,
-    IAccount,
-    RequestSecurityTokenParams,
-} from "../../src/models/contracts/azure";
+import { IAccount, RequestSecurityTokenParams } from "../../src/models/contracts/azure";
 import { AzureController } from "../../src/azure/azureController";
 import { azureCloudProviderId } from "../../src/azure/providerSettings";
 import { ConnectionUI } from "../../src/views/connectionUI";
@@ -38,7 +33,6 @@ import {
 import { Deferred } from "../../src/protocol";
 import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
 import * as LocalizedConstants from "../../src/constants/locConstants";
-import * as VscodeEntraMfaUtils from "../../src/azure/vscodeEntraMfaUtils";
 import { PreviewFeature } from "../../src/previews/previewService";
 
 chai.use(sinonChai);
@@ -287,6 +281,8 @@ suite("ConnectionManager Tests", () => {
 
     suite("Token request handling", () => {
         setup(() => {
+            // Test the MSAL (non-VS-Code-accounts) path
+            stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: false });
             connectionManager = new ConnectionManager(
                 mockContext,
                 mockStatusView,
@@ -322,6 +318,7 @@ suite("ConnectionManager Tests", () => {
                 {
                     accountKey: cachedToken.key,
                     token: cachedToken.token,
+                    expiresOn: cachedToken.expiresOn,
                 },
                 "Should return cached token",
             );
@@ -337,10 +334,21 @@ suite("ConnectionManager Tests", () => {
 
             connectionManager["_keyVaultTokenCache"].clear();
 
-            connectionManager["selectAccount"] = sandbox
-                .stub()
-                .resolves({ key: { providerId: azureCloudProviderId } });
-            connectionManager["selectTenantId"] = sandbox.stub();
+            // selectAccount and selectTenantId return string IDs in the new delegate-based flow
+            connectionManager["selectAccount"] = sandbox.stub().resolves("account-key");
+            connectionManager["selectTenantId"] = sandbox.stub().resolves("tenant-id");
+
+            // _accountStore is needed by the getAccounts and getTenants delegates
+            const mockAccountStore = sandbox.createStubInstance(AccountStore);
+            const mockAccount = {
+                key: { id: "account-key", providerId: azureCloudProviderId },
+                displayInfo: { name: "Test User", email: "test@contoso.com" },
+                properties: { tenants: [] },
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } as any;
+            mockAccountStore.getAccounts.resolves([mockAccount]);
+            mockAccountStore.getAccount.resolves(mockAccount);
+            connectionManager["_accountStore"] = mockAccountStore;
 
             const stubbedAzureController = sandbox.createStubInstance(MsalAzureController);
             const token: IToken = {
@@ -358,6 +366,7 @@ suite("ConnectionManager Tests", () => {
                 {
                     accountKey: "new-key",
                     token: "new-token",
+                    expiresOn: token.expiresOn,
                 },
                 "Should return new token",
             );
@@ -397,6 +406,8 @@ suite("ConnectionManager Tests", () => {
         }
 
         setup(() => {
+            // Test the MSAL (non-VS-Code-accounts) path
+            stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: false });
             connectionManager = new ConnectionManager(
                 mockContext,
                 mockStatusView,
@@ -777,51 +788,6 @@ suite("ConnectionManager Tests", () => {
                 mockLogger,
             );
         });
-
-        // TODO: Benjin - skipping this test as the STS-driven token acquisition flow is validated,
-        // since this test validates the flow where VS Code pushes tokens in.  That model was dropped because it didn't support refreshing expired tokens.
-        test.skip("uses VS Code account tokens when VS Code account mode is enabled", async () => {
-            stubPreviewService(sandbox, {
-                [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
-            });
-
-            sandbox.stub(AzureController, "isTokenValid").returns(false);
-            sandbox.stub(VscodeEntraMfaUtils, "acquireSqlAccessTokenFromVscodeAccount").resolves({
-                account: {
-                    id: "vscode-account-id.tenant-id",
-                    label: "user@contoso.com",
-                } as vscode.AuthenticationSessionAccountInformation,
-                session: {
-                    account: {
-                        id: "vscode-account-id.tenant-id",
-                        label: "user@contoso.com",
-                    },
-                } as vscode.AuthenticationSession,
-                tenantId: "tenant-id",
-                token: {
-                    key: "vscode-account-id.tenant-id",
-                    token: "vscode-token",
-                    tokenType: "Bearer",
-                    expiresOn: Date.now() / 1000 + 3600,
-                },
-            });
-
-            const connectionInfo = {
-                server: "testServer",
-                authenticationType: "AzureMFA",
-                accountId: "legacy-account-id",
-                tenantId: "legacy-tenant-id",
-                user: "legacy-user",
-            } as IConnectionInfo;
-
-            await connectionManager.refreshEntraTokenIfNeeded(connectionInfo);
-
-            expect(connectionInfo.azureAccountToken).to.equal("vscode-token");
-            expect(connectionInfo.accountId).to.equal("vscode-account-id.tenant-id");
-            expect(connectionInfo.tenantId).to.equal("tenant-id");
-            expect(connectionInfo.user).to.equal("user@contoso.com");
-            expect(connectionInfo.email).to.equal("user@contoso.com");
-        });
     });
 
     suite("handlePasswordBasedCredentials", () => {
@@ -892,77 +858,7 @@ suite("ConnectionManager Tests", () => {
         });
     });
 
-    suite("createAccountQuickPickItems", () => {
-        let testConnectionManager: ConnectionManager;
-
-        setup(() => {
-            testConnectionManager = new ConnectionManager(
-                mockContext,
-                mockStatusView,
-                undefined, // prompter
-                mockLogger,
-            );
-        });
-
-        function makeAccount(id: string, name: string, email: string): IAccount {
-            return {
-                key: { id, providerId: "azure" },
-                displayInfo: {
-                    accountType: AccountType.WorkSchool,
-                    userId: email,
-                    displayName: name,
-                    name,
-                    email,
-                },
-                properties: {
-                    azureAuthType: AzureAuthType.AuthCodeGrant,
-                    tenants: [undefined],
-                    providerSettings: undefined,
-                    isMsAccount: false,
-                    owningTenant: undefined,
-                },
-                isStale: false,
-            };
-        }
-
-        test("should include all accounts plus a sign-in item", () => {
-            const accounts = [
-                makeAccount("acc1", "Alice", "alice@contoso.com"),
-                makeAccount("acc2", "Bob", "bob@contoso.com"),
-            ];
-
-            const items = testConnectionManager["createAccountQuickPickItems"](accounts);
-
-            expect(items).to.have.lengthOf(3);
-            expect(items[0].label).to.equal("Alice");
-            expect(items[0].description).to.equal("alice@contoso.com");
-            expect(items[0].account).to.equal(accounts[0]);
-            expect(items[1].label).to.equal("Bob");
-            expect(items[1].account).to.equal(accounts[1]);
-            expect(items[2].account).to.be.undefined;
-        });
-
-        test("should mark the current account in the label", () => {
-            const accounts = [
-                makeAccount("acc1", "Alice", "alice@contoso.com"),
-                makeAccount("acc2", "Bob", "bob@contoso.com"),
-            ];
-
-            const items = testConnectionManager["createAccountQuickPickItems"](accounts, "acc1");
-
-            expect(items[0].label).to.equal(LocalizedConstants.Connection.currentAccount("Alice"));
-            expect(items[1].label).to.equal("Bob");
-        });
-
-        test("should return only sign-in item when no accounts exist", () => {
-            const items = testConnectionManager["createAccountQuickPickItems"]([]);
-
-            expect(items).to.have.lengthOf(1);
-            expect(items[0].account).to.be.undefined;
-        });
-    });
-
-    suite("showAccountQuickPick", () => {
+    suite("showValueQuickPick", () => {
         let testConnectionManager: ConnectionManager;
         let createQuickPickStub: sinon.SinonStub;
         let mockQuickPick: {
@@ -1004,75 +900,52 @@ suite("ConnectionManager Tests", () => {
                 .returns(mockQuickPick as unknown as vscode.QuickPick<vscode.QuickPickItem>);
         });
 
-        function makeAccount(id: string, name: string, email: string): IAccount {
-            return {
-                key: { id, providerId: "azure" },
-                displayInfo: {
-                    accountType: AccountType.WorkSchool,
-                    userId: email,
-                    displayName: name,
-                    name,
-                    email,
-                },
-                properties: {
-                    azureAuthType: AzureAuthType.AuthCodeGrant,
-                    tenants: [undefined],
-                    providerSettings: undefined,
-                    isMsAccount: false,
-                    owningTenant: undefined,
-                },
-                isStale: false,
-            };
-        }
+        test("should return value when user selects an item", async () => {
+            const value = "acc1";
+            const items = [{ label: "Alice", description: "alice@contoso.com", value }];
 
-        test("should return account when user selects an account item", async () => {
-            const account = makeAccount("acc1", "Alice", "alice@contoso.com");
-            const items = [{ label: "Alice", description: "alice@contoso.com", account }];
+            const resultPromise = testConnectionManager["showValueQuickPick"](
+                items,
+                "Select account",
+            );
 
-            const resultPromise = testConnectionManager["showAccountQuickPick"](items);
-
-            // Simulate user selecting the account
             mockQuickPick.selectedItems = [items[0]];
             acceptHandler();
 
             const result = await resultPromise;
-            expect(result).to.equal(account);
+            expect(result).to.equal(value);
             expect(createQuickPickStub).to.have.been.calledOnce;
         });
 
-        // eslint-disable-next-line no-restricted-syntax
-        test("should return null when user selects the sign-in item", async () => {
+        test("should return null when user selects the sign-in sentinel item", async () => {
             const items = [
                 {
                     label: LocalizedConstants.Connection.signInToAzure,
                     description: LocalizedConstants.Connection.signInToAzure,
-                    account: undefined,
+                    value: undefined,
                 },
             ];
 
-            const resultPromise = testConnectionManager["showAccountQuickPick"](items);
+            const resultPromise = testConnectionManager["showValueQuickPick"](
+                items,
+                "Select account",
+            );
 
-            // Simulate user selecting the sign-in item (account is undefined)
             mockQuickPick.selectedItems = [items[0]];
             acceptHandler();
 
             const result = await resultPromise;
-            // eslint-disable-next-line no-restricted-syntax
-            expect(result).to.be.null;
+            expect(result).to.be.null; // .null is a chai property accessor, not a null literal
         });
 
         test("should return undefined when user dismisses the quick pick", async () => {
-            const items = [
-                {
-                    label: "Alice",
-                    description: "alice@contoso.com",
-                    account: makeAccount("acc1", "Alice", "alice@contoso.com"),
-                },
-            ];
+            const items = [{ label: "Alice", description: "alice@contoso.com", value: "acc1" }];
 
-            const resultPromise = testConnectionManager["showAccountQuickPick"](items);
+            const resultPromise = testConnectionManager["showValueQuickPick"](
+                items,
+                "Select account",
+            );
 
-            // Simulate user pressing Escape
             hideHandler();
 
             const result = await resultPromise;
@@ -1080,33 +953,30 @@ suite("ConnectionManager Tests", () => {
         });
 
         test("should not resolve to undefined when onDidHide fires after onDidAccept", async () => {
-            const account = makeAccount("acc1", "Alice", "alice@contoso.com");
-            const items = [{ label: "Alice", description: "alice@contoso.com", account }];
+            const value = "acc1";
+            const items = [{ label: "Alice", description: "alice@contoso.com", value }];
 
-            const resultPromise = testConnectionManager["showAccountQuickPick"](items);
+            const resultPromise = testConnectionManager["showValueQuickPick"](
+                items,
+                "Select account",
+            );
 
-            // Simulate accept then hide (dispose triggers hide)
             mockQuickPick.selectedItems = [items[0]];
             acceptHandler();
             hideHandler();
 
             const result = await resultPromise;
-            // Should still be the account, not undefined from the hide handler
-            expect(result).to.equal(account);
+            expect(result).to.equal(value);
         });
 
         test("should return undefined when accept fires with no selected item", async () => {
-            const items = [
-                {
-                    label: "Alice",
-                    description: "alice@contoso.com",
-                    account: makeAccount("acc1", "Alice", "alice@contoso.com"),
-                },
-            ];
+            const items = [{ label: "Alice", description: "alice@contoso.com", value: "acc1" }];
 
-            const resultPromise = testConnectionManager["showAccountQuickPick"](items);
+            const resultPromise = testConnectionManager["showValueQuickPick"](
+                items,
+                "Select account",
+            );
 
-            // Simulate accept with empty selection
             mockQuickPick.selectedItems = [];
             acceptHandler();
 
@@ -1117,34 +987,19 @@ suite("ConnectionManager Tests", () => {
 
     suite("selectAccount", () => {
         let testConnectionManager: ConnectionManager;
-        let mockAccountStore: sinon.SinonStubbedInstance<AccountStore>;
-        let showAccountQuickPickStub: sinon.SinonStub;
-        let addAccountStub: sinon.SinonStub;
+        let showValueQuickPickStub: sinon.SinonStub;
+        let onSignInStub: sinon.SinonStub;
 
-        function makeAccount(id: string, name: string, email: string): IAccount {
-            return {
-                key: { id, providerId: "azure" },
-                displayInfo: {
-                    accountType: AccountType.WorkSchool,
-                    userId: email,
-                    displayName: name,
-                    name,
-                    email,
-                },
-                properties: {
-                    azureAuthType: AzureAuthType.AuthCodeGrant,
-                    tenants: [undefined],
-                    providerSettings: undefined,
-                    isMsAccount: false,
-                    owningTenant: undefined,
-                },
-                isStale: false,
-            };
-        }
+        const items = [
+            { label: "Alice", description: "alice@contoso.com", value: "acc1" },
+            {
+                label: LocalizedConstants.Connection.signInToAzure,
+                description: LocalizedConstants.Connection.signInToAzure,
+                value: undefined,
+            },
+        ];
 
         setup(() => {
-            mockAccountStore = sandbox.createStubInstance(AccountStore);
-
             testConnectionManager = new ConnectionManager(
                 mockContext,
                 mockStatusView,
@@ -1152,47 +1007,37 @@ suite("ConnectionManager Tests", () => {
                 mockLogger,
             );
 
-            testConnectionManager["_accountStore"] = mockAccountStore;
-            mockAccountStore.getAccounts.resolves([]);
-
-            showAccountQuickPickStub = sandbox.stub(
+            showValueQuickPickStub = sandbox.stub(
                 testConnectionManager as any, // eslint-disable-line @typescript-eslint/no-explicit-any
-                "showAccountQuickPick",
+                "showValueQuickPick",
             );
-            addAccountStub = sandbox.stub(testConnectionManager, "addAccount");
+            onSignInStub = sandbox.stub().resolves("new1");
         });
 
-        test("should return the selected account", async () => {
-            const account = makeAccount("acc1", "Alice", "alice@contoso.com");
-            showAccountQuickPickStub.resolves(account);
+        test("should return the selected value", async () => {
+            showValueQuickPickStub.resolves("acc1");
 
-            const result = await testConnectionManager["selectAccount"]();
+            const result = await testConnectionManager["selectAccount"](items, onSignInStub);
 
-            expect(result).to.equal(account);
-            expect(addAccountStub).to.not.have.been.called;
+            expect(result).to.equal("acc1");
+            expect(onSignInStub).to.not.have.been.called;
         });
 
-        // eslint-disable-next-line no-restricted-syntax
-        test("should trigger sign-in and return new account when sign-in item is selected", async () => {
-            const newAccount = makeAccount("new1", "NewUser", "new@contoso.com");
-            // eslint-disable-next-line no-restricted-syntax
-            showAccountQuickPickStub.resolves(null); // null = sign-in selected
-            addAccountStub.resolves(newAccount);
+        test("should invoke onSignIn and return its value when sign-in sentinel is selected", async () => {
+            showValueQuickPickStub.resolves(null); // eslint-disable-line no-restricted-syntax
 
-            const result = await testConnectionManager["selectAccount"]();
+            const result = await testConnectionManager["selectAccount"](items, onSignInStub);
 
-            expect(result).to.equal(newAccount);
-            expect(addAccountStub).to.have.been.calledOnce;
+            expect(result).to.equal("new1");
+            expect(onSignInStub).to.have.been.calledOnce;
         });
 
-        // eslint-disable-next-line no-restricted-syntax
-        test("should throw when sign-in is selected but addAccount returns falsy", async () => {
-            // eslint-disable-next-line no-restricted-syntax
-            showAccountQuickPickStub.resolves(null);
-            addAccountStub.resolves(undefined);
+        test("should throw when sign-in is selected but onSignIn throws", async () => {
+            showValueQuickPickStub.resolves(null); // eslint-disable-line no-restricted-syntax
+            onSignInStub.rejects(new Error(LocalizedConstants.Connection.noAccountSelected));
 
             try {
-                await testConnectionManager["selectAccount"]();
+                await testConnectionManager["selectAccount"](items, onSignInStub);
                 expect.fail("Should have thrown");
             } catch (error) {
                 expect(error.message).to.equal(LocalizedConstants.Connection.noAccountSelected);
@@ -1200,16 +1045,16 @@ suite("ConnectionManager Tests", () => {
         });
 
         test("should throw when user dismisses the quick pick", async () => {
-            showAccountQuickPickStub.resolves(undefined);
+            showValueQuickPickStub.resolves(undefined);
 
             try {
-                await testConnectionManager["selectAccount"]();
+                await testConnectionManager["selectAccount"](items, onSignInStub);
                 expect.fail("Should have thrown");
             } catch (error) {
                 expect(error.message).to.equal(LocalizedConstants.Connection.noAccountSelected);
             }
 
-            expect(addAccountStub).to.not.have.been.called;
+            expect(onSignInStub).to.not.have.been.called;
         });
     });
 });

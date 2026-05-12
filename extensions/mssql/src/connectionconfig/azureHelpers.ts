@@ -152,13 +152,12 @@ export class VsCodeAzureHelper {
             const accountsAfter = await VsCodeAzureHelper.getAccounts();
             const newAccount = accountsAfter.find((a) => !accountsBefore.has(a.id));
 
-            return {
-                auth,
-                newAccountId: newAccount?.id ?? undefined,
-            };
+            return { auth, newAccountId: newAccount?.id ?? accountsAfter[0]?.id };
         }
 
-        return { auth, newAccountId: undefined };
+        // Already signed in — return the first available account
+        const accounts = await VsCodeAzureHelper.getAccounts();
+        return { auth, newAccountId: accounts[0]?.id };
     }
 
     public static getHomeTenantIdForAccount(
