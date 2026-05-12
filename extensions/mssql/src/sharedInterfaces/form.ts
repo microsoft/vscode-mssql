@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CoreRPCs } from "./webview";
+import { CoreRPCs, Status } from "./webview";
 
 export interface FormState<
     TForm,
@@ -91,9 +91,16 @@ export interface FormItemSpec<
     isAdvancedOption?: boolean;
 
     /**
-     * Whether the form item is currently loading its data (e.g. dropdown options)
+     * Async loading status for label decoration.
+     * Loading → spinner; Loaded → green checkmark; Error → red X next to the label.
+     * The message is shown as a tooltip on the icon.
      */
-    loading?: boolean;
+    loadStatus?: Status;
+
+    /**
+     * If true, the user may enter a value that doesn't appear in the options list.
+     */
+    freeform?: boolean;
 }
 
 export interface FormItemValidationState {
@@ -133,6 +140,12 @@ export interface FormItemOptions {
      * Optional tooltip text for the info icon
      */
     infoTooltip?: string;
+    /**
+     * Optional group label for the option. When any option in a list has a groupName,
+     * the front-end renders options grouped under their respective labels. If none do,
+     * then all options are rendered in a flat list.
+     */
+    groupName?: string;
 }
 
 /**

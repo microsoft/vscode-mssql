@@ -124,6 +124,18 @@ suite("DAB LM tool manifest schema", () => {
         expect(requiredLists).to.deep.include.members([["id"], ["schemaName", "tableName"]]);
     });
 
+    test("validates ColumnRef XOR shape (id OR name)", () => {
+        const tool = getTool();
+        const columnRef = tool.inputSchema?.$defs?.columnRef;
+        expect(columnRef?.oneOf, "missing $defs.columnRef.oneOf").to.be.an("array");
+        expect(columnRef.oneOf).to.have.length(2);
+
+        const requiredLists = columnRef.oneOf.map((variant: any) =>
+            (variant.required ?? []).slice().sort(),
+        );
+        expect(requiredLists).to.deep.include.members([["id"], ["name"]]);
+    });
+
     test("validates enums for apiTypes/enabledActions/authorizationRole/returnState", () => {
         const tool = getTool();
         const changeVariants =
@@ -141,6 +153,9 @@ suite("DAB LM tool manifest schema", () => {
         expect(
             byType.get("set_entity_actions")?.properties?.enabledActions?.items?.enum,
         ).to.deep.equal(["create", "read", "update", "delete"]);
+        expect(byType.get("set_column_exposed")?.properties?.column?.$ref).to.equal(
+            "#/$defs/columnRef",
+        );
         expect(
             tool.inputSchema?.$defs?.advancedSettingsPatch?.properties?.authorizationRole?.enum,
         ).to.deep.equal(["anonymous", "authenticated"]);

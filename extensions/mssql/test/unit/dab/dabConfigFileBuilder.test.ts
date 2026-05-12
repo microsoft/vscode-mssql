@@ -21,6 +21,24 @@ function createTestEntity(overrides?: Partial<Dab.DabEntityConfig>): Dab.DabEnti
             Dab.EntityAction.Update,
             Dab.EntityAction.Delete,
         ],
+        columns: [
+            {
+                id: "test-id-1-column-id",
+                name: "Id",
+                dataType: "int",
+                isSupported: true,
+                isExposed: true,
+                isPrimaryKey: true,
+            },
+            {
+                id: "test-id-1-column-name",
+                name: "Name",
+                dataType: "nvarchar",
+                isSupported: true,
+                isExposed: true,
+                isPrimaryKey: false,
+            },
+        ],
         advancedSettings: {
             entityName: "Users",
             authorizationRole: Dab.AuthorizationRole.Anonymous,
@@ -366,7 +384,12 @@ suite("DabConfigFileBuilder Tests", () => {
 
         suite("entity GraphQL property", () => {
             test("should not include graphql property when no customGraphQLType is set", () => {
-                const result = builder.build(createTestConfig(), defaultConnectionInfo);
+                const result = builder.build(
+                    createTestConfig({
+                        apiTypes: [Dab.ApiType.GraphQL],
+                    }),
+                    defaultConnectionInfo,
+                );
                 const parsed = JSON.parse(result);
                 expect(parsed.entities["Users"].graphql).to.be.undefined;
             });
@@ -465,6 +488,64 @@ suite("DabConfigFileBuilder Tests", () => {
                 const result = builder.build(config, defaultConnectionInfo);
                 const parsed = JSON.parse(result);
                 expect(parsed.entities["Users"].permissions[0].actions).to.deep.equal([]);
+            });
+
+            test("should emit field exclusions for hidden columns on create/read/update", () => {
+                const config = createTestConfig({
+                    entities: [
+                        createTestEntity({
+                            enabledActions: [
+                                Dab.EntityAction.Create,
+                                Dab.EntityAction.Read,
+                                Dab.EntityAction.Update,
+                                Dab.EntityAction.Delete,
+                            ],
+                            columns: [
+                                {
+                                    id: "id",
+                                    name: "Id",
+                                    dataType: "int",
+                                    isSupported: true,
+                                    isExposed: true,
+                                    isPrimaryKey: true,
+                                },
+                                {
+                                    id: "secret",
+                                    name: "SecretValue",
+                                    dataType: "nvarchar",
+                                    isSupported: true,
+                                    isExposed: false,
+                                    isPrimaryKey: false,
+                                },
+                            ],
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+
+                expect(parsed.entities["Users"].permissions[0].actions).to.deep.equal([
+                    {
+                        action: "create",
+                        fields: {
+                            exclude: ["SecretValue"],
+                        },
+                    },
+                    {
+                        action: "read",
+                        fields: {
+                            exclude: ["SecretValue"],
+                        },
+                    },
+                    {
+                        action: "update",
+                        fields: {
+                            exclude: ["SecretValue"],
+                        },
+                    },
+                    "delete",
+                ]);
             });
         });
 

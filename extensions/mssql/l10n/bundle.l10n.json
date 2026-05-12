@@ -559,7 +559,7 @@
     "Open in GitHub Copilot Chat": "Open in GitHub Copilot Chat",
     "Ask GitHub Copilot to Fix": "Ask GitHub Copilot to Fix",
     "Open GitHub Copilot Chat to help fix these errors": "Open GitHub Copilot Chat to help fix these errors",
-    "Design Schemas with GitHub Copilot (Preview)": "Design Schemas with GitHub Copilot (Preview)",
+    "Design Schemas with GitHub Copilot": "Design Schemas with GitHub Copilot",
     "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.": "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.",
     "Build APIs with GitHub Copilot": "Build APIs with GitHub Copilot",
     "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API builder.": "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API builder.",
@@ -716,14 +716,15 @@
     "Drizzle": "Drizzle",
     "SQLAlchemy": "SQLAlchemy",
     "EF Core": "EF Core",
+    "Add to workspace": "Add to workspace",
     "Delete Confirmation": "Delete Confirmation",
     "Are you sure you want to delete the selected items?": "Are you sure you want to delete the selected items?",
     "Undo": "Undo",
     "Redo": "Redo",
     "Search tables...": "Search tables...",
     "Show table relationships": "Show table relationships",
-    "Visualize and Design Schema (Preview)": "Visualize and Design Schema (Preview)",
-    "Build Data API (Preview)": "Build Data API (Preview)",
+    "Visualize and Design Schema": "Visualize and Design Schema",
+    "Build Data API": "Build Data API",
     "Show Changes": "Show Changes",
     "Hide Changes": "Hide Changes",
     "Copilot Changes": "Copilot Changes",
@@ -863,7 +864,7 @@
             "{1} is the count of additional changed properties"
         ]
     },
-    "Data API builder Configuration (Preview)": "Data API builder Configuration (Preview)",
+    "Data API builder Configuration": "Data API builder Configuration",
     "API Type": "API Type",
     "REST API": "REST API",
     "GraphQL": "GraphQL",
@@ -878,13 +879,19 @@
     "Create": "Create",
     "Read": "Read",
     "Update": "Update",
+    "Bulk Actions": "Bulk Actions",
+    "Enable all entities": "Enable all entities",
+    "Disable all entities": "Disable all entities",
+    "Make everything read-only": "Make everything read-only",
+    "Enable all CRUD operations": "Enable all CRUD operations",
+    "Include all columns": "Include all columns",
     "Entity name used in API routes": "Entity name used in API routes",
     "View Config": "View Config",
     "Deploy": "Deploy",
     "Local container deployment is currently only supported with SQL Authentication connections.": "Local container deployment is currently only supported with SQL Authentication connections.",
     "At least one API type must be selected.": "At least one API type must be selected.",
     "Authentication not supported": "Authentication not supported",
-    "In the Data API builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.": "In the Data API builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.",
+    "In the Data API builder experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.": "In the Data API builder experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.",
     "Unsupported data types detected": "Unsupported data types detected",
     "One or more of your entities contain column types that are not currently supported by Data API builder. These entities cannot be selected for deployment.": "One or more of your entities contain column types that are not currently supported by Data API builder. These entities cannot be selected for deployment.",
     "Back to Schema": "Back to Schema",
@@ -912,6 +919,18 @@
     "Enable {0}/{0} is the entity name": {
         "message": "Enable {0}",
         "comment": ["{0} is the entity name"]
+    },
+    "Toggle columns for {0}/{0} is the entity name": {
+        "message": "Toggle columns for {0}",
+        "comment": ["{0} is the entity name"]
+    },
+    "Expose {0}/{0} is the backing database column name": {
+        "message": "Expose {0}",
+        "comment": ["{0} is the backing database column name"]
+    },
+    "{0} is a primary key column and can't be disabled./{0} is the backing database column name": {
+        "message": "{0} is a primary key column and can't be disabled.",
+        "comment": ["{0} is the backing database column name"]
     },
     "{0} action for {1}/{0} is the action name (Create, Read, etc.){1} is the entity name": {
         "message": "{0} action for {1}",
@@ -1985,7 +2004,6 @@
     "Refresh Credentials": "Refresh Credentials",
     "Failed to fetch user tokens.": "Failed to fetch user tokens.",
     "Error: Login failed. Retry using different credentials?": "Error: Login failed. Retry using different credentials?",
-    "Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?": "Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?",
     "Your client IP address does not have access to the server. Add a Microsoft Entra account and create a new firewall rule to enable access.": "Your client IP address does not have access to the server. Add a Microsoft Entra account and create a new firewall rule to enable access.",
     "Your client IP Address '{0}' does not have access to the server '{1}' you're attempting to connect to. Would you like to create new firewall rule?/{0} is the client IP address{1} is the server name": {
         "message": "Your client IP Address '{0}' does not have access to the server '{1}' you're attempting to connect to. Would you like to create new firewall rule?",
@@ -2261,6 +2279,10 @@
         "message": "Failed to copy text to clipboard: {0}",
         "comment": ["{0} is the error message"]
     },
+    "Failed to add text to workspace: {0}/{0} is the error message": {
+        "message": "Failed to add text to workspace: {0}",
+        "comment": ["{0} is the error message"]
+    },
     "Schema designer details are not available.": "Schema designer details are not available.",
     "Copying results...": "Copying results...",
     "Results copied to clipboard": "Results copied to clipboard",
@@ -2275,6 +2297,9 @@
     "No active notebook.": "No active notebook.",
     "No active connection.": "No active connection.",
     "No connection selected.": "No connection selected.",
+    "Copy messages": "Copy messages",
+    "Copy all text output for this cell (messages, PRINT, errors)": "Copy all text output for this cell (messages, PRINT, errors)",
+    "$(check) Copied messages": "$(check) Copied messages",
     "({0} row(s) affected)/{0} is the number of rows affected": {
         "message": "({0} row(s) affected)",
         "comment": ["{0} is the number of rows affected"]
@@ -2406,6 +2431,12 @@
         "comment": ["{0} is the error message"]
     },
     "No workspaces found. Please change Fabric account or tenant to view available workspaces.": "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
+    "User databases": "User databases",
+    "System databases": "System databases",
+    "Unable to load database list from server: {0}/{0} is the connection error message": {
+        "message": "Unable to load database list from server: {0}",
+        "comment": ["{0} is the connection error message"]
+    },
     "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported./{0} is the authentication type": {
         "message": "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported.",
         "comment": ["{0} is the authentication type"]
@@ -2852,6 +2883,11 @@
         "comment": ["{0} is the file path where the MCP server configuration exists"]
     },
     "No workspace folder is open. Open a folder to add the MCP server configuration.": "No workspace folder is open. Open a folder to add the MCP server configuration.",
+    "No workspace folder is open. Open a folder to add the generated file.": "No workspace folder is open. Open a folder to add the generated file.",
+    "Generated file added to {0}/{0} is the generated file path": {
+        "message": "Generated file added to {0}",
+        "comment": ["{0} is the generated file path"]
+    },
     "Config copied to clipboard": "Config copied to clipboard",
     "URL copied to clipboard": "URL copied to clipboard",
     "Logs copied to clipboard": "Logs copied to clipboard",
@@ -2897,6 +2933,8 @@
     "Sign in to a new account": "Sign in to a new account",
     "Select Azure account with Key Vault access for column decryption": "Select Azure account with Key Vault access for column decryption",
     "No tenant selected": "No tenant selected",
+    "Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true'. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments.": "Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true'. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments.",
+    "Do you want to enable 'Trust server certificate' on this connection and retry?": "Do you want to enable 'Trust server certificate' on this connection and retry?",
     "No model found.": "No model found.",
     "No tools to process.": "No tools to process.",
     "You are not connected to any database.": "You are not connected to any database.",

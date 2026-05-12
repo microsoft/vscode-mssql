@@ -15,6 +15,7 @@ import {
     Label,
     LabelProps,
     Option,
+    OptionGroup,
     Spinner,
     Text,
     Textarea,
@@ -22,13 +23,21 @@ import {
     makeStyles,
     tokens,
 } from "@fluentui/react-components";
-import { Eye16Regular, EyeOff16Regular, Info16Regular } from "@fluentui/react-icons";
+import {
+    CheckmarkCircle16Regular,
+    ErrorCircle16Regular,
+    Eye16Regular,
+    EyeOff16Regular,
+    Info16Regular,
+} from "@fluentui/react-icons";
 import {
     FormContextProps,
+    FormItemOptions,
     FormItemSpec,
     FormItemType,
     FormState,
 } from "../../../sharedInterfaces/form";
+import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { useEffect, useState } from "react";
 import { FluentOptionIcons, SearchableDropdown } from "../searchableDropdown.component";
 import { locConstants } from "../locConstants";
@@ -247,16 +256,30 @@ export const FormField = <
                                     required={!component.loading && slotProps.required}>
                                     {labelContent}
                                 </LabelComponent>
-                                {component.loading && (
-                                    <Spinner
-                                        size="extra-tiny"
-                                        style={{ transform: "scale(0.8)" }}
-                                    />
+                                {component.loadStatus?.status === ApiStatus.Loading && (
+                                    <Spinner size="extra-tiny" />
                                 )}
-                                {component.loading && slotProps.required && (
-                                    <span style={{ color: tokens.colorPaletteRedForeground3 }}>
-                                        {" *"}
-                                    </span>
+                                {component.loadStatus?.status === ApiStatus.Loaded && (
+                                    <Tooltip
+                                        content={component.loadStatus.message ?? ""}
+                                        relationship="label">
+                                        <CheckmarkCircle16Regular
+                                            style={{
+                                                color: tokens.colorPaletteGreenForeground1,
+                                            }}
+                                        />
+                                    </Tooltip>
+                                )}
+                                {component.loadStatus?.status === ApiStatus.Error && (
+                                    <Tooltip
+                                        content={component.loadStatus.message ?? ""}
+                                        relationship="label">
+                                        <ErrorCircle16Regular
+                                            style={{
+                                                color: tokens.colorPaletteRedForeground1,
+                                            }}
+                                        />
+                                    </Tooltip>
                                 )}
                             </span>
                         );
@@ -294,6 +317,125 @@ export const FormField = <
         </div>
     );
 };
+
+export const FormCombobox = <
+    TForm,
+    TState extends FormState<TForm, TState, TFormItemSpec>,
+    TFormItemSpec extends FormItemSpec<TForm, TState, TFormItemSpec>,
+    TContext extends FormContextProps<TForm>,
+>({
+    context,
+    formState,
+    component,
+    props,
+}: {
+    context: TContext;
+    formState: TForm;
+    component: TFormItemSpec;
+    props?: any;
+}) => {
+    const isFreeform = component.freeform || (props && props.freeform);
+
+    const optionDisplayName =
+        component.options?.find((option) => option.value === formState[component.propertyName])
+            ?.displayName ?? "";
+
+    const externalValue = isFreeform
+        ? ((formState[component.propertyName] as string) ?? "")
+        : optionDisplayName;
+
+    const [inputValue, setInputValue] = useState(externalValue);
+
+    useEffect(() => {
+        setInputValue(externalValue);
+    }, [externalValue]);
+
+    return (
+        <Combobox
+            size="small"
+            placeholder={component.placeholder ?? ""}
+            value={inputValue}
+            selectedOptions={
+                optionDisplayName !== "" ? [formState[component.propertyName] as string] : []
+            }
+            autoComplete={isFreeform ? "off" : "on"}
+            onChange={(event) => {
+                if (isFreeform) {
+                    const newVal = event.target.value;
+                    setInputValue(newVal);
+                    if (props?.onChange) {
+                        props.onChange(event);
+                    } else {
+                        context?.formAction({
+                            propertyName: component.propertyName,
+                            isAction: false,
+                            value: newVal,
+                        });
+                    }
+                }
+            }}
+            onOptionSelect={(event, data) => {
+                if (
+                    isFreeform &&
+                    !optionDisplayName &&
+                    event.type === EventType.Keydown &&
+                    (event as React.KeyboardEvent).key === KeyCode.Enter
+                ) {
+                    return;
+                }
+                if (props?.onOptionSelect) {
+                    props.onOptionSelect(event, data);
+                } else {
+                    context?.formAction({
+                        propertyName: component.propertyName,
+                        isAction: false,
+                        value: data.optionValue as string,
+                    });
+                }
+            }}
+            {...props}>
+            {renderComboboxOptions(component.options)}
+        </Combobox>
+    );
+};
+
+function renderComboboxOptions(options: FormItemOptions[] | undefined) {
+    if (!options?.length) {
+        return undefined;
+    }
+
+    // If no options have a group, render as flat list of options
+    const isGrouped = options.some((o) => o.groupName);
+    if (!isGrouped) {
+        return options.map((option) => (
+            <Option key={option.value} value={option.value}>
+                {option.displayName}
+            </Option>
+        ));
+    }
+
+    // Group options by groupName and render with OptionGroup
+    const groups = new Map<string, FormItemOptions[]>();
+    for (const option of options) {
+        const group = option.groupName ?? "";
+
+        if (!groups.has(group)) {
+            groups.set(group, []);
+        }
+
+        groups.get(group)!.push(option);
+    }
+
+    return Array.from(groups.entries()).map(([groupName, groupOptions]) => (
+        <OptionGroup key={groupName} label={groupName}>
+            {groupOptions.map((option) => (
+                <Option key={option.value} value={option.value}>
+                    {option.displayName}
+                </Option>
+            ))}
+        </OptionGroup>
+    ));
+}
 
 export function generateFormComponent<
     TForm,
@@ -431,68 +573,13 @@ export function generateFormComponent<
             if (component.options === undefined) {
                 throw new Error("Combobox component must have options");
             }
-            // options that sets whether a user can enter a freeform value or must select from the list of options
-            const isFreeform = props && props.freeform;
-            const optionDisplayName =
-                component.options.find(
-                    (option) => option.value === formState[component.propertyName],
-                )?.displayName ?? "";
             return (
-                <Combobox
-                    size="small"
-                    placeholder={component.placeholder ?? ""}
-                    value={
-                        isFreeform
-                            ? (formState[component.propertyName] as string)
-                            : optionDisplayName
-                    }
-                    selectedOptions={
-                        optionDisplayName !== ""
-                            ? [formState[component.propertyName] as string]
-                            : []
-                    }
-                    autoComplete={isFreeform ? "off" : "on"}
-                    onChange={(event) => {
-                        if (isFreeform) {
-                            if (props.onChange) {
-                                props.onChange(event);
-                            } else {
-                                context?.formAction({
-                                    propertyName: component.propertyName,
-                                    isAction: false,
-                                    value: event.target.value,
-                                });
-                            }
-                        }
-                    }}
-                    onOptionSelect={(event, data) => {
-                        // if user pressed enter after typing a freeform value that doesn't match an option,
-                        // don't trigger onOptionSelect and instead let onChange handle it
-                        if (
-                            isFreeform &&
-                            !optionDisplayName &&
-                            event.type === EventType.Keydown &&
-                            (event as React.KeyboardEvent).key === KeyCode.Enter
-                        ) {
-                            return;
-                        }
-                        if (props && props.onOptionSelect) {
-                            props.onOptionSelect(event, data);
-                        } else {
-                            context?.formAction({
-                                propertyName: component.propertyName,
-                                isAction: false,
-                                value: data.optionValue as string,
-                            });
-                        }
-                    }}
-                    {...props}>
-                    {component.options.map((option) => (
-                        <Option key={option.value} value={option.value}>
-                            {option.displayName}
-                        </Option>
-                    ))}
-                </Combobox>
+                <FormCombobox<TForm, TState, TFormItemSpec, TContext>
+                    context={context}
+                    formState={formState}
+                    component={component}
+                    props={props}
+                />
             );
         case FormItemType.SearchableDropdown:
             if (component.options === undefined) {
@@ -514,6 +601,7 @@ export function generateFormComponent<
                     placeholder={component.placeholder}
                     searchBoxPlaceholder={component.searchBoxPlaceholder}
                     selectedOption={selectedOption}
+                    freeform={component.freeform}
                     onSelect={(option) => {
                         if (props && props.onSelect) {
                             props.onSelect(option.value);
@@ -528,6 +616,7 @@ export function generateFormComponent<
                     size="small"
                     clearable={true}
                     ariaLabel={component.label}
+                    showPlaceholder={true}
                     {...props}
                 />
             );

@@ -869,9 +869,7 @@ export class LocConstants {
             askGithubCopilotToFixTooltip: l10n.t(
                 "Open GitHub Copilot Chat to help fix these errors",
             ),
-            schemaDesignerCopilotDiscoveryTitle: l10n.t(
-                "Design Schemas with GitHub Copilot (Preview)",
-            ),
+            schemaDesignerCopilotDiscoveryTitle: l10n.t("Design Schemas with GitHub Copilot"),
             schemaDesignerCopilotDiscoveryBody: l10n.t(
                 "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.",
             ),
@@ -1098,6 +1096,7 @@ export class LocConstants {
             definitionTypeDrizzle: l10n.t("Drizzle"),
             definitionTypeSqlAlchemy: l10n.t("SQLAlchemy"),
             definitionTypeEfCore: l10n.t("EF Core"),
+            addToWorkspace: l10n.t("Add to workspace"),
             copy: l10n.t("Copy"),
             close: l10n.t("Close"),
             deleteConfirmation: l10n.t("Delete Confirmation"),
@@ -1108,8 +1107,8 @@ export class LocConstants {
             redo: l10n.t("Redo"),
             searchTables: l10n.t("Search tables..."),
             showTableRelationships: l10n.t("Show table relationships"),
-            schemaDesignerNavLabel: l10n.t("Visualize and Design Schema (Preview)"),
-            dabNavLabel: l10n.t("Build Data API (Preview)"),
+            schemaDesignerNavLabel: l10n.t("Visualize and Design Schema"),
+            dabNavLabel: l10n.t("Build Data API"),
             showChangesButtonLabel: l10n.t("Show Changes"),
             hideChangesButtonLabel: l10n.t("Hide Changes"),
             showCopilotChangesButtonLabel: l10n.t("Copilot Changes"),
@@ -1343,7 +1342,7 @@ export class LocConstants {
                 }),
 
             // DAB (Data API builder) strings
-            dabTitle: l10n.t("Data API builder Configuration (Preview)"),
+            dabTitle: l10n.t("Data API builder Configuration"),
             apiType: l10n.t("API Type"),
             restApi: l10n.t("REST API"),
             graphql: l10n.t("GraphQL"),
@@ -1364,6 +1363,12 @@ export class LocConstants {
             create: l10n.t("Create"),
             read: l10n.t("Read"),
             update: l10n.t("Update"),
+            bulkActions: l10n.t("Bulk Actions"),
+            enableAllEntities: l10n.t("Enable all entities"),
+            disableAllEntities: l10n.t("Disable all entities"),
+            makeReadOnly: l10n.t("Make everything read-only"),
+            enableAllCruds: l10n.t("Enable all CRUD operations"),
+            includeAllColumns: l10n.t("Include all columns"),
             entityNameDescription: l10n.t("Entity name used in API routes"),
             viewConfig: l10n.t("View Config"),
             deploy: l10n.t("Deploy"),
@@ -1373,7 +1378,7 @@ export class LocConstants {
             atLeastOneApiTypeRequired: l10n.t("At least one API type must be selected."),
             authenticationNotSupported: l10n.t("Authentication not supported"),
             dabDeploymentNotSupportedBanner: l10n.t(
-                "In the Data API builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.",
+                "In the Data API builder experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.",
             ),
             unsupportedDataTypesDetected: l10n.t("Unsupported data types detected"),
             dabUnsupportedDataTypesBanner: l10n.t(
@@ -1411,6 +1416,24 @@ export class LocConstants {
                     message: "Enable {0}",
                     args: [entityName],
                     comment: ["{0} is the entity name"],
+                }),
+            toggleEntityColumns: (entityName: string) =>
+                l10n.t({
+                    message: "Toggle columns for {0}",
+                    args: [entityName],
+                    comment: ["{0} is the entity name"],
+                }),
+            exposeColumn: (columnName: string) =>
+                l10n.t({
+                    message: "Expose {0}",
+                    args: [columnName],
+                    comment: ["{0} is the backing database column name"],
+                }),
+            primaryKeyColumnExposureLocked: (columnName: string) =>
+                l10n.t({
+                    message: "{0} is a primary key column and can't be disabled.",
+                    args: [columnName],
+                    comment: ["{0} is the backing database column name"],
                 }),
             actionForEntity: (action: string, entityName: string) =>
                 l10n.t({

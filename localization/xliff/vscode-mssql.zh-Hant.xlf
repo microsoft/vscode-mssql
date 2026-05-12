@@ -6,6 +6,10 @@
         <source xml:lang="en"> is required.</source>
         <target state="translated"> 是必要的。</target>
       </trans-unit>
+      <trans-unit id="++CODE++fd3bd9305a1a7d5dfd79fa21b626163609a8f298aab892396554e74842a84f9b">
+        <source xml:lang="en">$(check) Copied messages</source>
+        <target state="new">$(check) Copied messages</target>
+      </trans-unit>
       <trans-unit id="++CODE++18b63db64aa0aff55a9f4784ad62abdc2b70cedb95b5e89d5551996cc9bd25ac">
         <source xml:lang="en">$(plug)  Connect to MSSQL</source>
         <target state="translated">$(plug) 連線到 MSSQL</target>
@@ -278,6 +282,10 @@
       <trans-unit id="++CODE++4eeee164cd7b783f58eca583f898bdb923ed56ab94ae7d3604dc11738090fe7f">
         <source xml:lang="en">Add to VS Code</source>
         <target state="translated">新增到 VS Code</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dcc475b31b6d6d1bc68eede1badaf4b6af93c3683fe3a25ae08c8544b572e7fa">
+        <source xml:lang="en">Add to workspace</source>
+        <target state="translated">新增至工作區</target>
       </trans-unit>
       <trans-unit id="++CODE++6b02e0d363a4af1c95eef50364bb0202c8b250aa05a48a69e68fd7787b4b0632">
         <source xml:lang="en">Added</source>
@@ -890,9 +898,9 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Build APIs with GitHub Copilot</source>
         <target state="translated">使用 GitHub Copilot 組建 API</target>
       </trans-unit>
-      <trans-unit id="++CODE++0b7fa74a368845afd65888dc1e437a2afe5a96728dd43433760a2fe01c167033">
-        <source xml:lang="en">Build Data API (Preview)</source>
-        <target state="translated">建置資料 API (預覽)...</target>
+      <trans-unit id="++CODE++8e86ef922196322045f4a646ef811f7df15a59da3a33b8180732d68155a7a652">
+        <source xml:lang="en">Build Data API</source>
+        <target state="translated">建立資料 API</target>
       </trans-unit>
       <trans-unit id="++CODE++00ea757097babdd3471ed3dbcef6f4a33b46658dfb023aa009b53fa1dd0ae30c">
         <source xml:lang="en">Build failed with exit code {0}</source>
@@ -905,6 +913,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++9168a1046e45504ed34edeecd99ec73be336161e82395399aa9a3c1d912be6b2">
         <source xml:lang="en">Building {0}...</source>
         <target state="translated">正在建置 {0}...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++24908cc5593d5d8ea1f67ad6b873dd49a8a045f441e35de15d8041d2caccfa93">
+        <source xml:lang="en">Bulk Actions</source>
+        <target state="translated">大量動作</target>
       </trans-unit>
       <trans-unit id="++CODE++6f52d618fb243f0ae137c3c850eb0bda8b347766a553b613fc210f6eb6bb5c97">
         <source xml:lang="en">Bulk-logged</source>
@@ -1932,6 +1944,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Copy Script to Clipboard</source>
         <target state="translated">將指令碼複製到剪貼簿</target>
       </trans-unit>
+      <trans-unit id="++CODE++bd0768aa6b547da2466d49441410931420e8beb78cc1d3051e68242a04e8583b">
+        <source xml:lang="en">Copy all text output for this cell (messages, PRINT, errors)</source>
+        <target state="new">Copy all text output for this cell (messages, PRINT, errors)</target>
+      </trans-unit>
       <trans-unit id="++CODE++ac030299960c4d5cba2b13fa5f358cb7f1b1531ce5f2e5315eff17b7c93a97bf">
         <source xml:lang="en">Copy as CSV</source>
         <target state="translated">複製為 CSV</target>
@@ -1963,6 +1979,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++dbf362d4f210c780513a9258278d4d07abe8a224f84ba7ad775d819039342e77">
         <source xml:lang="en">Copy link</source>
         <target state="translated">複製連結</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cc4b07f956793d518a1f073565e7dceef4aab9bebae6e515dc7c9b046a38bc9d">
+        <source xml:lang="en">Copy messages</source>
+        <target state="new">Copy messages</target>
       </trans-unit>
       <trans-unit id="++CODE++c8b5428b9ac790b3952e08ceea5a8a170ad8b0af1e0f51c98a159f1147631e8a">
         <source xml:lang="en">Copy script</source>
@@ -2219,9 +2239,9 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Data API builder</source>
         <target state="translated">資料 API 建立器</target>
       </trans-unit>
-      <trans-unit id="++CODE++817f5f09a6d707d92c3926808ded36489dab38b529e972985cf5314eac7dbdbb">
-        <source xml:lang="en">Data API builder Configuration (Preview)</source>
-        <target state="translated">資料 API 建立器設定 (預覽)</target>
+      <trans-unit id="++CODE++2154b11388f741094808a9e344ab0be7e4be3d2a989551deec3b43f35fc729e3">
+        <source xml:lang="en">Data API builder Configuration</source>
+        <target state="translated">資料 API 建立器設定</target>
       </trans-unit>
       <trans-unit id="++CODE++18c1620276c4ac7ddaec590de6087601cbfad39f0ef20e19c41db887fb760c00">
         <source xml:lang="en">Data API builder opened. Continue with {0} operations ({1}/{2}).</source>
@@ -2479,9 +2499,9 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Design API</source>
         <target state="translated">設計 API</target>
       </trans-unit>
-      <trans-unit id="++CODE++b14075f1961f95a9c65c61d8e0da7d32280678ff775e70b6c74a8c4966097838">
-        <source xml:lang="en">Design Schemas with GitHub Copilot (Preview)</source>
-        <target state="translated">使用 GitHub Copilot (預覽) 設計結構描述</target>
+      <trans-unit id="++CODE++064ff20a39b16a49639c1d176496eb3078f7a0629c7bf854eb5021fc5a20aef8">
+        <source xml:lang="en">Design Schemas with GitHub Copilot</source>
+        <target state="translated">使用 GitHub Copilot 設計結構描述</target>
       </trans-unit>
       <trans-unit id="++CODE++45989de49fb7f66dfe17a8fc26f3a02c7abcd74f7e8e6cf9f39fa0e3775780df">
         <source xml:lang="en">Details</source>
@@ -2510,6 +2530,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++33df1f7746d428f19493d14c875c60ddc71befd7377ba92d4fc578bc3529b993">
         <source xml:lang="en">Directory not found</source>
         <target state="translated">找不到目錄</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3583e2d377f9ee2c31596d15752d65fddec82de715720b2c43fad0756d6fda28">
+        <source xml:lang="en">Disable all entities</source>
+        <target state="translated">停用所有實體</target>
       </trans-unit>
       <trans-unit id="++CODE++6fbed214e0ea21c683db0ba2d648ef09b11edf4b4bb23835d4fdda84b5d097f3">
         <source xml:lang="en">Disable intellisense and syntax error checking on current document</source>
@@ -2588,6 +2612,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++79520a5688933d6fc7b0f540292cbbfb2898a9edc2d85d0ee231b6ed63adaad1">
         <source xml:lang="en">Do you want to always display query results in a new tab instead of the query pane?</source>
         <target state="translated">你是否要一律在新索引標籤中顯示查詢結果，而不是在查詢窗格中?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3c96c6d1388e41b0724659fa022b1843dea4a84d175a1d571bf72382fc0c3581">
+        <source xml:lang="en">Do you want to enable 'Trust server certificate' on this connection and retry?</source>
+        <target state="translated">是否要在此連線上啟用 [信任伺服器憑證] 並重試?</target>
       </trans-unit>
       <trans-unit id="++CODE++f1286712850b10aee8607a93c2120e10316b5962b73c377860cd5cded5b98184">
         <source xml:lang="en">Docker Desktop must be installed and running on your machine.</source>
@@ -2728,6 +2756,14 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Enable Trust Server Certificate</source>
         <target state="translated">啟用信任伺服器憑證</target>
       </trans-unit>
+      <trans-unit id="++CODE++efa7adedb651f5d8d6be99873aeb53ef49aa29f82f94aeaab24cd02f25ca6305">
+        <source xml:lang="en">Enable all CRUD operations</source>
+        <target state="translated">啟用所有 CRUD 作業</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f4d8932f5f8ab4e79333deaf1d97a78038f5a4aea29334fd307612e1586d08a6">
+        <source xml:lang="en">Enable all entities</source>
+        <target state="translated">啟用所有實體</target>
+      </trans-unit>
       <trans-unit id="++CODE++c60bd510aadca4cca8a64d535f63600d29ea21be9532ea0fa74c907d5c676311">
         <source xml:lang="en">Enable all rules in {0}</source>
         <note>{0} is the category name, e.g. Design</note>
@@ -2771,9 +2807,9 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or enable 'Trust server certificate' in the connection dialog.</source>
         <target state="translated">已在此連線上啟用加密、檢閱目標 SQL Server 的 SSL 與憑證設定，或在連線對話方塊中啟用 [信任伺服器憑證]。</target>
       </trans-unit>
-      <trans-unit id="++CODE++a04452986b48c7c3c21f78712b31a68f2aecb85566c134d87d55348c7b16b9a8">
-        <source xml:lang="en">Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?</source>
-        <target state="translated">已在此連線上啟用加密、檢閱目標 SQL Server 的 SSL 與憑證設定，或在設定檔案中將 [信任伺服器憑證] 設定為 'true'。注意: 自我簽署憑證僅提供有限保護，並非實際執行環境的建議做法。是否要在此連線上啟用 [信任伺服器憑證] 並重試?</target>
+      <trans-unit id="++CODE++e03c1fa5598b1caba263d99a4896ddba797148eaca638348d48aa792db57f71e">
+        <source xml:lang="en">Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true'. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments.</source>
+        <target state="translated">已在此連線上啟用加密; 請檢閱目標 SQL Server 的 SSL 與憑證設定，或將 [信任伺服器憑證] 設定為 'true'。注意: 自我簽署憑證僅提供有限保護，並非實際執行環境的建議做法。</target>
       </trans-unit>
       <trans-unit id="++CODE++6051d2070e8e51a99adfa6b3f5171cfa92107943f46417bcd51a8f5e995c881f">
         <source xml:lang="en">End IP Address</source>
@@ -3263,6 +3299,11 @@ Error:
         <source xml:lang="en">Exporting BACPAC...</source>
         <target state="translated">正在匯出 BACPAC...</target>
       </trans-unit>
+      <trans-unit id="++CODE++7758738264236e2f15e315d6e6ebca6fb9192ce031207744cc9bdd4a5a052817">
+        <source xml:lang="en">Expose {0}</source>
+        <note>{0} is the backing database column name</note>
+        <target state="translated">公開 {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++c67415bcff328a59fd399e2a7ca9691e0044192fb7480ae501644339965d046d">
         <source xml:lang="en">Expression</source>
         <target state="translated">運算式</target>
@@ -3337,6 +3378,11 @@ Error:
       <trans-unit id="++CODE++3927725937fc2d8467f978ee4999cb561f8e2ab71290423f122a8dc95f4f2e51">
         <source xml:lang="en">Failed to add table.</source>
         <target state="translated">無法新增資料寶。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++49ef2a693ef05aa09893afe15b7f44c2c94cd84039e438baa9c76e7130c9baf7">
+        <source xml:lang="en">Failed to add text to workspace: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="translated">無法將文字新增至工作區: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++65b387854eab2ea5751dfeaf4b61e988e28642ef25dc8c09b8bd4e4ee99f6372">
         <source xml:lang="en">Failed to apply changes: '{0}'</source>
@@ -4063,6 +4109,11 @@ Error:
         <source xml:lang="en">Generate sqlpackage command</source>
         <target state="translated">產生 sqlpackage 命令</target>
       </trans-unit>
+      <trans-unit id="++CODE++2617124e87bf1506e42eea651c54fa179c29090a0a58e9829860984f03eca2fa">
+        <source xml:lang="en">Generated file added to {0}</source>
+        <note>{0} is the generated file path</note>
+        <target state="translated">已將產生的檔案新增至 {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++15bb1f371098735851e4d1d531c37e3652b2ceaf16055231f0a38312650cb08b">
         <source xml:lang="en">Generating Report. This may take a while...</source>
         <target state="translated">正在產生報告。這可能需要一點時間...</target>
@@ -4384,9 +4435,9 @@ Error:
         <source xml:lang="en">In progress</source>
         <target state="translated">進行中</target>
       </trans-unit>
-      <trans-unit id="++CODE++8a95be6d8f6c4312ed4415b9bde10c28f765b025b375245f7f53575ccbe94183">
-        <source xml:lang="en">In the Data API builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.</source>
-        <target state="translated">在資料 API 建立器 (預覽) 體驗中，只有使用 SQL 驗證的連線可以使用本機容器部署。不支援您目前的連線類型。</target>
+      <trans-unit id="++CODE++353bfeffa4a99ec1426a2426a764e92e5b9c2f00db3bf837d8f5a1e4f486117a">
+        <source xml:lang="en">In the Data API builder experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.</source>
+        <target state="translated">在資料 API 建立器體驗中，只有使用 SQL 驗證的連線可以使用本機容器部署。不支援您目前的連線類型。</target>
       </trans-unit>
       <trans-unit id="++CODE++7285576bdacf86fe37274d3d0d399c29b4be2959005f60ac0729615d8fca9186">
         <source xml:lang="en">Include</source>
@@ -4395,6 +4446,10 @@ Error:
       <trans-unit id="++CODE++e6918522718725ba7a74b087c48f889648bbfc7627b1d4ab826ac2cc1b30aa31">
         <source xml:lang="en">Include Object Types</source>
         <target state="translated">包含物件類型</target>
+      </trans-unit>
+      <trans-unit id="++CODE++224b991b88c5510627611bdb43e5a500f1660e212e0e74ed34dc53be87699169">
+        <source xml:lang="en">Include all columns</source>
+        <target state="translated">包含所有資料行</target>
       </trans-unit>
       <trans-unit id="++CODE++ac665fafc5f9732c9d322749a1f726be51f8b31d2ec83ecde83a6e1d2b632eda">
         <source xml:lang="en">Include all object types</source>
@@ -4965,6 +5020,10 @@ Error:
       <trans-unit id="++CODE++bc9503a89518d47aeceed119c50d8826d8ca48592bd977647da2b8e49a240ed3">
         <source xml:lang="en">MSSQL: What's new</source>
         <target state="translated">MSSQL: 新增功能</target>
+      </trans-unit>
+      <trans-unit id="++CODE++af56abadd6f783641801adf6ed9b7d1fcf4b7a5d207dab320252520f49d4894f">
+        <source xml:lang="en">Make everything read-only</source>
+        <target state="translated">將所有項目設為唯讀</target>
       </trans-unit>
       <trans-unit id="++CODE++614e5389e87ce465fe548a0665aeaa67a52a06ff792f2f791615cd37fb610178">
         <source xml:lang="en">Manage Connection Profiles</source>
@@ -5665,6 +5724,10 @@ Error:
       <trans-unit id="++CODE++751ae077912b834895870d0d5210c09ca02659375aab7843a26689a7aa50a0fc">
         <source xml:lang="en">No workspace folder is open. Open a folder to add the MCP server configuration.</source>
         <target state="translated">未開啟任何工作區資料夾。請開啟資料夾以新增 MCP 伺服器設定。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2e2fde2243e1e09534c9955387549ec84e351284a8ef12942f9d1cbab4a58039">
+        <source xml:lang="en">No workspace folder is open. Open a folder to add the generated file.</source>
+        <target state="translated">未開啟任何工作區資料夾。請開啟資料夾以新增產生的檔案。</target>
       </trans-unit>
       <trans-unit id="++CODE++1507d637b267b1f20c1238414d7e51458fe7d6b98b292a8497d9982634fbe83c">
         <source xml:lang="en">No workspaces found</source>
@@ -8041,6 +8104,10 @@ Query: {2}</source>
         <source xml:lang="en">Synchronous resize</source>
         <target state="translated">同步調整大小</target>
       </trans-unit>
+      <trans-unit id="++CODE++ec45cfbf2af59ce8d7cc24d91cb00575e3c328bbb4101a8af85ef66b04333d36">
+        <source xml:lang="en">System databases</source>
+        <target state="translated">系統資料庫</target>
+      </trans-unit>
       <trans-unit id="++CODE++b27ba710997adaf6099374edb801d44bef36c92e6d37e0190c7c1d12d4b32209">
         <source xml:lang="en">T-SQL</source>
         <target state="translated">T-SQL</target>
@@ -8448,6 +8515,11 @@ Query: {2}</source>
         <note>{0} is the schema name</note>
         <target state="translated">切換 {0} 中所有實體</target>
       </trans-unit>
+      <trans-unit id="++CODE++c7b96245094d8cc24762fbd0211e44291f3224450089189c452ce1985982dd94">
+        <source xml:lang="en">Toggle columns for {0}</source>
+        <note>{0} is the entity name</note>
+        <target state="translated">切換 {0} 的欄位</target>
+      </trans-unit>
       <trans-unit id="++CODE++ffe32a004b062d5e8252cac4729963ba6ff129023ea0b33c6aa3f0a9e725f157">
         <source xml:lang="en">Toggle dark mode</source>
         <target state="translated">切換深色模式</target>
@@ -8543,6 +8615,11 @@ Query: {2}</source>
       <trans-unit id="++CODE++4355e7352a614a58a8051157468baaf1102b9be2bdc6334597a8298aefbfbed6">
         <source xml:lang="en">Unable to load backup configuration. Please try again.</source>
         <target state="translated">無法載入備份設定。請再試一次。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c8a8ab1cef4a26f5a47e6aff86611314a34effe284539cfe1421067648432eab">
+        <source xml:lang="en">Unable to load database list from server: {0}</source>
+        <note>{0} is the connection error message</note>
+        <target state="translated">無法從伺服器載入資料庫清單: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++955b62784673f0081b2a54d867245fa50ca1e830cea22348ff69caa6317e7889">
         <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>
@@ -8711,6 +8788,10 @@ Query: {2}</source>
         <source xml:lang="en">User ID</source>
         <target state="translated">使用者識別碼</target>
       </trans-unit>
+      <trans-unit id="++CODE++7b2227d51ac2087125e6e9ef2fff2d56b0f6bf97b6698bf014026833e0e43cba">
+        <source xml:lang="en">User databases</source>
+        <target state="translated">使用者資料庫</target>
+      </trans-unit>
       <trans-unit id="++CODE++b82e11da3bc16786000d6e008e038f4d0272163a6476e0ca3c4b29d958051f9c">
         <source xml:lang="en">User name</source>
         <target state="translated">使用者名稱</target>
@@ -8846,9 +8927,9 @@ Query: {2}</source>
         <source xml:lang="en">Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.</source>
         <target state="translated">必須重新啟動 Visual Studio Code，此設定才會生效。請重新載入 Visual Studio Code。</target>
       </trans-unit>
-      <trans-unit id="++CODE++49a6dfed78fc8f501d94e0e7ce6d4f31c023a1a68b946f5faab2cba9950bf29c">
-        <source xml:lang="en">Visualize and Design Schema (Preview)</source>
-        <target state="translated">視覺化與設計結構描述 (預覽)</target>
+      <trans-unit id="++CODE++eab0f257866b670694bf52eec427b7799ca53883151d4d4526b0e57660ce65ab">
+        <source xml:lang="en">Visualize and Design Schema</source>
+        <target state="translated">視覺化與設計結構描述</target>
       </trans-unit>
       <trans-unit id="++CODE++e981ddae45d8f4ca53f1ccbe613ad254a041dacf65a06026099a6302d332113b">
         <source xml:lang="en">Warning</source>
@@ -9242,6 +9323,11 @@ Query: {2}</source>
         <note>{0} is the number of invalid accounts that have been removed</note>
         <target state="translated">已移除 {0} 無效的 Entra 帳戶；您可能需要執行 `MS SQL: 清除 Microsoft Entra 帳戶權杖快取`，然後重新登入。</target>
       </trans-unit>
+      <trans-unit id="++CODE++8ee4e65df77291c702e67b2a14060cddd3d53d15c05a64ed6a95e8ef5c53441b">
+        <source xml:lang="en">{0} is a primary key column and can't be disabled.</source>
+        <note>{0} is the backing database column name</note>
+        <target state="translated">{0} 是主索引鍵資料行，無法停用。</target>
+      </trans-unit>
       <trans-unit id="++CODE++e3620e8a37371c6057d768faed05a7608c6e5ee783372a58b137b047300e8b7a">
         <source xml:lang="en">{0} issue</source>
         <note>{0} is the number of issues</note>
@@ -9521,8 +9607,8 @@ Query: {2}</source>
         <target state="translated">備份資料庫...</target>
       </trans-unit>
       <trans-unit id="mssql.buildDataApi">
-        <source xml:lang="en">Build Data API (Preview)...</source>
-        <target state="translated">建置資料 API (預覽)...</target>
+        <source xml:lang="en">Build Data API...</source>
+        <target state="translated">建立資料 API...</target>
       </trans-unit>
       <trans-unit id="mssql.cancelConnect">
         <source xml:lang="en">Cancel Connection (MSSQL)</source>
@@ -9635,6 +9721,10 @@ Query: {2}</source>
       <trans-unit id="mssql.copyAll">
         <source xml:lang="en">Copy All</source>
         <target state="translated">複製全部</target>
+      </trans-unit>
+      <trans-unit id="mssql.notebooks.copyCellMessages">
+        <source xml:lang="en">Copy Cell Messages</source>
+        <target state="new">Copy Cell Messages</target>
       </trans-unit>
       <trans-unit id="mssql.copyConnectionString">
         <source xml:lang="en">Copy Connection String</source>
@@ -9983,8 +10073,8 @@ You can connect to a database by entering your connection information, using a c
         <target state="translated">新增查詢</target>
       </trans-unit>
       <trans-unit id="mssql.notebooks.createNotebook">
-        <source xml:lang="en">New SQL Notebook (Preview)</source>
-        <target state="translated">建立 SQL 筆記本 (預覽)</target>
+        <source xml:lang="en">New SQL Notebook</source>
+        <target state="translated">新增 SQL Notebook</target>
       </trans-unit>
       <trans-unit id="mssql.newTable">
         <source xml:lang="en">New Table</source>
@@ -10415,8 +10505,8 @@ See the estimated plan without running the query, or view the actual query plan 
         <target state="translated">將查詢計劃視覺化</target>
       </trans-unit>
       <trans-unit id="mssql.schemaDesigner">
-        <source xml:lang="en">Visualize and Design Schema (Preview)...</source>
-        <target state="translated">視覺化與設計結構描述 (預覽)...</target>
+        <source xml:lang="en">Visualize and Design Schema...</source>
+        <target state="translated">視覺化與設計結構描述...</target>
       </trans-unit>
       <trans-unit id="mssql.transferActiveEditorConnections.description">
         <source xml:lang="en">When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.</source>
@@ -10429,6 +10519,10 @@ See the estimated plan without running the query, or view the actual query plan 
       <trans-unit id="mssql.objectExplorer.collapseConnectionGroupsOnStartupDescription">
         <source xml:lang="en">When enabled, connection groups will be collapsed instead of expanded at startup.</source>
         <target state="translated">啟用時，連線群組會於啟動時摺疊而非展開。</target>
+      </trans-unit>
+      <trans-unit id="mssql.results.openAfterSave">
+        <source xml:lang="en">When enabled, saved query result exports are opened after export. Excel exports open with the system file handler; text exports open in VS Code.</source>
+        <target state="translated">啟用時，儲存的查詢結果匯出會在匯出後開啟。Excel 匯出可使用系統檔案處理常式開啟; 文字匯出可在 VS Code 中開啟。</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>

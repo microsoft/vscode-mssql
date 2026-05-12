@@ -14,6 +14,7 @@ import {
     Field,
     Input,
     makeStyles,
+    mergeClasses,
     Text,
     ToggleButton,
     tokens,
@@ -52,6 +53,12 @@ const useStyles = makeStyles({
     roleButtonLabel: {
         fontWeight: 600,
     },
+    roleButtonLabelSelected: {
+        color: tokens.colorNeutralForegroundOnBrand,
+    },
+    roleButtonLabelUnselected: {
+        color: tokens.colorNeutralForeground1,
+    },
     roleButtonContent: {
         display: "flex",
         flexDirection: "column",
@@ -59,7 +66,12 @@ const useStyles = makeStyles({
     },
     roleButtonDescription: {
         fontSize: "11px",
-        color: tokens.colorNeutralForeground4,
+    },
+    roleButtonDescriptionSelected: {
+        color: tokens.colorNeutralForegroundOnBrand,
+    },
+    roleButtonDescriptionUnselected: {
+        color: tokens.colorNeutralForeground2,
     },
     sourceTableText: {
         fontSize: "12px",
@@ -119,6 +131,10 @@ export function DabEntitySettingsDialog({
         setLocalSettings((prev) => ({ ...prev, customGraphQLType: value || undefined }));
     };
 
+    const isAnonymousSelected = localSettings.authorizationRole === Dab.AuthorizationRole.Anonymous;
+    const isAuthenticatedSelected =
+        localSettings.authorizationRole === Dab.AuthorizationRole.Authenticated;
+
     return (
         <Dialog open={open} onOpenChange={(_, data) => onOpenChange(data.open)}>
             <DialogSurface className={classes.surface}>
@@ -152,48 +168,56 @@ export function DabEntitySettingsDialog({
                             <div className={classes.roleButtonsContainer}>
                                 <ToggleButton
                                     className={classes.roleButton}
-                                    appearance={
-                                        localSettings.authorizationRole ===
-                                        Dab.AuthorizationRole.Anonymous
-                                            ? "primary"
-                                            : "outline"
-                                    }
-                                    checked={
-                                        localSettings.authorizationRole ===
-                                        Dab.AuthorizationRole.Anonymous
-                                    }
+                                    appearance={isAnonymousSelected ? "primary" : "outline"}
+                                    checked={isAnonymousSelected}
                                     onClick={() =>
                                         updateAuthorizationRole(Dab.AuthorizationRole.Anonymous)
                                     }>
                                     <div className={classes.roleButtonContent}>
-                                        <Text className={classes.roleButtonLabel}>
+                                        <Text
+                                            className={mergeClasses(
+                                                classes.roleButtonLabel,
+                                                isAnonymousSelected
+                                                    ? classes.roleButtonLabelSelected
+                                                    : classes.roleButtonLabelUnselected,
+                                            )}>
                                             {locConstants.schemaDesigner.anonymous}
                                         </Text>
-                                        <Text className={classes.roleButtonDescription}>
+                                        <Text
+                                            className={mergeClasses(
+                                                classes.roleButtonDescription,
+                                                isAnonymousSelected
+                                                    ? classes.roleButtonDescriptionSelected
+                                                    : classes.roleButtonDescriptionUnselected,
+                                            )}>
                                             {locConstants.schemaDesigner.anonymousDescription}
                                         </Text>
                                     </div>
                                 </ToggleButton>
                                 <ToggleButton
                                     className={classes.roleButton}
-                                    appearance={
-                                        localSettings.authorizationRole ===
-                                        Dab.AuthorizationRole.Authenticated
-                                            ? "primary"
-                                            : "outline"
-                                    }
-                                    checked={
-                                        localSettings.authorizationRole ===
-                                        Dab.AuthorizationRole.Authenticated
-                                    }
+                                    appearance={isAuthenticatedSelected ? "primary" : "outline"}
+                                    checked={isAuthenticatedSelected}
                                     onClick={() =>
                                         updateAuthorizationRole(Dab.AuthorizationRole.Authenticated)
                                     }>
                                     <div className={classes.roleButtonContent}>
-                                        <Text className={classes.roleButtonLabel}>
+                                        <Text
+                                            className={mergeClasses(
+                                                classes.roleButtonLabel,
+                                                isAuthenticatedSelected
+                                                    ? classes.roleButtonLabelSelected
+                                                    : classes.roleButtonLabelUnselected,
+                                            )}>
                                             {locConstants.schemaDesigner.authenticated}
                                         </Text>
-                                        <Text className={classes.roleButtonDescription}>
+                                        <Text
+                                            className={mergeClasses(
+                                                classes.roleButtonDescription,
+                                                isAuthenticatedSelected
+                                                    ? classes.roleButtonDescriptionSelected
+                                                    : classes.roleButtonDescriptionUnselected,
+                                            )}>
                                             {locConstants.schemaDesigner.authenticatedDescription}
                                         </Text>
                                     </div>
