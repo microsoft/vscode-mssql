@@ -70,7 +70,7 @@ export const AdvancedOptionsDrawer = ({
         const status = azureComponentStatuses[component.propertyName];
         if (status !== undefined) {
             const isLoading = status === ApiStatus.Loading || status === ApiStatus.NotStarted;
-            component.loading = isLoading;
+            component.loadStatus = { status: isLoading ? ApiStatus.Loading : ApiStatus.Loaded };
             if (isLoading) {
                 component.placeholder =
                     loadingTextMap[component.propertyName] ?? component.placeholder;

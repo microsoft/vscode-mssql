@@ -363,16 +363,15 @@ export function registerAzureSqlDatabaseReducers(
             const azureSqlState = state.deploymentTypeState as asd.AzureSqlDatabaseState;
 
             if (payload.shouldOpen) {
-                // Open dialog immediately with loading state for locations
-                state.dialog = {
-                    type: "createResourceGroup",
-                    props: {
-                        locationOptions: [],
-                        locationsLoadState: ApiStatus.Loading,
-                        createLoadState: ApiStatus.NotStarted,
-                    },
-                } as asd.CreateResourceGroupDrawerProps;
-                azureSqlState.dialog = state.dialog;
+                // Close any other open drawer
+                azureSqlState.createServerDrawerState = undefined;
+
+                // Open drawer immediately with loading state for locations
+                azureSqlState.createResourceGroupDrawerState = {
+                    locationOptions: [],
+                    locationsLoadState: ApiStatus.Loading,
+                    createLoadState: ApiStatus.NotStarted,
+                };
                 state.deploymentTypeState = azureSqlState;
                 updateAzureSqlDatabaseState(deploymentController, azureSqlState);
 
@@ -384,20 +383,21 @@ export function registerAzureSqlDatabaseReducers(
                         await VsCodeAzureHelper.getLocationsForSubscription(subscription);
                 }
 
-                // Update dialog with loaded locations
-                state.dialog = {
-                    type: "createResourceGroup",
-                    props: {
-                        locationOptions: cachedLocations,
-                        locationsLoadState: ApiStatus.Loaded,
-                        createLoadState: ApiStatus.NotStarted,
-                    },
-                } as asd.CreateResourceGroupDrawerProps;
+                // Only update if the drawer is still open
+                if (!azureSqlState.createResourceGroupDrawerState) {
+                    return state;
+                }
+
+                // Update drawer with loaded locations
+                azureSqlState.createResourceGroupDrawerState = {
+                    locationOptions: cachedLocations,
+                    locationsLoadState: ApiStatus.Loaded,
+                    createLoadState: ApiStatus.NotStarted,
+                };
             } else {
-                state.dialog = undefined;
+                azureSqlState.createResourceGroupDrawerState = undefined;
             }
 
-            azureSqlState.dialog = state.dialog;
             state.deploymentTypeState = azureSqlState;
             return state;
         },
@@ -407,11 +407,10 @@ export function registerAzureSqlDatabaseReducers(
         const azureSqlState = state.deploymentTypeState as asd.AzureSqlDatabaseState;
         const { resourceGroupName, location } = payload.spec;
 
-        // Show creating state in the dialog
-        const dialogProps = (state.dialog as asd.CreateResourceGroupDrawerProps)?.props;
-        if (dialogProps) {
-            dialogProps.createLoadState = ApiStatus.Loading;
-            azureSqlState.dialog = state.dialog;
+        // Show creating state in the drawer
+        const drawerState = azureSqlState.createResourceGroupDrawerState;
+        if (drawerState) {
+            drawerState.createLoadState = ApiStatus.Loading;
             state.deploymentTypeState = azureSqlState;
             updateAzureSqlDatabaseState(deploymentController, azureSqlState);
         }
@@ -430,18 +429,16 @@ export function registerAzureSqlDatabaseReducers(
             azureSqlState.azureComponentStatuses["serverName"] = ApiStatus.NotStarted;
             azureSqlState.formState.serverName = "";
 
-            // Close dialog on success
-            state.dialog = undefined;
-            azureSqlState.dialog = undefined;
+            // Close drawer on success
+            azureSqlState.createResourceGroupDrawerState = undefined;
         } catch (error) {
             cachedLogger?.error(
                 `Failed to create resource group: ${error instanceof Error ? error.message : String(error)}`,
             );
-            // Keep dialog open and reset create state so user can retry
-            if (dialogProps) {
-                dialogProps.createLoadState = ApiStatus.Error;
-                dialogProps.message = error instanceof Error ? error.message : String(error);
-                azureSqlState.dialog = state.dialog;
+            // Keep drawer open and reset create state so user can retry
+            if (drawerState) {
+                drawerState.createLoadState = ApiStatus.Error;
+                drawerState.message = error instanceof Error ? error.message : String(error);
             }
         }
 
@@ -453,16 +450,15 @@ export function registerAzureSqlDatabaseReducers(
         const azureSqlState = state.deploymentTypeState as asd.AzureSqlDatabaseState;
 
         if (payload.shouldOpen) {
-            // Open dialog immediately with loading state
-            state.dialog = {
-                type: "createServer",
-                props: {
-                    locationOptions: [],
-                    locationsLoadState: ApiStatus.Loading,
-                    createLoadState: ApiStatus.NotStarted,
-                },
-            } as asd.CreateServerDrawerProps;
-            azureSqlState.dialog = state.dialog;
+            // Close any other open drawer
+            azureSqlState.createResourceGroupDrawerState = undefined;
+
+            // Open drawer immediately with loading state
+            azureSqlState.createServerDrawerState = {
+                locationOptions: [],
+                locationsLoadState: ApiStatus.Loading,
+                createLoadState: ApiStatus.NotStarted,
+            };
             state.deploymentTypeState = azureSqlState;
             updateAzureSqlDatabaseState(deploymentController, azureSqlState);
 
@@ -480,20 +476,21 @@ export function registerAzureSqlDatabaseReducers(
                 }
             }
 
-            state.dialog = {
-                type: "createServer",
-                props: {
-                    locationOptions: cachedLocations,
-                    locationsLoadState: ApiStatus.Loaded,
-                    createLoadState: ApiStatus.NotStarted,
-                    defaultLocation,
-                },
-            } as asd.CreateServerDrawerProps;
+            // Only update if the drawer is still open
+            if (!azureSqlState.createServerDrawerState) {
+                return state;
+            }
+
+            azureSqlState.createServerDrawerState = {
+                locationOptions: cachedLocations,
+                locationsLoadState: ApiStatus.Loaded,
+                createLoadState: ApiStatus.NotStarted,
+                defaultLocation,
+            };
         } else {
-            state.dialog = undefined;
+            azureSqlState.createServerDrawerState = undefined;
         }
 
-        azureSqlState.dialog = state.dialog;
         state.deploymentTypeState = azureSqlState;
         return state;
     });
@@ -509,11 +506,10 @@ export function registerAzureSqlDatabaseReducers(
             savePassword,
         } = payload.spec;
 
-        // Show creating state in the dialog
-        const dialogProps = (state.dialog as asd.CreateServerDrawerProps)?.props;
-        if (dialogProps) {
-            dialogProps.createLoadState = ApiStatus.Loading;
-            azureSqlState.dialog = state.dialog;
+        // Show creating state in the drawer
+        const drawerState = azureSqlState.createServerDrawerState;
+        if (drawerState) {
+            drawerState.createLoadState = ApiStatus.Loading;
             state.deploymentTypeState = azureSqlState;
             updateAzureSqlDatabaseState(deploymentController, azureSqlState);
         }
@@ -553,17 +549,15 @@ export function registerAzureSqlDatabaseReducers(
                 azureSqlState.serverCreatedWithAuth = false;
             }
 
-            // Close dialog on success
-            state.dialog = undefined;
-            azureSqlState.dialog = undefined;
+            // Close drawer on success
+            azureSqlState.createServerDrawerState = undefined;
         } catch (error) {
             cachedLogger?.error(
                 `Failed to create server: ${error instanceof Error ? error.message : String(error)}`,
             );
-            if (dialogProps) {
-                dialogProps.createLoadState = ApiStatus.Error;
-                dialogProps.message = error instanceof Error ? error.message : String(error);
-                azureSqlState.dialog = state.dialog;
+            if (drawerState) {
+                drawerState.createLoadState = ApiStatus.Error;
+                drawerState.message = error instanceof Error ? error.message : String(error);
             }
         }
 

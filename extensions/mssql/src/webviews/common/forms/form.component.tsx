@@ -253,7 +253,10 @@ export const FormField = <
                                 <LabelComponent
                                     {...slotProps}
                                     {...tooltipProps}
-                                    required={!component.loading && slotProps.required}>
+                                    required={
+                                        component.loadStatus?.status !== ApiStatus.Loading &&
+                                        slotProps.required
+                                    }>
                                     {labelContent}
                                 </LabelComponent>
                                 {component.loadStatus?.status === ApiStatus.Loading && (

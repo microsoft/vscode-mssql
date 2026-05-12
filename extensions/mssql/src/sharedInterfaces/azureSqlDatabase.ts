@@ -32,6 +32,8 @@ export class AzureSqlDatabaseState
         {};
     formErrors: string[] = [];
     dialog: IDialogProps | undefined;
+    createResourceGroupDrawerState: CreateResourceGroupDrawerState | undefined = undefined;
+    createServerDrawerState: CreateServerDrawerState | undefined = undefined;
     formValidationLoadState: ApiStatus = ApiStatus.NotStarted;
     provisionLoadState: ApiStatus = ApiStatus.NotStarted;
     deploymentStartTime: string = "";
@@ -96,11 +98,6 @@ export interface CreateResourceGroupDrawerState {
     message?: string;
 }
 
-export interface CreateResourceGroupDrawerProps extends IDialogProps {
-    type: "createResourceGroup";
-    props: CreateResourceGroupDrawerState;
-}
-
 export interface CreateResourceGroupSpec {
     resourceGroupName: string;
     location: string;
@@ -112,11 +109,6 @@ export interface CreateServerDrawerState {
     createLoadState: ApiStatus;
     defaultLocation?: string;
     message?: string;
-}
-
-export interface CreateServerDrawerProps extends IDialogProps {
-    type: "createServer";
-    props: CreateServerDrawerState;
 }
 
 export interface CreateServerSpec {

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import {
     Button,
     Card,
@@ -29,8 +29,6 @@ import {
     AzureSqlDatabaseFormState,
     AzureSqlDatabaseState,
     AZURE_SQL_DB_COMPONENT_ORDER,
-    CreateResourceGroupDrawerProps,
-    CreateServerDrawerProps,
 } from "../../../../sharedInterfaces/azureSqlDatabase";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { AuthenticationType } from "../../../../sharedInterfaces/connectionDialog";
@@ -169,6 +167,12 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
         (s) => s.formValidationLoadState,
     );
     const dialog = useAzureSqlDatabaseDeploymentSelector((s) => s.dialog);
+    const createResourceGroupDrawerState = useAzureSqlDatabaseDeploymentSelector(
+        (s) => s.createResourceGroupDrawerState,
+    );
+    const createServerDrawerState = useAzureSqlDatabaseDeploymentSelector(
+        (s) => s.createServerDrawerState,
+    );
     const formState = useAzureSqlDatabaseDeploymentSelector((s) => s.formState);
     const formComponents = useAzureSqlDatabaseDeploymentSelector((s) => s.formComponents);
     const azureComponentStatuses = useAzureSqlDatabaseDeploymentSelector(
@@ -183,13 +187,16 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
         String(formState.autoPauseDelay),
     );
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
+    const prevFormValidationLoadState = useRef(formValidationLoadState);
 
     useEffect(() => {
         setLocalAutoPauseDelay(String(formState.autoPauseDelay));
     }, [formState.autoPauseDelay]);
 
     useEffect(() => {
-        if (formValidationLoadState === ApiStatus.Loaded) {
+        const changed = prevFormValidationLoadState.current !== formValidationLoadState;
+        prevFormValidationLoadState.current = formValidationLoadState;
+        if (changed && formValidationLoadState === ApiStatus.Loaded) {
             onValidated?.();
         }
     }, [formValidationLoadState, onValidated]);
@@ -274,10 +281,10 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
 
         const isLoading = loadStatus === ApiStatus.Loading || loadStatus === ApiStatus.NotStarted;
         if (isLoading) {
-            component.loading = true;
+            component.loadStatus = { status: ApiStatus.Loading };
             component.placeholder = getLoadingPlaceholder(propertyName);
         } else {
-            component.loading = false;
+            component.loadStatus = { status: ApiStatus.Loaded };
         }
 
         return (
@@ -347,9 +354,9 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                             closeDialog={() => context.setConnectionGroupDialogState(false)}
                         />
                     )}
-                    {dialog?.type === "createResourceGroup" && (
+                    {createResourceGroupDrawerState && (
                         <CreateResourceGroupDrawer
-                            state={(dialog as CreateResourceGroupDrawerProps).props}
+                            state={createResourceGroupDrawerState}
                             onSubmit={(resourceGroupName, location) => {
                                 context.submitCreateResourceGroup({
                                     resourceGroupName,
@@ -359,9 +366,9 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                             onClose={() => context.setCreateResourceGroupDrawerState(false)}
                         />
                     )}
-                    {dialog?.type === "createServer" && (
+                    {createServerDrawerState && (
                         <CreateServerDrawer
-                            state={(dialog as CreateServerDrawerProps).props}
+                            state={createServerDrawerState}
                             onSubmit={(
                                 serverName,
                                 location,

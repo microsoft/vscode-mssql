@@ -145,11 +145,7 @@ export const AzureSqlDatabaseDeploymentWizard: React.FC<AzureSqlDatabaseDeployme
             showCancel: () => hasProvisioningError,
             onPrevious: () => {
                 // Reset validation so the user can re-submit
-                context.formAction({
-                    propertyName: "databaseName",
-                    isAction: false,
-                    value: formState?.databaseName ?? "",
-                });
+                context.resetFormValidationState();
             },
             onNext: () => {
                 context.dispose();
