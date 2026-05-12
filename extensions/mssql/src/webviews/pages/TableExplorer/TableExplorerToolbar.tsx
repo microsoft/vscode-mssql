@@ -262,7 +262,7 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
                 <ToolbarButton
                     aria-label={loc.tableExplorer.filters}
                     aria-pressed={filtersOpen}
-                    title={loc.tableExplorer.filters}
+                    title={loc.tableExplorer.filtersTooltip}
                     icon={<FilterRegular />}
                     onClick={onToggleFilters}
                     disabled={isLoading}>
