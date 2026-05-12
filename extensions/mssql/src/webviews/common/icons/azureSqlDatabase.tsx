@@ -6,14 +6,16 @@
 import React from "react";
 
 export const AzureSqlDatabaseIcon = Object.assign(
-    React.forwardRef<SVGSVGElement, React.SVGAttributes<SVGElement>>((_props, _ref) => {
+    React.forwardRef<SVGSVGElement, React.SVGAttributes<SVGElement>>((props, ref) => {
         return (
             <svg
+                ref={ref}
                 id="a96792b7-ce28-4ca3-9767-4e065ef4820f"
                 xmlns="http://www.w3.org/2000/svg"
                 width="32"
                 height="32"
-                viewBox="0 0 18 18">
+                viewBox="0 0 18 18"
+                {...props}>
                 <defs>
                     <linearGradient
                         id="ef16bf9d-a8b6-4181-b6cd-66fc5203f956"

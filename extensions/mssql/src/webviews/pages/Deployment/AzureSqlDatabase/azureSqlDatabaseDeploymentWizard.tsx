@@ -9,6 +9,7 @@ import { locConstants } from "../../../common/locConstants";
 import { AzureSqlDatabaseIcon } from "../../../common/icons/azureSqlDatabase";
 import {
     AzureSqlDatabaseFormItemSpec,
+    AzureSqlDatabaseFormState,
     AzureSqlDatabaseState,
 } from "../../../../sharedInterfaces/azureSqlDatabase";
 import { AuthenticationType } from "../../../../sharedInterfaces/connectionDialog";
@@ -20,8 +21,54 @@ import { AzureSqlDatabaseFormPage } from "./azureSqlDatabaseFormPage";
 import { AzureSqlDatabaseProvisioningPage } from "./azureSqlDatabaseProvisioningPage";
 
 export interface TagEntry {
+    id: number;
     key: string;
     value: string;
+}
+
+function isAzureSqlFormValid(
+    loadState: ApiStatus,
+    formState: AzureSqlDatabaseFormState | undefined,
+    formComponents:
+        | Partial<Record<keyof AzureSqlDatabaseFormState, AzureSqlDatabaseFormItemSpec>>
+        | undefined,
+    serverCreatedWithAuth: boolean,
+    validationState: AzureSqlDatabaseState,
+): boolean {
+    if (loadState !== ApiStatus.Loaded) {
+        return false;
+    }
+
+    return Object.values(formComponents ?? {}).every((component) => {
+        const formComponent = component as AzureSqlDatabaseFormItemSpec | undefined;
+        if (!formComponent) {
+            return true;
+        }
+
+        const value = formState?.[formComponent.propertyName];
+        const normalizedValue = (value ?? "") as string | number | boolean;
+
+        // validate functions don't survive JSON serialization to the webview,
+        // so replicate auth-type-conditional logic for userName/password here
+        if (
+            (formComponent.propertyName === "userName" ||
+                formComponent.propertyName === "password") &&
+            (formState?.authenticationType === AuthenticationType.AzureMFA || serverCreatedWithAuth)
+        ) {
+            return true;
+        }
+
+        // savePassword is also not required when auth was set via the drawer
+        if (formComponent.propertyName === "savePassword" && serverCreatedWithAuth) {
+            return true;
+        }
+
+        if (formComponent.validate) {
+            return formComponent.validate(validationState, normalizedValue).isValid;
+        }
+
+        return formComponent.required ? !!value : true;
+    });
 }
 
 interface AzureSqlDatabaseDeploymentWizardProps {
@@ -44,11 +91,11 @@ export const AzureSqlDatabaseDeploymentWizard: React.FC<AzureSqlDatabaseDeployme
         (s) => s.serverCreatedWithAuth,
     );
 
+    const [tags, setTags] = useState<TagEntry[]>([]);
+
     if (!context) {
         return undefined;
     }
-
-    const [tags, setTags] = useState<TagEntry[]>([]);
 
     const validationState = useMemo(
         () =>
@@ -63,39 +110,13 @@ export const AzureSqlDatabaseDeploymentWizard: React.FC<AzureSqlDatabaseDeployme
     const hasProvisioningError =
         provisionLoadState === ApiStatus.Error || connectionLoadState === ApiStatus.Error;
     const isStateReady = !!formState && !!formComponents && "accountId" in formComponents;
-    const isFormValid =
-        loadState === ApiStatus.Loaded &&
-        Object.values(formComponents ?? {}).every((component) => {
-            const formComponent = component as AzureSqlDatabaseFormItemSpec | undefined;
-            if (!formComponent) {
-                return true;
-            }
-
-            const value = formState?.[formComponent.propertyName];
-            const normalizedValue = (value ?? "") as string | number | boolean;
-
-            // validate functions don't survive JSON serialization to the webview,
-            // so replicate auth-type-conditional logic for userName/password here
-            if (
-                (formComponent.propertyName === "userName" ||
-                    formComponent.propertyName === "password") &&
-                (formState?.authenticationType === AuthenticationType.AzureMFA ||
-                    serverCreatedWithAuth)
-            ) {
-                return true;
-            }
-
-            // savePassword is also not required when auth was set via the drawer
-            if (formComponent.propertyName === "savePassword" && serverCreatedWithAuth) {
-                return true;
-            }
-
-            if (formComponent.validate) {
-                return formComponent.validate(validationState, normalizedValue).isValid;
-            }
-
-            return formComponent.required ? !!value : true;
-        });
+    const isFormValid = isAzureSqlFormValid(
+        loadState,
+        formState,
+        formComponents,
+        serverCreatedWithAuth,
+        validationState,
+    );
 
     const pages: WizardPageDefinition[] = [
         {

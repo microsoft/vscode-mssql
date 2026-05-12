@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Link, makeStyles, Text } from "@fluentui/react-components";
-import { ArrowRight12Regular } from "@fluentui/react-icons";
+import { makeStyles } from "@fluentui/react-components";
 import { locConstants } from "../../../common/locConstants";
+import { DocsLinkCard } from "./docsLinkCard";
 import { BuiltOnAzureSqlIcon } from "../../../common/icons/builtOnAzureSql";
 import { AnalyticsReadyIcon } from "../../../common/icons/analyticsReady";
 import { InstantSetupIcon } from "../../../common/icons/instantSetup";
@@ -70,36 +70,6 @@ const useStyles = makeStyles({
         width: "32px",
         height: "32px",
     },
-    docsCard: {
-        borderRadius: "12px",
-        border: "1px solid var(--vscode-editorWidget-border)",
-        backgroundColor: "var(--colorNeutralBackground1Hover)",
-        padding: "16px",
-        width: "100%",
-        boxSizing: "border-box",
-    },
-    docsTitle: {
-        display: "block",
-        marginBottom: "8px",
-        fontSize: "13px",
-        fontWeight: 600,
-        lineHeight: "16px",
-    },
-    docsActions: {
-        display: "flex",
-        flexDirection: "column",
-    },
-    docsAction: {
-        display: "flex",
-        alignItems: "center",
-        gap: "8px",
-        minHeight: "24px",
-        padding: "2px 0",
-        fontSize: "13px",
-        lineHeight: "18px",
-        color: "var(--vscode-textLink-foreground)",
-        textDecorationLine: "none",
-    },
 });
 
 export const AzureSqlDatabaseInfoPage: React.FC = () => {
@@ -136,7 +106,7 @@ export const AzureSqlDatabaseInfoPage: React.FC = () => {
                             {locConstants.azureSqlDatabase.oltpAzureSql}
                         </div>
                         <div className={classes.descriptionDiv}>
-                            {locConstants.azureSqlDatabase.otlpAzureSqlDescription}
+                            {locConstants.azureSqlDatabase.oltpAzureSqlDescription}
                         </div>
                     </div>
                 </div>
@@ -174,24 +144,7 @@ export const AzureSqlDatabaseInfoPage: React.FC = () => {
                         </div>
                     </div>
                 </div>
-                <div className={classes.docsCard}>
-                    <Text className={classes.docsTitle}>
-                        {locConstants.azureSqlDatabase.learnMore}
-                    </Text>
-                    <div className={classes.docsActions}>
-                        {links.map((link) => (
-                            <Link
-                                key={link.href}
-                                href={link.href}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={classes.docsAction}>
-                                <span>{link.label}</span>
-                                <ArrowRight12Regular />
-                            </Link>
-                        ))}
-                    </div>
-                </div>
+                <DocsLinkCard title={locConstants.azureSqlDatabase.learnMore} links={links} />
             </div>
         </div>
     );

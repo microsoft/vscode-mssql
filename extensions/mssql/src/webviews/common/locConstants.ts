@@ -1812,7 +1812,7 @@ export class LocConstants {
                 "Try Azure SQL Database at no cost with our free tier offer! Provision a fully managed cloud database directly from VS Code.",
             ),
             oltpAzureSql: l10n.t("OLTP, built on Azure SQL"),
-            otlpAzureSqlDescription: l10n.t(
+            oltpAzureSqlDescription: l10n.t(
                 "Developer-friendly transactional database using the Azure SQL Database Engine — at no cost for prototyping and learning.",
             ),
             freeComputeAndScaling: l10n.t("Free compute & storage"),

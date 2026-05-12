@@ -21,7 +21,10 @@ import {
 } from "@fluentui/react-components";
 import { Dismiss24Regular, EyeOffRegular, EyeRegular } from "@fluentui/react-icons";
 import { locConstants as Loc } from "../../../common/locConstants";
-import { CreateServerDrawerState } from "../../../../sharedInterfaces/azureSqlDatabase";
+import {
+    CreateServerDrawerState,
+    CreateServerSpec,
+} from "../../../../sharedInterfaces/azureSqlDatabase";
 import { AuthenticationType } from "../../../../sharedInterfaces/connectionDialog";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { useEffect, useState } from "react";
@@ -32,14 +35,7 @@ export const CreateServerDrawer = ({
     onClose,
 }: {
     state: CreateServerDrawerState;
-    onSubmit: (
-        serverName: string,
-        location: string,
-        authenticationType: string,
-        adminLogin?: string,
-        adminPassword?: string,
-        savePassword?: boolean,
-    ) => void;
+    onSubmit: (spec: CreateServerSpec) => void;
     onClose: () => void;
 }) => {
     const formStyles = useFormStyles();
@@ -86,14 +82,14 @@ export const CreateServerDrawer = ({
     function handleSubmit(e?: React.FormEvent) {
         if (e) e.preventDefault();
         if (isReadyToSubmit()) {
-            onSubmit(
-                serverName.trim(),
-                selectedLocation,
-                authType,
-                needsSqlAuth ? adminLogin.trim() : undefined,
-                needsSqlAuth ? adminPassword : undefined,
-                needsSqlAuth ? savePassword : undefined,
-            );
+            onSubmit({
+                serverName: serverName.trim(),
+                location: selectedLocation,
+                authenticationType: authType,
+                adminLogin: needsSqlAuth ? adminLogin.trim() : undefined,
+                adminPassword: needsSqlAuth ? adminPassword : undefined,
+                savePassword: needsSqlAuth ? savePassword : undefined,
+            });
         }
     }
 
@@ -126,7 +122,7 @@ export const CreateServerDrawer = ({
                     action={
                         <Button
                             appearance="subtle"
-                            aria-label="Close"
+                            aria-label={Loc.common.close}
                             icon={<Dismiss24Regular />}
                             onClick={onClose}
                             disabled={isCreating}

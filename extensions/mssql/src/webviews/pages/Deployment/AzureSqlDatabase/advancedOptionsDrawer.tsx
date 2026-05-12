@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
     Button,
     Card,
@@ -54,6 +54,7 @@ export const AdvancedOptionsDrawer = ({
 }) => {
     const formStyles = useFormStyles();
     const [tagError, setTagError] = useState<string | undefined>(undefined);
+    const tagIdCounter = useRef(0);
 
     const advancedComponents = Object.values(formComponents).filter(
         (component): component is AzureSqlDatabaseFormItemSpec =>
@@ -65,22 +66,25 @@ export const AdvancedOptionsDrawer = ({
         maintenanceConfig: Loc.azureSqlDatabase.loadingMaintenanceConfigs,
     };
 
-    // Apply loading state from azureComponentStatuses to relevant components
-    for (const component of advancedComponents) {
+    // Compute derived components with loading state instead of mutating originals
+    const derivedAdvancedComponents = advancedComponents.map((component) => {
         const status = azureComponentStatuses[component.propertyName];
-        if (status !== undefined) {
-            const isLoading = status === ApiStatus.Loading || status === ApiStatus.NotStarted;
-            component.loadStatus = { status: isLoading ? ApiStatus.Loading : ApiStatus.Loaded };
-            if (isLoading) {
-                component.placeholder =
-                    loadingTextMap[component.propertyName] ?? component.placeholder;
-            }
+        if (status === undefined) {
+            return component;
         }
-    }
+        const isLoading = status === ApiStatus.Loading || status === ApiStatus.NotStarted;
+        return {
+            ...component,
+            loadStatus: { status: isLoading ? ApiStatus.Loading : ApiStatus.Loaded },
+            ...(isLoading && {
+                placeholder: loadingTextMap[component.propertyName] ?? component.placeholder,
+            }),
+        };
+    });
 
     const handleAddTag = () => {
         setTagError(undefined);
-        onTagsChange([...tags, { key: "", value: "" }]);
+        onTagsChange([...tags, { id: tagIdCounter.current++, key: "", value: "" }]);
     };
 
     const handleRemoveTag = (index: number) => {
@@ -117,7 +121,7 @@ export const AdvancedOptionsDrawer = ({
                     action={
                         <Button
                             appearance="subtle"
-                            aria-label="Close"
+                            aria-label={Loc.common.close}
                             icon={<Dismiss24Regular />}
                             onClick={onClose}
                         />
@@ -153,15 +157,16 @@ export const AdvancedOptionsDrawer = ({
                             <span>{Loc.azureSqlDatabase.firewallDescription(hostIp)}</span>
                         </Card>
                     </div>
-                    {advancedComponents.map((component, idx) => (
-                        <div style={{ width: component.componentWidth || "100%" }}>
+                    {derivedAdvancedComponents.map((component, idx) => (
+                        <div
+                            key={component.propertyName}
+                            style={{ width: component.componentWidth || "100%" }}>
                             <FormField<
                                 AzureSqlDatabaseFormState,
                                 AzureSqlDatabaseState,
                                 AzureSqlDatabaseFormItemSpec,
                                 AzureSqlDatabaseContextProps
                             >
-                                key={component.propertyName}
                                 context={context}
                                 formState={formState}
                                 component={component}
@@ -178,7 +183,7 @@ export const AdvancedOptionsDrawer = ({
 
                         {tags.map((tag, index) => (
                             <div
-                                key={index}
+                                key={tag.id}
                                 style={{
                                     display: "flex",
                                     alignItems: "center",

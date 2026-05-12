@@ -75,7 +75,7 @@ export const CreateResourceGroupDrawer = ({
                     action={
                         <Button
                             appearance="subtle"
-                            aria-label="Close"
+                            aria-label={Loc.common.close}
                             icon={<Dismiss24Regular />}
                             onClick={onClose}
                             disabled={isCreating}

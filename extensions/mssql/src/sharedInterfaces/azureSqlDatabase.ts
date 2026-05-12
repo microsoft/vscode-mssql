@@ -26,8 +26,8 @@ export class AzureSqlDatabaseState
 {
     loadState: ApiStatus = ApiStatus.Loading;
     errorMessage?: string;
-    // @ts-ignore
-    formState: AzureSqlDatabaseFormState = undefined;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- formState is initialized in initializeAzureSqlDatabaseState before use
+    formState: AzureSqlDatabaseFormState = undefined as any;
     formComponents: Partial<Record<keyof AzureSqlDatabaseFormState, AzureSqlDatabaseFormItemSpec>> =
         {};
     formErrors: string[] = [];

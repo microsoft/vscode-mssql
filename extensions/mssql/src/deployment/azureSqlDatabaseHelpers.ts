@@ -36,6 +36,16 @@ let cachedServers: Server[] = [];
 let cachedLocations: { name: string; displayName: string }[] = [];
 let cachedMaintenanceConfigs: { name: string; id: string }[] = [];
 
+function clearAllCaches(): void {
+    cachedAccounts = [];
+    cachedTenants = [];
+    cachedSubscriptions = [];
+    cachedResourceGroups = [];
+    cachedServers = [];
+    cachedLocations = [];
+    cachedMaintenanceConfigs = [];
+}
+
 function clearCacheDownstream(fromComponent: string): void {
     const order = asd.AZURE_SQL_DB_COMPONENT_ORDER as readonly string[];
     const idx = order.indexOf(fromComponent);
@@ -165,6 +175,7 @@ export async function initializeAzureSqlDatabaseState(
     selectedGroupId: string | undefined,
 ): Promise<asd.AzureSqlDatabaseState> {
     cachedLogger = logger;
+    clearAllCaches();
     const startTime = Date.now();
     const state = new asd.AzureSqlDatabaseState();
 
@@ -187,7 +198,12 @@ export async function initializeAzureSqlDatabaseState(
         dataSource: "",
         enableAlwaysEncrypted: false,
     };
-    state.publicIp = await publicIpv4.v4();
+    try {
+        state.publicIp = await publicIpv4.v4();
+    } catch {
+        state.publicIp = "";
+        logger.warn("Could not detect public IP for firewall rule");
+    }
 
     deploymentController.state.deploymentTypeState = state;
     state.formComponents = setAzureSqlDatabaseFormComponents([], [], groupOptions, [], []);

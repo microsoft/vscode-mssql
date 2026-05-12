@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import {
     Button,
     Card,
@@ -207,7 +207,7 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
      * Finds the first Azure component that is NotStarted and whose upstream
      * prerequisites are satisfied (all prior components have values), then triggers its load.
      */
-    const handleLoadAzureComponents = () => {
+    const handleLoadAzureComponents = useCallback(() => {
         if (!context || !azureComponentStatuses) return;
 
         const order = AZURE_SQL_DB_COMPONENT_ORDER as readonly string[];
@@ -224,7 +224,12 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                 return;
             }
         }
-    };
+    }, [context, azureComponentStatuses, formState]);
+
+    // Trigger loading of the next Azure component when statuses change
+    useEffect(() => {
+        handleLoadAzureComponents();
+    }, [handleLoadAzureComponents]);
 
     if (loadState === ApiStatus.Loading) {
         return (
@@ -275,17 +280,15 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
         if (!component) return undefined;
 
         const loadStatus = azureComponentStatuses[propertyName];
-        if (loadStatus === ApiStatus.NotStarted) {
-            handleLoadAzureComponents();
-        }
-
         const isLoading = loadStatus === ApiStatus.Loading || loadStatus === ApiStatus.NotStarted;
-        if (isLoading) {
-            component.loadStatus = { status: ApiStatus.Loading };
-            component.placeholder = getLoadingPlaceholder(propertyName);
-        } else {
-            component.loadStatus = { status: ApiStatus.Loaded };
-        }
+
+        const derivedComponent: AzureSqlDatabaseFormItemSpec = {
+            ...component,
+            loadStatus: isLoading ? { status: ApiStatus.Loading } : { status: ApiStatus.Loaded },
+            ...(isLoading && {
+                placeholder: getLoadingPlaceholder(propertyName),
+            }),
+        };
 
         return (
             <div className={classes.fieldContainer}>
@@ -298,7 +301,7 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                     >
                         context={context}
                         formState={formState}
-                        component={component}
+                        component={derivedComponent}
                         idx={0}
                     />
                 </div>
@@ -320,7 +323,10 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
         );
     };
 
-    const renderFormField = (propertyName: keyof AzureSqlDatabaseFormState) => {
+    const renderFormField = (
+        propertyName: keyof AzureSqlDatabaseFormState,
+        componentProps?: Record<string, unknown>,
+    ) => {
         const component = formComponents[propertyName];
         if (!component) return undefined;
         return (
@@ -336,6 +342,7 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                         formState={formState}
                         component={component}
                         idx={0}
+                        componentProps={componentProps}
                     />
                 </div>
             </div>
@@ -369,23 +376,7 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                     {createServerDrawerState && (
                         <CreateServerDrawer
                             state={createServerDrawerState}
-                            onSubmit={(
-                                serverName,
-                                location,
-                                authenticationType,
-                                adminLogin,
-                                adminPassword,
-                                savePassword,
-                            ) => {
-                                context.submitCreateServer({
-                                    serverName,
-                                    location,
-                                    authenticationType,
-                                    adminLogin,
-                                    adminPassword,
-                                    savePassword,
-                                });
-                            }}
+                            onSubmit={(spec) => context.submitCreateServer(spec)}
                             onClose={() => context.setCreateServerDrawerState(false)}
                         />
                     )}
@@ -406,28 +397,9 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                     {formState.authenticationType !== AuthenticationType.AzureMFA &&
                         !(serverCreatedWithAuth && formState.savePassword) && (
                             <>
-                                <div className={classes.fieldContainer}>
-                                    <div style={{ flex: 1, width: "100%" }}>
-                                        <FormField<
-                                            AzureSqlDatabaseFormState,
-                                            AzureSqlDatabaseState,
-                                            AzureSqlDatabaseFormItemSpec,
-                                            AzureSqlDatabaseContextProps
-                                        >
-                                            context={context}
-                                            formState={formState}
-                                            component={
-                                                formComponents[
-                                                    "userName"
-                                                ] as AzureSqlDatabaseFormItemSpec
-                                            }
-                                            idx={0}
-                                            componentProps={{
-                                                readOnly: !!formState.userName,
-                                            }}
-                                        />
-                                    </div>
-                                </div>
+                                {renderFormField("userName", {
+                                    readOnly: !!formState.userName,
+                                })}
                                 {renderFormField("password")}
                                 {renderFormField("savePassword")}
                             </>
@@ -509,7 +481,9 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                                 />
                                 <span>{locConstants.azureSqlDatabase.continueChargesWarning}</span>
                             </div>
-                            <Link className={classes.linkDiv} href="">
+                            <Link
+                                className={classes.linkDiv}
+                                href="https://learn.microsoft.com/en-us/azure/azure-sql/database/free-offer">
                                 {locConstants.common.learnMore}
                                 <ArrowRight12Regular style={{ marginTop: "2px" }} />
                             </Link>
