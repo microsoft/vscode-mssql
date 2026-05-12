@@ -6,6 +6,10 @@
         <source xml:lang="en"> is required.</source>
         <target state="translated"> es obligatorio.</target>
       </trans-unit>
+      <trans-unit id="++CODE++fd3bd9305a1a7d5dfd79fa21b626163609a8f298aab892396554e74842a84f9b">
+        <source xml:lang="en">$(check) Copied messages</source>
+        <target state="new">$(check) Copied messages</target>
+      </trans-unit>
       <trans-unit id="++CODE++18b63db64aa0aff55a9f4784ad62abdc2b70cedb95b5e89d5551996cc9bd25ac">
         <source xml:lang="en">$(plug)  Connect to MSSQL</source>
         <target state="translated">$(plug) Conectar a MSSQL</target>
@@ -1940,6 +1944,10 @@ Seleccione "{0}" para establecer una conexión.</target>
         <source xml:lang="en">Copy Script to Clipboard</source>
         <target state="translated">Copiar script en el Portapapeles</target>
       </trans-unit>
+      <trans-unit id="++CODE++bd0768aa6b547da2466d49441410931420e8beb78cc1d3051e68242a04e8583b">
+        <source xml:lang="en">Copy all text output for this cell (messages, PRINT, errors)</source>
+        <target state="new">Copy all text output for this cell (messages, PRINT, errors)</target>
+      </trans-unit>
       <trans-unit id="++CODE++ac030299960c4d5cba2b13fa5f358cb7f1b1531ce5f2e5315eff17b7c93a97bf">
         <source xml:lang="en">Copy as CSV</source>
         <target state="translated">Copiar como archivo .csv</target>
@@ -1971,6 +1979,10 @@ Seleccione "{0}" para establecer una conexión.</target>
       <trans-unit id="++CODE++dbf362d4f210c780513a9258278d4d07abe8a224f84ba7ad775d819039342e77">
         <source xml:lang="en">Copy link</source>
         <target state="translated">Copiar vínculo</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cc4b07f956793d518a1f073565e7dceef4aab9bebae6e515dc7c9b046a38bc9d">
+        <source xml:lang="en">Copy messages</source>
+        <target state="new">Copy messages</target>
       </trans-unit>
       <trans-unit id="++CODE++c8b5428b9ac790b3952e08ceea5a8a170ad8b0af1e0f51c98a159f1147631e8a">
         <source xml:lang="en">Copy script</source>
@@ -9709,6 +9721,10 @@ Consulta: {2}</target>
       <trans-unit id="mssql.copyAll">
         <source xml:lang="en">Copy All</source>
         <target state="translated">Copiar todo</target>
+      </trans-unit>
+      <trans-unit id="mssql.notebooks.copyCellMessages">
+        <source xml:lang="en">Copy Cell Messages</source>
+        <target state="new">Copy Cell Messages</target>
       </trans-unit>
       <trans-unit id="mssql.copyConnectionString">
         <source xml:lang="en">Copy Connection String</source>
