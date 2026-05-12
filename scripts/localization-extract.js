@@ -46,6 +46,10 @@ function getStagedFiles() {
         .filter(Boolean);
 }
 
+function getStagedFileContent(file) {
+    return execFileSync("git", ["show", `:${file}`], { encoding: "utf8" });
+}
+
 function matchesInput(file, input) {
     return input.endsWith("/") ? file.startsWith(input) : file === input;
 }
@@ -62,6 +66,22 @@ function getAffectedExtensionsForPrecommit() {
             getExtensionInputs(extensionDir).some((input) => matchesInput(file, input)),
         ),
     );
+}
+
+async function getL10nJsonFromFileContents(fileContents) {
+    logger.step("Extracting localization strings from source code...");
+
+    const result = await vscodel10n.getL10nJson(
+        fileContents.map((f) => ({
+            contents: f.contents,
+            extension: f.extension,
+        })),
+    );
+
+    const stringCount = Object.keys(result).length;
+    logger.success(`Extracted ${stringCount} localization strings`);
+
+    return result;
 }
 
 /**
@@ -102,24 +122,75 @@ async function getL10nJson(extensionPath) {
         }
 
         logger.success(`Successfully processed ${processedFiles} source files`);
-        logger.step("Extracting localization strings from source code...");
-
-        // Extract L10n data using vscode l10n tools
-        const result = await vscodel10n.getL10nJson(
-            fileContents.map((f) => ({
-                contents: f.contents,
-                extension: f.extension,
-            })),
-        );
-
-        const stringCount = Object.keys(result).length;
-        logger.success(`Extracted ${stringCount} localization strings`);
-
-        return result;
+        return await getL10nJsonFromFileContents(fileContents);
     } catch (error) {
         logger.error(`Failed to extract L10n JSON: ${error.message}`);
         throw error;
     }
+}
+
+function getStagedSourceFilesForExtension(extensionDir, stagedFiles) {
+    const srcPrefix = `extensions/${extensionDir}/src/`;
+    return stagedFiles.filter(
+        (file) => file.startsWith(srcPrefix) && (file.endsWith(".ts") || file.endsWith(".tsx")),
+    );
+}
+
+async function readJsonFile(filePath, stagedFiles = []) {
+    const normalizedPath = filePath.replace(/\\/g, "/");
+    const content = stagedFiles.includes(normalizedPath)
+        ? getStagedFileContent(normalizedPath)
+        : await fs.readFile(filePath, "utf8");
+    return JSON.parse(content);
+}
+
+async function readJsonFileOrEmptyIfMissing(filePath, stagedFiles = []) {
+    try {
+        return await readJsonFile(filePath, stagedFiles);
+    } catch (error) {
+        if (error.code === "ENOENT") {
+            return {};
+        }
+
+        throw error;
+    }
+}
+
+async function writeLocalizationOutputs(extensionDir, xliffName, packageJSON, bundleJSON) {
+    const map = new Map();
+    map.set("package", packageJSON);
+    map.set("bundle", bundleJSON);
+
+    const extensionPath = path.resolve("extensions", extensionDir);
+    const extensionL10nDir = path.join(extensionPath, "l10n");
+    await fs.mkdir(extensionL10nDir, { recursive: true });
+    await fs.mkdir("localization/xliff", { recursive: true });
+
+    logger.step("Writing bundle localization file...");
+    const bundlePath = path.join(extensionL10nDir, "bundle.l10n.json");
+    const formatted1 = await writeJsonAndFormat(bundlePath, bundleJSON);
+    if (formatted1) {
+        logger.success(`Created and formatted ${bundlePath}`);
+    } else {
+        logger.warning(`Created ${bundlePath} (formatting failed)`);
+    }
+
+    logger.step("Generating XLIFF file for translation...");
+    const stringXLIFF = vscodel10n.getL10nXlf(map);
+    const xliffPath = `localization/xliff/${xliffName}.xlf`;
+    const formatted2 = await writeAndFormat(
+        xliffPath,
+        stringXLIFF,
+        false, // We don't want to run prettier on XLIFF files
+        true, // Use CRLF line endings to match .gitattributes
+    );
+    if (formatted2) {
+        logger.success(`Created ${xliffPath}`);
+    } else {
+        logger.warning(`Created ${xliffPath} (formatting failed)`);
+    }
+
+    return [bundlePath.replace(/\\/g, "/"), xliffPath];
 }
 
 /**
@@ -138,51 +209,18 @@ async function extractLocalizationForExtension(extensionDir, xliffName) {
 
         logger.step("Loading package localization data...");
 
-        // Create map with package and bundle localization data
-        const map = new Map();
-
+        let packageJSON;
         try {
             const packageNlsPath = path.join(extensionPath, "package.nls.json");
             const packageNlsContent = await fs.readFile(packageNlsPath, "utf8");
-            map.set("package", JSON.parse(packageNlsContent));
+            packageJSON = JSON.parse(packageNlsContent);
             logger.success("Loaded package.nls.json");
         } catch (error) {
             logger.warning(`Could not load package.nls.json: ${error.message}`);
-            map.set("package", {});
+            packageJSON = {};
         }
 
-        map.set("bundle", bundleJSON);
-
-        // Ensure output directories exist
-        const extensionL10nDir = path.join(extensionPath, "l10n");
-        await fs.mkdir(extensionL10nDir, { recursive: true });
-        await fs.mkdir("localization/xliff", { recursive: true });
-
-        // Write bundle L10n JSON file to extension's l10n directory
-        logger.step("Writing bundle localization file...");
-        const bundlePath = path.join(extensionL10nDir, "bundle.l10n.json");
-        const formatted1 = await writeJsonAndFormat(bundlePath, bundleJSON);
-        if (formatted1) {
-            logger.success(`Created and formatted ${bundlePath}`);
-        } else {
-            logger.warning(`Created ${bundlePath} (formatting failed)`);
-        }
-
-        // Generate XLIFF file for translators
-        logger.step("Generating XLIFF file for translation...");
-        const stringXLIFF = vscodel10n.getL10nXlf(map);
-        const xliffPath = `localization/xliff/${xliffName}.xlf`;
-        const formatted2 = await writeAndFormat(
-            xliffPath,
-            stringXLIFF,
-            false, // We don't want to run prettier on XLIFF files
-            true, // Use CRLF line endings to match .gitattributes
-        );
-        if (formatted2) {
-            logger.success(`Created ${xliffPath}`);
-        } else {
-            logger.warning(`Created ${xliffPath} (formatting failed)`);
-        }
+        await writeLocalizationOutputs(extensionDir, xliffName, packageJSON, bundleJSON);
 
         logger.success(`Localization extraction for ${extensionDir} completed successfully!`);
         logger.newline();
@@ -219,14 +257,70 @@ async function extractLocalizationStrings() {
 }
 
 async function extractLocalizationForPrecommit() {
+    const stagedFiles = getStagedFiles();
     const affectedExtensions = getAffectedExtensionsForPrecommit();
+    const forceFullExtraction = stagedFiles.some((file) =>
+        PRECOMMIT_FULL_EXTRACTION_INPUTS.includes(file),
+    );
     if (!affectedExtensions.length) {
         logger.info("No staged localization inputs; skipping localization extraction.");
         return;
     }
 
     for (const extensionDir of affectedExtensions) {
-        await extractLocalizationForExtension(extensionDir, EXTENSION_CONFIG[extensionDir]);
+        await extractLocalizationForExtensionPrecommit(
+            extensionDir,
+            EXTENSION_CONFIG[extensionDir],
+            stagedFiles,
+            forceFullExtraction,
+        );
+    }
+}
+
+async function extractLocalizationForExtensionPrecommit(
+    extensionDir,
+    xliffName,
+    stagedFiles,
+    forceFullExtraction = false,
+) {
+    logger.header(`Processing staged localization inputs for Extension: ${extensionDir}`);
+
+    const extensionPath = path.resolve("extensions", extensionDir);
+    const packageNlsPath = `extensions/${extensionDir}/package.nls.json`;
+    const bundlePath = `extensions/${extensionDir}/l10n/bundle.l10n.json`;
+
+    try {
+        const stagedSourceFiles = getStagedSourceFilesForExtension(extensionDir, stagedFiles);
+        const bundleJSON =
+            forceFullExtraction || stagedSourceFiles.length
+                ? await getL10nJson(extensionPath)
+                : await readJsonFileOrEmptyIfMissing(bundlePath, stagedFiles);
+
+        logger.step("Loading package localization data...");
+        let packageJSON;
+        try {
+            packageJSON = await readJsonFile(packageNlsPath, stagedFiles);
+            logger.success("Loaded package.nls.json");
+        } catch (error) {
+            logger.warning(`Could not load package.nls.json: ${error.message}`);
+            packageJSON = {};
+        }
+
+        const generatedFiles = await writeLocalizationOutputs(
+            extensionDir,
+            xliffName,
+            packageJSON,
+            bundleJSON,
+        );
+        execFileSync("git", ["add", ...generatedFiles], { stdio: "inherit" });
+
+        logger.success(
+            `Staged localization extraction for ${extensionDir} completed successfully!`,
+        );
+        logger.newline();
+    } catch (error) {
+        logger.error(`Staged localization extraction for ${extensionDir} failed: ${error.message}`);
+        throw error;
     }
 }
 
@@ -234,6 +328,7 @@ module.exports = {
     extractLocalizationStrings,
     extractLocalizationForExtension,
     extractLocalizationForPrecommit,
+    extractLocalizationForExtensionPrecommit,
     getL10nJson,
 };
 
