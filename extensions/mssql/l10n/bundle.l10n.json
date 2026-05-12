@@ -1140,6 +1140,7 @@
     "Configure and customize Azure SQL Databases": "Configure and customize Azure SQL Databases",
     "Deployment finished": "Deployment finished",
     "Deployment failed": "Deployment failed",
+    "Region": "Region",
     "Loading subscriptions": "Loading subscriptions",
     "Loading resource groups": "Loading resource groups",
     "Loading Azure accounts": "Loading Azure accounts",
@@ -1197,6 +1198,11 @@
     "Remove tag": "Remove tag",
     "Key": "Key",
     "Tag keys must be unique.": "Tag keys must be unique.",
+    "Firewall": "Firewall",
+    "Your current IP {0} will be added automatically./{0} is the current IP address": {
+        "message": "Your current IP {0} will be added automatically.",
+        "comment": ["{0} is the current IP address"]
+    },
     "Change Password": "Change Password",
     "Password must be changed to continue logging into '{0}'/{0} is the name of the server": {
         "message": "Password must be changed to continue logging into '{0}'",

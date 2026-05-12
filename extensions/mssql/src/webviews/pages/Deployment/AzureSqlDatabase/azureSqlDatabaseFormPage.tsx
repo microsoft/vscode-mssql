@@ -6,6 +6,7 @@
 import { useContext, useEffect, useState } from "react";
 import {
     Button,
+    Card,
     Link,
     Label,
     makeStyles,
@@ -14,7 +15,12 @@ import {
     Spinner,
     Text,
 } from "@fluentui/react-components";
-import { ErrorCircleRegular } from "@fluentui/react-icons";
+import {
+    ErrorCircleRegular,
+    GiftRegular,
+    LockClosedRegular,
+    WarningFilled,
+} from "@fluentui/react-icons";
 import { FormField } from "../../../common/forms/form.component";
 import {
     AzureSqlDatabaseContextProps,
@@ -44,13 +50,22 @@ import { DeploymentContext } from "../deploymentStateProvider";
 import { useAzureSqlDatabaseDeploymentSelector } from "../deploymentSelector";
 
 const useStyles = makeStyles({
+    pageContainer: {
+        display: "flex",
+        flexDirection: "row",
+        gap: "24px",
+        width: "100%",
+        minHeight: "fit-content",
+        padding: "4px 0 8px",
+        boxSizing: "border-box",
+    },
     outerDiv: {
         display: "flex",
         flexDirection: "column",
         gap: "12px",
-        width: "75%",
+        flex: "1 1 70%",
+        minWidth: 0,
         minHeight: "fit-content",
-        padding: "4px 0 8px",
         boxSizing: "border-box",
         whiteSpace: "normal",
     },
@@ -61,6 +76,45 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         gap: "8px",
+    },
+    sidebarDiv: {
+        flex: "0 0 280px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "16px",
+        alignSelf: "flex-start",
+    },
+    sidebarCard: {
+        display: "flex",
+        flexDirection: "column",
+        padding: "8px 16px 16px 16px",
+        gap: "0px",
+        backgroundColor: "var(--colorNeutralBackground1Hover)",
+    },
+    sidebarCardHeader: {
+        display: "flex",
+        alignItems: "center",
+        gap: "6px",
+        fontWeight: 600,
+        fontSize: "14px",
+        paddingBottom: "8px",
+    },
+    sidebarDivider: {
+        borderBottom: "1px solid var(--colorNeutralStroke2)",
+        marginBottom: "8px",
+    },
+    sidebarRow: {
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "space-between",
+        fontSize: "12px",
+        padding: "3px 0",
+    },
+    sidebarLabel: {
+        color: "var(--colorNeutralForeground4)",
+    },
+    sidebarValue: {
+        textAlign: "right",
     },
     spinnerDiv: {
         height: "100%",
@@ -275,196 +329,314 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
     };
 
     return (
-        <div className={classes.outerDiv}>
-            <div className={classes.formDiv}>
-                {dialog?.type === "createConnectionGroup" && (
-                    <ConnectionGroupDialog
-                        mode="modal"
-                        state={(dialog as CreateConnectionGroupDialogProps).props}
-                        saveConnectionGroup={context.createConnectionGroup}
-                        closeDialog={() => context.setConnectionGroupDialogState(false)}
-                    />
-                )}
-                {dialog?.type === "createResourceGroup" && (
-                    <CreateResourceGroupDrawer
-                        state={(dialog as CreateResourceGroupDrawerProps).props}
-                        onSubmit={(resourceGroupName, location) => {
-                            context.submitCreateResourceGroup({
-                                resourceGroupName,
-                                location,
-                            });
-                        }}
-                        onClose={() => context.setCreateResourceGroupDrawerState(false)}
-                    />
-                )}
-                {dialog?.type === "createServer" && (
-                    <CreateServerDrawer
-                        state={(dialog as CreateServerDrawerProps).props}
-                        onSubmit={(
-                            serverName,
-                            location,
-                            authenticationType,
-                            adminLogin,
-                            adminPassword,
-                            savePassword,
-                        ) => {
-                            context.submitCreateServer({
+        <div className={classes.pageContainer}>
+            <div className={classes.outerDiv}>
+                <div className={classes.formDiv}>
+                    {dialog?.type === "createConnectionGroup" && (
+                        <ConnectionGroupDialog
+                            mode="modal"
+                            state={(dialog as CreateConnectionGroupDialogProps).props}
+                            saveConnectionGroup={context.createConnectionGroup}
+                            closeDialog={() => context.setConnectionGroupDialogState(false)}
+                        />
+                    )}
+                    {dialog?.type === "createResourceGroup" && (
+                        <CreateResourceGroupDrawer
+                            state={(dialog as CreateResourceGroupDrawerProps).props}
+                            onSubmit={(resourceGroupName, location) => {
+                                context.submitCreateResourceGroup({
+                                    resourceGroupName,
+                                    location,
+                                });
+                            }}
+                            onClose={() => context.setCreateResourceGroupDrawerState(false)}
+                        />
+                    )}
+                    {dialog?.type === "createServer" && (
+                        <CreateServerDrawer
+                            state={(dialog as CreateServerDrawerProps).props}
+                            onSubmit={(
                                 serverName,
                                 location,
                                 authenticationType,
                                 adminLogin,
                                 adminPassword,
                                 savePassword,
-                            });
-                        }}
-                        onClose={() => context.setCreateServerDrawerState(false)}
-                    />
-                )}
-                {renderAzureField("accountId")}
-                {renderAzureField("tenantId")}
-                {renderAzureField("subscriptionId")}
-                {renderAzureField("resourceGroup", {
-                    label: locConstants.azureSqlDatabase.createNew,
-                    disabled: !isComponentReady("subscriptionId"),
-                    onClick: () => context.setCreateResourceGroupDrawerState(true),
-                })}
-                {renderAzureField("serverName", {
-                    label: locConstants.azureSqlDatabase.createNew,
-                    disabled: !isComponentReady("resourceGroup"),
-                    onClick: () => context.setCreateServerDrawerState(true),
-                })}
-                {renderFormField("databaseName")}
-                {formState.authenticationType !== AuthenticationType.AzureMFA &&
-                    !serverCreatedWithAuth &&
-                    !formState.savePassword && (
-                        <>
-                            <div className={classes.fieldContainer}>
-                                <div style={{ flex: 1, width: "100%" }}>
-                                    <FormField<
-                                        AzureSqlDatabaseFormState,
-                                        AzureSqlDatabaseState,
-                                        AzureSqlDatabaseFormItemSpec,
-                                        AzureSqlDatabaseContextProps
-                                    >
-                                        context={context}
-                                        formState={formState}
-                                        component={
-                                            formComponents[
-                                                "userName"
-                                            ] as AzureSqlDatabaseFormItemSpec
-                                        }
-                                        idx={0}
-                                        componentProps={{
-                                            readOnly: !!formState.userName,
-                                        }}
-                                    />
-                                </div>
-                            </div>
-                            {renderFormField("password")}
-                            {renderFormField("savePassword")}
-                        </>
-                    )}
-                <div className={classes.fieldContainer}>
-                    <div style={{ flex: 1, width: "100%" }}>
-                        <Label weight="semibold">
-                            {locConstants.azureSqlDatabase.freeLimitBehavior}
-                        </Label>
-                        <RadioGroup
-                            value={localAutoPauseDelay}
-                            onChange={(_e, data) => {
-                                setLocalAutoPauseDelay(data.value);
-                                context.formAction({
-                                    propertyName: "autoPauseDelay",
-                                    isAction: false,
-                                    value: Number(data.value),
+                            ) => {
+                                context.submitCreateServer({
+                                    serverName,
+                                    location,
+                                    authenticationType,
+                                    adminLogin,
+                                    adminPassword,
+                                    savePassword,
                                 });
-                            }}>
-                            <div>
-                                <Radio
-                                    value="60"
-                                    label={locConstants.azureSqlDatabase.autoPauseOption}
-                                />
-                                <Text
-                                    size={200}
-                                    style={{
-                                        display: "block",
-                                        color: "var(--vscode-descriptionForeground)",
-                                        marginLeft: "36px",
-                                        marginTop: "-4px",
-                                    }}>
-                                    {locConstants.azureSqlDatabase.autoPauseDescription}
-                                </Text>
-                            </div>
-                            <div>
-                                <Radio
-                                    value="-1"
-                                    label={locConstants.azureSqlDatabase.continueChargesOption}
-                                />
-                                <Text
-                                    size={200}
-                                    style={{
-                                        display: "block",
-                                        color: "var(--vscode-descriptionForeground)",
-                                        marginLeft: "36px",
-                                        marginTop: "-4px",
-                                    }}>
-                                    {locConstants.azureSqlDatabase.continueChargesDescription}
-                                </Text>
-                            </div>
-                        </RadioGroup>
-                    </div>
-                </div>
-                {renderFormField("profileName")}
-                <div className={classes.fieldContainer}>
-                    <div style={{ flex: 1, width: "100%" }}>
-                        <FormField<
-                            AzureSqlDatabaseFormState,
-                            AzureSqlDatabaseState,
-                            AzureSqlDatabaseFormItemSpec,
-                            AzureSqlDatabaseContextProps
-                        >
-                            context={context}
-                            formState={formState}
-                            component={formComponents["groupId"] as AzureSqlDatabaseFormItemSpec}
-                            idx={0}
-                            componentProps={{
-                                onSelect: (option: SearchableDropdownOptions) => {
-                                    if (option.value === CREATE_NEW_GROUP_ID) {
-                                        context.setConnectionGroupDialogState(true);
-                                    } else {
-                                        context.formAction({
-                                            propertyName: "groupId",
-                                            isAction: false,
-                                            value: option.value,
-                                        });
-                                    }
-                                },
-                                renderDecoration: (option: SearchableDropdownOptions) => {
-                                    return renderColorSwatch(option.color);
-                                },
                             }}
+                            onClose={() => context.setCreateServerDrawerState(false)}
                         />
+                    )}
+                    {renderAzureField("accountId")}
+                    {renderAzureField("tenantId")}
+                    {renderAzureField("subscriptionId")}
+                    {renderAzureField("resourceGroup", {
+                        label: locConstants.azureSqlDatabase.createNew,
+                        disabled: !isComponentReady("subscriptionId"),
+                        onClick: () => context.setCreateResourceGroupDrawerState(true),
+                    })}
+                    {renderAzureField("serverName", {
+                        label: locConstants.azureSqlDatabase.createNew,
+                        disabled: !isComponentReady("resourceGroup"),
+                        onClick: () => context.setCreateServerDrawerState(true),
+                    })}
+                    {renderFormField("databaseName")}
+                    {formState.authenticationType !== AuthenticationType.AzureMFA &&
+                        !(serverCreatedWithAuth && formState.savePassword) && (
+                            <>
+                                <div className={classes.fieldContainer}>
+                                    <div style={{ flex: 1, width: "100%" }}>
+                                        <FormField<
+                                            AzureSqlDatabaseFormState,
+                                            AzureSqlDatabaseState,
+                                            AzureSqlDatabaseFormItemSpec,
+                                            AzureSqlDatabaseContextProps
+                                        >
+                                            context={context}
+                                            formState={formState}
+                                            component={
+                                                formComponents[
+                                                    "userName"
+                                                ] as AzureSqlDatabaseFormItemSpec
+                                            }
+                                            idx={0}
+                                            componentProps={{
+                                                readOnly: !!formState.userName,
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                                {renderFormField("password")}
+                                {renderFormField("savePassword")}
+                            </>
+                        )}
+                    <div className={classes.fieldContainer}>
+                        <div style={{ flex: 1, width: "100%" }}>
+                            <Label weight="semibold">
+                                {locConstants.azureSqlDatabase.freeLimitBehavior}
+                            </Label>
+                            <RadioGroup
+                                value={localAutoPauseDelay}
+                                onChange={(_e, data) => {
+                                    setLocalAutoPauseDelay(data.value);
+                                    context.formAction({
+                                        propertyName: "autoPauseDelay",
+                                        isAction: false,
+                                        value: Number(data.value),
+                                    });
+                                }}>
+                                <div>
+                                    <Radio
+                                        value="60"
+                                        label={locConstants.azureSqlDatabase.autoPauseOption}
+                                    />
+                                    <Text
+                                        size={200}
+                                        style={{
+                                            display: "block",
+                                            color: "var(--vscode-descriptionForeground)",
+                                            marginLeft: "36px",
+                                            marginTop: "-4px",
+                                        }}>
+                                        {locConstants.azureSqlDatabase.autoPauseDescription}
+                                    </Text>
+                                </div>
+                                <div>
+                                    <Radio
+                                        value="-1"
+                                        label={locConstants.azureSqlDatabase.continueChargesOption}
+                                    />
+                                    <Text
+                                        size={200}
+                                        style={{
+                                            display: "block",
+                                            color: "var(--vscode-descriptionForeground)",
+                                            marginLeft: "36px",
+                                            marginTop: "-4px",
+                                        }}>
+                                        {locConstants.azureSqlDatabase.continueChargesDescription}
+                                    </Text>
+                                </div>
+                            </RadioGroup>
+                        </div>
                     </div>
+                    {localAutoPauseDelay === "-1" && (
+                        <Card
+                            style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                backgroundColor: "var(--colorPaletteYellowBackground1)",
+                                borderLeft: "3px solid var(--colorPaletteYellowForeground1)",
+                                padding: "10px 12px",
+                                gap: "6px",
+                                marginLeft: "2px",
+                            }}>
+                            <div
+                                style={{
+                                    display: "flex",
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    gap: "10px",
+                                }}>
+                                <WarningFilled
+                                    style={{
+                                        color: "var(--colorStatusWarningForeground1)",
+                                        fontSize: "20px",
+                                        flexShrink: 0,
+                                    }}
+                                />
+                                <span>{locConstants.azureSqlDatabase.continueChargesWarning}</span>
+                            </div>
+                            <Link href="" style={{ marginLeft: "30px" }}>
+                                {locConstants.common.learnMore}
+                            </Link>
+                        </Card>
+                    )}
+                    {renderFormField("profileName")}
+                    <div className={classes.fieldContainer}>
+                        <div style={{ flex: 1, width: "100%" }}>
+                            <FormField<
+                                AzureSqlDatabaseFormState,
+                                AzureSqlDatabaseState,
+                                AzureSqlDatabaseFormItemSpec,
+                                AzureSqlDatabaseContextProps
+                            >
+                                context={context}
+                                formState={formState}
+                                component={
+                                    formComponents["groupId"] as AzureSqlDatabaseFormItemSpec
+                                }
+                                idx={0}
+                                componentProps={{
+                                    onSelect: (option: SearchableDropdownOptions) => {
+                                        if (option.value === CREATE_NEW_GROUP_ID) {
+                                            context.setConnectionGroupDialogState(true);
+                                        } else {
+                                            context.formAction({
+                                                propertyName: "groupId",
+                                                isAction: false,
+                                                value: option.value,
+                                            });
+                                        }
+                                    },
+                                    renderDecoration: (option: SearchableDropdownOptions) => {
+                                        return renderColorSwatch(option.color);
+                                    },
+                                }}
+                            />
+                        </div>
+                    </div>
+                    <Button
+                        appearance="outline"
+                        style={{ alignSelf: "flex-start" }}
+                        onClick={() => setIsAdvancedDrawerOpen(true)}>
+                        {locConstants.azureSqlDatabase.advanced}
+                    </Button>
+                    <AdvancedOptionsDrawer
+                        open={isAdvancedDrawerOpen}
+                        onClose={() => setIsAdvancedDrawerOpen(false)}
+                        context={context}
+                        formState={formState}
+                        formComponents={formComponents}
+                        azureComponentStatuses={azureComponentStatuses}
+                        hostIp={hostIp ?? ""}
+                        tags={tags}
+                        onTagsChange={onTagsChange}
+                    />
                 </div>
-                <Button
-                    appearance="outline"
-                    style={{ alignSelf: "flex-start" }}
-                    onClick={() => setIsAdvancedDrawerOpen(true)}>
-                    {locConstants.azureSqlDatabase.advanced}
-                </Button>
-                <AdvancedOptionsDrawer
-                    open={isAdvancedDrawerOpen}
-                    onClose={() => setIsAdvancedDrawerOpen(false)}
-                    context={context}
-                    formState={formState}
-                    formComponents={formComponents}
-                    azureComponentStatuses={azureComponentStatuses}
-                    hostIp={hostIp ?? ""}
-                    tags={tags}
-                    onTagsChange={onTagsChange}
-                />
+                <div className={classes.bottomDiv} />
             </div>
-            <div className={classes.bottomDiv} />
+            <div className={classes.sidebarDiv}>
+                <Card className={classes.sidebarCard}>
+                    <span className={classes.sidebarCardHeader}>
+                        <GiftRegular fontSize={16} />
+                        {locConstants.azureSqlDatabase.freeOfferApplied}
+                    </span>
+                    <div className={classes.sidebarDivider} />
+                    <Text size={200} style={{ color: "var(--colorNeutralForeground4)" }}>
+                        {locConstants.azureSqlDatabase.monthlyLimits}
+                    </Text>
+                    <ul
+                        style={{
+                            margin: "4px 0 0",
+                            paddingLeft: "20px",
+                            fontSize: "12px",
+                            color: "var(--colorNeutralForeground4)",
+                        }}>
+                        <li>{locConstants.azureSqlDatabase.freeVCoreLimit}</li>
+                        <li>{locConstants.azureSqlDatabase.freeStorageLimit}</li>
+                        <li>{locConstants.azureSqlDatabase.freeDatabaseLimit}</li>
+                        <li>{locConstants.azureSqlDatabase.freeBackupType}</li>
+                    </ul>
+                    <div className={classes.sidebarDivider} style={{ marginTop: "8px" }} />
+                    <Text size={200} style={{ color: "var(--colorNeutralForeground4)" }}>
+                        {locConstants.azureSqlDatabase.freeSettingsFixed}
+                    </Text>
+                </Card>
+                <Card className={classes.sidebarCard}>
+                    <span className={classes.sidebarCardHeader}>
+                        <LockClosedRegular fontSize={16} />
+                        {locConstants.azureSqlDatabase.computeAndStorage}
+                    </span>
+                    <div className={classes.sidebarDivider} />
+                    <div className={classes.sidebarRow}>
+                        <span className={classes.sidebarLabel}>
+                            {locConstants.azureSqlDatabase.serviceTier}
+                        </span>
+                        <span className={classes.sidebarValue}>
+                            {locConstants.azureSqlDatabase.generalPurpose}
+                        </span>
+                    </div>
+                    <div className={classes.sidebarRow}>
+                        <span className={classes.sidebarLabel}>
+                            {locConstants.azureSqlDatabase.compute}
+                        </span>
+                        <span className={classes.sidebarValue}>
+                            {locConstants.azureSqlDatabase.serverless}
+                        </span>
+                    </div>
+                    <div className={classes.sidebarRow}>
+                        <span className={classes.sidebarLabel}>
+                            {locConstants.azureSqlDatabase.vCores}
+                        </span>
+                        <span className={classes.sidebarValue}>
+                            {locConstants.azureSqlDatabase.defaultVCores}
+                        </span>
+                    </div>
+                    <div className={classes.sidebarRow}>
+                        <span className={classes.sidebarLabel}>
+                            {locConstants.azureSqlDatabase.storage}
+                        </span>
+                        <span className={classes.sidebarValue}>
+                            {locConstants.azureSqlDatabase.defaultStorage}
+                        </span>
+                    </div>
+                    <div className={classes.sidebarRow}>
+                        <span className={classes.sidebarLabel}>
+                            {locConstants.azureSqlDatabase.backup}
+                        </span>
+                        <span className={classes.sidebarValue}>
+                            {locConstants.azureSqlDatabase.defaultBackup}
+                        </span>
+                    </div>
+                    <div className={classes.sidebarRow}>
+                        <span className={classes.sidebarLabel}>
+                            {locConstants.azureSqlDatabase.autoPause}
+                        </span>
+                        <span className={classes.sidebarValue}>
+                            {locConstants.azureSqlDatabase.defaultAutoPause}
+                        </span>
+                    </div>
+                </Card>
+            </div>
         </div>
     );
 };

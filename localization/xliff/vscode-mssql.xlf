@@ -3085,6 +3085,9 @@
       <source xml:lang="en">Finished query execution for document &quot;{0}&quot;</source>
       <note>{0} is the document name</note>
     </trans-unit>
+    <trans-unit id="++CODE++f12efc4df249bedf344f5c5e1c0200fa7227e5e01e0844090e4ed9f805f35cb0">
+      <source xml:lang="en">Firewall</source>
+    </trans-unit>
     <trans-unit id="++CODE++8a9ba2938bc6bfe8f093b2168aeb656e1be8e1792c61db93cb074a6e32300b1b">
       <source xml:lang="en">Firewall rule name</source>
     </trans-unit>
@@ -5146,6 +5149,9 @@
     <trans-unit id="++CODE++8244520578a62efeba5421b2c34605b58d39c05080245ba8a33abc9efc035f0e">
       <source xml:lang="en">Refresh dataset</source>
     </trans-unit>
+    <trans-unit id="++CODE++d3a008ef1335692d9d045175ba9ea1dcd39ae48da9e2043a9baabad6c3818c28">
+      <source xml:lang="en">Region</source>
+    </trans-unit>
     <trans-unit id="++CODE++ab604a360777735fe2993aec7d4ffae415f1515b0a4c989269603fd3d5c07b61">
       <source xml:lang="en">Reject</source>
     </trans-unit>
@@ -7087,6 +7093,10 @@
     </trans-unit>
     <trans-unit id="++CODE++a687a5a3cf1800c09d10d73ae6c128de7b617482ef262db645470c6f4ae9d54d">
       <source xml:lang="en">Your client IP address does not have access to the server. Add a Microsoft Entra account and create a new firewall rule to enable access.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++72d3d1e6e874aa94ab02c4aac4ea2399ce299ddcad4b38a795754c92e158ac4d">
+      <source xml:lang="en">Your current IP {0} will be added automatically.</source>
+      <note>{0} is the current IP address</note>
     </trans-unit>
     <trans-unit id="++CODE++e22a8e55997a44b12ff4f976b12df9cf1fd9b41a7521198b72b15a3cb9952ed0">
       <source xml:lang="en">Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).</source>
