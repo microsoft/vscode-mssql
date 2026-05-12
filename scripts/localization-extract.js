@@ -20,17 +20,17 @@ const EXTENSION_CONFIG = {
     "data-workspace": "data-workspace",
 };
 
-const EXTENSION_INPUTS = {
-    mssql: ["extensions/mssql/src/", "extensions/mssql/package.nls.json"],
-    "sql-database-projects": [
-        "extensions/sql-database-projects/src/",
-        "extensions/sql-database-projects/package.nls.json",
-    ],
-    "data-workspace": [
-        "extensions/data-workspace/src/",
-        "extensions/data-workspace/package.nls.json",
-    ],
-};
+const PRECOMMIT_FULL_EXTRACTION_INPUTS = [
+    "package.json",
+    "package-lock.json",
+    "scripts/localization-extract.js",
+    "scripts/file-utils.js",
+    "scripts/terminal-logger.js",
+];
+
+function getExtensionInputs(extensionDir) {
+    return [`extensions/${extensionDir}/src/`, `extensions/${extensionDir}/package.nls.json`];
+}
 
 function getStagedFiles() {
     const output = execFileSync(
@@ -42,7 +42,7 @@ function getStagedFiles() {
     return output
         .toString("utf8")
         .split("\0")
-        .map((file) => file.replace(/\\/g, "/").trim())
+        .map((file) => file.replace(/\\/g, "/"))
         .filter(Boolean);
 }
 
@@ -57,11 +57,15 @@ function matchesInput(file, input) {
 function getAffectedExtensionsForPrecommit() {
     const stagedFiles = getStagedFiles();
 
-    return Object.entries(EXTENSION_INPUTS)
-        .filter(([, inputs]) =>
-            stagedFiles.some((file) => inputs.some((input) => matchesInput(file, input))),
-        )
-        .map(([extension]) => extension);
+    if (stagedFiles.some((file) => PRECOMMIT_FULL_EXTRACTION_INPUTS.includes(file))) {
+        return Object.keys(EXTENSION_CONFIG);
+    }
+
+    return Object.keys(EXTENSION_CONFIG).filter((extensionDir) =>
+        stagedFiles.some((file) =>
+            getExtensionInputs(extensionDir).some((input) => matchesInput(file, input)),
+        ),
+    );
 }
 
 async function getL10nJsonFromFileContents(fileContents) {
@@ -132,41 +136,24 @@ function getStagedSourceFilesForExtension(extensionDir, stagedFiles) {
     );
 }
 
-async function getL10nJsonFromStagedSourceFiles(extensionDir, stagedFiles) {
-    logger.step("Scanning staged source files for localization strings...");
-
-    const sourceFiles = getStagedSourceFilesForExtension(extensionDir, stagedFiles);
-    logger.info(`Found ${sourceFiles.length} staged TypeScript files to process`);
-
-    const fileContents = [];
-    for (const file of sourceFiles) {
-        try {
-            const content = getStagedFileContent(file);
-            if (content) {
-                fileContents.push({
-                    contents: content,
-                    extension: file.endsWith(".tsx") ? ".tsx" : ".ts",
-                });
-            }
-        } catch (error) {
-            logger.warning(`Failed to read staged file ${file}: ${error.message}`);
-        }
-    }
-
-    logger.success(`Successfully processed ${fileContents.length} staged source files`);
-    if (!fileContents.length) {
-        return {};
-    }
-
-    return await getL10nJsonFromFileContents(fileContents);
-}
-
 async function readJsonFile(filePath, stagedFiles = []) {
     const normalizedPath = filePath.replace(/\\/g, "/");
     const content = stagedFiles.includes(normalizedPath)
         ? getStagedFileContent(normalizedPath)
         : await fs.readFile(filePath, "utf8");
     return JSON.parse(content);
+}
+
+async function readJsonFileOrEmptyIfMissing(filePath, stagedFiles = []) {
+    try {
+        return await readJsonFile(filePath, stagedFiles);
+    } catch (error) {
+        if (error.code === "ENOENT") {
+            return {};
+        }
+
+        throw error;
+    }
 }
 
 async function writeLocalizationOutputs(extensionDir, xliffName, packageJSON, bundleJSON) {
@@ -272,8 +259,11 @@ async function extractLocalizationStrings() {
 async function extractLocalizationForPrecommit() {
     const stagedFiles = getStagedFiles();
     const affectedExtensions = getAffectedExtensionsForPrecommit();
+    const forceFullExtraction = stagedFiles.some((file) =>
+        PRECOMMIT_FULL_EXTRACTION_INPUTS.includes(file),
+    );
     if (!affectedExtensions.length) {
-        console.log("No staged localization inputs; skipping localization extraction.");
+        logger.info("No staged localization inputs; skipping localization extraction.");
         return;
     }
 
@@ -282,11 +272,17 @@ async function extractLocalizationForPrecommit() {
             extensionDir,
             EXTENSION_CONFIG[extensionDir],
             stagedFiles,
+            forceFullExtraction,
         );
     }
 }
 
-async function extractLocalizationForExtensionPrecommit(extensionDir, xliffName, stagedFiles) {
+async function extractLocalizationForExtensionPrecommit(
+    extensionDir,
+    xliffName,
+    stagedFiles,
+    forceFullExtraction = false,
+) {
     logger.header(`Processing staged localization inputs for Extension: ${extensionDir}`);
 
     const extensionPath = path.resolve("extensions", extensionDir);
@@ -294,16 +290,21 @@ async function extractLocalizationForExtensionPrecommit(extensionDir, xliffName,
     const bundlePath = `extensions/${extensionDir}/l10n/bundle.l10n.json`;
 
     try {
-        const existingBundleJSON = await readJsonFile(bundlePath, stagedFiles).catch(() => ({}));
-        const stagedBundleJSON = await getL10nJsonFromStagedSourceFiles(extensionDir, stagedFiles);
-        const bundleJSON = { ...existingBundleJSON, ...stagedBundleJSON };
+        const stagedSourceFiles = getStagedSourceFilesForExtension(extensionDir, stagedFiles);
+        const bundleJSON =
+            forceFullExtraction || stagedSourceFiles.length
+                ? await getL10nJson(extensionPath)
+                : await readJsonFileOrEmptyIfMissing(bundlePath, stagedFiles);
 
         logger.step("Loading package localization data...");
-        const packageJSON = await readJsonFile(packageNlsPath, stagedFiles).catch((error) => {
+        let packageJSON;
+        try {
+            packageJSON = await readJsonFile(packageNlsPath, stagedFiles);
+            logger.success("Loaded package.nls.json");
+        } catch (error) {
             logger.warning(`Could not load package.nls.json: ${error.message}`);
-            return {};
-        });
-        logger.success("Loaded package.nls.json");
+            packageJSON = {};
+        }
 
         const generatedFiles = await writeLocalizationOutputs(
             extensionDir,
