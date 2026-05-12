@@ -51,7 +51,7 @@
                 "command": "notebook.cell.execute",
                 "key": "f5",
                 "mac": "f5",
-                "when": "notebookCellListFocused && notebookKernelId == 'ms-mssql.sql-notebook-controller' && notebookMissingKernelExtension && !notebookCellExecuting && notebookCellType == 'code' || notebookCellListFocused && notebookKernelId == 'ms-mssql.sql-notebook-controller' && !notebookCellExecuting && notebookCellType == 'code' && notebookKernelCount > 0 || notebookCellListFocused && notebookKernelId == 'ms-mssql.sql-notebook-controller' && !notebookCellExecuting && notebookCellType == 'code' && notebookKernelSourceCount > 0"
+                "when": "notebookCellListFocused && notebookMissingKernelExtension && !notebookCellExecuting && notebookCellType == 'code' || notebookCellListFocused && !notebookCellExecuting && notebookCellType == 'code' && notebookKernelCount > 0 || notebookCellListFocused && !notebookCellExecuting && notebookCellType == 'code' && notebookKernelSourceCount > 0"
             },
             {
                 "command": "mssql.runCurrentStatement",
