@@ -691,6 +691,9 @@
     <trans-unit id="++CODE++221cedb44469e4b0b105f777c771d70c7097c40a4e3e914cec4b6ba266db1970">
       <source xml:lang="en">Browse Azure</source>
     </trans-unit>
+    <trans-unit id="++CODE++1fd919fd5e24a6e11c02245971437276dd6793359fce501d4dc634b83a54982a">
+      <source xml:lang="en">Browse Azure SQL Database tutorials and docs</source>
+    </trans-unit>
     <trans-unit id="++CODE++d2945638af819132af21f6c456f562493e7bf76e6ce1bb782eeef16cbfbeb85b">
       <source xml:lang="en">Browse By</source>
     </trans-unit>
@@ -1280,6 +1283,9 @@
     <trans-unit id="++CODE++6f00f15723c8b6718a4b05d9bb29188131a2a38b58f11c451e6522a7762c5ad5">
       <source xml:lang="en">Connect using profile {0}?</source>
       <note>{0} is the profile ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++f2d0178ddb6ab66f3ba6afff663a52bf766e08a8f4e7996d9890c75862ac6d29">
+      <source xml:lang="en">Connect with SQL tools and run your first query</source>
     </trans-unit>
     <trans-unit id="++CODE++bf2b06cf5edeeb66a098a3a052ced6d9f0c647f587aa00f072c6de26abcacfa0">
       <source xml:lang="en">Connect with the current settings and save the connection profile</source>
@@ -4143,6 +4149,9 @@
     <trans-unit id="++CODE++999447c73dea8a58e7845ced946ec9030d22db88790df0320f35bf6bac6c588f">
       <source xml:lang="en">Modify Table</source>
     </trans-unit>
+    <trans-unit id="++CODE++20d04708439a97fe2875163d4e29918be227f86d5fa82847438232e6e626b5f5">
+      <source xml:lang="en">Monitor usage and manage your free tier limits</source>
+    </trans-unit>
     <trans-unit id="++CODE++7b2f513a67abc570d3348717ad85ae669570734afe2bf57015c2cc9b0dce3764">
       <source xml:lang="en">Monthly limits</source>
     </trans-unit>
@@ -5739,6 +5748,9 @@
     <trans-unit id="++CODE++78c9d9f6ace0e9b850ab68646c51dc2c990edf221c872d1c6ec389dd797c0f21">
       <source xml:lang="en">Searching...</source>
     </trans-unit>
+    <trans-unit id="++CODE++c4038f47497f61adc776523835e82f3bab98d497b1978fced8d46e61e6f435a4">
+      <source xml:lang="en">Seed sample data or import an existing schema</source>
+    </trans-unit>
     <trans-unit id="++CODE++2a78025de6aae5e7ff88e5a951bb3a78ddd67388913529cf9e2dd9653e62b02d">
       <source xml:lang="en">Select</source>
     </trans-unit>
@@ -7068,6 +7080,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bf3cd82434efadb9ea501ff44c7d52b0dd98b3d11c0097ba88a10b7fd14d9b54">
       <source xml:lang="en">What can we do to improve?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9d42472185c6fe080e6ab7a93b676c943ab7e5b29b29b760346898bf579c031d">
+      <source xml:lang="en">What&apos;s next?</source>
     </trans-unit>
     <trans-unit id="++CODE++4aa3356437232c6d45b29802f09eee6e201660a67cf78e145f39ad1fada6feab">
       <source xml:lang="en">Width cannot be 0 or negative</source>

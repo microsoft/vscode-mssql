@@ -50,6 +50,9 @@ const useStyles = makeStyles({
         width: "100%",
         minWidth: 0,
     },
+    descriptionDiv: {
+        color: "var(--colorNeutralForeground4)",
+    },
     titleDiv: {
         fontWeight: "bold",
     },
@@ -78,7 +81,7 @@ const useStyles = makeStyles({
     docsTitle: {
         display: "block",
         marginBottom: "8px",
-        fontSize: "12px",
+        fontSize: "13px",
         fontWeight: 600,
         lineHeight: "16px",
     },
@@ -92,8 +95,8 @@ const useStyles = makeStyles({
         gap: "8px",
         minHeight: "24px",
         padding: "2px 0",
-        fontSize: "12px",
-        lineHeight: "16px",
+        fontSize: "13px",
+        lineHeight: "18px",
         color: "var(--vscode-textLink-foreground)",
         textDecorationLine: "none",
     },
@@ -132,7 +135,9 @@ export const AzureSqlDatabaseInfoPage: React.FC = () => {
                         <div className={classes.titleDiv}>
                             {locConstants.azureSqlDatabase.oltpAzureSql}
                         </div>
-                        <div>{locConstants.azureSqlDatabase.otlpAzureSqlDescription}</div>
+                        <div className={classes.descriptionDiv}>
+                            {locConstants.azureSqlDatabase.otlpAzureSqlDescription}
+                        </div>
                     </div>
                 </div>
                 <div className={classes.itemDiv}>
@@ -147,7 +152,9 @@ export const AzureSqlDatabaseInfoPage: React.FC = () => {
                         <div className={classes.titleDiv}>
                             {locConstants.azureSqlDatabase.freeComputeAndScaling}
                         </div>
-                        <div>{locConstants.azureSqlDatabase.freeComputeAndScalingDescription}</div>
+                        <div className={classes.descriptionDiv}>
+                            {locConstants.azureSqlDatabase.freeComputeAndScalingDescription}
+                        </div>
                     </div>
                 </div>
                 <div className={classes.itemDiv}>
@@ -162,7 +169,9 @@ export const AzureSqlDatabaseInfoPage: React.FC = () => {
                         <div className={classes.titleDiv}>
                             {locConstants.azureSqlDatabase.integratedAndSecure}
                         </div>
-                        <div>{locConstants.azureSqlDatabase.integratedAndSecureDescription}</div>
+                        <div className={classes.descriptionDiv}>
+                            {locConstants.azureSqlDatabase.integratedAndSecureDescription}
+                        </div>
                     </div>
                 </div>
                 <div className={classes.docsCard}>

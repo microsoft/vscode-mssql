@@ -1224,6 +1224,11 @@
         "message": "Your current IP {0} will be added automatically.",
         "comment": ["{0} is the current IP address"]
     },
+    "What's next?": "What's next?",
+    "Connect with SQL tools and run your first query": "Connect with SQL tools and run your first query",
+    "Seed sample data or import an existing schema": "Seed sample data or import an existing schema",
+    "Monitor usage and manage your free tier limits": "Monitor usage and manage your free tier limits",
+    "Browse Azure SQL Database tutorials and docs": "Browse Azure SQL Database tutorials and docs",
     "Change Password": "Change Password",
     "Password must be changed to continue logging into '{0}'/{0} is the name of the server": {
         "message": "Password must be changed to continue logging into '{0}'",

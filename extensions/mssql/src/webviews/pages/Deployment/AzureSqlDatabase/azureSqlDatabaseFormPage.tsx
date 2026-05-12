@@ -16,6 +16,7 @@ import {
     Text,
 } from "@fluentui/react-components";
 import {
+    ArrowRight12Regular,
     ErrorCircleRegular,
     GiftRegular,
     LockClosedRegular,
@@ -138,6 +139,12 @@ const useStyles = makeStyles({
     },
     bottomDiv: {
         paddingBottom: "8px",
+    },
+    linkDiv: {
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        marginLeft: "30px",
     },
 });
 
@@ -495,8 +502,9 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                                 />
                                 <span>{locConstants.azureSqlDatabase.continueChargesWarning}</span>
                             </div>
-                            <Link href="" style={{ marginLeft: "30px" }}>
+                            <Link className={classes.linkDiv} href="">
                                 {locConstants.common.learnMore}
+                                <ArrowRight12Regular style={{ marginTop: "2px" }} />
                             </Link>
                         </Card>
                     )}
