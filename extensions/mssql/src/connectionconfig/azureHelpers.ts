@@ -364,6 +364,11 @@ export class VsCodeAzureHelper {
             authenticationType: string;
             adminLogin?: string;
             adminPassword?: string;
+            entraAdmin?: {
+                login: string;
+                sid: string;
+                tenantId: string;
+            };
         },
     ): Promise<Server> {
         const sql = new SqlManagementClient(subscription.credential, subscription.subscriptionId, {
@@ -372,21 +377,18 @@ export class VsCodeAzureHelper {
 
         const serverParams: Server = { location };
 
-        if (
-            authConfig?.authenticationType === "SqlLogin" ||
-            authConfig?.authenticationType === "AzureMFAAndUser"
-        ) {
+        if (authConfig?.authenticationType !== "AzureMFA") {
             serverParams.administratorLogin = authConfig.adminLogin;
             serverParams.administratorLoginPassword = authConfig.adminPassword;
         }
 
-        if (
-            authConfig?.authenticationType === "AzureMFA" ||
-            authConfig?.authenticationType === "AzureMFAAndUser"
-        ) {
+        if (authConfig?.authenticationType != "SqlLogin") {
             serverParams.administrators = {
                 administratorType: "ActiveDirectory",
                 azureADOnlyAuthentication: authConfig.authenticationType === "AzureMFA",
+                login: authConfig.entraAdmin?.login,
+                sid: authConfig.entraAdmin?.sid,
+                tenantId: authConfig.entraAdmin?.tenantId,
             };
         }
 
@@ -395,6 +397,9 @@ export class VsCodeAzureHelper {
             serverParams.administrators = {
                 administratorType: "ActiveDirectory",
                 azureADOnlyAuthentication: true,
+                login: authConfig?.entraAdmin?.login,
+                sid: authConfig?.entraAdmin?.sid,
+                tenantId: authConfig?.entraAdmin?.tenantId,
             };
         }
 

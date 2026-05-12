@@ -536,12 +536,28 @@ export function registerAzureSqlDatabaseReducers(
                 throw new Error(AzureSqlDatabase.noSubscriptionsFound);
             }
 
+            // Resolve the signed-in user's identity for Entra admin configuration
+            const account = cachedAccounts.find((a) => a.id === azureSqlState.formState.accountId);
+            const accountOid = account?.id?.split(".")[0];
+
             await VsCodeAzureHelper.createSqlServer(
                 subscription,
                 azureSqlState.formState.resourceGroup,
                 serverName,
                 location,
-                { authenticationType, adminLogin, adminPassword },
+                {
+                    authenticationType,
+                    adminLogin,
+                    adminPassword,
+                    entraAdmin:
+                        account && accountOid
+                            ? {
+                                  login: account.label,
+                                  sid: accountOid,
+                                  tenantId: azureSqlState.formState.tenantId,
+                              }
+                            : undefined,
+                },
             );
 
             // Set the new server as selected and reload
@@ -933,7 +949,12 @@ async function getAzureActionButton(
         label: ConnectionDialog.addAccount,
         id: "azureSignIn",
         callback: async () => {
-            await VsCodeAzureHelper.signIn(true);
+            try {
+                await VsCodeAzureHelper.signIn(true);
+            } catch {
+                cachedLogger?.error("Azure sign-in was canceled or failed.");
+                return;
+            }
             const currentState = deploymentController.state
                 .deploymentTypeState as asd.AzureSqlDatabaseState;
             const accountsComponent = currentState.formComponents.accountId;
