@@ -33,10 +33,20 @@ import { ErrorResponseBody } from "@azure/arm-subscriptions";
 import { HttpClient } from "../../http/httpClient";
 import { getErrorMessage } from "../../utils/utils";
 
+export interface IMsalLoginOptions {
+    prompt?: string;
+    loginHint?: string;
+    account?: AccountInfo;
+}
+
 export type GetTenantsResponseData = {
     value: ITenantResponse[];
 };
 export type ErrorResponseBodyWithError = Required<ErrorResponseBody>;
+
+export function getTokenExpirationInSeconds(result: AuthenticationResult): number | undefined {
+    return result.expiresOn ? Math.floor(result.expiresOn.getTime() / 1000) : undefined;
+}
 
 export abstract class MsalAzureAuth {
     protected readonly loginEndpointUrl: string;
@@ -74,7 +84,9 @@ export abstract class MsalAzureAuth {
                     LocalizedConstants.azureNoMicrosoftResource(this.providerSettings.displayName),
                 );
             }
-            const result = await this.login(Constants.organizationTenant);
+            const result = await this.login(Constants.organizationTenant, {
+                prompt: Constants.selectAccount,
+            });
             loginComplete = result.authComplete;
 
             if (!result?.response || !result.response?.account) {
@@ -131,7 +143,10 @@ export abstract class MsalAzureAuth {
         return account;
     }
 
-    protected abstract login(tenant: ITenant): Promise<{
+    protected abstract login(
+        tenant: ITenant,
+        options?: IMsalLoginOptions,
+    ): Promise<{
         response: AuthenticationResult | null;
         authComplete: IDeferred<void, Error>;
     }>;
@@ -148,25 +163,6 @@ export abstract class MsalAzureAuth {
         tenantId: string,
         settings: IAADResource,
     ): Promise<AuthenticationResult | null> {
-        let accountInfo: AccountInfo | null;
-        try {
-            accountInfo = await this.getAccountFromMsalCache(account.key.id);
-        } catch (ex) {
-            this.logger.error(
-                `Error: Could not fetch account from MSAL cache, re-authentication needed: ${getErrorMessage(ex)}`,
-            );
-            // build refresh token request
-            const tenant: ITenant = {
-                id: tenantId,
-                displayName: "",
-            };
-            return this.handleInteractionRequired(tenant, settings, false);
-        }
-        // Resource endpoint must end with '/' to form a valid scope for MSAL token request.
-        const endpoint = settings.endpoint.endsWith("/")
-            ? settings.endpoint
-            : settings.endpoint + "/";
-
         if (!account) {
             this.logger.error("Error: Account not received.");
             return null;
@@ -175,6 +171,26 @@ export abstract class MsalAzureAuth {
         if (!tenantId) {
             tenantId = account.properties.owningTenant.id;
         }
+
+        let accountInfo: AccountInfo | null;
+        try {
+            accountInfo = await this.getAccountFromMsalCache(account.key.id, tenantId);
+        } catch (ex) {
+            this.logger.error(
+                `Error: Could not fetch account from MSAL cache: ${getErrorMessage(ex)}`,
+            );
+            return null;
+        }
+
+        if (!accountInfo) {
+            this.logger.error("Error: Could not find account from MSAL Cache.");
+            return null;
+        }
+
+        // Resource endpoint must end with '/' to form a valid scope for MSAL token request.
+        const endpoint = settings.endpoint.endsWith("/")
+            ? settings.endpoint
+            : settings.endpoint + "/";
 
         let newScope: string[];
         if (settings.id === this.providerSettings.settings.windowsManagementResource.id) {
@@ -186,33 +202,32 @@ export abstract class MsalAzureAuth {
         let authority = this.loginEndpointUrl + tenantId;
         this.logger.info(`Authority URL set to: ${authority}`);
 
-        // construct request
-        // forceRefresh needs to be set true here in order to fetch the correct token, due to this issue
-        // https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/3687
         const tokenRequest: SilentFlowRequest = {
-            account: accountInfo!,
+            account: accountInfo,
             authority: authority,
             scopes: newScope,
-            forceRefresh: true,
         };
+
+        if (tenantId && accountInfo.tenantId !== tenantId) {
+            this.logger.verbose(
+                `No MSAL account profile found for tenant ${tenantId}; using refresh token fallback from tenant ${accountInfo.tenantId}.`,
+            );
+            tokenRequest.forceRefresh = true;
+        }
+
         try {
             return await this.clientApplication.acquireTokenSilent(tokenRequest);
         } catch (e) {
             this.logger.error("Failed to acquireTokenSilent", e);
             if (e instanceof AuthError && this.accountNeedsRefresh(e)) {
-                // build refresh token request
-                const tenant: ITenant = {
-                    id: tenantId,
-                    displayName: "",
-                };
-                return this.handleInteractionRequired(tenant, settings);
+                this.logger.verbose(
+                    "Silent token acquisition requires user interaction; not starting interactive authentication from getToken.",
+                );
             } else if (e.name === "ClientAuthError") {
                 this.logger.verbose("[ClientAuthError] Failed to silently acquire token");
             }
 
-            this.logger.error(
-                `Failed to silently acquire token, not InteractionRequiredAuthError: ${e.message}`,
-            );
+            this.logger.error(`Failed to silently acquire token: ${getErrorMessage(e)}`);
             throw e;
         }
     }
@@ -254,7 +269,7 @@ export abstract class MsalAzureAuth {
                     key: tokenResult.account!.homeAccountId,
                     token: tokenResult.accessToken,
                     tokenType: tokenResult.tokenType,
-                    expiresOn: tokenResult.account!.idTokenClaims!.exp,
+                    expiresOn: getTokenExpirationInSeconds(tokenResult),
                 };
 
                 return await this.hydrateAccount(token, tokenClaims);
@@ -275,20 +290,34 @@ export abstract class MsalAzureAuth {
         void tokenCache.getAllAccounts();
     }
 
-    public async getAccountFromMsalCache(accountId: string): Promise<AccountInfo | null> {
+    public async getAccountFromMsalCache(
+        accountId: string,
+        tenantId?: string,
+    ): Promise<AccountInfo | null> {
         const cache = this.clientApplication.getTokenCache();
         if (!cache) {
             this.logger.error("Error: Could not fetch token cache.");
             return null;
         }
 
-        let account: AccountInfo | null;
-        // if the accountId is a home ID, it will include a '.' character
-        if (accountId.includes(".")) {
-            account = await cache.getAccountByHomeId(accountId);
-        } else {
-            account = await cache.getAccountByLocalId(accountId);
+        const allAccounts = await cache.getAllAccounts();
+        const matchingAccounts = allAccounts.filter((accountObj) =>
+            accountId.includes(".")
+                ? accountObj.homeAccountId === accountId
+                : accountObj.localAccountId === accountId,
+        );
+
+        if (tenantId) {
+            const tenantAccount = matchingAccounts.find(
+                (accountObj) => accountObj.tenantId === tenantId,
+            );
+            if (tenantAccount) {
+                return tenantAccount;
+            }
         }
+
+        const account = matchingAccounts[0] ?? null;
+
         if (!account) {
             this.logger.error("Error: Could not find account from MSAL Cache.");
             return null;

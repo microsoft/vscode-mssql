@@ -27,6 +27,7 @@ import {
     CloudAuthApplication,
     MsalAzureController,
 } from "../../src/azure/msal/msalAzureController";
+import { IMsalLoginOptions, MsalAzureAuth } from "../../src/azure/msal/msalAzureAuth";
 import * as providerSettings from "../../src/azure/providerSettings";
 import * as msalNode from "@azure/msal-node";
 import * as azureUtils from "../../src/azure/utils";
@@ -35,6 +36,102 @@ import CodeAdapter from "../../src/prompts/adapter";
 import { createStubLogger } from "./utils";
 
 chai.use(sinonChai);
+
+const homeAccountId = "uid.home-tenant";
+const localAccountId = "local-id";
+const homeTenantId = "home-tenant";
+const targetTenantId = "target-tenant";
+
+function createExtensionAccount(tenantId: string = homeTenantId): IAccount {
+    return {
+        key: {
+            id: homeAccountId,
+            providerId: providerSettings.azureCloudProviderId,
+            accountVersion: "1.0",
+        },
+        displayInfo: {
+            displayName: "Test User",
+            accountType: AccountType.WorkSchool,
+            userId: "test-user@example.com",
+            name: "Test User",
+            email: "test-user@example.com",
+        },
+        properties: {
+            azureAuthType: AzureAuthType.AuthCodeGrant,
+            owningTenant: { id: tenantId, displayName: "Test Tenant" },
+            tenants: [],
+            providerSettings: providerSettings.publicAzureProviderSettings,
+            isMsAccount: false,
+        },
+        isStale: false,
+    };
+}
+
+function createMsalAccount(tenantId: string): msalNode.AccountInfo {
+    return {
+        homeAccountId,
+        localAccountId,
+        tenantId,
+        environment: "login.microsoftonline.com",
+        username: "test-user@example.com",
+        name: "Test User",
+        idTokenClaims: {
+            tid: tenantId,
+            exp: 111,
+        },
+    };
+}
+
+function createAuthenticationResult(
+    account: msalNode.AccountInfo,
+    expiresOn: Date,
+    idTokenExpiry: number = 111,
+): msalNode.AuthenticationResult {
+    return {
+        authority: `https://login.microsoftonline.com/${account.tenantId}`,
+        uniqueId: "uid",
+        tenantId: account.tenantId,
+        scopes: ["https://database.windows.net/.default"],
+        account: {
+            ...account,
+            idTokenClaims: {
+                ...account.idTokenClaims,
+                exp: idTokenExpiry,
+            },
+        },
+        idToken: "id-token",
+        idTokenClaims: {
+            tid: account.tenantId,
+            exp: idTokenExpiry,
+        },
+        accessToken: "header.payload.signature",
+        fromCache: false,
+        expiresOn,
+        tokenType: "Bearer",
+        correlationId: "correlation-id",
+    };
+}
+
+class TestMsalAzureAuth extends MsalAzureAuth {
+    public loginCalls: Array<{ tenant: unknown; options?: IMsalLoginOptions }> = [];
+
+    protected async login(
+        tenant: any,
+        options?: IMsalLoginOptions,
+    ): Promise<{
+        response: msalNode.AuthenticationResult | null;
+        authComplete: { resolve: () => void; reject: (error: Error) => void };
+    }> {
+        this.loginCalls.push({ tenant, options });
+        return {
+            response: null,
+            authComplete: {
+                resolve: () => undefined,
+                reject: () => undefined,
+            },
+        };
+    }
+}
 
 suite("CloudAuthApplication Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -168,6 +265,130 @@ suite("CloudAuthApplication Tests", () => {
             cloudAuthApp["_authMappings"].size,
             "Should have two auth instances after both AuthcodeGrant and DeviceCode were fetched",
         ).to.equal(2);
+    });
+});
+
+suite("MsalAzureAuth Token Acquisition Tests", () => {
+    let sandbox: sinon.SinonSandbox;
+    let mockContext: vscode.ExtensionContext;
+    let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let mockLogger: sinon.SinonStubbedInstance<Logger>;
+
+    function createAuth(accounts: msalNode.AccountInfo[]) {
+        const tokenCache = {
+            getAllAccounts: sandbox.stub().resolves(accounts),
+            removeAccount: sandbox.stub().resolves(),
+        };
+        const acquireTokenSilent = sandbox.stub();
+        const clientApplication = {
+            acquireTokenSilent,
+            getTokenCache: sandbox.stub().returns(tokenCache),
+        } as unknown as msalNode.PublicClientApplication;
+
+        const auth = new TestMsalAzureAuth(
+            providerSettings.publicAzureProviderSettings,
+            mockContext,
+            clientApplication,
+            AzureAuthType.AuthCodeGrant,
+            mockVscodeWrapper,
+            mockLogger,
+        );
+
+        return { acquireTokenSilent, auth, tokenCache };
+    }
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
+        mockContext = {} as vscode.ExtensionContext;
+        mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+        mockLogger = createStubLogger(sandbox);
+    });
+
+    teardown(() => {
+        sandbox.restore();
+    });
+
+    test("getToken uses the tenant-specific account without forcing refresh", async () => {
+        const targetAccount = createMsalAccount(targetTenantId);
+        const { acquireTokenSilent, auth } = createAuth([
+            createMsalAccount(homeTenantId),
+            targetAccount,
+        ]);
+        acquireTokenSilent.resolves(
+            createAuthenticationResult(targetAccount, new Date(Date.now() + 3600_000)),
+        );
+
+        await auth.getToken(
+            createExtensionAccount(),
+            targetTenantId,
+            providerSettings.publicAzureProviderSettings.settings.sqlResource!,
+        );
+
+        expect(acquireTokenSilent).to.have.been.calledOnce;
+        const request = acquireTokenSilent.firstCall.args[0] as msalNode.SilentFlowRequest;
+        expect(request.account).to.equal(targetAccount);
+        expect(request.forceRefresh).to.be.undefined;
+        expect(request.authority).to.equal(
+            `${providerSettings.publicAzureProviderSettings.loginEndpoint}${targetTenantId}`,
+        );
+        expect(request.scopes).to.deep.equal(["https://database.windows.net/.default"]);
+    });
+
+    test("getToken uses forceRefresh only when falling back across tenants", async () => {
+        const homeAccount = createMsalAccount(homeTenantId);
+        const { acquireTokenSilent, auth } = createAuth([homeAccount]);
+        acquireTokenSilent.resolves(
+            createAuthenticationResult(homeAccount, new Date(Date.now() + 3600_000)),
+        );
+
+        await auth.getToken(
+            createExtensionAccount(),
+            targetTenantId,
+            providerSettings.publicAzureProviderSettings.settings.sqlResource!,
+        );
+
+        expect(acquireTokenSilent).to.have.been.calledOnce;
+        const request = acquireTokenSilent.firstCall.args[0] as msalNode.SilentFlowRequest;
+        expect(request.account).to.equal(homeAccount);
+        expect(request.forceRefresh).to.equal(true);
+    });
+
+    test("getToken returns null without interactive login when account is missing from cache", async () => {
+        const { acquireTokenSilent, auth } = createAuth([]);
+
+        const result = await auth.getToken(
+            createExtensionAccount(),
+            targetTenantId,
+            providerSettings.publicAzureProviderSettings.settings.sqlResource!,
+        );
+
+        expect(result).to.be.null;
+        expect(acquireTokenSilent).not.to.have.been.called;
+        expect(auth.loginCalls).to.be.empty;
+    });
+
+    test("getToken rethrows interaction-required errors without interactive login", async () => {
+        const targetAccount = createMsalAccount(targetTenantId);
+        const { acquireTokenSilent, auth } = createAuth([targetAccount]);
+        const interactionError = new msalNode.InteractionRequiredAuthError(
+            "interaction_required",
+            "User interaction is required",
+        );
+        acquireTokenSilent.rejects(interactionError);
+
+        let thrownError: unknown;
+        try {
+            await auth.getToken(
+                createExtensionAccount(),
+                targetTenantId,
+                providerSettings.publicAzureProviderSettings.settings.sqlResource!,
+            );
+        } catch (error) {
+            thrownError = error;
+        }
+
+        expect(thrownError).to.equal(interactionError);
+        expect(auth.loginCalls).to.be.empty;
     });
 });
 
@@ -325,5 +546,42 @@ suite("MsalAzureController Tests", () => {
         // Assert
         expect(result).to.be.undefined;
         expect(mockMsalAuth.startLogin).to.have.been.calledOnce;
+    });
+
+    test("getAccountSecurityToken should use MSAL access token expiration", async () => {
+        const accessTokenExpiry = Math.floor(Date.now() / 1000) + 3600;
+        const idTokenExpiry = accessTokenExpiry + 7200;
+        const msalAccount = createMsalAccount(targetTenantId);
+        const mockResult = createAuthenticationResult(
+            msalAccount,
+            new Date(accessTokenExpiry * 1000),
+            idTokenExpiry,
+        );
+
+        const mockMsalAuth = sandbox.createStubInstance(MsalAzureCodeGrant);
+        mockMsalAuth.getToken.resolves(mockResult);
+
+        const mockCloudAuth = sandbox.createStubInstance(CloudAuthApplication);
+        mockCloudAuth.msalAuthInstance.returns(mockMsalAuth);
+
+        const controller = new MsalAzureController(
+            mockContext,
+            mockPrompter,
+            mockCredentialStore,
+            mockSubscriptionClientFactory,
+        );
+        controller["_cloudAuthMappings"] = new Map();
+        controller["_cloudAuthMappings"].set(CloudId.AzureCloud, mockCloudAuth);
+
+        sandbox.stub(providerSettings, "getCloudId").returns(CloudId.AzureCloud);
+
+        const token = await controller.getAccountSecurityToken(
+            createExtensionAccount(),
+            targetTenantId,
+            providerSettings.publicAzureProviderSettings.settings.sqlResource!,
+        );
+
+        expect(token!.expiresOn).to.equal(accessTokenExpiry);
+        expect(token!.expiresOn).not.to.equal(idTokenExpiry);
     });
 });

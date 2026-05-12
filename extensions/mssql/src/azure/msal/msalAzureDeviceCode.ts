@@ -10,7 +10,7 @@ import VscodeWrapper from "../../controllers/vscodeWrapper";
 import { AzureAuthType, IProviderSettings, ITenant } from "../../models/contracts/azure";
 import { IDeferred } from "../../models/interfaces";
 import { Logger } from "../../models/logger";
-import { MsalAzureAuth } from "./msalAzureAuth";
+import { IMsalLoginOptions, MsalAzureAuth } from "./msalAzureAuth";
 
 export class MsalAzureDeviceCode extends MsalAzureAuth {
     constructor(
@@ -30,7 +30,10 @@ export class MsalAzureDeviceCode extends MsalAzureAuth {
         );
     }
 
-    protected async login(tenant: ITenant): Promise<{
+    protected async login(
+        tenant: ITenant,
+        _options?: IMsalLoginOptions,
+    ): Promise<{
         response: AuthenticationResult;
         authComplete: IDeferred<void, Error>;
     }> {

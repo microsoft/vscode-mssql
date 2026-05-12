@@ -14,7 +14,7 @@ import {
 import { ITenant, AzureAuthType, IProviderSettings } from "../../models/contracts/azure";
 import { IDeferred } from "../../models/interfaces";
 import { Logger } from "../../models/logger";
-import { MsalAzureAuth } from "./msalAzureAuth";
+import { IMsalLoginOptions, MsalAzureAuth } from "./msalAzureAuth";
 import { SimpleWebServer } from "../simpleWebServer";
 import { AzureAuthError } from "../azureAuthError";
 import * as Constants from "../constants";
@@ -59,7 +59,10 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
         };
     }
 
-    protected async login(tenant: ITenant): Promise<{
+    protected async login(
+        tenant: ITenant,
+        options?: IMsalLoginOptions,
+    ): Promise<{
         response: AuthenticationResult;
         authComplete: IDeferred<void, Error>;
     }> {
@@ -90,10 +93,18 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
                 redirectUri: `${this.redirectUri}:${serverPort}/redirect`,
                 codeChallenge: this.pkceCodes.codeChallenge,
                 codeChallengeMethod: this.pkceCodes.challengeMethod,
-                prompt: Constants.selectAccount,
                 authority: authority,
                 state: state,
             };
+            if (options?.prompt) {
+                authUrlRequest.prompt = options.prompt;
+            }
+            if (options?.loginHint) {
+                authUrlRequest.loginHint = options.loginHint;
+            }
+            if (options?.account) {
+                authUrlRequest.account = options.account;
+            }
             authCodeRequest = {
                 scopes: this.scopes,
                 redirectUri: `${this.redirectUri}:${serverPort}/redirect`,

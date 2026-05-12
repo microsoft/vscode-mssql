@@ -12,7 +12,7 @@ import { ConnectionProfile } from "../../models/connectionProfile";
 import { AzureAuthType, IAADResource, IAccount, IToken } from "../../models/contracts/azure";
 import { AccountStore } from "../accountStore";
 import { AzureController } from "../azureController";
-import { MsalAzureAuth } from "./msalAzureAuth";
+import { getTokenExpirationInSeconds, MsalAzureAuth } from "./msalAzureAuth";
 import { MsalAzureCodeGrant } from "./msalAzureCodeGrant";
 import { MsalAzureDeviceCode } from "./msalAzureDeviceCode";
 import { MsalCachePluginProvider } from "./msalCachePlugin";
@@ -170,7 +170,7 @@ export class MsalAzureController extends AzureController {
         let accountInfo = await cloudAuth
             .msalAuthInstance(account.properties.azureAuthType)
             .getAccountFromMsalCache(account.key.id);
-        return accountInfo !== undefined;
+        return accountInfo !== undefined && accountInfo !== null;
     }
 
     private getCloudAuthApp(cloud?: CloudId): CloudAuthApplication {
@@ -207,7 +207,7 @@ export class MsalAzureController extends AzureController {
                     key: result.account.homeAccountId,
                     token: result.accessToken,
                     tokenType: result.tokenType,
-                    expiresOn: result.account.idTokenClaims.exp,
+                    expiresOn: getTokenExpirationInSeconds(result),
                 };
                 return token;
             }
