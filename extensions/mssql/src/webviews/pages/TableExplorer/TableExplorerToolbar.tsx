@@ -91,6 +91,8 @@ const ColumnsMenu: React.FC<ColumnsMenuProps> = ({
                         <MenuItem
                             key={col.id}
                             persistOnClick
+                            role="menuitemcheckbox"
+                            aria-checked={col.visible}
                             icon={col.visible ? <Checkmark16Regular /> : undefined}
                             onClick={() => {
                                 onSetColumnVisibility(col.id, !col.visible);

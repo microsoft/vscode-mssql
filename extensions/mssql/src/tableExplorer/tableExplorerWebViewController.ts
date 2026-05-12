@@ -1546,7 +1546,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     },
                 );
 
-                vscode.window.showErrorMessage(
+                void vscode.window.showErrorMessage(
                     LocConstants.TableExplorer.failedToRunTableQuery(getErrorMessage(error)),
                 );
             }
@@ -1665,7 +1665,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         this.registerReducer("showSql", async (state, payload) => {
             const sqlText = (payload?.sqlText ?? state.tableQuery ?? "").toString();
             if (!sqlText.trim()) {
-                vscode.window.showWarningMessage(LocConstants.TableExplorer.noScriptToOpen);
+                void vscode.window.showWarningMessage(LocConstants.TableExplorer.noScriptToOpen);
                 return state;
             }
             try {
@@ -1682,7 +1682,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 this.logger.error(
                     `Error opening SQL in editor: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
                 );
-                vscode.window.showErrorMessage(
+                void vscode.window.showErrorMessage(
                     LocConstants.TableExplorer.failedToOpenScript(getErrorMessage(error)),
                 );
             }
