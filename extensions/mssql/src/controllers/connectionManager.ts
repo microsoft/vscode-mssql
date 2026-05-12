@@ -2241,9 +2241,6 @@ export default class ConnectionManager {
     }
 
     /**
-     * Acquires a fresh token from VS Code for the specified account + tenant
-     */
-    /**
      * Handles the `account/securityTokenRequest` request from SQL Tools Service.
      *
      * This request is used for two distinct purposes:
@@ -2343,13 +2340,6 @@ export default class ConnectionManager {
                     }));
                 };
                 acquireToken = async (accountId, tenantId) => {
-                    const cloudSettings = getCloudProviderSettings();
-                    const akvResource = cloudSettings.settings.azureKeyVaultResource;
-                    if (!akvResource) {
-                        throw new Error(
-                            `No Azure Key Vault resource configured for cloud '${cloudSettings.displayName}'.`,
-                        );
-                    }
                     const tokenInfo = await acquireTokenFromVscodeAccountForResource(
                         getCloudResourceEndpoint("azureKeyVaultResource"),
                         accountId,
@@ -2359,11 +2349,11 @@ export default class ConnectionManager {
                     return tokenInfo.token;
                 };
                 onSignIn = async () => {
-                    const info = await VsCodeAzureHelper.signIn();
-                    if (!info) {
+                    const result = await VsCodeAzureHelper.signIn();
+                    if (!result.auth) {
                         throw new Error(LocalizedConstants.Connection.noAccountSelected);
                     }
-                    return info.newAccountId;
+                    return result.newAccountId;
                 };
             } else {
                 getAccounts = async () => {
@@ -2407,7 +2397,7 @@ export default class ConnectionManager {
             const accountId = await this.selectAccount(await getAccounts(), onSignIn);
 
             if (!accountId) {
-                throw new Error("No account selected");
+                throw new Error(LocalizedConstants.Connection.noAccountSelected);
             }
 
             const tenantId = await this.selectTenantId(await getTenants(accountId));
@@ -2465,7 +2455,7 @@ export default class ConnectionManager {
             return onSignIn();
         }
 
-        if (!selected) {
+        if (selected === undefined) {
             throw new Error(LocalizedConstants.Connection.noAccountSelected);
         }
 

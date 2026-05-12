@@ -306,10 +306,10 @@ export interface CapabilitiesResult {
  * Parameters sent by the service when it needs a refreshed access token.
  */
 export class RefreshTokenParams {
-    public tenantId: string;
+    public tenantId?: string;
     public provider: string;
     public resource: string;
-    public accountId: string;
+    public accountId?: string;
     public uri: string;
 }
 

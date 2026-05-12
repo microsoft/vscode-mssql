@@ -760,7 +760,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         }) as IAzureAccount,
                 );
 
-                state.selectedAccountId = signInResult.newAccountId;
+                state.selectedAccountId = signInResult.newAccountId ?? state.azureAccounts[0]?.id;
             } catch (error) {
                 this.logger.error("Error signing into Azure: " + getErrorMessage(error));
                 state.formMessage = {

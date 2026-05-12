@@ -537,7 +537,7 @@ export async function promptForAzureSubscriptionFilter(
     try {
         const result = await VsCodeAzureHelper.signIn();
 
-        if (!result) {
+        if (!result?.auth) {
             state.formMessage = { message: l10n.t("Azure sign in failed.") };
             return false;
         }
