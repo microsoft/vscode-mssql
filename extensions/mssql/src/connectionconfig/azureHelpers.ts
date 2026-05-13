@@ -484,16 +484,16 @@ export class VsCodeAzureHelper {
         const serverMap = new Map<string, AzureSqlServerInfo>();
 
         for (const server of servers) {
-            serverMap.set(server.name.toLowerCase(), {
-                id: server.name,
-                displayName: server.name,
-                server: server.fullyQualifiedDomainName,
-                database: "",
+            serverMap.set(server.name!.toLowerCase(), {
+                id: server.name!,
+                displayName: server.name!,
+                server: server.fullyQualifiedDomainName!,
+                databases: [],
                 type: SqlArtifactTypes.AzureSqlServer,
                 collectionId: subscription.subscriptionId,
                 collectionName: subscription.name,
                 tenantId: subscription.tenantId,
-                resourceGroup: extractFromResourceId(server.id, "resourceGroups"),
+                resourceGroup: extractFromResourceId(server.id!, "resourceGroups"),
             });
         }
 

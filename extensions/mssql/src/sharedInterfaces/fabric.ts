@@ -9,7 +9,7 @@ export interface SqlDbInfo {
     id: string;
     server: string;
     displayName: string;
-    database: string;
+    databases: string[];
     type: string;
     collectionId: string;
     collectionName: string;

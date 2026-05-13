@@ -485,6 +485,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return state;
         });
 
+        // TODO: remove
         this.registerReducer("filterAzureSubscriptions", async (state) => {
             try {
                 if (await promptForAzureSubscriptionFilter(state, this.logger)) {
@@ -768,6 +769,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return state;
         });
 
+        // TODO remove
         this.registerReducer("signIntoAzureTenantForBrowse", async (state) => {
             let auth: MssqlVSCodeAzureSubscriptionProvider;
             try {
@@ -810,8 +812,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             const tenants = await VsCodeAzureHelper.getTenantsForAccount(azureAccount);
 
             state.azureTenants = tenants.map((t) => ({
-                id: t.tenantId,
-                name: t.displayName,
+                id: t.tenantId!,
+                name: t.displayName!,
             }));
 
             // Response from VS Code account system shows all tenants as "Home", so we need to extract the home tenant ID manually
