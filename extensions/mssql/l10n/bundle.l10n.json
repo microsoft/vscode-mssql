@@ -1290,7 +1290,7 @@
     "Open the generated SELECT statement in a new editor": "Open the generated SELECT statement in a new editor",
     "Filters": "Filters",
     "Add filters to modify the SQL query": "Add filters to modify the SQL query",
-    "where": "where",
+    "WHERE": "WHERE",
     "and": "and",
     "or": "or",
     "Conjunction": "Conjunction",

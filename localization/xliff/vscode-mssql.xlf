@@ -6843,6 +6843,9 @@
     <trans-unit id="++CODE++eab0f257866b670694bf52eec427b7799ca53883151d4d4526b0e57660ce65ab">
       <source xml:lang="en">Visualize and Design Schema</source>
     </trans-unit>
+    <trans-unit id="++CODE++b6af395c5020f3f19337172a94b2607d19ef6f8fed2424cf788b0d00b0572264">
+      <source xml:lang="en">WHERE</source>
+    </trans-unit>
     <trans-unit id="++CODE++e981ddae45d8f4ca53f1ccbe613ad254a041dacf65a06026099a6302d332113b">
       <source xml:lang="en">Warning</source>
     </trans-unit>
@@ -7096,9 +7099,6 @@
     </trans-unit>
     <trans-unit id="++CODE++cd42404d52ad55ccfa9aca4adc828aa5800ad9d385a0671fbcbf724118320619">
       <source xml:lang="en">value</source>
-    </trans-unit>
-    <trans-unit id="++CODE++b48111c10c65fc119368edafb19f97451759ee90b3f44647368135ca47aa4753">
-      <source xml:lang="en">where</source>
     </trans-unit>
     <trans-unit id="++CODE++a48f10647cec7ba3f44b4b4623080abee3b5f7ffee7929db6581a2eee9b4f136">
       <source xml:lang="en">x of y selected</source>
