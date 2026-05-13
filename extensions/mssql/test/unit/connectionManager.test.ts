@@ -21,7 +21,11 @@ import { ParseConnectionStringRequest } from "../../src/models/contracts/connect
 import * as ConnectionContracts from "../../src/models/contracts/connection";
 import { IAccount, RequestSecurityTokenParams } from "../../src/models/contracts/azure";
 import { AzureController } from "../../src/azure/azureController";
-import { azureCloudProviderId } from "../../src/azure/providerSettings";
+import {
+    azureCloudProviderId,
+    getCloudProviderSettings,
+    publicAzureProviderSettings,
+} from "../../src/azure/providerSettings";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import { AccountStore } from "../../src/azure/accountStore";
 import { TestPrompter } from "./stubs";
@@ -36,6 +40,9 @@ import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import { PreviewFeature } from "../../src/previews/previewService";
 import * as vscodeEntraMfaUtils from "../../src/azure/vscodeEntraMfaUtils";
+import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
+import * as telemetry from "../../src/telemetry/telemetry";
+import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 
 chai.use(sinonChai);
 
@@ -405,7 +412,7 @@ suite("ConnectionManager Tests", () => {
             );
         });
 
-        test("should return token and expiresOn on success", async () => {
+        test("Should acquire token for SQL when accountId is specified", async () => {
             const expiresOn = Math.floor(Date.now() / 1000) + 3600;
             acquireTokenStub.resolves({ token: { token: "vscode-token", expiresOn } });
 
@@ -425,6 +432,11 @@ suite("ConnectionManager Tests", () => {
                 token: "vscode-token",
                 expiresOn,
             });
+            expect(acquireTokenStub).to.have.been.calledWithMatch(
+                publicAzureProviderSettings.settings.sqlResource.endpoint,
+                "account-id",
+                "tenant-id",
+            );
         });
 
         test("should return empty token on failure", async () => {
@@ -443,9 +455,36 @@ suite("ConnectionManager Tests", () => {
 
             expect(result).to.deep.equal({ accountKey: "", token: "", expiresOn: 0 });
         });
+
+        test("should acquire token using AKV resource when accountId is not specified", async () => {
+            const expiresOn = Math.floor(Date.now() / 1000) + 3600;
+            acquireTokenStub.resolves({
+                token: { key: "akv-key", token: "akv-token", tokenType: "bearer", expiresOn },
+            });
+            sandbox.stub(azureHelpers.VsCodeAzureHelper, "getAccounts").resolves([]);
+            connectionManager["selectAccount"] = sandbox.stub().resolves("account-id");
+            connectionManager["selectTenantId"] = sandbox.stub().resolves("tenant-id");
+
+            const params: RequestSecurityTokenParams = {
+                accountId: undefined,
+                tenantId: "",
+                resource: "",
+                provider: "",
+                authority: "",
+                scopes: [],
+            };
+
+            await connectionManager["handleSecurityTokenRequest"](params);
+
+            expect(acquireTokenStub).to.have.been.calledWithMatch(
+                publicAzureProviderSettings.settings.azureKeyVaultResource.endpoint,
+                "account-id",
+                "tenant-id",
+            );
+        });
     });
 
-    suite("handleRefreshTokenNotification - legacy path (MSAL)", () => {
+    suite("should acquire token for AKV when accountId is not specified (MSAL)", () => {
         let sendNotificationStub: sinon.SinonStub;
 
         function invokeHandler(params: ConnectionContracts.RefreshTokenParams): Promise<void> {
@@ -577,6 +616,72 @@ suite("ConnectionManager Tests", () => {
                 expiresOn: 0,
                 uri: "file:///test.sql",
             });
+        });
+
+        test("client unavailable: sends serviceClientUnavailable error event", async () => {
+            const sendErrorEventStub = sandbox.stub(telemetry, "sendErrorEvent");
+
+            const mockAccount = {
+                key: { id: "account-id", providerId: azureCloudProviderId },
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } as any;
+            mockAccountStore.getAccount.resolves(mockAccount);
+            mockAzureController.refreshAccessToken.resolves({
+                token: "refreshed-token",
+                expiresOn: Math.floor(Date.now() / 1000) + 3600,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } as any);
+            connectionManager.azureController = mockAzureController;
+            connectionManager["client"] = undefined; // no client
+
+            await invokeHandler(makeParams());
+
+            expect(sendErrorEventStub).to.have.been.calledWithMatch(
+                TelemetryViews.ConnectionManager,
+                TelemetryActions.RefreshTokenNotification,
+                sinon.match.instanceOf(Error),
+                sinon.match.any,
+                "serviceClientUnavailable",
+            );
+            expect(sendNotificationStub).to.not.have.been.called;
+        });
+
+        test("getAccountSecurityToken is called with AKV resource", async () => {
+            const expiresOn = Math.floor(Date.now() / 1000) + 3600;
+            const mockAccount = {
+                key: { id: "account-id", providerId: azureCloudProviderId },
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } as any;
+            mockAccountStore.getAccounts.resolves([]);
+            mockAccountStore.getAccount.resolves(mockAccount);
+            const token: IToken = {
+                key: "akv-key",
+                token: "akv-token",
+                tokenType: "bearer",
+                expiresOn,
+            };
+            mockAzureController.getAccountSecurityToken.resolves(token);
+            connectionManager.azureController = mockAzureController;
+            connectionManager["selectAccount"] = sandbox.stub().resolves("account-id");
+            connectionManager["selectTenantId"] = sandbox.stub().resolves("tenant-id");
+
+            const params: RequestSecurityTokenParams = {
+                accountId: undefined,
+                tenantId: "",
+                resource: "",
+                provider: "",
+                authority: "",
+                scopes: [],
+            };
+
+            await connectionManager["handleSecurityTokenRequest"](params);
+
+            expect(mockAzureController.getAccountSecurityToken).to.have.been.calledWithMatch(
+                sinon.match.any,
+                "tenant-id",
+
+                publicAzureProviderSettings.settings.azureKeyVaultResource,
+            );
         });
     });
 
