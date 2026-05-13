@@ -62,7 +62,7 @@ import {
 import { ObjectExplorerFilter } from "../objectExplorer/objectExplorerFilter";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { MssqlProtocolHandler } from "../mssqlProtocolHandler";
-import { getErrorMessage, isIConnectionInfo } from "../utils/utils";
+import { getErrorMessage, getUriKey, isIConnectionInfo } from "../utils/utils";
 import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
@@ -114,6 +114,7 @@ import { TableExplorerWebViewController } from "../tableExplorer/tableExplorerWe
 import { SearchDatabaseWebViewController } from "../searchDatabase/searchDatabaseWebViewController";
 import { ChangelogWebviewController } from "./changelogWebviewController";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
+import { MssqlConfigurationWebviewController } from "./mssqlConfigurationWebviewController";
 import { HttpClient } from "../http/httpClient";
 import { Logger } from "../models/logger";
 import { FileBrowserService } from "../services/fileBrowserService";
@@ -126,6 +127,12 @@ import { BackgroundTasksProvider } from "../backgroundTasks/backgroundTasksProvi
 import { BackgroundTaskNode } from "../backgroundTasks/backgroundTaskNode";
 import { BackgroundTaskLogContentProvider } from "../backgroundTasks/backgroundTaskLogContentProvider";
 import { BackgroundTasksService } from "../backgroundTasks/backgroundTasksService";
+import { QuickQueryService } from "../quickQueries/quickQueryService";
+import {
+    getQuickQueryCommandId,
+    normalizeQuickQueries,
+    quickQueryCount,
+} from "../sharedInterfaces/mssqlConfiguration";
 
 /**
  * The main controller class that initializes the extension
@@ -150,6 +157,7 @@ export default class MainController implements vscode.Disposable {
     private _logger: Logger;
     private _lastBackgroundTaskClickTime = 0;
     private _lastBackgroundTaskId: string | undefined;
+    private _mssqlConfigurationController: MssqlConfigurationWebviewController | undefined;
 
     public sqlTasksService: SqlTasksService;
     public backgroundTasksService: BackgroundTasksService;
@@ -245,6 +253,8 @@ export default class MainController implements vscode.Disposable {
     public async deactivate(): Promise<void> {
         Utils.logDebug("de-activated.");
         await this.onDisconnect();
+        this._mssqlConfigurationController?.dispose();
+        this._mssqlConfigurationController = undefined;
         this._statusview.dispose();
     }
 
@@ -276,6 +286,17 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdRunQuery, () => this.onRunQueryCommand());
             this.registerCommand(Constants.cmdRunQueryWithUriOwnership);
             this._event.on(Constants.cmdRunQueryWithUriOwnership, () => this.onRunQueryCommand());
+            this.registerCommand(Constants.cmdOpenMssqlConfiguration);
+            this._event.on(Constants.cmdOpenMssqlConfiguration, () => {
+                this.openMssqlConfiguration();
+            });
+            for (let slotNumber = 1; slotNumber <= quickQueryCount; slotNumber++) {
+                const commandId = getQuickQueryCommandId(slotNumber);
+                this.registerCommand(commandId);
+                this._event.on(commandId, () => {
+                    void this.runAndLogErrors(this.createQuickQueryService().run(slotNumber));
+                });
+            }
             this.registerCommand(Constants.cmdManageConnectionProfiles);
             this._event.on(Constants.cmdManageConnectionProfiles, async () => {
                 await this.onManageProfiles();
@@ -2843,6 +2864,70 @@ export default class MainController implements vscode.Disposable {
         } catch (err) {
             console.warn(`Unexpected error running query : ${err}`);
         }
+    }
+
+    public openMssqlConfiguration(focusedQuickQuerySlot?: number): void {
+        if (this._mssqlConfigurationController && !this._mssqlConfigurationController.isDisposed) {
+            this._mssqlConfigurationController.focusQuickQuerySlot(focusedQuickQuerySlot);
+            this._mssqlConfigurationController.revealToForeground();
+            return;
+        }
+
+        const controller = new MssqlConfigurationWebviewController(
+            this._context,
+            this._vscodeWrapper,
+            focusedQuickQuerySlot,
+        );
+        controller.onDisposed(() => {
+            if (this._mssqlConfigurationController === controller) {
+                this._mssqlConfigurationController = undefined;
+            }
+        });
+        this._mssqlConfigurationController = controller;
+        controller.revealToForeground();
+    }
+
+    private createQuickQueryService(): QuickQueryService {
+        return new QuickQueryService({
+            readQuickQueries: () =>
+                normalizeQuickQueries(
+                    vscode.workspace.getConfiguration().get(Constants.configQuickQueries),
+                ),
+            openConfiguration: (focusedQuickQuerySlot) =>
+                this.openMssqlConfiguration(focusedQuickQuerySlot),
+            getActiveSqlEditorConnectionInfo: () => {
+                const activeEditor = vscode.window.activeTextEditor;
+                if (!activeEditor || activeEditor.document.languageId !== Constants.languageId) {
+                    return undefined;
+                }
+
+                const uri = getUriKey(activeEditor.document.uri);
+                if (!this._connectionMgr.isConnected(uri)) {
+                    return undefined;
+                }
+
+                return this._connectionMgr.getConnectionInfoFromUri(uri);
+            },
+            createSqlEditor: async (options) => await this.sqlDocumentService.newQuery(options),
+            isSqlEditorConnected: (editor) =>
+                this._connectionMgr.isConnected(getUriKey(editor.document.uri)),
+            runSqlEditorQuery: async (editor) => {
+                const uri = getUriKey(editor.document.uri);
+                if (!this._connectionMgr.isConnected(uri)) {
+                    return;
+                }
+
+                await this._connectionMgr.refreshAzureAccountToken(uri);
+                store.deleteUriState(uri);
+                await this._outputContentProvider.runQuery(
+                    this._statusview,
+                    uri,
+                    undefined,
+                    path.basename(editor.document.fileName),
+                    {},
+                );
+            },
+        });
     }
 
     /**

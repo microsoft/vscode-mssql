@@ -319,6 +319,45 @@ export class LocConstants {
         };
     }
 
+    public get mssqlConfiguration() {
+        return {
+            title: l10n.t("MSSQL Configuration"),
+            subtitle: l10n.t("Configure MSSQL extension behavior."),
+            quickQueries: l10n.t("Quick Queries"),
+            quickQueriesDescription: l10n.t(
+                "Configure command-backed SQL snippets that can open or run from keyboard shortcuts.",
+            ),
+            webviewShortcuts: l10n.t("Webview Shortcuts"),
+            webviewShortcutsDescription: l10n.t(
+                "Configure shortcuts that are handled inside MSSQL webviews.",
+            ),
+            slot: (slotNumber: number) =>
+                l10n.t({
+                    message: "Slot {0}",
+                    args: [slotNumber],
+                    comment: ["{0} is the Quick Query slot number"],
+                }),
+            name: l10n.t("Name"),
+            query: l10n.t("Query"),
+            shortcut: l10n.t("Shortcut"),
+            execution: l10n.t("Execution"),
+            connection: l10n.t("Connection"),
+            openOnly: l10n.t("Open"),
+            openAndRun: l10n.t("Open and run"),
+            activeOrPrompt: l10n.t("Active"),
+            prompt: l10n.t("Prompt"),
+            record: l10n.t("Record"),
+            recording: l10n.t("Press keys"),
+            stopRecording: l10n.t("Stop"),
+            noShortcut: l10n.t("No shortcut"),
+            saveChanges: l10n.t("Save Changes"),
+            reload: l10n.t("Reload"),
+            emptyQueryHint: l10n.t("Empty Quick Query slots open this configuration page."),
+            enterSql: l10n.t("Enter SQL query text"),
+            shortcutPlaceholder: l10n.t("Example: ctrl+alt+1"),
+        };
+    }
+
     public get connectionDialog() {
         return {
             searchWorkspaces: l10n.t("Search workspaces..."),

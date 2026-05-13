@@ -36,6 +36,8 @@ export const database_red = "Database_red";
 export const cmdRunQuery = "mssql.runQuery";
 export const cmdRunQueryWithUriOwnership = "mssql.runQueryWithUriOwnership";
 export const cmdRunCurrentStatement = "mssql.runCurrentStatement";
+export const cmdOpenMssqlConfiguration = "mssql.configuration.open";
+export const cmdQuickQueryPrefix = "mssql.quickQueries.run";
 export const cmdCancelQuery = "mssql.cancelQuery";
 export const cmdRevealQueryResult = "mssql.revealQueryResult";
 export const cmdToggleQueryResultPanel = "mssql.toggleQueryResultPanel";
@@ -312,6 +314,7 @@ export const configSavePasswordsUntilRestart =
 export const configAutoRevealResultsPanel = "mssql.autoRevealResultsPanel";
 export const configCustomEnvironment = "mssql.customEnvironment";
 export const configShortcuts = "mssql.shortcuts";
+export const configQuickQueries = "mssql.quickQueries";
 export const configShowChangelogOnUpdate = "mssql.showChangelogOnUpdate";
 export const configTransferActiveEditorConnections = "mssql.transferActiveEditorConnections";
 

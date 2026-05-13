@@ -164,6 +164,7 @@
         "fix-path": "^5.0.0",
         "has-proto": "^1.2.0",
         "jquery": "^3.4.1",
+        "jsonc-parser": "^3.3.1",
         "lockfile": "1.0.4",
         "lodash": "^4.18.1",
         "opener": "1.5.2",
@@ -559,6 +560,12 @@
                     "command": "mssql.deployNewDatabase",
                     "when": "view == objectExplorer",
                     "title": "%mssql.newDeployment%",
+                    "group": "navigation"
+                },
+                {
+                    "command": "mssql.configuration.open",
+                    "when": "view == objectExplorer",
+                    "title": "%mssql.configuration.open%",
                     "group": "navigation"
                 }
             ],
@@ -1061,6 +1068,62 @@
             {
                 "command": "mssql.runCurrentStatement",
                 "title": "%mssql.runCurrentStatement%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.configuration.open",
+                "title": "%mssql.configuration.open%",
+                "category": "MS SQL",
+                "icon": "$(settings-gear)"
+            },
+            {
+                "command": "mssql.quickQueries.run1",
+                "title": "%mssql.quickQueries.run1%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.quickQueries.run2",
+                "title": "%mssql.quickQueries.run2%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.quickQueries.run3",
+                "title": "%mssql.quickQueries.run3%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.quickQueries.run4",
+                "title": "%mssql.quickQueries.run4%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.quickQueries.run5",
+                "title": "%mssql.quickQueries.run5%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.quickQueries.run6",
+                "title": "%mssql.quickQueries.run6%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.quickQueries.run7",
+                "title": "%mssql.quickQueries.run7%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.quickQueries.run8",
+                "title": "%mssql.quickQueries.run8%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.quickQueries.run9",
+                "title": "%mssql.quickQueries.run9%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.quickQueries.run10",
+                "title": "%mssql.quickQueries.run10%",
                 "category": "MS SQL"
             },
             {
@@ -1976,6 +2039,119 @@
                         }
                     },
                     "scope": "resource"
+                },
+                "mssql.quickQueries": {
+                    "type": "array",
+                    "description": "%mssql.quickQueries%",
+                    "default": [
+                        {
+                            "name": "Quick Query 1",
+                            "query": "",
+                            "executionMode": "open",
+                            "connectionMode": "prompt"
+                        },
+                        {
+                            "name": "Quick Query 2",
+                            "query": "",
+                            "executionMode": "open",
+                            "connectionMode": "prompt"
+                        },
+                        {
+                            "name": "Quick Query 3",
+                            "query": "",
+                            "executionMode": "open",
+                            "connectionMode": "prompt"
+                        },
+                        {
+                            "name": "Quick Query 4",
+                            "query": "",
+                            "executionMode": "open",
+                            "connectionMode": "prompt"
+                        },
+                        {
+                            "name": "Quick Query 5",
+                            "query": "",
+                            "executionMode": "open",
+                            "connectionMode": "prompt"
+                        },
+                        {
+                            "name": "Quick Query 6",
+                            "query": "",
+                            "executionMode": "open",
+                            "connectionMode": "prompt"
+                        },
+                        {
+                            "name": "Quick Query 7",
+                            "query": "",
+                            "executionMode": "open",
+                            "connectionMode": "prompt"
+                        },
+                        {
+                            "name": "Quick Query 8",
+                            "query": "",
+                            "executionMode": "open",
+                            "connectionMode": "prompt"
+                        },
+                        {
+                            "name": "Quick Query 9",
+                            "query": "",
+                            "executionMode": "open",
+                            "connectionMode": "prompt"
+                        },
+                        {
+                            "name": "Quick Query 10",
+                            "query": "",
+                            "executionMode": "open",
+                            "connectionMode": "prompt"
+                        }
+                    ],
+                    "minItems": 10,
+                    "maxItems": 10,
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "name",
+                            "query",
+                            "executionMode",
+                            "connectionMode"
+                        ],
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "%mssql.quickQueries.name%"
+                            },
+                            "query": {
+                                "type": "string",
+                                "description": "%mssql.quickQueries.query%"
+                            },
+                            "executionMode": {
+                                "type": "string",
+                                "enum": [
+                                    "open",
+                                    "openAndRun"
+                                ],
+                                "enumDescriptions": [
+                                    "%mssql.quickQueries.executionMode.open%",
+                                    "%mssql.quickQueries.executionMode.openAndRun%"
+                                ],
+                                "description": "%mssql.quickQueries.executionMode%"
+                            },
+                            "connectionMode": {
+                                "type": "string",
+                                "enum": [
+                                    "activeOrPrompt",
+                                    "prompt"
+                                ],
+                                "enumDescriptions": [
+                                    "%mssql.quickQueries.connectionMode.activeOrPrompt%",
+                                    "%mssql.quickQueries.connectionMode.prompt%"
+                                ],
+                                "description": "%mssql.quickQueries.connectionMode%"
+                            }
+                        }
+                    },
+                    "scope": "application"
                 },
                 "mssql.shortcuts": {
                     "type": "object",
