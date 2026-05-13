@@ -250,10 +250,9 @@ export class MsalAzureController extends AzureController {
             true, // include call stack
         );
 
-        let newAccount: IAccount;
         try {
             const cloudAuth = this.getCloudAuthForAccount(account);
-            newAccount = await cloudAuth
+            const newAccount = await cloudAuth
                 .msalAuthInstance(account.properties.azureAuthType)
                 .refreshAccessToken(
                     account,
@@ -262,14 +261,14 @@ export class MsalAzureController extends AzureController {
                         .windowsManagementResource,
                 );
 
-            if (newAccount!.isStale === true) {
+            if (!newAccount || newAccount.isStale === true) {
                 return undefined;
             }
 
-            await accountStore.addAccount(newAccount!);
+            await accountStore.addAccount(newAccount);
             return await this.getAccountSecurityToken(
-                account,
-                tenantId ?? account.properties.owningTenant.id,
+                newAccount,
+                tenantId ?? newAccount.properties.owningTenant.id,
                 settings,
             );
         } catch (ex) {

@@ -54,7 +54,8 @@ export function isMsalInteractionRequiredError(error: unknown): boolean {
         error instanceof InteractionRequiredAuthError ||
         errorMessage.includes(Constants.AADSTS70043) ||
         errorMessage.includes(Constants.AADSTS50020) ||
-        errorMessage.includes(Constants.AADSTS50173)
+        errorMessage.includes(Constants.AADSTS50173) ||
+        errorMessage.includes(Constants.AADSTS50078)
     );
 }
 

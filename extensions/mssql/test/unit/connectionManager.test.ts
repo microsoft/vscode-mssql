@@ -12,7 +12,10 @@ import { ConnectionDetails, IToken, IConnectionInfo } from "vscode-mssql";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { Logger } from "../../src/models/logger";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import ConnectionManager from "../../src/controllers/connectionManager";
+import ConnectionManager, {
+    getSqlConnectionErrorType,
+    SqlConnectionErrorType,
+} from "../../src/controllers/connectionManager";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import StatusView from "../../src/views/statusView";
 import { CredentialStore } from "../../src/credentialstore/credentialstore";
@@ -38,6 +41,8 @@ import {
 import { Deferred } from "../../src/protocol";
 import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
 import * as LocalizedConstants from "../../src/constants/locConstants";
+import * as Constants from "../../src/constants/constants";
+import * as AzureConstants from "../../src/azure/constants";
 import * as VscodeEntraMfaUtils from "../../src/azure/vscodeEntraMfaUtils";
 import { PreviewFeature } from "../../src/previews/previewService";
 
@@ -282,6 +287,22 @@ suite("ConnectionManager Tests", () => {
             );
 
             expect(mockVscodeWrapper.showErrorMessage).to.have.been.calledOnce;
+        });
+    });
+
+    suite("Connection error classification", () => {
+        test("classifies MFA-expired Entra errors as refreshable token errors", async () => {
+            const errorType = await getSqlConnectionErrorType(
+                {
+                    errorMessage: `${AzureConstants.AADSTS50078}: Presented multi-factor authentication has expired.`,
+                },
+                {
+                    authenticationType: Constants.azureMfa,
+                    user: "test-user@example.com",
+                } as IConnectionInfo,
+            );
+
+            expect(errorType).to.equal(SqlConnectionErrorType.EntraTokenExpired);
         });
     });
 

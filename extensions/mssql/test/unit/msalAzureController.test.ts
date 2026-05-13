@@ -27,7 +27,11 @@ import {
     CloudAuthApplication,
     MsalAzureController,
 } from "../../src/azure/msal/msalAzureController";
-import { IMsalLoginOptions, MsalAzureAuth } from "../../src/azure/msal/msalAzureAuth";
+import {
+    IMsalLoginOptions,
+    isMsalInteractionRequiredError,
+    MsalAzureAuth,
+} from "../../src/azure/msal/msalAzureAuth";
 import * as providerSettings from "../../src/azure/providerSettings";
 import * as msalNode from "@azure/msal-node";
 import * as azureUtils from "../../src/azure/utils";
@@ -392,6 +396,14 @@ suite("MsalAzureAuth Token Acquisition Tests", () => {
         expect(auth.loginCalls).to.be.empty;
     });
 
+    test("interaction-required detection includes MFA-expired AADSTS errors", () => {
+        const error = new Error(
+            "AADSTS50078: Presented multi-factor authentication has expired due to policies configured by your administrator.",
+        );
+
+        expect(isMsalInteractionRequiredError(error)).to.be.true;
+    });
+
     test("reauthenticate uses tenant account and login hint without forcing account picker", async () => {
         const targetAccount = createMsalAccount(targetTenantId);
         const { auth } = createAuth([targetAccount]);
@@ -650,6 +662,51 @@ suite("MsalAzureController Tests", () => {
         expect(mockAccountStore.addAccount).to.have.been.calledOnceWith(reauthenticatedAccount);
         expect(mockMsalAuth.getToken).to.have.been.calledOnceWith(
             reauthenticatedAccount,
+            targetTenantId,
+            providerSettings.publicAzureProviderSettings.settings.sqlResource!,
+        );
+        expect(token!.expiresOn).to.equal(accessTokenExpiry);
+    });
+
+    test("refreshAccessToken uses refreshed account after silent refresh succeeds", async () => {
+        const accessTokenExpiry = Math.floor(Date.now() / 1000) + 3600;
+        const originalAccount = createExtensionAccount(homeTenantId);
+        const refreshedAccount = createExtensionAccount(targetTenantId);
+        const mockResult = createAuthenticationResult(
+            createMsalAccount(targetTenantId),
+            new Date(accessTokenExpiry * 1000),
+        );
+
+        const mockMsalAuth = sandbox.createStubInstance(MsalAzureCodeGrant);
+        mockMsalAuth.refreshAccessToken.resolves(refreshedAccount);
+        mockMsalAuth.getToken.resolves(mockResult);
+
+        const mockCloudAuth = sandbox.createStubInstance(CloudAuthApplication);
+        mockCloudAuth.msalAuthInstance.returns(mockMsalAuth);
+
+        const controller = new MsalAzureController(
+            mockContext,
+            mockPrompter,
+            mockCredentialStore,
+            mockSubscriptionClientFactory,
+        );
+        controller["_cloudAuthMappings"] = new Map();
+        controller["_cloudAuthMappings"].set(CloudId.AzureCloud, mockCloudAuth);
+
+        const mockAccountStore = {
+            addAccount: sandbox.stub().resolves(),
+        } as unknown as AccountStore;
+
+        const token = await controller.refreshAccessToken(
+            originalAccount,
+            mockAccountStore,
+            targetTenantId,
+            providerSettings.publicAzureProviderSettings.settings.sqlResource!,
+        );
+
+        expect(mockAccountStore.addAccount).to.have.been.calledOnceWith(refreshedAccount);
+        expect(mockMsalAuth.getToken).to.have.been.calledOnceWith(
+            refreshedAccount,
             targetTenantId,
             providerSettings.publicAzureProviderSettings.settings.sqlResource!,
         );

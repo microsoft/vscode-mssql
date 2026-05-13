@@ -60,6 +60,11 @@ export const AADSTS70043 = "AADSTS70043";
  */
 export const AADSTS50173 = "AADSTS50173";
 /**
+ * UserStrongAuthExpired - Presented multi-factor authentication has expired due to policies configured by an admin.
+ * We request user interaction so the MFA claim can be refreshed.
+ */
+export const AADSTS50078 = "AADSTS50078";
+/**
  * User account 'user@domain.com' from identity provider {IdentityProviderURL} does not exist in tenant {ResourceTenantName}.
  * This error occurs when account is authenticated without a tenant id, which happens when tenant Id is not available in connection profile.
  * We have the user sign in again when this error occurs.
