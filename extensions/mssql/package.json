@@ -471,6 +471,11 @@
                     "group": "0_mssql"
                 },
                 {
+                    "command": "mssql.changeConnection",
+                    "when": "editorLangId == sql && !isInDiffEditor && resource in mssql.connections && resourcePath not in mssql.runningQueries && !mssql.hideUIElements",
+                    "group": "0_mssql"
+                },
+                {
                     "submenu": "mssql.copilot.editorSubmenu",
                     "when": "editorLangId == sql && mssql.copilot.isGHCInstalled && !mssql.hideUIElements",
                     "group": "0_mssql"
@@ -909,6 +914,10 @@
             "commandPalette": [
                 {
                     "command": "mssql.viewBackgroundTaskLogs",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.notebooks.copyCellMessages",
                     "when": "false"
                 },
                 {
@@ -1613,6 +1622,11 @@
                 "command": "mssql.notebooks.changeConnection",
                 "title": "%mssql.notebooks.changeConnection%",
                 "category": "MS SQL"
+            },
+            {
+                "command": "mssql.notebooks.copyCellMessages",
+                "title": "%mssql.notebooks.copyCellMessages%",
+                "category": "MS SQL"
             }
         ],
         "keybindings": [
@@ -1621,6 +1635,12 @@
                 "key": "ctrl+shift+e",
                 "mac": "cmd+shift+e",
                 "when": "editorTextFocus && editorLangId == 'sql' && !notebookEditorFocused"
+            },
+            {
+                "command": "notebook.cell.execute",
+                "key": "ctrl+shift+e",
+                "mac": "cmd+shift+e",
+                "when": "notebookCellListFocused && notebookMissingKernelExtension && !notebookCellExecuting && notebookCellType == 'code' || notebookCellListFocused && !notebookCellExecuting && notebookCellType == 'code' && notebookKernelCount > 0 || notebookCellListFocused && !notebookCellExecuting && notebookCellType == 'code' && notebookKernelSourceCount > 0"
             },
             {
                 "command": "mssql.connect",

@@ -1,6 +1,6 @@
 {
     "mssql.runQuery": "Execute Query (MSSQL)",
-    "mssql.runCurrentStatement": "Execute Current Statement (MSSQL)",
+    "mssql.runCurrentStatement": "Execute Selection or Current Statement (MSSQL)",
     "mssql.cancelQuery": "Cancel Query (MSSQL)",
     "mssql.revealQueryResult": "Reveal Query Result (MSSQL)",
     "mssql.toggleQueryResultPanel": "Toggle Query Result Panel Visibility (MSSQL)",
@@ -294,5 +294,6 @@
     "mssql.flatFileImport": "Import Data...",
     "mssql.notebooks.createNotebook": "New SQL Notebook",
     "mssql.notebooks.changeDatabase": "Change Notebook Database",
-    "mssql.notebooks.changeConnection": "Change Notebook Connection"
+    "mssql.notebooks.changeConnection": "Change Notebook Connection",
+    "mssql.notebooks.copyCellMessages": "Copy Cell Messages"
 }
