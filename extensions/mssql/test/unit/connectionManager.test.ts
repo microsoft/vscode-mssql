@@ -18,6 +18,7 @@ import StatusView from "../../src/views/statusView";
 import { CredentialStore } from "../../src/credentialstore/credentialstore";
 import { IConnectionProfile, IConnectionProfileWithSource } from "../../src/models/interfaces";
 import { ParseConnectionStringRequest } from "../../src/models/contracts/connection";
+import * as ConnectionContracts from "../../src/models/contracts/connection";
 import { IAccount, RequestSecurityTokenParams } from "../../src/models/contracts/azure";
 import { AzureController } from "../../src/azure/azureController";
 import { azureCloudProviderId } from "../../src/azure/providerSettings";
@@ -34,6 +35,7 @@ import { Deferred } from "../../src/protocol";
 import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import { PreviewFeature } from "../../src/previews/previewService";
+import * as vscodeEntraMfaUtils from "../../src/azure/vscodeEntraMfaUtils";
 
 chai.use(sinonChai);
 
@@ -375,6 +377,284 @@ suite("ConnectionManager Tests", () => {
             expect(
                 connectionManager["_keyVaultTokenCache"].get(JSON.stringify(params)),
             ).to.deep.equal(token, "New token should be cached");
+        });
+    });
+
+    suite("handleSecurityTokenRequest - VS Code accounts path", () => {
+        let acquireTokenStub: sinon.SinonStub;
+
+        setup(() => {
+            stubPreviewService(sandbox, {
+                [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
+            });
+            connectionManager = new ConnectionManager(
+                mockContext,
+                mockStatusView,
+                undefined,
+                mockLogger,
+                mockServiceClient,
+                mockVscodeWrapper,
+                mockConnectionStore,
+                mockCredentialStore,
+                undefined,
+                undefined,
+            );
+            acquireTokenStub = sandbox.stub(
+                vscodeEntraMfaUtils,
+                "acquireTokenFromVscodeAccountForResource",
+            );
+        });
+
+        test("should return token and expiresOn on success", async () => {
+            const expiresOn = Math.floor(Date.now() / 1000) + 3600;
+            acquireTokenStub.resolves({ token: { token: "vscode-token", expiresOn } });
+
+            const params: RequestSecurityTokenParams = {
+                accountId: "account-id",
+                tenantId: "tenant-id",
+                resource: "",
+                provider: "",
+                authority: "",
+                scopes: [],
+            };
+
+            const result = await connectionManager["handleSecurityTokenRequest"](params);
+
+            expect(result).to.deep.equal({
+                accountKey: "account-id",
+                token: "vscode-token",
+                expiresOn,
+            });
+        });
+
+        test("should return empty token on failure", async () => {
+            acquireTokenStub.rejects(new Error("auth failed"));
+
+            const params: RequestSecurityTokenParams = {
+                accountId: "account-id",
+                tenantId: "tenant-id",
+                resource: "",
+                provider: "",
+                authority: "",
+                scopes: [],
+            };
+
+            const result = await connectionManager["handleSecurityTokenRequest"](params);
+
+            expect(result).to.deep.equal({ accountKey: "", token: "", expiresOn: 0 });
+        });
+    });
+
+    suite("handleRefreshTokenNotification - legacy path (MSAL)", () => {
+        let sendNotificationStub: sinon.SinonStub;
+
+        function invokeHandler(params: ConnectionContracts.RefreshTokenParams): Promise<void> {
+            const handler = connectionManager.handleRefreshTokenNotification();
+            handler(params);
+            return new Promise((resolve) => setTimeout(resolve, 0));
+        }
+
+        function makeParams(
+            overrides: Partial<ConnectionContracts.RefreshTokenParams> = {},
+        ): ConnectionContracts.RefreshTokenParams {
+            return {
+                accountId: "account-id",
+                tenantId: "tenant-id",
+                uri: "file:///test.sql",
+                provider: "Azure",
+                resource: "SQL",
+                ...overrides,
+            };
+        }
+
+        setup(() => {
+            stubPreviewService(sandbox, {
+                [PreviewFeature.UseVscodeAccountsForEntraMFA]: false,
+            });
+            connectionManager = new ConnectionManager(
+                mockContext,
+                mockStatusView,
+                undefined,
+                mockLogger,
+                mockServiceClient,
+                mockVscodeWrapper,
+                mockConnectionStore,
+                mockCredentialStore,
+                undefined,
+                mockAccountStore,
+            );
+            sendNotificationStub = mockServiceClient.sendNotification as sinon.SinonStub;
+            sendNotificationStub.reset();
+            connectionManager["client"] = mockServiceClient;
+        });
+
+        test("happy path: sends TokenRefreshedNotification with token and expiresOn", async () => {
+            const expiresOn = Math.floor(Date.now() / 1000) + 3600;
+            const mockAccount = {
+                key: { id: "account-id", providerId: azureCloudProviderId },
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } as any;
+            mockAccountStore.getAccount.resolves(mockAccount);
+            mockAzureController.refreshAccessToken.resolves({
+                token: "refreshed-token",
+                expiresOn,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } as any);
+            connectionManager.azureController = mockAzureController;
+
+            await invokeHandler(makeParams());
+
+            expect(sendNotificationStub).to.have.been.calledOnce;
+            const [, sentParams] = sendNotificationStub.firstCall.args;
+            expect(sentParams).to.deep.equal({
+                token: "refreshed-token",
+                expiresOn,
+                uri: "file:///test.sql",
+            });
+        });
+
+        test("missing accountId: sends failure notification", async () => {
+            await invokeHandler(makeParams({ accountId: undefined }));
+
+            expect(sendNotificationStub).to.have.been.calledOnce;
+            const [, sentParams] = sendNotificationStub.firstCall.args;
+            expect(sentParams).to.deep.equal({
+                token: "",
+                expiresOn: 0,
+                uri: "file:///test.sql",
+            });
+        });
+
+        test("account not found: sends failure notification", async () => {
+            mockAccountStore.getAccount.resolves(undefined);
+
+            await invokeHandler(makeParams());
+
+            expect(sendNotificationStub).to.have.been.calledOnce;
+            const [, sentParams] = sendNotificationStub.firstCall.args;
+            expect(sentParams).to.deep.equal({
+                token: "",
+                expiresOn: 0,
+                uri: "file:///test.sql",
+            });
+        });
+
+        test("refreshAccessToken returns nothing: sends failure notification", async () => {
+            const mockAccount = {
+                key: { id: "account-id", providerId: azureCloudProviderId },
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } as any;
+            mockAccountStore.getAccount.resolves(mockAccount);
+            mockAzureController.refreshAccessToken.resolves(undefined);
+            connectionManager.azureController = mockAzureController;
+
+            await invokeHandler(makeParams());
+
+            expect(sendNotificationStub).to.have.been.calledOnce;
+            const [, sentParams] = sendNotificationStub.firstCall.args;
+            expect(sentParams).to.deep.equal({
+                token: "",
+                expiresOn: 0,
+                uri: "file:///test.sql",
+            });
+        });
+
+        test("unexpected exception: sends failure notification", async () => {
+            const mockAccount = {
+                key: { id: "account-id", providerId: azureCloudProviderId },
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } as any;
+            mockAccountStore.getAccount.resolves(mockAccount);
+            mockAzureController.refreshAccessToken.rejects(new Error("unexpected"));
+            connectionManager.azureController = mockAzureController;
+
+            await invokeHandler(makeParams());
+
+            expect(sendNotificationStub).to.have.been.calledOnce;
+            const [, sentParams] = sendNotificationStub.firstCall.args;
+            expect(sentParams).to.deep.equal({
+                token: "",
+                expiresOn: 0,
+                uri: "file:///test.sql",
+            });
+        });
+    });
+
+    suite("handleRefreshTokenNotification - VS Code accounts path", () => {
+        let sendNotificationStub: sinon.SinonStub;
+        let acquireTokenStub: sinon.SinonStub;
+
+        function invokeHandler(params: ConnectionContracts.RefreshTokenParams): Promise<void> {
+            const handler = connectionManager.handleRefreshTokenNotification();
+            handler(params);
+            return new Promise((resolve) => setTimeout(resolve, 0));
+        }
+
+        function makeParams(
+            overrides: Partial<ConnectionContracts.RefreshTokenParams> = {},
+        ): ConnectionContracts.RefreshTokenParams {
+            return {
+                accountId: "account-id",
+                tenantId: "tenant-id",
+                uri: "file:///test.sql",
+                provider: "Azure",
+                resource: "SQL",
+                ...overrides,
+            };
+        }
+
+        setup(() => {
+            stubPreviewService(sandbox, {
+                [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
+            });
+            connectionManager = new ConnectionManager(
+                mockContext,
+                mockStatusView,
+                undefined,
+                mockLogger,
+                mockServiceClient,
+                mockVscodeWrapper,
+                mockConnectionStore,
+                mockCredentialStore,
+                undefined,
+                undefined,
+            );
+            acquireTokenStub = sandbox.stub(
+                vscodeEntraMfaUtils,
+                "acquireTokenFromVscodeAccountForResource",
+            );
+            sendNotificationStub = mockServiceClient.sendNotification as sinon.SinonStub;
+            sendNotificationStub.reset();
+            connectionManager["client"] = mockServiceClient;
+        });
+
+        test("happy path: sends TokenRefreshedNotification with token and expiresOn", async () => {
+            const expiresOn = Math.floor(Date.now() / 1000) + 3600;
+            acquireTokenStub.resolves({ token: { token: "vscode-token", expiresOn } });
+
+            await invokeHandler(makeParams());
+
+            expect(sendNotificationStub).to.have.been.calledOnce;
+            const [, sentParams] = sendNotificationStub.firstCall.args;
+            expect(sentParams).to.deep.equal({
+                token: "vscode-token",
+                expiresOn,
+                uri: "file:///test.sql",
+            });
+        });
+
+        test("exception thrown: sends failure notification", async () => {
+            acquireTokenStub.rejects(new Error("token error"));
+
+            await invokeHandler(makeParams());
+
+            expect(sendNotificationStub).to.have.been.calledOnce;
+            const [, sentParams] = sendNotificationStub.firstCall.args;
+            expect(sentParams).to.deep.equal({
+                token: "",
+                expiresOn: 0,
+                uri: "file:///test.sql",
+            });
         });
     });
 
@@ -777,19 +1057,6 @@ suite("ConnectionManager Tests", () => {
         });
     });
 
-    suite("refreshEntraTokenIfNeeded - VSCode account auth", () => {
-        setup(() => {
-            const mockPrompter = sandbox.createStubInstance(TestPrompter);
-
-            connectionManager = new ConnectionManager(
-                mockContext,
-                mockStatusView,
-                mockPrompter,
-                mockLogger,
-            );
-        });
-    });
-
     suite("handlePasswordBasedCredentials", () => {
         let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
         let mockConnectionUI: sinon.SinonStubbedInstance<ConnectionUI>;
@@ -855,206 +1122,6 @@ suite("ConnectionManager Tests", () => {
             expect(creds.emptyPasswordInput).to.be.true;
             expect(creds.password).to.equal("");
             expect(creds.azureAccountToken).to.be.undefined;
-        });
-    });
-
-    suite("showValueQuickPick", () => {
-        let testConnectionManager: ConnectionManager;
-        let createQuickPickStub: sinon.SinonStub;
-        let mockQuickPick: {
-            items: unknown[];
-            selectedItems: unknown[];
-            placeholder: string;
-            onDidAccept: sinon.SinonStub;
-            onDidHide: sinon.SinonStub;
-            show: sinon.SinonStub;
-            dispose: sinon.SinonStub;
-        };
-        let acceptHandler: () => void;
-        let hideHandler: () => void;
-
-        setup(() => {
-            testConnectionManager = new ConnectionManager(
-                mockContext,
-                mockStatusView,
-                undefined, // prompter
-                mockLogger,
-            );
-
-            mockQuickPick = {
-                items: [],
-                selectedItems: [],
-                placeholder: "",
-                onDidAccept: sandbox.stub().callsFake((handler: () => void) => {
-                    acceptHandler = handler;
-                }),
-                onDidHide: sandbox.stub().callsFake((handler: () => void) => {
-                    hideHandler = handler;
-                }),
-                show: sandbox.stub(),
-                dispose: sandbox.stub(),
-            };
-
-            createQuickPickStub = sandbox
-                .stub(vscode.window, "createQuickPick")
-                .returns(mockQuickPick as unknown as vscode.QuickPick<vscode.QuickPickItem>);
-        });
-
-        test("should return value when user selects an item", async () => {
-            const value = "acc1";
-            const items = [{ label: "Alice", description: "alice@contoso.com", value }];
-
-            const resultPromise = testConnectionManager["showValueQuickPick"](
-                items,
-                "Select account",
-            );
-
-            mockQuickPick.selectedItems = [items[0]];
-            acceptHandler();
-
-            const result = await resultPromise;
-            expect(result).to.equal(value);
-            expect(createQuickPickStub).to.have.been.calledOnce;
-        });
-
-        test("should return null when user selects the sign-in sentinel item", async () => {
-            const items = [
-                {
-                    label: LocalizedConstants.Connection.signInToAzure,
-                    description: LocalizedConstants.Connection.signInToAzure,
-                    value: undefined,
-                },
-            ];
-
-            const resultPromise = testConnectionManager["showValueQuickPick"](
-                items,
-                "Select account",
-            );
-
-            mockQuickPick.selectedItems = [items[0]];
-            acceptHandler();
-
-            const result = await resultPromise;
-            expect(result).to.be.null; // .null is a chai property accessor, not a null literal
-        });
-
-        test("should return undefined when user dismisses the quick pick", async () => {
-            const items = [{ label: "Alice", description: "alice@contoso.com", value: "acc1" }];
-
-            const resultPromise = testConnectionManager["showValueQuickPick"](
-                items,
-                "Select account",
-            );
-
-            hideHandler();
-
-            const result = await resultPromise;
-            expect(result).to.be.undefined;
-        });
-
-        test("should not resolve to undefined when onDidHide fires after onDidAccept", async () => {
-            const value = "acc1";
-            const items = [{ label: "Alice", description: "alice@contoso.com", value }];
-
-            const resultPromise = testConnectionManager["showValueQuickPick"](
-                items,
-                "Select account",
-            );
-
-            mockQuickPick.selectedItems = [items[0]];
-            acceptHandler();
-            hideHandler();
-
-            const result = await resultPromise;
-            expect(result).to.equal(value);
-        });
-
-        test("should return undefined when accept fires with no selected item", async () => {
-            const items = [{ label: "Alice", description: "alice@contoso.com", value: "acc1" }];
-
-            const resultPromise = testConnectionManager["showValueQuickPick"](
-                items,
-                "Select account",
-            );
-
-            mockQuickPick.selectedItems = [];
-            acceptHandler();
-
-            const result = await resultPromise;
-            expect(result).to.be.undefined;
-        });
-    });
-
-    suite("selectAccount", () => {
-        let testConnectionManager: ConnectionManager;
-        let showValueQuickPickStub: sinon.SinonStub;
-        let onSignInStub: sinon.SinonStub;
-
-        const items = [
-            { label: "Alice", description: "alice@contoso.com", value: "acc1" },
-            {
-                label: LocalizedConstants.Connection.signInToAzure,
-                description: LocalizedConstants.Connection.signInToAzure,
-                value: undefined,
-            },
-        ];
-
-        setup(() => {
-            testConnectionManager = new ConnectionManager(
-                mockContext,
-                mockStatusView,
-                undefined, // prompter
-                mockLogger,
-            );
-
-            showValueQuickPickStub = sandbox.stub(
-                testConnectionManager as any, // eslint-disable-line @typescript-eslint/no-explicit-any
-                "showValueQuickPick",
-            );
-            onSignInStub = sandbox.stub().resolves("new1");
-        });
-
-        test("should return the selected value", async () => {
-            showValueQuickPickStub.resolves("acc1");
-
-            const result = await testConnectionManager["selectAccount"](items, onSignInStub);
-
-            expect(result).to.equal("acc1");
-            expect(onSignInStub).to.not.have.been.called;
-        });
-
-        test("should invoke onSignIn and return its value when sign-in sentinel is selected", async () => {
-            showValueQuickPickStub.resolves(null); // eslint-disable-line no-restricted-syntax
-
-            const result = await testConnectionManager["selectAccount"](items, onSignInStub);
-
-            expect(result).to.equal("new1");
-            expect(onSignInStub).to.have.been.calledOnce;
-        });
-
-        test("should throw when sign-in is selected but onSignIn throws", async () => {
-            showValueQuickPickStub.resolves(null); // eslint-disable-line no-restricted-syntax
-            onSignInStub.rejects(new Error(LocalizedConstants.Connection.noAccountSelected));
-
-            try {
-                await testConnectionManager["selectAccount"](items, onSignInStub);
-                expect.fail("Should have thrown");
-            } catch (error) {
-                expect(error.message).to.equal(LocalizedConstants.Connection.noAccountSelected);
-            }
-        });
-
-        test("should throw when user dismisses the quick pick", async () => {
-            showValueQuickPickStub.resolves(undefined);
-
-            try {
-                await testConnectionManager["selectAccount"](items, onSignInStub);
-                expect.fail("Should have thrown");
-            } catch (error) {
-                expect(error.message).to.equal(LocalizedConstants.Connection.noAccountSelected);
-            }
-
-            expect(onSignInStub).to.not.have.been.called;
         });
     });
 });
