@@ -66,6 +66,7 @@ export interface IResultSet {
 
 export interface QueryExecutionCompleteEvent {
     totalMilliseconds: string;
+    totalElapsedMilliseconds: number;
     hasError: boolean;
     isRefresh?: boolean;
 }
@@ -79,6 +80,16 @@ export interface ExecutionPlanEvent {
 
 export interface SummaryChanged extends SelectionSummary {
     uri: string;
+}
+
+function getRowsAffectedFromMessage(message: string): number | undefined {
+    const rowsAffectedMatch = message.match(/\(?\s*(\d+)\s+rows?\s+affected\s*\)?/i);
+    if (!rowsAffectedMatch?.[1]) {
+        return undefined;
+    }
+
+    const rowsAffected = Number(rowsAffectedMatch[1]);
+    return Number.isNaN(rowsAffected) ? undefined : rowsAffected;
 }
 
 export const editorEol =
@@ -456,6 +467,7 @@ export default class QueryRunner {
         this.unregisterAllNotificationUris();
         this._completeEmitter.fire({
             totalMilliseconds: Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
+            totalElapsedMilliseconds: this._totalElapsedMilliseconds,
             hasError,
         });
         sendActionEvent(
@@ -542,6 +554,7 @@ export default class QueryRunner {
     public handleMessage(obj: QueryExecuteMessageParams): void {
         let message = obj.message;
         message.time = new Date(message.time).toLocaleTimeString();
+        message.rowsAffected = getRowsAffectedFromMessage(message.message);
 
         // save the message into the batch summary so it can be restored on view refresh
         if (message.batchId >= 0 && this._batchSetMessages[message.batchId] !== undefined) {
@@ -591,6 +604,7 @@ export default class QueryRunner {
 
         this._completeEmitter.fire({
             totalMilliseconds: Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
+            totalElapsedMilliseconds: this._totalElapsedMilliseconds,
             hasError: !!error,
         });
         this.unregisterAllNotificationUris();
@@ -781,7 +795,9 @@ export default class QueryRunner {
                     // Handle cancellation from the progress dialog (user clicked cancel)
                     token?.onCancellationRequested(async () => {
                         await this._client.sendNotification(CancelCopy2Notification.type);
-                        vscode.window.showInformationMessage("Copying results cancelled");
+                        vscode.window.showInformationMessage(
+                            LocalizedConstants.QueryResult.copyingResultsCancelled,
+                        );
                         resolve(false);
                     });
 

@@ -771,12 +771,39 @@ export class LocConstants {
                         });
                 }
             },
+            rowsReturned: (rowCount: number) => {
+                switch (rowCount) {
+                    case 0:
+                        return l10n.t("0 rows returned");
+                    case 1:
+                        return l10n.t("1 row returned");
+                    default:
+                        return l10n.t({
+                            message: "{0} rows returned",
+                            args: [rowCount],
+                            comment: ["{0} is the number of rows returned"],
+                        });
+                }
+            },
+            rowsCount: (rowCount: number) => {
+                switch (rowCount) {
+                    case 0:
+                        return l10n.t("0 rows");
+                    case 1:
+                        return l10n.t("1 row");
+                    default:
+                        return l10n.t({
+                            message: "{0} rows",
+                            args: [rowCount],
+                            comment: ["{0} is the number of rows"],
+                        });
+                }
+            },
             noRowsAffected: l10n.t("No rows affected"),
             selectedItemLabel: l10n.t("Selected"),
             rowsAffectedLabel: l10n.t("Rows"),
             timeLabel: l10n.t("Time"),
             runningLabel: l10n.t("Running"),
-            executionLabel: l10n.t("Execution"),
             noSelectionSummary: l10n.t("No selection"),
             selectionSummaryCountLabel: l10n.t("Count"),
             selectionSummaryAverageLabel: l10n.t("Avg"),
@@ -787,7 +814,48 @@ export class LocConstants {
             selectionSummaryNullLabel: l10n.t("Null"),
             executionCancelled: l10n.t("Execution cancelled"),
             executionTimeUnavailable: l10n.t("Execution time unavailable"),
-            totalExecutionTimePrefix: l10n.t("Total execution time:"),
+            runningWithDuration: (duration: string) =>
+                l10n.t({
+                    message: "Running: {0}",
+                    args: [duration],
+                    comment: ["{0} is how long the query has been running"],
+                }),
+            compactMilliseconds: (milliseconds: number) =>
+                l10n.t({
+                    message: "{0}ms",
+                    args: [milliseconds],
+                    comment: ["{0} is the number of milliseconds"],
+                }),
+            compactSeconds: (seconds: number | string) =>
+                l10n.t({
+                    message: "{0}s",
+                    args: [seconds],
+                    comment: ["{0} is the number of seconds"],
+                }),
+            compactMinutes: (minutes: number) =>
+                l10n.t({
+                    message: "{0}m",
+                    args: [minutes],
+                    comment: ["{0} is the number of minutes"],
+                }),
+            compactMinutesSeconds: (minutes: number, seconds: number) =>
+                l10n.t({
+                    message: "{0}m {1}s",
+                    args: [minutes, seconds],
+                    comment: ["{0} is the number of minutes", "{1} is the number of seconds"],
+                }),
+            compactHours: (hours: number) =>
+                l10n.t({
+                    message: "{0}h",
+                    args: [hours],
+                    comment: ["{0} is the number of hours"],
+                }),
+            compactHoursMinutes: (hours: number, minutes: number) =>
+                l10n.t({
+                    message: "{0}h {1}m",
+                    args: [hours, minutes],
+                    comment: ["{0} is the number of hours", "{1} is the number of minutes"],
+                }),
             resultSet: (batchNumber: number, queryNumber: number) =>
                 l10n.t({
                     message: "Result Set Batch {0} - Query {1}",

@@ -37,7 +37,7 @@ suite("QueryResultSummaryFooter row count", () => {
     };
 
     test("returns total rows across all grids when no grid is selected", () => {
-        const result = getDisplayedRowsCount(summaries, undefined, []);
+        const result = getDisplayedRowsCount(summaries, undefined, undefined);
 
         expect(result).to.equal(42);
     });
@@ -48,18 +48,13 @@ suite("QueryResultSummaryFooter row count", () => {
             resultId: 1,
         };
 
-        const result = getDisplayedRowsCount(summaries, selectionSummary, []);
+        const result = getDisplayedRowsCount(summaries, selectionSummary, undefined);
 
         expect(result).to.equal(25);
     });
 
-    test("falls back to the latest rows affected message when no grid summaries exist", () => {
-        const messages: qr.IMessage[] = [
-            { message: "(3 rows affected)", isError: false },
-            { message: "(5 rows affected)", isError: false },
-        ];
-
-        const result = getDisplayedRowsCount({}, undefined, messages);
+    test("falls back to structured rows affected when no grid summaries exist", () => {
+        const result = getDisplayedRowsCount({}, undefined, 5);
 
         expect(result).to.equal(5);
     });

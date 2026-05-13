@@ -14,7 +14,6 @@ import {
 import { Dismiss16Regular, Settings16Regular, Settings20Regular } from "@fluentui/react-icons";
 import { useContext, useEffect, useState } from "react";
 import * as qr from "../../../sharedInterfaces/queryResult";
-import { ExecuteCommandRequest } from "../../../sharedInterfaces/webview";
 import { locConstants } from "../../common/locConstants";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 
@@ -33,7 +32,7 @@ const useStyles = makeStyles({
         border: "1px solid var(--vscode-widget-border)",
         backgroundColor: "var(--vscode-editorWidget-background)",
         color: "var(--vscode-foreground)",
-        boxShadow: "0 10px 28px rgba(0, 0, 0, 0.35)",
+        boxShadow: "0 8px 24px var(--vscode-widget-shadow)",
     },
     settingsPopoverHeader: {
         display: "flex",
@@ -123,21 +122,10 @@ export const QueryResultSettingsControl = ({
                 qr.SetOpenQueryResultsInTabByDefaultRequest.type,
                 {
                     enabled,
+                    uri,
+                    webviewLocation,
                 },
             );
-
-            if (
-                enabled &&
-                webviewLocation === qr.QueryResultWebviewLocation.Panel &&
-                Boolean(uri)
-            ) {
-                await context.extensionRpc.sendRequest(qr.OpenInNewTabRequest.type, {
-                    uri: uri!,
-                });
-                await context.extensionRpc.sendRequest(ExecuteCommandRequest.type, {
-                    command: "workbench.action.closePanel",
-                });
-            }
         } catch (e) {
             console.error(e);
             setOpenResultsInEditorTabByDefault(previousValue);
@@ -188,6 +176,7 @@ export const QueryResultSettingsControl = ({
                         </span>
                     </div>
                     <Switch
+                        aria-label={locConstants.queryResult.showResultsInEditorTab}
                         checked={openResultsInEditorTabByDefault}
                         onChange={(_event, data) => {
                             void setDefaultResultLocation(data.checked);

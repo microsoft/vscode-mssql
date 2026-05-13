@@ -571,6 +571,8 @@ export class SqlOutputContentProvider {
                     fontSettings: { fontSize: 0, fontFamily: "" },
                     isExecuting: false,
                     executionStartTime: undefined,
+                    executionElapsedMilliseconds: undefined,
+                    rowsAffected: undefined,
                 });
             });
 
@@ -583,6 +585,8 @@ export class SqlOutputContentProvider {
                 resultWebviewState.initializationError = undefined;
                 resultWebviewState.isExecuting = true;
                 resultWebviewState.executionStartTime = Date.now();
+                resultWebviewState.executionElapsedMilliseconds = undefined;
+                resultWebviewState.rowsAffected = undefined;
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
                 this.revealQueryResult(queryRunner.uri, "throw");
                 sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.OpenQueryResult, {
@@ -671,12 +675,15 @@ export class SqlOutputContentProvider {
                 );
 
                 resultWebviewState.messages.push(message);
+                if (typeof message.rowsAffected === "number") {
+                    resultWebviewState.rowsAffected = message.rowsAffected;
+                }
 
                 this.scheduleThrottledUpdate(queryRunner.uri);
             });
 
             const onCompleteListener = queryRunner.onComplete(async (e) => {
-                const { totalMilliseconds, hasError, isRefresh } = e;
+                const { totalMilliseconds, totalElapsedMilliseconds, hasError, isRefresh } = e;
                 if (!isRefresh) {
                     // only update query history with new queries
                     this._vscodeWrapper.executeCommand(
@@ -691,6 +698,7 @@ export class SqlOutputContentProvider {
                 );
                 resultWebviewState.isExecuting = false;
                 resultWebviewState.executionStartTime = undefined;
+                resultWebviewState.executionElapsedMilliseconds = totalElapsedMilliseconds;
                 resultWebviewState.messages.push({
                     message: LocalizedConstants.elapsedTimeLabel(totalMilliseconds),
                     isError: false, // Elapsed time messages are never displayed as errors

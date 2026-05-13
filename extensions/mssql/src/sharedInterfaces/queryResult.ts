@@ -86,6 +86,8 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     selectionSummary?: SelectionSummary;
     isExecuting?: boolean;
     executionStartTime?: number;
+    executionElapsedMilliseconds?: number;
+    rowsAffected?: number;
 }
 
 export interface SelectionSummaryMetrics {
@@ -156,6 +158,7 @@ export interface IMessage {
     isError: boolean;
     link?: IMessageLink;
     selection?: ISelectionData;
+    rowsAffected?: number;
 }
 
 export interface ResultSetSummary {
@@ -390,6 +393,8 @@ export namespace GetOpenQueryResultsInTabByDefaultRequest {
 
 export interface SetOpenQueryResultsInTabByDefaultParams {
     enabled: boolean;
+    uri?: string;
+    webviewLocation?: QueryResultWebviewLocation;
 }
 
 export namespace SetOpenQueryResultsInTabByDefaultRequest {

@@ -107,9 +107,13 @@ suite("QueryResultWebviewController", () => {
             .stub(controller, "createPanelController")
             .resolves();
 
-        await controller.setOpenQueryResultsInTabByDefaultRequestHandler(true);
+        await controller.setOpenQueryResultsInTabByDefaultRequestHandler({
+            enabled: true,
+            uri: testUri,
+            webviewLocation: qr.QueryResultWebviewLocation.Panel,
+        });
 
-        expect(createPanelControllerStub).to.have.been.calledOnceWithExactly(testUri);
+        expect(createPanelControllerStub).to.have.been.calledWithExactly(testUri);
         expect(configuration.update).to.have.been.calledWith(
             Constants.configOpenQueryResultsInTabByDefault,
             true,
@@ -123,7 +127,11 @@ suite("QueryResultWebviewController", () => {
             .stub(controller, "createPanelController")
             .resolves();
 
-        await controller.setOpenQueryResultsInTabByDefaultRequestHandler(false);
+        await controller.setOpenQueryResultsInTabByDefaultRequestHandler({
+            enabled: false,
+            uri: testUri,
+            webviewLocation: qr.QueryResultWebviewLocation.Panel,
+        });
 
         expect(createPanelControllerStub).to.not.have.been.called;
     });

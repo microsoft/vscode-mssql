@@ -132,24 +132,6 @@ const useStyles = makeStyles({
     },
 });
 
-function getLatestExecutionTimeMessage(messages: qr.IMessage[]): string | undefined {
-    const prefix = locConstants.queryResult.totalExecutionTimePrefix;
-    for (let i = messages.length - 1; i >= 0; i--) {
-        const text = messages[i]?.message;
-        if (!text) {
-            continue;
-        }
-        if (text.startsWith(prefix) || /execution\s+time/i.test(text)) {
-            return text;
-        }
-    }
-    return undefined;
-}
-
-function hasCancellationMessage(messages: qr.IMessage[]): boolean {
-    return messages.some((message) => /cancel(?:ed|led|ing)?/i.test(message?.message ?? ""));
-}
-
 function normalizeStatusText(text?: string): string {
     if (!text) {
         return "";
@@ -157,74 +139,39 @@ function normalizeStatusText(text?: string): string {
     return text.replace(/\$\([^)]+\)\s*/g, "").trim();
 }
 
-function normalizeExecutionText(text: string): string {
-    return text.replace(locConstants.queryResult.totalExecutionTimePrefix, "").trim();
-}
-
-function parseTimeStringToMilliseconds(value: string): number | undefined {
-    const match = value.match(/(\d+):(\d{2}):(\d{2})(?:\.(\d{1,3}))?/);
-    if (!match) {
-        return undefined;
-    }
-
-    const hours = Number(match[1]);
-    const minutes = Number(match[2]);
-    const seconds = Number(match[3]);
-    const milliseconds = Number((match[4] ?? "0").padEnd(3, "0").slice(0, 3));
-
-    if ([hours, minutes, seconds, milliseconds].some((num) => Number.isNaN(num))) {
-        return undefined;
-    }
-
-    return hours * 3600000 + minutes * 60000 + seconds * 1000 + milliseconds;
-}
-
 function formatMillisecondsCompact(milliseconds: number): string {
     if (milliseconds < 1000) {
-        return `${milliseconds}ms`;
+        return locConstants.queryResult.compactMilliseconds(milliseconds);
     }
 
     if (milliseconds < 60000) {
         const seconds = milliseconds / 1000;
-        return seconds < 10 ? `${seconds.toFixed(1)}s` : `${Math.round(seconds)}s`;
+        return locConstants.queryResult.compactSeconds(
+            seconds < 10 ? seconds.toFixed(1) : Math.round(seconds),
+        );
     }
 
     if (milliseconds < 3600000) {
         const minutes = Math.floor(milliseconds / 60000);
         const seconds = Math.round((milliseconds % 60000) / 1000);
         if (seconds === 0) {
-            return `${minutes}m`;
+            return locConstants.queryResult.compactMinutes(minutes);
         }
         if (seconds === 60) {
-            return `${minutes + 1}m`;
+            return locConstants.queryResult.compactMinutes(minutes + 1);
         }
-        return `${minutes}m ${seconds}s`;
+        return locConstants.queryResult.compactMinutesSeconds(minutes, seconds);
     }
 
     const hours = Math.floor(milliseconds / 3600000);
     const minutes = Math.round((milliseconds % 3600000) / 60000);
     if (minutes === 0) {
-        return `${hours}h`;
+        return locConstants.queryResult.compactHours(hours);
     }
     if (minutes === 60) {
-        return `${hours + 1}h`;
+        return locConstants.queryResult.compactHours(hours + 1);
     }
-    return `${hours}h ${minutes}m`;
-}
-
-function formatExecutionTextCompact(text: string): string {
-    const normalized = normalizeExecutionText(text);
-    const timeMatch = normalized.match(/\d+:\d{2}:\d{2}(?:\.\d{1,3})?/);
-    if (!timeMatch) {
-        return normalized;
-    }
-
-    const totalMilliseconds = parseTimeStringToMilliseconds(timeMatch[0]);
-    if (totalMilliseconds === undefined) {
-        return normalized;
-    }
-
-    return normalized.replace(timeMatch[0], formatMillisecondsCompact(totalMilliseconds));
+    return locConstants.queryResult.compactHoursMinutes(hours, minutes);
 }
 
 function formatRunningTimeCompact(milliseconds: number): string {
@@ -233,18 +180,22 @@ function formatRunningTimeCompact(milliseconds: number): string {
     }
 
     if (milliseconds < 60000) {
-        return `${Math.floor(milliseconds / 1000)}s`;
+        return locConstants.queryResult.compactSeconds(Math.floor(milliseconds / 1000));
     }
 
     if (milliseconds < 3600000) {
         const minutes = Math.floor(milliseconds / 60000);
         const seconds = Math.floor((milliseconds % 60000) / 1000);
-        return seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`;
+        return seconds > 0
+            ? locConstants.queryResult.compactMinutesSeconds(minutes, seconds)
+            : locConstants.queryResult.compactMinutes(minutes);
     }
 
     const hours = Math.floor(milliseconds / 3600000);
     const minutes = Math.floor((milliseconds % 3600000) / 60000);
-    return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+    return minutes > 0
+        ? locConstants.queryResult.compactHoursMinutes(hours, minutes)
+        : locConstants.queryResult.compactHours(hours);
 }
 
 type SelectionMetricKey = keyof qr.SelectionSummaryMetrics;
@@ -400,11 +351,14 @@ export const QueryResultSummaryFooter = ({
     const classes = useStyles();
     const context = useContext(QueryResultCommandsContext);
     const resultSetSummaries = useQueryResultSelector((state) => state.resultSetSummaries);
-    const messages = useQueryResultSelector((state) => state.messages);
+    const rowsAffected = useQueryResultSelector((state) => state.rowsAffected);
     const selectionSummary = useQueryResultSelector((state) => state.selectionSummary);
     const tabStates = useQueryResultSelector((state) => state.tabStates);
     const isExecuting = useQueryResultSelector((state) => state.isExecuting ?? false);
     const executionStartTime = useQueryResultSelector((state) => state.executionStartTime);
+    const executionElapsedMilliseconds = useQueryResultSelector(
+        (state) => state.executionElapsedMilliseconds,
+    );
     const [tickTimestamp, setTickTimestamp] = useState<number>(Date.now());
 
     useEffect(() => {
@@ -422,25 +376,18 @@ export const QueryResultSummaryFooter = ({
         };
     }, [isExecuting, executionStartTime]);
 
-    const rowsAffectedCount = useMemo(() => {
-        return getDisplayedRowsCount(resultSetSummaries, selectionSummary, messages);
-    }, [messages, resultSetSummaries, selectionSummary]);
+    const displayedResultRowsCount = useMemo(() => {
+        return getDisplayedRowsCount(resultSetSummaries, selectionSummary, undefined);
+    }, [resultSetSummaries, selectionSummary]);
+    const rowsCount =
+        typeof displayedResultRowsCount === "number" ? displayedResultRowsCount : rowsAffected;
 
     const rowsText =
-        typeof rowsAffectedCount === "number"
-            ? rowsAffectedCount > 0
-                ? locConstants.queryResult.rowsAffected(rowsAffectedCount)
-                : locConstants.queryResult.noRowsAffected
-            : locConstants.queryResult.noRowsAffected;
-
-    const executionTimeText = getLatestExecutionTimeMessage(messages);
-    const cancelled = hasCancellationMessage(messages);
-
-    const executionText = cancelled
-        ? executionTimeText
-            ? `${locConstants.queryResult.executionCancelled} - ${executionTimeText}`
-            : locConstants.queryResult.executionCancelled
-        : (executionTimeText ?? locConstants.queryResult.executionTimeUnavailable);
+        typeof rowsCount === "number"
+            ? typeof displayedResultRowsCount === "number"
+                ? locConstants.queryResult.rowsReturned(rowsCount)
+                : locConstants.queryResult.rowsAffected(rowsCount)
+            : locConstants.queryResult.rowsCount(0);
     const liveExecutionMilliseconds =
         isExecuting && executionStartTime
             ? Math.max(0, tickTimestamp - executionStartTime)
@@ -448,13 +395,15 @@ export const QueryResultSummaryFooter = ({
     const compactExecutionText =
         liveExecutionMilliseconds !== undefined
             ? formatRunningTimeCompact(liveExecutionMilliseconds)
-            : formatExecutionTextCompact(executionText);
+            : executionElapsedMilliseconds !== undefined
+              ? formatMillisecondsCompact(executionElapsedMilliseconds)
+              : locConstants.queryResult.executionTimeUnavailable;
     const executionTooltipText =
         liveExecutionMilliseconds !== undefined
             ? compactExecutionText === locConstants.queryResult.runningLabel
                 ? locConstants.queryResult.runningLabel
-                : `${locConstants.queryResult.runningLabel}: ${compactExecutionText}`
-            : executionText;
+                : locConstants.queryResult.runningWithDuration(compactExecutionText)
+            : compactExecutionText;
     const selectionStats = selectionSummary?.stats;
     const selectionCommand = selectionSummary?.command;
     const selectionStatusText = normalizeStatusText(selectionSummary?.text);
@@ -470,19 +419,17 @@ export const QueryResultSummaryFooter = ({
                 locConstants.queryResult.noSelectionSummary}
         </span>
     );
-    const compactRowsText =
-        typeof rowsAffectedCount === "number" ? rowsAffectedCount.toLocaleString() : "0";
+    const compactRowsText = typeof rowsCount === "number" ? rowsCount.toLocaleString() : "0";
     const isTextResultsView =
         tabStates?.resultPaneTab === qr.QueryResultPaneTabs.Results &&
         tabStates?.resultViewMode === qr.QueryResultViewMode.Text;
-    const isMessagesPane = tabStates?.resultPaneTab === qr.QueryResultPaneTabs.Messages;
 
-    if (isTextResultsView || isMessagesPane) {
+    if (isTextResultsView) {
         return <Fragment />;
     }
 
     return (
-        <div className={classes.footer}>
+        <div className={classes.footer} role="status" aria-live={isExecuting ? "off" : "polite"}>
             {!hideMetrics && (
                 <div className={classes.metricsGroup}>
                     <div className={classes.metric}>
@@ -502,8 +449,7 @@ export const QueryResultSummaryFooter = ({
                             withArrow
                             relationship="description"
                             content={executionTooltipText}>
-                            <span
-                                className={`${classes.value} ${classes.timeAccent} ${cancelled ? classes.cancelled : ""}`}>
+                            <span className={`${classes.value} ${classes.timeAccent}`}>
                                 {compactExecutionText}
                             </span>
                         </Tooltip>

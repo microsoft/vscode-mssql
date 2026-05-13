@@ -1438,6 +1438,7 @@ export class QueryResult {
     public static queryResultPanelFailedToLoad = l10n.t(
         "The query results panel failed to load. Please try running the query again.",
     );
+    public static copyingResultsCancelled = l10n.t("Copying results cancelled");
 }
 
 export class LocalContainers {

@@ -90,9 +90,7 @@ export function registerCommonRequestHandlers(
     webviewController.onRequest(
         qr.SetOpenQueryResultsInTabByDefaultRequest.type,
         async (message) => {
-            await webviewViewController.setOpenQueryResultsInTabByDefaultRequestHandler(
-                message.enabled,
-            );
+            await webviewViewController.setOpenQueryResultsInTabByDefaultRequestHandler(message);
         },
     );
 

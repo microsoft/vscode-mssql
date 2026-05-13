@@ -90,28 +90,10 @@ function getActiveResultSetRowCount(
     return undefined;
 }
 
-function getRowsAffectedFromMessages(messages: qr.IMessage[]): number | undefined {
-    const rowsAffectedRegex = /\(?\s*(\d+)\s+rows?\s+affected\s*\)?/i;
-    for (let i = messages.length - 1; i >= 0; i--) {
-        const text = messages[i]?.message;
-        if (!text) {
-            continue;
-        }
-        const match = text.match(rowsAffectedRegex);
-        if (match && match[1] !== undefined) {
-            const parsed = Number(match[1]);
-            if (!Number.isNaN(parsed)) {
-                return parsed;
-            }
-        }
-    }
-    return undefined;
-}
-
 export function getDisplayedRowsCount(
     summaries: Record<number, Record<number, qr.ResultSetSummary>>,
     selectionSummary: qr.SelectionSummary | undefined,
-    messages: qr.IMessage[],
+    rowsAffected: number | undefined,
 ): number | undefined {
     const activeResultRowCount = getActiveResultSetRowCount(summaries, selectionSummary);
     if (typeof activeResultRowCount === "number") {
@@ -123,5 +105,5 @@ export function getDisplayedRowsCount(
         return totalResultRowCount;
     }
 
-    return getRowsAffectedFromMessages(messages);
+    return rowsAffected;
 }

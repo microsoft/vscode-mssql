@@ -58,6 +58,8 @@ export class QueryResultWebviewController extends WebviewViewController<
             gridSettings: {},
             autoSizeColumnsMode: qr.ResultsGridAutoSizeStyle.HeadersAndData,
             isExecuting: false,
+            executionElapsedMilliseconds: undefined,
+            rowsAffected: undefined,
         });
 
         void this.initialize();
@@ -198,13 +200,13 @@ export class QueryResultWebviewController extends WebviewViewController<
     private get isOpenQueryResultsInTabByDefaultEnabled(): boolean {
         return this.vscodeWrapper
             .getConfiguration()
-            .get(Constants.configOpenQueryResultsInTabByDefault);
+            .get<boolean>(Constants.configOpenQueryResultsInTabByDefault, false);
     }
 
     private get isDefaultQueryResultToDocumentDoNotShowPromptEnabled(): boolean {
         return this.vscodeWrapper
             .getConfiguration()
-            .get(Constants.configOpenQueryResultsInTabByDefaultDoNotShowPrompt);
+            .get<boolean>(Constants.configOpenQueryResultsInTabByDefaultDoNotShowPrompt, false);
     }
 
     private get shouldShowDefaultQueryResultToDocumentPrompt(): boolean {
@@ -277,6 +279,8 @@ export class QueryResultWebviewController extends WebviewViewController<
             isExecutionPlan: false,
             executionPlanState: {},
             isExecuting: false,
+            executionElapsedMilliseconds: undefined,
+            rowsAffected: undefined,
             fontSettings: {
                 fontSize: this.getFontSizeConfig(),
                 fontFamily: this.getFontFamilyConfig(),
@@ -381,6 +385,8 @@ export class QueryResultWebviewController extends WebviewViewController<
             autoSizeColumnsMode: this.getAutoSizeColumnsConfig(),
             inMemoryDataProcessingThreshold: getInMemoryGridDataProcessingThreshold(),
             isExecuting: false,
+            executionElapsedMilliseconds: undefined,
+            rowsAffected: undefined,
         } as qr.QueryResultWebviewState;
         this._queryResultStateMap.set(uri, currentState);
     }
@@ -644,12 +650,19 @@ export class QueryResultWebviewController extends WebviewViewController<
             .get<boolean>(Constants.configOpenQueryResultsInTabByDefault, false);
     }
 
-    public async setOpenQueryResultsInTabByDefaultRequestHandler(enabled: boolean): Promise<void> {
+    public async setOpenQueryResultsInTabByDefaultRequestHandler(
+        params: qr.SetOpenQueryResultsInTabByDefaultParams,
+    ): Promise<void> {
+        const { enabled, uri, webviewLocation } = params;
         const configuration = this.vscodeWrapper.getConfiguration();
         const previousValue = configuration.get<boolean>(
             Constants.configOpenQueryResultsInTabByDefault,
             false,
         );
+
+        if (enabled && webviewLocation === qr.QueryResultWebviewLocation.Panel && uri) {
+            await this.createPanelController(uri);
+        }
 
         await configuration.update(
             Constants.configOpenQueryResultsInTabByDefault,
@@ -663,10 +676,6 @@ export class QueryResultWebviewController extends WebviewViewController<
             true,
             vscode.ConfigurationTarget.Global,
         );
-
-        if (enabled) {
-            await this.moveCurrentPanelResultToDocumentTab();
-        }
 
         sendActionEvent(
             TelemetryViews.QueryResult,
