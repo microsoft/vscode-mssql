@@ -379,6 +379,11 @@ export namespace SchemaDesigner {
         definitionKind?: DefinitionKind;
     }
 
+    export interface AddDefinitionToWorkspaceOptions {
+        updatedSchema: Schema;
+        definitionKind: DefinitionKind;
+    }
+
     export interface SchemaDesignerReducers {
         exportToFile: ExportFileOptions;
         getScript: GetScriptOptions;
@@ -424,6 +429,12 @@ export namespace SchemaDesigner {
     }
     export namespace OpenInEditorNotification {
         export const type = new NotificationType<OpenInEditorOptions>("openInEditor");
+    }
+
+    export namespace AddDefinitionToWorkspaceNotification {
+        export const type = new NotificationType<AddDefinitionToWorkspaceOptions>(
+            "addDefinitionToWorkspace",
+        );
     }
 
     export namespace CopyToClipboardNotification {

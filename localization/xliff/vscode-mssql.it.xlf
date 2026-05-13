@@ -279,6 +279,10 @@
         <source xml:lang="en">Add to VS Code</source>
         <target state="translated">Aggiungere a VS Code</target>
       </trans-unit>
+      <trans-unit id="++CODE++dcc475b31b6d6d1bc68eede1badaf4b6af93c3683fe3a25ae08c8544b572e7fa">
+        <source xml:lang="en">Add to workspace</source>
+        <target state="translated">Aggiungi all'area di Lavoro</target>
+      </trans-unit>
       <trans-unit id="++CODE++6b02e0d363a4af1c95eef50364bb0202c8b250aa05a48a69e68fd7787b4b0632">
         <source xml:lang="en">Added</source>
         <target state="translated">Aggiunto</target>
@@ -890,9 +894,9 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Build APIs with GitHub Copilot</source>
         <target state="translated">Crea API con GitHub Copilot</target>
       </trans-unit>
-      <trans-unit id="++CODE++0b7fa74a368845afd65888dc1e437a2afe5a96728dd43433760a2fe01c167033">
-        <source xml:lang="en">Build Data API (Preview)</source>
-        <target state="translated">Compila API Dati (anteprima)</target>
+      <trans-unit id="++CODE++8e86ef922196322045f4a646ef811f7df15a59da3a33b8180732d68155a7a652">
+        <source xml:lang="en">Build Data API</source>
+        <target state="translated">Compila API Dati</target>
       </trans-unit>
       <trans-unit id="++CODE++00ea757097babdd3471ed3dbcef6f4a33b46658dfb023aa009b53fa1dd0ae30c">
         <source xml:lang="en">Build failed with exit code {0}</source>
@@ -908,7 +912,7 @@ Seleziona "{0}" per stabilire una connessione.</target>
       </trans-unit>
       <trans-unit id="++CODE++24908cc5593d5d8ea1f67ad6b873dd49a8a045f441e35de15d8041d2caccfa93">
         <source xml:lang="en">Bulk Actions</source>
-        <target state="new">Bulk Actions</target>
+        <target state="translated">Azioni in blocco</target>
       </trans-unit>
       <trans-unit id="++CODE++6f52d618fb243f0ae137c3c850eb0bda8b347766a553b613fc210f6eb6bb5c97">
         <source xml:lang="en">Bulk-logged</source>
@@ -2223,9 +2227,9 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Data API builder</source>
         <target state="translated">Generatore di API dati</target>
       </trans-unit>
-      <trans-unit id="++CODE++817f5f09a6d707d92c3926808ded36489dab38b529e972985cf5314eac7dbdbb">
-        <source xml:lang="en">Data API builder Configuration (Preview)</source>
-        <target state="translated">Configurazione del generatore di API dati (anteprima)</target>
+      <trans-unit id="++CODE++2154b11388f741094808a9e344ab0be7e4be3d2a989551deec3b43f35fc729e3">
+        <source xml:lang="en">Data API builder Configuration</source>
+        <target state="translated">Configurazione del generatore di API dati</target>
       </trans-unit>
       <trans-unit id="++CODE++18c1620276c4ac7ddaec590de6087601cbfad39f0ef20e19c41db887fb760c00">
         <source xml:lang="en">Data API builder opened. Continue with {0} operations ({1}/{2}).</source>
@@ -2483,9 +2487,9 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Design API</source>
         <target state="translated">API di progettazione</target>
       </trans-unit>
-      <trans-unit id="++CODE++b14075f1961f95a9c65c61d8e0da7d32280678ff775e70b6c74a8c4966097838">
-        <source xml:lang="en">Design Schemas with GitHub Copilot (Preview)</source>
-        <target state="translated">Progetta schemi con GitHub Copilot (anteprima)</target>
+      <trans-unit id="++CODE++064ff20a39b16a49639c1d176496eb3078f7a0629c7bf854eb5021fc5a20aef8">
+        <source xml:lang="en">Design Schemas with GitHub Copilot</source>
+        <target state="translated">Progettare schemi con GitHub Copilot</target>
       </trans-unit>
       <trans-unit id="++CODE++45989de49fb7f66dfe17a8fc26f3a02c7abcd74f7e8e6cf9f39fa0e3775780df">
         <source xml:lang="en">Details</source>
@@ -2517,7 +2521,7 @@ Seleziona "{0}" per stabilire una connessione.</target>
       </trans-unit>
       <trans-unit id="++CODE++3583e2d377f9ee2c31596d15752d65fddec82de715720b2c43fad0756d6fda28">
         <source xml:lang="en">Disable all entities</source>
-        <target state="new">Disable all entities</target>
+        <target state="translated">Disabilita tutte le entità</target>
       </trans-unit>
       <trans-unit id="++CODE++6fbed214e0ea21c683db0ba2d648ef09b11edf4b4bb23835d4fdda84b5d097f3">
         <source xml:lang="en">Disable intellisense and syntax error checking on current document</source>
@@ -2596,6 +2600,10 @@ Seleziona "{0}" per stabilire una connessione.</target>
       <trans-unit id="++CODE++79520a5688933d6fc7b0f540292cbbfb2898a9edc2d85d0ee231b6ed63adaad1">
         <source xml:lang="en">Do you want to always display query results in a new tab instead of the query pane?</source>
         <target state="translated">Visualizzare sempre i risultati della query in una nuova scheda anziché nel riquadro query?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3c96c6d1388e41b0724659fa022b1843dea4a84d175a1d571bf72382fc0c3581">
+        <source xml:lang="en">Do you want to enable 'Trust server certificate' on this connection and retry?</source>
+        <target state="translated">Abilitare 'Certificato del server attendibile' in questa connessione e riprovare?</target>
       </trans-unit>
       <trans-unit id="++CODE++f1286712850b10aee8607a93c2120e10316b5962b73c377860cd5cded5b98184">
         <source xml:lang="en">Docker Desktop must be installed and running on your machine.</source>
@@ -2738,11 +2746,11 @@ Seleziona "{0}" per stabilire una connessione.</target>
       </trans-unit>
       <trans-unit id="++CODE++efa7adedb651f5d8d6be99873aeb53ef49aa29f82f94aeaab24cd02f25ca6305">
         <source xml:lang="en">Enable all CRUD operations</source>
-        <target state="new">Enable all CRUD operations</target>
+        <target state="translated">Abilita tutte le operazioni CRUD</target>
       </trans-unit>
       <trans-unit id="++CODE++f4d8932f5f8ab4e79333deaf1d97a78038f5a4aea29334fd307612e1586d08a6">
         <source xml:lang="en">Enable all entities</source>
-        <target state="new">Enable all entities</target>
+        <target state="translated">Abilita tutte le entità</target>
       </trans-unit>
       <trans-unit id="++CODE++c60bd510aadca4cca8a64d535f63600d29ea21be9532ea0fa74c907d5c676311">
         <source xml:lang="en">Enable all rules in {0}</source>
@@ -2787,9 +2795,9 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or enable 'Trust server certificate' in the connection dialog.</source>
         <target state="translated">La crittografia è stata abilitata in questa connessione; esaminare la configurazione del certificato e SSL per l’SQL Server di destinazione o abilitare 'Considera attendibile il certificato del server' nella finestra di dialogo di connessione.</target>
       </trans-unit>
-      <trans-unit id="++CODE++a04452986b48c7c3c21f78712b31a68f2aecb85566c134d87d55348c7b16b9a8">
-        <source xml:lang="en">Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?</source>
-        <target state="translated">La crittografia è stata abilitata in questa connessione; rivedere la configurazione SSL e del certificato per SQL Server di destinazione o impostare 'Certificato del server attendibile' su 'true' nel file delle impostazioni. Nota: un certificato autofirmato offre solo una protezione limitata e non è consigliato per gli ambienti di produzione. Abilitare 'Certificato del server attendibile' in questa connessione e riprovare?</target>
+      <trans-unit id="++CODE++e03c1fa5598b1caba263d99a4896ddba797148eaca638348d48aa792db57f71e">
+        <source xml:lang="en">Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true'. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments.</source>
+        <target state="translated">La crittografia è stata abilitata in questa connessione; rivedere la configurazione SSL e del certificato per SQL Server di destinazione o impostare 'Certificato del server attendibile' su 'true'. Nota: un certificato autofirmato offre solo una protezione limitata e non è una procedura consigliata per gli ambienti di produzione.</target>
       </trans-unit>
       <trans-unit id="++CODE++6051d2070e8e51a99adfa6b3f5171cfa92107943f46417bcd51a8f5e995c881f">
         <source xml:lang="en">End IP Address</source>
@@ -3282,7 +3290,7 @@ Errore:
       <trans-unit id="++CODE++7758738264236e2f15e315d6e6ebca6fb9192ce031207744cc9bdd4a5a052817">
         <source xml:lang="en">Expose {0}</source>
         <note>{0} is the backing database column name</note>
-        <target state="new">Expose {0}</target>
+        <target state="translated">Esponi {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++c67415bcff328a59fd399e2a7ca9691e0044192fb7480ae501644339965d046d">
         <source xml:lang="en">Expression</source>
@@ -3358,6 +3366,11 @@ Errore:
       <trans-unit id="++CODE++3927725937fc2d8467f978ee4999cb561f8e2ab71290423f122a8dc95f4f2e51">
         <source xml:lang="en">Failed to add table.</source>
         <target state="translated">Non è possibile aggiungere la tabella.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++49ef2a693ef05aa09893afe15b7f44c2c94cd84039e438baa9c76e7130c9baf7">
+        <source xml:lang="en">Failed to add text to workspace: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="translated">Non è stato possibile aggiungere testo all'area di lavoro: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++65b387854eab2ea5751dfeaf4b61e988e28642ef25dc8c09b8bd4e4ee99f6372">
         <source xml:lang="en">Failed to apply changes: '{0}'</source>
@@ -4084,6 +4097,11 @@ Errore:
         <source xml:lang="en">Generate sqlpackage command</source>
         <target state="translated">Generare il comando sqlpackage</target>
       </trans-unit>
+      <trans-unit id="++CODE++2617124e87bf1506e42eea651c54fa179c29090a0a58e9829860984f03eca2fa">
+        <source xml:lang="en">Generated file added to {0}</source>
+        <note>{0} is the generated file path</note>
+        <target state="translated">File generato aggiunto a {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++15bb1f371098735851e4d1d531c37e3652b2ceaf16055231f0a38312650cb08b">
         <source xml:lang="en">Generating Report. This may take a while...</source>
         <target state="translated">È in corso la generazione del report. L'operazione potrebbe richiedere del tempo...</target>
@@ -4405,9 +4423,9 @@ Errore:
         <source xml:lang="en">In progress</source>
         <target state="translated">In corso</target>
       </trans-unit>
-      <trans-unit id="++CODE++8a95be6d8f6c4312ed4415b9bde10c28f765b025b375245f7f53575ccbe94183">
-        <source xml:lang="en">In the Data API builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.</source>
-        <target state="translated">Nell'esperienza del generatore di API dati (anteprima), la distribuzione del contenitore locale è disponibile solo per le connessioni che utilizzano l'autenticazione SQL. Il tipo di connessione corrente non è supportato.</target>
+      <trans-unit id="++CODE++353bfeffa4a99ec1426a2426a764e92e5b9c2f00db3bf837d8f5a1e4f486117a">
+        <source xml:lang="en">In the Data API builder experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.</source>
+        <target state="translated">Nell'esperienza del generatore di API dati, la distribuzione del contenitore locale è disponibile solo per le connessioni che utilizzano l'autenticazione SQL. Il tipo di connessione corrente non è supportato.</target>
       </trans-unit>
       <trans-unit id="++CODE++7285576bdacf86fe37274d3d0d399c29b4be2959005f60ac0729615d8fca9186">
         <source xml:lang="en">Include</source>
@@ -4419,7 +4437,7 @@ Errore:
       </trans-unit>
       <trans-unit id="++CODE++224b991b88c5510627611bdb43e5a500f1660e212e0e74ed34dc53be87699169">
         <source xml:lang="en">Include all columns</source>
-        <target state="new">Include all columns</target>
+        <target state="translated">Includi tutte le colonne</target>
       </trans-unit>
       <trans-unit id="++CODE++ac665fafc5f9732c9d322749a1f726be51f8b31d2ec83ecde83a6e1d2b632eda">
         <source xml:lang="en">Include all object types</source>
@@ -4993,7 +5011,7 @@ Errore:
       </trans-unit>
       <trans-unit id="++CODE++af56abadd6f783641801adf6ed9b7d1fcf4b7a5d207dab320252520f49d4894f">
         <source xml:lang="en">Make everything read-only</source>
-        <target state="new">Make everything read-only</target>
+        <target state="translated">Imposta tutto in sola lettura</target>
       </trans-unit>
       <trans-unit id="++CODE++614e5389e87ce465fe548a0665aeaa67a52a06ff792f2f791615cd37fb610178">
         <source xml:lang="en">Manage Connection Profiles</source>
@@ -5694,6 +5712,10 @@ Errore:
       <trans-unit id="++CODE++751ae077912b834895870d0d5210c09ca02659375aab7843a26689a7aa50a0fc">
         <source xml:lang="en">No workspace folder is open. Open a folder to add the MCP server configuration.</source>
         <target state="translated">Non è aperta alcuna cartella dell'area di lavoro. Aprire una cartella per aggiungere la configurazione del server MCP.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2e2fde2243e1e09534c9955387549ec84e351284a8ef12942f9d1cbab4a58039">
+        <source xml:lang="en">No workspace folder is open. Open a folder to add the generated file.</source>
+        <target state="translated">Non è aperta alcuna cartella dell'area di lavoro. Aprire una cartella per aggiungere il file generato.</target>
       </trans-unit>
       <trans-unit id="++CODE++1507d637b267b1f20c1238414d7e51458fe7d6b98b292a8497d9982634fbe83c">
         <source xml:lang="en">No workspaces found</source>
@@ -8070,6 +8092,10 @@ Query: {2}</target>
         <source xml:lang="en">Synchronous resize</source>
         <target state="translated">Ridimensionamento sincrono</target>
       </trans-unit>
+      <trans-unit id="++CODE++ec45cfbf2af59ce8d7cc24d91cb00575e3c328bbb4101a8af85ef66b04333d36">
+        <source xml:lang="en">System databases</source>
+        <target state="translated">Database di sistema</target>
+      </trans-unit>
       <trans-unit id="++CODE++b27ba710997adaf6099374edb801d44bef36c92e6d37e0190c7c1d12d4b32209">
         <source xml:lang="en">T-SQL</source>
         <target state="translated">T-SQL</target>
@@ -8480,7 +8506,7 @@ Query: {2}</target>
       <trans-unit id="++CODE++c7b96245094d8cc24762fbd0211e44291f3224450089189c452ce1985982dd94">
         <source xml:lang="en">Toggle columns for {0}</source>
         <note>{0} is the entity name</note>
-        <target state="new">Toggle columns for {0}</target>
+        <target state="translated">Attiva/disattiva colonne per {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++ffe32a004b062d5e8252cac4729963ba6ff129023ea0b33c6aa3f0a9e725f157">
         <source xml:lang="en">Toggle dark mode</source>
@@ -8577,6 +8603,11 @@ Query: {2}</target>
       <trans-unit id="++CODE++4355e7352a614a58a8051157468baaf1102b9be2bdc6334597a8298aefbfbed6">
         <source xml:lang="en">Unable to load backup configuration. Please try again.</source>
         <target state="translated">Non è possibile caricare la configurazione di backup. Riprovare.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c8a8ab1cef4a26f5a47e6aff86611314a34effe284539cfe1421067648432eab">
+        <source xml:lang="en">Unable to load database list from server: {0}</source>
+        <note>{0} is the connection error message</note>
+        <target state="translated">Impossibile caricare l'elenco di database dal server: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++955b62784673f0081b2a54d867245fa50ca1e830cea22348ff69caa6317e7889">
         <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>
@@ -8745,6 +8776,10 @@ Query: {2}</target>
         <source xml:lang="en">User ID</source>
         <target state="translated">ID utente</target>
       </trans-unit>
+      <trans-unit id="++CODE++7b2227d51ac2087125e6e9ef2fff2d56b0f6bf97b6698bf014026833e0e43cba">
+        <source xml:lang="en">User databases</source>
+        <target state="translated">Database utente</target>
+      </trans-unit>
       <trans-unit id="++CODE++b82e11da3bc16786000d6e008e038f4d0272163a6476e0ca3c4b29d958051f9c">
         <source xml:lang="en">User name</source>
         <target state="translated">Nome utente</target>
@@ -8880,9 +8915,9 @@ Query: {2}</target>
         <source xml:lang="en">Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.</source>
         <target state="translated">È necessario riavviare Visual Studio Code per rendere effettiva questa impostazione.  Ricaricare Visual Studio Code.</target>
       </trans-unit>
-      <trans-unit id="++CODE++49a6dfed78fc8f501d94e0e7ce6d4f31c023a1a68b946f5faab2cba9950bf29c">
-        <source xml:lang="en">Visualize and Design Schema (Preview)</source>
-        <target state="translated">Visualizza e progetta schema (anteprima)</target>
+      <trans-unit id="++CODE++eab0f257866b670694bf52eec427b7799ca53883151d4d4526b0e57660ce65ab">
+        <source xml:lang="en">Visualize and Design Schema</source>
+        <target state="translated">Visualizza e progetta schema</target>
       </trans-unit>
       <trans-unit id="++CODE++e981ddae45d8f4ca53f1ccbe613ad254a041dacf65a06026099a6302d332113b">
         <source xml:lang="en">Warning</source>
@@ -9279,7 +9314,7 @@ Query: {2}</target>
       <trans-unit id="++CODE++8ee4e65df77291c702e67b2a14060cddd3d53d15c05a64ed6a95e8ef5c53441b">
         <source xml:lang="en">{0} is a primary key column and can't be disabled.</source>
         <note>{0} is the backing database column name</note>
-        <target state="new">{0} is a primary key column and can't be disabled.</target>
+        <target state="translated">{0} è una colonna chiave primaria e non può essere disabilitata.</target>
       </trans-unit>
       <trans-unit id="++CODE++e3620e8a37371c6057d768faed05a7608c6e5ee783372a58b137b047300e8b7a">
         <source xml:lang="en">{0} issue</source>
@@ -9560,8 +9595,8 @@ Query: {2}</target>
         <target state="translated">Backup database...</target>
       </trans-unit>
       <trans-unit id="mssql.buildDataApi">
-        <source xml:lang="en">Build Data API (Preview)...</source>
-        <target state="translated">Compilare API Dati (anteprima)...</target>
+        <source xml:lang="en">Build Data API...</source>
+        <target state="translated">Generazione di API dati...</target>
       </trans-unit>
       <trans-unit id="mssql.cancelConnect">
         <source xml:lang="en">Cancel Connection (MSSQL)</source>
@@ -10022,8 +10057,8 @@ Puoi connetterti a un database immettendo le informazioni di connessione, usando
         <target state="translated">Nuova query</target>
       </trans-unit>
       <trans-unit id="mssql.notebooks.createNotebook">
-        <source xml:lang="en">New SQL Notebook (Preview)</source>
-        <target state="translated">Nuovo notebook SQL (anteprima)</target>
+        <source xml:lang="en">New SQL Notebook</source>
+        <target state="translated">Nuovo notebook SQL</target>
       </trans-unit>
       <trans-unit id="mssql.newTable">
         <source xml:lang="en">New Table</source>
@@ -10454,8 +10489,8 @@ Visualizza il piano stimato senza eseguire la query oppure visualizza il piano d
         <target state="translated">Visualizza un piano di query</target>
       </trans-unit>
       <trans-unit id="mssql.schemaDesigner">
-        <source xml:lang="en">Visualize and Design Schema (Preview)...</source>
-        <target state="translated">Visualizza e progetta schema (anteprima)...</target>
+        <source xml:lang="en">Visualize and Design Schema...</source>
+        <target state="translated">Visualizzare e progettare schema...</target>
       </trans-unit>
       <trans-unit id="mssql.transferActiveEditorConnections.description">
         <source xml:lang="en">When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.</source>
@@ -10468,6 +10503,10 @@ Visualizza il piano stimato senza eseguire la query oppure visualizza il piano d
       <trans-unit id="mssql.objectExplorer.collapseConnectionGroupsOnStartupDescription">
         <source xml:lang="en">When enabled, connection groups will be collapsed instead of expanded at startup.</source>
         <target state="translated">Se questa opzione è abilitata, i gruppi di connessione verranno compressi anziché espansi all'avvio.</target>
+      </trans-unit>
+      <trans-unit id="mssql.results.openAfterSave">
+        <source xml:lang="en">When enabled, saved query result exports are opened after export. Excel exports open with the system file handler; text exports open in VS Code.</source>
+        <target state="translated">Se abilitato, le esportazioni dei risultati delle query salvate vengono aperte dopo l'esportazione. Le esportazioni di Excel si aprono con il gestore di file di sistema; le esportazioni di testo si aprono in VS Code.</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>

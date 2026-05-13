@@ -637,7 +637,9 @@ export default class ConnectionManager {
         reconnectAction: IReconnectAction,
     ): Promise<void> {
         const selection = await this.vscodeWrapper.showWarningMessageAdvanced(
-            LocalizedConstants.msgPromptSSLCertificateValidationFailed,
+            LocalizedConstants.Connection.trustServerCertificateMustBeEnabledMessage +
+                " " +
+                LocalizedConstants.Connection.trustServerCertificateMustBeEnabledPrompt,
             { modal: false },
             [
                 LocalizedConstants.enableTrustServerCertificate,

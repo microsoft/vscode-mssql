@@ -266,6 +266,7 @@ export const configMyConnections = "connections";
 export const configSaveAsCsv = "saveAsCsv";
 export const configSaveAsJson = "saveAsJson";
 export const configSaveAsExcel = "saveAsExcel";
+export const configResultsOpenAfterSave = "results.openAfterSave";
 export const configRecentConnections = "recentConnections";
 export const configMaxRecentConnections = "maxRecentConnections";
 export const configCopyRemoveNewLine = "copyRemoveNewLine";

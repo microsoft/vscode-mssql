@@ -394,6 +394,19 @@ export namespace Dab {
     }
 
     /**
+     * Notification to add the generated config to the open workspace.
+     */
+    export interface AddConfigToWorkspaceParams {
+        configContent: string;
+    }
+
+    export namespace AddConfigToWorkspaceNotification {
+        export const type = new NotificationType<AddConfigToWorkspaceParams>(
+            "dab/addConfigToWorkspace",
+        );
+    }
+
+    /**
      * Notification to open deployment logs in a new tab.
      */
     export interface OpenLogsInNewTabParams {
