@@ -5,15 +5,16 @@
 
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import { useTableExplorerContext } from "./TableExplorerStateProvider";
-import { TableDataGrid, TableDataGridRef, AppliedSortColumn } from "./TableDataGrid";
+import { TableDataGrid, TableDataGridRef } from "./TableDataGrid";
 import { TableExplorerToolbar } from "./TableExplorerToolbar";
+import { TableExplorerFilterBar } from "./TableExplorerFilterBar";
 import {
-    TableExplorerFilterBar,
     AppliedFilter,
+    AppliedSortColumn,
     composeFilteredQuery,
     composeSortedQuery,
     stripTrailingOrderByAndSemicolon,
-} from "./TableExplorerFilterBar";
+} from "../../../tableExplorer/tableQueryComposer";
 import {
     DefinitionPanel,
     DefinitionPanelCustomTab,

@@ -22,7 +22,10 @@ import {
     CurrentSorter,
 } from "slickgrid-react";
 import { FluentCompoundFilter } from "./fluentCompoundFilter";
-import { stripTrailingOrderByAndSemicolon } from "./TableExplorerFilterBar";
+import {
+    AppliedSortColumn,
+    stripTrailingOrderByAndSemicolon,
+} from "../../../tableExplorer/tableQueryComposer";
 import { EditSubsetResult, ExportData } from "../../../sharedInterfaces/tableExplorer";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { locConstants as loc } from "../../common/locConstants";
@@ -34,10 +37,7 @@ import {
     FluentSlickGrid,
 } from "../../common/FluentSlickGrid/FluentSlickGrid";
 
-export interface AppliedSortColumn {
-    columnName: string;
-    sortAsc: boolean;
-}
+export type { AppliedSortColumn };
 
 interface TableDataGridProps {
     resultSet: EditSubsetResult | undefined;
