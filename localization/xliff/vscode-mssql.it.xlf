@@ -9940,13 +9940,13 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
         <source xml:lang="en">Estimated Plan (MSSQL)</source>
         <target state="translated">Piano stimato (MSSQL)</target>
       </trans-unit>
-      <trans-unit id="mssql.runCurrentStatement">
-        <source xml:lang="en">Execute Current Statement (MSSQL)</source>
-        <target state="translated">Esegui istruzione corrente (MSSQL)</target>
-      </trans-unit>
       <trans-unit id="mssql.runQuery">
         <source xml:lang="en">Execute Query (MSSQL)</source>
         <target state="translated">Esegui query (MSSQL)</target>
+      </trans-unit>
+      <trans-unit id="mssql.runCurrentStatement">
+        <source xml:lang="en">Execute Selection or Current Statement (MSSQL)</source>
+        <target state="new">Execute Selection or Current Statement (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.explainQuery">
         <source xml:lang="en">Explain Query</source>
