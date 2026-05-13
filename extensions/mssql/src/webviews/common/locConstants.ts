@@ -2036,7 +2036,7 @@ export class LocConstants {
             openSqlInEditor: l10n.t("Open the generated SELECT statement in a new editor"),
             filters: l10n.t("Filters"),
             filtersTooltip: l10n.t("Add filters to modify the SQL query"),
-            filterWhere: l10n.t("where"),
+            filterWhere: l10n.t("WHERE"),
             filterAnd: l10n.t("and"),
             filterOr: l10n.t("or"),
             filterConjunction: l10n.t("Conjunction"),

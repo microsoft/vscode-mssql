@@ -15,6 +15,9 @@ import {
     MenuPopover,
     MenuTrigger,
     SplitButton,
+    makeStyles,
+    shorthands,
+    tokens,
 } from "@fluentui/react-components";
 import {
     SaveRegular,
@@ -33,6 +36,19 @@ import { useTableExplorerContext } from "./TableExplorerStateProvider";
 import { useTableExplorerSelector } from "./tableExplorerSelector";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import type { DataColumnVisibility } from "./TableDataGrid";
+
+const useStyles = makeStyles({
+    filterButtonActive: {
+        backgroundColor: tokens.colorNeutralBackground1,
+        ...shorthands.border("1px", "solid", tokens.colorNeutralStroke1),
+        ":hover": {
+            backgroundColor: tokens.colorNeutralBackground1Hover,
+        },
+        ":hover:active": {
+            backgroundColor: tokens.colorNeutralBackground1Pressed,
+        },
+    },
+});
 
 interface TableExplorerToolbarProps {
     onSaveComplete?: () => void;
@@ -123,6 +139,7 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
     filtersOpen = false,
 }) => {
     const context = useTableExplorerContext();
+    const styles = useStyles();
     const DEFAULT_ROW_COUNT = 100;
     const MIN_VALID_NUMBER = 1;
     const RADIX_DECIMAL = 10;
@@ -262,6 +279,7 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
             )}
             {onToggleFilters && (
                 <ToolbarButton
+                    className={filtersOpen ? styles.filterButtonActive : undefined}
                     aria-label={loc.tableExplorer.filters}
                     aria-pressed={filtersOpen}
                     title={loc.tableExplorer.filtersTooltip}

@@ -53,6 +53,7 @@ interface TableExplorerFilterBarProps {
     onClear: () => void;
     disabled?: boolean;
     initialFilters?: AppliedFilter[];
+    isOpen?: boolean;
 }
 
 const useStyles = makeStyles({
@@ -70,12 +71,15 @@ const useStyles = makeStyles({
         ...shorthands.gap("8px"),
     },
     conjunctionLabel: {
-        width: "40px",
+        width: "80px",
+        paddingLeft: "10px",
+        boxSizing: "border-box",
         fontSize: "12px",
         color: tokens.colorNeutralForeground2,
     },
     conjunctionDropdown: {
-        minWidth: "60px",
+        width: "80px",
+        minWidth: "80px",
     },
     columnDropdown: {
         minWidth: "140px",
@@ -297,16 +301,20 @@ export const TableExplorerFilterBar: React.FC<TableExplorerFilterBarProps> = ({
     onClear,
     disabled = false,
     initialFilters = [],
+    isOpen = true,
 }) => {
     const classes = useStyles();
     const defaultColumn = columns[0]?.name ?? "";
     const prevInitialFiltersRef = React.useRef<AppliedFilter[]>([]);
+    const valueInputRefs = React.useRef<Map<string, HTMLInputElement>>(new Map());
+    const prevIsOpenRef = React.useRef<boolean>(false);
+    const pendingFocusRowIdRef = React.useRef<string | null>(null);
 
     const [rows, setRows] = React.useState<FilterRow[]>(() => {
         if (initialFilters.length > 0) {
             return initialFilters.map((f) => appliedFilterToRow(f, defaultColumn));
         }
-        return [newRow(defaultColumn)];
+        return [];
     });
 
     // Update rows when initialFilters change (e.g., when filters are applied or cleared)
@@ -336,7 +344,7 @@ export const TableExplorerFilterBar: React.FC<TableExplorerFilterBarProps> = ({
         if (initialFilters.length > 0) {
             setRows(initialFilters.map((f) => appliedFilterToRow(f, defaultColumn)));
         } else {
-            setRows([newRow(defaultColumn)]);
+            setRows([]);
         }
     }, [initialFilters, defaultColumn]);
 
@@ -345,19 +353,57 @@ export const TableExplorerFilterBar: React.FC<TableExplorerFilterBarProps> = ({
         setRows((prev) => prev.map((r) => (r.column ? r : { ...r, column: defaultColumn })));
     }, [defaultColumn]);
 
+    // When the panel opens, ensure there's at least one row to fill in and
+    // arm focus to land in its value input once the row has rendered.
+    React.useEffect(() => {
+        const wasOpen = prevIsOpenRef.current;
+        prevIsOpenRef.current = isOpen;
+        if (!isOpen || wasOpen) {
+            return;
+        }
+        setRows((prev) => {
+            if (prev.length === 0) {
+                const row = newRow(defaultColumn);
+                pendingFocusRowIdRef.current = row.id;
+                return [row];
+            }
+            pendingFocusRowIdRef.current = prev[0].id;
+            return prev;
+        });
+    }, [isOpen, defaultColumn]);
+
+    // Apply queued focus once the target row is mounted. We wait one frame so
+    // the parent's display:none → visible transition has painted (no-op when
+    // the panel was already open, e.g. after clicking Add Filter).
+    React.useEffect(() => {
+        const targetId = pendingFocusRowIdRef.current;
+        if (!targetId || !isOpen) {
+            return;
+        }
+        const el = valueInputRefs.current.get(targetId);
+        if (!el) {
+            // Row hasn't committed yet; this effect will re-run when rows.length changes.
+            return;
+        }
+        pendingFocusRowIdRef.current = null;
+        const id = requestAnimationFrame(() => {
+            el.focus();
+        });
+        return () => cancelAnimationFrame(id);
+    }, [isOpen, rows.length]);
+
     const updateRow = (id: string, patch: Partial<FilterRow>) => {
         setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
     };
 
     const removeRow = (id: string) => {
-        setRows((prev) => {
-            const next = prev.filter((r) => r.id !== id);
-            return next.length > 0 ? next : [newRow(defaultColumn)];
-        });
+        setRows((prev) => prev.filter((r) => r.id !== id));
     };
 
     const addRow = () => {
-        setRows((prev) => [...prev, newRow(defaultColumn)]);
+        const row = newRow(defaultColumn);
+        setRows((prev) => [...prev, row]);
+        pendingFocusRowIdRef.current = row.id;
     };
 
     const handleApply = () => {
@@ -373,14 +419,9 @@ export const TableExplorerFilterBar: React.FC<TableExplorerFilterBarProps> = ({
     };
 
     const handleClear = () => {
-        setRows([newRow(defaultColumn)]);
+        setRows([]);
         onClear();
     };
-
-    // Check if there are any valid filters that can be applied
-    const hasValidFilters = rows.some(
-        (r) => r.column && (operatorTakesValue(r.operator) ? r.value !== "" : true),
-    );
 
     // Check if current filters differ from the initialFilters (last applied)
     const hasChanges = React.useMemo(() => {
@@ -476,6 +517,15 @@ export const TableExplorerFilterBar: React.FC<TableExplorerFilterBarProps> = ({
                         placeholder={loc.tableExplorer.filterValuePlaceholder}
                         aria-label={loc.tableExplorer.filterValue}
                         disabled={disabled || !operatorTakesValue(row.operator)}
+                        input={{
+                            ref: (el: HTMLInputElement | null) => {
+                                if (el) {
+                                    valueInputRefs.current.set(row.id, el);
+                                } else {
+                                    valueInputRefs.current.delete(row.id);
+                                }
+                            },
+                        }}
                         onChange={(_, data) => updateRow(row.id, { value: data.value })}
                         onKeyDown={(e) => {
                             if (e.key === "Enter") {
@@ -497,7 +547,7 @@ export const TableExplorerFilterBar: React.FC<TableExplorerFilterBarProps> = ({
             ))}
             <div className={classes.actions}>
                 <Button
-                    appearance="transparent"
+                    appearance={rows.length === 0 ? "primary" : "transparent"}
                     size="small"
                     icon={<AddRegular />}
                     onClick={addRow}
@@ -508,14 +558,14 @@ export const TableExplorerFilterBar: React.FC<TableExplorerFilterBarProps> = ({
                     appearance="primary"
                     size="small"
                     onClick={handleApply}
-                    disabled={disabled || !hasValidFilters || !hasChanges}>
+                    disabled={disabled || !hasChanges}>
                     {loc.tableExplorer.filterApply}
                 </Button>
                 <Button
                     appearance="transparent"
                     size="small"
                     onClick={handleClear}
-                    disabled={disabled || !hasValidFilters}>
+                    disabled={disabled || (rows.length === 0 && initialFilters.length === 0)}>
                     {loc.tableExplorer.filterClear}
                 </Button>
             </div>
