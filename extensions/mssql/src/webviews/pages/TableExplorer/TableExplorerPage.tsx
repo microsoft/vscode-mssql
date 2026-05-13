@@ -245,12 +245,15 @@ export const TableExplorerPage: React.FC = () => {
     );
 
     const handleClearFilters = useCallback(() => {
+        if (activeFilters.length === 0) {
+            return;
+        }
         const base = baseQueryRef.current;
         setActiveFilters([]);
         if (base) {
             context.runTableQuery(composeSortedQuery(base, sortColumns), undefined, []);
         }
-    }, [context, sortColumns]);
+    }, [activeFilters.length, context, sortColumns]);
 
     const filterColumns = React.useMemo(
         () =>
