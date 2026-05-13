@@ -1280,8 +1280,13 @@ const styles = `
 .mssql-config-controls-row {
     align-items: end;
     display: grid;
-    gap: 12px;
-    grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 24px;
+    grid-template-columns: max-content max-content max-content;
+    row-gap: 12px;
+}
+
+.mssql-config-controls-row .mssql-config-field {
+    width: max-content;
 }
 
 .mssql-config-field {
