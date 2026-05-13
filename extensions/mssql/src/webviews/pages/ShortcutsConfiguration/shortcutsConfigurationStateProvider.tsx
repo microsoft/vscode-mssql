@@ -3,8 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as React from "react";
-import { createContext, useMemo } from "react";
+import { createContext, ReactNode, useMemo } from "react";
 import {
     ShortcutsConfigurationContextProps,
     ShortcutsConfigurationReducers,
@@ -18,9 +17,7 @@ const ShortcutsConfigurationContext = createContext<ShortcutsConfigurationContex
     undefined,
 );
 
-const ShortcutsConfigurationStateProvider: React.FC<{ children: React.ReactNode }> = ({
-    children,
-}) => {
+const ShortcutsConfigurationStateProvider = ({ children }: { children: ReactNode }) => {
     const { extensionRpc } = useVscodeWebview<
         ShortcutsConfigurationWebviewState,
         ShortcutsConfigurationReducers

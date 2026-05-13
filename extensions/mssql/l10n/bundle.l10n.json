@@ -224,6 +224,8 @@
         "comment": ["Label for the end IP address in the firewall rule IP range"]
     },
     "Shortcuts Configuration": "Shortcuts Configuration",
+    "Shortcuts configuration page": "Shortcuts configuration page",
+    "Configuration sections": "Configuration sections",
     "Configure Quick Query and in-app shortcuts.": "Configure Quick Query and in-app shortcuts.",
     "Quick Queries": "Quick Queries",
     "Configure command-backed SQL snippets that can open or run from keyboard shortcuts.": "Configure command-backed SQL snippets that can open or run from keyboard shortcuts.",

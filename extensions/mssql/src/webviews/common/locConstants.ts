@@ -323,6 +323,8 @@ export class LocConstants {
     public get shortcutsConfiguration() {
         return {
             title: l10n.t("Shortcuts Configuration"),
+            pageAriaLabel: l10n.t("Shortcuts configuration page"),
+            configurationSections: l10n.t("Configuration sections"),
             subtitle: l10n.t("Configure Quick Query and in-app shortcuts."),
             quickQueries: l10n.t("Quick Queries"),
             quickQueriesDescription: l10n.t(

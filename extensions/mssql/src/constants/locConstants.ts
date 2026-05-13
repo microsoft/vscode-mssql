@@ -33,6 +33,7 @@ export let renameDatabaseDialogTitle = l10n.t("Rename Database");
 export let createDatabaseWebviewTitle = l10n.t("Create Database");
 export let dropDatabaseWebviewTitle = l10n.t("Drop Database");
 export let renameDatabaseWebviewTitle = l10n.t("Rename Database");
+export let shortcutsConfigurationTitle = l10n.t("Shortcuts Configuration");
 export let msgSelectServerNodeToCreateDatabase = l10n.t(
     "Please select a server node in Object Explorer to create a database.",
 );

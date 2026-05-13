@@ -56,6 +56,33 @@ suite("Keybindings Service", () => {
         ]);
     });
 
+    test("removes duplicate Quick Query keybindings when updating", () => {
+        const text = `[
+    {
+        "key": "ctrl+alt+0",
+        "command": "mssql.quickQueries.run1"
+    },
+    {
+        "key": "ctrl+alt+1",
+        "command": "mssql.quickQueries.run1",
+        "when": "editorTextFocus"
+    }
+]`;
+
+        const updated = updateKeybindingsText(text, [
+            { command: "mssql.quickQueries.run1", key: "ctrl+alt+shift+1" },
+        ]);
+        const rules = parseKeybindingsText(updated);
+
+        expect(rules).to.deep.equal([
+            {
+                key: "ctrl+alt+shift+1",
+                command: "mssql.quickQueries.run1",
+                when: "editorTextFocus",
+            },
+        ]);
+    });
+
     test("removes Quick Query keybindings when shortcut is cleared", () => {
         const text = `[
     {

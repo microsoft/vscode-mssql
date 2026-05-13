@@ -82,8 +82,19 @@ export function updateKeybindingsText(text: string, updates: CommandKeybindingUp
             continue;
         }
 
-        const existingRuleIndex = matchingRuleIndexes[matchingRuleIndexes.length - 1];
-        if (existingRuleIndex !== undefined) {
+        const duplicateRuleIndexes = matchingRuleIndexes.slice(0, -1);
+        for (let index = duplicateRuleIndexes.length - 1; index >= 0; index--) {
+            workingText = applyEdits(
+                workingText,
+                modify(workingText, [duplicateRuleIndexes[index]], undefined, {
+                    formattingOptions,
+                }),
+            );
+        }
+        rules = parseKeybindingsText(workingText);
+
+        const existingRuleIndex = rules.findIndex((rule) => rule.command === update.command);
+        if (existingRuleIndex >= 0) {
             workingText = applyEdits(
                 workingText,
                 modify(workingText, [existingRuleIndex, "key"], key, {

@@ -1174,6 +1174,9 @@
     <trans-unit id="++CODE++7ddbffc16744c2642445a4ec489967d4201fe93f5ec6af10738ba783cbd78680">
       <source xml:lang="en">Config copied to clipboard</source>
     </trans-unit>
+    <trans-unit id="++CODE++82873129471e6b6e9430f9aa6128f04c4a95e8553a4a5387d825f2b6a1b06e52">
+      <source xml:lang="en">Configuration sections</source>
+    </trans-unit>
     <trans-unit id="++CODE++ba237bbd53a9872b830897ce0e80e224f9e09d331abb2001ef442eceba4ba58a">
       <source xml:lang="en">Configuration to Import</source>
     </trans-unit>
@@ -6071,6 +6074,9 @@
     </trans-unit>
     <trans-unit id="++CODE++222422dd74a5bec73da386f3e436f2ab2f949669b387d61a3a442868c3c908fc">
       <source xml:lang="en">Shortcuts Configuration</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bf913efbcc381cf124165f3786831debf4e1caf3e8b775f07ba3b65e58534ac6">
+      <source xml:lang="en">Shortcuts configuration page</source>
     </trans-unit>
     <trans-unit id="++CODE++e1c32645f2f85a25ae64e38f306ded9b82771ab8ac4595e769f9410e632584f4">
       <source xml:lang="en">Show All</source>

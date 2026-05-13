@@ -32,15 +32,23 @@ export interface ShortcutsConfigurationWebviewState {
     quickQueryKeybindings: QuickQueryKeybindings;
     webviewShortcuts: Record<string, string>;
     focusedQuickQuerySlot?: number;
+    focusNonce?: number;
     message?: string;
     errorMessage?: string;
     isSaving?: boolean;
+}
+
+export interface SaveShortcutsConfigurationChangedSections {
+    quickQueries?: boolean;
+    quickQueryKeybindings?: boolean;
+    webviewShortcuts?: boolean;
 }
 
 export interface SaveShortcutsConfigurationPayload {
     quickQueries: QuickQuerySlot[];
     quickQueryKeybindings: QuickQueryKeybindings;
     webviewShortcuts: Record<string, string>;
+    changedSections?: SaveShortcutsConfigurationChangedSections;
 }
 
 export interface ShortcutsConfigurationReducers {

@@ -39,6 +39,7 @@ import {
     QuickQueryExecutionMode,
     QuickQuerySlot,
     quickQueryCount,
+    SaveShortcutsConfigurationChangedSections,
     SaveShortcutsConfigurationPayload,
 } from "../../../sharedInterfaces/shortcutsConfiguration";
 import { ShortcutsConfigurationContext } from "./shortcutsConfigurationStateProvider";
@@ -302,8 +303,11 @@ function shortcutFromKeyboardEvent(event: KeyboardEvent): string | undefined {
     }
 
     const parts: string[] = [];
-    if (event.ctrlKey || event.metaKey) {
+    if (event.ctrlKey) {
         parts.push("ctrl");
+    }
+    if (event.metaKey) {
+        parts.push("cmd");
     }
     if (event.altKey) {
         parts.push("alt");
@@ -384,12 +388,20 @@ function buildPayload(
     quickQueries: QuickQuerySlot[],
     quickQueryKeybindings: Record<string, string>,
     webviewShortcuts: Record<string, string>,
+    changedSections?: SaveShortcutsConfigurationChangedSections,
 ): SaveShortcutsConfigurationPayload {
     return {
         quickQueries,
         quickQueryKeybindings,
         webviewShortcuts,
+        changedSections,
     };
+}
+
+function getPayloadDataKey(payload: SaveShortcutsConfigurationPayload): string {
+    return JSON.stringify(
+        buildPayload(payload.quickQueries, payload.quickQueryKeybindings, payload.webviewShortcuts),
+    );
 }
 
 const SaveIndicator = ({ state }: { state: SaveState }) => {
@@ -717,17 +729,27 @@ export const ShortcutsConfigurationPage = () => {
     const common = locConstants.common;
     const context = useContext(ShortcutsConfigurationContext);
     const { themeKind } = useVscodeWebview();
-    const state = useShortcutsConfigurationSelector((s) => s);
+    const stateQuickQueries = useShortcutsConfigurationSelector((s) => s.quickQueries);
+    const stateQuickQueryKeybindings = useShortcutsConfigurationSelector(
+        (s) => s.quickQueryKeybindings,
+    );
+    const stateWebviewShortcuts = useShortcutsConfigurationSelector((s) => s.webviewShortcuts);
+    const stateFocusedQuickQuerySlot = useShortcutsConfigurationSelector(
+        (s) => s.focusedQuickQuerySlot,
+    );
+    const stateFocusNonce = useShortcutsConfigurationSelector((s) => s.focusNonce);
+    const stateErrorMessage = useShortcutsConfigurationSelector((s) => s.errorMessage);
+    const stateIsSaving = useShortcutsConfigurationSelector((s) => s.isSaving);
     const [activeTab, setActiveTab] = useState<ConfigurationTab>("queries");
     const [saveState, setSaveState] = useState<SaveState>("idle");
     const [quickQueries, setQuickQueries] = useState<QuickQuerySlot[]>(() =>
-        normalizeQuickQueries(state.quickQueries),
+        normalizeQuickQueries(stateQuickQueries),
     );
     const [quickQueryKeybindings, setQuickQueryKeybindings] = useState<Record<string, string>>(
-        state.quickQueryKeybindings ?? {},
+        stateQuickQueryKeybindings ?? {},
     );
     const [webviewShortcuts, setWebviewShortcuts] = useState<Record<string, string>>(
-        state.webviewShortcuts ?? {},
+        stateWebviewShortcuts ?? {},
     );
     const [openQueryItems, setOpenQueryItems] = useState<string[]>([]);
     const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
@@ -739,30 +761,35 @@ export const ShortcutsConfigurationPage = () => {
     const savedTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const lastSavedPayloadRef = useRef("");
     const pendingPayloadRef = useRef("");
+    const pendingSaveVersionRef = useRef(0);
+    const localChangeVersionRef = useRef(0);
+    const scheduledPayloadRef = useRef<SaveShortcutsConfigurationPayload | undefined>(undefined);
     const hasLocalChangesRef = useRef(false);
 
     useEffect(() => {
-        if (state.isSaving) {
+        if (stateIsSaving) {
             return;
         }
 
-        const normalizedQuickQueries = normalizeQuickQueries(state.quickQueries);
-        const normalizedKeybindings = state.quickQueryKeybindings ?? {};
-        const normalizedShortcuts = state.webviewShortcuts ?? {};
+        const normalizedQuickQueries = normalizeQuickQueries(stateQuickQueries);
+        const normalizedKeybindings = stateQuickQueryKeybindings ?? {};
+        const normalizedShortcuts = stateWebviewShortcuts ?? {};
         const statePayloadKey = JSON.stringify(
             buildPayload(normalizedQuickQueries, normalizedKeybindings, normalizedShortcuts),
         );
 
         const isExpectedSaveResponse =
-            pendingPayloadRef.current.length > 0 && pendingPayloadRef.current === statePayloadKey;
+            pendingPayloadRef.current.length > 0 &&
+            pendingPayloadRef.current === statePayloadKey &&
+            pendingSaveVersionRef.current === localChangeVersionRef.current;
 
-        if (!hasLocalChangesRef.current || isExpectedSaveResponse || state.errorMessage) {
+        if (!hasLocalChangesRef.current || isExpectedSaveResponse || stateErrorMessage) {
             setQuickQueries(normalizedQuickQueries);
             setQuickQueryKeybindings(normalizedKeybindings);
             setWebviewShortcuts(normalizedShortcuts);
         }
 
-        if (state.errorMessage) {
+        if (stateErrorMessage) {
             setSaveState("idle");
             pendingPayloadRef.current = "";
             return;
@@ -781,15 +808,15 @@ export const ShortcutsConfigurationPage = () => {
             lastSavedPayloadRef.current = statePayloadKey;
         }
     }, [
-        state.errorMessage,
-        state.isSaving,
-        state.quickQueries,
-        state.quickQueryKeybindings,
-        state.webviewShortcuts,
+        stateErrorMessage,
+        stateIsSaving,
+        stateQuickQueries,
+        stateQuickQueryKeybindings,
+        stateWebviewShortcuts,
     ]);
 
     useEffect(() => {
-        const focusedQuickQuerySlot = state.focusedQuickQuerySlot;
+        const focusedQuickQuerySlot = stateFocusedQuickQuerySlot;
         if (
             focusedQuickQuerySlot &&
             focusedQuickQuerySlot >= 1 &&
@@ -803,18 +830,44 @@ export const ShortcutsConfigurationPage = () => {
                 );
             }
         }
-    }, [quickQueries, state.focusedQuickQuerySlot]);
+    }, [quickQueries, stateFocusedQuickQuerySlot, stateFocusNonce]);
+
+    const dispatchSave = useCallback(
+        (payload: SaveShortcutsConfigurationPayload, payloadDataKey: string) => {
+            if (!context) {
+                return;
+            }
+
+            context.saveConfiguration(payload);
+            pendingPayloadRef.current = payloadDataKey;
+            pendingSaveVersionRef.current = localChangeVersionRef.current;
+        },
+        [context],
+    );
+
+    const flushPendingSave = useCallback(() => {
+        if (!scheduledPayloadRef.current || !context) {
+            return;
+        }
+
+        if (saveTimerRef.current) {
+            clearTimeout(saveTimerRef.current);
+            saveTimerRef.current = undefined;
+        }
+
+        const payload = scheduledPayloadRef.current;
+        scheduledPayloadRef.current = undefined;
+        dispatchSave(payload, getPayloadDataKey(payload));
+    }, [context, dispatchSave]);
 
     useEffect(
         () => () => {
-            if (saveTimerRef.current) {
-                clearTimeout(saveTimerRef.current);
-            }
+            flushPendingSave();
             if (savedTimerRef.current) {
                 clearTimeout(savedTimerRef.current);
             }
         },
-        [],
+        [flushPendingSave],
     );
 
     const scheduleSave = useCallback(
@@ -823,8 +876,8 @@ export const ShortcutsConfigurationPage = () => {
                 return;
             }
 
-            const payloadKey = JSON.stringify(payload);
-            if (payloadKey === lastSavedPayloadRef.current) {
+            const payloadDataKey = getPayloadDataKey(payload);
+            if (payloadDataKey === lastSavedPayloadRef.current) {
                 return;
             }
 
@@ -835,13 +888,14 @@ export const ShortcutsConfigurationPage = () => {
             if (savedTimerRef.current) {
                 clearTimeout(savedTimerRef.current);
             }
+            scheduledPayloadRef.current = payload;
 
             saveTimerRef.current = setTimeout(() => {
-                context.saveConfiguration(payload);
-                pendingPayloadRef.current = payloadKey;
+                scheduledPayloadRef.current = undefined;
+                dispatchSave(payload, payloadDataKey);
             }, 700);
         },
-        [context],
+        [context, dispatchSave],
     );
 
     const saveWith = useCallback(
@@ -849,9 +903,15 @@ export const ShortcutsConfigurationPage = () => {
             nextQuickQueries = quickQueries,
             nextQuickQueryKeybindings = quickQueryKeybindings,
             nextWebviewShortcuts = webviewShortcuts,
+            changedSections?: SaveShortcutsConfigurationChangedSections,
         ) => {
             scheduleSave(
-                buildPayload(nextQuickQueries, nextQuickQueryKeybindings, nextWebviewShortcuts),
+                buildPayload(
+                    nextQuickQueries,
+                    nextQuickQueryKeybindings,
+                    nextWebviewShortcuts,
+                    changedSections,
+                ),
             );
         },
         [quickQueries, quickQueryKeybindings, scheduleSave, webviewShortcuts],
@@ -866,9 +926,12 @@ export const ShortcutsConfigurationPage = () => {
             slotIndex === index ? value : slot,
         );
         setQuickQueries(nextQuickQueries);
+        localChangeVersionRef.current += 1;
         hasLocalChangesRef.current = true;
         if (shouldSave) {
-            saveWith(nextQuickQueries);
+            saveWith(nextQuickQueries, quickQueryKeybindings, webviewShortcuts, {
+                quickQueries: true,
+            });
         }
     };
 
@@ -878,8 +941,11 @@ export const ShortcutsConfigurationPage = () => {
             [commandId]: value,
         };
         setQuickQueryKeybindings(nextKeybindings);
+        localChangeVersionRef.current += 1;
         hasLocalChangesRef.current = true;
-        saveWith(quickQueries, nextKeybindings);
+        saveWith(quickQueries, nextKeybindings, webviewShortcuts, {
+            quickQueryKeybindings: true,
+        });
     };
 
     const updateWebviewShortcut = (action: WebviewAction, value: string) => {
@@ -888,8 +954,11 @@ export const ShortcutsConfigurationPage = () => {
             [action]: value,
         };
         setWebviewShortcuts(nextShortcuts);
+        localChangeVersionRef.current += 1;
         hasLocalChangesRef.current = true;
-        saveWith(quickQueries, quickQueryKeybindings, nextShortcuts);
+        saveWith(quickQueries, quickQueryKeybindings, nextShortcuts, {
+            webviewShortcuts: true,
+        });
     };
 
     const renderQueries = () => (
@@ -1043,22 +1112,27 @@ export const ShortcutsConfigurationPage = () => {
             icon={<Settings24Regular aria-label={loc.title} />}
             title={loc.title}
             subtitle={loc.subtitle}
-            errorMessage={state.errorMessage}
+            errorMessage={stateErrorMessage}
             maxContentWidth={1040}
             iconSize={40}
             headerEnd={<SaveIndicator state={saveState} />}
             footerEnd={
-                <Button appearance="secondary" onClick={context.closeDialog}>
+                <Button
+                    appearance="secondary"
+                    onClick={() => {
+                        flushPendingSave();
+                        context.closeDialog();
+                    }}>
                     {common.close}
                 </Button>
             }>
             <style>{styles}</style>
-            <div className="mssql-config-page" aria-label={loc.title}>
+            <div className="mssql-config-page" aria-label={loc.pageAriaLabel}>
                 <TabList
                     className="mssql-config-tabs"
                     selectedValue={activeTab}
                     onTabSelect={(_event, data) => setActiveTab(data.value as ConfigurationTab)}
-                    aria-label="Configuration sections">
+                    aria-label={loc.configurationSections}>
                     <Tab value="queries">{loc.quickQueries}</Tab>
                     <Tab value="shortcuts">{loc.webviewShortcuts}</Tab>
                 </TabList>
@@ -1084,23 +1158,21 @@ export const ShortcutsConfigurationPage = () => {
 const styles = `
 :root {
     --mssql-config-control-height: 30px;
-    --mssql-config-bg: #1a1a1b;
-    --mssql-config-surface: #222224;
-    --mssql-config-raised: #2a2a2d;
-    --mssql-config-input: #323235;
-    --mssql-config-border: rgba(255,255,255,0.06);
-    --mssql-config-border-md: rgba(255,255,255,0.10);
-    --mssql-config-border-hi: rgba(255,255,255,0.18);
-    --mssql-config-fg: #e2e2e5;
-    --mssql-config-muted: #7f7f8c;
-    --mssql-config-dim: #42424a;
-    --mssql-config-hover: rgba(255,255,255,0.04);
-    --mssql-config-accent: #0078d4;
-    --mssql-config-accent-hover: #1a8fe0;
-    --mssql-config-accent-dim: rgba(0,120,212,0.14);
-    --mssql-config-accent-text: #4dabf7;
-    --mssql-config-success: #3ec9a7;
-    --mssql-config-danger: #e05c5c;
+    --mssql-config-surface: var(--vscode-editor-background);
+    --mssql-config-raised: var(--vscode-sideBarSectionHeader-background, var(--vscode-editorWidget-background));
+    --mssql-config-input: var(--vscode-input-background);
+    --mssql-config-border: var(--vscode-editorGroup-border);
+    --mssql-config-border-md: var(--vscode-input-border, var(--vscode-editorGroup-border));
+    --mssql-config-border-hi: var(--vscode-focusBorder);
+    --mssql-config-fg: var(--vscode-foreground);
+    --mssql-config-muted: var(--vscode-descriptionForeground);
+    --mssql-config-dim: var(--vscode-disabledForeground);
+    --mssql-config-hover: var(--vscode-list-hoverBackground);
+    --mssql-config-accent: var(--vscode-focusBorder);
+    --mssql-config-accent-dim: var(--vscode-list-activeSelectionBackground);
+    --mssql-config-accent-text: var(--vscode-textLink-foreground);
+    --mssql-config-success: var(--vscode-testing-iconPassed, var(--vscode-charts-green));
+    --mssql-config-danger: var(--vscode-errorForeground);
     --mssql-config-font: 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
     --mssql-config-mono: 'Cascadia Code', 'Fira Code', monospace;
 }

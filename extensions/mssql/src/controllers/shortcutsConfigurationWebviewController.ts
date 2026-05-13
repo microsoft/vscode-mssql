@@ -5,8 +5,10 @@
 
 import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
+import * as Loc from "../constants/locConstants";
 import { getErrorMessage } from "../utils/utils";
 import { KeybindingsService } from "../keybindings/keybindingsService";
+import { WebviewAction } from "../sharedInterfaces/webview";
 import {
     getQuickQueryCommandId,
     ShortcutsConfigurationReducers,
@@ -23,6 +25,7 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
     void
 > {
     private readonly keybindingsService: KeybindingsService;
+    private focusNonce = 1;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -39,9 +42,10 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
                 quickQueryKeybindings: {},
                 webviewShortcuts: {},
                 focusedQuickQuerySlot,
+                focusNonce: focusedQuickQuerySlot ? 1 : undefined,
             },
             {
-                title: "Shortcuts Configuration",
+                title: Loc.shortcutsConfigurationTitle,
                 viewColumn: vscode.ViewColumn.One,
                 iconPath: {
                     dark: vscode.Uri.joinPath(
@@ -83,37 +87,48 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
         this.registerReducer("saveConfiguration", async (state, payload) => {
             this.state = { ...state, isSaving: true, message: undefined, errorMessage: undefined };
             const quickQueries = normalizeQuickQueries(payload.quickQueries);
-            const webviewShortcuts = payload.webviewShortcuts ?? {};
+            const webviewShortcuts = sanitizeWebviewShortcuts(payload.webviewShortcuts ?? {});
+            const changedSections = payload.changedSections ?? {
+                quickQueries: true,
+                quickQueryKeybindings: true,
+                webviewShortcuts: true,
+            };
 
             try {
-                try {
-                    await this.keybindingsService.updateCommandKeybindings(
-                        this.getQuickQueryCommandIds().map((command) => ({
-                            command,
-                            key: payload.quickQueryKeybindings?.[command] ?? "",
-                        })),
-                    );
-                } catch (error) {
-                    await this.keybindingsService.openKeybindingsFile();
-                    throw new Error(
-                        `${getErrorMessage(error)} The keybindings file has been opened for manual editing.`,
-                    );
+                if (changedSections.quickQueryKeybindings) {
+                    try {
+                        await this.keybindingsService.updateCommandKeybindings(
+                            this.getQuickQueryCommandIds().map((command) => ({
+                                command,
+                                key: payload.quickQueryKeybindings?.[command] ?? "",
+                            })),
+                        );
+                    } catch (error) {
+                        await this.keybindingsService.openKeybindingsFile();
+                        throw new Error(
+                            `${getErrorMessage(error)} The keybindings file has been opened for manual editing.`,
+                        );
+                    }
                 }
 
-                await vscode.workspace
-                    .getConfiguration()
-                    .update(
-                        Constants.configQuickQueries,
-                        quickQueries,
-                        vscode.ConfigurationTarget.Global,
-                    );
-                await vscode.workspace
-                    .getConfiguration()
-                    .update(
-                        Constants.configShortcuts,
-                        webviewShortcuts,
-                        vscode.ConfigurationTarget.Global,
-                    );
+                if (changedSections.quickQueries) {
+                    await vscode.workspace
+                        .getConfiguration()
+                        .update(
+                            Constants.configQuickQueries,
+                            quickQueries,
+                            vscode.ConfigurationTarget.Global,
+                        );
+                }
+                if (changedSections.webviewShortcuts) {
+                    await vscode.workspace
+                        .getConfiguration()
+                        .update(
+                            Constants.configShortcuts,
+                            webviewShortcuts,
+                            vscode.ConfigurationTarget.Global,
+                        );
+                }
 
                 return await this.getConfigurationState("Configuration saved.");
             } catch (error) {
@@ -139,7 +154,7 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
     }
 
     public focusQuickQuerySlot(focusedQuickQuerySlot?: number): void {
-        this.state = { ...this.state, focusedQuickQuerySlot };
+        this.state = { ...this.state, focusedQuickQuerySlot, focusNonce: this.nextFocusNonce() };
     }
 
     private async getConfigurationState(
@@ -168,6 +183,7 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
                     .getConfiguration()
                     .get<Record<string, string>>(Constants.configShortcuts) ?? {},
             focusedQuickQuerySlot,
+            focusNonce: focusedQuickQuerySlot ? this.nextFocusNonce() : this.state.focusNonce,
             message,
             errorMessage: stateErrorMessage,
             isSaving: false,
@@ -179,4 +195,19 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
             getQuickQueryCommandId(index + 1),
         );
     }
+
+    private nextFocusNonce(): number {
+        this.focusNonce += 1;
+        return this.focusNonce;
+    }
+}
+
+function sanitizeWebviewShortcuts(value: Record<string, string>): Record<string, string> {
+    const allowedActions = new Set<string>(Object.values(WebviewAction));
+    return Object.entries(value).reduce<Record<string, string>>((result, [action, shortcut]) => {
+        if (allowedActions.has(action) && typeof shortcut === "string") {
+            result[action] = shortcut;
+        }
+        return result;
+    }, {});
 }
