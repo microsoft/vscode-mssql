@@ -25,12 +25,15 @@ export interface CommandKeybindingUpdate {
 
 const defaultKeybindingsText = "[\n]\n";
 
-const formattingOptions = {
-    insertSpaces: true,
-    tabSize: 4,
-    eol: "\n",
-    insertFinalNewline: true,
-};
+function getFormattingOptions(text: string) {
+    const eol = text.includes("\r\n") ? "\r\n" : "\n";
+    return {
+        insertSpaces: true,
+        tabSize: 4,
+        eol,
+        insertFinalNewline: true,
+    };
+}
 
 function normalizeKeybindingsText(text: string): string {
     return text.trim().length === 0 ? defaultKeybindingsText : text;
@@ -57,24 +60,40 @@ export function parseKeybindingsText(text: string): KeybindingRule[] {
 
 export function updateKeybindingsText(text: string, updates: CommandKeybindingUpdate[]): string {
     let workingText = normalizeKeybindingsText(text);
-    const commands = new Set(updates.map((update) => update.command));
+    const formattingOptions = getFormattingOptions(workingText);
     let rules = parseKeybindingsText(workingText);
 
-    for (let index = rules.length - 1; index >= 0; index--) {
-        if (rules[index]?.command && commands.has(rules[index].command)) {
-            workingText = applyEdits(
-                workingText,
-                modify(workingText, [index], undefined, { formattingOptions }),
-            );
-        }
-    }
-
-    rules = parseKeybindingsText(workingText);
     for (const update of updates) {
         const key = update.key.trim();
+        const matchingRuleIndexes = rules
+            .map((rule, index) => (rule.command === update.command ? index : -1))
+            .filter((index) => index >= 0);
+
         if (!key) {
+            for (let index = matchingRuleIndexes.length - 1; index >= 0; index--) {
+                workingText = applyEdits(
+                    workingText,
+                    modify(workingText, [matchingRuleIndexes[index]], undefined, {
+                        formattingOptions,
+                    }),
+                );
+            }
+            rules = parseKeybindingsText(workingText);
             continue;
         }
+
+        const existingRuleIndex = matchingRuleIndexes[matchingRuleIndexes.length - 1];
+        if (existingRuleIndex !== undefined) {
+            workingText = applyEdits(
+                workingText,
+                modify(workingText, [existingRuleIndex, "key"], key, {
+                    formattingOptions,
+                }),
+            );
+            rules = parseKeybindingsText(workingText);
+            continue;
+        }
+
         const rule: KeybindingRule = {
             key,
             command: update.command,

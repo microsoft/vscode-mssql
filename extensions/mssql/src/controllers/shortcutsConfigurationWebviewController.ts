@@ -41,7 +41,7 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
                 focusedQuickQuerySlot,
             },
             {
-                title: "shortcutsConfiguration",
+                title: "Shortcuts Configuration",
                 viewColumn: vscode.ViewColumn.One,
                 iconPath: {
                     dark: vscode.Uri.joinPath(
@@ -86,6 +86,20 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
             const webviewShortcuts = payload.webviewShortcuts ?? {};
 
             try {
+                try {
+                    await this.keybindingsService.updateCommandKeybindings(
+                        this.getQuickQueryCommandIds().map((command) => ({
+                            command,
+                            key: payload.quickQueryKeybindings?.[command] ?? "",
+                        })),
+                    );
+                } catch (error) {
+                    await this.keybindingsService.openKeybindingsFile();
+                    throw new Error(
+                        `${getErrorMessage(error)} The keybindings file has been opened for manual editing.`,
+                    );
+                }
+
                 await vscode.workspace
                     .getConfiguration()
                     .update(
@@ -100,20 +114,6 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
                         webviewShortcuts,
                         vscode.ConfigurationTarget.Global,
                     );
-
-                try {
-                    await this.keybindingsService.updateCommandKeybindings(
-                        this.getQuickQueryCommandIds().map((command) => ({
-                            command,
-                            key: payload.quickQueryKeybindings?.[command] ?? "",
-                        })),
-                    );
-                } catch (error) {
-                    await this.keybindingsService.openKeybindingsFile();
-                    throw new Error(
-                        `${getErrorMessage(error)} The keybindings file has been opened for manual editing.`,
-                    );
-                }
 
                 return await this.getConfigurationState("Configuration saved.");
             } catch (error) {

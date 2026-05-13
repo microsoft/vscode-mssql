@@ -286,7 +286,7 @@
     "mssql.customEnvironment.dynamicsCrmDnsSuffix": "Sovereign cloud equivalent for `.crm.dynamics.com` (including leading dot)",
     "mssql.openChangelog": "Open Changelog",
     "mssql.openAzureDataStudioMigration": "Migrate from Azure Data Studio",
-    "mssql.shortcutsConfiguration.open": "Open shortcutsConfiguration",
+    "mssql.shortcutsConfiguration.open": "Open Shortcuts Configuration",
     "mssql.quickQueries": "Configure up to 10 Quick Queries that can be opened or run from commands.",
     "mssql.quickQueries.name": "Display name for this Quick Query.",
     "mssql.quickQueries.query": "SQL text for this Quick Query.",

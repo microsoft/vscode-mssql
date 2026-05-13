@@ -51,6 +51,7 @@ suite("Keybindings Service", () => {
             {
                 key: "ctrl+alt+shift+1",
                 command: "mssql.quickQueries.run1",
+                when: "editorTextFocus",
             },
         ]);
     });

@@ -2105,17 +2105,11 @@
                             "connectionMode": "prompt"
                         }
                     ],
-                    "minItems": 10,
+                    "minItems": 0,
                     "maxItems": 10,
                     "items": {
                         "type": "object",
                         "additionalProperties": false,
-                        "required": [
-                            "name",
-                            "query",
-                            "executionMode",
-                            "connectionMode"
-                        ],
                         "properties": {
                             "name": {
                                 "type": "string",
