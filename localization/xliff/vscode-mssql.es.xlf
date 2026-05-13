@@ -3371,6 +3371,12 @@ Error:
         <note>{0} is the error message</note>
         <target state="translated">Error al eliminar la consulta: {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++926762c583eb1c8caf59e9fc552830feaf492d4c9c95f6655c99fef505e244d4">
+        <source xml:lang="en">Failed to acquire token for account '{0}' and tenant '{1}'</source>
+        <note>{0} is the account ID
+{1} is the tenant ID</note>
+        <target state="new">Failed to acquire token for account '{0}' and tenant '{1}'</target>
+      </trans-unit>
       <trans-unit id="++CODE++f57c0ea9456f728aca50615f7308856d0bc86ca13aec8eb78496308cead16807">
         <source xml:lang="en">Failed to add table to schema designer.</source>
         <target state="translated">Error al agregar la tabla al diseñador de esquemas.</target>
@@ -3576,6 +3582,12 @@ Error:
       <trans-unit id="++CODE++3124ddbedded23af64f8d5506005863517b446c2767c1d81660d1074b969e089">
         <source xml:lang="en">Failed to load publish profile</source>
         <target state="translated">Error al cargar el perfil de publicación</target>
+      </trans-unit>
+      <trans-unit id="++CODE++14efaa6a7c132b195742fbff720af5eae802f47b83f7e56896d431c86cb0a172">
+        <source xml:lang="en">Failed to obtain token for resource '{1}'.  Error: {0}</source>
+        <note>{0} is the error message
+{1} is the resource</note>
+        <target state="new">Failed to obtain token for resource '{1}'.  Error: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++4db0773908394c4885d3ed204ecdc683dc1443576fcb13c279e6ad16e134b006">
         <source xml:lang="en">Failed to open Edit Data: {0}</source>
@@ -5412,11 +5424,6 @@ Error:
         <source xml:lang="en">No Queries Available</source>
         <target state="translated">No hay ninguna consulta disponible.</target>
       </trans-unit>
-      <trans-unit id="++CODE++ab3f47847de3f238eecec8fd478cfd34c2fb816a4d35949a205060f84eca6177">
-        <source xml:lang="en">No SQL resource is configured for the current cloud '{0}'. Please update your Azure account settings.</source>
-        <note>{0} is the display name of the current cloud</note>
-        <target state="translated">No hay ningún recurso SQL configurado para la nube actual ''{0}". Actualice la configuración de la cuenta de Azure.</target>
-      </trans-unit>
       <trans-unit id="++CODE++b363e5f44515909e667e5e4b24f9690b87a202de3c6b1f1f7b8b597205461ad6">
         <source xml:lang="en">No account selected</source>
         <target state="translated">No hay ninguna cuenta seleccionada</target>
@@ -5640,6 +5647,12 @@ Error:
       <trans-unit id="++CODE++75c1acf6c3d31028f8a7be377fdfe2ac75dee6d75450a900a103a3007a83b1ef">
         <source xml:lang="en">No property changes available.</source>
         <target state="translated">Sin cambios de propiedad disponibles.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9852a3d3be7fa108f0b4d5bce724ab20c0b86b122015c4d368f27476cc0e154a">
+        <source xml:lang="en">No resource of type '{0}' is configured for the current cloud '{1}'. Please update your Azure account settings.</source>
+        <note>{0} is the resource type
+{1} is the display name of the current cloud</note>
+        <target state="new">No resource of type '{0}' is configured for the current cloud '{1}'. Please update your Azure account settings.</target>
       </trans-unit>
       <trans-unit id="++CODE++a43619f321175f57a27f2a38da381fd367f6806093031b1f82960bcbf542729d">
         <source xml:lang="en">No results</source>
