@@ -262,7 +262,12 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     operationId: this.operationId,
                 },
             );
-            throw error;
+
+            // No rethrow: caller is `void this.initialize()`, so it would
+            // become an unhandled rejection. Drop the routing entry too.
+            if (this._expectedOwnerUri) {
+                TableExplorerWebViewController._liveInstances.delete(this._expectedOwnerUri);
+            }
         }
     }
 
