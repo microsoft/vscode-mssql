@@ -302,6 +302,12 @@ export function registerCommonRequestHandlers(
     });
 
     webviewController.onNotification(qr.SetSelectionSummaryRequest.type, async (message) => {
+        webviewViewController.updateSelectionState(
+            message.uri,
+            message.gridId,
+            message.selection,
+            message.displaySelection,
+        );
         // Fetch all the data needed for the summary
         await webviewViewController
             .getSqlOutputContentProvider()

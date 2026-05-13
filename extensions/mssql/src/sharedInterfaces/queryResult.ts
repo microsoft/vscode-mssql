@@ -77,6 +77,7 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     tabStates?: QueryResultTabStates;
     isExecutionPlan?: boolean;
     selection?: ISlickRange[];
+    gridSelections?: Record<string, ISlickRange[]>;
     executionPlanState: ExecutionPlanState;
     fontSettings: FontSettings;
     gridSettings?: GridSettings;
@@ -359,9 +360,11 @@ export namespace CopyColumnNameRequest {
 
 export interface SetSelectionSummary {
     uri: string;
+    gridId: string;
     batchId: number;
     resultId: number;
     selection: ISlickRange[];
+    displaySelection: ISlickRange[];
 }
 export namespace SetSelectionSummaryRequest {
     export const type = new NotificationType<SetSelectionSummary>("setSelectionSummary");

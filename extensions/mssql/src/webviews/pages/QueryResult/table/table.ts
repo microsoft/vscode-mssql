@@ -549,6 +549,10 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         return <Slick.Range[]>(<unknown>undefined);
     }
 
+    setSelectedRanges(ranges: Slick.Range[], updateSummary: boolean = true): void {
+        this.selectionModel.setSelectedRanges(ranges, updateSummary);
+    }
+
     focus(): void {
         this._grid.focus();
     }

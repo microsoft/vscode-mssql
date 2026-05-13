@@ -457,6 +457,31 @@ export class QueryResultWebviewController extends WebviewViewController<
         this._queryResultStateMap.set(uri, state);
     }
 
+    public updateSelectionState(
+        uri: string,
+        gridId: string,
+        selection: qr.ISlickRange[],
+        displaySelection: qr.ISlickRange[],
+    ): void {
+        const state = this._queryResultStateMap.get(uri);
+        if (!state) {
+            return;
+        }
+
+        state.selection = selection;
+        state.gridSelections = {
+            ...(state.gridSelections ?? {}),
+            [gridId]: displaySelection,
+        };
+        this._queryResultStateMap.set(uri, state);
+
+        if (this._queryResultWebviewPanelControllerMap.has(uri)) {
+            this.updatePanelState(uri);
+        } else if (this.state?.uri === uri) {
+            this.state = state;
+        }
+    }
+
     public hasQueryResultState(uri: string): boolean {
         return this._queryResultStateMap.has(uri);
     }
