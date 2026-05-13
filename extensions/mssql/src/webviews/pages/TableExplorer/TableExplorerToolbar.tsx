@@ -150,6 +150,8 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
 
     const [loadRowCount, setLoadRowCount] = React.useState<string>(String(DEFAULT_ROW_COUNT));
 
+    const lastSubmittedRowCountRef = React.useRef<number>(DEFAULT_ROW_COUNT);
+
     const handleSave = () => {
         context.commitChanges();
         // Call the callback to clear change tracking after save
@@ -164,9 +166,14 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
 
     const fetchRowsForValue = (rawValue: string) => {
         const rowCountNumber = parseInt(rawValue || String(DEFAULT_ROW_COUNT), RADIX_DECIMAL);
-        if (!isNaN(rowCountNumber) && rowCountNumber >= MIN_VALID_NUMBER && onLoadSubset) {
-            onLoadSubset(rowCountNumber);
+        if (isNaN(rowCountNumber) || rowCountNumber < MIN_VALID_NUMBER || !onLoadSubset) {
+            return;
         }
+        if (lastSubmittedRowCountRef.current === rowCountNumber) {
+            return;
+        }
+        lastSubmittedRowCountRef.current = rowCountNumber;
+        onLoadSubset(rowCountNumber);
     };
 
     const onRowCountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -196,6 +203,7 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
     React.useEffect(() => {
         if (currentRowCount !== undefined) {
             setLoadRowCount(String(currentRowCount));
+            lastSubmittedRowCountRef.current = currentRowCount;
         }
     }, [currentRowCount]);
 
