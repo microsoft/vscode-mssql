@@ -81,8 +81,12 @@ export const TableExplorerStateProvider: React.FC<{
                 extensionRpc.action("showTableQuery", {});
             },
 
-            runTableQuery: function (queryString: string, rowCount?: number): void {
-                extensionRpc.action("runTableQuery", { queryString, rowCount });
+            runTableQuery: function (
+                queryString: string,
+                rowCount?: number,
+                filterOperators?: string[],
+            ): void {
+                extensionRpc.action("runTableQuery", { queryString, rowCount, filterOperators });
             },
 
             modifyTable: function (): void {

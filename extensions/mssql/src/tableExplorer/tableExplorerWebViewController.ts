@@ -1392,6 +1392,13 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             this.logger.info(`Running custom table query - OperationId: ${this.operationId}`);
 
             const startTime = Date.now();
+            // Only operator type names (e.g. "equals", "lessThan") flow through this
+            // payload — column names and user-entered values stay in the webview.
+            const filterOperators = payload.filterOperators ?? [];
+            const filterTelemetry = {
+                filterCount: filterOperators.length.toString(),
+                filterOperators: filterOperators.join(","),
+            };
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.RunTableQuery,
@@ -1399,6 +1406,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 {
                     startTime: startTime.toString(),
                     operationId: this.operationId,
+                    ...filterTelemetry,
                 },
             );
 
@@ -1409,6 +1417,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     elapsedTime: (Date.now() - startTime).toString(),
                     operationId: this.operationId,
                     cancelled: "true",
+                    ...filterTelemetry,
                 });
                 return state;
             }
@@ -1425,6 +1434,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
+                        ...filterTelemetry,
                     },
                 );
                 return state;
@@ -1449,6 +1459,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
                         cancelled: "true",
+                        ...filterTelemetry,
                     });
                     return state;
                 }
@@ -1514,6 +1525,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 endActivity.end(ActivityStatus.Succeeded, {
                     elapsedTime: (Date.now() - startTime).toString(),
                     operationId: this.operationId,
+                    ...filterTelemetry,
                 });
             } catch (error) {
                 this.logger.error(
@@ -1548,6 +1560,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
+                        ...filterTelemetry,
                     },
                 );
 

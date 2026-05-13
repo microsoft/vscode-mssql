@@ -234,7 +234,12 @@ export const TableExplorerPage: React.FC = () => {
             }
             setActiveFilters(filters);
             const composed = composeFilteredQuery(base, filters);
-            context.runTableQuery(composeSortedQuery(composed, sortColumns));
+            // Pass only operator names (never column names or values) for telemetry.
+            context.runTableQuery(
+                composeSortedQuery(composed, sortColumns),
+                undefined,
+                filters.map((f) => f.operator),
+            );
         },
         [tableQuery, context, sortColumns],
     );
@@ -243,7 +248,7 @@ export const TableExplorerPage: React.FC = () => {
         const base = baseQueryRef.current;
         setActiveFilters([]);
         if (base) {
-            context.runTableQuery(composeSortedQuery(base, sortColumns));
+            context.runTableQuery(composeSortedQuery(base, sortColumns), undefined, []);
         }
     }, [context, sortColumns]);
 
@@ -305,7 +310,11 @@ export const TableExplorerPage: React.FC = () => {
                 queryToRun = composeFilteredQuery(queryToRun, activeFilters);
             }
 
-            context.runTableQuery(queryToRun, rowCount);
+            context.runTableQuery(
+                queryToRun,
+                rowCount,
+                activeFilters.map((f) => f.operator),
+            );
         },
         [resultSet, schemaName, tableName, context, sortColumns, activeFilters],
     );
