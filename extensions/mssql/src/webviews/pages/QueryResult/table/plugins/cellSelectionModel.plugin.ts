@@ -149,10 +149,10 @@ export class CellSelectionModel<T extends Slick.SlickData>
         return result;
     }
 
-    public setSelectedRanges(ranges: Array<Slick.Range>): void {
+    public setSelectedRanges(ranges: Array<Slick.Range>, updateSummary: boolean = true): void {
         this.ranges = this.removeInvalidRanges(ranges);
         this.onSelectedRangesChanged.notify(this.ranges);
-        if (this.context) {
+        if (updateSummary && this.context) {
             void this.updateSummaryText(this.ranges);
         }
     }
