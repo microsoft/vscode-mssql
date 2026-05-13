@@ -115,8 +115,6 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 isReadOnly,
             },
             {
-                // Drop the "(Preview)" suffix when launched read-only from the
-                // Table Explorer's table-diagram entry point.
                 title: isReadOnly
                     ? `${LocConstants.SchemaDesigner.ReadOnlyPanelTitle} - ${databaseName}`
                     : `${LocConstants.SchemaDesigner.PanelTitle} - ${databaseName}`,

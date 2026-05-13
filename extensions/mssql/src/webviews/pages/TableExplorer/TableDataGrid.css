@@ -114,12 +114,12 @@
 
 /* Newly inserted row highlight (persists until saved or reverted) */
 #tableExplorerGrid .slick-row.new-row {
-    background-color: var(--vscode-editorWarning-background, rgba(255, 235, 110, 0.35)) !important;
-    border-left: 3px solid var(--vscode-editorWarning-foreground, #d7ba7d);
+    background-color: var(--vscode-editorWarning-background) !important;
+    border-left: 3px solid var(--vscode-editorWarning-foreground);
 }
 
 #tableExplorerGrid .slick-row.new-row:hover {
-    background-color: var(--vscode-editorWarning-background, rgba(255, 235, 110, 0.5)) !important;
+    background-color: var(--vscode-editorWarning-background) !important;
 }
 
 #tableExplorerGrid .slick-row.new-row.selected {
@@ -368,24 +368,13 @@
     opacity: 0.85;
 }
 
-/* The select-all checkbox lives in a `slick-header-column` whose default
-   background is the slickgrid header panel color — slightly lighter than the
-   editor background used by row cells. That makes the header checkbox look
-   visually heavier than the row checkboxes. Match the cell background so all
-   checkboxes read the same. */
-/* Match by content via :has() rather than slickgrid's `header-checkbox-selectall`
-   class — that class isn't added until the first time renderSelectAllCheckbox
-   runs (after a selection event), so before any click the header cell still
-   shows the slickgrid panel background. */
+/* Match header checkbox background to row cells */
 #tableExplorerGrid .slick-header-column:has(.checkbox-selector-label),
 #tableExplorerGrid .slick-header-column.header-checkbox-selectall {
     background-color: var(--vscode-editor-background) !important;
 }
 
-/* Center the checkbox in both the header and the body cells. The body cells
-   inherit a 4px horizontal padding from the global .slick-cell rule, which
-   shifts row checkboxes to the right of the header one. Zero it out for the
-   checkbox column and center the content so all checkboxes line up. */
+/* Center checkboxes in both header and body cells */
 #tableExplorerGrid .slick-cell:has(.checkbox-selector-label) {
     padding-left: 0;
     padding-right: 0;
@@ -396,23 +385,14 @@
     justify-content: center;
 }
 
-/* Override SlickGrid checkbox icon color to match the VS Code theme instead of
-   the default Bootstrap blue (#0f6cbd). The .sgi icon divs render via CSS mask
-   (SVG clipped from background-color:currentColor), so setting color here is
-   what drives the icon fill color. The unchecked state uses 0.25 opacity to
-   show the icon dimmed; the checked state is full opacity. */
+/* Override checkbox icon color to match VS Code theme */
 #tableExplorerGrid .slick-cell-checkboxsel .icon-checkbox-container div.sgi,
 #tableExplorerGrid .slick-column-name .icon-checkbox-container div.sgi,
 #tableExplorerGrid .slick-headerrow-column .icon-checkbox-container div.sgi {
     color: var(--vscode-foreground);
 }
 
-/* Always show a "both directions" sort indicator on sortable columns that are
-   not currently sorted, so users can see at a glance which columns are
-   sortable. SlickGrid's own .slick-sort-indicator-asc / -desc rules take
-   over once a sort is applied (and our :not() selector here stops matching).
-   Reuses the same sort.svg asset the query results grid uses; mask +
-   currentColor keeps the icon themed via --vscode-foreground. */
+/* Show sort indicator on sortable columns */
 #tableExplorerGrid
     .slick-header-column.slick-header-sortable:not(.slick-header-column-sorted)
     .slick-sort-indicator:not(.slick-sort-indicator-asc):not(.slick-sort-indicator-desc) {

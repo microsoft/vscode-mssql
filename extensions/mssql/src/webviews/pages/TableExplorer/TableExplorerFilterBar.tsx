@@ -191,15 +191,9 @@ function buildPredicate(f: AppliedFilter): string {
 }
 
 /**
- * Strip a trailing semicolon and the LAST top-level `ORDER BY ...` clause
- * from `sql`. Used before appending a grid-driven ORDER BY so we don't end
- * up with two stacked clauses (a custom query that already had one, or our
- * own ORDER BY persisted into `tableQuery` after a previous re-run).
- *
- * Caveat: this is a regex strip and can't tell ORDER BY at the end of the
- * outer query from one inside a subquery, comment, or string literal. It's
- * fine for the default `SELECT TOP N ... FROM [s].[t]` query shape this UI
- * emits; custom queries with nested ORDER BY may need a real parser later.
+ * Strips trailing semicolon and any ORDER BY clause from the query.
+ * Used when the grid refreshes (which loses sort state) to keep the displayed
+ * query in sync, and when re-applying sort to ensure a clean base query.
  */
 export function stripTrailingOrderByAndSemicolon(sql: string): string {
     let s = sql.trimEnd();
