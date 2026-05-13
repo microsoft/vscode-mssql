@@ -695,15 +695,14 @@ export default class ConnectionManager {
                             return;
                         }
 
-                        const resource =
-                            params.resource ??
-                            getCloudProviderSettings(account.key.providerId).settings.sqlResource!;
+                        const resource = getCloudProviderSettings(account.key.providerId).settings
+                            .sqlResource!;
 
                         const refreshedToken = await self.azureController.refreshAccessToken(
                             account,
                             self.accountStore,
                             params.tenantId,
-                            resource as any, // TODO: fix type mismatch
+                            resource,
                         );
 
                         if (refreshedToken) {
