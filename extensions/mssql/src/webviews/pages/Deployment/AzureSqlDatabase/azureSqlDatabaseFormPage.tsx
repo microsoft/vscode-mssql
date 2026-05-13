@@ -396,7 +396,7 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                     })}
                     {renderFormField("databaseName")}
                     {formState.authenticationType !== AuthenticationType.AzureMFA &&
-                        !(serverCreatedWithAuth && formState.savePassword) && (
+                        !serverCreatedWithAuth && (
                             <>
                                 {renderFormField("userName", {
                                     readOnly: !!formState.userName,
@@ -551,9 +551,7 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                         {locConstants.azureSqlDatabase.freeOfferApplied}
                     </span>
                     <div className={classes.sidebarDivider} />
-                    <Text size={200} style={{ color: "var(--colorNeutralForeground4)" }}>
-                        {locConstants.azureSqlDatabase.monthlyLimits}
-                    </Text>
+                    <Text size={200}>{locConstants.azureSqlDatabase.monthlyLimits}</Text>
                     <ul
                         style={{
                             margin: "4px 0 0",

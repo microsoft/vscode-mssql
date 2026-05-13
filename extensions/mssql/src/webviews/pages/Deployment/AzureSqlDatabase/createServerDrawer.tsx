@@ -300,7 +300,7 @@ export const CreateServerDrawer = ({
                                     checked={savePassword}
                                     onChange={(_e, data) => setSavePassword(!!data.checked)}
                                     disabled={isCreating}
-                                    label={Loc.azureSqlDatabase.savePasswordForConnection}
+                                    label={Loc.azureSqlDatabase.savePassword}
                                 />
                             </>
                         )}

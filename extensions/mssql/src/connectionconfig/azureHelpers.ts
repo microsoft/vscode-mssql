@@ -32,6 +32,7 @@ import { groupQuickPickItems, MssqlQuickPickItem } from "../utils/quickpickHelpe
 import {
     AlwaysEncryptedEnclaveType,
     Database,
+    FirewallRule,
     KnownSampleName,
     ManagedDatabase,
     ManagedInstance,
@@ -409,6 +410,28 @@ export class VsCodeAzureHelper {
             serverParams,
         );
         return poller.pollUntilDone();
+    }
+
+    /**
+     * Creates a firewall rule on an Azure SQL Server using the ARM SDK directly,
+     * bypassing the STS server-name lookup that can fail for newly created servers.
+     */
+    public static async createFirewallRule(
+        subscription: AzureSubscription,
+        resourceGroupName: string,
+        serverName: string,
+        ruleName: string,
+        startIpAddress: string,
+        endIpAddress: string,
+    ): Promise<FirewallRule> {
+        const sql = new SqlManagementClient(subscription.credential, subscription.subscriptionId, {
+            endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+        });
+
+        return sql.firewallRules.createOrUpdate(resourceGroupName, serverName, ruleName, {
+            startIpAddress,
+            endIpAddress,
+        });
     }
 
     public static async fetchSqlResourcesForSubscription<

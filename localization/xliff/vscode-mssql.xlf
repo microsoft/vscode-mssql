@@ -5631,9 +5631,6 @@
     <trans-unit id="++CODE++e86cf7b88cde4602bf09208d61b915b3990896c08dfc027f85aaf61296311506">
       <source xml:lang="en">Save password</source>
     </trans-unit>
-    <trans-unit id="++CODE++cad856c4e87b474f87bc981bb40a765ffaac90b048d7782606f8f9e1cdd6c6cc">
-      <source xml:lang="en">Save password for connection</source>
-    </trans-unit>
     <trans-unit id="++CODE++bae1da28225af71a125385224716f5ff7870573e6c01494c597e8ed4168b12e3">
       <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
     </trans-unit>

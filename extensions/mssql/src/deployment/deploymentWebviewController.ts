@@ -198,10 +198,7 @@ export class DeploymentWebviewController extends FormWebviewController<
 
         localContainers.registerLocalContainersReducers(this);
         fabricProvisioning.registerFabricProvisioningReducers(this);
-        azureSqlDatabase.registerAzureSqlDatabaseReducers(
-            this,
-            this.mainController.connectionManager.firewallService,
-        );
+        azureSqlDatabase.registerAzureSqlDatabaseReducers(this);
     }
 
     async updateItemVisibility() {}

@@ -60,6 +60,13 @@ const useStyles = makeStyles({
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
     },
+    cardItemError: {
+        fontSize: "14px",
+        padding: "10px 0",
+        whiteSpace: "normal",
+        overflowWrap: "break-word",
+        wordBreak: "break-word",
+    },
     cardItemLabel: {
         color: tokens.colorNeutralForeground4,
         paddingRight: "10px",
@@ -137,8 +144,8 @@ export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
                     bodyClassName={classes.cardBody}>
                     <div className={classes.cardContentDiv}>
                         {errorMessage ? (
-                            <div className={classes.cardColumn} style={{ paddingRight: "5px" }}>
-                                <span className={classes.cardItem}>
+                            <div className={classes.cardColumn} style={{ paddingRight: "20px" }}>
+                                <span className={classes.cardItemError}>
                                     <span className={classes.cardItemLabel}>
                                         {locConstants.common.error}:
                                     </span>

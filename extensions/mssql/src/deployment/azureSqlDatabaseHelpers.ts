@@ -21,8 +21,6 @@ import { IConnectionProfile } from "../models/interfaces";
 import { DEPLOYMENT_VIEW_ID, DeploymentWebviewController } from "./deploymentWebviewController";
 import { UserSurvey } from "../nps/userSurvey";
 import publicIpv4 from "public-ip";
-import { FirewallService } from "../firewall/firewallService";
-import { FirewallRuleSpec } from "../sharedInterfaces/firewallRule";
 
 // Cached logger reference for use in helper functions that don't have
 // direct access to the controller's protected logger.
@@ -220,7 +218,6 @@ export async function initializeAzureSqlDatabaseState(
 
 export function registerAzureSqlDatabaseReducers(
     deploymentController: DeploymentWebviewController,
-    firewallService: FirewallService,
 ) {
     deploymentController.registerReducer("loadAzureComponent", async (state, payload) => {
         const azureSqlState = state.deploymentTypeState as asd.AzureSqlDatabaseState;
@@ -348,16 +345,14 @@ export function registerAzureSqlDatabaseReducers(
                     },
                 );
 
-                void firewallService.createFirewallRuleWithVscodeAccount(
-                    {
-                        name: `mssql-${azureSqlState.formState.serverName}-firewall-rule`,
-                        azureAccountInfo: {
-                            accountId: azureSqlState.formState.accountId,
-                            tenantId: azureSqlState.formState.tenantId,
-                        },
-                        ip: azureSqlState.publicIp,
-                    } as FirewallRuleSpec,
+                const ip = azureSqlState.publicIp ?? "";
+                await VsCodeAzureHelper.createFirewallRule(
+                    subscription,
+                    azureSqlState.formState.resourceGroup,
                     azureSqlState.formState.serverName,
+                    `mssql-${azureSqlState.formState.serverName}-firewall-rule`,
+                    ip,
+                    ip,
                 );
                 void connectToAzureSqlDatabase(deploymentController);
             } catch (error) {
@@ -673,8 +668,7 @@ export async function connectToAzureSqlDatabase(
             await ConnectionCredentials.createConnectionInfo(connectionDetails);
         connectionProfile.profileName = state.formState.profileName || state.formState.databaseName;
         connectionProfile.groupId = state.formState.groupId;
-        connectionProfile.authenticationType = state.formState
-            .authenticationType as AuthenticationType;
+        connectionProfile.authenticationType = state.formState.authenticationType;
 
         if (
             state.formState.authenticationType === AuthenticationType.AzureMFA ||

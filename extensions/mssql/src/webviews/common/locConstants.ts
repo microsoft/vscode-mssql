@@ -1908,7 +1908,6 @@ export class LocConstants {
             confirmPassword: l10n.t("Confirm Password"),
             enterConfirmPassword: l10n.t("Confirm admin password"),
             passwordsDoNotMatch: l10n.t("Passwords do not match"),
-            savePasswordForConnection: l10n.t("Save password for connection"),
             enableAlwaysEncrypted: l10n.t("Always Encrypted"),
             dataSource: l10n.t("Data Source"),
             selectDataSource: l10n.t("Select a data source"),
