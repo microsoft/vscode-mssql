@@ -223,8 +223,8 @@
         "message": "To",
         "comment": ["Label for the end IP address in the firewall rule IP range"]
     },
-    "MSSQL Configuration": "MSSQL Configuration",
-    "Configure MSSQL extension behavior.": "Configure MSSQL extension behavior.",
+    "shortcutsConfiguration": "shortcutsConfiguration",
+    "Configure shortcut behavior.": "Configure shortcut behavior.",
     "Quick Queries": "Quick Queries",
     "Configure command-backed SQL snippets that can open or run from keyboard shortcuts.": "Configure command-backed SQL snippets that can open or run from keyboard shortcuts.",
     "Webview Shortcuts": "Webview Shortcuts",

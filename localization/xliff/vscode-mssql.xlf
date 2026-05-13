@@ -1174,9 +1174,6 @@
     <trans-unit id="++CODE++b3841aead42fd5bf681d290d2fef9df816aa53c2b9a1da6c21f42b11ccc2c9dd">
       <source xml:lang="en">Configure Linux containers</source>
     </trans-unit>
-    <trans-unit id="++CODE++cf6ef9c81d75f09f6f607b13a65dd848a429cbee72154945094af6b32fbc7f43">
-      <source xml:lang="en">Configure MSSQL extension behavior.</source>
-    </trans-unit>
     <trans-unit id="++CODE++73b680fbf34c02acc61629ac870cb10a5f382c5379516f9dd96777d75a3086fe">
       <source xml:lang="en">Configure Rosetta in Docker Desktop</source>
     </trans-unit>
@@ -1185,6 +1182,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3135416947bed2e7934a6e4463fa842ab5b8ddc86566c9789517f8c5864c35da">
       <source xml:lang="en">Configure command-backed SQL snippets that can open or run from keyboard shortcuts.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++86c5baed740294a5bac80b8405ebdf40924d253e4b7fd966026412aba9f9436e">
+      <source xml:lang="en">Configure shortcut behavior.</source>
     </trans-unit>
     <trans-unit id="++CODE++b069bcee3492a76d9f8c71187002bfbee16f9c112110a0c7be305426fe93698a">
       <source xml:lang="en">Configure shortcuts that are handled inside MSSQL webviews.</source>
@@ -3830,9 +3830,6 @@
     </trans-unit>
     <trans-unit id="++CODE++ac71b6a015738ee5338790cb940cf29b65310494e9c98aba9894dac78b05e4ca">
       <source xml:lang="en">MSSQL - VS Code walkthrough</source>
-    </trans-unit>
-    <trans-unit id="++CODE++6fef73a4c9a084c022bc1db34c33b7f6a51965e09b44f72fe72ebf4f6e041ad2">
-      <source xml:lang="en">MSSQL Configuration</source>
     </trans-unit>
     <trans-unit id="++CODE++9f67971ab8a605f2aedf0b33a5fce37d2b135aef48f886231da5d8163aa488a6">
       <source xml:lang="en">MSSQL Feedback</source>
@@ -7058,6 +7055,9 @@
     <trans-unit id="++CODE++b3eacd33433b31b5252351032c9b3e7a2e7aa7738d5decdf0dd6c62680853c06">
       <source xml:lang="en">server</source>
     </trans-unit>
+    <trans-unit id="++CODE++08598adf241203ca0a8c2e7fa28e2b04b03704d893b2e7fc5ef21632fc13f360">
+      <source xml:lang="en">shortcutsConfiguration</source>
+    </trans-unit>
     <trans-unit id="++CODE++a8fa7fd60893411a49907b5545ccf9c47ed8073cc38e2ac3b79c4f6156cd7755">
       <source xml:lang="en">subscription</source>
     </trans-unit>
@@ -7693,11 +7693,11 @@
     <trans-unit id="mssql.profiler.launchFromObjectExplorer">
       <source xml:lang="en">Launch Query Profiler...</source>
     </trans-unit>
+    <trans-unit id="mssql.Configuration">
+      <source xml:lang="en">MSSQL</source>
+    </trans-unit>
     <trans-unit id="mssql.copilot.editorSubmenu">
       <source xml:lang="en">MSSQL Copilot</source>
-    </trans-unit>
-    <trans-unit id="mssql.Configuration">
-      <source xml:lang="en">MSSQL configuration</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.description">
       <source xml:lang="en">Make a new connection to a SQL database, or edit existing connections with the connection dialog.&#10;You can connect to a database by entering your connection information, using a connection string, or browsing your Azure subscriptions.&#10;[Open Connection Dialog](command:mssql.addObjectExplorer)</source>
@@ -7768,9 +7768,6 @@
     <trans-unit id="mssql.openExecutionPlanFile">
       <source xml:lang="en">Open Execution Plan File</source>
     </trans-unit>
-    <trans-unit id="mssql.configuration.open">
-      <source xml:lang="en">Open MSSQL Configuration</source>
-    </trans-unit>
     <trans-unit id="mssql.copilot.newQueryWithConnection">
       <source xml:lang="en">Open New Query and Connect</source>
     </trans-unit>
@@ -7791,6 +7788,9 @@
     </trans-unit>
     <trans-unit id="mssql.objectExplorerChatWithDatabase">
       <source xml:lang="en">Open in GitHub Copilot Chat</source>
+    </trans-unit>
+    <trans-unit id="mssql.shortcutsConfiguration.open">
+      <source xml:lang="en">Open shortcutsConfiguration</source>
     </trans-unit>
     <trans-unit id="mssql.quickQueries.executionMode.openAndRun">
       <source xml:lang="en">Open the query in a SQL editor and run it immediately.</source>
