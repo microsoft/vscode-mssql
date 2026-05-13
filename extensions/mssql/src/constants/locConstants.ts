@@ -822,6 +822,13 @@ export class Notebooks {
     public static noActiveConnection = l10n.t("No active connection.");
     public static noConnectionSelected = l10n.t("No connection selected.");
 
+    // Copy cell output
+    public static copyMessages = l10n.t("Copy messages");
+    public static copyMessagesTooltip = l10n.t(
+        "Copy all text output for this cell (messages, PRINT, errors)",
+    );
+    public static copiedMessages = l10n.t("$(check) Copied messages");
+
     // Execution results
     public static rowsAffected(count: number) {
         return l10n.t({
@@ -1122,12 +1129,15 @@ export class Azure {
         });
     }
 
-    public static noSqlResourceConfiguredForCurrentCloud(cloudName: string): string {
+    public static noResourceConfiguredForCurrentCloud(
+        resourceType: string,
+        cloudName: string,
+    ): string {
         return l10n.t({
             message:
-                "No SQL resource is configured for the current cloud '{0}'. Please update your Azure account settings.",
-            args: [cloudName],
-            comment: ["{0} is the display name of the current cloud"],
+                "No resource of type '{0}' is configured for the current cloud '{1}'. Please update your Azure account settings.",
+            args: [resourceType, cloudName],
+            comment: ["{0} is the resource type", "{1} is the display name of the current cloud"],
         });
     }
 
@@ -2135,6 +2145,21 @@ export class Connection {
     public static trustServerCertificateMustBeEnabledPrompt = l10n.t(
         "Do you want to enable 'Trust server certificate' on this connection and retry?",
     );
+
+    public static securityTokenRequestFailed = (errorMessage: string, resource: string) => {
+        return l10n.t({
+            message: "Failed to obtain token for resource '{1}'.  Error: {0}",
+            args: [errorMessage, resource],
+            comment: ["{0} is the error message", "{1} is the resource"],
+        });
+    };
+    public static failedToAcquireToken = (accountId: string, tenantId: string) => {
+        return l10n.t({
+            message: "Failed to acquire token for account '{0}' and tenant '{1}'",
+            args: [accountId, tenantId],
+            comment: ["{0} is the account ID", "{1} is the tenant ID"],
+        });
+    };
 }
 
 export class MssqlChatAgent {

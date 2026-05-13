@@ -1366,11 +1366,6 @@ suite("ProjectsController", function (): void {
                 }
                 return <any>{ exports: dataWorkspaceMock };
             });
-            sandbox.stub(utils, "getDacFxService").returns(<any>{
-                parseTSqlScript: (_: string, __: string) => {
-                    return Promise.resolve({ containsCreateTableStatement: true });
-                },
-            });
 
             // add project reference from project1 to project2
             await projController.addDatabaseReferenceCallback(
@@ -1427,11 +1422,6 @@ suite("ProjectsController", function (): void {
                     return realMssqlExt;
                 }
                 return <any>{ exports: dataWorkspaceMock };
-            });
-            sandbox.stub(utils, "getDacFxService").returns(<any>{
-                parseTSqlScript: (_: string, __: string) => {
-                    return Promise.resolve({ containsCreateTableStatement: true });
-                },
             });
             // add dacpac reference to something in the same folder
             expect(project1.databaseReferences.length).to.equal(

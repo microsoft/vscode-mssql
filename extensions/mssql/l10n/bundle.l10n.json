@@ -2310,6 +2310,9 @@
     "No active notebook.": "No active notebook.",
     "No active connection.": "No active connection.",
     "No connection selected.": "No connection selected.",
+    "Copy messages": "Copy messages",
+    "Copy all text output for this cell (messages, PRINT, errors)": "Copy all text output for this cell (messages, PRINT, errors)",
+    "$(check) Copied messages": "$(check) Copied messages",
     "({0} row(s) affected)/{0} is the number of rows affected": {
         "message": "({0} row(s) affected)",
         "comment": ["{0} is the number of rows affected"]
@@ -2460,9 +2463,9 @@
         "message": "Unable to acquire a Microsoft Entra token from VS Code for the selected account: {0}",
         "comment": ["{0} is the account label or ID"]
     },
-    "No SQL resource is configured for the current cloud '{0}'. Please update your Azure account settings./{0} is the display name of the current cloud": {
-        "message": "No SQL resource is configured for the current cloud '{0}'. Please update your Azure account settings.",
-        "comment": ["{0} is the display name of the current cloud"]
+    "No resource of type '{0}' is configured for the current cloud '{1}'. Please update your Azure account settings./{0} is the resource type{1} is the display name of the current cloud": {
+        "message": "No resource of type '{0}' is configured for the current cloud '{1}'. Please update your Azure account settings.",
+        "comment": ["{0} is the resource type", "{1} is the display name of the current cloud"]
     },
     "Azure account '{0}' was not found. Sign in with the correct account or select a different one./{0} is the display name or ID of the Azure account that was not found": {
         "message": "Azure account '{0}' was not found. Sign in with the correct account or select a different one.",
@@ -2923,6 +2926,14 @@
     "No tenant selected": "No tenant selected",
     "Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true'. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments.": "Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true'. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments.",
     "Do you want to enable 'Trust server certificate' on this connection and retry?": "Do you want to enable 'Trust server certificate' on this connection and retry?",
+    "Failed to obtain token for resource '{1}'.  Error: {0}/{0} is the error message{1} is the resource": {
+        "message": "Failed to obtain token for resource '{1}'.  Error: {0}",
+        "comment": ["{0} is the error message", "{1} is the resource"]
+    },
+    "Failed to acquire token for account '{0}' and tenant '{1}'/{0} is the account ID{1} is the tenant ID": {
+        "message": "Failed to acquire token for account '{0}' and tenant '{1}'",
+        "comment": ["{0} is the account ID", "{1} is the tenant ID"]
+    },
     "No model found.": "No model found.",
     "No tools to process.": "No tools to process.",
     "You are not connected to any database.": "You are not connected to any database.",
