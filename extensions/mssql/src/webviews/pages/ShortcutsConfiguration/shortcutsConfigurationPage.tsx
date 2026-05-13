@@ -48,8 +48,8 @@ type ConfigurationTab = "queries" | "shortcuts";
 type SaveState = "idle" | "saving" | "saved";
 
 const executionOptions = [
-    { value: QuickQueryExecutionMode.OpenAndRun, labelKey: "openAndRun" },
     { value: QuickQueryExecutionMode.Open, labelKey: "openOnly" },
+    { value: QuickQueryExecutionMode.OpenAndRun, labelKey: "openAndRun" },
 ] as const;
 
 const connectionOptions = [
@@ -1274,7 +1274,7 @@ const styles = `
     display: flex;
     flex-direction: column;
     gap: 12px;
-    padding: 0 16px 16px 40px;
+    padding: 16px 16px 16px 40px;
 }
 
 .mssql-config-controls-row {
