@@ -371,6 +371,9 @@ suite("Service Client tests", () => {
                 command: "/usr/local/bin/dotnet",
                 args: ["MicrosoftSqlToolsServiceLayer.dll"],
             });
+            expect(dotnetRuntimeProvider.acquireDotnetRuntime).to.have.been.calledWith(
+                "MicrosoftSqlToolsServiceLayer.runtimeconfig.json",
+            );
         });
 
         test("uses the executable path directly for self-contained services", async () => {

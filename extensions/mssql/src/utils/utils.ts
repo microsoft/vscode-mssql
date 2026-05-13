@@ -232,3 +232,11 @@ export function decodeQueryResultLinkFragment(fragment: string): string {
         return fragment;
     }
 }
+
+export function formatEpochSecondsForDisplay(epochSeconds: number | undefined): string {
+    if (epochSeconds === undefined) {
+        return "unknown";
+    }
+
+    return new Date(epochSeconds * 1000).toISOString();
+}

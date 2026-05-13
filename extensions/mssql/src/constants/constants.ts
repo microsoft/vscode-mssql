@@ -158,6 +158,7 @@ export const cmdFlatFileImport = "mssql.flatFileImport";
 export const cmdNotebooksCreate = "mssql.notebooks.createNotebook";
 export const cmdNotebooksChangeDatabase = "mssql.notebooks.changeDatabase";
 export const cmdNotebooksChangeConnection = "mssql.notebooks.changeConnection";
+export const cmdNotebooksCopyCellMessages = "mssql.notebooks.copyCellMessages";
 
 export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";
@@ -196,6 +197,8 @@ export const outputContentTypeShowWarning = "showWarning";
 export const outputServiceLocalhost = "http://localhost:";
 export const localhost = "localhost";
 export const defaultSqlServerContainerName = "sql_server_container";
+export const containerConnectionMaxAttempts = 3;
+export const containerConnectionRetryDelayMs = 3000;
 export const msgContentProviderSqlOutputHtml = "dist/html/sqlOutput.ejs";
 export const contentProviderMinFile = "dist/js/app.min.js";
 export const timeToWaitForLanguageModeChange = 10000.0;
@@ -207,6 +210,8 @@ export const createDatabaseHelpLink =
     "https://learn.microsoft.com/sql/t-sql/statements/create-database-transact-sql";
 export const dropDatabaseHelpLink =
     "https://learn.microsoft.com/sql/t-sql/statements/drop-database-transact-sql";
+export const renameDatabaseHelpLink =
+    "https://learn.microsoft.com/sql/t-sql/statements/alter-database-transact-sql";
 export const backupDatabaseHelpLink =
     "https://learn.microsoft.com/sql/t-sql/statements/backup-transact-sql";
 export const restoreDatabaseHelpLink =
@@ -262,6 +267,7 @@ export const configMyConnections = "connections";
 export const configSaveAsCsv = "saveAsCsv";
 export const configSaveAsJson = "saveAsJson";
 export const configSaveAsExcel = "saveAsExcel";
+export const configResultsOpenAfterSave = "results.openAfterSave";
 export const configRecentConnections = "recentConnections";
 export const configMaxRecentConnections = "maxRecentConnections";
 export const configCopyRemoveNewLine = "copyRemoveNewLine";

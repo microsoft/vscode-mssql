@@ -30,13 +30,14 @@ import {
     parsePublishProfileXml,
     readProjectProperties,
     validateSqlCmdVariables,
+    validateSqlServerPortNumber,
     getSqlServerContainerTagsForTargetVersion,
     updateDatabaseInConnectionString,
 } from "./projectUtils";
 import { SqlProjectsService } from "../services/sqlProjectsService";
 import { Deferred } from "../protocol";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
-import { TaskExecutionMode } from "../enums";
+import { TaskExecutionMode, DeploymentScenario } from "../enums";
 import { hasAnyMissingRequiredValues, getErrorMessage, uuid } from "../utils/utils";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { ProjectController } from "../controllers/projectController";
@@ -59,6 +60,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
 > {
     private _cachedDatabaseList?: { displayName: string; value: string }[];
     private _cachedSelectedDatabase?: string;
+    private _preloadedContainerPort?: Promise<number>;
+    private _deploymentOptionsPromise?: Promise<void>;
     private _connectionUri?: string;
     private _serverTypes: string = "";
     private _availableConnections?: IConnectionDialogProfile[];
@@ -80,7 +83,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
         sqlProjectsService?: SqlProjectsService,
         dacFxService?: mssql.IDacFxService,
         sqlPackageService?: SqlPackageService,
-        deploymentOptions?: mssql.DeploymentOptions,
     ) {
         super(
             context,
@@ -100,8 +102,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 inProgress: false,
                 lastPublishResult: undefined,
                 hasFormErrors: true,
-                deploymentOptions: deploymentOptions,
-                defaultDeploymentOptions: undefined, //Clone after clearing excludeObjectTypes so reset uses the correct defaults
+                deploymentOptions: undefined,
+                defaultDeploymentOptions: undefined,
             } as PublishDialogState,
             {
                 title: Loc.Title,
@@ -121,16 +123,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
             },
         );
 
-        // Clear default excludeObjectTypes for publish dialog, no default exclude options should exist
-        if (deploymentOptions?.excludeObjectTypes !== undefined) {
-            deploymentOptions.excludeObjectTypes.value = [];
-        }
-
-        // Clone after clearing excludeObjectTypes so reset uses the correct defaults
-        this.state.defaultDeploymentOptions = deploymentOptions
-            ? structuredClone(deploymentOptions)
-            : undefined;
-
         this._sqlProjectsService = sqlProjectsService;
         this._dacFxService = dacFxService;
         this._sqlPackageService = sqlPackageService;
@@ -145,6 +137,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
         });
 
         this.registerRpcHandlers();
+        this.updateState();
 
         // Listen for new connections being added elsewhere (e.g., Object Explorer)
         // Refresh the saved connections list so new connections appear in the dropdown
@@ -161,8 +154,15 @@ export class PublishProjectWebViewController extends FormWebviewController<
             .then(() => {
                 this.updateState();
                 this.initialized.resolve();
+                // Start port detection after dialog is showing to avoid blocking constructor.
+                this._preloadedContainerPort = dockerUtils.findAvailablePort(
+                    constants.defaultPortNumber,
+                );
             })
             .catch((err) => {
+                this.logger.error(
+                    `Error initializing PublishProjectWebViewController: ${getErrorMessage(err)}`,
+                );
                 this.initialized.reject(err);
             });
     }
@@ -206,6 +206,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
         databaseName: string,
         upgradeExisting: boolean,
     ): Promise<void> {
+        // Ensure deployment options are loaded before executing DacFx operations.
+        await this._deploymentOptionsPromise;
         const connectionUri = this._connectionUri || "";
         const sqlCmdVariables = new Map(Object.entries(state.formState.sqlCmdVariables || {}));
 
@@ -271,6 +273,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
         dacpacPath: string,
         databaseName: string,
     ): Promise<void> {
+        // Ensure deployment options are loaded before executing DacFx operations.
+        await this._deploymentOptionsPromise;
         const connectionUri = this._connectionUri || "";
         const sqlCmdVariables = new Map(Object.entries(state.formState.sqlCmdVariables || {}));
 
@@ -416,8 +420,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
         // Auto-generate unique container name
         const containerName = await dockerUtils.validateContainerName("");
 
-        // Parse port (already validated by form)
-        const port = parseInt(state.formState.containerPort);
+        // Port availability is validated in validateForm before publish runs,
+        // so we can safely use the parsed value here.
+        const port = parseInt(state.formState.containerPort, 10);
 
         return { containerName, port };
     }
@@ -491,51 +496,80 @@ export class PublishProjectWebViewController extends FormWebviewController<
             trustServerCertificate: true,
         } as IConnectionProfile;
 
-        try {
-            // Save the connection profile to VS Code settings
-            const savedProfile =
-                await this._mainController.connectionManager.connectionUI.saveProfile(
-                    connectionProfile,
+        // SQL Server logs "ready for client connections" slightly before SA auth is fully
+        // initialized. Retry with exponential backoff (baseDelay × 2^attempt) to give
+        // the container enough time to become fully responsive after a failure.
+        let lastConnectionError: string | undefined;
+
+        for (let attempt = 0; attempt < constants.containerConnectionMaxAttempts; attempt++) {
+            try {
+                // Save the connection profile to VS Code settings (idempotent on retry)
+                const savedProfile =
+                    await this._mainController.connectionManager.connectionUI.saveProfile(
+                        connectionProfile,
+                    );
+
+                // Open in Object Explorer (this also establishes the connection)
+                await this._mainController.createObjectExplorerSession(savedProfile);
+
+                // Get the connection URI from the saved profile
+                const connectionUri =
+                    this._mainController.connectionManager.getUriForConnection(savedProfile);
+
+                if (connectionUri) {
+                    // Send telemetry for successful container creation and connection
+                    sendActionEvent(
+                        TelemetryViews.SqlProjects,
+                        TelemetryActions.ConnectToContainer,
+                        {
+                            operationId: this._operationId,
+                            publishTarget: PublishTarget.LocalContainer,
+                            success: "true",
+                        },
+                    );
+
+                    return {
+                        success: true,
+                        connectionUri: connectionUri,
+                    };
+                }
+
+                // Session was created but no URI yet – treat as a soft failure and retry
+                lastConnectionError = Loc.FailedToConnectToServer;
+            } catch (error) {
+                lastConnectionError = getErrorMessage(error);
+            }
+
+            // Wait before the next attempt using exponential backoff: baseDelay × 2^attempt
+            // (attempt 0 → 3s, attempt 1 → 6s). No wait after the last attempt.
+            if (attempt + 1 < constants.containerConnectionMaxAttempts) {
+                await new Promise((resolve) =>
+                    setTimeout(
+                        resolve,
+                        constants.containerConnectionRetryDelayMs * Math.pow(2, attempt),
+                    ),
                 );
-
-            // Open in Object Explorer (this also establishes the connection)
-            await this._mainController.createObjectExplorerSession(savedProfile);
-
-            // Get the connection URI from the saved profile
-            const connectionUri =
-                this._mainController.connectionManager.getUriForConnection(savedProfile);
-
-            // Send telemetry for successful container creation and connection
-            sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.ConnectToContainer, {
-                operationId: this._operationId,
-                publishTarget: PublishTarget.LocalContainer,
-                success: "true",
-            });
-
-            return {
-                success: true,
-                connectionUri: connectionUri,
-            };
-        } catch (error) {
-            // Send telemetry for connection failure
-            sendErrorEvent(
-                TelemetryViews.SqlProjects,
-                TelemetryActions.ConnectToContainer,
-                error instanceof Error ? error : new Error(getErrorMessage(error)),
-                false,
-                undefined,
-                undefined,
-                {
-                    operationId: this._operationId,
-                    success: "false",
-                },
-            );
-
-            return {
-                success: false,
-                error: getErrorMessage(error),
-            };
+            }
         }
+
+        // All attempts exhausted
+        sendErrorEvent(
+            TelemetryViews.SqlProjects,
+            TelemetryActions.ConnectToContainer,
+            new Error(lastConnectionError),
+            false,
+            undefined,
+            undefined,
+            {
+                operationId: this._operationId,
+                success: "false",
+            },
+        );
+
+        return {
+            success: false,
+            error: lastConnectionError,
+        };
     }
 
     /**
@@ -750,6 +784,36 @@ export class PublishProjectWebViewController extends FormWebviewController<
     private async initializeDialog(projectFilePath: string) {
         if (projectFilePath) {
             this.state.projectFilePath = projectFilePath;
+        }
+
+        // Fetch deployment options in the background while other init work proceeds.
+        // Cache the promise so consumers can await it if they run before the fetch completes.
+        if (this._dacFxService) {
+            // getDeploymentOptions returns a Thenable; wrap in Promise.resolve() for .catch support.
+            this._deploymentOptionsPromise = Promise.resolve(
+                this._dacFxService.getDeploymentOptions(DeploymentScenario.Deployment),
+            )
+                .then((result) => {
+                    if (this.isDisposed) {
+                        return;
+                    }
+                    const options = result?.defaultDeploymentOptions;
+                    if (options) {
+                        // Clear default excludeObjectTypes — no default exclude options for the publish dialog.
+                        if (options.excludeObjectTypes !== undefined) {
+                            options.excludeObjectTypes.value = [];
+                        }
+                        this.state.deploymentOptions = options;
+                        // Clone after clearing so reset uses the correct defaults.
+                        this.state.defaultDeploymentOptions = structuredClone(options);
+                        this.updateState();
+                    }
+                })
+                .catch((err) => {
+                    this.logger.error("Failed to fetch deployment options:", err);
+                });
+            // Intentionally not awaited here — callers await _deploymentOptionsPromise before using the options.
+            void this._deploymentOptionsPromise;
         }
 
         // Get the project properties from the proj file
@@ -1270,6 +1334,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 }
 
                 try {
+                    // Ensure deployment options are loaded before saving profile.
+                    await this._deploymentOptionsPromise;
                     const databaseName = state.formState.databaseName || projectName;
                     // Connection string depends on publish target:
                     // - For container targets: empty string because we're provisioning a new container
@@ -1346,6 +1412,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
         // Request handler to generate sqlpackage command string
         this.onRequest(GenerateSqlPackageCommandRequest.type, async (params) => {
             try {
+                // Ensure deployment options are loaded before building the command.
+                await this._deploymentOptionsPromise;
                 const dacpacPath = this.state.projectProperties?.dacpacOutputPath;
 
                 if (!dacpacPath) {
@@ -1578,7 +1646,10 @@ export class PublishProjectWebViewController extends FormWebviewController<
      * Called after a form property is set and validated.
      * Handles publish target changes for both validation and database dropdown management.
      */
-    public async afterSetFormProperty(propertyName: keyof IPublishForm): Promise<void> {
+    public async afterSetFormProperty(
+        propertyName: keyof IPublishForm,
+        _isBlur: boolean,
+    ): Promise<void> {
         if (propertyName === PublishFormFields.PublishTarget) {
             const databaseComponent = this.state.formComponents[PublishFormFields.DatabaseName];
             if (!databaseComponent) return;
@@ -1596,6 +1667,17 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 );
                 this._connectionUri = undefined;
                 this._serverTypes = "";
+
+                // Kick off port detection if not already started.
+                if (!this._preloadedContainerPort) {
+                    this._preloadedContainerPort = dockerUtils.findAvailablePort(
+                        constants.defaultPortNumber,
+                    );
+                }
+                // Use pre-fetched port if available, otherwise fetch live.
+                const availablePort = await this._preloadedContainerPort;
+                this.state.formState.containerPort =
+                    availablePort > 0 ? String(availablePort) : String(constants.defaultPortNumber);
             } else if (this.state.formState.publishTarget === PublishTarget.ExistingServer) {
                 // Restore for server mode
                 if (this._cachedDatabaseList?.length) {
@@ -1649,6 +1731,49 @@ export class PublishProjectWebViewController extends FormWebviewController<
     ): Promise<(keyof IPublishForm)[]> {
         // Call parent validation logic which returns array of fields with errors
         const erroredInputs = await super.validateForm(formTarget, propertyName, updateValidation);
+
+        // Async port-availability check for LocalContainer target — mirrors deployment UI.
+        // The synchronous validate() in formComponentHelpers only checks the number range;
+        // this checks whether the port is already bound by a running/stopped container.
+        const isPortField = !propertyName || propertyName === PublishFormFields.ContainerPort;
+        if (
+            isPortField &&
+            formTarget.publishTarget === PublishTarget.LocalContainer &&
+            updateValidation
+        ) {
+            const portComponent = this.state.formComponents[PublishFormFields.ContainerPort];
+            const portStr = String(formTarget.containerPort ?? "").trim();
+            const portNum = Number(portStr);
+            // Skip availability check for out-of-range values; the range validator already caught those.
+            if (portComponent && validateSqlServerPortNumber(portNum)) {
+                const availablePort = await dockerUtils.findAvailablePort(portNum);
+                // Discard stale results if the user changed the port while we were awaiting.
+                if (String(this.state.formState.containerPort).trim() !== portStr) {
+                    return erroredInputs;
+                }
+                // findAvailablePort returns -1 on error (e.g., Docker not running).
+                // Skip validation in that case to avoid false "port in use" errors.
+                if (availablePort === -1) {
+                    // Clear any previous validation state when we can't check.
+                    portComponent.validation = { isValid: true, validationMessage: "" };
+                } else if (availablePort !== portNum) {
+                    portComponent.validation = {
+                        isValid: false,
+                        validationMessage: Loc.PortAlreadyInUse(portNum),
+                    };
+                    if (
+                        !erroredInputs.includes(
+                            PublishFormFields.ContainerPort as keyof IPublishForm,
+                        )
+                    ) {
+                        erroredInputs.push(PublishFormFields.ContainerPort as keyof IPublishForm);
+                    }
+                } else {
+                    // Port is free — clear any previous port-in-use error.
+                    portComponent.validation = { isValid: true, validationMessage: "" };
+                }
+            }
+        }
 
         // erroredInputs only contains fields validated with updateValidation=true (on blur)
         // So we also need to check for missing required values (which may not be validated yet on dialog open)

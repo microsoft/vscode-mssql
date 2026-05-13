@@ -67,7 +67,6 @@ export const changelogConfig: ChangelogWebviewState = {
             },
             {
                 title: locConstants.Changelog.fabricQueryProfilerTitle,
-                isPreview: true,
                 description: locConstants.Changelog.fabricQueryProfilerDescription,
                 codeSnippets: ["TSQL_Azure"],
                 actions: [

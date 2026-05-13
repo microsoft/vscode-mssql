@@ -40,6 +40,11 @@ The MSSQL extension provides a rich set of capabilities for SQL development. Eac
 | [Data-tier Application (DACPAC)](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-data-tier-application)                     | Deploy, extract, import, and export DACPAC and BACPAC files                                                        |
 | [Fabric integration](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-fabric-integration)                                    | Browse Fabric workspaces and provision SQL databases                                                               |
 | [SQL Database Projects](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code)                       | Build, publish with the visual Publish Dialog, and analyze SQL projects with Code Analysis                         |
+| [Query Profiler](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-query-profiler)                                            | Real-time database activity monitoring with Extended Events                                                        |
+| [Backup and Restore](https://aka.ms/vscode-mssql-backup-and-restore)                                                                                        | Back up and restore SQL Server databases                                                                           |
+| [Flat File Import](https://aka.ms/vscode-mssql-import-data)                                                                                                 | Import flat files (CSV, TXT) as new database tables using a guided wizard                                          |
+| [Object Search](https://aka.ms/vscode-mssql-object-search)                                                                                                  | Search for database objects by name across a server or database                                                    |
+| [Database Management](https://aka.ms/vscode-mssql-database-management-ops)                                                                                  | Create, rename, and drop databases                                                                                 |
 
 ### Public Preview
 
@@ -49,7 +54,6 @@ The MSSQL extension provides a rich set of capabilities for SQL development. Eac
 | [Data API builder](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-data-api-builder)                           | Create REST, GraphQL, and MCP endpoints for SQL databases              |
 | [GitHub Copilot in Data API builder](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-data-api-builder)         | Generate Data API builder configs using natural language               |
 | [SQL Notebooks](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-sql-notebooks)                                 | Jupyter-based SQL notebooks with rich results and multi-kernel support |
-| [Query Profiler](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-query-profiler)                               | Real-time database activity monitoring with Extended Events            |
 
 ## Using the MSSQL Extension
 
@@ -130,7 +134,6 @@ Configure the MSSQL extension in user preferences (`Cmd+,`) or workspace setting
 // General Settings
 {
   "mssql.enableExperimentalFeatures": false,                // Enable experimental features for early testing
-  "mssql.enableRichExperiences": true,                     // Enable rich UI experiences (tables, schema designer)
   "mssql.logDebugInfo": false,                             // Enable debug logging for troubleshooting
   "mssql.messagesDefaultOpen": true,                       // Show messages panel by default after query execution
   "mssql.autoRevealResultsPanel": false,                    // Auto-reveal results panel when queries execute

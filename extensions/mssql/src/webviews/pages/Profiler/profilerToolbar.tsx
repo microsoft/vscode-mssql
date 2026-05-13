@@ -6,22 +6,24 @@
 import React, { useState, useCallback, useMemo, useEffect } from "react";
 import {
     Toolbar,
-    ToolbarButton,
+    Button,
     ToolbarDivider,
     Tooltip,
     ToggleButton,
     Input,
+    Dropdown,
+    Option,
 } from "@fluentui/react-components";
 import {
-    Play24Regular,
-    Pause24Regular,
-    Stop24Regular,
-    ArrowDown24Regular,
-    Next24Regular,
+    Play16Regular,
+    Pause16Regular,
+    Stop16Regular,
+    ArrowDown16Regular,
+    Next16Regular,
     EraserRegular,
-    Add24Regular,
-    FilterDismiss24Regular,
-    ArrowExportRegular,
+    Add16Regular,
+    FilterDismiss16Regular,
+    ArrowExport16Regular,
 } from "@fluentui/react-icons";
 import {
     SessionState,
@@ -150,8 +152,16 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
     }, [debouncedQuickFilterChange]);
 
     // Determine pause/resume button state - use Next icon (line before play) for Resume
-    const pauseResumeIcon = isRunning ? <Pause24Regular /> : <Next24Regular />;
+    const pauseResumeIcon = isRunning ? <Pause16Regular /> : <Next16Regular />;
     const loc = locConstants.profiler;
+    const selectedSessionName = useMemo(
+        () => availableSessions?.find((session) => session.id === selectedSessionId)?.name ?? "",
+        [availableSessions, selectedSessionId],
+    );
+    const selectedViewName = useMemo(
+        () => availableViews?.find((view) => view.id === currentViewId)?.name ?? "",
+        [availableViews, currentViewId],
+    );
 
     // Build read-only disconnected tooltip
     const readOnlyDisconnectedTooltip =
@@ -186,13 +196,15 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
                                 : loc.noTemplatesAvailableTooltip
                     }
                     relationship="label">
-                    <ToolbarButton
+                    <Button
+                        appearance="primary"
+                        size="small"
                         aria-label={loc.newSession}
-                        icon={<Add24Regular />}
+                        icon={<Add16Regular />}
                         onClick={onNewSession}
                         disabled={isReadOnly || isActive || isCreatingSession || !hasTemplates}>
                         {isCreatingSession ? loc.creatingSession : loc.newSession}
-                    </ToolbarButton>
+                    </Button>
                 </Tooltip>
 
                 <ToolbarDivider />
@@ -208,29 +220,28 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
                     }
                     relationship="label">
                     <div className="profiler-toolbar-view-selector">
-                        <span className="profiler-toolbar-label">{loc.selectSessionLabel}</span>
-                        <select
-                            aria-label={loc.selectSessionLabel}
-                            value={selectedSessionId ?? ""}
-                            onChange={(e) => onSelectSession(e.target.value)}
+                        <span className="profiler-toolbar-label">{loc.sessionLabel}</span>
+                        <Dropdown
+                            aria-label={loc.selectSessionAriaLabel}
+                            value={selectedSessionName || loc.selectASession}
+                            selectedOptions={selectedSessionId ? [selectedSessionId] : []}
+                            multiselect={false}
+                            clearable={false}
+                            onOptionSelect={(_event, data) => {
+                                if (typeof data.optionValue === "string") {
+                                    onSelectSession(data.optionValue);
+                                }
+                            }}
                             disabled={isReadOnly || isActive}
-                            style={{
-                                minWidth: "200px",
-                                padding: "4px 8px",
-                                backgroundColor: "var(--vscode-input-background)",
-                                color: "var(--vscode-input-foreground)",
-                                border: "1px solid var(--vscode-input-border)",
-                                borderRadius: "2px",
-                                opacity: isReadOnly || isActive ? 0.6 : 1,
-                                cursor: isReadOnly || isActive ? "not-allowed" : "pointer",
-                            }}>
-                            <option value="">{loc.selectASession}</option>
+                            className="profiler-toolbar-select"
+                            style={{ minWidth: "auto" }}
+                            size="small">
                             {availableSessions?.map((session) => (
-                                <option key={session.id} value={session.id}>
+                                <Option key={session.id} value={session.id} text={session.name}>
                                     {session.name}
-                                </option>
+                                </Option>
                             ))}
-                        </select>
+                        </Dropdown>
                     </div>
                 </Tooltip>
 
@@ -244,13 +255,15 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
                               : loc.startSessionTooltip
                     }
                     relationship="label">
-                    <ToolbarButton
+                    <Button
+                        appearance="subtle"
+                        size="small"
                         aria-label={loc.start}
-                        icon={<Play24Regular />}
+                        icon={<Play16Regular />}
                         onClick={onStart}
                         disabled={isReadOnly || isActive || !selectedSessionId}>
                         {loc.start}
-                    </ToolbarButton>
+                    </Button>
                 </Tooltip>
 
                 {/* Stop button - disabled for read-only file sessions */}
@@ -263,13 +276,15 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
                               : loc.sessionNotRunningTooltip
                     }
                     relationship="label">
-                    <ToolbarButton
+                    <Button
+                        appearance="subtle"
+                        size="small"
                         aria-label={loc.stop}
-                        icon={<Stop24Regular />}
+                        icon={<Stop16Regular />}
                         onClick={onStop}
                         disabled={isReadOnly || isStopped}>
                         {loc.stop}
-                    </ToolbarButton>
+                    </Button>
                 </Tooltip>
 
                 {/* Pause/Resume button - disabled for read-only file sessions */}
@@ -284,13 +299,15 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
                                 : loc.notRunningTooltip
                     }
                     relationship="label">
-                    <ToolbarButton
+                    <Button
+                        appearance="subtle"
+                        size="small"
                         aria-label={isRunning ? loc.pause : loc.resume}
                         icon={pauseResumeIcon}
                         onClick={onPauseResume}
                         disabled={isReadOnly || isStopped}>
                         {isRunning ? loc.pause : loc.resume}
-                    </ToolbarButton>
+                    </Button>
                 </Tooltip>
 
                 <ToolbarDivider />
@@ -299,13 +316,15 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
                 <Tooltip
                     content={isReadOnly ? loc.readOnlyDisabledTooltip : loc.clearEventsTooltip}
                     relationship="label">
-                    <ToolbarButton
+                    <Button
+                        appearance="subtle"
+                        size="small"
                         aria-label={loc.clear}
                         icon={<EraserRegular />}
                         onClick={onClear}
                         disabled={isReadOnly}>
                         {loc.clear}
-                    </ToolbarButton>
+                    </Button>
                 </Tooltip>
 
                 <ToolbarDivider />
@@ -316,13 +335,15 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
                         isFilterActive ? loc.clearAllFiltersTooltip : loc.clearFilterDisabledTooltip
                     }
                     relationship="label">
-                    <ToolbarButton
+                    <Button
+                        appearance="subtle"
+                        size="small"
                         aria-label={loc.clearAllFilters}
-                        icon={<FilterDismiss24Regular />}
+                        icon={<FilterDismiss16Regular />}
                         onClick={onClearFilter}
                         disabled={!isFilterActive}>
                         {loc.clearAllFilters}
-                    </ToolbarButton>
+                    </Button>
                 </Tooltip>
 
                 {/* Quick filter input */}
@@ -331,11 +352,6 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
                     value={localQuickFilter}
                     onChange={(_e, data) => handleQuickFilterInput(data.value ?? "")}
                     aria-label={loc.quickFilterPlaceholder}
-                    style={{
-                        minWidth: "180px",
-                        maxWidth: "300px",
-                        marginLeft: "4px",
-                    }}
                     size="small"
                 />
 
@@ -347,13 +363,15 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
                             : loc.noEventsToExport
                     }
                     relationship="label">
-                    <ToolbarButton
+                    <Button
+                        appearance="subtle"
+                        size="small"
                         aria-label={loc.exportToCsv}
-                        icon={<ArrowExportRegular />}
+                        icon={<ArrowExport16Regular />}
                         onClick={onExportToCsv}
                         disabled={!totalEventCount || totalEventCount === 0}>
                         {loc.exportToCsv}
-                    </ToolbarButton>
+                    </Button>
                 </Tooltip>
 
                 <ToolbarDivider />
@@ -361,24 +379,26 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
                 {/* View selector */}
                 <div className="profiler-toolbar-view-selector">
                     <span className="profiler-toolbar-label">{loc.viewLabel}</span>
-                    <select
+                    <Dropdown
                         aria-label={loc.viewLabel}
-                        value={currentViewId ?? ""}
-                        onChange={(e) => onViewChange(e.target.value)}
-                        style={{
-                            minWidth: "150px",
-                            padding: "4px 8px",
-                            backgroundColor: "var(--vscode-input-background)",
-                            color: "var(--vscode-input-foreground)",
-                            border: "1px solid var(--vscode-input-border)",
-                            borderRadius: "2px",
-                        }}>
+                        value={selectedViewName}
+                        selectedOptions={currentViewId ? [currentViewId] : []}
+                        multiselect={false}
+                        clearable={false}
+                        onOptionSelect={(_event, data) => {
+                            if (typeof data.optionValue === "string") {
+                                onViewChange(data.optionValue);
+                            }
+                        }}
+                        className="profiler-toolbar-select"
+                        style={{ minWidth: "auto" }}
+                        size="small">
                         {availableViews?.map((view) => (
-                            <option key={view.id} value={view.id}>
+                            <Option key={view.id} value={view.id} text={view.name}>
                                 {view.name}
-                            </option>
+                            </Option>
                         ))}
-                    </select>
+                    </Dropdown>
                 </div>
 
                 <ToolbarDivider />
@@ -395,7 +415,7 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
                     relationship="label">
                     <ToggleButton
                         aria-label={loc.autoScroll}
-                        icon={<ArrowDown24Regular />}
+                        icon={<ArrowDown16Regular />}
                         checked={autoScroll}
                         onClick={onAutoScrollToggle}
                         disabled={isReadOnly}

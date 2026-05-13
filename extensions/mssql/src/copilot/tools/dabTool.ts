@@ -47,6 +47,7 @@ interface DabToolChangeCounts {
     set_api_types_count: number;
     set_entity_enabled_count: number;
     set_entity_actions_count: number;
+    set_column_exposed_count: number;
     patch_entity_settings_count: number;
     set_only_enabled_entities_count: number;
     set_all_entities_enabled_count: number;
@@ -56,6 +57,7 @@ interface DabToolReceipt {
     setApiTypesCount: number;
     setEntityEnabledCount: number;
     setEntityActionsCount: number;
+    setColumnExposedCount: number;
     patchEntitySettingsCount: number;
     setOnlyEnabledEntitiesCount: number;
     setAllEntitiesEnabledCount: number;
@@ -143,6 +145,7 @@ export class DabTool extends ToolBase<DabToolParams> {
                 set_api_types_count: 0,
                 set_entity_enabled_count: 0,
                 set_entity_actions_count: 0,
+                set_column_exposed_count: 0,
                 patch_entity_settings_count: 0,
                 set_only_enabled_entities_count: 0,
                 set_all_entities_enabled_count: 0,
@@ -158,6 +161,9 @@ export class DabTool extends ToolBase<DabToolParams> {
                         break;
                     case "set_entity_actions":
                         counts.set_entity_actions_count++;
+                        break;
+                    case "set_column_exposed":
+                        counts.set_column_exposed_count++;
                         break;
                     case "patch_entity_settings":
                         counts.patch_entity_settings_count++;
@@ -178,6 +184,7 @@ export class DabTool extends ToolBase<DabToolParams> {
             setApiTypesCount: counts.set_api_types_count,
             setEntityEnabledCount: counts.set_entity_enabled_count,
             setEntityActionsCount: counts.set_entity_actions_count,
+            setColumnExposedCount: counts.set_column_exposed_count,
             patchEntitySettingsCount: counts.patch_entity_settings_count,
             setOnlyEnabledEntitiesCount: counts.set_only_enabled_entities_count,
             setAllEntitiesEnabledCount: counts.set_all_entities_enabled_count,
@@ -395,7 +402,6 @@ export class DabTool extends ToolBase<DabToolParams> {
             return json(
                 withTarget(
                     {
-                        success: true,
                         ...successResult,
                         receipt: toReceipt(changeCounts),
                     },

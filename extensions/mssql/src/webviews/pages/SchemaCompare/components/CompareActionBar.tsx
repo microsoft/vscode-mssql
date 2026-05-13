@@ -4,7 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as mssql from "vscode-mssql";
-import { Toolbar, ToolbarButton, ToolbarDivider } from "@fluentui/react-components";
+import {
+    Menu,
+    MenuDivider,
+    MenuItemRadio,
+    MenuList,
+    MenuPopover,
+    MenuTrigger,
+    Toolbar,
+    ToolbarButton,
+    ToolbarDivider,
+} from "@fluentui/react-components";
 
 import {
     ArrowSwapFilled,
@@ -15,6 +25,7 @@ import {
     SaveRegular,
     SettingsRegular,
     StopFilled,
+    TextBulletListTreeRegular,
 } from "@fluentui/react-icons";
 
 import { locConstants as loc } from "../../../common/locConstants";
@@ -22,10 +33,15 @@ import { useContext, useEffect } from "react";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { useSchemaCompareSelector } from "../schemaCompareSelector";
 import { SchemaCompareEndpointType } from "../../../../sharedInterfaces/schemaCompare";
+import { SchemaCompareGroupBy } from "../SchemaCompare";
 
 interface Props {
     onOptionsClicked: () => void;
+    groupBy: SchemaCompareGroupBy;
+    onGroupByChange: (value: SchemaCompareGroupBy) => void;
 }
+
+const GROUP_BY_MENU_NAME = "schemaCompareGroupBy";
 
 const CompareActionBar = (props: Props) => {
     const context = useContext(schemaCompareContext);
@@ -220,6 +236,41 @@ const CompareActionBar = (props: Props) => {
                 }>
                 {loc.schemaCompare.saveScmpFile}
             </ToolbarButton>
+            <ToolbarDivider />
+            <Menu
+                checkedValues={{ [GROUP_BY_MENU_NAME]: [props.groupBy] }}
+                onCheckedValueChange={(_e, data) => {
+                    const next = data.checkedItems[0] as SchemaCompareGroupBy | undefined;
+                    if (next) {
+                        props.onGroupByChange(next);
+                    }
+                }}>
+                <MenuTrigger disableButtonEnhancement>
+                    <ToolbarButton
+                        aria-label={loc.common.groupBy}
+                        title={loc.schemaCompare.groupDifferencesBy}
+                        icon={<TextBulletListTreeRegular />}>
+                        {loc.common.groupBy}
+                    </ToolbarButton>
+                </MenuTrigger>
+                <MenuPopover>
+                    <MenuList>
+                        <MenuItemRadio name={GROUP_BY_MENU_NAME} value="none">
+                            {loc.common.none}
+                        </MenuItemRadio>
+                        <MenuDivider />
+                        <MenuItemRadio name={GROUP_BY_MENU_NAME} value="action">
+                            {loc.schemaCompare.action}
+                        </MenuItemRadio>
+                        <MenuItemRadio name={GROUP_BY_MENU_NAME} value="schema">
+                            {loc.schemaCompare.schema}
+                        </MenuItemRadio>
+                        <MenuItemRadio name={GROUP_BY_MENU_NAME} value="type">
+                            {loc.schemaCompare.type}
+                        </MenuItemRadio>
+                    </MenuList>
+                </MenuPopover>
+            </Menu>
         </Toolbar>
     );
 };

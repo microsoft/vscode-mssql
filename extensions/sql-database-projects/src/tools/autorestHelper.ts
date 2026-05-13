@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import * as path from "path";
 import * as constants from "../common/constants";
 import * as utils from "../common/utils";
 import * as semver from "semver";
@@ -13,6 +14,48 @@ import { ShellExecutionHelper } from "./shellExecutionHelper";
 const autorestPackageName = "autorest-sql-testing"; // name of AutoRest.Sql package on npm
 const nodejsDoNotAskAgainKey = "nodejsDoNotAsk";
 const autorestSqlVersionKey = "autorestSqlVersion";
+
+/**
+ * Resolves the correct executable and prefix arguments for a script path returned by `which`.
+ * On Windows, `which` may resolve commands to `.cmd` or `.ps1` wrappers, which cannot be
+ * executed directly by spawn(shell:false) and must be routed through a shell:
+ * - .cmd/.bat → cmd.exe /d /c <path>
+ * - .ps1      → pwsh.exe -NoProfile -File <path>  (falls back to powershell.exe if pwsh is not installed)
+ * On other platforms, the resolved path is used directly.
+ */
+async function resolveScriptExecutable(resolvedPath: string): Promise<{
+    executable: string;
+    prefixArgs: string[];
+}> {
+    if (process.platform === "win32") {
+        const ext = path.extname(resolvedPath).toLowerCase();
+
+        if (ext === ".cmd" || ext === ".bat") {
+            const cmdExe = process.env.ComSpec ?? "cmd.exe";
+            // /d disables AutoRun; /c runs the command and exits.
+            // Do NOT manually quote resolvedPath here — spawn passes each prefixArg as a
+            // separate element to CreateProcess, so Node.js handles quoting automatically.
+            // Adding manual quotes causes double-quoting ("\"path\"") which cmd.exe rejects.
+            return { executable: cmdExe, prefixArgs: ["/d", "/c", resolvedPath] };
+        }
+
+        if (ext === ".ps1") {
+            // Prefer PowerShell 7 (pwsh.exe); fall back to Windows PowerShell (powershell.exe).
+            // -NoProfile avoids loading user profile scripts that could interfere.
+            // -File treats the argument as a script path, not a command string.
+            const pwsh =
+                (await utils.resolveCommandPath("pwsh")) ??
+                (await utils.resolveCommandPath("powershell")) ??
+                "powershell.exe";
+
+            return {
+                executable: pwsh,
+                prefixArgs: ["-NoProfile", "-File", resolvedPath],
+            };
+        }
+    }
+    return { executable: resolvedPath, prefixArgs: [] };
+}
 
 /**
  * Helper class for dealing with Autorest generation and detection
@@ -37,15 +80,23 @@ export class AutorestHelper extends ShellExecutionHelper {
     }
 
     /**
-     * @returns the beginning of the command to execute autorest; 'autorest' if available, 'npx autorest' if module not installed, or undefined if neither
+     * @returns the executable and prefix args needed to run autorest,
+     * `undefined` if Node.js/npx is not found, or `"cancelled"` if the user dismissed the install prompt.
      */
-    public async detectInstallation(): Promise<string | undefined> {
+    public async detectInstallation(): Promise<
+        { executable: string; prefixArgs: string[] } | "cancelled" | undefined
+    > {
         const autorestCommand = "autorest";
         const npxCommand = "npx";
+        const resolvedAutorest = await utils.resolveCommandPath(autorestCommand);
 
-        if (await utils.detectCommandInstallation(autorestCommand)) {
-            return autorestCommand;
-        } else if (await utils.detectCommandInstallation(npxCommand)) {
+        if (resolvedAutorest) {
+            return await resolveScriptExecutable(resolvedAutorest);
+        }
+
+        const resolvedNpx = await utils.resolveCommandPath(npxCommand);
+
+        if (resolvedNpx) {
             this._outputChannel.appendLine(constants.nodeButNotAutorestFound);
             const response = await vscode.window.showInformationMessage(
                 constants.nodeButNotAutorestFoundPrompt,
@@ -55,13 +106,27 @@ export class AutorestHelper extends ShellExecutionHelper {
 
             if (response === constants.installGlobally) {
                 this._outputChannel.appendLine(constants.userSelectionInstallGlobally);
-                await this.runStreamedCommand("npm", ["install", "autorest", "-g"]);
-                return autorestCommand;
+                const resolvedNpm = await utils.resolveCommandPath("npm");
+
+                const { executable: npmExe, prefixArgs: npmArgs } = resolvedNpm
+                    ? await resolveScriptExecutable(resolvedNpm)
+                    : { executable: "npm", prefixArgs: [] };
+
+                await this.runStreamedCommand(npmExe, [...npmArgs, "install", "autorest", "-g"]);
+                const resolvedAutorest = await utils.resolveCommandPath(autorestCommand);
+
+                return resolvedAutorest
+                    ? await resolveScriptExecutable(resolvedAutorest)
+                    : { executable: autorestCommand, prefixArgs: [] };
             } else if (response === constants.runViaNpx) {
                 this._outputChannel.appendLine(constants.userSelectionRunNpx);
-                return `${npxCommand} ${autorestCommand}`;
+                const { executable, prefixArgs } = await resolveScriptExecutable(resolvedNpx);
+
+                return { executable, prefixArgs: [...prefixArgs, autorestCommand] };
             } else {
                 this._outputChannel.appendLine(constants.userSelectionCancelled);
+
+                return "cancelled";
             }
         } else {
             this._outputChannel.appendLine(constants.nodeNotFound);
@@ -82,9 +147,12 @@ export class AutorestHelper extends ShellExecutionHelper {
     ): Promise<string | undefined> {
         const commandExecutable = await this.detectInstallation();
 
+        if (commandExecutable === "cancelled") {
+            return; // user intentionally dismissed the prompt — do not show Node.js install dialog
+        }
+
         if (!commandExecutable) {
             // unable to find autorest or npx
-
             if (
                 vscode.workspace.getConfiguration(DBProjectConfigurationKey)[
                     nodejsDoNotAskAgainKey
@@ -101,8 +169,7 @@ export class AutorestHelper extends ShellExecutionHelper {
             );
 
             if (result === constants.Install) {
-                //open install link
-                const nodejsInstallationUrl = "https://nodejs.dev/download";
+                const nodejsInstallationUrl = "https://nodejs.org/en/download";
                 await vscode.env.openExternal(vscode.Uri.parse(nodejsInstallationUrl));
             } else if (result === constants.DoNotAskAgain) {
                 const config = vscode.workspace.getConfiguration(DBProjectConfigurationKey);
@@ -127,26 +194,26 @@ export class AutorestHelper extends ShellExecutionHelper {
     }
 
     /**
-     *
-     * @param executable either "autorest" or "npx autorest", depending on whether autorest is already present in the global cache
+     * @param installation resolved executable and any prefix args (e.g. npx prefix)
      * @param specPath path to the OpenAPI spec
      * @param outputFolder folder in which to generate the files
-     * @returns composed command to be executed
+     * @returns ready to pass to runStreamedCommand
      */
     public constructAutorestCommand(
-        executable: string,
+        installation: { executable: string; prefixArgs: string[] },
         specPath: string,
         outputFolder: string,
     ): { executable: string; args: string[] } {
         // TODO: should --clear-output-folder be included? We should always be writing to a folder created just for this, but potentially risky
         return {
-            executable,
+            executable: installation.executable,
             args: [
+                ...installation.prefixArgs,
                 `--use:${autorestPackageName}@${this.autorestSqlPackageVersion}`,
                 `--input-file=${specPath}`,
                 `--output-folder=${outputFolder}`,
                 "--clear-output-folder",
-                "--verbose",
+                "--level:error",
             ],
         };
     }

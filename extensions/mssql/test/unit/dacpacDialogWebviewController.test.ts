@@ -39,6 +39,7 @@ import {
     ValidateFilePathWebviewRequest,
     BrowseInputFileWebviewRequest,
     BrowseOutputFileWebviewRequest,
+    type DacpacDialogWebviewState,
 } from "../../src/sharedInterfaces/dacpacDialog";
 import * as LocConstants from "../../src/constants/locConstants";
 import {
@@ -122,6 +123,19 @@ suite("DacpacDialogWebviewController", () => {
             connectionManagerStub,
             dacFxServiceStub,
             initialState,
+            ownerUri,
+        );
+        return controller;
+    }
+    function createControllerWithState(
+        state: DacpacDialogWebviewState,
+    ): DacpacDialogWebviewController {
+        controller = new DacpacDialogWebviewController(
+            mockContext,
+            vscodeWrapperStub,
+            connectionManagerStub,
+            dacFxServiceStub,
+            state,
             ownerUri,
         );
         return controller;
@@ -777,31 +791,58 @@ suite("DacpacDialogWebviewController", () => {
     });
     suite("Database Operations", () => {
         test("lists databases successfully", async () => {
-            const mockDatabases = {
-                databaseNames: ["master", "tempdb", "model", "msdb", "TestDB"],
-            };
-            sqlToolsClientStub.sendRequest
-                .withArgs(ListDatabasesRequest.type, sinon.match.any)
-                .resolves(mockDatabases);
+            connectionManagerStub.listDatabases.resolves([
+                "master",
+                "tempdb",
+                "model",
+                "msdb",
+                "TestDB",
+            ]);
             createController();
             const requestHandler = requestHandlers.get(ListDatabasesWebviewRequest.type.method);
             expect(requestHandler, "Request handler was not registered").to.be.a("function");
             const response = await requestHandler!({ ownerUri: ownerUri });
             // System databases are filtered out, only user databases are returned
             expect(response.databases).to.deep.equal(["TestDB"]);
-            expect(sqlToolsClientStub.sendRequest).to.have.been.calledWith(
-                ListDatabasesRequest.type,
-                { ownerUri: ownerUri },
-            );
+            expect(connectionManagerStub.listDatabases).to.have.been.calledWith(ownerUri);
         });
-        test("returns empty array when list databases fails", async () => {
-            sqlToolsClientStub.sendRequest
-                .withArgs(ListDatabasesRequest.type, sinon.match.any)
-                .rejects(new Error("Connection failed"));
+        test("returns empty array with error message when list databases fails", async () => {
+            connectionManagerStub.listDatabases.rejects(new Error("Connection failed"));
             createController();
             const requestHandler = requestHandlers.get(ListDatabasesWebviewRequest.type.method);
             const response = await requestHandler!({ ownerUri: ownerUri });
             expect(response.databases).to.be.an("array").that.is.empty;
+            expect(response.errorMessage).to.equal("Connection failed");
+        });
+        test("returns fallback database from state when list returns only system databases", async () => {
+            connectionManagerStub.listDatabases.resolves(["master", "tempdb", "model", "msdb"]);
+            createControllerWithState({
+                ...initialState,
+                databaseName: "MyDatabase",
+            });
+            const requestHandler = requestHandlers.get(ListDatabasesWebviewRequest.type.method);
+            const response = await requestHandler!({ ownerUri: ownerUri });
+            expect(response.databases).to.deep.equal(["MyDatabase"]);
+            expect(response.errorMessage).to.be.a("string").that.is.not.empty;
+        });
+        test("returns error message with empty list when no fallback database available", async () => {
+            connectionManagerStub.listDatabases.resolves(["master", "tempdb"]);
+            createController();
+            const requestHandler = requestHandlers.get(ListDatabasesWebviewRequest.type.method);
+            const response = await requestHandler!({ ownerUri: ownerUri });
+            expect(response.databases).to.be.an("array").that.is.empty;
+            expect(response.errorMessage).to.be.a("string").that.is.not.empty;
+        });
+        test("returns fallback database from state when list databases throws", async () => {
+            connectionManagerStub.listDatabases.rejects(new Error("Permission denied"));
+            createControllerWithState({
+                ...initialState,
+                databaseName: "MyDatabase",
+            });
+            const requestHandler = requestHandlers.get(ListDatabasesWebviewRequest.type.method);
+            const response = await requestHandler!({ ownerUri: ownerUri });
+            expect(response.databases).to.deep.equal(["MyDatabase"]);
+            expect(response.errorMessage).to.equal("Permission denied");
         });
     });
     suite("Database Name Validation", () => {

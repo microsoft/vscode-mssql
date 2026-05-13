@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
+    Button,
     Menu,
     MenuItem,
     MenuList,
@@ -43,11 +44,12 @@ export const ConnectButton = ({
         return undefined;
     }
 
-    const buttonText =
-        connectionStatus === ApiStatus.Loading
-            ? connectionAction === ConnectionSubmitAction.TestConnection
-                ? locConstants.connectionDialog.testing
-                : locConstants.connectionDialog.connecting
+    const isLoading = connectionStatus === ApiStatus.Loading;
+    const isTesting = isLoading && connectionAction === ConnectionSubmitAction.TestConnection;
+
+    const connectButtonText =
+        isLoading && !isTesting
+            ? locConstants.connectionDialog.connecting
             : locConstants.connectionDialog.connect;
 
     return (
@@ -57,7 +59,7 @@ export const ConnectButton = ({
                 alignItems: "center",
                 gap: "8px",
             }}>
-            {connectionStatus === ApiStatus.Loading ? (
+            {isLoading ? (
                 <Spinner size="tiny" />
             ) : testConnectionSucceeded ? (
                 <Tooltip
@@ -71,6 +73,18 @@ export const ConnectButton = ({
                     />
                 </Tooltip>
             ) : undefined}
+            <Tooltip
+                content={locConstants.connectionDialog.testConnectionTooltip}
+                relationship="description">
+                <Button
+                    appearance="secondary"
+                    disabled={isLoading || !readyToConnect}
+                    onClick={() => context.testConnection()}>
+                    {isTesting
+                        ? locConstants.connectionDialog.testing
+                        : locConstants.connectionDialog.testConnection}
+                </Button>
+            </Tooltip>
             <Menu
                 positioning="below-end"
                 open={isMenuOpen}
@@ -78,46 +92,50 @@ export const ConnectButton = ({
                     setIsMenuOpen(data.open);
                 }}>
                 <MenuTrigger disableButtonEnhancement>
-                    <SplitButton
-                        type="button"
-                        appearance="primary"
-                        disabled={connectionStatus === ApiStatus.Loading || !readyToConnect}
-                        className={className}
-                        style={style}
-                        iconPosition="after"
-                        icon={undefined}
-                        menuButton={{
-                            "aria-label": locConstants.connectionDialog.connectActions,
-                        }}
-                        primaryActionButton={{
-                            id: ConnectButtonId,
-                            type: form ? "submit" : "button",
-                            form,
-                            onClick: (event: MouseEvent<HTMLButtonElement>) => {
-                                event.stopPropagation();
-                                setIsMenuOpen(false);
-                                if (!form) {
-                                    context.connect();
-                                }
-                            },
-                        }}>
-                        {buttonText}
-                    </SplitButton>
+                    <Tooltip
+                        content={locConstants.connectionDialog.connectTooltip}
+                        relationship="description"
+                        positioning="above-start">
+                        <SplitButton
+                            type="button"
+                            appearance="primary"
+                            disabled={isLoading || !readyToConnect}
+                            className={className}
+                            style={style}
+                            iconPosition="after"
+                            icon={undefined}
+                            menuButton={{
+                                "aria-label": locConstants.connectionDialog.connectActions,
+                            }}
+                            primaryActionButton={{
+                                id: ConnectButtonId,
+                                type: form ? "submit" : "button",
+                                form,
+                                onClick: (event: MouseEvent<HTMLButtonElement>) => {
+                                    event.stopPropagation();
+                                    setIsMenuOpen(false);
+                                    if (!form) {
+                                        context.connect();
+                                    }
+                                },
+                            }}>
+                            {connectButtonText}
+                        </SplitButton>
+                    </Tooltip>
                 </MenuTrigger>
                 <MenuPopover>
                     <MenuList>
-                        <MenuItem
-                            onClick={() => {
-                                context.testConnection();
-                            }}>
-                            {locConstants.connectionDialog.testConnection}
-                        </MenuItem>
-                        <MenuItem
-                            onClick={() => {
-                                context.saveWithoutConnecting();
-                            }}>
-                            {locConstants.connectionDialog.saveWithoutConnecting}
-                        </MenuItem>
+                        <Tooltip
+                            content={locConstants.connectionDialog.saveWithoutConnectingTooltip}
+                            relationship="description"
+                            positioning="before">
+                            <MenuItem
+                                onClick={() => {
+                                    context.saveWithoutConnecting();
+                                }}>
+                                {locConstants.connectionDialog.saveWithoutConnecting}
+                            </MenuItem>
+                        </Tooltip>
                     </MenuList>
                 </MenuPopover>
             </Menu>

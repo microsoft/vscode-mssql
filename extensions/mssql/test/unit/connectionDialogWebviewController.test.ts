@@ -13,6 +13,11 @@ import {
     CLEAR_TOKEN_CACHE,
     ConnectionDialogWebviewController,
 } from "../../src/connectionconfig/connectionDialogWebviewController";
+import {
+    ConnectionDialog as Loc,
+    Connection as ConnectionLoc,
+    refreshTokenLabel,
+} from "../../src/constants/locConstants";
 import MainController from "../../src/controllers/mainController";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { ObjectExplorerProvider } from "../../src/objectExplorer/objectExplorerProvider";
@@ -38,7 +43,7 @@ import {
     IConnectionProfileWithSource,
 } from "../../src/models/interfaces";
 import { AzureAccountService } from "../../src/services/azureAccountService";
-import { ConnectionDetails, IAccount } from "vscode-mssql";
+import { ConnectionDetails, IAccount, IToken } from "vscode-mssql";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import { MssqlVSCodeAzureSubscriptionProvider } from "../../src/azure/MssqlVSCodeAzureSubscriptionProvider";
 import {
@@ -140,6 +145,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
             configSource: vscode.ConfigurationTarget.Global,
         } as IConnectionGroup);
 
+        connectionStore.getMaxRecentConnectionsCount.returns(5);
         connectionStore.readAllConnections.resolves([testMruConnection, testSavedConnection]);
         connectionStore.readAllConnectionGroups.resolves([
             {
@@ -263,10 +269,156 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
             expect(controller.state.recentConnections).to.have.lengthOf(1);
             expect(controller.state.recentConnections).to.deep.include(testMruConnection);
+            expect(connectionStore.readAllConnections).to.have.been.calledWith(true, 5);
             expect(
                 controller.state.readyToConnect,
                 "Incomplete connection dialog should not be ready to connect",
             ).to.be.false;
+        });
+
+        test("should hide the recent profile name when the saved profile database differs", async () => {
+            const sharedSavedConnection = {
+                id: "shared-profile-id",
+                profileName: "Shared Profile",
+                profileSource: CredentialsQuickPickItemType.Profile,
+                server: "SharedServer",
+                database: "SavedDatabase",
+                groupId: ConnectionConfig.ROOT_GROUP_ID,
+            } as IConnectionProfileWithSource;
+            const sharedRecentConnection = {
+                id: "shared-profile-id",
+                profileName: "Shared Profile",
+                profileSource: CredentialsQuickPickItemType.Mru,
+                server: "SharedServer",
+                database: "RecentDatabase",
+            } as IConnectionProfileWithSource;
+
+            connectionStore.readAllConnections.resolves([
+                sharedRecentConnection,
+                sharedSavedConnection,
+            ]);
+
+            controller = new ConnectionDialogWebviewController(
+                mockContext,
+                mockVscodeWrapper,
+                mainController,
+                mockObjectExplorerProvider,
+                undefined,
+            );
+            await controller.initialized;
+
+            expect(controller.state.recentConnections).to.have.lengthOf(1);
+            expect(controller.state.recentConnections[0].profileName).to.be.undefined;
+            expect(controller.state.savedConnections[0].profileName).to.equal("Shared Profile");
+        });
+
+        test("should keep the recent profile name when one database is empty and the other is master", async () => {
+            const sharedSavedConnection = {
+                id: "shared-profile-id",
+                profileName: "Shared Profile",
+                profileSource: CredentialsQuickPickItemType.Profile,
+                server: "SharedServer",
+                database: "master",
+                groupId: ConnectionConfig.ROOT_GROUP_ID,
+            } as IConnectionProfileWithSource;
+            const sharedRecentConnection = {
+                id: "shared-profile-id",
+                profileName: "Shared Profile",
+                profileSource: CredentialsQuickPickItemType.Mru,
+                server: "SharedServer",
+                database: "",
+            } as IConnectionProfileWithSource;
+
+            connectionStore.readAllConnections.resolves([
+                sharedRecentConnection,
+                sharedSavedConnection,
+            ]);
+
+            controller = new ConnectionDialogWebviewController(
+                mockContext,
+                mockVscodeWrapper,
+                mainController,
+                mockObjectExplorerProvider,
+                undefined,
+            );
+            await controller.initialized;
+
+            expect(controller.state.recentConnections).to.have.lengthOf(1);
+            expect(controller.state.recentConnections[0].profileName).to.equal("Shared Profile");
+        });
+
+        test("should keep the recent profile name when ids are missing and only the profile name matches", async () => {
+            const sharedSavedConnection = {
+                profileName: "Shared Profile",
+                profileSource: CredentialsQuickPickItemType.Profile,
+                server: "SavedServer",
+                database: "SavedDatabase",
+                authenticationType: AuthenticationType.AzureMFA,
+                accountId: "saved-account-id",
+                groupId: ConnectionConfig.ROOT_GROUP_ID,
+            } as IConnectionProfileWithSource;
+            const sharedRecentConnection = {
+                profileName: "Shared Profile",
+                profileSource: CredentialsQuickPickItemType.Mru,
+                server: "RecentServer",
+                database: "RecentDatabase",
+                authenticationType: AuthenticationType.AzureMFA,
+                accountId: "recent-account-id",
+            } as IConnectionProfileWithSource;
+
+            connectionStore.readAllConnections.resolves([
+                sharedRecentConnection,
+                sharedSavedConnection,
+            ]);
+
+            controller = new ConnectionDialogWebviewController(
+                mockContext,
+                mockVscodeWrapper,
+                mainController,
+                mockObjectExplorerProvider,
+                undefined,
+            );
+            await controller.initialized;
+
+            expect(controller.state.recentConnections).to.have.lengthOf(1);
+            expect(controller.state.recentConnections[0].profileName).to.equal("Shared Profile");
+        });
+
+        test("should hide the recent profile name when ids are missing and the core identity matches", async () => {
+            const sharedSavedConnection = {
+                profileName: "Shared Profile",
+                profileSource: CredentialsQuickPickItemType.Profile,
+                server: "SharedServer",
+                database: "SavedDatabase",
+                authenticationType: AuthenticationType.AzureMFA,
+                accountId: "user@example.com",
+                groupId: ConnectionConfig.ROOT_GROUP_ID,
+            } as IConnectionProfileWithSource;
+            const sharedRecentConnection = {
+                profileName: "Shared Profile",
+                profileSource: CredentialsQuickPickItemType.Mru,
+                server: "SharedServer",
+                database: "RecentDatabase",
+                authenticationType: AuthenticationType.AzureMFA,
+                accountId: "user@example.com.tenant-id",
+            } as IConnectionProfileWithSource;
+
+            connectionStore.readAllConnections.resolves([
+                sharedRecentConnection,
+                sharedSavedConnection,
+            ]);
+
+            controller = new ConnectionDialogWebviewController(
+                mockContext,
+                mockVscodeWrapper,
+                mainController,
+                mockObjectExplorerProvider,
+                undefined,
+            );
+            await controller.initialized;
+
+            expect(controller.state.recentConnections).to.have.lengthOf(1);
+            expect(controller.state.recentConnections[0].profileName).to.be.undefined;
         });
 
         test("should initialize correctly when editing connection", async () => {
@@ -348,6 +500,65 @@ suite("ConnectionDialogWebviewController Tests", () => {
     });
 
     suite("Reducers", () => {
+        test("refreshConnectionsList reloads connections using the configured MRU limit", async () => {
+            const refreshedMruConnection = {
+                ...testMruConnection,
+                server: "RefreshedMruServer",
+            };
+            const refreshedSavedConnection = {
+                ...testSavedConnection,
+                server: "RefreshedSavedServer",
+            };
+
+            connectionStore.readAllConnections.resetHistory();
+            connectionStore.readAllConnections.resolves([
+                refreshedMruConnection,
+                refreshedSavedConnection,
+            ]);
+
+            await controller["_reducerHandlers"].get("refreshConnectionsList")(
+                controller.state,
+                {},
+            );
+
+            expect(connectionStore.readAllConnections).to.have.been.calledWith(true, 5);
+            expect(controller.state.recentConnections).to.deep.include(refreshedMruConnection);
+            expect(controller.state.savedConnections).to.deep.include(refreshedSavedConnection);
+        });
+
+        test("removeRecentConnection clears only the MRU entry and reloads with the configured limit", async () => {
+            const sharedSavedConnection = {
+                ...testSavedConnection,
+                id: "shared-profile-id",
+                server: "SharedServer",
+                database: "SharedDatabase",
+            };
+            const sharedRecentConnection = {
+                ...testMruConnection,
+                id: "shared-profile-id",
+                server: "SharedServer",
+                database: "SharedDatabase",
+            };
+            let currentConnections = [sharedSavedConnection, sharedRecentConnection];
+
+            connectionStore.readAllConnections.resetHistory();
+            connectionStore.readAllConnections.callsFake(async () => currentConnections);
+            connectionStore.removeRecentlyUsed.callsFake(async () => {
+                currentConnections = [sharedSavedConnection];
+            });
+
+            await controller["_reducerHandlers"].get("removeRecentConnection")(controller.state, {
+                connection: sharedRecentConnection,
+            });
+
+            expect(connectionStore.removeRecentlyUsed).to.have.been.calledWith(
+                sharedRecentConnection,
+            );
+            expect(connectionStore.readAllConnections).to.have.been.calledWith(true, 5);
+            expect(controller.state.savedConnections).to.deep.include(sharedSavedConnection);
+            expect(controller.state.recentConnections).to.be.empty;
+        });
+
         suite("setConnectionInputType", () => {
             test("Should set connection input type correctly for Parameters", async () => {
                 stubVscodeAzureHelperGetAccounts(sandbox);
@@ -509,6 +720,9 @@ suite("ConnectionDialogWebviewController Tests", () => {
             sandbox
                 .stub(AzureHelpers.VsCodeAzureHelper, "getTenantsForAccount")
                 .resolves([mockTenants[0], mockTenants[1]]);
+
+            // Pre-populate the Entra account and tenant caches
+            await controller["loadVscodeEntraDataAsync"]();
 
             const testConnection = {
                 profileName: "Test Entra Connection",
@@ -1052,6 +1266,11 @@ suite("ConnectionDialogWebviewController Tests", () => {
         controller.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
         controller.state.connectionProfile.accountId = "TestUserId";
 
+        azureAccountService.getAccountSecurityToken.resolves({
+            token: "testToken",
+            expiresOn: Date.now() / 1000,
+        } as IToken);
+
         const isTokenValidStub = sandbox.stub(AzureController, "isTokenValid").returns(false);
 
         // When there's no error, we should have refreshToken button
@@ -1061,11 +1280,359 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
         // Test error handling when getAccountSecurityToken throws
         isTokenValidStub.restore();
+        mockVscodeWrapper.showErrorMessage.resolves(undefined);
         azureAccountService.getAccountSecurityToken.throws(new Error("Test error"));
 
         buttons = await controller["getAzureActionButtons"]();
         expect(buttons.length).to.equal(2);
         expect(buttons[1].id).to.equal("refreshToken");
+    });
+
+    test("getAzureActionButtons shows error prompt with refreshTokenLabel when token validation fails", async () => {
+        controller.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
+        controller.state.connectionProfile.accountId = "TestUserId";
+
+        azureAccountService.getAccountSecurityToken.rejects(new Error("Token error"));
+        mockVscodeWrapper.showErrorMessage.resolves(undefined);
+
+        await controller["getAzureActionButtons"]();
+
+        expect(mockVscodeWrapper.showErrorMessage).to.have.been.calledWith(
+            sinon.match.string,
+            refreshTokenLabel,
+        );
+    });
+
+    test("getAzureActionButtons error prompt: selecting refresh triggers a refresh attempt", async () => {
+        const clock = sinon.useFakeTimers();
+        try {
+            controller.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
+            controller.state.connectionProfile.accountId = "TestUserId";
+
+            azureAccountService.getAccountSecurityToken.rejects(new Error("Token error"));
+            mockVscodeWrapper.showErrorMessage.resolves(refreshTokenLabel);
+
+            await controller["getAzureActionButtons"]();
+
+            // Advance the stubbed clock so the fire-and-forget prompt to refresh and
+            // the async refreshToken() function have a chance to run.
+            await clock.tickAsync(0);
+
+            // Called once for initial validation and once inside refreshToken()
+            expect(azureAccountService.getAccountSecurityToken.callCount).to.equal(2);
+        } finally {
+            clock.restore();
+        }
+    });
+
+    test("getAzureActionButtons error prompt: dismissing does not trigger a refresh attempt", async () => {
+        const clock = sinon.useFakeTimers();
+        try {
+            controller.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
+            controller.state.connectionProfile.accountId = "TestUserId";
+
+            azureAccountService.getAccountSecurityToken.rejects(new Error("Token error"));
+            mockVscodeWrapper.showErrorMessage.resolves(undefined);
+
+            await controller["getAzureActionButtons"]();
+
+            await clock.tickAsync(0);
+
+            // Only called once for validation; no refresh attempt was made
+            expect(azureAccountService.getAccountSecurityToken.callCount).to.equal(1);
+        } finally {
+            clock.restore();
+        }
+    });
+
+    suite("database loading", () => {
+        const sqlLoginProfile: IConnectionDialogProfile = {
+            server: "localhost",
+            authenticationType: AuthenticationType.SqlLogin,
+            user: "sa",
+            password: "Password1!",
+            groupId: ConnectionConfig.ROOT_GROUP_ID,
+        } as IConnectionDialogProfile;
+
+        setup(() => {
+            connectionManager.connect.resolves(true);
+            connectionManager.listDatabases.resolves(["master", "tempdb", "mydb"]);
+            connectionManager.disconnect.resolves();
+        });
+
+        test("isConnectionReadyForDatabaseFetch", () => {
+            const check = (profile: IConnectionDialogProfile) =>
+                controller["isConnectionReadyForDatabaseFetch"](profile);
+
+            // Missing server — always false
+            expect(check({ ...sqlLoginProfile, server: "" })).to.be.false;
+
+            // SqlLogin — requires user + password
+            expect(check({ ...sqlLoginProfile, user: "" })).to.be.false;
+            expect(check({ ...sqlLoginProfile, password: "" })).to.be.false;
+            expect(check({ ...sqlLoginProfile })).to.be.true;
+
+            // AzureMFA — requires accountId
+            expect(
+                check({
+                    server: "localhost",
+                    authenticationType: AuthenticationType.AzureMFA,
+                } as IConnectionDialogProfile),
+            ).to.be.false;
+            expect(
+                check({
+                    server: "localhost",
+                    authenticationType: AuthenticationType.AzureMFA,
+                    accountId: "user@example.com",
+                } as IConnectionDialogProfile),
+            ).to.be.true;
+
+            // Integrated and ActiveDirectoryDefault — server only
+            expect(
+                check({
+                    server: "localhost",
+                    authenticationType: AuthenticationType.Integrated,
+                } as IConnectionDialogProfile),
+            ).to.be.true;
+            expect(
+                check({
+                    server: "localhost",
+                    authenticationType: AuthenticationType.ActiveDirectoryDefault,
+                } as IConnectionDialogProfile),
+            ).to.be.true;
+        });
+
+        test("buildDatabaseFetchKey includes connection fields but excludes password", () => {
+            const base = {
+                server: "myServer",
+                authenticationType: AuthenticationType.SqlLogin,
+                user: "sa",
+                accountId: "acc1",
+                tenantId: "ten1",
+            } as IConnectionDialogProfile;
+
+            controller.state.connectionProfile = { ...base, password: "pw1" };
+            const key1 = controller["buildDatabaseFetchKey"]();
+            controller.state.connectionProfile = { ...base, password: "pw2" };
+            const key2 = controller["buildDatabaseFetchKey"]();
+
+            expect(key1)
+                .to.include("myServer")
+                .and.include("sa")
+                .and.include("acc1")
+                .and.include("ten1");
+            expect(key1).to.not.include("pw1");
+            expect(key1).to.equal(key2, "password changes should not bust the cache key");
+        });
+
+        suite("loadDatabaseList", () => {
+            test("success: populates options and clears loadStatus", async () => {
+                controller.state.connectionProfile = { ...sqlLoginProfile };
+                await controller["loadDatabaseList"]();
+
+                const dbComponent = controller.state.formComponents["database"];
+                expect(dbComponent.options).to.have.lengthOf(3);
+                // user DBs first, then system DBs, each group sorted alphabetically
+                expect(dbComponent.options.map((o) => o.value)).to.deep.equal([
+                    "mydb",
+                    "master",
+                    "tempdb",
+                ]);
+                expect(dbComponent.options.map((o) => o.groupName)).to.deep.equal([
+                    Loc.userDatabasesGroup,
+                    Loc.systemDatabasesGroup,
+                    Loc.systemDatabasesGroup,
+                ]);
+                expect(dbComponent.loadStatus).to.be.undefined;
+                expect(connectionManager.disconnect.calledOnce).to.be.true;
+            });
+
+            test("success: caches result so second call skips connect", async () => {
+                controller.state.connectionProfile = { ...sqlLoginProfile };
+                await controller["loadDatabaseList"]();
+                expect(connectionManager.connect.calledOnce).to.be.true;
+
+                await controller["loadDatabaseList"]();
+                expect(
+                    connectionManager.connect.calledOnce,
+                    "second call should be served from cache without connecting",
+                ).to.be.true;
+
+                const dbComponent = controller.state.formComponents["database"];
+                expect(dbComponent.options).to.have.lengthOf(3);
+                expect(dbComponent.loadStatus).to.be.undefined;
+            });
+
+            test("failed connection: sets error loadStatus with connection error message", async () => {
+                const errorMessage = "Login failed for user 'sa'";
+                connectionManager.connect.resolves(false);
+                connectionManager.getConnectionInfo.returns({
+                    errorMessage,
+                    errorNumber: 18456,
+                    messages: errorMessage,
+                    credentials: { server: "localhost", user: "sa" },
+                } as ConnectionInfo);
+                sandbox
+                    .stub(ConnectionManagerModule, "getSqlConnectionErrorType")
+                    .resolves(SqlConnectionErrorType.Generic);
+
+                controller.state.connectionProfile = { ...sqlLoginProfile };
+                await controller["loadDatabaseList"]();
+
+                const dbComponent = controller.state.formComponents["database"];
+                expect(dbComponent.loadStatus?.status).to.equal(ApiStatus.Error);
+                expect(dbComponent.loadStatus?.message).to.equal(
+                    Loc.unableToLoadDatabaseList(errorMessage),
+                );
+                expect(connectionManager.disconnect.calledOnce).to.be.true;
+            });
+
+            test("TrustServerCertificate error: message contains trust cert guidance", async () => {
+                connectionManager.connect.resolves(false);
+                connectionManager.getConnectionInfo.returns({
+                    errorMessage: "connection failed",
+                    errorNumber: 0,
+                    messages: "",
+                    credentials: { server: "localhost", user: "sa" },
+                } as ConnectionInfo);
+                sandbox
+                    .stub(ConnectionManagerModule, "getSqlConnectionErrorType")
+                    .resolves(SqlConnectionErrorType.TrustServerCertificateNotEnabled);
+
+                controller.state.connectionProfile = { ...sqlLoginProfile };
+                await controller["loadDatabaseList"]();
+
+                const dbComponent = controller.state.formComponents["database"];
+                expect(dbComponent.loadStatus?.status).to.equal(ApiStatus.Error);
+                expect(dbComponent.loadStatus?.message).to.equal(
+                    Loc.unableToLoadDatabaseList(
+                        ConnectionLoc.trustServerCertificateMustBeEnabledMessage,
+                    ),
+                );
+            });
+
+            test("exception during fetch: sets error loadStatus", async () => {
+                const errorMessage = "network timeout";
+                connectionManager.connect.rejects(new Error(errorMessage));
+
+                controller.state.connectionProfile = { ...sqlLoginProfile };
+                await controller["loadDatabaseList"]();
+
+                const dbComponent = controller.state.formComponents["database"];
+                expect(dbComponent.loadStatus?.status).to.equal(ApiStatus.Error);
+                expect(dbComponent.loadStatus?.message).to.include(errorMessage);
+                expect(connectionManager.disconnect.calledOnce).to.be.true;
+            });
+
+            test("superseded request does not update state", async () => {
+                let resolveConnect: (val: boolean) => void;
+                connectionManager.connect.returns(
+                    new Promise((res) => {
+                        resolveConnect = res;
+                    }),
+                );
+
+                controller.state.connectionProfile = { ...sqlLoginProfile };
+
+                // Start first fetch (will hang on connect)
+                const firstFetch = controller["loadDatabaseList"]();
+
+                // Increment token to supersede it
+                controller["_dbFetchCounter"]++;
+
+                // Resolve the connect so the first fetch can continue to completion
+                resolveConnect(true);
+                await firstFetch;
+
+                // State should not have been updated by the superseded first fetch
+                const dbComponent = controller.state.formComponents["database"];
+                expect(dbComponent.options).to.deep.equal(
+                    [],
+                    "superseded fetch should not populate options",
+                );
+            });
+        });
+
+        suite("afterSetFormProperty integration", () => {
+            async function setFormProperty(
+                propertyName: keyof IConnectionDialogProfile,
+                value: string,
+                isBlur = false,
+            ) {
+                await controller["_reducerHandlers"].get("formAction")(controller.state, {
+                    event: { propertyName, value, isAction: false, updateValidation: isBlur },
+                });
+            }
+
+            async function blurFormProperty(
+                propertyName: keyof IConnectionDialogProfile,
+                value: string,
+            ) {
+                return setFormProperty(propertyName, value, true);
+            }
+
+            async function flushMicrotasks() {
+                // Allow fire-and-forget loadDatabaseList to complete
+                await new Promise<void>((resolve) => setImmediate(resolve));
+            }
+
+            test("triggers fetch on blur when sufficient SqlLogin credentials are set", async () => {
+                controller.state.connectionProfile = { ...sqlLoginProfile };
+
+                await blurFormProperty("server", "localhost");
+                await flushMicrotasks();
+
+                expect(
+                    connectionManager.connect.calledOnce,
+                    "should connect when all SqlLogin fields are present and field is blurred",
+                ).to.be.true;
+            });
+
+            test("does not trigger fetch on change (only on blur)", async () => {
+                controller.state.connectionProfile = { ...sqlLoginProfile };
+
+                await setFormProperty("server", "localhost");
+                await flushMicrotasks();
+
+                expect(
+                    connectionManager.connect.called,
+                    "should not connect on keystroke change, only on blur",
+                ).to.be.false;
+            });
+
+            test("clears database options when auth info becomes insufficient", async () => {
+                controller.state.connectionProfile = { ...sqlLoginProfile };
+
+                // First load databases successfully
+                await controller["loadDatabaseList"]();
+                expect(controller.state.formComponents["database"].options).to.have.lengthOf(3);
+
+                // Now remove the user on blur, making info insufficient
+                await blurFormProperty("user", "");
+
+                const dbComponent = controller.state.formComponents["database"];
+                expect(dbComponent.options).to.deep.equal(
+                    [],
+                    "options should be cleared when auth is incomplete",
+                );
+                expect(dbComponent.loadStatus).to.be.undefined;
+            });
+
+            test("does not re-fetch when fetchKey is unchanged", async () => {
+                controller.state.connectionProfile = { ...sqlLoginProfile };
+
+                await controller["loadDatabaseList"]();
+                expect(connectionManager.connect.calledOnce).to.be.true;
+
+                await blurFormProperty("server", sqlLoginProfile.server);
+                await flushMicrotasks();
+
+                expect(
+                    connectionManager.connect.calledOnce,
+                    "should not re-fetch when fetchKey is unchanged",
+                ).to.be.true;
+            });
+        });
     });
 
     test("getAzureActionButtons uses VS Code sign-in when VS Code account mode is enabled", async () => {

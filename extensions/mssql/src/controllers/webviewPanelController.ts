@@ -103,7 +103,7 @@ export class WebviewPanelController<State, Reducers, Result = void> extends Webv
      * Displays the webview in the foreground
      * @param viewColumn The view column that the webview will be displayed in
      */
-    public revealToForeground(viewColumn: vscode.ViewColumn = vscode.ViewColumn.One): void {
+    public revealToForeground(viewColumn?: vscode.ViewColumn): void {
         this._panel.reveal(viewColumn, true);
     }
 

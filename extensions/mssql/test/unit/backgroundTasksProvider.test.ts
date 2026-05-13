@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as os from "os";
 import * as vscode from "vscode";
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
@@ -18,6 +19,7 @@ import {
 import { initializeIconUtils } from "./utils";
 
 chai.use(sinonChai);
+const tooltipLineSeparator = `${os.EOL}${os.EOL}`;
 
 suite("Background Tasks Provider Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -69,7 +71,9 @@ suite("Background Tasks Provider Tests", () => {
         expect(node.label).to.equal("Import complete");
         expect(node.description).to.equal("100% | localhost/AdventureWorks2022 | 5s");
         expect(node.tooltip).to.equal(
-            "Import finished\n\nIn progress\n\nCompleted successfully\n\nElapsed time: 5s",
+            ["Import finished", "In progress", "Completed successfully", "Elapsed time: 5s"].join(
+                tooltipLineSeparator,
+            ),
         );
         expect((node.iconPath as vscode.ThemeIcon).id).to.equal("pass");
     });
@@ -91,7 +95,9 @@ suite("Background Tasks Provider Tests", () => {
         expect(nodes).to.have.length(1);
         expect(node.description).to.equal("3s");
         expect(node.contextValue).to.contain("completed=true");
-        expect(node.tooltip).to.equal("Exporting\n\nSucceeded\n\nDone\n\nElapsed time: 3s");
+        expect(node.tooltip).to.equal(
+            ["Exporting", "Succeeded", "Done", "Elapsed time: 3s"].join(tooltipLineSeparator),
+        );
         expect((node.iconPath as vscode.ThemeIcon).id).to.equal("pass");
         expect((node.iconPath as vscode.ThemeIcon).color?.id).to.equal("testing.iconPassed");
     });
@@ -110,12 +116,15 @@ suite("Background Tasks Provider Tests", () => {
         const node = provider.getChildren()[0] as BackgroundTaskNode;
 
         expect(node.description).to.equal("250ms");
-        expect(node.tooltip).to.equal("Running\n\nFailed\n\nFailed badly\n\nElapsed time: 250ms");
+        expect(node.tooltip).to.equal(
+            ["Running", "Failed", "Failed badly", "Elapsed time: 250ms"].join(tooltipLineSeparator),
+        );
         expect((node.iconPath as vscode.ThemeIcon).id).to.equal("error");
         expect((node.iconPath as vscode.ThemeIcon).color?.id).to.equal("testing.iconFailed");
     });
 
     test("canceled tasks use the canceled theme icon", () => {
+        sandbox.useFakeTimers();
         const provider = new BackgroundTasksProvider();
         const handle = provider.backgroundTasksService.registerTask({
             displayText: "Canceled task",
@@ -127,7 +136,9 @@ suite("Background Tasks Provider Tests", () => {
         const node = provider.getChildren()[0] as BackgroundTaskNode;
 
         expect(node.tooltip).to.equal(
-            "Running\n\nCanceled\n\nStopped by user\n\nElapsed time: 0ms",
+            ["Running", "Canceled", "Stopped by user", "Elapsed time: 0ms"].join(
+                tooltipLineSeparator,
+            ),
         );
         expect((node.iconPath as vscode.ThemeIcon).id).to.equal("circle-slash");
     });
@@ -148,7 +159,9 @@ suite("Background Tasks Provider Tests", () => {
 
         node = provider.getChildren()[0] as BackgroundTaskNode;
         expect(node.description).to.equal("1m 5s");
-        expect(node.tooltip).to.equal("Working\n\nIn progress\n\nElapsed time: 01:05");
+        expect(node.tooltip).to.equal(
+            ["Working", "In progress", "Elapsed time: 01:05"].join(tooltipLineSeparator),
+        );
     });
 
     test("clearFinished removes only completed tasks", () => {
@@ -248,6 +261,7 @@ suite("Background Tasks Provider Tests", () => {
     });
 
     test("cancel command restores task state when the cancel callback fails", async () => {
+        sandbox.useFakeTimers();
         const provider = new BackgroundTasksProvider();
         const cancelError = new Error("cancel failed");
         const handle = provider.backgroundTasksService.registerTask({
@@ -268,8 +282,8 @@ suite("Background Tasks Provider Tests", () => {
 
         expect(actualError).to.equal(cancelError);
         const refreshedNode = provider.getChildren()[0] as BackgroundTaskNode;
-        expect(refreshedNode.tooltip).to.match(
-            /^Cancelable\n\nIn progress\n\nElapsed time: \d+ms$/,
+        expect(refreshedNode.tooltip).to.equal(
+            ["Cancelable", "In progress", "Elapsed time: 0ms"].join(tooltipLineSeparator),
         );
         expect(refreshedNode.contextValue).to.contain("cancelable=true");
         handle.remove();

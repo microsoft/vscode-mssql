@@ -42,3 +42,13 @@ export function getServiceExecutablePath(
 ): string {
     return path.join(folderPath, getServiceExecutableFileName(runtime, filePrefix));
 }
+
+/**
+ * Returns the full path to the runtime configuration file for a framework-dependent service.
+ */
+export function getRuntimeConfigPath(servicePath: string): string {
+    return path.join(
+        path.dirname(servicePath),
+        `${path.basename(servicePath, path.extname(servicePath))}.runtimeconfig.json`,
+    );
+}

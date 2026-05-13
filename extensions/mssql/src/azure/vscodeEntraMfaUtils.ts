@@ -98,10 +98,10 @@ export async function acquireSqlAccessTokenFromVscodeAccount(
 ): Promise<VscodeEntraSqlTokenInfo> {
     const account = await resolveVscodeEntraAccount(accountId, accountLabel);
     if (!account) {
-        throw new MissingVsCodeEntraAuthError(
+        throw new MissingEntraAuthAccountError(
             locConstants.Accounts.accountNotAvailableThroughVsCode(
                 accountLabel ?? accountId ?? "",
-                tenantId ?? "",
+                tenantId,
             ),
         );
     }
@@ -113,10 +113,10 @@ export async function acquireSqlAccessTokenFromVscodeAccount(
             : getDefaultTenantId(account.id, tenants);
 
     if (!resolvedTenantId) {
-        throw new MissingVsCodeEntraAuthError(
+        throw new MissingEntraAuthAccountError(
             locConstants.Accounts.accountNotAvailableThroughVsCode(
                 accountLabel ?? accountId ?? "",
-                tenantId ?? "",
+                tenantId,
             ),
         );
     }
@@ -174,11 +174,11 @@ function getTokenExpiration(accessToken: string): number | undefined {
     }
 }
 
-export class MissingVsCodeEntraAuthError extends Error {
+export class MissingEntraAuthAccountError extends Error {
     constructor(message: string) {
         super(message);
-        this.name = "MissingVsCodeEntraAuthError";
+        this.name = "MissingEntraAuthAccountError";
         // Set the prototype explicitly to maintain the correct prototype chain
-        Object.setPrototypeOf(this, MissingVsCodeEntraAuthError.prototype);
+        Object.setPrototypeOf(this, MissingEntraAuthAccountError.prototype);
     }
 }
