@@ -566,11 +566,16 @@ const QuickQueryRow = ({
     shortcut: string;
     expanded: boolean;
     onToggle: () => void;
-    onChange: (value: QuickQuerySlot) => void;
+    onChange: (value: QuickQuerySlot, shouldSave?: boolean) => void;
     onRecord: () => void;
     themeKind: ColorThemeKind;
     loc: typeof locConstants.shortcutsConfiguration;
 }) => {
+    const slotRef = useRef(slot);
+    const onChangeRef = useRef(onChange);
+    slotRef.current = slot;
+    onChangeRef.current = onChange;
+
     const query = slot.query.trim();
     const preview = query.length > 60 ? `${query.slice(0, 60)}...` : query;
 
@@ -655,7 +660,19 @@ const QuickQueryRow = ({
                             renderLineHighlight: "line",
                             automaticLayout: true,
                         }}
-                        onChange={(value) => onChange({ ...slot, query: value ?? "" })}
+                        onChange={(value) => onChange({ ...slot, query: value ?? "" }, false)}
+                        onMount={(editor) => {
+                            const disposable = editor.onDidBlurEditorWidget(() => {
+                                onChangeRef.current(
+                                    {
+                                        ...slotRef.current,
+                                        query: editor.getValue(),
+                                    },
+                                    true,
+                                );
+                            });
+                            editor.onDidDispose(() => disposable.dispose());
+                        }}
                     />
                 </div>
             </Field>
@@ -844,13 +861,15 @@ export const ShortcutsConfigurationPage = () => {
         return undefined;
     }
 
-    const updateQuickQuery = (index: number, value: QuickQuerySlot) => {
+    const updateQuickQuery = (index: number, value: QuickQuerySlot, shouldSave = true) => {
         const nextQuickQueries = quickQueries.map((slot, slotIndex) =>
             slotIndex === index ? value : slot,
         );
         setQuickQueries(nextQuickQueries);
         hasLocalChangesRef.current = true;
-        saveWith(nextQuickQueries);
+        if (shouldSave) {
+            saveWith(nextQuickQueries);
+        }
     };
 
     const updateQuickQueryShortcut = (commandId: string, value: string) => {
@@ -893,7 +912,9 @@ export const ShortcutsConfigurationPage = () => {
                                         : [...current, slot.name],
                                 )
                             }
-                            onChange={(value) => updateQuickQuery(index, value)}
+                            onChange={(value, shouldSave) =>
+                                updateQuickQuery(index, value, shouldSave)
+                            }
                             onRecord={() => setRecording({ kind: "quickQuery", commandId })}
                             themeKind={themeKind}
                             loc={loc}

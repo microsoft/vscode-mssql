@@ -1180,8 +1180,8 @@
     <trans-unit id="++CODE++b3841aead42fd5bf681d290d2fef9df816aa53c2b9a1da6c21f42b11ccc2c9dd">
       <source xml:lang="en">Configure Linux containers</source>
     </trans-unit>
-    <trans-unit id="++CODE++e22e6db5d06ad2664106855cfd4e27444243eb2684c5bed2c22a8e643f408dce">
-      <source xml:lang="en">Configure Quick Query and webview shortcuts.</source>
+    <trans-unit id="++CODE++40b05867de48832993b117a3596bebf4b2bf2a99dade41af88c8dfada45469cd">
+      <source xml:lang="en">Configure Quick Query and in-app shortcuts.</source>
     </trans-unit>
     <trans-unit id="++CODE++73b680fbf34c02acc61629ac870cb10a5f382c5379516f9dd96777d75a3086fe">
       <source xml:lang="en">Configure Rosetta in Docker Desktop</source>
@@ -1192,8 +1192,8 @@
     <trans-unit id="++CODE++3135416947bed2e7934a6e4463fa842ab5b8ddc86566c9789517f8c5864c35da">
       <source xml:lang="en">Configure command-backed SQL snippets that can open or run from keyboard shortcuts.</source>
     </trans-unit>
-    <trans-unit id="++CODE++b069bcee3492a76d9f8c71187002bfbee16f9c112110a0c7be305426fe93698a">
-      <source xml:lang="en">Configure shortcuts that are handled inside MSSQL webviews.</source>
+    <trans-unit id="++CODE++b0dc4fcae95361a5ae1cd5e7fc5c817848bbc8819fe5ee0d71615d064884af32">
+      <source xml:lang="en">Configure shortcuts that are handled inside MSSQL views.</source>
     </trans-unit>
     <trans-unit id="++CODE++c292210c44167923a75b092a008f9d2b194fb08631a6aa43d753ed7931ad4d5e">
       <source xml:lang="en">Confirm Password</source>
@@ -3503,6 +3503,9 @@
     <trans-unit id="++CODE++353bfeffa4a99ec1426a2426a764e92e5b9c2f00db3bf837d8f5a1e4f486117a">
       <source xml:lang="en">In the Data API builder experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.</source>
     </trans-unit>
+    <trans-unit id="++CODE++2574b3edc726c742a53a8c2453aa785036737b718f29576c2f31265fc691cb52">
+      <source xml:lang="en">In-App Shortcuts</source>
+    </trans-unit>
     <trans-unit id="++CODE++7285576bdacf86fe37274d3d0d399c29b4be2959005f60ac0729615d8fca9186">
       <source xml:lang="en">Include</source>
     </trans-unit>
@@ -5741,6 +5744,9 @@
     <trans-unit id="++CODE++4f5103123c8a9080ba6c1595ab5f058a1aa4715fe8c1aa2b956b6512f28cc365">
       <source xml:lang="en">Search connection groups</source>
     </trans-unit>
+    <trans-unit id="++CODE++16f289fd88de8f7176a04262f13bf831d2316e26607f21d402390985e3d67643">
+      <source xml:lang="en">Search in-app shortcuts</source>
+    </trans-unit>
     <trans-unit id="++CODE++556a085010faa6476221cb3790fd4b9e00d6a9abacd60c19b398162ec9af1d53">
       <source xml:lang="en">Search options</source>
     </trans-unit>
@@ -5758,9 +5764,6 @@
     </trans-unit>
     <trans-unit id="++CODE++404b4ef5cba30d5d524422e7639bb1502d686405be95ff2dec636eb5fedfe992">
       <source xml:lang="en">Search values...</source>
-    </trans-unit>
-    <trans-unit id="++CODE++89e441474a8945aea1d3de55aed010c977832bd418c35a5956071b240cbe9c3e">
-      <source xml:lang="en">Search webview shortcuts</source>
     </trans-unit>
     <trans-unit id="++CODE++8edd6334b0bab41988824ee1be6ba87f837875770411649f22a45f6caeb369e7">
       <source xml:lang="en">Search within {0} text content</source>
@@ -7108,9 +7111,6 @@
       <note>{0} is the webview name
 {1} is the timeout in milliseconds</note>
     </trans-unit>
-    <trans-unit id="++CODE++7158804469f0d52ef9073c3e80f152f09959332ec50d6d7df737924fc8631e80">
-      <source xml:lang="en">Webview Shortcuts</source>
-    </trans-unit>
     <trans-unit id="++CODE++e5b539ed5ef824d67064dc5fe75a709a3c17dbe48ed129dba68a1dc3a34fcce6">
       <source xml:lang="en">Webview was disposed before it became ready</source>
     </trans-unit>
@@ -8154,7 +8154,7 @@
       <source xml:lang="en">Set the font size for the results grid; set to blank to use the editor size</source>
     </trans-unit>
     <trans-unit id="mssql.shortcuts">
-      <source xml:lang="en">Shortcuts related to the results window</source>
+      <source xml:lang="en">Shortcuts handled inside MSSQL views</source>
     </trans-unit>
     <trans-unit id="mssql.query.displayBitAsNumber">
       <source xml:lang="en">Should BIT columns be displayed as numbers (1 or 0)? If false, BIT columns will be displayed as &apos;true&apos; or &apos;false&apos;</source>

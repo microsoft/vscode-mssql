@@ -323,14 +323,14 @@ export class LocConstants {
     public get shortcutsConfiguration() {
         return {
             title: l10n.t("Shortcuts Configuration"),
-            subtitle: l10n.t("Configure Quick Query and webview shortcuts."),
+            subtitle: l10n.t("Configure Quick Query and in-app shortcuts."),
             quickQueries: l10n.t("Quick Queries"),
             quickQueriesDescription: l10n.t(
                 "Configure command-backed SQL snippets that can open or run from keyboard shortcuts.",
             ),
-            webviewShortcuts: l10n.t("Webview Shortcuts"),
+            webviewShortcuts: l10n.t("In-App Shortcuts"),
             webviewShortcutsDescription: l10n.t(
-                "Configure shortcuts that are handled inside MSSQL webviews.",
+                "Configure shortcuts that are handled inside MSSQL views.",
             ),
             slot: (slotNumber: number) =>
                 l10n.t({
@@ -352,7 +352,7 @@ export class LocConstants {
             stopRecording: l10n.t("Stop"),
             noShortcut: l10n.t("No shortcut"),
             noQuerySet: l10n.t("No query set"),
-            searchWebviewShortcuts: l10n.t("Search webview shortcuts"),
+            searchWebviewShortcuts: l10n.t("Search in-app shortcuts"),
             recordShortcut: l10n.t("Record shortcut"),
             recordShortcutDescription: l10n.t(
                 "Press a key combination with Ctrl, Alt, Shift, or a function key.",
