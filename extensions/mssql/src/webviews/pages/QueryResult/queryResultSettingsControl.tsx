@@ -11,7 +11,7 @@ import {
     Switch,
     makeStyles,
 } from "@fluentui/react-components";
-import { Dismiss20Regular, Settings20Regular } from "@fluentui/react-icons";
+import { Dismiss16Regular, Settings16Regular, Settings20Regular } from "@fluentui/react-icons";
 import { useContext, useEffect, useState } from "react";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { ExecuteCommandRequest } from "../../../sharedInterfaces/webview";
@@ -27,9 +27,9 @@ const useStyles = makeStyles({
     },
     settingsPopoverSurface: {
         padding: 0,
-        minWidth: "300px",
-        maxWidth: "400px",
-        borderRadius: "8px",
+        width: "280px",
+        maxWidth: "calc(100vw - 16px)",
+        borderRadius: "6px",
         border: "1px solid var(--vscode-widget-border)",
         backgroundColor: "var(--vscode-editorWidget-background)",
         color: "var(--vscode-foreground)",
@@ -39,22 +39,28 @@ const useStyles = makeStyles({
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        padding: "8px 10px",
+        padding: "6px 8px",
         borderBottom: "1px solid var(--vscode-widget-border)",
     },
     settingsPopoverTitleGroup: {
         display: "flex",
         alignItems: "center",
-        gap: "8px",
-        fontSize: "14px",
+        gap: "6px",
+        fontSize: "13px",
         fontWeight: 600,
+    },
+    settingsPopoverCloseButton: {
+        width: "24px",
+        height: "24px",
+        minWidth: "24px",
+        padding: 0,
     },
     settingsPopoverOption: {
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        gap: "10px",
-        padding: "10px",
+        gap: "8px",
+        padding: "8px",
     },
     settingsPopoverOptionText: {
         minWidth: 0,
@@ -63,13 +69,13 @@ const useStyles = makeStyles({
         gap: "4px",
     },
     settingsPopoverOptionTitle: {
-        fontSize: "13px",
-        lineHeight: "18px",
+        fontSize: "12px",
+        lineHeight: "16px",
         color: "var(--vscode-foreground)",
     },
     settingsPopoverOptionDescription: {
         fontSize: "12px",
-        lineHeight: "16px",
+        lineHeight: "15px",
         color: "var(--vscode-descriptionForeground)",
     },
 });
@@ -158,13 +164,13 @@ export const QueryResultSettingsControl = ({
             <PopoverSurface className={classes.settingsPopoverSurface}>
                 <div className={classes.settingsPopoverHeader}>
                     <div className={classes.settingsPopoverTitleGroup}>
-                        <Settings20Regular />
+                        <Settings16Regular />
                         <span>{locConstants.queryResult.resultsSettings}</span>
                     </div>
                     <Button
                         appearance="subtle"
-                        icon={<Dismiss20Regular />}
-                        className={classes.ribbonIconButton}
+                        icon={<Dismiss16Regular />}
+                        className={classes.settingsPopoverCloseButton}
                         aria-label={locConstants.queryResult.closeResultsSettings}
                         title={locConstants.queryResult.closeResultsSettings}
                         onClick={() => {
