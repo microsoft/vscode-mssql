@@ -11,23 +11,23 @@ import * as sinon from "sinon";
 import * as vscode from "vscode";
 import * as utils from "../../src/utils/utils";
 import * as Constants from "../../src/constants/constants";
-import { MssqlConfigurationWebviewController } from "../../src/controllers/mssqlConfigurationWebviewController";
+import { ShortcutsConfigurationWebviewController } from "../../src/controllers/shortcutsConfigurationWebviewController";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { parseKeybindingsText } from "../../src/keybindings/keybindingsService";
 import {
     getQuickQueryCommandId,
-    MssqlConfigurationReducers,
-    MssqlConfigurationWebviewState,
+    ShortcutsConfigurationReducers,
+    ShortcutsConfigurationWebviewState,
     normalizeQuickQueries,
     QuickQueryConnectionMode,
     QuickQueryExecutionMode,
-} from "../../src/sharedInterfaces/mssqlConfiguration";
+} from "../../src/sharedInterfaces/shortcutsConfiguration";
 import { WebviewAction } from "../../src/sharedInterfaces/webview";
 import { stubTelemetry, stubVscodeWrapper, stubWebviewPanel } from "./utils";
 
-suite("Mssql Configuration Webview Controller", () => {
+suite("shortcutsConfiguration Webview Controller", () => {
     let sandbox: sinon.SinonSandbox;
-    let controller: MssqlConfigurationWebviewController;
+    let controller: ShortcutsConfigurationWebviewController;
     let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let updateConfigurationStub: sinon.SinonStub;
     let keybindingsText: string;
@@ -80,7 +80,7 @@ suite("Mssql Configuration Webview Controller", () => {
         sandbox.stub(vscode.commands, "executeCommand").resolves();
 
         vscodeWrapper = stubVscodeWrapper(sandbox);
-        controller = new MssqlConfigurationWebviewController(
+        controller = new ShortcutsConfigurationWebviewController(
             {
                 extensionUri: vscode.Uri.parse("file:///extension"),
                 extensionPath: "extension",
@@ -98,15 +98,15 @@ suite("Mssql Configuration Webview Controller", () => {
         }
     });
 
-    function getReducer<Method extends keyof MssqlConfigurationReducers>(method: Method) {
+    function getReducer<Method extends keyof ShortcutsConfigurationReducers>(method: Method) {
         return (
             controller as unknown as {
                 _reducerHandlers: Map<
                     Method,
                     (
-                        state: MssqlConfigurationWebviewState,
-                        payload: MssqlConfigurationReducers[Method],
-                    ) => Promise<MssqlConfigurationWebviewState>
+                        state: ShortcutsConfigurationWebviewState,
+                        payload: ShortcutsConfigurationReducers[Method],
+                    ) => Promise<ShortcutsConfigurationWebviewState>
                 >;
             }
         )._reducerHandlers.get(method);
@@ -131,7 +131,6 @@ suite("Mssql Configuration Webview Controller", () => {
             webviewShortcuts: {
                 [WebviewAction.ResultGridSelectAll]: "ctrl+shift+a",
             },
-            mssqlSettings: {},
         });
 
         expect(
@@ -192,7 +191,6 @@ suite("Mssql Configuration Webview Controller", () => {
             webviewShortcuts: {
                 [WebviewAction.ResultGridCopySelection]: "ctrl+c",
             },
-            mssqlSettings: {},
         });
 
         expect(result.errorMessage).to.equal(undefined);

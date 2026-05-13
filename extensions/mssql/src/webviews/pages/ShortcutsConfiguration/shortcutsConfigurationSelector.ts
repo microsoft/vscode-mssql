@@ -4,16 +4,16 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
-    MssqlConfigurationReducers,
-    MssqlConfigurationWebviewState,
-} from "../../../sharedInterfaces/mssqlConfiguration";
+    ShortcutsConfigurationReducers,
+    ShortcutsConfigurationWebviewState,
+} from "../../../sharedInterfaces/shortcutsConfiguration";
 import { useVscodeSelector } from "../../common/useVscodeSelector";
 
-export function useMssqlConfigurationSelector<T>(
-    selector: (state: MssqlConfigurationWebviewState) => T,
+export function useShortcutsConfigurationSelector<T>(
+    selector: (state: ShortcutsConfigurationWebviewState) => T,
     equals?: (a: T, b: T) => boolean,
 ) {
-    return useVscodeSelector<MssqlConfigurationWebviewState, MssqlConfigurationReducers, T>(
+    return useVscodeSelector<ShortcutsConfigurationWebviewState, ShortcutsConfigurationReducers, T>(
         selector,
         equals,
     );

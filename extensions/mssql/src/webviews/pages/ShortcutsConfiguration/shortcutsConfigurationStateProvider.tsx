@@ -6,28 +6,30 @@
 import * as React from "react";
 import { createContext, useMemo } from "react";
 import {
-    MssqlConfigurationContextProps,
-    MssqlConfigurationReducers,
-    MssqlConfigurationWebviewState,
-    SaveMssqlConfigurationPayload,
-} from "../../../sharedInterfaces/mssqlConfiguration";
+    ShortcutsConfigurationContextProps,
+    ShortcutsConfigurationReducers,
+    ShortcutsConfigurationWebviewState,
+    SaveShortcutsConfigurationPayload,
+} from "../../../sharedInterfaces/shortcutsConfiguration";
 import { getCoreRPCs } from "../../common/utils";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 
-const MssqlConfigurationContext = createContext<MssqlConfigurationContextProps | undefined>(
+const ShortcutsConfigurationContext = createContext<ShortcutsConfigurationContextProps | undefined>(
     undefined,
 );
 
-const MssqlConfigurationStateProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const ShortcutsConfigurationStateProvider: React.FC<{ children: React.ReactNode }> = ({
+    children,
+}) => {
     const { extensionRpc } = useVscodeWebview<
-        MssqlConfigurationWebviewState,
-        MssqlConfigurationReducers
+        ShortcutsConfigurationWebviewState,
+        ShortcutsConfigurationReducers
     >();
 
-    const commands = useMemo<MssqlConfigurationContextProps>(
+    const commands = useMemo<ShortcutsConfigurationContextProps>(
         () => ({
             ...getCoreRPCs(extensionRpc),
-            saveConfiguration: (payload: SaveMssqlConfigurationPayload) =>
+            saveConfiguration: (payload: SaveShortcutsConfigurationPayload) =>
                 extensionRpc.action("saveConfiguration", payload),
             reloadConfiguration: () => extensionRpc.action("reloadConfiguration", {}),
             closeDialog: () => extensionRpc.action("closeDialog", {}),
@@ -36,10 +38,10 @@ const MssqlConfigurationStateProvider: React.FC<{ children: React.ReactNode }> =
     );
 
     return (
-        <MssqlConfigurationContext.Provider value={commands}>
+        <ShortcutsConfigurationContext.Provider value={commands}>
             {children}
-        </MssqlConfigurationContext.Provider>
+        </ShortcutsConfigurationContext.Provider>
     );
 };
 
-export { MssqlConfigurationContext, MssqlConfigurationStateProvider };
+export { ShortcutsConfigurationContext, ShortcutsConfigurationStateProvider };

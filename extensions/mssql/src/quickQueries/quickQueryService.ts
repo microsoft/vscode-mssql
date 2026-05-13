@@ -11,7 +11,7 @@ import {
     QuickQueryConnectionMode,
     QuickQueryExecutionMode,
     QuickQuerySlot,
-} from "../sharedInterfaces/mssqlConfiguration";
+} from "../sharedInterfaces/shortcutsConfiguration";
 import { ConnectionStrategy, NewQueryOptions } from "../controllers/sqlDocumentService";
 
 export enum QuickQueryRunResult {

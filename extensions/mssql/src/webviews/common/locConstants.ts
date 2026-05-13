@@ -319,10 +319,10 @@ export class LocConstants {
         };
     }
 
-    public get mssqlConfiguration() {
+    public get shortcutsConfiguration() {
         return {
-            title: l10n.t("MSSQL Configuration"),
-            subtitle: l10n.t("Configure MSSQL extension behavior."),
+            title: l10n.t("shortcutsConfiguration"),
+            subtitle: l10n.t("Configure shortcut behavior."),
             quickQueries: l10n.t("Quick Queries"),
             quickQueriesDescription: l10n.t(
                 "Configure command-backed SQL snippets that can open or run from keyboard shortcuts.",

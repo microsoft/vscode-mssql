@@ -42,7 +42,7 @@ const config = {
         changelog: "src/webviews/pages/Changelog/index.tsx",
         profiler: "src/webviews/pages/Profiler/index.tsx",
         azureDataStudioMigration: "src/webviews/pages/AzureDataStudioMigration/index.tsx",
-        mssqlConfiguration: "src/webviews/pages/MssqlConfiguration/index.tsx",
+        shortcutsConfiguration: "src/webviews/pages/ShortcutsConfiguration/index.tsx",
     },
     bundle: true,
     outdir: "dist/views",

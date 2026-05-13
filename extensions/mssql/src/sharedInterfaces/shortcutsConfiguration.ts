@@ -27,47 +27,30 @@ export interface QuickQuerySlot {
 
 export type QuickQueryKeybindings = Record<string, string>;
 
-export type MssqlSettingInputType = "boolean" | "nullableBoolean" | "number" | "string" | "json";
-
-export interface MssqlSettingDefinition {
-    key: string;
-    label: string;
-    description: string;
-    group: string;
-    inputType: MssqlSettingInputType;
-    enumValues?: string[];
-    enumDescriptions?: string[];
-    defaultValue?: unknown;
-    scope?: string;
-}
-
-export interface MssqlConfigurationWebviewState {
+export interface ShortcutsConfigurationWebviewState {
     quickQueries: QuickQuerySlot[];
     quickQueryKeybindings: QuickQueryKeybindings;
     webviewShortcuts: Record<string, string>;
-    mssqlSettings: Record<string, unknown>;
-    mssqlSettingDefinitions: MssqlSettingDefinition[];
     focusedQuickQuerySlot?: number;
     message?: string;
     errorMessage?: string;
     isSaving?: boolean;
 }
 
-export interface SaveMssqlConfigurationPayload {
+export interface SaveShortcutsConfigurationPayload {
     quickQueries: QuickQuerySlot[];
     quickQueryKeybindings: QuickQueryKeybindings;
     webviewShortcuts: Record<string, string>;
-    mssqlSettings: Record<string, unknown>;
 }
 
-export interface MssqlConfigurationReducers {
-    saveConfiguration: SaveMssqlConfigurationPayload;
+export interface ShortcutsConfigurationReducers {
+    saveConfiguration: SaveShortcutsConfigurationPayload;
     reloadConfiguration: {};
     closeDialog: {};
 }
 
-export interface MssqlConfigurationContextProps extends CoreRPCs {
-    saveConfiguration: (payload: SaveMssqlConfigurationPayload) => void;
+export interface ShortcutsConfigurationContextProps extends CoreRPCs {
+    saveConfiguration: (payload: SaveShortcutsConfigurationPayload) => void;
     reloadConfiguration: () => void;
     closeDialog: () => void;
 }

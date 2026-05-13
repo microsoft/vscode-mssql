@@ -563,9 +563,9 @@
                     "group": "navigation"
                 },
                 {
-                    "command": "mssql.configuration.open",
+                    "command": "mssql.shortcutsConfiguration.open",
                     "when": "view == objectExplorer",
-                    "title": "%mssql.configuration.open%",
+                    "title": "%mssql.shortcutsConfiguration.open%",
                     "group": "navigation"
                 }
             ],
@@ -1071,8 +1071,8 @@
                 "category": "MS SQL"
             },
             {
-                "command": "mssql.configuration.open",
-                "title": "%mssql.configuration.open%",
+                "command": "mssql.shortcutsConfiguration.open",
+                "title": "%mssql.shortcutsConfiguration.open%",
                 "category": "MS SQL",
                 "icon": "$(settings-gear)"
             },

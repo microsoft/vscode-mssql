@@ -12,7 +12,7 @@ import {
     QuickQueryConnectionMode,
     QuickQueryExecutionMode,
     QuickQuerySlot,
-} from "../../src/sharedInterfaces/mssqlConfiguration";
+} from "../../src/sharedInterfaces/shortcutsConfiguration";
 import {
     QuickQueryRunResult,
     QuickQueryService,

@@ -114,7 +114,7 @@ import { TableExplorerWebViewController } from "../tableExplorer/tableExplorerWe
 import { SearchDatabaseWebViewController } from "../searchDatabase/searchDatabaseWebViewController";
 import { ChangelogWebviewController } from "./changelogWebviewController";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
-import { MssqlConfigurationWebviewController } from "./mssqlConfigurationWebviewController";
+import { ShortcutsConfigurationWebviewController } from "./shortcutsConfigurationWebviewController";
 import { HttpClient } from "../http/httpClient";
 import { Logger } from "../models/logger";
 import { FileBrowserService } from "../services/fileBrowserService";
@@ -132,7 +132,7 @@ import {
     getQuickQueryCommandId,
     normalizeQuickQueries,
     quickQueryCount,
-} from "../sharedInterfaces/mssqlConfiguration";
+} from "../sharedInterfaces/shortcutsConfiguration";
 
 /**
  * The main controller class that initializes the extension
@@ -157,7 +157,7 @@ export default class MainController implements vscode.Disposable {
     private _logger: Logger;
     private _lastBackgroundTaskClickTime = 0;
     private _lastBackgroundTaskId: string | undefined;
-    private _mssqlConfigurationController: MssqlConfigurationWebviewController | undefined;
+    private _shortcutsConfigurationController: ShortcutsConfigurationWebviewController | undefined;
 
     public sqlTasksService: SqlTasksService;
     public backgroundTasksService: BackgroundTasksService;
@@ -253,8 +253,8 @@ export default class MainController implements vscode.Disposable {
     public async deactivate(): Promise<void> {
         Utils.logDebug("de-activated.");
         await this.onDisconnect();
-        this._mssqlConfigurationController?.dispose();
-        this._mssqlConfigurationController = undefined;
+        this._shortcutsConfigurationController?.dispose();
+        this._shortcutsConfigurationController = undefined;
         this._statusview.dispose();
     }
 
@@ -286,9 +286,9 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdRunQuery, () => this.onRunQueryCommand());
             this.registerCommand(Constants.cmdRunQueryWithUriOwnership);
             this._event.on(Constants.cmdRunQueryWithUriOwnership, () => this.onRunQueryCommand());
-            this.registerCommand(Constants.cmdOpenMssqlConfiguration);
-            this._event.on(Constants.cmdOpenMssqlConfiguration, () => {
-                this.openMssqlConfiguration();
+            this.registerCommand(Constants.cmdOpenShortcutsConfiguration);
+            this._event.on(Constants.cmdOpenShortcutsConfiguration, () => {
+                this.openShortcutsConfiguration();
             });
             for (let slotNumber = 1; slotNumber <= quickQueryCount; slotNumber++) {
                 const commandId = getQuickQueryCommandId(slotNumber);
@@ -2866,24 +2866,27 @@ export default class MainController implements vscode.Disposable {
         }
     }
 
-    public openMssqlConfiguration(focusedQuickQuerySlot?: number): void {
-        if (this._mssqlConfigurationController && !this._mssqlConfigurationController.isDisposed) {
-            this._mssqlConfigurationController.focusQuickQuerySlot(focusedQuickQuerySlot);
-            this._mssqlConfigurationController.revealToForeground();
+    public openShortcutsConfiguration(focusedQuickQuerySlot?: number): void {
+        if (
+            this._shortcutsConfigurationController &&
+            !this._shortcutsConfigurationController.isDisposed
+        ) {
+            this._shortcutsConfigurationController.focusQuickQuerySlot(focusedQuickQuerySlot);
+            this._shortcutsConfigurationController.revealToForeground();
             return;
         }
 
-        const controller = new MssqlConfigurationWebviewController(
+        const controller = new ShortcutsConfigurationWebviewController(
             this._context,
             this._vscodeWrapper,
             focusedQuickQuerySlot,
         );
         controller.onDisposed(() => {
-            if (this._mssqlConfigurationController === controller) {
-                this._mssqlConfigurationController = undefined;
+            if (this._shortcutsConfigurationController === controller) {
+                this._shortcutsConfigurationController = undefined;
             }
         });
-        this._mssqlConfigurationController = controller;
+        this._shortcutsConfigurationController = controller;
         controller.revealToForeground();
     }
 
@@ -2894,7 +2897,7 @@ export default class MainController implements vscode.Disposable {
                     vscode.workspace.getConfiguration().get(Constants.configQuickQueries),
                 ),
             openConfiguration: (focusedQuickQuerySlot) =>
-                this.openMssqlConfiguration(focusedQuickQuerySlot),
+                this.openShortcutsConfiguration(focusedQuickQuerySlot),
             getActiveSqlEditorConnectionInfo: () => {
                 const activeEditor = vscode.window.activeTextEditor;
                 if (!activeEditor || activeEditor.document.languageId !== Constants.languageId) {

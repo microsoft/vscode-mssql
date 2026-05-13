@@ -5,14 +5,14 @@
 
 import ReactDOM from "react-dom/client";
 import { VscodeWebviewProvider } from "../../common/vscodeWebviewProvider";
-import { MssqlConfigurationStateProvider } from "./mssqlConfigurationStateProvider";
-import { MssqlConfigurationPage } from "./mssqlConfigurationPage";
+import { ShortcutsConfigurationStateProvider } from "./shortcutsConfigurationStateProvider";
+import { ShortcutsConfigurationPage } from "./shortcutsConfigurationPage";
 import "../../index.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <VscodeWebviewProvider>
-        <MssqlConfigurationStateProvider>
-            <MssqlConfigurationPage />
-        </MssqlConfigurationStateProvider>
+        <ShortcutsConfigurationStateProvider>
+            <ShortcutsConfigurationPage />
+        </ShortcutsConfigurationStateProvider>
     </VscodeWebviewProvider>,
 );

@@ -12,10 +12,6 @@ import {
     DialogContent,
     DialogSurface,
     DialogTitle,
-    Field,
-    Input,
-    Select,
-    Switch,
     Tab,
     TabList,
 } from "@fluentui/react-components";
@@ -28,34 +24,19 @@ import {
 } from "@fluentui/react-icons";
 import { DialogPageShell } from "../../common/dialogPageShell";
 import { locConstants } from "../../common/locConstants";
-import { VscodeEditor } from "../../common/vscodeMonaco";
-import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
-import { ColorThemeKind, WebviewAction } from "../../../sharedInterfaces/webview";
+import { WebviewAction } from "../../../sharedInterfaces/webview";
 import {
     getQuickQueryCommandId,
-    MssqlSettingDefinition,
     normalizeQuickQueries,
-    QuickQueryConnectionMode,
-    QuickQueryExecutionMode,
     QuickQuerySlot,
     quickQueryCount,
-    SaveMssqlConfigurationPayload,
-} from "../../../sharedInterfaces/mssqlConfiguration";
-import { MssqlConfigurationContext } from "./mssqlConfigurationStateProvider";
-import { useMssqlConfigurationSelector } from "./mssqlConfigurationSelector";
+    SaveShortcutsConfigurationPayload,
+} from "../../../sharedInterfaces/shortcutsConfiguration";
+import { ShortcutsConfigurationContext } from "./shortcutsConfigurationStateProvider";
+import { useShortcutsConfigurationSelector } from "./shortcutsConfigurationSelector";
 
-type ConfigurationTab = "queries" | "settings" | "shortcuts";
+type ConfigurationTab = "queries" | "shortcuts";
 type SaveState = "idle" | "saving" | "saved";
-
-const executionOptions = [
-    { value: QuickQueryExecutionMode.OpenAndRun, label: "Open and run" },
-    { value: QuickQueryExecutionMode.Open, label: "Open only" },
-];
-
-const connectionOptions = [
-    { value: QuickQueryConnectionMode.Prompt, label: "Prompt" },
-    { value: QuickQueryConnectionMode.ActiveOrPrompt, label: "Active" },
-];
 
 interface ShortcutItem {
     action: WebviewAction;
@@ -335,25 +316,12 @@ function buildPayload(
     quickQueries: QuickQuerySlot[],
     quickQueryKeybindings: Record<string, string>,
     webviewShortcuts: Record<string, string>,
-    mssqlSettings: Record<string, unknown>,
-): SaveMssqlConfigurationPayload {
+): SaveShortcutsConfigurationPayload {
     return {
         quickQueries,
         quickQueryKeybindings,
         webviewShortcuts,
-        mssqlSettings,
     };
-}
-
-function getJsonSettingText(value: unknown): string {
-    if (value === undefined) {
-        return "";
-    }
-    return JSON.stringify(value, undefined, 4);
-}
-
-function parseJsonSettingText(value: string): unknown {
-    return value.trim().length === 0 ? undefined : JSON.parse(value);
 }
 
 const SaveIndicator = ({ state }: { state: SaveState }) => {
@@ -514,118 +482,23 @@ const ShortcutChip = ({ value, onRecord }: { value: string; onRecord: () => void
 const QuickQueryRow = ({
     slot,
     shortcut,
-    expanded,
-    onToggle,
-    onChange,
     onRecord,
-    themeKind,
 }: {
     slot: QuickQuerySlot;
     shortcut: string;
-    expanded: boolean;
-    onToggle: () => void;
-    onChange: (value: QuickQuerySlot) => void;
     onRecord: () => void;
-    themeKind: ColorThemeKind;
 }) => {
-    const query = slot.query.trim();
-    const isConfigured = shortcut.trim().length > 0 || query.length > 0;
-    const preview = query.length > 50 ? `${query.slice(0, 50)}...` : query;
+    const isConfigured = shortcut.trim().length > 0;
 
     return (
-        <div className={`mssql-config-query-row ${expanded ? "mssql-config-row-expanded" : ""}`}>
-            <Button
-                appearance="transparent"
-                className="mssql-config-query-summary"
-                onClick={onToggle}>
-                <span className="mssql-config-chevron">
-                    {expanded ? <ChevronDown12Regular /> : <ChevronRight12Regular />}
-                </span>
+        <div className="mssql-config-query-row">
+            <div className="mssql-config-query-summary">
                 <span className="mssql-config-query-title">
                     <span className={isConfigured ? "" : "mssql-config-muted"}>{slot.name}</span>
-                    {preview ? (
-                        <span className="mssql-config-query-preview">{preview}</span>
-                    ) : (
-                        <span className="mssql-config-query-empty">No query set</span>
-                    )}
+                    <span className="mssql-config-query-empty">Quick Query command shortcut</span>
                 </span>
-                {isConfigured ? (
-                    <span className="mssql-config-status-chip">
-                        {formatShortcut(shortcut) || "No shortcut"}
-                    </span>
-                ) : (
-                    <span className="mssql-config-unconfigured-chip">Not configured</span>
-                )}
-            </Button>
-            {expanded && (
-                <div className="mssql-config-query-editor">
-                    <div className="mssql-config-controls-row">
-                        <Field
-                            className="mssql-config-field mssql-config-shortcut-field"
-                            label="Shortcut">
-                            <ShortcutChip value={shortcut} onRecord={onRecord} />
-                        </Field>
-                        <Field className="mssql-config-field" label="Execution">
-                            <Select
-                                value={slot.executionMode}
-                                onChange={(event) =>
-                                    onChange({
-                                        ...slot,
-                                        executionMode: event.target
-                                            .value as QuickQueryExecutionMode,
-                                    })
-                                }>
-                                {executionOptions.map((option) => (
-                                    <option key={option.value} value={option.value}>
-                                        {option.label}
-                                    </option>
-                                ))}
-                            </Select>
-                        </Field>
-                        <Field className="mssql-config-field" label="Connection">
-                            <Select
-                                value={slot.connectionMode}
-                                onChange={(event) =>
-                                    onChange({
-                                        ...slot,
-                                        connectionMode: event.target
-                                            .value as QuickQueryConnectionMode,
-                                    })
-                                }>
-                                {connectionOptions.map((option) => (
-                                    <option key={option.value} value={option.value}>
-                                        {option.label}
-                                    </option>
-                                ))}
-                            </Select>
-                        </Field>
-                    </div>
-                    <Field className="mssql-config-field" label="SQL Query">
-                        <div className="mssql-config-monaco-shell">
-                            <VscodeEditor
-                                height="100%"
-                                width="100%"
-                                language="sql"
-                                themeKind={themeKind}
-                                value={slot.query}
-                                options={{
-                                    minimap: { enabled: false },
-                                    scrollBeyondLastLine: false,
-                                    wordWrap: "on",
-                                    lineNumbers: "on",
-                                    glyphMargin: false,
-                                    folding: false,
-                                    lineDecorationsWidth: 8,
-                                    overviewRulerLanes: 0,
-                                    renderLineHighlight: "line",
-                                    automaticLayout: true,
-                                }}
-                                onChange={(value) => onChange({ ...slot, query: value ?? "" })}
-                            />
-                        </div>
-                    </Field>
-                </div>
-            )}
+                <ShortcutChip value={shortcut} onRecord={onRecord} />
+            </div>
         </div>
     );
 };
@@ -648,112 +521,11 @@ const WebviewShortcutRow = ({
     </div>
 );
 
-const SettingControl = ({
-    definition,
-    value,
-    onChange,
-    themeKind,
-}: {
-    definition: MssqlSettingDefinition;
-    value: unknown;
-    onChange: (value: unknown) => void;
-    themeKind: ColorThemeKind;
-}) => {
-    if (definition.enumValues?.length) {
-        return (
-            <Select value={String(value ?? "")} onChange={(event) => onChange(event.target.value)}>
-                {definition.enumValues.map((enumValue, index) => (
-                    <option key={enumValue} value={enumValue}>
-                        {definition.enumDescriptions?.[index] ?? enumValue}
-                    </option>
-                ))}
-            </Select>
-        );
-    }
-
-    if (definition.inputType === "boolean") {
-        return (
-            <Switch
-                checked={Boolean(value)}
-                label={Boolean(value) ? "Enabled" : "Disabled"}
-                onChange={(_event, data) => onChange(data.checked)}
-            />
-        );
-    }
-
-    if (definition.inputType === "nullableBoolean") {
-        return (
-            <Select
-                value={value === null || value === undefined ? "default" : String(Boolean(value))}
-                onChange={(event) => {
-                    const nextValue = event.target.value;
-                    onChange(nextValue === "default" ? null : nextValue === "true");
-                }}>
-                <option value="default">Default</option>
-                <option value="true">Enabled</option>
-                <option value="false">Disabled</option>
-            </Select>
-        );
-    }
-
-    if (definition.inputType === "number") {
-        return (
-            <Input
-                type="number"
-                value={value === null || value === undefined ? "" : String(value)}
-                onChange={(_event, data) =>
-                    onChange(data.value.trim().length === 0 ? null : Number(data.value))
-                }
-            />
-        );
-    }
-
-    if (definition.inputType === "string") {
-        return (
-            <Input
-                value={value === null || value === undefined ? "" : String(value)}
-                onChange={(_event, data) => onChange(data.value)}
-            />
-        );
-    }
-
-    return (
-        <div className="mssql-config-json-editor">
-            <VscodeEditor
-                height="100%"
-                width="100%"
-                language="json"
-                themeKind={themeKind}
-                value={getJsonSettingText(value)}
-                options={{
-                    minimap: { enabled: false },
-                    scrollBeyondLastLine: false,
-                    wordWrap: "on",
-                    lineNumbers: "off",
-                    glyphMargin: false,
-                    folding: false,
-                    lineDecorationsWidth: 8,
-                    overviewRulerLanes: 0,
-                    automaticLayout: true,
-                }}
-                onChange={(editorValue) => {
-                    try {
-                        onChange(parseJsonSettingText(editorValue ?? ""));
-                    } catch {
-                        // Keep the editor responsive while the user is midway through JSON edits.
-                    }
-                }}
-            />
-        </div>
-    );
-};
-
-export const MssqlConfigurationPage = () => {
-    const loc = locConstants.mssqlConfiguration;
+export const ShortcutsConfigurationPage = () => {
+    const loc = locConstants.shortcutsConfiguration;
     const common = locConstants.common;
-    const context = useContext(MssqlConfigurationContext);
-    const { themeKind } = useVscodeWebview();
-    const state = useMssqlConfigurationSelector((s) => s);
+    const context = useContext(ShortcutsConfigurationContext);
+    const state = useShortcutsConfigurationSelector((s) => s);
     const [activeTab, setActiveTab] = useState<ConfigurationTab>("queries");
     const [saveState, setSaveState] = useState<SaveState>("idle");
     const [quickQueries, setQuickQueries] = useState<QuickQuerySlot[]>(() =>
@@ -765,10 +537,6 @@ export const MssqlConfigurationPage = () => {
     const [webviewShortcuts, setWebviewShortcuts] = useState<Record<string, string>>(
         state.webviewShortcuts ?? {},
     );
-    const [mssqlSettings, setMssqlSettings] = useState<Record<string, unknown>>(
-        state.mssqlSettings ?? {},
-    );
-    const [expandedQueries, setExpandedQueries] = useState<Record<number, boolean>>({});
     const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
     const [recording, setRecording] = useState<
         { kind: "quickQuery"; commandId: string } | { kind: "webview"; action: WebviewAction }
@@ -781,25 +549,13 @@ export const MssqlConfigurationPage = () => {
         const normalizedQuickQueries = normalizeQuickQueries(state.quickQueries);
         const normalizedKeybindings = state.quickQueryKeybindings ?? {};
         const normalizedShortcuts = state.webviewShortcuts ?? {};
-        const normalizedSettings = state.mssqlSettings ?? {};
         setQuickQueries(normalizedQuickQueries);
         setQuickQueryKeybindings(normalizedKeybindings);
         setWebviewShortcuts(normalizedShortcuts);
-        setMssqlSettings(normalizedSettings);
         lastSavedPayloadRef.current = JSON.stringify(
-            buildPayload(
-                normalizedQuickQueries,
-                normalizedKeybindings,
-                normalizedShortcuts,
-                normalizedSettings,
-            ),
+            buildPayload(normalizedQuickQueries, normalizedKeybindings, normalizedShortcuts),
         );
-    }, [
-        state.quickQueries,
-        state.quickQueryKeybindings,
-        state.webviewShortcuts,
-        state.mssqlSettings,
-    ]);
+    }, [state.quickQueries, state.quickQueryKeybindings, state.webviewShortcuts]);
 
     useEffect(() => {
         const focusedQuickQuerySlot = state.focusedQuickQuerySlot;
@@ -809,10 +565,6 @@ export const MssqlConfigurationPage = () => {
             focusedQuickQuerySlot <= quickQueryCount
         ) {
             setActiveTab("queries");
-            setExpandedQueries((current) => ({
-                ...current,
-                [focusedQuickQuerySlot - 1]: true,
-            }));
         }
     }, [state.focusedQuickQuerySlot]);
 
@@ -829,7 +581,7 @@ export const MssqlConfigurationPage = () => {
     );
 
     const scheduleSave = useCallback(
-        (payload: SaveMssqlConfigurationPayload) => {
+        (payload: SaveShortcutsConfigurationPayload) => {
             if (!context) {
                 return;
             }
@@ -862,31 +614,17 @@ export const MssqlConfigurationPage = () => {
             nextQuickQueries = quickQueries,
             nextQuickQueryKeybindings = quickQueryKeybindings,
             nextWebviewShortcuts = webviewShortcuts,
-            nextMssqlSettings = mssqlSettings,
         ) => {
             scheduleSave(
-                buildPayload(
-                    nextQuickQueries,
-                    nextQuickQueryKeybindings,
-                    nextWebviewShortcuts,
-                    nextMssqlSettings,
-                ),
+                buildPayload(nextQuickQueries, nextQuickQueryKeybindings, nextWebviewShortcuts),
             );
         },
-        [mssqlSettings, quickQueries, quickQueryKeybindings, scheduleSave, webviewShortcuts],
+        [quickQueries, quickQueryKeybindings, scheduleSave, webviewShortcuts],
     );
 
     if (!context) {
         return undefined;
     }
-
-    const updateQuickQuery = (index: number, value: QuickQuerySlot) => {
-        const nextQuickQueries = quickQueries.map((slot, slotIndex) =>
-            slotIndex === index ? value : slot,
-        );
-        setQuickQueries(nextQuickQueries);
-        saveWith(nextQuickQueries);
-    };
 
     const updateQuickQueryShortcut = (commandId: string, value: string) => {
         const nextKeybindings = {
@@ -906,19 +644,10 @@ export const MssqlConfigurationPage = () => {
         saveWith(quickQueries, quickQueryKeybindings, nextShortcuts);
     };
 
-    const updateMssqlSetting = (key: string, value: unknown) => {
-        const nextSettings = {
-            ...mssqlSettings,
-            [key]: value,
-        };
-        setMssqlSettings(nextSettings);
-        saveWith(quickQueries, quickQueryKeybindings, webviewShortcuts, nextSettings);
-    };
-
     const renderQueries = () => (
         <>
             <div className="mssql-config-help-text">
-                Click a slot to configure its SQL query, keyboard shortcut, and execution behavior.
+                Configure keyboard shortcuts for Quick Query commands.
             </div>
             <div className="mssql-config-card">
                 {quickQueries.map((slot, index) => {
@@ -928,16 +657,7 @@ export const MssqlConfigurationPage = () => {
                             key={commandId}
                             slot={slot}
                             shortcut={quickQueryKeybindings[commandId] ?? ""}
-                            expanded={!!expandedQueries[index]}
-                            onToggle={() =>
-                                setExpandedQueries((current) => ({
-                                    ...current,
-                                    [index]: !current[index],
-                                }))
-                            }
-                            onChange={(value) => updateQuickQuery(index, value)}
                             onRecord={() => setRecording({ kind: "quickQuery", commandId })}
-                            themeKind={themeKind}
                         />
                     );
                 })}
@@ -1008,84 +728,6 @@ export const MssqlConfigurationPage = () => {
         </>
     );
 
-    const renderSettings = () => {
-        const groupedSettings = state.mssqlSettingDefinitions.reduce(
-            (groups, definition) => {
-                groups[definition.group] ??= [];
-                groups[definition.group].push(definition);
-                return groups;
-            },
-            {} as Record<string, MssqlSettingDefinition[]>,
-        );
-
-        return (
-            <>
-                <div className="mssql-config-help-text">
-                    Configure MSSQL extension settings. Changes are saved to your user settings.
-                </div>
-                <div className="mssql-config-shortcut-groups">
-                    {Object.entries(groupedSettings).map(([group, definitions]) => {
-                        const groupId = `settings:${group}`;
-                        const isCollapsed = !!collapsedGroups[groupId];
-
-                        return (
-                            <div key={group} className="mssql-config-card">
-                                <Button
-                                    appearance="transparent"
-                                    className="mssql-config-group-header"
-                                    onClick={() =>
-                                        setCollapsedGroups((current) => ({
-                                            ...current,
-                                            [groupId]: !current[groupId],
-                                        }))
-                                    }>
-                                    <span>
-                                        {isCollapsed ? (
-                                            <ChevronRight12Regular />
-                                        ) : (
-                                            <ChevronDown12Regular />
-                                        )}
-                                    </span>
-                                    <span className="mssql-config-group-title">
-                                        <span>{group}</span>
-                                        <span>{definitions.length} settings</span>
-                                    </span>
-                                </Button>
-                                {!isCollapsed && (
-                                    <div className="mssql-config-settings-list">
-                                        {definitions.map((definition) => (
-                                            <Field
-                                                key={definition.key}
-                                                className="mssql-config-setting-field"
-                                                label={definition.label}
-                                                hint={
-                                                    <span>
-                                                        <span>{definition.description}</span>
-                                                        <span className="mssql-config-setting-key">
-                                                            {definition.key}
-                                                        </span>
-                                                    </span>
-                                                }>
-                                                <SettingControl
-                                                    definition={definition}
-                                                    value={mssqlSettings[definition.key]}
-                                                    themeKind={themeKind}
-                                                    onChange={(value) =>
-                                                        updateMssqlSetting(definition.key, value)
-                                                    }
-                                                />
-                                            </Field>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
-            </>
-        );
-    };
-
     const recorderValue =
         recording?.kind === "quickQuery"
             ? (quickQueryKeybindings[recording.commandId] ?? "")
@@ -1115,14 +757,9 @@ export const MssqlConfigurationPage = () => {
                     onTabSelect={(_event, data) => setActiveTab(data.value as ConfigurationTab)}
                     aria-label="Configuration sections">
                     <Tab value="queries">{loc.quickQueries}</Tab>
-                    <Tab value="settings">Settings</Tab>
                     <Tab value="shortcuts">{loc.webviewShortcuts}</Tab>
                 </TabList>
-                {activeTab === "queries"
-                    ? renderQueries()
-                    : activeTab === "settings"
-                      ? renderSettings()
-                      : renderShortcuts()}
+                {activeTab === "queries" ? renderQueries() : renderShortcuts()}
             </div>
             {recording && (
                 <ShortcutRecorder
@@ -1275,16 +912,6 @@ const styles = `
     background: var(--mssql-config-hover);
 }
 
-.mssql-config-chevron {
-    color: var(--mssql-config-dim);
-    display: flex;
-    flex-shrink: 0;
-}
-
-.mssql-config-row-expanded .mssql-config-chevron {
-    color: var(--mssql-config-accent-text);
-}
-
 .mssql-config-query-title,
 .mssql-config-group-title {
     display: flex;
@@ -1304,16 +931,6 @@ const styles = `
     white-space: nowrap;
 }
 
-.mssql-config-query-preview {
-    color: var(--mssql-config-muted);
-    font-family: var(--mssql-config-mono);
-    font-size: 11.5px;
-    margin-top: 1px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
 .mssql-config-query-empty {
     color: var(--mssql-config-dim);
     font-size: 11.5px;
@@ -1321,87 +938,11 @@ const styles = `
     margin-top: 1px;
 }
 
-.mssql-config-status-chip,
-.mssql-config-unconfigured-chip,
 .mssql-config-count-chip {
     border-radius: 4px;
     flex-shrink: 0;
     font-size: 11.5px;
     padding: 2px 8px;
-}
-
-.mssql-config-status-chip {
-    background: var(--mssql-config-accent-dim);
-    border: 1px solid rgba(0,120,212,0.25);
-    color: var(--mssql-config-accent-text);
-    font-family: var(--mssql-config-mono);
-}
-
-.mssql-config-unconfigured-chip {
-    background: rgba(255,255,255,0.03);
-    border: 1px dashed var(--mssql-config-border);
-    color: var(--mssql-config-dim);
-}
-
-.mssql-config-query-editor {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 0 16px 16px 52px;
-}
-
-.mssql-config-controls-row {
-    align-items: end;
-    display: grid;
-    gap: 12px;
-    grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr);
-}
-
-.mssql-config-field {
-    color: var(--mssql-config-muted);
-    display: flex;
-    flex-direction: column;
-    font-size: 11px;
-    font-weight: 500;
-    gap: 5px;
-    min-width: 0;
-}
-
-.mssql-config-shortcut-field {
-    min-width: 176px;
-}
-
-.mssql-config-field select {
-    background: var(--mssql-config-input);
-    border: 1px solid var(--mssql-config-border-md);
-    border-radius: 5px;
-    box-sizing: border-box;
-    color: var(--mssql-config-fg);
-    font-family: var(--mssql-config-font);
-    font-size: 12.5px;
-    outline: none;
-    width: 100%;
-}
-
-.mssql-config-field select {
-    cursor: pointer;
-    min-height: 30px;
-    padding: 5px 10px;
-}
-
-.mssql-config-field select:focus {
-    border-color: var(--mssql-config-accent);
-}
-
-.mssql-config-monaco-shell {
-    border: 1px solid var(--mssql-config-border-md);
-    border-radius: 6px;
-    height: 140px;
-    overflow: hidden;
-}
-
-.mssql-config-monaco-shell:focus-within {
-    border-color: var(--mssql-config-accent);
 }
 
 .mssql-config-shortcut-chip-row {
@@ -1491,58 +1032,6 @@ const styles = `
 
 .mssql-config-webview-shortcut-row:last-child {
     border-bottom: none;
-}
-
-.mssql-config-settings-list {
-    padding: 0 16px 4px;
-}
-
-.mssql-config-setting-field {
-    border-bottom: 1px solid var(--mssql-config-border);
-    padding: 12px 0;
-}
-
-.mssql-config-setting-field:last-child {
-    border-bottom: none;
-}
-
-.mssql-config-setting-field label {
-    color: var(--mssql-config-fg);
-    font-size: 13px;
-    font-weight: 500;
-}
-
-.mssql-config-setting-field [role="note"] {
-    color: var(--mssql-config-muted);
-    display: flex;
-    flex-direction: column;
-    font-size: 11.5px;
-    gap: 4px;
-    line-height: 1.5;
-}
-
-.mssql-config-setting-key {
-    color: var(--mssql-config-dim);
-    display: block;
-    font-family: var(--mssql-config-mono);
-    font-size: 11px;
-}
-
-.mssql-config-setting-field input,
-.mssql-config-setting-field select {
-    max-width: 520px;
-}
-
-.mssql-config-json-editor {
-    border: 1px solid var(--mssql-config-border-md);
-    border-radius: 6px;
-    height: 160px;
-    max-width: 640px;
-    overflow: hidden;
-}
-
-.mssql-config-json-editor:focus-within {
-    border-color: var(--mssql-config-accent);
 }
 
 .mssql-config-recorder {
@@ -1640,7 +1129,6 @@ const styles = `
 }
 
 @media (max-width: 640px) {
-    .mssql-config-controls-row,
     .mssql-config-webview-shortcut-row {
         grid-template-columns: 1fr;
     }
@@ -1649,13 +1137,5 @@ const styles = `
         align-items: flex-start;
     }
 
-    .mssql-config-status-chip,
-    .mssql-config-unconfigured-chip {
-        display: none;
-    }
-
-    .mssql-config-query-editor {
-        padding-left: 16px;
-    }
 }
 `;

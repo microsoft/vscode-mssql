@@ -79,7 +79,7 @@ export const ShortcutInput = ({
     ariaLabel: string;
 }) => {
     const classes = useStyles();
-    const loc = locConstants.mssqlConfiguration;
+    const loc = locConstants.shortcutsConfiguration;
     const [recording, setRecording] = useState(false);
 
     return (
