@@ -2559,6 +2559,11 @@
       <source xml:lang="en">Failed disposing query: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++926762c583eb1c8caf59e9fc552830feaf492d4c9c95f6655c99fef505e244d4">
+      <source xml:lang="en">Failed to acquire token for account &apos;{0}&apos; and tenant &apos;{1}&apos;</source>
+      <note>{0} is the account ID
+{1} is the tenant ID</note>
+    </trans-unit>
     <trans-unit id="++CODE++f57c0ea9456f728aca50615f7308856d0bc86ca13aec8eb78496308cead16807">
       <source xml:lang="en">Failed to add table to schema designer.</source>
     </trans-unit>

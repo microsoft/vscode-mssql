@@ -2145,6 +2145,13 @@ export class Connection {
             comment: ["{0} is the error message", "{1} is the resource"],
         });
     };
+    public static failedToAcquireToken = (accountId: string, tenantId: string) => {
+        return l10n.t({
+            message: "Failed to acquire token for account '{0}' and tenant '{1}'",
+            args: [accountId, tenantId],
+            comment: ["{0} is the account ID", "{1} is the tenant ID"],
+        });
+    };
 }
 
 export class MssqlChatAgent {

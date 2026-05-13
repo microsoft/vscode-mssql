@@ -635,6 +635,16 @@ export default class ConnectionManager {
                     PreviewFeature.UseVscodeAccountsForEntraMFA,
                 );
 
+                // Always send a tokenRefreshed notification back to STS so it can unblock
+                // IntelliSense (via TokenUpdateUris). On failure, send empty token/expiresOn=0;
+                // STS's TryUpdateAccessToken will no-op on an empty token.
+                const sendFailureNotification = () => {
+                    self.client?.sendNotification(
+                        ConnectionContracts.TokenRefreshedNotification.type,
+                        { token: "", expiresOn: 0, uri: params.uri },
+                    );
+                };
+
                 try {
                     let token: string | undefined;
                     let expiresOn: number | undefined;
@@ -668,6 +678,9 @@ export default class ConnectionManager {
                                     currentTimestamp: Math.floor(Date.now() / 1000),
                                 },
                             );
+
+                            sendFailureNotification();
+
                             return;
                         }
 
@@ -692,6 +705,9 @@ export default class ConnectionManager {
                                     currentTimestamp: Math.floor(Date.now() / 1000),
                                 },
                             );
+
+                            sendFailureNotification();
+
                             return;
                         }
 
@@ -730,6 +746,8 @@ export default class ConnectionManager {
                             },
                         );
 
+                        sendFailureNotification();
+
                         return;
                     }
 
@@ -754,6 +772,7 @@ export default class ConnectionManager {
                             },
                         );
 
+                        // client is unavailable so we cannot unblock STS here
                         return;
                     }
 
@@ -766,7 +785,7 @@ export default class ConnectionManager {
                         {
                             currentTimestamp: Math.floor(Date.now() / 1000),
                             refreshedTokenExpirationTimestamp:
-                                expiresOn !== undefined ? expiresOn : -1,
+                                expiresOn !== undefined ? expiresOn : 0,
                         },
                     );
 
@@ -774,7 +793,7 @@ export default class ConnectionManager {
                         ConnectionContracts.TokenRefreshedNotification.type,
                         {
                             token: token,
-                            expiresOn: expiresOn ?? -1,
+                            expiresOn: expiresOn ?? 0,
                             uri: params.uri,
                         },
                     );
@@ -797,6 +816,8 @@ export default class ConnectionManager {
                             currentTimestamp: Math.floor(Date.now() / 1000),
                         },
                     );
+
+                    sendFailureNotification();
                 }
             })();
         };
@@ -2510,7 +2531,7 @@ export default class ConnectionManager {
 
             if (!result) {
                 throw new Error(
-                    `Failed to acquire token for account ${accountId} and tenant ${tenantId} (undefined result)`,
+                    LocalizedConstants.Connection.failedToAcquireToken(accountId, tenantId),
                 );
             }
 
@@ -2535,79 +2556,38 @@ export default class ConnectionManager {
      * If the user selects the "sign in" sentinel, `onSignIn` is called to obtain a new account.
      * Throws if the QuickPick is dismissed without a selection.
      */
-    private async selectAccount<T>(
-        items: Array<{ label: string; description: string | undefined; value: T }>,
-        onSignIn: () => Promise<T>,
-    ): Promise<T> {
-        const quickPickItems: ValueQuickPickItem<T>[] = items.map((item) => ({
-            label: item.label,
-            description: item.description,
-            value: item.value,
-        }));
-        quickPickItems.push({
+    private async selectAccount(
+        items: { label: string; description: string | undefined; value: string }[],
+        onSignIn: () => Promise<string | undefined>,
+    ): Promise<string | undefined> {
+        const signInItem: ValueQuickPickItem<string> = {
             label: LocalizedConstants.Connection.signInToAzure,
             description: LocalizedConstants.Connection.signInToAzure,
-            value: undefined,
+            value: LocalizedConstants.Connection.signInToAzure,
+        };
+
+        const quickPickItems: ValueQuickPickItem<string>[] = [
+            ...items.map((item) => ({
+                label: item.label,
+                description: item.description,
+                value: item.value,
+            })),
+            signInItem,
+        ];
+
+        const selected = await vscode.window.showQuickPick(quickPickItems, {
+            placeHolder: LocalizedConstants.Connection.SelectAccountForKeyVault,
         });
-
-        const selected = await this.showValueQuickPick<T>(
-            quickPickItems,
-            LocalizedConstants.Connection.SelectAccountForKeyVault,
-        );
-
-        // eslint-disable-next-line no-restricted-syntax
-        if (selected === null) {
-            return onSignIn();
-        }
 
         if (selected === undefined) {
             throw new Error(LocalizedConstants.Connection.noAccountSelected);
         }
 
-        return selected;
-    }
+        if (selected === signInItem) {
+            return onSignIn();
+        }
 
-    /**
-     * Shows a QuickPick to select from a list of labeled values.
-     * Returns the selected value, `null` if the "sign in" sentinel item (value === undefined)
-     * was chosen, or `undefined` if the QuickPick was dismissed.
-     */
-    private async showValueQuickPick<T>(
-        items: ValueQuickPickItem<T>[],
-        placeholder: string,
-    ): Promise<T | null | undefined> {
-        return new Promise((resolve, reject) => {
-            const quickPick = vscode.window.createQuickPick<ValueQuickPickItem<T>>();
-            quickPick.items = items;
-            quickPick.placeholder = placeholder;
-            let accepted = false;
-
-            quickPick.onDidAccept(() => {
-                try {
-                    accepted = true;
-                    const selectedItem = quickPick.selectedItems[0];
-                    quickPick.dispose();
-                    if (!selectedItem) {
-                        resolve(undefined);
-                        return;
-                    }
-                    // eslint-disable-next-line no-restricted-syntax
-                    resolve(selectedItem.value ?? null);
-                } catch (error) {
-                    quickPick.dispose();
-                    reject(error);
-                }
-            });
-
-            quickPick.onDidHide(() => {
-                quickPick.dispose();
-                if (!accepted) {
-                    resolve(undefined);
-                }
-            });
-
-            quickPick.show();
-        });
+        return selected.value;
     }
 
     /**
@@ -2627,22 +2607,20 @@ export default class ConnectionManager {
             value: tenant.id,
         }));
 
-        const selectedTenantId = await this.showValueQuickPick<string>(
-            items,
-            LocalizedConstants.Connection.SelectTenant,
-        );
+        const selected = await vscode.window.showQuickPick(items, {
+            placeHolder: LocalizedConstants.Connection.SelectTenant,
+        });
 
-        if (!selectedTenantId) {
+        if (!selected) {
             throw new Error(LocalizedConstants.Connection.NoTenantSelected);
         }
 
-        return selectedTenantId;
+        return selected.value;
     }
 }
 
 interface ValueQuickPickItem<T> extends vscode.QuickPickItem {
-    /** The value to return when this item is selected. `undefined` signals the "sign in" sentinel. */
-    value: T | undefined;
+    value: T;
 }
 
 export interface SqlConnectionError {

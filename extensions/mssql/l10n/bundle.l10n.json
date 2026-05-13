@@ -2823,6 +2823,10 @@
         "message": "Failed to obtain token for resource '{1}'.  Error: {0}",
         "comment": ["{0} is the error message", "{1} is the resource"]
     },
+    "Failed to acquire token for account '{0}' and tenant '{1}'/{0} is the account ID{1} is the tenant ID": {
+        "message": "Failed to acquire token for account '{0}' and tenant '{1}'",
+        "comment": ["{0} is the account ID", "{1} is the tenant ID"]
+    },
     "No model found.": "No model found.",
     "No tools to process.": "No tools to process.",
     "You are not connected to any database.": "You are not connected to any database.",
