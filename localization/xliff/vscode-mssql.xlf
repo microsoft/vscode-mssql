@@ -146,6 +146,9 @@
     <trans-unit id="++CODE++ff8059dc6752afdd30d275932b1d5031a2ec854b387a8c57ecc6689915293a43">
       <source xml:lang="en">Actions</source>
     </trans-unit>
+    <trans-unit id="++CODE++92340695899bd2d86223e4a007620e0d6502fc0e08809773634c7e0743764a9c">
+      <source xml:lang="en">Active</source>
+    </trans-unit>
     <trans-unit id="++CODE++2c599b85806c57eccd08af9ac2bfb4a6f1f81b2ea125bdca3fdb22dc902695e3">
       <source xml:lang="en">Active filters:</source>
     </trans-unit>
@@ -1171,11 +1174,20 @@
     <trans-unit id="++CODE++b3841aead42fd5bf681d290d2fef9df816aa53c2b9a1da6c21f42b11ccc2c9dd">
       <source xml:lang="en">Configure Linux containers</source>
     </trans-unit>
+    <trans-unit id="++CODE++cf6ef9c81d75f09f6f607b13a65dd848a429cbee72154945094af6b32fbc7f43">
+      <source xml:lang="en">Configure MSSQL extension behavior.</source>
+    </trans-unit>
     <trans-unit id="++CODE++73b680fbf34c02acc61629ac870cb10a5f382c5379516f9dd96777d75a3086fe">
       <source xml:lang="en">Configure Rosetta in Docker Desktop</source>
     </trans-unit>
     <trans-unit id="++CODE++33e3ae10b101f647412be0f940cfc04d7d17e7c6f8027b42ae6697852588d1fe">
       <source xml:lang="en">Configure and customize SQL Server containers</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3135416947bed2e7934a6e4463fa842ab5b8ddc86566c9789517f8c5864c35da">
+      <source xml:lang="en">Configure command-backed SQL snippets that can open or run from keyboard shortcuts.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b069bcee3492a76d9f8c71187002bfbee16f9c112110a0c7be305426fe93698a">
+      <source xml:lang="en">Configure shortcuts that are handled inside MSSQL webviews.</source>
     </trans-unit>
     <trans-unit id="++CODE++c292210c44167923a75b092a008f9d2b194fb08631a6aa43d753ed7931ad4d5e">
       <source xml:lang="en">Confirm Password</source>
@@ -1292,6 +1304,9 @@
     </trans-unit>
     <trans-unit id="++CODE++5f04ae9ed6a865bb382c66ef4bd4e57df4ce19d4142b8c87ac40d65ae54d278f">
       <source xml:lang="en">Connecting...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++639a40e82b9a96f0cbeed5f006cf5634c8d1b990b3c83753c00a910fc268d2a6">
+      <source xml:lang="en">Connection</source>
     </trans-unit>
     <trans-unit id="++CODE++6c916d6a3ffb6e0c85ad115ae2e1f277af1bc76f11a7267fd818b798a796b26a">
       <source xml:lang="en">Connection Authentication</source>
@@ -2082,6 +2097,9 @@
       <source xml:lang="en">Elapsed time: {0}</source>
       <note>{0} is the task elapsed time</note>
     </trans-unit>
+    <trans-unit id="++CODE++428a760b3da1fdd1e66fe9bdb01566774e42ba8950c39199e3eba6755307d2e1">
+      <source xml:lang="en">Empty Quick Query slots open this configuration page.</source>
+    </trans-unit>
     <trans-unit id="++CODE++1e71b5c8f3211f1f01b27341d3ddc6a2ad651800264b495c12b50867f998662c">
       <source xml:lang="en">Enable &apos;Trust Server Certificate&apos;</source>
     </trans-unit>
@@ -2154,6 +2172,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9fe6b769c35efbcf43d8dcbfced2ae4a84372d540d787211cc31759ad50838f2">
       <source xml:lang="en">Enter Database Name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++122d70be2d9a32dd9423f4e6c6dc06748054e83f23b8b981a7c286e724b65e9e">
+      <source xml:lang="en">Enter SQL query text</source>
     </trans-unit>
     <trans-unit id="++CODE++a1afcfa3e45c63a614a4d0646298473382e20d077466ce245a0f991dbe7f0a22">
       <source xml:lang="en">Enter a date...</source>
@@ -2384,6 +2405,9 @@
       <source xml:lang="en">Example: Find queries with {0} &gt; 100</source>
       <note>{0} is the column name</note>
     </trans-unit>
+    <trans-unit id="++CODE++d03fd3cdb67a5a8c61c6562cfd65e143bf9e7e5b72036a6d424db823f93bfdf8">
+      <source xml:lang="en">Example: ctrl+alt+1</source>
+    </trans-unit>
     <trans-unit id="++CODE++48d53635551c8fd4564251d49f4e6eba58c2774469144e4346310955fbadbf4c">
       <source xml:lang="en">Excel</source>
     </trans-unit>
@@ -2414,6 +2438,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0a716f1cfed3e0da68a8eee920bd5ca51a470c790800d878429da7ab9ecf0d56">
       <source xml:lang="en">Executing query...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a45cd4bd0998e5683cdf4839b883fc0c77599eecfa9c7b658b32dbbd499a8039">
+      <source xml:lang="en">Execution</source>
     </trans-unit>
     <trans-unit id="++CODE++bd705ebabe1919a636a0e09b2ee27d43a5aba05d645cc0339451e54b37f42bd6">
       <source xml:lang="en">Execution Plan</source>
@@ -3804,6 +3831,9 @@
     <trans-unit id="++CODE++ac71b6a015738ee5338790cb940cf29b65310494e9c98aba9894dac78b05e4ca">
       <source xml:lang="en">MSSQL - VS Code walkthrough</source>
     </trans-unit>
+    <trans-unit id="++CODE++6fef73a4c9a084c022bc1db34c33b7f6a51965e09b44f72fe72ebf4f6e041ad2">
+      <source xml:lang="en">MSSQL Configuration</source>
+    </trans-unit>
     <trans-unit id="++CODE++9f67971ab8a605f2aedf0b33a5fce37d2b135aef48f886231da5d8163aa488a6">
       <source xml:lang="en">MSSQL Feedback</source>
     </trans-unit>
@@ -4329,6 +4359,9 @@
     <trans-unit id="++CODE++4208eed39129c84332acd1dcb2c74e8e6073039e80862fc02cb09aa3fae5ed8e">
       <source xml:lang="en">No script generated.</source>
     </trans-unit>
+    <trans-unit id="++CODE++f22dbb17b16be5bfbac36adfb176f81d7ac2e9da72c6bb8df6ffcaa9e7aaee76">
+      <source xml:lang="en">No shortcut</source>
+    </trans-unit>
     <trans-unit id="++CODE++ca74b0c5b8a73c286ae5bc0d7802f72e6e591364956dd16f3a5210582b6f4212">
       <source xml:lang="en">No storage accounts found</source>
     </trans-unit>
@@ -4502,6 +4535,9 @@
     </trans-unit>
     <trans-unit id="++CODE++36eaf70bf802c56bb84c14fb713ba56b41a28ba07a5a6cdab3fedd21146ff274">
       <source xml:lang="en">Open a new bug</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a15ea4c1f063595ecd5508dd1e4a59f9a3cdf9f6a7b89f0e600094fdafc7fac2">
+      <source xml:lang="en">Open and run</source>
     </trans-unit>
     <trans-unit id="++CODE++f395ae5e32b4cc24f8030096918e6a2318d4be5fb9274dbeedc0002ce9840bb7">
       <source xml:lang="en">Open in Editor</source>
@@ -4731,6 +4767,9 @@
     <trans-unit id="++CODE++3b91294fe7a573ba168c7b5c23b3fc93126ad6a222949deda1e517bc3a335519">
       <source xml:lang="en">Preserve the replication settings</source>
     </trans-unit>
+    <trans-unit id="++CODE++356f88c181ade1f10b14b4608ce1a2d41c1d2da2563c01736db7c11a7c99ad5c">
+      <source xml:lang="en">Press keys</source>
+    </trans-unit>
     <trans-unit id="++CODE++324b134f57c70c729ae3dc4d298bb451656717d70523e942c1ce667b8024ea07">
       <source xml:lang="en">Preview</source>
     </trans-unit>
@@ -4827,6 +4866,9 @@
       <source xml:lang="en">Profiler session &apos;{0}&apos; started successfully.</source>
       <note>{0} is the session name</note>
     </trans-unit>
+    <trans-unit id="++CODE++5c39123805ffb4e2f01ba096f17a5b18afb43c4f223afa4ba2d5a3f31cf74e09">
+      <source xml:lang="en">Prompt</source>
+    </trans-unit>
     <trans-unit id="++CODE++ae43692b2a310b8ed2443d2b7d2a3e4cf0b6d73115badd72831b3d22381f235f">
       <source xml:lang="en">Properties</source>
     </trans-unit>
@@ -4889,6 +4931,9 @@
     <trans-unit id="++CODE++0e1d9858f1e51bd313981a0d8da504fb12e0405fc869634ad52babe02eff9e3d">
       <source xml:lang="en">Pulling the SQL Server container image. This might take a few minutes depending on your internet connection.</source>
     </trans-unit>
+    <trans-unit id="++CODE++b80a37564fbb3c0753202a1f92d5da8ccfb906b244f2842bba2232cea9883abd">
+      <source xml:lang="en">Query</source>
+    </trans-unit>
     <trans-unit id="++CODE++f44ad102b5dd5df1b5691408d19d39ee92cc1c9ad20f7125845df3d961a805d3">
       <source xml:lang="en">Query Plan</source>
     </trans-unit>
@@ -4932,6 +4977,9 @@
       <source xml:lang="en">Query {0}:  Query cost (relative to the script):  {1}%</source>
       <note>{0} is the query number
 {1} is the query cost</note>
+    </trans-unit>
+    <trans-unit id="++CODE++76d95315fb4f255c5f431e76d2838984eb65d11e88bb9c1c9b50777bac4a7acb">
+      <source xml:lang="en">Quick Queries</source>
     </trans-unit>
     <trans-unit id="++CODE++f9a9448d6e0b500626f784c1ea716af295bd4d8b7ef836710ab8c14a44204dc5">
       <source xml:lang="en">Quick filter all columns...</source>
@@ -4988,6 +5036,9 @@
     <trans-unit id="++CODE++703f1ae8b7cdb3525cdab9ea694ab27b1b9e4337f0b2ca32f152f7f9a6e2f9d5">
       <source xml:lang="en">Recent connections list cleared</source>
     </trans-unit>
+    <trans-unit id="++CODE++bfdd510698ef3ccbf17f2c67fc47790e1ba72894fb74fe284bbc136b47ef73e6">
+      <source xml:lang="en">Record</source>
+    </trans-unit>
     <trans-unit id="++CODE++85a3403bf7f8754b479e80917b7d779d63640b98e77450fe47ae7303ca7e9d03">
       <source xml:lang="en">Recovery Model</source>
     </trans-unit>
@@ -5028,6 +5079,9 @@
     </trans-unit>
     <trans-unit id="++CODE++71d0acd46556424657f3866a5dc46d45d66b0849904e0a66d712764f95fa16bb">
       <source xml:lang="en">Reliability</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bdc090ec61e3fcfc65f469951dfe00f3f2ecfc6003c44deac8e05b7237092de6">
+      <source xml:lang="en">Reload</source>
     </trans-unit>
     <trans-unit id="++CODE++0cd1ba1d31d508fcf599096e647eb0c1a60819928248e404a3f71ea9f7aafad8">
       <source xml:lang="en">Reload Visual Studio Code</source>
@@ -5814,6 +5868,9 @@
       <source xml:lang="en">Severity for {0}</source>
       <note>{0} is the rule identifier, e.g. SR0001</note>
     </trans-unit>
+    <trans-unit id="++CODE++5753ea3780f34ad1295fb9957f1575e7e7578aa0e891d89524c26ad6f504cb1d">
+      <source xml:lang="en">Shortcut</source>
+    </trans-unit>
     <trans-unit id="++CODE++e1c32645f2f85a25ae64e38f306ded9b82771ab8ac4595e769f9410e632584f4">
       <source xml:lang="en">Show All</source>
     </trans-unit>
@@ -5932,6 +5989,10 @@
     </trans-unit>
     <trans-unit id="++CODE++f6dd83003322db3c5d5ef293a8dc73363ae462529918cc8d17cc94f9988c0d45">
       <source xml:lang="en">Simple Container Management</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4cc1ae78021a2009490f6487af97adb44488527dd19ce28b6d870aa8f0ec5d4e">
+      <source xml:lang="en">Slot {0}</source>
+      <note>{0} is the Quick Query slot number</note>
     </trans-unit>
     <trans-unit id="++CODE++ab3134048412e796a4a423dc1963ca8ff12b535d546d314470407639777e0ac5">
       <source xml:lang="en">Smart performance</source>
@@ -6825,6 +6886,9 @@
       <note>{0} is the webview name
 {1} is the timeout in milliseconds</note>
     </trans-unit>
+    <trans-unit id="++CODE++7158804469f0d52ef9073c3e80f152f09959332ec50d6d7df737924fc8631e80">
+      <source xml:lang="en">Webview Shortcuts</source>
+    </trans-unit>
     <trans-unit id="++CODE++e5b539ed5ef824d67064dc5fe75a709a3c17dbe48ed129dba68a1dc3a34fcce6">
       <source xml:lang="en">Webview was disposed before it became ready</source>
     </trans-unit>
@@ -7380,6 +7444,9 @@
     <trans-unit id="mssql.schemaCompare">
       <source xml:lang="en">Compare Schemas...</source>
     </trans-unit>
+    <trans-unit id="mssql.quickQueries">
+      <source xml:lang="en">Configure up to 10 Quick Queries that can be opened or run from commands.</source>
+    </trans-unit>
     <trans-unit id="mssql.connect">
       <source xml:lang="en">Connect (MSSQL)</source>
     </trans-unit>
@@ -7404,8 +7471,14 @@
     <trans-unit id="mssql.resultsGrid.showGridLines">
       <source xml:lang="en">Control which grid lines are visible in the results grid.</source>
     </trans-unit>
+    <trans-unit id="mssql.quickQueries.connectionMode">
+      <source xml:lang="en">Controls how this Quick Query chooses a SQL connection.</source>
+    </trans-unit>
     <trans-unit id="mssql.resultsGrid.inMemoryDataProcessingThreshold">
       <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>
+    </trans-unit>
+    <trans-unit id="mssql.quickQueries.executionMode">
+      <source xml:lang="en">Controls whether this Quick Query opens in an editor or opens and runs immediately.</source>
     </trans-unit>
     <trans-unit id="mssql.copyAll">
       <source xml:lang="en">Copy All</source>
@@ -7457,6 +7530,9 @@
     </trans-unit>
     <trans-unit id="mssql.disconnect">
       <source xml:lang="en">Disconnect (MSSQL)</source>
+    </trans-unit>
+    <trans-unit id="mssql.quickQueries.name">
+      <source xml:lang="en">Display name for this Quick Query.</source>
     </trans-unit>
     <trans-unit id="mssql.defaultQueryResultsViewMode.text.description">
       <source xml:lang="en">Display results in a formatted text format.</source>
@@ -7692,6 +7768,9 @@
     <trans-unit id="mssql.openExecutionPlanFile">
       <source xml:lang="en">Open Execution Plan File</source>
     </trans-unit>
+    <trans-unit id="mssql.configuration.open">
+      <source xml:lang="en">Open MSSQL Configuration</source>
+    </trans-unit>
     <trans-unit id="mssql.copilot.newQueryWithConnection">
       <source xml:lang="en">Open New Query and Connect</source>
     </trans-unit>
@@ -7713,11 +7792,20 @@
     <trans-unit id="mssql.objectExplorerChatWithDatabase">
       <source xml:lang="en">Open in GitHub Copilot Chat</source>
     </trans-unit>
+    <trans-unit id="mssql.quickQueries.executionMode.openAndRun">
+      <source xml:lang="en">Open the query in a SQL editor and run it immediately.</source>
+    </trans-unit>
+    <trans-unit id="mssql.quickQueries.executionMode.open">
+      <source xml:lang="en">Open the query in a SQL editor.</source>
+    </trans-unit>
     <trans-unit id="mssql.pauseQueryHistoryCapture">
       <source xml:lang="en">Pause Query History Capture</source>
     </trans-unit>
     <trans-unit id="mssql.preventAutoExecuteScript">
       <source xml:lang="en">Prevent automatic execution of scripts (e.g., &apos;Select Top 1000&apos;). When enabled, scripts will not be automatically executed upon generation.</source>
+    </trans-unit>
+    <trans-unit id="mssql.quickQueries.connectionMode.prompt">
+      <source xml:lang="en">Prompt for a connection.</source>
     </trans-unit>
     <trans-unit id="mssql.authCodeGrant.description">
       <source xml:lang="en">Prompts users to sign in using their browser.</source>
@@ -7764,6 +7852,36 @@
     <trans-unit id="mssql.runQueryHistory">
       <source xml:lang="en">Run Query</source>
     </trans-unit>
+    <trans-unit id="mssql.quickQueries.run1">
+      <source xml:lang="en">Run Quick Query 1</source>
+    </trans-unit>
+    <trans-unit id="mssql.quickQueries.run10">
+      <source xml:lang="en">Run Quick Query 10</source>
+    </trans-unit>
+    <trans-unit id="mssql.quickQueries.run2">
+      <source xml:lang="en">Run Quick Query 2</source>
+    </trans-unit>
+    <trans-unit id="mssql.quickQueries.run3">
+      <source xml:lang="en">Run Quick Query 3</source>
+    </trans-unit>
+    <trans-unit id="mssql.quickQueries.run4">
+      <source xml:lang="en">Run Quick Query 4</source>
+    </trans-unit>
+    <trans-unit id="mssql.quickQueries.run5">
+      <source xml:lang="en">Run Quick Query 5</source>
+    </trans-unit>
+    <trans-unit id="mssql.quickQueries.run6">
+      <source xml:lang="en">Run Quick Query 6</source>
+    </trans-unit>
+    <trans-unit id="mssql.quickQueries.run7">
+      <source xml:lang="en">Run Quick Query 7</source>
+    </trans-unit>
+    <trans-unit id="mssql.quickQueries.run8">
+      <source xml:lang="en">Run Quick Query 8</source>
+    </trans-unit>
+    <trans-unit id="mssql.quickQueries.run9">
+      <source xml:lang="en">Run Quick Query 9</source>
+    </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.runQueries.title">
       <source xml:lang="en">Run a SQL Query</source>
     </trans-unit>
@@ -7775,6 +7893,9 @@
     </trans-unit>
     <trans-unit id="mssql.profiler.xelEditorDisplayName">
       <source xml:lang="en">SQL Server Extended Events Log</source>
+    </trans-unit>
+    <trans-unit id="mssql.quickQueries.query">
+      <source xml:lang="en">SQL text for this Quick Query.</source>
     </trans-unit>
     <trans-unit id="mssql.scriptAlter">
       <source xml:lang="en">Script as Alter</source>
@@ -7976,6 +8097,9 @@
     </trans-unit>
     <trans-unit id="mssql.resultsGrid.useDataOnlyEnumDescription">
       <source xml:lang="en">Use only row data to size columns automatically</source>
+    </trans-unit>
+    <trans-unit id="mssql.quickQueries.connectionMode.activeOrPrompt">
+      <source xml:lang="en">Use the active SQL editor connection.</source>
     </trans-unit>
     <trans-unit id="mssql.preview.useVscodeAccountsForEntraMFA.description">
       <source xml:lang="en">Uses VS Code signed-in accounts for Microsoft Entra ID MFA authentication to SQL. Restart Visual Studio Code after changing this setting.</source>
