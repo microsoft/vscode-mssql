@@ -23,7 +23,6 @@ import { IAccount, RequestSecurityTokenParams } from "../../src/models/contracts
 import { AzureController } from "../../src/azure/azureController";
 import {
     azureCloudProviderId,
-    getCloudProviderSettings,
     publicAzureProviderSettings,
 } from "../../src/azure/providerSettings";
 import { ConnectionUI } from "../../src/views/connectionUI";
