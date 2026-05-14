@@ -41,3 +41,20 @@ export interface SavedNotebookResultSetOutputData {
     rowCount: number;
     addBottomSpacing?: boolean;
 }
+
+export type NotebookSaveAsFormat = "csv" | "json" | "excel" | "insert";
+
+/**
+ * Message sent from the notebook result renderer to the extension host
+ * when the user clicks a save-as button in the result toolbar. Rows and
+ * columns are sent inline because the renderer's only stable handle on its
+ * data is the parsed output JSON — there is no API to resolve back to a
+ * specific NotebookCellOutput from inside the renderer iframe.
+ */
+export interface NotebookSaveAsMessage {
+    type: "saveAs";
+    format: NotebookSaveAsFormat;
+    columnInfo: IDbColumn[];
+    rows: DbCellValue[][];
+    resultSetIndex: number;
+}

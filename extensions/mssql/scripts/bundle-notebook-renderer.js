@@ -79,10 +79,13 @@ const config = {
     loader: {
         ".tsx": "tsx",
         ".ts": "ts",
-        ".svg": "file",
+        // Inline assets as data URIs — the renderer iframe only loads the JS
+        // entrypoint, so sibling files emitted by the "file" loader can't be
+        // resolved at runtime.
+        ".svg": "dataurl",
         ".js": "js",
-        ".png": "file",
-        ".gif": "file",
+        ".png": "dataurl",
+        ".gif": "dataurl",
     },
     tsconfig: "./tsconfig.webviews.json",
     plugins: [inlineCssPlugin, esbuildProblemMatcherPlugin("notebook-renderer")],

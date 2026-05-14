@@ -26,6 +26,10 @@
     "Copy Headers": "Copy Headers",
     "Error: Failed to parse query result data.": "Error: Failed to parse query result data.",
     "Error: Unrecognized query result data.": "Error: Unrecognized query result data.",
+    "Save As CSV": "Save As CSV",
+    "Save As JSON": "Save As JSON",
+    "Save As Excel": "Save As Excel",
+    "Save As INSERT INTO": "Save As INSERT INTO",
     "Cancel": "Cancel",
     "Are you sure?": "Are you sure?",
     "Are you sure you want to {0}?/{0} is the action being confirmed": {
@@ -2261,6 +2265,19 @@
     "Query execution was canceled.": "Query execution was canceled.",
     "Execute SQL against SQL Server / Azure SQL": "Execute SQL against SQL Server / Azure SQL",
     "Not connected": "Not connected",
+    "Save results as CSV": "Save results as CSV",
+    "Save results as JSON": "Save results as JSON",
+    "Save results as Excel": "Save results as Excel",
+    "Save results as INSERT INTO": "Save results as INSERT INTO",
+    "Save As Excel is not yet supported for notebook results. Use CSV, JSON, or INSERT INTO.": "Save As Excel is not yet supported for notebook results. Use CSV, JSON, or INSERT INTO.",
+    "Failed to save results: {0}/{0} is the underlying error message": {
+        "message": "Failed to save results: {0}",
+        "comment": ["{0} is the underlying error message"]
+    },
+    "Saved results to {0}/{0} is the saved file path": {
+        "message": "Saved results to {0}",
+        "comment": ["{0} is the saved file path"]
+    },
     "Error loading; refresh to try again": "Error loading; refresh to try again",
     "No items": "No items",
     "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?": "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?",

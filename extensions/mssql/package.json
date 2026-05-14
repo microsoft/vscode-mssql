@@ -339,7 +339,8 @@
                 "entrypoint": "./dist/notebookRenderer.js",
                 "mimeTypes": [
                     "application/vnd.mssql.query-result"
-                ]
+                ],
+                "requiresMessaging": "optional"
             }
         ],
         "languages": [

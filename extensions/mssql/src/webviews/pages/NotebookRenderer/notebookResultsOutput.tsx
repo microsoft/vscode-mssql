@@ -5,19 +5,32 @@
 
 import type { NotebookQueryResultBlock } from "../../../sharedInterfaces/notebookQueryResult";
 import { NotebookResultGrid } from "./notebookResultGrid";
+import { NotebookResultsToolbar } from "./notebookResultsToolbar";
 
 export interface NotebookResultsOutputProps {
     blocks: NotebookQueryResultBlock[];
+    postMessage?: (message: unknown) => void;
 }
 
-export function NotebookResultsOutput({ blocks }: NotebookResultsOutputProps) {
+export function NotebookResultsOutput({ blocks, postMessage }: NotebookResultsOutputProps) {
+    // Count result sets ourselves so the toolbar can label each save action
+    // with its 1-based index across the whole cell — text/error blocks are
+    // interleaved and shouldn't shift the numbering.
+    let resultSetCounter = 0;
     return (
         <div className="notebook-results-output">
             {blocks.map((block, index) => {
                 switch (block.type) {
-                    case "resultSet":
+                    case "resultSet": {
+                        const resultSetIndex = resultSetCounter++;
                         return (
                             <div className="notebook-results-output-block" key={`grid-${index}`}>
+                                <NotebookResultsToolbar
+                                    columnInfo={block.columnInfo}
+                                    rows={block.rows}
+                                    resultSetIndex={resultSetIndex}
+                                    postMessage={postMessage}
+                                />
                                 <NotebookResultGrid
                                     columnInfo={block.columnInfo}
                                     rows={block.rows}
@@ -25,6 +38,7 @@ export function NotebookResultsOutput({ blocks }: NotebookResultsOutputProps) {
                                 />
                             </div>
                         );
+                    }
                     case "error":
                         return (
                             <pre
