@@ -334,12 +334,6 @@ export class LocConstants {
             webviewShortcutsDescription: l10n.t(
                 "Configure shortcuts that are handled inside MSSQL views.",
             ),
-            slot: (slotNumber: number) =>
-                l10n.t({
-                    message: "Slot {0}",
-                    args: [slotNumber],
-                    comment: ["{0} is the Quick Query slot number"],
-                }),
             name: l10n.t("Name"),
             query: l10n.t("Query"),
             shortcut: l10n.t("Shortcut"),
@@ -349,9 +343,6 @@ export class LocConstants {
             openAndRun: l10n.t("Open and run"),
             activeOrPrompt: l10n.t("Active or prompt"),
             prompt: l10n.t("Prompt"),
-            record: l10n.t("Record"),
-            recording: l10n.t("Press keys"),
-            stopRecording: l10n.t("Stop"),
             noShortcut: l10n.t("No shortcut"),
             noQuerySet: l10n.t("No query set"),
             searchWebviewShortcuts: l10n.t("Search in-app shortcuts"),
@@ -372,14 +363,6 @@ export class LocConstants {
             shortcutGroupSelectionDescription: l10n.t("Move and expand the active grid selection"),
             shortcutGroupCopyExport: l10n.t("Copy & Export"),
             shortcutGroupCopyExportDescription: l10n.t("Copy data and save results to files"),
-            configuredShortcutCount: (configured: number, total: number) =>
-                l10n.t({
-                    message: "{0}/{1}",
-                    args: [configured, total],
-                    comment: [
-                        "{0} is the number of configured shortcuts and {1} is the total shortcuts.",
-                    ],
-                }),
             webviewShortcutLabels: {
                 [WebviewAction.QueryResultSwitchToResultsTab]: l10n.t("Switch to Results tab"),
                 [WebviewAction.QueryResultSwitchToMessagesTab]: l10n.t("Switch to Messages tab"),
@@ -490,11 +473,6 @@ export class LocConstants {
                     "Export all results as INSERT statements",
                 ),
             },
-            saveChanges: l10n.t("Save Changes"),
-            reload: l10n.t("Reload"),
-            emptyQueryHint: l10n.t("Empty Quick Query slots open this configuration page."),
-            enterSql: l10n.t("Enter SQL query text"),
-            shortcutPlaceholder: l10n.t("Example: ctrl+alt+1"),
         };
     }
 

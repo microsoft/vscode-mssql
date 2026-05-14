@@ -5,40 +5,16 @@
 
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import debounce from "lodash/debounce";
-import {
-    Button,
-    Dialog,
-    DialogActions,
-    DialogBody,
-    DialogContent,
-    DialogSurface,
-    DialogTitle,
-    Field,
-    Input,
-    Spinner,
-    Tab,
-    TabList,
-    Tooltip,
-} from "@fluentui/react-components";
-import {
-    Checkmark12Regular,
-    Keyboard24Regular,
-    Search16Regular,
-    Settings24Regular,
-} from "@fluentui/react-icons";
+import { Button, Input, Tab, TabList } from "@fluentui/react-components";
+import { Search16Regular, Settings24Regular } from "@fluentui/react-icons";
 import { CollapsibleSection } from "../../common/collapsibleSection";
 import { DialogPageShell } from "../../common/dialogPageShell";
 import { locConstants } from "../../common/locConstants";
-import { SegmentedControl } from "../../common/segmentedControl";
-import { VscodeEditor } from "../../common/vscodeMonaco";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
-import { isMac } from "../../common/utils";
-import { ColorThemeKind, WebviewAction } from "../../../sharedInterfaces/webview";
+import { WebviewAction } from "../../../sharedInterfaces/webview";
 import {
     getQuickQueryCommandId,
     normalizeQuickQueries,
-    QuickQueryConnectionMode,
-    QuickQueryExecutionMode,
     QuickQuerySlot,
     quickQueryCount,
     SaveShortcutsConfigurationChangedSections,
@@ -46,398 +22,21 @@ import {
 } from "../../../sharedInterfaces/shortcutsConfiguration";
 import { ShortcutsConfigurationContext } from "./shortcutsConfigurationStateProvider";
 import { useShortcutsConfigurationSelector } from "./shortcutsConfigurationSelector";
+import {
+    getShortcutGroupDescription,
+    getShortcutGroupLabel,
+    shortcutGroups,
+} from "./shortcutDefinitions";
+import {
+    QuickQueryRow,
+    SaveIndicator,
+    SaveState,
+    ShortcutRecorder,
+    WebviewShortcutRow,
+} from "./shortcutComponents";
+import { HighlightedText, textMatchesSearch } from "./shortcutKeyboardUtils";
 
 type ConfigurationTab = "queries" | "shortcuts";
-type SaveState = "idle" | "saving" | "saved";
-
-const executionOptions = [
-    { value: QuickQueryExecutionMode.Open, labelKey: "openOnly" },
-    { value: QuickQueryExecutionMode.OpenAndRun, labelKey: "openAndRun" },
-] as const;
-
-const connectionOptions = [
-    { value: QuickQueryConnectionMode.Prompt, labelKey: "prompt" },
-    { value: QuickQueryConnectionMode.ActiveOrPrompt, labelKey: "activeOrPrompt" },
-] as const;
-
-interface ShortcutItem {
-    action: WebviewAction;
-    label: string;
-    description: string;
-}
-
-interface ShortcutGroup {
-    id: string;
-    label: string;
-    description: string;
-    items: ShortcutItem[];
-}
-
-const shortcutGroups: ShortcutGroup[] = [
-    {
-        id: "navigation",
-        label: "Navigation",
-        description: "Switch between result panes and tabs",
-        items: [
-            {
-                action: WebviewAction.QueryResultSwitchToResultsTab,
-                label: "Switch to Results tab",
-                description: "Focus the Results tab in the query results panel",
-            },
-            {
-                action: WebviewAction.QueryResultSwitchToMessagesTab,
-                label: "Switch to Messages tab",
-                description: "Focus the Messages tab",
-            },
-            {
-                action: WebviewAction.QueryResultSwitchToQueryPlanTab,
-                label: "Switch to Query Plan tab",
-                description: "Focus the Query Plan tab",
-            },
-            {
-                action: WebviewAction.QueryResultPrevGrid,
-                label: "Previous result grid",
-                description: "Move focus to the previous result set grid",
-            },
-            {
-                action: WebviewAction.QueryResultNextGrid,
-                label: "Next result grid",
-                description: "Move focus to the next result set grid",
-            },
-        ],
-    },
-    {
-        id: "results",
-        label: "Results",
-        description: "Control the results grid display",
-        items: [
-            {
-                action: WebviewAction.QueryResultSwitchToTextView,
-                label: "Switch results view",
-                description: "Toggle between grid and text view",
-            },
-            {
-                action: WebviewAction.QueryResultMaximizeGrid,
-                label: "Maximize results grid",
-                description: "Expand the active grid to fill the panel",
-            },
-            {
-                action: WebviewAction.ResultGridSelectAll,
-                label: "Select all",
-                description: "Select all cells in the active grid",
-            },
-            {
-                action: WebviewAction.ResultGridSelectRow,
-                label: "Select row",
-                description: "Select the entire current row",
-            },
-            {
-                action: WebviewAction.ResultGridSelectColumn,
-                label: "Select column",
-                description: "Select the entire current column",
-            },
-            {
-                action: WebviewAction.ResultGridToggleSort,
-                label: "Toggle sort",
-                description: "Toggle sorting for the active column",
-            },
-            {
-                action: WebviewAction.ResultGridChangeColumnWidth,
-                label: "Change column width",
-                description: "Resize the active result grid column",
-            },
-            {
-                action: WebviewAction.ResultGridOpenColumnMenu,
-                label: "Open column menu",
-                description: "Open the active column menu",
-            },
-            {
-                action: WebviewAction.ResultGridOpenFilterMenu,
-                label: "Open filter menu",
-                description: "Open the active column filter menu",
-            },
-        ],
-    },
-    {
-        id: "selection",
-        label: "Selection",
-        description: "Move and expand the active grid selection",
-        items: [
-            {
-                action: WebviewAction.ResultGridExpandSelectionLeft,
-                label: "Expand selection left",
-                description: "Extend the current selection one cell left",
-            },
-            {
-                action: WebviewAction.ResultGridExpandSelectionRight,
-                label: "Expand selection right",
-                description: "Extend the current selection one cell right",
-            },
-            {
-                action: WebviewAction.ResultGridExpandSelectionUp,
-                label: "Expand selection up",
-                description: "Extend the current selection one cell up",
-            },
-            {
-                action: WebviewAction.ResultGridExpandSelectionDown,
-                label: "Expand selection down",
-                description: "Extend the current selection one cell down",
-            },
-            {
-                action: WebviewAction.ResultGridMoveToRowStart,
-                label: "Move to row start",
-                description: "Move selection to the first cell in the row",
-            },
-            {
-                action: WebviewAction.ResultGridMoveToRowEnd,
-                label: "Move to row end",
-                description: "Move selection to the last cell in the row",
-            },
-        ],
-    },
-    {
-        id: "copy",
-        label: "Copy & Export",
-        description: "Copy data and save results to files",
-        items: [
-            {
-                action: WebviewAction.ResultGridCopySelection,
-                label: "Copy selection",
-                description: "Copy selected cells to the clipboard",
-            },
-            {
-                action: WebviewAction.ResultGridCopyWithHeaders,
-                label: "Copy with headers",
-                description: "Copy selected cells including column headers",
-            },
-            {
-                action: WebviewAction.ResultGridCopyAllHeaders,
-                label: "Copy all with headers",
-                description: "Copy all cells including column headers",
-            },
-            {
-                action: WebviewAction.ResultGridCopyAsCsv,
-                label: "Copy as CSV",
-                description: "Copy selection formatted as comma-separated values",
-            },
-            {
-                action: WebviewAction.ResultGridCopyAsJson,
-                label: "Copy as JSON",
-                description: "Copy selection formatted as JSON",
-            },
-            {
-                action: WebviewAction.ResultGridCopyAsInsert,
-                label: "Copy as INSERT",
-                description: "Copy selection formatted as INSERT statements",
-            },
-            {
-                action: WebviewAction.ResultGridCopyAsInClause,
-                label: "Copy as IN clause",
-                description: "Copy selection formatted as a SQL IN clause",
-            },
-            {
-                action: WebviewAction.QueryResultSaveAsJson,
-                label: "Save results as JSON",
-                description: "Export all results to a JSON file",
-            },
-            {
-                action: WebviewAction.QueryResultSaveAsCsv,
-                label: "Save results as CSV",
-                description: "Export all results to a CSV file",
-            },
-            {
-                action: WebviewAction.QueryResultSaveAsExcel,
-                label: "Save results as Excel",
-                description: "Export all results to an Excel file",
-            },
-            {
-                action: WebviewAction.QueryResultSaveAsInsert,
-                label: "Save results as INSERT",
-                description: "Export all results as INSERT statements",
-            },
-        ],
-    },
-];
-
-const modifierKeys = new Set(["Control", "Alt", "Shift", "Meta", "CapsLock", "Tab", "Escape"]);
-const keysAllowedWithoutModifier = new Set([
-    "F1",
-    "F2",
-    "F3",
-    "F4",
-    "F5",
-    "F6",
-    "F7",
-    "F8",
-    "F9",
-    "F10",
-    "F11",
-    "F12",
-]);
-
-function normalizeRecordedKey(event: KeyboardEvent): string {
-    const codeMap: Record<string, string> = {
-        Comma: "comma",
-        Period: "period",
-        Slash: "slash",
-        Backslash: "backslash",
-        Minus: "minus",
-        Equal: "equal",
-        Semicolon: "semicolon",
-        Quote: "quote",
-        Backquote: "backquote",
-        BracketLeft: "bracketleft",
-        BracketRight: "bracketright",
-    };
-    if (/^Key[A-Z]$/.test(event.code)) {
-        return event.code.slice(3).toLowerCase();
-    }
-    if (/^Digit[0-9]$/.test(event.code)) {
-        return event.code.slice(5);
-    }
-    if (codeMap[event.code]) {
-        return codeMap[event.code];
-    }
-
-    const specialKeyMap: Record<string, string> = {
-        " ": "space",
-        ",": "comma",
-        ".": "period",
-        "/": "slash",
-        "\\": "backslash",
-        "-": "minus",
-        "=": "equal",
-        ";": "semicolon",
-        "'": "quote",
-        "`": "backquote",
-        "[": "bracketleft",
-        "]": "bracketright",
-        ArrowUp: "up",
-        ArrowDown: "down",
-        ArrowLeft: "left",
-        ArrowRight: "right",
-        Escape: "escape",
-        Enter: "enter",
-        Tab: "tab",
-        Backspace: "backspace",
-        Delete: "delete",
-        PageUp: "pageup",
-        PageDown: "pagedown",
-    };
-
-    return specialKeyMap[event.key] ?? event.key.toLowerCase();
-}
-
-function shortcutFromKeyboardEvent(event: KeyboardEvent): string | undefined {
-    if (modifierKeys.has(event.key)) {
-        return undefined;
-    }
-
-    const hasModifier = event.ctrlKey || event.metaKey || event.altKey || event.shiftKey;
-    if (!hasModifier && !keysAllowedWithoutModifier.has(event.key)) {
-        return undefined;
-    }
-
-    const parts: string[] = [];
-    if (event.ctrlKey) {
-        parts.push("ctrl");
-    }
-    if (event.metaKey) {
-        parts.push("cmd");
-    }
-    if (event.altKey) {
-        parts.push("alt");
-    }
-    if (event.shiftKey) {
-        parts.push("shift");
-    }
-    parts.push(normalizeRecordedKey(event));
-    return parts.join("+");
-}
-
-function formatShortcut(value: string | undefined): string {
-    if (!value?.trim()) {
-        return "";
-    }
-
-    return value
-        .split("+")
-        .map((token) => token.trim())
-        .filter((token) => token.length > 0)
-        .map((token) => {
-            const lower = token.toLowerCase();
-            const tokenMap: Record<string, string> = {
-                ctrl: "Ctrl",
-                control: "Ctrl",
-                ctrlcmd: isMac() ? "Cmd" : "Ctrl",
-                cmd: "Cmd",
-                command: "Cmd",
-                meta: isMac() ? "Cmd" : "Meta",
-                alt: "Alt",
-                option: "Alt",
-                shift: "Shift",
-                up: "Up",
-                down: "Down",
-                left: "Left",
-                right: "Right",
-                pageup: "PageUp",
-                pagedown: "PageDown",
-                space: "Space",
-                escape: "Esc",
-                comma: ",",
-                period: ".",
-                dot: ".",
-                slash: "/",
-                forwardslash: "/",
-                backslash: "\\",
-                minus: "-",
-                hyphen: "-",
-                equal: "=",
-                equals: "=",
-                semicolon: ";",
-                quote: "'",
-                apostrophe: "'",
-                backquote: "`",
-                backtick: "`",
-                bracketleft: "[",
-                leftbracket: "[",
-                bracketright: "]",
-                rightbracket: "]",
-            };
-            return tokenMap[lower] ?? (lower.length === 1 ? lower.toUpperCase() : token);
-        })
-        .join("+");
-}
-
-function escapeRegExp(value: string): string {
-    return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function textMatchesSearch(text: string, searchTerm: string): boolean {
-    return text.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase());
-}
-
-const HighlightedText = ({ text, searchTerm }: { text: string; searchTerm: string }) => {
-    const term = searchTerm.trim();
-    if (!term) {
-        return <>{text}</>;
-    }
-
-    const parts = text.split(new RegExp(`(${escapeRegExp(term)})`, "gi"));
-    return (
-        <>
-            {parts.map((part, index) =>
-                part.toLocaleLowerCase() === term.toLocaleLowerCase() ? (
-                    <mark key={`${part}-${index}`} className="mssql-config-search-match">
-                        {part}
-                    </mark>
-                ) : (
-                    <span key={`${part}-${index}`}>{part}</span>
-                ),
-            )}
-        </>
-    );
-};
 
 function buildPayload(
     quickQueries: QuickQuerySlot[],
@@ -468,353 +67,6 @@ function getPayloadDataKey(payload: SaveShortcutsConfigurationPayload): string {
                 : undefined,
     });
 }
-
-const SaveIndicator = ({ state }: { state: SaveState }) => {
-    if (state === "idle") {
-        return null;
-    }
-
-    return (
-        <div className="mssql-config-save-indicator">
-            {state === "saving" ? (
-                <>
-                    <Spinner size="tiny" />
-                    <span>{locConstants.shortcutsConfiguration.saving}</span>
-                </>
-            ) : (
-                <>
-                    <Checkmark12Regular />
-                    <span>{locConstants.shortcutsConfiguration.saved}</span>
-                </>
-            )}
-        </div>
-    );
-};
-
-const ShortcutRecorder = ({
-    current,
-    onSave,
-    onClose,
-}: {
-    current: string;
-    onSave: (value: string) => void;
-    onClose: () => void;
-}) => {
-    const [recording, setRecording] = useState(true);
-    const [preview, setPreview] = useState("");
-
-    useEffect(() => {
-        if (!recording) {
-            return undefined;
-        }
-
-        const onKeyDown = (event: KeyboardEvent) => {
-            event.preventDefault();
-            event.stopPropagation();
-
-            if (event.key === "Escape") {
-                setRecording(false);
-                setPreview(current);
-                return;
-            }
-
-            const shortcut = shortcutFromKeyboardEvent(event);
-            if (shortcut) {
-                setPreview(shortcut);
-                setRecording(false);
-            }
-        };
-
-        window.addEventListener("keydown", onKeyDown, true);
-        return () => window.removeEventListener("keydown", onKeyDown, true);
-    }, [current, recording]);
-
-    const hasPreview = preview.trim().length > 0;
-
-    return (
-        <Dialog open modalType="modal">
-            <DialogSurface className="mssql-config-recorder">
-                <DialogBody>
-                    <DialogTitle>{locConstants.shortcutsConfiguration.recordShortcut}</DialogTitle>
-                    <DialogContent>
-                        <div className="mssql-config-recorder-subtitle">
-                            {locConstants.shortcutsConfiguration.recordShortcutDescription}
-                        </div>
-                        <div className="mssql-config-recorder-body">
-                            <div
-                                className={`mssql-config-key-display ${
-                                    recording
-                                        ? "mssql-config-key-display-recording"
-                                        : hasPreview
-                                          ? "mssql-config-key-display-done"
-                                          : ""
-                                }`}>
-                                {recording ? (
-                                    <div className="mssql-config-recording-copy">
-                                        <span className="mssql-config-pulse" />
-                                        <span>
-                                            {locConstants.shortcutsConfiguration.recordingShortcut}
-                                        </span>
-                                    </div>
-                                ) : hasPreview ? (
-                                    <span className="mssql-config-shortcut-preview">
-                                        {formatShortcut(preview)}
-                                    </span>
-                                ) : (
-                                    <span className="mssql-config-empty">
-                                        {locConstants.shortcutsConfiguration.noShortcut}
-                                    </span>
-                                )}
-                            </div>
-                            {hasPreview && !recording && (
-                                <Button
-                                    appearance="transparent"
-                                    className="mssql-config-link-button"
-                                    onClick={() => {
-                                        setPreview("");
-                                        setRecording(true);
-                                    }}>
-                                    {locConstants.shortcutsConfiguration.rerecord}
-                                </Button>
-                            )}
-                        </div>
-                    </DialogContent>
-                    <DialogActions>
-                        <Button appearance="secondary" onClick={onClose}>
-                            {locConstants.common.cancel}
-                        </Button>
-                        {hasPreview ? (
-                            <Button
-                                appearance="primary"
-                                onClick={() => {
-                                    onSave(preview);
-                                    onClose();
-                                }}>
-                                {locConstants.common.save}
-                            </Button>
-                        ) : (
-                            <Button
-                                appearance="secondary"
-                                onClick={() => {
-                                    onSave("");
-                                    onClose();
-                                }}>
-                                {locConstants.shortcutsConfiguration.clearShortcut}
-                            </Button>
-                        )}
-                    </DialogActions>
-                </DialogBody>
-            </DialogSurface>
-        </Dialog>
-    );
-};
-
-const ShortcutDisplay = ({ value }: { value: string }) => (
-    <div className={`mssql-config-shortcut-display ${value ? "" : "mssql-config-empty"}`}>
-        {formatShortcut(value) || locConstants.shortcutsConfiguration.noShortcut}
-    </div>
-);
-
-const ShortcutChip = ({
-    value,
-    onRecord,
-    recordLabel,
-}: {
-    value: string;
-    onRecord: () => void;
-    recordLabel: string;
-}) => (
-    <div className="mssql-config-shortcut-chip-row">
-        <ShortcutDisplay value={value} />
-        <Tooltip content={recordLabel} relationship="label">
-            <Button
-                appearance="secondary"
-                icon={<Keyboard24Regular />}
-                aria-label={recordLabel}
-                onClick={onRecord}
-            />
-        </Tooltip>
-    </div>
-);
-
-const QuickQueryRow = ({
-    slot,
-    shortcut,
-    expanded,
-    onToggle,
-    onChange,
-    onRecord,
-    themeKind,
-    loc,
-}: {
-    slot: QuickQuerySlot;
-    shortcut: string;
-    expanded: boolean;
-    onToggle: () => void;
-    onChange: (value: QuickQuerySlot, shouldSave?: boolean) => void;
-    onRecord: () => void;
-    themeKind: ColorThemeKind;
-    loc: typeof locConstants.shortcutsConfiguration;
-}) => {
-    const slotRef = useRef(slot);
-    const onChangeRef = useRef(onChange);
-    slotRef.current = slot;
-    onChangeRef.current = onChange;
-
-    const query = slot.query.trim();
-    const preview = query.length > 60 ? `${query.slice(0, 60)}...` : query;
-
-    return (
-        <CollapsibleSection
-            className="mssql-config-query-row"
-            buttonClassName="mssql-config-query-summary"
-            panelClassName="mssql-config-query-editor"
-            open={expanded}
-            onOpenChange={onToggle}
-            title={
-                <span className="mssql-config-query-summary-content">
-                    <span className="mssql-config-query-title">
-                        <span>{slot.name}</span>
-                        {preview ? (
-                            <span className="mssql-config-query-preview">{preview}</span>
-                        ) : (
-                            <span className="mssql-config-query-empty">{loc.noQuerySet}</span>
-                        )}
-                    </span>
-                    <ShortcutDisplay value={shortcut} />
-                </span>
-            }>
-            <Field className="mssql-config-field mssql-config-name-field" label={loc.name}>
-                <Input
-                    value={slot.name}
-                    onChange={(_event, data) =>
-                        onChange({
-                            ...slot,
-                            name: data.value,
-                        })
-                    }
-                />
-            </Field>
-            <div className="mssql-config-controls-row">
-                <Field
-                    className="mssql-config-field mssql-config-shortcut-field"
-                    label={loc.shortcut}>
-                    <ShortcutChip
-                        value={shortcut}
-                        onRecord={onRecord}
-                        recordLabel={`${loc.recordShortcut}: ${slot.name}`}
-                    />
-                </Field>
-                <Field className="mssql-config-field" label={loc.execution}>
-                    <SegmentedControl<QuickQueryExecutionMode>
-                        className="mssql-config-segmented-control"
-                        value={slot.executionMode}
-                        ariaLabel={loc.execution}
-                        options={executionOptions.map((option) => ({
-                            value: option.value,
-                            label: loc[option.labelKey],
-                        }))}
-                        onValueChange={(value) =>
-                            onChange({
-                                ...slot,
-                                executionMode: value,
-                            })
-                        }
-                    />
-                </Field>
-                <Field className="mssql-config-field" label={loc.connection}>
-                    <SegmentedControl<QuickQueryConnectionMode>
-                        className="mssql-config-segmented-control"
-                        value={slot.connectionMode}
-                        ariaLabel={loc.connection}
-                        options={connectionOptions.map((option) => ({
-                            value: option.value,
-                            label: loc[option.labelKey],
-                        }))}
-                        onValueChange={(value) =>
-                            onChange({
-                                ...slot,
-                                connectionMode: value,
-                            })
-                        }
-                    />
-                </Field>
-            </div>
-            <Field className="mssql-config-field" label={loc.query}>
-                <div className="mssql-config-monaco-shell">
-                    <VscodeEditor
-                        height="100%"
-                        width="100%"
-                        language="sql"
-                        themeKind={themeKind}
-                        value={slot.query}
-                        options={{
-                            minimap: { enabled: false },
-                            scrollBeyondLastLine: false,
-                            wordWrap: "on",
-                            lineNumbers: "on",
-                            glyphMargin: false,
-                            folding: false,
-                            lineDecorationsWidth: 8,
-                            overviewRulerLanes: 0,
-                            renderLineHighlight: "line",
-                            automaticLayout: true,
-                        }}
-                        onChange={(value) => onChange({ ...slot, query: value ?? "" }, false)}
-                        onMount={(editor) => {
-                            const disposable = editor.onDidBlurEditorWidget(() => {
-                                onChangeRef.current(
-                                    {
-                                        ...slotRef.current,
-                                        query: editor.getValue(),
-                                    },
-                                    true,
-                                );
-                            });
-                            editor.onDidDispose(() => disposable.dispose());
-                        }}
-                    />
-                </div>
-            </Field>
-        </CollapsibleSection>
-    );
-};
-
-const WebviewShortcutRow = ({
-    item,
-    value,
-    onRecord,
-    loc,
-    searchTerm,
-}: {
-    item: ShortcutItem;
-    value: string;
-    onRecord: () => void;
-    loc: typeof locConstants.shortcutsConfiguration;
-    searchTerm: string;
-}) => (
-    <div className="mssql-config-webview-shortcut-row">
-        <div>
-            <div className="mssql-config-row-label">
-                <HighlightedText
-                    text={loc.webviewShortcutLabels[item.action] ?? item.label}
-                    searchTerm={searchTerm}
-                />
-            </div>
-            <div className="mssql-config-row-description">
-                <HighlightedText
-                    text={loc.webviewShortcutDescriptions[item.action] ?? item.description}
-                    searchTerm={searchTerm}
-                />
-            </div>
-        </div>
-        <ShortcutChip
-            value={value}
-            onRecord={onRecord}
-            recordLabel={`${loc.recordShortcut}: ${loc.webviewShortcutLabels[item.action] ?? item.label}`}
-        />
-    </div>
-);
 
 export const ShortcutsConfigurationPage = () => {
     const loc = locConstants.shortcutsConfiguration;
@@ -858,6 +110,7 @@ export const ShortcutsConfigurationPage = () => {
     const pendingSaveVersionRef = useRef(0);
     const localChangeVersionRef = useRef(0);
     const scheduledPayloadRef = useRef<SaveShortcutsConfigurationPayload | undefined>(undefined);
+    const activeSaveRef = useRef<Promise<void> | undefined>(undefined);
     const pendingQuickQueryEditsRef = useRef<Map<number, QuickQuerySlot>>(new Map());
     const quickQueriesRef = useRef(quickQueries);
     const quickQueryKeybindingsRef = useRef(quickQueryKeybindings);
@@ -951,15 +204,23 @@ export const ShortcutsConfigurationPage = () => {
     }, [quickQueries, stateFocusedQuickQuerySlot, stateFocusNonce]);
 
     const dispatchSave = useCallback(
-        (payload: SaveShortcutsConfigurationPayload, payloadDataKey: string) => {
+        async (payload: SaveShortcutsConfigurationPayload, payloadDataKey: string) => {
             if (!context) {
                 return;
             }
 
-            context.saveConfiguration(payload);
             pendingPayloadRef.current = payloadDataKey;
             pendingChangedSectionsRef.current = payload.changedSections;
             pendingSaveVersionRef.current = localChangeVersionRef.current;
+            const savePromise = context.saveConfiguration(payload);
+            activeSaveRef.current = savePromise;
+            try {
+                await savePromise;
+            } finally {
+                if (activeSaveRef.current === savePromise) {
+                    activeSaveRef.current = undefined;
+                }
+            }
         },
         [context],
     );
@@ -968,7 +229,7 @@ export const ShortcutsConfigurationPage = () => {
         () =>
             debounce((payload: SaveShortcutsConfigurationPayload, payloadDataKey: string) => {
                 scheduledPayloadRef.current = undefined;
-                dispatchSave(payload, payloadDataKey);
+                void dispatchSave(payload, payloadDataKey);
             }, 700),
         [dispatchSave],
     );
@@ -994,7 +255,7 @@ export const ShortcutsConfigurationPage = () => {
         );
     }, []);
 
-    const flushPendingSave = useCallback(() => {
+    const flushPendingSave = useCallback(async () => {
         flushUnsavedQueryEdits();
         if (!scheduledPayloadRef.current || !context) {
             return;
@@ -1003,12 +264,31 @@ export const ShortcutsConfigurationPage = () => {
         const payload = scheduledPayloadRef.current;
         scheduledPayloadRef.current = undefined;
         debouncedDispatchSave.cancel();
-        dispatchSave(payload, getPayloadDataKey(payload));
+        await dispatchSave(payload, getPayloadDataKey(payload));
     }, [context, debouncedDispatchSave, dispatchSave, flushUnsavedQueryEdits]);
+
+    const saveAndClose = useCallback(async () => {
+        flushUnsavedQueryEdits();
+        debouncedDispatchSave.cancel();
+
+        const payload = scheduledPayloadRef.current;
+        if (!payload || !context) {
+            await activeSaveRef.current;
+            await context?.closeDialog();
+            return;
+        }
+
+        scheduledPayloadRef.current = undefined;
+        const payloadDataKey = getPayloadDataKey(payload);
+        pendingPayloadRef.current = payloadDataKey;
+        pendingChangedSectionsRef.current = payload.changedSections;
+        pendingSaveVersionRef.current = localChangeVersionRef.current;
+        await context.saveAndCloseConfiguration(payload);
+    }, [context, debouncedDispatchSave, flushUnsavedQueryEdits]);
 
     useEffect(
         () => () => {
-            flushPendingSave();
+            void flushPendingSave();
             if (savedTimerRef.current) {
                 clearTimeout(savedTimerRef.current);
             }
@@ -1155,22 +435,8 @@ export const ShortcutsConfigurationPage = () => {
             <div className="mssql-config-shortcut-groups">
                 {shortcutGroups.map((group) => {
                     const searchTerm = shortcutSearch.trim();
-                    const groupLabel =
-                        group.id === "navigation"
-                            ? loc.shortcutGroupNavigation
-                            : group.id === "results"
-                              ? loc.shortcutGroupResults
-                              : group.id === "selection"
-                                ? loc.shortcutGroupSelection
-                                : loc.shortcutGroupCopyExport;
-                    const groupDescription =
-                        group.id === "navigation"
-                            ? loc.shortcutGroupNavigationDescription
-                            : group.id === "results"
-                              ? loc.shortcutGroupResultsDescription
-                              : group.id === "selection"
-                                ? loc.shortcutGroupSelectionDescription
-                                : loc.shortcutGroupCopyExportDescription;
+                    const groupLabel = getShortcutGroupLabel(group.id, loc);
+                    const groupDescription = getShortcutGroupDescription(group.id, loc);
                     const groupMatches =
                         !!searchTerm &&
                         (textMatchesSearch(groupLabel, searchTerm) ||
@@ -1181,12 +447,9 @@ export const ShortcutsConfigurationPage = () => {
                         }
 
                         return (
+                            textMatchesSearch(loc.webviewShortcutLabels[item.action], searchTerm) ||
                             textMatchesSearch(
-                                loc.webviewShortcutLabels[item.action] ?? item.label,
-                                searchTerm,
-                            ) ||
-                            textMatchesSearch(
-                                loc.webviewShortcutDescriptions[item.action] ?? item.description,
+                                loc.webviewShortcutDescriptions[item.action],
                                 searchTerm,
                             )
                         );
@@ -1267,8 +530,7 @@ export const ShortcutsConfigurationPage = () => {
                 <Button
                     appearance="secondary"
                     onClick={() => {
-                        flushPendingSave();
-                        context.closeDialog();
+                        void saveAndClose();
                     }}>
                     {common.close}
                 </Button>
@@ -1373,12 +635,6 @@ const styles = `
 
 .mssql-config-tabs button:hover {
     color: var(--mssql-config-fg);
-}
-
-.mssql-config-tabs .mssql-config-tab-active {
-    border-bottom-color: var(--mssql-config-accent);
-    color: var(--mssql-config-fg);
-    font-weight: 600;
 }
 
 .mssql-config-help-text {
@@ -1501,13 +757,6 @@ const styles = `
     font-size: 11.5px;
     font-style: italic;
     margin-top: 1px;
-}
-
-.mssql-config-count-chip {
-    border-radius: 4px;
-    flex-shrink: 0;
-    font-size: 11.5px;
-    padding: 2px 8px;
 }
 
 .mssql-config-query-editor {
@@ -1662,17 +911,6 @@ const styles = `
     width: 360px;
 }
 
-.mssql-config-recorder-header {
-    border-bottom: 1px solid var(--mssql-config-border);
-    padding: 18px 20px 14px;
-}
-
-.mssql-config-recorder-title {
-    color: var(--mssql-config-fg);
-    font-size: 14px;
-    font-weight: 700;
-}
-
 .mssql-config-recorder-subtitle {
     color: var(--mssql-config-muted);
     font-size: 12px;
@@ -1730,21 +968,9 @@ const styles = `
     font-weight: 700;
 }
 
-.mssql-config-recorder-footer {
-    border-top: 1px solid var(--mssql-config-border);
-    display: flex;
-    gap: 8px;
-    justify-content: flex-end;
-    padding: 12px 20px;
-}
-
 @keyframes mssql-config-pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.4; }
-}
-
-@keyframes mssql-config-spin {
-    to { transform: rotate(360deg); }
 }
 
 @media (max-width: 640px) {

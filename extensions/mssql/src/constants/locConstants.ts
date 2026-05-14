@@ -34,6 +34,7 @@ export let createDatabaseWebviewTitle = l10n.t("Create Database");
 export let dropDatabaseWebviewTitle = l10n.t("Drop Database");
 export let renameDatabaseWebviewTitle = l10n.t("Rename Database");
 export let shortcutsConfigurationTitle = l10n.t("Shortcuts Configuration");
+export let shortcutsConfigurationSaved = l10n.t("Configuration saved.");
 export let keybindingsFileOpenedForManualEditing = l10n.t(
     "The keybindings file has been opened for manual editing.",
 );

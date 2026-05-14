@@ -80,69 +80,80 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
             return state;
         });
 
-        this.registerReducer("reloadConfiguration", async () => {
-            return await this.getConfigurationState("Configuration reloaded.");
-        });
-
         this.registerReducer("saveConfiguration", async (state, payload) => {
-            this.state = { ...state, isSaving: true, message: undefined, errorMessage: undefined };
-            const quickQueries = normalizeQuickQueries(payload.quickQueries);
-            const webviewShortcuts = sanitizeWebviewShortcuts(payload.webviewShortcuts ?? {});
-            const changedSections = payload.changedSections ?? {
-                quickQueries: true,
-                quickQueryKeybindings: true,
-                webviewShortcuts: true,
-            };
-
-            try {
-                if (changedSections.quickQueryKeybindings) {
-                    try {
-                        await this.keybindingsService.updateCommandKeybindings(
-                            this.getQuickQueryCommandIds().map((command) => ({
-                                command,
-                                key: payload.quickQueryKeybindings?.[command] ?? "",
-                            })),
-                        );
-                    } catch (error) {
-                        await this.keybindingsService.openKeybindingsFile();
-                        throw new Error(
-                            `${getErrorMessage(error)} ${Loc.keybindingsFileOpenedForManualEditing}`,
-                        );
-                    }
-                }
-
-                if (changedSections.quickQueries) {
-                    await vscode.workspace
-                        .getConfiguration()
-                        .update(
-                            Constants.configQuickQueries,
-                            quickQueries,
-                            vscode.ConfigurationTarget.Global,
-                        );
-                }
-                if (changedSections.webviewShortcuts) {
-                    await vscode.workspace
-                        .getConfiguration()
-                        .update(
-                            Constants.configShortcuts,
-                            webviewShortcuts,
-                            vscode.ConfigurationTarget.Global,
-                        );
-                }
-
-                return await this.getConfigurationState("Configuration saved.");
-            } catch (error) {
-                return {
-                    ...state,
-                    quickQueries,
-                    webviewShortcuts,
-                    quickQueryKeybindings: payload.quickQueryKeybindings ?? {},
-                    isSaving: false,
-                    message: undefined,
-                    errorMessage: getErrorMessage(error),
-                };
-            }
+            return await this.saveConfiguration(state, payload);
         });
+
+        this.registerReducer("saveAndCloseConfiguration", async (state, payload) => {
+            const nextState = await this.saveConfiguration(state, payload);
+            if (!nextState.errorMessage) {
+                this.panel.dispose();
+            }
+            return nextState;
+        });
+    }
+
+    private async saveConfiguration(
+        state: ShortcutsConfigurationWebviewState,
+        payload: ShortcutsConfigurationReducers["saveConfiguration"],
+    ): Promise<ShortcutsConfigurationWebviewState> {
+        this.state = { ...state, isSaving: true, message: undefined, errorMessage: undefined };
+        const quickQueries = normalizeQuickQueries(payload.quickQueries);
+        const webviewShortcuts = sanitizeWebviewShortcuts(payload.webviewShortcuts ?? {});
+        const changedSections = payload.changedSections ?? {
+            quickQueries: true,
+            quickQueryKeybindings: true,
+            webviewShortcuts: true,
+        };
+
+        try {
+            if (changedSections.quickQueryKeybindings) {
+                try {
+                    await this.keybindingsService.updateCommandKeybindings(
+                        this.getQuickQueryCommandIds().map((command) => ({
+                            command,
+                            key: payload.quickQueryKeybindings?.[command] ?? "",
+                        })),
+                    );
+                } catch (error) {
+                    await this.keybindingsService.openKeybindingsFile();
+                    throw new Error(
+                        `${getErrorMessage(error)} ${Loc.keybindingsFileOpenedForManualEditing}`,
+                    );
+                }
+            }
+
+            if (changedSections.quickQueries) {
+                await vscode.workspace
+                    .getConfiguration()
+                    .update(
+                        Constants.configQuickQueries,
+                        quickQueries,
+                        vscode.ConfigurationTarget.Global,
+                    );
+            }
+            if (changedSections.webviewShortcuts) {
+                await vscode.workspace
+                    .getConfiguration()
+                    .update(
+                        Constants.configShortcuts,
+                        webviewShortcuts,
+                        getConfigurationTarget(Constants.configShortcuts),
+                    );
+            }
+
+            return await this.getConfigurationState(Loc.shortcutsConfigurationSaved);
+        } catch (error) {
+            return {
+                ...state,
+                quickQueries,
+                webviewShortcuts,
+                quickQueryKeybindings: payload.quickQueryKeybindings ?? {},
+                isSaving: false,
+                message: undefined,
+                errorMessage: getErrorMessage(error),
+            };
+        }
     }
 
     private async refreshState(
@@ -210,4 +221,15 @@ function sanitizeWebviewShortcuts(value: Record<string, string>): Record<string,
         }
         return result;
     }, {});
+}
+
+function getConfigurationTarget(section: string): vscode.ConfigurationTarget {
+    const inspected = vscode.workspace.getConfiguration().inspect(section);
+    if (inspected?.workspaceFolderValue !== undefined) {
+        return vscode.ConfigurationTarget.WorkspaceFolder;
+    }
+    if (inspected?.workspaceValue !== undefined) {
+        return vscode.ConfigurationTarget.Workspace;
+    }
+    return vscode.ConfigurationTarget.Global;
 }

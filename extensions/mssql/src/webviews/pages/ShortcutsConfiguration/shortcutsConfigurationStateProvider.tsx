@@ -26,10 +26,15 @@ const ShortcutsConfigurationStateProvider = ({ children }: { children: ReactNode
     const commands = useMemo<ShortcutsConfigurationContextProps>(
         () => ({
             ...getCoreRPCs(extensionRpc),
-            saveConfiguration: (payload: SaveShortcutsConfigurationPayload) =>
-                extensionRpc.action("saveConfiguration", payload),
-            reloadConfiguration: () => extensionRpc.action("reloadConfiguration", {}),
-            closeDialog: () => extensionRpc.action("closeDialog", {}),
+            saveConfiguration: async (payload: SaveShortcutsConfigurationPayload) => {
+                await extensionRpc.action("saveConfiguration", payload);
+            },
+            saveAndCloseConfiguration: async (payload: SaveShortcutsConfigurationPayload) => {
+                await extensionRpc.action("saveAndCloseConfiguration", payload);
+            },
+            closeDialog: async () => {
+                await extensionRpc.action("closeDialog", {});
+            },
         }),
         [extensionRpc],
     );

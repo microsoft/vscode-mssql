@@ -40,6 +40,10 @@ function getPlatformKeybinding(rule: KeybindingRule): string | undefined {
           : undefined;
 }
 
+function getCurrentPlatformKeyProperty(): "mac" | "win" | "linux" {
+    return process.platform === "darwin" ? "mac" : process.platform === "win32" ? "win" : "linux";
+}
+
 function getFormattingOptions(text: string) {
     const eol = text.includes("\r\n") ? "\r\n" : "\n";
     return {
@@ -48,6 +52,14 @@ function getFormattingOptions(text: string) {
         eol,
         insertFinalNewline: true,
     };
+}
+
+function clearPlatformSpecificKeys(rule: KeybindingRule): KeybindingRule {
+    const result = { ...rule };
+    delete result.mac;
+    delete result.win;
+    delete result.linux;
+    return result;
 }
 
 function normalizeKeybindingsText(text: string): string {
@@ -110,9 +122,22 @@ export function updateKeybindingsText(text: string, updates: CommandKeybindingUp
 
         const existingRuleIndex = rules.findIndex((rule) => rule.command === update.command);
         if (existingRuleIndex >= 0) {
+            const existingRule = rules[existingRuleIndex];
+            const platformKeyProperty = getCurrentPlatformKeyProperty();
+            const nextRule =
+                typeof existingRule[platformKeyProperty] === "string"
+                    ? {
+                          ...existingRule,
+                          [platformKeyProperty]: key,
+                      }
+                    : {
+                          ...clearPlatformSpecificKeys(existingRule),
+                          key,
+                      };
+
             workingText = applyEdits(
                 workingText,
-                modify(workingText, [existingRuleIndex, "key"], key, {
+                modify(workingText, [existingRuleIndex], nextRule, {
                     formattingOptions,
                 }),
             );

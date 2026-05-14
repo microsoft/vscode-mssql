@@ -35,12 +35,15 @@ suite("shortcutsConfiguration Webview Controller", () => {
     let tempUserDataPath: string;
     let quickQueriesSetting: unknown;
     let webviewShortcutsSetting: Record<string, string>;
+    let shortcutsInspectValue: Partial<vscode.WorkspaceConfiguration>;
+    let webviewPanel: vscode.WebviewPanel;
 
     setup(() => {
         sandbox = sinon.createSandbox();
         stubTelemetry(sandbox);
         sandbox.stub(utils, "getNonce").returns("test-nonce");
-        sandbox.stub(vscode.window, "createWebviewPanel").returns(stubWebviewPanel(sandbox));
+        webviewPanel = stubWebviewPanel(sandbox);
+        sandbox.stub(vscode.window, "createWebviewPanel").returns(webviewPanel);
         sandbox.stub(vscode.workspace, "onDidChangeConfiguration").returns({
             dispose: sandbox.stub(),
         });
@@ -54,6 +57,7 @@ suite("shortcutsConfiguration Webview Controller", () => {
 
         quickQueriesSetting = normalizeQuickQueries(undefined);
         webviewShortcutsSetting = {};
+        shortcutsInspectValue = {};
         updateConfigurationStub = sandbox.stub().callsFake((section: string, value: unknown) => {
             if (section === Constants.configQuickQueries) {
                 quickQueriesSetting = value;
@@ -75,6 +79,12 @@ suite("shortcutsConfiguration Webview Controller", () => {
                 return undefined;
             }),
             update: updateConfigurationStub,
+            inspect: sandbox.stub().callsFake((section: string) => {
+                if (section === Constants.configShortcuts) {
+                    return shortcutsInspectValue;
+                }
+                return {};
+            }),
         } as unknown as vscode.WorkspaceConfiguration);
 
         sandbox.stub(vscode.commands, "executeCommand").resolves();
@@ -200,5 +210,45 @@ suite("shortcutsConfiguration Webview Controller", () => {
                 command: "workbench.action.keep",
             },
         ]);
+    });
+
+    test("saveConfiguration writes webview shortcuts to workspace when workspace setting is effective", async () => {
+        shortcutsInspectValue = { workspaceValue: webviewShortcutsSetting };
+        const reducer = getReducer("saveConfiguration");
+
+        await reducer(controller.state, {
+            quickQueries: normalizeQuickQueries(undefined),
+            quickQueryKeybindings: {},
+            webviewShortcuts: {
+                [WebviewAction.ResultGridSelectAll]: "ctrl+shift+a",
+            },
+            changedSections: {
+                webviewShortcuts: true,
+            },
+        });
+
+        expect(updateConfigurationStub).to.have.been.calledWith(
+            Constants.configShortcuts,
+            { [WebviewAction.ResultGridSelectAll]: "ctrl+shift+a" },
+            vscode.ConfigurationTarget.Workspace,
+        );
+    });
+
+    test("saveAndCloseConfiguration disposes the panel after a successful save", async () => {
+        const reducer = getReducer("saveAndCloseConfiguration");
+
+        const result = await reducer(controller.state, {
+            quickQueries: normalizeQuickQueries(undefined),
+            quickQueryKeybindings: {},
+            webviewShortcuts: {
+                [WebviewAction.ResultGridCopySelection]: "ctrl+c",
+            },
+            changedSections: {
+                webviewShortcuts: true,
+            },
+        });
+
+        expect(result.errorMessage).to.equal(undefined);
+        expect(webviewPanel.dispose).to.have.been.calledOnce;
     });
 });

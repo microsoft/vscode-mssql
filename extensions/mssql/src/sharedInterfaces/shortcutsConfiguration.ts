@@ -53,14 +53,14 @@ export interface SaveShortcutsConfigurationPayload {
 
 export interface ShortcutsConfigurationReducers {
     saveConfiguration: SaveShortcutsConfigurationPayload;
-    reloadConfiguration: {};
+    saveAndCloseConfiguration: SaveShortcutsConfigurationPayload;
     closeDialog: {};
 }
 
 export interface ShortcutsConfigurationContextProps extends CoreRPCs {
-    saveConfiguration: (payload: SaveShortcutsConfigurationPayload) => void;
-    reloadConfiguration: () => void;
-    closeDialog: () => void;
+    saveConfiguration: (payload: SaveShortcutsConfigurationPayload) => Promise<void>;
+    saveAndCloseConfiguration: (payload: SaveShortcutsConfigurationPayload) => Promise<void>;
+    closeDialog: () => Promise<void>;
 }
 
 export function getQuickQueryCommandId(slotNumber: number): string {

@@ -4,14 +4,18 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
+import * as fs from "fs";
+import * as path from "path";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
 import type { IConnectionInfo } from "vscode-mssql";
 import {
+    getQuickQueryCommandId,
     normalizeQuickQueries,
     QuickQueryConnectionMode,
     QuickQueryExecutionMode,
     QuickQuerySlot,
+    quickQueryCount,
 } from "../../src/sharedInterfaces/shortcutsConfiguration";
 import {
     QuickQueryRunResult,
@@ -172,5 +176,26 @@ suite("Quick Query Service", () => {
 
         expect(result).to.equal(QuickQueryRunResult.OpenedAndRan);
         expect(runSqlEditorQuery).to.have.been.calledWith(editor);
+    });
+
+    test("package Quick Query command contributions match the shared slot count", () => {
+        const packageJsonPath = path.join(__dirname, "..", "..", "..", "package.json");
+        const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8")) as {
+            contributes: {
+                commands: { command: string }[];
+                configuration: { properties: Record<string, { default?: QuickQuerySlot[] }> };
+            };
+        };
+
+        const commandIds = new Set(
+            packageJson.contributes.commands.map((command) => command.command),
+        );
+        for (let slotNumber = 1; slotNumber <= quickQueryCount; slotNumber++) {
+            expect(commandIds.has(getQuickQueryCommandId(slotNumber))).to.equal(true);
+        }
+
+        const quickQueryDefaults =
+            packageJson.contributes.configuration.properties["mssql.quickQueries"].default;
+        expect(quickQueryDefaults).to.have.length(quickQueryCount);
     });
 });
