@@ -1,0 +1,19 @@
+{
+    "compileOnSave": true,
+    "compilerOptions": {
+        "outDir": "out",
+        "module": "CommonJS",
+        "target": "ES2024",
+        "lib": ["ES2024"],
+        "sourceMap": true,
+        "allowUnusedLabels": false,
+        "allowSyntheticDefaultImports": true,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "noUnusedLocals": true,
+        "skipLibCheck": true,
+        "rootDir": ".",
+        "strict": false,
+        "types": ["node", "mocha"]
+    }
+}
