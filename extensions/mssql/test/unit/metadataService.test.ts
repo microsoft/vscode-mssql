@@ -523,7 +523,7 @@ suite("Metadata Service Tests", () => {
             try {
                 await metadataService.getMetadata("uri");
                 expect.fail("Should have thrown an error");
-            } catch (err) {
+            } catch {
                 expect(mockLogger.error).to.have.been.calledWithMatch(
                     sinon.match(
                         (value: unknown) =>
@@ -540,7 +540,7 @@ suite("Metadata Service Tests", () => {
             try {
                 await metadataService.getDatabases("uri");
                 expect.fail("Should have thrown an error");
-            } catch (err) {
+            } catch {
                 expect(mockLogger.error).to.have.been.called;
             }
         });

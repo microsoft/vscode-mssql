@@ -493,7 +493,7 @@ export function isFileExisting(filePath: string): boolean {
     try {
         fs.statSync(filePath);
         return true;
-    } catch (err) {
+    } catch {
         return false;
     }
 }

@@ -317,7 +317,7 @@ export class MsalAzureController extends AzureController {
     public async populateAccountProperties(
         profile: ConnectionProfile,
         accountStore: AccountStore,
-        settings: IAADResource,
+        _settings: IAADResource,
     ): Promise<ConnectionProfile> {
         let account = await this.addAccount(accountStore);
         profile.user = account!.displayInfo.displayName;

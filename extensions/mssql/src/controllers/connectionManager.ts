@@ -2313,7 +2313,7 @@ export default class ConnectionManager {
     }
 
     private async showTenantQuickPick(items: TenantQuickPickItem[]): Promise<string | undefined> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve, _reject) => {
             const quickPick = vscode.window.createQuickPick<TenantQuickPickItem>();
             quickPick.items = items;
             quickPick.placeholder = LocalizedConstants.Connection.SelectTenant;

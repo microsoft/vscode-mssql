@@ -2520,6 +2520,7 @@ suite("OE Service Tests", () => {
                     "showErrorMessage should be called once",
                 ).to.be.true;
 
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const [_msg, signInButton, editButton] = mockVscodeWrapper.showErrorMessage.args[0];
                 expect(signInButton, "First button should be Sign In and Retry").to.equal(
                     LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorSignIn,
