@@ -196,7 +196,7 @@ export async function populateAzureAccountInfo(
     let auth: MssqlVSCodeAzureSubscriptionProvider;
 
     try {
-        auth = await VsCodeAzureHelper.signIn(forceSignInPrompt);
+        auth = (await VsCodeAzureHelper.signIn(forceSignInPrompt)).auth;
     } catch (error) {
         console.error(`Error signing into Azure: ${getErrorMessage(error)}`);
         return;

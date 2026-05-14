@@ -2764,6 +2764,37 @@ export default class MainController implements vscode.Disposable {
                 return;
             }
 
+            // Do not execute when there are multiple selections in the editor until it can be properly handled.
+            // Otherwise only the first selection will be executed and cause unexpected issues.
+            if (editor.selections?.length > 1) {
+                self._vscodeWrapper.showErrorMessage(
+                    LocalizedConstants.msgMultipleSelectionModeNotSupported,
+                );
+                return;
+            }
+
+            if (!editor.selection.isEmpty) {
+                if (editor.document.getText(editor.selection).trim().length === 0) {
+                    return;
+                }
+
+                let selection = editor.selection;
+                let querySelection: ISelectionData = {
+                    startLine: selection.start.line,
+                    startColumn: selection.start.character,
+                    endLine: selection.end.line,
+                    endColumn: selection.end.character,
+                };
+
+                await self._outputContentProvider.runQuery(
+                    self._statusview,
+                    uri,
+                    querySelection,
+                    title,
+                );
+                return;
+            }
+
             // only the start line and column are used to determine the current statement
             let querySelection: ISelectionData = {
                 startLine: editor.selection.start.line,

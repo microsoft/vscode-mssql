@@ -471,6 +471,11 @@
                     "group": "0_mssql"
                 },
                 {
+                    "command": "mssql.changeConnection",
+                    "when": "editorLangId == sql && !isInDiffEditor && resource in mssql.connections && resourcePath not in mssql.runningQueries && !mssql.hideUIElements",
+                    "group": "0_mssql"
+                },
+                {
                     "submenu": "mssql.copilot.editorSubmenu",
                     "when": "editorLangId == sql && mssql.copilot.isGHCInstalled && !mssql.hideUIElements",
                     "group": "0_mssql"
@@ -1676,7 +1681,7 @@
                         "boolean",
                         "null"
                     ],
-                    "default": null,
+                    "default": true,
                     "description": "%mssql.preview.useVscodeAccountsForEntraMFA.description%",
                     "scope": "application"
                 },
