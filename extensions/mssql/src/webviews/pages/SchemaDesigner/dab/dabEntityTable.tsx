@@ -152,6 +152,10 @@ function getEntitySourceType(entity: Dab.DabEntityConfig): Dab.EntitySourceType 
     return entity.sourceType ?? Dab.EntitySourceType.Table;
 }
 
+function isCrudActionApplicable(entity: Dab.DabEntityConfig): boolean {
+    return getEntitySourceType(entity) !== Dab.EntitySourceType.StoredProcedure;
+}
+
 function getObjectGroupId(schemaName: string, sourceType: Dab.EntitySourceType): string {
     return `schema-${schemaName}-${sourceType}`;
 }
@@ -345,6 +349,24 @@ const useStyles = makeStyles({
         alignItems: "center",
         justifyContent: "center",
         width: "100%",
+    },
+    compactCheckbox: {
+        width: "24px",
+        height: "24px",
+        maxWidth: "24px",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        "& .fui-Checkbox__input": {
+            width: "24px",
+            height: "24px",
+        },
+        "& .fui-Checkbox__indicator": {
+            margin: "4px",
+        },
+        "&[data-fui-focus-within]:focus-within::after": {
+            borderRadius: "2px",
+        },
     },
     dataTypeLabel: {
         color: tokens.colorNeutralForeground4,
@@ -741,16 +763,22 @@ export const DabEntityTable = () => {
 
     const headerActionState = useCallback(
         (action: Dab.EntityAction): CheckedState => {
-            const enabledEntities = filteredEntities.filter((e) => e.isSupported && e.isEnabled);
-            const withAction = enabledEntities.filter((e) => e.enabledActions.includes(action));
-            return getCheckedState(enabledEntities.length, withAction.length);
+            const actionEntities = filteredEntities.filter(
+                (e) => e.isSupported && isCrudActionApplicable(e),
+            );
+            const withAction = actionEntities.filter(
+                (e) => e.isEnabled && e.enabledActions.includes(action),
+            );
+            return getCheckedState(actionEntities.length, withAction.length);
         },
         [filteredEntities],
     );
 
     const toggleHeaderAction = useCallback(
         (action: Dab.EntityAction) => {
-            const enabledEntities = filteredEntities.filter((e) => e.isSupported && e.isEnabled);
+            const enabledEntities = filteredEntities.filter(
+                (e) => e.isSupported && e.isEnabled && isCrudActionApplicable(e),
+            );
             if (enabledEntities.length === 0) {
                 return;
             }
@@ -764,6 +792,11 @@ export const DabEntityTable = () => {
             }
         },
         [filteredEntities, headerActionState, toggleDabEntityAction],
+    );
+
+    const hasHeaderActionEntities = useMemo(
+        () => filteredEntities.some((e) => e.isSupported && isCrudActionApplicable(e)),
+        [filteredEntities],
     );
 
     // ── Schema-level checkbox ──
@@ -841,6 +874,7 @@ export const DabEntityTable = () => {
                 return (
                     <div className={classes.centeredCell}>
                         <Checkbox
+                            className={classes.compactCheckbox}
                             checked={toNativeChecked(checkState)}
                             disabled={supported.length === 0}
                             onChange={() => toggleSchemaEntities(row.entities)}
@@ -860,6 +894,7 @@ export const DabEntityTable = () => {
                 return (
                     <div className={classes.centeredCell}>
                         <Checkbox
+                            className={classes.compactCheckbox}
                             checked={toNativeChecked(checkState)}
                             disabled={supported.length === 0}
                             onChange={() => toggleSchemaEntities(row.entities)}
@@ -872,6 +907,7 @@ export const DabEntityTable = () => {
             if (row.type === "entity") {
                 const checkbox = (
                     <Checkbox
+                        className={classes.compactCheckbox}
                         checked={row.entity.isEnabled}
                         disabled={!row.entity.isSupported}
                         onChange={() => toggleDabEntity(row.entity.id, !row.entity.isEnabled)}
@@ -899,6 +935,7 @@ export const DabEntityTable = () => {
             const isPrimaryKeyColumn = row.column.isPrimaryKey;
             const checkbox = (
                 <Checkbox
+                    className={classes.compactCheckbox}
                     checked={row.column.isExposed}
                     disabled={!row.entity.isSupported || isPrimaryKeyColumn}
                     onChange={() =>
@@ -930,7 +967,13 @@ export const DabEntityTable = () => {
                 </div>
             );
         },
-        [classes.centeredCell, toggleDabColumnExposure, toggleDabEntity, toggleSchemaEntities],
+        [
+            classes.centeredCell,
+            classes.compactCheckbox,
+            toggleDabColumnExposure,
+            toggleDabEntity,
+            toggleSchemaEntities,
+        ],
     );
 
     const renderExpandContent = useCallback(
@@ -1146,6 +1189,7 @@ export const DabEntityTable = () => {
             return (
                 <div className={classes.actionCell}>
                     <Checkbox
+                        className={classes.compactCheckbox}
                         checked={isActionChecked}
                         disabled={!row.entity.isEnabled || !row.entity.isSupported}
                         onChange={() =>
@@ -1163,7 +1207,13 @@ export const DabEntityTable = () => {
                 </div>
             );
         },
-        [actionLabels, classes.actionCell, renderBlankContent, toggleDabEntityAction],
+        [
+            actionLabels,
+            classes.actionCell,
+            classes.compactCheckbox,
+            renderBlankContent,
+            toggleDabEntityAction,
+        ],
     );
 
     const renderSettingsContent = useCallback(
@@ -1250,10 +1300,7 @@ export const DabEntityTable = () => {
                         <div className={classes.headerActionCell}>
                             <Checkbox
                                 checked={toNativeChecked(headerActionState(action))}
-                                disabled={
-                                    filteredEntities.filter((e) => e.isSupported && e.isEnabled)
-                                        .length === 0
-                                }
+                                disabled={!hasHeaderActionEntities}
                                 onChange={() => toggleHeaderAction(action)}
                                 aria-label={locConstants.schemaDesigner.selectAllAction(
                                     actionLabels[action],
@@ -1278,6 +1325,7 @@ export const DabEntityTable = () => {
             classes.sortIcon,
             classes.sortableHeader,
             filteredEntities,
+            hasHeaderActionEntities,
             headerActionState,
             renderActionContent,
             renderExpandContent,
