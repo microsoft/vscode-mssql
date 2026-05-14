@@ -12,10 +12,10 @@ import { prettyPrintProviders } from "./testUtils";
 
 export class MockTreeDataProvider implements vscode.TreeDataProvider<any> {
     onDidChangeTreeData?: vscode.Event<any> | undefined;
-    getTreeItem(element: any): vscode.TreeItem | Thenable<vscode.TreeItem> {
+    getTreeItem(_element: any): vscode.TreeItem | Thenable<vscode.TreeItem> {
         throw new Error("Method not implemented.");
     }
-    getChildren(element?: any): vscode.ProviderResult<any[]> {
+    getChildren(_element?: any): vscode.ProviderResult<any[]> {
         throw new Error("Method not implemented.");
     }
 }
@@ -28,14 +28,14 @@ export function createProjectProvider(
     const projectProvider: IProjectProvider = {
         supportedProjectTypes: projectTypes,
         getProjectTreeDataProvider: (
-            projectFile: vscode.Uri,
+            _projectFile: vscode.Uri,
         ): Promise<vscode.TreeDataProvider<any>> => {
             return Promise.resolve(treeDataProvider);
         },
         createProject: (
-            name: string,
+            _name: string,
             location: vscode.Uri,
-            projectTypeId: string,
+            _projectTypeId: string,
         ): Promise<vscode.Uri> => {
             return Promise.resolve(location);
         },
