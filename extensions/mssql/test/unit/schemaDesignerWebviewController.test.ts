@@ -148,7 +148,6 @@ suite("SchemaDesignerWebviewController tests", () => {
             getMetadata: sandbox.stub().resolves([]),
             getViews: sandbox.stub().resolves([]),
             getStoredProcedures: sandbox.stub().resolves([]),
-            getFunctions: sandbox.stub().resolves([]),
             getTableInfo: sandbox.stub().resolves([]),
             getViewInfo: sandbox.stub().resolves([]),
             getAllViewInfo: sandbox.stub().resolves(new Map()),
@@ -240,7 +239,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             expect(requestHandlers.has(Dab.GetEntityCandidatesRequest.type.method)).to.be.true;
         });
 
-        test("should discover DAB table, view, stored procedure, and unsupported function candidates", async () => {
+        test("should discover DAB table, view, and stored procedure candidates", async () => {
             const metadataService = mockMainController.metadataService as any;
             metadataService.getViews.resolves([
                 {
@@ -256,14 +255,6 @@ suite("SchemaDesignerWebviewController tests", () => {
                     metadataTypeName: "StoredProcedure",
                     schema: "dbo",
                     name: "SearchUsers",
-                },
-            ]);
-            metadataService.getFunctions.resolves([
-                {
-                    metadataType: MetadataType.Function,
-                    metadataTypeName: "Function",
-                    schema: "dbo",
-                    name: "fn_SearchUsers",
                 },
             ]);
             metadataService.getAllViewInfo.resolves(
@@ -340,11 +331,6 @@ suite("SchemaDesignerWebviewController tests", () => {
                 parameters: [{ name: "StartsWith", required: false }],
             });
 
-            const functionCandidate = result.entityCandidates.find(
-                (candidate: Dab.DabEntityCandidate) => candidate.sourceType === "function",
-            );
-            expect(functionCandidate?.isSupported).to.equal(false);
-            expect(functionCandidate?.unsupportedReason).to.include("does not support functions");
             expect(metadataService.getViewInfo).to.not.have.been.called;
             expect(metadataService.getStoredProcedureInfo).to.not.have.been.called;
             expect(metadataService.getMetadata).to.not.have.been.called;

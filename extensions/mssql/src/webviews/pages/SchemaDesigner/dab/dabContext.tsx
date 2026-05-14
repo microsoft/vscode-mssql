@@ -95,10 +95,7 @@ function createDabEntityFromCandidate(
     candidate: Dab.DabEntityCandidate,
     existingEntityNames: Set<string>,
 ): Dab.DabEntityConfig | undefined {
-    if (
-        candidate.sourceType === "function" ||
-        candidate.sourceType === Dab.EntitySourceType.Table
-    ) {
+    if (candidate.sourceType === Dab.EntitySourceType.Table) {
         return undefined;
     }
 
@@ -183,29 +180,6 @@ function syncConfigWithEntityCandidates(
         .map((candidate) => createDabEntityFromCandidate(candidate, existingEntityNames))
         .filter((entity): entity is Dab.DabEntityConfig => !!entity);
 
-    console.log("[DAB candidates] sync candidates with config", {
-        existingEntityCount: visibleEntities.length,
-        candidateCount: candidates.length,
-        candidateTables: candidates.filter(
-            (candidate) => candidate.sourceType === Dab.EntitySourceType.Table,
-        ).length,
-        candidateViews: candidates.filter(
-            (candidate) => candidate.sourceType === Dab.EntitySourceType.View,
-        ).length,
-        candidateStoredProcedures: candidates.filter(
-            (candidate) => candidate.sourceType === Dab.EntitySourceType.StoredProcedure,
-        ).length,
-        candidateFunctions: candidates.filter((candidate) => candidate.sourceType === "function")
-            .length,
-        discoveredEntityCount: discoveredEntities.length,
-        discoveredViews: discoveredEntities.filter(
-            (entity) => entity.sourceType === Dab.EntitySourceType.View,
-        ).length,
-        discoveredStoredProcedures: discoveredEntities.filter(
-            (entity) => entity.sourceType === Dab.EntitySourceType.StoredProcedure,
-        ).length,
-    });
-
     if (discoveredEntities.length === 0) {
         return visibleEntities.length === config.entities.length
             ? config
@@ -253,17 +227,8 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
             getCurrentDabConfig: () => dabConfigRef.current,
             getCurrentSchemaTables: () => extractSchemaRef.current().tables,
             getDabEntityCandidates: async () => {
-                console.log("[DAB candidates] webview RPC handler requesting entity candidates");
                 const response = await extensionRpc.sendRequest(
                     Dab.GetEntityCandidatesRequest.type,
-                );
-                console.log(
-                    "[DAB candidates] webview RPC handler received entity candidates",
-                    response.entityCandidates.map((candidate) => ({
-                        id: candidate.id,
-                        sourceType: candidate.sourceType,
-                        isSupported: candidate.isSupported,
-                    })),
                 );
                 return response.entityCandidates;
             },
@@ -274,16 +239,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
     }, [extensionRpc, waitForInitialization]);
 
     const refreshDabEntityCandidates = useCallback(async () => {
-        console.log("[DAB candidates] refresh requested");
         const response = await extensionRpc.sendRequest(Dab.GetEntityCandidatesRequest.type);
-        console.log(
-            "[DAB candidates] refresh received",
-            response.entityCandidates.map((candidate) => ({
-                id: candidate.id,
-                sourceType: candidate.sourceType,
-                isSupported: candidate.isSupported,
-            })),
-        );
         setDabEntityCandidates(response.entityCandidates);
     }, [extensionRpc]);
 
@@ -307,43 +263,6 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 return prev;
             }
             const next = syncConfigWithEntityCandidates(prev, dabEntityCandidates);
-            if (next !== prev) {
-                console.log("[DAB candidates] merged candidates into config", {
-                    beforeEntityCount: prev.entities.length,
-                    afterEntityCount: next.entities.length,
-                    afterTables: next.entities.filter(
-                        (entity) =>
-                            (entity.sourceType ?? Dab.EntitySourceType.Table) ===
-                            Dab.EntitySourceType.Table,
-                    ).length,
-                    afterViews: next.entities.filter(
-                        (entity) => entity.sourceType === Dab.EntitySourceType.View,
-                    ).length,
-                    afterStoredProcedures: next.entities.filter(
-                        (entity) => entity.sourceType === Dab.EntitySourceType.StoredProcedure,
-                    ).length,
-                    addedEntities: next.entities
-                        .filter(
-                            (entity) =>
-                                !prev.entities.some(
-                                    (existing) =>
-                                        existing.id === entity.id ||
-                                        `${existing.sourceType ?? Dab.EntitySourceType.Table}:${existing.schemaName}.${existing.tableName}`.toLowerCase() ===
-                                            `${entity.sourceType ?? Dab.EntitySourceType.Table}:${entity.schemaName}.${entity.tableName}`.toLowerCase(),
-                                ),
-                        )
-                        .map((entity) => ({
-                            id: entity.id,
-                            sourceType: entity.sourceType,
-                            isSupported: entity.isSupported,
-                        })),
-                });
-            } else {
-                console.log("[DAB candidates] no new candidates merged", {
-                    entityCount: prev.entities.length,
-                    candidateCount: dabEntityCandidates.length,
-                });
-            }
             return next;
         });
     }, [dabConfig, dabEntityCandidates]);

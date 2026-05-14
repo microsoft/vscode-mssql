@@ -69,14 +69,6 @@ export interface IMetadataService {
     getStoredProcedures(ownerUri: string, databaseName?: string): Promise<ObjectMetadata[]>;
 
     /**
-     * Retrieves function object metadata directly from the database catalog.
-     *
-     * @param ownerUri - The URI identifying the connection
-     * @returns A Promise that resolves to function metadata
-     */
-    getFunctions(ownerUri: string, databaseName?: string): Promise<ObjectMetadata[]>;
-
-    /**
      * Retrieves column metadata for a specific table.
      *
      * @param ownerUri - The URI identifying the connection
@@ -249,10 +241,6 @@ export class MetadataService implements IMetadataService {
         databaseName?: string,
     ): Promise<Map<string, ColumnMetadata[]>> {
         try {
-            console.log("[DAB candidates] metadata bulk getAllViewInfo query", {
-                ownerUri,
-                databaseName,
-            });
             const result = await this._client.sendRequest(
                 new RequestType<
                     { ownerUri: string; queryString: string },
@@ -266,12 +254,7 @@ export class MetadataService implements IMetadataService {
                 },
             );
 
-            const viewInfo = getViewColumnsByObjectFromResult(result);
-            console.log("[DAB candidates] metadata bulk getAllViewInfo parsed", {
-                rowCount: result?.rowCount,
-                viewCount: viewInfo.size,
-            });
-            return viewInfo;
+            return getViewColumnsByObjectFromResult(result);
         } catch (error) {
             this._client.logger.error(getErrorMessage(error));
             throw error;
@@ -283,10 +266,6 @@ export class MetadataService implements IMetadataService {
         databaseName?: string,
     ): Promise<Map<string, StoredProcedureMetadataResult>> {
         try {
-            console.log("[DAB candidates] metadata bulk getAllStoredProcedureInfo query", {
-                ownerUri,
-                databaseName,
-            });
             const result = await this._client.sendRequest(
                 new RequestType<
                     { ownerUri: string; queryString: string },
@@ -300,12 +279,7 @@ export class MetadataService implements IMetadataService {
                 },
             );
 
-            const procedureInfo = getStoredProcedureParametersByObjectFromResult(result);
-            console.log("[DAB candidates] metadata bulk getAllStoredProcedureInfo parsed", {
-                rowCount: result?.rowCount,
-                storedProcedureCount: procedureInfo.size,
-            });
-            return procedureInfo;
+            return getStoredProcedureParametersByObjectFromResult(result);
         } catch (error) {
             this._client.logger.error(getErrorMessage(error));
             throw error;
@@ -313,10 +287,6 @@ export class MetadataService implements IMetadataService {
     }
 
     public async getViews(ownerUri: string, databaseName?: string): Promise<ObjectMetadata[]> {
-        console.log("[DAB candidates] metadata fallback getViews query", {
-            ownerUri,
-            databaseName,
-        });
         return this.getObjectListFromQuery(
             ownerUri,
             buildViewsQuery(databaseName),
@@ -329,25 +299,11 @@ export class MetadataService implements IMetadataService {
         ownerUri: string,
         databaseName?: string,
     ): Promise<ObjectMetadata[]> {
-        console.log("[DAB candidates] metadata fallback getStoredProcedures query", {
-            ownerUri,
-            databaseName,
-        });
         return this.getObjectListFromQuery(
             ownerUri,
             buildStoredProceduresQuery(databaseName),
             MetadataType.SProc,
             "StoredProcedure",
-        );
-    }
-
-    public async getFunctions(ownerUri: string, databaseName?: string): Promise<ObjectMetadata[]> {
-        console.log("[DAB candidates] metadata getFunctions query", { ownerUri, databaseName });
-        return this.getObjectListFromQuery(
-            ownerUri,
-            buildFunctionsQuery(databaseName),
-            MetadataType.Function,
-            "Function",
         );
     }
 
@@ -371,13 +327,7 @@ export class MetadataService implements IMetadataService {
                 },
             );
 
-            const metadata = getObjectMetadataFromResult(result, metadataType, metadataTypeName);
-            console.log("[DAB candidates] metadata fallback query parsed", {
-                metadataTypeName,
-                rowCount: result?.rowCount,
-                objectCount: metadata.length,
-            });
-            return metadata;
+            return getObjectMetadataFromResult(result, metadataType, metadataTypeName);
         } catch (error) {
             this._client.logger.error(getErrorMessage(error));
             throw error;
@@ -503,19 +453,6 @@ FROM ${databasePrefix}sys.procedures p
 INNER JOIN ${databasePrefix}sys.schemas s ON p.schema_id = s.schema_id
 WHERE s.name NOT IN (N'sys', N'INFORMATION_SCHEMA')
 ORDER BY s.name, p.name`;
-}
-
-function buildFunctionsQuery(databaseName?: string): string {
-    const databasePrefix = getDatabaseObjectPrefix(databaseName);
-    return `
-SELECT
-    s.name AS SchemaName,
-    o.name AS ObjectName
-FROM ${databasePrefix}sys.objects o
-INNER JOIN ${databasePrefix}sys.schemas s ON o.schema_id = s.schema_id
-WHERE o.type IN ('AF', 'FN', 'IF', 'TF')
-    AND s.name NOT IN (N'sys', N'INFORMATION_SCHEMA')
-ORDER BY s.name, o.name`;
 }
 
 function escapeSqlIdentifierPart(value: string): string {

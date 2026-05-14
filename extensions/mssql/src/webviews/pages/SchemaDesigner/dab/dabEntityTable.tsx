@@ -532,20 +532,6 @@ export const DabEntityTable = () => {
             }
             return changed ? next : prev;
         });
-
-        console.log("[DAB candidates] entity table config counts", {
-            total: dabConfig.entities.length,
-            tables: dabConfig.entities.filter(
-                (entity) => getEntitySourceType(entity) === Dab.EntitySourceType.Table,
-            ).length,
-            views: dabConfig.entities.filter(
-                (entity) => getEntitySourceType(entity) === Dab.EntitySourceType.View,
-            ).length,
-            storedProcedures: dabConfig.entities.filter(
-                (entity) => getEntitySourceType(entity) === Dab.EntitySourceType.StoredProcedure,
-            ).length,
-            schemaCount: schemaIds.size,
-        });
     }, [dabConfig]);
 
     const allActions = useMemo(

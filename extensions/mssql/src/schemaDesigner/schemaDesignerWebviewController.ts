@@ -121,20 +121,6 @@ function inferViewKeyFields(objectName: string, columns: ColumnMetadata[]): stri
     return firstColumn ? [getColumnName(firstColumn)] : [];
 }
 
-function getCountsBySchema(
-    objects: Array<{ schemaName?: string; schema?: string }>,
-): Record<string, number> {
-    return objects.reduce<Record<string, number>>((counts, object) => {
-        const schemaName = object.schemaName ?? object.schema ?? "";
-        if (!schemaName) {
-            return counts;
-        }
-
-        counts[schemaName] = (counts[schemaName] ?? 0) + 1;
-        return counts;
-    }, {});
-}
-
 export class SchemaDesignerWebviewController extends WebviewPanelController<
     SchemaDesigner.SchemaDesignerWebviewState,
     SchemaDesigner.SchemaDesignerReducers
@@ -718,7 +704,6 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
 
     private async getDabEntityCandidatesDeduped(): Promise<Dab.DabEntityCandidate[]> {
         if (this._dabEntityCandidatesPromise) {
-            console.log("[DAB candidates] reusing in-flight discovery request");
             return this._dabEntityCandidatesPromise;
         }
 
@@ -733,43 +718,18 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             .filter((table) => !isSystemSchema(table.schema))
             .map((table) => this.getTableDabEntityCandidate(table));
         const metadataConnectionUri = this.getDabMetadataConnectionUri();
-        console.log("[DAB candidates] extension host starting discovery", {
-            connectionUri: this.connectionUri,
-            metadataConnectionUri,
-            hasTreeNode: !!this.treeNode,
-            tableCandidateCount: tableCandidates.length,
-        });
 
         if (!metadataConnectionUri) {
-            console.log(
-                "[DAB candidates] no metadata connection URI; returning table candidates only",
-            );
             return tableCandidates;
         }
 
-        const [viewMetadata, storedProcedureMetadata, functionMetadata] = await Promise.all([
+        const [viewMetadata, storedProcedureMetadata] = await Promise.all([
             this.mainController.metadataService.getViews(metadataConnectionUri, this.databaseName),
             this.mainController.metadataService.getStoredProcedures(
                 metadataConnectionUri,
                 this.databaseName,
             ),
-            this.mainController.metadataService.getFunctions(
-                metadataConnectionUri,
-                this.databaseName,
-            ),
         ]);
-        console.log("[DAB candidates] catalog object queries returned", {
-            catalogViews: viewMetadata.length,
-            catalogStoredProcedures: storedProcedureMetadata.length,
-            catalogFunctions: functionMetadata.length,
-            viewSchemas: getCountsBySchema(viewMetadata),
-            storedProcedureSchemas: getCountsBySchema(storedProcedureMetadata),
-        });
-
-        console.log("[DAB candidates] loading bulk object metadata", {
-            views: viewMetadata.length,
-            storedProcedures: storedProcedureMetadata.length,
-        });
 
         const [viewInfoByObject, storedProcedureInfoByObject] = await Promise.all([
             viewMetadata.length > 0
@@ -802,51 +762,20 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 )?.parameters ?? [],
             ),
         );
-        const functionCandidates = functionMetadata.map((func) => ({
-            id: `function:${func.schema}.${func.name}`,
-            sourceType: "function" as const,
-            schemaName: func.schema,
-            objectName: func.name,
-            displayName: `${func.schema}.${func.name}`,
-            isSupported: false,
-            unsupportedReason: "DAB does not support functions as entity sources.",
-        }));
 
-        const candidates = [
-            ...tableCandidates,
-            ...viewCandidates,
-            ...storedProcedureCandidates,
-            ...functionCandidates,
-        ].sort((a, b) => {
-            const bySchema = a.schemaName.localeCompare(b.schemaName);
-            if (bySchema !== 0) {
-                return bySchema;
-            }
-            const byType = a.sourceType.localeCompare(b.sourceType);
-            if (byType !== 0) {
-                return byType;
-            }
-            return a.objectName.localeCompare(b.objectName);
-        });
-
-        console.log("[DAB candidates] extension host returning candidates", {
-            total: candidates.length,
-            tables: candidates.filter((item) => item.sourceType === Dab.EntitySourceType.Table)
-                .length,
-            views: candidates.filter((item) => item.sourceType === Dab.EntitySourceType.View)
-                .length,
-            storedProcedures: candidates.filter(
-                (item) => item.sourceType === Dab.EntitySourceType.StoredProcedure,
-            ).length,
-            unsupported: candidates.filter((item) => !item.isSupported).length,
-            sample: candidates.slice(0, 10).map((candidate) => ({
-                id: candidate.id,
-                sourceType: candidate.sourceType,
-                isSupported: candidate.isSupported,
-            })),
-        });
-
-        return candidates;
+        return [...tableCandidates, ...viewCandidates, ...storedProcedureCandidates].sort(
+            (a, b) => {
+                const bySchema = a.schemaName.localeCompare(b.schemaName);
+                if (bySchema !== 0) {
+                    return bySchema;
+                }
+                const byType = a.sourceType.localeCompare(b.sourceType);
+                if (byType !== 0) {
+                    return byType;
+                }
+                return a.objectName.localeCompare(b.objectName);
+            },
+        );
     }
 
     private getDabMetadataConnectionUri(): string | undefined {

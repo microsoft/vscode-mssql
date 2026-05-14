@@ -72,7 +72,7 @@ export namespace Dab {
 
     export interface DabEntityCandidate {
         id: string;
-        sourceType: EntitySourceType | "function";
+        sourceType: EntitySourceType;
         schemaName: string;
         objectName: string;
         displayName: string;
