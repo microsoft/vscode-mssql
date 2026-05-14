@@ -9940,13 +9940,13 @@ Nachdem Sie Ihre Änderungen vorgenommen haben, klicken Sie auf die Schaltfläch
         <source xml:lang="en">Estimated Plan (MSSQL)</source>
         <target state="translated">Geschätzter Plan (MSSQL)</target>
       </trans-unit>
+      <trans-unit id="mssql.runCurrentStatement">
+        <source xml:lang="en">Execute Current Statement (MSSQL)</source>
+        <target state="translated">Aktuelle Anweisung ausführen (MSSQL)</target>
+      </trans-unit>
       <trans-unit id="mssql.runQuery">
         <source xml:lang="en">Execute Query (MSSQL)</source>
         <target state="translated">Abfrage ausführen (MSSQL)</target>
-      </trans-unit>
-      <trans-unit id="mssql.runCurrentStatement">
-        <source xml:lang="en">Execute Selection or Current Statement (MSSQL)</source>
-        <target state="new">Execute Selection or Current Statement (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.explainQuery">
         <source xml:lang="en">Explain Query</source>

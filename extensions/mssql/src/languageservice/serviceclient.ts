@@ -35,7 +35,6 @@ import { getAppDataPath, getEnableConnectionPoolingConfig } from "../azure/utils
 import { serviceName } from "../azure/constants";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { PreviewFeature, previewService } from "../previews/previewService";
 import { getRuntimeConfigPath, ServiceExecutable } from "./serviceExecutablePaths";
 
 const STS_OVERRIDE_ENV_VAR = "MSSQL_SQLTOOLSSERVICE";
@@ -563,13 +562,8 @@ export default class SqlToolsServiceClient {
             args.push("--vscode-debug-launch");
         }
 
-        // When the VS Code accounts preview is enabled, delegate MFA token acquisition to the
-        // client via AccessTokenCallback. Otherwise use MSAL via SqlAuthenticationProvider.
-        if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
-            args.push("--request-mfa-token-from-client");
-        } else {
-            args.push("--enable-sql-authentication-provider");
-        }
+        // Enable SQL Auth Provider registration for Azure MFA Authentication
+        args.push("--enable-sql-authentication-provider");
 
         // Enable Connection pooling to improve connection performance
         const enableConnectionPooling = getEnableConnectionPoolingConfig();

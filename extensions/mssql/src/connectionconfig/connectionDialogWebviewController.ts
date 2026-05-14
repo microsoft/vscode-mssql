@@ -749,18 +749,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 this.updateState(state);
             }
 
+            const existingAccounts = state.azureAccounts.map((a) => a.id);
+
             try {
-                const signInResult = await VsCodeAzureHelper.signIn(true /* forceSignInPrompt */);
-
-                state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map(
-                    (a) =>
-                        ({
-                            id: a.id,
-                            name: a.label,
-                        }) as IAzureAccount,
-                );
-
-                state.selectedAccountId = signInResult.newAccountId ?? state.azureAccounts[0]?.id;
+                await VsCodeAzureHelper.signIn(true /* forceSignInPrompt */);
             } catch (error) {
                 this.logger.error("Error signing into Azure: " + getErrorMessage(error));
                 state.formMessage = {
@@ -769,6 +761,18 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
                 return state;
             }
+
+            state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => {
+                return {
+                    id: a.id,
+                    name: a.label,
+                } as IAzureAccount;
+            });
+
+            // find the account that was added, and select it
+            state.selectedAccountId = state.azureAccounts.find(
+                (a) => !existingAccounts.includes(a.id),
+            )?.id;
 
             state.loadingAzureAccountsStatus = ApiStatus.Loaded;
             this.updateState(state);
@@ -785,7 +789,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         this.registerReducer("signIntoAzureTenantForBrowse", async (state) => {
             let auth: MssqlVSCodeAzureSubscriptionProvider;
             try {
-                auth = (await VsCodeAzureHelper.signIn()).auth;
+                auth = await VsCodeAzureHelper.signIn();
             } catch (error) {
                 this.logger.error("Error signing into Azure: " + getErrorMessage(error));
                 state.formMessage = {
@@ -2375,7 +2379,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             // Step 2: We have accounts; initialize provider (should not force prompt)
             let auth: MssqlVSCodeAzureSubscriptionProvider;
             try {
-                auth = (await VsCodeAzureHelper.signIn()).auth;
+                auth = await VsCodeAzureHelper.signIn();
             } catch (error) {
                 state.formMessage = {
                     message: LocAzure.errorSigningIntoAzure(getErrorMessage(error)),

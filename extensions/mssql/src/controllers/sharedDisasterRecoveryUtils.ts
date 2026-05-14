@@ -33,7 +33,8 @@ export async function getAzureActionButton(
                 : LocConstants.ConnectionDialog.addAccount,
         id: "azureSignIn",
         callback: async () => {
-            await VsCodeAzureHelper.signIn(true /* forceSignInPrompt */);
+            // Force sign in prompt
+            await VsCodeAzureHelper.signIn(true);
 
             const accountsComponent = state.formComponents[accountFormComponentId];
 

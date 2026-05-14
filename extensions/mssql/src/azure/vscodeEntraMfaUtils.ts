@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import { AzureTenant, getSessionFromVSCode } from "@microsoft/vscode-azext-azureauth";
 
 import { FormItemOptions } from "../sharedInterfaces/form";
-import { IProviderResources, IToken } from "../models/contracts/azure";
+import { IToken } from "../models/contracts/azure";
 import { getCloudProviderSettings } from "./providerSettings";
 import { VsCodeAzureHelper, getDefaultTenantId } from "../connectionconfig/azureHelpers";
 import * as locConstants from "../constants/locConstants";
@@ -91,12 +91,7 @@ export async function getVscodeEntraTenantOptions(accountId?: string): Promise<F
     }));
 }
 
-/**
- * Acquires an access token for the given resource from VS Code's authentication provider.
- * Shared implementation for SQL and Azure Key Vault token acquisition.
- */
-export async function acquireTokenFromVscodeAccountForResource(
-    resourceEndpoint: string,
+export async function acquireSqlAccessTokenFromVscodeAccount(
     accountId?: string,
     tenantId?: string,
     accountLabel?: string,
@@ -126,13 +121,21 @@ export async function acquireTokenFromVscodeAccountForResource(
         );
     }
 
+    const cloudSettings = getCloudProviderSettings();
+    const sqlResource = cloudSettings.settings.sqlResource;
+    if (!sqlResource) {
+        throw new Error(
+            locConstants.Azure.noSqlResourceConfiguredForCurrentCloud(cloudSettings.displayName),
+        );
+    }
+
     const session =
-        (await getSessionFromVSCode(resourceEndpoint, resolvedTenantId, {
+        (await getSessionFromVSCode(sqlResource.endpoint, resolvedTenantId, {
             createIfNone: false,
             silent: true,
             account,
         })) ??
-        (await getSessionFromVSCode(resourceEndpoint, resolvedTenantId, {
+        (await getSessionFromVSCode(sqlResource.endpoint, resolvedTenantId, {
             createIfNone: true,
             account,
         }));
@@ -154,22 +157,6 @@ export async function acquireTokenFromVscodeAccountForResource(
             expiresOn: getTokenExpiration(session.accessToken),
         },
     };
-}
-
-export function getCloudResourceEndpoint(endpoint: keyof IProviderResources): string {
-    const cloudSettings = getCloudProviderSettings();
-    const resource = cloudSettings.settings[endpoint];
-
-    if (!resource) {
-        throw new Error(
-            locConstants.Azure.noResourceConfiguredForCurrentCloud(
-                endpoint,
-                cloudSettings.displayName,
-            ),
-        );
-    }
-
-    return resource.endpoint;
 }
 
 function getTokenExpiration(accessToken: string): number | undefined {

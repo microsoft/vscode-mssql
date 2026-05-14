@@ -1203,7 +1203,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
             const signInStub = sandbox
                 .stub(AzureHelpers.VsCodeAzureHelper, "signIn")
-                .resolves({ auth: fakeAuth, newAccountId: mockAccounts.signedInAccount.id });
+                .resolves(fakeAuth);
             const signInToTenantStub = sandbox
                 .stub(AzureHelpers.VsCodeAzureAuth, "signInToTenant")
                 .resolves();
@@ -1256,8 +1256,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
     });
 
     test("getAzureActionButtons", async () => {
-        // Tests the MSAL path (non-VS-Code-accounts)
-        stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: false });
         controller.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
         controller.state.connectionProfile.accountId = "TestEntraAccountId";
 
@@ -1291,7 +1289,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
     });
 
     test("getAzureActionButtons shows error prompt with refreshTokenLabel when token validation fails", async () => {
-        stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: false });
         controller.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
         controller.state.connectionProfile.accountId = "TestUserId";
 
@@ -1307,7 +1304,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
     });
 
     test("getAzureActionButtons error prompt: selecting refresh triggers a refresh attempt", async () => {
-        stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: false });
         const clock = sinon.useFakeTimers();
         try {
             controller.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
@@ -1330,7 +1326,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
     });
 
     test("getAzureActionButtons error prompt: dismissing does not trigger a refresh attempt", async () => {
-        stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: false });
         const clock = sinon.useFakeTimers();
         try {
             controller.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;

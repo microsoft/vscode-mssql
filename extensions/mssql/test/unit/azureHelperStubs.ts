@@ -153,16 +153,13 @@ export function stubIsSignedIn(sandbox: Sinon.SinonSandbox, result: boolean) {
 
 export function stubVscodeAzureSignIn(sandbox: sinon.SinonSandbox) {
     return sandbox.stub(AzureHelpers.VsCodeAzureHelper, "signIn").resolves({
-        auth: {
-            getSubscriptions: () => Promise.resolve(mockSubscriptions),
-            getTenants: () =>
-                Promise.resolve(
-                    mockTenants.filter((t) => t.account.id === mockAccounts.signedInAccount.id),
-                ),
-            getUnauthenticatedTenants: () => Promise.resolve([]),
-        } as unknown as MssqlVSCodeAzureSubscriptionProvider,
-        newAccountId: mockAccounts.signedInAccount.id,
-    });
+        getSubscriptions: () => Promise.resolve(mockSubscriptions),
+        getTenants: () =>
+            Promise.resolve(
+                mockTenants.filter((t) => t.account.id === mockAccounts.signedInAccount.id),
+            ),
+        getUnauthenticatedTenants: () => Promise.resolve([]),
+    } as unknown as MssqlVSCodeAzureSubscriptionProvider);
 }
 
 export function stubVscodeAzureHelperGetAccounts(sandbox: sinon.SinonSandbox) {

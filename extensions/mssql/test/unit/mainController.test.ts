@@ -29,16 +29,9 @@ type MainControllerTestAccess = {
     validateTextDocumentHasFocus(): boolean;
     _vscodeWrapper: {
         activeTextEditorUri?: string;
-        activeTextEditor?: vscode.TextEditor;
         isEditingSqlFile?: boolean;
         showInformationMessage(message: string): Thenable<unknown> | void;
-        showErrorMessage?(message: string): Thenable<unknown> | void;
     };
-    _outputContentProvider: {
-        runCurrentStatement: sinon.SinonStub;
-        runQuery: sinon.SinonStub;
-    };
-    _statusview: unknown;
     openCopilotChatFromUi(args?: CopilotChat.OpenFromUiArgs): Promise<void>;
     findChatOpenAgentCommand(): Promise<string | undefined>;
     registerLanguageModelTools(): void;
@@ -64,24 +57,6 @@ suite("MainController Tests", function () {
                 uri: vscode.Uri.parse(uri),
                 languageId,
             },
-        } as unknown as vscode.TextEditor;
-    }
-
-    function createQueryTextEditor(
-        selection: vscode.Selection,
-        fullText: string,
-        selectedText?: string,
-        selections: vscode.Selection[] = [selection],
-    ): vscode.TextEditor {
-        return {
-            document: {
-                uri: vscode.Uri.parse("file:///test/query.sql"),
-                fileName: "query.sql",
-                languageId: Constants.languageId,
-                getText: (range?: vscode.Range) => (range ? (selectedText ?? "") : fullText),
-            },
-            selection,
-            selections,
         } as unknown as vscode.TextEditor;
     }
 
@@ -154,119 +129,6 @@ suite("MainController Tests", function () {
         await controller.onManageProfiles();
 
         expect(connectionManager.onManageProfiles).to.have.been.called;
-    });
-
-    suite("onRunCurrentStatement Tests", () => {
-        let controllerAccess: MainControllerTestAccess;
-        let runCurrentStatementStub: sinon.SinonStub;
-        let runQueryStub: sinon.SinonStub;
-        let statusView: unknown;
-
-        setup(() => {
-            controllerAccess = accessMainController(mainController);
-            sandbox.stub(mainController, "ensureReadyToExecuteQuery").resolves(true);
-            sandbox.stub(vscodeWrapper, "activeTextEditorUri").get(() => "file:///test/query.sql");
-
-            runCurrentStatementStub = sandbox.stub().resolves();
-            runQueryStub = sandbox.stub().resolves();
-            controllerAccess._outputContentProvider = {
-                runCurrentStatement: runCurrentStatementStub,
-                runQuery: runQueryStub,
-            };
-            statusView = {};
-            controllerAccess._statusview = statusView;
-        });
-
-        test("runs the current statement when there is no selection", async () => {
-            const selection = new vscode.Selection(1, 7, 1, 7);
-            sandbox
-                .stub(vscodeWrapper, "activeTextEditor")
-                .get(() => createQueryTextEditor(selection, "select 'a';\nselect 'b';"));
-
-            await mainController.onRunCurrentStatement();
-
-            expect(runCurrentStatementStub).to.have.been.calledOnceWithExactly(
-                statusView,
-                "file:///test/query.sql",
-                {
-                    startLine: 1,
-                    startColumn: 7,
-                    endLine: 0,
-                    endColumn: 0,
-                },
-                "query.sql",
-            );
-            expect(runQueryStub).to.not.have.been.called;
-        });
-
-        test("runs selected text when there is a non-empty selection", async () => {
-            const selection = new vscode.Selection(0, 0, 0, 11);
-            sandbox
-                .stub(vscodeWrapper, "activeTextEditor")
-                .get(() =>
-                    createQueryTextEditor(selection, "select 'a'; select 'b';", "select 'a';"),
-                );
-
-            await mainController.onRunCurrentStatement();
-
-            expect(runQueryStub).to.have.been.calledOnceWithExactly(
-                statusView,
-                "file:///test/query.sql",
-                {
-                    startLine: 0,
-                    startColumn: 0,
-                    endLine: 0,
-                    endColumn: 11,
-                },
-                "query.sql",
-            );
-            expect(runCurrentStatementStub).to.not.have.been.called;
-        });
-
-        test("does not execute when the selection contains only whitespace", async () => {
-            const selection = new vscode.Selection(0, 0, 0, 4);
-            sandbox
-                .stub(vscodeWrapper, "activeTextEditor")
-                .get(() => createQueryTextEditor(selection, "    select 'a';", "    "));
-
-            await mainController.onRunCurrentStatement();
-
-            expect(runQueryStub).to.not.have.been.called;
-            expect(runCurrentStatementStub).to.not.have.been.called;
-        });
-
-        test("shows an error and does not execute when there are multiple selections", async () => {
-            const selection = new vscode.Selection(0, 0, 0, 11);
-            const secondSelection = new vscode.Selection(1, 0, 1, 11);
-            sandbox
-                .stub(vscodeWrapper, "activeTextEditor")
-                .get(() =>
-                    createQueryTextEditor(selection, "select 'a';\nselect 'b';", "select 'a';", [
-                        selection,
-                        secondSelection,
-                    ]),
-                );
-
-            await mainController.onRunCurrentStatement();
-
-            expect(vscodeWrapper.showErrorMessage).to.have.been.calledOnceWithExactly(
-                LocalizedConstants.msgMultipleSelectionModeNotSupported,
-            );
-            expect(runQueryStub).to.not.have.been.called;
-            expect(runCurrentStatementStub).to.not.have.been.called;
-        });
-
-        test("does not execute when the document is empty", async () => {
-            const selection = new vscode.Selection(0, 0, 0, 0);
-            sandbox
-                .stub(vscodeWrapper, "activeTextEditor")
-                .get(() => createQueryTextEditor(selection, ""));
-
-            await mainController.onRunCurrentStatement();
-
-            expect(runQueryStub).to.not.have.been.called;
-            expect(runCurrentStatementStub).to.not.have.been.called;
-        });
     });
 
     test("Proxy settings are checked on initialization", async () => {
