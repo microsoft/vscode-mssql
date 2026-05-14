@@ -347,7 +347,7 @@ export class LocConstants {
             connection: l10n.t("Connection"),
             openOnly: l10n.t("Open"),
             openAndRun: l10n.t("Open and run"),
-            activeOrPrompt: l10n.t("Active"),
+            activeOrPrompt: l10n.t("Active or prompt"),
             prompt: l10n.t("Prompt"),
             record: l10n.t("Record"),
             recording: l10n.t("Press keys"),

@@ -149,11 +149,11 @@
     <trans-unit id="++CODE++ff8059dc6752afdd30d275932b1d5031a2ec854b387a8c57ecc6689915293a43">
       <source xml:lang="en">Actions</source>
     </trans-unit>
-    <trans-unit id="++CODE++92340695899bd2d86223e4a007620e0d6502fc0e08809773634c7e0743764a9c">
-      <source xml:lang="en">Active</source>
-    </trans-unit>
     <trans-unit id="++CODE++2c599b85806c57eccd08af9ac2bfb4a6f1f81b2ea125bdca3fdb22dc902695e3">
       <source xml:lang="en">Active filters:</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3c3a36043dbcbc1a8e9693bcabdac976a69574c8a3f0163b3d9f3470449012e7">
+      <source xml:lang="en">Active or prompt</source>
     </trans-unit>
     <trans-unit id="++CODE++0fee17081211a1d4460499aa376fa2a12beb83c33a43e14f1832a72901f3ed1c">
       <source xml:lang="en">Actual Elapsed CPU Time</source>
@@ -6659,6 +6659,9 @@
       <source xml:lang="en">The following workspace or workspace folder connections are missing the &apos;id&apos; property and are being ignored.  Please manually add the &apos;id&apos; property to the connection in order to use it. &#10;&#10; {0}</source>
       <note>{0} is the list of display names for the connections that have been ignored</note>
     </trans-unit>
+    <trans-unit id="++CODE++ef3e06f1f4b57a660476e7a2a516027891eaead6d659bccee660c7e1c8229550">
+      <source xml:lang="en">The keybindings file has been opened for manual editing.</source>
+    </trans-unit>
     <trans-unit id="++CODE++0f98888ce39572ae27e642dd46baba8dbf179c6b3c42c522cde8ad1f43323b11">
       <source xml:lang="en">The language model did not return any output.</source>
     </trans-unit>
@@ -8354,7 +8357,7 @@
       <source xml:lang="en">Use only row data to size columns automatically</source>
     </trans-unit>
     <trans-unit id="mssql.quickQueries.connectionMode.activeOrPrompt">
-      <source xml:lang="en">Use the active SQL editor connection.</source>
+      <source xml:lang="en">Use the active SQL editor connection when one is available; otherwise prompt for a connection.</source>
     </trans-unit>
     <trans-unit id="mssql.preview.useVscodeAccountsForEntraMFA.description">
       <source xml:lang="en">Uses VS Code signed-in accounts for Microsoft Entra ID MFA authentication to SQL. Restart Visual Studio Code after changing this setting.</source>

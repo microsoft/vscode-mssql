@@ -294,7 +294,7 @@
     "mssql.quickQueries.executionMode.open": "Open the query in a SQL editor.",
     "mssql.quickQueries.executionMode.openAndRun": "Open the query in a SQL editor and run it immediately.",
     "mssql.quickQueries.connectionMode": "Controls how this Quick Query chooses a SQL connection.",
-    "mssql.quickQueries.connectionMode.activeOrPrompt": "Use the active SQL editor connection.",
+    "mssql.quickQueries.connectionMode.activeOrPrompt": "Use the active SQL editor connection when one is available; otherwise prompt for a connection.",
     "mssql.quickQueries.connectionMode.prompt": "Prompt for a connection.",
     "mssql.quickQueries.run1": "Run Quick Query 1",
     "mssql.quickQueries.run2": "Run Quick Query 2",

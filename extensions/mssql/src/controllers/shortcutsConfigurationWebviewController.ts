@@ -106,7 +106,7 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
                     } catch (error) {
                         await this.keybindingsService.openKeybindingsFile();
                         throw new Error(
-                            `${getErrorMessage(error)} The keybindings file has been opened for manual editing.`,
+                            `${getErrorMessage(error)} ${Loc.keybindingsFileOpenedForManualEditing}`,
                         );
                     }
                 }

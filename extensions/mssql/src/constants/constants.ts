@@ -37,7 +37,6 @@ export const cmdRunQuery = "mssql.runQuery";
 export const cmdRunQueryWithUriOwnership = "mssql.runQueryWithUriOwnership";
 export const cmdRunCurrentStatement = "mssql.runCurrentStatement";
 export const cmdOpenShortcutsConfiguration = "mssql.shortcutsConfiguration.open";
-export const cmdQuickQueryPrefix = "mssql.quickQueries.run";
 export const cmdCancelQuery = "mssql.cancelQuery";
 export const cmdRevealQueryResult = "mssql.revealQueryResult";
 export const cmdToggleQueryResultPanel = "mssql.toggleQueryResultPanel";

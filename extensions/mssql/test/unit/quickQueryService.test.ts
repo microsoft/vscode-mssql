@@ -21,12 +21,21 @@ import {
 import { ConnectionStrategy, NewQueryOptions } from "../../src/controllers/sqlDocumentService";
 
 suite("Quick Query Service", () => {
+    let sandbox: sinon.SinonSandbox;
     const editor = {
         document: {
             uri: vscode.Uri.parse("untitled:quick-query.sql"),
             fileName: "quick-query.sql",
         },
     } as vscode.TextEditor;
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
+    });
+
+    teardown(() => {
+        sandbox.restore();
+    });
 
     test("normalizes Quick Query config to ten slots", () => {
         const quickQueries = normalizeQuickQueries([
@@ -94,25 +103,25 @@ suite("Quick Query Service", () => {
     });
 
     test("opens configuration for an empty slot", async () => {
-        const openConfiguration = sinon.stub();
+        const openConfiguration = sandbox.stub();
         const service = new QuickQueryService({
             readQuickQueries: () => normalizeQuickQueries(undefined),
             openConfiguration,
-            getActiveSqlEditorConnectionInfo: sinon.stub(),
-            createSqlEditor: sinon.stub(),
-            isSqlEditorConnected: sinon.stub(),
-            runSqlEditorQuery: sinon.stub(),
+            getActiveSqlEditorConnectionInfo: sandbox.stub(),
+            createSqlEditor: sandbox.stub(),
+            isSqlEditorConnected: sandbox.stub(),
+            runSqlEditorQuery: sandbox.stub(),
         });
 
         const result = await service.run(3);
 
         expect(result).to.equal(QuickQueryRunResult.OpenedConfiguration);
-        expect(openConfiguration.calledOnceWith(3)).to.equal(true);
+        expect(openConfiguration).to.have.been.calledWith(3);
     });
 
     test("opens without running when execution mode is open", async () => {
-        const createSqlEditor = sinon.stub().resolves(editor);
-        const runSqlEditorQuery = sinon.stub().resolves();
+        const createSqlEditor = sandbox.stub().resolves(editor);
+        const runSqlEditorQuery = sandbox.stub().resolves();
         const service = new QuickQueryService({
             readQuickQueries: () =>
                 normalizeQuickQueries([
@@ -123,11 +132,11 @@ suite("Quick Query Service", () => {
                         connectionMode: QuickQueryConnectionMode.ActiveOrPrompt,
                     },
                 ]),
-            openConfiguration: sinon.stub(),
+            openConfiguration: sandbox.stub(),
             getActiveSqlEditorConnectionInfo: () =>
                 ({ server: "localhost" }) as unknown as IConnectionInfo,
             createSqlEditor,
-            isSqlEditorConnected: sinon.stub().returns(true),
+            isSqlEditorConnected: sandbox.stub().returns(true),
             runSqlEditorQuery,
         });
 
@@ -140,7 +149,7 @@ suite("Quick Query Service", () => {
     });
 
     test("runs when execution mode is openAndRun and editor is connected", async () => {
-        const runSqlEditorQuery = sinon.stub().resolves();
+        const runSqlEditorQuery = sandbox.stub().resolves();
         const service = new QuickQueryService({
             readQuickQueries: () =>
                 normalizeQuickQueries([
@@ -151,17 +160,17 @@ suite("Quick Query Service", () => {
                         connectionMode: QuickQueryConnectionMode.Prompt,
                     },
                 ]),
-            openConfiguration: sinon.stub(),
+            openConfiguration: sandbox.stub(),
             getActiveSqlEditorConnectionInfo: () =>
                 ({ server: "localhost" }) as unknown as IConnectionInfo,
-            createSqlEditor: sinon.stub().resolves(editor),
-            isSqlEditorConnected: sinon.stub().returns(true),
+            createSqlEditor: sandbox.stub().resolves(editor),
+            isSqlEditorConnected: sandbox.stub().returns(true),
             runSqlEditorQuery,
         });
 
         const result = await service.run(1);
 
         expect(result).to.equal(QuickQueryRunResult.OpenedAndRan);
-        expect(runSqlEditorQuery.calledOnceWith(editor)).to.equal(true);
+        expect(runSqlEditorQuery).to.have.been.calledWith(editor);
     });
 });

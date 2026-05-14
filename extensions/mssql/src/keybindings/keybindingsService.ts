@@ -25,6 +25,21 @@ export interface CommandKeybindingUpdate {
 
 const defaultKeybindingsText = "[\n]\n";
 
+function getPlatformKeybinding(rule: KeybindingRule): string | undefined {
+    const platformKey =
+        process.platform === "darwin"
+            ? rule.mac
+            : process.platform === "win32"
+              ? rule.win
+              : rule.linux;
+
+    return typeof platformKey === "string"
+        ? platformKey
+        : typeof rule.key === "string"
+          ? rule.key
+          : undefined;
+}
+
 function getFormattingOptions(text: string) {
     const eol = text.includes("\r\n") ? "\r\n" : "\n";
     return {
@@ -134,10 +149,11 @@ export class KeybindingsService {
         const result: Record<string, string> = {};
 
         for (const commandId of commandIds) {
-            const matchingRules = rules.filter(
-                (rule) => rule.command === commandId && typeof rule.key === "string",
-            );
-            result[commandId] = matchingRules[matchingRules.length - 1]?.key ?? "";
+            const matchingRules = rules
+                .filter((rule) => rule.command === commandId)
+                .map(getPlatformKeybinding)
+                .filter((key): key is string => typeof key === "string");
+            result[commandId] = matchingRules[matchingRules.length - 1] ?? "";
         }
 
         return result;

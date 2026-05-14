@@ -133,20 +133,16 @@ suite("shortcutsConfiguration Webview Controller", () => {
             },
         });
 
-        expect(
-            updateConfigurationStub.calledWith(
-                Constants.configQuickQueries,
-                sinon.match.array,
-                vscode.ConfigurationTarget.Global,
-            ),
-        ).to.equal(true);
-        expect(
-            updateConfigurationStub.calledWith(
-                Constants.configShortcuts,
-                { [WebviewAction.ResultGridSelectAll]: "ctrl+shift+a" },
-                vscode.ConfigurationTarget.Global,
-            ),
-        ).to.equal(true);
+        expect(updateConfigurationStub).to.have.been.calledWith(
+            Constants.configQuickQueries,
+            sinon.match.array,
+            vscode.ConfigurationTarget.Global,
+        );
+        expect(updateConfigurationStub).to.have.been.calledWith(
+            Constants.configShortcuts,
+            { [WebviewAction.ResultGridSelectAll]: "ctrl+shift+a" },
+            vscode.ConfigurationTarget.Global,
+        );
         keybindingsText = fs.readFileSync(keybindingsFilePath, "utf-8");
 
         const quickQueries = normalizeQuickQueries(quickQueriesSetting);
