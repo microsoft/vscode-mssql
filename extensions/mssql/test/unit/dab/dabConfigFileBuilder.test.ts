@@ -319,6 +319,86 @@ suite("DabConfigFileBuilder Tests", () => {
                 expect(parsed.entities).to.have.property("User");
                 expect(parsed.entities).to.not.have.property("tbl_users");
             });
+
+            test("should generate view sources with key fields", () => {
+                const config = createTestConfig({
+                    entities: [
+                        createTestEntity({
+                            sourceType: Dab.EntitySourceType.View,
+                            tableName: "ActiveUsers",
+                            schemaName: "reporting",
+                            keyFields: ["Id"],
+                            enabledActions: [Dab.EntityAction.Read],
+                            advancedSettings: {
+                                entityName: "ActiveUser",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                            },
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+                expect(parsed.entities.ActiveUser.source).to.deep.equal({
+                    type: "view",
+                    object: "reporting.ActiveUsers",
+                    "key-fields": ["Id"],
+                });
+            });
+
+            test("should generate stored procedure sources with parameters and custom tool settings", () => {
+                const config = createTestConfig({
+                    apiTypes: [Dab.ApiType.Rest, Dab.ApiType.GraphQL, Dab.ApiType.Mcp],
+                    entities: [
+                        createTestEntity({
+                            sourceType: Dab.EntitySourceType.StoredProcedure,
+                            tableName: "SearchUsers",
+                            schemaName: "dbo",
+                            parameters: [
+                                { name: "StartsWith", required: false, description: "Name prefix" },
+                            ],
+                            restMethods: [
+                                Dab.StoredProcedureRestMethod.Get,
+                                Dab.StoredProcedureRestMethod.Post,
+                            ],
+                            graphQLOperation: Dab.StoredProcedureGraphQLOperation.Query,
+                            mcp: {
+                                customTool: true,
+                            },
+                            advancedSettings: {
+                                entityName: "SearchUsers",
+                                authorizationRole: Dab.AuthorizationRole.Authenticated,
+                                customRestPath: "/search-users",
+                                customGraphQLType: "SearchUsersResult",
+                            },
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+                const entity = parsed.entities.SearchUsers;
+
+                expect(entity.source).to.deep.equal({
+                    type: "stored-procedure",
+                    object: "dbo.SearchUsers",
+                    parameters: [
+                        { name: "StartsWith", required: false, description: "Name prefix" },
+                    ],
+                });
+                expect(entity.rest).to.deep.equal({
+                    path: "/search-users",
+                    methods: ["get", "post"],
+                });
+                expect(entity.graphql).to.deep.equal({
+                    type: "SearchUsersResult",
+                    operation: "query",
+                });
+                expect(entity.mcp).to.deep.equal({
+                    "custom-tool": true,
+                });
+                expect(entity.permissions[0].actions).to.deep.equal(["execute"]);
+            });
         });
 
         suite("entity REST property", () => {
@@ -550,6 +630,41 @@ suite("DabConfigFileBuilder Tests", () => {
         });
 
         suite("full integration", () => {
+            test("should preserve fullConfig edits while refreshing connection string", () => {
+                const config = createTestConfig({
+                    fullConfig: {
+                        "data-source": {
+                            "database-type": "mssql",
+                            "connection-string": "old",
+                        },
+                        runtime: {
+                            rest: {
+                                enabled: true,
+                                path: "/api2",
+                            },
+                        },
+                        entities: {
+                            Users: {
+                                source: {
+                                    type: "table",
+                                    object: "dbo.Users",
+                                },
+                                permissions: [{ role: "anonymous", actions: ["read"] }],
+                            },
+                        },
+                    },
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+
+                expect(parsed["data-source"]["connection-string"]).to.equal(
+                    defaultConnectionInfo.connectionString,
+                );
+                expect(parsed.runtime.rest.path).to.equal("/api2");
+                expect(parsed.entities.Users.source.object).to.equal("dbo.Users");
+            });
+
             test("should generate complete config with multiple entities and mixed settings", () => {
                 const config = createTestConfig({
                     apiTypes: [Dab.ApiType.Rest, Dab.ApiType.GraphQL],

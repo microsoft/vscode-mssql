@@ -38,6 +38,56 @@ export namespace Dab {
         Authenticated = "authenticated",
     }
 
+    export enum EntitySourceType {
+        Table = "table",
+        View = "view",
+        StoredProcedure = "stored-procedure",
+    }
+
+    export enum StoredProcedureGraphQLOperation {
+        Mutation = "mutation",
+        Query = "query",
+    }
+
+    export enum StoredProcedureRestMethod {
+        Get = "get",
+        Post = "post",
+        Put = "put",
+        Patch = "patch",
+        Delete = "delete",
+    }
+
+    export interface StoredProcedureParameter {
+        name: string;
+        required?: boolean;
+        default?: string | number | boolean | null;
+        description?: string;
+    }
+
+    export interface DabEntityCandidateField {
+        name: string;
+        isKey?: boolean;
+        dataType?: string;
+    }
+
+    export interface DabEntityCandidate {
+        id: string;
+        sourceType: EntitySourceType | "function";
+        schemaName: string;
+        objectName: string;
+        displayName: string;
+        isSupported: boolean;
+        unsupportedReason?: string;
+        fields?: DabEntityCandidateField[];
+        keyFields?: string[];
+        parameters?: StoredProcedureParameter[];
+    }
+
+    export interface EntityMcpSettings {
+        dmlTools?: boolean;
+        customTool?: boolean;
+    }
+
     /**
      * Advanced configuration options for an entity
      */
@@ -107,6 +157,30 @@ export namespace Dab {
          */
         schemaName: string;
         /**
+         * Type of backend object exposed by this entity.
+         */
+        sourceType?: EntitySourceType;
+        /**
+         * Key fields used for view sources.
+         */
+        keyFields?: string[];
+        /**
+         * Parameters used for stored procedure sources.
+         */
+        parameters?: StoredProcedureParameter[];
+        /**
+         * REST methods enabled for stored procedure sources.
+         */
+        restMethods?: StoredProcedureRestMethod[];
+        /**
+         * GraphQL operation used for stored procedure sources.
+         */
+        graphQLOperation?: StoredProcedureGraphQLOperation;
+        /**
+         * Entity-level MCP settings.
+         */
+        mcp?: EntityMcpSettings;
+        /**
          * Whether this entity is enabled for API generation
          */
         isEnabled: boolean;
@@ -147,6 +221,10 @@ export namespace Dab {
          * Entity configurations for each table
          */
         entities: DabEntityConfig[];
+        /**
+         * Raw DAB configuration JSON object used for schema-wide MCP edits.
+         */
+        fullConfig?: Record<string, unknown>;
     }
 
     /**
@@ -284,8 +362,15 @@ export namespace Dab {
               isExposed: boolean;
           }
         | { type: "patch_entity_settings"; entity: DabEntityRef; set: DabEntitySettingsPatch }
+        | { type: "patch_config"; operations: DabJsonPatchOperation[] }
+        | { type: "add_entity"; entity: DabEntityConfig }
+        | { type: "remove_entity"; entity: DabEntityRef }
         | { type: "set_only_enabled_entities"; entities: DabEntityRef[] }
         | { type: "set_all_entities_enabled"; isEnabled: boolean };
+
+    export type DabJsonPatchOperation =
+        | { op: "add" | "replace"; path: string; value: unknown }
+        | { op: "remove"; path: string };
 
     export interface DabToolSummary {
         entityCount: number;
@@ -299,6 +384,9 @@ export namespace Dab {
         version: string;
         summary: DabToolSummary;
         config?: DabConfig;
+        dabConfigJson?: Record<string, unknown>;
+        configPathCatalog?: string[];
+        entityCandidates?: DabEntityCandidate[];
     }
 
     export namespace GetDabToolStateRequest {
@@ -327,6 +415,9 @@ export namespace Dab {
               version: string;
               summary: DabToolSummary;
               config?: DabConfig;
+              dabConfigJson?: Record<string, unknown>;
+              configPathCatalog?: string[];
+              entityCandidates?: DabEntityCandidate[];
           }
         | {
               success: false;
@@ -348,6 +439,9 @@ export namespace Dab {
                   | "caller_requested_summary"
                   | "caller_requested_none";
               config?: DabConfig;
+              dabConfigJson?: Record<string, unknown>;
+              configPathCatalog?: string[];
+              entityCandidates?: DabEntityCandidate[];
           };
 
     export namespace ApplyDabToolChangesRequest {
@@ -365,6 +459,16 @@ export namespace Dab {
     export namespace GetCachedConfigRequest {
         export const type = new RequestType<void, GetCachedConfigResponse, void>(
             "dab/getCachedConfig",
+        );
+    }
+
+    export interface GetEntityCandidatesResponse {
+        entityCandidates: DabEntityCandidate[];
+    }
+
+    export namespace GetEntityCandidatesRequest {
+        export const type = new RequestType<void, GetEntityCandidatesResponse, void>(
+            "dab/getEntityCandidates",
         );
     }
 
@@ -880,6 +984,7 @@ export namespace Dab {
      */
     export type DabUnsupportedReason =
         | { type: "noPrimaryKey" }
+        | { type: "noViewKeyFields" }
         | { type: "unsupportedDataTypes"; columns: string };
 
     /**
@@ -957,6 +1062,7 @@ export namespace Dab {
             id: table.id,
             tableName: table.name,
             schemaName: table.schema,
+            sourceType: EntitySourceType.Table,
             isEnabled: isSupported,
             isSupported,
             unsupportedReasons: reasons,
@@ -987,14 +1093,23 @@ export namespace Dab {
     function cloneConfig(config: DabConfig): DabConfig {
         return {
             apiTypes: [...config.apiTypes],
+            fullConfig: cloneJsonObject(config.fullConfig),
             entities: config.entities.map((entity) => ({
                 ...entity,
+                keyFields: entity.keyFields ? [...entity.keyFields] : undefined,
+                parameters: entity.parameters?.map((parameter) => ({ ...parameter })),
+                restMethods: entity.restMethods ? [...entity.restMethods] : undefined,
+                mcp: entity.mcp ? { ...entity.mcp } : undefined,
                 enabledActions: [...entity.enabledActions],
                 columns: cloneColumns(entity.columns),
                 unsupportedReasons: cloneUnsupportedReasons(entity.unsupportedReasons),
                 advancedSettings: { ...entity.advancedSettings },
             })),
         };
+    }
+
+    function cloneJsonObject<T extends Record<string, unknown> | undefined>(value: T): T {
+        return value === undefined ? value : (JSON.parse(JSON.stringify(value)) as T);
     }
 
     function syncColumnsWithTable(
@@ -1051,6 +1166,7 @@ export namespace Dab {
             ...entity,
             tableName: table.name,
             schemaName: table.schema,
+            sourceType: entity.sourceType ?? EntitySourceType.Table,
             isSupported,
             unsupportedReasons: reasons,
             columns: syncedColumns.columns,
@@ -1075,6 +1191,11 @@ export namespace Dab {
         const syncedEntities: DabEntityConfig[] = [];
 
         for (const entity of normalizedConfig.entities) {
+            if ((entity.sourceType ?? EntitySourceType.Table) !== EntitySourceType.Table) {
+                syncedEntities.push(entity);
+                continue;
+            }
+
             const table = tablesById.get(entity.id);
             if (!table) {
                 changed = true;

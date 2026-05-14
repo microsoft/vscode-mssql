@@ -2100,15 +2100,18 @@
     <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
       <source xml:lang="en">Enable Trust Server Certificate</source>
     </trans-unit>
-    <trans-unit id="++CODE++efa7adedb651f5d8d6be99873aeb53ef49aa29f82f94aeaab24cd02f25ca6305">
-      <source xml:lang="en">Enable all CRUD operations</source>
-    </trans-unit>
-    <trans-unit id="++CODE++f4d8932f5f8ab4e79333deaf1d97a78038f5a4aea29334fd307612e1586d08a6">
-      <source xml:lang="en">Enable all entities</source>
-    </trans-unit>
     <trans-unit id="++CODE++c60bd510aadca4cca8a64d535f63600d29ea21be9532ea0fa74c907d5c676311">
       <source xml:lang="en">Enable all rules in {0}</source>
       <note>{0} is the category name, e.g. Design</note>
+    </trans-unit>
+    <trans-unit id="++CODE++0e7f1303edfe051bb81cb6e3972e510e61bd2bd709dd9692c8dc01f5b6a68ae6">
+      <source xml:lang="en">Enable all stored procedures</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9a2a1dd384bc1a9ebc0d3bcef37d627528891651e02862ee66c3876aa501a891">
+      <source xml:lang="en">Enable all tables</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8ca249c52f6bfeb14699bf68227c05dcfd3dcc34f7c13f5decb4a5033a3e1541">
+      <source xml:lang="en">Enable all views</source>
     </trans-unit>
     <trans-unit id="++CODE++3fa5ae9b74f834209a906cfae8b88c904769f06a491fbefc81d5a19a01483ad5">
       <source xml:lang="en">Enable {0}</source>
@@ -3395,8 +3398,8 @@
     <trans-unit id="++CODE++e6918522718725ba7a74b087c48f889648bbfc7627b1d4ab826ac2cc1b30aa31">
       <source xml:lang="en">Include Object Types</source>
     </trans-unit>
-    <trans-unit id="++CODE++224b991b88c5510627611bdb43e5a500f1660e212e0e74ed34dc53be87699169">
-      <source xml:lang="en">Include all columns</source>
+    <trans-unit id="++CODE++ffd6da8439360c85b3b80381e5ab46b5c3d51b2ac792935c7d9b5f879f2a8ab6">
+      <source xml:lang="en">Include all fields</source>
     </trans-unit>
     <trans-unit id="++CODE++ac665fafc5f9732c9d322749a1f726be51f8b31d2ec83ecde83a6e1d2b632eda">
       <source xml:lang="en">Include all object types</source>
@@ -3835,8 +3838,8 @@
     <trans-unit id="++CODE++bc9503a89518d47aeceed119c50d8826d8ca48592bd977647da2b8e49a240ed3">
       <source xml:lang="en">MSSQL: What&apos;s new</source>
     </trans-unit>
-    <trans-unit id="++CODE++af56abadd6f783641801adf6ed9b7d1fcf4b7a5d207dab320252520f49d4894f">
-      <source xml:lang="en">Make everything read-only</source>
+    <trans-unit id="++CODE++ec32bafd2be97aa9ba06a5cd7b68591046451a3a77376f43c0f0b1563c257875">
+      <source xml:lang="en">Make tables and views read-only</source>
     </trans-unit>
     <trans-unit id="++CODE++614e5389e87ce465fe548a0665aeaa67a52a06ff792f2f791615cd37fb610178">
       <source xml:lang="en">Manage Connection Profiles</source>
@@ -5978,6 +5981,9 @@
     <trans-unit id="++CODE++7363f4432b648a803e2bf468798cf69a7be5bab4b8055e35f6a038afb54be9d7">
       <source xml:lang="en">Source Name</source>
     </trans-unit>
+    <trans-unit id="++CODE++cfbc4bfb234144bc61c7e33b7fb2dafb685c31e43149c60f751f18dbdf8e753d">
+      <source xml:lang="en">Source Object</source>
+    </trans-unit>
     <trans-unit id="++CODE++59462672a9b0690bf1151b63576df991ace5811a13bbcc90f35f43c1a21c0809">
       <source xml:lang="en">Source Table</source>
     </trans-unit>
@@ -6781,6 +6787,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ff01d2362e483ddaca44f0e7f02d280bef382c1a3209776e5a11ca21acf2cea4">
       <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8f16b2dd1a9d2187a75f4b0bb11d222182e7296deae225f9ab9678ea47b8d77c">
+      <source xml:lang="en">View must have key fields to be used with Data API builder</source>
     </trans-unit>
     <trans-unit id="++CODE++7b5b2bbcd1ff04bd807888af5196f4956355d5d4c3b7d23c190f98c572c80099">
       <source xml:lang="en">View roadmap</source>

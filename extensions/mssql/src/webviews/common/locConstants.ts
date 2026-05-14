@@ -1364,11 +1364,12 @@ export class LocConstants {
             read: l10n.t("Read"),
             update: l10n.t("Update"),
             bulkActions: l10n.t("Bulk Actions"),
-            enableAllEntities: l10n.t("Enable all entities"),
+            enableAllTables: l10n.t("Enable all tables"),
+            enableAllViews: l10n.t("Enable all views"),
+            enableAllStoredProcedures: l10n.t("Enable all stored procedures"),
             disableAllEntities: l10n.t("Disable all entities"),
-            makeReadOnly: l10n.t("Make everything read-only"),
-            enableAllCruds: l10n.t("Enable all CRUD operations"),
-            includeAllColumns: l10n.t("Include all columns"),
+            makeTablesAndViewsReadOnly: l10n.t("Make tables and views read-only"),
+            includeAllFields: l10n.t("Include all fields"),
             entityNameDescription: l10n.t("Entity name used in API routes"),
             viewConfig: l10n.t("View Config"),
             deploy: l10n.t("Deploy"),
@@ -1402,6 +1403,7 @@ export class LocConstants {
             customGraphQLTypeHelp: l10n.t("Optional - Override default GraphQL type name"),
             applyChanges: l10n.t("Apply Changes"),
             sourceTable: l10n.t("Source Table"),
+            sourceObject: l10n.t("Source Object"),
             loading: l10n.t("Loading..."),
             initializingDabConfig: l10n.t("Initializing DAB configuration..."),
             noEntitiesFound: l10n.t("No entities found"),
@@ -1501,6 +1503,9 @@ export class LocConstants {
             // DAB Unsupported Reasons
             unsupportedNoPrimaryKey: l10n.t(
                 "Table must have a primary key to be used with Data API builder",
+            ),
+            unsupportedNoViewKeyFields: l10n.t(
+                "View must have key fields to be used with Data API builder",
             ),
             unsupportedDataTypes: (columns: string) =>
                 l10n.t({

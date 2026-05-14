@@ -457,6 +457,9 @@ suite("DabTool Tests", () => {
                 setEntityActionsCount: 1,
                 setColumnExposedCount: 1,
                 patchEntitySettingsCount: 1,
+                patchConfigCount: 0,
+                addEntityCount: 0,
+                removeEntityCount: 0,
                 setOnlyEnabledEntitiesCount: 1,
                 setAllEntitiesEnabledCount: 1,
             });
@@ -552,6 +555,9 @@ suite("DabTool Tests", () => {
                 setEntityActionsCount: 0,
                 setColumnExposedCount: 0,
                 patchEntitySettingsCount: 0,
+                patchConfigCount: 0,
+                addEntityCount: 0,
+                removeEntityCount: 0,
                 setOnlyEnabledEntitiesCount: 0,
                 setAllEntitiesEnabledCount: 1,
             });
@@ -924,7 +930,7 @@ suite("DabTool Tests", () => {
             expect(result.message).to.equal("apiTypes must be unique.");
             expect(result.failedChangeIndex).to.equal(0);
             expect(result.appliedChanges).to.equal(0);
-            expect(harness.commitSpy.calledOnce).to.equal(true);
+            expect(harness.commitSpy.called).to.equal(false);
         });
 
         test("apply_changes validates set_entity_actions payload", async () => {
@@ -952,7 +958,7 @@ suite("DabTool Tests", () => {
             }
             expect(emptyActions.reason).to.equal("validation_error");
             expect(emptyActions.message).to.equal("enabledActions must be a non-empty array.");
-            expect(harness.commitSpy.calledOnce).to.equal(true);
+            expect(harness.commitSpy.called).to.equal(false);
             harness.commitSpy.resetHistory();
 
             const result = await harness.applyChanges({
@@ -974,7 +980,7 @@ suite("DabTool Tests", () => {
             expect(result.message).to.equal("enabledActions contains unsupported values.");
             expect(result.failedChangeIndex).to.equal(0);
             expect(result.appliedChanges).to.equal(0);
-            expect(harness.commitSpy.calledOnce).to.equal(true);
+            expect(harness.commitSpy.called).to.equal(false);
         });
 
         test("apply_changes updates column exposure by column name", async () => {
@@ -1059,14 +1065,11 @@ suite("DabTool Tests", () => {
             }
             expect(result.reason).to.equal("validation_error");
             expect(result.message).to.equal("Primary key columns must remain exposed.");
-            expect(harness.commitSpy).to.have.been.calledWithMatch(
-                sinon.match((config: Dab.DabConfig) => {
-                    const entity = config.entities.find((candidate) => candidate.id === "t1");
-                    return (
-                        entity?.columns.find((column) => column.id === "t1-id")?.isExposed === true
-                    );
-                }),
-            );
+            expect(harness.commitSpy.called).to.equal(false);
+            expect(
+                harness.getConfig()?.entities[0].columns.find((column) => column.id === "t1-id")
+                    ?.isExposed,
+            ).to.equal(true);
         });
 
         test("apply_changes validates patch_entity_settings payload and duplicate entity names", async () => {
@@ -1104,6 +1107,8 @@ suite("DabTool Tests", () => {
             }
             expect(duplicateName.reason).to.equal("validation_error");
             expect(duplicateName.message).to.include("entityName must be unique");
+            expect(harness.commitSpy.called).to.equal(false);
+            expect(harness.getConfig()?.entities[0].advancedSettings.entityName).to.equal("Users");
         });
 
         test("apply_changes patch_entity_settings rejects whitespace-only strings and trims accepted values", async () => {
@@ -1194,6 +1199,35 @@ suite("DabTool Tests", () => {
             expect(settings?.entityName).to.equal("UsersApi");
             expect(settings?.customRestPath).to.equal("/users");
             expect(settings?.customGraphQLType).to.equal("UsersType");
+        });
+
+        test("apply_changes patch_entity_settings rejects unsafe or overlong strings", async () => {
+            const harness = createDabHandlerHarness({
+                tables: [createTable("t1", "dbo", "Users")],
+                dabConfig: null,
+            });
+            const state = await harness.getState();
+            harness.commitSpy.resetHistory();
+
+            for (const set of [
+                { entityName: "Users;DROP" },
+                { customGraphQLType: "User-Type" },
+                { customRestPath: "/users?<script>" },
+                { customRestPath: `/${"a".repeat(257)}` },
+            ]) {
+                const result = await harness.applyChanges({
+                    expectedVersion: state.version,
+                    changes: [{ type: "patch_entity_settings", entity: { id: "t1" }, set }],
+                });
+
+                expect(result.success).to.equal(false);
+                if (result.success) {
+                    throw new Error("Expected failure response");
+                }
+                expect(result.reason).to.equal("invalid_request");
+            }
+
+            expect(harness.commitSpy.called).to.equal(false);
         });
 
         test("apply_changes validates set_only_enabled_entities and unknown change types", async () => {
@@ -1488,7 +1522,7 @@ suite("DabTool Tests", () => {
                 throw new Error("Expected failure response");
             }
             expect(settingsResult.reason).to.equal("entity_not_supported");
-            expect(harness.commitSpy.callCount).to.equal(3);
+            expect(harness.commitSpy.called).to.equal(false);
         });
 
         test("apply_changes allows disabling unsupported entities", async () => {
@@ -1558,7 +1592,7 @@ suite("DabTool Tests", () => {
             ).to.deep.equal([Dab.EntityAction.Read, Dab.EntityAction.Create]);
         });
 
-        test("apply_changes failure path uses fail-fast prefix commit semantics", async () => {
+        test("apply_changes failure path rolls back the full batch atomically", async () => {
             const harness = createDabHandlerHarness({
                 tables: [createTable("t1", "dbo", "Users"), createTable("t2", "sales", "Orders")],
                 dabConfig: null,
@@ -1584,10 +1618,10 @@ suite("DabTool Tests", () => {
                 throw new Error("Expected failure response");
             }
             expect(result.failedChangeIndex).to.equal(1);
-            expect(result.appliedChanges).to.equal(1);
-            expect(result.version).to.match(/^dabcfg_[a-f0-9]{64}$/);
-            expect(result.summary?.apiTypes).to.deep.equal([Dab.ApiType.Rest, Dab.ApiType.GraphQL]);
-            expect(harness.commitSpy.calledOnce).to.equal(true);
+            expect(result.appliedChanges).to.equal(0);
+            expect(result.version).to.equal(currentState.version);
+            expect(result.summary?.apiTypes).to.deep.equal([Dab.ApiType.Rest]);
+            expect(harness.commitSpy.called).to.equal(false);
         });
 
         test("apply_changes defaults to full returnState and auto-downgrades to summary when entityCount > 100", async () => {
@@ -1692,7 +1726,7 @@ suite("DabTool Tests", () => {
             expect(result.reason).to.equal("entity_not_supported");
             expect(result.failedChangeIndex).to.equal(0);
             expect(result.appliedChanges).to.equal(0);
-            expect(harness.commitSpy.calledOnce).to.equal(true);
+            expect(harness.commitSpy.called).to.equal(false);
         });
 
         test("apply_changes set_all_entities_enabled(true) leaves unsupported entities disabled", async () => {
@@ -1757,6 +1791,182 @@ suite("DabTool Tests", () => {
             expect(settings).to.exist;
             expect(settings).to.not.have.property("customRestPath");
             expect(settings).to.not.have.property("customGraphQLType");
+        });
+
+        test("apply_changes patch_config applies valid JSON Pointer edits and returns DAB JSON", async () => {
+            const harness = createDabHandlerHarness({
+                tables: [createTable("t1", "dbo", "Users")],
+                dabConfig: null,
+            });
+            const state = await harness.getState();
+            harness.commitSpy.resetHistory();
+
+            const result = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [
+                    {
+                        type: "patch_config",
+                        operations: [
+                            { op: "add", path: "/runtime/mcp/path", value: "/mcp-tools" },
+                            { op: "add", path: "/runtime/rest/request-body-strict", value: true },
+                        ],
+                    },
+                ],
+            });
+
+            expect(result.success).to.equal(true);
+            if (!result.success) {
+                throw new Error("Expected success response");
+            }
+            expect(result.appliedChanges).to.equal(1);
+            expect(result.dabConfigJson?.runtime?.mcp?.path).to.equal("/mcp-tools");
+            expect(result.dabConfigJson?.runtime?.rest?.["request-body-strict"]).to.equal(true);
+            expect(result.version).to.not.equal(state.version);
+            expect(harness.commitSpy.calledOnce).to.equal(true);
+        });
+
+        test("apply_changes patch_config rejects invalid DAB source types without mutation", async () => {
+            const harness = createDabHandlerHarness({
+                tables: [createTable("t1", "dbo", "Users")],
+                dabConfig: null,
+            });
+            const state = await harness.getState();
+            harness.commitSpy.resetHistory();
+
+            const result = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [
+                    {
+                        type: "patch_config",
+                        operations: [
+                            {
+                                op: "add",
+                                path: "/entities/BadFunction",
+                                value: {
+                                    source: { type: "function", object: "dbo.fn_Bad" },
+                                    permissions: [{ role: "anonymous", actions: ["read"] }],
+                                },
+                            },
+                        ],
+                    },
+                ],
+            });
+
+            expect(result.success).to.equal(false);
+            if (result.success) {
+                throw new Error("Expected failure response");
+            }
+            expect(result.reason).to.equal("validation_error");
+            expect(result.appliedChanges).to.equal(0);
+            expect(result.version).to.equal(state.version);
+            expect(harness.commitSpy.called).to.equal(false);
+        });
+
+        test("apply_changes add_entity supports views and stored procedures but rejects functions", async () => {
+            const harness = createDabHandlerHarness({
+                tables: [createTable("t1", "dbo", "Users")],
+                dabConfig: null,
+            });
+            let state = await harness.getState();
+
+            const viewResult = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [
+                    {
+                        type: "add_entity",
+                        entity: {
+                            id: "view-1",
+                            tableName: "ActiveUsers",
+                            schemaName: "reporting",
+                            sourceType: Dab.EntitySourceType.View,
+                            keyFields: ["Id"],
+                            isEnabled: true,
+                            isSupported: true,
+                            enabledActions: [Dab.EntityAction.Read],
+                            columns: [],
+                            advancedSettings: {
+                                entityName: "ActiveUser",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                            },
+                        },
+                    },
+                ],
+            });
+
+            expect(viewResult.success).to.equal(true);
+            if (!viewResult.success) {
+                throw new Error("Expected success response");
+            }
+            expect(
+                viewResult.config?.entities.find((entity) => entity.id === "view-1")?.sourceType,
+            ).to.equal(Dab.EntitySourceType.View);
+
+            state = await harness.getState();
+            const procedureResult = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [
+                    {
+                        type: "add_entity",
+                        entity: {
+                            id: "proc-1",
+                            tableName: "SearchUsers",
+                            schemaName: "dbo",
+                            sourceType: Dab.EntitySourceType.StoredProcedure,
+                            isEnabled: true,
+                            isSupported: true,
+                            enabledActions: [Dab.EntityAction.Read],
+                            columns: [],
+                            parameters: [{ name: "StartsWith", required: false }],
+                            restMethods: [Dab.StoredProcedureRestMethod.Get],
+                            graphQLOperation: Dab.StoredProcedureGraphQLOperation.Query,
+                            mcp: { customTool: true },
+                            advancedSettings: {
+                                entityName: "SearchUsers",
+                                authorizationRole: Dab.AuthorizationRole.Authenticated,
+                            },
+                        },
+                    },
+                ],
+            });
+
+            expect(procedureResult.success).to.equal(true);
+            if (!procedureResult.success) {
+                throw new Error("Expected success response");
+            }
+            expect(
+                procedureResult.config?.entities.find((entity) => entity.id === "proc-1")?.mcp
+                    ?.customTool,
+            ).to.equal(true);
+
+            state = await harness.getState();
+            const functionResult = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [
+                    {
+                        type: "add_entity",
+                        entity: {
+                            id: "fn-1",
+                            tableName: "fn_Search",
+                            schemaName: "dbo",
+                            sourceType: "function" as any,
+                            isEnabled: true,
+                            isSupported: true,
+                            enabledActions: [Dab.EntityAction.Read],
+                            columns: [],
+                            advancedSettings: {
+                                entityName: "SearchFunction",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                            },
+                        },
+                    },
+                ],
+            });
+
+            expect(functionResult.success).to.equal(false);
+            if (functionResult.success) {
+                throw new Error("Expected failure response");
+            }
+            expect(functionResult.reason).to.equal("validation_error");
         });
     });
 });

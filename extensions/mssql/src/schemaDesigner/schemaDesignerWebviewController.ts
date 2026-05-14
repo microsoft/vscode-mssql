@@ -23,6 +23,7 @@ import { DabService } from "../services/dabService";
 import { Dab } from "../sharedInterfaces/dab";
 import { CopilotChat } from "../sharedInterfaces/copilotChat";
 import { addMcpServerToWorkspace } from "../copilot/copilotUtils";
+import { ColumnMetadata } from "../sharedInterfaces/metadata";
 import {
     getSchemaDesignerDefinitionOutput,
     SchemaDesignerDefinitionOutput,
@@ -77,6 +78,63 @@ function getCopilotChatDiscoveryDismissedState(
     };
 }
 
+function getColumnName(column: ColumnMetadata): string {
+    return column.escapedName.replace(/^\[|\]$/g, "");
+}
+
+function getMetadataObjectKey(schemaName: string, objectName: string): string {
+    return `${schemaName}.${objectName}`.toLowerCase();
+}
+
+function isSystemSchema(schemaName: string): boolean {
+    const normalizedSchema = schemaName.toLowerCase();
+    return normalizedSchema === "sys" || normalizedSchema === "information_schema";
+}
+
+function normalizeIdentifier(value: string): string {
+    return value.replace(/[^A-Za-z0-9]/g, "").toLowerCase();
+}
+
+function inferViewKeyFields(objectName: string, columns: ColumnMetadata[]): string[] {
+    const metadataKeys = columns
+        .filter((column) => column.isKey || column.isTrustworthyForUniqueness)
+        .map((column) => getColumnName(column));
+    if (metadataKeys.length > 0) {
+        return metadataKeys;
+    }
+
+    const objectBaseName = normalizeIdentifier(objectName.replace(/view/gi, ""));
+    const conventionalKey = columns.find((column) => {
+        const columnName = getColumnName(column);
+        const normalizedColumnName = normalizeIdentifier(columnName);
+        return (
+            normalizedColumnName === "id" ||
+            normalizedColumnName === `${objectBaseName}id` ||
+            normalizedColumnName.endsWith("id")
+        );
+    });
+    if (conventionalKey) {
+        return [getColumnName(conventionalKey)];
+    }
+
+    const firstColumn = columns[0];
+    return firstColumn ? [getColumnName(firstColumn)] : [];
+}
+
+function getCountsBySchema(
+    objects: Array<{ schemaName?: string; schema?: string }>,
+): Record<string, number> {
+    return objects.reduce<Record<string, number>>((counts, object) => {
+        const schemaName = object.schemaName ?? object.schema ?? "";
+        if (!schemaName) {
+            return counts;
+        }
+
+        counts[schemaName] = (counts[schemaName] ?? 0) + 1;
+        return counts;
+    }, {});
+}
+
 export class SchemaDesignerWebviewController extends WebviewPanelController<
     SchemaDesigner.SchemaDesignerWebviewState,
     SchemaDesigner.SchemaDesignerReducers
@@ -86,6 +144,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     private _serverName: string | undefined;
     private _sqlServerContainerName: string | undefined;
     private _dabService = new DabService();
+    private _dabEntityCandidatesPromise: Promise<Dab.DabEntityCandidate[]> | undefined;
     public schemaDesignerDetails: SchemaDesigner.CreateSessionResponse | undefined = undefined;
     public baselineSchema: SchemaDesigner.Schema | undefined = undefined;
 
@@ -507,6 +566,12 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             };
         });
 
+        this.onRequest(Dab.GetEntityCandidatesRequest.type, async () => {
+            return {
+                entityCandidates: await this.getDabEntityCandidatesDeduped(),
+            };
+        });
+
         this.onNotification(Dab.CacheConfigNotification.type, async (payload) => {
             this.updateCacheItem(undefined, undefined, payload.config);
         });
@@ -649,6 +714,218 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
 
             return addMcpServerToWorkspace(payload.serverName, payload.serverUrl);
         });
+    }
+
+    private async getDabEntityCandidatesDeduped(): Promise<Dab.DabEntityCandidate[]> {
+        if (this._dabEntityCandidatesPromise) {
+            console.log("[DAB candidates] reusing in-flight discovery request");
+            return this._dabEntityCandidatesPromise;
+        }
+
+        this._dabEntityCandidatesPromise = this.getDabEntityCandidates().finally(() => {
+            this._dabEntityCandidatesPromise = undefined;
+        });
+        return this._dabEntityCandidatesPromise;
+    }
+
+    private async getDabEntityCandidates(): Promise<Dab.DabEntityCandidate[]> {
+        const tableCandidates = (this.schemaDesignerDetails?.schema?.tables ?? [])
+            .filter((table) => !isSystemSchema(table.schema))
+            .map((table) => this.getTableDabEntityCandidate(table));
+        const metadataConnectionUri = this.getDabMetadataConnectionUri();
+        console.log("[DAB candidates] extension host starting discovery", {
+            connectionUri: this.connectionUri,
+            metadataConnectionUri,
+            hasTreeNode: !!this.treeNode,
+            tableCandidateCount: tableCandidates.length,
+        });
+
+        if (!metadataConnectionUri) {
+            console.log(
+                "[DAB candidates] no metadata connection URI; returning table candidates only",
+            );
+            return tableCandidates;
+        }
+
+        const [viewMetadata, storedProcedureMetadata, functionMetadata] = await Promise.all([
+            this.mainController.metadataService.getViews(metadataConnectionUri, this.databaseName),
+            this.mainController.metadataService.getStoredProcedures(
+                metadataConnectionUri,
+                this.databaseName,
+            ),
+            this.mainController.metadataService.getFunctions(
+                metadataConnectionUri,
+                this.databaseName,
+            ),
+        ]);
+        console.log("[DAB candidates] catalog object queries returned", {
+            catalogViews: viewMetadata.length,
+            catalogStoredProcedures: storedProcedureMetadata.length,
+            catalogFunctions: functionMetadata.length,
+            viewSchemas: getCountsBySchema(viewMetadata),
+            storedProcedureSchemas: getCountsBySchema(storedProcedureMetadata),
+        });
+
+        console.log("[DAB candidates] loading bulk object metadata", {
+            views: viewMetadata.length,
+            storedProcedures: storedProcedureMetadata.length,
+        });
+
+        const [viewInfoByObject, storedProcedureInfoByObject] = await Promise.all([
+            viewMetadata.length > 0
+                ? this.mainController.metadataService.getAllViewInfo(
+                      metadataConnectionUri,
+                      this.databaseName,
+                  )
+                : Promise.resolve(new Map<string, ColumnMetadata[]>()),
+            storedProcedureMetadata.length > 0
+                ? this.mainController.metadataService.getAllStoredProcedureInfo(
+                      metadataConnectionUri,
+                      this.databaseName,
+                  )
+                : Promise.resolve(new Map()),
+        ]);
+
+        const viewCandidates = viewMetadata.map((view) =>
+            this.getViewDabEntityCandidate(
+                view.schema,
+                view.name,
+                viewInfoByObject.get(getMetadataObjectKey(view.schema, view.name)) ?? [],
+            ),
+        );
+        const storedProcedureCandidates = storedProcedureMetadata.map((procedure) =>
+            this.getStoredProcedureDabEntityCandidate(
+                procedure.schema,
+                procedure.name,
+                storedProcedureInfoByObject.get(
+                    getMetadataObjectKey(procedure.schema, procedure.name),
+                )?.parameters ?? [],
+            ),
+        );
+        const functionCandidates = functionMetadata.map((func) => ({
+            id: `function:${func.schema}.${func.name}`,
+            sourceType: "function" as const,
+            schemaName: func.schema,
+            objectName: func.name,
+            displayName: `${func.schema}.${func.name}`,
+            isSupported: false,
+            unsupportedReason: "DAB does not support functions as entity sources.",
+        }));
+
+        const candidates = [
+            ...tableCandidates,
+            ...viewCandidates,
+            ...storedProcedureCandidates,
+            ...functionCandidates,
+        ].sort((a, b) => {
+            const bySchema = a.schemaName.localeCompare(b.schemaName);
+            if (bySchema !== 0) {
+                return bySchema;
+            }
+            const byType = a.sourceType.localeCompare(b.sourceType);
+            if (byType !== 0) {
+                return byType;
+            }
+            return a.objectName.localeCompare(b.objectName);
+        });
+
+        console.log("[DAB candidates] extension host returning candidates", {
+            total: candidates.length,
+            tables: candidates.filter((item) => item.sourceType === Dab.EntitySourceType.Table)
+                .length,
+            views: candidates.filter((item) => item.sourceType === Dab.EntitySourceType.View)
+                .length,
+            storedProcedures: candidates.filter(
+                (item) => item.sourceType === Dab.EntitySourceType.StoredProcedure,
+            ).length,
+            unsupported: candidates.filter((item) => !item.isSupported).length,
+            sample: candidates.slice(0, 10).map((candidate) => ({
+                id: candidate.id,
+                sourceType: candidate.sourceType,
+                isSupported: candidate.isSupported,
+            })),
+        });
+
+        return candidates;
+    }
+
+    private getDabMetadataConnectionUri(): string | undefined {
+        if (this.connectionUri) {
+            return this.connectionUri;
+        }
+
+        if (!this.treeNode?.connectionProfile) {
+            return undefined;
+        }
+
+        return this.mainController.connectionManager.getUriForConnection(
+            this.treeNode.connectionProfile,
+        );
+    }
+
+    private getTableDabEntityCandidate(table: SchemaDesigner.Table): Dab.DabEntityCandidate {
+        const keyFields = table.columns
+            .filter((column) => column.isPrimaryKey)
+            .map((column) => column.name);
+        return {
+            id: `${Dab.EntitySourceType.Table}:${table.schema}.${table.name}`,
+            sourceType: Dab.EntitySourceType.Table,
+            schemaName: table.schema,
+            objectName: table.name,
+            displayName: `${table.schema}.${table.name}`,
+            isSupported: keyFields.length > 0,
+            unsupportedReason:
+                keyFields.length > 0
+                    ? undefined
+                    : "Table must have a primary key to be used with Data API builder.",
+            fields: table.columns.map((column) => ({
+                name: column.name,
+                dataType: column.dataType,
+                isKey: column.isPrimaryKey,
+            })),
+            keyFields,
+        };
+    }
+
+    private getViewDabEntityCandidate(
+        schemaName: string,
+        objectName: string,
+        columns: ColumnMetadata[],
+    ): Dab.DabEntityCandidate {
+        const keyFields = inferViewKeyFields(objectName, columns);
+        return {
+            id: `${Dab.EntitySourceType.View}:${schemaName}.${objectName}`,
+            sourceType: Dab.EntitySourceType.View,
+            schemaName,
+            objectName,
+            displayName: `${schemaName}.${objectName}`,
+            isSupported: keyFields.length > 0,
+            unsupportedReason:
+                keyFields.length > 0
+                    ? undefined
+                    : "View entities require at least one key field for Data API builder.",
+            fields: columns.map((column) => ({
+                name: getColumnName(column),
+                isKey: keyFields.includes(getColumnName(column)),
+            })),
+            keyFields,
+        };
+    }
+
+    private getStoredProcedureDabEntityCandidate(
+        schemaName: string,
+        objectName: string,
+        parameters: Dab.StoredProcedureParameter[],
+    ): Dab.DabEntityCandidate {
+        return {
+            id: `${Dab.EntitySourceType.StoredProcedure}:${schemaName}.${objectName}`,
+            sourceType: Dab.EntitySourceType.StoredProcedure,
+            schemaName,
+            objectName,
+            displayName: `${schemaName}.${objectName}`,
+            isSupported: true,
+            parameters,
+        };
     }
 
     private setupReducers() {

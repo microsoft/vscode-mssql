@@ -91,7 +91,7 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
             // Incremental sync: add new tables, remove deleted ones, keep existing settings
             syncDabConfigWithSchema();
         }
-    }, [activeView]);
+    }, [activeView, dabConfig, isDabTabActive, isInitialized, syncDabConfigWithSchema]);
 
     // Show loading state while schema is being initialized
     if (!isInitialized) {

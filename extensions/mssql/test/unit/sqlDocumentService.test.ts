@@ -285,6 +285,19 @@ suite("SqlDocumentService Tests", () => {
         docUriCallback = "";
     });
 
+    test("onDidCloseTextDocument should not throw when diagnostic collection is unavailable", async () => {
+        (SqlToolsServerClient.instance as any).diagnosticCollection = undefined;
+
+        await sqlDocumentService.onDidCloseTextDocument(document);
+
+        expect(connectionManager.onDidCloseTextDocument).to.have.been.calledOnceWithExactly(
+            document,
+        );
+        expect(
+            mainController["_outputContentProvider"].onDidCloseTextDocument,
+        ).to.have.been.calledOnceWithExactly(document);
+    });
+
     test("onDidCloseTextDocument should not transfer URI for untitled documents", async () => {
         // Scheme of older doc must be untitled
         let document2 = {

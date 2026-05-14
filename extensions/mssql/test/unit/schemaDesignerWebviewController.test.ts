@@ -22,6 +22,7 @@ import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import MainController from "../../src/controllers/mainController";
 import * as copilotUtils from "../../src/copilot/copilotUtils";
 import { DefaultSqlPortNumber } from "../../src/constants/constants";
+import { MetadataType } from "../../src/sharedInterfaces/metadata";
 import {
     stubExtensionContext,
     stubUserSurvey,
@@ -141,6 +142,20 @@ suite("SchemaDesignerWebviewController tests", () => {
                     database: databaseName,
                 },
             }),
+            getUriForConnection: sandbox.stub().returns(connectionUri),
+        } as any;
+        mockMainController.metadataService = {
+            getMetadata: sandbox.stub().resolves([]),
+            getViews: sandbox.stub().resolves([]),
+            getStoredProcedures: sandbox.stub().resolves([]),
+            getFunctions: sandbox.stub().resolves([]),
+            getTableInfo: sandbox.stub().resolves([]),
+            getViewInfo: sandbox.stub().resolves([]),
+            getAllViewInfo: sandbox.stub().resolves(new Map()),
+            getStoredProcedureInfo: sandbox.stub().resolves({ parameters: [] }),
+            getAllStoredProcedureInfo: sandbox.stub().resolves(new Map()),
+            getDatabases: sandbox.stub().resolves([]),
+            getServerContext: sandbox.stub().resolves(""),
         } as any;
     });
 
@@ -148,7 +163,12 @@ suite("SchemaDesignerWebviewController tests", () => {
         sandbox.restore();
     });
 
-    function createController(): SchemaDesignerWebviewController {
+    function createController(options?: {
+        treeNode?: sinon.SinonStubbedInstance<TreeNodeInfo>;
+        connectionUri?: string;
+    }): SchemaDesignerWebviewController {
+        const resolvedConnectionUri =
+            options && "connectionUri" in options ? options.connectionUri : connectionUri;
         const ctrl = new SchemaDesignerWebviewController(
             mockContext,
             mockVscodeWrapper,
@@ -158,8 +178,8 @@ suite("SchemaDesignerWebviewController tests", () => {
             accessToken,
             databaseName,
             schemaDesignerCache,
-            treeNode,
-            connectionUri,
+            options?.treeNode ?? treeNode,
+            resolvedConnectionUri,
         );
         return ctrl;
     }
@@ -217,6 +237,204 @@ suite("SchemaDesignerWebviewController tests", () => {
                 .true;
             expect(requestHandlers.has(SchemaDesigner.PublishSessionRequest.type.method)).to.be
                 .true;
+            expect(requestHandlers.has(Dab.GetEntityCandidatesRequest.type.method)).to.be.true;
+        });
+
+        test("should discover DAB table, view, stored procedure, and unsupported function candidates", async () => {
+            const metadataService = mockMainController.metadataService as any;
+            metadataService.getViews.resolves([
+                {
+                    metadataType: MetadataType.View,
+                    metadataTypeName: "View",
+                    schema: "reporting",
+                    name: "ActiveUsers",
+                },
+            ]);
+            metadataService.getStoredProcedures.resolves([
+                {
+                    metadataType: MetadataType.SProc,
+                    metadataTypeName: "StoredProcedure",
+                    schema: "dbo",
+                    name: "SearchUsers",
+                },
+            ]);
+            metadataService.getFunctions.resolves([
+                {
+                    metadataType: MetadataType.Function,
+                    metadataTypeName: "Function",
+                    schema: "dbo",
+                    name: "fn_SearchUsers",
+                },
+            ]);
+            metadataService.getAllViewInfo.resolves(
+                new Map([
+                    [
+                        "reporting.activeusers",
+                        [
+                            {
+                                escapedName: "Id",
+                                isComputed: false,
+                                isDeterministic: true,
+                                isIdentity: false,
+                                ordinal: 0,
+                                hasExtendedProperties: false,
+                                isKey: true,
+                            },
+                            {
+                                escapedName: "Name",
+                                isComputed: false,
+                                isDeterministic: true,
+                                isIdentity: false,
+                                ordinal: 1,
+                                hasExtendedProperties: false,
+                            },
+                        ],
+                    ],
+                ]),
+            );
+            metadataService.getAllStoredProcedureInfo.resolves(
+                new Map([
+                    ["dbo.searchusers", { parameters: [{ name: "StartsWith", required: false }] }],
+                ]),
+            );
+
+            const ctrl = createController();
+            ctrl.schemaDesignerDetails = mockCreateSessionResponse;
+
+            const result = await requestHandlers.get(Dab.GetEntityCandidatesRequest.type.method)!(
+                undefined,
+            );
+
+            expect(result.entityCandidates).to.deep.include({
+                id: "table:dbo.Users",
+                sourceType: Dab.EntitySourceType.Table,
+                schemaName: "dbo",
+                objectName: "Users",
+                displayName: "dbo.Users",
+                isSupported: true,
+                unsupportedReason: undefined,
+                fields: [{ name: "Id", dataType: "int", isKey: true }],
+                keyFields: ["Id"],
+            });
+            expect(result.entityCandidates).to.deep.include({
+                id: "view:reporting.ActiveUsers",
+                sourceType: Dab.EntitySourceType.View,
+                schemaName: "reporting",
+                objectName: "ActiveUsers",
+                displayName: "reporting.ActiveUsers",
+                isSupported: true,
+                unsupportedReason: undefined,
+                fields: [
+                    { name: "Id", isKey: true },
+                    { name: "Name", isKey: false },
+                ],
+                keyFields: ["Id"],
+            });
+            expect(result.entityCandidates).to.deep.include({
+                id: "stored-procedure:dbo.SearchUsers",
+                sourceType: Dab.EntitySourceType.StoredProcedure,
+                schemaName: "dbo",
+                objectName: "SearchUsers",
+                displayName: "dbo.SearchUsers",
+                isSupported: true,
+                parameters: [{ name: "StartsWith", required: false }],
+            });
+
+            const functionCandidate = result.entityCandidates.find(
+                (candidate: Dab.DabEntityCandidate) => candidate.sourceType === "function",
+            );
+            expect(functionCandidate?.isSupported).to.equal(false);
+            expect(functionCandidate?.unsupportedReason).to.include("does not support functions");
+            expect(metadataService.getViewInfo).to.not.have.been.called;
+            expect(metadataService.getStoredProcedureInfo).to.not.have.been.called;
+            expect(metadataService.getMetadata).to.not.have.been.called;
+        });
+
+        test("should use catalog queries for views and stored procedures", async () => {
+            const metadataService = mockMainController.metadataService as any;
+            metadataService.getMetadata.resolves([]);
+            metadataService.getViews.resolves([
+                {
+                    metadataType: MetadataType.View,
+                    metadataTypeName: "View",
+                    schema: "reporting",
+                    name: "ActiveUsers",
+                },
+            ]);
+            metadataService.getStoredProcedures.resolves([
+                {
+                    metadataType: MetadataType.SProc,
+                    metadataTypeName: "StoredProcedure",
+                    schema: "dbo",
+                    name: "SearchUsers",
+                },
+            ]);
+            metadataService.getViewInfo.resolves([]);
+            metadataService.getStoredProcedureInfo.resolves({ parameters: [] });
+
+            const ctrl = createController();
+            ctrl.schemaDesignerDetails = mockCreateSessionResponse;
+
+            const result = await requestHandlers.get(Dab.GetEntityCandidatesRequest.type.method)!(
+                undefined,
+            );
+
+            expect(result.entityCandidates).to.deep.include({
+                id: "view:reporting.ActiveUsers",
+                sourceType: Dab.EntitySourceType.View,
+                schemaName: "reporting",
+                objectName: "ActiveUsers",
+                displayName: "reporting.ActiveUsers",
+                isSupported: false,
+                unsupportedReason:
+                    "View entities require at least one key field for Data API builder.",
+                fields: [],
+                keyFields: [],
+            });
+            expect(result.entityCandidates).to.deep.include({
+                id: "stored-procedure:dbo.SearchUsers",
+                sourceType: Dab.EntitySourceType.StoredProcedure,
+                schemaName: "dbo",
+                objectName: "SearchUsers",
+                displayName: "dbo.SearchUsers",
+                isSupported: true,
+                parameters: [],
+            });
+        });
+
+        test("should discover DAB candidates from tree node active connection when connection URI is not provided", async () => {
+            const metadataService = mockMainController.metadataService as any;
+            metadataService.getViews.resolves([
+                {
+                    metadataType: MetadataType.View,
+                    metadataTypeName: "View",
+                    schema: "reporting",
+                    name: "ActiveUsers",
+                },
+            ]);
+
+            const ctrl = createController({ connectionUri: undefined });
+            ctrl.schemaDesignerDetails = mockCreateSessionResponse;
+
+            const result = await requestHandlers.get(Dab.GetEntityCandidatesRequest.type.method)!(
+                undefined,
+            );
+
+            expect(mockMainController.connectionManager.getUriForConnection).to.have.been
+                .calledOnce;
+            expect(metadataService.getMetadata).to.not.have.been.called;
+            expect(result.entityCandidates).to.deep.include({
+                id: "view:reporting.ActiveUsers",
+                sourceType: Dab.EntitySourceType.View,
+                schemaName: "reporting",
+                objectName: "ActiveUsers",
+                displayName: "reporting.ActiveUsers",
+                isSupported: false,
+                unsupportedReason:
+                    "View entities require at least one key field for Data API builder.",
+                fields: [],
+                keyFields: [],
+            });
         });
 
         test("should register all notification handlers", () => {

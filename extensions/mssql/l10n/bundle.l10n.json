@@ -879,11 +879,12 @@
     "Read": "Read",
     "Update": "Update",
     "Bulk Actions": "Bulk Actions",
-    "Enable all entities": "Enable all entities",
+    "Enable all tables": "Enable all tables",
+    "Enable all views": "Enable all views",
+    "Enable all stored procedures": "Enable all stored procedures",
     "Disable all entities": "Disable all entities",
-    "Make everything read-only": "Make everything read-only",
-    "Enable all CRUD operations": "Enable all CRUD operations",
-    "Include all columns": "Include all columns",
+    "Make tables and views read-only": "Make tables and views read-only",
+    "Include all fields": "Include all fields",
     "Entity name used in API routes": "Entity name used in API routes",
     "View Config": "View Config",
     "Deploy": "Deploy",
@@ -909,6 +910,7 @@
     "Custom GraphQL Type": "Custom GraphQL Type",
     "Optional - Override default GraphQL type name": "Optional - Override default GraphQL type name",
     "Source Table": "Source Table",
+    "Source Object": "Source Object",
     "Initializing DAB configuration...": "Initializing DAB configuration...",
     "No entities found": "No entities found",
     "Toggle all entities in {0}/{0} is the schema name": {
@@ -973,6 +975,7 @@
     "View Swagger": "View Swagger",
     "Open Nitro": "Open Nitro",
     "Table must have a primary key to be used with Data API builder": "Table must have a primary key to be used with Data API builder",
+    "View must have key fields to be used with Data API builder": "View must have key fields to be used with Data API builder",
     "Table contains column types not supported by Data API builder: {0}/{0} is a comma-separated list of column names and their data types": {
         "message": "Table contains column types not supported by Data API builder: {0}",
         "comment": ["{0} is a comma-separated list of column names and their data types"]

@@ -115,6 +115,32 @@ export type ViewMetadataResult = TableMetadataResult;
 
 //#endregion
 
+//#region metadata/storedProcedure
+
+/**
+ * Parameters for the stored procedure parameter metadata request.
+ */
+export type StoredProcedureMetadataParams = TableMetadataParams;
+
+/**
+ * Represents stored procedure parameter metadata needed by DAB.
+ */
+export interface StoredProcedureParameterMetadata {
+    name: string;
+    dataType?: string;
+    required?: boolean;
+    default?: string | number | boolean | null;
+}
+
+/**
+ * Result of the stored procedure metadata request.
+ */
+export interface StoredProcedureMetadataResult {
+    parameters: StoredProcedureParameterMetadata[];
+}
+
+//#endregion
+
 //#region connection/listdatabases
 
 /**

@@ -1012,8 +1012,15 @@ const APPLY_CHANGES_ENTITY_THRESHOLD = 100;
 function cloneDabConfig(config: Dab.DabConfig): Dab.DabConfig {
     return {
         apiTypes: [...config.apiTypes],
+        fullConfig: config.fullConfig
+            ? (JSON.parse(JSON.stringify(config.fullConfig)) as Record<string, unknown>)
+            : undefined,
         entities: config.entities.map((entity) => ({
             ...entity,
+            keyFields: entity.keyFields ? [...entity.keyFields] : undefined,
+            parameters: entity.parameters?.map((parameter) => ({ ...parameter })),
+            restMethods: entity.restMethods ? [...entity.restMethods] : undefined,
+            mcp: entity.mcp ? { ...entity.mcp } : undefined,
             enabledActions: [...entity.enabledActions],
             columns: entity.columns.map((column) => ({ ...column })),
             unsupportedReasons: entity.unsupportedReasons?.map((reason) => ({ ...reason })),
@@ -1034,6 +1041,142 @@ function buildDabSummary(config: Dab.DabConfig): Dab.DabToolSummary {
     };
 }
 
+function buildDabConfigJson(config: Dab.DabConfig): Record<string, unknown> {
+    if (config.fullConfig) {
+        return JSON.parse(JSON.stringify(config.fullConfig)) as Record<string, unknown>;
+    }
+
+    const runtime = {
+        rest: {
+            enabled: config.apiTypes.includes(Dab.ApiType.Rest),
+            path: "/api",
+        },
+        graphql: {
+            enabled: config.apiTypes.includes(Dab.ApiType.GraphQL),
+            path: "/graphql",
+        },
+        mcp: {
+            enabled: config.apiTypes.includes(Dab.ApiType.Mcp),
+        },
+        host: {
+            mode: "development",
+            cors: { origins: ["*"] },
+        },
+    };
+
+    const entities: Record<string, unknown> = {};
+    for (const entity of config.entities) {
+        if (!entity.isEnabled || !entity.isSupported) {
+            continue;
+        }
+
+        const source: Record<string, unknown> = {
+            type: entity.sourceType ?? Dab.EntitySourceType.Table,
+            object: `${entity.schemaName}.${entity.tableName}`,
+        };
+        if (entity.sourceType === Dab.EntitySourceType.View && entity.keyFields?.length) {
+            source["key-fields"] = [...entity.keyFields];
+        }
+        if (
+            entity.sourceType === Dab.EntitySourceType.StoredProcedure &&
+            entity.parameters?.length
+        ) {
+            source.parameters = entity.parameters.map((parameter) => ({ ...parameter }));
+        }
+
+        const entry: Record<string, unknown> = {
+            source,
+            permissions: [
+                {
+                    role: entity.advancedSettings.authorizationRole,
+                    actions:
+                        entity.sourceType === Dab.EntitySourceType.StoredProcedure
+                            ? ["execute"]
+                            : [...entity.enabledActions],
+                },
+            ],
+        };
+
+        const rest: Record<string, unknown> = {};
+        if (entity.advancedSettings.customRestPath) {
+            rest.path = entity.advancedSettings.customRestPath.startsWith("/")
+                ? entity.advancedSettings.customRestPath
+                : `/${entity.advancedSettings.customRestPath}`;
+        }
+        if (
+            entity.sourceType === Dab.EntitySourceType.StoredProcedure &&
+            entity.restMethods?.length
+        ) {
+            rest.methods = [...entity.restMethods];
+        }
+        entry.rest = Object.keys(rest).length > 0 ? rest : undefined;
+
+        const graphql: Record<string, unknown> = {};
+        if (entity.advancedSettings.customGraphQLType) {
+            graphql.type = entity.advancedSettings.customGraphQLType;
+        }
+        if (entity.sourceType === Dab.EntitySourceType.StoredProcedure && entity.graphQLOperation) {
+            graphql.operation = entity.graphQLOperation;
+        }
+        entry.graphql = Object.keys(graphql).length > 0 ? graphql : undefined;
+
+        if (entity.mcp) {
+            entry.mcp = {
+                ...(entity.mcp.dmlTools !== undefined ? { "dml-tools": entity.mcp.dmlTools } : {}),
+                ...(entity.mcp.customTool !== undefined
+                    ? { "custom-tool": entity.mcp.customTool }
+                    : {}),
+            };
+        }
+
+        entities[entity.advancedSettings.entityName] = entry;
+    }
+
+    return {
+        "data-source": {
+            "database-type": "mssql",
+            "connection-string": "",
+        },
+        runtime,
+        entities,
+    };
+}
+
+function buildConfigPathCatalog(config: Dab.DabConfig): string[] {
+    const entityNames = config.entities.map((entity) => entity.advancedSettings.entityName);
+    return [
+        "/data-source",
+        "/data-source/options",
+        "/data-source/health",
+        "/data-source/user-delegated-auth",
+        "/data-source-files",
+        "/runtime/host",
+        "/runtime/rest",
+        "/runtime/graphql",
+        "/runtime/mcp",
+        "/runtime/cache",
+        "/runtime/pagination",
+        "/runtime/compression",
+        "/runtime/telemetry",
+        "/runtime/health",
+        "/azure-key-vault",
+        "/autoentities",
+        "/entities",
+        ...entityNames.flatMap((name) => [
+            `/entities/${escapeJsonPointerSegment(name)}`,
+            `/entities/${escapeJsonPointerSegment(name)}/source`,
+            `/entities/${escapeJsonPointerSegment(name)}/fields`,
+            `/entities/${escapeJsonPointerSegment(name)}/permissions`,
+            `/entities/${escapeJsonPointerSegment(name)}/relationships`,
+            `/entities/${escapeJsonPointerSegment(name)}/rest`,
+            `/entities/${escapeJsonPointerSegment(name)}/graphql`,
+            `/entities/${escapeJsonPointerSegment(name)}/mcp`,
+            `/entities/${escapeJsonPointerSegment(name)}/cache`,
+            `/entities/${escapeJsonPointerSegment(name)}/health`,
+        ]),
+    ];
+}
+
 function isApplyReturnState(value: unknown): value is ApplyReturnState {
     return value === "full" || value === "summary" || value === "none";
 }
@@ -1045,7 +1188,13 @@ async function buildApplyStatePayload(
 ): Promise<
     Pick<
         Extract<Dab.ApplyDabToolChangesResponse, { success: true }>,
-        "returnState" | "stateOmittedReason" | "version" | "summary" | "config"
+        | "returnState"
+        | "stateOmittedReason"
+        | "version"
+        | "summary"
+        | "config"
+        | "dabConfigJson"
+        | "configPathCatalog"
     >
 > {
     const summary = buildDabSummary(config);
@@ -1066,6 +1215,7 @@ async function buildApplyStatePayload(
             stateOmittedReason: "caller_requested_summary",
             version,
             summary,
+            configPathCatalog: buildConfigPathCatalog(config),
         };
     }
 
@@ -1075,6 +1225,7 @@ async function buildApplyStatePayload(
             stateOmittedReason: "entity_count_over_threshold",
             version,
             summary,
+            configPathCatalog: buildConfigPathCatalog(config),
         };
     }
 
@@ -1083,22 +1234,26 @@ async function buildApplyStatePayload(
         version,
         summary,
         config,
+        dabConfigJson: buildDabConfigJson(config),
     };
 }
 
 function normalizeDabConfigForVersion(config: Dab.DabConfig) {
     return {
         apiTypes: [...config.apiTypes].map(normalizeIdentifier).sort((a, b) => a.localeCompare(b)),
+        fullConfig: config.fullConfig ?? undefined,
         entities: [...config.entities]
             .map((entity) => ({
                 id: normalizeIdentifier(entity.id),
                 tableName: normalizeIdentifier(entity.tableName),
                 schemaName: normalizeIdentifier(entity.schemaName),
+                sourceType: entity.sourceType ?? Dab.EntitySourceType.Table,
                 isEnabled: entity.isEnabled,
                 isSupported: entity.isSupported,
                 unsupportedReasons: (entity.unsupportedReasons ?? []).map((reason) => {
                     switch (reason.type) {
                         case "noPrimaryKey":
+                        case "noViewKeyFields":
                             return { type: reason.type };
                         case "unsupportedDataTypes":
                             return {
@@ -1125,6 +1280,11 @@ function normalizeDabConfigForVersion(config: Dab.DabConfig) {
                         }
                         return a.id.localeCompare(b.id);
                     }),
+                keyFields: entity.keyFields ? [...entity.keyFields].sort() : undefined,
+                parameters: entity.parameters?.map((parameter) => ({ ...parameter })),
+                restMethods: entity.restMethods ? [...entity.restMethods].sort() : undefined,
+                graphQLOperation: entity.graphQLOperation,
+                mcp: entity.mcp ? { ...entity.mcp } : undefined,
                 advancedSettings: {
                     entityName: normalizeIdentifier(entity.advancedSettings.entityName),
                     authorizationRole: normalizeIdentifier(
@@ -1177,6 +1337,252 @@ function getDuplicateEntityName(config: Dab.DabConfig): string | undefined {
         seen.add(normalizedEntityName);
     }
     return undefined;
+}
+
+function escapeJsonPointerSegment(segment: string): string {
+    return segment.replace(/~/g, "~0").replace(/\//g, "~1");
+}
+
+function unescapeJsonPointerSegment(segment: string): string {
+    return segment.replace(/~1/g, "/").replace(/~0/g, "~");
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function validateDabName(value: string, fieldName: string): string | undefined {
+    if (value.length > 128) {
+        return `${fieldName} must be 128 characters or fewer.`;
+    }
+    if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(value)) {
+        return `${fieldName} must start with a letter and contain only ASCII letters, numbers, and underscores.`;
+    }
+    return undefined;
+}
+
+function validateRestPath(value: string): string | undefined {
+    if (value.length > 256) {
+        return "customRestPath must be 256 characters or fewer.";
+    }
+    if (!/^\/?[A-Za-z0-9._~-]+(?:\/[A-Za-z0-9._~-]+)*$/.test(value)) {
+        return "customRestPath must contain only ASCII URL path characters and cannot include query strings, fragments, script tags, or SQL punctuation.";
+    }
+    return undefined;
+}
+
+function validateStringPatchValue(
+    fieldName: "entityName" | "customRestPath" | "customGraphQLType",
+    value: unknown,
+): { success: true; value: string } | { success: false; message: string } {
+    if (typeof value !== "string") {
+        return { success: false, message: `${fieldName} must be a string.` };
+    }
+
+    const trimmed = value.trim();
+    if (trimmed.length === 0) {
+        return {
+            success: false,
+            message:
+                fieldName === "entityName"
+                    ? "entityName must be a non-empty string."
+                    : `${fieldName} cannot be an empty string.`,
+        };
+    }
+
+    const validationError =
+        fieldName === "customRestPath"
+            ? validateRestPath(trimmed)
+            : validateDabName(trimmed, fieldName);
+    if (validationError) {
+        return { success: false, message: validationError };
+    }
+
+    return { success: true, value: trimmed };
+}
+
+function validateDabEntityConfig(
+    entity: Dab.DabEntityConfig,
+): { success: true } | { success: false; reason: DabApplyFailureReason; message: string } {
+    const sourceType = entity.sourceType ?? Dab.EntitySourceType.Table;
+    if (!Object.values(Dab.EntitySourceType).includes(sourceType)) {
+        return createDabValidationError(
+            "sourceType must be one of: table, view, stored-procedure.",
+        );
+    }
+
+    const entityNameValidation = validateStringPatchValue(
+        "entityName",
+        entity.advancedSettings?.entityName,
+    );
+    if (entityNameValidation.success === false) {
+        return { success: false, reason: "invalid_request", message: entityNameValidation.message };
+    }
+
+    if (
+        sourceType === Dab.EntitySourceType.View &&
+        (!entity.keyFields || entity.keyFields.length === 0)
+    ) {
+        return createDabValidationError("View entities must include at least one key field.");
+    }
+
+    if (sourceType === Dab.EntitySourceType.StoredProcedure && entity.mcp?.customTool === true) {
+        return { success: true };
+    }
+
+    if (sourceType !== Dab.EntitySourceType.StoredProcedure && entity.mcp?.customTool === true) {
+        return createDabValidationError(
+            "MCP custom-tool can only be enabled for stored procedures.",
+        );
+    }
+
+    return { success: true };
+}
+
+function validateFullDabConfig(
+    config: Record<string, unknown>,
+): { success: true } | { success: false; reason: DabApplyFailureReason; message: string } {
+    if (!isRecord(config)) {
+        return {
+            success: false,
+            reason: "validation_error",
+            message: "DAB config must be an object.",
+        };
+    }
+
+    const entities = config.entities;
+    if (entities !== undefined && !isRecord(entities)) {
+        return {
+            success: false,
+            reason: "validation_error",
+            message: "DAB config entities must be an object.",
+        };
+    }
+
+    if (isRecord(entities)) {
+        for (const [entityName, entityValue] of Object.entries(entities)) {
+            if (!isRecord(entityValue)) {
+                return {
+                    success: false,
+                    reason: "validation_error",
+                    message: `Entity '${entityName}' must be an object.`,
+                };
+            }
+
+            const source = entityValue.source;
+            if (isRecord(source)) {
+                const sourceType = source.type;
+                if (
+                    typeof sourceType === "string" &&
+                    !Object.values(Dab.EntitySourceType).includes(
+                        sourceType as Dab.EntitySourceType,
+                    )
+                ) {
+                    return {
+                        success: false,
+                        reason: "validation_error",
+                        message: `Entity '${entityName}' source.type must be table, view, or stored-procedure.`,
+                    };
+                }
+                if (
+                    sourceType === Dab.EntitySourceType.View &&
+                    (!Array.isArray(source["key-fields"]) || source["key-fields"].length === 0)
+                ) {
+                    return {
+                        success: false,
+                        reason: "validation_error",
+                        message: `View entity '${entityName}' must include source.key-fields.`,
+                    };
+                }
+            }
+
+            const mcp = entityValue.mcp;
+            if (
+                isRecord(mcp) &&
+                mcp["custom-tool"] === true &&
+                (!isRecord(source) || source.type !== Dab.EntitySourceType.StoredProcedure)
+            ) {
+                return {
+                    success: false,
+                    reason: "validation_error",
+                    message: `Entity '${entityName}' mcp.custom-tool can only be enabled for stored procedures.`,
+                };
+            }
+        }
+    }
+
+    return { success: true };
+}
+
+function applyJsonPatchOperation(
+    root: Record<string, unknown>,
+    operation: Dab.DabJsonPatchOperation,
+): { success: true } | { success: false; reason: DabApplyFailureReason; message: string } {
+    if (!["add", "replace", "remove"].includes(operation.op)) {
+        return {
+            success: false,
+            reason: "invalid_request",
+            message: "Unsupported patch operation.",
+        };
+    }
+    if (typeof operation.path !== "string" || !operation.path.startsWith("/")) {
+        return {
+            success: false,
+            reason: "invalid_request",
+            message: "Patch path must be a JSON Pointer.",
+        };
+    }
+
+    const segments = operation.path
+        .split("/")
+        .slice(1)
+        .map((segment) => unescapeJsonPointerSegment(segment));
+    let current: unknown = root;
+    for (const segment of segments.slice(0, -1)) {
+        if (!isRecord(current)) {
+            return {
+                success: false,
+                reason: "not_found",
+                message: `Patch path parent not found: ${operation.path}`,
+            };
+        }
+        if (!(segment in current)) {
+            current[segment] = {};
+        }
+        current = current[segment];
+    }
+
+    if (!isRecord(current)) {
+        return {
+            success: false,
+            reason: "not_found",
+            message: `Patch path parent not found: ${operation.path}`,
+        };
+    }
+
+    const leaf = segments[segments.length - 1];
+    if (operation.op === "remove") {
+        if (!(leaf in current)) {
+            return {
+                success: false,
+                reason: "not_found",
+                message: `Patch path not found: ${operation.path}`,
+            };
+        }
+        delete current[leaf];
+        return { success: true };
+    }
+
+    if (operation.op === "replace" && !(leaf in current)) {
+        return {
+            success: false,
+            reason: "not_found",
+            message: `Patch path not found: ${operation.path}`,
+        };
+    }
+
+    current[leaf] = operation.value;
+    return { success: true };
 }
 
 function resolveEntityRef(
@@ -1325,6 +1731,8 @@ function formatUnsupportedEntityReasons(reasons: Dab.DabUnsupportedReason[] | un
             switch (reason.type) {
                 case "noPrimaryKey":
                     return "Table must have a primary key to be used with Data API builder";
+                case "noViewKeyFields":
+                    return "View must have key fields to be used with Data API builder";
                 case "unsupportedDataTypes":
                     return `Table contains column types not supported by Data API builder: ${reason.columns}`;
             }
@@ -1502,14 +1910,17 @@ function applyDabToolChange(
                 const value = (patch as Record<string, unknown>)[key];
                 switch (key) {
                     case "entityName":
-                        if (typeof value !== "string" || value.trim().length === 0) {
-                            return {
-                                success: false,
-                                reason: "invalid_request",
-                                message: "entityName must be a non-empty string.",
-                            };
+                        {
+                            const validation = validateStringPatchValue("entityName", value);
+                            if (validation.success === false) {
+                                return {
+                                    success: false,
+                                    reason: "invalid_request",
+                                    message: validation.message,
+                                };
+                            }
+                            updatedSettings.entityName = validation.value;
                         }
-                        updatedSettings.entityName = value.trim();
                         break;
                     case "authorizationRole":
                         if (
@@ -1530,42 +1941,34 @@ function applyDabToolChange(
                             delete updatedSettings.customRestPath;
                             break;
                         }
-                        if (typeof value !== "string") {
-                            return {
-                                success: false,
-                                reason: "invalid_request",
-                                message: "customRestPath must be a string or null.",
-                            };
+                        {
+                            const validation = validateStringPatchValue("customRestPath", value);
+                            if (validation.success === false) {
+                                return {
+                                    success: false,
+                                    reason: "invalid_request",
+                                    message: validation.message,
+                                };
+                            }
+                            updatedSettings.customRestPath = validation.value;
                         }
-                        if (value.trim().length === 0) {
-                            return {
-                                success: false,
-                                reason: "invalid_request",
-                                message: "customRestPath cannot be an empty string.",
-                            };
-                        }
-                        updatedSettings.customRestPath = value.trim();
                         break;
                     case "customGraphQLType":
                         if (value === null || typeof value === "undefined") {
                             delete updatedSettings.customGraphQLType;
                             break;
                         }
-                        if (typeof value !== "string") {
-                            return {
-                                success: false,
-                                reason: "invalid_request",
-                                message: "customGraphQLType must be a string or null.",
-                            };
+                        {
+                            const validation = validateStringPatchValue("customGraphQLType", value);
+                            if (validation.success === false) {
+                                return {
+                                    success: false,
+                                    reason: "invalid_request",
+                                    message: validation.message,
+                                };
+                            }
+                            updatedSettings.customGraphQLType = validation.value;
                         }
-                        if (value.trim().length === 0) {
-                            return {
-                                success: false,
-                                reason: "invalid_request",
-                                message: "customGraphQLType cannot be an empty string.",
-                            };
-                        }
-                        updatedSettings.customGraphQLType = value.trim();
                         break;
                     default:
                         return {
@@ -1590,6 +1993,68 @@ function applyDabToolChange(
                 };
             }
 
+            return { success: true };
+        }
+
+        case "patch_config": {
+            if (!Array.isArray(change.operations) || change.operations.length === 0) {
+                return {
+                    success: false,
+                    reason: "invalid_request",
+                    message: "patch_config.operations must be a non-empty array.",
+                };
+            }
+
+            const fullConfig = buildDabConfigJson(config);
+            for (const operation of change.operations) {
+                const patchResult = applyJsonPatchOperation(fullConfig, operation);
+                if (patchResult.success === false) {
+                    return patchResult;
+                }
+            }
+
+            const validation = validateFullDabConfig(fullConfig);
+            if (validation.success === false) {
+                return validation;
+            }
+
+            config.fullConfig = fullConfig;
+            return { success: true };
+        }
+
+        case "add_entity": {
+            const validation = validateDabEntityConfig(change.entity);
+            if (validation.success === false) {
+                return validation;
+            }
+            if (
+                config.entities.some(
+                    (entity) =>
+                        normalizeIdentifier(entity.id) === normalizeIdentifier(change.entity.id),
+                )
+            ) {
+                return createDabValidationError(`Entity id must be unique: ${change.entity.id}`);
+            }
+            config.entities.push(
+                cloneDabConfig({ apiTypes: [], entities: [change.entity] }).entities[0],
+            );
+            const duplicateEntityName = getDuplicateEntityName(config);
+            if (duplicateEntityName) {
+                return {
+                    success: false,
+                    reason: "validation_error",
+                    message: `entityName must be unique across entities. Duplicate: ${duplicateEntityName}`,
+                };
+            }
+            return { success: true };
+        }
+
+        case "remove_entity": {
+            const resolvedEntity = resolveEntityRef(config, change.entity);
+            if (resolvedEntity.success === false) {
+                return resolvedEntity;
+            }
+            config.entities.splice(resolvedEntity.index, 1);
             return { success: true };
         }
 
@@ -1645,6 +2110,7 @@ export function registerSchemaDesignerDabToolHandlers(params: {
     waitForInitialization: () => Promise<boolean>;
     getCurrentDabConfig: () => Dab.DabConfig | null;
     getCurrentSchemaTables: () => SchemaDesigner.Table[];
+    getDabEntityCandidates?: () => Promise<Dab.DabEntityCandidate[]>;
     commitDabConfig: (config: Dab.DabConfig) => void;
 }) {
     const {
@@ -1653,6 +2119,7 @@ export function registerSchemaDesignerDabToolHandlers(params: {
         waitForInitialization,
         getCurrentDabConfig,
         getCurrentSchemaTables,
+        getDabEntityCandidates,
         commitDabConfig,
     } = params;
 
@@ -1674,6 +2141,9 @@ export function registerSchemaDesignerDabToolHandlers(params: {
 
         const summary = buildDabSummary(syncedSnapshot.config);
         const version = await computeDabVersion(syncedSnapshot.config);
+        const entityCandidates = getDabEntityCandidates
+            ? await getDabEntityCandidates()
+            : undefined;
         const returnState =
             summary.entityCount > GET_STATE_ENTITY_THRESHOLD
                 ? ("summary" as const)
@@ -1685,6 +2155,8 @@ export function registerSchemaDesignerDabToolHandlers(params: {
                 version,
                 summary,
                 config: syncedSnapshot.config,
+                dabConfigJson: buildDabConfigJson(syncedSnapshot.config),
+                entityCandidates,
             };
         }
 
@@ -1693,6 +2165,8 @@ export function registerSchemaDesignerDabToolHandlers(params: {
             stateOmittedReason: "entity_count_over_threshold",
             version,
             summary,
+            configPathCatalog: buildConfigPathCatalog(syncedSnapshot.config),
+            entityCandidates,
         };
     };
 
@@ -1755,6 +2229,10 @@ export function registerSchemaDesignerDabToolHandlers(params: {
                     ? { stateOmittedReason: staleState.stateOmittedReason }
                     : {}),
                 ...(staleState.config ? { config: staleState.config } : {}),
+                ...(staleState.dabConfigJson ? { dabConfigJson: staleState.dabConfigJson } : {}),
+                ...(staleState.configPathCatalog
+                    ? { configPathCatalog: staleState.configPathCatalog }
+                    : {}),
             };
         }
 
@@ -1764,15 +2242,30 @@ export function registerSchemaDesignerDabToolHandlers(params: {
         for (let i = 0; i < request.changes.length; i++) {
             const applyResult = applyDabToolChange(workingSnapshot, request.changes[i]);
             if (applyResult.success === false) {
-                commitDabConfig(workingSnapshot);
+                const failureState = await buildApplyStatePayload(
+                    baseSnapshot,
+                    requestedReturnState,
+                    version,
+                );
                 return {
                     success: false,
                     reason: applyResult.reason,
                     message: applyResult.message,
                     failedChangeIndex: i,
-                    appliedChanges,
-                    version: await computeDabVersion(workingSnapshot),
-                    summary: buildDabSummary(workingSnapshot),
+                    appliedChanges: 0,
+                    version: failureState.version,
+                    summary: failureState.summary,
+                    returnState: failureState.returnState,
+                    ...(failureState.stateOmittedReason
+                        ? { stateOmittedReason: failureState.stateOmittedReason }
+                        : {}),
+                    ...(failureState.config ? { config: failureState.config } : {}),
+                    ...(failureState.dabConfigJson
+                        ? { dabConfigJson: failureState.dabConfigJson }
+                        : {}),
+                    ...(failureState.configPathCatalog
+                        ? { configPathCatalog: failureState.configPathCatalog }
+                        : {}),
                 };
             }
             appliedChanges++;

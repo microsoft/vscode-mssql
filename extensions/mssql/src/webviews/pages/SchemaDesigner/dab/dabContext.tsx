@@ -17,8 +17,10 @@ interface DabContextProps {
     openUrl: (url: string, apiType?: Dab.ApiType) => void;
     openLogsInNewTab: (logsContent: string) => void;
     dabConfig: Dab.DabConfig | null;
+    dabEntityCandidates: Dab.DabEntityCandidate[];
     initializeDabConfig: () => void;
     syncDabConfigWithSchema: () => void;
+    refreshDabEntityCandidates: () => Promise<void>;
     updateDabApiTypes: (apiTypes: Dab.ApiType[]) => void;
     toggleDabEntity: (entityId: string, isEnabled: boolean) => void;
     toggleDabEntityAction: (entityId: string, action: Dab.EntityAction, isEnabled: boolean) => void;
@@ -51,6 +53,171 @@ interface DabProviderProps {
     children: React.ReactNode;
 }
 
+function normalizeDabIdentifier(value: string): string {
+    const normalized = value.replace(/[^A-Za-z0-9_]/g, "_").replace(/^_+/, "");
+    if (!normalized) {
+        return "Entity";
+    }
+    return /^[A-Za-z]/.test(normalized) ? normalized : `Entity_${normalized}`;
+}
+
+function getUniqueEntityName(baseName: string, existingNames: Set<string>): string {
+    const normalizedBaseName = normalizeDabIdentifier(baseName);
+    let candidateName = normalizedBaseName;
+    let index = 2;
+    while (existingNames.has(candidateName.toLowerCase())) {
+        candidateName = `${normalizedBaseName}${index}`;
+        index++;
+    }
+    existingNames.add(candidateName.toLowerCase());
+    return candidateName;
+}
+
+function getCandidateSourceKey(candidate: Dab.DabEntityCandidate): string {
+    return `${candidate.sourceType}:${candidate.schemaName}.${candidate.objectName}`.toLowerCase();
+}
+
+function isSystemSchema(schemaName: string): boolean {
+    const normalizedSchema = schemaName.toLowerCase();
+    return normalizedSchema === "sys" || normalizedSchema === "information_schema";
+}
+
+function shouldHideDabEntity(entity: Dab.DabEntityConfig): boolean {
+    const sourceType = entity.sourceType ?? Dab.EntitySourceType.Table;
+    return (
+        isSystemSchema(entity.schemaName) &&
+        (sourceType === Dab.EntitySourceType.View ||
+            sourceType === Dab.EntitySourceType.StoredProcedure)
+    );
+}
+
+function createDabEntityFromCandidate(
+    candidate: Dab.DabEntityCandidate,
+    existingEntityNames: Set<string>,
+): Dab.DabEntityConfig | undefined {
+    if (
+        candidate.sourceType === "function" ||
+        candidate.sourceType === Dab.EntitySourceType.Table
+    ) {
+        return undefined;
+    }
+
+    const columns: Dab.DabColumnConfig[] = (candidate.fields ?? []).map((field) => ({
+        id: `${candidate.id}:${field.name}`,
+        name: field.name,
+        dataType: field.dataType ?? "",
+        isPrimaryKey: !!field.isKey,
+        isSupported: true,
+        isExposed: true,
+    }));
+
+    return {
+        id: candidate.id,
+        tableName: candidate.objectName,
+        schemaName: candidate.schemaName,
+        sourceType: candidate.sourceType,
+        keyFields:
+            candidate.sourceType === Dab.EntitySourceType.View ? candidate.keyFields : undefined,
+        parameters:
+            candidate.sourceType === Dab.EntitySourceType.StoredProcedure
+                ? candidate.parameters
+                : undefined,
+        restMethods:
+            candidate.sourceType === Dab.EntitySourceType.StoredProcedure
+                ? [Dab.StoredProcedureRestMethod.Post]
+                : undefined,
+        graphQLOperation:
+            candidate.sourceType === Dab.EntitySourceType.StoredProcedure
+                ? Dab.StoredProcedureGraphQLOperation.Mutation
+                : undefined,
+        mcp:
+            candidate.sourceType === Dab.EntitySourceType.StoredProcedure
+                ? { customTool: false }
+                : undefined,
+        isEnabled: false,
+        isSupported: candidate.isSupported,
+        unsupportedReasons:
+            candidate.isSupported || !candidate.unsupportedReason
+                ? undefined
+                : [
+                      {
+                          type:
+                              candidate.sourceType === Dab.EntitySourceType.View
+                                  ? "noViewKeyFields"
+                                  : "noPrimaryKey",
+                      },
+                  ],
+        enabledActions: [Dab.EntityAction.Read],
+        columns,
+        advancedSettings: {
+            entityName: getUniqueEntityName(candidate.objectName, existingEntityNames),
+            authorizationRole: Dab.AuthorizationRole.Anonymous,
+        },
+    };
+}
+
+function syncConfigWithEntityCandidates(
+    config: Dab.DabConfig,
+    candidates: Dab.DabEntityCandidate[],
+): Dab.DabConfig {
+    if (candidates.length === 0) {
+        const entities = config.entities.filter((entity) => !shouldHideDabEntity(entity));
+        return entities.length === config.entities.length ? config : { ...config, entities };
+    }
+
+    const visibleEntities = config.entities.filter((entity) => !shouldHideDabEntity(entity));
+    const existingSourceKeys = new Set(
+        visibleEntities.map((entity) =>
+            `${entity.sourceType ?? Dab.EntitySourceType.Table}:${entity.schemaName}.${entity.tableName}`.toLowerCase(),
+        ),
+    );
+    const existingEntityNames = new Set(
+        visibleEntities.map((entity) => entity.advancedSettings.entityName.toLowerCase()),
+    );
+    const discoveredEntities = candidates
+        .filter(
+            (candidate) =>
+                !isSystemSchema(candidate.schemaName) &&
+                !existingSourceKeys.has(getCandidateSourceKey(candidate)),
+        )
+        .map((candidate) => createDabEntityFromCandidate(candidate, existingEntityNames))
+        .filter((entity): entity is Dab.DabEntityConfig => !!entity);
+
+    console.log("[DAB candidates] sync candidates with config", {
+        existingEntityCount: visibleEntities.length,
+        candidateCount: candidates.length,
+        candidateTables: candidates.filter(
+            (candidate) => candidate.sourceType === Dab.EntitySourceType.Table,
+        ).length,
+        candidateViews: candidates.filter(
+            (candidate) => candidate.sourceType === Dab.EntitySourceType.View,
+        ).length,
+        candidateStoredProcedures: candidates.filter(
+            (candidate) => candidate.sourceType === Dab.EntitySourceType.StoredProcedure,
+        ).length,
+        candidateFunctions: candidates.filter((candidate) => candidate.sourceType === "function")
+            .length,
+        discoveredEntityCount: discoveredEntities.length,
+        discoveredViews: discoveredEntities.filter(
+            (entity) => entity.sourceType === Dab.EntitySourceType.View,
+        ).length,
+        discoveredStoredProcedures: discoveredEntities.filter(
+            (entity) => entity.sourceType === Dab.EntitySourceType.StoredProcedure,
+        ).length,
+    });
+
+    if (discoveredEntities.length === 0) {
+        return visibleEntities.length === config.entities.length
+            ? config
+            : { ...config, entities: visibleEntities };
+    }
+
+    return {
+        ...config,
+        entities: [...visibleEntities, ...discoveredEntities],
+    };
+}
+
 export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
     const schemaDesignerContext = useContext(SchemaDesignerContext);
     const { extensionRpc, extractSchema, isInitialized, isInitializedRef, waitForInitialization } =
@@ -60,6 +227,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
     const currentFilteredTables = useSchemaDesignerSelector((s) => s?.currentFilteredTables) ?? [];
 
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
+    const [dabEntityCandidates, setDabEntityCandidates] = useState<Dab.DabEntityCandidate[]>([]);
     const [dabTextFilter, setDabTextFilter] = useState<string>("");
     const [dabConfigTextFileContent, setDabConfigTextFileContent] = useState<string>("");
     const [dabDeploymentState, setDabDeploymentState] = useState<Dab.DabDeploymentState>(
@@ -84,11 +252,101 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
             waitForInitialization,
             getCurrentDabConfig: () => dabConfigRef.current,
             getCurrentSchemaTables: () => extractSchemaRef.current().tables,
+            getDabEntityCandidates: async () => {
+                console.log("[DAB candidates] webview RPC handler requesting entity candidates");
+                const response = await extensionRpc.sendRequest(
+                    Dab.GetEntityCandidatesRequest.type,
+                );
+                console.log(
+                    "[DAB candidates] webview RPC handler received entity candidates",
+                    response.entityCandidates.map((candidate) => ({
+                        id: candidate.id,
+                        sourceType: candidate.sourceType,
+                        isSupported: candidate.isSupported,
+                    })),
+                );
+                return response.entityCandidates;
+            },
             commitDabConfig: (config) => {
                 setDabConfig(config);
             },
         });
     }, [extensionRpc, waitForInitialization]);
+
+    const refreshDabEntityCandidates = useCallback(async () => {
+        console.log("[DAB candidates] refresh requested");
+        const response = await extensionRpc.sendRequest(Dab.GetEntityCandidatesRequest.type);
+        console.log(
+            "[DAB candidates] refresh received",
+            response.entityCandidates.map((candidate) => ({
+                id: candidate.id,
+                sourceType: candidate.sourceType,
+                isSupported: candidate.isSupported,
+            })),
+        );
+        setDabEntityCandidates(response.entityCandidates);
+    }, [extensionRpc]);
+
+    useEffect(() => {
+        if (!isInitialized) {
+            return;
+        }
+
+        void refreshDabEntityCandidates().catch((error) => {
+            console.error("Failed to load DAB entity candidates:", error);
+        });
+    }, [isInitialized, refreshDabEntityCandidates]);
+
+    useEffect(() => {
+        if (!dabConfig || dabEntityCandidates.length === 0) {
+            return;
+        }
+
+        setDabConfig((prev) => {
+            if (!prev) {
+                return prev;
+            }
+            const next = syncConfigWithEntityCandidates(prev, dabEntityCandidates);
+            if (next !== prev) {
+                console.log("[DAB candidates] merged candidates into config", {
+                    beforeEntityCount: prev.entities.length,
+                    afterEntityCount: next.entities.length,
+                    afterTables: next.entities.filter(
+                        (entity) =>
+                            (entity.sourceType ?? Dab.EntitySourceType.Table) ===
+                            Dab.EntitySourceType.Table,
+                    ).length,
+                    afterViews: next.entities.filter(
+                        (entity) => entity.sourceType === Dab.EntitySourceType.View,
+                    ).length,
+                    afterStoredProcedures: next.entities.filter(
+                        (entity) => entity.sourceType === Dab.EntitySourceType.StoredProcedure,
+                    ).length,
+                    addedEntities: next.entities
+                        .filter(
+                            (entity) =>
+                                !prev.entities.some(
+                                    (existing) =>
+                                        existing.id === entity.id ||
+                                        `${existing.sourceType ?? Dab.EntitySourceType.Table}:${existing.schemaName}.${existing.tableName}`.toLowerCase() ===
+                                            `${entity.sourceType ?? Dab.EntitySourceType.Table}:${entity.schemaName}.${entity.tableName}`.toLowerCase(),
+                                ),
+                        )
+                        .map((entity) => ({
+                            id: entity.id,
+                            sourceType: entity.sourceType,
+                            isSupported: entity.isSupported,
+                        })),
+                });
+            } else {
+                console.log("[DAB candidates] no new candidates merged", {
+                    entityCount: prev.entities.length,
+                    candidateCount: dabEntityCandidates.length,
+                });
+            }
+            return next;
+        });
+    }, [dabConfig, dabEntityCandidates]);
 
     const initializeDabConfig = useCallback(() => {
         void extensionRpc
@@ -97,14 +355,19 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 const schema = extractSchema();
                 const baseConfig = response.config ?? Dab.createDefaultConfig(schema.tables);
                 const synced = Dab.syncConfigWithSchema(baseConfig, schema.tables);
-                setDabConfig(synced.config);
+                setDabConfig(syncConfigWithEntityCandidates(synced.config, dabEntityCandidates));
             })
             .catch((error) => {
                 console.error("Failed to initialize DAB config from cache:", error);
                 const schema = extractSchema();
-                setDabConfig(Dab.createDefaultConfig(schema.tables));
+                setDabConfig(
+                    syncConfigWithEntityCandidates(
+                        Dab.createDefaultConfig(schema.tables),
+                        dabEntityCandidates,
+                    ),
+                );
             });
-    }, [extensionRpc, extractSchema]);
+    }, [dabEntityCandidates, extensionRpc, extractSchema]);
 
     const syncDabConfigWithSchema = useCallback(() => {
         if (!dabConfig) {
@@ -112,10 +375,14 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         }
 
         const synced = Dab.syncConfigWithSchema(dabConfig, extractSchema().tables);
-        if (synced.changed) {
-            setDabConfig(synced.config);
+        const syncedWithCandidates = syncConfigWithEntityCandidates(
+            synced.config,
+            dabEntityCandidates,
+        );
+        if (synced.changed || syncedWithCandidates !== synced.config) {
+            setDabConfig(syncedWithCandidates);
         }
-    }, [dabConfig, extractSchema]);
+    }, [dabConfig, dabEntityCandidates, extractSchema]);
 
     const updateDabApiTypes = useCallback((apiTypes: Dab.ApiType[]) => {
         setDabConfig((prev) => {
@@ -476,8 +743,10 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 openUrl,
                 openLogsInNewTab,
                 dabConfig,
+                dabEntityCandidates,
                 initializeDabConfig,
                 syncDabConfigWithSchema,
+                refreshDabEntityCandidates,
                 updateDabApiTypes,
                 toggleDabEntity,
                 toggleDabEntityAction,

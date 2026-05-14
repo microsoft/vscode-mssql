@@ -28,7 +28,6 @@ import {
     Eye16Regular as EyeIcon,
     Play16Filled as PlayIcon,
     Search16Regular,
-    TableEdit16Regular as TableEditIcon,
 } from "@fluentui/react-icons";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { locConstants } from "../../../common/locConstants";
@@ -156,12 +155,30 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: 
         Dab.EntityAction.Delete,
     ];
 
-    const handleEnableAll = () => {
-        for (const entity of supportedEntities) {
+    const getEntitySourceType = (entity: Dab.DabEntityConfig): Dab.EntitySourceType =>
+        entity.sourceType ?? Dab.EntitySourceType.Table;
+
+    const getSupportedEntitiesBySourceType = (sourceType: Dab.EntitySourceType) =>
+        supportedEntities.filter((entity) => getEntitySourceType(entity) === sourceType);
+
+    const enableEntities = (entities: Dab.DabEntityConfig[]) => {
+        for (const entity of entities) {
             if (!entity.isEnabled) {
                 toggleDabEntity(entity.id, true);
             }
         }
+    };
+
+    const handleEnableAllTables = () => {
+        enableEntities(getSupportedEntitiesBySourceType(Dab.EntitySourceType.Table));
+    };
+
+    const handleEnableAllViews = () => {
+        enableEntities(getSupportedEntitiesBySourceType(Dab.EntitySourceType.View));
+    };
+
+    const handleEnableAllStoredProcedures = () => {
+        enableEntities(getSupportedEntitiesBySourceType(Dab.EntitySourceType.StoredProcedure));
     };
 
     const handleDisableAll = () => {
@@ -172,8 +189,16 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: 
         }
     };
 
-    const handleMakeReadOnly = () => {
-        for (const entity of supportedEntities) {
+    const handleMakeTablesAndViewsReadOnly = () => {
+        const tableAndViewEntities = supportedEntities.filter((entity) => {
+            const sourceType = getEntitySourceType(entity);
+            return (
+                sourceType === Dab.EntitySourceType.Table ||
+                sourceType === Dab.EntitySourceType.View
+            );
+        });
+
+        for (const entity of tableAndViewEntities) {
             if (!entity.isEnabled) {
                 toggleDabEntity(entity.id, true);
             }
@@ -190,20 +215,7 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: 
         }
     };
 
-    const handleEnableAllCruds = () => {
-        for (const entity of supportedEntities) {
-            if (!entity.isEnabled) {
-                toggleDabEntity(entity.id, true);
-            }
-            for (const action of allActions) {
-                if (!entity.enabledActions.includes(action)) {
-                    toggleDabEntityAction(entity.id, action, true);
-                }
-            }
-        }
-    };
-
-    const handleIncludeAllColumns = () => {
+    const handleIncludeAllFields = () => {
         for (const entity of supportedEntities) {
             for (const column of entity.columns) {
                 if (!column.isExposed) {
@@ -259,22 +271,33 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: 
                         </MenuTrigger>
                         <MenuPopover>
                             <MenuList>
-                                <MenuItem icon={<CheckboxCheckedIcon />} onClick={handleEnableAll}>
-                                    {locConstants.schemaDesigner.enableAllEntities}
+                                <MenuItem
+                                    icon={<CheckboxCheckedIcon />}
+                                    onClick={handleEnableAllTables}>
+                                    {locConstants.schemaDesigner.enableAllTables}
+                                </MenuItem>
+                                <MenuItem
+                                    icon={<CheckboxCheckedIcon />}
+                                    onClick={handleEnableAllViews}>
+                                    {locConstants.schemaDesigner.enableAllViews}
+                                </MenuItem>
+                                <MenuItem
+                                    icon={<CheckboxCheckedIcon />}
+                                    onClick={handleEnableAllStoredProcedures}>
+                                    {locConstants.schemaDesigner.enableAllStoredProcedures}
                                 </MenuItem>
                                 <MenuItem
                                     icon={<CheckboxUncheckedIcon />}
                                     onClick={handleDisableAll}>
                                     {locConstants.schemaDesigner.disableAllEntities}
                                 </MenuItem>
-                                <MenuItem icon={<EyeIcon />} onClick={handleMakeReadOnly}>
-                                    {locConstants.schemaDesigner.makeReadOnly}
+                                <MenuItem
+                                    icon={<EyeIcon />}
+                                    onClick={handleMakeTablesAndViewsReadOnly}>
+                                    {locConstants.schemaDesigner.makeTablesAndViewsReadOnly}
                                 </MenuItem>
-                                <MenuItem icon={<TableEditIcon />} onClick={handleEnableAllCruds}>
-                                    {locConstants.schemaDesigner.enableAllCruds}
-                                </MenuItem>
-                                <MenuItem icon={<ColumnIcon />} onClick={handleIncludeAllColumns}>
-                                    {locConstants.schemaDesigner.includeAllColumns}
+                                <MenuItem icon={<ColumnIcon />} onClick={handleIncludeAllFields}>
+                                    {locConstants.schemaDesigner.includeAllFields}
                                 </MenuItem>
                             </MenuList>
                         </MenuPopover>

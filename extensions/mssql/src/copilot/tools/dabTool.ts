@@ -49,6 +49,9 @@ interface DabToolChangeCounts {
     set_entity_actions_count: number;
     set_column_exposed_count: number;
     patch_entity_settings_count: number;
+    patch_config_count: number;
+    add_entity_count: number;
+    remove_entity_count: number;
     set_only_enabled_entities_count: number;
     set_all_entities_enabled_count: number;
 }
@@ -59,6 +62,9 @@ interface DabToolReceipt {
     setEntityActionsCount: number;
     setColumnExposedCount: number;
     patchEntitySettingsCount: number;
+    patchConfigCount: number;
+    addEntityCount: number;
+    removeEntityCount: number;
     setOnlyEnabledEntitiesCount: number;
     setAllEntitiesEnabledCount: number;
 }
@@ -84,6 +90,8 @@ interface DabToolError {
         | "caller_requested_summary"
         | "caller_requested_none";
     config?: Dab.DabConfig;
+    dabConfigJson?: Record<string, unknown>;
+    configPathCatalog?: string[];
 }
 
 export class DabTool extends ToolBase<DabToolParams> {
@@ -147,6 +155,9 @@ export class DabTool extends ToolBase<DabToolParams> {
                 set_entity_actions_count: 0,
                 set_column_exposed_count: 0,
                 patch_entity_settings_count: 0,
+                patch_config_count: 0,
+                add_entity_count: 0,
+                remove_entity_count: 0,
                 set_only_enabled_entities_count: 0,
                 set_all_entities_enabled_count: 0,
             };
@@ -168,6 +179,15 @@ export class DabTool extends ToolBase<DabToolParams> {
                     case "patch_entity_settings":
                         counts.patch_entity_settings_count++;
                         break;
+                    case "patch_config":
+                        counts.patch_config_count++;
+                        break;
+                    case "add_entity":
+                        counts.add_entity_count++;
+                        break;
+                    case "remove_entity":
+                        counts.remove_entity_count++;
+                        break;
                     case "set_only_enabled_entities":
                         counts.set_only_enabled_entities_count++;
                         break;
@@ -186,6 +206,9 @@ export class DabTool extends ToolBase<DabToolParams> {
             setEntityActionsCount: counts.set_entity_actions_count,
             setColumnExposedCount: counts.set_column_exposed_count,
             patchEntitySettingsCount: counts.patch_entity_settings_count,
+            patchConfigCount: counts.patch_config_count,
+            addEntityCount: counts.add_entity_count,
+            removeEntityCount: counts.remove_entity_count,
             setOnlyEnabledEntitiesCount: counts.set_only_enabled_entities_count,
             setAllEntitiesEnabledCount: counts.set_all_entities_enabled_count,
         });
@@ -370,6 +393,12 @@ export class DabTool extends ToolBase<DabToolParams> {
                             ? { stateOmittedReason: failedResult.stateOmittedReason }
                             : {}),
                         ...(failedResult.config ? { config: failedResult.config } : {}),
+                        ...(failedResult.dabConfigJson
+                            ? { dabConfigJson: failedResult.dabConfigJson }
+                            : {}),
+                        ...(failedResult.configPathCatalog
+                            ? { configPathCatalog: failedResult.configPathCatalog }
+                            : {}),
                     },
                     activeDesigner,
                 );

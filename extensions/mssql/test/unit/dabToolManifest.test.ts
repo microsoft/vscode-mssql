@@ -153,6 +153,9 @@ suite("DAB LM tool manifest schema", () => {
         expect(
             byType.get("set_entity_actions")?.properties?.enabledActions?.items?.enum,
         ).to.deep.equal(["create", "read", "update", "delete"]);
+        expect(byType.has("patch_config")).to.equal(true);
+        expect(byType.has("add_entity")).to.equal(true);
+        expect(byType.has("remove_entity")).to.equal(true);
         expect(byType.get("set_column_exposed")?.properties?.column?.$ref).to.equal(
             "#/$defs/columnRef",
         );

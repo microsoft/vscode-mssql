@@ -304,8 +304,8 @@ export default class SqlDocumentService implements vscode.Disposable {
         await this._connectionMgr.onDidCloseTextDocument(doc);
 
         // Remove diagnostics for the related file
-        let diagnostics = SqlToolsServerClient.instance.diagnosticCollection;
-        if (diagnostics.has(doc.uri)) {
+        let diagnostics = SqlToolsServerClient.instance?.diagnosticCollection;
+        if (diagnostics?.has(doc.uri)) {
             diagnostics.delete(doc.uri);
         }
 
