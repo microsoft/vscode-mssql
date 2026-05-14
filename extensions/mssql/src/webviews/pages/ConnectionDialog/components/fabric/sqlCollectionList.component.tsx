@@ -97,16 +97,18 @@ export const SqlCollectionList = ({
         );
     }, [sortedWorkspaces, workspaceSearchFilter]);
 
-    // Automatically select the first collection when collections are loaded and none is selected
+    // Automatically select the first collection when collections are loaded and none is selected.
+    // sortedWorkspaces is favorites-first then alphabetical, so this picks the first favorited
+    // (if any) or the first alphabetically.
     useEffect(() => {
         if (
             effectiveLoadStatus.status === ApiStatus.Loaded &&
-            workspaces.length > 0 &&
+            sortedWorkspaces.length > 0 &&
             !selectedWorkspace
         ) {
-            onSelectWorkspace(workspaces[0]);
+            onSelectWorkspace(sortedWorkspaces[0]);
         }
-    }, [workspaces, selectedWorkspace, effectiveLoadStatus.status, onSelectWorkspace]);
+    }, [sortedWorkspaces, selectedWorkspace, effectiveLoadStatus.status, onSelectWorkspace]);
 
     const onSelectionChange = useCallback(
         (_: SyntheticEvent | Event, data: { selectedItems: SelectionItemId[] }) => {

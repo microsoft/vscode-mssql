@@ -348,32 +348,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 state.sqlCollectionsLoadStatus = { status: ApiStatus.NotStarted };
                 state.sqlCollections = [];
 
-                if (!state.selectedAccountId) {
-                    if (
-                        state.loadingAzureAccountsStatus === ApiStatus.NotStarted ||
-                        state.loadingAzureAccountsStatus === ApiStatus.Error
-                    ) {
-                        // Indicate we're checking for existing accounts
-                        state.loadingAzureAccountsStatus = ApiStatus.Loading;
-                        this.updateState(state);
-
-                        state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => {
-                            return {
-                                id: a.id,
-                                name: a.label,
-                            } as IAzureAccount;
-                        });
-
-                        if (state.azureAccounts.length === 0) {
-                            state.loadingAzureAccountsStatus = ApiStatus.NotStarted;
-                        } else {
-                            state.selectedAccountId = state.azureAccounts[0].id;
-                            state.loadingAzureAccountsStatus = ApiStatus.Loaded;
-                        }
-
-                        this.updateState(state);
-                    }
-                }
+                await this.ensureAzureBrowseContext(state);
 
                 if (state.selectedAccountId && state.selectedTenantId) {
                     await this.loadFabricWorkspaces(
@@ -744,14 +719,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 }
             }
 
-            if (state.loadingAzureAccountsStatus === ApiStatus.NotStarted) {
-                state.loadingAzureAccountsStatus = ApiStatus.Loading;
-                state.loadingAzureTenantsStatus = ApiStatus.NotStarted;
-                state.azureTenants = [];
-                this.updateState(state);
-            }
-
-            const existingAccounts = state.azureAccounts.map((a) => a.id);
+            const existingAccountIds = state.azureAccounts.map((a) => a.id);
 
             try {
                 await VsCodeAzureHelper.signIn(true /* forceSignInPrompt */);
@@ -764,20 +732,20 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 return state;
             }
 
-            state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => {
-                return {
-                    id: a.id,
-                    name: a.label,
-                } as IAzureAccount;
-            });
+            // Refresh accounts after sign-in and switch selection to the newly added account
+            // so the helper loads tenants for it.
+            await this.ensureAzureBrowseContext(state, { forceRefreshAccounts: true });
 
-            // find the account that was added, and select it
-            state.selectedAccountId = state.azureAccounts.find(
-                (a) => !existingAccounts.includes(a.id),
+            const newlyAddedAccountId = state.azureAccounts.find(
+                (a) => !existingAccountIds.includes(a.id),
             )?.id;
-
-            state.loadingAzureAccountsStatus = ApiStatus.Loaded;
-            this.updateState(state);
+            if (newlyAddedAccountId && newlyAddedAccountId !== state.selectedAccountId) {
+                state.selectedAccountId = newlyAddedAccountId;
+                state.azureTenants = [];
+                state.selectedTenantId = undefined;
+                state.loadingAzureTenantsStatus = ApiStatus.NotStarted;
+                await this.ensureAzureBrowseContext(state);
+            }
 
             if (payload.browseTarget === ConnectionInputMode.AzureBrowse) {
                 await this.loadAllAzureServers(state);
@@ -818,35 +786,19 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("selectAzureAccount", async (state, payload) => {
-            // Loading state
+            if (state.selectedAccountId === payload.accountId && state.azureTenants.length > 0) {
+                // Same account already selected and tenants are loaded; nothing to do
+                return state;
+            }
+
+            // Switching accounts - reset tenant data so the helper reloads it
             state.selectedAccountId = payload.accountId;
             state.azureTenants = [];
-            state.selectedTenantId = "";
-            state.loadingAzureTenantsStatus = ApiStatus.Loading;
-
+            state.selectedTenantId = undefined;
+            state.loadingAzureTenantsStatus = ApiStatus.NotStarted;
             this.updateState(state);
 
-            // set the list of tenants and selected tenant
-            const azureAccount = await VsCodeAzureHelper.getAccountById(payload.accountId);
-            const tenants = await VsCodeAzureHelper.getTenantsForAccount(azureAccount);
-
-            state.azureTenants = tenants.map((t) => ({
-                id: t.tenantId!,
-                name: t.displayName!,
-            }));
-
-            // Response from VS Code account system shows all tenants as "Home", so we need to extract the home tenant ID manually
-            const homeTenantId = VsCodeAzureHelper.getHomeTenantIdForAccount(azureAccount);
-
-            // For personal Microsoft accounts, the extracted tenant ID may not be one that the user has access to.
-            // Only use the extracted tenant ID if it's in the tenant list; otherwise, default to the first.
-            state.selectedTenantId = tenants.find((t) => t.tenantId === homeTenantId)
-                ? homeTenantId
-                : state.azureTenants.length > 0
-                  ? state.azureTenants[0].id
-                  : undefined;
-
-            state.loadingAzureTenantsStatus = ApiStatus.Loaded;
+            await this.ensureAzureBrowseContext(state);
 
             return state;
         });
@@ -2401,18 +2353,34 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
     }
 
-    private async loadAzureSubscriptions(
+    /**
+     * Ensures that Azure accounts and tenants are loaded for browsing and that an
+     * account/tenant are selected. Shared between Azure Browse and Fabric Browse so that
+     * switching between modes doesn't reload accounts/tenants or lose the current selection.
+     *
+     * - Loads accounts (if not already loaded or `forceRefreshAccounts` is set)
+     * - Auto-selects the first account if none is currently selected
+     * - Loads tenants for the selected account (if not already loaded or `forceRefreshTenants`
+     *   is set), and auto-selects the home tenant (or first tenant) if none is selected
+     *
+     * Calls `updateState` along the way so the UI shows progress.
+     */
+    private async ensureAzureBrowseContext(
         state: ConnectionDialogWebviewState,
-    ): Promise<Map<string, AzureSubscription[]> | undefined> {
-        let telemActivity: ActivityObject;
-        try {
-            // Step 1: Check for existing accounts first and show loading while we do
+        options: {
+            forceRefreshAccounts?: boolean;
+            forceRefreshTenants?: boolean;
+        } = {},
+    ): Promise<void> {
+        const { forceRefreshAccounts = false, forceRefreshTenants = false } = options;
+
+        const accountsAlreadyLoaded =
+            state.loadingAzureAccountsStatus === ApiStatus.Loaded && state.azureAccounts.length > 0;
+
+        if (forceRefreshAccounts || !accountsAlreadyLoaded) {
             state.loadingAzureAccountsStatus = ApiStatus.Loading;
-            state.loadingAzureTenantsStatus = ApiStatus.NotStarted;
-            state.azureTenants = [];
             this.updateState(state);
 
-            state.formMessage = undefined;
             state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => {
                 return {
                     id: a.id,
@@ -2420,10 +2388,74 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 } as IAzureAccount;
             });
             state.loadingAzureAccountsStatus = ApiStatus.Loaded;
+            this.updateState(state);
+        }
+
+        if (state.azureAccounts.length === 0) {
+            // Nothing to select; clear any stale tenant data
+            state.selectedAccountId = undefined;
+            state.azureTenants = [];
+            state.selectedTenantId = undefined;
+            state.loadingAzureTenantsStatus = ApiStatus.NotStarted;
+            return;
+        }
+
+        // Auto-select the first account if none is currently selected, or if the
+        // current selection is no longer in the account list
+        const selectionStillValid =
+            !!state.selectedAccountId &&
+            state.azureAccounts.some((a) => a.id === state.selectedAccountId);
+        if (!selectionStillValid) {
+            state.selectedAccountId = state.azureAccounts[0].id;
+            // Account changed - tenants must be reloaded
+            state.azureTenants = [];
+            state.selectedTenantId = undefined;
+            state.loadingAzureTenantsStatus = ApiStatus.NotStarted;
+        }
+
+        const tenantsAlreadyLoaded =
+            state.loadingAzureTenantsStatus === ApiStatus.Loaded && state.azureTenants.length > 0;
+
+        if (forceRefreshTenants || !tenantsAlreadyLoaded) {
+            state.loadingAzureTenantsStatus = ApiStatus.Loading;
+            state.azureTenants = [];
+            state.selectedTenantId = undefined;
+            this.updateState(state);
+
+            const azureAccount = await VsCodeAzureHelper.getAccountById(state.selectedAccountId);
+            const tenants = await VsCodeAzureHelper.getTenantsForAccount(azureAccount);
+            state.azureTenants = tenants.map((t) => ({
+                id: t.tenantId!,
+                name: t.displayName!,
+            }));
+
+            // Response from VS Code account system shows all tenants as "Home", so we need to extract the home tenant ID manually
+            const homeTenantId = VsCodeAzureHelper.getHomeTenantIdForAccount(azureAccount);
+
+            // For personal Microsoft accounts, the extracted tenant ID may not be one that the user has access to.
+            // Only use the extracted tenant ID if it's in the tenant list; otherwise, default to the first.
+            state.selectedTenantId = tenants.find((t) => t.tenantId === homeTenantId)
+                ? homeTenantId
+                : state.azureTenants.length > 0
+                  ? state.azureTenants[0].id
+                  : undefined;
+
+            state.loadingAzureTenantsStatus = ApiStatus.Loaded;
+            this.updateState(state);
+        }
+    }
+
+    private async loadAzureSubscriptions(
+        state: ConnectionDialogWebviewState,
+    ): Promise<Map<string, AzureSubscription[]> | undefined> {
+        let telemActivity: ActivityObject;
+        try {
+            state.formMessage = undefined;
             state.unauthenticatedAzureTenants = [];
             state.azureTenantStatus = [];
             state.azureTenantSignInCounts = undefined;
-            this.updateState(state);
+
+            await this.ensureAzureBrowseContext(state);
 
             // If there are no accounts, don't proceed to load subscriptions
             if (!state.azureAccounts || state.azureAccounts.length === 0) {

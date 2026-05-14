@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useMemo } from "react";
+import { useContext, useMemo } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { useConnectionDialogSelector } from "./connectionDialogSelector";
 import { Label, makeStyles } from "@fluentui/react-components";
@@ -37,7 +37,6 @@ export const AzureBrowsePage = () => {
     const loadingAzureSubscriptionsStatus = useConnectionDialogSelector(
         (s) => s.loadingAzureSubscriptionsStatus,
     );
-    const selectedAccountId = useConnectionDialogSelector((s) => s.selectedAccountId);
     const selectedTenantId = useConnectionDialogSelector((s) => s.selectedTenantId);
     const favoritedAzureSubscriptionIds = useConnectionDialogSelector(
         (s) => s.favoritedAzureSubscriptionIds,
@@ -50,19 +49,6 @@ export const AzureBrowsePage = () => {
     }
 
     const styles = useStyles();
-
-    useEffect(() => {
-        if (
-            loadingAzureAccountsStatus === ApiStatus.Loaded &&
-            azureAccounts &&
-            !selectedAccountId
-        ) {
-            const firstAccount = azureAccounts[0];
-            if (firstAccount) {
-                context.selectAzureAccount(firstAccount.id);
-            }
-        }
-    }, [loadingAzureAccountsStatus, azureAccounts]);
 
     function setConnectionProperty(propertyName: keyof IConnectionDialogProfile, value: string) {
         context!.formAction({ propertyName, value, isAction: false });
@@ -145,8 +131,8 @@ export const AzureBrowsePage = () => {
                             }}
                             onSelectDatabase={(db) => {
                                 setConnectionProperty("server", db.server);
-                                if (db.database) {
-                                    setConnectionProperty("database", db.database);
+                                if (db.databases.length > 0) {
+                                    setConnectionProperty("database", db.databases[0]);
                                 }
                             }}
                         />

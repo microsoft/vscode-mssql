@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect } from "react";
+import { useContext } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { useConnectionDialogSelector } from "./connectionDialogSelector";
 import { Label, makeStyles } from "@fluentui/react-components";
@@ -29,7 +29,6 @@ export const FabricBrowsePage = () => {
         (s) => s.loadingAzureAccountsStatus,
     );
     const azureAccounts = useConnectionDialogSelector((s) => s.azureAccounts);
-    const selectedAccountId = useConnectionDialogSelector((s) => s.selectedAccountId);
     const favoritedFabricWorkspaceIds = useConnectionDialogSelector(
         (s) => s.favoritedFabricWorkspaceIds,
     );
@@ -41,19 +40,6 @@ export const FabricBrowsePage = () => {
     }
 
     const styles = useStyles();
-
-    useEffect(() => {
-        if (
-            loadingAzureAccountsStatus === ApiStatus.Loaded &&
-            azureAccounts &&
-            !selectedAccountId
-        ) {
-            const firstAccount = azureAccounts[0];
-            if (firstAccount) {
-                context.selectAzureAccount(firstAccount.id);
-            }
-        }
-    }, [loadingAzureAccountsStatus, azureAccounts]);
 
     function setConnectionProperty(propertyName: keyof IConnectionDialogProfile, value: string) {
         context!.formAction({ propertyName, value, isAction: false });
@@ -87,7 +73,7 @@ export const FabricBrowsePage = () => {
             }
             case SqlArtifactTypes.SqlDatabase:
                 setConnectionProperty("server", database.server);
-                setConnectionProperty("database", database.database);
+                setConnectionProperty("database", database.databases[0]);
                 setConnectionProperty("profileName", generateProfileName(database));
                 setConnectionProperty("authenticationType", AuthenticationType.AzureMFA);
 
