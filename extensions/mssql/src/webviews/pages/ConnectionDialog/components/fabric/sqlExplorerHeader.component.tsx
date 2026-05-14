@@ -39,33 +39,25 @@ const SqlExplorerHeader = ({
     const [selectedAccountName, setSelectedAccountName] = useState<string>("");
     const [selectedTenantName, setSelectedTenantName] = useState<string>("");
 
-    // Load accounts from state when component mounts
+    // Sync local display names when the selected account/tenant changes in state
     useEffect(() => {
         if (selectedAccountId) {
             const account = azureAccounts.find((a) => a.id === selectedAccountId);
             if (account) {
-                handleAccountChange({} as SelectionEvents, {
-                    optionText: account.name,
-                    optionValue: account.id,
-                    selectedOptions: [account.id],
-                });
+                setSelectedAccountName(account.name);
             }
         }
-    }, [selectedAccountId]);
+    }, [selectedAccountId, azureAccounts]);
 
-    // Load tenants from state when component mounts
+    // Sync local display names when the selected tenant changes in state
     useEffect(() => {
         if (selectedTenantId) {
             const tenant = azureTenants.find((t) => t.id === selectedTenantId);
             if (tenant) {
-                handleTenantChange({} as SelectionEvents, {
-                    optionText: tenant.name,
-                    optionValue: tenant.id,
-                    selectedOptions: [tenant.id],
-                });
+                setSelectedTenantName(tenant.name);
             }
         }
-    }, [selectedTenantId]);
+    }, [selectedTenantId, azureTenants]);
 
     function handleAccountChange(_event: SelectionEvents, data: OptionOnSelectData) {
         if (data.optionValue === addNewMicrosoftAccount) {

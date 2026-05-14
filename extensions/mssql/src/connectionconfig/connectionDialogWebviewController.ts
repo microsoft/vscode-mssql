@@ -105,6 +105,7 @@ import {
 import { PreviewFeature, previewService } from "../previews/previewService";
 
 const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 10;
+const AZURE_SUBSCRIPTION_AUTOLOAD_LIMIT = 20;
 export const CLEAR_TOKEN_CACHE = "clearTokenCache";
 export const SIGN_IN_TO_AZURE = "signInToAzure";
 const CONNECTION_DIALOG_VIEW_ID = "connectionDialog";
@@ -923,6 +924,18 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 await this.loadFabricDatabasesForWorkspace(state, workspace);
             }
 
+            return state;
+        });
+
+        this.registerReducer("selectAzureSubscription", async (state, payload) => {
+            const sub = state.azureSubscriptions.find((s) => s.id === payload.subscriptionId);
+            if (
+                sub &&
+                (sub.loadStatus.status === ApiStatus.NotStarted ||
+                    sub.loadStatus.status === ApiStatus.Error)
+            ) {
+                await this.loadAzureServersForSubscription(state, payload.subscriptionId);
+            }
             return state;
         });
 
@@ -2576,17 +2589,21 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             );
             const restSubs = subsForTenant.filter((s) => !favoritedIds.includes(s.subscriptionId));
 
-            // Wave 1: favorites — await so they appear before the rest start
+            // Wave 1: favorites — always auto-load, await so they appear before the rest start
             await Promise.all(
                 favoriteSubs.map((s) =>
                     this.loadAzureServersForSubscription(state, s.subscriptionId),
                 ),
             );
 
-            // Wave 2: everything else — all concurrent
-            await Promise.all(
-                restSubs.map((s) => this.loadAzureServersForSubscription(state, s.subscriptionId)),
-            );
+            // Wave 2: non-favorites — only auto-load if total subscriptions are within threshold
+            if (subsForTenant.length <= AZURE_SUBSCRIPTION_AUTOLOAD_LIMIT) {
+                await Promise.all(
+                    restSubs.map((s) =>
+                        this.loadAzureServersForSubscription(state, s.subscriptionId),
+                    ),
+                );
+            }
 
             state.loadingAzureServersStatus = ApiStatus.Loaded;
             endActivity.end(ActivityStatus.Succeeded, undefined, {

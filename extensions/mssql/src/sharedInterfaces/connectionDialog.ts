@@ -253,6 +253,7 @@ export interface ConnectionDialogContextProps extends FormContextProps<IConnecti
     selectAzureTenant: (tenantId: string) => void;
     setSelectedTenantId: (tenantId: string) => void;
     selectSqlCollection: (collectionId: string) => void;
+    selectAzureSubscription: (subscriptionId: string) => void;
     toggleFavoriteCollection: (collectionId: string, inputMode: ConnectionInputMode) => void;
     messageButtonClicked: (buttonId: string) => void;
 
@@ -307,6 +308,7 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     selectAzureTenant: { tenantId: string };
     setSelectedTenantId: { tenantId: string };
     selectSqlCollection: { collectionId: string };
+    selectAzureSubscription: { subscriptionId: string };
     toggleFavoriteCollection: { collectionId: string; inputMode: ConnectionInputMode };
     messageButtonClicked: { buttonId: string };
 }

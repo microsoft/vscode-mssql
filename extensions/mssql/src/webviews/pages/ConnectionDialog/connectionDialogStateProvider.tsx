@@ -156,6 +156,11 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                     collectionId,
                 });
             },
+            selectAzureSubscription: (subscriptionId: string) => {
+                extensionRpc.action("selectAzureSubscription", {
+                    subscriptionId,
+                });
+            },
             openInfoLink: (option: FormItemOptions) => {
                 void extensionRpc.sendNotification(OpenOptionInfoLinkNotification.type, {
                     option,

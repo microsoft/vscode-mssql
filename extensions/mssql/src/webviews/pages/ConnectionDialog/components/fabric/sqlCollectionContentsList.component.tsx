@@ -39,6 +39,7 @@ import {
     ErrorCircleRegular,
     ChevronRight16Regular,
     ChevronDown16Regular,
+    DatabaseRegular,
 } from "@fluentui/react-icons";
 import { locConstants as Loc } from "../../../../common/locConstants";
 import { KeyCode } from "../../../../common/keys";
@@ -199,20 +200,27 @@ export const SqlCollectionContentsList = ({
                                     />
                                 )
                             ) : null}
-                            <img
-                                src={
-                                    item.isDatabaseRow
-                                        ? sqlDatabaseIcon(theme)
-                                        : getItemIcon(item.type, theme)
-                                }
-                                alt={item.typeDisplayName}
-                                style={{
-                                    width: "20px",
-                                    height: "20px",
-                                    marginRight: "8px",
-                                    flexShrink: 0,
-                                }}
-                            />
+                            {item.isDatabaseRow ? (
+                                <DatabaseRegular
+                                    style={{
+                                        width: "20px",
+                                        height: "20px",
+                                        marginRight: "8px",
+                                        flexShrink: 0,
+                                    }}
+                                />
+                            ) : (
+                                <img
+                                    src={getItemIcon(item.type, theme)}
+                                    alt={item.typeDisplayName}
+                                    style={{
+                                        width: "20px",
+                                        height: "20px",
+                                        marginRight: "8px",
+                                        flexShrink: 0,
+                                    }}
+                                />
+                            )}
                             <Text truncate className={styles.hideTextOverflowCell}>
                                 {item.displayName}
                             </Text>

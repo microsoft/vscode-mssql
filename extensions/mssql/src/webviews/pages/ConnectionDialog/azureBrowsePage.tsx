@@ -123,8 +123,8 @@ export const AzureBrowsePage = () => {
                                     ConnectionInputMode.AzureBrowse,
                                 )
                             }
-                            onSelectWorkspace={(_ws) => {
-                                /* no-op: servers auto-loaded for all subscriptions */
+                            onSelectWorkspace={(ws) => {
+                                context.selectAzureSubscription(ws.id);
                             }}
                             onSelectDatabase={(db) => {
                                 setConnectionProperty("server", db.server);
