@@ -37,7 +37,6 @@ export const AzureBrowsePage = () => {
     const loadingAzureSubscriptionsStatus = useConnectionDialogSelector(
         (s) => s.loadingAzureSubscriptionsStatus,
     );
-    const selectedTenantId = useConnectionDialogSelector((s) => s.selectedTenantId);
     const favoritedAzureSubscriptionIds = useConnectionDialogSelector(
         (s) => s.favoritedAzureSubscriptionIds,
     );
@@ -54,17 +53,14 @@ export const AzureBrowsePage = () => {
         context!.formAction({ propertyName, value, isAction: false });
     }
 
-    // Associate loaded servers with their subscriptions
+    // Associate loaded servers with their subscriptions. Subscriptions are already
+    // scoped to the selected tenant on the backend, so no client-side tenant filter.
     const subscriptionWorkspaces = useMemo((): SqlCollectionInfo[] => {
-        let subs = azureSubscriptions;
-        if (selectedTenantId) {
-            subs = subs.filter((sub) => sub.tenantId === selectedTenantId);
-        }
-        return subs.map((sub) => ({
+        return azureSubscriptions.map((sub) => ({
             ...sub,
             databases: azureServers.filter((srv) => srv.collectionId === sub.id),
         }));
-    }, [azureSubscriptions, azureServers, selectedTenantId]);
+    }, [azureSubscriptions, azureServers]);
 
     const subscriptionsLoadStatus = useMemo(
         (): Status => ({ status: loadingAzureSubscriptionsStatus }),

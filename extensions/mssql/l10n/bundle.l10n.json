@@ -3615,6 +3615,5 @@
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
     "Invalid connection string: {0}": "Invalid connection string: {0}",
-    "No subscriptions available.": "No subscriptions available.",
     "Error loading Azure databases.": "Error loading Azure databases."
 }

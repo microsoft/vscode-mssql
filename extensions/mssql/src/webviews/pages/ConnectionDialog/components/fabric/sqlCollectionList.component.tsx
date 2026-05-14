@@ -362,6 +362,7 @@ const SqlCollectionListItem = ({
                         }
                         relationship="label">
                         <button
+                            type="button"
                             className={styles.starButton}
                             style={{ visibility: showStar ? "visible" : "hidden" }}
                             onClick={(e) => {

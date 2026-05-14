@@ -7,15 +7,9 @@ import * as os from "os";
 import * as vscode from "vscode";
 import { shallowEqualObjects } from "shallow-equal";
 
-import {
-    ActivityStatus,
-    ActivityObject,
-    TelemetryActions,
-    TelemetryViews,
-} from "../sharedInterfaces/telemetry";
+import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import {
     AuthenticationType,
-    AzureSubscriptionInfo,
     ConnectionDialogReducers,
     ConnectionDialogWebviewState,
     ConnectionInputMode,
@@ -150,7 +144,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     ];
 
     private _connectionBeingEdited: IConnectionDialogProfile | undefined;
-    private _azureSubscriptions: Map<string, AzureSubscription>;
+    private _azureSubscriptions: Map<string, AzureSubscription> = new Map();
     private _lastSubmittedAction: ConnectionSubmitAction = ConnectionSubmitAction.Connect;
 
     /** Cached VS Code Entra account options, invalidated on sign-in */
@@ -329,14 +323,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this.updateState();
 
             if (state.selectedInputMode === ConnectionInputMode.AzureBrowse) {
-                // Start loading Azure servers if it isn't already complete or in progress
-                if (
-                    (state.loadingAzureSubscriptionsStatus === ApiStatus.NotStarted ||
-                        state.loadingAzureSubscriptionsStatus === ApiStatus.Error) &&
-                    (state.loadingAzureServersStatus === ApiStatus.NotStarted ||
-                        state.loadingAzureServersStatus === ApiStatus.Error)
-                ) {
-                    await this.loadAllAzureServers(state);
+                await this.ensureAzureBrowseContext(state);
+
+                if (state.selectedAccountId && state.selectedTenantId) {
+                    await this.loadAzureServersForTenant(state, state.selectedTenantId);
                 }
             } else if (state.selectedInputMode === ConnectionInputMode.FabricBrowse) {
                 // Don't port connection information when switching to Fabric Browse
@@ -483,7 +473,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         this.registerReducer("filterAzureSubscriptions", async (state) => {
             try {
                 if (await promptForAzureSubscriptionFilter(state, this.logger)) {
-                    await this.loadAllAzureServers(state);
+                    // Force-refresh the subscription cache, then reload for the current tenant
+                    this._azureSubscriptions.clear();
+                    if (state.selectedTenantId) {
+                        await this.loadAzureServersForTenant(state, state.selectedTenantId);
+                    }
                 }
             } catch (err) {
                 this.state.formMessage = { message: getErrorMessage(err) };
@@ -748,7 +742,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             }
 
             if (payload.browseTarget === ConnectionInputMode.AzureBrowse) {
-                await this.loadAllAzureServers(state);
+                // New sign-in may have brought in new subscriptions/tenants
+                this._azureSubscriptions.clear();
+                if (state.selectedTenantId) {
+                    await this.loadAzureServersForTenant(state, state.selectedTenantId);
+                }
 
                 return state;
             }
@@ -781,7 +779,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 return state;
             }
 
-            await this.loadAllAzureServers(state);
+            // Force-refresh the subscription cache after tenant sign-in
+            this._azureSubscriptions.clear();
+            if (state.selectedTenantId) {
+                await this.loadAzureServersForTenant(state, state.selectedTenantId);
+            }
             return state;
         });
 
@@ -791,20 +793,50 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 return state;
             }
 
-            // Switching accounts - reset tenant data so the helper reloads it
+            // Switching accounts - reset tenant data so the helper reloads it.
+            // Also reset the subscription cache since subscriptions are account-specific.
             state.selectedAccountId = payload.accountId;
             state.azureTenants = [];
             state.selectedTenantId = undefined;
             state.loadingAzureTenantsStatus = ApiStatus.NotStarted;
+            this._azureSubscriptions.clear();
             this.updateState(state);
 
             await this.ensureAzureBrowseContext(state);
+
+            // After tenant selection settles, kick off the appropriate load for the new tenant
+            if (state.selectedTenantId) {
+                if (state.selectedInputMode === ConnectionInputMode.AzureBrowse) {
+                    await this.loadAzureServersForTenant(state, state.selectedTenantId);
+                } else if (
+                    state.selectedInputMode === ConnectionInputMode.FabricBrowse &&
+                    state.selectedAccountId
+                ) {
+                    state.sqlCollectionsLoadStatus = { status: ApiStatus.Loading };
+                    state.sqlCollections = [];
+                    this.updateState(state);
+                    await this.loadFabricWorkspaces(
+                        state,
+                        state.selectedAccountId,
+                        state.selectedTenantId,
+                    );
+                }
+            }
 
             return state;
         });
 
         this.registerReducer("setSelectedTenantId", async (state, payload) => {
+            if (state.selectedTenantId === payload.tenantId) {
+                return state;
+            }
             state.selectedTenantId = payload.tenantId;
+            this.updateState(state);
+
+            if (state.selectedInputMode === ConnectionInputMode.AzureBrowse) {
+                await this.loadAzureServersForTenant(state, payload.tenantId);
+            }
+
             return state;
         });
 
@@ -2445,161 +2477,121 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
     }
 
-    private async loadAzureSubscriptions(
+    /**
+     * Ensures the full cross-tenant Azure subscriptions cache (`this._azureSubscriptions`)
+     * is populated and the user has signed in. Idempotent — does not re-fetch if already
+     * cached unless `forceRefresh` is set.
+     *
+     * Returns the subscription provider used to sign in, or `undefined` if sign-in
+     * failed (in which case `state.formMessage` is populated).
+     */
+    private async ensureAzureSubscriptionsCached(
         state: ConnectionDialogWebviewState,
-    ): Promise<Map<string, AzureSubscription[]> | undefined> {
-        let telemActivity: ActivityObject;
+        options: { forceRefresh?: boolean } = {},
+    ): Promise<MssqlVSCodeAzureSubscriptionProvider | undefined> {
+        let auth: MssqlVSCodeAzureSubscriptionProvider;
         try {
-            state.formMessage = undefined;
-            state.unauthenticatedAzureTenants = [];
-            state.azureTenantStatus = [];
-            state.azureTenantSignInCounts = undefined;
+            auth = await VsCodeAzureHelper.signIn();
+        } catch (error) {
+            state.formMessage = {
+                message: LocAzure.errorSigningIntoAzure(getErrorMessage(error)),
+            };
+            return undefined;
+        }
 
-            await this.ensureAzureBrowseContext(state);
-
-            // If there are no accounts, don't proceed to load subscriptions
-            if (!state.azureAccounts || state.azureAccounts.length === 0) {
-                return undefined;
-            }
-
-            // Step 2: We have accounts; initialize provider (should not force prompt)
-            let auth: MssqlVSCodeAzureSubscriptionProvider;
-            try {
-                auth = await VsCodeAzureHelper.signIn();
-            } catch (error) {
-                state.formMessage = {
-                    message: LocAzure.errorSigningIntoAzure(getErrorMessage(error)),
-                };
-                return undefined;
-            }
-
-            state.loadingAzureSubscriptionsStatus = ApiStatus.Loading;
-            this.updateState();
-
+        if (options.forceRefresh || this._azureSubscriptions.size === 0) {
             await this.refreshUnauthenticatedTenants(state, auth);
             this.updateState(state);
 
-            telemActivity = startActivity(
-                TelemetryViews.ConnectionDialog,
-                TelemetryActions.LoadAzureSubscriptions,
-            );
-
-            // Always load all subscriptions; the config key is now used to track favorites/ordering,
-            // not to filter which subscriptions are shown.
             this._azureSubscriptions = new Map(
                 (await auth.getSubscriptions(false)).map((s) => [s.subscriptionId, s]),
             );
-            const tenantSubMap = Map.groupBy<string, AzureSubscription>(
-                Array.from(this._azureSubscriptions.values()),
-                (s) => s.tenantId,
-            );
-
-            const subs: AzureSubscriptionInfo[] = [];
-
-            for (const t of tenantSubMap.keys()) {
-                for (const s of tenantSubMap.get(t)) {
-                    subs.push({
-                        id: s.subscriptionId,
-                        displayName: s.name,
-                        tenantId: t,
-                        databases: [],
-                        loadStatus: { status: ApiStatus.NotStarted },
-                    });
-                }
-            }
-
-            state.azureSubscriptions = subs;
-            state.loadingAzureSubscriptionsStatus = ApiStatus.Loaded;
-
-            // Populate favorites from config (format: "tenantId/subscriptionId")
-            const favoritedAzureConfig = vscode.workspace
-                .getConfiguration()
-                .get<string[]>(configSelectedAzureSubscriptions, []);
-            state.favoritedAzureSubscriptionIds = favoritedAzureConfig.map(
-                (entry) => entry.split("/")[1],
-            );
-
-            telemActivity.end(
-                ActivityStatus.Succeeded,
-                undefined, // additionalProperties
-                {
-                    subscriptionCount: subs.length,
-                },
-            );
-            this.updateState();
-
-            return tenantSubMap;
-        } catch (error) {
-            state.formMessage = { message: l10n.t("Error loading Azure subscriptions.") };
-            state.loadingAzureSubscriptionsStatus = ApiStatus.Error;
-            state.unauthenticatedAzureTenants = [];
-            state.azureTenantStatus = [];
-            state.azureTenantSignInCounts = undefined;
-            this.logger.error(state.formMessage + "\n" + getErrorMessage(error));
-            telemActivity?.endFailed(error, false);
-            return undefined;
         }
+
+        // Always refresh favorites from config in case it was changed externally
+        const favoritedAzureConfig = vscode.workspace
+            .getConfiguration()
+            .get<string[]>(configSelectedAzureSubscriptions, []);
+        state.favoritedAzureSubscriptionIds = favoritedAzureConfig.map(
+            (entry) => entry.split("/")[1],
+        );
+
+        return auth;
     }
 
-    private async loadAllAzureServers(state: ConnectionDialogWebviewState): Promise<void> {
+    /**
+     * Loads Azure SQL servers for the given tenant only — mirrors Fabric's per-tenant
+     * workspace+contents load model. Auth/subscriptions are loaded (and cached) up-front,
+     * then `state.azureSubscriptions` and `state.azureServers` are populated with data
+     * scoped to the selected tenant. Favorited subscriptions load first.
+     */
+    private async loadAzureServersForTenant(
+        state: ConnectionDialogWebviewState,
+        tenantId: string,
+    ): Promise<void> {
         const endActivity = startActivity(
             TelemetryViews.ConnectionDialog,
             TelemetryActions.LoadAzureServers,
         );
         try {
-            const tenantSubMap = await this.loadAzureSubscriptions(state);
+            state.formMessage = undefined;
+            state.azureSubscriptions = [];
+            state.azureServers = [];
+            state.loadingAzureSubscriptionsStatus = ApiStatus.Loading;
+            state.loadingAzureServersStatus = ApiStatus.NotStarted;
+            this.updateState(state);
 
-            if (!tenantSubMap) {
+            const auth = await this.ensureAzureSubscriptionsCached(state);
+            if (!auth) {
+                state.loadingAzureSubscriptionsStatus = ApiStatus.Error;
                 return;
             }
 
-            if (tenantSubMap.size === 0) {
-                state.formMessage = {
-                    message: l10n.t("No subscriptions available."),
-                };
-            } else {
-                state.loadingAzureServersStatus = ApiStatus.Loading;
-                state.azureServers = [];
-                this.updateState();
+            const subsForTenant = Array.from(this._azureSubscriptions.values()).filter(
+                (s) => s.tenantId === tenantId,
+            );
 
-                // Flatten all subscriptions, then split: favorites load first so they
-                // appear in the UI quickly, the rest follow concurrently in a second wave.
-                const allSubs: AzureSubscription[] = [];
-                for (const t of tenantSubMap.keys()) {
-                    for (const s of tenantSubMap.get(t)) {
-                        allSubs.push(s);
-                    }
-                }
+            state.azureSubscriptions = subsForTenant.map((s) => ({
+                id: s.subscriptionId,
+                displayName: s.name,
+                tenantId: s.tenantId,
+                databases: [],
+                loadStatus: { status: ApiStatus.NotStarted },
+            }));
+            state.loadingAzureSubscriptionsStatus = ApiStatus.Loaded;
+            this.updateState(state);
 
-                const favoritedIds = state.favoritedAzureSubscriptionIds;
-                const favoriteSubs = allSubs.filter((s) => favoritedIds.includes(s.subscriptionId));
-                const restSubs = allSubs.filter((s) => !favoritedIds.includes(s.subscriptionId));
-
-                // Wave 1: favorites — await so they appear before the rest start
-                await Promise.all(
-                    favoriteSubs.map((s) =>
-                        this.loadAzureServersForSubscription(state, s.subscriptionId),
-                    ),
-                );
-
-                // Wave 2: everything else — all concurrent as before
-                await Promise.all(
-                    restSubs.map((s) =>
-                        this.loadAzureServersForSubscription(state, s.subscriptionId),
-                    ),
-                );
-
-                endActivity.end(
-                    ActivityStatus.Succeeded,
-                    undefined, // additionalProperties
-                    {
-                        subscriptionCount: allSubs.length,
-                    },
-                );
-
+            if (subsForTenant.length === 0) {
                 state.loadingAzureServersStatus = ApiStatus.Loaded;
+                endActivity.end(ActivityStatus.Succeeded, undefined, { subscriptionCount: 0 });
                 return;
             }
+
+            state.loadingAzureServersStatus = ApiStatus.Loading;
+            this.updateState(state);
+
+            const favoritedIds = state.favoritedAzureSubscriptionIds;
+            const favoriteSubs = subsForTenant.filter((s) =>
+                favoritedIds.includes(s.subscriptionId),
+            );
+            const restSubs = subsForTenant.filter((s) => !favoritedIds.includes(s.subscriptionId));
+
+            // Wave 1: favorites — await so they appear before the rest start
+            await Promise.all(
+                favoriteSubs.map((s) =>
+                    this.loadAzureServersForSubscription(state, s.subscriptionId),
+                ),
+            );
+
+            // Wave 2: everything else — all concurrent
+            await Promise.all(
+                restSubs.map((s) => this.loadAzureServersForSubscription(state, s.subscriptionId)),
+            );
+
+            state.loadingAzureServersStatus = ApiStatus.Loaded;
+            endActivity.end(ActivityStatus.Succeeded, undefined, {
+                subscriptionCount: subsForTenant.length,
+            });
         } catch (error) {
             state.formMessage = { message: l10n.t("Error loading Azure databases.") };
             state.loadingAzureServersStatus = ApiStatus.Error;
@@ -2609,7 +2601,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 error,
                 false, // includeErrorMessage
             );
-            return;
         }
     }
 

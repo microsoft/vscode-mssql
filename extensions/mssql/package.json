@@ -1704,6 +1704,13 @@
                         "type": "string"
                     }
                 },
+                "mssql.selectedFabricWorkspaces": {
+                    "type": "array",
+                    "description": "%mssql.selectedFabricWorkspaces%",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "mssql.azureActiveDirectory": {
                     "type": "string",
                     "default": "AuthCodeGrant",

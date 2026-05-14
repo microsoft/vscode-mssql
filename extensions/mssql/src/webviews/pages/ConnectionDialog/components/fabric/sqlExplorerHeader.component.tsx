@@ -216,11 +216,13 @@ const useStyles = makeStyles({
     compactDropdown: {
         width: "200px",
         minWidth: "200px",
+        maxWidth: "200px",
         fontSize: "12px",
         "& .fui-Dropdown__button": {
             fontSize: "12px",
             minHeight: "24px",
             padding: "4px 8px",
+            overflow: "hidden",
         },
         "& .fui-Option": {
             fontSize: "12px",

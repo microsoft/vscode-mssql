@@ -4364,9 +4364,6 @@
     <trans-unit id="++CODE++ca74b0c5b8a73c286ae5bc0d7802f72e6e591364956dd16f3a5210582b6f4212">
       <source xml:lang="en">No storage accounts found</source>
     </trans-unit>
-    <trans-unit id="++CODE++6d44ee8a8600f605c0807ac03a996963d851dedb8fb48e6fe3cfa3879328ad50">
-      <source xml:lang="en">No subscriptions available.</source>
-    </trans-unit>
     <trans-unit id="++CODE++2d7cb28a8d1ce5542ed3f5c73805f318fa5a52d02a6f03e4a008093d1ee3e538">
       <source xml:lang="en">No subscriptions found</source>
     </trans-unit>
@@ -7837,6 +7834,9 @@
     </trans-unit>
     <trans-unit id="mssql.selectedAzureSubscriptions">
       <source xml:lang="en">Selected Azure subscriptions for browsing and managing servers and databases</source>
+    </trans-unit>
+    <trans-unit id="mssql.selectedFabricWorkspaces">
+      <source xml:lang="en">Selected Microsoft Fabric workspaces for browsing and managing SQL databases</source>
     </trans-unit>
     <trans-unit id="mssql.userFeedback">
       <source xml:lang="en">Send Feedback</source>
