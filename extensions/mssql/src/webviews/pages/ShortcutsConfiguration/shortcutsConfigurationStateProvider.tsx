@@ -27,13 +27,13 @@ const ShortcutsConfigurationStateProvider = ({ children }: { children: ReactNode
         () => ({
             ...getCoreRPCs(extensionRpc),
             saveConfiguration: async (payload: SaveShortcutsConfigurationPayload) => {
-                await extensionRpc.action("saveConfiguration", payload);
+                await extensionRpc.actionRequest("saveConfiguration", payload);
             },
             saveAndCloseConfiguration: async (payload: SaveShortcutsConfigurationPayload) => {
-                await extensionRpc.action("saveAndCloseConfiguration", payload);
+                await extensionRpc.actionRequest("saveAndCloseConfiguration", payload);
             },
             closeDialog: async () => {
-                await extensionRpc.action("closeDialog", {});
+                await extensionRpc.actionRequest("closeDialog", {});
             },
         }),
         [extensionRpc],
