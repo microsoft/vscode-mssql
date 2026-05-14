@@ -34,6 +34,8 @@ let cachedServers: Server[] = [];
 let cachedLocations: { name: string; displayName: string }[] = [];
 let cachedMaintenanceConfigs: { name: string; id: string }[] = [];
 
+const FIREWALL_ERROR_CODE = "40615";
+
 function clearAllCaches(): void {
     cachedAccounts = [];
     cachedTenants = [];
@@ -687,10 +689,55 @@ export async function connectToAzureSqlDatabase(
             connectionProfile.savePassword = state.formState.savePassword;
         }
 
-        const profile =
-            await deploymentController.mainController.connectionManager.connectionUI.saveProfile(
+        // Probe connectivity with retries to wait for firewall rule propagation.
+        // connect() with shouldHandleErrors:false returns false silently on failure
+        // (no interactive dialogs), letting us retry firewall errors automatically.
+        const maxRetries = 10;
+        const retryDelayMs = 30_000;
+        const connManager = deploymentController.mainController.connectionManager;
+        const tempUri = `${state.formState.serverName}/${state.formState.databaseName}`;
+
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            const success = await connManager.connect(
+                tempUri,
                 connectionProfile as IConnectionProfile,
+                { shouldHandleErrors: false },
             );
+
+            if (success) {
+                // Probe succeeded — clean it up and proceed to full OE session
+                await connManager.disconnect(tempUri);
+                break;
+            }
+
+            // Check if the failure is firewall-related
+            const connInfo = connManager.getConnectionInfo(tempUri);
+            const isFirewallError = connInfo?.errorNumber === Number(FIREWALL_ERROR_CODE);
+
+            if (!isFirewallError || attempt === maxRetries) {
+                // Non-firewall error or exhausted retries — report failure
+                state.connectionLoadState = ApiStatus.Error;
+                state.errorMessage = connInfo?.errorMessage || AzureSqlDatabase.connectionFailed;
+                sendErrorEvent(
+                    TelemetryViews.AzureSqlDatabase,
+                    TelemetryActions.ConnectToAzureSqlDatabase,
+                    new Error(AzureSqlDatabase.connectionFailed),
+                    false,
+                );
+                updateAzureSqlDatabaseState(deploymentController, state);
+                return;
+            }
+
+            cachedLogger?.log(
+                `Connection attempt ${attempt}/${maxRetries} failed (firewall not yet propagated), retrying in ${retryDelayMs / 1000}s...`,
+            );
+            await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
+        }
+
+        // Firewall is propagated — create the full OE session
+        const profile = await connManager.connectionUI.saveProfile(
+            connectionProfile as IConnectionProfile,
+        );
         await deploymentController.mainController.createObjectExplorerSession(profile);
         state.connectionLoadState = ApiStatus.Loaded;
 
@@ -710,7 +757,7 @@ export async function connectToAzureSqlDatabase(
         sendErrorEvent(
             TelemetryViews.AzureSqlDatabase,
             TelemetryActions.ConnectToAzureSqlDatabase,
-            err,
+            err instanceof Error ? err : new Error(String(err)),
             false,
         );
     }
