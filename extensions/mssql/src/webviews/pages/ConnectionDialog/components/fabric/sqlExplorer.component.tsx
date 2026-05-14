@@ -31,6 +31,7 @@ export const SqlExplorer = ({
     selectWorkspaceMessage,
     showTypeFilter,
     showResourceGroupColumn,
+    expandableServers,
     favoritedIds,
     onToggleFavorite,
 }: SqlExplorerProps) => {
@@ -113,6 +114,7 @@ export const SqlExplorer = ({
                     noDatabasesInWorkspaceMessage={noDatabasesInWorkspaceMessage}
                     showTypeFilter={showTypeFilter}
                     showResourceGroupColumn={showResourceGroupColumn}
+                    expandableServers={expandableServers}
                 />
             </div>
         </>
@@ -151,6 +153,13 @@ export interface SqlExplorerProps {
     showTypeFilter?: boolean;
     /** Whether to show the Resource Group column (default: false) */
     showResourceGroupColumn?: boolean;
+    /**
+     * When true, each server entry is rendered as an expandable parent row whose
+     * children are the actual databases on that server. Server rows toggle expansion
+     * on click and are not selectable; only the revealed database rows are selectable.
+     * (default: false)
+     */
+    expandableServers?: boolean;
     /** IDs of favorited collections (sorted to top with filled star) */
     favoritedIds?: string[];
     /** Called when the user clicks the star for a collection */

@@ -110,6 +110,7 @@ export const AzureBrowsePage = () => {
                             }
                             showTypeFilter={false}
                             showResourceGroupColumn={true}
+                            expandableServers={true}
                             onSignIntoMicrosoftAccount={() =>
                                 context.signIntoAzureForBrowse(ConnectionInputMode.AzureBrowse)
                             }

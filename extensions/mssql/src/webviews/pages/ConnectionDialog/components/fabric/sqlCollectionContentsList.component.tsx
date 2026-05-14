@@ -35,7 +35,11 @@ import {
     SqlArtifactTypes,
 } from "../../../../../sharedInterfaces/fabric";
 import { useState, useMemo } from "react";
-import { ErrorCircleRegular } from "@fluentui/react-icons";
+import {
+    ErrorCircleRegular,
+    ChevronRight16Regular,
+    ChevronDown16Regular,
+} from "@fluentui/react-icons";
 import { locConstants as Loc } from "../../../../common/locConstants";
 import { KeyCode } from "../../../../common/keys";
 import { useSqlExplorerStyles } from "./sqlExplorer.styles";
@@ -52,6 +56,7 @@ export const SqlCollectionContentsList = ({
     loadStatus: loadStatusProp,
     showTypeFilter = true,
     showResourceGroupColumn = false,
+    expandableServers = false,
     selectWorkspaceMessage,
     loadingWorkspacesMessage,
     errorLoadingWorkspacesMessage,
@@ -66,6 +71,7 @@ export const SqlCollectionContentsList = ({
     const [selectedTypeFilter, setSelectedTypeFilter] = useState<string>(
         ArtifactTypeFilter.ShowAll,
     );
+    const [expandedServerIds, setExpandedServerIds] = useState<Set<string>>(new Set());
 
     // Use prop override if provided, otherwise fall back to store
     const effectiveCollectionsLoadStatus = loadStatusProp ?? sqlCollectionsLoadStatus;
@@ -78,32 +84,90 @@ export const SqlCollectionContentsList = ({
             return [];
         }
 
-        let result: SqlDbGridItem[] = [];
-        if (selectedWorkspace?.databases && selectedWorkspace.databases.length > 0) {
-            selectedWorkspace.databases.forEach((db) => {
+        const servers = selectedWorkspace.databases;
+        const q = searchFilter.trim().toLowerCase();
+
+        if (expandableServers) {
+            const result: SqlDbGridItem[] = [];
+            for (const s of servers) {
+                const serverNameMatch =
+                    !q ||
+                    s.displayName.toLowerCase().includes(q) ||
+                    (s.resourceGroup?.toLowerCase().includes(q) ?? false);
+                const matchingDbs = q
+                    ? s.databases.filter((db) => db.toLowerCase().includes(q))
+                    : s.databases;
+
+                if (!serverNameMatch && matchingDbs.length === 0) {
+                    continue;
+                }
+
+                const isExpanded =
+                    expandedServerIds.has(s.id) ||
+                    (q.length > 0 && matchingDbs.length > 0 && !serverNameMatch);
+
                 result.push({
-                    ...db,
-                    typeDisplayName: getTypeDisplayName(db.type),
+                    ...s,
+                    typeDisplayName: getTypeDisplayName(s.type),
+                    isServerRow: true,
+                    isExpanded,
                 });
-            });
+
+                if (isExpanded) {
+                    const dbsToShow = serverNameMatch ? s.databases : matchingDbs;
+                    for (const dbName of dbsToShow) {
+                        result.push({
+                            id: `${s.id}::${dbName}`,
+                            server: s.server,
+                            displayName: dbName,
+                            databases: [dbName],
+                            type: s.type,
+                            typeDisplayName: Loc.connectionDialog.databaseLabel,
+                            collectionId: s.collectionId,
+                            collectionName: s.collectionName,
+                            tenantId: s.tenantId,
+                            resourceGroup: s.resourceGroup,
+                            isDatabaseRow: true,
+                            parentServer: s,
+                        });
+                    }
+                }
+            }
+            return result;
         }
+
+        // Flat mode (Fabric / default)
+        let result: SqlDbGridItem[] = [];
+        servers.forEach((db) => {
+            result.push({
+                ...db,
+                typeDisplayName: getTypeDisplayName(db.type),
+            });
+        });
 
         if (selectedTypeFilter !== ArtifactTypeFilter.ShowAll) {
             result = result.filter((item) => item.type === selectedTypeFilter);
         }
 
-        if (searchFilter.trim()) {
-            const searchTerm = searchFilter.toLowerCase();
+        if (q) {
             result = result.filter(
                 (item) =>
-                    item.displayName.toLowerCase().includes(searchTerm) ||
-                    item.typeDisplayName.toLowerCase().includes(searchTerm) ||
-                    (item.resourceGroup?.toLowerCase().includes(searchTerm) ?? false),
+                    item.displayName.toLowerCase().includes(q) ||
+                    item.typeDisplayName.toLowerCase().includes(q) ||
+                    (item.resourceGroup?.toLowerCase().includes(q) ?? false),
             );
         }
 
         return result;
-    }, [selectedWorkspace?.id, selectedWorkspace?.loadStatus, searchFilter, selectedTypeFilter]);
+    }, [
+        selectedWorkspace?.id,
+        selectedWorkspace?.loadStatus,
+        selectedWorkspace?.databases,
+        searchFilter,
+        selectedTypeFilter,
+        expandableServers,
+        expandedServerIds,
+    ]);
 
     // Memo for creating the column definitions when the component first mounts
     const columns = useMemo((): TableColumnDefinition<SqlDbGridItem>[] => {
@@ -122,9 +186,25 @@ export const SqlCollectionContentsList = ({
                                 alignItems: "center",
                                 width: "100%",
                                 minWidth: 0,
+                                paddingLeft: item.isDatabaseRow ? "28px" : 0,
                             }}>
+                            {item.isServerRow ? (
+                                item.isExpanded ? (
+                                    <ChevronDown16Regular
+                                        style={{ marginRight: "4px", flexShrink: 0 }}
+                                    />
+                                ) : (
+                                    <ChevronRight16Regular
+                                        style={{ marginRight: "4px", flexShrink: 0 }}
+                                    />
+                                )
+                            ) : null}
                             <img
-                                src={getItemIcon(item.type, theme)}
+                                src={
+                                    item.isDatabaseRow
+                                        ? sqlDatabaseIcon(theme)
+                                        : getItemIcon(item.type, theme)
+                                }
                                 alt={item.typeDisplayName}
                                 style={{
                                     width: "20px",
@@ -140,62 +220,67 @@ export const SqlCollectionContentsList = ({
                     </DataGridCell>
                 ),
             }),
-            createTableColumn<SqlDbGridItem>({
-                columnId: "type",
-                compare: (a, b) => {
-                    return a.typeDisplayName.localeCompare(b.typeDisplayName);
-                },
-                renderHeaderCell: () =>
-                    showTypeFilter ? (
-                        <div>
-                            {Loc.connectionDialog.typeColumnHeader}
-                            <Menu>
-                                <MenuTrigger>
-                                    <Tooltip
-                                        content={Loc.connectionDialog.filterByType}
-                                        relationship="label">
-                                        <MenuButton
-                                            icon={<FilterIcon />}
-                                            appearance="transparent"
-                                            onClick={(e) => e.stopPropagation()}
-                                        />
-                                    </Tooltip>
-                                </MenuTrigger>
-                                <MenuPopover onClick={(e) => e.stopPropagation()}>
-                                    <MenuList
-                                        checkedValues={{ sqlType: [selectedTypeFilter] }}
-                                        onCheckedValueChange={handleFilterOptionChanged}>
-                                        <MenuItemRadio
-                                            name="sqlType"
-                                            value={ArtifactTypeFilter.ShowAll}>
-                                            {Loc.connectionDialog.showAll}
-                                        </MenuItemRadio>
-                                        <MenuItemRadio
-                                            name="sqlType"
-                                            value={ArtifactTypeFilter.SqlDatabase}>
-                                            {Loc.connectionDialog.sqlDatabase}
-                                        </MenuItemRadio>
-                                        <MenuItemRadio
-                                            name="sqlType"
-                                            value={ArtifactTypeFilter.SqlAnalyticsEndpoint}>
-                                            {Loc.connectionDialog.sqlAnalyticsEndpoint}
-                                        </MenuItemRadio>
-                                    </MenuList>
-                                </MenuPopover>
-                            </Menu>
-                        </div>
-                    ) : (
-                        `${Loc.connectionDialog.typeColumnHeader}`
-                    ),
-                renderCell: (item) => (
-                    <DataGridCell>
-                        <Text truncate className={styles.hideTextOverflowCell}>
-                            {item.typeDisplayName}
-                        </Text>
-                    </DataGridCell>
-                ),
-            }),
         ];
+
+        if (!expandableServers) {
+            cols.push(
+                createTableColumn<SqlDbGridItem>({
+                    columnId: "type",
+                    compare: (a, b) => {
+                        return a.typeDisplayName.localeCompare(b.typeDisplayName);
+                    },
+                    renderHeaderCell: () =>
+                        showTypeFilter ? (
+                            <div>
+                                {Loc.connectionDialog.typeColumnHeader}
+                                <Menu>
+                                    <MenuTrigger>
+                                        <Tooltip
+                                            content={Loc.connectionDialog.filterByType}
+                                            relationship="label">
+                                            <MenuButton
+                                                icon={<FilterIcon />}
+                                                appearance="transparent"
+                                                onClick={(e) => e.stopPropagation()}
+                                            />
+                                        </Tooltip>
+                                    </MenuTrigger>
+                                    <MenuPopover onClick={(e) => e.stopPropagation()}>
+                                        <MenuList
+                                            checkedValues={{ sqlType: [selectedTypeFilter] }}
+                                            onCheckedValueChange={handleFilterOptionChanged}>
+                                            <MenuItemRadio
+                                                name="sqlType"
+                                                value={ArtifactTypeFilter.ShowAll}>
+                                                {Loc.connectionDialog.showAll}
+                                            </MenuItemRadio>
+                                            <MenuItemRadio
+                                                name="sqlType"
+                                                value={ArtifactTypeFilter.SqlDatabase}>
+                                                {Loc.connectionDialog.sqlDatabase}
+                                            </MenuItemRadio>
+                                            <MenuItemRadio
+                                                name="sqlType"
+                                                value={ArtifactTypeFilter.SqlAnalyticsEndpoint}>
+                                                {Loc.connectionDialog.sqlAnalyticsEndpoint}
+                                            </MenuItemRadio>
+                                        </MenuList>
+                                    </MenuPopover>
+                                </Menu>
+                            </div>
+                        ) : (
+                            `${Loc.connectionDialog.typeColumnHeader}`
+                        ),
+                    renderCell: (item) => (
+                        <DataGridCell>
+                            <Text truncate className={styles.hideTextOverflowCell}>
+                                {item.typeDisplayName}
+                            </Text>
+                        </DataGridCell>
+                    ),
+                }),
+            );
+        }
 
         if (showResourceGroupColumn) {
             cols.push(
@@ -208,7 +293,7 @@ export const SqlCollectionContentsList = ({
                     renderCell: (item) => (
                         <DataGridCell>
                             <Text truncate className={styles.hideTextOverflowCell}>
-                                {item.resourceGroup ?? ""}
+                                {item.isDatabaseRow ? "" : (item.resourceGroup ?? "")}
                             </Text>
                         </DataGridCell>
                     ),
@@ -217,11 +302,32 @@ export const SqlCollectionContentsList = ({
         }
 
         return cols;
-    }, [theme, selectedTypeFilter, showTypeFilter, showResourceGroupColumn]);
+    }, [theme, selectedTypeFilter, showTypeFilter, showResourceGroupColumn, expandableServers]);
 
     function handleServerSelected(database: SqlDbGridItem) {
         setSelectedRowId(database.id);
         onSelectDatabase(database);
+    }
+
+    function toggleServerExpanded(serverId: string) {
+        setExpandedServerIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(serverId)) {
+                next.delete(serverId);
+            } else {
+                next.add(serverId);
+            }
+            return next;
+        });
+    }
+
+    function handleRowActivated(item: SqlDbGridItem) {
+        if (item.isServerRow) {
+            toggleServerExpanded(item.id);
+            return;
+        }
+        // Database row (or flat-mode row): select it
+        handleServerSelected(item);
     }
 
     function handleFilterOptionChanged(
@@ -383,17 +489,19 @@ export const SqlCollectionContentsList = ({
         { item, rowId }: TableRowData<SqlDbGridItem>,
         style: React.CSSProperties,
     ): React.ReactNode {
+        const isSelectable = !item.isServerRow;
+        const isSelected = isSelectable && selectedRowId === item.id;
         return (
             <DataGridRow<SqlDbGridItem>
                 key={rowId}
-                className={selectedRowId === item.id ? styles.selectedDataGridRow : undefined}
+                className={isSelected ? styles.selectedDataGridRow : undefined}
                 style={style}
                 onClick={() => {
-                    handleServerSelected(item);
+                    handleRowActivated(item);
                 }}
                 onKeyDown={(e: React.KeyboardEvent) => {
                     if (e.code === KeyCode.Enter || e.code === KeyCode.Space) {
-                        handleServerSelected(item);
+                        handleRowActivated(item);
                         e.preventDefault();
                     }
                 }}>
@@ -475,6 +583,13 @@ export interface SqlCollectionContentsListProps {
     showTypeFilter?: boolean;
     /** Whether to show the Resource Group column (default: false) */
     showResourceGroupColumn?: boolean;
+    /**
+     * When true, each "database" (treated as a server in this mode) is rendered as an
+     * expandable parent row whose children are the actual databases on that server.
+     * Server rows toggle expansion on click and are not selectable; only the
+     * revealed database rows are selectable. (default: false)
+     */
+    expandableServers?: boolean;
     /** Message to show when no workspace is selected */
     selectWorkspaceMessage?: string;
     /** Message to show while workspace list is loading */
@@ -491,6 +606,14 @@ export interface SqlCollectionContentsListProps {
 
 interface SqlDbGridItem extends SqlDbInfo {
     typeDisplayName: string;
+    /** Expandable-mode: this row represents a server (parent). */
+    isServerRow?: boolean;
+    /** Expandable-mode: this row represents a single database (child). */
+    isDatabaseRow?: boolean;
+    /** Expandable-mode: whether the server row is currently expanded. */
+    isExpanded?: boolean;
+    /** Expandable-mode: backreference to the parent server's SqlDbInfo. */
+    parentServer?: SqlDbInfo;
 }
 
 const columnSizingOptions: TableColumnSizingOptions = {
