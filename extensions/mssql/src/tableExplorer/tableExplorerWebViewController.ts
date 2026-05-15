@@ -19,7 +19,6 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { ITableExplorerService } from "../services/tableExplorerService";
 import { EditSessionReadyNotification } from "../models/contracts/tableExplorer";
-import SqlToolsServiceClient from "../languageservice/serviceclient";
 import * as LocConstants from "../constants/locConstants";
 import { getErrorMessage, uuid } from "../utils/utils";
 import { bracketEscapeSqlIdentifier } from "../models/utils";
@@ -34,30 +33,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 > {
     private operationId: string;
     private _preserveTableQuery = false;
-    private _expectedOwnerUri: string = "";
-
-    // Shared dispatcher state. vscode-languageclient 5.2.1's onNotification can't
-    // return a Disposable, so registering one handler per controller would leak.
-    // SqlToolsServiceClient is a process-wide singleton, so we register the handler
-    // exactly once at the class level and dispatch to live instances via _liveInstances.
-    // Each controller adds itself on initialize() and removes itself on dispose().
-    private static _notificationsRegistered = false;
-    private static _liveInstances = new Map<string, TableExplorerWebViewController>();
-
-    private static ensureSharedNotificationHandlers(client: SqlToolsServiceClient): void {
-        if (TableExplorerWebViewController._notificationsRegistered) {
-            return;
-        }
-        TableExplorerWebViewController._notificationsRegistered = true;
-
-        client.onNotification(
-            EditSessionReadyNotification.type,
-            (params: EditSessionReadyParams) => {
-                const instance = TableExplorerWebViewController._liveInstances.get(params.ownerUri);
-                instance?.onEditSessionReady(params);
-            },
-        );
-    }
 
     constructor(
         context: vscode.ExtensionContext,
@@ -121,18 +96,15 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             `TableExplorerWebViewController created for table: ${tableName} in database: ${databaseName} - OperationId: ${this.operationId}`,
         );
 
-        TableExplorerWebViewController.ensureSharedNotificationHandlers(
-            this._tableExplorerService.sqlToolsClient,
+        this._tableExplorerService.sqlToolsClient.onNotification(
+            EditSessionReadyNotification.type,
+            (params: EditSessionReadyParams) => this.onEditSessionReady(params),
         );
 
         void this.initialize();
         this.registerRpcHandlers();
     }
 
-    /**
-     * Invoked by the shared dispatcher when an EditSessionReady notification arrives
-     * for this controller's ownerUri.
-     */
     private onEditSessionReady(result: EditSessionReadyParams): void {
         if (result.success) {
             this.state.ownerUri = result.ownerUri;
@@ -225,12 +197,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
             const objectType = this._targetNode.metadata.metadataTypeName.toUpperCase();
 
-            // Track the expected ownerUri up-front so the shared notification dispatcher
-            // can route notifications to this controller as soon as they start arriving,
-            // even before EditSessionReady sets state.ownerUri.
-            this._expectedOwnerUri = ownerUri;
-            TableExplorerWebViewController._liveInstances.set(ownerUri, this);
-
             let connectionCreds = Object.assign({}, this._targetNode.connectionProfile);
             const databaseName = ObjectExplorerUtils.getDatabaseName(this._targetNode);
 
@@ -280,12 +246,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     operationId: this.operationId,
                 },
             );
-
-            // No rethrow: caller is `void this.initialize()`, so it would
-            // become an unhandled rejection. Drop the routing entry too.
-            if (this._expectedOwnerUri) {
-                TableExplorerWebViewController._liveInstances.delete(this._expectedOwnerUri);
-            }
         }
     }
 
@@ -1780,13 +1740,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
      * This is called when the webview tab is closed (after any prompts are handled).
      */
     public override dispose(): void {
-        // Use _expectedOwnerUri rather than state.ownerUri: state.ownerUri is set
-        // by onEditSessionReady, so a tab closed before that notification fires
-        // would otherwise leak this controller in _liveInstances.
-        if (this._expectedOwnerUri) {
-            TableExplorerWebViewController._liveInstances.delete(this._expectedOwnerUri);
-        }
-
         if (this.state.ownerUri) {
             this.logger.info(
                 `Disposing Table Explorer resources for ownerUri: ${this.state.ownerUri}`,
