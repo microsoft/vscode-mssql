@@ -117,10 +117,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
             void this.loadResultSet();
         } else {
-            // STS surfaces human-readable messages for syntax errors, multi-table /
-            // duplicate-column queries, missing objects, etc. — pass those through
-            // verbatim instead of wrapping in our generic toast, falling back only
-            // when the server didn't supply one.
             const serverMessage = result.message?.trim() ?? "";
             const toastMessage =
                 serverMessage.length > 0
@@ -134,8 +130,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             this._preserveTableQuery = false;
             this.updateState();
 
-            // Don't include result.message — STS-supplied error text can echo back
-            // user content (table names, query fragments) which may be PII.
             sendErrorEvent(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.EditSessionReady,
