@@ -118,7 +118,12 @@ export const SqlCollectionContentsList = ({
 
                 if (isExpanded) {
                     const dbsToShow = serverNameMatch ? s.databases : matchingDbs;
-                    for (const dbName of dbsToShow) {
+                    const sortedDbs = [...dbsToShow].sort((a, b) => {
+                        if (a.toLowerCase() === "master") return -1;
+                        if (b.toLowerCase() === "master") return 1;
+                        return a.localeCompare(b);
+                    });
+                    for (const dbName of sortedDbs) {
                         result.push({
                             id: `${s.id}::${dbName}`,
                             server: s.server,
@@ -474,7 +479,7 @@ export const SqlCollectionContentsList = ({
             columnSizingOptions={
                 showResourceGroupColumn ? columnSizingOptionsWithResourceGroup : columnSizingOptions
             }
-            sortable
+            sortable={!expandableServers}
             style={{
                 flexGrow: 1,
                 height: "100%",
