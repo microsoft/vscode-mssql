@@ -2560,6 +2560,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             TelemetryViews.ConnectionDialog,
             TelemetryActions.LoadAzureServers,
         );
+        // Snapshot the selection at call time so we can detect if it changes before we write results.
+        const requestedAccountId = state.selectedAccountId;
+        const requestedTenantId = tenantId;
         try {
             state.formMessage = undefined;
             state.azureSubscriptions = [];
@@ -2571,6 +2574,14 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             const auth = await this.ensureAzureSubscriptionsCached(state);
             if (!auth) {
                 state.loadingAzureSubscriptionsStatus = ApiStatus.Error;
+                return;
+            }
+
+            // If the user changed account or tenant while we were loading, discard these results.
+            if (
+                this.state.selectedAccountId !== requestedAccountId ||
+                this.state.selectedTenantId !== requestedTenantId
+            ) {
                 return;
             }
 
@@ -2694,6 +2705,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             TelemetryActions.LoadFabricWorkspaces,
         );
 
+        // Snapshot the selection at call time so we can detect if it changes before we write results.
+        const requestedAccountId = typeof account === "string" ? account : account.id;
+        const requestedTenantId = tenantId;
+
         try {
             const accountId = typeof account === "string" ? account : account.id;
             const vscodeAccount = await VsCodeAzureHelper.getAccountById(accountId);
@@ -2736,6 +2751,14 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     };
 
                     newWorkspaces.push(stateWorkspace);
+                }
+
+                // If the user changed account or tenant while we were loading, discard these results.
+                if (
+                    this.state.selectedAccountId !== requestedAccountId ||
+                    this.state.selectedTenantId !== requestedTenantId
+                ) {
+                    return;
                 }
 
                 this.state.fabricWorkspaces = newWorkspaces;
