@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { Label } from "@fluentui/react-components";
 import { useConnectionDialogSelector } from "../../connectionDialogSelector";
 import SqlExplorerHeader from "./sqlExplorerHeader.component";
 import { SqlCollectionContentsList } from "./sqlCollectionContentsList.component";
@@ -35,6 +36,7 @@ export const SqlExplorer = ({
     expandableServers,
     favoritedIds,
     onToggleFavorite,
+    title,
 }: SqlExplorerProps) => {
     const fabricWorkspaces = useConnectionDialogSelector((s) => s.fabricWorkspaces);
     const loadingAzureTenantsStatus = useConnectionDialogSelector(
@@ -57,8 +59,34 @@ export const SqlExplorer = ({
     const sqlStyles = useSqlExplorerStyles();
 
     const [searchFilter, setSearchFilter] = useState<string>("");
-
     const [selectedCollectionId, setSelectedCollectionId] = useState<string | undefined>(undefined);
+    const [sidebarWidth, setSidebarWidth] = useState(250);
+
+    const isDragging = useRef(false);
+    const dragStartX = useRef(0);
+    const dragStartWidth = useRef(0);
+
+    function handleDragStart(e: React.MouseEvent) {
+        isDragging.current = true;
+        dragStartX.current = e.clientX;
+        dragStartWidth.current = sidebarWidth;
+
+        const onMouseMove = (ev: MouseEvent) => {
+            if (!isDragging.current) return;
+            const delta = ev.clientX - dragStartX.current;
+            setSidebarWidth(Math.max(150, Math.min(500, dragStartWidth.current + delta)));
+        };
+
+        const onMouseUp = () => {
+            isDragging.current = false;
+            document.removeEventListener("mousemove", onMouseMove);
+            document.removeEventListener("mouseup", onMouseUp);
+        };
+
+        document.addEventListener("mousemove", onMouseMove);
+        document.addEventListener("mouseup", onMouseUp);
+        e.preventDefault();
+    }
 
     const selectedCollection = useMemo(() => {
         if (workspaces.length === 0 || !selectedCollectionId) {
@@ -93,7 +121,8 @@ export const SqlExplorer = ({
     }
 
     return (
-        <>
+        <div className={sqlStyles.sqlExplorerWrapper}>
+            {title && <Label className={sqlStyles.sqlExplorerTitle}>{title}</Label>}
             <SqlExplorerHeader
                 searchValue={searchFilter}
                 onSignIntoMicrosoftAccount={handleSignIntoMicrosoftAccount}
@@ -114,7 +143,9 @@ export const SqlExplorer = ({
                     errorMessage={errorLoadingWorkspacesMessage}
                     favoritedIds={favoritedIds}
                     onToggleFavorite={onToggleFavorite}
+                    width={sidebarWidth}
                 />
+                <div className={sqlStyles.dragHandle} onMouseDown={handleDragStart} />
                 <SqlCollectionContentsList
                     selectedWorkspace={tenantsLoading ? undefined : selectedCollection}
                     searchFilter={searchFilter}
@@ -131,7 +162,7 @@ export const SqlExplorer = ({
                     expandableServers={expandableServers}
                 />
             </div>
-        </>
+        </div>
     );
 };
 
@@ -174,6 +205,8 @@ export interface SqlExplorerProps {
      * (default: false)
      */
     expandableServers?: boolean;
+    /** Optional title label displayed above the explorer content */
+    title?: string;
     /** IDs of favorited collections (sorted to top with filled star) */
     favoritedIds?: string[];
     /** Called when the user clicks the star for a collection */

@@ -100,25 +100,18 @@ export const FabricBrowsePage = () => {
             />
             {loadingAzureAccountsStatus === ApiStatus.Loaded && hasAccounts && (
                 <>
-                    <div className={styles.componentGroupHeader}>
-                        <Label>{Loc.connectionDialog.fabricWorkspaces}</Label>
-                    </div>
-                    <div className={styles.componentGroupContainer}>
-                        <SqlExplorer
-                            onSignIntoMicrosoftAccount={handleSignIntoMicrosoftAccount}
-                            onSelectAccountId={handleSelectAccountId}
-                            onSelectTenantId={handleSelectTenantId}
-                            onSelectWorkspace={handleSelectWorkspace}
-                            onSelectDatabase={handleDatabaseSelected}
-                            favoritedIds={favoritedFabricWorkspaceIds}
-                            onToggleFavorite={(id) =>
-                                context.toggleFavoriteCollection(
-                                    id,
-                                    ConnectionInputMode.FabricBrowse,
-                                )
-                            }
-                        />
-                    </div>
+                    <SqlExplorer
+                        title={Loc.connectionDialog.fabricDatabases}
+                        onSignIntoMicrosoftAccount={handleSignIntoMicrosoftAccount}
+                        onSelectAccountId={handleSelectAccountId}
+                        onSelectTenantId={handleSelectTenantId}
+                        onSelectWorkspace={handleSelectWorkspace}
+                        onSelectDatabase={handleDatabaseSelected}
+                        favoritedIds={favoritedFabricWorkspaceIds}
+                        onToggleFavorite={(id) =>
+                            context.toggleFavoriteCollection(id, ConnectionInputMode.FabricBrowse)
+                        }
+                    />
 
                     {formState.server && (
                         <>

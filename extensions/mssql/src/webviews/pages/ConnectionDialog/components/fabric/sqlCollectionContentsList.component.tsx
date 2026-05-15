@@ -645,7 +645,7 @@ const columnSizingOptions: TableColumnSizingOptions = {
 const columnSizingOptionsWithResourceGroup: TableColumnSizingOptions = {
     name: {
         minWidth: 80,
-        defaultWidth: 120,
+        idealWidth: 200,
     },
     type: {
         minWidth: 80,
@@ -653,6 +653,6 @@ const columnSizingOptionsWithResourceGroup: TableColumnSizingOptions = {
     },
     resourceGroup: {
         minWidth: 80,
-        defaultWidth: 120,
+        idealWidth: 200,
     },
 };

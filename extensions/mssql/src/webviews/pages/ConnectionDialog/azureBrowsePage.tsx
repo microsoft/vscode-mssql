@@ -84,56 +84,47 @@ export const AzureBrowsePage = () => {
             />
             {loadingAzureAccountsStatus === ApiStatus.Loaded && hasAccounts && (
                 <>
-                    <div className={styles.componentGroupHeader}>
-                        <Label>{Loc.connectionDialog.azureSubscriptions}</Label>
-                    </div>
-                    <div className={styles.componentGroupContainer}>
-                        <SqlExplorer
-                            workspaces={subscriptionWorkspaces}
-                            workspacesLoadStatus={subscriptionsLoadStatus}
-                            workspaceListLabel={Loc.connectionDialog.azureSubscriptions}
-                            workspaceSearchPlaceholder={Loc.connectionDialog.searchSubscriptions}
-                            noWorkspacesFoundMessage={Loc.connectionDialog.noSubscriptionsFound}
-                            selectWorkspaceMessage={
-                                Loc.connectionDialog.selectASubscriptionToViewServers
+                    <SqlExplorer
+                        title={Loc.connectionDialog.azureDatabases}
+                        workspaces={subscriptionWorkspaces}
+                        workspacesLoadStatus={subscriptionsLoadStatus}
+                        workspaceListLabel={Loc.connectionDialog.azureSubscriptions}
+                        workspaceSearchPlaceholder={Loc.connectionDialog.searchSubscriptions}
+                        noWorkspacesFoundMessage={Loc.connectionDialog.noSubscriptionsFound}
+                        selectWorkspaceMessage={
+                            Loc.connectionDialog.selectASubscriptionToViewServers
+                        }
+                        loadingWorkspacesMessage={Loc.connectionDialog.loadingSubscriptions}
+                        errorLoadingWorkspacesMessage={
+                            Loc.connectionDialog.errorLoadingSubscriptions
+                        }
+                        loadingDatabasesMessage={Loc.connectionDialog.loadingServersInSubscription}
+                        errorLoadingDatabasesMessage={Loc.connectionDialog.errorLoadingServers}
+                        noDatabasesInWorkspaceMessage={
+                            Loc.connectionDialog.noServersFoundInSubscription
+                        }
+                        showTypeFilter={false}
+                        showResourceGroupColumn={true}
+                        expandableServers={true}
+                        onSignIntoMicrosoftAccount={() =>
+                            context.signIntoAzureForBrowse(ConnectionInputMode.AzureBrowse)
+                        }
+                        onSelectAccountId={(id) => context.selectAzureAccount(id)}
+                        onSelectTenantId={(id) => context.setSelectedTenantId(id)}
+                        favoritedIds={favoritedAzureSubscriptionIds}
+                        onToggleFavorite={(id) =>
+                            context.toggleFavoriteCollection(id, ConnectionInputMode.AzureBrowse)
+                        }
+                        onSelectWorkspace={(ws) => {
+                            context.selectSqlCollection(ws.id);
+                        }}
+                        onSelectDatabase={(db) => {
+                            setConnectionProperty("server", db.server);
+                            if (db.databases.length > 0) {
+                                setConnectionProperty("database", db.databases[0]);
                             }
-                            loadingWorkspacesMessage={Loc.connectionDialog.loadingSubscriptions}
-                            errorLoadingWorkspacesMessage={
-                                Loc.connectionDialog.errorLoadingSubscriptions
-                            }
-                            loadingDatabasesMessage={
-                                Loc.connectionDialog.loadingServersInSubscription
-                            }
-                            errorLoadingDatabasesMessage={Loc.connectionDialog.errorLoadingServers}
-                            noDatabasesInWorkspaceMessage={
-                                Loc.connectionDialog.noServersFoundInSubscription
-                            }
-                            showTypeFilter={false}
-                            showResourceGroupColumn={true}
-                            expandableServers={true}
-                            onSignIntoMicrosoftAccount={() =>
-                                context.signIntoAzureForBrowse(ConnectionInputMode.AzureBrowse)
-                            }
-                            onSelectAccountId={(id) => context.selectAzureAccount(id)}
-                            onSelectTenantId={(id) => context.setSelectedTenantId(id)}
-                            favoritedIds={favoritedAzureSubscriptionIds}
-                            onToggleFavorite={(id) =>
-                                context.toggleFavoriteCollection(
-                                    id,
-                                    ConnectionInputMode.AzureBrowse,
-                                )
-                            }
-                            onSelectWorkspace={(ws) => {
-                                context.selectSqlCollection(ws.id);
-                            }}
-                            onSelectDatabase={(db) => {
-                                setConnectionProperty("server", db.server);
-                                if (db.databases.length > 0) {
-                                    setConnectionProperty("database", db.databases[0]);
-                                }
-                            }}
-                        />
-                    </div>
+                        }}
+                    />
 
                     {formState.server && (
                         <>

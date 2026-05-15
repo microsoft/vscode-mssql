@@ -51,6 +51,7 @@ export const SqlCollectionList = ({
     errorMessage,
     favoritedIds,
     onToggleFavorite,
+    width,
 }: SqlCollectionListProps) => {
     const styles = useSqlExplorerStyles();
     const fabricWorkspacesLoadStatus = useConnectionDialogSelector(
@@ -126,7 +127,11 @@ export const SqlCollectionList = ({
     );
 
     return (
-        <div className={isExplorerCollapsed ? styles.workspaceListCollapsed : styles.workspaceList}>
+        <div
+            className={isExplorerCollapsed ? styles.workspaceListCollapsed : styles.workspaceList}
+            style={
+                !isExplorerCollapsed && width !== undefined ? { width: `${width}px` } : undefined
+            }>
             <div className={styles.workspaceHeader}>
                 {!isExplorerCollapsed && (
                     <Input
@@ -420,6 +425,8 @@ export interface SqlCollectionListProps {
     favoritedIds?: string[];
     /** Called when the user clicks the star for a collection */
     onToggleFavorite?: (collectionId: string) => void;
+    /** Controlled width of the sidebar in pixels */
+    width?: number;
 }
 
 interface SqlCollectionListItemProps {

@@ -527,6 +527,9 @@
     <trans-unit id="++CODE++386d70c1c775d30bdadd4cb0db6b7e6d55f6fce325963f190afcdf24cf67f7b7">
       <source xml:lang="en">Azure Data Studio settings file</source>
     </trans-unit>
+    <trans-unit id="++CODE++ef29c3acfb3de5b5cb395ebd30039cc6d6120e9d1f9581301573425449e535c5">
+      <source xml:lang="en">Azure Databases</source>
+    </trans-unit>
     <trans-unit id="++CODE++c5023bdd36d362e05c245ab15ab6839ad7562bcd42f1e1b0c759dca9d5fec4f7">
       <source xml:lang="en">Azure Device Code</source>
     </trans-unit>
@@ -2547,6 +2550,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c7869b25e42d5683ca7cf9fc6cc3bbe5c8c39dab0ee1f2938b5570714350d0bb">
       <source xml:lang="en">Fabric Account is required</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7a77e8a8f80ab358ff1261e8047b81ffa298288509fc45ae56d2760997839dda">
+      <source xml:lang="en">Fabric Databases</source>
     </trans-unit>
     <trans-unit id="++CODE++3070527056fcbd2ba823f6ed6ec72a556b5d82695b4490bc28c86d210c696bad">
       <source xml:lang="en">Fabric Workspaces</source>

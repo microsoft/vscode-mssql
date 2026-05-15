@@ -6,22 +6,45 @@
 import { makeStyles, shorthands } from "@fluentui/react-components";
 
 export const useSqlExplorerStyles = makeStyles({
+    sqlExplorerWrapper: {
+        width: "125%",
+        marginLeft: "-12.5%",
+        border: "0.5px solid var(--vscode-editorWidget-border)",
+        borderRadius: "2px",
+        padding: "8px",
+        boxSizing: "border-box",
+    },
+    sqlExplorerTitle: {
+        display: "block",
+        marginBottom: "8px",
+        fontSize: "13px",
+        fontWeight: "600",
+    },
     workspaceExplorer: {
         display: "flex",
         height: "400px",
         width: "100%",
-        gap: "10px",
-        overflow: "hidden",
+        overflowX: "visible",
+        overflowY: "hidden",
     },
     workspaceList: {
         display: "flex",
         flexDirection: "column",
-        width: "250px",
-        minWidth: "250px",
         height: "100%",
         overflow: "hidden",
         borderRight: "1px solid var(--vscode-panel-border)",
         backgroundColor: "var(--vscode-sideBar-background)",
+        flexShrink: 0,
+    },
+    dragHandle: {
+        width: "4px",
+        cursor: "ew-resize",
+        flexShrink: 0,
+        backgroundColor: "transparent",
+        transition: "background-color 0.15s",
+        "&:hover": {
+            backgroundColor: "var(--vscode-sash-hoverBorder, var(--vscode-panel-border))",
+        },
     },
     workspaceListCollapsed: {
         display: "flex",
