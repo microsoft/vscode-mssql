@@ -10,7 +10,8 @@ import { SqlCollectionContentsList } from "./sqlCollectionContentsList.component
 import { SqlCollectionList } from "./sqlCollectionList.component";
 import { SqlDbInfo, SqlCollectionInfo } from "../../../../../sharedInterfaces/fabric";
 import { useSqlExplorerStyles } from "./sqlExplorer.styles";
-import { Status } from "../../../../../sharedInterfaces/webview";
+import { ApiStatus, Status } from "../../../../../sharedInterfaces/webview";
+import { locConstants as Loc } from "../../../../common/locConstants";
 
 export const SqlExplorer = ({
     onSignIntoMicrosoftAccount,
@@ -36,9 +37,22 @@ export const SqlExplorer = ({
     onToggleFavorite,
 }: SqlExplorerProps) => {
     const fabricWorkspaces = useConnectionDialogSelector((s) => s.fabricWorkspaces);
+    const loadingAzureTenantsStatus = useConnectionDialogSelector(
+        (s) => s.loadingAzureTenantsStatus,
+    );
 
     // Use prop override if provided, otherwise fall back to store
     const workspaces = workspacesProp ?? fabricWorkspaces;
+
+    // When tenants are still loading, show a loading state in both panels
+    // so the user doesn't see stale data from the previous account selection.
+    const tenantsLoading = loadingAzureTenantsStatus === ApiStatus.Loading;
+    const effectiveWorkspacesLoadStatus: Status = tenantsLoading
+        ? { status: ApiStatus.Loading }
+        : (workspacesLoadStatus ?? { status: ApiStatus.NotStarted });
+    const effectiveLoadingMessage = tenantsLoading
+        ? Loc.azure.loadingTenants
+        : loadingWorkspacesMessage;
 
     const sqlStyles = useSqlExplorerStyles();
 
@@ -89,25 +103,25 @@ export const SqlExplorer = ({
             />
             <div className={sqlStyles.workspaceExplorer}>
                 <SqlCollectionList
-                    workspaces={workspaces}
-                    selectedWorkspace={selectedCollection}
+                    workspaces={tenantsLoading ? [] : workspaces}
+                    selectedWorkspace={tenantsLoading ? undefined : selectedCollection}
                     onSelectWorkspace={handleCollectionSelected}
-                    loadStatus={workspacesLoadStatus}
+                    loadStatus={effectiveWorkspacesLoadStatus}
                     listLabel={workspaceListLabel}
                     searchPlaceholder={workspaceSearchPlaceholder}
                     noItemsFoundMessage={noWorkspacesFoundMessage}
-                    loadingMessage={loadingWorkspacesMessage}
+                    loadingMessage={effectiveLoadingMessage}
                     errorMessage={errorLoadingWorkspacesMessage}
                     favoritedIds={favoritedIds}
                     onToggleFavorite={onToggleFavorite}
                 />
                 <SqlCollectionContentsList
-                    selectedWorkspace={selectedCollection}
+                    selectedWorkspace={tenantsLoading ? undefined : selectedCollection}
                     searchFilter={searchFilter}
                     onSelectDatabase={handleDatabaseSelected}
-                    loadStatus={workspacesLoadStatus}
+                    loadStatus={effectiveWorkspacesLoadStatus}
                     selectWorkspaceMessage={selectWorkspaceMessage}
-                    loadingWorkspacesMessage={loadingWorkspacesMessage}
+                    loadingWorkspacesMessage={effectiveLoadingMessage}
                     errorLoadingWorkspacesMessage={errorLoadingWorkspacesMessage}
                     loadingDatabasesMessage={loadingDatabasesMessage}
                     errorLoadingDatabasesMessage={errorLoadingDatabasesMessage}
