@@ -135,18 +135,30 @@ export class VsCodeAzureHelper {
      */
     public static async signIn(
         forceSignInPrompt: boolean = false,
-    ): Promise<MssqlVSCodeAzureSubscriptionProvider> {
+    ): Promise<{ auth: MssqlVSCodeAzureSubscriptionProvider; newAccountId: string | undefined }> {
         const auth: MssqlVSCodeAzureSubscriptionProvider =
             MssqlVSCodeAzureSubscriptionProvider.getInstance();
 
         if (forceSignInPrompt || !(await auth.isSignedIn())) {
+            const accountsBefore = new Set(
+                (await VsCodeAzureHelper.getAccounts()).map((a) => a.id),
+            );
+
             const result = await auth.signIn();
+
             if (!result) {
                 throw new Error("Azure sign-in was canceled or failed.");
             }
+
+            const accountsAfter = await VsCodeAzureHelper.getAccounts();
+            const newAccount = accountsAfter.find((a) => !accountsBefore.has(a.id));
+
+            return { auth, newAccountId: newAccount?.id ?? accountsAfter[0]?.id };
         }
 
-        return auth;
+        // Already signed in — return the first available account
+        const accounts = await VsCodeAzureHelper.getAccounts();
+        return { auth, newAccountId: accounts[0]?.id };
     }
 
     public static getHomeTenantIdForAccount(
@@ -531,15 +543,15 @@ export async function promptForAzureSubscriptionFilter(
     logger: Logger,
 ): Promise<boolean> {
     try {
-        const auth = await VsCodeAzureHelper.signIn();
+        const result = await VsCodeAzureHelper.signIn();
 
-        if (!auth) {
+        if (!result?.auth) {
             state.formMessage = { message: l10n.t("Azure sign in failed.") };
             return false;
         }
 
         const selectedSubs = await vscode.window.showQuickPick(
-            getSubscriptionQuickPickItems(auth),
+            getSubscriptionQuickPickItems(result.auth),
             {
                 canPickMany: true,
                 ignoreFocusOut: true,
@@ -712,8 +724,9 @@ export async function constructAzureAccountForTenant(azureAccountInfo: {
     accountId: string;
     tenantId: string;
 }): Promise<{ account: IAccount; tokenMappings: {} }> {
-    const auth = await VsCodeAzureHelper.signIn();
-    const subs = await auth.getSubscriptions({
+    const result = await VsCodeAzureHelper.signIn();
+
+    const subs = await result.auth.getSubscriptions({
         account: await VsCodeAzureHelper.getAccountById(azureAccountInfo.accountId),
         tenantId: azureAccountInfo.tenantId,
     });

@@ -327,7 +327,7 @@ export async function getAzureActionButton(
             );
 
             // There should always be at least one account, because the user just went through the sign in workflow
-            if (azureAccounts.length !== 0) {
+            if (azureAccounts.length > 0) {
                 state.formState.accountId = azureAccounts[0].id;
                 logger.verbose(`Selecting '${azureAccounts[0].id}'`);
             }
