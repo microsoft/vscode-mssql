@@ -1,7 +1,7 @@
 {
     "compileOnSave": true,
     "compilerOptions": {
-        "outDir": "out",
+        "outDir": "${configDir}/out",
         "module": "CommonJS",
         "target": "ES2024",
         "lib": ["ES2024"],
@@ -12,7 +12,7 @@
         "emitDecoratorMetadata": true,
         "noUnusedLocals": true,
         "skipLibCheck": true,
-        "rootDir": ".",
+        "rootDir": "${configDir}",
         "strict": false,
         "types": ["node", "mocha"]
     }
