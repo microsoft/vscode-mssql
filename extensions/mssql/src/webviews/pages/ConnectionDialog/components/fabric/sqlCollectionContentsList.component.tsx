@@ -534,7 +534,7 @@ export const SqlCollectionContentsList = ({
             <DataGridRow<SqlDbGridItem>
                 key={rowId}
                 className={isSelected ? styles.selectedDataGridRow : undefined}
-                style={style}
+                style={{ ...style, cursor: "pointer" }}
                 onClick={() => {
                     handleRowActivated(item);
                 }}
