@@ -2280,9 +2280,6 @@
       <note>{0} is the subscription name
 {1} is the subscription id</note>
     </trans-unit>
-    <trans-unit id="++CODE++4eca430ed6ea02cdcd0e956ce27d238e2659997f15a4f580b0fd3385cfd815a0">
-      <source xml:lang="en">Error loading Azure databases.</source>
-    </trans-unit>
     <trans-unit id="++CODE++5b149b9da8f7cd0bdae05ad12cd9e4f650db61436fb31c868a6568695dce21f2">
       <source xml:lang="en">Error loading Azure subscriptions.</source>
     </trans-unit>

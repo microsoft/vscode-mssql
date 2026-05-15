@@ -327,7 +327,13 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 await this.ensureAzureBrowseContext(state);
 
                 if (state.selectedAccountId && state.selectedTenantId) {
-                    await this.loadAzureServersForTenant(state, state.selectedTenantId);
+                    const alreadyLoaded =
+                        state.loadingAzureSubscriptionsStatus === ApiStatus.Loaded &&
+                        state.azureSubscriptions.length > 0;
+                    if (!alreadyLoaded) {
+                        await this.loadAzureSubscriptions(state, state.selectedTenantId);
+                        await this.autoLoadAzureServers(state);
+                    }
                 }
             } else if (state.selectedInputMode === ConnectionInputMode.FabricBrowse) {
                 // Don't port connection information when switching to Fabric Browse
@@ -335,18 +341,21 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 state.connectionProfile.database = undefined;
                 state.connectionProfile.user = undefined;
 
-                // Also clear old Fabric state
-                state.sqlCollectionsLoadStatus = { status: ApiStatus.NotStarted };
-                state.sqlCollections = [];
-
                 await this.ensureAzureBrowseContext(state);
 
                 if (state.selectedAccountId && state.selectedTenantId) {
-                    await this.loadFabricWorkspaces(
-                        state,
-                        state.selectedAccountId,
-                        state.selectedTenantId,
-                    );
+                    const alreadyLoaded =
+                        state.fabricWorkspacesLoadStatus.status === ApiStatus.Loaded &&
+                        state.fabricWorkspaces.length > 0;
+                    if (!alreadyLoaded) {
+                        state.fabricWorkspacesLoadStatus = { status: ApiStatus.NotStarted };
+                        state.fabricWorkspaces = [];
+                        await this.loadFabricWorkspaces(
+                            state,
+                            state.selectedAccountId,
+                            state.selectedTenantId,
+                        );
+                    }
                 }
             }
 
@@ -477,7 +486,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     // Force-refresh the subscription cache, then reload for the current tenant
                     this._azureSubscriptions.clear();
                     if (state.selectedTenantId) {
-                        await this.loadAzureServersForTenant(state, state.selectedTenantId);
+                        await this.loadAzureSubscriptions(state, state.selectedTenantId);
+                        await this.autoLoadAzureServers(state);
                     }
                 }
             } catch (err) {
@@ -746,7 +756,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 // New sign-in may have brought in new subscriptions/tenants
                 this._azureSubscriptions.clear();
                 if (state.selectedTenantId) {
-                    await this.loadAzureServersForTenant(state, state.selectedTenantId);
+                    await this.loadAzureSubscriptions(state, state.selectedTenantId);
+                    await this.autoLoadAzureServers(state);
                 }
 
                 return state;
@@ -783,7 +794,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             // Force-refresh the subscription cache after tenant sign-in
             this._azureSubscriptions.clear();
             if (state.selectedTenantId) {
-                await this.loadAzureServersForTenant(state, state.selectedTenantId);
+                await this.loadAzureSubscriptions(state, state.selectedTenantId);
+                await this.autoLoadAzureServers(state);
             }
             return state;
         });
@@ -808,13 +820,14 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             // After tenant selection settles, kick off the appropriate load for the new tenant
             if (state.selectedTenantId) {
                 if (state.selectedInputMode === ConnectionInputMode.AzureBrowse) {
-                    await this.loadAzureServersForTenant(state, state.selectedTenantId);
+                    await this.loadAzureSubscriptions(state, state.selectedTenantId);
+                    await this.autoLoadAzureServers(state);
                 } else if (
                     state.selectedInputMode === ConnectionInputMode.FabricBrowse &&
                     state.selectedAccountId
                 ) {
-                    state.sqlCollectionsLoadStatus = { status: ApiStatus.Loading };
-                    state.sqlCollections = [];
+                    state.fabricWorkspacesLoadStatus = { status: ApiStatus.Loading };
+                    state.fabricWorkspaces = [];
                     this.updateState(state);
                     await this.loadFabricWorkspaces(
                         state,
@@ -835,7 +848,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this.updateState(state);
 
             if (state.selectedInputMode === ConnectionInputMode.AzureBrowse) {
-                await this.loadAzureServersForTenant(state, payload.tenantId);
+                await this.loadAzureSubscriptions(state, payload.tenantId);
+                await this.autoLoadAzureServers(state);
             }
 
             return state;
@@ -889,20 +903,20 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         this.registerReducer("selectAzureTenant", async (state, payload) => {
             state.selectedTenantId = payload.tenantId;
-            state.sqlCollectionsLoadStatus = { status: ApiStatus.Loading };
-            state.sqlCollections = [];
+            state.fabricWorkspacesLoadStatus = { status: ApiStatus.Loading };
+            state.fabricWorkspaces = [];
             this.updateState(state);
 
             await this.loadFabricWorkspaces(state, state.selectedAccountId, state.selectedTenantId);
 
             // Fabric REST API rate-limits to 50 requests/user/minute,
             // so only auto-load contents of workspaces if they're below a safe threshold
-            if (state.sqlCollections.length <= FABRIC_WORKSPACE_AUTOLOAD_LIMIT) {
+            if (state.fabricWorkspaces.length <= FABRIC_WORKSPACE_AUTOLOAD_LIMIT) {
                 this.updateState(state);
 
                 const promiseArray: Promise<void>[] = [];
 
-                for (const workspace of state.sqlCollections) {
+                for (const workspace of state.fabricWorkspaces) {
                     promiseArray.push(this.loadFabricDatabasesForWorkspace(state, workspace));
                 }
 
@@ -913,29 +927,29 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("selectSqlCollection", async (state, payload) => {
-            const workspace = state.sqlCollections.find((w) => w.id === payload.collectionId);
             this.state.connectionProfile.server = "";
             this.state.connectionProfile.database = "";
 
-            if (
-                (workspace && workspace.loadStatus.status === ApiStatus.NotStarted) ||
-                workspace.loadStatus.status === ApiStatus.Error
-            ) {
-                await this.loadFabricDatabasesForWorkspace(state, workspace);
+            if (state.selectedInputMode === ConnectionInputMode.AzureBrowse) {
+                const sub = state.azureSubscriptions.find((s) => s.id === payload.collectionId);
+                if (
+                    sub &&
+                    (sub.loadStatus.status === ApiStatus.NotStarted ||
+                        sub.loadStatus.status === ApiStatus.Error)
+                ) {
+                    await this.loadAzureServersForSubscription(state, payload.collectionId);
+                }
+            } else {
+                const workspace = state.fabricWorkspaces.find((w) => w.id === payload.collectionId);
+                if (
+                    workspace &&
+                    (workspace.loadStatus.status === ApiStatus.NotStarted ||
+                        workspace.loadStatus.status === ApiStatus.Error)
+                ) {
+                    await this.loadFabricDatabasesForWorkspace(state, workspace);
+                }
             }
 
-            return state;
-        });
-
-        this.registerReducer("selectAzureSubscription", async (state, payload) => {
-            const sub = state.azureSubscriptions.find((s) => s.id === payload.subscriptionId);
-            if (
-                sub &&
-                (sub.loadStatus.status === ApiStatus.NotStarted ||
-                    sub.loadStatus.status === ApiStatus.Error)
-            ) {
-                await this.loadAzureServersForSubscription(state, payload.subscriptionId);
-            }
             return state;
         });
 
@@ -2533,12 +2547,12 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     }
 
     /**
-     * Loads Azure SQL servers for the given tenant only — mirrors Fabric's per-tenant
-     * workspace+contents load model. Auth/subscriptions are loaded (and cached) up-front,
-     * then `state.azureSubscriptions` and `state.azureServers` are populated with data
-     * scoped to the selected tenant. Favorited subscriptions load first.
+     * Loads the list of Azure subscriptions for the given tenant. Mirrors
+     * `loadFabricWorkspaces`: only populates the subscription list — does not auto-load
+     * each subscription's contents. Callers (reducers) decide when/whether to auto-load
+     * server lists via `autoLoadAzureServers`.
      */
-    private async loadAzureServersForTenant(
+    private async loadAzureSubscriptions(
         state: ConnectionDialogWebviewState,
         tenantId: string,
     ): Promise<void> {
@@ -2574,44 +2588,12 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             state.loadingAzureSubscriptionsStatus = ApiStatus.Loaded;
             this.updateState(state);
 
-            if (subsForTenant.length === 0) {
-                state.loadingAzureServersStatus = ApiStatus.Loaded;
-                endActivity.end(ActivityStatus.Succeeded, undefined, { subscriptionCount: 0 });
-                return;
-            }
-
-            state.loadingAzureServersStatus = ApiStatus.Loading;
-            this.updateState(state);
-
-            const favoritedIds = state.favoritedAzureSubscriptionIds;
-            const favoriteSubs = subsForTenant.filter((s) =>
-                favoritedIds.includes(s.subscriptionId),
-            );
-            const restSubs = subsForTenant.filter((s) => !favoritedIds.includes(s.subscriptionId));
-
-            // Wave 1: favorites — always auto-load, await so they appear before the rest start
-            await Promise.all(
-                favoriteSubs.map((s) =>
-                    this.loadAzureServersForSubscription(state, s.subscriptionId),
-                ),
-            );
-
-            // Wave 2: non-favorites — only auto-load if total subscriptions are within threshold
-            if (subsForTenant.length <= AZURE_SUBSCRIPTION_AUTOLOAD_LIMIT) {
-                await Promise.all(
-                    restSubs.map((s) =>
-                        this.loadAzureServersForSubscription(state, s.subscriptionId),
-                    ),
-                );
-            }
-
-            state.loadingAzureServersStatus = ApiStatus.Loaded;
             endActivity.end(ActivityStatus.Succeeded, undefined, {
                 subscriptionCount: subsForTenant.length,
             });
         } catch (error) {
-            state.formMessage = { message: l10n.t("Error loading Azure databases.") };
-            state.loadingAzureServersStatus = ApiStatus.Error;
+            state.formMessage = { message: l10n.t("Error loading Azure subscriptions.") };
+            state.loadingAzureSubscriptionsStatus = ApiStatus.Error;
             this.logger.error(state.formMessage.message + os.EOL + getErrorMessage(error));
 
             endActivity.endFailed(
@@ -2619,6 +2601,39 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 false, // includeErrorMessage
             );
         }
+    }
+
+    /**
+     * Auto-loads server lists for subscriptions in the current tenant. Favorites are
+     * always loaded first; the remaining subscriptions are only auto-loaded if the
+     * total subscription count is within `AZURE_SUBSCRIPTION_AUTOLOAD_LIMIT`.
+     */
+    private async autoLoadAzureServers(state: ConnectionDialogWebviewState): Promise<void> {
+        if (state.azureSubscriptions.length === 0) {
+            state.loadingAzureServersStatus = ApiStatus.Loaded;
+            return;
+        }
+
+        state.loadingAzureServersStatus = ApiStatus.Loading;
+        this.updateState(state);
+
+        const favoritedIds = state.favoritedAzureSubscriptionIds;
+        const favoriteSubs = state.azureSubscriptions.filter((s) => favoritedIds.includes(s.id));
+        const restSubs = state.azureSubscriptions.filter((s) => !favoritedIds.includes(s.id));
+
+        // Wave 1: favorites — always auto-load, await so they appear before the rest start
+        await Promise.all(
+            favoriteSubs.map((s) => this.loadAzureServersForSubscription(state, s.id)),
+        );
+
+        // Wave 2: non-favorites — only auto-load if total subscriptions are within threshold
+        if (state.azureSubscriptions.length <= AZURE_SUBSCRIPTION_AUTOLOAD_LIMIT) {
+            await Promise.all(
+                restSubs.map((s) => this.loadAzureServersForSubscription(state, s.id)),
+            );
+        }
+
+        state.loadingAzureServersStatus = ApiStatus.Loaded;
     }
 
     private async loadAzureServersForSubscription(
@@ -2696,7 +2711,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 );
 
                 this.logger.error(message);
-                state.sqlCollectionsLoadStatus = { status: ApiStatus.Error, message: locMessage };
+                state.fabricWorkspacesLoadStatus = { status: ApiStatus.Error, message: locMessage };
 
                 loadWorkspacesActivity.endFailed(
                     new Error(
@@ -2723,18 +2738,20 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     newWorkspaces.push(stateWorkspace);
                 }
 
-                this.state.sqlCollections = newWorkspaces;
+                this.state.fabricWorkspaces = newWorkspaces;
                 state.favoritedFabricWorkspaceIds = vscode.workspace
                     .getConfiguration()
                     .get<string[]>(configSelectedFabricWorkspaces, []);
-                state.sqlCollectionsLoadStatus = {
+                state.fabricWorkspacesLoadStatus = {
                     status: ApiStatus.Loaded,
                     message:
-                        this.state.sqlCollections.length === 0 ? Loc.noWorkspacesFound : undefined,
+                        this.state.fabricWorkspaces.length === 0
+                            ? Loc.noWorkspacesFound
+                            : undefined,
                 };
 
                 loadWorkspacesActivity.end(ActivityStatus.Succeeded, undefined, {
-                    workspaceCount: this.state.sqlCollections.length,
+                    workspaceCount: this.state.fabricWorkspaces.length,
                 });
             } catch (err) {
                 const message = `Failed to get Fabric workspaces for tenant '${tenant.displayName} (${tenant.tenantId})': ${getErrorMessage(err)}`;
@@ -2745,7 +2762,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 );
 
                 this.logger.error(message);
-                state.sqlCollectionsLoadStatus = { status: ApiStatus.Error, message: locMessage };
+                state.fabricWorkspacesLoadStatus = { status: ApiStatus.Error, message: locMessage };
 
                 loadWorkspacesActivity.endFailed(
                     new Error("Failed to fetch Fabric workspaces"),

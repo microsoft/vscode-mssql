@@ -101,7 +101,7 @@ export const FabricBrowsePage = () => {
             {loadingAzureAccountsStatus === ApiStatus.Loaded && hasAccounts && (
                 <>
                     <div className={styles.componentGroupHeader}>
-                        <Label>{Loc.connectionDialog.sqlCollections}</Label>
+                        <Label>{Loc.connectionDialog.fabricWorkspaces}</Label>
                     </div>
                     <div className={styles.componentGroupContainer}>
                         <SqlExplorer

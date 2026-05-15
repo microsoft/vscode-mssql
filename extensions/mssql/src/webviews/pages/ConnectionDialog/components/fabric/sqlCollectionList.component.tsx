@@ -53,10 +53,12 @@ export const SqlCollectionList = ({
     onToggleFavorite,
 }: SqlCollectionListProps) => {
     const styles = useSqlExplorerStyles();
-    const sqlCollectionsLoadStatus = useConnectionDialogSelector((s) => s.sqlCollectionsLoadStatus);
+    const fabricWorkspacesLoadStatus = useConnectionDialogSelector(
+        (s) => s.fabricWorkspacesLoadStatus,
+    );
 
     // Use prop override if provided, otherwise fall back to store
-    const effectiveLoadStatus = loadStatusProp ?? sqlCollectionsLoadStatus;
+    const effectiveLoadStatus = loadStatusProp ?? fabricWorkspacesLoadStatus;
 
     const [isExplorerCollapsed, setIsExplorerCollapsed] = useState(false);
 
@@ -224,7 +226,7 @@ export const SqlCollectionList = ({
                             {filteredWorkspaces.length > 0 && (
                                 <List
                                     role="listbox"
-                                    aria-label={listLabel ?? Loc.connectionDialog.sqlCollections}
+                                    aria-label={listLabel ?? Loc.connectionDialog.fabricWorkspaces}
                                     selectionMode="single"
                                     navigationMode="composite"
                                     selectedItems={selectedItems}
@@ -402,7 +404,7 @@ export interface SqlCollectionListProps {
     workspaces: SqlCollectionInfo[];
     onSelectWorkspace: (workspace: SqlCollectionInfo) => void;
     selectedWorkspace?: SqlCollectionInfo;
-    /** Override the store's sqlCollectionsLoadStatus */
+    /** Override the store's fabricWorkspacesLoadStatus */
     loadStatus?: Status;
     /** aria-label for the list */
     listLabel?: string;

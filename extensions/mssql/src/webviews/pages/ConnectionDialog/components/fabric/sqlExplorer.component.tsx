@@ -35,10 +35,10 @@ export const SqlExplorer = ({
     favoritedIds,
     onToggleFavorite,
 }: SqlExplorerProps) => {
-    const sqlCollections = useConnectionDialogSelector((s) => s.sqlCollections);
+    const fabricWorkspaces = useConnectionDialogSelector((s) => s.fabricWorkspaces);
 
     // Use prop override if provided, otherwise fall back to store
-    const workspaces = workspacesProp ?? sqlCollections;
+    const workspaces = workspacesProp ?? fabricWorkspaces;
 
     const sqlStyles = useSqlExplorerStyles();
 

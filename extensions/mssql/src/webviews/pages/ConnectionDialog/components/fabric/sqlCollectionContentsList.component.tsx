@@ -66,7 +66,9 @@ export const SqlCollectionContentsList = ({
     noDatabasesInWorkspaceMessage,
 }: SqlCollectionContentsListProps) => {
     const styles = useSqlExplorerStyles();
-    const sqlCollectionsLoadStatus = useConnectionDialogSelector((s) => s.sqlCollectionsLoadStatus);
+    const fabricWorkspacesLoadStatus = useConnectionDialogSelector(
+        (s) => s.fabricWorkspacesLoadStatus,
+    );
     const { themeKind: theme } = useVscodeWebview();
     const [selectedRowId, setSelectedRowId] = useState<string | undefined>(undefined);
     const [selectedTypeFilter, setSelectedTypeFilter] = useState<string>(
@@ -75,7 +77,7 @@ export const SqlCollectionContentsList = ({
     const [expandedServerIds, setExpandedServerIds] = useState<Set<string>>(new Set());
 
     // Use prop override if provided, otherwise fall back to store
-    const effectiveCollectionsLoadStatus = loadStatusProp ?? sqlCollectionsLoadStatus;
+    const effectiveCollectionsLoadStatus = loadStatusProp ?? fabricWorkspacesLoadStatus;
 
     //#region Hooks
 
@@ -585,7 +587,7 @@ export interface SqlCollectionContentsListProps {
     selectedWorkspace: SqlCollectionInfo | undefined;
     searchFilter?: string;
     typeFilter?: string[];
-    /** Override the store's sqlCollectionsLoadStatus */
+    /** Override the store's fabricWorkspacesLoadStatus */
     loadStatus?: Status;
     /** Whether to show the type filter menu button (default: true) */
     showTypeFilter?: boolean;

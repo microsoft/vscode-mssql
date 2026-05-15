@@ -124,7 +124,7 @@ export const AzureBrowsePage = () => {
                                 )
                             }
                             onSelectWorkspace={(ws) => {
-                                context.selectAzureSubscription(ws.id);
+                                context.selectSqlCollection(ws.id);
                             }}
                             onSelectDatabase={(db) => {
                                 setConnectionProperty("server", db.server);
