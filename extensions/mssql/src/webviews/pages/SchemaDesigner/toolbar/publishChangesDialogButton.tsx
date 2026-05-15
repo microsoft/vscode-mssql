@@ -15,7 +15,6 @@ import {
     DialogTrigger,
     makeStyles,
     MessageBar,
-    Spinner,
     Tooltip,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
@@ -35,6 +34,7 @@ import {
     schemaDesignerPublishErrorFallbackDetails,
     schemaDesignerPublishErrorPrompt,
 } from "./publishChangesDialogPrompts";
+import { LoadingLog } from "../../../common/loadingLog";
 
 export enum PublishDialogStages {
     NotStarted = "notStarted",
@@ -187,18 +187,8 @@ export function PublishChangesDialogButton() {
         );
     };
 
-    const spinner = (label: string) => {
-        return (
-            <Spinner
-                size="large"
-                style={{
-                    marginBottom: "10px",
-                    marginTop: "10px",
-                }}
-                label={label}
-                labelPosition="below"
-            />
-        );
+    const loadingLog = (label: string, messages: string[] = []) => {
+        return <LoadingLog messages={messages} fallbackMessage={label} minHeight="240px" />;
     };
 
     const error = (errorString: string) => {
@@ -364,7 +354,10 @@ export function PublishChangesDialogButton() {
 
     const dialogContent = () => {
         if (state.currentStage === PublishDialogStages.ReportLoading) {
-            return spinner(locConstants.schemaDesigner.generatingReport);
+            return loadingLog(
+                context.reportProgressMessage ?? locConstants.schemaDesigner.generatingReport,
+                context.reportProgressMessages,
+            );
         }
 
         if (state.currentStage === PublishDialogStages.ReportError) {
@@ -398,7 +391,7 @@ export function PublishChangesDialogButton() {
         }
 
         if (state.currentStage === PublishDialogStages.PublishLoading) {
-            return spinner(locConstants.schemaDesigner.publishingChanges);
+            return loadingLog(locConstants.schemaDesigner.publishingChanges);
         }
 
         if (state.currentStage === PublishDialogStages.PublishError) {

@@ -67,6 +67,8 @@ export interface SchemaDesignerContextProps extends CoreRPCs {
     resetView: () => void;
     isInitialized: boolean;
     initializationError?: string;
+    initializationProgressMessage?: string;
+    reportProgressMessage?: string;
     initializationRequestId: number;
     triggerInitialization: () => void;
     renderOnlyVisibleTables: boolean;
@@ -109,6 +111,12 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const isInitializedRef = useRef(false); // Ref to track initialization status for closures
     const initializationGateControllerRef = useRef(createInitializationGateController());
     const [initializationError, setInitializationError] = useState<string | undefined>(undefined);
+    const [initializationProgressMessage, setInitializationProgressMessage] = useState<
+        string | undefined
+    >(undefined);
+    const [reportProgressMessage, setReportProgressMessage] = useState<string | undefined>(
+        undefined,
+    );
     const [initializationRequestId, setInitializationRequestId] = useState(0);
     const [findTableText, setFindTableText] = useState<string>("");
     const [renderOnlyVisibleTables, setRenderOnlyVisibleTables] = useState<boolean>(true);
@@ -195,6 +203,27 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     }, []);
 
     useEffect(() => {
+        extensionRpc.onNotification(
+            SchemaDesigner.SchemaDesignerProgressNotification.type,
+            (progress) => {
+                if (
+                    progress.operation === "Initialize" ||
+                    progress.operation === "LoadSimpleSchema"
+                ) {
+                    if (isInitializedRef.current) {
+                        setReportProgressMessage(progress.message);
+                    } else {
+                        setInitializationProgressMessage(progress.message);
+                    }
+                    return;
+                }
+
+                if (progress.operation === "GenerateReport") {
+                    setReportProgressMessage(progress.message);
+                }
+            },
+        );
+
         registerSchemaDesignerGetSchemaStateHandler({
             isInitializedRef,
             waitForInitialization,
@@ -209,6 +238,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             setIsInitialized(false);
             isInitializedRef.current = false;
             setInitializationError(undefined);
+            setInitializationProgressMessage(undefined);
             const model = await extensionRpc.sendRequest(
                 SchemaDesigner.InitializeSchemaDesignerRequest.type,
             );
@@ -233,6 +263,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             setSchemaNames(model.schemaNames);
             setIsInitialized(true);
             isInitializedRef.current = true;
+            setInitializationProgressMessage(undefined);
             initializationGate.resolve(true);
 
             setTimeout(() => {
@@ -251,6 +282,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         } catch (error) {
             const errorMessage = getErrorMessage(error);
             setInitializationError(errorMessage);
+            setInitializationProgressMessage(undefined);
             setIsInitialized(false);
             isInitializedRef.current = false;
             initializationGate.resolve(false);
@@ -260,6 +292,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
 
     const triggerInitialization = () => {
         setInitializationError(undefined);
+        setInitializationProgressMessage(undefined);
         setIsInitialized(false);
         isInitializedRef.current = false;
         initializationGateControllerRef.current.rotateGate();
@@ -317,10 +350,14 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             return;
         }
 
-        const result = await extensionRpc.sendRequest(SchemaDesigner.GetReportWebviewRequest.type, {
-            updatedSchema: schema,
-        });
-        return result;
+        setReportProgressMessage(undefined);
+        try {
+            return await extensionRpc.sendRequest(SchemaDesigner.GetReportWebviewRequest.type, {
+                updatedSchema: schema,
+            });
+        } finally {
+            setReportProgressMessage(undefined);
+        }
     };
 
     const copyToClipboard = useCallback(
@@ -578,6 +615,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 getBaselineDefinition,
                 initializeSchemaDesigner,
                 initializationError,
+                initializationProgressMessage,
+                reportProgressMessage,
                 initializationRequestId,
                 triggerInitialization,
                 saveAsFile,

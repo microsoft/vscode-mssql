@@ -11,7 +11,7 @@ import * as LocConstants from "../constants/locConstants";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import MainController from "../controllers/mainController";
 import { homedir } from "os";
-import { getErrorMessage, getUniqueFilePath } from "../utils/utils";
+import { getErrorMessage, getUniqueFilePath, uuid } from "../utils/utils";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { configSchemaDesignerEnableExpandCollapseButtons } from "../constants/constants";
@@ -27,6 +27,9 @@ import {
     getSchemaDesignerDefinitionOutput,
     SchemaDesignerDefinitionOutput,
 } from "../sharedInterfaces/schemaDesignerDefinitionOutput";
+import logger2 from "../models/logger2";
+
+const logger = logger2.withPrefix("SchemaDesignerWebviewController");
 
 function isExpandCollapseButtonsEnabled(): boolean {
     return vscode.workspace
@@ -75,6 +78,10 @@ function getCopilotChatDiscoveryDismissedState(
         ),
         dab: context.globalState.get(CopilotChat.getDiscoveryDismissedStateKey("dab"), false),
     };
+}
+
+function toError(error: unknown): Error {
+    return error instanceof Error ? error : new Error(getErrorMessage(error));
 }
 
 export class SchemaDesignerWebviewController extends WebviewPanelController<
@@ -142,6 +149,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
 
         this.setupRequestHandlers();
         this.setupReducers();
+        this.setupSchemaDesignerProgressListeners();
         this.setupConfigurationListener();
     }
 
@@ -175,7 +183,9 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 const hasCachedSession = !!cacheItem?.schemaDesignerDetails?.sessionId;
 
                 if (!hasCachedSession) {
+                    this._sessionId = uuid();
                     sessionResponse = await this.schemaDesignerService.createSession({
+                        sessionId: this._sessionId,
                         connectionString: this.connectionString,
                         accessToken: this.accessToken,
                         databaseName: this.databaseName,
@@ -190,7 +200,9 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 } else {
                     sessionResponse = cacheItem.schemaDesignerDetails;
                     this.baselineSchema = cacheItem.baselineSchema;
+                    this._sessionId = sessionResponse.sessionId;
                 }
+
                 this.schemaDesignerDetails = sessionResponse;
                 this._sessionId = sessionResponse.sessionId;
                 schemaDesignerInitActivity.end(ActivityStatus.Succeeded, undefined, {
@@ -198,7 +210,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 });
                 return sessionResponse;
             } catch (error) {
-                schemaDesignerInitActivity.endFailed(error, false);
+                schemaDesignerInitActivity.endFailed(toError(error), false);
                 throw error;
             }
         });
@@ -233,24 +245,14 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 },
             );
             try {
-                const result = await vscode.window.withProgress(
-                    {
-                        location: vscode.ProgressLocation.Notification,
-                        title: LocConstants.SchemaDesigner.GeneratingReport,
-                        cancellable: false,
-                    },
-                    async () => {
-                        // Wait for the report to be generated
-                        const report = await this.schemaDesignerService.getReport({
-                            updatedSchema: payload.updatedSchema,
-                            sessionId: this._sessionId,
-                        });
-                        this.updateCacheItem(payload.updatedSchema);
-                        return {
-                            report,
-                        };
-                    },
-                );
+                const report = await this.schemaDesignerService.getReport({
+                    updatedSchema: payload.updatedSchema,
+                    sessionId: this._sessionId,
+                });
+                this.updateCacheItem(payload.updatedSchema);
+                const result = {
+                    report,
+                };
 
                 reportActivity.end(
                     ActivityStatus.Succeeded,
@@ -268,9 +270,9 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
 
                 return result;
             } catch (error) {
-                reportActivity.endFailed(error, false);
+                reportActivity.endFailed(toError(error), false);
                 return {
-                    error: error.toString(),
+                    error: getErrorMessage(error),
                 };
             }
         });
@@ -288,6 +290,9 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 publishActivity.end(ActivityStatus.Succeeded, undefined, {
                     tableCount: payload.schema?.tables?.length,
                 });
+                if (this.schemaDesignerDetails) {
+                    this.schemaDesignerDetails.schema = payload.schema;
+                }
                 this.updateCacheItem(undefined, false);
 
                 // After publishing, reset baseline to current (published) schema so change count clears.
@@ -308,10 +313,10 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                     updatedSchema: this.schemaDesignerDetails?.schema ?? payload.schema,
                 };
             } catch (error) {
-                publishActivity.endFailed(error, false);
+                publishActivity.endFailed(toError(error), false);
                 return {
                     success: false,
-                    error: error.toString(),
+                    error: getErrorMessage(error),
                     updatedSchema: this.schemaDesignerDetails?.schema ?? payload.schema,
                 };
             }
@@ -435,7 +440,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                                 ? { scriptLength: result?.script?.length }
                                 : { scriptLength: 0 },
                         );
-                        let connectionCredentials: IConnectionInfo;
+                        let connectionCredentials: IConnectionInfo | undefined;
                         // Open the document in the editor with the connection
                         if (this.treeNode) {
                             connectionCredentials = this.treeNode.connectionProfile;
@@ -451,7 +456,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                             connectionInfo: connectionCredentials,
                         });
                     } catch (error) {
-                        generateScriptActivity.endFailed(error, false);
+                        generateScriptActivity.endFailed(toError(error), false);
                         vscode.window.showErrorMessage(
                             LocConstants.SchemaDesigner.PublishScriptFailed(getErrorMessage(error)),
                         );
@@ -669,6 +674,42 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                     [payload.scenario]: true,
                 },
             };
+        });
+    }
+
+    private setupSchemaDesignerProgressListeners() {
+        this.schemaDesignerService.onProgress((progress) => {
+            if (progress.sessionId !== this._sessionId) {
+                return;
+            }
+
+            logger.info("Progress", progress);
+
+            try {
+                void this.sendNotification(
+                    SchemaDesigner.SchemaDesignerProgressNotification.type,
+                    progress,
+                );
+            } catch {
+                // Ignore notifications racing with webview disposal.
+            }
+        });
+
+        this.schemaDesignerService.onMessage((message) => {
+            if (message.sessionId !== this._sessionId) {
+                return;
+            }
+
+            logger.info("Message", message);
+
+            try {
+                void this.sendNotification(
+                    SchemaDesigner.SchemaDesignerMessageNotification.type,
+                    message,
+                );
+            } catch {
+                // Ignore notifications racing with webview disposal.
+            }
         });
     }
 

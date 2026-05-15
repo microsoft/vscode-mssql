@@ -11,7 +11,7 @@ import { SchemaDesignerEditorDrawer } from "./editor/schemaDesignerEditorDrawer"
 import { SchemaDesignerDefinitionsPanel } from "./definition/schemaDesignerDefinitionsPanel";
 import { SchemaDesignerFlow } from "./graph/SchemaDiagramFlow";
 import { SchemaDesignerFindTableWidget } from "./schemaDesignerFindTables";
-import { makeStyles, Spinner } from "@fluentui/react-components";
+import { makeStyles } from "@fluentui/react-components";
 import { locConstants } from "../../common/locConstants";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { ErrorDialog } from "../../common/errorDialog";
@@ -19,6 +19,7 @@ import { SchemaDesignerDefinitionPanelProvider } from "./definition/schemaDesign
 import { SchemaDesignerChangeProvider } from "./definition/changes/schemaDesignerChangeContext";
 import { CopilotChangesProvider } from "./definition/copilot/copilotChangesContext";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
+import { LoadingLog } from "../../common/loadingLog";
 
 const useStyles = makeStyles({
     resizeHandle: {
@@ -67,7 +68,15 @@ export const SchemaDesignerPage = ({ activeView, onNavigateToDab }: SchemaDesign
                         </SchemaDesignerChangeProvider>
                     </SchemaDesignerDefinitionPanelProvider>
                 </PanelGroup>
-                {!context.isInitialized && !context.initializationError && <LoadingOverlay />}
+                {!context.isInitialized && !context.initializationError && (
+                    <LoadingOverlay
+                        messages={context.initializationProgressMessages}
+                        fallbackMessage={
+                            context.initializationProgressMessage ??
+                            locConstants.schemaDesigner.loadingSchemaDesigner
+                        }
+                    />
+                )}
                 {context?.initializationError && <InitializationErrorDialog />}
             </MainLayout>
         </>
@@ -112,7 +121,13 @@ const GraphContainer = ({ children }: { children: React.ReactNode }) => (
     </div>
 );
 
-const LoadingOverlay = () => (
+const LoadingOverlay = ({
+    messages,
+    fallbackMessage,
+}: {
+    messages: string[];
+    fallbackMessage: string;
+}) => (
     <div
         style={{
             position: "absolute",
@@ -126,7 +141,7 @@ const LoadingOverlay = () => (
             alignItems: "center",
             justifyContent: "center",
         }}>
-        <Spinner label={locConstants.schemaDesigner.loadingSchemaDesigner} labelPosition="below" />
+        <LoadingLog messages={messages} fallbackMessage={fallbackMessage} minHeight="100%" />
     </div>
 );
 
