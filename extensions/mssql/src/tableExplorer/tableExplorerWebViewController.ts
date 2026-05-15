@@ -339,6 +339,91 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         }
     }
 
+    /**
+     * True if there are uncommitted edits (new rows, deleted rows, or modified cells).
+     */
+    private hasPendingChanges(state: TableExplorerWebViewState): boolean {
+        return (
+            state.newRows.length > 0 ||
+            state.deletedRows.length > 0 ||
+            (state.originalCellValues !== undefined && state.originalCellValues.size > 0)
+        );
+    }
+
+    /**
+     * Shows a modal warning that pending changes will be lost.
+     * Returns true if the user chose to continue, false if they cancelled.
+     */
+    private async promptDiscardPendingChanges(): Promise<boolean> {
+        const result = await vscode.window.showWarningMessage(
+            LocConstants.TableExplorer.pendingChangesWillBeLost,
+            { modal: true },
+            LocConstants.TableExplorer.Continue,
+        );
+        return result === LocConstants.TableExplorer.Continue;
+    }
+
+    /**
+     * Resets the in-state record of uncommitted edits. Does not touch the backend session.
+     */
+    private resetPendingChangesState(state: TableExplorerWebViewState): void {
+        state.newRows = [];
+        state.deletedRows = [];
+        state.failedCells = [];
+        state.originalCellValues?.clear();
+        state.updateScript = undefined;
+    }
+
+    /**
+     * Tears down the active edit session in preparation for re-initializing with a new query:
+     * marks state as loading, clears the stale result set so the webview re-initializes the grid,
+     * disposes the backend session (best-effort), and clears any pending-edit bookkeeping.
+     */
+    private async tearDownEditSession(state: TableExplorerWebViewState): Promise<void> {
+        state.loadStatus = ApiStatus.Loading;
+
+        state.resultSet = undefined;
+        this.updateState();
+
+        try {
+            await this._tableExplorerService.dispose(state.ownerUri);
+        } catch {}
+
+        this.resetPendingChangesState(state);
+        this.showRestorePromptAfterClose = false;
+        this.updateState();
+    }
+
+    /**
+     * Re-initializes the edit session without a custom query, restoring the table's default view.
+     * Used as a recovery step when a custom query fails. Sets state.loadStatus to Error
+     * if the recovery init itself fails. Returns true on success, false on failure.
+     */
+    private async tryRestoreOriginalSession(
+        state: TableExplorerWebViewState,
+        objectName: string,
+        schemaName: string | undefined,
+        objectType: string,
+    ): Promise<boolean> {
+        try {
+            await this._tableExplorerService.initialize(
+                state.ownerUri,
+                objectName,
+                schemaName ?? "",
+                objectType,
+                undefined,
+            );
+            this.logger.info("Restored original session after custom query failure");
+            return true;
+        } catch (restoreError) {
+            this.logger.error(
+                `Failed to restore original session: ${getErrorMessage(restoreError)}`,
+            );
+            state.loadStatus = ApiStatus.Error;
+            return false;
+        }
+    }
+
     private registerRpcHandlers(): void {
         this.registerReducer("commitChanges", async (state) => {
             this.logger.info(
@@ -1418,55 +1503,18 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 return state;
             }
 
-            // Check for pending changes and warn the user
-            const hasPendingChanges =
-                state.newRows.length > 0 ||
-                state.deletedRows.length > 0 ||
-                (state.originalCellValues && state.originalCellValues.size > 0);
-
-            if (hasPendingChanges) {
-                const result = await vscode.window.showWarningMessage(
-                    LocConstants.TableExplorer.pendingChangesWillBeLost,
-                    { modal: true },
-                    LocConstants.TableExplorer.Continue,
-                );
-
-                if (result !== LocConstants.TableExplorer.Continue) {
-                    this.logger.info("User cancelled custom query due to pending changes");
-                    endActivity.end(ActivityStatus.Succeeded, {
-                        elapsedTime: (Date.now() - startTime).toString(),
-                        operationId: this.operationId,
-                        cancelled: "true",
-                        ...filterTelemetry,
-                    });
-                    return state;
-                }
+            if (this.hasPendingChanges(state) && !(await this.promptDiscardPendingChanges())) {
+                this.logger.info("User cancelled custom query due to pending changes");
+                endActivity.end(ActivityStatus.Succeeded, {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                    cancelled: "true",
+                    ...filterTelemetry,
+                });
+                return state;
             }
 
-            state.loadStatus = ApiStatus.Loading;
-
-            // Clear the stale result set so the frontend transitions from undefined → new data,
-            // guaranteeing a full grid re-initialization (Scenario 1) rather than an incremental
-            // update (Scenario 3) when the new result set arrives via loadResultSet().
-            state.resultSet = undefined;
-            this.updateState();
-
-            // Dispose the current edit session — may already be disposed after a cancel
-            try {
-                await this._tableExplorerService.dispose(state.ownerUri);
-            } catch {
-                // Session may already be disposed (e.g., after cancel) — safe to ignore
-            }
-
-            // Clear pending changes immediately after dispose — the backend session
-            // is gone so these are stale regardless of whether re-initialize succeeds
-            state.newRows = [];
-            state.deletedRows = [];
-            state.failedCells = [];
-            state.originalCellValues?.clear();
-            state.updateScript = undefined;
-            this.showRestorePromptAfterClose = false;
-            this.updateState();
+            await this.tearDownEditSession(state);
 
             const objectName = state.tableName;
             const schemaName = state.schemaName;
@@ -1510,24 +1558,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     `Error running custom table query: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
                 );
 
-                // Attempt to restore original session
-                try {
-                    await this._tableExplorerService.initialize(
-                        state.ownerUri,
-                        objectName,
-                        schemaName ?? "",
-                        objectType,
-                        undefined,
-                    );
-
-                    this.logger.info("Restored original session after custom query failure");
-                } catch (restoreError) {
-                    this.logger.error(
-                        `Failed to restore original session: ${getErrorMessage(restoreError)}`,
-                    );
-                    state.loadStatus = ApiStatus.Error;
-                }
-
+                await this.tryRestoreOriginalSession(state, objectName, schemaName, objectType);
                 this.updateState();
 
                 endActivity.endFailed(
