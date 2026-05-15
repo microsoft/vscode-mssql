@@ -51,7 +51,7 @@
                 "command": "notebook.cell.execute",
                 "key": "f5",
                 "mac": "f5",
-                "when": "notebookCellListFocused && notebookMissingKernelExtension && !notebookCellExecuting && notebookCellType == 'code' || notebookCellListFocused && !notebookCellExecuting && notebookCellType == 'code' && notebookKernelCount > 0 || notebookCellListFocused && !notebookCellExecuting && notebookCellType == 'code' && notebookKernelSourceCount > 0"
+                "when": "notebookCellListFocused && notebookType == 'sql'"
             },
             {
                 "command": "mssql.runCurrentStatement",
