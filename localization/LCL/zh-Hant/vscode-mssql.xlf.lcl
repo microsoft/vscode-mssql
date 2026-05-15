@@ -1774,6 +1774,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++14efaa6a7c132b195742fbff720af5eae802f47b83f7e56896d431c86cb0a172" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to obtain token for resource '{1}'.  Error: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[無法取得資源 '{1}' 的權杖。 錯誤: {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++150306f3e1fcaf1151d7ad284dea56d8ed1f23566fc18dfe02709310c2bb0a41" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Edit an existing connection profile]]></Val>
@@ -11764,6 +11773,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++926762c583eb1c8caf59e9fc552830feaf492d4c9c95f6655c99fef505e244d4" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to acquire token for account '{0}' and tenant '{1}']]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[無法為帳戶 '{0}' 和租用戶 '{1}' 取得權杖]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++927853630df5ee306a9b44a868e0a34b91e055e070b630b5dc2451bd2163fab9" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Media set name is required]]></Val>
@@ -12111,6 +12129,15 @@
           <Val><![CDATA[Get Started]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[開始使用]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++9852a3d3be7fa108f0b4d5bce724ab20c0b86b122015c4d368f27476cc0e154a" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No resource of type '{0}' is configured for the current cloud '{1}'. Please update your Azure account settings.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[目前雲端 '{1}' 尚未設定類型為 '{0}' 的資源。請更新您的 Azure 帳戶設定。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13578,15 +13605,6 @@
           <Val><![CDATA[Table '{0}' not found]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[找不到資料表 '{0}']]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++ab3f47847de3f238eecec8fd478cfd34c2fb816a4d35949a205060f84eca6177" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[No SQL resource is configured for the current cloud '{0}'. Please update your Azure account settings.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[目前雲端 '{0}' 尚未設定任何 SQL 資源。請更新您的 Azure 帳戶設定。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22446,12 +22464,12 @@
       </Item>
       <Item ItemId=";package.mssql.runCurrentStatement" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Execute Current Statement (MSSQL)]]></Val>
+          <Val><![CDATA[Execute Selection or Current Statement (MSSQL)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[執行目前的陳述式 (MSSQL)]]></Val>
+            <Val><![CDATA[執行選取內容或目前陳述式 (MSSQL)]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Execute Current Statement]]></Val>
+            <Val><![CDATA[Execute Current Statement (MSSQL)]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
