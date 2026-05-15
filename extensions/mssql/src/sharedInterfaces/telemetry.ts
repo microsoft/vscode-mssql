@@ -227,6 +227,7 @@ export enum TelemetryActions {
     LoadMetadata = "LoadMetadata",
     SetDatabase = "SetDatabase",
     EditData = "EditData",
+    EditSessionReady = "EditSessionReady",
     RunTableQuery = "RunTableQuery",
     ShowTableQuery = "ShowTableQuery",
     ModifyTable = "ModifyTable",

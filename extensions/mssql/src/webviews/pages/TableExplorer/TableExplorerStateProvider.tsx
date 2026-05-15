@@ -97,8 +97,8 @@ export const TableExplorerStateProvider: React.FC<{
                 extensionRpc.action("viewTableDiagram", {});
             },
 
-            showSql: function (sqlText: string): void {
-                extensionRpc.action("showSql", { sqlText });
+            showSql: function (sqlScript: string): void {
+                extensionRpc.action("showSql", { sqlScript });
             },
         }),
         [extensionRpc],

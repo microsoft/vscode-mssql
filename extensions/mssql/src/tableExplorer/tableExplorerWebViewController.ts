@@ -24,7 +24,7 @@ import * as LocConstants from "../constants/locConstants";
 import { getErrorMessage, uuid } from "../utils/utils";
 import { bracketEscapeSqlIdentifier } from "../models/utils";
 import * as Constants from "../constants/constants";
-import { sendActionEvent, startActivity } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { ApiStatus } from "../sharedInterfaces/webview";
 
@@ -38,17 +38,17 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
     // Shared dispatcher state. vscode-languageclient 5.2.1's onNotification can't
     // return a Disposable, so registering one handler per controller would leak.
-    // Instead we register at the class level once per client and dispatch to live instances
-    // via _liveInstances. Each controller adds itself on initialize() and removes
-    // itself on dispose().
-    private static _registeredClients = new WeakSet<SqlToolsServiceClient>();
+    // SqlToolsServiceClient is a process-wide singleton, so we register the handler
+    // exactly once at the class level and dispatch to live instances via _liveInstances.
+    // Each controller adds itself on initialize() and removes itself on dispose().
+    private static _notificationsRegistered = false;
     private static _liveInstances = new Map<string, TableExplorerWebViewController>();
 
     private static ensureSharedNotificationHandlers(client: SqlToolsServiceClient): void {
-        if (TableExplorerWebViewController._registeredClients.has(client)) {
+        if (TableExplorerWebViewController._notificationsRegistered) {
             return;
         }
-        TableExplorerWebViewController._registeredClients.add(client);
+        TableExplorerWebViewController._notificationsRegistered = true;
 
         client.onNotification(
             EditSessionReadyNotification.type,
@@ -139,6 +139,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             this.state.loadStatus = ApiStatus.Loading;
             this.updateState();
 
+            sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.EditSessionReady, {
+                operationId: this.operationId,
+            });
+
             void this.loadResultSet();
         } else {
             // STS surfaces human-readable messages for syntax errors, multi-table /
@@ -157,6 +161,20 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             this.state.resultSet = undefined;
             this._preserveTableQuery = false;
             this.updateState();
+
+            // Don't include result.message — STS-supplied error text can echo back
+            // user content (table names, query fragments) which may be PII.
+            sendErrorEvent(
+                TelemetryViews.TableExplorer,
+                TelemetryActions.EditSessionReady,
+                new Error("Edit session failed to initialize"),
+                true /* includeErrorMessage */,
+                undefined /* errorCode */,
+                undefined /* errorType */,
+                {
+                    operationId: this.operationId,
+                },
+            );
 
             void vscode.window.showErrorMessage(toastMessage);
         }
@@ -1681,14 +1699,14 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("showSql", async (state, payload) => {
-            const sqlText = (payload?.sqlText ?? state.tableQuery ?? "").toString();
-            if (!sqlText.trim()) {
+            const sqlScript = (payload?.sqlScript ?? state.tableQuery ?? "").toString();
+            if (!sqlScript.trim()) {
                 void vscode.window.showWarningMessage(LocConstants.TableExplorer.noScriptToOpen);
                 return state;
             }
             try {
                 const doc = await vscode.workspace.openTextDocument({
-                    content: sqlText,
+                    content: sqlScript,
                     language: "sql",
                 });
                 await vscode.window.showTextDocument(doc, { preview: false });

@@ -221,7 +221,7 @@ export interface TableExplorerContextProps {
     runTableQuery: (queryString: string, rowCount?: number, filterOperators?: string[]) => void;
     modifyTable: () => void;
     viewTableDiagram: () => void;
-    showSql: (sqlText: string) => void;
+    showSql: (sqlScript: string) => void;
 }
 
 export interface TableExplorerReducers {
@@ -242,7 +242,7 @@ export interface TableExplorerReducers {
     runTableQuery: { queryString: string; rowCount?: number; filterOperators?: string[] };
     modifyTable: {};
     viewTableDiagram: {};
-    showSql: { sqlText: string };
+    showSql: { sqlScript: string };
 }
 
 export interface ExportData {
