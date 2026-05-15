@@ -142,8 +142,10 @@ export class FabricHelper {
                         id: db.id,
                         server: db.properties.serverFqdn,
                         displayName: db.displayName,
-                        database: db.properties.databaseName,
+                        databases: [db.properties.databaseName],
+                        collectionId: workspaceId,
                         collectionName: resolvedWorkspace.displayName,
+                        tenantId: tenantId ?? "",
                         type: db.type,
                     } as SqlDbInfo;
                 }),
@@ -188,8 +190,10 @@ export class FabricHelper {
                         id: endpoint.id,
                         server: undefined, // requires a second Fabric API call to populate; fill later to avoid rate-limiting (50/API/user/minute)
                         displayName: endpoint.displayName,
-                        database: undefined,
+                        databases: [] as string[],
+                        collectionId: workspaceId,
                         collectionName: resolvedWorkspace.displayName,
+                        tenantId: tenantId ?? "",
                         type: endpoint.type,
                     } as SqlDbInfo;
                 }),

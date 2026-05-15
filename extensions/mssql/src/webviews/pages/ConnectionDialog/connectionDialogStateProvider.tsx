@@ -72,11 +72,6 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
             retryLastSubmitAction: function (): void {
                 extensionRpc.action("retryLastSubmitAction");
             },
-            loadAzureServers: function (subscriptionId: string): void {
-                extensionRpc.action("loadAzureServers", {
-                    subscriptionId: subscriptionId,
-                });
-            },
             addFirewallRule: function (firewallRuleSpec: FirewallRuleSpec): void {
                 extensionRpc.action("addFirewallRule", {
                     firewallRuleSpec,
@@ -95,9 +90,6 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
             },
             closeMessage: function (): void {
                 extensionRpc.action("closeMessage");
-            },
-            filterAzureSubscriptions: function (): void {
-                extensionRpc.action("filterAzureSubscriptions");
             },
             refreshConnectionsList: function (): void {
                 extensionRpc.action("refreshConnectionsList");
@@ -129,9 +121,6 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                 extensionRpc.action("signIntoAzureForBrowse", {
                     browseTarget,
                 });
-            },
-            signIntoAzureTenantForBrowse: function (): void {
-                extensionRpc.action("signIntoAzureTenantForBrowse");
             },
             selectAzureAccount: (accountId: string) => {
                 extensionRpc.action("selectAzureAccount", {

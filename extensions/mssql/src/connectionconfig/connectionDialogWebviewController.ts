@@ -34,13 +34,7 @@ import {
     refreshTokenLabel,
 } from "../constants/locConstants";
 import * as LocAll from "../constants/locConstants";
-import {
-    getAccounts,
-    getTenants,
-    promptForAzureSubscriptionFilter,
-    VsCodeAzureHelper,
-    VsCodeAzureAuth,
-} from "./azureHelpers";
+import { getAccounts, getTenants, VsCodeAzureHelper, VsCodeAzureAuth } from "./azureHelpers";
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 
 import { ApiStatus } from "../sharedInterfaces/webview";
@@ -395,12 +389,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return this.submitConnectionAction(state, this._lastSubmittedAction);
         });
 
-        this.registerReducer("loadAzureServers", async (state, payload) => {
-            await this.loadAzureServersForSubscription(state, payload.subscriptionId);
-
-            return state;
-        });
-
         this.registerReducer("addFirewallRule", async (state, payload) => {
             (state.dialog as AddFirewallRuleDialogProps).props.addFirewallRuleStatus =
                 ApiStatus.Loading;
@@ -477,36 +465,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         this.registerReducer("closeMessage", async (state) => {
             state.formMessage = undefined;
-            return state;
-        });
-
-        // TODO: remove
-        this.registerReducer("filterAzureSubscriptions", async (state) => {
-            try {
-                if (await promptForAzureSubscriptionFilter(state, this.logger)) {
-                    // Force-refresh the subscription cache, then reload for the current tenant
-                    this._azureSubscriptions.clear();
-                    if (state.selectedTenantId) {
-                        await this.loadAzureSubscriptions(state, state.selectedTenantId);
-                        await this.autoLoadAzureServers(state);
-                    }
-                }
-            } catch (err) {
-                this.state.formMessage = { message: getErrorMessage(err) };
-
-                sendErrorEvent(
-                    TelemetryViews.ConnectionDialog,
-                    TelemetryActions.FilterAzureSubscriptions,
-                    err,
-                    false, // includeErrorMessage
-                    undefined, // errorCode
-                    undefined, // errorType
-                    {
-                        cloudType: getCloudId(),
-                    },
-                );
-            }
-
             return state;
         });
 
@@ -784,40 +742,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 return state;
             }
 
-            return state;
-        });
-
-        // TODO remove
-        this.registerReducer("signIntoAzureTenantForBrowse", async (state) => {
-            let auth: MssqlVSCodeAzureSubscriptionProvider;
-            try {
-                auth = (await VsCodeAzureHelper.signIn()).auth;
-            } catch (error) {
-                this.logger.error("Error signing into Azure: " + getErrorMessage(error));
-                state.formMessage = {
-                    message: LocAzure.errorSigningIntoAzure(getErrorMessage(error)),
-                };
-
-                return state;
-            }
-
-            try {
-                await VsCodeAzureAuth.signInToTenant(auth);
-            } catch (error) {
-                this.logger.error("Error signing into Azure tenant: " + getErrorMessage(error));
-                state.formMessage = {
-                    message: LocAzure.errorSigningIntoAzure(getErrorMessage(error)),
-                };
-
-                return state;
-            }
-
-            // Force-refresh the subscription cache after tenant sign-in
-            this._azureSubscriptions.clear();
-            if (state.selectedTenantId) {
-                await this.loadAzureSubscriptions(state, state.selectedTenantId);
-                await this.autoLoadAzureServers(state);
-            }
             return state;
         });
 
@@ -2882,7 +2806,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             workspace.databases = databases.map((db) => {
                 return {
                     id: db.id,
-                    database: db.database,
+                    databases: db.databases,
                     displayName: db.displayName,
                     server: db.server,
                     type: db.type,

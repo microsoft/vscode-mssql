@@ -244,27 +244,29 @@ suite("Azure Helpers", () => {
         );
 
         expect(servers).to.have.lengthOf(4); // 1 SQL DB servers + 1 Synapse + 2 MI servers (public and private endpoints)
-        expect(servers[0].server).to.equal(mockAzureResources.azureSqlDbServer.name);
+        expect(servers[0].displayName).to.equal(mockAzureResources.azureSqlDbServer.name);
         expect(servers[0].databases).to.deep.equal(["master", "testDatabase"]);
-        expect(servers[1].server).to.equal(mockAzureResources.azureSynapseAnalyticsServer.name);
+        expect(servers[1].displayName).to.equal(
+            mockAzureResources.azureSynapseAnalyticsServer.name,
+        );
         const managedInstances = servers.filter((s) =>
-            s.server.startsWith(mockAzureResources.azureManagedInstance.name),
+            s.displayName.startsWith(mockAzureResources.azureManagedInstance.name),
         );
 
         expect(managedInstances).to.have.lengthOf(2);
-        expect(managedInstances[0].server).to.equal(
+        expect(managedInstances[0].displayName).to.equal(
             `${mockAzureResources.azureManagedInstance.name} (Private)`,
         );
         expect(managedInstances[0].databases).to.deep.equal(["managedInstanceDb"]);
-        expect(managedInstances[0].uri).to.equal(
+        expect(managedInstances[0].server).to.equal(
             `${mockAzureResources.azureManagedInstance.name}.${mockAzureResources.azureManagedInstance.dnsZone}.database.windows.net`,
         );
 
-        expect(managedInstances[1].server).to.equal(
+        expect(managedInstances[1].displayName).to.equal(
             `${mockAzureResources.azureManagedInstance.name} (Public)`,
         );
         expect(managedInstances[1].databases).to.deep.equal(["managedInstanceDb"]);
-        expect(managedInstances[1].uri).to.equal(
+        expect(managedInstances[1].server).to.equal(
             `${mockAzureResources.azureManagedInstance.name}.public.${mockAzureResources.azureManagedInstance.dnsZone}.database.windows.net,${azureHelpers.MANAGED_INSTANCE_PUBLIC_PORT}`,
         );
     });

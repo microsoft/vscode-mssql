@@ -177,18 +177,14 @@ export function stubFetchServersFromAzure(sandbox: sinon.SinonSandbox) {
         .callsFake(async (sub: AzureSubscription) => {
             return [
                 {
-                    location: "TestRegion",
                     resourceGroup: `testResourceGroup-${sub.name}`,
                     server: `testServer-${sub.name}-1`,
                     databases: ["testDatabase1", "testDatabase2"],
-                    subscription: `${sub.name} (${sub.subscriptionId})`,
                 },
                 {
-                    location: "TestRegion",
                     resourceGroup: `testResourceGroup-${sub.name}`,
                     server: `testServer-${sub.name}-2`,
                     databases: ["testDatabase1", "testDatabase2"],
-                    subscription: `${sub.name} (${sub.subscriptionId})`,
                 },
             ] as AzureSqlServerInfo[];
         });
@@ -196,4 +192,24 @@ export function stubFetchServersFromAzure(sandbox: sinon.SinonSandbox) {
 
 export function stubPromptForAzureSubscriptionFilter(sandbox: Sinon.SinonSandbox, result: boolean) {
     return sandbox.stub(AzureHelpers, "promptForAzureSubscriptionFilter").resolves(result);
+}
+
+/**
+ * Stubs the helpers used by `ensureAzureBrowseContext` to load tenants for the signed-in
+ * account: `getAccountById`, `getTenantsForAccount`, and `getHomeTenantIdForAccount`.
+ */
+export function stubVscodeAzureTenantsForAccount(sandbox: sinon.SinonSandbox) {
+    sandbox
+        .stub(AzureHelpers.VsCodeAzureHelper, "getAccountById")
+        .resolves(mockAccounts.signedInAccount);
+    sandbox
+        .stub(AzureHelpers.VsCodeAzureHelper, "getTenantsForAccount")
+        .resolves(
+            mockTenants.filter(
+                (t) => t.account.id === mockAccounts.signedInAccount.id,
+            ) as AzureTenant[],
+        );
+    sandbox
+        .stub(AzureHelpers.VsCodeAzureHelper, "getHomeTenantIdForAccount")
+        .returns(mockTenants[0].tenantId);
 }

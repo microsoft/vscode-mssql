@@ -232,13 +232,11 @@ export interface ConnectionDialogContextProps extends FormContextProps<IConnecti
     testConnection: () => void;
     saveWithoutConnecting: () => void;
     retryLastSubmitAction: () => void;
-    loadAzureServers: (subscriptionId: string) => void;
     closeDialog: () => void;
     closeMessage: () => void;
     addFirewallRule: (firewallRuleSpec: FirewallRuleSpec) => void;
     openCreateConnectionGroupDialog: () => void;
     createConnectionGroup: (connectionGroupSpec: ConnectionGroupSpec) => void;
-    filterAzureSubscriptions: () => void;
     refreshConnectionsList: () => void;
     deleteSavedConnection(connection: IConnectionDialogProfile): void;
     removeRecentConnection(connection: IConnectionDialogProfile): void;
@@ -248,7 +246,6 @@ export interface ConnectionDialogContextProps extends FormContextProps<IConnecti
     signIntoAzureForBrowse: (
         browseTarget: ConnectionInputMode.AzureBrowse | ConnectionInputMode.FabricBrowse,
     ) => void;
-    signIntoAzureTenantForBrowse: () => void;
     selectAzureAccount: (accountId: string) => void;
     selectAzureTenant: (tenantId: string) => void;
     setSelectedTenantId: (tenantId: string) => void;
@@ -276,9 +273,6 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     testConnection: {};
     saveWithoutConnecting: {};
     retryLastSubmitAction: {};
-    loadAzureServers: {
-        subscriptionId: string;
-    };
     addFirewallRule: {
         firewallRuleSpec: FirewallRuleSpec;
     };
@@ -288,7 +282,6 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     openCreateConnectionGroupDialog: {};
     closeDialog: {};
     closeMessage: {};
-    filterAzureSubscriptions: {};
     refreshConnectionsList: {};
     deleteSavedConnection: {
         connection: IConnectionDialogProfile;
@@ -302,7 +295,6 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     signIntoAzureForBrowse: {
         browseTarget: ConnectionInputMode.AzureBrowse | ConnectionInputMode.FabricBrowse;
     };
-    signIntoAzureTenantForBrowse: {};
     selectAzureAccount: { accountId: string };
     selectAzureTenant: { tenantId: string };
     setSelectedTenantId: { tenantId: string };
