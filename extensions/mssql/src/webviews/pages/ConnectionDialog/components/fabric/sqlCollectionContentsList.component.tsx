@@ -228,9 +228,14 @@ export const SqlCollectionContentsList = ({
                                     }}
                                 />
                             )}
-                            <Text truncate className={styles.hideTextOverflowCell}>
-                                {item.displayName}
-                            </Text>
+                            <Tooltip
+                                content={item.displayName}
+                                relationship="label"
+                                positioning="after">
+                                <Text truncate className={styles.hideTextOverflowCell}>
+                                    {item.displayName}
+                                </Text>
+                            </Tooltip>
                         </div>
                     </DataGridCell>
                 ),
@@ -288,9 +293,14 @@ export const SqlCollectionContentsList = ({
                         ),
                     renderCell: (item) => (
                         <DataGridCell>
-                            <Text truncate className={styles.hideTextOverflowCell}>
-                                {item.typeDisplayName}
-                            </Text>
+                            <Tooltip
+                                content={item.typeDisplayName}
+                                relationship="label"
+                                positioning="after">
+                                <Text truncate className={styles.hideTextOverflowCell}>
+                                    {item.typeDisplayName}
+                                </Text>
+                            </Tooltip>
                         </DataGridCell>
                     ),
                 }),
@@ -305,13 +315,27 @@ export const SqlCollectionContentsList = ({
                         return (a.resourceGroup ?? "").localeCompare(b.resourceGroup ?? "");
                     },
                     renderHeaderCell: () => `${Loc.connectionDialog.resourceGroupColumnHeader}`,
-                    renderCell: (item) => (
-                        <DataGridCell>
-                            <Text truncate className={styles.hideTextOverflowCell}>
-                                {item.isDatabaseRow ? "" : (item.resourceGroup ?? "")}
-                            </Text>
-                        </DataGridCell>
-                    ),
+                    renderCell: (item) => {
+                        const value = item.isDatabaseRow ? "" : (item.resourceGroup ?? "");
+                        return (
+                            <DataGridCell>
+                                {value ? (
+                                    <Tooltip
+                                        content={value}
+                                        relationship="label"
+                                        positioning="after">
+                                        <Text truncate className={styles.hideTextOverflowCell}>
+                                            {value}
+                                        </Text>
+                                    </Tooltip>
+                                ) : (
+                                    <Text truncate className={styles.hideTextOverflowCell}>
+                                        {value}
+                                    </Text>
+                                )}
+                            </DataGridCell>
+                        );
+                    },
                 }),
             );
         }
@@ -634,11 +658,11 @@ interface SqlDbGridItem extends SqlDbInfo {
 const columnSizingOptions: TableColumnSizingOptions = {
     name: {
         minWidth: 80,
-        defaultWidth: 120,
+        idealWidth: 200,
     },
     type: {
         minWidth: 80,
-        defaultWidth: 110,
+        idealWidth: 200,
     },
 };
 
@@ -649,7 +673,7 @@ const columnSizingOptionsWithResourceGroup: TableColumnSizingOptions = {
     },
     type: {
         minWidth: 80,
-        defaultWidth: 110,
+        idealWidth: 200,
     },
     resourceGroup: {
         minWidth: 80,

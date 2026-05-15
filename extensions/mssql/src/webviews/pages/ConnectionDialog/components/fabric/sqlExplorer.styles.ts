@@ -170,6 +170,7 @@ export const useSqlExplorerStyles = makeStyles({
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
+        gap: "12px",
         position: "absolute",
         top: 0,
         left: 0,
