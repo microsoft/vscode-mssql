@@ -39,7 +39,10 @@ import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/tel
 
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { AzureController } from "../azure/azureController";
-import { AzureSubscription } from "@microsoft/vscode-azext-azureauth";
+import {
+    AzureSubscription,
+    VSCodeAzureSubscriptionProvider,
+} from "@microsoft/vscode-azext-azureauth";
 import { ConnectionDetails, IConnectionInfo, IToken } from "vscode-mssql";
 import MainController from "../controllers/mainController";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
@@ -76,7 +79,6 @@ import {
     getDefaultConnectionGroupDialogProps,
 } from "../controllers/connectionGroupWebviewController";
 import { populateAzureAccountInfo } from "../controllers/addFirewallRuleWebviewController";
-import { MssqlVSCodeAzureSubscriptionProvider } from "../azure/MssqlVSCodeAzureSubscriptionProvider";
 import { FabricHelper } from "../fabric/fabricHelper";
 import { SqlDbInfo, SqlCollectionInfo } from "../sharedInterfaces/fabric";
 import {
@@ -2073,7 +2075,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         (this._cachedEntraAccounts ?? []).map((a) => a.value),
                     );
 
-                    const auth = MssqlVSCodeAzureSubscriptionProvider.getInstance();
+                    const auth = VsCodeAzureHelper.getProvider();
                     const signedIn = await auth.signIn();
 
                     if (!signedIn) {
@@ -2368,7 +2370,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
      */
     private async refreshUnauthenticatedTenants(
         state: ConnectionDialogWebviewState,
-        auth: MssqlVSCodeAzureSubscriptionProvider,
+        auth: VSCodeAzureSubscriptionProvider,
     ): Promise<void> {
         try {
             // Capture the tenants that aren't signed in
@@ -2514,7 +2516,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             const tenants = await VsCodeAzureHelper.getTenantsForAccount(azureAccount);
 
             // Check sign-in status for each tenant concurrently
-            const auth = MssqlVSCodeAzureSubscriptionProvider.getInstance();
+            const auth = VsCodeAzureHelper.getProvider();
             const signedInStatuses = await Promise.all(
                 tenants.map((t) => auth.isSignedIn(t.tenantId, azureAccount)),
             );
@@ -2552,7 +2554,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         tenantId: string,
     ): Promise<boolean> {
         const azureAccount = await VsCodeAzureHelper.getAccountById(state.selectedAccountId);
-        const auth = MssqlVSCodeAzureSubscriptionProvider.getInstance();
+        const auth = VsCodeAzureHelper.getProvider();
 
         const signedIn = await auth.signIn(tenantId, azureAccount);
 
@@ -2581,8 +2583,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     private async ensureAzureSubscriptionsCached(
         state: ConnectionDialogWebviewState,
         options: { forceRefresh?: boolean } = {},
-    ): Promise<MssqlVSCodeAzureSubscriptionProvider | undefined> {
-        let auth: MssqlVSCodeAzureSubscriptionProvider;
+    ): Promise<VSCodeAzureSubscriptionProvider | undefined> {
+        let auth: VSCodeAzureSubscriptionProvider;
         try {
             auth = (await VsCodeAzureHelper.signIn()).auth;
         } catch (error) {

@@ -45,7 +45,7 @@ import {
 import { AzureAccountService } from "../../src/services/azureAccountService";
 import { ConnectionDetails, IAccount, IToken } from "vscode-mssql";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
-import { MssqlVSCodeAzureSubscriptionProvider } from "../../src/azure/MssqlVSCodeAzureSubscriptionProvider";
+import { VSCodeAzureSubscriptionProvider } from "@microsoft/vscode-azext-azureauth";
 import {
     createStubLogger,
     initializeIconUtils,
@@ -1450,7 +1450,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
             const fakeAuth = {
                 getTenants: sandbox.stub().resolves([mockTenants[0], mockTenants[1]]),
-            } as unknown as MssqlVSCodeAzureSubscriptionProvider;
+            } as unknown as VSCodeAzureSubscriptionProvider;
 
             sandbox
                 .stub(AzureHelpers.VsCodeAzureAuth, "getUnauthenticatedTenants")
@@ -1878,9 +1878,9 @@ suite("ConnectionDialogWebviewController Tests", () => {
             return true;
         });
 
-        sandbox.stub(MssqlVSCodeAzureSubscriptionProvider, "getInstance").returns({
+        sandbox.stub(AzureHelpers.VsCodeAzureHelper, "getProvider").returns({
             signIn: signInStub,
-        } as unknown as MssqlVSCodeAzureSubscriptionProvider);
+        } as unknown as VSCodeAzureSubscriptionProvider);
 
         controller.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
         controller.state.connectionProfile.accountId = mockAccounts.signedInAccount.id;

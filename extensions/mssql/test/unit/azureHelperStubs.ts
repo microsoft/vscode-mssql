@@ -5,11 +5,14 @@
 
 import * as vscode from "vscode";
 import Sinon from "sinon";
-import { AzureSubscription, AzureTenant } from "@microsoft/vscode-azext-azureauth";
+import {
+    AzureSubscription,
+    AzureTenant,
+    VSCodeAzureSubscriptionProvider,
+} from "@microsoft/vscode-azext-azureauth";
 
 import * as AzureHelpers from "../../src/connectionconfig/azureHelpers";
 import { AzureSqlServerInfo } from "../../src/sharedInterfaces/connectionDialog";
-import { MssqlVSCodeAzureSubscriptionProvider } from "../../src/azure/MssqlVSCodeAzureSubscriptionProvider";
 import { GenericResourceExpanded } from "@azure/arm-resources";
 import { Database, ManagedDatabase, ManagedInstance, Server } from "@azure/arm-sql";
 
@@ -160,7 +163,7 @@ export function stubVscodeAzureSignIn(sandbox: sinon.SinonSandbox) {
                     mockTenants.filter((t) => t.account.id === mockAccounts.signedInAccount.id),
                 ),
             getUnauthenticatedTenants: () => Promise.resolve([]),
-        } as unknown as MssqlVSCodeAzureSubscriptionProvider,
+        } as unknown as VSCodeAzureSubscriptionProvider,
         newAccountId: mockAccounts.signedInAccount.id,
     });
 }
@@ -215,7 +218,7 @@ export function stubVscodeAzureTenantsForAccount(sandbox: sinon.SinonSandbox) {
         .returns(mockTenants[0].tenantId);
 
     // isSignedIn is called once per tenant to populate the isSignedIn flag
-    const providerStub = sandbox.createStubInstance(MssqlVSCodeAzureSubscriptionProvider);
+    const providerStub = sandbox.createStubInstance(VSCodeAzureSubscriptionProvider);
     providerStub.isSignedIn.resolves(true);
-    sandbox.stub(MssqlVSCodeAzureSubscriptionProvider, "getInstance").returns(providerStub);
+    sandbox.stub(AzureHelpers.VsCodeAzureHelper, "getProvider").returns(providerStub);
 }

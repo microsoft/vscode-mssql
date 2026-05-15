@@ -22,7 +22,7 @@ import {
     mockSubscriptions,
     mockTenants,
 } from "./azureHelperStubs";
-import { MssqlVSCodeAzureSubscriptionProvider } from "../../src/azure/MssqlVSCodeAzureSubscriptionProvider";
+import { VSCodeAzureSubscriptionProvider } from "@microsoft/vscode-azext-azureauth";
 import * as utils from "../../src/utils/utils";
 import { BlobServiceClient } from "@azure/storage-blob";
 import { createStubLogger } from "./utils";
@@ -50,14 +50,14 @@ suite("Azure Helpers", () => {
                 .stub(vscode.authentication, "getAccounts")
                 .resolves([mockAccounts.signedInAccount, mockAccounts.notSignedInAccount]);
 
-            sandbox.stub(MssqlVSCodeAzureSubscriptionProvider, "getInstance").returns({
+            sandbox.stub(azureHelpers.VsCodeAzureHelper, "getProvider").returns({
                 getTenants: (account) => {
                     if (account.id === mockAccounts.signedInAccount.id) {
                         return Promise.resolve(mockTenants);
                     }
                     return Promise.reject("Not signed in");
                 },
-            } as MssqlVSCodeAzureSubscriptionProvider);
+            } as unknown as VSCodeAzureSubscriptionProvider);
 
             const accounts = await azureHelpers.VsCodeAzureHelper.getAccounts(
                 true /* onlyAllowedForExtension */,
@@ -77,8 +77,8 @@ suite("Azure Helpers", () => {
                 isSignedIn: isSignedInStub,
             };
             sandbox
-                .stub(MssqlVSCodeAzureSubscriptionProvider, "getInstance")
-                .returns(mockAuthProvider as unknown as MssqlVSCodeAzureSubscriptionProvider);
+                .stub(azureHelpers.VsCodeAzureHelper, "getProvider")
+                .returns(mockAuthProvider as unknown as VSCodeAzureSubscriptionProvider);
 
             // Stub getAccounts so signIn can diff before/after to identify the new account
             const getAccountsStub = sandbox.stub(azureHelpers.VsCodeAzureHelper, "getAccounts");
@@ -141,7 +141,7 @@ suite("Azure Helpers", () => {
         test("getTenantsForAccount", async () => {
             const account = mockAccounts.signedInAccount;
 
-            sandbox.stub(MssqlVSCodeAzureSubscriptionProvider, "getInstance").returns({
+            sandbox.stub(azureHelpers.VsCodeAzureHelper, "getProvider").returns({
                 getTenants: (account) => {
                     // only the first account is signed in for this mock
                     if (account.id === mockAccounts.signedInAccount.id) {
@@ -151,7 +151,7 @@ suite("Azure Helpers", () => {
                     }
                     return Promise.reject("Not signed in");
                 },
-            } as MssqlVSCodeAzureSubscriptionProvider);
+            } as unknown as VSCodeAzureSubscriptionProvider);
 
             const tenants = await azureHelpers.VsCodeAzureHelper.getTenantsForAccount(account);
             expect(tenants).to.deep.equal([mockTenants[1], mockTenants[0]]); // Tenants are returned alphabetically
@@ -160,9 +160,9 @@ suite("Azure Helpers", () => {
         test("getSubscriptionsForTenant", async () => {
             const tenant = mockTenants[0];
 
-            sandbox.stub(MssqlVSCodeAzureSubscriptionProvider, "getInstance").returns({
+            sandbox.stub(azureHelpers.VsCodeAzureHelper, "getProvider").returns({
                 getSubscriptions: () => Promise.resolve(mockSubscriptions),
-            } as MssqlVSCodeAzureSubscriptionProvider);
+            } as unknown as VSCodeAzureSubscriptionProvider);
 
             const subscriptions =
                 await azureHelpers.VsCodeAzureHelper.getSubscriptionsForTenant(tenant);
