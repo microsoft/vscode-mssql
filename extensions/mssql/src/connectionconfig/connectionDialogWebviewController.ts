@@ -348,8 +348,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         state.fabricWorkspacesLoadStatus.status === ApiStatus.Loaded &&
                         state.fabricWorkspaces.length > 0;
                     if (!alreadyLoaded) {
-                        state.fabricWorkspacesLoadStatus = { status: ApiStatus.NotStarted };
+                        state.fabricWorkspacesLoadStatus = { status: ApiStatus.Loading };
                         state.fabricWorkspaces = [];
+                        this.updateState(state);
                         await this.loadFabricWorkspaces(
                             state,
                             state.selectedAccountId,
@@ -806,18 +807,22 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 return state;
             }
 
-            // Switching accounts - reset tenant data so the helper reloads it.
-            // Also reset the subscription cache since subscriptions are account-specific.
+            // Clear all stale data immediately so the UI never shows another account's data
+            // before the new account's data is ready.
             state.selectedAccountId = payload.accountId;
             state.azureTenants = [];
             state.selectedTenantId = undefined;
             state.loadingAzureTenantsStatus = ApiStatus.NotStarted;
+            state.azureSubscriptions = [];
+            state.azureServers = [];
+            state.loadingAzureSubscriptionsStatus = ApiStatus.NotStarted;
+            state.fabricWorkspaces = [];
+            state.fabricWorkspacesLoadStatus = { status: ApiStatus.NotStarted };
             this._azureSubscriptions.clear();
             this.updateState(state);
 
             await this.ensureAzureBrowseContext(state);
 
-            // After tenant selection settles, kick off the appropriate load for the new tenant
             if (state.selectedTenantId) {
                 if (state.selectedInputMode === ConnectionInputMode.AzureBrowse) {
                     await this.loadAzureSubscriptions(state, state.selectedTenantId);
