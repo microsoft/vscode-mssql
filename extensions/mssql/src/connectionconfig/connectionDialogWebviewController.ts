@@ -691,6 +691,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             }
 
             const existingAccountIds = state.azureAccounts.map((a) => a.id);
+            const previousAccountId = state.selectedAccountId;
 
             try {
                 const signInResult = await VsCodeAzureHelper.signIn(true /* forceSignInPrompt */);
@@ -711,6 +712,14 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 };
 
                 return state;
+            }
+
+            // If the selected account changed, clear tenant state so ensureAzureBrowseContext
+            // reloads tenants for the new account instead of reusing the old account's tenants.
+            if (state.selectedAccountId !== previousAccountId) {
+                state.azureTenants = [];
+                state.selectedTenantId = undefined;
+                state.loadingAzureTenantsStatus = ApiStatus.NotStarted;
             }
 
             state.loadingAzureAccountsStatus = ApiStatus.Loaded;
@@ -762,6 +771,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             state.loadingAzureSubscriptionsStatus = ApiStatus.NotStarted;
             state.fabricWorkspaces = [];
             state.fabricWorkspacesLoadStatus = { status: ApiStatus.NotStarted };
+            state.notSignedInTenant = undefined;
             this._azureSubscriptions.clear();
             this.updateState(state);
 
@@ -793,8 +803,31 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             if (state.selectedTenantId === payload.tenantId) {
                 return state;
             }
+
             state.selectedTenantId = payload.tenantId;
-            this.updateState(state);
+
+            // If the tenant is not signed in, show error state and immediately prompt sign-in
+            const tenant = state.azureTenants.find((t) => t.id === payload.tenantId);
+            if (tenant && !tenant.isSignedIn) {
+                state.notSignedInTenant = { id: tenant.id, name: tenant.name };
+                this.updateState(state);
+
+                const signed = await this.signInToTenant(state, payload.tenantId);
+                if (!signed) {
+                    return state;
+                }
+
+                state.notSignedInTenant = undefined;
+                this.updateState(state);
+            } else {
+                state.notSignedInTenant = undefined;
+                state.azureSubscriptions = [];
+                state.azureServers = [];
+                state.loadingAzureSubscriptionsStatus = ApiStatus.NotStarted;
+                state.fabricWorkspaces = [];
+                state.fabricWorkspacesLoadStatus = { status: ApiStatus.NotStarted };
+                this.updateState(state);
+            }
 
             if (state.selectedInputMode === ConnectionInputMode.AzureBrowse) {
                 await this.loadAzureSubscriptions(state, payload.tenantId);
@@ -851,7 +884,27 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("selectAzureTenant", async (state, payload) => {
-            state.selectedTenantId = payload.tenantId;
+            const tenant = state.azureTenants.find((t) => t.id === payload.tenantId);
+
+            // If the tenant is not signed in, show error state and immediately prompt sign-in
+            if (tenant && !tenant.isSignedIn) {
+                state.selectedTenantId = payload.tenantId;
+                state.notSignedInTenant = { id: tenant.id, name: tenant.name };
+                state.fabricWorkspaces = [];
+                state.fabricWorkspacesLoadStatus = { status: ApiStatus.NotStarted };
+                this.updateState(state);
+
+                const signed = await this.signInToTenant(state, payload.tenantId);
+                if (!signed) {
+                    return state;
+                }
+
+                state.notSignedInTenant = undefined;
+            } else {
+                state.notSignedInTenant = undefined;
+                state.selectedTenantId = payload.tenantId;
+            }
+
             state.fabricWorkspacesLoadStatus = { status: ApiStatus.Loading };
             state.fabricWorkspaces = [];
             this.updateState(state);
@@ -870,6 +923,33 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 }
 
                 await Promise.all(promiseArray);
+            }
+
+            return state;
+        });
+
+        this.registerReducer("signIntoTenantForBrowse", async (state) => {
+            if (!state.notSignedInTenant || !state.selectedAccountId) {
+                return state;
+            }
+
+            const { id: tenantId } = state.notSignedInTenant;
+            const signed = await this.signInToTenant(state, tenantId);
+
+            if (!signed) {
+                return state;
+            }
+
+            state.notSignedInTenant = undefined;
+
+            if (state.selectedInputMode === ConnectionInputMode.AzureBrowse) {
+                await this.loadAzureSubscriptions(state, tenantId);
+                await this.autoLoadAzureServers(state);
+            } else if (state.selectedInputMode === ConnectionInputMode.FabricBrowse) {
+                state.fabricWorkspacesLoadStatus = { status: ApiStatus.Loading };
+                state.fabricWorkspaces = [];
+                this.updateState(state);
+                await this.loadFabricWorkspaces(state, state.selectedAccountId, tenantId);
             }
 
             return state;
@@ -2432,21 +2512,29 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             const azureAccount = await VsCodeAzureHelper.getAccountById(state.selectedAccountId);
             const tenants = await VsCodeAzureHelper.getTenantsForAccount(azureAccount);
-            state.azureTenants = tenants.map((t) => ({
+
+            // Check sign-in status for each tenant concurrently
+            const auth = MssqlVSCodeAzureSubscriptionProvider.getInstance();
+            const signedInStatuses = await Promise.all(
+                tenants.map((t) => auth.isSignedIn(t.tenantId, azureAccount)),
+            );
+
+            state.azureTenants = tenants.map((t, i) => ({
                 id: t.tenantId!,
                 name: t.displayName!,
+                isSignedIn: signedInStatuses[i],
             }));
 
             // Response from VS Code account system shows all tenants as "Home", so we need to extract the home tenant ID manually
             const homeTenantId = VsCodeAzureHelper.getHomeTenantIdForAccount(azureAccount);
 
-            // For personal Microsoft accounts, the extracted tenant ID may not be one that the user has access to.
-            // Only use the extracted tenant ID if it's in the tenant list; otherwise, default to the first.
-            state.selectedTenantId = tenants.find((t) => t.tenantId === homeTenantId)
-                ? homeTenantId
-                : state.azureTenants.length > 0
-                  ? state.azureTenants[0].id
-                  : undefined;
+            // Auto-select the home tenant if signed in; otherwise fall back to first signed-in tenant, then first overall.
+            const homeTenant = state.azureTenants.find((t) => t.id === homeTenantId);
+            const firstSignedIn = state.azureTenants.find((t) => t.isSignedIn);
+            state.selectedTenantId =
+                (homeTenant?.isSignedIn ? homeTenantId : undefined) ??
+                firstSignedIn?.id ??
+                (state.azureTenants.length > 0 ? state.azureTenants[0].id : undefined);
 
             state.loadingAzureTenantsStatus = ApiStatus.Loaded;
             this.updateState(state);
@@ -2454,7 +2542,36 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     }
 
     /**
-     * Ensures the full cross-tenant Azure subscriptions cache (`this._azureSubscriptions`)
+     * Signs in to a specific tenant using the currently selected account,
+     * then refreshes the `isSignedIn` flag on all tenants in state.
+     *
+     * @returns `true` if sign-in succeeded, `false` if the user cancelled or it failed.
+     */
+    private async signInToTenant(
+        state: ConnectionDialogWebviewState,
+        tenantId: string,
+    ): Promise<boolean> {
+        const azureAccount = await VsCodeAzureHelper.getAccountById(state.selectedAccountId);
+        const auth = MssqlVSCodeAzureSubscriptionProvider.getInstance();
+
+        const signedIn = await auth.signIn(tenantId, azureAccount);
+
+        // Refresh isSignedIn status for all tenants so the UI reflects the change
+        if (signedIn) {
+            const statuses = await Promise.all(
+                state.azureTenants.map((t) => auth.isSignedIn(t.id, azureAccount)),
+            );
+            state.azureTenants = state.azureTenants.map((t, i) => ({
+                ...t,
+                isSignedIn: statuses[i],
+            }));
+            this.updateState(state);
+        }
+
+        return signedIn;
+    }
+
+    /**
      * is populated and the user has signed in. Idempotent — does not re-fetch if already
      * cached unless `forceRefresh` is set.
      *

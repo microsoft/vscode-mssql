@@ -343,6 +343,10 @@
     "Loading databases in selected workspace...": "Loading databases in selected workspace...",
     "Error loading workspaces": "Error loading workspaces",
     "Error loading databases": "Error loading databases",
+    "Not signed into tenant {0}/{0} is the tenant display name": {
+        "message": "Not signed into tenant {0}",
+        "comment": ["{0} is the tenant display name"]
+    },
     "Connection Authentication": "Connection Authentication",
     "Advanced Options": "Advanced Options",
     "Import from Azure Data Studio": "Import from Azure Data Studio",
@@ -382,6 +386,7 @@
     "Tenant": "Tenant",
     "Loading tenants...": "Loading tenants...",
     "Select a tenant": "Select a tenant",
+    "Not currently signed in. Select to sign in to tenant.": "Not currently signed in. Select to sign in to tenant.",
     "Loading execution plan...": "Loading execution plan...",
     "Query {0}:  Query cost (relative to the script):  {1}%/{0} is the query number{1} is the query cost": {
         "message": "Query {0}:  Query cost (relative to the script):  {1}%",

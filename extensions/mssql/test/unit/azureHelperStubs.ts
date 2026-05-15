@@ -196,7 +196,8 @@ export function stubPromptForAzureSubscriptionFilter(sandbox: Sinon.SinonSandbox
 
 /**
  * Stubs the helpers used by `ensureAzureBrowseContext` to load tenants for the signed-in
- * account: `getAccountById`, `getTenantsForAccount`, and `getHomeTenantIdForAccount`.
+ * account: `getAccountById`, `getTenantsForAccount`, `getHomeTenantIdForAccount`, and
+ * `MssqlVSCodeAzureSubscriptionProvider.getInstance().isSignedIn` (all tenants signed in).
  */
 export function stubVscodeAzureTenantsForAccount(sandbox: sinon.SinonSandbox) {
     sandbox
@@ -212,4 +213,9 @@ export function stubVscodeAzureTenantsForAccount(sandbox: sinon.SinonSandbox) {
     sandbox
         .stub(AzureHelpers.VsCodeAzureHelper, "getHomeTenantIdForAccount")
         .returns(mockTenants[0].tenantId);
+
+    // isSignedIn is called once per tenant to populate the isSignedIn flag
+    const providerStub = sandbox.createStubInstance(MssqlVSCodeAzureSubscriptionProvider);
+    providerStub.isSignedIn.resolves(true);
+    sandbox.stub(MssqlVSCodeAzureSubscriptionProvider, "getInstance").returns(providerStub);
 }

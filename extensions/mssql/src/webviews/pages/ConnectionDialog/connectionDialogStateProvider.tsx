@@ -145,6 +145,9 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                     collectionId,
                 });
             },
+            signIntoTenantForBrowse: () => {
+                extensionRpc.action("signIntoTenantForBrowse", {});
+            },
             openInfoLink: (option: FormItemOptions) => {
                 void extensionRpc.sendNotification(OpenOptionInfoLinkNotification.type, {
                     option,

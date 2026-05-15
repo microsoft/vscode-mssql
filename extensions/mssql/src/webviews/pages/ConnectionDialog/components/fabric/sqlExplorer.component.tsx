@@ -36,6 +36,7 @@ export const SqlExplorer = ({
     expandableServers,
     favoritedIds,
     onToggleFavorite,
+    onSignIntoTenant,
     title,
 }: SqlExplorerProps) => {
     const fabricWorkspaces = useConnectionDialogSelector((s) => s.fabricWorkspaces);
@@ -45,6 +46,7 @@ export const SqlExplorer = ({
     const loadingAzureTenantsStatus = useConnectionDialogSelector(
         (s) => s.loadingAzureTenantsStatus,
     );
+    const notSignedInTenant = useConnectionDialogSelector((s) => s.notSignedInTenant);
 
     // Use prop override if provided, otherwise fall back to store
     const workspaces = workspacesProp ?? fabricWorkspaces;
@@ -52,9 +54,16 @@ export const SqlExplorer = ({
     // When tenants are still loading, show a loading state in both panels
     // so the user doesn't see stale data from the previous account selection.
     const tenantsLoading = loadingAzureTenantsStatus === ApiStatus.Loading;
+
+    const notSignedInErrorMessage = notSignedInTenant
+        ? Loc.connectionDialog.notSignedIntoTenant(notSignedInTenant.name)
+        : undefined;
+
     const effectiveWorkspacesLoadStatus: Status = tenantsLoading
         ? { status: ApiStatus.Loading }
-        : (workspacesLoadStatus ?? fabricWorkspacesLoadStatus);
+        : notSignedInTenant
+          ? { status: ApiStatus.Error }
+          : (workspacesLoadStatus ?? fabricWorkspacesLoadStatus);
     const effectiveLoadingMessage = tenantsLoading
         ? Loc.azure.loadingTenants
         : loadingWorkspacesMessage;
@@ -135,34 +144,41 @@ export const SqlExplorer = ({
             />
             <div className={sqlStyles.workspaceExplorer}>
                 <SqlCollectionList
-                    workspaces={tenantsLoading ? [] : workspaces}
-                    selectedWorkspace={tenantsLoading ? undefined : selectedCollection}
+                    workspaces={tenantsLoading || notSignedInTenant ? [] : workspaces}
+                    selectedWorkspace={
+                        tenantsLoading || notSignedInTenant ? undefined : selectedCollection
+                    }
                     onSelectWorkspace={handleCollectionSelected}
                     loadStatus={effectiveWorkspacesLoadStatus}
                     listLabel={workspaceListLabel}
                     searchPlaceholder={workspaceSearchPlaceholder}
                     noItemsFoundMessage={noWorkspacesFoundMessage}
                     loadingMessage={effectiveLoadingMessage}
-                    errorMessage={errorLoadingWorkspacesMessage}
+                    errorMessage={notSignedInErrorMessage ?? errorLoadingWorkspacesMessage}
                     favoritedIds={favoritedIds}
                     onToggleFavorite={onToggleFavorite}
                     width={sidebarWidth}
                 />
                 <div className={sqlStyles.dragHandle} onMouseDown={handleDragStart} />
                 <SqlCollectionContentsList
-                    selectedWorkspace={tenantsLoading ? undefined : selectedCollection}
+                    selectedWorkspace={
+                        tenantsLoading || notSignedInTenant ? undefined : selectedCollection
+                    }
                     searchFilter={searchFilter}
                     onSelectDatabase={handleDatabaseSelected}
                     loadStatus={effectiveWorkspacesLoadStatus}
                     selectWorkspaceMessage={selectWorkspaceMessage}
                     loadingWorkspacesMessage={effectiveLoadingMessage}
-                    errorLoadingWorkspacesMessage={errorLoadingWorkspacesMessage}
+                    errorLoadingWorkspacesMessage={
+                        notSignedInErrorMessage ?? errorLoadingWorkspacesMessage
+                    }
                     loadingDatabasesMessage={loadingDatabasesMessage}
                     errorLoadingDatabasesMessage={errorLoadingDatabasesMessage}
                     noDatabasesInWorkspaceMessage={noDatabasesInWorkspaceMessage}
                     showTypeFilter={showTypeFilter}
                     showResourceGroupColumn={showResourceGroupColumn}
                     expandableServers={expandableServers}
+                    onSignIntoTenant={notSignedInTenant ? onSignIntoTenant : undefined}
                 />
             </div>
         </div>
@@ -214,4 +230,6 @@ export interface SqlExplorerProps {
     favoritedIds?: string[];
     /** Called when the user clicks the star for a collection */
     onToggleFavorite?: (collectionId: string) => void;
+    /** Called when the user clicks "Sign in" from the not-signed-in error state */
+    onSignIntoTenant?: () => void;
 }

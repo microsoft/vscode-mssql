@@ -729,7 +729,11 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
                 controller.state.selectedAccountId = mockAccounts.signedInAccount.id;
                 controller.state.azureTenants = [
-                    { id: mockTenants[0].tenantId, name: mockTenants[0].displayName },
+                    {
+                        id: mockTenants[0].tenantId,
+                        name: mockTenants[0].displayName,
+                        isSignedIn: true,
+                    },
                 ];
 
                 await controller["_reducerHandlers"].get("selectAzureAccount")(controller.state, {

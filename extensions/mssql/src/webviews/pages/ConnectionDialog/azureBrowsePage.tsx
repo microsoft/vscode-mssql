@@ -115,6 +115,7 @@ export const AzureBrowsePage = () => {
                         onToggleFavorite={(id) =>
                             context.toggleFavoriteCollection(id, ConnectionInputMode.AzureBrowse)
                         }
+                        onSignIntoTenant={() => context.signIntoTenantForBrowse()}
                         onSelectWorkspace={(ws) => {
                             context.selectSqlCollection(ws.id);
                         }}

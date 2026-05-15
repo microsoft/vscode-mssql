@@ -111,6 +111,7 @@ export const FabricBrowsePage = () => {
                         onToggleFavorite={(id) =>
                             context.toggleFavoriteCollection(id, ConnectionInputMode.FabricBrowse)
                         }
+                        onSignIntoTenant={() => context.signIntoTenantForBrowse()}
                     />
 
                     {formState.server && (

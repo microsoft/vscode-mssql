@@ -11,9 +11,10 @@ import {
     Option,
     OptionOnSelectData,
     SelectionEvents,
+    Tooltip,
     makeStyles,
 } from "@fluentui/react-components";
-import { DismissRegular, SearchRegular } from "@fluentui/react-icons";
+import { DismissRegular, SearchRegular, WarningRegular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../../../sharedInterfaces/webview";
 import { locConstants as Loc } from "../../../../common/locConstants";
 import { addNewMicrosoftAccount } from "../../../../common/constants";
@@ -72,9 +73,7 @@ const SqlExplorerHeader = ({
     }
 
     function handleTenantChange(_event: SelectionEvents, data: OptionOnSelectData) {
-        const tenantName = data.optionText || "";
         const tenantId = data.optionValue || "";
-        setSelectedTenantName(tenantName);
         onSelectTenantId(tenantId);
     }
 
@@ -126,11 +125,39 @@ const SqlExplorerHeader = ({
                         }
                         disabled={azureTenantsLoadStatus === ApiStatus.Loading}
                         size="small">
-                        {azureTenants.map((tenant) => (
-                            <Option key={tenant.id} value={tenant.id} text={tenant.name}>
-                                {tenant.name}
-                            </Option>
-                        ))}
+                        {azureTenants.map((tenant) => {
+                            const tooltipContent = tenant.isSignedIn ? (
+                                <span>
+                                    {tenant.name} ({tenant.id})
+                                </span>
+                            ) : (
+                                <span>
+                                    {tenant.name} ({tenant.id})
+                                    <br />
+                                    {Loc.azure.tenantNotSignedIn}
+                                </span>
+                            );
+                            return (
+                                <Option key={tenant.id} value={tenant.id} text={tenant.name}>
+                                    <Tooltip
+                                        content={tooltipContent}
+                                        relationship="description"
+                                        positioning="after">
+                                        <div className={styles.tenantOptionContent}>
+                                            <span className={styles.tenantOptionLabel}>
+                                                {tenant.name}
+                                            </span>
+                                            {!tenant.isSignedIn && (
+                                                <WarningRegular
+                                                    className={styles.tenantWarningIcon}
+                                                    aria-label={Loc.azure.tenantNotSignedIn}
+                                                />
+                                            )}
+                                        </div>
+                                    </Tooltip>
+                                </Option>
+                            );
+                        })}
                     </Dropdown>
                 </div>
             </div>
@@ -234,5 +261,21 @@ const useStyles = makeStyles({
         flex: 1,
         minWidth: 0,
         marginLeft: "8px",
+    },
+    tenantOptionContent: {
+        display: "flex",
+        alignItems: "center",
+        gap: "4px",
+        width: "100%",
+        overflow: "hidden",
+    },
+    tenantWarningIcon: {
+        flexShrink: 0,
+        fontSize: "14px",
+    },
+    tenantOptionLabel: {
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
     },
 });

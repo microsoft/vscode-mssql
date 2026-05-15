@@ -486,6 +486,12 @@ export class LocConstants {
             },
             errorLoadingCollections: l10n.t("Error loading workspaces"),
             errorLoadingCollectionDatabases: l10n.t("Error loading databases"),
+            notSignedIntoTenant: (tenantName: string) =>
+                l10n.t({
+                    message: "Not signed into tenant {0}",
+                    args: [tenantName],
+                    comment: ["{0} is the tenant display name"],
+                }),
             connectionAuthentication: l10n.t("Connection Authentication"),
             advancedOptions: l10n.t("Advanced Options"),
             importFromAzureDataStudio: l10n.t("Import from Azure Data Studio"),
@@ -547,6 +553,7 @@ export class LocConstants {
             tenant: l10n.t("Tenant"),
             loadingTenants: l10n.t("Loading tenants..."),
             selectATenant: l10n.t("Select a tenant"),
+            tenantNotSignedIn: l10n.t("Not currently signed in. Select to sign in to tenant."),
         };
     }
 

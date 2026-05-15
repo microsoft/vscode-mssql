@@ -4453,6 +4453,9 @@
     <trans-unit id="++CODE++c823d53ecfb4b96ba917d2a3edff1316f73db7ddcead1f0cc26aed3c36053741">
       <source xml:lang="en">Not contains</source>
     </trans-unit>
+    <trans-unit id="++CODE++a5b634627aea24b14fcd3b33054a4dcf3c0385853fe5a22235b84f3c42eb17ac">
+      <source xml:lang="en">Not currently signed in. Select to sign in to tenant.</source>
+    </trans-unit>
     <trans-unit id="++CODE++c9a7c5601ef0cf94864a294ea116e414d2e0cf571ab03baabf79b726e1dcb294">
       <source xml:lang="en">Not equal to</source>
     </trans-unit>
@@ -4464,6 +4467,10 @@
     </trans-unit>
     <trans-unit id="++CODE++491fc91cd76e51571a745d780f0fc91f8ae62622e790cb113828988bba2e3c2c">
       <source xml:lang="en">Not signed in</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7bec39b28409bec8fc720f39f7c30fd934272f52f1c41c1d00988827bab07d3b">
+      <source xml:lang="en">Not signed into tenant {0}</source>
+      <note>{0} is the tenant display name</note>
     </trans-unit>
     <trans-unit id="++CODE++ba35f0c47d862763dafa955d6716942f79b8bfe1d01d5968520db6f9ba665f6f">
       <source xml:lang="en">Not started</source>

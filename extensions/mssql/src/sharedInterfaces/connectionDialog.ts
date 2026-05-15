@@ -68,6 +68,7 @@ export class ConnectionDialogWebviewState
     public fabricWorkspaces: SqlCollectionInfo[] = [];
     public favoritedAzureSubscriptionIds: string[] = [];
     public favoritedFabricWorkspaceIds: string[] = [];
+    public notSignedInTenant: { id: string; name: string } | undefined;
 
     constructor(params?: Partial<ConnectionDialogWebviewState>) {
         for (const key in params) {
@@ -88,6 +89,7 @@ export interface IAzureAccount {
 export interface IAzureTenant {
     id: string;
     name: string;
+    isSignedIn: boolean;
 }
 
 export interface IUnauthenticatedAzureTenant {
@@ -251,6 +253,7 @@ export interface ConnectionDialogContextProps extends FormContextProps<IConnecti
     setSelectedTenantId: (tenantId: string) => void;
     selectSqlCollection: (collectionId: string) => void;
     toggleFavoriteCollection: (collectionId: string, inputMode: ConnectionInputMode) => void;
+    signIntoTenantForBrowse: () => void;
     messageButtonClicked: (buttonId: string) => void;
 
     // Request handlers
@@ -300,6 +303,7 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     setSelectedTenantId: { tenantId: string };
     selectSqlCollection: { collectionId: string };
     toggleFavoriteCollection: { collectionId: string; inputMode: ConnectionInputMode };
+    signIntoTenantForBrowse: {};
     messageButtonClicked: { buttonId: string };
 }
 

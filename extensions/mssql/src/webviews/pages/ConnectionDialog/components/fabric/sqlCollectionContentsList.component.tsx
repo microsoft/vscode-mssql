@@ -22,6 +22,7 @@ import {
     MenuItemRadio,
     MenuCheckedValueChangeEvent,
     MenuCheckedValueChangeData,
+    Link,
 } from "@fluentui/react-components";
 import {
     DataGridBody,
@@ -64,6 +65,7 @@ export const SqlCollectionContentsList = ({
     loadingDatabasesMessage,
     errorLoadingDatabasesMessage,
     noDatabasesInWorkspaceMessage,
+    onSignIntoTenant,
 }: SqlCollectionContentsListProps) => {
     const styles = useSqlExplorerStyles();
     const fabricWorkspacesLoadStatus = useConnectionDialogSelector(
@@ -449,6 +451,7 @@ export const SqlCollectionContentsList = ({
                     errorLoadingWorkspacesMessage ??
                     Loc.connectionDialog.errorLoadingCollections}
             </Text>
+            {onSignIntoTenant && <Link onClick={onSignIntoTenant}>{Loc.common.signIn}</Link>}
         </div>
     );
 
@@ -641,6 +644,8 @@ export interface SqlCollectionContentsListProps {
     errorLoadingDatabasesMessage?: string;
     /** Message to show when no databases/servers are found (receives workspace displayName) */
     noDatabasesInWorkspaceMessage?: (workspaceName?: string) => string;
+    /** Callback to sign into the tenant when not signed in */
+    onSignIntoTenant?: () => void;
 }
 
 interface SqlDbGridItem extends SqlDbInfo {
