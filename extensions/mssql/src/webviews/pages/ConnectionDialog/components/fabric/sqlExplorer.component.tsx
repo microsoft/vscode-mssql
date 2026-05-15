@@ -39,6 +39,9 @@ export const SqlExplorer = ({
     title,
 }: SqlExplorerProps) => {
     const fabricWorkspaces = useConnectionDialogSelector((s) => s.fabricWorkspaces);
+    const fabricWorkspacesLoadStatus = useConnectionDialogSelector(
+        (s) => s.fabricWorkspacesLoadStatus,
+    );
     const loadingAzureTenantsStatus = useConnectionDialogSelector(
         (s) => s.loadingAzureTenantsStatus,
     );
@@ -51,7 +54,7 @@ export const SqlExplorer = ({
     const tenantsLoading = loadingAzureTenantsStatus === ApiStatus.Loading;
     const effectiveWorkspacesLoadStatus: Status = tenantsLoading
         ? { status: ApiStatus.Loading }
-        : (workspacesLoadStatus ?? { status: ApiStatus.NotStarted });
+        : (workspacesLoadStatus ?? fabricWorkspacesLoadStatus);
     const effectiveLoadingMessage = tenantsLoading
         ? Loc.azure.loadingTenants
         : loadingWorkspacesMessage;
