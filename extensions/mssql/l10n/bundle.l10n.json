@@ -2269,7 +2269,6 @@
     "Save results as JSON": "Save results as JSON",
     "Save results as Excel": "Save results as Excel",
     "Save results as INSERT INTO": "Save results as INSERT INTO",
-    "Save As Excel is not yet supported for notebook results. Use CSV, JSON, or INSERT INTO.": "Save As Excel is not yet supported for notebook results. Use CSV, JSON, or INSERT INTO.",
     "Failed to save results: {0}/{0} is the underlying error message": {
         "message": "Failed to save results: {0}",
         "comment": ["{0} is the underlying error message"]

@@ -10,6 +10,17 @@ import type {
     NotebookSaveAsMessage,
 } from "../../../sharedInterfaces/notebookQueryResult";
 import type { DbCellValue, IDbColumn } from "../../../sharedInterfaces/queryResult";
+// Static ESM imports so esbuild's "dataurl" loader replaces these with the
+// inlined data: URI strings at bundle time. require() with format=esm wraps
+// the result in a namespace object and breaks <img src>.
+import saveCsvIcon from "../../media/saveCsv.svg";
+import saveCsvIconInverse from "../../media/saveCsv_inverse.svg";
+import saveJsonIcon from "../../media/saveJson.svg";
+import saveJsonIconInverse from "../../media/saveJson_inverse.svg";
+import saveExcelIcon from "../../media/saveExcel.svg";
+import saveExcelIconInverse from "../../media/saveExcel_inverse.svg";
+import saveInsertIcon from "../../media/saveInsert.svg";
+import saveInsertIconInverse from "../../media/saveInsert_inverse.svg";
 
 export interface NotebookResultsToolbarProps {
     columnInfo: IDbColumn[];
@@ -41,26 +52,26 @@ function buildActions(): ToolbarAction[] {
         {
             id: "csv",
             label: l10n.t("Save As CSV"),
-            iconLight: require("../../media/saveCsv.svg"),
-            iconDark: require("../../media/saveCsv_inverse.svg"),
+            iconLight: saveCsvIcon,
+            iconDark: saveCsvIconInverse,
         },
         {
             id: "json",
             label: l10n.t("Save As JSON"),
-            iconLight: require("../../media/saveJson.svg"),
-            iconDark: require("../../media/saveJson_inverse.svg"),
+            iconLight: saveJsonIcon,
+            iconDark: saveJsonIconInverse,
         },
         {
             id: "excel",
             label: l10n.t("Save As Excel"),
-            iconLight: require("../../media/saveExcel.svg"),
-            iconDark: require("../../media/saveExcel_inverse.svg"),
+            iconLight: saveExcelIcon,
+            iconDark: saveExcelIconInverse,
         },
         {
             id: "insert",
             label: l10n.t("Save As INSERT INTO"),
-            iconLight: require("../../media/saveInsert.svg"),
-            iconDark: require("../../media/saveInsert_inverse.svg"),
+            iconLight: saveInsertIcon,
+            iconDark: saveInsertIconInverse,
         },
     ];
 }

@@ -5360,9 +5360,6 @@
     <trans-unit id="++CODE++e9b775f5a8a591bb90070b120fc0bb8565c948979a902162547a3c4eafbb2472">
       <source xml:lang="en">Save As Excel</source>
     </trans-unit>
-    <trans-unit id="++CODE++1655065352354a30ed4c3c6abec090797ed7406f629f00ca8bf5a2e77cf6b868">
-      <source xml:lang="en">Save As Excel is not yet supported for notebook results. Use CSV, JSON, or INSERT INTO.</source>
-    </trans-unit>
     <trans-unit id="++CODE++a64ccc4b35e8ecfd351847d63beebb3f1a866ebb301a94c9cfaf16a3f2c978da">
       <source xml:lang="en">Save As INSERT INTO</source>
     </trans-unit>

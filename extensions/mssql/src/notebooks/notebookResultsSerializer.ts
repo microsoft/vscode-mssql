@@ -7,6 +7,7 @@ import * as os from "os";
 import * as path from "path";
 import * as vscode from "vscode";
 import * as LocalizedConstants from "../constants/locConstants";
+import { buildXlsx } from "./notebookExcelWriter";
 import type { DbCellValue, IDbColumn } from "../sharedInterfaces/queryResult";
 import type { NotebookSaveAsFormat } from "../sharedInterfaces/notebookQueryResult";
 
@@ -28,13 +29,6 @@ export interface SerializeOptions {
 export async function saveNotebookResults(
     options: SerializeOptions,
 ): Promise<vscode.Uri | undefined> {
-    if (options.format === "excel") {
-        void vscode.window.showInformationMessage(
-            LocalizedConstants.Notebooks.excelExportNotSupported,
-        );
-        return undefined;
-    }
-
     const dialog = getDialogConfig(
         options.format,
         options.notebookBaseName,
@@ -49,25 +43,29 @@ export async function saveNotebookResults(
         return undefined;
     }
 
-    const content = serialize(options.format, options.columnInfo, options.rows);
-    await vscode.workspace.fs.writeFile(targetUri, Buffer.from(content, "utf8"));
+    const payload = await serialize(options.format, options.columnInfo, options.rows);
+    await vscode.workspace.fs.writeFile(targetUri, payload);
     return targetUri;
 }
 
-function serialize(
+async function serialize(
     format: NotebookSaveAsFormat,
     columnInfo: IDbColumn[],
     rows: DbCellValue[][],
-): string {
+): Promise<Uint8Array> {
     switch (format) {
         case "csv":
-            return toCsv(columnInfo, rows);
+            return Buffer.from(toCsv(columnInfo, rows), "utf8");
         case "json":
-            return toJson(columnInfo, rows);
+            return Buffer.from(toJson(columnInfo, rows), "utf8");
         case "insert":
-            return toInsert(columnInfo, rows);
-        default:
-            throw new Error(`Unsupported save format: ${format}`);
+            return Buffer.from(toInsert(columnInfo, rows), "utf8");
+        case "excel":
+            return buildXlsx(columnInfo, rows);
+        default: {
+            const exhaustive: never = format;
+            throw new Error(`Unsupported save format: ${exhaustive}`);
+        }
     }
 }
 
