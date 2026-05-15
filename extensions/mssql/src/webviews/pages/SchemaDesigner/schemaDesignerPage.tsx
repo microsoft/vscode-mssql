@@ -19,6 +19,7 @@ import { SchemaDesignerDefinitionPanelProvider } from "./definition/schemaDesign
 import { SchemaDesignerChangeProvider } from "./definition/changes/schemaDesignerChangeContext";
 import { CopilotChangesProvider } from "./definition/copilot/copilotChangesContext";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
+import { useSchemaDesignerSelector } from "./schemaDesignerSelector";
 
 const useStyles = makeStyles({
     resizeHandle: {
@@ -34,6 +35,7 @@ interface SchemaDesignerPageProps {
 export const SchemaDesignerPage = ({ activeView, onNavigateToDab }: SchemaDesignerPageProps) => {
     const context = useContext(SchemaDesignerContext);
     const classes = useStyles();
+    const isReadOnly = useSchemaDesignerSelector((s) => s?.isReadOnly) ?? false;
 
     if (!context) {
         return undefined;
@@ -46,7 +48,7 @@ export const SchemaDesignerPage = ({ activeView, onNavigateToDab }: SchemaDesign
 
     return (
         <>
-            <SchemaDesignerEditorDrawer />
+            {!isReadOnly && <SchemaDesignerEditorDrawer />}
             <MainLayout>
                 <PanelGroup direction="vertical">
                     <SchemaDesignerDefinitionPanelProvider>

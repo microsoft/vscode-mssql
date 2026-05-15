@@ -1834,6 +1834,8 @@ export default class MainController implements vscode.Disposable {
                             this.schemaDesignerService,
                             databaseName,
                             node,
+                            undefined, // connectionUri: will be obtained from treeNode
+                            true, // isReadOnly: table-diagram view from Table Explorer
                         );
 
                     schemaDesigner.setInitialFilterTables([filterTable]);
