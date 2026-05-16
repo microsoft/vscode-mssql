@@ -14,6 +14,7 @@ import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { IConnectionProfile } from "../models/interfaces";
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { LoadingLogEntry } from "../sharedInterfaces/webview";
 import { copied, scriptCopiedToClipboard } from "../constants/locConstants";
 import { UserSurvey } from "../nps/userSurvey";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
@@ -55,7 +56,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     publishState: designer.LoadState.NotStarted,
                     initializeState: designer.LoadState.Loading,
                 },
-                loadingMessages: ["Loading Table Designer"],
+                loadingMessages: [{ message: "Loading Table Designer" }],
             },
             {
                 title: "Table Designer",
@@ -644,23 +645,29 @@ export class TableDesignerWebviewController extends WebviewPanelController<
         });
     }
 
-    private appendLoadingMessage(message: string, isError = false): string[] {
+    private appendLoadingMessage(message: string, isError = false): LoadingLogEntry[] {
         return this.appendProgressMessage(this.state.loadingMessages, message, isError);
     }
 
     private appendProgressMessage(
-        messages: string[] | undefined,
+        messages: LoadingLogEntry[] | undefined,
         message: string,
         isError = false,
-    ): string[] {
-        const formattedMessage =
-            isError && !message.startsWith("Error:") ? `Error: ${message}` : message;
+    ): LoadingLogEntry[] {
+        const nextMessage: LoadingLogEntry = {
+            message,
+            kind: isError ? "error" : "progress",
+        };
         const currentMessages = messages ?? [];
-        if (currentMessages[currentMessages.length - 1] === formattedMessage) {
+        const previousMessage = currentMessages[currentMessages.length - 1];
+        if (
+            previousMessage?.message === nextMessage.message &&
+            previousMessage?.kind === nextMessage.kind
+        ) {
             return currentMessages;
         }
 
-        return [...currentMessages, formattedMessage];
+        return [...currentMessages, nextMessage];
     }
 
     private appendOperationProgress(

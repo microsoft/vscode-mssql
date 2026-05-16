@@ -10,6 +10,7 @@ import {
     ErrorCircle12Regular,
 } from "@fluentui/react-icons";
 import { useEffect, useRef } from "react";
+import { LoadingLogEntry } from "../../sharedInterfaces/webview";
 
 const useStyles = makeStyles({
     root: {
@@ -73,7 +74,7 @@ const useStyles = makeStyles({
 });
 
 export interface LoadingLogProps {
-    messages: string[];
+    messages: LoadingLogEntry[];
     fallbackMessage: string;
     minHeight?: string;
 }
@@ -81,7 +82,8 @@ export interface LoadingLogProps {
 export function LoadingLog({ messages, fallbackMessage, minHeight }: LoadingLogProps) {
     const classes = useStyles();
     const scrollRef = useRef<HTMLDivElement | null>(undefined as unknown as HTMLDivElement | null);
-    const visibleMessages = messages.length > 0 ? messages : [fallbackMessage];
+    const visibleMessages =
+        messages.length > 0 ? messages : [{ message: fallbackMessage, kind: "progress" }];
     const activeIndex = visibleMessages.length - 1;
 
     useEffect(() => {
@@ -94,12 +96,12 @@ export function LoadingLog({ messages, fallbackMessage, minHeight }: LoadingLogP
         <div className={classes.root} style={{ minHeight }}>
             <Spinner size="small" className={classes.spinner} />
             <div className={classes.logScroll} ref={scrollRef} role="log" aria-live="polite">
-                {visibleMessages.map((message, index) => {
-                    const isError = message.startsWith("Error:");
+                {visibleMessages.map((entry, index) => {
+                    const isError = entry.kind === "error";
                     const isActive = index === activeIndex && !isError;
 
                     return (
-                        <div className={classes.logRow} key={`${message}-${index}`}>
+                        <div className={classes.logRow} key={`${entry.message}-${index}`}>
                             <span
                                 className={`${classes.icon} ${
                                     isError
@@ -120,7 +122,7 @@ export function LoadingLog({ messages, fallbackMessage, minHeight }: LoadingLogP
                                 className={`${classes.text} ${
                                     isError ? classes.errorRow : isActive ? classes.activeText : ""
                                 }`}>
-                                {message}
+                                {entry.message}
                             </Text>
                         </div>
                     );

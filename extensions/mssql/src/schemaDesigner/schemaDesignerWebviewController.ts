@@ -321,7 +321,6 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 return {
                     success: false,
                     error: getErrorMessage(error),
-                    updatedSchema: this.schemaDesignerDetails?.schema ?? payload.schema,
                 };
             }
         });

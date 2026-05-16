@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { NotificationType } from "vscode-jsonrpc/browser";
+import { LoadingLogEntry } from "./webview";
 
 /**
  * Definition for the table designer service.
@@ -742,9 +743,9 @@ export interface TableDesignerWebviewState {
     propertiesPaneData?: PropertiesPaneData;
     publishingError?: string;
     initializationError?: string;
-    loadingMessages?: string[];
-    reportProgressMessages?: string[];
-    publishProgressMessages?: string[];
+    loadingMessages?: LoadingLogEntry[];
+    reportProgressMessages?: LoadingLogEntry[];
+    publishProgressMessages?: LoadingLogEntry[];
 }
 
 export interface DesignerView {

@@ -445,7 +445,7 @@ export namespace SchemaDesigner {
     export interface PublishSessionResponse {
         success: boolean;
         error: string | undefined;
-        updatedSchema: Schema;
+        updatedSchema?: Schema;
     }
     export namespace PublishSessionRequest {
         export const type = new RequestType<PublishSessionParams, PublishSessionResponse, void>(

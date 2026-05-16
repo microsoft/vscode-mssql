@@ -21,6 +21,7 @@ import { CopilotChangesProvider } from "./definition/copilot/copilotChangesConte
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import { LoadingLog } from "../../common/loadingLog";
 import { useSchemaDesignerSelector } from "./schemaDesignerSelector";
+import { LoadingLogEntry } from "../../../sharedInterfaces/webview";
 
 const useStyles = makeStyles({
     resizeHandle: {
@@ -127,7 +128,7 @@ const LoadingOverlay = ({
     messages,
     fallbackMessage,
 }: {
-    messages: string[];
+    messages: LoadingLogEntry[];
     fallbackMessage: string;
 }) => (
     <div

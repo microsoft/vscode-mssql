@@ -12,7 +12,7 @@ import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { useSchemaDesignerChangeContext } from "../definition/changes/schemaDesignerChangeContext";
 import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { CopilotChat } from "../../../../sharedInterfaces/copilotChat";
-import { ExecuteCommandRequest } from "../../../../sharedInterfaces/webview";
+import { ExecuteCommandRequest, LoadingLogEntry } from "../../../../sharedInterfaces/webview";
 import { GithubCopilot16Regular } from "../../../common/icons/fluentIcons";
 import {
     schemaDesignerPublishErrorDetailsLabel,
@@ -160,7 +160,7 @@ export function PublishChangesDialogButton() {
         );
     };
 
-    const loadingLog = (label: string, messages: string[] = []) => {
+    const loadingLog = (label: string, messages: LoadingLogEntry[] = []) => {
         return <LoadingLog messages={messages} fallbackMessage={label} minHeight="100%" />;
     };
 

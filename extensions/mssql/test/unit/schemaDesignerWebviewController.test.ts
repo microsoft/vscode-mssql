@@ -101,6 +101,8 @@ suite("SchemaDesignerWebviewController tests", () => {
             generateScript: sandbox.stub(),
             getReport: sandbox.stub(),
             onSchemaReady: sandbox.stub(),
+            onProgress: sandbox.stub(),
+            onMessage: sandbox.stub(),
         } as any;
 
         schemaDesignerCache = new Map();
@@ -444,7 +446,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             const handler = requestHandlers.get(SchemaDesigner.GetReportWebviewRequest.type.method);
             const result = await handler({ updatedSchema });
 
-            expect(result.error).to.equal(error.toString());
+            expect(result.error).to.equal(error.message);
         });
     });
 
@@ -474,6 +476,14 @@ suite("SchemaDesignerWebviewController tests", () => {
 
         test("should handle publish error", async () => {
             const error = new Error("Publish failed");
+            const attemptedSchema: SchemaDesigner.Schema = {
+                tables: [
+                    {
+                        ...mockSchema.tables[0],
+                        name: "AttemptedUsers",
+                    },
+                ],
+            };
             mockSchemaDesignerService.publishSession.rejects(error);
             schemaDesignerCache.set(`${connectionString}-${databaseName}`, {
                 schemaDesignerDetails: mockCreateSessionResponse,
@@ -486,10 +496,14 @@ suite("SchemaDesignerWebviewController tests", () => {
             (ctrl as any)._sessionId = "test-session-id";
 
             const handler = requestHandlers.get(SchemaDesigner.PublishSessionRequest.type.method);
-            const result = await handler({ schema: mockSchema });
+            const result = await handler({ schema: attemptedSchema });
 
             expect(result.success).to.be.false;
-            expect(result.error).to.equal(error.toString());
+            expect(result.error).to.equal(error.message);
+            expect(result.updatedSchema).to.be.undefined;
+            expect(
+                schemaDesignerCache.get(`${connectionString}-${databaseName}`)?.baselineSchema,
+            ).to.equal(mockCreateSessionResponse.schema);
         });
     });
 
