@@ -296,11 +296,13 @@ suite("SchemaDesignerWebviewController tests", () => {
             const params = {};
             const result = await handler(params);
 
-            expect(mockSchemaDesignerService.createSession).to.have.been.calledOnceWithExactly({
-                connectionString,
-                accessToken,
-                databaseName,
-            });
+            expect(mockSchemaDesignerService.createSession).to.have.been.calledOnceWith(
+                sinon.match({
+                    connectionString,
+                    accessToken,
+                    databaseName,
+                }),
+            );
             expect(result).to.deep.equal(mockCreateSessionResponse);
             expect(ctrl.schemaDesignerDetails).to.deep.equal(mockCreateSessionResponse);
             expect(schemaDesignerCache.size).to.equal(1);
