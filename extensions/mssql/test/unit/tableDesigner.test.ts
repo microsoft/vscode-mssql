@@ -160,6 +160,17 @@ suite("TableDesignerWebviewController tests", () => {
             (controller as any)._state.tableInfo.database,
             "Table Info should be loaded",
         ).to.equal("master");
+        expect(mockTableDesignerService.initializeTableDesigner).to.have.been.calledWith(
+            sinon.match({
+                sessionId: sinon.match.string,
+                tableInfo: sinon.match({
+                    id: sinon.match.string,
+                    database: "master",
+                    schema: "dbo",
+                    name: tableName,
+                }),
+            }),
+        );
     });
 
     test("should call processTableEdit in processTableEdit reducer", async () => {

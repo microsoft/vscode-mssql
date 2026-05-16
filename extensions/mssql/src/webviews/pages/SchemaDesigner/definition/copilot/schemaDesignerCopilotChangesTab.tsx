@@ -19,8 +19,8 @@ import {
 import {
     AddRegular,
     ArrowUndo16Regular,
-    Checkmark24Regular,
     CheckmarkCircle16Filled,
+    CheckmarkCircle24Regular,
     DeleteRegular,
     EditRegular,
 } from "@fluentui/react-icons";
@@ -405,7 +405,7 @@ const SchemaDesignerCopilotChangesContent = () => {
         setReviewIndex,
     } = useCopilotChangesContext();
     const cardRefs = useRef<Array<HTMLDivElement | null>>([]);
-    const listRef = useRef<HTMLDivElement | null>(null);
+    const listRef = useRef<HTMLDivElement | null>(undefined as unknown as HTMLDivElement | null);
     const activeIndex = reviewIndex;
     const setActiveIndex = setReviewIndex;
     const [undoing, setUndoing] = useState<Record<number, boolean>>({});
@@ -502,7 +502,7 @@ const SchemaDesignerCopilotChangesContent = () => {
     if (trackedChanges.length === 0) {
         return (
             <SchemaDesignerChangesEmptyState
-                icon={<Checkmark24Regular />}
+                icon={<CheckmarkCircle24Regular />}
                 title={locConstants.schemaDesigner.noChangesYet}
                 subtitle={locConstants.schemaDesigner.noChangesYetSubtitle}
             />

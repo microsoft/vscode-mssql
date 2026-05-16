@@ -13,7 +13,7 @@ export interface ITableDesignerService {
      * Initialize the table designer for the specified table.
      * @param table the table information.
      */
-    initializeTableDesigner(table: TableInfo): Thenable<TableDesignerInfo>;
+    initializeTableDesigner(request: InitializeTableDesignerRequest): Thenable<TableDesignerInfo>;
 
     /**
      * Process the table change.
@@ -48,6 +48,15 @@ export interface ITableDesignerService {
      * @param table the table information
      */
     disposeTableDesigner(table: TableInfo): Thenable<void>;
+
+    onProgress(listener: (progress: TableDesignerProgressNotificationParams) => void): void;
+
+    onMessage(listener: (message: TableDesignerMessageNotificationParams) => void): void;
+}
+
+export interface InitializeTableDesignerRequest {
+    sessionId: string;
+    tableInfo: TableInfo;
 }
 
 /**
@@ -109,6 +118,25 @@ export interface TableDesignerInfo {
      * The issues.
      */
     issues?: DesignerIssue[];
+}
+
+export interface TableDesignerProgressNotificationParams {
+    sessionId: string;
+    operation: string;
+    status: string;
+    message: string;
+}
+
+export interface TableDesignerMessageNotificationParams {
+    sessionId: string;
+    operation: string;
+    messageType: string;
+    message: string;
+    number?: number;
+    prefix?: string;
+    progress?: number;
+    schemaName?: string;
+    tableName?: string;
 }
 
 /**
@@ -714,6 +742,9 @@ export interface TableDesignerWebviewState {
     propertiesPaneData?: PropertiesPaneData;
     publishingError?: string;
     initializationError?: string;
+    loadingMessages?: string[];
+    reportProgressMessages?: string[];
+    publishProgressMessages?: string[];
 }
 
 export interface DesignerView {
@@ -787,4 +818,16 @@ export namespace CopyPublishErrorToClipboardNotification {
 
 export namespace InitializeTableDesignerNotification {
     export const type = new NotificationType<void>("initializeTableDesigner");
+}
+
+export namespace TableDesignerProgressNotification {
+    export const type = new NotificationType<TableDesignerProgressNotificationParams>(
+        "tableDesignerProgress",
+    );
+}
+
+export namespace TableDesignerMessageNotification {
+    export const type = new NotificationType<TableDesignerMessageNotificationParams>(
+        "tableDesignerMessage",
+    );
 }

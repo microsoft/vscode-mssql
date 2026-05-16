@@ -78,6 +78,7 @@ import { CopilotReviewToolbar } from "./copilotReviewToolbar";
 const NODE_TYPES: NodeTypes = {
     tableNode: SchemaDesignerTableNode,
 };
+const INITIAL_FIT_VIEW_TABLE_LIMIT = 30;
 
 /**
  * Schema Designer Flow Component
@@ -224,6 +225,12 @@ export const SchemaDesignerFlow = () => {
                 const { nodes, edges } = await context.initializeSchemaDesigner();
                 setSchemaNodes(nodes);
                 setRelationshipEdges(edges);
+
+                if (nodes.length <= INITIAL_FIT_VIEW_TABLE_LIMIT) {
+                    requestAnimationFrame(() => {
+                        void reactFlow.fitView({ nodes });
+                    });
+                }
 
                 // Trigger script generation to update the changes panel
                 // This is necessary for restored sessions that may have changes
@@ -618,8 +625,7 @@ export const SchemaDesignerFlow = () => {
                     }
                     return await deleteElementsConfirmation();
                 }}
-                minZoom={0.05}
-                fitView>
+                minZoom={0.05}>
                 <Controls>
                     <ControlButton
                         onClick={() =>

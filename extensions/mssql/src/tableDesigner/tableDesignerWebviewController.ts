@@ -19,8 +19,10 @@ import { UserSurvey } from "../nps/userSurvey";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { getErrorMessage } from "../utils/utils";
 import VscodeWrapper from "../controllers/vscodeWrapper";
+import logger2 from "../models/logger2";
 
 const TABLE_DESIGNER_VIEW_ID = "tableDesigner";
+const logger = logger2.withPrefix("TableDesignerWebviewController");
 
 export class TableDesignerWebviewController extends WebviewPanelController<
     designer.TableDesignerWebviewState,
@@ -28,6 +30,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
 > {
     private _isEdit: boolean = false;
     private _correlationId: string = randomUUID();
+    private _sessionId: string = randomUUID();
 
     constructor(
         context: vscode.ExtensionContext,
@@ -52,6 +55,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     publishState: designer.LoadState.NotStarted,
                     initializeState: designer.LoadState.Loading,
                 },
+                loadingMessages: ["Loading Table Designer"],
             },
             {
                 title: "Table Designer",
@@ -72,10 +76,33 @@ export class TableDesignerWebviewController extends WebviewPanelController<
             },
         );
         this.registerRpcHandlers();
-        void this.initialize();
+        this.setupTableDesignerProgressListeners();
+        void this.initializeAfterWebviewReady();
+    }
+
+    private async initializeAfterWebviewReady() {
+        try {
+            await this.whenWebviewReady();
+        } catch {
+            // If the ready signal times out, still attempt initialization.
+        }
+
+        if (this.state.apiState?.initializeState === designer.LoadState.Loading) {
+            await this.initialize();
+        }
     }
 
     private async initialize() {
+        if (this.state.apiState?.initializeState === designer.LoadState.Loading) {
+            this.state = {
+                ...this.state,
+                loadingMessages: this.appendProgressMessage(
+                    this.state.loadingMessages,
+                    "Loading Table Designer",
+                ),
+            };
+        }
+
         if (!this._targetNode) {
             const errorMessage = "Unable to find object explorer node";
             sendErrorEvent(
@@ -93,6 +120,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     initializeState: designer.LoadState.Error,
                 },
                 initializationError: errorMessage,
+                loadingMessages: this.appendLoadingMessage(errorMessage, true),
             };
             return;
         }
@@ -140,6 +168,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     initializeState: designer.LoadState.Error,
                 },
                 initializationError: getErrorMessage(e),
+                loadingMessages: this.appendLoadingMessage(getErrorMessage(e), true),
             };
             return;
         }
@@ -175,6 +204,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                         initializeState: designer.LoadState.Error,
                     },
                     initializationError: errorMessage,
+                    loadingMessages: this.appendLoadingMessage(errorMessage, true),
                 };
 
                 return;
@@ -196,6 +226,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     initializeState: designer.LoadState.Error,
                 },
                 initializationError: getErrorMessage(e),
+                loadingMessages: this.appendLoadingMessage(getErrorMessage(e), true),
             };
             return;
         }
@@ -216,7 +247,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
             let tableInfo: designer.TableInfo;
             if (this._isEdit) {
                 tableInfo = {
-                    id: randomUUID(),
+                    id: this._sessionId,
                     isNewTable: false,
                     title: this._targetNode.label as string,
                     tooltip: `${connectionInfo.server} - ${databaseName} - ${this._targetNode.label}`,
@@ -229,7 +260,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                 };
             } else {
                 tableInfo = {
-                    id: randomUUID(),
+                    id: this._sessionId,
                     isNewTable: true,
                     title: "New Table",
                     tooltip: `${connectionInfo.server} - ${databaseName} - New Table`,
@@ -240,12 +271,14 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                 };
             }
             this.panel.title = tableInfo.title;
-            const initializeResult =
-                await this._tableDesignerService.initializeTableDesigner(tableInfo);
+            const initializeResult = await this._tableDesignerService.initializeTableDesigner({
+                sessionId: this._sessionId,
+                tableInfo,
+            });
             endActivity.end(ActivityStatus.Succeeded);
             initializeResult.tableInfo.database = databaseName ?? "master";
             this.state = {
-                tableInfo: tableInfo,
+                tableInfo: initializeResult.tableInfo,
                 view: getDesignerView(initializeResult.view),
                 model: initializeResult.viewModel,
                 issues: initializeResult.issues,
@@ -259,6 +292,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     initializeState: designer.LoadState.Loaded,
                 },
                 initializationError: undefined,
+                loadingMessages: this.appendLoadingMessage("Table designer loaded"),
             };
         } catch (e) {
             endActivity.endFailed(e, false);
@@ -269,6 +303,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     initializeState: designer.LoadState.Error,
                 },
                 initializationError: getErrorMessage(e),
+                loadingMessages: this.appendLoadingMessage(getErrorMessage(e), true),
             };
         }
     }
@@ -354,6 +389,10 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     ...this.state.apiState,
                     publishState: designer.LoadState.Loading,
                 },
+                publishProgressMessages: this.appendProgressMessage(
+                    this.state.publishProgressMessages,
+                    "Publishing table changes",
+                ),
             };
             try {
                 const publishResponse = await this._tableDesignerService.publishChanges(
@@ -371,6 +410,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                         previewState: designer.LoadState.NotStarted,
                     },
                 };
+                this._sessionId = publishResponse.newTableInfo.id;
                 this.panel.title = state.tableInfo.title;
                 this.showRestorePromptAfterClose = false;
                 UserSurvey.getInstance().promptUserForNPSFeedback(TABLE_DESIGNER_VIEW_ID);
@@ -382,6 +422,11 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                         publishState: designer.LoadState.Error,
                     },
                     publishingError: e.toString(),
+                    publishProgressMessages: this.appendProgressMessage(
+                        state.publishProgressMessages,
+                        getErrorMessage(e),
+                        true,
+                    ),
                 };
                 endActivity.endFailed(e, false);
             }
@@ -438,6 +483,10 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     publishState: designer.LoadState.NotStarted,
                 },
                 publishingError: undefined,
+                reportProgressMessages: this.appendProgressMessage(
+                    this.state.reportProgressMessages,
+                    "Generating preview report",
+                ),
             };
             try {
                 const previewReport = await this._tableDesignerService.generatePreviewReport(
@@ -453,6 +502,13 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                         publishState: designer.LoadState.NotStarted,
                     },
                     generatePreviewReportResult: previewReport,
+                    reportProgressMessages: previewReport.schemaValidationError
+                        ? this.appendProgressMessage(
+                              state.reportProgressMessages,
+                              previewReport.schemaValidationError,
+                              true,
+                          )
+                        : state.reportProgressMessages,
                 };
             } catch (e) {
                 state = {
@@ -467,6 +523,11 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                         report: "",
                         mimeType: "",
                     },
+                    reportProgressMessages: this.appendProgressMessage(
+                        state.reportProgressMessages,
+                        getErrorMessage(e),
+                        true,
+                    ),
                 };
             }
             sendActionEvent(TelemetryViews.TableDesigner, TelemetryActions.GenerateScript, {
@@ -532,5 +593,101 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                 void vscode.window.showInformationMessage(copied);
             },
         );
+    }
+
+    private setupTableDesignerProgressListeners() {
+        this._tableDesignerService.onProgress((progress) => {
+            if (progress.sessionId !== this._sessionId) {
+                return;
+            }
+
+            logger.info("Progress", progress);
+            this.appendOperationProgress(progress.operation, progress.message, progress.status);
+
+            try {
+                void this.sendNotification(
+                    designer.TableDesignerProgressNotification.type,
+                    progress,
+                );
+            } catch {
+                // Ignore notifications racing with webview disposal.
+            }
+        });
+
+        this._tableDesignerService.onMessage((message) => {
+            if (message.sessionId !== this._sessionId) {
+                return;
+            }
+
+            logger.info("Message", message);
+            this.appendOperationProgress(message.operation, message.message, message.messageType);
+
+            try {
+                void this.sendNotification(designer.TableDesignerMessageNotification.type, message);
+            } catch {
+                // Ignore notifications racing with webview disposal.
+            }
+        });
+    }
+
+    private appendLoadingMessage(message: string, isError = false): string[] {
+        return this.appendProgressMessage(this.state.loadingMessages, message, isError);
+    }
+
+    private appendProgressMessage(
+        messages: string[] | undefined,
+        message: string,
+        isError = false,
+    ): string[] {
+        const formattedMessage =
+            isError && !message.startsWith("Error:") ? `Error: ${message}` : message;
+        const currentMessages = messages ?? [];
+        if (currentMessages[currentMessages.length - 1] === formattedMessage) {
+            return currentMessages;
+        }
+
+        return [...currentMessages, formattedMessage];
+    }
+
+    private appendOperationProgress(
+        operation: string,
+        message: string,
+        statusOrMessageType: string,
+    ) {
+        const normalizedOperation = operation.toLowerCase();
+        const isError = this.isErrorStatus(statusOrMessageType);
+        if (normalizedOperation.includes("report") || normalizedOperation.includes("preview")) {
+            this.state = {
+                ...this.state,
+                reportProgressMessages: this.appendProgressMessage(
+                    this.state.reportProgressMessages,
+                    message,
+                    isError,
+                ),
+            };
+            return;
+        }
+
+        if (normalizedOperation.includes("publish")) {
+            this.state = {
+                ...this.state,
+                publishProgressMessages: this.appendProgressMessage(
+                    this.state.publishProgressMessages,
+                    message,
+                    isError,
+                ),
+            };
+            return;
+        }
+
+        this.state = {
+            ...this.state,
+            loadingMessages: this.appendLoadingMessage(message, isError),
+        };
+    }
+
+    private isErrorStatus(statusOrMessageType: string): boolean {
+        const normalized = statusOrMessageType.toLowerCase();
+        return normalized === "error" || normalized === "failed";
     }
 }

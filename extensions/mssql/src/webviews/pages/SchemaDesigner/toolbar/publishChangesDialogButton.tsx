@@ -3,27 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    Button,
-    Checkbox,
-    Dialog,
-    DialogActions,
-    DialogBody,
-    DialogContent,
-    DialogSurface,
-    DialogTitle,
-    DialogTrigger,
-    makeStyles,
-    MessageBar,
-    Tooltip,
-} from "@fluentui/react-components";
+import { Button, DialogTrigger, MessageBar, Tooltip } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useContext, useState } from "react";
-import Markdown from "react-markdown";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
-import { useMarkdownStyles } from "../../../common/styles";
 import { useSchemaDesignerChangeContext } from "../definition/changes/schemaDesignerChangeContext";
 import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { CopilotChat } from "../../../../sharedInterfaces/copilotChat";
@@ -35,6 +20,11 @@ import {
     schemaDesignerPublishErrorPrompt,
 } from "./publishChangesDialogPrompts";
 import { LoadingLog } from "../../../common/loadingLog";
+import {
+    PublishDialogCenteredContent,
+    PublishDialogFrame,
+    PublishDialogReport,
+} from "../../../common/publishDialog";
 
 export enum PublishDialogStages {
     NotStarted = "notStarted",
@@ -94,24 +84,7 @@ export function shouldShowGithubCopilotFixButton(
     return isReportOrPublishErrorStage(currentStage) && isCopilotChatInstalled;
 }
 
-const useStyles = makeStyles({
-    errorSection: {
-        marginBottom: "15px",
-        lineHeight: 1.5,
-    },
-    sectionNumber: {
-        fontWeight: "bold",
-        marginRight: "5px",
-    },
-    surface: {
-        width: "800px",
-        maxWidth: "800px",
-    },
-});
-
 export function PublishChangesDialogButton() {
-    const classes = useStyles();
-    const markdownClasses = useMarkdownStyles();
     const context = useContext(SchemaDesignerContext);
     const changeContext = useSchemaDesignerChangeContext();
     const isCopilotChatInstalled =
@@ -146,6 +119,7 @@ export function PublishChangesDialogButton() {
                     icon={<FluentIcons.DatabaseArrowUp16Regular />}
                     disabled={publishButtonDisabled || !hasSchemaChanges}
                     onClick={async () => {
+                        setOpen(true);
                         setState({
                             ...state,
                             currentStage: PublishDialogStages.ReportLoading,
@@ -178,7 +152,6 @@ export function PublishChangesDialogButton() {
                                 });
                             }
                         }
-                        setOpen(true);
                         setPublishButtonDisabled(false);
                     }}>
                     {locConstants.schemaDesigner.publishChanges}
@@ -188,77 +161,12 @@ export function PublishChangesDialogButton() {
     };
 
     const loadingLog = (label: string, messages: string[] = []) => {
-        return <LoadingLog messages={messages} fallbackMessage={label} minHeight="240px" />;
-    };
-
-    const error = (errorString: string) => {
-        // Split the error message into sections
-        const formatErrorMessage = (errorString: string) => {
-            // Split by numbered points (1., 2., 3., etc.)
-            const sections = errorString.split(/(\d+\.\s)/g);
-
-            // Create an array of formatted sections
-            const formattedSections = [];
-
-            for (let i = 0; i < sections.length; i++) {
-                if (sections[i].match(/^\d+\.\s$/)) {
-                    // This is a number prefix
-                    const sectionNumber = sections[i];
-                    const sectionContent = sections[i + 1] || "";
-
-                    formattedSections.push(
-                        <div key={i} className={classes.errorSection}>
-                            <strong className={classes.sectionNumber}>{sectionNumber}</strong>
-                            <span>{sectionContent}</span>
-                        </div>,
-                    );
-
-                    i++; // Skip the next section as we've already used it
-                } else if (sections[i].trim()) {
-                    // This is an unnumbered section
-                    formattedSections.push(
-                        <div key={i} className={classes.errorSection}>
-                            <span>{sections[i]}</span>
-                        </div>,
-                    );
-                }
-            }
-
-            return formattedSections;
-        };
-
-        return (
-            <div
-                className="error-container"
-                style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    minHeight: "200px",
-                }}>
-                <FluentIcons.ErrorCircleFilled
-                    style={{
-                        marginRight: "10px",
-                        width: "50px",
-                        height: "50px",
-                    }}
-                />
-                <div className="error-body">{formatErrorMessage(errorString)}</div>
-            </div>
-        );
+        return <LoadingLog messages={messages} fallbackMessage={label} minHeight="100%" />;
     };
 
     const success = () => {
         return (
-            <div
-                style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    minHeight: "200px",
-                }}>
+            <PublishDialogCenteredContent>
                 <FluentIcons.CheckmarkCircleFilled
                     style={{
                         marginRight: "10px",
@@ -267,88 +175,47 @@ export function PublishChangesDialogButton() {
                     }}
                 />
                 {locConstants.schemaDesigner.changesPublishedSuccessfully}
-            </div>
+            </PublishDialogCenteredContent>
         );
     };
 
     const reportContainer = () => {
         return (
-            <>
-                <div
-                    style={{
-                        width: "100%",
-                        display: "flex",
-                        flexDirection: "column",
-                        overflow: "hidden",
-                    }}>
-                    {state.report?.dacReport?.possibleDataLoss && (
-                        <MessageBar
-                            intent="warning"
-                            style={{
-                                marginBottom: "10px",
-                                marginTop: "10px",
-                            }}>
-                            {locConstants.schemaDesigner.possibleDataLoss}
-                        </MessageBar>
-                    )}
-                    {state.report?.dacReport?.hasWarnings && (
-                        <MessageBar
-                            intent="warning"
-                            style={{
-                                marginBottom: "10px",
-                                marginTop: "10px",
-                            }}>
-                            {locConstants.schemaDesigner.hasWarnings}
-                        </MessageBar>
-                    )}
-                    <div
-                        style={{
-                            width: "100%",
-                            height: "500px",
-                            maxHeight: "100%",
-                            overflow: "auto",
-                        }}>
-                        <div className={markdownClasses.markdownPage}>
-                            <Markdown>{state?.report?.dacReport?.report ?? ""}</Markdown>
-                        </div>
-                    </div>
-
-                    <Checkbox
-                        label={locConstants.tableDesigner.designerPreviewConfirmation}
-                        style={{
-                            margin: "5px",
-                        }}
-                        required
-                        checked={state.isConfirmationChecked}
-                        onChange={(_event, data) => {
-                            setState({
-                                ...state,
-                                isConfirmationChecked: data.checked as boolean,
-                            });
-                        }}
-                        // Setting initial focus on the checkbox when it is rendered.
-                        autoFocus
-                        /**
-                         * The focus outline is not visible on the checkbox when it is focused programmatically.
-                         * This is a workaround to make the focus outline visible on the checkbox when it is focused programmatically.
-                         * This is most likely a bug in the browser.
-                         */
-                        onFocus={(event) => {
-                            if (event.target.parentElement) {
-                                event.target.parentElement.style.outlineStyle = "solid";
-                                event.target.parentElement.style.outlineColor =
-                                    "var(--vscode-focusBorder)";
-                            }
-                        }}
-                        onBlur={(event) => {
-                            if (event.target.parentElement) {
-                                event.target.parentElement.style.outline = "none";
-                                event.target.parentElement.style.outlineColor = "";
-                            }
-                        }}
-                    />
-                </div>
-            </>
+            <PublishDialogReport
+                markdown={state?.report?.dacReport?.report ?? ""}
+                header={
+                    <>
+                        {state.report?.dacReport?.possibleDataLoss && (
+                            <MessageBar
+                                intent="warning"
+                                style={{
+                                    marginBottom: "10px",
+                                    marginTop: "10px",
+                                }}>
+                                {locConstants.schemaDesigner.possibleDataLoss}
+                            </MessageBar>
+                        )}
+                        {state.report?.dacReport?.hasWarnings && (
+                            <MessageBar
+                                intent="warning"
+                                style={{
+                                    marginBottom: "10px",
+                                    marginTop: "10px",
+                                }}>
+                                {locConstants.schemaDesigner.hasWarnings}
+                            </MessageBar>
+                        )}
+                    </>
+                }
+                confirmationLabel={locConstants.tableDesigner.designerPreviewConfirmation}
+                confirmationChecked={state.isConfirmationChecked}
+                onConfirmationChange={(checked) => {
+                    setState({
+                        ...state,
+                        isConfirmationChecked: checked,
+                    });
+                }}
+            />
         );
     };
 
@@ -361,19 +228,15 @@ export function PublishChangesDialogButton() {
         }
 
         if (state.currentStage === PublishDialogStages.ReportError) {
-            return error(state.reportError ?? "");
+            return loadingLog(
+                state.reportError ?? locConstants.schemaDesigner.generatingReport,
+                context.reportProgressMessages,
+            );
         }
 
         if (state.currentStage === PublishDialogStages.ReportSuccessNoChanges) {
             return (
-                <div
-                    style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        minHeight: "200px",
-                    }}>
+                <PublishDialogCenteredContent>
                     <FluentIcons.BranchFilled
                         style={{
                             marginRight: "10px",
@@ -382,7 +245,7 @@ export function PublishChangesDialogButton() {
                         }}
                     />
                     {locConstants.schemaDesigner.noChangesDetected}
-                </div>
+                </PublishDialogCenteredContent>
             );
         }
 
@@ -391,11 +254,17 @@ export function PublishChangesDialogButton() {
         }
 
         if (state.currentStage === PublishDialogStages.PublishLoading) {
-            return loadingLog(locConstants.schemaDesigner.publishingChanges);
+            return loadingLog(
+                locConstants.schemaDesigner.publishingChanges,
+                context.publishProgressMessages,
+            );
         }
 
         if (state.currentStage === PublishDialogStages.PublishError) {
-            return error(state.publishError ?? "");
+            return loadingLog(
+                state.publishError ?? locConstants.schemaDesigner.publishingChanges,
+                context.publishProgressMessages,
+            );
         }
 
         if (state.currentStage === PublishDialogStages.PublishSuccess) {
@@ -540,15 +409,13 @@ export function PublishChangesDialogButton() {
     };
 
     return (
-        <Dialog open={open} onOpenChange={(_e, data) => setOpen(data.open)}>
-            {triggerButton()}
-            <DialogSurface className={classes.surface}>
-                <DialogBody>
-                    <DialogTitle>{locConstants.publishDialog.publishChanges}</DialogTitle>
-                    <DialogContent>{dialogContent()}</DialogContent>
-                    <DialogActions>{footerButtons()}</DialogActions>
-                </DialogBody>
-            </DialogSurface>
-        </Dialog>
+        <PublishDialogFrame
+            open={open}
+            onOpenChange={setOpen}
+            trigger={triggerButton()}
+            title={locConstants.publishDialog.publishChanges}
+            content={dialogContent()}
+            actions={footerButtons()}
+        />
     );
 }
