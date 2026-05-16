@@ -81,6 +81,7 @@ import { CreateSessionResult } from "../objectExplorer/objectExplorerService";
 import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
 import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
 import { SqlNotebookController } from "../notebooks/sqlNotebookController";
+import { registerNotebookCopyOutput } from "../notebooks/notebookCopyOutputProvider";
 import { ConnectTool } from "../copilot/tools/connectTool";
 import { ListServersTool } from "../copilot/tools/listServersTool";
 import { DisconnectTool } from "../copilot/tools/disconnectTool";
@@ -715,6 +716,8 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdNotebooksChangeConnection, () => {
                 void this.sqlNotebookController.changeConnectionInteractive();
             });
+
+            registerNotebookCopyOutput(this._context);
 
             const providerInstance = new this.ExecutionPlanCustomEditorProvider(
                 this._context,
@@ -1831,6 +1834,8 @@ export default class MainController implements vscode.Disposable {
                             this.schemaDesignerService,
                             databaseName,
                             node,
+                            undefined, // connectionUri: will be obtained from treeNode
+                            true, // isReadOnly: table-diagram view from Table Explorer
                         );
 
                     schemaDesigner.setInitialFilterTables([filterTable]);
@@ -2761,6 +2766,37 @@ export default class MainController implements vscode.Disposable {
                 return;
             }
 
+            // Do not execute when there are multiple selections in the editor until it can be properly handled.
+            // Otherwise only the first selection will be executed and cause unexpected issues.
+            if (editor.selections?.length > 1) {
+                self._vscodeWrapper.showErrorMessage(
+                    LocalizedConstants.msgMultipleSelectionModeNotSupported,
+                );
+                return;
+            }
+
+            if (!editor.selection.isEmpty) {
+                if (editor.document.getText(editor.selection).trim().length === 0) {
+                    return;
+                }
+
+                let selection = editor.selection;
+                let querySelection: ISelectionData = {
+                    startLine: selection.start.line,
+                    startColumn: selection.start.character,
+                    endLine: selection.end.line,
+                    endColumn: selection.end.character,
+                };
+
+                await self._outputContentProvider.runQuery(
+                    self._statusview,
+                    uri,
+                    querySelection,
+                    title,
+                );
+                return;
+            }
+
             // only the start line and column are used to determine the current statement
             let querySelection: ISelectionData = {
                 startLine: editor.selection.start.line,
@@ -3058,9 +3094,6 @@ export default class MainController implements vscode.Disposable {
      * @param projectFilePath The file path of the database project to publish.
      */
     public async onPublishDatabaseProject(projectFilePath: string): Promise<void> {
-        const deploymentOptionsResult = await this.dacFxService.getDeploymentOptions(
-            DeploymentScenario.Deployment,
-        );
         const publishProjectWebView = new PublishProjectWebViewController(
             this._context,
             this._vscodeWrapper,
@@ -3070,7 +3103,6 @@ export default class MainController implements vscode.Disposable {
             this.sqlProjectsService,
             this.dacFxService,
             this.sqlPackageService,
-            deploymentOptionsResult.defaultDeploymentOptions,
         );
 
         publishProjectWebView.revealToForeground();

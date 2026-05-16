@@ -869,9 +869,7 @@ export class LocConstants {
             askGithubCopilotToFixTooltip: l10n.t(
                 "Open GitHub Copilot Chat to help fix these errors",
             ),
-            schemaDesignerCopilotDiscoveryTitle: l10n.t(
-                "Design Schemas with GitHub Copilot (Preview)",
-            ),
+            schemaDesignerCopilotDiscoveryTitle: l10n.t("Design Schemas with GitHub Copilot"),
             schemaDesignerCopilotDiscoveryBody: l10n.t(
                 "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.",
             ),
@@ -1109,8 +1107,8 @@ export class LocConstants {
             redo: l10n.t("Redo"),
             searchTables: l10n.t("Search tables..."),
             showTableRelationships: l10n.t("Show table relationships"),
-            schemaDesignerNavLabel: l10n.t("Visualize and Design Schema (Preview)"),
-            dabNavLabel: l10n.t("Build Data API (Preview)"),
+            schemaDesignerNavLabel: l10n.t("Visualize and Design Schema"),
+            dabNavLabel: l10n.t("Build Data API"),
             showChangesButtonLabel: l10n.t("Show Changes"),
             hideChangesButtonLabel: l10n.t("Hide Changes"),
             showCopilotChangesButtonLabel: l10n.t("Copilot Changes"),
@@ -1344,7 +1342,7 @@ export class LocConstants {
                 }),
 
             // DAB (Data API builder) strings
-            dabTitle: l10n.t("Data API builder Configuration (Preview)"),
+            dabTitle: l10n.t("Data API builder Configuration"),
             apiType: l10n.t("API Type"),
             restApi: l10n.t("REST API"),
             graphql: l10n.t("GraphQL"),
@@ -1380,7 +1378,7 @@ export class LocConstants {
             atLeastOneApiTypeRequired: l10n.t("At least one API type must be selected."),
             authenticationNotSupported: l10n.t("Authentication not supported"),
             dabDeploymentNotSupportedBanner: l10n.t(
-                "In the Data API builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.",
+                "In the Data API builder experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.",
             ),
             unsupportedDataTypesDetected: l10n.t("Unsupported data types detected"),
             dabUnsupportedDataTypesBanner: l10n.t(
@@ -2004,8 +2002,6 @@ export class LocConstants {
         return {
             saveChanges: l10n.t("Save Changes"),
             addRow: l10n.t("Add Row"),
-            showScript: l10n.t("Show Script"),
-            hideScript: l10n.t("Hide Script"),
             openInEditor: l10n.t("Open in Editor"),
             openInSqlEditor: l10n.t("Open in SQL Editor"),
             copyScript: l10n.t("Copy Script"),
@@ -2018,7 +2014,6 @@ export class LocConstants {
             revertRow: l10n.t("Revert Row"),
             totalRowsToFetch: l10n.t("Total rows to fetch:"),
             rowsPerPage: l10n.t("Rows per page"),
-            fetchRows: l10n.t("Fetch rows"),
             firstPage: l10n.t("First Page"),
             previousPage: l10n.t("Previous Page"),
             nextPage: l10n.t("Next Page"),
@@ -2029,6 +2024,41 @@ export class LocConstants {
             closeScriptPane: l10n.t("Close Script Pane"),
             modifyTable: l10n.t("Modify Table"),
             viewTableDiagram: l10n.t("View Table Diagram"),
+            showSqlPane: l10n.t("Show SQL Pane"),
+            hideSqlPane: l10n.t("Hide SQL Pane"),
+            scriptChanges: l10n.t("Changes"),
+            tableQuery: l10n.t("SQL"),
+            export: l10n.t("Export"),
+            columns: l10n.t("Columns"),
+            deleteSelected: (count: number) =>
+                count === 1 ? l10n.t("Delete 1 row") : l10n.t("Delete {0} rows", count),
+            showSql: l10n.t("Show SQL"),
+            openSqlInEditor: l10n.t("Open the generated SELECT statement in a new editor"),
+            filters: l10n.t("Filters"),
+            filtersTooltip: l10n.t("Add filters to modify the SQL query"),
+            filterWhere: l10n.t("WHERE"),
+            filterAnd: l10n.t("and"),
+            filterOr: l10n.t("or"),
+            filterConjunction: l10n.t("Conjunction"),
+            filterColumn: l10n.t("Column"),
+            filterOperator: l10n.t("Operator"),
+            filterLogicalOperator: l10n.t("Logical operator"),
+            filterValue: l10n.t("Filter value"),
+            filterApply: l10n.t("Apply"),
+            filterAdd: l10n.t("Add filter"),
+            filterClear: l10n.t("Clear filters"),
+            filterRemove: l10n.t("Remove filter"),
+            filterValuePlaceholder: l10n.t("value"),
+            filterOpEquals: l10n.t("equals"),
+            filterOpNotEquals: l10n.t("not equals"),
+            filterOpContains: l10n.t("contains"),
+            filterOpNotContains: l10n.t("does not contain"),
+            filterOpStartsWith: l10n.t("starts with"),
+            filterOpEndsWith: l10n.t("ends with"),
+            filterOpGreaterThan: l10n.t("greater than"),
+            filterOpLessThan: l10n.t("less than"),
+            filterOpIsNull: l10n.t("is null"),
+            filterOpIsNotNull: l10n.t("is not null"),
         };
     }
 

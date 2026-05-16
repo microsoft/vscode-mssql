@@ -96,7 +96,6 @@ export default class QueryRunner {
     private _batchSets: BatchSummary[] = [];
     private _batchSetMessages: { [batchId: number]: IResultMessage[] } = {};
     private _isExecuting: boolean;
-    private _resultLineOffset: number;
     private _totalElapsedMilliseconds: number;
     private _hasCompleted: boolean;
     private _isSqlCmd: boolean = false;
@@ -429,8 +428,6 @@ export default class QueryRunner {
         this._vscodeWrapper.logToOutputChannel(
             LocalizedConstants.msgStartedExecute(this._ownerUri),
         );
-        // Store the line offset for the query text
-        this._resultLineOffset = selection ? selection.startLine : 0;
         this._isExecuting = true;
         this._totalElapsedMilliseconds = 0;
         // Update the status view to show that we're executing
@@ -451,13 +448,6 @@ export default class QueryRunner {
         this._isExecuting = false;
         this._hasCompleted = true;
         this._batchSets = result.batchSummaries;
-
-        this._batchSets.map((batch) => {
-            if (batch.selection) {
-                batch.selection.startLine = batch.selection.startLine + this._resultLineOffset;
-                batch.selection.endLine = batch.selection.endLine + this._resultLineOffset;
-            }
-        });
 
         // We're done with this query so shut down any waiting mechanisms
         const promise = this._uriToQueryPromiseMap.get(result.ownerUri);
@@ -486,12 +476,6 @@ export default class QueryRunner {
 
     public handleBatchStart(result: QueryExecuteBatchNotificationParams): void {
         let batch = result.batchSummary;
-
-        // Recalculate the start and end lines, relative to the result line offset
-        if (batch.selection) {
-            batch.selection.startLine += this._resultLineOffset;
-            batch.selection.endLine += this._resultLineOffset;
-        }
 
         // Set the result sets as an empty array so that as result sets complete we can add to the list
         batch.resultSetSummaries = [];

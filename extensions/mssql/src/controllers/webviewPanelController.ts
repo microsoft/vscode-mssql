@@ -25,7 +25,7 @@ export class WebviewPanelController<State, Reducers, Result = void> extends Webv
     State,
     Reducers
 > {
-    private _panel: vscode.WebviewPanel;
+    private _panel!: vscode.WebviewPanel;
     public readonly dialogResult: Deferred<Result | undefined> = new Deferred<Result | undefined>();
 
     /**
@@ -107,10 +107,13 @@ export class WebviewPanelController<State, Reducers, Result = void> extends Webv
         this._panel.reveal(viewColumn, true);
     }
 
-    protected async showRestorePrompt(): Promise<{
-        title: string;
-        run: () => Promise<void>;
-    }> {
+    protected async showRestorePrompt(): Promise<
+        | {
+              title: string;
+              run: () => Promise<void>;
+          }
+        | undefined
+    > {
         return await vscode.window.showInformationMessage(
             locConstants.Webview.webviewRestorePrompt(this._options.title),
             {

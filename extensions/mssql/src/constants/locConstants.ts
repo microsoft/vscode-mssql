@@ -306,9 +306,6 @@ export let msgGetTokenFail = l10n.t("Failed to fetch user tokens.");
 export let msgPromptRetryConnectionDifferentCredentials = l10n.t(
     "Error: Login failed. Retry using different credentials?",
 );
-export let msgPromptSSLCertificateValidationFailed = l10n.t(
-    "Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?",
-);
 export let msgPromptRetryFirewallRuleNotSignedIn = l10n.t(
     "Your client IP address does not have access to the server. Add a Microsoft Entra account and create a new firewall rule to enable access.",
 );
@@ -824,6 +821,13 @@ export class Notebooks {
     public static noActiveConnection = l10n.t("No active connection.");
     public static noConnectionSelected = l10n.t("No connection selected.");
 
+    // Copy cell output
+    public static copyMessages = l10n.t("Copy messages");
+    public static copyMessagesTooltip = l10n.t(
+        "Copy all text output for this cell (messages, PRINT, errors)",
+    );
+    public static copiedMessages = l10n.t("$(check) Copied messages");
+
     // Execution results
     public static rowsAffected(count: number) {
         return l10n.t({
@@ -1082,6 +1086,17 @@ export class ConnectionDialog {
         "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
     );
 
+    public static selectDatabase = l10n.t("Select a database");
+    public static userDatabasesGroup = l10n.t("User databases");
+    public static systemDatabasesGroup = l10n.t("System databases");
+    public static unableToLoadDatabaseList(errorMessage: string) {
+        return l10n.t({
+            message: "Unable to load database list from server: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the connection error message"],
+        });
+    }
+
     public static unsupportedAuthType(authenticationType: string) {
         return l10n.t({
             message:
@@ -1113,12 +1128,15 @@ export class Azure {
         });
     }
 
-    public static noSqlResourceConfiguredForCurrentCloud(cloudName: string): string {
+    public static noResourceConfiguredForCurrentCloud(
+        resourceType: string,
+        cloudName: string,
+    ): string {
         return l10n.t({
             message:
-                "No SQL resource is configured for the current cloud '{0}'. Please update your Azure account settings.",
-            args: [cloudName],
-            comment: ["{0} is the display name of the current cloud"],
+                "No resource of type '{0}' is configured for the current cloud '{1}'. Please update your Azure account settings.",
+            args: [resourceType, cloudName],
+            comment: ["{0} is the resource type", "{1} is the display name of the current cloud"],
         });
     }
 
@@ -1980,7 +1998,8 @@ export class SchemaCompare {
 
 export class SchemaDesigner {
     public static LoadingSchemaDesginerModel = l10n.t("Loading Schema Designer Model...");
-    public static PanelTitle = l10n.t("Visualize and Design Schema (Preview)");
+    public static PanelTitle = l10n.t("Visualize and Design Schema");
+    public static ReadOnlyPanelTitle = l10n.t("Table Diagram");
     public static SchemaReady = l10n.t(
         "Schema Designer Model is ready. Changes can now be published.",
     );
@@ -2118,6 +2137,29 @@ export class Connection {
     public static SelectTenant = l10n.t("Select a tenant");
 
     public static ChangePassword = l10n.t("Change Password");
+
+    public static trustServerCertificateMustBeEnabledMessage = l10n.t(
+        "Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true'. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments.",
+    );
+
+    public static trustServerCertificateMustBeEnabledPrompt = l10n.t(
+        "Do you want to enable 'Trust server certificate' on this connection and retry?",
+    );
+
+    public static securityTokenRequestFailed = (errorMessage: string, resource: string) => {
+        return l10n.t({
+            message: "Failed to obtain token for resource '{1}'.  Error: {0}",
+            args: [errorMessage, resource],
+            comment: ["{0} is the error message", "{1} is the resource"],
+        });
+    };
+    public static failedToAcquireToken = (accountId: string, tenantId: string) => {
+        return l10n.t({
+            message: "Failed to acquire token for account '{0}' and tenant '{1}'",
+            args: [accountId, tenantId],
+            comment: ["{0} is the account ID", "{1} is the tenant ID"],
+        });
+    };
 }
 
 export class MssqlChatAgent {
@@ -3074,6 +3116,21 @@ export class TableExplorer {
             args: [errorMessage],
             comment: ["{0} is the error message"],
         });
+
+    public static failedToRunTableQuery = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to run table query: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToRunTableQueryUnknown = l10n.t("Failed to run table query.");
+
+    public static pendingChangesWillBeLost = l10n.t(
+        "Running a custom query will discard all pending changes. Do you want to continue?",
+    );
+
+    public static Continue = l10n.t("Continue");
 }
 
 export class AzureDataStudioMigration {

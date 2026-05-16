@@ -158,6 +158,7 @@ export const cmdFlatFileImport = "mssql.flatFileImport";
 export const cmdNotebooksCreate = "mssql.notebooks.createNotebook";
 export const cmdNotebooksChangeDatabase = "mssql.notebooks.changeDatabase";
 export const cmdNotebooksChangeConnection = "mssql.notebooks.changeConnection";
+export const cmdNotebooksCopyCellMessages = "mssql.notebooks.copyCellMessages";
 
 export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";
@@ -266,6 +267,7 @@ export const configMyConnections = "connections";
 export const configSaveAsCsv = "saveAsCsv";
 export const configSaveAsJson = "saveAsJson";
 export const configSaveAsExcel = "saveAsExcel";
+export const configResultsOpenAfterSave = "results.openAfterSave";
 export const configRecentConnections = "recentConnections";
 export const configMaxRecentConnections = "maxRecentConnections";
 export const configCopyRemoveNewLine = "copyRemoveNewLine";
