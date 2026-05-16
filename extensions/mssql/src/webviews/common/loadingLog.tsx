@@ -31,9 +31,9 @@ const useStyles = makeStyles({
     logScroll: {
         width: "100%",
         maxWidth: "420px",
-        maxHeight: "160px",
+        height: "160px",
         minHeight: 0,
-        flexShrink: 1,
+        flexShrink: 0,
         overflowY: "auto",
         scrollbarWidth: "none",
         scrollbarColor: "var(--vscode-scrollbarSlider-background) transparent",
