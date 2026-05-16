@@ -160,6 +160,10 @@ suite("TableDesignerWebviewController tests", () => {
             (controller as any)._state.tableInfo.database,
             "Table Info should be loaded",
         ).to.equal("master");
+        expect(
+            (controller as any)._state.hasUnpublishedChanges,
+            "Table designer should not be dirty immediately after initialization",
+        ).to.be.false;
         expect(mockTableDesignerService.initializeTableDesigner).to.have.been.calledWith(
             sinon.match({
                 sessionId: sinon.match.string,
@@ -197,6 +201,16 @@ suite("TableDesignerWebviewController tests", () => {
         ).to.have.been.calledOnceWithExactly(mockPayload.table, mockPayload.tableChangeInfo);
         expect(result.tabStates.resultPaneTab, "State tab should be set to Script").to.equal(
             td.DesignerResultPaneTabs.Script,
+        );
+        expect(
+            result.hasUnpublishedChanges,
+            "State should track unpublished changes after a successful edit",
+        ).to.be.true;
+        expect(result.apiState.previewState, "Preview state should reset after edit").to.equal(
+            td.LoadState.NotStarted,
+        );
+        expect(result.apiState.publishState, "Publish state should reset after edit").to.equal(
+            td.LoadState.NotStarted,
         );
 
         processTableEditStub.restore();
@@ -282,6 +296,10 @@ suite("TableDesignerWebviewController tests", () => {
         expect(result.apiState.previewState, "Preview State should be not started").to.equal(
             td.LoadState.NotStarted,
         );
+        expect(
+            result.hasUnpublishedChanges,
+            "Publish should clear unpublished changes after success",
+        ).to.be.false;
 
         expect(controller.panel.title, "Panel title should be table name").to.equal(
             publishResponse.newTableInfo.title,

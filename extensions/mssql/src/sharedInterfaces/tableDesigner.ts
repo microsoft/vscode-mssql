@@ -735,6 +735,7 @@ export interface TableDesignerWebviewState {
     model?: DesignerViewModel;
     issues?: DesignerIssue[];
     isValid?: boolean;
+    hasUnpublishedChanges?: boolean;
     generateScriptResult?: string;
     generatePreviewReportResult?: GeneratePreviewReportResult;
     publishChangesResult?: PublishChangesResult;

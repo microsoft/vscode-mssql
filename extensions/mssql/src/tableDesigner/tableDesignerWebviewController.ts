@@ -57,6 +57,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     initializeState: designer.LoadState.Loading,
                 },
                 loadingMessages: [{ message: "Loading Table Designer" }],
+                hasUnpublishedChanges: false,
             },
             {
                 title: "Table Designer",
@@ -284,6 +285,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                 model: initializeResult.viewModel,
                 issues: initializeResult.issues,
                 isValid: true,
+                hasUnpublishedChanges: false,
                 tabStates: {
                     mainPaneTab: designer.DesignerMainPaneTabs.Columns,
                     resultPaneTab: designer.DesignerResultPaneTabs.Script,
@@ -357,7 +359,10 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     apiState: {
                         ...state.apiState,
                         editState: designer.LoadState.Loaded,
+                        previewState: designer.LoadState.NotStarted,
+                        publishState: designer.LoadState.NotStarted,
                     },
+                    hasUnpublishedChanges: true,
                 };
 
                 return afterEditState;
@@ -410,6 +415,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                         publishState: designer.LoadState.Loaded,
                         previewState: designer.LoadState.NotStarted,
                     },
+                    hasUnpublishedChanges: false,
                 };
                 this._sessionId = publishResponse.newTableInfo.id;
                 this.panel.title = state.tableInfo.title;

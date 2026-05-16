@@ -40,6 +40,7 @@ export const DesignerChangesPreviewButton = () => {
         (s) => s?.generatePreviewReportResult,
     );
     const issues = useTableDesignerSelector((s) => s?.issues);
+    const hasUnpublishedChanges = useTableDesignerSelector((s) => s?.hasUnpublishedChanges);
     if (!designerContext) {
         return undefined;
     }
@@ -271,7 +272,7 @@ export const DesignerChangesPreviewButton = () => {
                         onClick={() => {
                             designerContext.generatePreviewReport();
                         }}
-                        disabled={(issues?.length ?? 0) > 0}>
+                        disabled={!hasUnpublishedChanges || (issues?.length ?? 0) > 0}>
                         {locConstants.publishDialog.publishChanges}
                     </Button>
                 </DialogTrigger>
