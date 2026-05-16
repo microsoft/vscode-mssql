@@ -13,7 +13,8 @@ import {
     DialogTitle,
     makeStyles,
 } from "@fluentui/react-components";
-import { ReactElement, ReactNode } from "react";
+import { useSetKeyboardNavigation } from "@fluentui/react-tabster";
+import { ReactElement, ReactNode, useEffect, useRef } from "react";
 import Markdown from "react-markdown";
 import { useMarkdownStyles } from "./styles";
 
@@ -40,7 +41,6 @@ const useStyles = makeStyles({
         position: "sticky",
         bottom: 0,
         backgroundColor: "var(--vscode-editor-background)",
-        borderTop: "1px solid var(--vscode-editorWidget-border)",
         paddingTop: "12px",
     },
     reportLayout: {
@@ -64,9 +64,8 @@ const useStyles = makeStyles({
         flexShrink: 0,
         position: "sticky",
         bottom: 0,
-        padding: "8px 0",
+        padding: "8px 2px",
         backgroundColor: "var(--vscode-editor-background)",
-        borderTop: "1px solid var(--vscode-editorWidget-border)",
         display: "flex",
         alignItems: "center",
         outline: "none",
@@ -148,6 +147,27 @@ export function PublishDialogReport({
 }: PublishDialogReportProps) {
     const classes = useStyles();
     const markdownClasses = useMarkdownStyles();
+    const setKeyboardNavigation = useSetKeyboardNavigation();
+    const confirmationRef = useRef<HTMLInputElement | null>(
+        undefined as unknown as HTMLInputElement | null,
+    );
+
+    useEffect(() => {
+        if (!confirmationLabel) {
+            return;
+        }
+
+        const frame = requestAnimationFrame(() => {
+            setKeyboardNavigation(true);
+            confirmationRef.current?.focus({
+                preventScroll: true,
+            });
+        });
+
+        return () => {
+            cancelAnimationFrame(frame);
+        };
+    }, [confirmationLabel, setKeyboardNavigation]);
 
     return (
         <div className={classes.reportLayout}>
@@ -160,6 +180,7 @@ export function PublishDialogReport({
             {confirmationLabel && (
                 <div className={classes.stickyConfirmation}>
                     <Checkbox
+                        ref={confirmationRef}
                         className={classes.confirmationCheckbox}
                         label={confirmationLabel}
                         required
@@ -167,7 +188,6 @@ export function PublishDialogReport({
                         onChange={(_event, data) => {
                             onConfirmationChange?.(data.checked as boolean);
                         }}
-                        autoFocus
                     />
                 </div>
             )}

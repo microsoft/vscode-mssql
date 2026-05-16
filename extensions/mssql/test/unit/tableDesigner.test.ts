@@ -316,7 +316,13 @@ suite("TableDesignerWebviewController tests", () => {
             table: mockResult.tableInfo,
         };
 
-        const callState = (controller as any)._state;
+        const callState = {
+            ...(controller as any)._state,
+            apiState: {
+                ...(controller as any)._state.apiState,
+                generateScriptState: td.LoadState.Loading,
+            },
+        };
 
         let result = await controller["_reducerHandlers"].get("generateScript")(
             callState,
@@ -361,7 +367,13 @@ suite("TableDesignerWebviewController tests", () => {
             table: mockResult.tableInfo,
         };
 
-        const callState = (controller as any)._state;
+        const callState = {
+            ...(controller as any)._state,
+            apiState: {
+                ...(controller as any)._state.apiState,
+                generateScriptState: td.LoadState.Loading,
+            },
+        };
 
         // Success scenario
         let result = await controller["_reducerHandlers"].get("generatePreviewReport")(
@@ -381,6 +393,10 @@ suite("TableDesignerWebviewController tests", () => {
         expect(result.apiState.publishState, "Publish state should remain NotStarted").to.equal(
             td.LoadState.NotStarted,
         );
+        expect(
+            result.apiState.generateScriptState,
+            "Generate script state should reset when preview loads",
+        ).to.equal(td.LoadState.NotStarted);
         expect(
             result.generatePreviewReportResult,
             "Should store the preview report result",
@@ -405,6 +421,10 @@ suite("TableDesignerWebviewController tests", () => {
         expect(
             result.apiState.publishState,
             "Publish state should remain NotStarted on failure",
+        ).to.equal(td.LoadState.NotStarted);
+        expect(
+            result.apiState.generateScriptState,
+            "Generate script state should reset when preview fails",
         ).to.equal(td.LoadState.NotStarted);
         expect(
             result.generatePreviewReportResult.schemaValidationError,

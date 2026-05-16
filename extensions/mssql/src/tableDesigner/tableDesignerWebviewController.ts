@@ -454,23 +454,34 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     generateScriptState: designer.LoadState.Loading,
                 },
             };
-            const script = await this._tableDesignerService.generateScript(payload.table);
-            sendActionEvent(TelemetryViews.TableDesigner, TelemetryActions.GenerateScript, {
-                correlationId: this._correlationId,
-            });
-            state = {
-                ...state,
-                apiState: {
-                    ...state.apiState,
-                    generateScriptState: designer.LoadState.Loaded,
-                },
-            };
-            await this._sqlDocumentService.newQuery({
-                content: script,
-                connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
-                connectionInfo: payload.table.connectionInfo,
-            });
-            UserSurvey.getInstance().promptUserForNPSFeedback(TABLE_DESIGNER_VIEW_ID);
+            try {
+                const script = await this._tableDesignerService.generateScript(payload.table);
+                sendActionEvent(TelemetryViews.TableDesigner, TelemetryActions.GenerateScript, {
+                    correlationId: this._correlationId,
+                });
+                state = {
+                    ...state,
+                    apiState: {
+                        ...state.apiState,
+                        generateScriptState: designer.LoadState.Loaded,
+                    },
+                };
+                await this._sqlDocumentService.newQuery({
+                    content: script,
+                    connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
+                    connectionInfo: payload.table.connectionInfo,
+                });
+                UserSurvey.getInstance().promptUserForNPSFeedback(TABLE_DESIGNER_VIEW_ID);
+            } catch (e) {
+                state = {
+                    ...state,
+                    apiState: {
+                        ...state.apiState,
+                        generateScriptState: designer.LoadState.Error,
+                    },
+                };
+                vscode.window.showErrorMessage(getErrorMessage(e));
+            }
             return state;
         });
 
@@ -481,6 +492,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     ...this.state.apiState,
                     previewState: designer.LoadState.Loading,
                     publishState: designer.LoadState.NotStarted,
+                    generateScriptState: designer.LoadState.NotStarted,
                 },
                 publishingError: undefined,
                 reportProgressMessages: this.appendProgressMessage(
@@ -500,6 +512,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                             ? designer.LoadState.Error
                             : designer.LoadState.Loaded,
                         publishState: designer.LoadState.NotStarted,
+                        generateScriptState: designer.LoadState.NotStarted,
                     },
                     generatePreviewReportResult: previewReport,
                     reportProgressMessages: previewReport.schemaValidationError
@@ -517,6 +530,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                         ...state.apiState,
                         previewState: designer.LoadState.Error,
                         publishState: designer.LoadState.NotStarted,
+                        generateScriptState: designer.LoadState.NotStarted,
                     },
                     generatePreviewReportResult: {
                         schemaValidationError: getErrorMessage(e),
