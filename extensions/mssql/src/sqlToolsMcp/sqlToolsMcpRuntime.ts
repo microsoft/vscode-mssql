@@ -33,6 +33,8 @@ interface RegisteredExecutionContext {
     connectionHandle: string;
     ownerUri: string;
     platformContext: BridgePlatformContext;
+    disposed: boolean;
+    queryTail: Promise<void>;
 }
 
 export class SqlToolsMcpRuntime {
@@ -105,6 +107,7 @@ export class SqlToolsMcpRuntime {
         const previous = this.registeredConnections.get(params.connectionName);
         if (previous) {
             this.registeredConnections.delete(params.connectionName);
+            previous.disposed = true;
             await this.cleanupContext(previous);
         }
 
@@ -135,6 +138,8 @@ export class SqlToolsMcpRuntime {
             connectionHandle: params.connectionHandle,
             ownerUri,
             platformContext,
+            disposed: false,
+            queryTail: Promise.resolve(),
         });
 
         return { platformContext };
@@ -159,11 +164,13 @@ export class SqlToolsMcpRuntime {
             );
         }
 
-        const query = normalizeSqlToolsMcpQuery(params.queryContentDescriptor);
-        const result = await this.executor.execute(context.ownerUri, query, cancellationToken);
-        return {
-            queryResult: toSqlToolsMcpQueryResult(result),
-        };
+        return this.runSerializedQuery(context, cancellationToken, async () => {
+            const query = normalizeSqlToolsMcpQuery(params.queryContentDescriptor);
+            const result = await this.executor.execute(context.ownerUri, query, cancellationToken);
+            return {
+                queryResult: toSqlToolsMcpQueryResult(result),
+            };
+        });
     }
 
     async removeConnection(params: RemoveConnectionRequest): Promise<RemoveConnectionResponse> {
@@ -177,6 +184,7 @@ export class SqlToolsMcpRuntime {
         const context = this.registeredConnections.get(params.connectionName);
         this.registeredConnections.delete(params.connectionName);
         if (context) {
+            context.disposed = true;
             await this.cleanupContext(context);
         }
 
@@ -186,6 +194,9 @@ export class SqlToolsMcpRuntime {
     async dispose(): Promise<void> {
         const contexts = [...this.registeredConnections.values()];
         this.registeredConnections.clear();
+        contexts.forEach((context) => {
+            context.disposed = true;
+        });
         await Promise.all(contexts.map((context) => this.cleanupContext(context)));
     }
 
@@ -240,10 +251,56 @@ export class SqlToolsMcpRuntime {
     }
 
     private async cleanupContext(context: RegisteredExecutionContext): Promise<void> {
+        await context.queryTail;
+
         try {
             await this.connectionManager.disconnect(context.ownerUri);
         } catch {
             this.logger.warn("SQL Tools MCP connection cleanup failed.");
+        }
+    }
+
+    private async runSerializedQuery<T>(
+        context: RegisteredExecutionContext,
+        cancellationToken: HeadlessQueryCancellationToken | undefined,
+        callback: () => Promise<T>,
+    ): Promise<T> {
+        const previousTail = context.queryTail;
+        let releaseCurrentQuery: () => void = () => undefined;
+        const currentQueryTail = new Promise<void>((resolve) => {
+            releaseCurrentQuery = resolve;
+        });
+
+        // STS query notifications are keyed by ownerUri, so one registered MCP
+        // connection must execute only one query at a time for its shared URI.
+        context.queryTail = previousTail.then(
+            () => currentQueryTail,
+            () => currentQueryTail,
+        );
+
+        await previousTail;
+
+        try {
+            this.throwIfQueryCannotStart(context, cancellationToken);
+            return await callback();
+        } finally {
+            releaseCurrentQuery!();
+        }
+    }
+
+    private throwIfQueryCannotStart(
+        context: RegisteredExecutionContext,
+        cancellationToken: HeadlessQueryCancellationToken | undefined,
+    ): void {
+        if (context.disposed) {
+            throw new BridgeRequestError(
+                BridgeErrorCode.NotFound,
+                "Registered connection was removed.",
+            );
+        }
+
+        if (cancellationToken?.isCancellationRequested) {
+            throw new BridgeRequestError(BridgeErrorCode.Cancelled, "Query request was cancelled.");
         }
     }
 }
