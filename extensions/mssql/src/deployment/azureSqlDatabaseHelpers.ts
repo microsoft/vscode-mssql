@@ -5,7 +5,6 @@
 
 import { AzureSubscription, AzureTenant } from "@microsoft/vscode-azext-azureauth";
 import { KnownAlwaysEncryptedEnclaveType, Server, KnownSampleName } from "@azure/arm-sql";
-import * as vscode from "vscode";
 import { getDefaultTenantId, VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
 import { AzureSqlDatabase, ConnectionDialog } from "../constants/locConstants";
@@ -20,33 +19,14 @@ import { ConnectionCredentials } from "../models/connectionCredentials";
 import { IConnectionProfile } from "../models/interfaces";
 import { DEPLOYMENT_VIEW_ID, DeploymentWebviewController } from "./deploymentWebviewController";
 import { UserSurvey } from "../nps/userSurvey";
-import publicIpv4 from "public-ip";
 
 // Cached logger reference for use in helper functions that don't have
 // direct access to the controller's protected logger.
 let cachedLogger: Logger | undefined;
 
-let cachedAccounts: vscode.AuthenticationSessionAccountInformation[] = [];
-let cachedTenants: AzureTenant[] = [];
-let cachedSubscriptions: AzureSubscription[] = [];
-let cachedResourceGroups: string[] = [];
-let cachedServers: Server[] = [];
-let cachedLocations: { name: string; displayName: string }[] = [];
-let cachedMaintenanceConfigs: { name: string; id: string }[] = [];
-
 const FIREWALL_ERROR_CODE = "40615";
 
-function clearAllCaches(): void {
-    cachedAccounts = [];
-    cachedTenants = [];
-    cachedSubscriptions = [];
-    cachedResourceGroups = [];
-    cachedServers = [];
-    cachedLocations = [];
-    cachedMaintenanceConfigs = [];
-}
-
-function clearCacheDownstream(fromComponent: string): void {
+function clearCacheDownstream(state: asd.AzureSqlDatabaseState, fromComponent: string): void {
     const order = asd.AZURE_SQL_DB_COMPONENT_ORDER as readonly string[];
     const idx = order.indexOf(fromComponent);
     if (idx === -1) return;
@@ -54,25 +34,28 @@ function clearCacheDownstream(fromComponent: string): void {
     for (let i = idx + 1; i < order.length; i++) {
         switch (order[i]) {
             case "tenantId":
-                cachedTenants = [];
+                state.tenants = [];
                 break;
             case "subscriptionId":
-                cachedSubscriptions = [];
-                cachedMaintenanceConfigs = [];
+                state.subscriptions = [];
+                state.maintenanceConfigs = [];
                 break;
             case "resourceGroup":
-                cachedResourceGroups = [];
+                state.resourceGroups = [];
                 break;
             case "serverName":
-                cachedServers = [];
+                state.servers = [];
                 break;
         }
     }
-    cachedLocations = [];
+    state.locations = [];
 }
 
-function getCachedSubscription(subscriptionId: string): AzureSubscription | undefined {
-    return cachedSubscriptions.find((s) => s.subscriptionId === subscriptionId);
+function getCachedSubscription(
+    state: asd.AzureSqlDatabaseState,
+    subscriptionId: string,
+): AzureSubscription | undefined {
+    return state.subscriptions.find((s) => s.subscriptionId === subscriptionId);
 }
 
 const COLLATION_OPTIONS = [
@@ -101,15 +84,18 @@ const DATA_SOURCE_OPTIONS: FormItemOptions[] = [
     },
 ];
 
-function getCachedTenant(tenantId: string): AzureTenant | undefined {
-    return cachedTenants.find((t) => t.tenantId === tenantId);
+function getCachedTenant(
+    state: asd.AzureSqlDatabaseState,
+    tenantId: string,
+): AzureTenant | undefined {
+    return state.tenants.find((t) => t.tenantId === tenantId);
 }
 
 /**
  * Finds a cached server by name.
  */
-function getCachedServer(serverName: string): Server | undefined {
-    return cachedServers.find((s) => s.name === serverName);
+function getCachedServer(state: asd.AzureSqlDatabaseState, serverName: string): Server | undefined {
+    return state.servers.find((s) => s.name === serverName);
 }
 
 /**
@@ -152,7 +138,7 @@ export function applyServerAuthSettings(
         return;
     }
 
-    const server = getCachedServer(serverName);
+    const server = getCachedServer(azureSqlState, serverName);
     if (!server) {
         azureSqlState.formState.authenticationType = AuthenticationType.AzureMFA;
         azureSqlState.formState.userName = "";
@@ -175,7 +161,6 @@ export async function initializeAzureSqlDatabaseState(
     selectedGroupId: string | undefined,
 ): Promise<asd.AzureSqlDatabaseState> {
     cachedLogger = logger;
-    clearAllCaches();
     const startTime = Date.now();
     const state = new asd.AzureSqlDatabaseState();
 
@@ -198,12 +183,6 @@ export async function initializeAzureSqlDatabaseState(
         dataSource: "",
         enableAlwaysEncrypted: false,
     };
-    try {
-        state.publicIp = await publicIpv4.v4();
-    } catch {
-        state.publicIp = "";
-        logger.warn("Could not detect public IP for firewall rule");
-    }
 
     deploymentController.state.deploymentTypeState = state;
     state.formComponents = setAzureSqlDatabaseFormComponents([], [], groupOptions, [], []);
@@ -300,17 +279,21 @@ export function registerAzureSqlDatabaseReducers(
 
             // Resolve display names for the provisioning page
             const deploySubscription = getCachedSubscription(
+                azureSqlState,
                 azureSqlState.formState.subscriptionId,
             );
             azureSqlState.subscriptionName = deploySubscription?.name ?? "";
-            const deployServer = getCachedServer(azureSqlState.formState.serverName);
+            const deployServer = getCachedServer(azureSqlState, azureSqlState.formState.serverName);
             azureSqlState.serverRegion = deployServer?.location ?? "";
 
             updateAzureSqlDatabaseState(deploymentController, azureSqlState);
 
             try {
                 const startTime = Date.now();
-                const subscription = getCachedSubscription(azureSqlState.formState.subscriptionId);
+                const subscription = getCachedSubscription(
+                    azureSqlState,
+                    azureSqlState.formState.subscriptionId,
+                );
                 if (!subscription) {
                     throw new Error(AzureSqlDatabase.noSubscriptionsFound);
                 }
@@ -347,15 +330,6 @@ export function registerAzureSqlDatabaseReducers(
                     },
                 );
 
-                const ip = azureSqlState.publicIp ?? "";
-                await VsCodeAzureHelper.createFirewallRule(
-                    subscription,
-                    azureSqlState.formState.resourceGroup,
-                    azureSqlState.formState.serverName,
-                    `mssql-${azureSqlState.formState.serverName}-firewall-rule`,
-                    ip,
-                    ip,
-                );
                 void connectToAzureSqlDatabase(deploymentController);
             } catch (error) {
                 azureSqlState.provisionLoadState = ApiStatus.Error;
@@ -390,9 +364,9 @@ export function registerAzureSqlDatabaseReducers(
 
                 // Fetch locations in the background
                 const { subscriptionId } = azureSqlState.formState;
-                const subscription = getCachedSubscription(subscriptionId);
+                const subscription = getCachedSubscription(azureSqlState, subscriptionId);
                 if (subscription) {
-                    cachedLocations =
+                    azureSqlState.locations =
                         await VsCodeAzureHelper.getLocationsForSubscription(subscription);
                 }
 
@@ -403,7 +377,7 @@ export function registerAzureSqlDatabaseReducers(
 
                 // Update drawer with loaded locations
                 azureSqlState.createResourceGroupDrawerState = {
-                    locationOptions: cachedLocations,
+                    locationOptions: azureSqlState.locations,
                     locationsLoadState: ApiStatus.Loaded,
                     createLoadState: ApiStatus.NotStarted,
                 };
@@ -429,7 +403,10 @@ export function registerAzureSqlDatabaseReducers(
         }
 
         try {
-            const subscription = getCachedSubscription(azureSqlState.formState.subscriptionId);
+            const subscription = getCachedSubscription(
+                azureSqlState,
+                azureSqlState.formState.subscriptionId,
+            );
             if (!subscription) {
                 throw new Error(AzureSqlDatabase.noSubscriptionsFound);
             }
@@ -477,10 +454,11 @@ export function registerAzureSqlDatabaseReducers(
 
             // Fetch locations and resource group default location
             const { subscriptionId, resourceGroup } = azureSqlState.formState;
-            const subscription = getCachedSubscription(subscriptionId);
+            const subscription = getCachedSubscription(azureSqlState, subscriptionId);
             let defaultLocation = "";
             if (subscription) {
-                cachedLocations = await VsCodeAzureHelper.getLocationsForSubscription(subscription);
+                azureSqlState.locations =
+                    await VsCodeAzureHelper.getLocationsForSubscription(subscription);
                 if (resourceGroup) {
                     defaultLocation = await VsCodeAzureHelper.getDefaultLocationForResourceGroup(
                         resourceGroup,
@@ -495,7 +473,7 @@ export function registerAzureSqlDatabaseReducers(
             }
 
             azureSqlState.createServerDrawerState = {
-                locationOptions: cachedLocations,
+                locationOptions: azureSqlState.locations,
                 locationsLoadState: ApiStatus.Loaded,
                 createLoadState: ApiStatus.NotStarted,
                 defaultLocation,
@@ -528,13 +506,18 @@ export function registerAzureSqlDatabaseReducers(
         }
 
         try {
-            const subscription = getCachedSubscription(azureSqlState.formState.subscriptionId);
+            const subscription = getCachedSubscription(
+                azureSqlState,
+                azureSqlState.formState.subscriptionId,
+            );
             if (!subscription) {
                 throw new Error(AzureSqlDatabase.noSubscriptionsFound);
             }
 
             // Resolve the signed-in user's identity for Entra admin configuration
-            const account = cachedAccounts.find((a) => a.id === azureSqlState.formState.accountId);
+            const account = azureSqlState.accounts.find(
+                (a) => a.id === azureSqlState.formState.accountId,
+            );
             const accountOid = account?.id?.split(".")[0];
 
             await VsCodeAzureHelper.createSqlServer(
@@ -635,7 +618,7 @@ export function reloadAzureComponentsDownstream(
             if (maintenanceComponent) {
                 maintenanceComponent.options = [];
             }
-            cachedMaintenanceConfigs = [];
+            azureSqlState.maintenanceConfigs = [];
         }
     }
 }
@@ -689,13 +672,14 @@ export async function connectToAzureSqlDatabase(
             connectionProfile.savePassword = state.formState.savePassword;
         }
 
-        // Probe connectivity with retries to wait for firewall rule propagation.
-        // connect() with shouldHandleErrors:false returns false silently on failure
-        // (no interactive dialogs), letting us retry firewall errors automatically.
+        // Probe connectivity with retries. On the first firewall error, extract
+        // the client IP from the error message (same pattern as the connection
+        // dialog's addFirewallRule flow) and create a firewall rule automatically.
         const maxRetries = 10;
         const retryDelayMs = 30_000;
         const connManager = deploymentController.mainController.connectionManager;
         const tempUri = `${state.formState.serverName}/${state.formState.databaseName}`;
+        let firewallRuleCreated = false;
 
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             const success = await connManager.connect(
@@ -726,6 +710,49 @@ export async function connectToAzureSqlDatabase(
                 );
                 updateAzureSqlDatabaseState(deploymentController, state);
                 return;
+            }
+
+            // On the first firewall error, extract the client IP and create a rule
+            if (!firewallRuleCreated) {
+                const handleResult = await connManager.firewallService.handleFirewallRule(
+                    connInfo?.errorNumber ?? Number(FIREWALL_ERROR_CODE),
+                    connInfo?.errorMessage ?? "",
+                );
+
+                if (!handleResult.result || !handleResult.ipAddress) {
+                    state.connectionLoadState = ApiStatus.Error;
+                    state.errorMessage = AzureSqlDatabase.connectionFailed;
+                    cachedLogger?.error(
+                        "Could not detect client IP from firewall error; manual firewall rule required.",
+                    );
+                    sendErrorEvent(
+                        TelemetryViews.AzureSqlDatabase,
+                        TelemetryActions.ConnectToAzureSqlDatabase,
+                        new Error("Failed to detect client IP for firewall rule"),
+                        false,
+                    );
+                    updateAzureSqlDatabaseState(deploymentController, state);
+                    return;
+                }
+
+                const clientIp = handleResult.ipAddress;
+                state.publicIp = clientIp;
+                updateAzureSqlDatabaseState(deploymentController, state);
+
+                const subscription = getCachedSubscription(state, state.formState.subscriptionId);
+                if (!subscription) {
+                    throw new Error(AzureSqlDatabase.noSubscriptionsFound);
+                }
+
+                await VsCodeAzureHelper.createFirewallRule(
+                    subscription,
+                    state.formState.resourceGroup,
+                    state.formState.serverName,
+                    `mssql-${state.formState.serverName}-firewall-rule`,
+                    clientIp,
+                    clientIp,
+                );
+                firewallRuleCreated = true;
             }
 
             cachedLogger?.log(
@@ -774,20 +801,24 @@ async function loadAccountComponent(
     const accountComponent = azureSqlState.formComponents.accountId;
     if (!accountComponent) return;
 
-    cachedAccounts = await VsCodeAzureHelper.getAccounts();
-    clearCacheDownstream("accountId");
+    azureSqlState.accounts = await VsCodeAzureHelper.getAccounts();
+    clearCacheDownstream(azureSqlState, "accountId");
 
-    accountComponent.options = cachedAccounts.map((account) => ({
+    accountComponent.options = azureSqlState.accounts.map((account) => ({
         displayName: account.label,
         value: account.id,
     }));
-    accountComponent.actionButtons = await getAzureActionButton(deploymentController);
+    accountComponent.actionButtons = await getAzureActionButton(
+        deploymentController,
+        azureSqlState,
+    );
 
-    if (cachedAccounts.length === 0) {
+    if (azureSqlState.accounts.length === 0) {
         accountComponent.placeholder = AzureSqlDatabase.noAzureAccountsFound;
     }
 
-    azureSqlState.formState.accountId = cachedAccounts.length > 0 ? cachedAccounts[0].id : "";
+    azureSqlState.formState.accountId =
+        azureSqlState.accounts.length > 0 ? azureSqlState.accounts[0].id : "";
 }
 
 async function loadTenantComponent(azureSqlState: asd.AzureSqlDatabaseState): Promise<void> {
@@ -800,19 +831,23 @@ async function loadTenantComponent(azureSqlState: asd.AzureSqlDatabaseState): Pr
         return;
     }
 
-    cachedTenants = await VsCodeAzureHelper.getTenantsForAccount(azureSqlState.formState.accountId);
-    clearCacheDownstream("tenantId");
+    azureSqlState.tenants = await VsCodeAzureHelper.getTenantsForAccount(
+        azureSqlState.formState.accountId,
+    );
+    clearCacheDownstream(azureSqlState, "tenantId");
 
-    tenantComponent.options = cachedTenants.map((t) => ({
+    tenantComponent.options = azureSqlState.tenants.map((t) => ({
         displayName: t.displayName,
         value: t.tenantId,
     }));
     tenantComponent.placeholder =
-        cachedTenants.length > 0 ? ConnectionDialog.selectATenant : AzureSqlDatabase.noTenantsFound;
+        azureSqlState.tenants.length > 0
+            ? ConnectionDialog.selectATenant
+            : AzureSqlDatabase.noTenantsFound;
 
     azureSqlState.formState.tenantId = getDefaultTenantId(
         azureSqlState.formState.accountId,
-        cachedTenants,
+        azureSqlState.tenants,
     );
 }
 
@@ -826,27 +861,27 @@ async function loadSubscriptionComponent(azureSqlState: asd.AzureSqlDatabaseStat
         return;
     }
 
-    const tenant = getCachedTenant(azureSqlState.formState.tenantId);
+    const tenant = getCachedTenant(azureSqlState, azureSqlState.formState.tenantId);
     if (!tenant) {
         azureSqlState.azureComponentStatuses["subscriptionId"] = ApiStatus.Error;
         subscriptionComponent.placeholder = AzureSqlDatabase.noSubscriptionsFound;
         return;
     }
 
-    cachedSubscriptions = await VsCodeAzureHelper.getSubscriptionsForTenant(tenant);
-    clearCacheDownstream("subscriptionId");
+    azureSqlState.subscriptions = await VsCodeAzureHelper.getSubscriptionsForTenant(tenant);
+    clearCacheDownstream(azureSqlState, "subscriptionId");
 
-    subscriptionComponent.options = cachedSubscriptions.map((sub) => ({
+    subscriptionComponent.options = azureSqlState.subscriptions.map((sub) => ({
         displayName: `${sub.name} (${sub.subscriptionId})`,
         value: sub.subscriptionId,
     }));
     subscriptionComponent.placeholder =
-        cachedSubscriptions.length > 0
+        azureSqlState.subscriptions.length > 0
             ? AzureSqlDatabase.selectASubscription
             : AzureSqlDatabase.noSubscriptionsFound;
 
     azureSqlState.formState.subscriptionId =
-        cachedSubscriptions.length > 0 ? cachedSubscriptions[0].subscriptionId : "";
+        azureSqlState.subscriptions.length > 0 ? azureSqlState.subscriptions[0].subscriptionId : "";
 
     // Load maintenance configurations for the selected subscription
     await loadMaintenanceConfigs(azureSqlState);
@@ -858,7 +893,10 @@ async function loadMaintenanceConfigs(azureSqlState: asd.AzureSqlDatabaseState):
 
     azureSqlState.azureComponentStatuses["maintenanceConfig"] = ApiStatus.Loading;
 
-    const subscription = getCachedSubscription(azureSqlState.formState.subscriptionId);
+    const subscription = getCachedSubscription(
+        azureSqlState,
+        azureSqlState.formState.subscriptionId,
+    );
     if (!subscription) {
         maintenanceComponent.options = [];
         azureSqlState.azureComponentStatuses["maintenanceConfig"] = ApiStatus.Error;
@@ -866,11 +904,11 @@ async function loadMaintenanceConfigs(azureSqlState: asd.AzureSqlDatabaseState):
     }
 
     const configs = await VsCodeAzureHelper.fetchPublicMaintenanceConfigurations(subscription);
-    cachedMaintenanceConfigs = configs
+    azureSqlState.maintenanceConfigs = configs
         .filter((c) => c.name && c.id)
         .map((c) => ({ name: c.name!, id: c.id! }));
 
-    maintenanceComponent.options = cachedMaintenanceConfigs.map((c) => ({
+    maintenanceComponent.options = azureSqlState.maintenanceConfigs.map((c) => ({
         displayName: c.name,
         value: c.id,
     }));
@@ -878,7 +916,7 @@ async function loadMaintenanceConfigs(azureSqlState: asd.AzureSqlDatabaseState):
     azureSqlState.azureComponentStatuses["maintenanceConfig"] = ApiStatus.Loaded;
 
     // Default to SQL_Default if available and user hasn't already selected a value
-    const defaultConfig = cachedMaintenanceConfigs.find((c) => c.name === "SQL_Default");
+    const defaultConfig = azureSqlState.maintenanceConfigs.find((c) => c.name === "SQL_Default");
     if (defaultConfig && !azureSqlState.formState.maintenanceConfig) {
         azureSqlState.formState.maintenanceConfig = defaultConfig.id;
     }
@@ -894,32 +932,36 @@ async function loadResourceGroupComponent(azureSqlState: asd.AzureSqlDatabaseSta
         return;
     }
 
-    const subscription = getCachedSubscription(azureSqlState.formState.subscriptionId);
+    const subscription = getCachedSubscription(
+        azureSqlState,
+        azureSqlState.formState.subscriptionId,
+    );
     if (!subscription) {
         azureSqlState.azureComponentStatuses["resourceGroup"] = ApiStatus.Error;
         resourceGroupComponent.placeholder = AzureSqlDatabase.noResourceGroupsFound;
         return;
     }
 
-    cachedResourceGroups = await VsCodeAzureHelper.getResourceGroupsForSubscription(subscription);
-    clearCacheDownstream("resourceGroup");
+    azureSqlState.resourceGroups =
+        await VsCodeAzureHelper.getResourceGroupsForSubscription(subscription);
+    clearCacheDownstream(azureSqlState, "resourceGroup");
 
-    resourceGroupComponent.options = cachedResourceGroups.map((name) => ({
+    resourceGroupComponent.options = azureSqlState.resourceGroups.map((name) => ({
         displayName: name,
         value: name,
     }));
     resourceGroupComponent.placeholder =
-        cachedResourceGroups.length > 0
+        azureSqlState.resourceGroups.length > 0
             ? AzureSqlDatabase.selectAResourceGroup
             : AzureSqlDatabase.noResourceGroupsFound;
 
     // Preserve the current selection if it exists in the loaded list (e.g., after creating a new one)
     const currentRg = azureSqlState.formState.resourceGroup;
-    if (currentRg && cachedResourceGroups.includes(currentRg)) {
+    if (currentRg && azureSqlState.resourceGroups.includes(currentRg)) {
         azureSqlState.formState.resourceGroup = currentRg;
     } else {
         azureSqlState.formState.resourceGroup =
-            cachedResourceGroups.length > 0 ? cachedResourceGroups[0] : "";
+            azureSqlState.resourceGroups.length > 0 ? azureSqlState.resourceGroups[0] : "";
     }
 }
 
@@ -937,35 +979,40 @@ async function loadServerComponent(azureSqlState: asd.AzureSqlDatabaseState): Pr
         return;
     }
 
-    const subscription = getCachedSubscription(azureSqlState.formState.subscriptionId);
+    const subscription = getCachedSubscription(
+        azureSqlState,
+        azureSqlState.formState.subscriptionId,
+    );
     if (!subscription) {
         azureSqlState.azureComponentStatuses["serverName"] = ApiStatus.Error;
         serverComponent.placeholder = AzureSqlDatabase.noServersFound;
         return;
     }
 
-    cachedServers = await VsCodeAzureHelper.getSqlServersForResourceGroup(
+    azureSqlState.servers = await VsCodeAzureHelper.getSqlServersForResourceGroup(
         subscription,
         azureSqlState.formState.resourceGroup,
     );
 
-    serverComponent.options = cachedServers.map((s) => ({
+    serverComponent.options = azureSqlState.servers.map((s) => ({
         displayName: s.name ?? "",
         value: s.name ?? "",
     }));
     serverComponent.placeholder =
-        cachedServers.length > 0 ? AzureSqlDatabase.selectAServer : AzureSqlDatabase.noServersFound;
+        azureSqlState.servers.length > 0
+            ? AzureSqlDatabase.selectAServer
+            : AzureSqlDatabase.noServersFound;
 
     // Preserve the current selection if it exists in the loaded list (e.g., after creating a new one)
     const currentServer = azureSqlState.formState.serverName;
     const matchedServer = currentServer
-        ? cachedServers.find((s) => s.name === currentServer)
+        ? azureSqlState.servers.find((s) => s.name === currentServer)
         : undefined;
     if (matchedServer) {
         azureSqlState.formState.serverName = currentServer;
     } else {
         azureSqlState.formState.serverName =
-            cachedServers.length > 0 ? (cachedServers[0].name ?? "") : "";
+            azureSqlState.servers.length > 0 ? (azureSqlState.servers[0].name ?? "") : "";
     }
 
     // Auto-detect auth type based on the selected server's properties
@@ -984,6 +1031,7 @@ function updateAzureSqlDatabaseState(
 
 async function getAzureActionButton(
     deploymentController: DeploymentWebviewController,
+    azureSqlState: asd.AzureSqlDatabaseState,
 ): Promise<FormItemActionButton[]> {
     const actionButtons: FormItemActionButton[] = [];
     actionButtons.push({
@@ -1003,12 +1051,20 @@ async function getAzureActionButton(
                 cachedLogger?.error("Account component not found");
                 return;
             }
-            cachedAccounts = await VsCodeAzureHelper.getAccounts();
-            clearCacheDownstream("accountId");
-            accountsComponent.options = cachedAccounts.map((account) => ({
+            const previousAccountIds = new Set(currentState.accounts.map((a) => a.id));
+            currentState.accounts = await VsCodeAzureHelper.getAccounts();
+            clearCacheDownstream(currentState, "accountId");
+            accountsComponent.options = currentState.accounts.map((account) => ({
                 displayName: account.label,
                 value: account.id,
             }));
+
+            // Auto-select the newly added account, or keep the first one
+            const newAccount = currentState.accounts.find((a) => !previousAccountIds.has(a.id));
+            currentState.formState.accountId =
+                newAccount?.id ??
+                (currentState.accounts.length > 0 ? currentState.accounts[0].id : "");
+
             // Reset downstream components so they reload with the new account
             reloadAzureComponentsDownstream(currentState, "accountId");
             updateAzureSqlDatabaseState(deploymentController, currentState);

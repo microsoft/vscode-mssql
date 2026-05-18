@@ -6,7 +6,8 @@
 import { ApiStatus } from "./webview";
 import { FormContextProps, FormItemSpec, FormReducers, FormState } from "./form";
 import { IDialogProps } from "./connectionDialog";
-import { KnownSampleName } from "@azure/arm-sql";
+import { KnownSampleName, Server } from "@azure/arm-sql";
+import { AzureSubscription, AzureTenant } from "@microsoft/vscode-azext-azureauth";
 
 /**
  * Ordered list of Azure component names used for cascading load/reset.
@@ -60,6 +61,13 @@ export class AzureSqlDatabaseState
         serverName: ApiStatus.NotStarted,
         maintenanceConfig: ApiStatus.NotStarted,
     };
+    accounts: { id: string; label: string }[] = [];
+    tenants: AzureTenant[] = [];
+    subscriptions: AzureSubscription[] = [];
+    resourceGroups: string[] = [];
+    servers: Server[] = [];
+    locations: { name: string; displayName: string }[] = [];
+    maintenanceConfigs: { name: string; id: string }[] = [];
     publicIp: string = "";
     subscriptionName: string = "";
     serverRegion: string = "";

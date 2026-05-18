@@ -161,7 +161,7 @@ export const ChooseDeploymentTypePage: React.FC<ChooseDeploymentTypePageProps> =
                     )}
                     onClick={() => onDeploymentTypeChange(DeploymentType.FabricProvisioning)}
                     onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") {
+                        if (event.key === KeyCode.Enter || event.key === KeyCode.Space) {
                             event.preventDefault();
                             onDeploymentTypeChange(DeploymentType.FabricProvisioning);
                         }
@@ -193,7 +193,7 @@ export const ChooseDeploymentTypePage: React.FC<ChooseDeploymentTypePageProps> =
                     )}
                     onClick={() => onDeploymentTypeChange(DeploymentType.AzureSqlDatabase)}
                     onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") {
+                        if (event.key === KeyCode.Enter || event.key === KeyCode.Space) {
                             event.preventDefault();
                             onDeploymentTypeChange(DeploymentType.AzureSqlDatabase);
                         }

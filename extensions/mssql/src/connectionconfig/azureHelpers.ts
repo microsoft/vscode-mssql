@@ -223,6 +223,9 @@ export class VsCodeAzureHelper {
             const client = new ResourceManagementClient(
                 subscription.credential,
                 subscription.subscriptionId,
+                {
+                    endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+                },
             );
             const groups = await listAllIterator(client.resourceGroups.list());
             return groups
@@ -243,6 +246,9 @@ export class VsCodeAzureHelper {
             const client = new ResourceManagementClient(
                 subscription.credential,
                 subscription.subscriptionId,
+                {
+                    endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+                },
             );
             const rg = await client.resourceGroups.get(resourceGroupName);
             return rg.location;
@@ -259,7 +265,9 @@ export class VsCodeAzureHelper {
         subscription: AzureSubscription,
     ): Promise<{ name: string; displayName: string }[]> {
         try {
-            const client = new SubscriptionClient(subscription.credential);
+            const client = new SubscriptionClient(subscription.credential, {
+                endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+            });
             const locations = await listAllIterator(
                 client.subscriptions.listLocations(subscription.subscriptionId),
             );
@@ -287,6 +295,9 @@ export class VsCodeAzureHelper {
         const client = new ResourceManagementClient(
             subscription.credential,
             subscription.subscriptionId,
+            {
+                endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+            },
         );
         return client.resourceGroups.createOrUpdate(resourceGroupName, { location });
     }
@@ -339,16 +350,13 @@ export class VsCodeAzureHelper {
             endpoint: getCloudProviderSettings().settings.armResource.endpoint,
         });
 
-        const location = await this.getDefaultLocationForResourceGroup(
-            resourceGroupName,
-            subscription,
-        );
+        const server = await sql.servers.get(resourceGroupName, serverName);
 
         const poller = await sql.databases.beginCreateOrUpdate(
             resourceGroupName,
             serverName,
             databaseName,
-            { ...options, location },
+            { ...options, location: server.location },
         );
         return poller.pollUntilDone();
     }
@@ -361,7 +369,7 @@ export class VsCodeAzureHelper {
         resourceGroupName: string,
         serverName: string,
         location: string,
-        authConfig?: {
+        authConfig: {
             authenticationType: string;
             adminLogin?: string;
             adminPassword?: string;
@@ -378,29 +386,18 @@ export class VsCodeAzureHelper {
 
         const serverParams: Server = { location };
 
-        if (authConfig?.authenticationType !== "AzureMFA") {
+        if (authConfig.authenticationType !== "AzureMFA") {
             serverParams.administratorLogin = authConfig.adminLogin;
             serverParams.administratorLoginPassword = authConfig.adminPassword;
         }
 
-        if (authConfig?.authenticationType != "SqlLogin") {
+        if (authConfig.authenticationType !== "SqlLogin") {
             serverParams.administrators = {
                 administratorType: "ActiveDirectory",
                 azureADOnlyAuthentication: authConfig.authenticationType === "AzureMFA",
                 login: authConfig.entraAdmin?.login,
                 sid: authConfig.entraAdmin?.sid,
                 tenantId: authConfig.entraAdmin?.tenantId,
-            };
-        }
-
-        // Default to Entra-only if no auth config provided
-        if (!authConfig) {
-            serverParams.administrators = {
-                administratorType: "ActiveDirectory",
-                azureADOnlyAuthentication: true,
-                login: authConfig?.entraAdmin?.login,
-                sid: authConfig?.entraAdmin?.sid,
-                tenantId: authConfig?.entraAdmin?.tenantId,
             };
         }
 

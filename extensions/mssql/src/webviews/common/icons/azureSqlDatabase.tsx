@@ -3,14 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import React from "react";
+import React, { useId } from "react";
 
 export const AzureSqlDatabaseIcon = Object.assign(
     React.forwardRef<SVGSVGElement, React.SVGAttributes<SVGElement>>((props, ref) => {
+        const paint0Id = useId();
+        const paint1Id = useId();
+        const paint2Id = useId();
+
         return (
             <svg
                 ref={ref}
-                id="a96792b7-ce28-4ca3-9767-4e065ef4820f"
+                id={paint0Id}
                 xmlns="http://www.w3.org/2000/svg"
                 width="32"
                 height="32"
@@ -18,7 +22,7 @@ export const AzureSqlDatabaseIcon = Object.assign(
                 {...props}>
                 <defs>
                     <linearGradient
-                        id="ef16bf9d-a8b6-4181-b6cd-66fc5203f956"
+                        id={paint1Id}
                         x1="2.59"
                         y1="10.16"
                         x2="15.41"
@@ -33,7 +37,7 @@ export const AzureSqlDatabaseIcon = Object.assign(
                         <stop offset="1" stop-color="#005ba1" />
                     </linearGradient>
                     <radialGradient
-                        id="bf3846c3-4d74-4743-ab9a-f334c248bd92"
+                        id={paint2Id}
                         cx="9.36"
                         cy="10.57"
                         r="7.07"
@@ -46,7 +50,7 @@ export const AzureSqlDatabaseIcon = Object.assign(
                 <title>Icon-databases-130</title>
                 <path
                     d="M9,5.14c-3.54,0-6.41-1-6.41-2.32V15.18c0,1.27,2.82,2.3,6.32,2.32H9c3.54,0,6.41-1,6.41-2.32V2.82C15.41,4.11,12.54,5.14,9,5.14Z"
-                    fill="url(#ef16bf9d-a8b6-4181-b6cd-66fc5203f956)"
+                    fill={`url(#${paint1Id})`}
                 />
                 <path
                     d="M15.41,2.82c0,1.29-2.87,2.32-6.41,2.32s-6.41-1-6.41-2.32S5.46.5,9,.5s6.41,1,6.41,2.32"
@@ -62,7 +66,7 @@ export const AzureSqlDatabaseIcon = Object.assign(
                 />
                 <path
                     d="M12.9,11.4V8H12v4.13h2.46V11.4ZM5.76,9.73a1.83,1.83,0,0,1-.51-.31.44.44,0,0,1-.12-.32.34.34,0,0,1,.15-.3.68.68,0,0,1,.42-.12,1.62,1.62,0,0,1,1,.29V8.11a2.58,2.58,0,0,0-1-.16,1.64,1.64,0,0,0-1.09.34,1.08,1.08,0,0,0-.42.89c0,.51.32.91,1,1.21a2.88,2.88,0,0,1,.62.36.42.42,0,0,1,.15.32.38.38,0,0,1-.16.31.81.81,0,0,1-.45.11,1.66,1.66,0,0,1-1.09-.42V12a2.17,2.17,0,0,0,1.07.24,1.88,1.88,0,0,0,1.18-.33A1.08,1.08,0,0,0,6.84,11a1.05,1.05,0,0,0-.25-.7A2.42,2.42,0,0,0,5.76,9.73ZM11,11.32a2.34,2.34,0,0,0,.33-1.26A2.32,2.32,0,0,0,11,9a1.81,1.81,0,0,0-.7-.75,2,2,0,0,0-1-.26,2.11,2.11,0,0,0-1.08.27A1.86,1.86,0,0,0,7.49,9a2.46,2.46,0,0,0-.26,1.14,2.26,2.26,0,0,0,.24,1,1.76,1.76,0,0,0,.69.74,2.06,2.06,0,0,0,1,.3l.86,1h1.21L10,12.08A1.79,1.79,0,0,0,11,11.32ZM10,11.07a.94.94,0,0,1-.76.35.92.92,0,0,1-.76-.36,1.52,1.52,0,0,1-.29-1,1.53,1.53,0,0,1,.29-1,1,1,0,0,1,.78-.37.87.87,0,0,1,.75.37,1.62,1.62,0,0,1,.27,1A1.46,1.46,0,0,1,10,11.07Z"
-                    fill="url(#bf3846c3-4d74-4743-ab9a-f334c248bd92)"
+                    fill={`url(#${paint2Id})`}
                 />
             </svg>
         );

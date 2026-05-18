@@ -1933,6 +1933,7 @@ export class LocConstants {
                     args: [ip],
                     comment: ["{0} is the current IP address"],
                 }),
+
             whatsNext: l10n.t("What's next?"),
             connectAndRunQuery: l10n.t("Connect with SQL tools and run your first query"),
             seedSampleData: l10n.t("Seed sample data or import an existing schema"),
