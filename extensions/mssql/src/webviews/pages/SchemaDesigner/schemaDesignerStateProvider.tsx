@@ -68,9 +68,7 @@ export interface SchemaDesignerContextProps extends CoreRPCs {
     resetView: () => void;
     isInitialized: boolean;
     initializationError?: string;
-    initializationProgressMessage?: string;
     initializationProgressMessages: LoadingLogEntry[];
-    reportProgressMessage?: string;
     reportProgressMessages: LoadingLogEntry[];
     publishProgressMessages: LoadingLogEntry[];
     initializationRequestId: number;
@@ -115,15 +113,9 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const isInitializedRef = useRef(false); // Ref to track initialization status for closures
     const initializationGateControllerRef = useRef(createInitializationGateController());
     const [initializationError, setInitializationError] = useState<string | undefined>(undefined);
-    const [initializationProgressMessage, setInitializationProgressMessage] = useState<
-        string | undefined
-    >(undefined);
     const [initializationProgressMessages, setInitializationProgressMessages] = useState<
         LoadingLogEntry[]
     >([]);
-    const [reportProgressMessage, setReportProgressMessage] = useState<string | undefined>(
-        undefined,
-    );
     const [reportProgressMessages, setReportProgressMessages] = useState<LoadingLogEntry[]>([]);
     const [publishProgressMessages, setPublishProgressMessages] = useState<LoadingLogEntry[]>([]);
     const [initializationRequestId, setInitializationRequestId] = useState(0);
@@ -242,17 +234,14 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                     progress.operation === SchemaDesigner.DesignerOperation.LoadSimpleSchema
                 ) {
                     if (isInitializedRef.current) {
-                        setReportProgressMessage(progress.message);
                         appendProgressMessage(setReportProgressMessages, progress.message);
                     } else {
-                        setInitializationProgressMessage(progress.message);
                         appendProgressMessage(setInitializationProgressMessages, progress.message);
                     }
                     return;
                 }
 
                 if (progress.operation === SchemaDesigner.DesignerOperation.GenerateReport) {
-                    setReportProgressMessage(progress.message);
                     appendProgressMessage(setReportProgressMessages, progress.message);
                 }
             },
@@ -270,10 +259,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                     message.operation === SchemaDesigner.DesignerOperation.LoadSimpleSchema
                 ) {
                     if (isInitializedRef.current) {
-                        setReportProgressMessage(message.message);
                         appendProgressMessage(setReportProgressMessages, message.message, kind);
                     } else {
-                        setInitializationProgressMessage(message.message);
                         appendProgressMessage(
                             setInitializationProgressMessages,
                             message.message,
@@ -284,7 +271,6 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 }
 
                 if (message.operation === SchemaDesigner.DesignerOperation.GenerateReport) {
-                    setReportProgressMessage(message.message);
                     appendProgressMessage(setReportProgressMessages, message.message, kind);
                 }
             },
@@ -304,7 +290,6 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             setIsInitialized(false);
             isInitializedRef.current = false;
             setInitializationError(undefined);
-            setInitializationProgressMessage(undefined);
             setInitializationProgressMessages([]);
             const model = await extensionRpc.sendRequest(
                 SchemaDesigner.InitializeSchemaDesignerRequest.type,
@@ -330,7 +315,6 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             setSchemaNames(model.schemaNames);
             setIsInitialized(true);
             isInitializedRef.current = true;
-            setInitializationProgressMessage(undefined);
             setInitializationProgressMessages([]);
             initializationGate.resolve(true);
 
@@ -351,7 +335,6 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             const errorMessage = getErrorMessage(error);
             appendProgressMessage(setInitializationProgressMessages, errorMessage, "error");
             setInitializationError(errorMessage);
-            setInitializationProgressMessage(undefined);
             setIsInitialized(false);
             isInitializedRef.current = false;
             initializationGate.resolve(false);
@@ -361,7 +344,6 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
 
     const triggerInitialization = () => {
         setInitializationError(undefined);
-        setInitializationProgressMessage(undefined);
         setInitializationProgressMessages([]);
         setIsInitialized(false);
         isInitializedRef.current = false;
@@ -712,9 +694,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 getBaselineDefinition,
                 initializeSchemaDesigner,
                 initializationError,
-                initializationProgressMessage,
                 initializationProgressMessages,
-                reportProgressMessage,
                 reportProgressMessages,
                 publishProgressMessages,
                 initializationRequestId,
