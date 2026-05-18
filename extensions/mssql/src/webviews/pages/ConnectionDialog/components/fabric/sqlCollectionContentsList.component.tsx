@@ -59,12 +59,12 @@ export const SqlCollectionContentsList = ({
     showTypeFilter = true,
     showResourceGroupColumn = false,
     expandableServers = false,
-    selectWorkspaceMessage,
-    loadingWorkspacesMessage,
-    errorLoadingWorkspacesMessage,
+    selectCollectionMessage,
+    loadingCollectionsMessage,
+    errorLoadingCollectionsMessage,
     loadingDatabasesMessage,
     errorLoadingDatabasesMessage,
-    noDatabasesInWorkspaceMessage,
+    noDatabasesInCollectionMessage,
     onSignIntoTenant,
 }: SqlCollectionContentsListProps) => {
     const styles = useSqlExplorerStyles();
@@ -437,9 +437,9 @@ export const SqlCollectionContentsList = ({
     const renderLoadingWorkspaces = () => (
         <div className={styles.workspaceContentMessageContainer} role="status" aria-live="polite">
             <Spinner size="medium" />
-            <Text className={styles.messageText}>
-                {loadingWorkspacesMessage ?? Loc.connectionDialog.loadingCollections}
-            </Text>
+            {loadingCollectionsMessage && (
+                <Text className={styles.messageText}>{loadingCollectionsMessage}</Text>
+            )}
         </div>
     );
 
@@ -447,9 +447,7 @@ export const SqlCollectionContentsList = ({
         <div className={styles.workspaceContentMessageContainer} role="alert" aria-live="polite">
             <ErrorCircleRegular className={styles.errorIcon} />
             <Text className={styles.messageText}>
-                {effectiveCollectionsLoadStatus.message ??
-                    errorLoadingWorkspacesMessage ??
-                    Loc.connectionDialog.errorLoadingCollections}
+                {effectiveCollectionsLoadStatus.message ?? errorLoadingCollectionsMessage}
             </Text>
             {onSignIntoTenant && <Link onClick={onSignIntoTenant}>{Loc.common.signIn}</Link>}
         </div>
@@ -457,22 +455,18 @@ export const SqlCollectionContentsList = ({
 
     const renderNoSelectedWorkspace = (message: string | undefined) => (
         <div className={styles.workspaceContentMessageContainer} role="alert" aria-live="polite">
-            {message ??
-                selectWorkspaceMessage ??
-                Loc.connectionDialog.selectACollectionToViewDatabases}
+            {message ?? selectCollectionMessage}
         </div>
     );
 
     const renderLoadingDatabases = () => (
         <div className={styles.workspaceContentMessageContainer} role="status" aria-live="polite">
             <Spinner size="medium" />
-            <Text className={styles.messageText}>
-                {loadingDatabasesMessage
-                    ? loadingDatabasesMessage(selectedWorkspace?.displayName)
-                    : Loc.connectionDialog.loadingDatabasesInCollection(
-                          selectedWorkspace?.displayName,
-                      )}
-            </Text>
+            {loadingDatabasesMessage && (
+                <Text className={styles.messageText}>
+                    {loadingDatabasesMessage(selectedWorkspace?.displayName)}
+                </Text>
+            )}
         </div>
     );
 
@@ -480,18 +474,16 @@ export const SqlCollectionContentsList = ({
         <div className={styles.workspaceContentMessageContainer} role="alert" aria-live="polite">
             <ErrorCircleRegular className={styles.errorIcon} />
             <Text className={styles.messageText}>
-                {selectedWorkspace!.loadStatus.message ??
-                    errorLoadingDatabasesMessage ??
-                    Loc.connectionDialog.errorLoadingCollectionDatabases}
+                {selectedWorkspace!.loadStatus.message ?? errorLoadingDatabasesMessage}
             </Text>
         </div>
     );
 
     const renderNoDatabasesFound = () => (
         <div className={styles.workspaceContentMessageContainer} role="alert" aria-live="polite">
-            {noDatabasesInWorkspaceMessage
-                ? noDatabasesInWorkspaceMessage(selectedWorkspace?.displayName)
-                : Loc.connectionDialog.noDatabasesFoundInCollection(selectedWorkspace?.displayName)}
+            {noDatabasesInCollectionMessage
+                ? noDatabasesInCollectionMessage(selectedWorkspace?.displayName)
+                : undefined}
         </div>
     );
 
@@ -633,17 +625,17 @@ export interface SqlCollectionContentsListProps {
      */
     expandableServers?: boolean;
     /** Message to show when no workspace is selected */
-    selectWorkspaceMessage?: string;
+    selectCollectionMessage?: string;
     /** Message to show while workspace list is loading */
-    loadingWorkspacesMessage?: string;
+    loadingCollectionsMessage?: string;
     /** Message to show on workspace list load error */
-    errorLoadingWorkspacesMessage?: string;
+    errorLoadingCollectionsMessage?: string;
     /** Message to show while databases/servers are loading (receives workspace displayName) */
-    loadingDatabasesMessage?: (workspaceName?: string) => string;
+    loadingDatabasesMessage?: (collectionName?: string) => string;
     /** Message to show on database/server load error */
     errorLoadingDatabasesMessage?: string;
     /** Message to show when no databases/servers are found (receives workspace displayName) */
-    noDatabasesInWorkspaceMessage?: (workspaceName?: string) => string;
+    noDatabasesInCollectionMessage?: (collectionName?: string) => string;
     /** Callback to sign into the tenant when not signed in */
     onSignIntoTenant?: () => void;
 }

@@ -52,6 +52,8 @@ export const SqlCollectionList = ({
     favoritedIds,
     onToggleFavorite,
     width,
+    expandLabel,
+    collapseLabel,
 }: SqlCollectionListProps) => {
     const styles = useSqlExplorerStyles();
     const fabricWorkspacesLoadStatus = useConnectionDialogSelector(
@@ -135,7 +137,7 @@ export const SqlCollectionList = ({
             <div className={styles.workspaceHeader}>
                 {!isExplorerCollapsed && (
                     <Input
-                        placeholder={searchPlaceholder ?? Loc.connectionDialog.searchCollections}
+                        placeholder={searchPlaceholder}
                         value={workspaceSearchFilter}
                         onChange={(e) => setWorkspaceSearchFilter(e.target.value)}
                         contentBefore={<SearchRegular />}
@@ -178,16 +180,8 @@ export const SqlCollectionList = ({
                             e.preventDefault();
                         }
                     }}
-                    aria-label={
-                        isExplorerCollapsed
-                            ? Loc.connectionDialog.expandCollectionExplorer
-                            : Loc.connectionDialog.collapseCollectionExplorer
-                    }
-                    title={
-                        isExplorerCollapsed
-                            ? Loc.connectionDialog.expandCollectionExplorer
-                            : Loc.connectionDialog.collapseCollectionExplorer
-                    }
+                    aria-label={isExplorerCollapsed ? expandLabel : collapseLabel}
+                    title={isExplorerCollapsed ? expandLabel : collapseLabel}
                     className={styles.collapseWorkspaceListButton}
                 />
             </div>
@@ -196,25 +190,17 @@ export const SqlCollectionList = ({
                     {effectiveLoadStatus.status === ApiStatus.Loading && (
                         <div className={styles.workspaceListMessageContainer}>
                             <Spinner size="medium" />
-                            <Text className={styles.messageText}>
-                                {loadingMessage ?? Loc.connectionDialog.loadingCollections}
-                            </Text>
+                            <Text className={styles.messageText}>{loadingMessage}</Text>
                         </div>
                     )}
                     {effectiveLoadStatus.status === ApiStatus.Error && (
                         <div className={styles.workspaceListMessageContainer}>
                             <Tooltip
-                                content={
-                                    effectiveLoadStatus.message ||
-                                    errorMessage ||
-                                    Loc.connectionDialog.errorLoadingCollections
-                                }
+                                content={effectiveLoadStatus.message || errorMessage || ""}
                                 relationship="label">
                                 <ErrorCircleRegular className={styles.errorIcon} />
                             </Tooltip>
-                            <Text className={styles.messageText}>
-                                {errorMessage ?? Loc.connectionDialog.errorLoadingCollections}
-                            </Text>
+                            <Text className={styles.messageText}>{errorMessage}</Text>
                         </div>
                     )}
                     {effectiveLoadStatus.status === ApiStatus.Loaded && (
@@ -223,15 +209,14 @@ export const SqlCollectionList = ({
                                 (filteredWorkspaces.length === 0 && (
                                     <div className={styles.workspaceListMessageContainer}>
                                         <Text className={styles.messageText}>
-                                            {noItemsFoundMessage ??
-                                                Loc.connectionDialog.noCollectionsFound}
+                                            {noItemsFoundMessage}
                                         </Text>
                                     </div>
                                 ))}
                             {filteredWorkspaces.length > 0 && (
                                 <List
                                     role="listbox"
-                                    aria-label={listLabel ?? Loc.connectionDialog.fabricWorkspaces}
+                                    aria-label={listLabel}
                                     selectionMode="single"
                                     navigationMode="composite"
                                     selectedItems={selectedItems}
@@ -427,6 +412,10 @@ export interface SqlCollectionListProps {
     onToggleFavorite?: (collectionId: string) => void;
     /** Controlled width of the sidebar in pixels */
     width?: number;
+    /** aria-label/title when the sidebar is expanded (collapse action) */
+    collapseLabel?: string;
+    /** aria-label/title when the sidebar is collapsed (expand action) */
+    expandLabel?: string;
 }
 
 interface SqlCollectionListItemProps {

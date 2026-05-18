@@ -503,7 +503,7 @@ export class VsCodeAzureHelper {
                 displayName: server.name!,
                 server: server.fullyQualifiedDomainName!,
                 databases: [],
-                type: SqlArtifactTypes.AzureSqlServer,
+                type: "AzureSqlServer",
                 collectionId: subscription.subscriptionId,
                 collectionName: subscription.name,
                 tenantId: subscription.tenantId,

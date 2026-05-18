@@ -18,26 +18,17 @@ export const SqlExplorer = ({
     onSignIntoMicrosoftAccount,
     onSelectAccountId,
     onSelectTenantId,
-    onSelectWorkspace,
+    onSelectCollection,
     onSelectDatabase,
-    workspaces: workspacesProp,
-    workspacesLoadStatus,
-    workspaceListLabel,
-    workspaceSearchPlaceholder,
-    noWorkspacesFoundMessage,
-    loadingWorkspacesMessage,
-    errorLoadingWorkspacesMessage,
-    loadingDatabasesMessage,
-    errorLoadingDatabasesMessage,
-    noDatabasesInWorkspaceMessage,
-    selectWorkspaceMessage,
+    collections: collectionsProp,
+    collectionsLoadStatus,
+    strings,
     showTypeFilter,
     showResourceGroupColumn,
     expandableServers,
     favoritedIds,
     onToggleFavorite,
     onSignIntoTenant,
-    title,
 }: SqlExplorerProps) => {
     const fabricWorkspaces = useConnectionDialogSelector((s) => s.fabricWorkspaces);
     const fabricWorkspacesLoadStatus = useConnectionDialogSelector(
@@ -49,7 +40,7 @@ export const SqlExplorer = ({
     const notSignedInTenant = useConnectionDialogSelector((s) => s.notSignedInTenant);
 
     // Use prop override if provided, otherwise fall back to store
-    const workspaces = workspacesProp ?? fabricWorkspaces;
+    const collections = collectionsProp ?? fabricWorkspaces;
 
     // When tenants are still loading, show a loading state in both panels
     // so the user doesn't see stale data from the previous account selection.
@@ -59,14 +50,14 @@ export const SqlExplorer = ({
         ? Loc.connectionDialog.notSignedIntoTenant(notSignedInTenant.name)
         : undefined;
 
-    const effectiveWorkspacesLoadStatus: Status = tenantsLoading
+    const effectiveCollectionsLoadStatus: Status = tenantsLoading
         ? { status: ApiStatus.Loading }
         : notSignedInTenant
           ? { status: ApiStatus.Error }
-          : (workspacesLoadStatus ?? fabricWorkspacesLoadStatus);
+          : (collectionsLoadStatus ?? fabricWorkspacesLoadStatus);
     const effectiveLoadingMessage = tenantsLoading
         ? Loc.azure.loadingTenants
-        : loadingWorkspacesMessage;
+        : strings?.loadingCollectionsMessage;
 
     const sqlStyles = useSqlExplorerStyles();
 
@@ -101,12 +92,12 @@ export const SqlExplorer = ({
     }
 
     const selectedCollection = useMemo(() => {
-        if (workspaces.length === 0 || !selectedCollectionId) {
+        if (collections.length === 0 || !selectedCollectionId) {
             return undefined;
         }
 
-        return workspaces.find((w) => w.id === selectedCollectionId);
-    }, [workspaces, selectedCollectionId]);
+        return collections.find((w) => w.id === selectedCollectionId);
+    }, [collections, selectedCollectionId]);
 
     function handleSignIntoMicrosoftAccount() {
         onSignIntoMicrosoftAccount();
@@ -122,7 +113,7 @@ export const SqlExplorer = ({
 
     function handleCollectionSelected(collection: SqlCollectionInfo) {
         setSelectedCollectionId(collection.id);
-        onSelectWorkspace(collection);
+        onSelectCollection(collection);
     }
 
     function handleDatabaseSelected(database: SqlDbInfo) {
@@ -134,7 +125,9 @@ export const SqlExplorer = ({
 
     return (
         <div className={sqlStyles.sqlExplorerWrapper}>
-            {title && <Label className={sqlStyles.sqlExplorerTitle}>{title}</Label>}
+            {strings?.title && (
+                <Label className={sqlStyles.sqlExplorerTitle}>{strings.title}</Label>
+            )}
             <SqlExplorerHeader
                 searchValue={searchFilter}
                 onSignIntoMicrosoftAccount={handleSignIntoMicrosoftAccount}
@@ -144,20 +137,24 @@ export const SqlExplorer = ({
             />
             <div className={sqlStyles.workspaceExplorer}>
                 <SqlCollectionList
-                    workspaces={tenantsLoading || notSignedInTenant ? [] : workspaces}
+                    workspaces={tenantsLoading || notSignedInTenant ? [] : collections}
                     selectedWorkspace={
                         tenantsLoading || notSignedInTenant ? undefined : selectedCollection
                     }
                     onSelectWorkspace={handleCollectionSelected}
-                    loadStatus={effectiveWorkspacesLoadStatus}
-                    listLabel={workspaceListLabel}
-                    searchPlaceholder={workspaceSearchPlaceholder}
-                    noItemsFoundMessage={noWorkspacesFoundMessage}
+                    loadStatus={effectiveCollectionsLoadStatus}
+                    listLabel={strings?.collectionListLabel}
+                    searchPlaceholder={strings?.collectionSearchPlaceholder}
+                    noItemsFoundMessage={strings?.noCollectionsFoundMessage}
                     loadingMessage={effectiveLoadingMessage}
-                    errorMessage={notSignedInErrorMessage ?? errorLoadingWorkspacesMessage}
+                    errorMessage={
+                        notSignedInErrorMessage ?? strings?.errorLoadingCollectionsMessage
+                    }
                     favoritedIds={favoritedIds}
                     onToggleFavorite={onToggleFavorite}
                     width={sidebarWidth}
+                    collapseLabel={strings?.collapseCollectionListLabel}
+                    expandLabel={strings?.expandCollectionListLabel}
                 />
                 <div className={sqlStyles.dragHandle} onMouseDown={handleDragStart} />
                 <SqlCollectionContentsList
@@ -166,15 +163,15 @@ export const SqlExplorer = ({
                     }
                     searchFilter={searchFilter}
                     onSelectDatabase={handleDatabaseSelected}
-                    loadStatus={effectiveWorkspacesLoadStatus}
-                    selectWorkspaceMessage={selectWorkspaceMessage}
-                    loadingWorkspacesMessage={effectiveLoadingMessage}
-                    errorLoadingWorkspacesMessage={
-                        notSignedInErrorMessage ?? errorLoadingWorkspacesMessage
+                    loadStatus={effectiveCollectionsLoadStatus}
+                    selectCollectionMessage={strings?.selectCollectionMessage}
+                    loadingCollectionsMessage={effectiveLoadingMessage}
+                    errorLoadingCollectionsMessage={
+                        notSignedInErrorMessage ?? strings?.errorLoadingCollectionsMessage
                     }
-                    loadingDatabasesMessage={loadingDatabasesMessage}
-                    errorLoadingDatabasesMessage={errorLoadingDatabasesMessage}
-                    noDatabasesInWorkspaceMessage={noDatabasesInWorkspaceMessage}
+                    loadingDatabasesMessage={strings?.loadingDatabasesMessage}
+                    errorLoadingDatabasesMessage={strings?.errorLoadingDatabasesMessage}
+                    noDatabasesInCollectionMessage={strings?.noDatabasesInCollectionMessage}
                     showTypeFilter={showTypeFilter}
                     showResourceGroupColumn={showResourceGroupColumn}
                     expandableServers={expandableServers}
@@ -185,34 +182,40 @@ export const SqlExplorer = ({
     );
 };
 
-export interface SqlExplorerProps {
-    onSignIntoMicrosoftAccount: () => void;
-    onSelectAccountId: (accountId: string) => void;
-    onSelectTenantId: (tenantId: string) => void;
-    onSelectWorkspace: (collection: SqlCollectionInfo) => void;
-    onSelectDatabase: (database: SqlDbInfo) => void;
-    /** Override workspaces (instead of reading from store) */
-    workspaces?: SqlCollectionInfo[];
-    /** Override workspace list load status (instead of reading from store) */
-    workspacesLoadStatus?: Status;
-    /** aria-label for the workspace list */
-    workspaceListLabel?: string;
-    /** Placeholder for the workspace search input */
-    workspaceSearchPlaceholder?: string;
-    /** Message when no workspaces are found */
-    noWorkspacesFoundMessage?: string;
-    /** Message when no workspace is selected */
-    selectWorkspaceMessage?: string;
-    /** Message while workspace list is loading */
-    loadingWorkspacesMessage?: string;
-    /** Message on workspace list load error */
-    errorLoadingWorkspacesMessage?: string;
-    /** Message while databases/servers are loading (receives workspace displayName) */
-    loadingDatabasesMessage?: (workspaceName?: string) => string;
+export interface SqlExplorerStrings {
+    /** Optional title label displayed above the explorer content */
+    title?: string;
+    /** aria-label for the collection list */
+    collectionListLabel?: string;
+    /** Placeholder for the collection search input */
+    collectionSearchPlaceholder?: string;
+    /** Message when no collections are found */
+    noCollectionsFoundMessage?: string;
+    /** Message when no collection is selected */
+    selectCollectionMessage?: string;
+    /** Message while collection list is loading */
+    loadingCollectionsMessage?: string;
+    /** Message on collection list load error */
+    errorLoadingCollectionsMessage?: string;
+    /** Message while databases/servers are loading (receives collection displayName) */
+    loadingDatabasesMessage?: (collectionName?: string) => string;
     /** Message on database/server load error */
     errorLoadingDatabasesMessage?: string;
-    /** Message when no databases/servers are found (receives workspace displayName) */
-    noDatabasesInWorkspaceMessage?: (workspaceName?: string) => string;
+    /** Message when no databases/servers are found (receives collection displayName) */
+    noDatabasesInCollectionMessage?: (collectionName?: string) => string;
+    /** aria-label/title for the collapse sidebar button */
+    collapseCollectionListLabel?: string;
+    /** aria-label/title for the expand sidebar button */
+    expandCollectionListLabel?: string;
+}
+
+export interface SqlExplorerProps {
+    /** Override collections (instead of reading from store) */
+    collections?: SqlCollectionInfo[];
+    /** Override collection list load status (instead of reading from store) */
+    collectionsLoadStatus?: Status;
+    /** IDs of favorited collections (sorted to top with filled star) */
+    favoritedIds?: string[];
     /** Whether to show the type filter menu button (default: true) */
     showTypeFilter?: boolean;
     /** Whether to show the Resource Group column (default: false) */
@@ -224,12 +227,15 @@ export interface SqlExplorerProps {
      * (default: false)
      */
     expandableServers?: boolean;
-    /** Optional title label displayed above the explorer content */
-    title?: string;
-    /** IDs of favorited collections (sorted to top with filled star) */
-    favoritedIds?: string[];
+    onSignIntoMicrosoftAccount: () => void;
+    onSelectAccountId: (accountId: string) => void;
+    onSelectTenantId: (tenantId: string) => void;
+    onSelectCollection: (collection: SqlCollectionInfo) => void;
+    onSelectDatabase: (database: SqlDbInfo) => void;
     /** Called when the user clicks the star for a collection */
     onToggleFavorite?: (collectionId: string) => void;
     /** Called when the user clicks "Sign in" from the not-signed-in error state */
     onSignIntoTenant?: () => void;
+    /** UI strings bundle */
+    strings: SqlExplorerStrings;
 }

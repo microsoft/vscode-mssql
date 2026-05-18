@@ -101,11 +101,32 @@ export const FabricBrowsePage = () => {
             {loadingAzureAccountsStatus === ApiStatus.Loaded && hasAccounts && (
                 <>
                     <SqlExplorer
-                        title={Loc.connectionDialog.fabricDatabases}
+                        strings={{
+                            title: Loc.connectionDialog.fabricDatabases,
+                            collectionListLabel: Loc.connectionDialog.fabricWorkspaces,
+                            collectionSearchPlaceholder:
+                                Loc.connectionDialog.searchFabricWorkspaces,
+                            noCollectionsFoundMessage: Loc.connectionDialog.noFabricWorkspacesFound,
+                            selectCollectionMessage:
+                                Loc.connectionDialog.selectAFabricWorkspaceToViewDatabases,
+                            loadingCollectionsMessage: Loc.connectionDialog.loadingFabricWorkspaces,
+                            errorLoadingCollectionsMessage:
+                                Loc.connectionDialog.errorLoadingFabricWorkspaces,
+                            loadingDatabasesMessage:
+                                Loc.connectionDialog.loadingFabricWorkspaceDatabases,
+                            errorLoadingDatabasesMessage:
+                                Loc.connectionDialog.errorLoadingFabricWorkspaceDatabases,
+                            noDatabasesInCollectionMessage:
+                                Loc.connectionDialog.noDatabasesFoundInFabricWorkspace,
+                            collapseCollectionListLabel:
+                                Loc.connectionDialog.collapseFabricWorkspaceExplorer,
+                            expandCollectionListLabel:
+                                Loc.connectionDialog.expandFabricWorkspaceExplorer,
+                        }}
                         onSignIntoMicrosoftAccount={handleSignIntoMicrosoftAccount}
                         onSelectAccountId={handleSelectAccountId}
                         onSelectTenantId={handleSelectTenantId}
-                        onSelectWorkspace={handleSelectWorkspace}
+                        onSelectCollection={handleSelectWorkspace}
                         onSelectDatabase={handleDatabaseSelected}
                         favoritedIds={favoritedFabricWorkspaceIds}
                         onToggleFavorite={(id) =>

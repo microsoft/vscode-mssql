@@ -69,24 +69,9 @@ export const AzureBrowsePage = () => {
             {loadingAzureAccountsStatus === ApiStatus.Loaded && hasAccounts && (
                 <>
                     <SqlExplorer
-                        title={Loc.connectionDialog.azureDatabases}
-                        workspaces={azureSubscriptions}
-                        workspacesLoadStatus={azureSubscriptionsLoadStatus}
-                        workspaceListLabel={Loc.connectionDialog.azureSubscriptions}
-                        workspaceSearchPlaceholder={Loc.connectionDialog.searchSubscriptions}
-                        noWorkspacesFoundMessage={Loc.connectionDialog.noSubscriptionsFound}
-                        selectWorkspaceMessage={
-                            Loc.connectionDialog.selectASubscriptionToViewServers
-                        }
-                        loadingWorkspacesMessage={Loc.connectionDialog.loadingSubscriptions}
-                        errorLoadingWorkspacesMessage={
-                            Loc.connectionDialog.errorLoadingSubscriptions
-                        }
-                        loadingDatabasesMessage={Loc.connectionDialog.loadingServersInSubscription}
-                        errorLoadingDatabasesMessage={Loc.connectionDialog.errorLoadingServers}
-                        noDatabasesInWorkspaceMessage={
-                            Loc.connectionDialog.noServersFoundInSubscription
-                        }
+                        collections={azureSubscriptions}
+                        collectionsLoadStatus={azureSubscriptionsLoadStatus}
+                        favoritedIds={favoritedAzureSubscriptionIds}
                         showTypeFilter={false}
                         showResourceGroupColumn={true}
                         expandableServers={true}
@@ -95,12 +80,11 @@ export const AzureBrowsePage = () => {
                         }
                         onSelectAccountId={(id) => context.selectAzureAccount(id)}
                         onSelectTenantId={(id) => context.setSelectedTenantId(id)}
-                        favoritedIds={favoritedAzureSubscriptionIds}
                         onToggleFavorite={(id) =>
                             context.toggleFavoriteCollection(id, ConnectionInputMode.AzureBrowse)
                         }
                         onSignIntoTenant={() => context.signIntoTenantForBrowse()}
-                        onSelectWorkspace={(ws) => {
+                        onSelectCollection={(ws) => {
                             context.selectSqlCollection(ws.id);
                         }}
                         onSelectDatabase={(db) => {
@@ -108,6 +92,26 @@ export const AzureBrowsePage = () => {
                             if (db.databases.length > 0) {
                                 setConnectionProperty("database", db.databases[0]);
                             }
+                        }}
+                        strings={{
+                            title: Loc.connectionDialog.azureDatabases,
+                            collectionListLabel: Loc.connectionDialog.azureSubscriptions,
+                            collectionSearchPlaceholder: Loc.connectionDialog.searchSubscriptions,
+                            noCollectionsFoundMessage: Loc.connectionDialog.noSubscriptionsFound,
+                            selectCollectionMessage:
+                                Loc.connectionDialog.selectASubscriptionToViewServers,
+                            loadingCollectionsMessage: Loc.connectionDialog.loadingSubscriptions,
+                            errorLoadingCollectionsMessage:
+                                Loc.connectionDialog.errorLoadingSubscriptions,
+                            loadingDatabasesMessage:
+                                Loc.connectionDialog.loadingServersInSubscription,
+                            errorLoadingDatabasesMessage: Loc.connectionDialog.errorLoadingServers,
+                            noDatabasesInCollectionMessage:
+                                Loc.connectionDialog.noServersFoundInSubscription,
+                            collapseCollectionListLabel:
+                                Loc.connectionDialog.collapseAzureSubscriptionExplorer,
+                            expandCollectionListLabel:
+                                Loc.connectionDialog.expandAzureSubscriptionExplorer,
                         }}
                     />
 
