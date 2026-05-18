@@ -19,6 +19,7 @@ import { DesignApiButton } from "./designApiButton";
 import { useLayoutEffect, useRef, useState } from "react";
 import { locConstants } from "../../../common/locConstants";
 import { SchemaDesignerToolbarContext } from "./schemaDesignerToolbarContext";
+import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 
 const useStyles = makeStyles({
     toolbarContainer: {
@@ -96,38 +97,49 @@ export function SchemaDesignerToolbar({
         return () => observer.disconnect();
     }, [isCompact]);
 
+    const isReadOnly = useSchemaDesignerSelector((s) => s?.isReadOnly) ?? false;
+
     return (
         <SchemaDesignerToolbarContext.Provider value={{ isCompact }}>
             <div className={classes.toolbarContainer}>
                 <Toolbar ref={toolbarRef} size="small" className={classes.toolbar}>
-                    <PublishChangesDialogButton />
-                    <ViewDefinitionsButton />
-                    <ShowChangesButton />
-                    <ExportDiagramButton />
-                    <ToolbarDivider />
-                    <UndoRedoButtons />
-                    <ToolbarDivider />
-                    <AddTableButton />
-                    <DeleteNodesButton />
-                    <ToolbarDivider />
-                    <AutoArrangeButton />
-                    <FilterTablesButton />
-                    <ToolbarDivider />
-                    <SchemaDesignerWebviewCopilotChatEntry
-                        scenario="schemaDesigner"
-                        entryPoint="schemaDesignerToolbar"
-                        discoveryTitle={
-                            locConstants.schemaDesigner.schemaDesignerCopilotDiscoveryTitle
-                        }
-                        discoveryBody={
-                            locConstants.schemaDesigner.schemaDesignerCopilotDiscoveryBody
-                        }
-                        showDiscovery={showDiscovery}
-                        hideLabel={isCompact}
-                    />
-                    <ShowCopilotChangesButton />
-                    <ToolbarDivider />
-                    <DesignApiButton onNavigateToDab={onNavigateToDab} />
+                    {isReadOnly ? (
+                        <>
+                            <ViewDefinitionsButton />
+                            <ExportDiagramButton />
+                        </>
+                    ) : (
+                        <>
+                            <PublishChangesDialogButton />
+                            <ViewDefinitionsButton />
+                            <ShowChangesButton />
+                            <ExportDiagramButton />
+                            <ToolbarDivider />
+                            <UndoRedoButtons />
+                            <ToolbarDivider />
+                            <AddTableButton />
+                            <DeleteNodesButton />
+                            <ToolbarDivider />
+                            <AutoArrangeButton />
+                            <FilterTablesButton />
+                            <ToolbarDivider />
+                            <SchemaDesignerWebviewCopilotChatEntry
+                                scenario="schemaDesigner"
+                                entryPoint="schemaDesignerToolbar"
+                                discoveryTitle={
+                                    locConstants.schemaDesigner.schemaDesignerCopilotDiscoveryTitle
+                                }
+                                discoveryBody={
+                                    locConstants.schemaDesigner.schemaDesignerCopilotDiscoveryBody
+                                }
+                                showDiscovery={showDiscovery}
+                                hideLabel={isCompact}
+                            />
+                            <ShowCopilotChangesButton />
+                            <ToolbarDivider />
+                            <DesignApiButton onNavigateToDab={onNavigateToDab} />
+                        </>
+                    )}
                 </Toolbar>
             </div>
         </SchemaDesignerToolbarContext.Provider>

@@ -349,6 +349,11 @@ export namespace SchemaDesigner {
         isDabDeploymentSupported?: boolean;
         initialFilterTables?: string[];
         currentFilteredTables?: string[];
+        // When true, the Schema Designer renders as a read-only diagram —
+        // toolbar reduced to Show Definition + Export, no editing affordances
+        // on the graph or table nodes, no editor drawer. Used by Table
+        // Explorer's "View Table Diagram" entry point.
+        isReadOnly?: boolean;
     }
 
     export interface ExportFileOptions {
