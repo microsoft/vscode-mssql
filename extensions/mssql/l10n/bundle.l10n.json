@@ -2393,6 +2393,7 @@
         "comment": ["{0} is the error message"]
     },
     "No workspaces found. Please change Fabric account or tenant to view available workspaces.": "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
+    "No subscriptions found. Please change Azure account or tenant to view available subscriptions.": "No subscriptions found. Please change Azure account or tenant to view available subscriptions.",
     "User databases": "User databases",
     "System databases": "System databases",
     "Unable to load database list from server: {0}/{0} is the connection error message": {
@@ -3665,5 +3666,6 @@
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
+    "Azure subscription not found in cache.": "Azure subscription not found in cache.",
     "Invalid connection string: {0}": "Invalid connection string: {0}"
 }

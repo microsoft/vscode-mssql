@@ -43,10 +43,13 @@ export class ConnectionDialogWebviewState
     public azureAccounts: IAzureAccount[] = [];
     public loadingAzureAccountsStatus: ApiStatus = ApiStatus.NotStarted;
     public loadingAzureTenantsStatus: ApiStatus = ApiStatus.NotStarted;
+    /**
+     * The Azure subscriptions available to browse. Each subscription's `databases` array is
+     * populated with the SQL servers (and their databases) in that subscription as they are
+     * loaded by `BrowseProvider.loadCollectionContents`.
+     */
     public azureSubscriptions: AzureSubscriptionInfo[] = [];
-    public loadingAzureSubscriptionsStatus: ApiStatus = ApiStatus.NotStarted;
-    public azureServers: AzureSqlServerInfo[] = [];
-    public loadingAzureServersStatus: ApiStatus = ApiStatus.NotStarted;
+    public azureSubscriptionsLoadStatus: Status = { status: ApiStatus.NotStarted };
     public unauthenticatedAzureTenants: IUnauthenticatedAzureTenant[] = [];
     public azureTenantStatus: IAzureTenantStatus[] = [];
     public azureTenantSignInCounts: IAzureTenantSignInStatus | undefined;
@@ -249,7 +252,6 @@ export interface ConnectionDialogContextProps extends FormContextProps<IConnecti
         browseTarget: ConnectionInputMode.AzureBrowse | ConnectionInputMode.FabricBrowse,
     ) => void;
     selectAzureAccount: (accountId: string) => void;
-    selectAzureTenant: (tenantId: string) => void;
     setSelectedTenantId: (tenantId: string) => void;
     selectSqlCollection: (collectionId: string) => void;
     toggleFavoriteCollection: (collectionId: string, inputMode: ConnectionInputMode) => void;
@@ -299,7 +301,6 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
         browseTarget: ConnectionInputMode.AzureBrowse | ConnectionInputMode.FabricBrowse;
     };
     selectAzureAccount: { accountId: string };
-    selectAzureTenant: { tenantId: string };
     setSelectedTenantId: { tenantId: string };
     selectSqlCollection: { collectionId: string };
     toggleFavoriteCollection: { collectionId: string; inputMode: ConnectionInputMode };

@@ -564,6 +564,9 @@
     <trans-unit id="++CODE++314afcc6e23d362133e764e1ebfacabe4d330308b528392570949a17270248b9">
       <source xml:lang="en">Azure sign in failed.</source>
     </trans-unit>
+    <trans-unit id="++CODE++e0868c0da82fbd352b2f49a90707e78962f7dee85e12b74bdfe8ade99936640f">
+      <source xml:lang="en">Azure subscription not found in cache.</source>
+    </trans-unit>
     <trans-unit id="++CODE++f71dfcecebed757febe54c711e436e17521c71da90d4c5cc61ef6717918173a4">
       <source xml:lang="en">Azure: Sign In</source>
     </trans-unit>
@@ -4423,6 +4426,9 @@
     </trans-unit>
     <trans-unit id="++CODE++2d7cb28a8d1ce5542ed3f5c73805f318fa5a52d02a6f03e4a008093d1ee3e538">
       <source xml:lang="en">No subscriptions found</source>
+    </trans-unit>
+    <trans-unit id="++CODE++06ee056a2b74c9a72b5a3191ecc4eb8fef75ff62ddcb3b4076c33179ef7fb4ab">
+      <source xml:lang="en">No subscriptions found. Please change Azure account or tenant to view available subscriptions.</source>
     </trans-unit>
     <trans-unit id="++CODE++6150f2aa36fc0da88b93d47481d99a988bcafd046bd60d962401893399cd0995">
       <source xml:lang="en">No templates available</source>

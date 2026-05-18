@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useMemo } from "react";
+import { useContext } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { useConnectionDialogSelector } from "./connectionDialogSelector";
 import { Label, makeStyles } from "@fluentui/react-components";
@@ -15,9 +15,8 @@ import {
     ConnectionInputMode,
     IConnectionDialogProfile,
 } from "../../../sharedInterfaces/connectionDialog";
-import { SqlCollectionInfo } from "../../../sharedInterfaces/fabric";
 import { locConstants as Loc } from "../../common/locConstants";
-import { ApiStatus, Status } from "../../../sharedInterfaces/webview";
+import { ApiStatus } from "../../../sharedInterfaces/webview";
 import EntraSignInEmpty from "./components/entraSignInEmpty.component";
 import { SqlExplorer } from "./components/fabric/sqlExplorer.component";
 
@@ -28,14 +27,13 @@ export const azureLogoColor = () => {
 export const AzureBrowsePage = () => {
     const context = useContext(ConnectionDialogContext);
     const formState = useConnectionDialogSelector((s) => s.formState);
-    const azureServers = useConnectionDialogSelector((s) => s.azureServers);
     const azureAccounts = useConnectionDialogSelector((s) => s.azureAccounts);
     const loadingAzureAccountsStatus = useConnectionDialogSelector(
         (s) => s.loadingAzureAccountsStatus,
     );
     const azureSubscriptions = useConnectionDialogSelector((s) => s.azureSubscriptions);
-    const loadingAzureSubscriptionsStatus = useConnectionDialogSelector(
-        (s) => s.loadingAzureSubscriptionsStatus,
+    const azureSubscriptionsLoadStatus = useConnectionDialogSelector(
+        (s) => s.azureSubscriptionsLoadStatus,
     );
     const favoritedAzureSubscriptionIds = useConnectionDialogSelector(
         (s) => s.favoritedAzureSubscriptionIds,
@@ -52,20 +50,6 @@ export const AzureBrowsePage = () => {
     function setConnectionProperty(propertyName: keyof IConnectionDialogProfile, value: string) {
         context!.formAction({ propertyName, value, isAction: false });
     }
-
-    // Associate loaded servers with their subscriptions. Subscriptions are already
-    // scoped to the selected tenant on the backend, so no client-side tenant filter.
-    const subscriptionWorkspaces = useMemo((): SqlCollectionInfo[] => {
-        return azureSubscriptions.map((sub) => ({
-            ...sub,
-            databases: azureServers.filter((srv) => srv.collectionId === sub.id),
-        }));
-    }, [azureSubscriptions, azureServers]);
-
-    const subscriptionsLoadStatus = useMemo(
-        (): Status => ({ status: loadingAzureSubscriptionsStatus }),
-        [loadingAzureSubscriptionsStatus],
-    );
 
     const hasAccounts = (azureAccounts?.length ?? 0) > 0;
 
@@ -86,8 +70,8 @@ export const AzureBrowsePage = () => {
                 <>
                     <SqlExplorer
                         title={Loc.connectionDialog.azureDatabases}
-                        workspaces={subscriptionWorkspaces}
-                        workspacesLoadStatus={subscriptionsLoadStatus}
+                        workspaces={azureSubscriptions}
+                        workspacesLoadStatus={azureSubscriptionsLoadStatus}
                         workspaceListLabel={Loc.connectionDialog.azureSubscriptions}
                         workspaceSearchPlaceholder={Loc.connectionDialog.searchSubscriptions}
                         noWorkspacesFoundMessage={Loc.connectionDialog.noSubscriptionsFound}

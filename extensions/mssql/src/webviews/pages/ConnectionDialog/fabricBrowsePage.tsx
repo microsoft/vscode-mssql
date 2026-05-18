@@ -54,7 +54,7 @@ export const FabricBrowsePage = () => {
     }
 
     function handleSelectTenantId(tenantId: string) {
-        context!.selectAzureTenant(tenantId);
+        context!.setSelectedTenantId(tenantId);
     }
 
     function handleSelectWorkspace(collection: SqlCollectionInfo) {

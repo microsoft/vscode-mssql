@@ -24,7 +24,6 @@ import { ObjectExplorerProvider } from "../../src/objectExplorer/objectExplorerP
 import {
     AddFirewallRuleDialogProps,
     AuthenticationType,
-    AzureSqlServerInfo,
     ConnectionInputMode,
     ConnectionStringDialogProps,
     IConnectionDialogProfile,
@@ -57,9 +56,7 @@ import {
 } from "./utils";
 import {
     stubVscodeAzureSignIn,
-    stubFetchServersFromAzure,
     mockAccounts,
-    mockSubscriptions,
     stubVscodeAzureHelperGetAccounts,
     stubVscodeAzureTenantsForAccount,
     mockServerName,
@@ -79,7 +76,6 @@ import { FirewallService } from "../../src/firewall/firewallService";
 import { AddFirewallRuleState } from "../../src/sharedInterfaces/addFirewallRule";
 import { deepClone } from "../../src/models/utils";
 import { PreviewFeature } from "../../src/previews/previewService";
-import { FabricHelper } from "../../src/fabric/fabricHelper";
 
 chai.use(sinonChai);
 
@@ -230,14 +226,9 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 "Azure account load status should be NotStarted",
             );
 
-            expect(controller.state.loadingAzureSubscriptionsStatus).to.equal(
+            expect(controller.state.azureSubscriptionsLoadStatus.status).to.equal(
                 ApiStatus.NotStarted,
                 "Azure subscription load status should be NotStarted",
-            );
-
-            expect(controller.state.loadingAzureServersStatus).to.equal(
-                ApiStatus.NotStarted,
-                "Azure server load status should be NotStarted",
             );
 
             expect(controller.state.formComponents).to.contains.all.keys(["server", "user"]);
@@ -562,25 +553,33 @@ suite("ConnectionDialogWebviewController Tests", () => {
         });
 
         suite("setConnectionInputType", () => {
-            test("Should set connection input type correctly for Parameters", async () => {
-                stubVscodeAzureHelperGetAccounts(sandbox);
-                stubVscodeAzureSignIn(sandbox);
+            // Browse-mode reducers delegate to BrowseProvider instances; provider behavior is
+            // covered separately in browseProvider.test.ts. Here we stub the providers and
+            // assert that the controller wires the reducers to the correct provider methods.
+            let azureLoadCollections: sinon.SinonStub;
+            let azureAutoLoadContents: sinon.SinonStub;
+            let fabricLoadCollections: sinon.SinonStub;
+            let fabricAutoLoadContents: sinon.SinonStub;
 
+            setup(() => {
+                azureLoadCollections = sandbox
+                    .stub(controller["_azureBrowseProvider"], "loadCollections")
+                    .resolves();
+                azureAutoLoadContents = sandbox
+                    .stub(controller["_azureBrowseProvider"], "autoLoadContents")
+                    .resolves();
+                fabricLoadCollections = sandbox
+                    .stub(controller["_fabricBrowseProvider"], "loadCollections")
+                    .resolves();
+                fabricAutoLoadContents = sandbox
+                    .stub(controller["_fabricBrowseProvider"], "autoLoadContents")
+                    .resolves();
+            });
+
+            test("Should set connection input type correctly for Parameters", async () => {
                 expect(controller.state.selectedInputMode).to.equal(
                     ConnectionInputMode.Parameters,
                     "Default input mode should be Parameters",
-                );
-
-                await controller["_reducerHandlers"].get("setConnectionInputType")(
-                    controller.state,
-                    {
-                        inputMode: ConnectionInputMode.AzureBrowse,
-                    },
-                );
-
-                expect(controller.state.selectedInputMode).to.equal(
-                    ConnectionInputMode.AzureBrowse,
-                    "Should set connection input type to AzureBrowse",
                 );
 
                 await controller["_reducerHandlers"].get("setConnectionInputType")(
@@ -594,15 +593,14 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     ConnectionInputMode.Parameters,
                     "Should set connection input type to Parameters",
                 );
+                expect(azureLoadCollections.notCalled).to.be.true;
+                expect(fabricLoadCollections.notCalled).to.be.true;
             });
 
-            test("should set connection input mode correctly and load server info for AzureBrowse", async () => {
-                const { sendErrorEvent } = stubTelemetry(sandbox);
-
+            test("delegates to the Azure provider when switching to AzureBrowse", async () => {
                 stubVscodeAzureSignIn(sandbox);
                 stubVscodeAzureHelperGetAccounts(sandbox);
                 stubVscodeAzureTenantsForAccount(sandbox);
-                stubFetchServersFromAzure(sandbox);
 
                 await controller["_reducerHandlers"].get("setConnectionInputType")(
                     controller.state,
@@ -611,43 +609,18 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     },
                 );
 
-                // validate that subscriptions and servers are loaded correctly
-
-                expect(sendErrorEvent.notCalled, "sendErrorEvent should not be called").to.be.true;
-
-                expect(controller.state.azureSubscriptions).to.have.lengthOf(1);
-                expect(controller.state.azureSubscriptions).to.satisfy(
-                    (subs) => subs.some((s) => s.displayName === "Ten0Sub1"),
-                    "Subscription list should contain expected subscription",
+                expect(controller.state.selectedInputMode).to.equal(
+                    ConnectionInputMode.AzureBrowse,
                 );
-
-                expect(controller.state.azureServers).to.have.lengthOf(
-                    2,
-                    "Should have 2 servers for the single subscription in the home tenant",
-                );
-                expect(controller.state.azureServers).to.satisfy(
-                    (servers: AzureSqlServerInfo[]) =>
-                        servers.some((server) => server.server === "testServer-Ten0Sub1-2"),
-                    "Server list should contain expected server",
-                );
+                expect(azureLoadCollections.calledOnce).to.be.true;
+                expect(azureAutoLoadContents.calledOnce).to.be.true;
+                expect(fabricLoadCollections.notCalled).to.be.true;
             });
 
-            test("should set Fabric workspaces to Loading and call updateState before awaiting load for FabricBrowse", async () => {
+            test("delegates to the Fabric provider when switching to FabricBrowse", async () => {
                 stubVscodeAzureSignIn(sandbox);
                 stubVscodeAzureHelperGetAccounts(sandbox);
                 stubVscodeAzureTenantsForAccount(sandbox);
-
-                let statusWhenWorkspaceLoadStarted: ApiStatus | undefined;
-                sandbox.stub(AzureHelpers.VsCodeAzureHelper, "getTenant").callsFake(async () => {
-                    statusWhenWorkspaceLoadStarted =
-                        controller.state.fabricWorkspacesLoadStatus.status;
-                    return mockTenants[0] as unknown as ReturnType<
-                        typeof AzureHelpers.VsCodeAzureHelper.getTenant
-                    > extends Promise<infer T>
-                        ? T
-                        : never;
-                });
-                sandbox.stub(FabricHelper, "getFabricWorkspaces").resolves([]);
 
                 await controller["_reducerHandlers"].get("setConnectionInputType")(
                     controller.state,
@@ -656,70 +629,103 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     },
                 );
 
-                expect(statusWhenWorkspaceLoadStarted).to.equal(
-                    ApiStatus.Loading,
-                    "Workspaces load status should be Loading before awaiting workspace fetch",
+                expect(controller.state.selectedInputMode).to.equal(
+                    ConnectionInputMode.FabricBrowse,
                 );
+                expect(fabricLoadCollections.calledOnce).to.be.true;
+                expect(fabricAutoLoadContents.calledOnce).to.be.true;
+                expect(azureLoadCollections.notCalled).to.be.true;
+            });
+
+            test("skips the provider load when collections are already loaded", async () => {
+                stubVscodeAzureSignIn(sandbox);
+                stubVscodeAzureHelperGetAccounts(sandbox);
+                stubVscodeAzureTenantsForAccount(sandbox);
+
+                controller.state.azureSubscriptions = [
+                    {
+                        id: "sub-1",
+                        displayName: "Sub 1",
+                        tenantId: mockTenants[0].tenantId,
+                        databases: [],
+                        loadStatus: { status: ApiStatus.Loaded },
+                    },
+                ];
+                controller.state.azureSubscriptionsLoadStatus = { status: ApiStatus.Loaded };
+
+                await controller["_reducerHandlers"].get("setConnectionInputType")(
+                    controller.state,
+                    {
+                        inputMode: ConnectionInputMode.AzureBrowse,
+                    },
+                );
+
+                expect(azureLoadCollections.notCalled).to.be.true;
+                expect(azureAutoLoadContents.notCalled).to.be.true;
+            });
+
+            test("clears connection profile fields when switching into a browse mode", async () => {
+                stubVscodeAzureSignIn(sandbox);
+                stubVscodeAzureHelperGetAccounts(sandbox);
+                stubVscodeAzureTenantsForAccount(sandbox);
+
+                controller.state.connectionProfile.server = "old-server";
+                controller.state.connectionProfile.database = "old-db";
+
+                await controller["_reducerHandlers"].get("setConnectionInputType")(
+                    controller.state,
+                    {
+                        inputMode: ConnectionInputMode.FabricBrowse,
+                    },
+                );
+
+                expect(controller.state.connectionProfile.server).to.be.undefined;
+                expect(controller.state.connectionProfile.database).to.be.undefined;
             });
         });
 
         suite("selectAzureAccount", () => {
-            test("clears stale subscriptions/servers/workspaces before reloading", async () => {
+            test("clears both providers, invalidates caches, and reloads via the active provider", async () => {
                 stubVscodeAzureSignIn(sandbox);
                 stubVscodeAzureHelperGetAccounts(sandbox);
                 stubVscodeAzureTenantsForAccount(sandbox);
-                stubFetchServersFromAzure(sandbox);
 
-                // Pre-populate stale data from "previous" account
+                const azureClear = sandbox.spy(
+                    controller["_azureBrowseProvider"],
+                    "clearCollectionsState",
+                );
+                const fabricClear = sandbox.spy(
+                    controller["_fabricBrowseProvider"],
+                    "clearCollectionsState",
+                );
+                const azureInvalidate = sandbox.spy(
+                    controller["_azureBrowseProvider"],
+                    "invalidateCache",
+                );
+                const fabricInvalidate = sandbox.spy(
+                    controller["_fabricBrowseProvider"],
+                    "invalidateCache",
+                );
+                const azureLoad = sandbox
+                    .stub(controller["_azureBrowseProvider"], "loadCollections")
+                    .resolves();
+                sandbox.stub(controller["_azureBrowseProvider"], "autoLoadContents").resolves();
+
                 controller.state.selectedAccountId = "old-account-id";
                 controller.state.selectedInputMode = ConnectionInputMode.AzureBrowse;
-                controller.state.azureSubscriptions = [
-                    {
-                        id: "stale-sub",
-                        displayName: "Stale Sub",
-                        tenantId: mockTenants[0].tenantId,
-                        databases: [],
-                        loadStatus: { status: ApiStatus.Loaded },
-                    },
-                ];
-                controller.state.azureServers = [
-                    {
-                        id: "stale-server",
-                        server: "stale-server",
-                        displayName: "Stale Server",
-                        databases: [],
-                        type: "Server",
-                        collectionId: "stale-sub",
-                        collectionName: "Stale Sub",
-                        tenantId: mockTenants[0].tenantId,
-                    } as AzureSqlServerInfo,
-                ];
-                controller.state.fabricWorkspaces = [
-                    {
-                        id: "stale-workspace",
-                        displayName: "Stale Workspace",
-                        databases: [],
-                        tenantId: mockTenants[0].tenantId,
-                        loadStatus: { status: ApiStatus.Loaded },
-                    },
-                ];
 
                 await controller["_reducerHandlers"].get("selectAzureAccount")(controller.state, {
                     accountId: mockAccounts.signedInAccount.id,
                 });
 
-                // The stale entries should be gone; new subs/servers for the home tenant loaded
                 expect(controller.state.selectedAccountId).to.equal(
                     mockAccounts.signedInAccount.id,
                 );
-                expect(controller.state.fabricWorkspaces).to.be.empty;
-                expect(controller.state.azureSubscriptions.some((s) => s.id === "stale-sub")).to.be
-                    .false;
-                expect(
-                    controller.state.azureServers.some(
-                        (s) => (s as AzureSqlServerInfo).server === "stale-server",
-                    ),
-                ).to.be.false;
+                expect(azureClear.calledOnce).to.be.true;
+                expect(fabricClear.calledOnce).to.be.true;
+                expect(azureInvalidate.calledOnce).to.be.true;
+                expect(fabricInvalidate.calledOnce).to.be.true;
+                expect(azureLoad.calledOnce).to.be.true;
             });
 
             test("is a no-op when the account is already selected and tenants are loaded", async () => {
@@ -747,6 +753,9 @@ suite("ConnectionDialogWebviewController Tests", () => {
         suite("setSelectedTenantId", () => {
             test("is a no-op when tenant unchanged", async () => {
                 const signInStub = stubVscodeAzureSignIn(sandbox);
+                const azureLoad = sandbox
+                    .stub(controller["_azureBrowseProvider"], "loadCollections")
+                    .resolves();
 
                 controller.state.selectedTenantId = mockTenants[0].tenantId;
                 controller.state.selectedInputMode = ConnectionInputMode.AzureBrowse;
@@ -756,11 +765,19 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 });
 
                 expect(signInStub.called).to.be.false;
+                expect(azureLoad.called).to.be.false;
             });
 
-            test("loads subscriptions when tenant changes in AzureBrowse mode", async () => {
-                stubVscodeAzureSignIn(sandbox);
-                stubFetchServersFromAzure(sandbox);
+            test("delegates to the active provider when tenant changes", async () => {
+                const azureLoad = sandbox
+                    .stub(controller["_azureBrowseProvider"], "loadCollections")
+                    .resolves();
+                const azureAutoLoad = sandbox
+                    .stub(controller["_azureBrowseProvider"], "autoLoadContents")
+                    .resolves();
+                const fabricLoad = sandbox
+                    .stub(controller["_fabricBrowseProvider"], "loadCollections")
+                    .resolves();
 
                 controller.state.selectedAccountId = mockAccounts.signedInAccount.id;
                 controller.state.selectedTenantId = mockTenants[1].tenantId;
@@ -771,40 +788,67 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 });
 
                 expect(controller.state.selectedTenantId).to.equal(mockTenants[0].tenantId);
-                // Subscription for Tenant Zero should be loaded
                 expect(
-                    controller.state.azureSubscriptions.some(
-                        (s) => s.tenantId === mockTenants[0].tenantId,
+                    azureLoad.calledOnceWith(
+                        controller.state,
+                        mockAccounts.signedInAccount.id,
+                        mockTenants[0].tenantId,
                     ),
                 ).to.be.true;
+                expect(azureAutoLoad.calledOnce).to.be.true;
+                expect(fabricLoad.notCalled).to.be.true;
             });
         });
 
         suite("toggleFavoriteCollection", () => {
-            let configUpdateStub: sinon.SinonStub;
-            let configValues: Record<string, unknown>;
+            test("delegates to the Azure provider for AzureBrowse", async () => {
+                const azureToggle = sandbox
+                    .stub(controller["_azureBrowseProvider"], "toggleFavorite")
+                    .resolves();
+                const fabricToggle = sandbox
+                    .stub(controller["_fabricBrowseProvider"], "toggleFavorite")
+                    .resolves();
 
-            setup(() => {
-                configValues = {};
-                const fakeConfig = {
-                    get: (key: string, defaultValue: unknown) => {
-                        return configValues[key] ?? defaultValue;
+                await controller["_reducerHandlers"].get("toggleFavoriteCollection")(
+                    controller.state,
+                    {
+                        inputMode: ConnectionInputMode.AzureBrowse,
+                        collectionId: "sub-1",
                     },
-                    update: (key: string, value: unknown) => {
-                        configValues[key] = value;
-                        return Promise.resolve();
-                    },
-                    has: () => true,
-                    inspect: () => undefined,
-                } as unknown as vscode.WorkspaceConfiguration;
-                configUpdateStub = sandbox.stub(fakeConfig, "update").callsFake((key, value) => {
-                    configValues[key as string] = value;
-                    return Promise.resolve();
-                });
-                sandbox.stub(vscode.workspace, "getConfiguration").returns(fakeConfig);
+                );
+
+                expect(azureToggle.calledOnceWith(controller.state, "sub-1")).to.be.true;
+                expect(fabricToggle.notCalled).to.be.true;
             });
 
-            test("toggles a favorite Azure subscription on and off", async () => {
+            test("delegates to the Fabric provider for FabricBrowse", async () => {
+                const azureToggle = sandbox
+                    .stub(controller["_azureBrowseProvider"], "toggleFavorite")
+                    .resolves();
+                const fabricToggle = sandbox
+                    .stub(controller["_fabricBrowseProvider"], "toggleFavorite")
+                    .resolves();
+
+                await controller["_reducerHandlers"].get("toggleFavoriteCollection")(
+                    controller.state,
+                    {
+                        inputMode: ConnectionInputMode.FabricBrowse,
+                        collectionId: "ws-1",
+                    },
+                );
+
+                expect(fabricToggle.calledOnceWith(controller.state, "ws-1")).to.be.true;
+                expect(azureToggle.notCalled).to.be.true;
+            });
+        });
+
+        suite("selectSqlCollection", () => {
+            test("loads contents via the active provider for an unloaded collection", async () => {
+                const azureLoadContents = sandbox
+                    .stub(controller["_azureBrowseProvider"], "loadCollectionContents")
+                    .resolves();
+
+                controller.state.selectedInputMode = ConnectionInputMode.AzureBrowse;
                 controller.state.azureSubscriptions = [
                     {
                         id: "sub-1",
@@ -815,88 +859,18 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     },
                 ];
 
-                // Toggle on
-                await controller["_reducerHandlers"].get("toggleFavoriteCollection")(
-                    controller.state,
-                    {
-                        inputMode: ConnectionInputMode.AzureBrowse,
-                        collectionId: "sub-1",
-                    },
-                );
-
-                expect(controller.state.favoritedAzureSubscriptionIds).to.include("sub-1");
-                expect(configUpdateStub.called).to.be.true;
-
-                // Toggle off
-                await controller["_reducerHandlers"].get("toggleFavoriteCollection")(
-                    controller.state,
-                    {
-                        inputMode: ConnectionInputMode.AzureBrowse,
-                        collectionId: "sub-1",
-                    },
-                );
-
-                expect(controller.state.favoritedAzureSubscriptionIds).to.not.include("sub-1");
-            });
-
-            test("toggles a favorite Fabric workspace on and off", async () => {
-                // Toggle on
-                await controller["_reducerHandlers"].get("toggleFavoriteCollection")(
-                    controller.state,
-                    {
-                        inputMode: ConnectionInputMode.FabricBrowse,
-                        collectionId: "ws-1",
-                    },
-                );
-
-                expect(controller.state.favoritedFabricWorkspaceIds).to.include("ws-1");
-
-                // Toggle off
-                await controller["_reducerHandlers"].get("toggleFavoriteCollection")(
-                    controller.state,
-                    {
-                        inputMode: ConnectionInputMode.FabricBrowse,
-                        collectionId: "ws-1",
-                    },
-                );
-
-                expect(controller.state.favoritedFabricWorkspaceIds).to.not.include("ws-1");
-            });
-        });
-
-        suite("selectSqlCollection", () => {
-            test("loads Azure servers for an unloaded subscription in AzureBrowse mode", async () => {
-                stubVscodeAzureSignIn(sandbox);
-                const fetchStub = stubFetchServersFromAzure(sandbox);
-
-                controller.state.selectedInputMode = ConnectionInputMode.AzureBrowse;
-                controller.state.selectedAccountId = mockAccounts.signedInAccount.id;
-                controller.state.selectedTenantId = mockTenants[0].tenantId;
-                controller.state.azureSubscriptions = [
-                    {
-                        id: mockSubscriptions[0].subscriptionId,
-                        displayName: mockSubscriptions[0].name,
-                        tenantId: mockSubscriptions[0].tenantId,
-                        databases: [],
-                        loadStatus: { status: ApiStatus.NotStarted },
-                    },
-                ];
-                // Populate the private subscription cache so loadAzureServersForSubscription can look it up
-                controller["_azureSubscriptions"].set(
-                    mockSubscriptions[0].subscriptionId,
-                    mockSubscriptions[0],
-                );
-
                 await controller["_reducerHandlers"].get("selectSqlCollection")(controller.state, {
-                    collectionId: mockSubscriptions[0].subscriptionId,
+                    collectionId: "sub-1",
                 });
 
-                expect(fetchStub.called).to.be.true;
+                expect(azureLoadContents.calledOnce).to.be.true;
+                expect(azureLoadContents.firstCall.args[1].id).to.equal("sub-1");
             });
 
-            test("skips server load when subscription is already Loaded", async () => {
-                stubVscodeAzureSignIn(sandbox);
-                const fetchStub = stubFetchServersFromAzure(sandbox);
+            test("skips contents load when collection is already Loaded", async () => {
+                const azureLoadContents = sandbox
+                    .stub(controller["_azureBrowseProvider"], "loadCollectionContents")
+                    .resolves();
 
                 controller.state.selectedInputMode = ConnectionInputMode.AzureBrowse;
                 controller.state.azureSubscriptions = [
@@ -913,7 +887,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     collectionId: "sub-1",
                 });
 
-                expect(fetchStub.called).to.be.false;
+                expect(azureLoadContents.notCalled).to.be.true;
             });
         });
 

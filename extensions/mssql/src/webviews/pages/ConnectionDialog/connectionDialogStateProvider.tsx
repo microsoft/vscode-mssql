@@ -127,11 +127,6 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                     accountId,
                 });
             },
-            selectAzureTenant: (tenantId: string) => {
-                extensionRpc.action("selectAzureTenant", {
-                    tenantId,
-                });
-            },
             setSelectedTenantId: (tenantId: string) => {
                 extensionRpc.action("setSelectedTenantId", {
                     tenantId,

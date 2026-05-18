@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as os from "os";
 import * as vscode from "vscode";
 import { shallowEqualObjects } from "shallow-equal";
 
@@ -30,7 +29,6 @@ import {
     ConnectionDialog as Loc,
     Common as LocCommon,
     Azure as LocAzure,
-    Fabric as LocFabric,
     refreshTokenLabel,
 } from "../constants/locConstants";
 import * as LocAll from "../constants/locConstants";
@@ -39,10 +37,7 @@ import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/tel
 
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { AzureController } from "../azure/azureController";
-import {
-    AzureSubscription,
-    VSCodeAzureSubscriptionProvider,
-} from "@microsoft/vscode-azext-azureauth";
+import { VSCodeAzureSubscriptionProvider } from "@microsoft/vscode-azext-azureauth";
 import { ConnectionDetails, IConnectionInfo, IToken } from "vscode-mssql";
 import MainController from "../controllers/mainController";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
@@ -65,12 +60,7 @@ import { generateConnectionComponents, groupAdvancedOptions } from "./formCompon
 import { FormWebviewController } from "../forms/formWebviewController";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { Deferred } from "../protocol";
-import {
-    configSelectedAzureSubscriptions,
-    configSelectedFabricWorkspaces,
-    defaultDatabase,
-    systemDatabases,
-} from "../constants/constants";
+import { defaultDatabase, systemDatabases } from "../constants/constants";
 import * as AzureConstants from "../azure/constants";
 import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
 import * as Utils from "../models/utils";
@@ -80,7 +70,6 @@ import {
 } from "../controllers/connectionGroupWebviewController";
 import { populateAzureAccountInfo } from "../controllers/addFirewallRuleWebviewController";
 import { FabricHelper } from "../fabric/fabricHelper";
-import { SqlDbInfo, SqlCollectionInfo } from "../sharedInterfaces/fabric";
 import {
     ConnectionInfo,
     getSqlConnectionErrorType,
@@ -90,7 +79,6 @@ import {
     ChangePasswordWebviewRequest,
     ChangePasswordWebviewState,
 } from "../sharedInterfaces/changePassword";
-import { getCloudId } from "../azure/providerSettings";
 import { ConnectionConfig } from "./connectionconfig";
 import {
     areCompatibleEntraAccountIds,
@@ -99,9 +87,14 @@ import {
     resolveVscodeEntraAccount,
 } from "../azure/vscodeEntraMfaUtils";
 import { PreviewFeature, previewService } from "../previews/previewService";
+import { getCloudId } from "../azure/providerSettings";
+import {
+    AzureBrowseProvider,
+    BrowseProvider,
+    BrowseProviderHost,
+    FabricBrowseProvider,
+} from "./browseProvider";
 
-const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 10;
-const AZURE_SUBSCRIPTION_AUTOLOAD_LIMIT = 20;
 export const CLEAR_TOKEN_CACHE = "clearTokenCache";
 export const SIGN_IN_TO_AZURE = "signInToAzure";
 const CONNECTION_DIALOG_VIEW_ID = "connectionDialog";
@@ -141,7 +134,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     ];
 
     private _connectionBeingEdited: IConnectionDialogProfile | undefined;
-    private _azureSubscriptions: Map<string, AzureSubscription> = new Map();
+    private readonly _azureBrowseProvider: AzureBrowseProvider;
+    private readonly _fabricBrowseProvider: FabricBrowseProvider;
     private _lastSubmittedAction: ConnectionSubmitAction = ConnectionSubmitAction.Connect;
 
     /** Cached VS Code Entra account options, invalidated on sign-in */
@@ -191,6 +185,21 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 },
             },
         );
+
+        const self = this;
+        const host: BrowseProviderHost = {
+            get state() {
+                return self.state;
+            },
+            get logger() {
+                return self.logger;
+            },
+            updateState: (state) => self.updateState(state),
+            refreshUnauthenticatedTenants: (state, auth) =>
+                self.refreshUnauthenticatedTenants(state, auth),
+        };
+        this._azureBrowseProvider = new AzureBrowseProvider(host);
+        this._fabricBrowseProvider = new FabricBrowseProvider(host);
 
         this.registerRpcHandlers();
         void this.initializeDialog(connectionToEdit, initialConnectionGroup)
@@ -317,41 +326,35 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this.state.selectedInputMode = payload.inputMode;
             await this.updateItemVisibility();
             state.formMessage = undefined;
-            this.updateState();
 
-            if (state.selectedInputMode === ConnectionInputMode.AzureBrowse) {
-                await this.ensureAzureBrowseContext(state);
-
-                if (state.selectedAccountId && state.selectedTenantId) {
-                    const alreadyLoaded =
-                        state.loadingAzureSubscriptionsStatus === ApiStatus.Loaded &&
-                        state.azureSubscriptions.length > 0;
-                    if (!alreadyLoaded) {
-                        await this.loadAzureSubscriptions(state, state.selectedTenantId);
-                        await this.autoLoadAzureServers(state);
-                    }
-                }
-            } else if (state.selectedInputMode === ConnectionInputMode.FabricBrowse) {
-                // Don't port connection information when switching to Fabric Browse
+            // Don't port connection information when switching to a browse mode
+            if (
+                state.selectedInputMode === ConnectionInputMode.FabricBrowse ||
+                state.selectedInputMode === ConnectionInputMode.AzureBrowse
+            ) {
                 state.connectionProfile.server = undefined;
                 state.connectionProfile.database = undefined;
                 state.connectionProfile.user = undefined;
+            }
 
+            this.updateState();
+
+            const provider = this.getActiveProvider(state);
+            if (provider) {
                 await this.ensureAzureBrowseContext(state);
 
                 if (state.selectedAccountId && state.selectedTenantId) {
+                    const status = provider.getCollectionsLoadStatus(state);
                     const alreadyLoaded =
-                        state.fabricWorkspacesLoadStatus.status === ApiStatus.Loaded &&
-                        state.fabricWorkspaces.length > 0;
+                        status.status === ApiStatus.Loaded &&
+                        provider.getCollections(state).length > 0;
                     if (!alreadyLoaded) {
-                        state.fabricWorkspacesLoadStatus = { status: ApiStatus.Loading };
-                        state.fabricWorkspaces = [];
-                        this.updateState(state);
-                        await this.loadFabricWorkspaces(
+                        await provider.loadCollections(
                             state,
                             state.selectedAccountId,
                             state.selectedTenantId,
                         );
+                        await provider.autoLoadContents(state);
                     }
                 }
             }
@@ -742,15 +745,18 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 await this.ensureAzureBrowseContext(state);
             }
 
-            if (payload.browseTarget === ConnectionInputMode.AzureBrowse) {
-                // New sign-in may have brought in new subscriptions/tenants
-                this._azureSubscriptions.clear();
-                if (state.selectedTenantId) {
-                    await this.loadAzureSubscriptions(state, state.selectedTenantId);
-                    await this.autoLoadAzureServers(state);
-                }
+            // New sign-in may have brought in new collections; invalidate caches for both providers.
+            this._azureBrowseProvider.invalidateCache();
+            this._fabricBrowseProvider.invalidateCache();
 
-                return state;
+            const provider = this.getActiveProvider(state);
+            if (provider && state.selectedAccountId && state.selectedTenantId) {
+                await provider.loadCollections(
+                    state,
+                    state.selectedAccountId,
+                    state.selectedTenantId,
+                );
+                await provider.autoLoadContents(state);
             }
 
             return state;
@@ -768,34 +774,23 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             state.azureTenants = [];
             state.selectedTenantId = undefined;
             state.loadingAzureTenantsStatus = ApiStatus.NotStarted;
-            state.azureSubscriptions = [];
-            state.azureServers = [];
-            state.loadingAzureSubscriptionsStatus = ApiStatus.NotStarted;
-            state.fabricWorkspaces = [];
-            state.fabricWorkspacesLoadStatus = { status: ApiStatus.NotStarted };
+            this._azureBrowseProvider.clearCollectionsState(state);
+            this._fabricBrowseProvider.clearCollectionsState(state);
             state.notSignedInTenant = undefined;
-            this._azureSubscriptions.clear();
+            this._azureBrowseProvider.invalidateCache();
+            this._fabricBrowseProvider.invalidateCache();
             this.updateState(state);
 
             await this.ensureAzureBrowseContext(state);
 
-            if (state.selectedTenantId) {
-                if (state.selectedInputMode === ConnectionInputMode.AzureBrowse) {
-                    await this.loadAzureSubscriptions(state, state.selectedTenantId);
-                    await this.autoLoadAzureServers(state);
-                } else if (
-                    state.selectedInputMode === ConnectionInputMode.FabricBrowse &&
-                    state.selectedAccountId
-                ) {
-                    state.fabricWorkspacesLoadStatus = { status: ApiStatus.Loading };
-                    state.fabricWorkspaces = [];
-                    this.updateState(state);
-                    await this.loadFabricWorkspaces(
-                        state,
-                        state.selectedAccountId,
-                        state.selectedTenantId,
-                    );
-                }
+            const provider = this.getActiveProvider(state);
+            if (provider && state.selectedAccountId && state.selectedTenantId) {
+                await provider.loadCollections(
+                    state,
+                    state.selectedAccountId,
+                    state.selectedTenantId,
+                );
+                await provider.autoLoadContents(state);
             }
 
             return state;
@@ -812,6 +807,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             const tenant = state.azureTenants.find((t) => t.id === payload.tenantId);
             if (tenant && !tenant.isSignedIn) {
                 state.notSignedInTenant = { id: tenant.id, name: tenant.name };
+                this._azureBrowseProvider.clearCollectionsState(state);
+                this._fabricBrowseProvider.clearCollectionsState(state);
                 this.updateState(state);
 
                 const signed = await this.signInToTenant(state, payload.tenantId);
@@ -823,110 +820,30 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 this.updateState(state);
             } else {
                 state.notSignedInTenant = undefined;
-                state.azureSubscriptions = [];
-                state.azureServers = [];
-                state.loadingAzureSubscriptionsStatus = ApiStatus.NotStarted;
-                state.fabricWorkspaces = [];
-                state.fabricWorkspacesLoadStatus = { status: ApiStatus.NotStarted };
+                this._azureBrowseProvider.clearCollectionsState(state);
+                this._fabricBrowseProvider.clearCollectionsState(state);
                 this.updateState(state);
             }
 
-            if (state.selectedInputMode === ConnectionInputMode.AzureBrowse) {
-                await this.loadAzureSubscriptions(state, payload.tenantId);
-                await this.autoLoadAzureServers(state);
+            const provider = this.getActiveProvider(state);
+            if (provider && state.selectedAccountId) {
+                await provider.loadCollections(state, state.selectedAccountId, payload.tenantId);
+                await provider.autoLoadContents(state);
             }
 
             return state;
         });
 
         this.registerReducer("toggleFavoriteCollection", async (state, payload) => {
-            if (payload.inputMode === ConnectionInputMode.AzureBrowse) {
-                const sub = state.azureSubscriptions.find((s) => s.id === payload.collectionId);
-                if (!sub) {
-                    return state;
-                }
-                const entry = `${sub.tenantId}/${sub.id}`;
-                const current = vscode.workspace
-                    .getConfiguration()
-                    .get<string[]>(configSelectedAzureSubscriptions, []);
-                const idx = current.indexOf(entry);
-                if (idx >= 0) {
-                    current.splice(idx, 1);
-                } else {
-                    current.push(entry);
-                }
-                await vscode.workspace
-                    .getConfiguration()
-                    .update(
-                        configSelectedAzureSubscriptions,
-                        current,
-                        vscode.ConfigurationTarget.Global,
-                    );
-                state.favoritedAzureSubscriptionIds = current.map((e) => e.split("/")[1]);
-            } else if (payload.inputMode === ConnectionInputMode.FabricBrowse) {
-                const current = vscode.workspace
-                    .getConfiguration()
-                    .get<string[]>(configSelectedFabricWorkspaces, []);
-                const idx = current.indexOf(payload.collectionId);
-                if (idx >= 0) {
-                    current.splice(idx, 1);
-                } else {
-                    current.push(payload.collectionId);
-                }
-                await vscode.workspace
-                    .getConfiguration()
-                    .update(
-                        configSelectedFabricWorkspaces,
-                        current,
-                        vscode.ConfigurationTarget.Global,
-                    );
-                state.favoritedFabricWorkspaceIds = [...current];
+            const provider =
+                payload.inputMode === ConnectionInputMode.AzureBrowse
+                    ? this._azureBrowseProvider
+                    : payload.inputMode === ConnectionInputMode.FabricBrowse
+                      ? this._fabricBrowseProvider
+                      : undefined;
+            if (provider) {
+                await provider.toggleFavorite(state, payload.collectionId);
             }
-            return state;
-        });
-
-        this.registerReducer("selectAzureTenant", async (state, payload) => {
-            const tenant = state.azureTenants.find((t) => t.id === payload.tenantId);
-
-            // If the tenant is not signed in, show error state and immediately prompt sign-in
-            if (tenant && !tenant.isSignedIn) {
-                state.selectedTenantId = payload.tenantId;
-                state.notSignedInTenant = { id: tenant.id, name: tenant.name };
-                state.fabricWorkspaces = [];
-                state.fabricWorkspacesLoadStatus = { status: ApiStatus.NotStarted };
-                this.updateState(state);
-
-                const signed = await this.signInToTenant(state, payload.tenantId);
-                if (!signed) {
-                    return state;
-                }
-
-                state.notSignedInTenant = undefined;
-            } else {
-                state.notSignedInTenant = undefined;
-                state.selectedTenantId = payload.tenantId;
-            }
-
-            state.fabricWorkspacesLoadStatus = { status: ApiStatus.Loading };
-            state.fabricWorkspaces = [];
-            this.updateState(state);
-
-            await this.loadFabricWorkspaces(state, state.selectedAccountId, state.selectedTenantId);
-
-            // Fabric REST API rate-limits to 50 requests/user/minute,
-            // so only auto-load contents of workspaces if they're below a safe threshold
-            if (state.fabricWorkspaces.length <= FABRIC_WORKSPACE_AUTOLOAD_LIMIT) {
-                this.updateState(state);
-
-                const promiseArray: Promise<void>[] = [];
-
-                for (const workspace of state.fabricWorkspaces) {
-                    promiseArray.push(this.loadFabricDatabasesForWorkspace(state, workspace));
-                }
-
-                await Promise.all(promiseArray);
-            }
-
             return state;
         });
 
@@ -944,14 +861,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             state.notSignedInTenant = undefined;
 
-            if (state.selectedInputMode === ConnectionInputMode.AzureBrowse) {
-                await this.loadAzureSubscriptions(state, tenantId);
-                await this.autoLoadAzureServers(state);
-            } else if (state.selectedInputMode === ConnectionInputMode.FabricBrowse) {
-                state.fabricWorkspacesLoadStatus = { status: ApiStatus.Loading };
-                state.fabricWorkspaces = [];
-                this.updateState(state);
-                await this.loadFabricWorkspaces(state, state.selectedAccountId, tenantId);
+            const provider = this.getActiveProvider(state);
+            if (provider) {
+                await provider.loadCollections(state, state.selectedAccountId, tenantId);
+                await provider.autoLoadContents(state);
             }
 
             return state;
@@ -961,24 +874,20 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this.state.connectionProfile.server = "";
             this.state.connectionProfile.database = "";
 
-            if (state.selectedInputMode === ConnectionInputMode.AzureBrowse) {
-                const sub = state.azureSubscriptions.find((s) => s.id === payload.collectionId);
-                if (
-                    sub &&
-                    (sub.loadStatus.status === ApiStatus.NotStarted ||
-                        sub.loadStatus.status === ApiStatus.Error)
-                ) {
-                    await this.loadAzureServersForSubscription(state, payload.collectionId);
-                }
-            } else {
-                const workspace = state.fabricWorkspaces.find((w) => w.id === payload.collectionId);
-                if (
-                    workspace &&
-                    (workspace.loadStatus.status === ApiStatus.NotStarted ||
-                        workspace.loadStatus.status === ApiStatus.Error)
-                ) {
-                    await this.loadFabricDatabasesForWorkspace(state, workspace);
-                }
+            const provider = this.getActiveProvider(state);
+            if (!provider) {
+                return state;
+            }
+
+            const collection = provider
+                .getCollections(state)
+                .find((c) => c.id === payload.collectionId);
+            if (
+                collection &&
+                (collection.loadStatus.status === ApiStatus.NotStarted ||
+                    collection.loadStatus.status === ApiStatus.Error)
+            ) {
+                await provider.loadCollectionContents(state, collection);
             }
 
             return state;
@@ -2573,406 +2482,15 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         return signedIn;
     }
 
-    /**
-     * is populated and the user has signed in. Idempotent — does not re-fetch if already
-     * cached unless `forceRefresh` is set.
-     *
-     * Returns the subscription provider used to sign in, or `undefined` if sign-in
-     * failed (in which case `state.formMessage` is populated).
-     */
-    private async ensureAzureSubscriptionsCached(
-        state: ConnectionDialogWebviewState,
-        options: { forceRefresh?: boolean } = {},
-    ): Promise<VSCodeAzureSubscriptionProvider | undefined> {
-        let auth: VSCodeAzureSubscriptionProvider;
-        try {
-            auth = (await VsCodeAzureHelper.signIn()).auth;
-        } catch (error) {
-            state.formMessage = {
-                message: LocAzure.errorSigningIntoAzure(getErrorMessage(error)),
-            };
-            return undefined;
-        }
-
-        if (options.forceRefresh || this._azureSubscriptions.size === 0) {
-            await this.refreshUnauthenticatedTenants(state, auth);
-            this.updateState(state);
-
-            this._azureSubscriptions = new Map(
-                (await auth.getSubscriptions(false)).map((s) => [s.subscriptionId, s]),
-            );
-        }
-
-        // Always refresh favorites from config in case it was changed externally
-        const favoritedAzureConfig = vscode.workspace
-            .getConfiguration()
-            .get<string[]>(configSelectedAzureSubscriptions, []);
-        state.favoritedAzureSubscriptionIds = favoritedAzureConfig.map(
-            (entry) => entry.split("/")[1],
-        );
-
-        return auth;
-    }
-
-    /**
-     * Loads the list of Azure subscriptions for the given tenant. Mirrors
-     * `loadFabricWorkspaces`: only populates the subscription list — does not auto-load
-     * each subscription's contents. Callers (reducers) decide when/whether to auto-load
-     * server lists via `autoLoadAzureServers`.
-     */
-    private async loadAzureSubscriptions(
-        state: ConnectionDialogWebviewState,
-        tenantId: string,
-    ): Promise<void> {
-        const endActivity = startActivity(
-            TelemetryViews.ConnectionDialog,
-            TelemetryActions.LoadAzureServers,
-        );
-        // Snapshot the selection at call time so we can detect if it changes before we write results.
-        const requestedAccountId = state.selectedAccountId;
-        const requestedTenantId = tenantId;
-        try {
-            state.formMessage = undefined;
-            state.azureSubscriptions = [];
-            state.azureServers = [];
-            state.loadingAzureSubscriptionsStatus = ApiStatus.Loading;
-            state.loadingAzureServersStatus = ApiStatus.NotStarted;
-            this.updateState(state);
-
-            const auth = await this.ensureAzureSubscriptionsCached(state);
-            if (!auth) {
-                state.loadingAzureSubscriptionsStatus = ApiStatus.Error;
-                return;
-            }
-
-            // If the user changed account or tenant while we were loading, discard these results.
-            if (
-                this.state.selectedAccountId !== requestedAccountId ||
-                this.state.selectedTenantId !== requestedTenantId
-            ) {
-                return;
-            }
-
-            const subsForTenant = Array.from(this._azureSubscriptions.values()).filter(
-                (s) => s.tenantId === tenantId,
-            );
-
-            state.azureSubscriptions = subsForTenant.map((s) => ({
-                id: s.subscriptionId,
-                displayName: s.name,
-                tenantId: s.tenantId,
-                databases: [],
-                loadStatus: { status: ApiStatus.NotStarted },
-            }));
-            state.loadingAzureSubscriptionsStatus = ApiStatus.Loaded;
-            this.updateState(state);
-
-            endActivity.end(ActivityStatus.Succeeded, undefined, {
-                subscriptionCount: subsForTenant.length,
-            });
-        } catch (error) {
-            state.formMessage = { message: l10n.t("Error loading Azure subscriptions.") };
-            state.loadingAzureSubscriptionsStatus = ApiStatus.Error;
-            this.logger.error(state.formMessage.message + os.EOL + getErrorMessage(error));
-
-            endActivity.endFailed(
-                error,
-                false, // includeErrorMessage
-            );
-        }
-    }
-
-    /**
-     * Auto-loads server lists for subscriptions in the current tenant. Favorites are
-     * always loaded first; the remaining subscriptions are only auto-loaded if the
-     * total subscription count is within `AZURE_SUBSCRIPTION_AUTOLOAD_LIMIT`.
-     */
-    private async autoLoadAzureServers(state: ConnectionDialogWebviewState): Promise<void> {
-        if (state.azureSubscriptions.length === 0) {
-            state.loadingAzureServersStatus = ApiStatus.Loaded;
-            return;
-        }
-
-        state.loadingAzureServersStatus = ApiStatus.Loading;
-        this.updateState(state);
-
-        const favoritedIds = state.favoritedAzureSubscriptionIds;
-        const favoriteSubs = state.azureSubscriptions.filter((s) => favoritedIds.includes(s.id));
-        const restSubs = state.azureSubscriptions.filter((s) => !favoritedIds.includes(s.id));
-
-        // Wave 1: favorites — always auto-load, await so they appear before the rest start
-        await Promise.all(
-            favoriteSubs.map((s) => this.loadAzureServersForSubscription(state, s.id)),
-        );
-
-        // Wave 2: non-favorites — only auto-load if total subscriptions are within threshold
-        if (state.azureSubscriptions.length <= AZURE_SUBSCRIPTION_AUTOLOAD_LIMIT) {
-            await Promise.all(
-                restSubs.map((s) => this.loadAzureServersForSubscription(state, s.id)),
-            );
-        }
-
-        state.loadingAzureServersStatus = ApiStatus.Loaded;
-    }
-
-    private async loadAzureServersForSubscription(
-        state: ConnectionDialogWebviewState,
-        subscriptionId: string,
-    ) {
-        const azSub = this._azureSubscriptions.get(subscriptionId);
-        const stateSub = state.azureSubscriptions.find((s) => s.id === subscriptionId);
-
-        // Show loading spinner immediately
-        stateSub.loadStatus = { status: ApiStatus.Loading };
-        this.updateState(state);
-
-        try {
-            const servers = await VsCodeAzureHelper.fetchServersFromAzure(azSub);
-            state.azureServers.push(...servers);
-            stateSub.loadStatus = { status: ApiStatus.Loaded };
-            this.updateState(state);
-            this.logger.log(
-                `Loaded ${servers.length} servers for subscription ${azSub.name} (${azSub.subscriptionId})`,
-            );
-        } catch (error) {
-            const errorMessage = getErrorMessage(error);
-            this.logger.error(
-                Loc.errorLoadingAzureDatabases(azSub.name, azSub.subscriptionId) +
-                    os.EOL +
-                    errorMessage,
-            );
-
-            stateSub.loadStatus = { status: ApiStatus.Error, message: errorMessage };
-            this.updateState(state);
-
-            sendErrorEvent(
-                TelemetryViews.ConnectionDialog,
-                TelemetryActions.LoadAzureServers,
-                error,
-                true, // includeErrorMessage
-                undefined, // errorCode
-                undefined, // errorType
-                {
-                    cloudType: getCloudId(),
-                },
-            );
-        }
-    }
-
-    //#endregion
-
-    //#region Fabric helpers
-
-    private async loadFabricWorkspaces(
-        state: ConnectionDialogWebviewState,
-        account: IAzureAccount | string,
-        tenantId: string,
-    ): Promise<void> {
-        const loadWorkspacesActivity = startActivity(
-            TelemetryViews.ConnectionDialog,
-            TelemetryActions.LoadFabricWorkspaces,
-        );
-
-        // Snapshot the selection at call time so we can detect if it changes before we write results.
-        const requestedAccountId = typeof account === "string" ? account : account.id;
-        const requestedTenantId = tenantId;
-
-        try {
-            const accountId = typeof account === "string" ? account : account.id;
-            const vscodeAccount = await VsCodeAzureHelper.getAccountById(accountId);
-
-            const newWorkspaces: SqlCollectionInfo[] = [];
-
-            // Fetch the full tenant info to confirm token permissions
-            const tenant = await VsCodeAzureHelper.getTenant(vscodeAccount, tenantId);
-
-            if (!tenant) {
-                const message = `Failed to get tenant '${tenantId}' for account '${vscodeAccount.label}'.`;
-                const locMessage = LocAzure.failedToGetTenantForAccount(
-                    tenantId,
-                    vscodeAccount.label,
-                );
-
-                this.logger.error(message);
-                state.fabricWorkspacesLoadStatus = { status: ApiStatus.Error, message: locMessage };
-
-                loadWorkspacesActivity.endFailed(
-                    new Error(
-                        "Failed to get tenant info from VS Code; may have been user-canceled.",
-                    ),
-                    true, // includeErrorMessage
-                    undefined, // errorCode
-                    undefined, // errorType
-                );
-            }
-
-            try {
-                const workspaces = await FabricHelper.getFabricWorkspaces(tenant.tenantId);
-
-                for (const workspace of workspaces) {
-                    const stateWorkspace: SqlCollectionInfo = {
-                        id: workspace.id,
-                        displayName: workspace.displayName,
-                        databases: [],
-                        tenantId: tenant.tenantId,
-                        loadStatus: { status: ApiStatus.NotStarted },
-                    };
-
-                    newWorkspaces.push(stateWorkspace);
-                }
-
-                // If the user changed account or tenant while we were loading, discard these results.
-                if (
-                    this.state.selectedAccountId !== requestedAccountId ||
-                    this.state.selectedTenantId !== requestedTenantId
-                ) {
-                    return;
-                }
-
-                this.state.fabricWorkspaces = newWorkspaces;
-                state.favoritedFabricWorkspaceIds = vscode.workspace
-                    .getConfiguration()
-                    .get<string[]>(configSelectedFabricWorkspaces, []);
-                state.fabricWorkspacesLoadStatus = {
-                    status: ApiStatus.Loaded,
-                    message:
-                        this.state.fabricWorkspaces.length === 0
-                            ? Loc.noWorkspacesFound
-                            : undefined,
-                };
-
-                loadWorkspacesActivity.end(ActivityStatus.Succeeded, undefined, {
-                    workspaceCount: this.state.fabricWorkspaces.length,
-                });
-            } catch (err) {
-                const message = `Failed to get Fabric workspaces for tenant '${tenant.displayName} (${tenant.tenantId})': ${getErrorMessage(err)}`;
-                const locMessage = LocFabric.failedToGetWorkspacesForTenant(
-                    tenant.displayName,
-                    tenant.tenantId,
-                    getErrorMessage(err),
-                );
-
-                this.logger.error(message);
-                state.fabricWorkspacesLoadStatus = { status: ApiStatus.Error, message: locMessage };
-
-                loadWorkspacesActivity.endFailed(
-                    new Error("Failed to fetch Fabric workspaces"),
-                    true, // includeErrorMessage
-                    undefined, // errorCode
-                    undefined, // errorType
-                );
-            }
-        } catch (err) {
-            state.formMessage = { message: getErrorMessage(err) };
-
-            loadWorkspacesActivity.endFailed(
-                new Error("Failure while getting Fabric workspaces"),
-                true, // includeErrorMessage
-                undefined, // errorCode
-                undefined, // errorType
-            );
-        }
-    }
-
-    private async loadFabricDatabasesForWorkspace(
-        state: ConnectionDialogWebviewState,
-        workspace: SqlCollectionInfo,
-    ): Promise<void> {
-        const loadDatabasesActivity = startActivity(
-            TelemetryViews.ConnectionDialog,
-            TelemetryActions.LoadDatabases,
-        );
-
-        // 1. Display loading status
-        workspace.loadStatus = { status: ApiStatus.Loading };
-        this.updateState(state);
-
-        try {
-            const databases: SqlDbInfo[] = [];
-            const errorMessages: string[] = [];
-
-            // 2. Load SQL databases from Fabric
-            try {
-                databases.push(
-                    ...(await FabricHelper.getFabricDatabases(workspace.id, workspace.tenantId)),
-                );
-            } catch (error) {
-                const errorMessage = getErrorMessage(error);
-                this.logger.error(
-                    `Error loading Fabric databases for workspace ${workspace.id}: ${errorMessage}`,
-                );
-
-                errorMessages.push(errorMessage);
-            }
-
-            const sqlDbCount = databases.length;
-            const sqlDbErrored = errorMessages.length > 0;
-
-            // 3. Load SQL Analytics endpoints from Fabric
-            try {
-                databases.push(
-                    ...(await FabricHelper.getFabricSqlEndpoints(workspace.id, workspace.tenantId)),
-                );
-            } catch (error) {
-                const errorMessage = getErrorMessage(error);
-                console.error(
-                    `Error loading Fabric SQL endpoints for workspace ${workspace.id}: ${errorMessage}`,
-                );
-                errorMessages.push(errorMessage);
-            }
-
-            // 4. Construct state and check for errors
-            workspace.databases = databases.map((db) => {
-                return {
-                    id: db.id,
-                    databases: db.databases,
-                    displayName: db.displayName,
-                    server: db.server,
-                    type: db.type,
-                    collectionId: workspace.id,
-                    collectionName: workspace.displayName,
-                    tenantId: workspace.tenantId,
-                };
-            });
-
-            if (errorMessages.length > 0) {
-                workspace.loadStatus = {
-                    status: ApiStatus.Error,
-                    message: errorMessages.join("\n"),
-                };
-            } else {
-                workspace.loadStatus = { status: ApiStatus.Loaded };
-            }
-
-            workspace.databases.sort((a, b) => a.displayName.localeCompare(b.displayName));
-
-            loadDatabasesActivity.end(
-                ActivityStatus.Succeeded,
-                {
-                    sqlDbErrored: String(sqlDbErrored),
-                    sqlAnalyticsEndpointErrored: String(
-                        errorMessages.length - (sqlDbErrored ? 1 : 0),
-                    ),
-                },
-                {
-                    sqlDbCount: sqlDbCount,
-                    sqlAnalyticsEndpointCount: workspace.databases.length - sqlDbCount,
-                },
-            );
-
-            this.updateState(state);
-        } catch (err) {
-            const message = `Failed to load Fabric databases for workspace ${workspace.id}: ${getErrorMessage(err)}`;
-
-            this.logger.error(message);
-            workspace.loadStatus = { status: ApiStatus.Error, message: getErrorMessage(err) };
-
-            loadDatabasesActivity.endFailed(
-                new Error("Failure while getting Fabric databases"),
-                true, // includeErrorMessage
-                undefined, // errorCode
-                undefined, // errorType
-            );
+    /** Returns the BrowseProvider matching the current input mode, or undefined when not in a browse mode. */
+    private getActiveProvider(state: ConnectionDialogWebviewState): BrowseProvider | undefined {
+        switch (state.selectedInputMode) {
+            case ConnectionInputMode.AzureBrowse:
+                return this._azureBrowseProvider;
+            case ConnectionInputMode.FabricBrowse:
+                return this._fabricBrowseProvider;
+            default:
+                return undefined;
         }
     }
 
