@@ -39,6 +39,7 @@ import {
     AlwaysEncryptedEnclaveType,
     Database,
     FirewallRule,
+    KnownFreeLimitExhaustionBehavior,
     KnownSampleName,
     ManagedDatabase,
     ManagedInstance,
@@ -356,6 +357,7 @@ export class VsCodeAzureHelper {
             const servers = await listAllIterator(
                 sql.servers.listByResourceGroup(resourceGroupName),
             );
+
             return servers.sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
         } catch (error) {
             console.error("Error fetching logical servers for resource group:", error);
@@ -380,6 +382,8 @@ export class VsCodeAzureHelper {
             tags?: {
                 [propertyName: string]: string;
             };
+            freeLimitExhaustionBehavior?: KnownFreeLimitExhaustionBehavior;
+            useFreeLimit?: boolean;
         },
     ): Promise<Database> {
         const sql = new SqlManagementClient(subscription.credential, subscription.subscriptionId, {
@@ -388,11 +392,25 @@ export class VsCodeAzureHelper {
 
         const server = await sql.servers.get(resourceGroupName, serverName);
 
+        const freeOfferOptions = options.useFreeLimit
+            ? {
+                  sku: {
+                      name: "GP_S_Gen5",
+                      tier: "GeneralPurpose",
+                      family: "Gen5",
+                      capacity: 2,
+                  },
+                  autoPauseDelay: 60,
+                  minCapacity: 0.5,
+                  requestedBackupStorageRedundancy: "Local",
+              }
+            : {};
+
         const poller = await sql.databases.beginCreateOrUpdate(
             resourceGroupName,
             serverName,
             databaseName,
-            { ...options, location: server.location },
+            { ...options, ...freeOfferOptions, location: server.location },
         );
         return poller.pollUntilDone();
     }

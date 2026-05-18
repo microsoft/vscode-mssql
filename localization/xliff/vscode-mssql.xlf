@@ -1612,6 +1612,9 @@
       <source xml:lang="en">Could not connect to database: {0}</source>
       <note>{0} is the database name</note>
     </trans-unit>
+    <trans-unit id="++CODE++03c0e95da7ae52bf9392b845b82870dbf28db813a7fd4a72085f8a544de37916">
+      <source xml:lang="en">Could not detect your client IP address. Please add a firewall rule manually in the Azure portal.</source>
+    </trans-unit>
     <trans-unit id="++CODE++f630f91edbf1dc6649a7de55179cb551ef8245ef63461de0094de54e58d5ea62">
       <source xml:lang="en">Could not find scripting metadata for {0} &apos;{1}&apos;.</source>
       <note>{0} is the node type
@@ -2753,6 +2756,10 @@
       <source xml:lang="en">Failed to create database &apos;{0}&apos;. {1}</source>
       <note>{0} is the database name
 {1} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++83183f85bfea0220389f0642b618bb70d21e77bf68028be1d05abb4bd2772407">
+      <source xml:lang="en">Failed to create firewall rule: {0}</source>
+      <note>{0} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++e1610b299a2b8eaa35bfb68aba2bf7a2c49383d9a8f9046abd8ceb5cb7f640e1">
       <source xml:lang="en">Failed to create profiler session: {0}</source>

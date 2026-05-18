@@ -4,7 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { AzureSubscription, AzureTenant } from "@microsoft/vscode-azext-azureauth";
-import { KnownAlwaysEncryptedEnclaveType, Server, KnownSampleName } from "@azure/arm-sql";
+import {
+    KnownAlwaysEncryptedEnclaveType,
+    Server,
+    KnownSampleName,
+    KnownFreeLimitExhaustionBehavior,
+} from "@azure/arm-sql";
 import { getDefaultTenantId, VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
 import { AzureSqlDatabase, ConnectionDialog } from "../constants/locConstants";
@@ -20,6 +25,7 @@ import { IConnectionProfile } from "../models/interfaces";
 import { DEPLOYMENT_VIEW_ID, DeploymentWebviewController } from "./deploymentWebviewController";
 import { UserSurvey } from "../nps/userSurvey";
 import { acquireSqlAccessTokenFromVscodeAccount } from "../azure/vscodeEntraMfaUtils";
+import { getCloudProviderSettings } from "../azure/providerSettings";
 import { user } from "../constants/constants";
 
 // Cached logger reference for use in helper functions that don't have
@@ -177,7 +183,7 @@ export async function initializeAzureSqlDatabaseState(
         userName: "",
         password: "",
         savePassword: false,
-        autoPauseDelay: 60,
+        freeLimitBehavior: KnownFreeLimitExhaustionBehavior.AutoPause,
         profileName: "",
         groupId: selectedGroupId || groupOptions[0]?.value || "",
         collation: COLLATION_OPTIONS[0],
@@ -317,6 +323,8 @@ export function registerAzureSqlDatabaseReducers(
                             payload.tags && Object.keys(payload.tags).length > 0
                                 ? payload.tags
                                 : undefined,
+                        freeLimitExhaustionBehavior: azureSqlState.formState.freeLimitBehavior,
+                        useFreeLimit: true,
                     },
                 );
 
@@ -649,7 +657,10 @@ export async function connectToAzureSqlDatabase(
     updateAzureSqlDatabaseState(deploymentController, state);
 
     try {
-        const serverFqdn = `${state.formState.serverName}.database.windows.net`;
+        const cachedServer = getCachedServer(state, state.formState.serverName);
+        const serverFqdn =
+            cachedServer?.fullyQualifiedDomainName ??
+            `${state.formState.serverName}${getCloudProviderSettings().settings.sqlResource.dnsSuffix}`;
         const connectionDetails =
             await deploymentController.mainController.connectionManager.parseConnectionString(
                 `Server=${serverFqdn};Database=${state.formState.databaseName}`,
@@ -659,15 +670,13 @@ export async function connectToAzureSqlDatabase(
             await ConnectionCredentials.createConnectionInfo(connectionDetails);
         connectionProfile.profileName = state.formState.profileName || state.formState.databaseName;
         connectionProfile.groupId = state.formState.groupId;
-        connectionProfile.authenticationType = state.formState.authenticationType;
+        connectionProfile.authenticationType =
+            state.formState.authenticationType === AuthenticationType.SqlLogin
+                ? AuthenticationType.SqlLogin
+                : AuthenticationType.AzureMFA;
 
-        if (
-            state.formState.authenticationType === AuthenticationType.AzureMFA ||
-            state.formState.authenticationType === AuthenticationType.AzureMFAAndUser
-        ) {
-            connectionProfile.accountId = state.formState.accountId;
-            connectionProfile.tenantId = state.formState.tenantId;
-        }
+        connectionProfile.accountId = state.formState.accountId;
+        connectionProfile.tenantId = state.formState.tenantId;
 
         // Acquire an Entra SQL access token so the connection starts with a
         // valid token. The provisioning wizard authenticates through VS Code
@@ -685,14 +694,9 @@ export async function connectToAzureSqlDatabase(
             connectionProfile.email = tokenInfo.session.account.label;
         }
 
-        if (
-            state.formState.authenticationType === AuthenticationType.SqlLogin ||
-            state.formState.authenticationType === AuthenticationType.AzureMFAAndUser
-        ) {
-            connectionProfile.user = state.formState.userName;
-            connectionProfile.password = state.formState.password;
-            connectionProfile.savePassword = state.formState.savePassword;
-        }
+        connectionProfile.user = state.formState.userName;
+        connectionProfile.password = state.formState.password;
+        connectionProfile.savePassword = state.formState.savePassword;
 
         // Probe connectivity with retries. On the first firewall error, extract
         // the client IP from the error message (same pattern as the connection
@@ -743,7 +747,7 @@ export async function connectToAzureSqlDatabase(
 
                 if (!handleResult.result || !handleResult.ipAddress) {
                     state.connectionLoadState = ApiStatus.Error;
-                    state.errorMessage = AzureSqlDatabase.connectionFailed;
+                    state.errorMessage = AzureSqlDatabase.clientIpDetectionFailed;
                     cachedLogger?.error(
                         "Could not detect client IP from firewall error; manual firewall rule required.",
                     );
@@ -766,14 +770,32 @@ export async function connectToAzureSqlDatabase(
                     throw new Error(AzureSqlDatabase.noSubscriptionsFound);
                 }
 
-                await VsCodeAzureHelper.createFirewallRule(
-                    subscription,
-                    state.formState.resourceGroup,
-                    state.formState.serverName,
-                    `mssql-${state.formState.serverName}-firewall-rule`,
-                    clientIp,
-                    clientIp,
-                );
+                try {
+                    await VsCodeAzureHelper.createFirewallRule(
+                        subscription,
+                        state.formState.resourceGroup,
+                        state.formState.serverName,
+                        `mssql-${state.formState.serverName}-firewall-rule`,
+                        clientIp,
+                        clientIp,
+                    );
+                } catch (firewallError) {
+                    const errorMsg =
+                        firewallError instanceof Error
+                            ? firewallError.message
+                            : String(firewallError);
+                    state.connectionLoadState = ApiStatus.Error;
+                    state.errorMessage = AzureSqlDatabase.firewallRuleCreationFailed(errorMsg);
+                    cachedLogger?.error(`Failed to create firewall rule: ${errorMsg}`);
+                    sendErrorEvent(
+                        TelemetryViews.AzureSqlDatabase,
+                        TelemetryActions.ConnectToAzureSqlDatabase,
+                        new Error(`Firewall rule creation failed: ${errorMsg}`),
+                        false,
+                    );
+                    updateAzureSqlDatabaseState(deploymentController, state);
+                    return;
+                }
                 firewallRuleCreated = true;
             }
 

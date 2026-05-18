@@ -29,7 +29,7 @@ import {
     AzureSqlDatabaseState,
 } from "../../../../sharedInterfaces/azureSqlDatabase";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
-import { TagEntry } from "./azureSqlDatabaseDeploymentWizard";
+import { hasDuplicateTagKeys, TagEntry } from "./azureSqlDatabaseDeploymentWizard";
 
 export const AdvancedOptionsDrawer = ({
     open,
@@ -97,9 +97,7 @@ export const AdvancedOptionsDrawer = ({
         const updated = tags.map((tag, i) => (i === index ? { ...tag, [field]: newValue } : tag));
 
         // Validate for duplicate keys
-        const keys = updated.map((t) => t.key.trim()).filter((k) => k.length > 0);
-        const hasDuplicates = new Set(keys).size !== keys.length;
-        if (hasDuplicates) {
+        if (hasDuplicateTagKeys(updated)) {
             setTagError(Loc.azureSqlDatabase.duplicateTagKeys);
         }
 

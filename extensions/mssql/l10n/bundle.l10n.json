@@ -2577,6 +2577,11 @@
     "No resource groups found": "No resource groups found",
     "SQL Server is required": "SQL Server is required",
     "No servers found": "No servers found",
+    "Failed to create firewall rule: {0}/{0} is the error message": {
+        "message": "Failed to create firewall rule: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Could not detect your client IP address. Please add a firewall rule manually in the Azure portal.": "Could not detect your client IP address. Please add a firewall rule manually in the Azure portal.",
     "Enter a name for the new resource group": "Enter a name for the new resource group",
     "Select a location for the resource group": "Select a location for the resource group",
     "Resource group name is required": "Resource group name is required",

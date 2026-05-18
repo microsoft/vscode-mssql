@@ -6,7 +6,7 @@
 import { ApiStatus } from "./webview";
 import { FormContextProps, FormItemSpec, FormReducers, FormState } from "./form";
 import { IDialogProps } from "./connectionDialog";
-import { KnownSampleName, Server } from "@azure/arm-sql";
+import { KnownFreeLimitExhaustionBehavior, KnownSampleName, Server } from "@azure/arm-sql";
 import { AzureSubscription, AzureTenant } from "@microsoft/vscode-azext-azureauth";
 
 /**
@@ -93,7 +93,7 @@ export interface AzureSqlDatabaseFormState {
     userName: string;
     password: string;
     savePassword: boolean;
-    autoPauseDelay: number;
+    freeLimitBehavior: KnownFreeLimitExhaustionBehavior;
     profileName: string;
     groupId: string;
     dataSource: KnownSampleName | "";

@@ -26,6 +26,11 @@ export interface TagEntry {
     value: string;
 }
 
+export function hasDuplicateTagKeys(tags: TagEntry[]): boolean {
+    const keys = tags.map((t) => t.key.trim()).filter((k) => k.length > 0);
+    return new Set(keys).size !== keys.length;
+}
+
 function isAzureSqlFormValid(
     loadState: ApiStatus,
     formState: AzureSqlDatabaseFormState | undefined,
@@ -144,7 +149,8 @@ export const AzureSqlDatabaseDeploymentWizard: React.FC<AzureSqlDatabaseDeployme
             canGoNext: () =>
                 isFormValid &&
                 formValidationLoadState !== ApiStatus.Loading &&
-                !!formState?.accountId,
+                !!formState?.accountId &&
+                !hasDuplicateTagKeys(tags),
             onNext: () => {
                 const tagsRecord: Record<string, string> = {};
                 for (const tag of tags) {

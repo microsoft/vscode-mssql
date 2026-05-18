@@ -1406,6 +1406,15 @@ export class AzureSqlDatabase {
     public static serverIsRequired = l10n.t("SQL Server is required");
     public static noServersFound = l10n.t("No servers found");
     public static connectionFailed = l10n.t("Connection failed");
+    public static firewallRuleCreationFailed = (error: string) =>
+        l10n.t({
+            message: "Failed to create firewall rule: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+    public static clientIpDetectionFailed = l10n.t(
+        "Could not detect your client IP address. Please add a firewall rule manually in the Azure portal.",
+    );
     public static createNew = l10n.t("Create New");
     public static enterResourceGroupName = l10n.t("Enter a name for the new resource group");
     public static selectLocation = l10n.t("Select a location for the resource group");

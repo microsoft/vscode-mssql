@@ -148,6 +148,7 @@ const useStyles = makeStyles({
 });
 
 import { TagEntry } from "./azureSqlDatabaseDeploymentWizard";
+import { KnownFreeLimitExhaustionBehavior } from "@azure/arm-sql";
 
 interface AzureSqlDatabaseFormPageProps {
     onValidated?: () => void;
@@ -184,15 +185,15 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
     );
     const hostIp = useAzureSqlDatabaseDeploymentSelector((s) => s.publicIp);
 
-    const [localAutoPauseDelay, setLocalAutoPauseDelay] = useState(
-        String(formState.autoPauseDelay),
+    const [localFreeLimitBehavior, setLocalFreeLimitBehavior] = useState(
+        String(formState.freeLimitBehavior),
     );
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
     const prevFormValidationLoadState = useRef(formValidationLoadState);
 
     useEffect(() => {
-        setLocalAutoPauseDelay(String(formState.autoPauseDelay));
-    }, [formState.autoPauseDelay]);
+        setLocalFreeLimitBehavior(String(formState.freeLimitBehavior));
+    }, [formState.freeLimitBehavior]);
 
     useEffect(() => {
         const changed = prevFormValidationLoadState.current !== formValidationLoadState;
@@ -411,18 +412,18 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                                 {locConstants.azureSqlDatabase.freeLimitBehavior}
                             </Label>
                             <RadioGroup
-                                value={localAutoPauseDelay}
+                                value={localFreeLimitBehavior}
                                 onChange={(_e, data) => {
-                                    setLocalAutoPauseDelay(data.value);
+                                    setLocalFreeLimitBehavior(data.value);
                                     context.formAction({
-                                        propertyName: "autoPauseDelay",
+                                        propertyName: "freeLimitBehavior",
                                         isAction: false,
-                                        value: Number(data.value),
+                                        value: data.value,
                                     });
                                 }}>
                                 <div>
                                     <Radio
-                                        value="60"
+                                        value={KnownFreeLimitExhaustionBehavior.AutoPause}
                                         label={locConstants.azureSqlDatabase.autoPauseOption}
                                     />
                                     <Text
@@ -438,7 +439,7 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                                 </div>
                                 <div>
                                     <Radio
-                                        value="-1"
+                                        value={KnownFreeLimitExhaustionBehavior.BillOverUsage}
                                         label={locConstants.azureSqlDatabase.continueChargesOption}
                                     />
                                     <Text
@@ -455,7 +456,7 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                             </RadioGroup>
                         </div>
                     </div>
-                    {localAutoPauseDelay === "-1" && (
+                    {localFreeLimitBehavior === "-1" && (
                         <Card
                             style={{
                                 display: "flex",
