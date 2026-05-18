@@ -291,7 +291,6 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     initializeState: designer.LoadState.Loaded,
                 },
                 initializationError: undefined,
-                loadingMessages: this.appendLoadingMessage("Table designer loaded"),
             };
         } catch (e) {
             endActivity.endFailed(e, false);

@@ -8,7 +8,6 @@ import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { getCoreRPCs, getErrorMessage } from "../../common/utils";
 import { WebviewRpc } from "../../common/rpc";
-import { locConstants } from "../../common/locConstants";
 
 import { Edge, Node, ReactFlowJsonObject, useReactFlow } from "@xyflow/react";
 import eventBus from "./schemaDesignerEvents";
@@ -402,22 +401,17 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             return;
         }
 
-        setReportProgressMessage(undefined);
         setReportProgressMessages([]);
-        try {
-            const response = await extensionRpc.sendRequest(
-                SchemaDesigner.GetReportWebviewRequest.type,
-                {
-                    updatedSchema: schema,
-                },
-            );
-            if (response?.error) {
-                appendProgressMessage(setReportProgressMessages, response.error, "error");
-            }
-            return response;
-        } finally {
-            setReportProgressMessage(undefined);
+        const response = await extensionRpc.sendRequest(
+            SchemaDesigner.GetReportWebviewRequest.type,
+            {
+                updatedSchema: schema,
+            },
+        );
+        if (response?.error) {
+            appendProgressMessage(setReportProgressMessages, response.error, "error");
         }
+        return response;
     };
 
     const copyToClipboard = useCallback(
@@ -617,10 +611,6 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
 
     const publishSession = async () => {
         setPublishProgressMessages([]);
-        appendProgressMessage(
-            setPublishProgressMessages,
-            locConstants.schemaDesigner.publishingChanges,
-        );
         const schema = buildSchemaFromFlowState(
             reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
             reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
