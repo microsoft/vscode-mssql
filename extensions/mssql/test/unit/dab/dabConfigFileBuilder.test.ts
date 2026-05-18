@@ -319,6 +319,291 @@ suite("DabConfigFileBuilder Tests", () => {
                 expect(parsed.entities).to.have.property("User");
                 expect(parsed.entities).to.not.have.property("tbl_users");
             });
+
+            test("should emit view source with primary key fields", () => {
+                const config = createTestConfig({
+                    entities: [
+                        createTestEntity({
+                            sourceType: "view",
+                            tableName: "vw_Users",
+                            advancedSettings: {
+                                entityName: "UserView",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                            },
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+                const entity = parsed.entities["UserView"];
+
+                expect(entity.source).to.deep.equal({
+                    type: "view",
+                    object: "dbo.vw_Users",
+                });
+                expect(entity.fields).to.deep.equal([
+                    { name: "Id", "primary-key": true },
+                    { name: "Name" },
+                ]);
+            });
+
+            test("should emit stored procedure source, execute permissions, methods, graphql operation, and MCP custom tool", () => {
+                const config = createTestConfig({
+                    apiTypes: [Dab.ApiType.Rest, Dab.ApiType.GraphQL, Dab.ApiType.Mcp],
+                    entities: [
+                        createTestEntity({
+                            sourceType: "stored-procedure",
+                            tableName: "GetUsers",
+                            enabledActions: [Dab.EntityAction.Execute],
+                            restMethods: ["post"],
+                            graphQLOperation: "query",
+                            mcpCustomTool: true,
+                            parameters: [
+                                {
+                                    name: "tenantId",
+                                    required: true,
+                                    description: "Tenant identifier",
+                                },
+                            ],
+                            advancedSettings: {
+                                entityName: "GetUsers",
+                                authorizationRole: Dab.AuthorizationRole.Authenticated,
+                                customRestPath: "/get-users",
+                                customGraphQLType: "GetUsersResult",
+                            },
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+                const entity = parsed.entities["GetUsers"];
+
+                expect(entity.source).to.deep.equal({
+                    type: "stored-procedure",
+                    object: "dbo.GetUsers",
+                    parameters: [
+                        {
+                            name: "tenantId",
+                            required: true,
+                            description: "Tenant identifier",
+                        },
+                    ],
+                });
+                expect(entity.rest).to.deep.equal({
+                    path: "/get-users",
+                    methods: ["post"],
+                });
+                expect(entity.graphql).to.deep.equal({
+                    type: "GetUsersResult",
+                    operation: "query",
+                });
+                expect(entity.mcp).to.deep.equal({
+                    "dml-tools": false,
+                    "custom-tool": true,
+                });
+                expect(entity.permissions).to.deep.equal([
+                    {
+                        role: Dab.AuthorizationRole.Authenticated,
+                        actions: [Dab.EntityAction.Execute],
+                    },
+                ]);
+            });
+
+            test("should preserve advanced top-level and entity JSON properties", () => {
+                const config = createTestConfig({
+                    advancedJson: {
+                        "azure-key-vault": {
+                            endpoint: "https://vault.example/",
+                        },
+                    },
+                    entities: [
+                        createTestEntity({
+                            advancedJson: {
+                                cache: {
+                                    enabled: true,
+                                },
+                            },
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+
+                expect(parsed["azure-key-vault"]).to.deep.equal({
+                    endpoint: "https://vault.example/",
+                });
+                expect(parsed.entities["Users"].cache).to.deep.equal({
+                    enabled: true,
+                });
+            });
+
+            test("should merge advanced runtime, data source, and entity DAB schema properties", () => {
+                const config = createTestConfig({
+                    apiTypes: [Dab.ApiType.Rest, Dab.ApiType.GraphQL, Dab.ApiType.Mcp],
+                    advancedJson: {
+                        "data-source": {
+                            options: {
+                                "set-session-context": false,
+                            },
+                            health: {
+                                enabled: true,
+                                "threshold-ms": 250,
+                            },
+                        },
+                        runtime: {
+                            rest: {
+                                path: "/data",
+                                "request-body-strict": false,
+                            },
+                            graphql: {
+                                path: "/gql",
+                                "allow-introspection": false,
+                            },
+                            mcp: {
+                                path: "/mcp",
+                                description: "DAB tools",
+                            },
+                            host: {
+                                mode: "production",
+                                "max-response-size-mb": 64,
+                            },
+                            cache: {
+                                enabled: true,
+                                "ttl-seconds": 60,
+                            },
+                        },
+                        autoentities: {
+                            default: {
+                                patterns: [{ include: "*" }],
+                            },
+                        },
+                    },
+                    entities: [
+                        createTestEntity({
+                            advancedJson: {
+                                rest: {
+                                    enabled: true,
+                                    methods: ["get"],
+                                },
+                                graphql: {
+                                    enabled: true,
+                                },
+                                cache: {
+                                    enabled: true,
+                                    level: 1,
+                                },
+                                relationships: {
+                                    orders: {
+                                        cardinality: "many",
+                                        target: { entity: "Orders" },
+                                    },
+                                },
+                            },
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+
+                expect(parsed["data-source"]).to.deep.include({
+                    "database-type": "mssql",
+                    "connection-string": defaultConnectionInfo.connectionString,
+                });
+                expect(parsed["data-source"].options).to.deep.equal({
+                    "set-session-context": false,
+                });
+                expect(parsed.runtime.rest).to.deep.equal({
+                    enabled: true,
+                    path: "/data",
+                    "request-body-strict": false,
+                });
+                expect(parsed.runtime.graphql).to.deep.equal({
+                    enabled: true,
+                    path: "/gql",
+                    "allow-introspection": false,
+                });
+                expect(parsed.runtime.mcp).to.deep.equal({
+                    enabled: true,
+                    path: "/mcp",
+                    description: "DAB tools",
+                });
+                expect(parsed.runtime.host).to.deep.include({
+                    mode: "production",
+                    "max-response-size-mb": 64,
+                });
+                expect(parsed.autoentities.default.patterns).to.deep.equal([{ include: "*" }]);
+                expect(parsed.entities["Users"].rest).to.deep.equal({
+                    enabled: true,
+                    methods: ["get"],
+                });
+                expect(parsed.entities["Users"].cache).to.deep.equal({
+                    enabled: true,
+                    level: 1,
+                });
+                expect(parsed.entities["Users"].relationships.orders.cardinality).to.equal("many");
+            });
+
+            test("should reject advanced JSON properties that would overwrite generated config", () => {
+                const config = createTestConfig({
+                    advancedJson: {
+                        entities: {},
+                    },
+                });
+
+                expect(() => builder.build(config, defaultConnectionInfo)).to.throw(
+                    "cannot override generated top-level property 'entities'",
+                );
+            });
+
+            test("should reject advanced JSON attempts to override generated data-source or API enablement", () => {
+                expect(() =>
+                    builder.build(
+                        createTestConfig({
+                            advancedJson: {
+                                "data-source": {
+                                    "connection-string": "Server=evil;",
+                                },
+                            },
+                        }),
+                        defaultConnectionInfo,
+                    ),
+                ).to.throw("cannot override generated data-source.connection-string");
+
+                expect(() =>
+                    builder.build(
+                        createTestConfig({
+                            advancedJson: {
+                                runtime: {
+                                    rest: { enabled: false },
+                                },
+                            },
+                        }),
+                        defaultConnectionInfo,
+                    ),
+                ).to.throw("cannot override generated runtime.rest.enabled");
+            });
+
+            test("should reject entity advanced JSON attempts to override generated source identity", () => {
+                const config = createTestConfig({
+                    entities: [
+                        createTestEntity({
+                            advancedJson: {
+                                source: {
+                                    object: "other.Table",
+                                },
+                            },
+                        }),
+                    ],
+                });
+
+                expect(() => builder.build(config, defaultConnectionInfo)).to.throw(
+                    "cannot override generated entity source.object",
+                );
+            });
         });
 
         suite("entity REST property", () => {

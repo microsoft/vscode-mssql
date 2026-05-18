@@ -352,7 +352,9 @@ export const DabEntityTable = () => {
     const {
         dabConfig,
         toggleDabEntity,
+        toggleDabEntities,
         toggleDabEntityAction,
+        toggleDabEntityActions,
         toggleDabColumnExposure,
         updateDabEntitySettings,
         dabTextFilter,
@@ -368,6 +370,8 @@ export const DabEntityTable = () => {
     const pendingSettingsFocusEntityIdRef = useRef<string | undefined>(undefined);
     const hasInitializedExpandedRows = useRef(Boolean(dabConfig));
     const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+    const dabConfigRef = useRef<Dab.DabConfig | null>(dabConfig);
+    const currentFilteredTablesKeyRef = useRef<string | undefined>(undefined);
 
     const initialEnabledEntities = useRef<Set<string>>(
         new Set(
@@ -380,25 +384,55 @@ export const DabEntityTable = () => {
             return;
         }
 
+        dabConfigRef.current = dabConfig;
+
         if (!hasInitializedExpandedRows.current) {
             setExpandedRows(createDefaultExpandedRows(dabConfig));
             hasInitializedExpandedRows.current = true;
         }
+    }, [dabConfig]);
+
+    useEffect(() => {
+        const currentDabConfig = dabConfigRef.current;
+        if (!currentDabConfig) {
+            return;
+        }
+
+        const currentFilteredTablesKey = [...currentFilteredTables].sort().join("\n");
+        if (currentFilteredTablesKeyRef.current === currentFilteredTablesKey) {
+            return;
+        }
+        currentFilteredTablesKeyRef.current = currentFilteredTablesKey;
 
         const tablesToCheck: Set<string> =
             currentFilteredTables.length > 0
                 ? new Set(currentFilteredTables)
                 : initialEnabledEntities.current;
 
-        dabConfig.entities.forEach((entity) => {
+        const entityIdsToEnable: string[] = [];
+        const entityIdsToDisable: string[] = [];
+        currentDabConfig.entities.forEach((entity) => {
             const fullName = getEntityFullName(entity);
             const shouldCheck = tablesToCheck.has(fullName);
 
-            if (initialEnabledEntities.current.has(fullName) && shouldCheck !== entity.isEnabled) {
-                toggleDabEntity(entity.id, shouldCheck);
+            if (!initialEnabledEntities.current.has(fullName) || shouldCheck === entity.isEnabled) {
+                return;
+            }
+
+            if (shouldCheck) {
+                entityIdsToEnable.push(entity.id);
+            } else {
+                entityIdsToDisable.push(entity.id);
             }
         });
-    }, [currentFilteredTables]);
+
+        if (entityIdsToEnable.length > 0) {
+            toggleDabEntities(entityIdsToEnable, true);
+        }
+        if (entityIdsToDisable.length > 0) {
+            toggleDabEntities(entityIdsToDisable, false);
+        }
+    }, [currentFilteredTables, dabConfig, toggleDabEntities]);
 
     const allActions = useMemo(
         () => [
@@ -416,6 +450,7 @@ export const DabEntityTable = () => {
             [Dab.EntityAction.Read]: locConstants.schemaDesigner.read,
             [Dab.EntityAction.Update]: locConstants.schemaDesigner.update,
             [Dab.EntityAction.Delete]: locConstants.common.delete,
+            [Dab.EntityAction.Execute]: "Execute",
         }),
         [],
     );
@@ -558,14 +593,12 @@ export const DabEntityTable = () => {
             }
 
             const shouldEnable = headerActionState(action) !== "checked";
-            for (const entity of enabledEntities) {
-                const hasAction = entity.enabledActions.includes(action);
-                if ((shouldEnable && !hasAction) || (!shouldEnable && hasAction)) {
-                    toggleDabEntityAction(entity.id, action, shouldEnable);
-                }
-            }
+            const entityIds = enabledEntities
+                .filter((entity) => entity.enabledActions.includes(action) !== shouldEnable)
+                .map((entity) => entity.id);
+            toggleDabEntityActions(entityIds, action, shouldEnable);
         },
-        [filteredEntities, headerActionState, toggleDabEntityAction],
+        [filteredEntities, headerActionState, toggleDabEntityActions],
     );
 
     // ── Schema-level checkbox ──
@@ -575,11 +608,14 @@ export const DabEntityTable = () => {
             const supported = entities.filter((e) => e.isSupported);
             const enabledCount = supported.filter((e) => e.isEnabled).length;
             const shouldEnable = getCheckedState(supported.length, enabledCount) !== "checked";
-            for (const entity of supported) {
-                toggleDabEntity(entity.id, shouldEnable);
-            }
+            toggleDabEntities(
+                supported
+                    .filter((entity) => entity.isEnabled !== shouldEnable)
+                    .map((entity) => entity.id),
+                shouldEnable,
+            );
         },
-        [toggleDabEntity],
+        [toggleDabEntities],
     );
 
     // ── Settings dialog ──
@@ -1074,6 +1110,11 @@ export const DabEntityTable = () => {
         estimateSize: () => ROW_HEIGHT,
         overscan: VIRTUAL_OVERSCAN,
     });
+
+    useEffect(() => {
+        rowVirtualizer.measure();
+    }, [dabConfig, rowVirtualizer]);
+
     const virtualRows = rowVirtualizer.getVirtualItems();
 
     if (filteredEntities.length === 0) {
@@ -1175,9 +1216,12 @@ export const DabEntityTable = () => {
                             closeSettingsDialog(settingsEntity.id);
                         }
                     }}
-                    onApply={(settings) => {
-                        updateDabEntitySettings(settingsEntity.id, settings);
-                        closeSettingsDialog(settingsEntity.id);
+                    entities={dabConfig?.entities ?? []}
+                    onApply={async (settings) => {
+                        const applied = await updateDabEntitySettings(settingsEntity.id, settings);
+                        if (applied) {
+                            closeSettingsDialog(settingsEntity.id);
+                        }
                     }}
                 />
             )}

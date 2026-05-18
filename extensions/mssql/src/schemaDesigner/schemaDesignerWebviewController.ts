@@ -21,6 +21,13 @@ import { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { UserSurvey } from "../nps/userSurvey";
 import { DabService } from "../services/dabService";
 import { Dab } from "../sharedInterfaces/dab";
+import { DabSessionRpc } from "../dab/dabSessionRpc";
+import { DabSessionService } from "../dab/dabSessionService";
+import {
+    StateCommandDiagnosticsSink,
+    StateCommandSource,
+} from "../platform/stateCommands/stateCommandDiagnostics";
+import { Logger2StateCommandDiagnosticsSink } from "../platform/stateCommands/stateCommandLogger";
 import { CopilotChat } from "../sharedInterfaces/copilotChat";
 import { addMcpServerToWorkspace } from "../copilot/copilotUtils";
 import {
@@ -86,6 +93,9 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     private _serverName: string | undefined;
     private _sqlServerContainerName: string | undefined;
     private _dabService = new DabService();
+    private readonly _dabDiagnostics: StateCommandDiagnosticsSink =
+        new Logger2StateCommandDiagnosticsSink();
+    private _dabSessionService = new DabSessionService(this._dabDiagnostics);
     public schemaDesignerDetails: SchemaDesigner.CreateSessionResponse | undefined = undefined;
     public baselineSchema: SchemaDesigner.Schema | undefined = undefined;
 
@@ -197,6 +207,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 }
                 this.schemaDesignerDetails = sessionResponse;
                 this._sessionId = sessionResponse.sessionId;
+                await this.ensureDabSession();
                 schemaDesignerInitActivity.end(ActivityStatus.Succeeded, undefined, {
                     tableCount: sessionResponse?.schema?.tables?.length,
                 });
@@ -498,6 +509,40 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         });
 
         // DAB request handlers
+        this.onRequest(Dab.GetDabToolStateRequest.type, async () => {
+            await this.ensureDabSession();
+            return this._dabSessionService.getState(this._key, "ux");
+        });
+
+        this.onRequest(Dab.ApplyDabToolChangesRequest.type, async (params) => {
+            await this.ensureDabSession();
+            const response = await this._dabSessionService.applyCommands(this._key, params, "ux");
+            if (response.success) {
+                this.updateCacheItem(
+                    undefined,
+                    undefined,
+                    this._dabSessionService.getConfig(this._key),
+                );
+                await this.publishDabSnapshot("ux");
+            }
+            return response;
+        });
+
+        this.onRequest(DabSessionRpc.UpdateSchemaRequest.type, async (payload) => {
+            await this.ensureDabSession(payload.schemaTables);
+            const snapshot = await this._dabSessionService.updateSchema(
+                this._key,
+                payload.schemaTables,
+                "ux",
+            );
+            this.updateCacheItem(
+                undefined,
+                undefined,
+                this._dabSessionService.getConfig(this._key),
+            );
+            return { snapshot };
+        });
+
         this.onRequest(Dab.GenerateConfigRequest.type, async (payload) => {
             return this._dabService.generateConfig(payload.config, {
                 connectionString: this.connectionString,
@@ -506,12 +551,17 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         });
 
         this.onRequest(Dab.GetCachedConfigRequest.type, async () => {
+            await this.ensureDabSession();
             return {
-                config: this.schemaDesignerCache.get(this._key)?.dabConfig,
+                config:
+                    this._dabSessionService.getConfig(this._key) ??
+                    this.schemaDesignerCache.get(this._key)?.dabConfig,
             };
         });
 
         this.onNotification(Dab.CacheConfigNotification.type, async (payload) => {
+            await this.ensureDabSession();
+            this._dabSessionService.setConfig(this._key, payload.config);
             this.updateCacheItem(undefined, undefined, payload.config);
         });
 
@@ -817,15 +867,27 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     }
 
     public async getDabToolState(): Promise<Dab.GetDabToolStateResponse> {
-        await this.whenWebviewReady();
-        return this.sendRequest(Dab.GetDabToolStateRequest.type, undefined);
+        await this.ensureDabSession();
+        return this._dabSessionService.getState(this._key, "mcp");
     }
 
     public async applyDabToolChanges(
         params: Dab.ApplyDabToolChangesParams,
     ): Promise<Dab.ApplyDabToolChangesResponse> {
-        await this.whenWebviewReady();
-        return this.sendRequest(Dab.ApplyDabToolChangesRequest.type, params);
+        await this.ensureDabSession();
+        const source = params.options?.source ?? "mcp";
+        const response = await this._dabSessionService.applyCommands(this._key, params, source);
+        if (response.success === false) {
+            await this.publishDabApplyFailure(response, source);
+        } else {
+            this.updateCacheItem(
+                undefined,
+                undefined,
+                this._dabSessionService.getConfig(this._key),
+            );
+            await this.publishDabSnapshot(source);
+        }
+        return response;
     }
 
     public showView(view: SchemaDesigner.SchemaDesignerActiveView): void {
@@ -845,6 +907,131 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
 
     public get server(): string | undefined {
         return this._serverName;
+    }
+
+    private async ensureDabSession(schemaTables?: SchemaDesigner.Table[]): Promise<void> {
+        let cacheItem = this.schemaDesignerCache.get(this._key);
+        if (!this.schemaDesignerDetails && cacheItem?.schemaDesignerDetails) {
+            this.schemaDesignerDetails = cacheItem.schemaDesignerDetails;
+            this.baselineSchema = cacheItem.baselineSchema;
+            this._sessionId = cacheItem.schemaDesignerDetails.sessionId;
+        }
+
+        if (!this.schemaDesignerDetails) {
+            const sessionResponse = await this.schemaDesignerService.createSession({
+                connectionString: this.connectionString,
+                accessToken: this.accessToken,
+                databaseName: this.databaseName,
+            });
+            this.schemaDesignerDetails = sessionResponse;
+            this.baselineSchema = sessionResponse.schema;
+            this._sessionId = sessionResponse.sessionId;
+            cacheItem = this.schemaDesignerCache.get(this._key);
+            this.schemaDesignerCache.set(this._key, {
+                schemaDesignerDetails: sessionResponse,
+                baselineSchema: sessionResponse.schema,
+                dabConfig: cacheItem?.dabConfig,
+                isDirty: cacheItem?.isDirty ?? false,
+            });
+        }
+
+        await this._dabSessionService.getOrCreateSession({
+            schemaDesignerKey: this._key,
+            sessionId: this._sessionId || this.schemaDesignerDetails.sessionId,
+            config:
+                this._dabSessionService.getConfig(this._key) ??
+                this.schemaDesignerCache.get(this._key)?.dabConfig,
+            schemaTables: schemaTables ?? this.schemaDesignerDetails.schema.tables,
+        });
+    }
+
+    private async publishDabSnapshot(source: StateCommandSource = "host"): Promise<void> {
+        const startedAt = Date.now();
+        this._dabDiagnostics.emit({
+            feature: "dab",
+            source,
+            stage: "publish_snapshot",
+            status: "started",
+            sessionId: this._sessionId,
+        });
+
+        try {
+            const state = await this._dabSessionService.getState(this._key, source);
+            await this.sendNotification(DabSessionRpc.SnapshotChangedNotification.type, {
+                sessionId: this._sessionId || this._key,
+                version: state.version,
+                summary: state.summary,
+                config: state.config,
+                stateOmittedReason: state.stateOmittedReason,
+            });
+            this._dabDiagnostics.emit({
+                feature: "dab",
+                source,
+                stage: "publish_snapshot",
+                status: "succeeded",
+                sessionId: this._sessionId,
+                version: state.version,
+                elapsedMs: Date.now() - startedAt,
+                measurements: {
+                    entityCount: state.summary.entityCount,
+                    enabledEntityCount: state.summary.enabledEntityCount,
+                },
+            });
+        } catch (error) {
+            this._dabDiagnostics.emit({
+                feature: "dab",
+                source,
+                stage: "publish_snapshot",
+                status: "failed",
+                sessionId: this._sessionId,
+                elapsedMs: Date.now() - startedAt,
+                message: getErrorMessage(error),
+            });
+        }
+    }
+
+    private async publishDabApplyFailure(
+        response: Extract<Dab.ApplyDabToolChangesResponse, { success: false }>,
+        source: StateCommandSource = "host",
+    ): Promise<void> {
+        this._dabDiagnostics.emit({
+            feature: "dab",
+            source,
+            stage: "publish_apply_failure",
+            status: "started",
+            sessionId: this._sessionId,
+            reason: response.reason,
+            message: response.message,
+        });
+
+        try {
+            await this.sendNotification(DabSessionRpc.ApplyFailedNotification.type, {
+                sessionId: this._sessionId || this._key,
+                source,
+                version: response.version,
+                reason: response.reason,
+                message: response.message,
+            });
+            this._dabDiagnostics.emit({
+                feature: "dab",
+                source,
+                stage: "publish_apply_failure",
+                status: "succeeded",
+                sessionId: this._sessionId,
+                version: response.version,
+                reason: response.reason,
+            });
+        } catch (error) {
+            this._dabDiagnostics.emit({
+                feature: "dab",
+                source,
+                stage: "publish_apply_failure",
+                status: "failed",
+                sessionId: this._sessionId,
+                reason: response.reason,
+                message: getErrorMessage(error),
+            });
+        }
     }
 
     private resolveServerName(): string | undefined {

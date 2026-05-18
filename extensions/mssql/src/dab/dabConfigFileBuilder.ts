@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Dab } from "../sharedInterfaces/dab";
+import { validateDabAdvancedJson } from "./dabAdvancedJsonValidation";
 
 const DAB_SCHEMA_URL =
     "https://github.com/Azure/data-api-builder/releases/latest/download/dab.draft.schema.json";
@@ -16,6 +17,7 @@ interface DabOutputConfig {
     };
     runtime: DabRuntimeConfig;
     entities: Record<string, DabEntityOutput>;
+    [key: string]: unknown;
 }
 
 /**
@@ -37,10 +39,22 @@ interface DabRuntimeConfig {
  * https://learn.microsoft.com/en-us/azure/data-api-builder/configuration/entities#entities
  */
 interface DabEntityOutput {
-    source: { type: string; object: string };
-    rest: boolean | { path: string } | undefined;
-    graphql: boolean | { type: string } | undefined;
+    source: {
+        type: string;
+        object: string;
+        parameters?: Dab.DabStoredProcedureParameter[];
+    };
+    fields?: DabEntityFieldOutput[];
+    rest: boolean | { path?: string; methods?: Dab.DabRestMethod[] } | undefined;
+    graphql: boolean | { type?: string; operation?: Dab.DabGraphQLOperation } | undefined;
+    mcp?: boolean | { "dml-tools"?: boolean; "custom-tool"?: boolean };
     permissions: DabPermissionEntry[];
+    [key: string]: unknown;
+}
+
+interface DabEntityFieldOutput {
+    name: string;
+    "primary-key"?: boolean;
 }
 
 interface DabPermissionEntry {
@@ -55,6 +69,26 @@ interface DabPermissionAction {
     };
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function mergeRecords<T extends Record<string, unknown>>(
+    base: T,
+    overlay: Record<string, unknown> | undefined,
+): T {
+    if (!overlay) {
+        return base;
+    }
+
+    const result: Record<string, unknown> = { ...base };
+    for (const [key, value] of Object.entries(overlay)) {
+        const current = result[key];
+        result[key] = isRecord(current) && isRecord(value) ? mergeRecords(current, value) : value;
+    }
+    return result as T;
+}
+
 export class DabConfigFileBuilder {
     /**
      * Builds the DAB configuration file as a JSON string.
@@ -64,8 +98,23 @@ export class DabConfigFileBuilder {
      * @returns The DAB configuration file as a JSON string.
      */
     public build(config: Dab.DabConfig, connectionInfo: Dab.DabConnectionInfo): string {
+        this.validateAdvancedJson(config);
         const dabOutput = this.buildDabConfigFile(config, connectionInfo);
         return JSON.stringify(dabOutput, undefined, 2);
+    }
+
+    private validateAdvancedJson(config: Dab.DabConfig): void {
+        const topLevelError = validateDabAdvancedJson("top-level", config.advancedJson);
+        if (topLevelError) {
+            throw new Error(topLevelError);
+        }
+
+        for (const entity of config.entities) {
+            const entityError = validateDabAdvancedJson("entity", entity.advancedJson);
+            if (entityError) {
+                throw new Error(`${entity.advancedSettings.entityName}: ${entityError}`);
+            }
+        }
     }
 
     /**
@@ -79,13 +128,29 @@ export class DabConfigFileBuilder {
         config: Dab.DabConfig,
         connectionInfo: Dab.DabConnectionInfo,
     ): DabOutputConfig {
+        const advancedJson = config.advancedJson ?? {};
+        const advancedDataSource = isRecord(advancedJson["data-source"])
+            ? advancedJson["data-source"]
+            : undefined;
+        const advancedRuntime = isRecord(advancedJson.runtime) ? advancedJson.runtime : undefined;
+        const advancedTopLevel = { ...advancedJson };
+        delete advancedTopLevel["data-source"];
+        delete advancedTopLevel.runtime;
+
         return {
+            ...advancedTopLevel,
             $schema: DAB_SCHEMA_URL,
-            "data-source": {
-                "database-type": "mssql",
-                "connection-string": connectionInfo.connectionString,
-            },
-            runtime: this.buildRuntimeSection(config.apiTypes),
+            "data-source": mergeRecords(
+                {
+                    "database-type": "mssql",
+                    "connection-string": connectionInfo.connectionString,
+                } as Record<string, unknown>,
+                advancedDataSource,
+            ) as DabOutputConfig["data-source"],
+            runtime: mergeRecords(
+                this.buildRuntimeSection(config.apiTypes) as unknown as Record<string, unknown>,
+                advancedRuntime,
+            ) as unknown as DabRuntimeConfig,
             entities: this.buildEntitiesSection(
                 config.entities,
                 config.apiTypes.includes(Dab.ApiType.Rest),
@@ -166,17 +231,61 @@ export class DabConfigFileBuilder {
         isRestEnabled: boolean,
         isGraphQLEnabled: boolean,
     ): DabEntityOutput {
+        const sourceType = entity.sourceType ?? "table";
         const restConfig = isRestEnabled ? this.buildRestProperty(entity) : false;
         const graphqlConfig = isGraphQLEnabled ? this.buildGraphQLProperty(entity) : false;
-        return {
+        const advancedJson = entity.advancedJson ?? {};
+        const advancedSource = isRecord(advancedJson.source) ? advancedJson.source : undefined;
+        const advancedRest = isRecord(advancedJson.rest) ? advancedJson.rest : undefined;
+        const advancedGraphQL = isRecord(advancedJson.graphql) ? advancedJson.graphql : undefined;
+        const advancedMcp = isRecord(advancedJson.mcp) ? advancedJson.mcp : undefined;
+        const advancedEntity = { ...advancedJson };
+        delete advancedEntity.source;
+        delete advancedEntity.rest;
+        delete advancedEntity.graphql;
+        delete advancedEntity.mcp;
+
+        const generatedEntry: DabEntityOutput = {
+            ...advancedEntity,
             source: {
-                type: "table",
+                type: sourceType,
                 object: `${entity.schemaName}.${entity.tableName}`,
+                ...(sourceType === "stored-procedure" && entity.parameters?.length
+                    ? { parameters: entity.parameters }
+                    : {}),
             },
+            ...(sourceType === "view" ? { fields: this.buildFieldsProperty(entity) } : {}),
             rest: restConfig,
             graphql: graphqlConfig,
+            ...(sourceType === "stored-procedure" && entity.mcpCustomTool !== undefined
+                ? {
+                      mcp: {
+                          "dml-tools": false,
+                          "custom-tool": entity.mcpCustomTool,
+                      },
+                  }
+                : {}),
             permissions: this.buildPermissions(entity),
         };
+
+        generatedEntry.source = mergeRecords(generatedEntry.source, advancedSource);
+        if (isRecord(generatedEntry.rest)) {
+            generatedEntry.rest = mergeRecords(generatedEntry.rest, advancedRest);
+        } else if (advancedRest) {
+            generatedEntry.rest = mergeRecords({}, advancedRest);
+        }
+        if (isRecord(generatedEntry.graphql)) {
+            generatedEntry.graphql = mergeRecords(generatedEntry.graphql, advancedGraphQL);
+        } else if (advancedGraphQL) {
+            generatedEntry.graphql = mergeRecords({}, advancedGraphQL);
+        }
+        if (isRecord(generatedEntry.mcp)) {
+            generatedEntry.mcp = mergeRecords(generatedEntry.mcp, advancedMcp);
+        } else if (advancedMcp) {
+            generatedEntry.mcp = mergeRecords({}, advancedMcp);
+        }
+
+        return generatedEntry;
     }
 
     /**
@@ -187,13 +296,18 @@ export class DabConfigFileBuilder {
      * @param entity The entity configuration.
      * @returns The REST property for the entity.
      */
-    private buildRestProperty(entity: Dab.DabEntityConfig): undefined | { path: string } {
+    private buildRestProperty(
+        entity: Dab.DabEntityConfig,
+    ): undefined | { path?: string; methods?: Dab.DabRestMethod[] } {
         const customPath = entity.advancedSettings.customRestPath;
+        const rest: { path?: string; methods?: Dab.DabRestMethod[] } = {};
         if (customPath) {
-            const path = customPath.startsWith("/") ? customPath : `/${customPath}`;
-            return { path };
+            rest.path = customPath.startsWith("/") ? customPath : `/${customPath}`;
         }
-        return undefined;
+        if (entity.sourceType === "stored-procedure" && entity.restMethods?.length) {
+            rest.methods = [...entity.restMethods];
+        }
+        return Object.keys(rest).length > 0 ? rest : undefined;
     }
 
     /**
@@ -204,12 +318,25 @@ export class DabConfigFileBuilder {
      * @param entity The entity configuration.
      * @returns The GraphQL property for the entity.
      */
-    private buildGraphQLProperty(entity: Dab.DabEntityConfig): undefined | { type: string } {
+    private buildGraphQLProperty(
+        entity: Dab.DabEntityConfig,
+    ): undefined | { type?: string; operation?: Dab.DabGraphQLOperation } {
+        const graphql: { type?: string; operation?: Dab.DabGraphQLOperation } = {};
         const customType = entity.advancedSettings.customGraphQLType;
         if (customType) {
-            return { type: customType };
+            graphql.type = customType;
         }
-        return undefined;
+        if (entity.sourceType === "stored-procedure" && entity.graphQLOperation) {
+            graphql.operation = entity.graphQLOperation;
+        }
+        return Object.keys(graphql).length > 0 ? graphql : undefined;
+    }
+
+    private buildFieldsProperty(entity: Dab.DabEntityConfig): DabEntityFieldOutput[] {
+        return entity.columns.map((column) => ({
+            name: column.name,
+            ...(column.isPrimaryKey ? { "primary-key": true } : {}),
+        }));
     }
 
     /**
@@ -226,7 +353,7 @@ export class DabConfigFileBuilder {
         return [
             {
                 role: entity.advancedSettings.authorizationRole,
-                actions: entity.enabledActions.map((action) =>
+                actions: this.getPermissionActions(entity).map((action) =>
                     hiddenColumns.length > 0 && action !== Dab.EntityAction.Delete
                         ? {
                               action,
@@ -238,5 +365,12 @@ export class DabConfigFileBuilder {
                 ),
             },
         ];
+    }
+
+    private getPermissionActions(entity: Dab.DabEntityConfig): Dab.EntityAction[] {
+        if (entity.sourceType === "stored-procedure") {
+            return [Dab.EntityAction.Execute];
+        }
+        return entity.enabledActions;
     }
 }

@@ -1680,8 +1680,35 @@
     <trans-unit id="++CODE++c01dcd0e5ceb3a50adfe0ba0d9ab5e70b74daf484cbce1b937f8fa14910f7928">
       <source xml:lang="en">Custom GraphQL Type</source>
     </trans-unit>
+    <trans-unit id="++CODE++9c7fcfd97a7aeb64947776c35860a9ac308dbc0231a31f10b9c6f508d1fa485b">
+      <source xml:lang="en">Custom GraphQL type contains unsupported or unsafe text.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d574c389244ddcf4468d23dc9c9e06ea015ba4d04ad9916de0fddd8f40185427">
+      <source xml:lang="en">Custom GraphQL type must be 128 characters or less.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fce0faddf7b41110354e9b9932e80685c2b1eaa8c5f46f1ac39ae01436b8d6b8">
+      <source xml:lang="en">Custom GraphQL type must be a valid GraphQL type name and cannot start with &apos;__&apos;.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++803dafe6973dedb4988d34770e4dab8397b7fefb519b35069eb273332d6712ba">
+      <source xml:lang="en">Custom GraphQL type must be unique across enabled entities.</source>
+    </trans-unit>
     <trans-unit id="++CODE++9084f018e1499a8e51a7e04312970c63a473ec7cbe1cdbe804048ad01461983e">
       <source xml:lang="en">Custom REST Path</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b497cec4573ab25816af44822dd99600ec5a789884ba1cf38e7bf451f77a63e4">
+      <source xml:lang="en">Custom REST path cannot contain empty path segments.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++397ebd81b5ca08d32e852a5996c6bf4f67d8cdbc9bcef8efcd9cdcc404120d72">
+      <source xml:lang="en">Custom REST path contains unsupported or unsafe text.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0623215fcde5411fadc2b44efac991d2417731c29e3143dc208d4a58b2bfa1ac">
+      <source xml:lang="en">Custom REST path must be 128 characters or less.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fb9516756b71b7e1e727414c8f99efaf0977d4f624a41d9e9e9215443650f938">
+      <source xml:lang="en">Custom REST path must be unique across enabled entities.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6e3df6bf2a0ec86a2011eff251adb673dab5e905d517d9c50f82f274dd0d81d1">
+      <source xml:lang="en">Custom REST path must use letters, numbers, slashes, underscores, or hyphens.</source>
     </trans-unit>
     <trans-unit id="++CODE++3cc30692596cf10ca4319a818741998997632cce895dbf138cb3299b1314d37f">
       <source xml:lang="en">Custom Zoom</source>
@@ -1726,6 +1753,9 @@
     </trans-unit>
     <trans-unit id="++CODE++2154b11388f741094808a9e344ab0be7e4be3d2a989551deec3b43f35fc729e3">
       <source xml:lang="en">Data API builder Configuration</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d5e56bcabbb20f9fc5ee39561e556fdccc9172aa3cf8a37c7433fdb5752403aa">
+      <source xml:lang="en">Data API builder change was not applied</source>
     </trans-unit>
     <trans-unit id="++CODE++18c1620276c4ac7ddaec590de6087601cbfad39f0ef20e19c41db887fb760c00">
       <source xml:lang="en">Data API builder opened. Continue with {0} operations ({1}/{2}).</source>
@@ -2251,6 +2281,21 @@
     </trans-unit>
     <trans-unit id="++CODE++1a7d4ddcb0e36ec5b7122b03dcf1a9b7d02395011c7daf2e7591c4f71b638702">
       <source xml:lang="en">Entity Name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d0af4dcf28bfe01071ddda607f785ac2edcae532557afbb9802fff0f96b384ff">
+      <source xml:lang="en">Entity name contains unsupported or unsafe text.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1d3b5e719a1fa9d05cf5ac880c5daa6a1aed6631408aba714d9a9b1deec9d8da">
+      <source xml:lang="en">Entity name is required.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8c6a5d77bbf812475f649cf6cafca6e7110e361d03dbb906906e4f2fa8ffa9dc">
+      <source xml:lang="en">Entity name must be 128 characters or less.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9de861f8f4c39e9c6837fee013d19b90f93b721d3ae3345fecd0aab0a6bf0fdf">
+      <source xml:lang="en">Entity name must be unique.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3c1094bd6cce0b4f889fc9da97b149dd14e73100b723c588444585c514b13a66">
+      <source xml:lang="en">Entity name must start with a letter and contain only letters, numbers, and underscores.</source>
     </trans-unit>
     <trans-unit id="++CODE++b1d3adb989e3b895976094fd8242c98ab0d88c5e2dcd929bd6d76a8b52ce3f4c">
       <source xml:lang="en">Entity name used in API routes</source>

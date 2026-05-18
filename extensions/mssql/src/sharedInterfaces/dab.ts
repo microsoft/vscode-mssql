@@ -28,6 +28,21 @@ export namespace Dab {
         Read = "read",
         Update = "update",
         Delete = "delete",
+        Execute = "execute",
+    }
+
+    export type DabSourceType = "table" | "view" | "stored-procedure";
+    export type DabCommandSource = "ux" | "mcp" | "copilot" | "host" | "unknown";
+
+    export type DabRestMethod = "get" | "post" | "put" | "patch" | "delete";
+
+    export type DabGraphQLOperation = "query" | "mutation";
+
+    export interface DabStoredProcedureParameter {
+        name: string;
+        required?: boolean;
+        default?: string | number | boolean | null;
+        description?: string;
     }
 
     /**
@@ -130,6 +145,30 @@ export namespace Dab {
          */
         columns: DabColumnConfig[];
         /**
+         * Backing database object type.
+         */
+        sourceType?: DabSourceType;
+        /**
+         * Stored procedure parameter metadata for generated DAB config.
+         */
+        parameters?: DabStoredProcedureParameter[];
+        /**
+         * REST methods for stored procedure entities.
+         */
+        restMethods?: DabRestMethod[];
+        /**
+         * GraphQL operation for stored procedure entities.
+         */
+        graphQLOperation?: DabGraphQLOperation;
+        /**
+         * Whether stored procedure entity should be exposed as an MCP custom tool.
+         */
+        mcpCustomTool?: boolean;
+        /**
+         * Advanced DAB entity JSON properties preserved during generation.
+         */
+        advancedJson?: Record<string, unknown>;
+        /**
          * Advanced settings for this entity
          */
         advancedSettings: EntityAdvancedSettings;
@@ -147,6 +186,10 @@ export namespace Dab {
          * Entity configurations for each table
          */
         entities: DabEntityConfig[];
+        /**
+         * Advanced top-level DAB JSON properties preserved during generation.
+         */
+        advancedJson?: Record<string, unknown>;
     }
 
     /**
@@ -284,6 +327,8 @@ export namespace Dab {
               isExposed: boolean;
           }
         | { type: "patch_entity_settings"; entity: DabEntityRef; set: DabEntitySettingsPatch }
+        | { type: "patch_config_advanced_json"; set: Record<string, unknown> }
+        | { type: "patch_entity_advanced_json"; entity: DabEntityRef; set: Record<string, unknown> }
         | { type: "set_only_enabled_entities"; entities: DabEntityRef[] }
         | { type: "set_all_entities_enabled"; isEnabled: boolean };
 
@@ -312,6 +357,7 @@ export namespace Dab {
         changes: DabToolChange[];
         options?: {
             returnState?: "full" | "summary" | "none";
+            source?: DabCommandSource;
         };
     }
 

@@ -9,6 +9,7 @@ import {
     MessageBar,
     MessageBarActions,
     MessageBarBody,
+    MessageBarIntent,
     MessageBarTitle,
 } from "@fluentui/react-components";
 import { DismissRegular } from "@fluentui/react-icons";
@@ -18,24 +19,45 @@ import { locConstants } from "../../../common/locConstants";
 interface DabInfoBannerProps {
     title: string;
     message: string;
-    learnMoreUrl: string;
+    learnMoreUrl?: string;
+    intent?: MessageBarIntent;
+    onDismiss?: () => void;
 }
 
-export function DabInfoBanner({ title, message, learnMoreUrl }: DabInfoBannerProps) {
+export function DabInfoBanner({
+    title,
+    message,
+    learnMoreUrl,
+    intent = "warning",
+    onDismiss,
+}: DabInfoBannerProps) {
     const [dismissed, setDismissed] = useState(false);
 
-    if (dismissed) {
+    if (!onDismiss && dismissed) {
         return null;
     }
 
+    const dismiss = () => {
+        if (onDismiss) {
+            onDismiss();
+            return;
+        }
+        setDismissed(true);
+    };
+
     return (
-        <MessageBar intent="warning">
+        <MessageBar intent={intent}>
             <MessageBarBody>
                 <MessageBarTitle>{title}</MessageBarTitle>
-                {message}{" "}
-                <Link href={learnMoreUrl} target="_blank" rel="noopener noreferrer">
-                    {locConstants.common.learnMore}
-                </Link>
+                {message}
+                {learnMoreUrl && (
+                    <>
+                        {" "}
+                        <Link href={learnMoreUrl} target="_blank" rel="noopener noreferrer">
+                            {locConstants.common.learnMore}
+                        </Link>
+                    </>
+                )}
             </MessageBarBody>
             <MessageBarActions>
                 <Button
@@ -43,7 +65,7 @@ export function DabInfoBanner({ title, message, learnMoreUrl }: DabInfoBannerPro
                     icon={<DismissRegular />}
                     size="small"
                     aria-label={locConstants.common.dismiss}
-                    onClick={() => setDismissed(true)}
+                    onClick={dismiss}
                 />
             </MessageBarActions>
         </MessageBar>

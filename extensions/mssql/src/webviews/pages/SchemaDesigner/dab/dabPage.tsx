@@ -63,6 +63,8 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
     const classes = useStyles();
     const {
         dabConfig,
+        dabCommandError,
+        clearDabCommandError,
         initializeDabConfig,
         syncDabConfigWithSchema,
         isInitialized,
@@ -132,6 +134,14 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
                     title={locConstants.schemaDesigner.unsupportedDataTypesDetected}
                     message={locConstants.schemaDesigner.dabUnsupportedDataTypesBanner}
                     learnMoreUrl="https://aka.ms/dab-datatype-limitation"
+                />
+            )}
+            {dabCommandError && (
+                <DabInfoBanner
+                    intent="error"
+                    title={locConstants.schemaDesigner.dabConfigurationUpdateFailed}
+                    message={dabCommandError}
+                    onDismiss={clearDabCommandError}
                 />
             )}
             <PanelGroup direction="vertical" className={classes.panelGroup}>

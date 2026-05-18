@@ -1384,12 +1384,20 @@ export class LocConstants {
             dabUnsupportedDataTypesBanner: l10n.t(
                 "One or more of your entities contain column types that are not currently supported by Data API builder. These entities cannot be selected for deployment.",
             ),
+            dabConfigurationUpdateFailed: l10n.t("Data API builder change was not applied"),
             backToSchema: l10n.t("Back to Schema"),
             designApi: l10n.t("Design API"),
             // DAB Advanced Settings Dialog
             advancedEntityConfiguration: l10n.t("Advanced Entity Configuration"),
             entityName: l10n.t("Entity Name"),
             entityNameHelp: l10n.t("Used in API routes and responses"),
+            entityNameRequired: l10n.t("Entity name is required."),
+            entityNameTooLong: l10n.t("Entity name must be 128 characters or less."),
+            entityNameUnsafe: l10n.t("Entity name contains unsupported or unsafe text."),
+            entityNameInvalid: l10n.t(
+                "Entity name must start with a letter and contain only letters, numbers, and underscores.",
+            ),
+            entityNameDuplicate: l10n.t("Entity name must be unique."),
             authorizationRole: l10n.t("Authorization Role"),
             authorizationRoleHelp: l10n.t("Define who can access this endpoint"),
             anonymous: l10n.t("Anonymous"),
@@ -1398,8 +1406,29 @@ export class LocConstants {
             authenticatedDescription: l10n.t("Requires user authentication"),
             customRestPath: l10n.t("Custom REST Path"),
             customRestPathHelp: l10n.t("Optional - Override default api/entityName path"),
+            customRestPathTooLong: l10n.t("Custom REST path must be 128 characters or less."),
+            customRestPathUnsafe: l10n.t("Custom REST path contains unsupported or unsafe text."),
+            customRestPathInvalid: l10n.t(
+                "Custom REST path must use letters, numbers, slashes, underscores, or hyphens.",
+            ),
+            customRestPathEmptySegments: l10n.t(
+                "Custom REST path cannot contain empty path segments.",
+            ),
+            customRestPathDuplicate: l10n.t(
+                "Custom REST path must be unique across enabled entities.",
+            ),
             customGraphQLType: l10n.t("Custom GraphQL Type"),
             customGraphQLTypeHelp: l10n.t("Optional - Override default GraphQL type name"),
+            customGraphQLTypeTooLong: l10n.t("Custom GraphQL type must be 128 characters or less."),
+            customGraphQLTypeUnsafe: l10n.t(
+                "Custom GraphQL type contains unsupported or unsafe text.",
+            ),
+            customGraphQLTypeInvalid: l10n.t(
+                "Custom GraphQL type must be a valid GraphQL type name and cannot start with '__'.",
+            ),
+            customGraphQLTypeDuplicate: l10n.t(
+                "Custom GraphQL type must be unique across enabled entities.",
+            ),
             applyChanges: l10n.t("Apply Changes"),
             sourceTable: l10n.t("Source Table"),
             loading: l10n.t("Loading..."),
