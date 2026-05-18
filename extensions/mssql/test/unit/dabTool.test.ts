@@ -80,6 +80,7 @@ suite("DabTool Tests", () => {
 
     const createDabHandlerHarness = (params: {
         tables: SchemaDesigner.Table[];
+        sourceObjects?: Dab.DabSourceObject[];
         dabConfig?: Dab.DabConfig | null;
         initialized?: boolean;
         waitForInitialization?: sinon.SinonStub;
@@ -105,7 +106,10 @@ suite("DabTool Tests", () => {
             isInitializedRef,
             waitForInitialization,
             getCurrentDabConfig: () => currentDabConfig,
-            getCurrentSchemaTables: () => currentTables,
+            getCurrentSourceObjects: () => [
+                ...currentTables.map((table) => Dab.createSourceObjectFromTable(table)),
+                ...(params.sourceObjects ?? []),
+            ],
             commitDabConfig: commitSpy,
         });
 
@@ -422,6 +426,8 @@ suite("DabTool Tests", () => {
                         expectedVersion: "dabcfg_before",
                         changes: [
                             { type: "set_api_types", apiTypes: [Dab.ApiType.Rest] },
+                            { type: "add_entity", entity: { id: "t1" } },
+                            { type: "remove_entity", entity: { id: "t2" } },
                             { type: "set_entity_enabled", entity: { id: "t1" }, isEnabled: false },
                             {
                                 type: "set_entity_actions",
@@ -452,6 +458,8 @@ suite("DabTool Tests", () => {
             const parsed = JSON.parse(await dabTool.call(options, mockToken));
             expect(parsed.success).to.equal(true);
             expect(parsed.receipt).to.deep.equal({
+                addEntityCount: 1,
+                removeEntityCount: 1,
                 setApiTypesCount: 1,
                 setEntityEnabledCount: 1,
                 setEntityActionsCount: 1,
@@ -547,6 +555,8 @@ suite("DabTool Tests", () => {
             expect(parsed.returnState).to.equal("summary");
             expect(parsed.stateOmittedReason).to.equal("caller_requested_summary");
             expect(parsed.receipt).to.deep.equal({
+                addEntityCount: 0,
+                removeEntityCount: 0,
                 setApiTypesCount: 1,
                 setEntityEnabledCount: 0,
                 setEntityActionsCount: 0,
@@ -1067,6 +1077,107 @@ suite("DabTool Tests", () => {
                     );
                 }),
             );
+        });
+
+        test("apply_changes supports add/remove aliases and source refs for views", async () => {
+            const viewSource: Dab.DabSourceObject = {
+                id: "view:dbo.ActiveUsers",
+                sourceType: Dab.EntitySourceType.View,
+                schemaName: "dbo",
+                sourceName: "ActiveUsers",
+                columns: [
+                    {
+                        id: "view:dbo.ActiveUsers:Id",
+                        name: "Id",
+                        dataType: "int",
+                        isPrimaryKey: true,
+                        isSupported: true,
+                        isExposed: true,
+                    },
+                ],
+                fields: [{ name: "Id", isPrimaryKey: true }],
+            };
+            const harness = createDabHandlerHarness({
+                tables: [createTable("t1", "dbo", "Users")],
+                sourceObjects: [viewSource],
+                dabConfig: null,
+            });
+            const state = await harness.getState();
+            const viewRef = {
+                schemaName: "dbo",
+                sourceName: "ActiveUsers",
+                sourceType: Dab.EntitySourceType.View,
+            };
+
+            const removeResult = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [{ type: "remove_entity", entity: viewRef }],
+            });
+
+            expect(removeResult.success).to.equal(true);
+            expect(
+                harness.getConfig()?.entities.find((entity) => entity.id === viewSource.id)
+                    ?.isEnabled,
+            ).to.equal(false);
+
+            const nextState = await harness.getState();
+            const addResult = await harness.applyChanges({
+                expectedVersion: nextState.version,
+                changes: [{ type: "add_entity", entity: viewRef }],
+            });
+
+            expect(addResult.success).to.equal(true);
+            expect(
+                harness.getConfig()?.entities.find((entity) => entity.id === viewSource.id)
+                    ?.isEnabled,
+            ).to.equal(true);
+        });
+
+        test("apply_changes restricts stored procedures to execute action", async () => {
+            const procedureSource: Dab.DabSourceObject = {
+                id: "stored-procedure:dbo.GetUsers",
+                sourceType: Dab.EntitySourceType.StoredProcedure,
+                schemaName: "dbo",
+                sourceName: "GetUsers",
+                columns: [],
+                parameters: [],
+            };
+            const harness = createDabHandlerHarness({
+                tables: [],
+                sourceObjects: [procedureSource],
+                dabConfig: null,
+            });
+            const state = await harness.getState();
+
+            const invalidAction = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [
+                    {
+                        type: "set_entity_actions",
+                        entity: { id: procedureSource.id },
+                        enabledActions: [Dab.EntityAction.Read],
+                    },
+                ],
+            });
+
+            expect(invalidAction.success).to.equal(false);
+            if (invalidAction.success) {
+                throw new Error("Expected failure response");
+            }
+            expect(invalidAction.reason).to.equal("validation_error");
+
+            const validAction = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [
+                    {
+                        type: "set_entity_actions",
+                        entity: { id: procedureSource.id },
+                        enabledActions: [Dab.EntityAction.Execute],
+                    },
+                ],
+            });
+
+            expect(validAction.success).to.equal(true);
         });
 
         test("apply_changes validates patch_entity_settings payload and duplicate entity names", async () => {

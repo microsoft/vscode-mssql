@@ -216,7 +216,12 @@ suite("MsalAzureController Tests", () => {
             mockSubscriptionClientFactory,
         );
 
-        const mockClientApplication = sandbox.createStubInstance(msalNode.PublicClientApplication);
+        const mockClientApplication = sandbox.createStubInstance(
+            msalNode.PublicClientApplication,
+        ) as sinon.SinonStubbedInstance<msalNode.PublicClientApplication> & {
+            clearCache: sinon.SinonStub;
+        };
+        mockClientApplication.clearCache = sandbox.stub().resolves();
         const mockCloudAuth = sandbox.createStubInstance(CloudAuthApplication);
 
         sandbox.stub(mockCloudAuth, "clientApplication").get(() => mockClientApplication);

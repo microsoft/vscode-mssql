@@ -90,6 +90,7 @@ export class SchemaDesignerWebviewManager {
     ): Promise<SchemaDesignerWebviewController> {
         let connectionString: string | undefined;
         let azureAccountToken: string | undefined;
+        const metadataConnectionUri = treeNode?.sessionId ?? connectionUri;
         if (treeNode) {
             let connectionInfo = treeNode.connectionProfile;
             connectionInfo = (await mainController.connectionManager.prepareConnectionInfo(
@@ -109,9 +110,16 @@ export class SchemaDesignerWebviewManager {
             );
             azureAccountToken = connectionInfo.azureAccountToken;
         } else if (connectionUri) {
-            var connInfo = mainController.connectionManager.getConnectionInfo(connectionUri);
+            const connInfo = mainController.connectionManager.getConnectionInfo(connectionUri);
+            const connectionInfo = {
+                ...connInfo.credentials,
+                database: databaseName,
+            } as IConnectionProfile;
+            const connectionDetails =
+                await mainController.connectionManager.createConnectionDetails(connectionInfo);
+
             connectionString = await mainController.connectionManager.getConnectionString(
-                connectionUri,
+                connectionDetails,
                 true,
                 true,
             );
@@ -133,7 +141,7 @@ export class SchemaDesignerWebviewManager {
                 databaseName,
                 this.schemaDesignerCache,
                 treeNode,
-                connectionUri,
+                metadataConnectionUri,
                 isReadOnly,
             );
             const viewStateDisposable = schemaDesigner.panel.onDidChangeViewState((event) => {

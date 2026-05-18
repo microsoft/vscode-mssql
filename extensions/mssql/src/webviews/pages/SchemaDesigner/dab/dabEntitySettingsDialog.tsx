@@ -146,7 +146,7 @@ export function DabEntitySettingsDialog({
                         {/* Source Table Info */}
                         <Text className={classes.sourceTableText}>
                             {locConstants.schemaDesigner.sourceTable}: {entity.schemaName}.
-                            {entity.tableName}
+                            {entity.sourceName ?? entity.tableName}
                         </Text>
 
                         {/* Entity Name Field */}
@@ -229,7 +229,7 @@ export function DabEntitySettingsDialog({
                         <Field label={locConstants.schemaDesigner.customRestPath}>
                             <Input
                                 value={localSettings.customRestPath ?? ""}
-                                placeholder={entity.tableName.toLowerCase()}
+                                placeholder={(entity.sourceName ?? entity.tableName).toLowerCase()}
                                 onChange={(_, data) => updateCustomRestPath(data.value)}
                             />
                             <Text className={classes.fieldHint}>
@@ -241,7 +241,7 @@ export function DabEntitySettingsDialog({
                         <Field label={locConstants.schemaDesigner.customGraphQLType}>
                             <Input
                                 value={localSettings.customGraphQLType ?? ""}
-                                placeholder={entity.tableName}
+                                placeholder={entity.sourceName ?? entity.tableName}
                                 onChange={(_, data) => updateCustomGraphQLType(data.value)}
                             />
                             <Text className={classes.fieldHint}>

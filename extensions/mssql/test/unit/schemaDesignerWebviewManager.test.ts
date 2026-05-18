@@ -182,8 +182,22 @@ suite("SchemaDesignerWebviewManager tests", () => {
                 connectionUri,
             );
             expect(
+                mockMainController.connectionManager.createConnectionDetails,
+            ).to.have.been.calledWithMatch({
+                server: "localhost",
+                database: databaseName,
+                azureAccountToken: "token-from-uri",
+            });
+            expect(
                 mockMainController.connectionManager.getConnectionString,
-            ).to.have.been.calledWith(connectionUri, true, true);
+            ).to.have.been.calledWithMatch(
+                {
+                    server: "localhost",
+                    database: databaseName,
+                },
+                true,
+                true,
+            );
         });
 
         test("should use azureAccountToken from connection URI", async () => {
@@ -293,7 +307,14 @@ suite("SchemaDesignerWebviewManager tests", () => {
 
             const getConnectionStringStub = mockMainController.connectionManager
                 .getConnectionString as sinon.SinonStub;
-            expect(getConnectionStringStub).to.have.been.calledWith(connectionUri, true, true);
+            expect(getConnectionStringStub).to.have.been.calledWithMatch(
+                {
+                    server: "localhost",
+                    database: databaseName,
+                },
+                true,
+                true,
+            );
         });
     });
 

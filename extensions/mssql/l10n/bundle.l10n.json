@@ -972,10 +972,16 @@
     "Add MCP server to workspace configuration": "Add MCP server to workspace configuration",
     "View Swagger": "View Swagger",
     "Open Nitro": "Open Nitro",
-    "Table must have a primary key to be used with Data API builder": "Table must have a primary key to be used with Data API builder",
-    "Table contains column types not supported by Data API builder: {0}/{0} is a comma-separated list of column names and their data types": {
-        "message": "Table contains column types not supported by Data API builder: {0}",
-        "comment": ["{0} is a comma-separated list of column names and their data types"]
+    "{0} must define one or more key fields to be used with Data API builder/{0} is the DAB source type, e.g. Table or View": {
+        "message": "{0} must define one or more key fields to be used with Data API builder",
+        "comment": ["{0} is the DAB source type, e.g. Table or View"]
+    },
+    "{0} contains column types not supported by Data API builder: {1}/{0} is the DAB source type, e.g. Table or View{1} is a comma-separated list of column names and their data types": {
+        "message": "{0} contains column types not supported by Data API builder: {1}",
+        "comment": [
+            "{0} is the DAB source type, e.g. Table or View",
+            "{1} is a comma-separated list of column names and their data types"
+        ]
     },
     "Checking Docker installation": "Checking Docker installation",
     "Verifying Docker is installed on your system": "Verifying Docker is installed on your system",

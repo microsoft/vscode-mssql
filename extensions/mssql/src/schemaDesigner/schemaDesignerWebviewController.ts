@@ -498,6 +498,12 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         });
 
         // DAB request handlers
+        this.onRequest(Dab.GetDatabaseObjectsRequest.type, async () => {
+            return {
+                sourceObjects: await this.getDabDatabaseObjects(),
+            };
+        });
+
         this.onRequest(Dab.GenerateConfigRequest.type, async (payload) => {
             return this._dabService.generateConfig(payload.config, {
                 connectionString: this.connectionString,
@@ -653,6 +659,70 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
 
             return addMcpServerToWorkspace(payload.serverName, payload.serverUrl);
         });
+    }
+
+    private async getDabDatabaseObjects(): Promise<Dab.DabSourceObject[]> {
+        if (!this.connectionUri) {
+            return [];
+        }
+
+        const metadataService = this.mainController.metadataService;
+        const [views, storedProcedures] = await Promise.all([
+            metadataService.listDabViews(this.connectionUri, this.databaseName),
+            metadataService.listDabStoredProcedures(this.connectionUri, this.databaseName),
+        ]);
+
+        const viewObjects = await Promise.all(
+            views.map(async (view) => {
+                const columns = await metadataService.getDabViewColumns(
+                    this.connectionUri!,
+                    view.schema,
+                    view.name,
+                    this.databaseName,
+                );
+                return {
+                    id: view.id,
+                    sourceType: Dab.EntitySourceType.View,
+                    schemaName: view.schema,
+                    sourceName: view.name,
+                    columns: columns.map((column) => ({
+                        id: column.id,
+                        name: column.name,
+                        dataType: column.dataType,
+                        isPrimaryKey: column.isPrimaryKey,
+                        isSupported: Dab.isDataTypeSupportedForDab(column.dataType),
+                        isExposed: true,
+                    })),
+                    fields: columns.map((column) => ({
+                        name: column.name,
+                        ...(column.isPrimaryKey ? { isPrimaryKey: true } : {}),
+                    })),
+                };
+            }),
+        );
+
+        const storedProcedureObjects = await Promise.all(
+            storedProcedures.map(async (procedure) => {
+                const parameters = await metadataService.getDabStoredProcedureParameters(
+                    this.connectionUri!,
+                    procedure.schema,
+                    procedure.name,
+                    this.databaseName,
+                );
+                return {
+                    id: procedure.id,
+                    sourceType: Dab.EntitySourceType.StoredProcedure,
+                    schemaName: procedure.schema,
+                    sourceName: procedure.name,
+                    columns: [],
+                    parameters: parameters.map((parameter) => ({
+                        name: parameter.name.replace(/^@/, ""),
+                    })),
+                };
+            }),
+        );
+
+        return [...viewObjects, ...storedProcedureObjects];
     }
 
     private setupReducers() {

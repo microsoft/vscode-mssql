@@ -177,6 +177,9 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: 
             if (!entity.isEnabled) {
                 toggleDabEntity(entity.id, true);
             }
+            if (entity.sourceType === Dab.EntitySourceType.StoredProcedure) {
+                continue;
+            }
             for (const action of allActions) {
                 const shouldEnableAction = action === Dab.EntityAction.Read;
                 const hasActionEnabled = entity.enabledActions.includes(action);
@@ -194,6 +197,9 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: 
         for (const entity of supportedEntities) {
             if (!entity.isEnabled) {
                 toggleDabEntity(entity.id, true);
+            }
+            if (entity.sourceType === Dab.EntitySourceType.StoredProcedure) {
+                continue;
             }
             for (const action of allActions) {
                 if (!entity.enabledActions.includes(action)) {

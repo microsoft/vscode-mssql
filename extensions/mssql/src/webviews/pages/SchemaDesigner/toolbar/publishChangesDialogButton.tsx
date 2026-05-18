@@ -21,7 +21,7 @@ import {
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
-import { useContext, useState } from "react";
+import { useContext, useState, type ReactNode } from "react";
 import Markdown from "react-markdown";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { useMarkdownStyles } from "../../../common/styles";
@@ -208,7 +208,7 @@ export function PublishChangesDialogButton() {
             const sections = errorString.split(/(\d+\.\s)/g);
 
             // Create an array of formatted sections
-            const formattedSections = [];
+            const formattedSections: ReactNode[] = [];
 
             for (let i = 0; i < sections.length; i++) {
                 if (sections[i].match(/^\d+\.\s$/)) {

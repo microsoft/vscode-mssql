@@ -514,6 +514,117 @@ suite("Metadata Service Tests", () => {
         });
     });
 
+    suite("DAB metadata helpers", () => {
+        const ownerUri = "dab-owner-uri";
+        const cell = (displayValue: string, isNull = false) => ({ displayValue, isNull });
+
+        test("should list DAB views using simple execute", async () => {
+            mockClient.sendRequest.callsFake(async (_type: any, _params: any) => ({
+                rows: [
+                    [cell("dbo"), cell("ActiveUsers"), cell("view:dbo.ActiveUsers")],
+                    [cell("sales"), cell("OpenOrders"), cell("view:sales.OpenOrders")],
+                ],
+            }));
+
+            const result = await metadataService.listDabViews(ownerUri);
+
+            expect(result).to.deep.equal([
+                { schema: "dbo", name: "ActiveUsers", id: "view:dbo.ActiveUsers" },
+                { schema: "sales", name: "OpenOrders", id: "view:sales.OpenOrders" },
+            ]);
+            expect((mockClient.sendRequest.firstCall.args[1] as any).queryString).to.contain(
+                "sys.views",
+            );
+        });
+
+        test("should run DAB metadata queries in the requested database context", async () => {
+            mockClient.sendRequest.callsFake(async (_type: any, _params: any) => ({
+                rows: [],
+            }));
+
+            await metadataService.listDabViews(ownerUri, "Sales DB");
+
+            expect((mockClient.sendRequest.firstCall.args[1] as any).queryString).to.contain(
+                "USE [Sales DB];",
+            );
+        });
+
+        test("should list DAB stored procedures using simple execute", async () => {
+            mockClient.sendRequest.callsFake(async (_type: any, _params: any) => ({
+                rows: [[cell("dbo"), cell("GetUsers"), cell("stored-procedure:dbo.GetUsers")]],
+            }));
+
+            const result = await metadataService.listDabStoredProcedures(ownerUri);
+
+            expect(result).to.deep.equal([
+                { schema: "dbo", name: "GetUsers", id: "stored-procedure:dbo.GetUsers" },
+            ]);
+            expect((mockClient.sendRequest.firstCall.args[1] as any).queryString).to.contain(
+                "sys.procedures",
+            );
+        });
+
+        test("should parse DAB view columns and inferred keys", async () => {
+            mockClient.sendRequest.callsFake(async (_type: any, _params: any) => ({
+                rows: [
+                    [
+                        cell("view:dbo.ActiveUsers:Id"),
+                        cell("Id"),
+                        cell("int"),
+                        cell("1"),
+                        cell("1"),
+                    ],
+                    [
+                        cell("view:dbo.ActiveUsers:Name"),
+                        cell("Name"),
+                        cell("nvarchar"),
+                        cell("2"),
+                        cell("0"),
+                    ],
+                ],
+            }));
+
+            const result = await metadataService.getDabViewColumns(ownerUri, "dbo", "ActiveUsers");
+
+            expect(result).to.deep.equal([
+                {
+                    id: "view:dbo.ActiveUsers:Id",
+                    name: "Id",
+                    dataType: "int",
+                    ordinal: 1,
+                    isPrimaryKey: true,
+                },
+                {
+                    id: "view:dbo.ActiveUsers:Name",
+                    name: "Name",
+                    dataType: "nvarchar",
+                    ordinal: 2,
+                    isPrimaryKey: false,
+                },
+            ]);
+        });
+
+        test("should parse stored procedure parameters", async () => {
+            mockClient.sendRequest.callsFake(async (_type: any, _params: any) => ({
+                rows: [
+                    [cell("@userId"), cell("1")],
+                    [cell("@includeInactive"), cell("2")],
+                ],
+            }));
+
+            const result = await metadataService.getDabStoredProcedureParameters(
+                ownerUri,
+                "dbo",
+                "GetUsers",
+            );
+
+            expect(result).to.deep.equal([
+                { name: "@userId", ordinal: 1 },
+                { name: "@includeInactive", ordinal: 2 },
+            ]);
+        });
+    });
+
     suite("error handling", () => {
         test("should log error with proper message format", async () => {
             const errorMessage = "Connection timeout";

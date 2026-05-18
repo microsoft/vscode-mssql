@@ -1499,14 +1499,21 @@ export class LocConstants {
             openNitro: l10n.t("Open Nitro"),
 
             // DAB Unsupported Reasons
-            unsupportedNoPrimaryKey: l10n.t(
-                "Table must have a primary key to be used with Data API builder",
-            ),
-            unsupportedDataTypes: (columns: string) =>
+            unsupportedNoPrimaryKey: (sourceType: string = "Table") =>
                 l10n.t({
-                    message: "Table contains column types not supported by Data API builder: {0}",
-                    args: [columns],
-                    comment: ["{0} is a comma-separated list of column names and their data types"],
+                    message:
+                        "{0} must define one or more key fields to be used with Data API builder",
+                    args: [sourceType],
+                    comment: ["{0} is the DAB source type, e.g. Table or View"],
+                }),
+            unsupportedDataTypes: (columns: string, sourceType: string = "Table") =>
+                l10n.t({
+                    message: "{0} contains column types not supported by Data API builder: {1}",
+                    args: [sourceType, columns],
+                    comment: [
+                        "{0} is the DAB source type, e.g. Table or View",
+                        "{1} is a comma-separated list of column names and their data types",
+                    ],
                 }),
 
             // DAB Deployment Steps

@@ -6264,18 +6264,11 @@
     <trans-unit id="++CODE++489ffeb09845485513055db4da8e56fe571fe94399e73a32fd47c930a3e80fad">
       <source xml:lang="en">Table added to schema designer successfully.</source>
     </trans-unit>
-    <trans-unit id="++CODE++04996289cd69a5a2f94fb144afcff1a6109090bb48cf8bb340d7b205323c4e81">
-      <source xml:lang="en">Table contains column types not supported by Data API builder: {0}</source>
-      <note>{0} is a comma-separated list of column names and their data types</note>
-    </trans-unit>
     <trans-unit id="++CODE++7ed0604e7c45ca297246a04967b295e0c5fa232233fe154a2b1cd72a3eabe725">
       <source xml:lang="en">Table deleted from schema designer successfully.</source>
     </trans-unit>
     <trans-unit id="++CODE++497def392cd97e1d93e9491e97bb1b7c843582f7f6758d62b72ed67098b1edb3">
       <source xml:lang="en">Table id already exists.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++472c40383c9c44c12e38bdcddaa5c135927972c845e6f86965dc814ef56607a6">
-      <source xml:lang="en">Table must have a primary key to be used with Data API builder</source>
     </trans-unit>
     <trans-unit id="++CODE++00723ae9a38ee6e38cc089275f523a75ef5b5aa1b834d77397409c27af379dc1">
       <source xml:lang="en">Table must include at least one column.</source>
@@ -7189,6 +7182,11 @@
       <source xml:lang="en">{0} connections imported</source>
       <note>{0} is the number of connections imported (plural)</note>
     </trans-unit>
+    <trans-unit id="++CODE++39a06811c113ad2304d8de603fc9e9ac1546b2526ee973d774012b76e767ca7c">
+      <source xml:lang="en">{0} contains column types not supported by Data API builder: {1}</source>
+      <note>{0} is the DAB source type, e.g. Table or View
+{1} is a comma-separated list of column names and their data types</note>
+    </trans-unit>
     <trans-unit id="++CODE++0362d3ecbb7ec63592961e75fdb3b9cce59a91db85f4b99e2ba5106d1bf167ed">
       <source xml:lang="en">{0} deleted successfully.</source>
       <note>{0} deleted successfully.</note>
@@ -7220,6 +7218,10 @@
     <trans-unit id="++CODE++4960928686dec57850ef0fde437021e4bec60d6d0fcc3e196448bb01c88d3920">
       <source xml:lang="en">{0} issues</source>
       <note>{0} is the number of issues</note>
+    </trans-unit>
+    <trans-unit id="++CODE++929b85deaa0b29d7b7adb8318824ecfabb9cf7c9d0a056b0d0fe0827cdd9f141">
+      <source xml:lang="en">{0} must define one or more key fields to be used with Data API builder</source>
+      <note>{0} is the DAB source type, e.g. Table or View</note>
     </trans-unit>
     <trans-unit id="++CODE++88406d92ef64a09f40811dd2f77a5e2476fae20846f1d89e5f48fee94761d0d2">
       <source xml:lang="en">{0} objects found</source>
