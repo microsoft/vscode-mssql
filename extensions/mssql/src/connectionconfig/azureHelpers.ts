@@ -23,7 +23,6 @@ import {
     AzureSqlServerInfo,
     ConnectionDialogWebviewState,
 } from "../sharedInterfaces/connectionDialog";
-import { SqlArtifactTypes } from "../sharedInterfaces/fabric";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendErrorEvent } from "../telemetry/telemetry";
 import { getErrorMessage, listAllIterator } from "../utils/utils";
