@@ -917,7 +917,7 @@ suite("TableExplorerService Tests", () => {
             try {
                 await tableExplorerService.initialize("uri", "table", "schema", "type", undefined);
                 expect.fail("Should have thrown an error");
-            } catch (err) {
+            } catch {
                 expect(mockLogger.error, "Error should be logged").to.have.been.calledWithMatch(
                     sinon.match(
                         (value: unknown) =>
@@ -934,7 +934,7 @@ suite("TableExplorerService Tests", () => {
             try {
                 await tableExplorerService.commit("uri");
                 expect.fail("Should have thrown an error");
-            } catch (err) {
+            } catch {
                 expect(mockLogger.error, "Error should be logged").to.have.been.called;
             }
         });
