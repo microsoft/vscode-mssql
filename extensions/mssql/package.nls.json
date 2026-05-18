@@ -1,6 +1,6 @@
 {
     "mssql.runQuery": "Execute Query (MSSQL)",
-    "mssql.runCurrentStatement": "Execute Current Statement (MSSQL)",
+    "mssql.runCurrentStatement": "Execute Selection or Current Statement (MSSQL)",
     "mssql.cancelQuery": "Cancel Query (MSSQL)",
     "mssql.revealQueryResult": "Reveal Query Result (MSSQL)",
     "mssql.toggleQueryResultPanel": "Toggle Query Result Panel Visibility (MSSQL)",

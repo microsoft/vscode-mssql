@@ -1128,12 +1128,15 @@ export class Azure {
         });
     }
 
-    public static noSqlResourceConfiguredForCurrentCloud(cloudName: string): string {
+    public static noResourceConfiguredForCurrentCloud(
+        resourceType: string,
+        cloudName: string,
+    ): string {
         return l10n.t({
             message:
-                "No SQL resource is configured for the current cloud '{0}'. Please update your Azure account settings.",
-            args: [cloudName],
-            comment: ["{0} is the display name of the current cloud"],
+                "No resource of type '{0}' is configured for the current cloud '{1}'. Please update your Azure account settings.",
+            args: [resourceType, cloudName],
+            comment: ["{0} is the resource type", "{1} is the display name of the current cloud"],
         });
     }
 
@@ -2060,6 +2063,7 @@ export class SchemaCompare {
 export class SchemaDesigner {
     public static LoadingSchemaDesginerModel = l10n.t("Loading Schema Designer Model...");
     public static PanelTitle = l10n.t("Visualize and Design Schema");
+    public static ReadOnlyPanelTitle = l10n.t("Table Diagram");
     public static SchemaReady = l10n.t(
         "Schema Designer Model is ready. Changes can now be published.",
     );
@@ -2205,6 +2209,21 @@ export class Connection {
     public static trustServerCertificateMustBeEnabledPrompt = l10n.t(
         "Do you want to enable 'Trust server certificate' on this connection and retry?",
     );
+
+    public static securityTokenRequestFailed = (errorMessage: string, resource: string) => {
+        return l10n.t({
+            message: "Failed to obtain token for resource '{1}'.  Error: {0}",
+            args: [errorMessage, resource],
+            comment: ["{0} is the error message", "{1} is the resource"],
+        });
+    };
+    public static failedToAcquireToken = (accountId: string, tenantId: string) => {
+        return l10n.t({
+            message: "Failed to acquire token for account '{0}' and tenant '{1}'",
+            args: [accountId, tenantId],
+            comment: ["{0} is the account ID", "{1} is the tenant ID"],
+        });
+    };
 }
 
 export class MssqlChatAgent {
@@ -3161,6 +3180,21 @@ export class TableExplorer {
             args: [errorMessage],
             comment: ["{0} is the error message"],
         });
+
+    public static failedToRunTableQuery = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to run table query: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToRunTableQueryUnknown = l10n.t("Failed to run table query.");
+
+    public static pendingChangesWillBeLost = l10n.t(
+        "Running a custom query will discard all pending changes. Do you want to continue?",
+    );
+
+    public static Continue = l10n.t("Continue");
 }
 
 export class AzureDataStudioMigration {
