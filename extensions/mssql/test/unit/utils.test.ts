@@ -123,7 +123,7 @@ suite.skip("Utility tests - Timer Class", () => {
     let timer = new Utils.Timer();
 
     test("timer should start when initiated", (done) => {
-        let p = new Promise<void>((resolve, reject) => {
+        let p = new Promise<void>((resolve, _reject) => {
             setTimeout(() => {
                 let duration = timer.getDuration();
                 expect(duration).to.be.greaterThan(0);
@@ -136,7 +136,7 @@ suite.skip("Utility tests - Timer Class", () => {
     test("timer should end when ended", (done) => {
         let duration = timer.getDuration();
         timer.end();
-        let p = new Promise<void>((resolve, reject) => {
+        let p = new Promise<void>((resolve, _reject) => {
             setTimeout(() => {
                 let newDuration = timer.getDuration();
                 expect(duration).to.not.equal(newDuration);
@@ -462,6 +462,37 @@ suite("decodeQueryResultLinkFragment", () => {
         encoded = encodeURIComponent(original);
         result = utilUtils.decodeQueryResultLinkFragment(encoded);
         expect(result).to.equal(original);
+    });
+});
+
+suite("Utility Tests - bracketEscapeSqlIdentifier", () => {
+    test("wraps identifier in brackets by default", () => {
+        expect(Utils.bracketEscapeSqlIdentifier("mytable")).to.equal("[mytable]");
+    });
+
+    test("escapes closing brackets within the identifier", () => {
+        expect(Utils.bracketEscapeSqlIdentifier("my]table")).to.equal("[my]]table]");
+    });
+
+    test("escapes multiple closing brackets within the identifier", () => {
+        expect(Utils.bracketEscapeSqlIdentifier("my]weird]name")).to.equal("[my]]weird]]name]");
+    });
+
+    test("does not wrap in brackets when includeSurroundingBrackets is false", () => {
+        expect(Utils.bracketEscapeSqlIdentifier("mytable", false)).to.equal("mytable");
+    });
+
+    test("escapes closing brackets but does not wrap when includeSurroundingBrackets is false", () => {
+        expect(Utils.bracketEscapeSqlIdentifier("my]table", false)).to.equal("my]]table");
+    });
+
+    test("handles empty string", () => {
+        expect(Utils.bracketEscapeSqlIdentifier("")).to.equal("[]");
+        expect(Utils.bracketEscapeSqlIdentifier("", false)).to.equal("");
+    });
+
+    test("does not escape opening brackets", () => {
+        expect(Utils.bracketEscapeSqlIdentifier("my[table")).to.equal("[my[table]");
     });
 });
 

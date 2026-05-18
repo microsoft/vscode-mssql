@@ -2021,6 +2021,7 @@ export class SchemaCompare {
 export class SchemaDesigner {
     public static LoadingSchemaDesginerModel = l10n.t("Loading Schema Designer Model...");
     public static PanelTitle = l10n.t("Visualize and Design Schema");
+    public static ReadOnlyPanelTitle = l10n.t("Table Diagram");
     public static SchemaReady = l10n.t(
         "Schema Designer Model is ready. Changes can now be published.",
     );
@@ -3137,6 +3138,21 @@ export class TableExplorer {
             args: [errorMessage],
             comment: ["{0} is the error message"],
         });
+
+    public static failedToRunTableQuery = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to run table query: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToRunTableQueryUnknown = l10n.t("Failed to run table query.");
+
+    public static pendingChangesWillBeLost = l10n.t(
+        "Running a custom query will discard all pending changes. Do you want to continue?",
+    );
+
+    public static Continue = l10n.t("Continue");
 }
 
 export class AzureDataStudioMigration {

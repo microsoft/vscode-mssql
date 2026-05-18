@@ -88,11 +88,11 @@ suite("workspaceTreeDataProvider Tests", function (): void {
                 },
             ],
             getProjectTreeDataProvider: (
-                projectFile: vscode.Uri,
+                _projectFile: vscode.Uri,
             ): Promise<vscode.TreeDataProvider<any>> => {
                 return Promise.resolve(treeDataProvider);
             },
-            createProject: (name: string, location: vscode.Uri): Promise<vscode.Uri> => {
+            createProject: (_name: string, location: vscode.Uri): Promise<vscode.Uri> => {
                 return Promise.resolve(location);
             },
             projectToolbarActions: [

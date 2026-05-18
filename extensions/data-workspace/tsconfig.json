@@ -1,19 +1,5 @@
 {
-    "compileOnSave": true,
-    "compilerOptions": {
-        "outDir": "./out",
-        "module": "CommonJS",
-        "target": "ES2022",
-        "lib": ["ES2022"],
-        "sourceMap": true,
-        "noUnusedParameters": false,
-        "downlevelIteration": true,
-        "allowUnusedLabels": false,
-        "allowSyntheticDefaultImports": true,
-        "skipLibCheck": true,
-        "rootDir": ".",
-        "types": ["node"]
-    },
-    "include": ["src/**/*", "test/**/*", "../mssql/typings/vscode-mssql.d.ts"],
+    "extends": "../tsconfig.base.json",
+    "include": ["src", "test", "../mssql/typings/vscode-mssql.d.ts"],
     "exclude": ["node_modules", "out"]
 }

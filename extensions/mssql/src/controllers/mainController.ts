@@ -1834,6 +1834,8 @@ export default class MainController implements vscode.Disposable {
                             this.schemaDesignerService,
                             databaseName,
                             node,
+                            undefined, // connectionUri: will be obtained from treeNode
+                            true, // isReadOnly: table-diagram view from Table Explorer
                         );
 
                     schemaDesigner.setInitialFilterTables([filterTable]);
@@ -2448,7 +2450,7 @@ export default class MainController implements vscode.Disposable {
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
                     Constants.cmdStartQueryHistory,
-                    async (node: QueryHistoryNode) => {
+                    async (_node: QueryHistoryNode) => {
                         await this._queryHistoryProvider.startQueryHistoryCapture();
                     },
                 ),
@@ -2458,7 +2460,7 @@ export default class MainController implements vscode.Disposable {
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
                     Constants.cmdPauseQueryHistory,
-                    async (node: QueryHistoryNode) => {
+                    async (_node: QueryHistoryNode) => {
                         await this._queryHistoryProvider.pauseQueryHistoryCapture();
                     },
                 ),
@@ -3135,13 +3137,13 @@ export default class MainController implements vscode.Disposable {
             // this will throw if the file does not exist
             fs.statSync(filePath);
             return true;
-        } catch (err) {
+        } catch {
             try {
                 // write out the "first launch" file if it doesn't exist
-                fs.writeFile(filePath, "launched", (err) => {
+                fs.writeFile(filePath, "launched", (_err) => {
                     return;
                 });
-            } catch (err) {
+            } catch {
                 // ignore errors writing first launch file since there isn't really
                 // anything we can do to recover in this situation.
             }

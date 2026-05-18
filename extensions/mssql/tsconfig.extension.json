@@ -1,21 +1,8 @@
 {
-    "compileOnSave": true,
+    "extends": "../tsconfig.base.json",
     "compilerOptions": {
-        "outDir": "out",
-        "module": "CommonJS",
-        "target": "ES2024",
         "lib": ["ES2024", "dom"],
-        "sourceMap": true,
-        "allowUnusedLabels": false,
-        "allowSyntheticDefaultImports": true,
-        "emitDecoratorMetadata": true,
-        "experimentalDecorators": true,
-        "jsx": "react-jsx",
-        "rootDir": ".",
-        "strict": false,
-        "noUnusedLocals": true,
-        "skipLibCheck": true,
-        "types": ["node", "mocha"]
+        "jsx": "react-jsx"
     },
     "include": ["src", "test", "typings"],
     "exclude": ["node_modules", "src/webviews"]

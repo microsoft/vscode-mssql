@@ -66,6 +66,10 @@ suite("SchemaDesignerWebviewManager tests", () => {
             getDefinition: sandbox.stub().resolves({ script: "" }),
             generateScript: sandbox.stub().resolves({ script: "" }),
             getReport: sandbox.stub().resolves(),
+            onProgress: sandbox.stub(),
+            removeProgressListener: sandbox.stub(),
+            onMessage: sandbox.stub(),
+            removeMessageListener: sandbox.stub(),
             onSchemaReady: sandbox.stub(),
         } as any;
 
@@ -310,7 +314,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
             );
 
             // Simulate some work that marks cache as dirty
-            const key = `${connectionString}-${databaseName}`;
+            const key = `${connectionString}-${databaseName}-rw`;
             (manager as any).schemaDesignerCache.set(key, {
                 schemaDesignerDetails: mockCreateSessionResponse,
                 isDirty: true,
@@ -470,7 +474,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
                 undefined,
             );
 
-            const key = `${connectionString}-${databaseName}`;
+            const key = `${connectionString}-${databaseName}-rw`;
             expect((manager as any).schemaDesigners.has(key)).to.be.true;
 
             // Set cache as not dirty
@@ -499,7 +503,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
                 undefined,
             );
 
-            const key = `${connectionString}-${databaseName}`;
+            const key = `${connectionString}-${databaseName}-rw`;
 
             // Set cache as dirty
             (manager as any).schemaDesignerCache.set(key, {
@@ -530,7 +534,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
                 undefined,
             );
 
-            const key = `${connectionString}-${databaseName}`;
+            const key = `${connectionString}-${databaseName}-rw`;
 
             (manager as any).schemaDesignerCache.set(key, {
                 schemaDesignerDetails: mockCreateSessionResponse,
@@ -558,7 +562,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
                 undefined,
             );
 
-            const key = `${connectionString}-${databaseName}`;
+            const key = `${connectionString}-${databaseName}-rw`;
 
             // Set cache as dirty
             (manager as any).schemaDesignerCache.set(key, {
@@ -588,7 +592,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
                 undefined,
             );
 
-            const key = `${connectionString}-${databaseName}`;
+            const key = `${connectionString}-${databaseName}-rw`;
             const sessionId = "test-session-id";
 
             // Set cache with session
@@ -622,7 +626,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
                 undefined,
             );
 
-            const key = `${connectionString}-${databaseName}`;
+            const key = `${connectionString}-${databaseName}-rw`;
 
             // Set cache as dirty
             (manager as any).schemaDesignerCache.set(key, {
@@ -655,7 +659,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
                 undefined,
             );
 
-            const key = `${connectionString}-${databaseName}`;
+            const key = `${connectionString}-${databaseName}-rw`;
             const sessionId = "test-session-id";
 
             // Set cache

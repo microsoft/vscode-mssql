@@ -663,13 +663,13 @@ suite("Shared Disaster Recovery Utils", () => {
                             },
                         },
                     ],
-                    validate: (state: BackupDatabaseFormState, value: string) => {
+                    validate: (_state: BackupDatabaseFormState, _value: string) => {
                         return { isValid: false, validationMessage: "accountId is required" };
                     },
                 },
                 tenantId: {
                     options: ["x"],
-                    validate: (state: BackupDatabaseFormState, value: string) => {
+                    validate: (_state: BackupDatabaseFormState, _value: string) => {
                         return { isValid: true };
                     },
                 },

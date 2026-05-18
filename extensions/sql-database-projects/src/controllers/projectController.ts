@@ -628,7 +628,7 @@ export class ProjectsController {
      */
     public async schemaCompare(
         source: dataworkspace.WorkspaceTreeItem,
-        targetParam: any = undefined,
+        _targetParam: any = undefined,
     ): Promise<void> {
         try {
             // check if schema compare service is available
@@ -646,7 +646,7 @@ export class ProjectsController {
                         undefined,
                         undefined,
                     );
-                } catch (e) {
+                } catch {
                     throw new Error(constants.buildFailedCannotStartSchemaCompare);
                 }
             } else {

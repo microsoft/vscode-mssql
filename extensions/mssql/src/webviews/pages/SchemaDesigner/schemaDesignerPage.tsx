@@ -11,7 +11,7 @@ import { SchemaDesignerEditorDrawer } from "./editor/schemaDesignerEditorDrawer"
 import { SchemaDesignerDefinitionsPanel } from "./definition/schemaDesignerDefinitionsPanel";
 import { SchemaDesignerFlow } from "./graph/SchemaDiagramFlow";
 import { SchemaDesignerFindTableWidget } from "./schemaDesignerFindTables";
-import { makeStyles, Spinner } from "@fluentui/react-components";
+import { makeStyles } from "@fluentui/react-components";
 import { locConstants } from "../../common/locConstants";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { ErrorDialog } from "../../common/errorDialog";
@@ -19,6 +19,9 @@ import { SchemaDesignerDefinitionPanelProvider } from "./definition/schemaDesign
 import { SchemaDesignerChangeProvider } from "./definition/changes/schemaDesignerChangeContext";
 import { CopilotChangesProvider } from "./definition/copilot/copilotChangesContext";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
+import { LoadingLog } from "../../common/loadingLog";
+import { useSchemaDesignerSelector } from "./schemaDesignerSelector";
+import { LoadingLogEntry } from "../../../sharedInterfaces/webview";
 
 const useStyles = makeStyles({
     resizeHandle: {
@@ -34,6 +37,7 @@ interface SchemaDesignerPageProps {
 export const SchemaDesignerPage = ({ activeView, onNavigateToDab }: SchemaDesignerPageProps) => {
     const context = useContext(SchemaDesignerContext);
     const classes = useStyles();
+    const isReadOnly = useSchemaDesignerSelector((s) => s?.isReadOnly) ?? false;
 
     if (!context) {
         return undefined;
@@ -46,7 +50,7 @@ export const SchemaDesignerPage = ({ activeView, onNavigateToDab }: SchemaDesign
 
     return (
         <>
-            <SchemaDesignerEditorDrawer />
+            {!isReadOnly && <SchemaDesignerEditorDrawer />}
             <MainLayout>
                 <PanelGroup direction="vertical">
                     <SchemaDesignerDefinitionPanelProvider>
@@ -67,7 +71,9 @@ export const SchemaDesignerPage = ({ activeView, onNavigateToDab }: SchemaDesign
                         </SchemaDesignerChangeProvider>
                     </SchemaDesignerDefinitionPanelProvider>
                 </PanelGroup>
-                {!context.isInitialized && !context.initializationError && <LoadingOverlay />}
+                {!context.isInitialized && !context.initializationError && (
+                    <LoadingOverlay messages={context.initializationProgressMessages} />
+                )}
                 {context?.initializationError && <InitializationErrorDialog />}
             </MainLayout>
         </>
@@ -112,7 +118,7 @@ const GraphContainer = ({ children }: { children: React.ReactNode }) => (
     </div>
 );
 
-const LoadingOverlay = () => (
+const LoadingOverlay = ({ messages }: { messages: LoadingLogEntry[] }) => (
     <div
         style={{
             position: "absolute",
@@ -120,13 +126,13 @@ const LoadingOverlay = () => (
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.4)",
+            backgroundColor: "var(--vscode-editor-background)",
             zIndex: 1000,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
         }}>
-        <Spinner label={locConstants.schemaDesigner.loadingSchemaDesigner} labelPosition="below" />
+        <LoadingLog messages={messages} minHeight="100%" />
     </div>
 );
 

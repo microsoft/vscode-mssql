@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Spinner, makeStyles, shorthands } from "@fluentui/react-components";
+import { makeStyles, shorthands } from "@fluentui/react-components";
 import { useContext, useEffect, useRef } from "react";
 import * as designer from "../../../sharedInterfaces/tableDesigner";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
@@ -20,6 +20,7 @@ import {
     PanelGroup,
     PanelResizeHandle,
 } from "react-resizable-panels";
+import { LoadingLog } from "../../common/loadingLog";
 
 const useStyles = makeStyles({
     root: {
@@ -110,6 +111,7 @@ export const TableDesigner = () => {
     const propertiesPaneData = useTableDesignerSelector((s) => s?.propertiesPaneData);
     const apiState = useTableDesignerSelector((s) => s?.apiState);
     const initializationError = useTableDesignerSelector((s) => s?.initializationError);
+    const loadingMessages = useTableDesignerSelector((s) => s?.loadingMessages);
     const editorRef = useRef<HTMLDivElement>(null);
     const propertiesPanelRef = useRef<ImperativePanelHandle>(null);
     if (!context) {
@@ -142,10 +144,7 @@ export const TableDesigner = () => {
         <div className={classes.root}>
             {apiState?.initializeState === designer.LoadState.Loading && (
                 <div className={classes.pageContext}>
-                    <Spinner
-                        label={locConstants.tableDesigner.loadingTableDesigner}
-                        labelPosition="below"
-                    />
+                    <LoadingLog messages={loadingMessages ?? []} minHeight="100%" />
                 </div>
             )}
             {isErrorState && (

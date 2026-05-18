@@ -34,6 +34,7 @@ import {
 } from "@fluentui/react-icons";
 import { SchemaDesignerTableNode } from "./schemaDesignerTableNode.js";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
+import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import {
     filterDeletedEdges,
     filterDeletedNodes,
@@ -91,6 +92,7 @@ export const SchemaDesignerFlow = () => {
     // Context for schema data
     const context = useContext(SchemaDesignerContext);
     const changeContext = useSchemaDesignerChangeContext();
+    const isReadOnly = useSchemaDesignerSelector((s) => s?.isReadOnly) ?? false;
 
     // State for nodes and edges
     const [schemaNodes, setSchemaNodes, onNodesChange] = useNodesState<Node<SchemaDesigner.Table>>(
@@ -224,6 +226,10 @@ export const SchemaDesignerFlow = () => {
                 const { nodes, edges } = await context.initializeSchemaDesigner();
                 setSchemaNodes(nodes);
                 setRelationshipEdges(edges);
+
+                requestAnimationFrame(() => {
+                    void reactFlow.fitView({ nodes });
+                });
 
                 // Trigger script generation to update the changes panel
                 // This is necessary for restored sessions that may have changes
@@ -499,6 +505,10 @@ export const SchemaDesignerFlow = () => {
                 nodes={displayNodes}
                 edges={displayEdges}
                 nodeTypes={NODE_TYPES}
+                nodesDraggable={!isReadOnly}
+                nodesConnectable={!isReadOnly}
+                edgesReconnectable={!isReadOnly}
+                deleteKeyCode={isReadOnly ? null : undefined}
                 onNodesChange={(changes) => {
                     const isDeletedNodeChange = (change: NodeChange<Node<SchemaDesigner.Table>>) =>
                         "id" in change &&
@@ -515,9 +525,9 @@ export const SchemaDesignerFlow = () => {
                         setDeletedSchemaNodes((nodes) => applyNodeChanges(deletedChanges, nodes));
                     }
                 }}
-                onEdgesChange={onEdgesChange}
-                onConnect={handleConnect}
-                onConnectEnd={handleConnectEnd}
+                onEdgesChange={isReadOnly ? undefined : onEdgesChange}
+                onConnect={isReadOnly ? undefined : handleConnect}
+                onConnectEnd={isReadOnly ? undefined : handleConnectEnd}
                 onlyRenderVisibleElements={context.renderOnlyVisibleTables}
                 proOptions={{
                     hideAttribution: true,
@@ -618,8 +628,7 @@ export const SchemaDesignerFlow = () => {
                     }
                     return await deleteElementsConfirmation();
                 }}
-                minZoom={0.05}
-                fitView>
+                minZoom={0.05}>
                 <Controls>
                     <ControlButton
                         onClick={() =>

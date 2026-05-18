@@ -71,7 +71,7 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
     }
 
     private registerRpcHandlers() {
-        this.registerReducer("getExecutionPlan", async (state, payload) => {
+        this.registerReducer("getExecutionPlan", async (state, _payload) => {
             state = await createExecutionPlanGraphs(
                 state,
                 this.executionPlanService,
