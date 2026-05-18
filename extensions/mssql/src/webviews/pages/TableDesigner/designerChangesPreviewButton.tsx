@@ -69,11 +69,7 @@ export const DesignerChangesPreviewButton = () => {
     };
 
     const publishingLoadingDialogContent = () => (
-        <LoadingLog
-            messages={publishProgressMessages ?? []}
-            fallbackMessage={locConstants.tableDesigner.publishingChanges}
-            minHeight="100%"
-        />
+        <LoadingLog messages={publishProgressMessages ?? []} minHeight="100%" />
     );
 
     const publishingErrorDialogContent = () => (
@@ -144,11 +140,7 @@ export const DesignerChangesPreviewButton = () => {
     );
 
     const previewLoadingDialogContent = () => (
-        <LoadingLog
-            messages={reportProgressMessages ?? []}
-            fallbackMessage={locConstants.tableDesigner.loadingPreviewReport}
-            minHeight="100%"
-        />
+        <LoadingLog messages={reportProgressMessages ?? []} minHeight="100%" />
     );
 
     const previewLoadingErrorDialogContent = () => (

@@ -160,8 +160,8 @@ export function PublishChangesDialogButton() {
         );
     };
 
-    const loadingLog = (label: string, messages: LoadingLogEntry[] = []) => {
-        return <LoadingLog messages={messages} fallbackMessage={label} minHeight="100%" />;
+    const loadingLog = (messages: LoadingLogEntry[] = []) => {
+        return <LoadingLog messages={messages} minHeight="100%" />;
     };
 
     const success = () => {
@@ -221,17 +221,11 @@ export function PublishChangesDialogButton() {
 
     const dialogContent = () => {
         if (state.currentStage === PublishDialogStages.ReportLoading) {
-            return loadingLog(
-                context.reportProgressMessage ?? locConstants.schemaDesigner.generatingReport,
-                context.reportProgressMessages,
-            );
+            return loadingLog(context.reportProgressMessages);
         }
 
         if (state.currentStage === PublishDialogStages.ReportError) {
-            return loadingLog(
-                state.reportError ?? locConstants.schemaDesigner.generatingReport,
-                context.reportProgressMessages,
-            );
+            return loadingLog(context.reportProgressMessages);
         }
 
         if (state.currentStage === PublishDialogStages.ReportSuccessNoChanges) {
@@ -254,17 +248,11 @@ export function PublishChangesDialogButton() {
         }
 
         if (state.currentStage === PublishDialogStages.PublishLoading) {
-            return loadingLog(
-                locConstants.schemaDesigner.publishingChanges,
-                context.publishProgressMessages,
-            );
+            return loadingLog(context.publishProgressMessages);
         }
 
         if (state.currentStage === PublishDialogStages.PublishError) {
-            return loadingLog(
-                state.publishError ?? locConstants.schemaDesigner.publishingChanges,
-                context.publishProgressMessages,
-            );
+            return loadingLog(context.publishProgressMessages);
         }
 
         if (state.currentStage === PublishDialogStages.PublishSuccess) {

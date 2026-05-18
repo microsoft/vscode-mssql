@@ -108,10 +108,6 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
     const loadingMessages = isSchemaLoading
         ? (schemaDesignerContext?.initializationProgressMessages ?? [])
         : [];
-    const loadingFallbackMessage = isSchemaLoading
-        ? (schemaDesignerContext?.initializationProgressMessage ??
-          locConstants.schemaDesigner.loadingSchemaDesigner)
-        : locConstants.schemaDesigner.initializingDabConfig;
 
     return (
         <div className={classes.root}>
@@ -148,11 +144,7 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
             </PanelGroup>
             {(isSchemaLoading || isDabConfigLoading) && (
                 <div className={classes.loadingContainer}>
-                    <LoadingLog
-                        messages={loadingMessages}
-                        fallbackMessage={loadingFallbackMessage}
-                        minHeight="100%"
-                    />
+                    <LoadingLog messages={loadingMessages} minHeight="100%" />
                 </div>
             )}
         </div>

@@ -72,13 +72,7 @@ export const SchemaDesignerPage = ({ activeView, onNavigateToDab }: SchemaDesign
                     </SchemaDesignerDefinitionPanelProvider>
                 </PanelGroup>
                 {!context.isInitialized && !context.initializationError && (
-                    <LoadingOverlay
-                        messages={context.initializationProgressMessages}
-                        fallbackMessage={
-                            context.initializationProgressMessage ??
-                            locConstants.schemaDesigner.loadingSchemaDesigner
-                        }
-                    />
+                    <LoadingOverlay messages={context.initializationProgressMessages} />
                 )}
                 {context?.initializationError && <InitializationErrorDialog />}
             </MainLayout>
@@ -124,13 +118,7 @@ const GraphContainer = ({ children }: { children: React.ReactNode }) => (
     </div>
 );
 
-const LoadingOverlay = ({
-    messages,
-    fallbackMessage,
-}: {
-    messages: LoadingLogEntry[];
-    fallbackMessage: string;
-}) => (
+const LoadingOverlay = ({ messages }: { messages: LoadingLogEntry[] }) => (
     <div
         style={{
             position: "absolute",
@@ -144,7 +132,7 @@ const LoadingOverlay = ({
             alignItems: "center",
             justifyContent: "center",
         }}>
-        <LoadingLog messages={messages} fallbackMessage={fallbackMessage} minHeight="100%" />
+        <LoadingLog messages={messages} minHeight="100%" />
     </div>
 );
 

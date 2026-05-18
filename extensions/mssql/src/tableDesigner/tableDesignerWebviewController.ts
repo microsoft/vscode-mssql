@@ -62,7 +62,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     publishState: designer.LoadState.NotStarted,
                     initializeState: designer.LoadState.Loading,
                 },
-                loadingMessages: [{ message: LocConstants.TableDesigner.LoadingTableDesigner }],
+                loadingMessages: [],
                 hasUnpublishedChanges: false,
             },
             {
@@ -101,16 +101,6 @@ export class TableDesignerWebviewController extends WebviewPanelController<
     }
 
     private async initialize() {
-        if (this.state.apiState?.initializeState === designer.LoadState.Loading) {
-            this.state = {
-                ...this.state,
-                loadingMessages: this.appendProgressMessage(
-                    this.state.loadingMessages,
-                    LocConstants.TableDesigner.LoadingTableDesigner,
-                ),
-            };
-        }
-
         if (!this._targetNode) {
             const errorMessage = "Unable to find object explorer node";
             sendErrorEvent(
@@ -395,9 +385,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
         });
 
         this.registerReducer("publishChanges", async (state, payload) => {
-            const publishProgressMessages: LoadingLogEntry[] = [
-                { message: LocConstants.TableDesigner.PublishingTableChanges },
-            ];
+            const publishProgressMessages: LoadingLogEntry[] = [];
             const endActivity = startActivity(
                 TelemetryViews.TableDesigner,
                 TelemetryActions.Publish,
@@ -515,9 +503,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
         });
 
         this.registerReducer("generatePreviewReport", async (state, payload) => {
-            const reportProgressMessages: LoadingLogEntry[] = [
-                { message: LocConstants.TableDesigner.GeneratingPreviewReport },
-            ];
+            const reportProgressMessages: LoadingLogEntry[] = [];
             this.state = {
                 ...this.state,
                 apiState: {

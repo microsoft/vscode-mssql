@@ -75,15 +75,13 @@ const useStyles = makeStyles({
 
 export interface LoadingLogProps {
     messages: LoadingLogEntry[];
-    fallbackMessage: string;
     minHeight?: string;
 }
 
-export function LoadingLog({ messages, fallbackMessage, minHeight }: LoadingLogProps) {
+export function LoadingLog({ messages, minHeight }: LoadingLogProps) {
     const classes = useStyles();
     const scrollRef = useRef<HTMLDivElement | null>(undefined as unknown as HTMLDivElement | null);
-    const visibleMessages =
-        messages.length > 0 ? messages : [{ message: fallbackMessage, kind: "progress" }];
+    const visibleMessages = messages;
     const activeIndex = visibleMessages.length - 1;
     const hasTerminalError = visibleMessages[activeIndex]?.kind === "error";
 

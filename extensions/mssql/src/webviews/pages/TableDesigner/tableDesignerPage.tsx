@@ -144,11 +144,7 @@ export const TableDesigner = () => {
         <div className={classes.root}>
             {apiState?.initializeState === designer.LoadState.Loading && (
                 <div className={classes.pageContext}>
-                    <LoadingLog
-                        messages={loadingMessages ?? []}
-                        fallbackMessage={locConstants.tableDesigner.loadingTableDesigner}
-                        minHeight="100%"
-                    />
+                    <LoadingLog messages={loadingMessages ?? []} minHeight="100%" />
                 </div>
             )}
             {isErrorState && (

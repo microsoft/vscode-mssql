@@ -2710,8 +2710,6 @@
         "comment": ["{0} is the webview name", "{1} is the timeout in milliseconds"]
     },
     "Webview was disposed before it became ready": "Webview was disposed before it became ready",
-    "Publishing table changes": "Publishing table changes",
-    "Generating preview report": "Generating preview report",
     "Publish Profile": "Publish Profile",
     "Load profile...": "Load profile...",
     "Save As": "Save As",
