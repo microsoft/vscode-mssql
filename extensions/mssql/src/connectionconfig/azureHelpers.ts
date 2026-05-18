@@ -19,6 +19,7 @@ import { IAccount, ITenant } from "../models/contracts/azure";
 import { FormItemOptions } from "../sharedInterfaces/form";
 import { AzureAccountService } from "../services/azureAccountService";
 import {
+    AuthenticationType,
     AzureSqlServerInfo,
     ConnectionDialogWebviewState,
 } from "../sharedInterfaces/connectionDialog";
@@ -26,7 +27,12 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import { sendErrorEvent } from "../telemetry/telemetry";
 import { getErrorMessage, listAllIterator } from "../utils/utils";
 import { MssqlVSCodeAzureSubscriptionProvider } from "../azure/MssqlVSCodeAzureSubscriptionProvider";
-import { configSelectedAzureSubscriptions, https } from "../constants/constants";
+import {
+    activeDirectory,
+    configSelectedAzureSubscriptions,
+    https,
+    user,
+} from "../constants/constants";
 import { Logger } from "../models/logger";
 import { groupQuickPickItems, MssqlQuickPickItem } from "../utils/quickpickHelpers";
 import {
@@ -164,6 +170,36 @@ export class VsCodeAzureHelper {
         }
 
         return undefined;
+    }
+
+    /**
+     * Gets the user's Object ID (OID) from the subscription's authentication session token.
+     * The OID in the token reflects the user's identity in the target tenant, which is
+     * required for setting up Entra admin when Azure SQL servers.
+     * Falls back to parsing the first segment of the account ID if token decode fails.
+     */
+    public static async getAccountObjectId(
+        subscription: AzureSubscription,
+        account?: { id: string },
+    ): Promise<string | undefined> {
+        try {
+            const session = await subscription.authentication.getSession();
+            if (session?.accessToken) {
+                const tokenParts = session.accessToken.split(".");
+                if (tokenParts.length >= 2) {
+                    const tokenBody = tokenParts[1].replace(/-/g, "+").replace(/_/g, "/");
+                    const claims = JSON.parse(Buffer.from(tokenBody, "base64").toString("utf8"));
+                    if (claims.oid) {
+                        return claims.oid;
+                    }
+                }
+            }
+        } catch {
+            // Fall through to fallback
+        }
+
+        // Fall back to parsing the first segment of the account ID
+        return account?.id?.split(".")[0];
     }
 
     /**
@@ -377,6 +413,7 @@ export class VsCodeAzureHelper {
                 login: string;
                 sid: string;
                 tenantId: string;
+                principalType?: string;
             };
         },
     ): Promise<Server> {
@@ -386,15 +423,17 @@ export class VsCodeAzureHelper {
 
         const serverParams: Server = { location };
 
-        if (authConfig.authenticationType !== "AzureMFA") {
+        if (authConfig.authenticationType !== AuthenticationType.AzureMFA) {
             serverParams.administratorLogin = authConfig.adminLogin;
             serverParams.administratorLoginPassword = authConfig.adminPassword;
         }
 
-        if (authConfig.authenticationType !== "SqlLogin") {
+        if (authConfig.authenticationType !== AuthenticationType.SqlLogin) {
             serverParams.administrators = {
-                administratorType: "ActiveDirectory",
-                azureADOnlyAuthentication: authConfig.authenticationType === "AzureMFA",
+                administratorType: activeDirectory,
+                principalType: authConfig.entraAdmin?.principalType ?? user,
+                azureADOnlyAuthentication:
+                    authConfig.authenticationType === AuthenticationType.AzureMFA,
                 login: authConfig.entraAdmin?.login,
                 sid: authConfig.entraAdmin?.sid,
                 tenantId: authConfig.entraAdmin?.tenantId,

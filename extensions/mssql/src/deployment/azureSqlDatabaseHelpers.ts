@@ -20,6 +20,7 @@ import { IConnectionProfile } from "../models/interfaces";
 import { DEPLOYMENT_VIEW_ID, DeploymentWebviewController } from "./deploymentWebviewController";
 import { UserSurvey } from "../nps/userSurvey";
 import { acquireSqlAccessTokenFromVscodeAccount } from "../azure/vscodeEntraMfaUtils";
+import { user } from "../constants/constants";
 
 // Cached logger reference for use in helper functions that don't have
 // direct access to the controller's protected logger.
@@ -519,7 +520,10 @@ export function registerAzureSqlDatabaseReducers(
             const account = azureSqlState.accounts.find(
                 (a) => a.id === azureSqlState.formState.accountId,
             );
-            const accountOid = account?.id?.split(".")[0];
+
+            // Get the user's Object ID from the subscription's auth session token,
+            // which contains the correct OID for the user in the target tenant.
+            const accountOid = await VsCodeAzureHelper.getAccountObjectId(subscription, account);
 
             await VsCodeAzureHelper.createSqlServer(
                 subscription,
@@ -536,6 +540,7 @@ export function registerAzureSqlDatabaseReducers(
                                   login: account.label,
                                   sid: accountOid,
                                   tenantId: azureSqlState.formState.tenantId,
+                                  principalType: user,
                               }
                             : undefined,
                 },

@@ -393,6 +393,8 @@ export const build = "build";
 export const sqlProjBuildTaskType = "sqlproj-build";
 export const msBuildProblemMatcher = "$msCompile";
 export const buildDirectory = "BuildDirectory";
+export const user = "User";
+export const activeDirectory = "ActiveDirectory";
 // Regex pattern to match and replace database names in connection strings. Matches: (Initial Catalog|Database)
 export const catalogPairPattern =
     /(^|;)\s*(Initial\s+Catalog|Database)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^;]*?))\s*(?=;|$)/gi;
