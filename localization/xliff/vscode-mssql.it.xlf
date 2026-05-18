@@ -3407,7 +3407,7 @@ Errore:
         <source xml:lang="en">Failed to acquire token for account '{0}' and tenant '{1}'</source>
         <note>{0} is the account ID
 {1} is the tenant ID</note>
-        <target state="new">Failed to acquire token for account '{0}' and tenant '{1}'</target>
+        <target state="translated">Non è stato possibile ottenere il token per l'account '{0}' e il tenant '{1}'</target>
       </trans-unit>
       <trans-unit id="++CODE++f57c0ea9456f728aca50615f7308856d0bc86ca13aec8eb78496308cead16807">
         <source xml:lang="en">Failed to add table to schema designer.</source>
@@ -3619,7 +3619,7 @@ Errore:
         <source xml:lang="en">Failed to obtain token for resource '{1}'.  Error: {0}</source>
         <note>{0} is the error message
 {1} is the resource</note>
-        <target state="new">Failed to obtain token for resource '{1}'.  Error: {0}</target>
+        <target state="translated">Non è stato possibile ottenere il token per la risorsa '{1}'.  Errore: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++4db0773908394c4885d3ed204ecdc683dc1443576fcb13c279e6ad16e134b006">
         <source xml:lang="en">Failed to open Edit Data: {0}</source>
@@ -5697,7 +5697,7 @@ Errore:
         <source xml:lang="en">No resource of type '{0}' is configured for the current cloud '{1}'. Please update your Azure account settings.</source>
         <note>{0} is the resource type
 {1} is the display name of the current cloud</note>
-        <target state="new">No resource of type '{0}' is configured for the current cloud '{1}'. Please update your Azure account settings.</target>
+        <target state="translated">Non è stata configurata alcuna risorsa di tipo '{0}' per il cloud corrente '{1}'. Aggiornare le impostazioni dell'account Azure.</target>
       </trans-unit>
       <trans-unit id="++CODE++a43619f321175f57a27f2a38da381fd367f6806093031b1f82960bcbf542729d">
         <source xml:lang="en">No results</source>
@@ -10080,7 +10080,7 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
       </trans-unit>
       <trans-unit id="mssql.runCurrentStatement">
         <source xml:lang="en">Execute Selection or Current Statement (MSSQL)</source>
-        <target state="new">Execute Selection or Current Statement (MSSQL)</target>
+        <target state="translated">Esegui selezione o istruzione corrente (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.explainQuery">
         <source xml:lang="en">Explain Query</source>
