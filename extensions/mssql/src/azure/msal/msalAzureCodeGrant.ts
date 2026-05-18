@@ -59,7 +59,10 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
         };
     }
 
-    protected async login(tenant: ITenant): Promise<{
+    protected async login(
+        tenant: ITenant,
+        scopes?: string[],
+    ): Promise<{
         response: AuthenticationResult;
         authComplete: IDeferred<void, Error>;
     }> {
@@ -80,13 +83,15 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
         const state = `${serverPort},${this.pkceCodes.nonce}`;
         let authCodeRequest: AuthorizationCodeRequest;
 
+        const effectiveScopes = scopes ?? this.scopes;
+
         let authority = this.loginEndpointUrl + tenant.id;
         this.logger.info(`Authority URL set to: ${authority}`);
 
         try {
             let authUrlRequest: AuthorizationUrlRequest;
             authUrlRequest = {
-                scopes: this.scopes,
+                scopes: effectiveScopes,
                 redirectUri: `${this.redirectUri}:${serverPort}/redirect`,
                 codeChallenge: this.pkceCodes.codeChallenge,
                 codeChallengeMethod: this.pkceCodes.challengeMethod,
@@ -95,7 +100,7 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
                 state: state,
             };
             authCodeRequest = {
-                scopes: this.scopes,
+                scopes: effectiveScopes,
                 redirectUri: `${this.redirectUri}:${serverPort}/redirect`,
                 codeVerifier: this.pkceCodes.codeVerifier,
                 authority: authority,
