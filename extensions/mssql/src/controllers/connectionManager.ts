@@ -1304,41 +1304,17 @@ export default class ConnectionManager {
         }
 
         if (!account) {
-            // The account is not in the MSAL store (e.g. the connection was
-            // created via VS Code Azure accounts during provisioning).
-            // Fall back to the VS Code accounts path to acquire the token.
             this._logger?.verbose(
-                `No account found in MSAL account store for accountId ${connectionInfo.accountId}. Falling back to VS Code accounts.`,
+                `No account found in account store for accountId ${connectionInfo.accountId}. Cannot refresh Entra token.`,
             );
 
-            try {
-                const tokenInfo = await acquireSqlAccessTokenFromVscodeAccount(
-                    connectionInfo.accountId,
+            throw new MissingEntraAuthAccountError(
+                LocalizedConstants.Accounts.entraAccountNotAvailableThroughMsal(
+                    connectionInfo.email ?? connectionInfo.user ?? connectionInfo.accountId ?? "",
                     connectionInfo.tenantId,
-                    connectionInfo.email ?? connectionInfo.user,
-                );
-
-                connectionInfo.azureAccountToken = tokenInfo.token.token;
-                connectionInfo.expiresOn = tokenInfo.token.expiresOn;
-                connectionInfo.accountId = tokenInfo.account.id;
-                connectionInfo.tenantId = tokenInfo.tenantId;
-                connectionInfo.user = tokenInfo.account.label;
-                connectionInfo.email = tokenInfo.session.account.label;
-
-                return;
-            } catch (fallbackError) {
-                this._logger?.verbose(`VS Code accounts fallback also failed: ${fallbackError}`);
-
-                throw new MissingEntraAuthAccountError(
-                    LocalizedConstants.Accounts.entraAccountNotAvailableThroughMsal(
-                        connectionInfo.email ??
-                            connectionInfo.user ??
-                            connectionInfo.accountId ??
-                            "",
-                        connectionInfo.tenantId,
-                    ),
-                );
-            }
+                ),
+            );
+            //LocalizedConstants.msgAccountNotFound
         }
 
         connectionInfo.user = account.displayInfo.displayName;
