@@ -29,6 +29,7 @@ import {
     initializeUriOwnershipCoordinator,
 } from "./uriOwnership/uriOwnershipInitialization";
 import { registerSqlToolsMcpServer } from "./sqlToolsMcp/registerSqlToolsMcpServer";
+import { registerSqlToolSurfaceToggle } from "./copilot/sqlToolSurfaceToggle";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -56,6 +57,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
 
     // Exposed for testing purposes
     vscode.commands.registerCommand("mssql.getControllerForTests", () => controller);
+    registerSqlToolSurfaceToggle(context);
     await controller.activate();
 
     initializeUriOwnershipCoordinator(uriOwnershipCoordinator, controller.connectionManager);

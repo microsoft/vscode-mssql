@@ -60,6 +60,7 @@ export class SqlToolsMcpServerDefinitionProvider
             SQLtools__ConnectionProvider: "vscode",
             SQLtools__CartridgeExperience: "MCP_VSCode",
             SQLtools__SkillContentProvider: "External",
+            SQLtools__ExecutionMode: "READ_WRITE",
             ...(bridgeEndpoint
                 ? {
                       SQLtools__VsCodeBridgeEndpoint: bridgeEndpoint,
@@ -171,15 +172,5 @@ export function registerProvider(provider: SqlToolsMcpServerDefinitionProvider):
 }
 
 function getSqlCopilotDevPublishPath(): string {
-    return path.join(
-        "/Users",
-        "hacao",
-        "Repos",
-        "SqlCopilot",
-        "out",
-        "Release",
-        "net10.0",
-        "osx-arm64",
-        "publish",
-    );
+    return path.join("/Users", "hacao", "Repos", "SqlCopilot", "out", "Debug", "net10.0");
 }
