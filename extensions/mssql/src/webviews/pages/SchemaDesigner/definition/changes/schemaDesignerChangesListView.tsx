@@ -9,7 +9,7 @@ import {
     TreeItemValue,
     useHeadlessFlatTree_unstable,
 } from "@fluentui/react-components";
-import { Checkmark24Regular, Search16Regular } from "@fluentui/react-icons";
+import { CheckmarkCircle24Regular, Search16Regular } from "@fluentui/react-icons";
 import eventBus from "../../schemaDesignerEvents";
 import { SchemaDesignerContext } from "../../schemaDesignerStateProvider";
 import { locConstants } from "../../../../common/locConstants";
@@ -235,7 +235,7 @@ export const SchemaDesignerChangesListView = ({
         <div className={classes.container}>
             {hasNoChanges ? (
                 <SchemaDesignerChangesEmptyState
-                    icon={<Checkmark24Regular />}
+                    icon={<CheckmarkCircle24Regular />}
                     title={locConstants.schemaDesigner.noChangesYet}
                     subtitle={locConstants.schemaDesigner.noChangesYetSubtitle}
                 />

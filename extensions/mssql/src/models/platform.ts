@@ -128,7 +128,7 @@ export class PlatformInformation {
     ) {
         try {
             this.runtimeId = PlatformInformation.getRuntimeId(platform, architecture, distribution);
-        } catch (err) {
+        } catch {
             this.runtimeId = undefined;
         }
     }
@@ -168,7 +168,7 @@ export class PlatformInformation {
                 ) {
                     return true;
                 }
-            } catch (e) {
+            } catch {
                 // do nothing for now. Assume version is supported
             }
         }
