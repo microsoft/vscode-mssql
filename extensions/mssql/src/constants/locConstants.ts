@@ -1800,6 +1800,9 @@ export class TableDesigner {
     public static General = l10n.t("General");
     public static Columns = l10n.t("Columns");
     public static AdvancedOptions = l10n.t("Advanced Options");
+    public static LoadingTableDesigner = l10n.t("Loading Table Designer");
+    public static PublishingTableChanges = l10n.t("Publishing table changes");
+    public static GeneratingPreviewReport = l10n.t("Generating preview report");
 }
 
 export class PublishProject {

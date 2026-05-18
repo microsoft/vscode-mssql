@@ -122,9 +122,25 @@ export class SchemaDesignerService implements SchemaDesigner.ISchemaDesignerServ
         this._progressListeners.push(listener);
     }
 
+    removeProgressListener(
+        listener: (progress: SchemaDesigner.SchemaDesignerProgressNotificationParams) => void,
+    ): void {
+        this._progressListeners = this._progressListeners.filter(
+            (registeredListener) => registeredListener !== listener,
+        );
+    }
+
     onMessage(
         listener: (message: SchemaDesigner.SchemaDesignerMessageNotificationParams) => void,
     ): void {
         this._messageListeners.push(listener);
+    }
+
+    removeMessageListener(
+        listener: (message: SchemaDesigner.SchemaDesignerMessageNotificationParams) => void,
+    ): void {
+        this._messageListeners = this._messageListeners.filter(
+            (registeredListener) => registeredListener !== listener,
+        );
     }
 }

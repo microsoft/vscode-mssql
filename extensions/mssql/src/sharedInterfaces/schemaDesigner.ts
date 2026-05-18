@@ -299,23 +299,44 @@ export namespace SchemaDesigner {
         sessionId: string;
     }
 
+    export enum DesignerOperation {
+        Initialize = "Initialize",
+        LoadSimpleSchema = "LoadSimpleSchema",
+        GenerateReport = "GenerateReport",
+        Publish = "Publish",
+    }
+
+    export enum DesignerMessageType {
+        Message = "Message",
+        Warning = "Warning",
+        Error = "Error",
+    }
+
+    export enum DesignerProgressStatus {
+        NotStarted = "NotStarted",
+        InProgress = "InProgress",
+        Succeeded = "Succeeded",
+        Failed = "Failed",
+        Canceled = "Canceled",
+    }
+
     export interface SchemaDesignerProgressNotificationParams {
         sessionId: string;
-        operation: string;
-        status: string;
+        operation: DesignerOperation;
+        status: DesignerProgressStatus;
         message: string;
     }
 
     export interface SchemaDesignerMessageNotificationParams {
         sessionId: string;
-        operation: string;
-        messageType: string;
+        operation: DesignerOperation;
+        messageType: DesignerMessageType;
         message: string;
         number: number;
-        prefix?: string;
-        progress?: number;
-        schemaName?: string;
-        tableName?: string;
+        prefix?: string | null;
+        progress?: number | null;
+        schemaName?: string | null;
+        tableName?: string | null;
     }
 
     export interface ISchemaDesignerService {
@@ -359,7 +380,15 @@ export namespace SchemaDesigner {
 
         onProgress(listener: (progress: SchemaDesignerProgressNotificationParams) => void): void;
 
+        removeProgressListener(
+            listener: (progress: SchemaDesignerProgressNotificationParams) => void,
+        ): void;
+
         onMessage(listener: (message: SchemaDesignerMessageNotificationParams) => void): void;
+
+        removeMessageListener(
+            listener: (message: SchemaDesignerMessageNotificationParams) => void,
+        ): void;
 
         /**
          * Callback for when the schema designer model is ready

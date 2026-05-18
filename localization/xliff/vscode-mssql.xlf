@@ -3190,6 +3190,9 @@
       <source xml:lang="en">Generating SAS key failed: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++dbdef7e7b96e512eb90dcf680e8f7ffe231412004e369108be41a5cf41fb6fad">
+      <source xml:lang="en">Generating preview report</source>
+    </trans-unit>
     <trans-unit id="++CODE++019c93d8e0baa64c24b53c1e6f34c8faa0fcac26a0ac69fdaa46b788f6c05912">
       <source xml:lang="en">Generating report, this might take a while...</source>
     </trans-unit>
@@ -4936,6 +4939,9 @@
     </trans-unit>
     <trans-unit id="++CODE++10209ed1750a4b5c09b80ea470ed45083d8d1ad3d1da877d160d9ab61a5031fc">
       <source xml:lang="en">Publishing Changes</source>
+    </trans-unit>
+    <trans-unit id="++CODE++17f6b1c8d4e824544d18f90508300362412cc11735af1a7622c770d7c299f389">
+      <source xml:lang="en">Publishing table changes</source>
     </trans-unit>
     <trans-unit id="++CODE++dac6f3f6dc8268df14288406b10ad3eb311b7488bb2932e5d97baf42c0409f46">
       <source xml:lang="en">Pulling DAB container image</source>

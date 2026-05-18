@@ -238,8 +238,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             SchemaDesigner.SchemaDesignerProgressNotification.type,
             (progress) => {
                 if (
-                    progress.operation === "Initialize" ||
-                    progress.operation === "LoadSimpleSchema"
+                    progress.operation === SchemaDesigner.DesignerOperation.Initialize ||
+                    progress.operation === SchemaDesigner.DesignerOperation.LoadSimpleSchema
                 ) {
                     if (isInitializedRef.current) {
                         setReportProgressMessage(progress.message);
@@ -251,9 +251,41 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                     return;
                 }
 
-                if (progress.operation === "GenerateReport") {
+                if (progress.operation === SchemaDesigner.DesignerOperation.GenerateReport) {
                     setReportProgressMessage(progress.message);
                     appendProgressMessage(setReportProgressMessages, progress.message);
+                }
+            },
+        );
+
+        extensionRpc.onNotification(
+            SchemaDesigner.SchemaDesignerMessageNotification.type,
+            (message) => {
+                const kind: LoadingLogEntryKind =
+                    message.messageType === SchemaDesigner.DesignerMessageType.Error
+                        ? "error"
+                        : "progress";
+                if (
+                    message.operation === SchemaDesigner.DesignerOperation.Initialize ||
+                    message.operation === SchemaDesigner.DesignerOperation.LoadSimpleSchema
+                ) {
+                    if (isInitializedRef.current) {
+                        setReportProgressMessage(message.message);
+                        appendProgressMessage(setReportProgressMessages, message.message, kind);
+                    } else {
+                        setInitializationProgressMessage(message.message);
+                        appendProgressMessage(
+                            setInitializationProgressMessages,
+                            message.message,
+                            kind,
+                        );
+                    }
+                    return;
+                }
+
+                if (message.operation === SchemaDesigner.DesignerOperation.GenerateReport) {
+                    setReportProgressMessage(message.message);
+                    appendProgressMessage(setReportProgressMessages, message.message, kind);
                 }
             },
         );

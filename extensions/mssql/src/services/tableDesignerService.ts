@@ -112,7 +112,23 @@ export class TableDesignerService implements designer.ITableDesignerService {
         this._progressListeners.push(listener);
     }
 
+    removeProgressListener(
+        listener: (progress: designer.TableDesignerProgressNotificationParams) => void,
+    ): void {
+        this._progressListeners = this._progressListeners.filter(
+            (registeredListener) => registeredListener !== listener,
+        );
+    }
+
     onMessage(listener: (message: designer.TableDesignerMessageNotificationParams) => void): void {
         this._messageListeners.push(listener);
+    }
+
+    removeMessageListener(
+        listener: (message: designer.TableDesignerMessageNotificationParams) => void,
+    ): void {
+        this._messageListeners = this._messageListeners.filter(
+            (registeredListener) => registeredListener !== listener,
+        );
     }
 }

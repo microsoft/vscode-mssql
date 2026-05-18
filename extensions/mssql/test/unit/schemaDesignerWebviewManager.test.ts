@@ -67,7 +67,9 @@ suite("SchemaDesignerWebviewManager tests", () => {
             generateScript: sandbox.stub().resolves({ script: "" }),
             getReport: sandbox.stub().resolves(),
             onProgress: sandbox.stub(),
+            removeProgressListener: sandbox.stub(),
             onMessage: sandbox.stub(),
+            removeMessageListener: sandbox.stub(),
             onSchemaReady: sandbox.stub(),
         } as any;
 

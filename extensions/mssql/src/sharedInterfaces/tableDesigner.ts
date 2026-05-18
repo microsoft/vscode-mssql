@@ -11,8 +11,8 @@ import { LoadingLogEntry } from "./webview";
  */
 export interface ITableDesignerService {
     /**
-     * Initialize the table designer for the specified table.
-     * @param table the table information.
+     * Initialize the table designer for the specified session and table.
+     * @param request the initialize request containing the session id and table information.
      */
     initializeTableDesigner(request: InitializeTableDesignerRequest): Thenable<TableDesignerInfo>;
 
@@ -52,7 +52,15 @@ export interface ITableDesignerService {
 
     onProgress(listener: (progress: TableDesignerProgressNotificationParams) => void): void;
 
+    removeProgressListener(
+        listener: (progress: TableDesignerProgressNotificationParams) => void,
+    ): void;
+
     onMessage(listener: (message: TableDesignerMessageNotificationParams) => void): void;
+
+    removeMessageListener(
+        listener: (message: TableDesignerMessageNotificationParams) => void,
+    ): void;
 }
 
 export interface InitializeTableDesignerRequest {
@@ -123,21 +131,42 @@ export interface TableDesignerInfo {
 
 export interface TableDesignerProgressNotificationParams {
     sessionId: string;
-    operation: string;
-    status: string;
+    operation: DesignerOperation;
+    status: DesignerProgressStatus;
     message: string;
+}
+
+export enum DesignerOperation {
+    Initialize = "Initialize",
+    LoadSimpleSchema = "LoadSimpleSchema",
+    GenerateReport = "GenerateReport",
+    Publish = "Publish",
+}
+
+export enum DesignerMessageType {
+    Message = "Message",
+    Warning = "Warning",
+    Error = "Error",
+}
+
+export enum DesignerProgressStatus {
+    NotStarted = "NotStarted",
+    InProgress = "InProgress",
+    Succeeded = "Succeeded",
+    Failed = "Failed",
+    Canceled = "Canceled",
 }
 
 export interface TableDesignerMessageNotificationParams {
     sessionId: string;
-    operation: string;
-    messageType: string;
+    operation: DesignerOperation;
+    messageType: DesignerMessageType;
     message: string;
-    number?: number;
-    prefix?: string;
-    progress?: number;
-    schemaName?: string;
-    tableName?: string;
+    number: number;
+    prefix?: string | null;
+    progress?: number | null;
+    schemaName?: string | null;
+    tableName?: string | null;
 }
 
 /**

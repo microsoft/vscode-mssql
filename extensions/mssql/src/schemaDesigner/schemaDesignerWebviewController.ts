@@ -93,6 +93,12 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     private _serverName: string | undefined;
     private _sqlServerContainerName: string | undefined;
     private _dabService = new DabService();
+    private _progressListener:
+        | ((progress: SchemaDesigner.SchemaDesignerProgressNotificationParams) => void)
+        | undefined;
+    private _messageListener:
+        | ((message: SchemaDesigner.SchemaDesignerMessageNotificationParams) => void)
+        | undefined;
     public schemaDesignerDetails: SchemaDesigner.CreateSessionResponse | undefined = undefined;
     public baselineSchema: SchemaDesigner.Schema | undefined = undefined;
 
@@ -681,7 +687,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     }
 
     private setupSchemaDesignerProgressListeners() {
-        this.schemaDesignerService.onProgress((progress) => {
+        this._progressListener = (progress) => {
             if (progress.sessionId !== this._sessionId) {
                 return;
             }
@@ -696,9 +702,9 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             } catch {
                 // Ignore notifications racing with webview disposal.
             }
-        });
+        };
 
-        this.schemaDesignerService.onMessage((message) => {
+        this._messageListener = (message) => {
             if (message.sessionId !== this._sessionId) {
                 return;
             }
@@ -713,7 +719,10 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             } catch {
                 // Ignore notifications racing with webview disposal.
             }
-        });
+        };
+
+        this.schemaDesignerService.onProgress(this._progressListener);
+        this.schemaDesignerService.onMessage(this._messageListener);
     }
 
     private async createDefinitionOutput(
@@ -830,6 +839,14 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     }
 
     override async dispose(): Promise<void> {
+        if (this._progressListener) {
+            this.schemaDesignerService.removeProgressListener(this._progressListener);
+            this._progressListener = undefined;
+        }
+        if (this._messageListener) {
+            this.schemaDesignerService.removeMessageListener(this._messageListener);
+            this._messageListener = undefined;
+        }
         if (this.schemaDesignerDetails) {
             this.updateCacheItem(this.schemaDesignerDetails!.schema);
         }

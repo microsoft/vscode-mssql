@@ -102,7 +102,9 @@ suite("SchemaDesignerWebviewController tests", () => {
             getReport: sandbox.stub(),
             onSchemaReady: sandbox.stub(),
             onProgress: sandbox.stub(),
+            removeProgressListener: sandbox.stub(),
             onMessage: sandbox.stub(),
+            removeMessageListener: sandbox.stub(),
         } as any;
 
         schemaDesignerCache = new Map();

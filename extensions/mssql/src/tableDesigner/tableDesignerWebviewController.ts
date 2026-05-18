@@ -15,7 +15,7 @@ import { IConnectionProfile } from "../models/interfaces";
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { LoadingLogEntry } from "../sharedInterfaces/webview";
-import { copied, scriptCopiedToClipboard } from "../constants/locConstants";
+import * as LocConstants from "../constants/locConstants";
 import { UserSurvey } from "../nps/userSurvey";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { getErrorMessage } from "../utils/utils";
@@ -32,6 +32,12 @@ export class TableDesignerWebviewController extends WebviewPanelController<
     private _isEdit: boolean = false;
     private _correlationId: string = randomUUID();
     private _sessionId: string = randomUUID();
+    private _progressListener:
+        | ((progress: designer.TableDesignerProgressNotificationParams) => void)
+        | undefined;
+    private _messageListener:
+        | ((message: designer.TableDesignerMessageNotificationParams) => void)
+        | undefined;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -56,7 +62,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     publishState: designer.LoadState.NotStarted,
                     initializeState: designer.LoadState.Loading,
                 },
-                loadingMessages: [{ message: "Loading Table Designer" }],
+                loadingMessages: [{ message: LocConstants.TableDesigner.LoadingTableDesigner }],
                 hasUnpublishedChanges: false,
             },
             {
@@ -100,7 +106,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                 ...this.state,
                 loadingMessages: this.appendProgressMessage(
                     this.state.loadingMessages,
-                    "Loading Table Designer",
+                    LocConstants.TableDesigner.LoadingTableDesigner,
                 ),
             };
         }
@@ -323,6 +329,14 @@ export class TableDesignerWebviewController extends WebviewPanelController<
     }
 
     public override dispose() {
+        if (this._progressListener) {
+            this._tableDesignerService.removeProgressListener(this._progressListener);
+            this._progressListener = undefined;
+        }
+        if (this._messageListener) {
+            this._tableDesignerService.removeMessageListener(this._messageListener);
+            this._messageListener = undefined;
+        }
         this._tableDesignerService.disposeTableDesigner(this.state.tableInfo);
         super.dispose();
         sendActionEvent(TelemetryViews.TableDesigner, TelemetryActions.Close, {
@@ -381,6 +395,9 @@ export class TableDesignerWebviewController extends WebviewPanelController<
         });
 
         this.registerReducer("publishChanges", async (state, payload) => {
+            const publishProgressMessages: LoadingLogEntry[] = [
+                { message: LocConstants.TableDesigner.PublishingTableChanges },
+            ];
             const endActivity = startActivity(
                 TelemetryViews.TableDesigner,
                 TelemetryActions.Publish,
@@ -395,10 +412,15 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     ...this.state.apiState,
                     publishState: designer.LoadState.Loading,
                 },
-                publishProgressMessages: this.appendProgressMessage(
-                    this.state.publishProgressMessages,
-                    "Publishing table changes",
-                ),
+                publishProgressMessages,
+            };
+            state = {
+                ...state,
+                apiState: {
+                    ...state.apiState,
+                    publishState: designer.LoadState.Loading,
+                },
+                publishProgressMessages,
             };
             try {
                 const publishResponse = await this._tableDesignerService.publishChanges(
@@ -493,6 +515,9 @@ export class TableDesignerWebviewController extends WebviewPanelController<
         });
 
         this.registerReducer("generatePreviewReport", async (state, payload) => {
+            const reportProgressMessages: LoadingLogEntry[] = [
+                { message: LocConstants.TableDesigner.GeneratingPreviewReport },
+            ];
             this.state = {
                 ...this.state,
                 apiState: {
@@ -502,10 +527,18 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     generateScriptState: designer.LoadState.NotStarted,
                 },
                 publishingError: undefined,
-                reportProgressMessages: this.appendProgressMessage(
-                    this.state.reportProgressMessages,
-                    "Generating preview report",
-                ),
+                reportProgressMessages,
+            };
+            state = {
+                ...state,
+                apiState: {
+                    ...state.apiState,
+                    previewState: designer.LoadState.Loading,
+                    publishState: designer.LoadState.NotStarted,
+                    generateScriptState: designer.LoadState.NotStarted,
+                },
+                publishingError: undefined,
+                reportProgressMessages,
             };
             try {
                 const previewReport = await this._tableDesignerService.generatePreviewReport(
@@ -573,7 +606,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
             designer.CopyScriptAsCreateToClipboardNotification.type,
             async (params) => {
                 await vscode.env.clipboard.writeText(params.script);
-                await vscode.window.showInformationMessage(scriptCopiedToClipboard);
+                await vscode.window.showInformationMessage(LocConstants.scriptCopiedToClipboard);
             },
         );
 
@@ -611,13 +644,13 @@ export class TableDesignerWebviewController extends WebviewPanelController<
             designer.CopyPublishErrorToClipboardNotification.type,
             async (params) => {
                 await vscode.env.clipboard.writeText(params.error);
-                void vscode.window.showInformationMessage(copied);
+                void vscode.window.showInformationMessage(LocConstants.copied);
             },
         );
     }
 
     private setupTableDesignerProgressListeners() {
-        this._tableDesignerService.onProgress((progress) => {
+        this._progressListener = (progress) => {
             if (progress.sessionId !== this._sessionId) {
                 return;
             }
@@ -633,9 +666,9 @@ export class TableDesignerWebviewController extends WebviewPanelController<
             } catch {
                 // Ignore notifications racing with webview disposal.
             }
-        });
+        };
 
-        this._tableDesignerService.onMessage((message) => {
+        this._messageListener = (message) => {
             if (message.sessionId !== this._sessionId) {
                 return;
             }
@@ -648,7 +681,10 @@ export class TableDesignerWebviewController extends WebviewPanelController<
             } catch {
                 // Ignore notifications racing with webview disposal.
             }
-        });
+        };
+
+        this._tableDesignerService.onProgress(this._progressListener);
+        this._tableDesignerService.onMessage(this._messageListener);
     }
 
     private appendLoadingMessage(message: string, isError = false): LoadingLogEntry[] {

@@ -85,6 +85,7 @@ export function LoadingLog({ messages, fallbackMessage, minHeight }: LoadingLogP
     const visibleMessages =
         messages.length > 0 ? messages : [{ message: fallbackMessage, kind: "progress" }];
     const activeIndex = visibleMessages.length - 1;
+    const hasTerminalError = visibleMessages[activeIndex]?.kind === "error";
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -94,7 +95,7 @@ export function LoadingLog({ messages, fallbackMessage, minHeight }: LoadingLogP
 
     return (
         <div className={classes.root} style={{ minHeight }}>
-            <Spinner size="small" className={classes.spinner} />
+            {!hasTerminalError && <Spinner size="small" className={classes.spinner} />}
             <div className={classes.logScroll} ref={scrollRef} role="log" aria-live="polite">
                 {visibleMessages.map((entry, index) => {
                     const isError = entry.kind === "error";
