@@ -42,7 +42,7 @@ export interface SavedNotebookResultSetOutputData {
     addBottomSpacing?: boolean;
 }
 
-export type NotebookSaveAsFormat = "csv" | "json" | "excel" | "insert";
+export type NotebookSaveAsFormat = "csv" | "json" | "excel";
 
 /**
  * Message sent from the notebook result renderer to the extension host

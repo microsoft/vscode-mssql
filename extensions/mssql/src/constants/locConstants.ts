@@ -929,13 +929,11 @@ export class Notebooks {
 
     // Save as
     public static saveAsCsvTooltip = l10n.t("Save As CSV");
-    public static saveAsJsonTooltip = l10n.t("Save As JSON");
     public static saveAsExcelTooltip = l10n.t("Save As Excel");
-    public static saveAsInsertTooltip = l10n.t("Save As INSERT INTO");
+    public static saveAsJsonTooltip = l10n.t("Save As JSON");
     public static saveAsCsvDialogTitle = l10n.t("Save results as CSV");
-    public static saveAsJsonDialogTitle = l10n.t("Save results as JSON");
     public static saveAsExcelDialogTitle = l10n.t("Save results as Excel");
-    public static saveAsInsertDialogTitle = l10n.t("Save results as INSERT INTO");
+    public static saveAsJsonDialogTitle = l10n.t("Save results as JSON");
     public static saveResultsFailed(message: string) {
         return l10n.t({
             message: "Failed to save results: {0}",
@@ -950,7 +948,6 @@ export class Notebooks {
             comment: ["{0} is the saved file path"],
         });
     }
-    public static insertTableNamePlaceholder = "Results";
 }
 
 export class ObjectExplorer {

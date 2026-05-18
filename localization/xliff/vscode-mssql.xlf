@@ -5360,9 +5360,6 @@
     <trans-unit id="++CODE++e9b775f5a8a591bb90070b120fc0bb8565c948979a902162547a3c4eafbb2472">
       <source xml:lang="en">Save As Excel</source>
     </trans-unit>
-    <trans-unit id="++CODE++a64ccc4b35e8ecfd351847d63beebb3f1a866ebb301a94c9cfaf16a3f2c978da">
-      <source xml:lang="en">Save As INSERT INTO</source>
-    </trans-unit>
     <trans-unit id="++CODE++84e2024eb2d26a905190cb1fe1807c18bb43b7670f73f201cb5cc1f10f0599ee">
       <source xml:lang="en">Save As JSON</source>
     </trans-unit>
@@ -5423,9 +5420,6 @@
     </trans-unit>
     <trans-unit id="++CODE++cfcac84335530cc40295a54ac9d1ef7a5999d6294e947d69e00b1b42f1e5f95b">
       <source xml:lang="en">Save results as Excel</source>
-    </trans-unit>
-    <trans-unit id="++CODE++143fd1c6dd41a4a5b2cabb045cef7e38c3d550879f441eb5f675f9569b87631c">
-      <source xml:lang="en">Save results as INSERT INTO</source>
     </trans-unit>
     <trans-unit id="++CODE++9ec5cd9a56d3b361b5d614149a73d6014c7d2520a64e9fa2578cc50ac0e8da82">
       <source xml:lang="en">Save results as JSON</source>

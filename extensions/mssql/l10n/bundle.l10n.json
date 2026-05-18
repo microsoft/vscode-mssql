@@ -27,9 +27,8 @@
     "Error: Failed to parse query result data.": "Error: Failed to parse query result data.",
     "Error: Unrecognized query result data.": "Error: Unrecognized query result data.",
     "Save As CSV": "Save As CSV",
-    "Save As JSON": "Save As JSON",
     "Save As Excel": "Save As Excel",
-    "Save As INSERT INTO": "Save As INSERT INTO",
+    "Save As JSON": "Save As JSON",
     "Cancel": "Cancel",
     "Are you sure?": "Are you sure?",
     "Are you sure you want to {0}?/{0} is the action being confirmed": {
@@ -2266,9 +2265,8 @@
     "Execute SQL against SQL Server / Azure SQL": "Execute SQL against SQL Server / Azure SQL",
     "Not connected": "Not connected",
     "Save results as CSV": "Save results as CSV",
-    "Save results as JSON": "Save results as JSON",
     "Save results as Excel": "Save results as Excel",
-    "Save results as INSERT INTO": "Save results as INSERT INTO",
+    "Save results as JSON": "Save results as JSON",
     "Failed to save results: {0}/{0} is the underlying error message": {
         "message": "Failed to save results: {0}",
         "comment": ["{0} is the underlying error message"]

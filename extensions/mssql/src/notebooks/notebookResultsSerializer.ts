@@ -58,8 +58,6 @@ async function serialize(
             return Buffer.from(toCsv(columnInfo, rows), "utf8");
         case "json":
             return Buffer.from(toJson(columnInfo, rows), "utf8");
-        case "insert":
-            return Buffer.from(toInsert(columnInfo, rows), "utf8");
         case "excel":
             return buildXlsx(columnInfo, rows);
         default: {
@@ -107,97 +105,6 @@ function toJson(columnInfo: IDbColumn[], rows: DbCellValue[][]): string {
     return JSON.stringify(objects, undefined, 4) + os.EOL;
 }
 
-function toInsert(columnInfo: IDbColumn[], rows: DbCellValue[][]): string {
-    const tableName = inferTableName(columnInfo);
-    const columnList = columnInfo.map((c) => bracketIdentifier(c.columnName)).join(", ");
-    const lines: string[] = [];
-    for (const row of rows) {
-        const values = columnInfo.map((col, colIdx) => formatInsertValue(col, row[colIdx]));
-        lines.push(`INSERT INTO ${tableName} (${columnList}) VALUES (${values.join(", ")});`);
-    }
-    return lines.join(os.EOL) + os.EOL;
-}
-
-function inferTableName(columnInfo: IDbColumn[]): string {
-    // If every column comes from the same base table, use it. Otherwise fall
-    // back to a placeholder — matches the standard grid's behavior for
-    // multi-table or computed result sets.
-    const tables = new Set<string>();
-    let schema: string | undefined;
-    for (const col of columnInfo) {
-        if (col.baseTableName) {
-            tables.add(col.baseTableName);
-            if (!schema && col.baseSchemaName) {
-                schema = col.baseSchemaName;
-            }
-        }
-    }
-    if (tables.size === 1) {
-        const [table] = tables;
-        return schema
-            ? `${bracketIdentifier(schema)}.${bracketIdentifier(table)}`
-            : bracketIdentifier(table);
-    }
-    return bracketIdentifier(LocalizedConstants.Notebooks.insertTableNamePlaceholder);
-}
-
-function bracketIdentifier(name: string): string {
-    return `[${name.split("]").join("]]")}]`;
-}
-
-function formatInsertValue(col: IDbColumn, cell: DbCellValue | undefined): string {
-    if (!cell || cell.isNull) {
-        return "NULL";
-    }
-    const value = cell.displayValue;
-    if (isNumericType(col)) {
-        return value;
-    }
-    if (isBinaryType(col)) {
-        // STS surfaces varbinary as 0x-prefixed hex strings; pass through unquoted
-        // when present, otherwise fall back to a quoted literal.
-        return /^0x[0-9a-fA-F]*$/.test(value) ? value : sqlStringLiteral(value);
-    }
-    if (isBooleanType(col)) {
-        return value === "true" || value === "1" ? "1" : "0";
-    }
-    return sqlStringLiteral(value);
-}
-
-function sqlStringLiteral(value: string): string {
-    return `N'${value.split("'").join("''")}'`;
-}
-
-function isNumericType(col: IDbColumn): boolean {
-    const t = (col.dataTypeName || col.dataType || "").toLowerCase();
-    return (
-        t === "int" ||
-        t === "bigint" ||
-        t === "smallint" ||
-        t === "tinyint" ||
-        t === "decimal" ||
-        t === "numeric" ||
-        t === "money" ||
-        t === "smallmoney" ||
-        t === "float" ||
-        t === "real" ||
-        t === "double"
-    );
-}
-
-function isBinaryType(col: IDbColumn): boolean {
-    if (col.isBytes) {
-        return true;
-    }
-    const t = (col.dataTypeName || col.dataType || "").toLowerCase();
-    return t === "binary" || t === "varbinary" || t === "image" || t === "timestamp";
-}
-
-function isBooleanType(col: IDbColumn): boolean {
-    const t = (col.dataTypeName || col.dataType || "").toLowerCase();
-    return t === "bit" || t === "boolean" || t === "bool";
-}
-
 interface DialogConfig {
     title: string;
     defaultUri: vscode.Uri;
@@ -222,23 +129,17 @@ function getDialogConfig(
                 defaultUri: vscode.Uri.joinPath(baseUri, `${safeBase}${suffix}.csv`),
                 filters: { CSV: ["csv"], "All files": ["*"] },
             };
-        case "json":
-            return {
-                title: LocalizedConstants.Notebooks.saveAsJsonDialogTitle,
-                defaultUri: vscode.Uri.joinPath(baseUri, `${safeBase}${suffix}.json`),
-                filters: { JSON: ["json"], "All files": ["*"] },
-            };
-        case "insert":
-            return {
-                title: LocalizedConstants.Notebooks.saveAsInsertDialogTitle,
-                defaultUri: vscode.Uri.joinPath(baseUri, `${safeBase}${suffix}.sql`),
-                filters: { SQL: ["sql"], "All files": ["*"] },
-            };
         case "excel":
             return {
                 title: LocalizedConstants.Notebooks.saveAsExcelDialogTitle,
                 defaultUri: vscode.Uri.joinPath(baseUri, `${safeBase}${suffix}.xlsx`),
                 filters: { Excel: ["xlsx"], "All files": ["*"] },
+            };
+        case "json":
+            return {
+                title: LocalizedConstants.Notebooks.saveAsJsonDialogTitle,
+                defaultUri: vscode.Uri.joinPath(baseUri, `${safeBase}${suffix}.json`),
+                filters: { JSON: ["json"], "All files": ["*"] },
             };
     }
 }

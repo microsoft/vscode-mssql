@@ -19,8 +19,6 @@ import saveJsonIcon from "../../media/saveJson.svg";
 import saveJsonIconInverse from "../../media/saveJson_inverse.svg";
 import saveExcelIcon from "../../media/saveExcel.svg";
 import saveExcelIconInverse from "../../media/saveExcel_inverse.svg";
-import saveInsertIcon from "../../media/saveInsert.svg";
-import saveInsertIconInverse from "../../media/saveInsert_inverse.svg";
 
 export interface NotebookResultsToolbarProps {
     columnInfo: IDbColumn[];
@@ -56,22 +54,16 @@ function buildActions(): ToolbarAction[] {
             iconDark: saveCsvIconInverse,
         },
         {
-            id: "json",
-            label: l10n.t("Save As JSON"),
-            iconLight: saveJsonIcon,
-            iconDark: saveJsonIconInverse,
-        },
-        {
             id: "excel",
             label: l10n.t("Save As Excel"),
             iconLight: saveExcelIcon,
             iconDark: saveExcelIconInverse,
         },
         {
-            id: "insert",
-            label: l10n.t("Save As INSERT INTO"),
-            iconLight: saveInsertIcon,
-            iconDark: saveInsertIconInverse,
+            id: "json",
+            label: l10n.t("Save As JSON"),
+            iconLight: saveJsonIcon,
+            iconDark: saveJsonIconInverse,
         },
     ];
 }
