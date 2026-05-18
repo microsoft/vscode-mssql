@@ -19,12 +19,13 @@ import { ConnectionCredentials } from "../models/connectionCredentials";
 import { IConnectionProfile } from "../models/interfaces";
 import { DEPLOYMENT_VIEW_ID, DeploymentWebviewController } from "./deploymentWebviewController";
 import { UserSurvey } from "../nps/userSurvey";
+import { acquireSqlAccessTokenFromVscodeAccount } from "../azure/vscodeEntraMfaUtils";
 
 // Cached logger reference for use in helper functions that don't have
 // direct access to the controller's protected logger.
 let cachedLogger: Logger | undefined;
 
-const FIREWALL_ERROR_CODE = "40615";
+const FIREWALL_ERROR_CODE = 40615;
 
 function clearCacheDownstream(state: asd.AzureSqlDatabaseState, fromComponent: string): void {
     const order = asd.AZURE_SQL_DB_COMPONENT_ORDER as readonly string[];
@@ -663,6 +664,22 @@ export async function connectToAzureSqlDatabase(
             connectionProfile.tenantId = state.formState.tenantId;
         }
 
+        // Acquire an Entra SQL access token so the connection starts with a
+        // valid token. The provisioning wizard authenticates through VS Code
+        // accounts, so use that path directly.
+        if (state.formState.authenticationType === AuthenticationType.AzureMFA) {
+            const tokenInfo = await acquireSqlAccessTokenFromVscodeAccount(
+                state.formState.accountId,
+                state.formState.tenantId,
+            );
+            connectionProfile.azureAccountToken = tokenInfo.token.token;
+            connectionProfile.expiresOn = tokenInfo.token.expiresOn;
+            connectionProfile.accountId = tokenInfo.account.id;
+            connectionProfile.tenantId = tokenInfo.tenantId;
+            connectionProfile.user = tokenInfo.account.label;
+            connectionProfile.email = tokenInfo.session.account.label;
+        }
+
         if (
             state.formState.authenticationType === AuthenticationType.SqlLogin ||
             state.formState.authenticationType === AuthenticationType.AzureMFAAndUser
@@ -696,7 +713,7 @@ export async function connectToAzureSqlDatabase(
 
             // Check if the failure is firewall-related
             const connInfo = connManager.getConnectionInfo(tempUri);
-            const isFirewallError = connInfo?.errorNumber === Number(FIREWALL_ERROR_CODE);
+            const isFirewallError = connInfo?.errorNumber === FIREWALL_ERROR_CODE;
 
             if (!isFirewallError || attempt === maxRetries) {
                 // Non-firewall error or exhausted retries — report failure
@@ -884,7 +901,7 @@ async function loadSubscriptionComponent(azureSqlState: asd.AzureSqlDatabaseStat
         azureSqlState.subscriptions.length > 0 ? azureSqlState.subscriptions[0].subscriptionId : "";
 
     // Load maintenance configurations for the selected subscription
-    await loadMaintenanceConfigs(azureSqlState);
+    void loadMaintenanceConfigs(azureSqlState);
 }
 
 async function loadMaintenanceConfigs(azureSqlState: asd.AzureSqlDatabaseState): Promise<void> {

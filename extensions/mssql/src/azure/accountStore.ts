@@ -54,7 +54,7 @@ export class AccountStore {
         let account: IAccount | undefined;
         let configValues = this._context.globalState.get<IAccount[]>(Constants.configAzureAccount);
         if (!configValues) {
-            throw new Error("No Entra accounts stored");
+            return undefined;
         }
         for (let value of configValues) {
             // Compare account IDs considering multi-tenant account ID format with MSAL.
