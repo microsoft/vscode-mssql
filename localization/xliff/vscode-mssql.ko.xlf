@@ -264,11 +264,11 @@
       </trans-unit>
       <trans-unit id="++CODE++e520df698000f85f2862a9e7403a405b562c793f67bebe0ad0235ef93a55a84e">
         <source xml:lang="en">Add filter</source>
-        <target state="new">Add filter</target>
+        <target state="translated">필터 추가</target>
       </trans-unit>
       <trans-unit id="++CODE++72d975d00b2a6ec753bd80833252852de2c69720c3bbcd404493650cb4cdca41">
         <source xml:lang="en">Add filters to modify the SQL query</source>
-        <target state="new">Add filters to modify the SQL query</target>
+        <target state="translated">SQL 쿼리를 수정할 필터 추가</target>
       </trans-unit>
       <trans-unit id="++CODE++7c0d6c25e58caa429d8df44b1266a82eff13a7fe9f477b164863aea8a9acc658">
         <source xml:lang="en">Add my client IP ({0})</source>
@@ -1093,7 +1093,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++bbd4b6a86bc65b6ac8e79e97afc61499158edb40f7bb404c70637b46d80a7ad2">
         <source xml:lang="en">Changes</source>
-        <target state="new">Changes</target>
+        <target state="translated">변경 내용</target>
       </trans-unit>
       <trans-unit id="++CODE++720013ab95347611fa0f2918e0e719accc806e30e5f0cb349c8594b2a0e46dc2">
         <source xml:lang="en">Changes ({0})</source>
@@ -1318,7 +1318,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++7179ea0035fca783ec62b7185659b68c75f2a7c12b909306a57183dc9b3fa44b">
         <source xml:lang="en">Clear filters</source>
-        <target state="new">Clear filters</target>
+        <target state="translated">필터 지우기</target>
       </trans-unit>
       <trans-unit id="++CODE++8108e330197c650c4af3d541da75c97d44600ab343742f5fbe5ee91d1ec042c0">
         <source xml:lang="en">Clear from recent connections list</source>
@@ -1591,7 +1591,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++3bec2df151fc5b4ef02b080b35228b4482f64c6d47f20c948867d1ec579b3c82">
         <source xml:lang="en">Conjunction</source>
-        <target state="new">Conjunction</target>
+        <target state="translated">결합</target>
       </trans-unit>
       <trans-unit id="++CODE++1a2303ede07493acc7caaa7c737f3c52bcc9cf04372be19ed1b0af6b9f2c791e">
         <source xml:lang="en">Connect</source>
@@ -1908,7 +1908,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++31fbef162594de01bab0cd525c51f74de7bcb15063029fa1a54b2cf5944c80d8">
         <source xml:lang="en">Continue</source>
-        <target state="new">Continue</target>
+        <target state="translated">계속</target>
       </trans-unit>
       <trans-unit id="++CODE++56fd975f4cea21a748feabb6cb1cfb49161141245c2d4d1698cee7ae99c69bf2">
         <source xml:lang="en">Continue Editing</source>
@@ -2413,7 +2413,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++271b246dd5c8c0147565430dfae32c60cd66bb5821bf414c7a99698c26e9a476">
         <source xml:lang="en">Delete 1 row</source>
-        <target state="new">Delete 1 row</target>
+        <target state="translated">1개 행 삭제</target>
       </trans-unit>
       <trans-unit id="++CODE++2860bf10bd8d01c604f713ea3f60ccea6ef028fd2e7074a400fac50c569aa45c">
         <source xml:lang="en">Delete Confirmation</source>
@@ -2437,7 +2437,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++bd14bb5ac76069fd6986a3c7ddfae7081104904eef01f76793939696ec76917e">
         <source xml:lang="en">Delete {0} rows</source>
-        <target state="new">Delete {0} rows</target>
+        <target state="translated">{0}개 행 삭제</target>
       </trans-unit>
       <trans-unit id="++CODE++b48ff39c2e0f5451b9b29b09c2a74d2760db230749ffd48a6e901cc91fef9a8d">
         <source xml:lang="en">Deleted</source>
@@ -3711,12 +3711,12 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++9b81b5011a165afc4b0dccfe4e1844cb34942cc91f07317e1a9731706c80804d">
         <source xml:lang="en">Failed to run table query.</source>
-        <target state="new">Failed to run table query.</target>
+        <target state="translated">테이블 쿼리를 실행하지 못했습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++10f7faa3b83b31a2dcc21bc5b0517143a936fee3e48b0291f480f0d2287d3d51">
         <source xml:lang="en">Failed to run table query: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to run table query: {0}</target>
+        <target state="translated">테이블 쿼리를 실행하지 못함: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++07e849b745794c4b9068165d834b1819e8cc4663ec8a733b07337a06d1375fcb">
         <source xml:lang="en">Failed to save changes: {0}</source>
@@ -3969,7 +3969,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++546ebb8eb993ea561029d9febd84c363bdb09010bb2cb915a8287762b76b9a64">
         <source xml:lang="en">Filters</source>
-        <target state="new">Filters</target>
+        <target state="translated">필터</target>
       </trans-unit>
       <trans-unit id="++CODE++822b2ae4542bc74b8fccf9ec3e08408d33d35b919101760dc27e1ea7822f1818">
         <source xml:lang="en">Find</source>
@@ -4320,7 +4320,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++82504e524f0fff2954a2fe00d8fa93299502a613d6de6b0264fc1ee72af3db88">
         <source xml:lang="en">Hide SQL Pane</source>
-        <target state="new">Hide SQL Pane</target>
+        <target state="translated">SQL 창 숨기기</target>
       </trans-unit>
       <trans-unit id="++CODE++c646b55d1fd317086a616548a2cc0b1606ecdc5a99bd2d3dcb43368fcb37ad30">
         <source xml:lang="en">Hide column</source>
@@ -5009,7 +5009,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++155952ddf38c19af2c08d64095b80c9fe510faade4f78b6f0c6113fda082eda0">
         <source xml:lang="en">Logical operator</source>
-        <target state="new">Logical operator</target>
+        <target state="translated">논리 연산자</target>
       </trans-unit>
       <trans-unit id="++CODE++ea2100dc89ae9fe21fa9b08ab1bf18662dca1e53a3eebd7d03afebcaf5d57515">
         <source xml:lang="en">Logs</source>
@@ -6000,7 +6000,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++eca206dacc5627de738a49f5b7cc3a89393f5c0d8e5da0dadfb8baec1c274678">
         <source xml:lang="en">Open the generated SELECT statement in a new editor</source>
-        <target state="new">Open the generated SELECT statement in a new editor</target>
+        <target state="translated">생성된 SELECT 문을 새 편집기에서 열기</target>
       </trans-unit>
       <trans-unit id="++CODE++3a8e07b84d53ba502ae8ee669003537bdbbe321d6c8c6fb6cbd63019cb3d400e">
         <source xml:lang="en">Opening Publish Script. This may take a while...</source>
@@ -6971,7 +6971,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++add79c55dcd9eda049b523c3c0cb29ddc1d8fe587e1398765599d574914762ec">
         <source xml:lang="en">Running a custom query will discard all pending changes. Do you want to continue?</source>
-        <target state="new">Running a custom query will discard all pending changes. Do you want to continue?</target>
+        <target state="translated">사용자 지정 쿼리를 실행하면 보류 중인 변경 사항이 모두 삭제됩니다. 계속하시겠어요?</target>
       </trans-unit>
       <trans-unit id="++CODE++4e16c2dab3b093c189f6f41be6961a3e5a42e6c8c2d3609ce6398e1bd9c8f60c">
         <source xml:lang="en">Running query is not supported when the editor is in multiple selection mode.</source>
@@ -6985,7 +6985,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++a7056a455639d1c7deec82ee787db24a0c1878e2792b4597709f0facf7cc7b35">
         <source xml:lang="en">SQL</source>
-        <target state="new">SQL</target>
+        <target state="translated">SQL</target>
       </trans-unit>
       <trans-unit id="++CODE++59b151f69d83edf3eb174ff38c0f77aebf28c9195c785f2003a1cd708de0dc77">
         <source xml:lang="en">SQL Analytics Endpoint</source>
@@ -7749,11 +7749,11 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++7fece940250621eb25c13ea209ec79306d678bd12dc752b6906e3fe0584f8575">
         <source xml:lang="en">Show SQL</source>
-        <target state="new">Show SQL</target>
+        <target state="translated">SQL 표시</target>
       </trans-unit>
       <trans-unit id="++CODE++f391d0b8aa51bd3c69921465420fb0019c3d59d273fb86d2bfe0bca752722bfc">
         <source xml:lang="en">Show SQL Pane</source>
-        <target state="new">Show SQL Pane</target>
+        <target state="translated">SQL 창 표시</target>
       </trans-unit>
       <trans-unit id="++CODE++2228686dec07e7c9c6c8515f778b90a768e5a9474779610755f751e18e43805f">
         <source xml:lang="en">Show Schema</source>
@@ -8202,7 +8202,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++7fd01ceb3818cceef27950ff76d58797a9f61633acd27b5741afe1c6a7be4150">
         <source xml:lang="en">Table Diagram</source>
-        <target state="new">Table Diagram</target>
+        <target state="translated">테이블 다이어그램</target>
       </trans-unit>
       <trans-unit id="++CODE++73c42403ef2ca9fe32cd59cfbda8110671a5d4791783f5e6687cb7379d2f07f3">
         <source xml:lang="en">Table Explorer for '{0}' has unsaved changes. Do you want to save or discard them?</source>
@@ -9011,7 +9011,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++b6af395c5020f3f19337172a94b2607d19ef6f8fed2424cf788b0d00b0572264">
         <source xml:lang="en">WHERE</source>
-        <target state="new">WHERE</target>
+        <target state="translated">WHERE</target>
       </trans-unit>
       <trans-unit id="++CODE++e981ddae45d8f4ca53f1ccbe613ad254a041dacf65a06026099a6302d332113b">
         <source xml:lang="en">Warning</source>
@@ -9208,7 +9208,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++6201111b83a0cb5b0922cb37cc442b9a40e24e3b1ce100a4bb204f4c63fd2ac0">
         <source xml:lang="en">and</source>
-        <target state="new">and</target>
+        <target state="translated">및</target>
       </trans-unit>
       <trans-unit id="++CODE++c1399614154a55dfb1fcb95e208ed1f0b1115b846d6150ded7c7b43fdf6cbc09">
         <source xml:lang="en">authenticationType</source>
@@ -9216,7 +9216,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++beeb20fbd67695085c26c5dfa7b5ece4d1985d201cb6f0dd9aa66a36ed987ce5">
         <source xml:lang="en">contains</source>
-        <target state="new">contains</target>
+        <target state="translated">다음 값 포함</target>
       </trans-unit>
       <trans-unit id="++CODE++3549b0028b75d981cdda2e573e9cb49dedc200185876df299f912b79f69dabd8">
         <source xml:lang="en">database</source>
@@ -9233,7 +9233,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++80ccd8c9b9af87acd9ce5bea7f8b6c9978971ca8f81888ab1d2ab3a3de6d2c06">
         <source xml:lang="en">does not contain</source>
-        <target state="new">does not contain</target>
+        <target state="translated">다음 값을 포함하지 않음</target>
       </trans-unit>
       <trans-unit id="++CODE++c6072170d758e5358d717360829bd1f9b1603b355b5f7fe375d1aabdca7a20de">
         <source xml:lang="en">encrypt</source>
@@ -9241,15 +9241,15 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++19ecc104ac1b52b3645832bd247ae9fc353060b435aa391e707deb92db017728">
         <source xml:lang="en">ends with</source>
-        <target state="new">ends with</target>
+        <target state="translated">다음 값으로 끝남</target>
       </trans-unit>
       <trans-unit id="++CODE++e93cb41d4a7d2395d9bdfe4d8616f9b52762523bb44e75bf7701cd9d2e0d1cb7">
         <source xml:lang="en">equals</source>
-        <target state="new">equals</target>
+        <target state="translated">같음</target>
       </trans-unit>
       <trans-unit id="++CODE++f792652c06ffa9d795e75118a7c8329290a516dfd060a9ee0163093db50664f1">
         <source xml:lang="en">greater than</source>
-        <target state="new">greater than</target>
+        <target state="translated">보다 큼</target>
       </trans-unit>
       <trans-unit id="++CODE++20e10f43f47b1e36c004e81cbec22591b794b0154ca893825d723624a57be8ae">
         <source xml:lang="en">hostname\instance or &lt;server&gt;.database.windows.net or ADO.NET connection string</source>
@@ -9261,11 +9261,11 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++74227d33f90778ab9d478fc47a23870e056fa595915b05e530895f6e5de219ac">
         <source xml:lang="en">is not null</source>
-        <target state="new">is not null</target>
+        <target state="translated">Null이 아님</target>
       </trans-unit>
       <trans-unit id="++CODE++47bb8fce457824650a59df9b1bad1399919759ca1b7dc1096976d8e812ae773a">
         <source xml:lang="en">is null</source>
-        <target state="new">is null</target>
+        <target state="translated">Null임</target>
       </trans-unit>
       <trans-unit id="++CODE++5f3c4f8580d392e422e7c2f6802674ac27966c98d95c39696e4b2490168e5488">
         <source xml:lang="en">items</source>
@@ -9281,7 +9281,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++59238e4f67ce8670dfec068a47b8042ccb8025a41dcafaf97e332f7593422008">
         <source xml:lang="en">less than</source>
-        <target state="new">less than</target>
+        <target state="translated">보다 작음</target>
       </trans-unit>
       <trans-unit id="++CODE++e6eaea18e885e1078829b56df34896be5ab51439e8f0ba00cb1624b2c572c10e">
         <source xml:lang="en">location</source>
@@ -9297,7 +9297,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++c83cb9c83f01a1dd4f46165ee292e834d69397b661e8c6d72689019245f92d71">
         <source xml:lang="en">not equals</source>
-        <target state="new">not equals</target>
+        <target state="translated">같지 않음</target>
       </trans-unit>
       <trans-unit id="++CODE++28391d3bc64ec15cbb090426b04aa6b7649c3cc85f11230bb0105e02d15e3624">
         <source xml:lang="en">of</source>
@@ -9305,7 +9305,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++7175517a370b5cd2e664e3fd29c4ea9db5ce17058eb9772fe090a5485e49dad6">
         <source xml:lang="en">or</source>
-        <target state="new">or</target>
+        <target state="translated">또는</target>
       </trans-unit>
       <trans-unit id="++CODE++738dce14f9c7825c6601ed72dce22b095491c097fc1c76d6352399229c9262f8">
         <source xml:lang="en">profiler_events</source>
@@ -9321,7 +9321,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++97862730c3a13cd957b766b03489cdf46b415e9d465b67812974158d631d6107">
         <source xml:lang="en">starts with</source>
-        <target state="new">starts with</target>
+        <target state="translated">다음 값으로 시작</target>
       </trans-unit>
       <trans-unit id="++CODE++a8fa7fd60893411a49907b5545ccf9c47ed8073cc38e2ac3b79c4f6156cd7755">
         <source xml:lang="en">subscription</source>
@@ -9345,7 +9345,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++cd42404d52ad55ccfa9aca4adc828aa5800ad9d385a0671fbcbf724118320619">
         <source xml:lang="en">value</source>
-        <target state="new">value</target>
+        <target state="translated">값</target>
       </trans-unit>
       <trans-unit id="++CODE++a48f10647cec7ba3f44b4b4623080abee3b5f7ffee7929db6581a2eee9b4f136">
         <source xml:lang="en">x of y selected</source>
