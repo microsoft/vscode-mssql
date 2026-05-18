@@ -49,8 +49,9 @@ suite("DropDatabaseWebviewController Tests", () => {
             .stub(jsonRpc, "createMessageConnection")
             .returns(connection.connection as unknown as jsonRpc.MessageConnection);
 
-        const panelStub = stubWebviewPanel(sandbox);
-        sandbox.stub(vscode.window, "createWebviewPanel").callsFake(() => panelStub);
+        sandbox
+            .stub(vscode.window, "createWebviewPanel")
+            .callsFake(() => stubWebviewPanel(sandbox));
 
         mockContext = {
             extensionUri: vscode.Uri.file("/tmp/ext"),
@@ -101,7 +102,9 @@ suite("DropDatabaseWebviewController Tests", () => {
     test("handleSubmit should call dropDatabase", async () => {
         createController();
         await waitForInitialization();
-        objectManagementServiceStub.dropDatabase.resolves("Done");
+        objectManagementServiceStub.dropDatabase.resolves({
+            taskId: "drop-task-id",
+        });
 
         const requestHandler = requestHandlers.get(ObjectManagementSubmitRequest.type.method);
         expect(requestHandler, "Request handler was not registered").to.be.a("function");
@@ -116,13 +119,62 @@ suite("DropDatabaseWebviewController Tests", () => {
             params,
         });
 
-        expect(result.success).to.be.true;
+        expect(result).to.deep.equal({
+            success: true,
+            taskId: "drop-task-id",
+        });
         expect(objectManagementServiceStub.dropDatabase.calledOnce).to.be.true;
         const args = objectManagementServiceStub.dropDatabase.firstCall.args;
         expect(args[1]).to.equal(databaseName);
         expect(args[2]).to.be.true; // dropConnections
         expect(args[3]).to.be.false; // deleteBackupHistory
         expect(args[4]).to.be.false; // generateScript
+    });
+
+    test("handleSubmit should return task id when drop response reports failure", async () => {
+        createController();
+        await waitForInitialization();
+        objectManagementServiceStub.dropDatabase.resolves({
+            taskId: "drop-task-id",
+            errorMessage: "Drop failed",
+        });
+
+        const requestHandler = requestHandlers.get(ObjectManagementSubmitRequest.type.method);
+
+        const result = await requestHandler!({
+            dialogType: ObjectManagementDialogType.DropDatabase,
+            params: {
+                dropConnections: true,
+                deleteBackupHistory: false,
+            },
+        });
+
+        expect(result).to.deep.equal({
+            success: false,
+            errorMessage: "Drop failed",
+            taskId: "drop-task-id",
+        });
+    });
+
+    test("handleSubmit should not close the dialog when drop response has no task id", async () => {
+        createController();
+        await waitForInitialization();
+        objectManagementServiceStub.dropDatabase.resolves({});
+
+        const requestHandler = requestHandlers.get(ObjectManagementSubmitRequest.type.method);
+
+        const result = await requestHandler!({
+            dialogType: ObjectManagementDialogType.DropDatabase,
+            params: {
+                dropConnections: true,
+                deleteBackupHistory: false,
+            },
+        });
+
+        expect(result).to.deep.equal({
+            success: false,
+            errorMessage: "Unknown object management dialog.",
+        });
     });
 
     test("handleSubmit should handle error", async () => {
@@ -149,8 +201,9 @@ suite("DropDatabaseWebviewController Tests", () => {
     test("handleScript should call dropDatabase with script flag", async () => {
         createController();
         await waitForInitialization();
-        const script = "DROP DATABASE [test-db]";
-        objectManagementServiceStub.dropDatabase.resolves(script);
+        objectManagementServiceStub.dropDatabase.resolves({
+            script: "DROP DATABASE [test-db]",
+        });
 
         // Stub openTextDocument and showTextDocument
         const mockDoc = {} as vscode.TextDocument;

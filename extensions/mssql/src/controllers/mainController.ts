@@ -54,6 +54,7 @@ import { ConnectionDialogWebviewController } from "../connectionconfig/connectio
 import { DacpacDialogWebviewController } from "./dacpacDialogWebviewController";
 import { CreateDatabaseWebviewController } from "./createDatabaseWebviewController";
 import { DropDatabaseWebviewController } from "./dropDatabaseWebviewController";
+import { RenameDatabaseWebviewController } from "./renameDatabaseWebviewController";
 import {
     DacpacDialogWebviewState,
     DacPacDialogOperationType,
@@ -80,6 +81,7 @@ import { CreateSessionResult } from "../objectExplorer/objectExplorerService";
 import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
 import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
 import { SqlNotebookController } from "../notebooks/sqlNotebookController";
+import { registerNotebookCopyOutput } from "../notebooks/notebookCopyOutputProvider";
 import { ConnectTool } from "../copilot/tools/connectTool";
 import { ListServersTool } from "../copilot/tools/listServersTool";
 import { DisconnectTool } from "../copilot/tools/disconnectTool";
@@ -715,6 +717,8 @@ export default class MainController implements vscode.Disposable {
                 void this.sqlNotebookController.changeConnectionInteractive();
             });
 
+            registerNotebookCopyOutput(this._context);
+
             const providerInstance = new this.ExecutionPlanCustomEditorProvider(
                 this._context,
                 this._vscodeWrapper,
@@ -1321,8 +1325,6 @@ export default class MainController implements vscode.Disposable {
             await this._objectExplorerProvider.refreshNode(node);
         };
 
-        const escapeSingleQuotes = (value: string): string => value.replace(/'/g, "''");
-
         /**
          * Checks if the given node is a server node that is scoped to a database.
          */
@@ -1531,23 +1533,6 @@ export default class MainController implements vscode.Disposable {
                         return;
                     }
 
-                    const databaseName = ObjectExplorerUtils.getDatabaseName(targetNode);
-                    const newName = await vscode.window.showInputBox({
-                        title: LocalizedConstants.renameDatabaseDialogTitle,
-                        value: databaseName,
-                        placeHolder: LocalizedConstants.renameDatabaseInputPlaceholder,
-                        validateInput: (value: string): string | undefined => {
-                            if (!value.trim()) {
-                                return LocalizedConstants.databaseNameRequired;
-                            }
-                            return undefined;
-                        },
-                    });
-
-                    if (!newName || newName === databaseName) {
-                        return;
-                    }
-
                     const connectionProfile = targetNode.connectionProfile;
                     const connectionUri =
                         connectionProfile &&
@@ -1559,34 +1544,25 @@ export default class MainController implements vscode.Disposable {
                         return;
                     }
 
-                    const objectUrn =
-                        targetNode.metadata?.urn ??
-                        `Server/Database[@Name='${escapeSingleQuotes(databaseName)}']`;
-
-                    try {
-                        await vscode.window.withProgress(
-                            {
-                                location: vscode.ProgressLocation.Notification,
-                                title: LocalizedConstants.renamingDatabase(databaseName, newName),
-                            },
-                            async () => {
-                                await this.objectManagementService.rename(
-                                    connectionUri,
-                                    Constants.databaseString,
-                                    objectUrn,
-                                    newName,
-                                );
-                            },
-                        );
+                    const databaseName = ObjectExplorerUtils.getDatabaseName(targetNode);
+                    const parentUrn = targetNode.parentNode?.metadata?.urn ?? "Server";
+                    const objectUrn = targetNode.metadata?.urn;
+                    const controller = new RenameDatabaseWebviewController(
+                        this._context,
+                        this._vscodeWrapper,
+                        this.objectManagementService,
+                        connectionUri,
+                        connectionProfile.server ?? "",
+                        databaseName,
+                        parentUrn,
+                        objectUrn,
+                        LocalizedConstants.renameDatabaseDialogTitle,
+                    );
+                    await controller.whenWebviewReady();
+                    controller.revealToForeground();
+                    const renamedDatabase = await controller.dialogResult.promise;
+                    if (renamedDatabase) {
                         await refreshNodeChildren(targetNode.parentNode);
-                    } catch (error) {
-                        void this._vscodeWrapper.showErrorMessage(
-                            LocalizedConstants.renameDatabaseError(
-                                databaseName,
-                                newName,
-                                getErrorMessage(error),
-                            ),
-                        );
                     }
                 },
             ),
@@ -1858,6 +1834,8 @@ export default class MainController implements vscode.Disposable {
                             this.schemaDesignerService,
                             databaseName,
                             node,
+                            undefined, // connectionUri: will be obtained from treeNode
+                            true, // isReadOnly: table-diagram view from Table Explorer
                         );
 
                     schemaDesigner.setInitialFilterTables([filterTable]);
@@ -2788,6 +2766,37 @@ export default class MainController implements vscode.Disposable {
                 return;
             }
 
+            // Do not execute when there are multiple selections in the editor until it can be properly handled.
+            // Otherwise only the first selection will be executed and cause unexpected issues.
+            if (editor.selections?.length > 1) {
+                self._vscodeWrapper.showErrorMessage(
+                    LocalizedConstants.msgMultipleSelectionModeNotSupported,
+                );
+                return;
+            }
+
+            if (!editor.selection.isEmpty) {
+                if (editor.document.getText(editor.selection).trim().length === 0) {
+                    return;
+                }
+
+                let selection = editor.selection;
+                let querySelection: ISelectionData = {
+                    startLine: selection.start.line,
+                    startColumn: selection.start.character,
+                    endLine: selection.end.line,
+                    endColumn: selection.end.character,
+                };
+
+                await self._outputContentProvider.runQuery(
+                    self._statusview,
+                    uri,
+                    querySelection,
+                    title,
+                );
+                return;
+            }
+
             // only the start line and column are used to determine the current statement
             let querySelection: ISelectionData = {
                 startLine: editor.selection.start.line,
@@ -3085,9 +3094,6 @@ export default class MainController implements vscode.Disposable {
      * @param projectFilePath The file path of the database project to publish.
      */
     public async onPublishDatabaseProject(projectFilePath: string): Promise<void> {
-        const deploymentOptionsResult = await this.dacFxService.getDeploymentOptions(
-            DeploymentScenario.Deployment,
-        );
         const publishProjectWebView = new PublishProjectWebViewController(
             this._context,
             this._vscodeWrapper,
@@ -3097,7 +3103,6 @@ export default class MainController implements vscode.Disposable {
             this.sqlProjectsService,
             this.dacFxService,
             this.sqlPackageService,
-            deploymentOptionsResult.defaultDeploymentOptions,
         );
 
         publishProjectWebView.revealToForeground();

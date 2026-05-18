@@ -829,6 +829,11 @@ declare namespace Slick {
         public getContainerNode(): HTMLElement;
 
         /**
+         * Returns SlickGrid's generated ID prefix for grid-owned DOM nodes.
+         */
+        public getUID(): string;
+
+        /**
          * Returns an array of every data object, unless you're using DataView in which case it returns a DataView object.
          * @return
          **/

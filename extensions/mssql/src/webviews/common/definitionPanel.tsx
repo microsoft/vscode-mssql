@@ -37,7 +37,10 @@ const useStyles = makeStyles({
         gap: "10px",
     },
     headerToolbar: {
+        flex: "1 1 auto",
+        minWidth: 0,
         gap: "3px",
+        justifyContent: "flex-end",
     },
     tabContent: {
         flex: "1 1 auto",
@@ -86,6 +89,9 @@ export interface ScriptTabProps {
     value: string;
     themeKind: ColorThemeKind;
     language?: string;
+    label?: string;
+    headerActions?: ReactNode;
+    addToWorkspace?: (script: string) => void;
     openInEditor: (script: string) => void;
     copyToClipboard: (script: string) => void;
 }
@@ -105,7 +111,7 @@ function getScriptTab(
 ): DefinitionPanelCustomTab<DefinitionBuiltInTabIdentifier> {
     return {
         id: SCRIPT_TAB_ID,
-        label: locConstants.schemaDesigner.definition,
+        label: props.label ?? locConstants.schemaDesigner.definition,
         content: (
             <div className={scriptPaneClassName}>
                 <VscodeEditor
@@ -122,6 +128,17 @@ function getScriptTab(
         ),
         headerActions: (
             <>
+                {props.headerActions}
+                {props.addToWorkspace && (
+                    <Button
+                        size="small"
+                        appearance="subtle"
+                        title={locConstants.schemaDesigner.addToWorkspace}
+                        icon={<FluentIcons.DocumentAdd16Regular />}
+                        onClick={() => props.addToWorkspace?.(props.value)}>
+                        {locConstants.schemaDesigner.addToWorkspace}
+                    </Button>
+                )}
                 <Button
                     size="small"
                     appearance="subtle"
@@ -268,7 +285,9 @@ const DefinitionPanelInner = <TCustomTabId extends string = never>(
                         />
                     </Toolbar>
                 </div>
-                <div className={classes.tabContent}>{activeTabDefinition?.content}</div>
+                <div className={classes.tabContent} key={selectedTab}>
+                    {activeTabDefinition?.content}
+                </div>
             </div>
         </Panel>
     );

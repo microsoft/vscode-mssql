@@ -147,6 +147,7 @@ export async function fetchUserGroups(userId: string): Promise<UserGroup[]> {
             nextUrl = response.data["@odata.nextLink"];
         } catch (error) {
             console.error("Error fetching user groups:", error);
+            break; // Exit the loop on error
         }
     }
 

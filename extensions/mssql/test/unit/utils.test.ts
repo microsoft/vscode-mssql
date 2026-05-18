@@ -465,6 +465,37 @@ suite("decodeQueryResultLinkFragment", () => {
     });
 });
 
+suite("Utility Tests - bracketEscapeSqlIdentifier", () => {
+    test("wraps identifier in brackets by default", () => {
+        expect(Utils.bracketEscapeSqlIdentifier("mytable")).to.equal("[mytable]");
+    });
+
+    test("escapes closing brackets within the identifier", () => {
+        expect(Utils.bracketEscapeSqlIdentifier("my]table")).to.equal("[my]]table]");
+    });
+
+    test("escapes multiple closing brackets within the identifier", () => {
+        expect(Utils.bracketEscapeSqlIdentifier("my]weird]name")).to.equal("[my]]weird]]name]");
+    });
+
+    test("does not wrap in brackets when includeSurroundingBrackets is false", () => {
+        expect(Utils.bracketEscapeSqlIdentifier("mytable", false)).to.equal("mytable");
+    });
+
+    test("escapes closing brackets but does not wrap when includeSurroundingBrackets is false", () => {
+        expect(Utils.bracketEscapeSqlIdentifier("my]table", false)).to.equal("my]]table");
+    });
+
+    test("handles empty string", () => {
+        expect(Utils.bracketEscapeSqlIdentifier("")).to.equal("[]");
+        expect(Utils.bracketEscapeSqlIdentifier("", false)).to.equal("");
+    });
+
+    test("does not escape opening brackets", () => {
+        expect(Utils.bracketEscapeSqlIdentifier("my[table")).to.equal("[my[table]");
+    });
+});
+
 export const sqlAuthConn = {
     server: "server1",
     database: "db1",

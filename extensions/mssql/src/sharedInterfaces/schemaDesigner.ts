@@ -5,6 +5,7 @@
 
 import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
 import { CopilotChat } from "./copilotChat";
+import { Dab } from "./dab";
 
 export namespace SchemaDesigner {
     /**
@@ -145,6 +146,16 @@ export namespace SchemaDesigner {
     export enum SchemaDesignerActiveView {
         SchemaDesigner = "schemaDesigner",
         Dab = "dab",
+    }
+
+    export enum DefinitionKind {
+        Sql = "sql",
+        Prisma = "prisma",
+        Sequelize = "sequelize",
+        TypeOrm = "typeorm",
+        Drizzle = "drizzle",
+        SqlAlchemy = "sqlalchemy",
+        EfCore = "efcore",
     }
 
     /**
@@ -337,6 +348,12 @@ export namespace SchemaDesigner {
         activeView?: SchemaDesignerActiveView;
         isDabDeploymentSupported?: boolean;
         initialFilterTables?: string[];
+        currentFilteredTables?: string[];
+        // When true, the Schema Designer renders as a read-only diagram —
+        // toolbar reduced to Show Definition + Export, no editing affordances
+        // on the graph or table nodes, no editor drawer. Used by Table
+        // Explorer's "View Table Diagram" entry point.
+        isReadOnly?: boolean;
     }
 
     export interface ExportFileOptions {
@@ -355,11 +372,21 @@ export namespace SchemaDesigner {
     }
 
     export interface CopyToClipboardOptions {
-        text: string;
+        text?: string;
+        updatedSchema?: Schema;
+        definitionKind?: DefinitionKind;
     }
 
     export interface OpenInEditorOptions {
-        text: string;
+        text?: string;
+        language?: string;
+        updatedSchema?: Schema;
+        definitionKind?: DefinitionKind;
+    }
+
+    export interface AddDefinitionToWorkspaceOptions {
+        updatedSchema: Schema;
+        definitionKind: DefinitionKind;
     }
 
     export interface SchemaDesignerReducers {
@@ -378,6 +405,10 @@ export namespace SchemaDesigner {
          * Used as the baseline for diffing against current edits.
          */
         baselineSchema: Schema;
+        /**
+         * Cached Data API builder configuration for the active designer session.
+         */
+        dabConfig?: Dab.DabConfig;
         isDirty: boolean;
     }
 
@@ -398,10 +429,6 @@ export namespace SchemaDesigner {
     export namespace CloseSchemaDesignerNotification {
         export const type = new NotificationType<void>("closeDesigner");
     }
-    export interface OpenInEditorParams {
-        text: string;
-    }
-
     export namespace OpenInEditorWithConnectionNotification {
         export const type = new NotificationType<void>("openInEditorWithConnection");
     }
@@ -409,8 +436,14 @@ export namespace SchemaDesigner {
         export const type = new NotificationType<OpenInEditorOptions>("openInEditor");
     }
 
+    export namespace AddDefinitionToWorkspaceNotification {
+        export const type = new NotificationType<AddDefinitionToWorkspaceOptions>(
+            "addDefinitionToWorkspace",
+        );
+    }
+
     export namespace CopyToClipboardNotification {
-        export const type = new NotificationType<OpenInEditorParams>("copyToClipboard");
+        export const type = new NotificationType<CopyToClipboardOptions>("copyToClipboard");
     }
 
     export interface UpdatedSchemaParams {
@@ -428,6 +461,12 @@ export namespace SchemaDesigner {
 
     export namespace ExportToFileNotification {
         export const type = new NotificationType<ExportFileOptions>("exportToFile");
+    }
+
+    export namespace UpdateFilterTablesNotification {
+        export const type = new NotificationType<{ currentFilteredTables: string[] }>(
+            "updateFilterTables",
+        );
     }
 
     export interface SchemaDesignerDirtyStateParams {

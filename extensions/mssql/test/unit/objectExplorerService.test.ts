@@ -61,7 +61,7 @@ import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtil
 import * as vscodeEntraMfaUtils from "../../src/azure/vscodeEntraMfaUtils";
 import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
 import { PreviewFeature } from "../../src/previews/previewService";
-const { MissingVsCodeEntraAuthError } = vscodeEntraMfaUtils;
+const { MissingEntraAuthAccountError } = vscodeEntraMfaUtils;
 
 chai.use(sinonChai);
 
@@ -2501,7 +2501,7 @@ suite("OE Service Tests", () => {
                 stubPreviewService(sandbox, {
                     [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
                 });
-                const authError = new MissingVsCodeEntraAuthError("Account not available");
+                const authError = new MissingEntraAuthAccountError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
                 // User dismisses the dialog
                 mockVscodeWrapper.showErrorMessage.resolves(undefined);
@@ -2520,7 +2520,7 @@ suite("OE Service Tests", () => {
                     "showErrorMessage should be called once",
                 ).to.be.true;
 
-                const [_msg, signInButton, editButton] = mockVscodeWrapper.showErrorMessage.args[0];
+                const [, signInButton, editButton] = mockVscodeWrapper.showErrorMessage.args[0];
                 expect(signInButton, "First button should be Sign In and Retry").to.equal(
                     LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorSignIn,
                 );
@@ -2533,7 +2533,7 @@ suite("OE Service Tests", () => {
                 stubPreviewService(sandbox, {
                     [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
                 });
-                const authError = new MissingVsCodeEntraAuthError("Account not available");
+                const authError = new MissingEntraAuthAccountError("Account not available");
                 const connectionProfile = createMockConnectionProfile({
                     authenticationType: "AzureMFA",
                 });
@@ -2571,7 +2571,7 @@ suite("OE Service Tests", () => {
                 stubPreviewService(sandbox, {
                     [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
                 });
-                const authError = new MissingVsCodeEntraAuthError("Account not available");
+                const authError = new MissingEntraAuthAccountError("Account not available");
                 const connectionProfile = createMockConnectionProfile({
                     authenticationType: "AzureMFA",
                 });
@@ -2599,7 +2599,7 @@ suite("OE Service Tests", () => {
                 stubPreviewService(sandbox, {
                     [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
                 });
-                const authError = new MissingVsCodeEntraAuthError("Account not available");
+                const authError = new MissingEntraAuthAccountError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
 
                 mockVscodeWrapper.showErrorMessage.resolves(
@@ -2631,7 +2631,7 @@ suite("OE Service Tests", () => {
                 stubPreviewService(sandbox, {
                     [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
                 });
-                const authError = new MissingVsCodeEntraAuthError("Account not available");
+                const authError = new MissingEntraAuthAccountError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
                 mockVscodeWrapper.showErrorMessage.resolves(undefined);
 
@@ -2668,13 +2668,14 @@ suite("OE Service Tests", () => {
                 ).to.be.false;
             });
 
-            test("should log and return undefined immediately when useVscodeAccountsForEntraMfa is disabled", async () => {
+            test("should prompt with Sign In and Edit options and use addAccount when useVscodeAccountsForEntraMfa is disabled", async () => {
                 stubPreviewService(sandbox, {
                     [PreviewFeature.UseVscodeAccountsForEntraMFA]: false,
                 });
 
-                const authError = new MissingVsCodeEntraAuthError("Account not available");
+                const authError = new MissingEntraAuthAccountError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
+                mockVscodeWrapper.showErrorMessage.resolves(undefined);
 
                 const connectionProfile = createMockConnectionProfile({
                     authenticationType: "AzureMFA",
@@ -2683,11 +2684,58 @@ suite("OE Service Tests", () => {
                     connectionProfile,
                 );
 
-                expect(result, "Result should be undefined").to.be.undefined;
+                expect(result, "Result should be undefined when user dismisses dialog").to.be
+                    .undefined;
                 expect(
-                    mockVscodeWrapper.showErrorMessage.called,
-                    "showErrorMessage should not be called when feature is disabled",
+                    mockVscodeWrapper.showErrorMessage.calledOnce,
+                    "showErrorMessage should be called even when feature is disabled",
+                ).to.be.true;
+                expect(
+                    signInStub.called,
+                    "VSCode signIn should not be called when feature is disabled",
                 ).to.be.false;
+            });
+
+            test("should call addAccount and retry when useVscodeAccountsForEntraMfa is disabled and user chooses Sign In", async () => {
+                stubPreviewService(sandbox, {
+                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: false,
+                });
+
+                const authError = new MissingEntraAuthAccountError("Account not available");
+                const connectionProfile = createMockConnectionProfile({
+                    authenticationType: "AzureMFA",
+                });
+                const preparedProfile = createMockConnectionProfile({
+                    id: "prepared-id",
+                    authenticationType: "AzureMFA",
+                });
+
+                mockConnectionManager.prepareConnectionInfo
+                    .onFirstCall()
+                    .rejects(authError)
+                    .onSecondCall()
+                    .resolves(preparedProfile);
+
+                mockConnectionManager.addAccount.resolves();
+                mockVscodeWrapper.showErrorMessage.resolves(
+                    LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorSignIn,
+                );
+
+                const result = await (objectExplorerService as any).prepareConnectionProfile(
+                    connectionProfile,
+                );
+
+                expect(
+                    mockConnectionManager.addAccount.calledOnce,
+                    "addAccount should be called when feature is disabled",
+                ).to.be.true;
+                expect(
+                    signInStub.called,
+                    "VSCode signIn should not be called when feature is disabled",
+                ).to.be.false;
+                expect(result, "Result should be the prepared profile after retry").to.deep.equal(
+                    preparedProfile,
+                );
             });
         },
     );
@@ -2787,7 +2835,7 @@ function createMockFailureResponse(
     return {
         success: false,
         sessionId: "",
-        rootNode: null,
+        rootNode: null, // eslint-disable-line no-restricted-syntax
         errorNumber: options.errorNumber,
         errorMessage: options.errorMessage || "",
     } as SessionCreatedParameters;
@@ -2829,7 +2877,7 @@ function createMockSuccessResponse(success: boolean = true): SessionCreatedParam
             isLeaf: false,
             nodeStatus: "Connected",
             errorMessage: "",
-            metadata: null,
+            metadata: null, // eslint-disable-line no-restricted-syntax
         },
         errorNumber: undefined,
         errorMessage: "",

@@ -33,7 +33,7 @@ interface CreateDatabaseViewInfo {
 }
 
 export class CreateDatabaseWebviewController extends ObjectManagementWebviewController {
-    private objectInfo: { [key: string]: unknown } | undefined;
+    private _objectInfo: { [key: string]: unknown } | undefined;
 
     public constructor(
         context: vscode.ExtensionContext,
@@ -85,7 +85,7 @@ export class CreateDatabaseWebviewController extends ObjectManagementWebviewCont
                 ),
             );
 
-            this.objectInfo = viewInfo.objectInfo as { [key: string]: unknown };
+            this._objectInfo = viewInfo.objectInfo as { [key: string]: unknown };
             const getDefault = (options?: { options?: string[]; defaultValueIndex?: number }) => {
                 if (!options?.options?.length) {
                     return undefined;
@@ -96,28 +96,28 @@ export class CreateDatabaseWebviewController extends ObjectManagementWebviewCont
 
             const viewModel: CreateDatabaseViewModel = {
                 serverName: this.serverName,
-                databaseName: (this.objectInfo?.name as string | undefined) ?? "",
+                databaseName: (this._objectInfo?.name as string | undefined) ?? "",
                 ownerOptions: viewInfo.loginNames?.options,
                 owner:
-                    (this.objectInfo?.owner as string | undefined) ??
+                    (this._objectInfo?.owner as string | undefined) ??
                     getDefault(viewInfo.loginNames),
                 collationOptions: viewInfo.collationNames?.options,
                 collationName:
-                    (this.objectInfo?.collationName as string | undefined) ??
+                    (this._objectInfo?.collationName as string | undefined) ??
                     getDefault(viewInfo.collationNames),
                 recoveryModelOptions: viewInfo.recoveryModels?.options,
                 recoveryModel:
-                    (this.objectInfo?.recoveryModel as string | undefined) ??
+                    (this._objectInfo?.recoveryModel as string | undefined) ??
                     getDefault(viewInfo.recoveryModels),
                 compatibilityLevelOptions: viewInfo.compatibilityLevels?.options,
                 compatibilityLevel:
-                    (this.objectInfo?.compatibilityLevel as string | undefined) ??
+                    (this._objectInfo?.compatibilityLevel as string | undefined) ??
                     getDefault(viewInfo.compatibilityLevels),
                 containmentTypeOptions: viewInfo.containmentTypes?.options,
                 containmentType:
-                    (this.objectInfo?.containmentType as string | undefined) ??
+                    (this._objectInfo?.containmentType as string | undefined) ??
                     getDefault(viewInfo.containmentTypes),
-                isLedgerDatabase: this.objectInfo?.isLedgerDatabase as boolean | undefined,
+                isLedgerDatabase: this._objectInfo?.isLedgerDatabase as boolean | undefined,
             };
 
             this.updateWebviewState({
@@ -149,7 +149,7 @@ export class CreateDatabaseWebviewController extends ObjectManagementWebviewCont
     ): Promise<ObjectManagementActionResult> {
         const typedParams = params as CreateDatabaseParams;
         try {
-            if (!this.objectInfo) {
+            if (!this._objectInfo) {
                 return {
                     success: false,
                     errorMessage: LocConstants.msgChooseDatabaseNotConnected,
@@ -157,14 +157,29 @@ export class CreateDatabaseWebviewController extends ObjectManagementWebviewCont
             }
 
             this.applyCreateParams(typedParams);
-            await this.objectManagementService.save(
+            const saveResponse = await this.objectManagementService.save(
                 this.contextId,
-                this.objectInfo as { name: string; [key: string]: unknown },
+                this._objectInfo as { name: string; [key: string]: unknown },
             );
+
+            if (saveResponse.errorMessage) {
+                return {
+                    success: false,
+                    errorMessage: saveResponse.errorMessage,
+                    taskId: saveResponse.taskId,
+                };
+            }
+
+            if (!saveResponse.taskId) {
+                return {
+                    success: false,
+                    errorMessage: LocConstants.msgObjectManagementUnknownDialog,
+                };
+            }
 
             await this.disposeView();
             this.closeDialog(typedParams.name);
-            return { success: true };
+            return { success: true, taskId: saveResponse.taskId };
         } catch (error) {
             return { success: false, errorMessage: getErrorMessage(error) };
         }
@@ -175,7 +190,7 @@ export class CreateDatabaseWebviewController extends ObjectManagementWebviewCont
     ): Promise<ObjectManagementActionResult> {
         const typedParams = params as CreateDatabaseParams;
         try {
-            if (!this.objectInfo) {
+            if (!this._objectInfo) {
                 return {
                     success: false,
                     errorMessage: LocConstants.msgChooseDatabaseNotConnected,
@@ -185,7 +200,7 @@ export class CreateDatabaseWebviewController extends ObjectManagementWebviewCont
             this.applyCreateParams(typedParams);
             const script = await this.objectManagementService.script(
                 this.contextId,
-                this.objectInfo as { name: string; [key: string]: unknown },
+                this._objectInfo as { name: string; [key: string]: unknown },
             );
 
             if (!script) {
@@ -209,28 +224,28 @@ export class CreateDatabaseWebviewController extends ObjectManagementWebviewCont
     }
 
     private applyCreateParams(params: CreateDatabaseParams): void {
-        if (!this.objectInfo) {
+        if (!this._objectInfo) {
             return;
         }
 
-        this.objectInfo.name = params.name;
+        this._objectInfo.name = params.name;
         if (params.owner !== undefined) {
-            this.objectInfo.owner = params.owner;
+            this._objectInfo.owner = params.owner;
         }
         if (params.collationName !== undefined) {
-            this.objectInfo.collationName = params.collationName;
+            this._objectInfo.collationName = params.collationName;
         }
         if (params.recoveryModel !== undefined) {
-            this.objectInfo.recoveryModel = params.recoveryModel;
+            this._objectInfo.recoveryModel = params.recoveryModel;
         }
         if (params.compatibilityLevel !== undefined) {
-            this.objectInfo.compatibilityLevel = params.compatibilityLevel;
+            this._objectInfo.compatibilityLevel = params.compatibilityLevel;
         }
         if (params.containmentType !== undefined) {
-            this.objectInfo.containmentType = params.containmentType;
+            this._objectInfo.containmentType = params.containmentType;
         }
         if (params.isLedgerDatabase !== undefined) {
-            this.objectInfo.isLedgerDatabase = params.isLedgerDatabase;
+            this._objectInfo.isLedgerDatabase = params.isLedgerDatabase;
         }
     }
 }

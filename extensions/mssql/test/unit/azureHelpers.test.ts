@@ -72,38 +72,65 @@ suite("Azure Helpers", () => {
             const signInStub = sandbox.stub().resolves(true);
             const isSignedInStub = sandbox.stub();
 
-            sandbox.stub(MssqlVSCodeAzureSubscriptionProvider, "getInstance").returns({
+            const mockAuthProvider = {
                 signIn: signInStub,
                 isSignedIn: isSignedInStub,
-            } as unknown as MssqlVSCodeAzureSubscriptionProvider);
+            };
+            sandbox
+                .stub(MssqlVSCodeAzureSubscriptionProvider, "getInstance")
+                .returns(mockAuthProvider as unknown as MssqlVSCodeAzureSubscriptionProvider);
+
+            // Stub getAccounts so signIn can diff before/after to identify the new account
+            const getAccountsStub = sandbox.stub(azureHelpers.VsCodeAzureHelper, "getAccounts");
 
             // Case: user should be prompted to sign in when not already signed in
             isSignedInStub.resolves(false);
+            getAccountsStub.onFirstCall().resolves([]);
+            getAccountsStub.onSecondCall().resolves([mockAccounts.signedInAccount]);
+
             let result = await azureHelpers.VsCodeAzureHelper.signIn(false /* forceSignInPrompt */);
 
             expect(result).to.not.be.undefined;
+            expect(result!.auth).to.equal(mockAuthProvider);
+            expect(result!.newAccountId).to.equal(
+                mockAccounts.signedInAccount.id,
+                "accountId should be the newly added account",
+            );
             expect(signInStub.calledOnce, "signIn should be called once").to.be.true;
             expect(isSignedInStub.calledOnce, "isSignedIn should be called once").to.be.true;
 
             // Case: user should not be prompted to sign in when already signed in
             signInStub.resetHistory();
             isSignedInStub.reset();
+            getAccountsStub.reset();
             isSignedInStub.resolves(true);
+            getAccountsStub.resolves([mockAccounts.signedInAccount]);
 
             result = await azureHelpers.VsCodeAzureHelper.signIn(false /* forceSignInPrompt */);
 
             expect(result).to.not.be.undefined;
+            expect(result!.auth).to.equal(mockAuthProvider);
+            expect(result!.newAccountId).to.equal(
+                mockAccounts.signedInAccount.id,
+                "accountId should be the first existing account",
+            );
             expect(signInStub.notCalled, "signIn should not be called").to.be.true;
             expect(isSignedInStub.calledOnce, "isSignedIn should be called once").to.be.true;
 
             // Case: user should be prompted to sign in when forceSignInPrompt is true
             signInStub.resetHistory();
             isSignedInStub.reset();
-            isSignedInStub.resolves(false);
+            getAccountsStub.reset();
+            getAccountsStub.onFirstCall().resolves([]);
+            getAccountsStub.onSecondCall().resolves([mockAccounts.signedInAccount]);
 
             result = await azureHelpers.VsCodeAzureHelper.signIn(true /* forceSignInPrompt */);
 
             expect(result).to.not.be.undefined;
+            expect(result!.newAccountId).to.equal(
+                mockAccounts.signedInAccount.id,
+                "accountId should be the newly added account",
+            );
             expect(signInStub.calledOnce, "signIn should be called once").to.be.true;
             expect(
                 isSignedInStub.notCalled,

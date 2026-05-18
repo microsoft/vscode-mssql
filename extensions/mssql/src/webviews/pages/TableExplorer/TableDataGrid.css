@@ -25,20 +25,6 @@
  * Setting these on the #id selector (specificity 1-0-0) overrides
  * .slick-dark-mode defaults (specificity 0-1-0) automatically. */
 #tableExplorerGrid {
-    /* Header colors */
-    --slick-header-background-color: var(--vscode-editor-background);
-    --slick-grid-header-background: var(--vscode-editor-background);
-    --slick-header-text-color: var(--vscode-foreground);
-    --slick-hover-header-color: var(--vscode-foreground);
-    --slick-sorting-header-color: var(--vscode-foreground);
-    --slick-header-column-height: 26px;
-    --slick-header-font-size: 12px;
-    --slick-header-font-weight: 600;
-    --slick-header-row-background-color: var(--vscode-editor-background);
-    --slick-header-column-background-hover: var(--vscode-list-hoverBackground);
-    --slick-header-column-background-active: var(--vscode-list-activeSelectionBackground);
-    --slick-header-border-bottom: 1px solid var(--vscode-panel-border);
-
     /* Cell & row colors */
     --slick-cell-even-background-color: var(--vscode-editor-background);
     --slick-cell-odd-background-color: var(--vscode-editor-background);
@@ -63,15 +49,6 @@
     /* Scrollbar */
     --slick-scrollbar-color: var(--vscode-scrollbarSlider-background)
         var(--vscode-editor-background);
-
-    /* Menu / column picker colors */
-    --slick-menu-bg-color: var(--vscode-menu-background);
-    --slick-menu-color: var(--vscode-menu-foreground);
-    --slick-menu-border: 1px solid var(--vscode-menu-border);
-    --slick-menu-item-hover-color: var(--vscode-menu-selectionBackground);
-    --slick-column-picker-background-color: var(--vscode-menu-background);
-    --slick-column-picker-item-hover-color: var(--vscode-menu-selectionBackground);
-    --slick-column-picker-border: 1px solid var(--vscode-menu-border);
 
     /* Font */
     --slick-font-size-base: 12px;
@@ -101,119 +78,8 @@
     height: 26px !important; /* Match data row height for uniform appearance */
 }
 
-#tableExplorerGrid .slick-header-column {
-    text-align: center !important;
-    padding: 4px 8px !important;
-    line-height: 1.2 !important;
-    box-sizing: border-box !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-}
-
-#tableExplorerGrid .slick-header-column:last-child {
-    border-right: none !important;
-}
-
-#tableExplorerGrid .slick-header-column .slick-column-name {
-    text-align: center !important;
-    width: 100% !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    height: 100% !important;
-    margin: 0 !important; /* Remove excessive margin that pushes text out of view */
-    overflow: hidden !important; /* Hide overflow */
-    text-overflow: ellipsis !important; /* Show ellipsis for long text */
-    white-space: nowrap !important; /* Prevent text wrapping */
-}
-
 #tableExplorerGrid .slick-row.selected {
     color: var(--vscode-list-activeSelectionForeground) !important;
-}
-
-/* VS Code-style context menu
-   Note: SlickGrid appends the context menu to document.body (not inside #tableExplorerGrid),
-   so we target it directly via .slick-context-menu. */
-.slick-context-menu {
-    background-color: var(--vscode-menu-background) !important;
-    border: 1px solid var(--vscode-menu-border) !important;
-    border-radius: 4px !important;
-    box-shadow: 0 2px 8px var(--vscode-widget-shadow) !important;
-    padding: 4px 0 !important;
-    min-width: 160px !important;
-}
-
-.slick-context-menu .slick-menu-item {
-    background-color: transparent !important;
-    color: var(--vscode-menu-foreground) !important;
-    padding: 0 26px 0 8px !important;
-    height: 2em !important;
-    font-size: 13px !important;
-    border: 1px solid transparent !important;
-    border-radius: 4px !important;
-    cursor: pointer !important;
-    position: relative !important;
-    display: flex !important;
-    align-items: center !important;
-    white-space: nowrap !important;
-    margin: 0 4px !important;
-}
-
-.slick-context-menu .slick-menu-item:hover {
-    background-color: var(--vscode-menu-selectionBackground) !important;
-    color: var(--vscode-menu-selectionForeground) !important;
-}
-
-.slick-context-menu .slick-menu-item .slick-menu-icon {
-    width: 16px !important;
-    height: 16px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    margin-right: 6px !important;
-    flex-shrink: 0 !important;
-    position: static !important;
-}
-
-.slick-context-menu .slick-menu-item .slick-menu-content {
-    flex: 1 !important;
-    padding: 0 !important;
-    margin: 0 !important;
-}
-
-.slick-context-menu .slick-menu-item.red {
-    color: var(--vscode-menu-foreground) !important;
-}
-
-.slick-context-menu .slick-menu-item.red:hover {
-    color: var(--vscode-menu-selectionForeground) !important;
-}
-
-.slick-context-menu .slick-menu-item .mdi {
-    color: var(--vscode-menu-foreground) !important;
-    font-size: 16px !important;
-}
-
-.slick-context-menu .slick-menu-item:hover .mdi {
-    color: var(--vscode-menu-selectionForeground) !important;
-}
-
-.slick-context-menu .slick-menu-item.bold,
-.slick-context-menu .slick-menu-item .bold {
-    font-weight: normal !important;
-}
-
-.slick-context-menu .slick-menu-item.slick-menu-item-divider {
-    height: 1px !important;
-    padding: 0 !important;
-    margin: 4px 12px !important;
-    background-color: var(--vscode-menu-separatorBackground, var(--vscode-menu-border)) !important;
-    border: none !important;
-    border-radius: 0 !important;
 }
 
 /* Cell state styles */
@@ -246,6 +112,20 @@
     padding-left: 8px;
 }
 
+/* Newly inserted row highlight (persists until saved or reverted) */
+#tableExplorerGrid .slick-row.new-row {
+    background-color: var(--vscode-editorWarning-background) !important;
+    border-left: 3px solid var(--vscode-editorWarning-foreground);
+}
+
+#tableExplorerGrid .slick-row.new-row:hover {
+    background-color: var(--vscode-editorWarning-background) !important;
+}
+
+#tableExplorerGrid .slick-row.new-row.selected {
+    background-color: var(--vscode-list-activeSelectionBackground) !important;
+}
+
 /* Deleted row styles - uses VS Code theme variables for automatic light/dark theme support */
 #tableExplorerGrid .slick-row.deleted-row {
     background-color: var(--vscode-diffEditor-removedLineBackground) !important;
@@ -263,6 +143,46 @@
     text-decoration: line-through;
     color: var(--vscode-disabledForeground) !important;
     opacity: 0.7;
+}
+
+/* Action icon styles for the inline undo button */
+.action-icon {
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.action-icon.pointer {
+    cursor: pointer;
+    color: var(--vscode-foreground);
+}
+
+.action-icon.pointer:hover {
+    color: var(--vscode-focusBorder);
+}
+
+.action-icon.disabled {
+    cursor: default;
+    color: var(--vscode-disabledForeground);
+    opacity: 0.4;
+}
+
+/* Keep the action icon legible on deleted rows — strip the row's
+   strikethrough/dim styling so the active undo arrow stands out. */
+#tableExplorerGrid .slick-row.deleted-row .slick-cell .action-icon {
+    text-decoration: none;
+    opacity: 1;
+}
+
+#tableExplorerGrid .slick-row.deleted-row .slick-cell .action-icon.disabled {
+    opacity: 0.4;
+}
+
+#tableExplorerGrid .slick-row.deleted-row .slick-cell .action-icon.pointer {
+    color: var(--vscode-foreground);
 }
 
 /* Search bar styles */
@@ -305,101 +225,10 @@
     align-items: center;
     gap: 2px;
 }
-
-/* Header menu styling */
-#tableExplorerGrid .slick-header-menu {
-    background-color: var(--vscode-menu-background) !important;
-    border: 1px solid var(--vscode-menu-border) !important;
-    border-radius: 5px !important;
-    box-shadow: 0 2px 8px var(--vscode-widget-shadow) !important;
-    padding: 4px 0 !important;
-    min-width: 180px !important;
-}
-
-#tableExplorerGrid .slick-header-menu > div > li {
-    background-color: transparent !important;
-    color: var(--vscode-menu-foreground) !important;
-    padding: 2px 20px 2px 30px !important;
-    height: 34px !important;
-    font-size: 13px !important;
-    border: 1px solid transparent !important;
-    cursor: pointer !important;
-    position: relative !important;
-    display: flex !important;
-    align-items: center !important;
-    white-space: nowrap !important;
-}
-
-#tableExplorerGrid .slick-header-menu .slick-menu-item:hover {
-    background-color: var(--vscode-menu-selectionBackground) !important;
-    color: var(--vscode-menu-selectionForeground) !important;
-}
-
-#tableExplorerGrid .slick-header-menu .slick-menu-item .slick-menu-icon {
-    position: absolute !important;
-    left: 8px !important;
-    width: 16px !important;
-    height: 16px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-}
-
-#tableExplorerGrid .slick-header-menu .slick-menu-item .slick-menu-content {
-    flex: 1 !important;
-    padding: 0 !important;
-    margin: 0 !important;
-}
-
-#tableExplorerGrid .slick-header-menu .slick-menu-item .mdi {
-    color: var(--vscode-menu-foreground) !important;
-    font-size: 16px !important;
-}
-
-#tableExplorerGrid .slick-header-menu .slick-menu-item:hover .mdi {
-    color: var(--vscode-menu-selectionForeground) !important;
-}
-
-#tableExplorerGrid .slick-header-menu .slick-menu-item.slick-menu-item-disabled {
-    opacity: 0.5;
-    cursor: not-allowed !important;
-}
-
-/* Hide any dividers/separators that may have unwanted styling */
-#tableExplorerGrid .slick-header-menu .slick-menu-item.slick-menu-item-divider {
-    height: 1px !important;
-    padding: 0 !important;
-    margin: 4px 0 !important;
-    background-color: var(--vscode-menu-separatorBackground, var(--vscode-menu-border)) !important;
-    border: none !important;
-}
-
-/* Column picker styling */
-#tableExplorerGrid .slick-column-picker {
-    background-color: var(--vscode-menu-background) !important;
-    border: 1px solid var(--vscode-menu-border) !important;
-    border-radius: 5px !important;
-    box-shadow: 0 2px 8px var(--vscode-widget-shadow) !important;
-    padding: 8px !important;
-    min-width: 200px !important;
-    max-height: 300px !important;
-    overflow-y: auto !important;
-}
-
-#tableExplorerGrid .slick-column-picker .slick-column-picker-list li {
-    color: var(--vscode-menu-foreground) !important;
-    padding: 4px 8px !important;
-    cursor: pointer !important;
-}
-
-#tableExplorerGrid .slick-column-picker .slick-column-picker-list li:hover {
-    background-color: var(--vscode-menu-selectionBackground) !important;
-}
-
 /* Filter row styling */
 #tableExplorerGrid .slick-headerrow-column {
     background-color: var(--vscode-editor-background) !important;
-    border-right: 1px solid var(--vscode-panel-border) !important;
+    border-right: 1px solid var(--vscode-editorWidget-border) !important;
     padding: 5px 4px !important;
 }
 
@@ -426,45 +255,6 @@
     border-radius: 2px !important;
     padding: 2px 4px !important;
     font-size: 12px !important;
-}
-
-/* Sort indicator styling */
-#tableExplorerGrid .slick-header-column.slick-header-column-sorted {
-    font-style: italic;
-}
-
-#tableExplorerGrid .slick-sort-indicator {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    margin-left: 4px;
-}
-
-#tableExplorerGrid .slick-sort-indicator-asc {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23888' d='M4 0L0 6h8z'/%3E%3C/svg%3E")
-        no-repeat center;
-}
-
-#tableExplorerGrid .slick-sort-indicator-desc {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23888' d='M4 8L0 2h8z'/%3E%3C/svg%3E")
-        no-repeat center;
-}
-
-/* Header menu button */
-#tableExplorerGrid .slick-header-menu-button {
-    position: absolute;
-    right: 4px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-    opacity: 0;
-    transition: opacity 0.2s;
-}
-
-#tableExplorerGrid .slick-header-column:hover .slick-header-menu-button {
-    opacity: 1;
 }
 
 /* Compound filter input styling */
@@ -565,43 +355,53 @@
     color: var(--vscode-list-activeSelectionForeground) !important;
 }
 
-/* Action icon styles for delete and undo buttons */
-.action-icon {
-    font-size: 16px;
-    display: flex;
-    align-items: center;
+/* Column header with data type beside the column name */
+#tableExplorerGrid .slick-header-column .column-name {
+    font-weight: 600;
+}
+
+#tableExplorerGrid .slick-header-column .column-data-type {
+    margin-left: 6px;
+    font-weight: normal;
+    font-style: italic;
+    color: var(--vscode-descriptionForeground);
+    opacity: 0.85;
+}
+
+/* Match header checkbox background to row cells */
+#tableExplorerGrid .slick-header-column:has(.checkbox-selector-label),
+#tableExplorerGrid .slick-header-column.header-checkbox-selectall {
+    background-color: var(--vscode-editor-background) !important;
+}
+
+/* Center checkboxes in both header and body cells */
+#tableExplorerGrid .slick-cell:has(.checkbox-selector-label) {
+    padding-left: 0;
+    padding-right: 0;
     justify-content: center;
-    width: 100%;
-    height: 100%;
+}
+#tableExplorerGrid .slick-header-column.header-checkbox-selectall .checkbox-selector-label {
+    display: flex;
+    justify-content: center;
 }
 
-.action-icon.pointer {
-    cursor: pointer;
+/* Override checkbox icon color to match VS Code theme */
+#tableExplorerGrid .slick-cell-checkboxsel .icon-checkbox-container div.sgi,
+#tableExplorerGrid .slick-column-name .icon-checkbox-container div.sgi,
+#tableExplorerGrid .slick-headerrow-column .icon-checkbox-container div.sgi {
     color: var(--vscode-foreground);
 }
 
-.action-icon.pointer:hover {
-    color: var(--vscode-focusBorder);
-}
-
-.action-icon.disabled {
-    cursor: default;
-    color: var(--vscode-disabledForeground);
-    opacity: 0.4;
-}
-
-/* Ensure action icons in deleted rows don't get line-through */
-#tableExplorerGrid .slick-row.deleted-row .slick-cell .action-icon {
-    text-decoration: none;
-    opacity: 1;
-}
-
-#tableExplorerGrid .slick-row.deleted-row .slick-cell .action-icon.disabled {
-    opacity: 0.4;
-}
-
-#tableExplorerGrid .slick-row.deleted-row .slick-cell .action-icon.pointer {
-    color: var(--vscode-foreground);
+/* Show sort indicator on sortable columns */
+#tableExplorerGrid
+    .slick-header-column.slick-header-sortable:not(.slick-header-column-sorted)
+    .slick-sort-indicator:not(.slick-sort-indicator-asc):not(.slick-sort-indicator-desc) {
+    opacity: 0.55;
+    background-color: currentColor;
+    -webkit-mask: url("../../media/sort.svg") no-repeat center;
+    mask: url("../../media/sort.svg") no-repeat center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
 }
 
 /* Cell range selection styles (for Excel copy buffer / Ctrl+drag selection) */

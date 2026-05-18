@@ -20,7 +20,9 @@ import {
     EditRevertRowResult,
     EditScriptResult,
     EditSessionReadyParams,
+    EditInitializeResult,
     DbCellValue,
+    SqlPaneMode,
 } from "../../src/sharedInterfaces/tableExplorer";
 import { IConnectionProfile } from "../../src/models/interfaces";
 import * as LocConstants from "../../src/constants/locConstants";
@@ -175,10 +177,12 @@ suite("TableExplorerWebViewController - Reducers", () => {
             mockTargetNode,
         );
 
-        // Simulate edit session ready
-        const notificationHandler = (mockTableExplorerService.sqlToolsClient.onNotification as any)
-            .firstCall.args[1];
-        notificationHandler({
+        // Simulate edit session ready by setting _expectedOwnerUri (production sets this
+        // in initialize()) and invoking the new instance method directly. The shared
+        // notification dispatcher is registered once at the class level, so we can't
+        // rely on capturing the per-instance handler from the onNotification stub.
+        controller["_expectedOwnerUri"] = "test-owner-uri";
+        controller["onEditSessionReady"]({
             ownerUri: "test-owner-uri",
             success: true,
             message: "",
@@ -1132,6 +1136,412 @@ suite("TableExplorerWebViewController - Reducers", () => {
             expect(callArgs[1]).to.equal("excel");
             expect(callArgs[2]).to.deep.equal(mockHeaders);
             expect(callArgs[3]).to.deep.equal(mockRows);
+        });
+    });
+
+    suite("showTableQuery reducer", () => {
+        test("should set showScriptPane to true and sqlPaneMode to TableQuery", async () => {
+            // Arrange
+            controller.state.showScriptPane = false;
+            controller.state.sqlPaneMode = SqlPaneMode.ScriptChanges;
+
+            // Act
+            await controller["_reducerHandlers"].get("showTableQuery")(controller.state, {});
+
+            // Assert
+            expect(controller.state.showScriptPane).to.be.true;
+            expect(controller.state.sqlPaneMode).to.equal(SqlPaneMode.TableQuery);
+        });
+
+        test("should switch from ScriptChanges mode to TableQuery mode when pane is already open", async () => {
+            // Arrange
+            controller.state.showScriptPane = true;
+            controller.state.sqlPaneMode = SqlPaneMode.ScriptChanges;
+
+            // Act
+            await controller["_reducerHandlers"].get("showTableQuery")(controller.state, {});
+
+            // Assert
+            expect(controller.state.showScriptPane).to.be.true;
+            expect(controller.state.sqlPaneMode).to.equal(SqlPaneMode.TableQuery);
+        });
+
+        test("should return state unchanged aside from pane properties", async () => {
+            // Arrange
+            controller.state.tableName = "TestTable";
+            controller.state.showScriptPane = false;
+
+            // Act
+            const resultState = await controller["_reducerHandlers"].get("showTableQuery")(
+                controller.state,
+                {},
+            );
+
+            // Assert
+            expect(resultState.tableName).to.equal("TestTable");
+            expect(resultState.showScriptPane).to.be.true;
+            expect(resultState.sqlPaneMode).to.equal(SqlPaneMode.TableQuery);
+        });
+    });
+
+    suite("runTableQuery reducer", () => {
+        setup(async () => {
+            // Flush any microtasks from the constructor's void this.initialize() and
+            // void loadResultSet() so their async operations complete and call counts
+            // are stable before each test runs its own assertions and stub configurations.
+            await new Promise<void>((resolve) => setImmediate(resolve));
+            mockTableExplorerService.dispose.resetHistory();
+            mockTableExplorerService.initialize.resetHistory();
+            showWarningMessageStub.resetHistory();
+        });
+
+        test("should return early without disposing when queryString is empty", async () => {
+            // Arrange
+            controller.state.ownerUri = "test-owner-uri";
+
+            // Act
+            await controller["_reducerHandlers"].get("runTableQuery")(controller.state, {
+                queryString: "",
+            });
+
+            // Assert
+            expect(mockTableExplorerService.dispose.called).to.be.false;
+            expect(mockTableExplorerService.initialize.called).to.be.false;
+        });
+
+        test("should return early without disposing when queryString is whitespace", async () => {
+            // Arrange
+            controller.state.ownerUri = "test-owner-uri";
+
+            // Act
+            await controller["_reducerHandlers"].get("runTableQuery")(controller.state, {
+                queryString: "   ",
+            });
+
+            // Assert
+            expect(mockTableExplorerService.dispose.called).to.be.false;
+            expect(mockTableExplorerService.initialize.called).to.be.false;
+        });
+
+        test("should return early without disposing when ownerUri is missing", async () => {
+            // Arrange
+            controller.state.ownerUri = "";
+            controller.state.newRows = [];
+            controller.state.deletedRows = [];
+            controller.state.originalCellValues = new Map();
+
+            // Act
+            await controller["_reducerHandlers"].get("runTableQuery")(controller.state, {
+                queryString: "SELECT * FROM dbo.TestTable",
+            });
+
+            // Assert
+            expect(mockTableExplorerService.dispose.called).to.be.false;
+            expect(mockTableExplorerService.initialize.called).to.be.false;
+        });
+
+        test("should dispose current session and re-initialize with custom query", async () => {
+            // Arrange
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.newRows = [];
+            controller.state.deletedRows = [];
+            controller.state.originalCellValues = new Map();
+            mockTableExplorerService.dispose.resolves();
+            mockTableExplorerService.initialize.resolves();
+
+            // Act
+            await controller["_reducerHandlers"].get("runTableQuery")(controller.state, {
+                queryString: "SELECT TOP 10 * FROM dbo.TestTable WHERE id > 5",
+            });
+
+            // Assert
+            expect(mockTableExplorerService.dispose.calledWith("test-owner-uri")).to.be.true;
+            expect(
+                mockTableExplorerService.initialize.calledWithMatch(
+                    "test-owner-uri",
+                    sinon.match.any,
+                    sinon.match.any,
+                    sinon.match.any,
+                    "SELECT TOP 10 * FROM dbo.TestTable WHERE id > 5",
+                ),
+            ).to.be.true;
+        });
+
+        test("should clear pending changes after successful re-initialization", async () => {
+            // Arrange
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.newRows = [createMockRow(100, ["3", "New", "Row"])];
+            controller.state.deletedRows = [0];
+            controller.state.failedCells = ["0-1"];
+            controller.state.originalCellValues = new Map([["0-1", createMockCell("Original")]]);
+            controller.state.updateScript = "UPDATE ...";
+            mockTableExplorerService.dispose.resolves();
+            mockTableExplorerService.initialize.resolves();
+            showWarningMessageStub.resolves(LocConstants.TableExplorer.Continue);
+
+            // Act
+            await controller["_reducerHandlers"].get("runTableQuery")(controller.state, {
+                queryString: "SELECT * FROM dbo.TestTable",
+            });
+
+            // Assert
+            expect(controller.state.newRows).to.have.lengthOf(0);
+            expect(controller.state.deletedRows).to.have.lengthOf(0);
+            expect(controller.state.failedCells).to.have.lengthOf(0);
+            expect(controller.state.originalCellValues?.size).to.equal(0);
+            expect(controller.state.updateScript).to.be.undefined;
+        });
+
+        test("should set loadStatus to Loading before re-initialization", async () => {
+            // Arrange
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.newRows = [];
+            controller.state.deletedRows = [];
+            controller.state.originalCellValues = new Map();
+            controller.state.loadStatus = ApiStatus.Loaded;
+
+            let loadStatusDuringDispose: ApiStatus | undefined;
+            mockTableExplorerService.dispose.callsFake(async () => {
+                loadStatusDuringDispose = controller.state.loadStatus;
+                return {};
+            });
+            mockTableExplorerService.initialize.resolves();
+
+            // Act
+            await controller["_reducerHandlers"].get("runTableQuery")(controller.state, {
+                queryString: "SELECT * FROM dbo.TestTable",
+            });
+
+            // Assert
+            expect(loadStatusDuringDispose).to.equal(ApiStatus.Loading);
+        });
+
+        test("should warn about pending changes and cancel when user declines", async () => {
+            // Arrange
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.newRows = [createMockRow(100, ["3", "New", "Row"])];
+            controller.state.deletedRows = [];
+            controller.state.originalCellValues = new Map();
+            showWarningMessageStub.resolves(undefined); // User dismissed the dialog
+
+            // Act
+            await controller["_reducerHandlers"].get("runTableQuery")(controller.state, {
+                queryString: "SELECT * FROM dbo.TestTable",
+            });
+
+            // Assert
+            expect(
+                showWarningMessageStub.calledWithMatch(
+                    LocConstants.TableExplorer.pendingChangesWillBeLost,
+                ),
+            ).to.be.true;
+            expect(mockTableExplorerService.dispose.called).to.be.false;
+            expect(mockTableExplorerService.initialize.called).to.be.false;
+            // State should be unchanged
+            expect(controller.state.newRows).to.have.lengthOf(1);
+        });
+
+        test("should proceed when user confirms pending changes warning", async () => {
+            // Arrange
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.newRows = [createMockRow(100, ["3", "New", "Row"])];
+            controller.state.deletedRows = [];
+            controller.state.originalCellValues = new Map();
+            showWarningMessageStub.resolves(LocConstants.TableExplorer.Continue);
+            mockTableExplorerService.dispose.resolves();
+            mockTableExplorerService.initialize.resolves();
+
+            // Act
+            await controller["_reducerHandlers"].get("runTableQuery")(controller.state, {
+                queryString: "SELECT * FROM dbo.TestTable",
+            });
+
+            // Assert
+            expect(
+                showWarningMessageStub.calledWithMatch(
+                    LocConstants.TableExplorer.pendingChangesWillBeLost,
+                ),
+            ).to.be.true;
+            expect(mockTableExplorerService.dispose.calledWith("test-owner-uri")).to.be.true;
+            expect(
+                mockTableExplorerService.initialize.calledWithMatch(
+                    "test-owner-uri",
+                    sinon.match.any,
+                    sinon.match.any,
+                    sinon.match.any,
+                    "SELECT * FROM dbo.TestTable",
+                ),
+            ).to.be.true;
+            expect(controller.state.newRows).to.have.lengthOf(0);
+        });
+
+        test("should not warn when there are no pending changes", async () => {
+            // Arrange
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.newRows = [];
+            controller.state.deletedRows = [];
+            controller.state.originalCellValues = new Map();
+            mockTableExplorerService.dispose.resolves();
+            mockTableExplorerService.initialize.resolves();
+
+            // Act
+            await controller["_reducerHandlers"].get("runTableQuery")(controller.state, {
+                queryString: "SELECT * FROM dbo.TestTable",
+            });
+
+            // Assert
+            expect(showWarningMessageStub.called).to.be.false;
+            expect(mockTableExplorerService.dispose.calledWith("test-owner-uri")).to.be.true;
+        });
+
+        test("should attempt to restore original session when custom query fails", async () => {
+            // Arrange
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.newRows = [];
+            controller.state.deletedRows = [];
+            controller.state.originalCellValues = new Map();
+            mockTableExplorerService.dispose.resolves();
+            mockTableExplorerService.initialize.callsFake((...args: unknown[]) => {
+                const queryString = args[4] as string | undefined;
+                if (queryString === "INVALID SQL") {
+                    return Promise.reject(new Error("Invalid query"));
+                }
+                return Promise.resolve({} as EditInitializeResult);
+            });
+
+            // Act
+            await controller["_reducerHandlers"].get("runTableQuery")(controller.state, {
+                queryString: "INVALID SQL",
+            });
+
+            // Assert
+            // One call should be the custom query attempt
+            expect(
+                mockTableExplorerService.initialize.calledWithMatch(
+                    sinon.match.any,
+                    sinon.match.any,
+                    sinon.match.any,
+                    sinon.match.any,
+                    "INVALID SQL",
+                ),
+            ).to.be.true;
+            // Another call should restore original session (no custom query)
+            expect(
+                mockTableExplorerService.initialize.calledWithMatch(
+                    sinon.match.any,
+                    sinon.match.any,
+                    sinon.match.any,
+                    sinon.match.any,
+                    undefined,
+                ),
+            ).to.be.true;
+            expect(showErrorMessageStub.called).to.be.true;
+        });
+
+        test("should set loadStatus to Error when both custom query and restore fail", async () => {
+            // Arrange
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.newRows = [];
+            controller.state.deletedRows = [];
+            controller.state.originalCellValues = new Map();
+            mockTableExplorerService.dispose.resolves();
+            mockTableExplorerService.initialize.rejects(new Error("Query failed"));
+
+            // Act
+            await controller["_reducerHandlers"].get("runTableQuery")(controller.state, {
+                queryString: "INVALID SQL",
+            });
+
+            // Assert
+            expect(controller.state.loadStatus).to.equal(ApiStatus.Error);
+            expect(showErrorMessageStub.calledWithMatch(sinon.match.string)).to.be.true;
+        });
+
+        test("should persist custom query string in state.tableQuery after successful run", async () => {
+            // Arrange
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.newRows = [];
+            controller.state.deletedRows = [];
+            controller.state.originalCellValues = new Map();
+            controller.state.tableQuery =
+                "SELECT TOP 100 [id], [firstName], [lastName]\nFROM [dbo].[TestTable]";
+            mockTableExplorerService.dispose.resolves();
+            mockTableExplorerService.initialize.resolves();
+
+            const customQuery = "SELECT TOP 10 * FROM dbo.TestTable WHERE id > 5";
+
+            // Act
+            await controller["_reducerHandlers"].get("runTableQuery")(controller.state, {
+                queryString: customQuery,
+            });
+
+            // Assert
+            expect(controller.state.tableQuery).to.equal(customQuery);
+        });
+
+        test("should preserve custom query through loadResultSet after re-initialization", async () => {
+            // Arrange
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.newRows = [];
+            controller.state.deletedRows = [];
+            controller.state.originalCellValues = new Map();
+            mockTableExplorerService.dispose.resolves();
+            mockTableExplorerService.initialize.resolves();
+            mockTableExplorerService.subset.resolves(createMockSubsetResult());
+
+            const customQuery = "SELECT TOP 10 * FROM dbo.TestTable WHERE id > 5";
+
+            // Act - run the custom query
+            await controller["_reducerHandlers"].get("runTableQuery")(controller.state, {
+                queryString: customQuery,
+            });
+
+            // Simulate the loadResultSet that happens after handleEditSessionReadyNotification
+            await controller["loadResultSet"]();
+
+            // Assert - custom query should be preserved, not overwritten by default
+            expect(controller.state.tableQuery).to.equal(customQuery);
+        });
+
+        test("should retain previous tableQuery when custom query fails and session is restored", async () => {
+            // Arrange
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.newRows = [];
+            controller.state.deletedRows = [];
+            controller.state.originalCellValues = new Map();
+            const defaultQuery =
+                "SELECT TOP 100 [id], [firstName], [lastName]\nFROM [dbo].[TestTable]";
+            controller.state.tableQuery = defaultQuery;
+            mockTableExplorerService.dispose.resolves();
+            mockTableExplorerService.initialize.callsFake((...args: unknown[]) => {
+                const queryString = args[4] as string | undefined;
+                if (queryString === "INVALID SQL") {
+                    return Promise.reject(new Error("Invalid query"));
+                }
+                return Promise.resolve({} as EditInitializeResult);
+            });
+
+            // Act
+            await controller["_reducerHandlers"].get("runTableQuery")(controller.state, {
+                queryString: "INVALID SQL",
+            });
+
+            // Assert - tableQuery should retain the previous default value
+            expect(controller.state.tableQuery).to.equal(defaultQuery);
+        });
+
+        test("should generate default query in loadResultSet when no custom query was run", async () => {
+            // Arrange
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.resultSet = createMockSubsetResult();
+            mockTableExplorerService.subset.resolves(createMockSubsetResult());
+
+            // Act - call loadResultSet directly (as happens during normal initialization)
+            await controller["loadResultSet"]();
+
+            // Assert - should have generated a default SELECT query
+            expect(controller.state.tableQuery).to.include("SELECT TOP");
+            expect(controller.state.tableQuery).to.include("FROM");
         });
     });
 

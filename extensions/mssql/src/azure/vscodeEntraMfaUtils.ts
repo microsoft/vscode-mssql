@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import { AzureTenant, getSessionFromVSCode } from "@microsoft/vscode-azext-azureauth";
 
 import { FormItemOptions } from "../sharedInterfaces/form";
-import { IToken } from "../models/contracts/azure";
+import { IProviderResources, IToken } from "../models/contracts/azure";
 import { getCloudProviderSettings } from "./providerSettings";
 import { VsCodeAzureHelper, getDefaultTenantId } from "../connectionconfig/azureHelpers";
 import * as locConstants from "../constants/locConstants";
@@ -91,17 +91,22 @@ export async function getVscodeEntraTenantOptions(accountId?: string): Promise<F
     }));
 }
 
-export async function acquireSqlAccessTokenFromVscodeAccount(
+/**
+ * Acquires an access token for the given resource from VS Code's authentication provider.
+ * Shared implementation for SQL and Azure Key Vault token acquisition.
+ */
+export async function acquireTokenFromVscodeAccountForResource(
+    resourceEndpoint: string,
     accountId?: string,
     tenantId?: string,
     accountLabel?: string,
 ): Promise<VscodeEntraSqlTokenInfo> {
     const account = await resolveVscodeEntraAccount(accountId, accountLabel);
     if (!account) {
-        throw new MissingVsCodeEntraAuthError(
+        throw new MissingEntraAuthAccountError(
             locConstants.Accounts.accountNotAvailableThroughVsCode(
                 accountLabel ?? accountId ?? "",
-                tenantId ?? "",
+                tenantId,
             ),
         );
     }
@@ -113,29 +118,21 @@ export async function acquireSqlAccessTokenFromVscodeAccount(
             : getDefaultTenantId(account.id, tenants);
 
     if (!resolvedTenantId) {
-        throw new MissingVsCodeEntraAuthError(
+        throw new MissingEntraAuthAccountError(
             locConstants.Accounts.accountNotAvailableThroughVsCode(
                 accountLabel ?? accountId ?? "",
-                tenantId ?? "",
+                tenantId,
             ),
         );
     }
 
-    const cloudSettings = getCloudProviderSettings();
-    const sqlResource = cloudSettings.settings.sqlResource;
-    if (!sqlResource) {
-        throw new Error(
-            locConstants.Azure.noSqlResourceConfiguredForCurrentCloud(cloudSettings.displayName),
-        );
-    }
-
     const session =
-        (await getSessionFromVSCode(sqlResource.endpoint, resolvedTenantId, {
+        (await getSessionFromVSCode(resourceEndpoint, resolvedTenantId, {
             createIfNone: false,
             silent: true,
             account,
         })) ??
-        (await getSessionFromVSCode(sqlResource.endpoint, resolvedTenantId, {
+        (await getSessionFromVSCode(resourceEndpoint, resolvedTenantId, {
             createIfNone: true,
             account,
         }));
@@ -159,6 +156,22 @@ export async function acquireSqlAccessTokenFromVscodeAccount(
     };
 }
 
+export function getCloudResourceEndpoint(endpoint: keyof IProviderResources): string {
+    const cloudSettings = getCloudProviderSettings();
+    const resource = cloudSettings.settings[endpoint];
+
+    if (!resource) {
+        throw new Error(
+            locConstants.Azure.noResourceConfiguredForCurrentCloud(
+                endpoint,
+                cloudSettings.displayName,
+            ),
+        );
+    }
+
+    return resource.endpoint;
+}
+
 function getTokenExpiration(accessToken: string): number | undefined {
     try {
         const tokenParts = accessToken.split(".");
@@ -174,11 +187,11 @@ function getTokenExpiration(accessToken: string): number | undefined {
     }
 }
 
-export class MissingVsCodeEntraAuthError extends Error {
+export class MissingEntraAuthAccountError extends Error {
     constructor(message: string) {
         super(message);
-        this.name = "MissingVsCodeEntraAuthError";
+        this.name = "MissingEntraAuthAccountError";
         // Set the prototype explicitly to maintain the correct prototype chain
-        Object.setPrototypeOf(this, MissingVsCodeEntraAuthError.prototype);
+        Object.setPrototypeOf(this, MissingEntraAuthAccountError.prototype);
     }
 }

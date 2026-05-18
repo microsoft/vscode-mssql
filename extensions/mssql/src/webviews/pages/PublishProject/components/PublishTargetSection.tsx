@@ -7,11 +7,7 @@ import { useContext, useEffect, useState } from "react";
 import { makeStyles } from "@fluentui/react-components";
 import { PublishProjectContext } from "../publishProjectStateProvider";
 import { usePublishDialogSelector } from "../publishDialogSelector";
-import {
-    PublishTarget,
-    PublishFormFields,
-    DefaultSqlPortNumber,
-} from "../../../../sharedInterfaces/publishDialog";
+import { PublishTarget, PublishFormFields } from "../../../../sharedInterfaces/publishDialog";
 import { renderInput, renderDropdown, renderCheckbox } from "./FormFieldComponents";
 
 const useStyles = makeStyles({
@@ -92,16 +88,6 @@ export const PublishTargetSection: React.FC = () => {
             return;
         }
 
-        // Default container port if not set
-        if (!portValue) {
-            publishCtx.formAction({
-                propertyName: PublishFormFields.ContainerPort,
-                isAction: false,
-                value: DefaultSqlPortNumber,
-                updateValidation: true,
-            });
-        }
-
         // Auto-select first image tag if not set
         if (!imageTagValue && imageTagComponent?.options?.[0]) {
             publishCtx.formAction({
@@ -111,7 +97,7 @@ export const PublishTargetSection: React.FC = () => {
                 updateValidation: true,
             });
         }
-    }, [isContainer, portValue, imageTagValue, imageTagComponent, publishCtx]);
+    }, [isContainer, imageTagValue, imageTagComponent, publishCtx]);
 
     // Revalidate confirm password when primary password changes (not when confirm password changes)
     useEffect(() => {

@@ -25,6 +25,7 @@ import {
     ConnectionDialogFormItemSpec,
     ConnectionStringDialogProps,
     GetConnectionDisplayNameRequest,
+    OpenOptionInfoLinkNotification,
     IAzureAccount,
     GetSqlAnalyticsEndpointUriFromFabricRequest,
     ChangePasswordDialogProps,
@@ -51,7 +52,7 @@ import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/tel
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { AzureController } from "../azure/azureController";
 import { AzureSubscription } from "@microsoft/vscode-azext-azureauth";
-import { ConnectionDetails, IConnectionInfo } from "vscode-mssql";
+import { ConnectionDetails, IConnectionInfo, IToken } from "vscode-mssql";
 import MainController from "../controllers/mainController";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { UserSurvey } from "../nps/userSurvey";
@@ -61,7 +62,7 @@ import {
     getServerTypes,
     getDefaultConnection,
 } from "../models/connectionInfo";
-import { getErrorMessage, uuid } from "../utils/utils";
+import { formatEpochSecondsForDisplay, getErrorMessage, uuid } from "../utils/utils";
 import { l10n } from "vscode";
 import {
     CredentialsQuickPickItemType,
@@ -73,7 +74,11 @@ import { generateConnectionComponents, groupAdvancedOptions } from "./formCompon
 import { FormWebviewController } from "../forms/formWebviewController";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { Deferred } from "../protocol";
-import { configSelectedAzureSubscriptions } from "../constants/constants";
+import {
+    configSelectedAzureSubscriptions,
+    defaultDatabase,
+    systemDatabases,
+} from "../constants/constants";
 import * as AzureConstants from "../azure/constants";
 import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
 import * as Utils from "../models/utils";
@@ -132,6 +137,17 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         "encrypt",
     ];
 
+    /** Properties that trigger a database list fetch when changed */
+    private static readonly _dbFetchTriggerProps: readonly (keyof IConnectionDialogProfile)[] = [
+        "server", // server, obviously
+        "authenticationType", // auth info because changing auth may change ability to connect/list databases
+        "user",
+        "password",
+        "accountId",
+        "tenantId",
+        "trustServerCertificate", // trustServerCertificate because enabling this may be required to connect/list databases
+    ];
+
     private _connectionBeingEdited: IConnectionDialogProfile | undefined;
     private _azureSubscriptions: Map<string, AzureSubscription>;
     private _lastSubmittedAction: ConnectionSubmitAction = ConnectionSubmitAction.Connect;
@@ -142,6 +158,13 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     private _cachedEntraTenants: Map<string, FormItemOptions[]> = new Map();
     /** Deferred that resolves when background Entra account+tenant loading completes. Check `isCompleted` for synchronous readiness. */
     private _entraDataLoaded = new Deferred<void>();
+
+    /** Incremented on each database fetch to allow superseding in-flight requests. */
+    private _dbFetchCounter = 0;
+    /** Fetch key currently reflected in the UI (options + loadStatus), for tracking if a changed connection property should trigger an update. */
+    private _activeDbFetchKey = "";
+    /** Cache of database lists keyed by fetch key, reused within the same dialog session. */
+    private _databaseListCache: Map<string, string[]> = new Map();
 
     //#endregion
 
@@ -219,7 +242,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         if (useVscodeAccounts) {
             const accountComponent = this.getFormComponent(this.state, "accountId");
             if (accountComponent) {
-                accountComponent.loading = true;
+                accountComponent.loadStatus = { status: ApiStatus.Loading };
             }
         }
 
@@ -726,10 +749,18 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 this.updateState(state);
             }
 
-            const existingAccounts = state.azureAccounts.map((a) => a.id);
-
             try {
-                await VsCodeAzureHelper.signIn(true /* forceSignInPrompt */);
+                const signInResult = await VsCodeAzureHelper.signIn(true /* forceSignInPrompt */);
+
+                state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map(
+                    (a) =>
+                        ({
+                            id: a.id,
+                            name: a.label,
+                        }) as IAzureAccount,
+                );
+
+                state.selectedAccountId = signInResult.newAccountId ?? state.azureAccounts[0]?.id;
             } catch (error) {
                 this.logger.error("Error signing into Azure: " + getErrorMessage(error));
                 state.formMessage = {
@@ -738,18 +769,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
                 return state;
             }
-
-            state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => {
-                return {
-                    id: a.id,
-                    name: a.label,
-                } as IAzureAccount;
-            });
-
-            // find the account that was added, and select it
-            state.selectedAccountId = state.azureAccounts.find(
-                (a) => !existingAccounts.includes(a.id),
-            )?.id;
 
             state.loadingAzureAccountsStatus = ApiStatus.Loaded;
             this.updateState(state);
@@ -766,7 +785,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         this.registerReducer("signIntoAzureTenantForBrowse", async (state) => {
             let auth: MssqlVSCodeAzureSubscriptionProvider;
             try {
-                auth = await VsCodeAzureHelper.signIn();
+                auth = (await VsCodeAzureHelper.signIn()).auth;
             } catch (error) {
                 this.logger.error("Error signing into Azure: " + getErrorMessage(error));
                 state.formMessage = {
@@ -865,6 +884,19 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return state;
         });
 
+        this.onNotification(OpenOptionInfoLinkNotification.type, async (payload) => {
+            const infoLinkMap: Partial<Record<AuthenticationType, string>> = {
+                [AuthenticationType.ActiveDirectoryDefault]:
+                    "https://aka.ms/vscode-mssql-auth-entra-default",
+                [AuthenticationType.AzureMFA]: "https://aka.ms/vscode-mssql-auth-entra-mfa",
+            };
+
+            const url = infoLinkMap[payload.option.value as AuthenticationType];
+            if (url) {
+                void this.vscodeWrapper.openExternal(url);
+            }
+        });
+
         this.registerReducer("messageButtonClicked", async (state, payload) => {
             if (payload.buttonId === CLEAR_TOKEN_CACHE) {
                 this._mainController.connectionManager.azureController.clearTokenCache();
@@ -941,11 +973,39 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
     override async afterSetFormProperty(
         propertyName: keyof IConnectionDialogProfile,
+        isBlur: boolean,
     ): Promise<void> {
         if (propertyName !== "profileName" && propertyName !== "groupId") {
             this.state.testConnectionSucceeded = false;
         }
         await this.handleAzureMFAEdits(propertyName);
+
+        if (
+            isBlur &&
+            ConnectionDialogWebviewController._dbFetchTriggerProps.includes(propertyName)
+        ) {
+            this.triggerDatabaseFetchIfReady();
+        }
+    }
+
+    private triggerDatabaseFetchIfReady() {
+        if (this.isConnectionReadyForDatabaseFetch(this.state.connectionProfile)) {
+            const fetchKey = this.buildDatabaseFetchKey();
+
+            if (fetchKey !== this._activeDbFetchKey) {
+                void this.loadDatabaseList();
+            }
+        } else if (this._activeDbFetchKey !== "") {
+            const dbComponent = this.getFormComponent(this.state, "database");
+
+            if (dbComponent) {
+                dbComponent.options = [];
+                dbComponent.loadStatus = undefined;
+            }
+
+            this._activeDbFetchKey = "";
+            this.updateState();
+        }
     }
 
     private async checkReadyToConnect(): Promise<void> {
@@ -1047,17 +1107,21 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         savedConnections: IConnectionDialogProfile[];
         recentConnections: IConnectionDialogProfile[];
     }> {
+        const recentConnectionsLimit =
+            this._mainController.connectionManager.connectionStore.getMaxRecentConnectionsCount();
         const unsortedConnections: IConnectionProfileWithSource[] =
             await this._mainController.connectionManager.connectionStore.readAllConnections(
                 true /* includeRecentConnections */,
+                recentConnectionsLimit,
             );
 
         const savedConnections = unsortedConnections.filter(
             (c) => c.profileSource === CredentialsQuickPickItemType.Profile,
         );
 
-        const recentConnections = unsortedConnections.filter(
-            (c) => c.profileSource === CredentialsQuickPickItemType.Mru,
+        const recentConnections = this.normalizeRecentConnectionsForDisplay(
+            unsortedConnections.filter((c) => c.profileSource === CredentialsQuickPickItemType.Mru),
+            savedConnections,
         );
 
         sendActionEvent(
@@ -1115,6 +1179,84 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         state.recentConnections = loadedConnections.recentConnections;
         state.savedConnections = loadedConnections.savedConnections;
+    }
+
+    private normalizeRecentConnectionsForDisplay(
+        recentConnections: IConnectionProfileWithSource[],
+        savedConnections: IConnectionProfileWithSource[],
+    ): IConnectionProfileWithSource[] {
+        return recentConnections.map((recentConnection) => {
+            const matchingSavedConnection = savedConnections.find((savedConnection) =>
+                this.isOriginalSavedProfile(savedConnection, recentConnection),
+            );
+
+            if (
+                matchingSavedConnection &&
+                !this.isSameDatabaseName(
+                    matchingSavedConnection.database,
+                    recentConnection.database,
+                )
+            ) {
+                return {
+                    ...recentConnection,
+                    profileName: undefined,
+                };
+            }
+
+            return recentConnection;
+        });
+    }
+
+    private isOriginalSavedProfile(
+        savedConnection: IConnectionProfileWithSource,
+        recentConnection: IConnectionProfileWithSource,
+    ): boolean {
+        if (savedConnection.id && recentConnection.id) {
+            return savedConnection.id === recentConnection.id;
+        }
+
+        if (
+            !savedConnection.profileName ||
+            !recentConnection.profileName ||
+            savedConnection.profileName !== recentConnection.profileName
+        ) {
+            return false;
+        }
+
+        if (savedConnection.connectionString || recentConnection.connectionString) {
+            return savedConnection.connectionString === recentConnection.connectionString;
+        }
+
+        if (savedConnection.server !== recentConnection.server) {
+            return false;
+        }
+
+        const savedAuthType = savedConnection.authenticationType || AuthenticationType.SqlLogin;
+        const recentAuthType = recentConnection.authenticationType || AuthenticationType.SqlLogin;
+
+        if (savedAuthType !== recentAuthType) {
+            return false;
+        }
+
+        if ((savedConnection.user ?? "") !== (recentConnection.user ?? "")) {
+            return false;
+        }
+
+        if (savedConnection.accountId || recentConnection.accountId) {
+            return areCompatibleEntraAccountIds(
+                savedConnection.accountId,
+                recentConnection.accountId,
+            );
+        }
+
+        return true;
+    }
+
+    private isSameDatabaseName(currentDatabase?: string, expectedDatabase?: string): boolean {
+        const normalizedCurrentDatabase = currentDatabase?.trim() || defaultDatabase;
+        const normalizedExpectedDatabase = expectedDatabase?.trim() || defaultDatabase;
+
+        return normalizedCurrentDatabase === normalizedExpectedDatabase;
     }
 
     private async validateProfile(connectionProfile?: IConnectionDialogProfile): Promise<string[]> {
@@ -1300,6 +1442,153 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
     }
 
+    private isConnectionReadyForDatabaseFetch(profile: IConnectionDialogProfile): boolean {
+        if (!profile.server) {
+            return false;
+        }
+
+        switch (profile.authenticationType) {
+            case AuthenticationType.SqlLogin:
+                return !!(profile.user && profile.password);
+            case AuthenticationType.AzureMFA:
+                return !!profile.accountId;
+            case AuthenticationType.Integrated:
+            case AuthenticationType.ActiveDirectoryDefault:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private buildDatabaseOptions(dbs: string[]): FormItemOptions[] {
+        const collator = new Intl.Collator(undefined, { sensitivity: "base" });
+        const userDbs = dbs
+            .filter((db) => !systemDatabases.includes(db.toLowerCase()))
+            .sort((a, b) => collator.compare(a, b));
+        const sysDbs = dbs
+            .filter((db) => systemDatabases.includes(db.toLowerCase()))
+            .sort((a, b) => collator.compare(a, b));
+        return [
+            ...userDbs.map((db) => ({
+                displayName: db,
+                value: db,
+                groupName: Loc.userDatabasesGroup,
+            })),
+            ...sysDbs.map((db) => ({
+                displayName: db,
+                value: db,
+                groupName: Loc.systemDatabasesGroup,
+            })),
+        ];
+    }
+
+    private buildDatabaseFetchKey(): string {
+        const p = this.state.connectionProfile;
+        return `${p.server ?? ""}|${p.authenticationType ?? ""}|${p.user ?? ""}|${p.accountId ?? ""}|${p.tenantId ?? ""}`;
+    }
+
+    private async loadDatabaseList(): Promise<void> {
+        const counter = ++this._dbFetchCounter;
+        const fetchKey = this.buildDatabaseFetchKey();
+        const dbComponent = this.getFormComponent(this.state, "database");
+
+        if (!dbComponent) {
+            return;
+        }
+
+        // 1. Use cached list if available
+        const cached = this._databaseListCache.get(fetchKey);
+
+        if (cached) {
+            this._activeDbFetchKey = fetchKey;
+            dbComponent.options = this.buildDatabaseOptions(cached);
+            dbComponent.loadStatus = undefined;
+            this.updateState();
+            return;
+        }
+
+        // 2. Display loading state
+        this._activeDbFetchKey = fetchKey;
+        dbComponent.options = [];
+        dbComponent.loadStatus = { status: ApiStatus.Loading };
+        this.updateState();
+
+        // 3. Attempt to fetch database list
+        const tempUri = uuid();
+        try {
+            const profile: IConnectionDialogProfile = {
+                ...this.state.connectionProfile,
+                database: "",
+            };
+
+            const connected = await this._mainController.connectionManager.connect(
+                tempUri,
+                profile,
+                {
+                    shouldHandleErrors: false,
+                    connectionSource: CONNECTION_DIALOG_VIEW_ID,
+                },
+            );
+
+            // Check if this fetch attempt is out-of-date
+            if (counter !== this._dbFetchCounter) {
+                return;
+            }
+
+            // 4a. If connection failed, show error message
+            if (!connected) {
+                const connInfo = this._mainController.connectionManager.getConnectionInfo(tempUri);
+                const errorType = connInfo
+                    ? await getSqlConnectionErrorType(connInfo, this.state.connectionProfile)
+                    : SqlConnectionErrorType.Generic;
+                const errorDetail =
+                    errorType === SqlConnectionErrorType.TrustServerCertificateNotEnabled
+                        ? LocAll.Connection.trustServerCertificateMustBeEnabledMessage
+                        : (connInfo?.errorMessage ?? "");
+                dbComponent.loadStatus = {
+                    status: ApiStatus.Error,
+                    message: Loc.unableToLoadDatabaseList(errorDetail),
+                };
+                this._activeDbFetchKey = "";
+                this.updateState();
+                return;
+            }
+
+            const dbs = await this._mainController.connectionManager.listDatabases(tempUri);
+
+            // Check if this fetch attempt is out-of-date
+            if (counter !== this._dbFetchCounter) {
+                return;
+            }
+
+            // 4b. If connection succeeded, cache and display database list
+            this._databaseListCache.set(fetchKey, dbs);
+            dbComponent.options = this.buildDatabaseOptions(dbs);
+            dbComponent.loadStatus = undefined;
+
+            this.updateState();
+        } catch (err) {
+            // Check if this fetch attempt is out-of-date
+            if (counter !== this._dbFetchCounter) {
+                return;
+            }
+
+            dbComponent.loadStatus = {
+                status: ApiStatus.Error,
+                message: Loc.unableToLoadDatabaseList(getErrorMessage(err)),
+            };
+
+            this._activeDbFetchKey = "";
+            this.updateState();
+        } finally {
+            try {
+                await this._mainController.connectionManager.disconnect(tempUri);
+            } catch {
+                // ignore disconnect errors
+            }
+        }
+    }
+
     private async prepareConnectionForSave(
         connection: IConnectionDialogProfile,
     ): Promise<IConnectionDialogProfile> {
@@ -1473,6 +1762,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         if (connectionToEdit) {
             await this.setConnectionForEdit(connectionToEdit);
             this.updateState();
+
+            if (this.isConnectionReadyForDatabaseFetch(this.state.connectionProfile)) {
+                void this.loadDatabaseList();
+            }
         }
     }
 
@@ -1585,7 +1878,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this._entraDataLoaded.resolve();
         } finally {
             if (accountComponent) {
-                accountComponent.loading = false;
+                accountComponent.loadStatus = { status: ApiStatus.Loaded };
             }
 
             await this.updateItemVisibility();
@@ -1670,7 +1963,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     }
 
     private async getAzureActionButtons(): Promise<FormItemActionButton[]> {
+        const self = this;
         const actionButtons: FormItemActionButton[] = [];
+
         actionButtons.push({
             label: Loc.signIn,
             id: "azureSignIn",
@@ -1696,7 +1991,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
                     // Invalidate cache and re-load all accounts + tenants
                     this.clearEntraAccountCache();
-                    accountsComponent.loading = true;
+                    accountsComponent.loadStatus = { status: ApiStatus.Loading };
                     this.updateState();
 
                     await this.loadVscodeEntraDataAsync();
@@ -1744,15 +2039,67 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             const account = (await this._mainController.azureAccountService.getAccounts()).find(
                 (account) => account.displayInfo.userId === this.state.connectionProfile.accountId,
             );
+
             if (account) {
                 let isTokenExpired = false;
 
+                async function refreshToken(): Promise<IToken | undefined> {
+                    const account = (
+                        await self._mainController.azureAccountService.getAccounts()
+                    ).find(
+                        (account) =>
+                            account.displayInfo.userId === self.state.connectionProfile.accountId,
+                    );
+
+                    if (account) {
+                        try {
+                            const token =
+                                await self._mainController.azureAccountService.getAccountSecurityToken(
+                                    account,
+                                    undefined,
+                                );
+
+                            if (AzureController.isTokenValid(token.token, token.expiresOn)) {
+                                self.vscodeWrapper.showInformationMessage(
+                                    Loc.tokenRefreshedSuccessfully,
+                                );
+
+                                self.logger.log(
+                                    `Token refreshed.  Next expiration: ${formatEpochSecondsForDisplay(token.expiresOn)}`,
+                                );
+
+                                return token;
+                            } else {
+                                throw new Error(
+                                    Loc.unableToAcquireValidToken(
+                                        formatEpochSecondsForDisplay(token.expiresOn),
+                                        formatEpochSecondsForDisplay(Date.now() / 1000),
+                                    ),
+                                );
+                            }
+                        } catch (err) {
+                            self.logger.error(`Error refreshing token: ${getErrorMessage(err)}`);
+                            self.vscodeWrapper.showErrorMessage(
+                                Loc.errorRefreshingToken(getErrorMessage(err)),
+                            );
+                        }
+                    } else {
+                        self.logger.error(
+                            `Account not found when attempting token refresh: ${self.state.connectionProfile.email} (${self.state.connectionProfile.accountId})`,
+                        );
+                    }
+
+                    return undefined;
+                }
+
                 try {
+                    // Check if token is expired or expiring soon...
                     const session =
                         await this._mainController.azureAccountService.getAccountSecurityToken(
                             account,
                             undefined,
                         );
+
                     isTokenExpired = !AzureController.isTokenValid(
                         session.token,
                         session.expiresOn,
@@ -1762,9 +2109,16 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         `Error getting token or checking validity; prompting for refresh. Error: ${getErrorMessage(err)}`,
                     );
 
-                    this.vscodeWrapper.showErrorMessage(
-                        "Error validating Entra authentication token; you may need to refresh your token.",
-                    );
+                    void this.vscodeWrapper
+                        .showErrorMessage(
+                            Loc.errorValidatingEntraToken(getErrorMessage(err)),
+                            refreshTokenLabel,
+                        )
+                        .then((result) => {
+                            if (result === refreshTokenLabel) {
+                                void refreshToken();
+                            }
+                        });
 
                     isTokenExpired = true;
                 }
@@ -1774,27 +2128,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         label: refreshTokenLabel,
                         id: "refreshToken",
                         callback: async () => {
-                            const account = (
-                                await this._mainController.azureAccountService.getAccounts()
-                            ).find(
-                                (account) =>
-                                    account.displayInfo.userId ===
-                                    this.state.connectionProfile.accountId,
-                            );
-                            if (account) {
-                                try {
-                                    const session =
-                                        await this._mainController.azureAccountService.getAccountSecurityToken(
-                                            account,
-                                            undefined,
-                                        );
-                                    this.logger.log("Token refreshed", session.expiresOn);
-                                } catch (err) {
-                                    this.logger.error(
-                                        `Error refreshing token: ${getErrorMessage(err)}`,
-                                    );
-                                }
-                            }
+                            await refreshToken();
                         },
                     });
                 }
@@ -1832,7 +2166,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         // await the deferred. updateItemVisibility is called for authenticationType
         // changes so account/tenant fields become visible before pushing state.
         if (useVscodeAccounts && !this._entraDataLoaded.isCompleted) {
-            accountComponent.loading = true;
+            accountComponent.loadStatus = { status: ApiStatus.Loading };
 
             if (propertyName === "authenticationType") {
                 await this.updateItemVisibility();
@@ -1925,7 +2259,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             }
         } finally {
             if (useVscodeAccounts) {
-                accountComponent.loading = false;
+                accountComponent.loadStatus = { status: ApiStatus.Loaded };
                 await this.updateItemVisibility();
             }
         }
@@ -2041,7 +2375,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             // Step 2: We have accounts; initialize provider (should not force prompt)
             let auth: MssqlVSCodeAzureSubscriptionProvider;
             try {
-                auth = await VsCodeAzureHelper.signIn();
+                auth = (await VsCodeAzureHelper.signIn()).auth;
             } catch (error) {
                 state.formMessage = {
                     message: LocAzure.errorSigningIntoAzure(getErrorMessage(error)),

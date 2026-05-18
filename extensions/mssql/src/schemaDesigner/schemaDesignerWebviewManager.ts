@@ -86,6 +86,7 @@ export class SchemaDesignerWebviewManager {
         databaseName: string,
         treeNode?: TreeNodeInfo,
         connectionUri?: string,
+        isReadOnly: boolean = false,
     ): Promise<SchemaDesignerWebviewController> {
         let connectionString: string | undefined;
         let azureAccountToken: string | undefined;
@@ -117,7 +118,10 @@ export class SchemaDesignerWebviewManager {
             azureAccountToken = connInfo.credentials.azureAccountToken;
         }
 
-        const key = `${connectionString}-${databaseName}`;
+        // Include the mode in the cache key so that opening a read-only and an
+        // editable view for the same database produces two separate panels rather
+        // than reusing one with the wrong toolbar and state.
+        const key = `${connectionString}-${databaseName}-${isReadOnly ? "ro" : "rw"}`;
         if (!this.schemaDesigners.has(key) || this.schemaDesigners.get(key)?.isDisposed) {
             const schemaDesigner = new SchemaDesignerWebviewController(
                 context,
@@ -130,6 +134,7 @@ export class SchemaDesignerWebviewManager {
                 this.schemaDesignerCache,
                 treeNode,
                 connectionUri,
+                isReadOnly,
             );
             const viewStateDisposable = schemaDesigner.panel.onDidChangeViewState((event) => {
                 if (event.webviewPanel.visible) {
@@ -172,6 +177,7 @@ export class SchemaDesignerWebviewManager {
                             databaseName,
                             treeNode,
                             connectionUri,
+                            isReadOnly,
                         );
                     }
                 }

@@ -16,6 +16,7 @@ import { ApiStatus } from "./webview";
 export enum ObjectManagementDialogType {
     CreateDatabase = "createDatabase",
     DropDatabase = "dropDatabase",
+    RenameDatabase = "renameDatabase",
     BackupDatabase = "backupDatabase",
     RestoreDatabase = "restoreDatabase",
 }
@@ -58,6 +59,19 @@ export interface DropDatabaseParams {
     deleteBackupHistory: boolean;
 }
 
+export interface RenameDatabaseViewModel {
+    serverName: string;
+    databaseName: string;
+    newDatabaseName?: string;
+    owner?: string;
+    status?: string;
+}
+
+export interface RenameDatabaseParams {
+    newName: string;
+    dropConnections: boolean;
+}
+
 export type ObjectManagementViewModel =
     | {
           dialogType: ObjectManagementDialogType.CreateDatabase;
@@ -66,6 +80,10 @@ export type ObjectManagementViewModel =
     | {
           dialogType: ObjectManagementDialogType.DropDatabase;
           model?: DropDatabaseViewModel;
+      }
+    | {
+          dialogType: ObjectManagementDialogType.RenameDatabase;
+          model?: RenameDatabaseViewModel;
       }
     | {
           dialogType: ObjectManagementDialogType.BackupDatabase;
@@ -111,6 +129,10 @@ export type ObjectManagementActionParams =
           params: DropDatabaseParams;
       }
     | {
+          dialogType: ObjectManagementDialogType.RenameDatabase;
+          params: RenameDatabaseParams;
+      }
+    | {
           dialogType: ObjectManagementDialogType.BackupDatabase;
           params: BackupDatabaseParams;
       }
@@ -122,6 +144,7 @@ export type ObjectManagementActionParams =
 export interface ObjectManagementActionResult {
     success: boolean;
     errorMessage?: string;
+    taskId?: string;
 }
 
 export namespace ObjectManagementSubmitRequest {

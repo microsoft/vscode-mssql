@@ -7,8 +7,18 @@ coverage:
       default:
         target: 70% #the required coverage value
 comment: #Layout of the PR comment
-  layout: "reach, diff, files"
+  layout: "reach, diff, flags, files"
   behavior: default
+flags:
+  mssql:
+    paths:
+      - extensions/mssql/
+  sqlproj:
+    paths:
+      - extensions/sql-database-projects/
+  data-workspace:
+    paths:
+      - extensions/data-workspace/
 parsers:
   cobertura:
     partials_as_hits: true

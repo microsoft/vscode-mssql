@@ -32,8 +32,7 @@ export let dropDatabaseDialogTitle = l10n.t("Drop Database");
 export let renameDatabaseDialogTitle = l10n.t("Rename Database");
 export let createDatabaseWebviewTitle = l10n.t("Create Database");
 export let dropDatabaseWebviewTitle = l10n.t("Drop Database");
-export let renameDatabaseInputPlaceholder = l10n.t("Enter the new database name");
-export let databaseNameRequired = l10n.t("Database name is required");
+export let renameDatabaseWebviewTitle = l10n.t("Rename Database");
 export let msgSelectServerNodeToCreateDatabase = l10n.t(
     "Please select a server node in Object Explorer to create a database.",
 );
@@ -306,9 +305,6 @@ export let refreshTokenLabel = l10n.t("Refresh Credentials");
 export let msgGetTokenFail = l10n.t("Failed to fetch user tokens.");
 export let msgPromptRetryConnectionDifferentCredentials = l10n.t(
     "Error: Login failed. Retry using different credentials?",
-);
-export let msgPromptSSLCertificateValidationFailed = l10n.t(
-    "Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?",
 );
 export let msgPromptRetryFirewallRuleNotSignedIn = l10n.t(
     "Your client IP address does not have access to the server. Add a Microsoft Entra account and create a new firewall rule to enable access.",
@@ -780,6 +776,25 @@ export let executionPlan = l10n.t("Execution Plan");
 export let executionPlanFileFilter = l10n.t("SQL Plan Files");
 export let scriptCopiedToClipboard = l10n.t("Script copied to clipboard");
 export let copied = l10n.t("Copied");
+export let failedToOpenTextInEditor = (errorMessage: string) =>
+    l10n.t({
+        message: "Failed to open text in editor: {0}",
+        args: [errorMessage],
+        comment: ["{0} is the error message"],
+    });
+export let failedToCopyTextToClipboard = (errorMessage: string) =>
+    l10n.t({
+        message: "Failed to copy text to clipboard: {0}",
+        args: [errorMessage],
+        comment: ["{0} is the error message"],
+    });
+export let failedToAddTextToWorkspace = (errorMessage: string) =>
+    l10n.t({
+        message: "Failed to add text to workspace: {0}",
+        args: [errorMessage],
+        comment: ["{0} is the error message"],
+    });
+export let schemaDesignerDetailsUnavailable = l10n.t("Schema designer details are not available.");
 export let copyingResults = l10n.t("Copying results...");
 export let resultsCopiedToClipboard = l10n.t("Results copied to clipboard");
 
@@ -805,6 +820,13 @@ export class Notebooks {
     public static noActiveNotebook = l10n.t("No active notebook.");
     public static noActiveConnection = l10n.t("No active connection.");
     public static noConnectionSelected = l10n.t("No connection selected.");
+
+    // Copy cell output
+    public static copyMessages = l10n.t("Copy messages");
+    public static copyMessagesTooltip = l10n.t(
+        "Copy all text output for this cell (messages, PRINT, errors)",
+    );
+    public static copiedMessages = l10n.t("$(check) Copied messages");
 
     // Execution results
     public static rowsAffected(count: number) {
@@ -995,6 +1017,12 @@ export class ConnectionDialog {
     public static additionalParameters = l10n.t("Additional parameters");
     public static connect = l10n.t("Connect");
     public static default = l10n.t("<Default>");
+    public static entraDefaultAuthTooltip = l10n.t(
+        "Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.",
+    );
+    public static entraMfaAuthTooltip = l10n.t(
+        "Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.",
+    );
     public static createConnectionGroup = l10n.t("+ Create Connection Group");
     public static selectConnectionGroup = l10n.t("Select a connection group");
     public static searchConnectionGroups = l10n.t("Search connection groups");
@@ -1029,10 +1057,45 @@ export class ConnectionDialog {
     }
     public static clearCacheAndRefreshToken = l10n.t("Clear cache and refresh token");
     public static clearTokenCache = l10n.t("Clear token cache");
+    public static tokenRefreshedSuccessfully = l10n.t("Token refreshed successfully.");
+
+    public static unableToAcquireValidToken(expiresOn: string, currentTime: string) {
+        return l10n.t({
+            message: "Unable to acquire a valid token. (expires: {0}, but is currently {1})",
+            args: [expiresOn, currentTime],
+            comment: ["{0} is the token expiration time", "{1} is the current time"],
+        });
+    }
+    public static errorRefreshingToken(errorMessage: string) {
+        return l10n.t({
+            message: "Error refreshing token; you may need to sign out and sign back in: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+    }
+    public static errorValidatingEntraToken(errorMessage: string) {
+        return l10n.t({
+            message:
+                "Error validating Entra authentication token; you may need to refresh your token: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+    }
 
     public static noWorkspacesFound = l10n.t(
         "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
     );
+
+    public static selectDatabase = l10n.t("Select a database");
+    public static userDatabasesGroup = l10n.t("User databases");
+    public static systemDatabasesGroup = l10n.t("System databases");
+    public static unableToLoadDatabaseList(errorMessage: string) {
+        return l10n.t({
+            message: "Unable to load database list from server: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the connection error message"],
+        });
+    }
 
     public static unsupportedAuthType(authenticationType: string) {
         return l10n.t({
@@ -1065,12 +1128,15 @@ export class Azure {
         });
     }
 
-    public static noSqlResourceConfiguredForCurrentCloud(cloudName: string): string {
+    public static noResourceConfiguredForCurrentCloud(
+        resourceType: string,
+        cloudName: string,
+    ): string {
         return l10n.t({
             message:
-                "No SQL resource is configured for the current cloud '{0}'. Please update your Azure account settings.",
-            args: [cloudName],
-            comment: ["{0} is the display name of the current cloud"],
+                "No resource of type '{0}' is configured for the current cloud '{1}'. Please update your Azure account settings.",
+            args: [resourceType, cloudName],
+            comment: ["{0} is the resource type", "{1} is the display name of the current cloud"],
         });
     }
 
@@ -1274,13 +1340,42 @@ export class Fabric {
 }
 
 export class Accounts {
-    static accountNotAvailableThroughVsCode(accountDisplayName: string, tenantId: string): string {
-        return l10n.t({
-            message:
-                "The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.",
-            args: [accountDisplayName, tenantId],
-            comment: ["{0} is the account ID or label", "{1} is the tenant ID"],
-        });
+    static entraAccountNotAvailableThroughMsal(
+        accountDisplayName: string,
+        tenantId?: string,
+    ): string {
+        if (tenantId === undefined || tenantId === "") {
+            return l10n.t({
+                message:
+                    "The selected profile authenticates using Entra ID '{0}' but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.",
+                args: [accountDisplayName],
+                comment: ["{0} is the account ID or label"],
+            });
+        } else {
+            return l10n.t({
+                message:
+                    "The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.",
+                args: [accountDisplayName, tenantId],
+                comment: ["{0} is the account ID or label", "{1} is the tenant ID"],
+            });
+        }
+    }
+    static accountNotAvailableThroughVsCode(accountDisplayName: string, tenantId?: string): string {
+        if (tenantId === undefined || tenantId === "") {
+            return l10n.t({
+                message:
+                    "The selected profile authenticates using Entra ID '{0}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.",
+                args: [accountDisplayName],
+                comment: ["{0} is the account ID or label"],
+            });
+        } else {
+            return l10n.t({
+                message:
+                    "The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.",
+                args: [accountDisplayName, tenantId],
+                comment: ["{0} is the account ID or label", "{1} is the tenant ID"],
+            });
+        }
     }
     public static invalidEntraAccountsRemoved = (numRemoved: number) => {
         return l10n.t({
@@ -1743,6 +1838,12 @@ export class PublishProject {
     public static CreatingSqlServerContainer = l10n.t("Creating SQL Server container...");
     // Validation messages
     public static InvalidPortMessage = l10n.t("Port must be a number between 1 and 65535");
+    public static PortAlreadyInUse = (port: number) =>
+        l10n.t({
+            message: "Port {0} is already in use. Please choose a different port.",
+            args: [port],
+            comment: ["{0} is the port number"],
+        });
     public static InvalidSQLPasswordMessage(name: string) {
         return l10n.t(
             "Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy",
@@ -1897,7 +1998,8 @@ export class SchemaCompare {
 
 export class SchemaDesigner {
     public static LoadingSchemaDesginerModel = l10n.t("Loading Schema Designer Model...");
-    public static PanelTitle = l10n.t("Visualize and Design Schema (Preview)");
+    public static PanelTitle = l10n.t("Visualize and Design Schema");
+    public static ReadOnlyPanelTitle = l10n.t("Table Diagram");
     public static SchemaReady = l10n.t(
         "Schema Designer Model is ready. Changes can now be published.",
     );
@@ -1927,6 +2029,15 @@ export class SchemaDesigner {
     public static noWorkspaceOpenForMcp = l10n.t(
         "No workspace folder is open. Open a folder to add the MCP server configuration.",
     );
+    public static noWorkspaceOpenForGeneratedFile = l10n.t(
+        "No workspace folder is open. Open a folder to add the generated file.",
+    );
+    public static generatedFileAddedToWorkspace = (filePath: string) =>
+        l10n.t({
+            message: "Generated file added to {0}",
+            args: [filePath],
+            comment: ["{0} is the generated file path"],
+        });
     public static configCopiedToClipboard = l10n.t("Config copied to clipboard");
     public static urlCopiedToClipboard = l10n.t("URL copied to clipboard");
     public static logsCopiedToClipboard = l10n.t("Logs copied to clipboard");
@@ -2026,6 +2137,29 @@ export class Connection {
     public static SelectTenant = l10n.t("Select a tenant");
 
     public static ChangePassword = l10n.t("Change Password");
+
+    public static trustServerCertificateMustBeEnabledMessage = l10n.t(
+        "Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true'. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments.",
+    );
+
+    public static trustServerCertificateMustBeEnabledPrompt = l10n.t(
+        "Do you want to enable 'Trust server certificate' on this connection and retry?",
+    );
+
+    public static securityTokenRequestFailed = (errorMessage: string, resource: string) => {
+        return l10n.t({
+            message: "Failed to obtain token for resource '{1}'.  Error: {0}",
+            args: [errorMessage, resource],
+            comment: ["{0} is the error message", "{1} is the resource"],
+        });
+    };
+    public static failedToAcquireToken = (accountId: string, tenantId: string) => {
+        return l10n.t({
+            message: "Failed to acquire token for account '{0}' and tenant '{1}'",
+            args: [accountId, tenantId],
+            comment: ["{0} is the account ID", "{1} is the tenant ID"],
+        });
+    };
 }
 
 export class MssqlChatAgent {
@@ -2776,6 +2910,9 @@ export class DacpacDialog {
     public static RevealInExplorer = l10n.t("Reveal in Explorer");
     public static RevealInFinder = l10n.t("Reveal in Finder");
     public static OpenContainingFolder = l10n.t("Open Containing Folder");
+    public static FailedToListDatabases = l10n.t(
+        "Unable to retrieve the list of databases. You may not have permission to list databases on this server.",
+    );
     public static DeploySuccessWithDatabase(databaseName: string): string {
         return l10n.t({
             message: "DACPAC deployed successfully to database '{0}'",
@@ -2809,7 +2946,7 @@ export class DacpacDialog {
 export class SearchDatabase {
     public static title = (serverName: string) =>
         l10n.t({
-            message: "Search Database Objects (Preview) - {0}",
+            message: "Search Database Objects - {0}",
             args: [serverName],
             comment: ["{0} is the server name"],
         });
@@ -2979,6 +3116,21 @@ export class TableExplorer {
             args: [errorMessage],
             comment: ["{0} is the error message"],
         });
+
+    public static failedToRunTableQuery = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to run table query: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToRunTableQueryUnknown = l10n.t("Failed to run table query.");
+
+    public static pendingChangesWillBeLost = l10n.t(
+        "Running a custom query will discard all pending changes. Do you want to continue?",
+    );
+
+    public static Continue = l10n.t("Continue");
 }
 
 export class AzureDataStudioMigration {
@@ -3172,12 +3324,10 @@ export class Profiler {
 
     // Quick pick and input prompts
     public static selectTemplate = l10n.t("Select a profiler template");
-    public static newSessionSelectTemplate = l10n.t(
-        "New Query Profiler (Preview) - Select Template",
-    );
+    public static newSessionSelectTemplate = l10n.t("New Query Profiler - Select Template");
     public static enterSessionName = l10n.t("Enter a name for the new profiler session");
     public static sessionNamePlaceholder = l10n.t("MyProfilerSession");
-    public static newSessionEnterName = l10n.t("New Query Profiler (Preview) - Enter Name");
+    public static newSessionEnterName = l10n.t("New Query Profiler - Enter Name");
     public static engineLabel = (engineType: string) =>
         l10n.t({
             message: "Engine: {0}",
@@ -3231,17 +3381,17 @@ export class Profiler {
         });
 
     // Status bar
-    public static statusBarNoSession = l10n.t("Query Profiler (Preview): No session");
-    public static statusBarTooltip = l10n.t("Query Profiler (Preview) Session Status");
+    public static statusBarNoSession = l10n.t("Query Profiler: No session");
+    public static statusBarTooltip = l10n.t("Query Profiler Session Status");
 
     // Panel titles
     public static panelTitleWithSession = (name: string) =>
         l10n.t({
-            message: "Query Profiler (Preview): {0}",
+            message: "Query Profiler: {0}",
             args: [name],
             comment: ["{0} is the file name or session name"],
         });
-    public static panelTitleDefault = l10n.t("Query Profiler (Preview)");
+    public static panelTitleDefault = l10n.t("Query Profiler");
     public static stateRunning = l10n.t("Running");
     public static statePaused = l10n.t("Paused");
     public static stateStopped = l10n.t("Stopped");
