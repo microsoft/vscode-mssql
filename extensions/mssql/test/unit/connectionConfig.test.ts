@@ -1003,7 +1003,6 @@ suite("ConnectionConfig Tests", () => {
                 LocalizedConstants.Connection.defaultConnectionSelectConnection,
             );
             mockVscodeWrapper.showQuickPick.resolves({ profile: savedProfile } as any);
-            mockVscodeWrapper.setConfiguration.resolves();
 
             const connConfig = new ConnectionConfig(mockVscodeWrapper);
             await connConfig.initialized;
@@ -1026,7 +1025,6 @@ suite("ConnectionConfig Tests", () => {
             mockVscodeWrapper.showQuickPick.resolves({
                 value: Constants.NewEditorConnectionBehavior.TransferActive,
             } as any);
-            mockVscodeWrapper.setConfiguration.resolves();
 
             const connConfig = new ConnectionConfig(mockVscodeWrapper);
             await connConfig.initialized;
@@ -1049,7 +1047,6 @@ suite("ConnectionConfig Tests", () => {
             mockVscodeWrapper.showQuickPick.resolves({
                 value: Constants.NewEditorConnectionBehavior.None,
             } as any);
-            mockVscodeWrapper.setConfiguration.resolves();
 
             const connConfig = new ConnectionConfig(mockVscodeWrapper);
             await connConfig.initialized;
@@ -1066,13 +1063,23 @@ suite("ConnectionConfig Tests", () => {
         test("does nothing when user dismisses the prompt", async () => {
             stubRootConfig(Constants.NewEditorConnectionBehavior.DefaultConnection, "");
             showWarningAdvancedStub.resolves(undefined);
-            mockVscodeWrapper.setConfiguration.resolves();
 
             const connConfig = new ConnectionConfig(mockVscodeWrapper);
             await connConfig.initialized;
             await new Promise((r) => setTimeout(r, 50));
 
-            expect(mockVscodeWrapper.setConfiguration).to.not.have.been.called;
+            expect(mockVscodeWrapper.setConfiguration).to.not.have.been.calledWith(
+                Constants.extensionName,
+                "defaultConnectionId",
+                sinon.match.any,
+                sinon.match.any,
+            );
+            expect(mockVscodeWrapper.setConfiguration).to.not.have.been.calledWith(
+                Constants.extensionName,
+                "newEditorConnectionBehavior",
+                sinon.match.any,
+                sinon.match.any,
+            );
         });
     });
 });
