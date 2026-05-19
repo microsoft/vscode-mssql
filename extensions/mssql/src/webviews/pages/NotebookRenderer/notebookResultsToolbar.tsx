@@ -120,8 +120,18 @@ export function NotebookResultsToolbar({
         postMessage(msg);
     };
 
+    const toolbarLabel = l10n.t({
+        message: "Export toolbar for result set {0}",
+        args: [resultSetIndex + 1],
+        comment: ["{0} is the result set number (1-based index)"],
+    });
+
     return (
-        <div className="notebook-results-toolbar" style={toolbarStyle} role="toolbar">
+        <div
+            className="notebook-results-toolbar"
+            style={toolbarStyle}
+            role="toolbar"
+            aria-label={toolbarLabel}>
             {actions.map((action) => (
                 <button
                     key={action.id}

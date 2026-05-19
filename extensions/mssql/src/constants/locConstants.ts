@@ -500,6 +500,7 @@ export let saveExcelLabel = l10n.t("Save as Excel");
 export let fileTypeCSVLabel = l10n.t("CSV");
 export let fileTypeJSONLabel = l10n.t("JSON");
 export let fileTypeExcelLabel = l10n.t("Excel");
+export let fileTypeAllFilesLabel = l10n.t("All files");
 export let resultPaneLabel = l10n.t("Results");
 export let selectAll = l10n.t("Select all");
 export let copyLabel = l10n.t("Copy");

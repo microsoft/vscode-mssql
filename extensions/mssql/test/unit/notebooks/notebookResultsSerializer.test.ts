@@ -38,6 +38,50 @@ suite("notebookResultsSerializer", () => {
         sandbox.restore();
     });
 
+    suite("Encoding mapping", () => {
+        test("maps utf-8 with hyphen to utf8", async () => {
+            const { mapToNodeEncoding } = await import(
+                "../../../src/notebooks/notebookResultsSerializer"
+            );
+            expect(mapToNodeEncoding("utf-8")).to.equal("utf8");
+        });
+
+        test("maps utf-16le with hyphen to utf16le", async () => {
+            const { mapToNodeEncoding } = await import(
+                "../../../src/notebooks/notebookResultsSerializer"
+            );
+            expect(mapToNodeEncoding("utf-16le")).to.equal("utf16le");
+        });
+
+        test("maps utf-16be to utf16le (fallback)", async () => {
+            const { mapToNodeEncoding } = await import(
+                "../../../src/notebooks/notebookResultsSerializer"
+            );
+            expect(mapToNodeEncoding("utf-16be")).to.equal("utf16le");
+        });
+
+        test("maps iso-8859-1 to latin1", async () => {
+            const { mapToNodeEncoding } = await import(
+                "../../../src/notebooks/notebookResultsSerializer"
+            );
+            expect(mapToNodeEncoding("iso-8859-1")).to.equal("latin1");
+        });
+
+        test("maps ascii to ascii", async () => {
+            const { mapToNodeEncoding } = await import(
+                "../../../src/notebooks/notebookResultsSerializer"
+            );
+            expect(mapToNodeEncoding("ascii")).to.equal("ascii");
+        });
+
+        test("falls back to utf8 for unknown encoding", async () => {
+            const { mapToNodeEncoding } = await import(
+                "../../../src/notebooks/notebookResultsSerializer"
+            );
+            expect(mapToNodeEncoding("unknown-encoding")).to.equal("utf8");
+        });
+    });
+
     suite("CSV export", () => {
         test("sanitizes formula injection characters", async () => {
             const { toCsv, getCsvConfig } = await import(
@@ -192,6 +236,27 @@ suite("notebookResultsSerializer", () => {
             expect(parsed[0]).to.have.property("b_1", "4");
             expect(parsed[0]).to.have.property("a_2", "5");
         });
+
+        test("handles collision with existing suffixed column names", async () => {
+            const { toJson } = await import("../../../src/notebooks/notebookResultsSerializer");
+
+            // Columns: ["name", "name_1", "name"]
+            // Expected: ["name", "name_1", "name_2"] (not ["name", "name_1", "name_1"])
+            const columns = [makeColumn("name"), makeColumn("name_1"), makeColumn("name")];
+            const rows = [[makeCell("1"), makeCell("2"), makeCell("3")]];
+
+            const json = toJson(columns, rows);
+            const parsed = JSON.parse(json);
+
+            expect(parsed[0]).to.have.property("name", "1");
+            expect(parsed[0]).to.have.property("name_1", "2");
+            expect(parsed[0]).to.have.property("name_2", "3");
+
+            // Verify no duplicate keys
+            const keys = Object.keys(parsed[0]);
+            expect(keys).to.have.lengthOf(3);
+            expect(new Set(keys).size).to.equal(3);
+        });
     });
 
     suite("Excel export", () => {
@@ -270,6 +335,39 @@ suite("notebookResultsSerializer", () => {
             // Should only have the header row cell for col1 (A1), not a data row cell (A2)
             const col1Cells = (sheetXml.match(/r="A/g) || []).length;
             expect(col1Cells).to.equal(1); // Only the header cell
+        });
+
+        test("handles boolean columns with case-insensitive values", async () => {
+            configStub.get.returns({});
+
+            const columns = [
+                makeColumn("bool1", "bit"),
+                makeColumn("bool2", "bit"),
+                makeColumn("bool3", "bit"),
+                makeColumn("bool4", "bit"),
+            ];
+            const rows = [
+                [makeCell("true"), makeCell("True"), makeCell("1"), makeCell("false")],
+                [makeCell("FALSE"), makeCell("False"), makeCell("0"), makeCell("TRUE")],
+            ];
+
+            const buffer = await buildXlsx(columns, rows);
+            const zip = await JSZip.loadAsync(buffer);
+            const sheetXml = await zip.file("xl/worksheets/sheet1.xml")?.async("string");
+
+            expect(sheetXml).to.exist;
+            // All true/True/1 should export as 1, all false/False/0 should export as 0
+            expect(sheetXml).to.include('t="b"'); // Boolean cell type
+            // Row 2 (index 1): true, True, 1, false → 1, 1, 1, 0
+            expect(sheetXml).to.match(/<c r="A2" t="b"><v>1<\/v><\/c>/);
+            expect(sheetXml).to.match(/<c r="B2" t="b"><v>1<\/v><\/c>/);
+            expect(sheetXml).to.match(/<c r="C2" t="b"><v>1<\/v><\/c>/);
+            expect(sheetXml).to.match(/<c r="D2" t="b"><v>0<\/v><\/c>/);
+            // Row 3 (index 2): FALSE, False, 0, TRUE → 0, 0, 0, 1
+            expect(sheetXml).to.match(/<c r="A3" t="b"><v>0<\/v><\/c>/);
+            expect(sheetXml).to.match(/<c r="B3" t="b"><v>0<\/v><\/c>/);
+            expect(sheetXml).to.match(/<c r="C3" t="b"><v>0<\/v><\/c>/);
+            expect(sheetXml).to.match(/<c r="D3" t="b"><v>1<\/v><\/c>/);
         });
     });
 });

@@ -114,7 +114,9 @@ function sheetXml(columnInfo: IDbColumn[], rows: DbCellValue[][], includeHeaders
             if (isNumericType(col) && isFiniteNumber(cell.displayValue)) {
                 parts.push(`<c r="${ref}"><v>${cell.displayValue}</v></c>`);
             } else if (isBooleanType(col)) {
-                const bool = cell.displayValue === "true" || cell.displayValue === "1" ? 1 : 0;
+                const normalizedDisplayValue = cell.displayValue.trim().toLowerCase();
+                const bool =
+                    normalizedDisplayValue === "true" || normalizedDisplayValue === "1" ? 1 : 0;
                 parts.push(`<c r="${ref}" t="b"><v>${bool}</v></c>`);
             } else {
                 parts.push(inlineStringCell(ref, cell.displayValue));

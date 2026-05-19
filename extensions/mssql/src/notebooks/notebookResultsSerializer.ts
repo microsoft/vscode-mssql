@@ -78,7 +78,7 @@ async function serialize(
             const csvConfig = getCsvConfig();
             return Buffer.from(
                 toCsv(columnInfo, rows, csvConfig),
-                csvConfig.encoding as BufferEncoding,
+                mapToNodeEncoding(csvConfig.encoding),
             );
         }
         case "json":
@@ -142,18 +142,27 @@ export function toJson(columnInfo: IDbColumn[], rows: DbCellValue[][]): string {
 
 function disambiguateColumnNames(columnInfo: IDbColumn[]): string[] {
     const keys: string[] = [];
-    const seen = new Map<string, number>();
+    const usedKeys = new Set<string>();
+    const nextSuffixName = new Map<string, number>();
 
     for (const col of columnInfo) {
         const name = col.columnName;
-        const count = seen.get(name) ?? 0;
 
-        if (count === 0) {
+        if (!usedKeys.has(name)) {
             keys.push(name);
-            seen.set(name, 1);
+            usedKeys.add(name);
         } else {
-            keys.push(`${name}_${count}`);
-            seen.set(name, count + 1);
+            let suffix = nextSuffixName.get(name) ?? 1;
+            let candidate = `${name}_${suffix}`;
+
+            while (usedKeys.has(candidate)) {
+                suffix++;
+                candidate = `${name}_${suffix}`;
+            }
+
+            keys.push(candidate);
+            usedKeys.add(candidate);
+            nextSuffixName.set(name, suffix + 1);
         }
     }
 
@@ -182,23 +191,59 @@ function getDialogConfig(
             return {
                 title: LocalizedConstants.Notebooks.saveAsCsvDialogTitle,
                 defaultUri: vscode.Uri.joinPath(baseUri, `${safeBase}${suffix}.csv`),
-                filters: { CSV: ["csv"], "All files": ["*"] },
+                filters: {
+                    [LocalizedConstants.fileTypeCSVLabel]: ["csv"],
+                    [LocalizedConstants.fileTypeAllFilesLabel]: ["*"],
+                },
             };
         case "excel":
             return {
                 title: LocalizedConstants.Notebooks.saveAsExcelDialogTitle,
                 defaultUri: vscode.Uri.joinPath(baseUri, `${safeBase}${suffix}.xlsx`),
-                filters: { Excel: ["xlsx"], "All files": ["*"] },
+                filters: {
+                    [LocalizedConstants.fileTypeExcelLabel]: ["xlsx"],
+                    [LocalizedConstants.fileTypeAllFilesLabel]: ["*"],
+                },
             };
         case "json":
             return {
                 title: LocalizedConstants.Notebooks.saveAsJsonDialogTitle,
                 defaultUri: vscode.Uri.joinPath(baseUri, `${safeBase}${suffix}.json`),
-                filters: { JSON: ["json"], "All files": ["*"] },
+                filters: {
+                    [LocalizedConstants.fileTypeJSONLabel]: ["json"],
+                    [LocalizedConstants.fileTypeAllFilesLabel]: ["*"],
+                },
             };
     }
 }
 
 function sanitizeFileBase(name: string): string {
     return path.parse(name).name.replace(/[^\w.-]+/g, "_");
+}
+
+/**
+ * Maps user-configured encoding strings to Node.js BufferEncoding.
+ * Handles differences between STS encoding names (used in settings)
+ * and Node.js BufferEncoding (used in notebooks).
+ */
+export function mapToNodeEncoding(encoding: string): BufferEncoding {
+    const normalized = encoding.toLowerCase().replace(/[_-]/g, "");
+    switch (normalized) {
+        case "utf8":
+            return "utf8";
+        case "utf16le":
+        case "ucs2":
+            return "utf16le";
+        case "utf16be":
+            // Node doesn't support utf16be natively; fall back to utf16le
+            return "utf16le";
+        case "ascii":
+            return "ascii";
+        case "latin1":
+        case "iso88591":
+            return "latin1";
+        default:
+            // Fallback to utf8 for unsupported encodings
+            return "utf8";
+    }
 }
