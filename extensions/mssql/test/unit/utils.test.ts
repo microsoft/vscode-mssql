@@ -123,7 +123,7 @@ suite.skip("Utility tests - Timer Class", () => {
     let timer = new Utils.Timer();
 
     test("timer should start when initiated", (done) => {
-        let p = new Promise<void>((resolve, reject) => {
+        let p = new Promise<void>((resolve, _reject) => {
             setTimeout(() => {
                 let duration = timer.getDuration();
                 expect(duration).to.be.greaterThan(0);
@@ -136,7 +136,7 @@ suite.skip("Utility tests - Timer Class", () => {
     test("timer should end when ended", (done) => {
         let duration = timer.getDuration();
         timer.end();
-        let p = new Promise<void>((resolve, reject) => {
+        let p = new Promise<void>((resolve, _reject) => {
             setTimeout(() => {
                 let newDuration = timer.getDuration();
                 expect(duration).to.not.equal(newDuration);

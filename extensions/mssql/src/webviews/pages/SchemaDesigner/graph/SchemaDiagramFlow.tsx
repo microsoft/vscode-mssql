@@ -227,6 +227,10 @@ export const SchemaDesignerFlow = () => {
                 setSchemaNodes(nodes);
                 setRelationshipEdges(edges);
 
+                requestAnimationFrame(() => {
+                    void reactFlow.fitView({ nodes });
+                });
+
                 // Trigger script generation to update the changes panel
                 // This is necessary for restored sessions that may have changes
                 setTimeout(() => {
@@ -624,8 +628,7 @@ export const SchemaDesignerFlow = () => {
                     }
                     return await deleteElementsConfirmation();
                 }}
-                minZoom={0.05}
-                fitView>
+                minZoom={0.05}>
                 <Controls>
                     <ControlButton
                         onClick={() =>

@@ -35,7 +35,7 @@ export class QueryHistoryUI {
         return quickPickItem;
     }
 
-    private showQueryHistoryActions(node: QueryHistoryNode): Promise<string | undefined> {
+    private showQueryHistoryActions(_node: QueryHistoryNode): Promise<string | undefined> {
         let options = [
             { label: LocalizedConstants.msgOpenQueryHistory },
             { label: LocalizedConstants.msgRunQueryHistory },

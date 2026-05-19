@@ -101,6 +101,10 @@ suite("SchemaDesignerWebviewController tests", () => {
             generateScript: sandbox.stub(),
             getReport: sandbox.stub(),
             onSchemaReady: sandbox.stub(),
+            onProgress: sandbox.stub(),
+            removeProgressListener: sandbox.stub(),
+            onMessage: sandbox.stub(),
+            removeMessageListener: sandbox.stub(),
         } as any;
 
         schemaDesignerCache = new Map();
@@ -294,11 +298,13 @@ suite("SchemaDesignerWebviewController tests", () => {
             const params = {};
             const result = await handler(params);
 
-            expect(mockSchemaDesignerService.createSession).to.have.been.calledOnceWithExactly({
-                connectionString,
-                accessToken,
-                databaseName,
-            });
+            expect(mockSchemaDesignerService.createSession).to.have.been.calledOnceWith(
+                sinon.match({
+                    connectionString,
+                    accessToken,
+                    databaseName,
+                }),
+            );
             expect(result).to.deep.equal(mockCreateSessionResponse);
             expect(ctrl.schemaDesignerDetails).to.deep.equal(mockCreateSessionResponse);
             expect(schemaDesignerCache.size).to.equal(1);
@@ -444,7 +450,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             const handler = requestHandlers.get(SchemaDesigner.GetReportWebviewRequest.type.method);
             const result = await handler({ updatedSchema });
 
-            expect(result.error).to.equal(error.toString());
+            expect(result.error).to.equal(error.message);
         });
     });
 
@@ -474,6 +480,14 @@ suite("SchemaDesignerWebviewController tests", () => {
 
         test("should handle publish error", async () => {
             const error = new Error("Publish failed");
+            const attemptedSchema: SchemaDesigner.Schema = {
+                tables: [
+                    {
+                        ...mockSchema.tables[0],
+                        name: "AttemptedUsers",
+                    },
+                ],
+            };
             mockSchemaDesignerService.publishSession.rejects(error);
             schemaDesignerCache.set(`${connectionString}-${databaseName}`, {
                 schemaDesignerDetails: mockCreateSessionResponse,
@@ -486,10 +500,14 @@ suite("SchemaDesignerWebviewController tests", () => {
             (ctrl as any)._sessionId = "test-session-id";
 
             const handler = requestHandlers.get(SchemaDesigner.PublishSessionRequest.type.method);
-            const result = await handler({ schema: mockSchema });
+            const result = await handler({ schema: attemptedSchema });
 
             expect(result.success).to.be.false;
-            expect(result.error).to.equal(error.toString());
+            expect(result.error).to.equal(error.message);
+            expect(result.updatedSchema).to.be.undefined;
+            expect(
+                schemaDesignerCache.get(`${connectionString}-${databaseName}`)?.baselineSchema,
+            ).to.equal(mockCreateSessionResponse.schema);
         });
     });
 

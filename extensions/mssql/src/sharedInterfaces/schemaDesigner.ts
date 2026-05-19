@@ -174,6 +174,10 @@ export namespace SchemaDesigner {
      */
     export interface CreateSessionRequest {
         /**
+         * Session id for the schema designer session
+         */
+        sessionId: string;
+        /**
          * Connection URI which is used to connect to the database
          */
         connectionString: string;
@@ -295,6 +299,46 @@ export namespace SchemaDesigner {
         sessionId: string;
     }
 
+    export enum DesignerOperation {
+        Initialize = "Initialize",
+        LoadSimpleSchema = "LoadSimpleSchema",
+        GenerateReport = "GenerateReport",
+        Publish = "Publish",
+    }
+
+    export enum DesignerMessageType {
+        Message = "Message",
+        Warning = "Warning",
+        Error = "Error",
+    }
+
+    export enum DesignerProgressStatus {
+        NotStarted = "NotStarted",
+        InProgress = "InProgress",
+        Succeeded = "Succeeded",
+        Failed = "Failed",
+        Canceled = "Canceled",
+    }
+
+    export interface SchemaDesignerProgressNotificationParams {
+        sessionId: string;
+        operation: DesignerOperation;
+        status: DesignerProgressStatus;
+        message: string;
+    }
+
+    export interface SchemaDesignerMessageNotificationParams {
+        sessionId: string;
+        operation: DesignerOperation;
+        messageType: DesignerMessageType;
+        message: string;
+        number: number;
+        prefix?: string | null;
+        progress?: number | null;
+        schemaName?: string | null;
+        tableName?: string | null;
+    }
+
     export interface ISchemaDesignerService {
         /**
          * Creates a schema designer session
@@ -333,6 +377,18 @@ export namespace SchemaDesigner {
          * @param request - Request parameters for getting the report
          */
         getReport(request: GetReportRequest): Thenable<GetReportResponse>;
+
+        onProgress(listener: (progress: SchemaDesignerProgressNotificationParams) => void): void;
+
+        removeProgressListener(
+            listener: (progress: SchemaDesignerProgressNotificationParams) => void,
+        ): void;
+
+        onMessage(listener: (message: SchemaDesignerMessageNotificationParams) => void): void;
+
+        removeMessageListener(
+            listener: (message: SchemaDesignerMessageNotificationParams) => void,
+        ): void;
 
         /**
          * Callback for when the schema designer model is ready
@@ -418,7 +474,7 @@ export namespace SchemaDesigner {
     export interface PublishSessionResponse {
         success: boolean;
         error: string | undefined;
-        updatedSchema: Schema;
+        updatedSchema?: Schema;
     }
     export namespace PublishSessionRequest {
         export const type = new RequestType<PublishSessionParams, PublishSessionResponse, void>(
@@ -490,6 +546,18 @@ export namespace SchemaDesigner {
 
     export namespace GetBaselineSchemaRequest {
         export const type = new RequestType<void, Schema, void>("getBaselineSchema");
+    }
+
+    export namespace SchemaDesignerProgressNotification {
+        export const type = new NotificationType<SchemaDesignerProgressNotificationParams>(
+            "schemaDesigner/progress",
+        );
+    }
+
+    export namespace SchemaDesignerMessageNotification {
+        export const type = new NotificationType<SchemaDesignerMessageNotificationParams>(
+            "schemaDesigner/message",
+        );
     }
 
     // Types with isDeleted flag for tracking deletions in the UI
