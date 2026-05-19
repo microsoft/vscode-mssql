@@ -856,10 +856,7 @@ async function loadAccountComponent(
         displayName: account.label,
         value: account.id,
     }));
-    accountComponent.actionButtons = await getAzureActionButton(
-        deploymentController,
-        azureSqlState,
-    );
+    accountComponent.actionButtons = await getAzureActionButton(deploymentController);
 
     if (azureSqlState.accounts.length === 0) {
         accountComponent.placeholder = AzureSqlDatabase.noAzureAccountsFound;
@@ -1079,7 +1076,6 @@ function updateAzureSqlDatabaseState(
 
 async function getAzureActionButton(
     deploymentController: DeploymentWebviewController,
-    azureSqlState: asd.AzureSqlDatabaseState,
 ): Promise<FormItemActionButton[]> {
     const actionButtons: FormItemActionButton[] = [];
     actionButtons.push({
