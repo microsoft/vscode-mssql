@@ -591,6 +591,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     AuthenticationType.Integrated,
                     AuthenticationType.AzureMFA,
                     AuthenticationType.ActiveDirectoryDefault,
+                    AuthenticationType.ActiveDirectoryServicePrincipal,
                 ];
 
                 if (
@@ -889,6 +890,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 [AuthenticationType.ActiveDirectoryDefault]:
                     "https://aka.ms/vscode-mssql-auth-entra-default",
                 [AuthenticationType.AzureMFA]: "https://aka.ms/vscode-mssql-auth-entra-mfa",
+                [AuthenticationType.ActiveDirectoryServicePrincipal]:
+                    "https://learn.microsoft.com/en-us/sql/connect/ado-net/sql/azure-active-directory-authentication?view=sql-server-ver17#using-service-principal-authentication",
             };
 
             const url = infoLinkMap[payload.option.value as AuthenticationType];
@@ -1024,19 +1027,27 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         if (
             this.state.connectionProfile.authenticationType !== AuthenticationType.SqlLogin &&
             this.state.connectionProfile.authenticationType !==
-                AuthenticationType.ActiveDirectoryDefault
+                AuthenticationType.ActiveDirectoryDefault &&
+            this.state.connectionProfile.authenticationType !==
+                AuthenticationType.ActiveDirectoryServicePrincipal
         ) {
             hiddenProperties.push("user");
         }
-        if (this.state.connectionProfile.authenticationType !== AuthenticationType.SqlLogin) {
+        if (
+            this.state.connectionProfile.authenticationType !== AuthenticationType.SqlLogin &&
+            this.state.connectionProfile.authenticationType !==
+                AuthenticationType.ActiveDirectoryServicePrincipal
+        ) {
             hiddenProperties.push("password", "savePassword");
         }
 
         const userComponent = this.state.formComponents["user"];
         if (userComponent) {
-            // userId is required for SQL Login, optional for AD Default, and hidden (above) for everything else
+            // userId is required for SQL Login and Service Principal, optional for AD Default, and hidden (above) for everything else
             userComponent.required =
-                this.state.connectionProfile.authenticationType === AuthenticationType.SqlLogin;
+                this.state.connectionProfile.authenticationType === AuthenticationType.SqlLogin ||
+                this.state.connectionProfile.authenticationType ===
+                    AuthenticationType.ActiveDirectoryServicePrincipal;
         }
 
         if (this.state.connectionProfile.authenticationType !== AuthenticationType.AzureMFA) {
@@ -1063,6 +1074,29 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     hiddenProperties.push("tenantId");
                 }
             }
+        }
+
+        // Relabel user/password fields for Service Principal to disambiguate from SQL Login
+        const isServicePrincipal =
+            this.state.connectionProfile.authenticationType ===
+            AuthenticationType.ActiveDirectoryServicePrincipal;
+        const userComp = this.state.formComponents["user"];
+        if (userComp) {
+            userComp.label = isServicePrincipal
+                ? LocAll.ConnectionDialog.applicationClientId
+                : undefined; // undefined falls back to the label from capabilities
+            userComp.tooltip = isServicePrincipal
+                ? LocAll.ConnectionDialog.applicationClientIdTooltip
+                : undefined;
+        }
+        const passwordComp = this.state.formComponents["password"];
+        if (passwordComp) {
+            passwordComp.label = isServicePrincipal
+                ? LocAll.ConnectionDialog.clientSecret
+                : undefined;
+            passwordComp.tooltip = isServicePrincipal
+                ? LocAll.ConnectionDialog.clientSecretTooltip
+                : undefined;
         }
 
         for (const component of Object.values(this.state.formComponents)) {
@@ -1455,6 +1489,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             case AuthenticationType.Integrated:
             case AuthenticationType.ActiveDirectoryDefault:
                 return true;
+            case AuthenticationType.ActiveDirectoryServicePrincipal:
+                return !!(profile.user && profile.password);
             default:
                 return false;
         }

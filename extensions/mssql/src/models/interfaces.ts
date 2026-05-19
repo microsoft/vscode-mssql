@@ -32,6 +32,7 @@ export enum AuthenticationTypes {
     SqlLogin = 2,
     AzureMFA = 3,
     ActiveDirectoryDefault = 4,
+    ActiveDirectoryServicePrincipal = 5,
 }
 
 export enum EncryptOptions {
