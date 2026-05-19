@@ -166,6 +166,13 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     /** Cache of database lists keyed by fetch key, reused within the same dialog session. */
     private _databaseListCache: Map<string, string[]> = new Map();
 
+    // Original capability-sourced labels/tooltips for user/password fields, cached so they
+    // can be restored when switching away from Service Principal auth.
+    private _originalUserLabel: string | undefined;
+    private _originalUserTooltip: string | undefined;
+    private _originalPasswordLabel: string | undefined;
+    private _originalPasswordTooltip: string | undefined;
+
     //#endregion
 
     constructor(
@@ -1082,21 +1089,34 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             AuthenticationType.ActiveDirectoryServicePrincipal;
         const userComp = this.state.formComponents["user"];
         if (userComp) {
+            // Lazily cache the original capability-sourced label/tooltip the first time we see them
+            if (userComp.label && !this._originalUserLabel) {
+                this._originalUserLabel = userComp.label;
+            }
+            if (userComp.tooltip && !this._originalUserTooltip) {
+                this._originalUserTooltip = userComp.tooltip;
+            }
             userComp.label = isServicePrincipal
                 ? LocAll.ConnectionDialog.applicationClientId
-                : undefined; // undefined falls back to the label from capabilities
+                : this._originalUserLabel;
             userComp.tooltip = isServicePrincipal
                 ? LocAll.ConnectionDialog.applicationClientIdTooltip
-                : undefined;
+                : this._originalUserTooltip;
         }
         const passwordComp = this.state.formComponents["password"];
         if (passwordComp) {
+            if (passwordComp.label && !this._originalPasswordLabel) {
+                this._originalPasswordLabel = passwordComp.label;
+            }
+            if (passwordComp.tooltip && !this._originalPasswordTooltip) {
+                this._originalPasswordTooltip = passwordComp.tooltip;
+            }
             passwordComp.label = isServicePrincipal
                 ? LocAll.ConnectionDialog.clientSecret
-                : undefined;
+                : this._originalPasswordLabel;
             passwordComp.tooltip = isServicePrincipal
                 ? LocAll.ConnectionDialog.clientSecretTooltip
-                : undefined;
+                : this._originalPasswordTooltip;
         }
 
         for (const component of Object.values(this.state.formComponents)) {
