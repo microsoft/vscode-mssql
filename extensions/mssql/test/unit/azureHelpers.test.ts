@@ -12,7 +12,6 @@ import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
 import { Logger } from "../../src/models/logger";
 import { IAccount } from "vscode-mssql";
 import * as vscode from "vscode";
-import * as armSql from "@azure/arm-sql";
 import * as armStorage from "@azure/arm-storage";
 import {
     mockAccounts,
@@ -270,13 +269,6 @@ suite("Azure Helpers", () => {
     });
 
     test("fetchSqlResourcesForSubscription", async () => {
-        sandbox.stub(armSql, "SqlManagementClient").callsFake(
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            (credential: any, subscriptionId: string, options?: any) => {
-                return {} as armSql.SqlManagementClient;
-            },
-        );
-
         const listServersFactory = sandbox.stub().callsFake(
             () =>
                 async function* () {
