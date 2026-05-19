@@ -111,19 +111,27 @@ export class SchemaDesignerWebviewManager {
             azureAccountToken = connectionInfo.azureAccountToken;
         } else if (connectionUri) {
             const connInfo = mainController.connectionManager.getConnectionInfo(connectionUri);
-            const connectionInfo = {
-                ...connInfo.credentials,
-                database: databaseName,
-            } as IConnectionProfile;
-            const connectionDetails =
-                await mainController.connectionManager.createConnectionDetails(connectionInfo);
+            if (connInfo?.credentials) {
+                const connectionInfo = {
+                    ...connInfo.credentials,
+                    database: databaseName,
+                } as IConnectionProfile;
+                const connectionDetails =
+                    await mainController.connectionManager.createConnectionDetails(connectionInfo);
 
-            connectionString = await mainController.connectionManager.getConnectionString(
-                connectionDetails,
-                true,
-                true,
-            );
-            azureAccountToken = connInfo.credentials.azureAccountToken;
+                connectionString = await mainController.connectionManager.getConnectionString(
+                    connectionDetails,
+                    true,
+                    true,
+                );
+                azureAccountToken = connInfo.credentials.azureAccountToken;
+            } else {
+                connectionString = await mainController.connectionManager.getConnectionString(
+                    connectionUri,
+                    true,
+                    true,
+                );
+            }
         }
 
         // Include the mode in the cache key so that opening a read-only and an

@@ -218,10 +218,10 @@ suite("MsalAzureController Tests", () => {
 
         const mockClientApplication = sandbox.createStubInstance(
             msalNode.PublicClientApplication,
-        ) as sinon.SinonStubbedInstance<msalNode.PublicClientApplication> & {
-            clearCache: sinon.SinonStub;
-        };
-        mockClientApplication.clearCache = sandbox.stub().resolves();
+        ) as sinon.SinonStubbedInstance<msalNode.PublicClientApplication>;
+        const clearCacheStub = sandbox.stub();
+        mockClientApplication.clearCache =
+            clearCacheStub as unknown as typeof mockClientApplication.clearCache;
         const mockCloudAuth = sandbox.createStubInstance(CloudAuthApplication);
 
         sandbox.stub(mockCloudAuth, "clientApplication").get(() => mockClientApplication);
@@ -236,7 +236,7 @@ suite("MsalAzureController Tests", () => {
         await controller.clearTokenCache();
 
         // Assert
-        expect(mockClientApplication.clearCache).to.have.been.calledOnce;
+        expect(clearCacheStub).to.have.been.calledOnce;
         expect(mockCachePluginProvider.unlinkMsalCache).to.have.been.calledOnce;
         expect(mockCachePluginProvider.clearCacheEncryptionKeys).to.have.been.calledOnce;
     });

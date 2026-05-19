@@ -99,11 +99,11 @@ type CheckedState = "checked" | "mixed" | "unchecked";
 function getSourceTypeLabel(sourceType?: Dab.EntitySourceType): string {
     switch (sourceType ?? Dab.EntitySourceType.Table) {
         case Dab.EntitySourceType.View:
-            return "View";
+            return locConstants.schemaDesigner.view;
         case Dab.EntitySourceType.StoredProcedure:
-            return "Stored procedure";
+            return locConstants.schemaDesigner.storedProcedure;
         case Dab.EntitySourceType.Table:
-            return "Table";
+            return locConstants.schemaDesigner.table;
     }
 }
 
@@ -515,16 +515,16 @@ export const DabEntityTable = () => {
             [Dab.EntityAction.Read]: locConstants.schemaDesigner.read,
             [Dab.EntityAction.Update]: locConstants.schemaDesigner.update,
             [Dab.EntityAction.Delete]: locConstants.common.delete,
-            [Dab.EntityAction.Execute]: "Execute",
+            [Dab.EntityAction.Execute]: locConstants.schemaDesigner.execute,
         }),
         [],
     );
 
     const sourceTypeLabels: Record<Dab.EntitySourceType, string> = useMemo(
         () => ({
-            [Dab.EntitySourceType.Table]: "Tables",
-            [Dab.EntitySourceType.View]: "Views",
-            [Dab.EntitySourceType.StoredProcedure]: "Stored Procedures",
+            [Dab.EntitySourceType.Table]: locConstants.schemaDesigner.tables,
+            [Dab.EntitySourceType.View]: locConstants.schemaDesigner.views,
+            [Dab.EntitySourceType.StoredProcedure]: locConstants.schemaDesigner.storedProcedures,
         }),
         [],
     );

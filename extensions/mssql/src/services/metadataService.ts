@@ -57,6 +57,67 @@ FROM sys.procedures AS p
 WHERE p.is_ms_shipped = 0
 ORDER BY SCHEMA_NAME(p.schema_id), p.name;`;
 
+const listDabViewColumnsQuery = `
+;WITH ranked_unique_indexes AS
+(
+    SELECT
+        i.object_id,
+        i.index_id,
+        ROW_NUMBER() OVER (
+            PARTITION BY i.object_id
+            ORDER BY
+                CASE WHEN i.is_primary_key = 1 THEN 0 ELSE 1 END,
+                i.index_id
+        ) AS [rank]
+    FROM sys.indexes AS i
+    INNER JOIN sys.views AS v
+        ON v.object_id = i.object_id
+    WHERE v.is_ms_shipped = 0
+        AND i.is_unique = 1
+        AND i.is_hypothetical = 0
+        AND i.has_filter = 0
+),
+selected_unique_index AS
+(
+    SELECT
+        object_id,
+        index_id
+    FROM ranked_unique_indexes
+    WHERE [rank] = 1
+)
+SELECT
+    CONCAT('view:', SCHEMA_NAME(v.schema_id), '.', v.name) AS [object_id],
+    CONCAT('view:', SCHEMA_NAME(v.schema_id), '.', v.name, ':', c.name) AS [column_id],
+    c.name AS [column_name],
+    TYPE_NAME(c.user_type_id) AS [data_type],
+    c.column_id AS [ordinal],
+    CAST(CASE WHEN ic.column_id IS NULL THEN 0 ELSE 1 END AS bit) AS [is_primary_key]
+FROM sys.views AS v
+INNER JOIN sys.columns AS c
+    ON c.object_id = v.object_id
+LEFT JOIN selected_unique_index AS sui
+    ON sui.object_id = v.object_id
+LEFT JOIN sys.index_columns AS ic
+    ON ic.object_id = sui.object_id
+    AND ic.index_id = sui.index_id
+    AND ic.column_id = c.column_id
+    AND ic.key_ordinal > 0
+    AND ic.is_included_column = 0
+WHERE v.is_ms_shipped = 0
+ORDER BY SCHEMA_NAME(v.schema_id), v.name, c.column_id;`;
+
+const listDabStoredProcedureParametersQuery = `
+SELECT
+    CONCAT('stored-procedure:', SCHEMA_NAME(sp.schema_id), '.', sp.name) AS [object_id],
+    p.name AS [parameter_name],
+    p.parameter_id AS [ordinal]
+FROM sys.procedures AS sp
+INNER JOIN sys.parameters AS p
+    ON p.object_id = sp.object_id
+WHERE sp.is_ms_shipped = 0
+    AND p.parameter_id > 0
+ORDER BY SCHEMA_NAME(sp.schema_id), sp.name, p.parameter_id;`;
+
 function escapedSqlString(value: string): string {
     return value.replace(/'/g, "''");
 }
@@ -167,12 +228,22 @@ export interface IMetadataService {
         databaseName?: string,
     ): Promise<DabDatabaseObjectMetadata[]>;
 
+    getDabViewColumnsByView(
+        ownerUri: string,
+        databaseName?: string,
+    ): Promise<Map<string, DabViewColumnMetadata[]>>;
+
     getDabViewColumns(
         ownerUri: string,
         schema: string,
         objectName: string,
         databaseName?: string,
     ): Promise<DabViewColumnMetadata[]>;
+
+    getDabStoredProcedureParametersByProcedure(
+        ownerUri: string,
+        databaseName?: string,
+    ): Promise<Map<string, DabStoredProcedureParameterMetadata[]>>;
 
     getDabStoredProcedureParameters(
         ownerUri: string,
@@ -319,6 +390,23 @@ export class MetadataService implements IMetadataService {
         }
     }
 
+    public async getDabViewColumnsByView(
+        ownerUri: string,
+        databaseName?: string,
+    ): Promise<Map<string, DabViewColumnMetadata[]>> {
+        try {
+            const result = await this.executeSimpleQuery(
+                ownerUri,
+                listDabViewColumnsQuery,
+                databaseName,
+            );
+            return this.parseDabViewColumnsByObject(result);
+        } catch (error) {
+            this._client.logger.error(getErrorMessage(error));
+            throw error;
+        }
+    }
+
     public async getDabStoredProcedureParameters(
         ownerUri: string,
         schema: string,
@@ -332,6 +420,23 @@ export class MetadataService implements IMetadataService {
                 databaseName,
             );
             return this.parseDabStoredProcedureParameters(result);
+        } catch (error) {
+            this._client.logger.error(getErrorMessage(error));
+            throw error;
+        }
+    }
+
+    public async getDabStoredProcedureParametersByProcedure(
+        ownerUri: string,
+        databaseName?: string,
+    ): Promise<Map<string, DabStoredProcedureParameterMetadata[]>> {
+        try {
+            const result = await this.executeSimpleQuery(
+                ownerUri,
+                listDabStoredProcedureParametersQuery,
+                databaseName,
+            );
+            return this.parseDabStoredProcedureParametersByObject(result);
         } catch (error) {
             this._client.logger.error(getErrorMessage(error));
             throw error;
@@ -446,6 +551,29 @@ ${queryString}`;
             .filter((column): column is DabViewColumnMetadata => !!column);
     }
 
+    private parseDabViewColumnsByObject(
+        result: SimpleExecuteResult,
+    ): Map<string, DabViewColumnMetadata[]> {
+        const columnsByObject = new Map<string, DabViewColumnMetadata[]>();
+        for (let index = 0; index < (result?.rows ?? []).length; index++) {
+            const objectId = this.getCellDisplayValue(result, index, 0);
+            const id = this.getCellDisplayValue(result, index, 1);
+            const name = this.getCellDisplayValue(result, index, 2);
+            const dataType = this.getCellDisplayValue(result, index, 3);
+            const ordinal = Number(this.getCellDisplayValue(result, index, 4) ?? 0);
+            const isPrimaryKey = this.getBooleanCellValue(result, index, 5);
+            if (!objectId || !id || !name || !dataType) {
+                continue;
+            }
+
+            const columns = columnsByObject.get(objectId) ?? [];
+            columns.push({ id, name, dataType, ordinal, isPrimaryKey });
+            columnsByObject.set(objectId, columns);
+        }
+
+        return columnsByObject;
+    }
+
     private parseDabStoredProcedureParameters(
         result: SimpleExecuteResult,
     ): DabStoredProcedureParameterMetadata[] {
@@ -463,6 +591,26 @@ ${queryString}`;
                 return parameter;
             })
             .filter((parameter): parameter is DabStoredProcedureParameterMetadata => !!parameter);
+    }
+
+    private parseDabStoredProcedureParametersByObject(
+        result: SimpleExecuteResult,
+    ): Map<string, DabStoredProcedureParameterMetadata[]> {
+        const parametersByObject = new Map<string, DabStoredProcedureParameterMetadata[]>();
+        for (let index = 0; index < (result?.rows ?? []).length; index++) {
+            const objectId = this.getCellDisplayValue(result, index, 0);
+            const name = this.getCellDisplayValue(result, index, 1);
+            const ordinal = Number(this.getCellDisplayValue(result, index, 2) ?? 0);
+            if (!objectId || !name) {
+                continue;
+            }
+
+            const parameters = parametersByObject.get(objectId) ?? [];
+            parameters.push({ name, ordinal });
+            parametersByObject.set(objectId, parameters);
+        }
+
+        return parametersByObject;
     }
 
     /**
