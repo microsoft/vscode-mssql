@@ -3499,6 +3499,9 @@
     <trans-unit id="++CODE++5a3259a2357ce703fcc4ea2d2983346c88751c8b1f74beaab08602f5f4e721cf">
       <source xml:lang="en">Invalid database</source>
     </trans-unit>
+    <trans-unit id="++CODE++fb7db40f653a70bfcfd1879e8d0b4592488ff74e5025a253a8f20a83dc4921aa">
+      <source xml:lang="en">Invalid entity reference. Use either id OR schemaName+tableName OR schemaName+sourceName+sourceType.</source>
+    </trans-unit>
     <trans-unit id="++CODE++388f0e37447ebf20167d7d8b0d203a21e726eb2d60ec4b09c13480cdadff59ee">
       <source xml:lang="en">Invalid file</source>
     </trans-unit>

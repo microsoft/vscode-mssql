@@ -1221,8 +1221,7 @@ function resolveEntityRef(
         return {
             success: false,
             reason: "invalid_request",
-            message:
-                "Invalid entity reference. Use either id OR schemaName+tableName OR schemaName+sourceName+sourceType.",
+            message: locConstants.schemaDesigner.invalidEntityReference,
         };
     }
 
@@ -1355,11 +1354,11 @@ function createDabValidationError(message: string): {
 function getEntitySourceTypeLabel(entity: Dab.DabEntityConfig): string {
     switch (entity.sourceType ?? Dab.EntitySourceType.Table) {
         case Dab.EntitySourceType.View:
-            return "View";
+            return locConstants.schemaDesigner.view;
         case Dab.EntitySourceType.StoredProcedure:
-            return "Stored procedure";
+            return locConstants.schemaDesigner.storedProcedure;
         case Dab.EntitySourceType.Table:
-            return "Table";
+            return locConstants.schemaDesigner.table;
     }
 }
 
@@ -1374,9 +1373,12 @@ function formatUnsupportedEntityReasons(entity: Dab.DabEntityConfig): string {
         .map((reason) => {
             switch (reason.type) {
                 case "noPrimaryKey":
-                    return `${sourceTypeLabel} must define one or more key fields to be used with Data API builder`;
+                    return locConstants.schemaDesigner.unsupportedNoPrimaryKey(sourceTypeLabel);
                 case "unsupportedDataTypes":
-                    return `${sourceTypeLabel} contains column types not supported by Data API builder: ${reason.columns}`;
+                    return locConstants.schemaDesigner.unsupportedDataTypes(
+                        reason.columns,
+                        sourceTypeLabel,
+                    );
             }
         })
         .join("; ");

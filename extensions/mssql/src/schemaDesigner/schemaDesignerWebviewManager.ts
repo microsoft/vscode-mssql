@@ -117,7 +117,7 @@ export class SchemaDesignerWebviewManager {
                     database: databaseName,
                 } as IConnectionProfile;
                 const connectionDetails =
-                    await mainController.connectionManager.createConnectionDetails(connectionInfo);
+                    mainController.connectionManager.createConnectionDetails(connectionInfo);
 
                 connectionString = await mainController.connectionManager.getConnectionString(
                     connectionDetails,

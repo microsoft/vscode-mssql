@@ -964,10 +964,11 @@ export namespace Dab {
 
     function isUnsupportedDataType(dataType?: string): boolean {
         const normalized = dataType?.toLowerCase();
+        const unqualified = normalized?.replace(/^sys\./, "");
         return !!(
-            normalized &&
-            (DAB_UNSUPPORTED_DATA_TYPES.includes(normalized) ||
-                DAB_UNSUPPORTED_DATA_TYPES.includes(`sys.${normalized}`))
+            unqualified &&
+            (DAB_UNSUPPORTED_DATA_TYPES.includes(unqualified) ||
+                DAB_UNSUPPORTED_DATA_TYPES.includes(`sys.${unqualified}`))
         );
     }
 

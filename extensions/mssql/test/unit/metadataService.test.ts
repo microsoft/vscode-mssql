@@ -532,8 +532,14 @@ suite("Metadata Service Tests", () => {
                 { schema: "dbo", name: "ActiveUsers", id: "view:dbo.ActiveUsers" },
                 { schema: "sales", name: "OpenOrders", id: "view:sales.OpenOrders" },
             ]);
-            expect((mockClient.sendRequest.firstCall.args[1] as any).queryString).to.contain(
-                "sys.views",
+            expect(mockClient.sendRequest).to.have.been.calledWithMatch(
+                sinon.match.any,
+                sinon.match.has(
+                    "queryString",
+                    sinon.match((queryString: unknown) =>
+                        String(queryString).includes("sys.views"),
+                    ),
+                ),
             );
         });
 
@@ -544,8 +550,32 @@ suite("Metadata Service Tests", () => {
 
             await metadataService.listDabViews(ownerUri, "Sales DB");
 
-            expect((mockClient.sendRequest.firstCall.args[1] as any).queryString).to.contain(
-                "USE [Sales DB];",
+            expect(mockClient.sendRequest).to.have.been.calledWithMatch(
+                sinon.match.any,
+                sinon.match.has(
+                    "queryString",
+                    sinon.match((queryString: unknown) =>
+                        String(queryString).includes("USE [Sales DB];"),
+                    ),
+                ),
+            );
+        });
+
+        test("should escape closing brackets in DAB database context", async () => {
+            mockClient.sendRequest.callsFake(async (_type: any, _params: any) => ({
+                rows: [],
+            }));
+
+            await metadataService.listDabViews(ownerUri, "Sales]DB");
+
+            expect(mockClient.sendRequest).to.have.been.calledWithMatch(
+                sinon.match.any,
+                sinon.match.has(
+                    "queryString",
+                    sinon.match((queryString: unknown) =>
+                        String(queryString).includes("USE [Sales]]DB];"),
+                    ),
+                ),
             );
         });
 
@@ -559,8 +589,14 @@ suite("Metadata Service Tests", () => {
             expect(result).to.deep.equal([
                 { schema: "dbo", name: "GetUsers", id: "stored-procedure:dbo.GetUsers" },
             ]);
-            expect((mockClient.sendRequest.firstCall.args[1] as any).queryString).to.contain(
-                "sys.procedures",
+            expect(mockClient.sendRequest).to.have.been.calledWithMatch(
+                sinon.match.any,
+                sinon.match.has(
+                    "queryString",
+                    sinon.match((queryString: unknown) =>
+                        String(queryString).includes("sys.procedures"),
+                    ),
+                ),
             );
         });
 
@@ -604,6 +640,50 @@ suite("Metadata Service Tests", () => {
             ]);
         });
 
+        test("should group DAB view columns by object and skip malformed rows", async () => {
+            mockClient.sendRequest.callsFake(async (_type: any, _params: any) => ({
+                rows: [
+                    [
+                        cell("view:dbo.ActiveUsers"),
+                        cell("view:dbo.ActiveUsers:Id"),
+                        cell("Id"),
+                        cell("int"),
+                        cell("1"),
+                        cell("true"),
+                    ],
+                    [
+                        cell("view:dbo.ActiveUsers"),
+                        cell("view:dbo.ActiveUsers:Name"),
+                        cell("Name"),
+                        cell("nvarchar"),
+                        cell("2"),
+                        cell("false"),
+                    ],
+                    [cell("view:dbo.Broken"), cell("", true), cell("Name"), cell("int")],
+                ],
+            }));
+
+            const result = await metadataService.getDabViewColumnsByView(ownerUri);
+
+            expect([...result.keys()]).to.deep.equal(["view:dbo.ActiveUsers"]);
+            expect(result.get("view:dbo.ActiveUsers")).to.deep.equal([
+                {
+                    id: "view:dbo.ActiveUsers:Id",
+                    name: "Id",
+                    dataType: "int",
+                    ordinal: 1,
+                    isPrimaryKey: true,
+                },
+                {
+                    id: "view:dbo.ActiveUsers:Name",
+                    name: "Name",
+                    dataType: "nvarchar",
+                    ordinal: 2,
+                    isPrimaryKey: false,
+                },
+            ]);
+        });
+
         test("should parse stored procedure parameters", async () => {
             mockClient.sendRequest.callsFake(async (_type: any, _params: any) => ({
                 rows: [
@@ -619,6 +699,25 @@ suite("Metadata Service Tests", () => {
             );
 
             expect(result).to.deep.equal([
+                { name: "@userId", ordinal: 1 },
+                { name: "@includeInactive", ordinal: 2 },
+            ]);
+        });
+
+        test("should group stored procedure parameters by procedure and skip malformed rows", async () => {
+            mockClient.sendRequest.callsFake(async (_type: any, _params: any) => ({
+                rows: [
+                    [cell("stored-procedure:dbo.GetUsers"), cell("@userId"), cell("1")],
+                    [cell("stored-procedure:dbo.GetUsers"), cell("@includeInactive"), cell("2")],
+                    [cell("stored-procedure:dbo.Broken"), cell("", true), cell("1")],
+                ],
+            }));
+
+            const result =
+                await metadataService.getDabStoredProcedureParametersByProcedure(ownerUri);
+
+            expect([...result.keys()]).to.deep.equal(["stored-procedure:dbo.GetUsers"]);
+            expect(result.get("stored-procedure:dbo.GetUsers")).to.deep.equal([
                 { name: "@userId", ordinal: 1 },
                 { name: "@includeInactive", ordinal: 2 },
             ]);

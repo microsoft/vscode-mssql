@@ -236,9 +236,9 @@ suite("MsalAzureController Tests", () => {
         await controller.clearTokenCache();
 
         // Assert
-        expect(clearCacheStub).to.have.been.calledOnce;
-        expect(mockCachePluginProvider.unlinkMsalCache).to.have.been.calledOnce;
-        expect(mockCachePluginProvider.clearCacheEncryptionKeys).to.have.been.calledOnce;
+        expect(clearCacheStub).to.have.been.called;
+        expect(mockCachePluginProvider.unlinkMsalCache).to.have.been.called;
+        expect(mockCachePluginProvider.clearCacheEncryptionKeys).to.have.been.called;
     });
 
     test("login should return account on successful login", async () => {

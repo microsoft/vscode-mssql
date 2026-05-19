@@ -884,6 +884,7 @@
     "Tables": "Tables",
     "Views": "Views",
     "Stored Procedures": "Stored Procedures",
+    "Invalid entity reference. Use either id OR schemaName+tableName OR schemaName+sourceName+sourceType.": "Invalid entity reference. Use either id OR schemaName+tableName OR schemaName+sourceName+sourceType.",
     "Bulk Actions": "Bulk Actions",
     "Enable all entities": "Enable all entities",
     "Disable all entities": "Disable all entities",
