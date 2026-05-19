@@ -24,9 +24,12 @@ import { ConnectionCredentials } from "../models/connectionCredentials";
 import { IConnectionProfile } from "../models/interfaces";
 import { DEPLOYMENT_VIEW_ID, DeploymentWebviewController } from "./deploymentWebviewController";
 import { UserSurvey } from "../nps/userSurvey";
-import { acquireSqlAccessTokenFromVscodeAccount } from "../azure/vscodeEntraMfaUtils";
 import { getCloudProviderSettings } from "../azure/providerSettings";
 import { user } from "../constants/constants";
+import {
+    acquireTokenFromVscodeAccountForResource,
+    getCloudResourceEndpoint,
+} from "../azure/vscodeEntraMfaUtils";
 
 // Cached logger reference for use in helper functions that don't have
 // direct access to the controller's protected logger.
@@ -682,7 +685,8 @@ export async function connectToAzureSqlDatabase(
         // valid token. The provisioning wizard authenticates through VS Code
         // accounts, so use that path directly.
         if (state.formState.authenticationType === AuthenticationType.AzureMFA) {
-            const tokenInfo = await acquireSqlAccessTokenFromVscodeAccount(
+            const tokenInfo = await acquireTokenFromVscodeAccountForResource(
+                getCloudResourceEndpoint("sqlResource"),
                 state.formState.accountId,
                 state.formState.tenantId,
             );

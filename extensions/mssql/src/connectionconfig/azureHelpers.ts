@@ -63,6 +63,11 @@ import {
     StorageSharedKeyCredential,
 } from "@azure/storage-blob";
 import { MaintenanceManagementClient, MaintenanceConfiguration } from "@azure/arm-maintenance";
+import {
+    acquireTokenFromVscodeAccountForResource,
+    getCloudResourceEndpoint,
+    VscodeEntraSqlTokenInfo,
+} from "../azure/vscodeEntraMfaUtils";
 
 export const azureSubscriptionFilterConfigKey = "mssql.selectedAzureSubscriptions";
 export const MANAGED_INSTANCE_PUBLIC_PORT = 3342;
@@ -1117,6 +1122,22 @@ export function getDefaultTenantId(accountId: string, tenants: AzureTenant[]): s
         : tenants.length > 0
           ? tenants[0].tenantId
           : "";
+}
+
+/**
+ * Acquires a SQL access token from a VS Code authentication account.
+ * Convenience wrapper around {@link acquireTokenFromVscodeAccountForResource}
+ * that targets the SQL resource endpoint for the current cloud.
+ */
+export async function acquireSqlAccessTokenFromVscodeAccount(
+    accountId?: string,
+    tenantId?: string,
+): Promise<VscodeEntraSqlTokenInfo> {
+    return acquireTokenFromVscodeAccountForResource(
+        getCloudResourceEndpoint("sqlResource"),
+        accountId,
+        tenantId,
+    );
 }
 
 //#endregion

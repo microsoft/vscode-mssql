@@ -456,7 +456,7 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                             </RadioGroup>
                         </div>
                     </div>
-                    {localFreeLimitBehavior === "-1" && (
+                    {localFreeLimitBehavior === KnownFreeLimitExhaustionBehavior.BillOverUsage && (
                         <Card
                             style={{
                                 display: "flex",
