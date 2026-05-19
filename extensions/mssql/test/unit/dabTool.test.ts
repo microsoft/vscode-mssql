@@ -1565,7 +1565,7 @@ suite("DabTool Tests", () => {
             expect(enableResult.reason).to.equal("entity_not_supported");
             expect(enableResult.message).to.include("dbo.Users");
             expect(enableResult.message).to.include(
-                locConstants.schemaDesigner.unsupportedNoPrimaryKey,
+                locConstants.schemaDesigner.unsupportedNoPrimaryKey("Table"),
             );
 
             const actionsResult = await harness.applyChanges({
