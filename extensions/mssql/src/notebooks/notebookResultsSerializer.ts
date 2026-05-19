@@ -26,11 +26,6 @@ export interface SerializeOptions {
     resultSetIndex: number;
 }
 
-/**
- * Prompt for a save location and ask SQL Tools Service to serialize the
- * result set directly to disk. Returns the saved Uri on success, undefined
- * if the user cancelled.
- */
 export async function saveNotebookResults(
     options: SerializeOptions,
 ): Promise<vscode.Uri | undefined> {
@@ -99,9 +94,6 @@ function getDialogConfig(
     const safeBase = sanitizeFileBase(notebookBaseName) || "results";
     const suffix = `_resultset_${resultSetIndex + 1}`;
 
-    // Prefer the workspace folder that contains the notebook, fall back to
-    // the first workspace folder (for untitled notebooks), then the notebook's
-    // parent directory (if it's a file:// URI), then home directory
     let baseUri: vscode.Uri;
     const workspaceFolder = vscode.workspace.getWorkspaceFolder(notebookUri)?.uri;
     if (workspaceFolder) {

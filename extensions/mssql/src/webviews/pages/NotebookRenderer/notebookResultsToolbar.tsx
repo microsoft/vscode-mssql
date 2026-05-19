@@ -10,9 +10,6 @@ import type {
     NotebookSaveAsMessage,
 } from "../../../sharedInterfaces/notebookQueryResult";
 import type { DbCellValue, IDbColumn } from "../../../sharedInterfaces/queryResult";
-// Static ESM imports so esbuild's "dataurl" loader replaces these with the
-// inlined data: URI strings at bundle time. require() with format=esm wraps
-// the result in a namespace object and breaks <img src>.
 import saveCsvIcon from "../../media/saveCsv.svg";
 import saveCsvIconInverse from "../../media/saveCsv_inverse.svg";
 import saveJsonIcon from "../../media/saveJson.svg";
@@ -27,9 +24,6 @@ export interface NotebookResultsToolbarProps {
     postMessage: ((message: unknown) => void) | undefined;
 }
 
-// The notebook renderer iframe doesn't load Fluent UI / theme provider, so we
-// pick the inverse (light-on-dark) icon when VS Code applies a dark theme. VS
-// Code stamps these classes on the body element of the renderer iframe.
 function isLightTheme(): boolean {
     if (typeof document === "undefined") {
         return false;

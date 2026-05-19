@@ -191,10 +191,6 @@ export class SqlNotebookController implements vscode.Disposable {
             }),
         );
 
-        // Save-as messages from the notebook result renderer toolbar.
-        // The renderer iframe sends rows/columns inline because it has no
-        // way to reference back to a specific NotebookCellOutput from inside
-        // the iframe — see NotebookSaveAsMessage.
         const messaging = vscode.notebooks.createRendererMessaging(NOTEBOOK_RESULT_RENDERER_ID);
         this.disposables.push(
             messaging.onDidReceiveMessage((e) => {

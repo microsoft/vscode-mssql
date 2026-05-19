@@ -13,9 +13,6 @@ export interface NotebookResultsOutputProps {
 }
 
 export function NotebookResultsOutput({ blocks, postMessage }: NotebookResultsOutputProps) {
-    // Count result sets ourselves so the toolbar can label each save action
-    // with its 1-based index across the whole cell — text/error blocks are
-    // interleaved and shouldn't shift the numbering.
     let resultSetCounter = 0;
     return (
         <div className="notebook-results-output">

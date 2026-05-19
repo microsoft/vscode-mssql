@@ -40,8 +40,6 @@ interface OutputItem {
 interface RendererContext {
     readonly workspace: { readonly isTrusted: boolean };
     readonly settings: { readonly lineLimit: number };
-    // postMessage / onDidReceiveMessage are present when the renderer is
-    // registered for messaging via vscode.notebooks.createRendererMessaging.
     postMessage?: (message: unknown) => void;
     onDidReceiveMessage?: (listener: (message: unknown) => void) => { dispose: () => void };
 }
