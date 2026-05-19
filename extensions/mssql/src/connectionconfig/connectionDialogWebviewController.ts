@@ -166,7 +166,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     /** Cache of database lists keyed by fetch key, reused within the same dialog session. */
     private _databaseListCache: Map<string, string[]> = new Map();
 
-    // Original capability-sourced labels/tooltips for user/password fields, cached so they
+    // Original labels/tooltips for user/password fields from STS, cached so they
     // can be restored when switching away from Service Principal auth.
     private _originalUserLabel: string | undefined;
     private _originalUserTooltip: string | undefined;
