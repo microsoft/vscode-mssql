@@ -928,9 +928,6 @@ export class Notebooks {
     public static parseError = l10n.t("Error: Failed to parse query result data.");
 
     // Save as
-    public static saveAsCsvTooltip = l10n.t("Save As CSV");
-    public static saveAsExcelTooltip = l10n.t("Save As Excel");
-    public static saveAsJsonTooltip = l10n.t("Save As JSON");
     public static saveAsCsvDialogTitle = l10n.t("Save results as CSV");
     public static saveAsExcelDialogTitle = l10n.t("Save results as Excel");
     public static saveAsJsonDialogTitle = l10n.t("Save results as JSON");

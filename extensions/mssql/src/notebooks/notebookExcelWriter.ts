@@ -3,7 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import JSZip from "jszip";
+import JSZip = require("jszip");
+import * as vscode from "vscode";
+import * as Constants from "../constants/constants";
 import type { DbCellValue, IDbColumn } from "../sharedInterfaces/queryResult";
 
 /**
@@ -23,13 +25,20 @@ import type { DbCellValue, IDbColumn } from "../sharedInterfaces/queryResult";
  *   xl/worksheets/sheet1.xml
  */
 export async function buildXlsx(columnInfo: IDbColumn[], rows: DbCellValue[][]): Promise<Buffer> {
+    const includeHeaders = getIncludeHeadersSetting();
     const zip = new JSZip();
     zip.file("[Content_Types].xml", contentTypesXml());
     zip.file("_rels/.rels", rootRelsXml());
     zip.file("xl/workbook.xml", workbookXml());
     zip.file("xl/_rels/workbook.xml.rels", workbookRelsXml());
-    zip.file("xl/worksheets/sheet1.xml", sheetXml(columnInfo, rows));
+    zip.file("xl/worksheets/sheet1.xml", sheetXml(columnInfo, rows, includeHeaders));
     return zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
+}
+
+function getIncludeHeadersSetting(): boolean {
+    const config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
+    const saveConfig = config.get(Constants.configSaveAsCsv) as any;
+    return saveConfig?.includeHeaders !== false;
 }
 
 function contentTypesXml(): string {
@@ -72,22 +81,27 @@ function workbookRelsXml(): string {
     );
 }
 
-function sheetXml(columnInfo: IDbColumn[], rows: DbCellValue[][]): string {
+function sheetXml(columnInfo: IDbColumn[], rows: DbCellValue[][], includeHeaders: boolean): string {
     const parts: string[] = [];
     parts.push(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>`);
     parts.push(`<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">`);
     parts.push(`<sheetData>`);
 
-    // Header row at index 1
-    parts.push(`<row r="1">`);
-    for (let c = 0; c < columnInfo.length; c++) {
-        parts.push(inlineStringCell(cellRef(c, 1), columnInfo[c].columnName));
-    }
-    parts.push(`</row>`);
+    let currentRow = 1;
 
-    // Data rows starting at index 2
+    // Header row if configured
+    if (includeHeaders) {
+        parts.push(`<row r="${currentRow}">`);
+        for (let c = 0; c < columnInfo.length; c++) {
+            parts.push(inlineStringCell(cellRef(c, currentRow), columnInfo[c].columnName));
+        }
+        parts.push(`</row>`);
+        currentRow++;
+    }
+
+    // Data rows
     for (let r = 0; r < rows.length; r++) {
-        const rowIndex = r + 2;
+        const rowIndex = currentRow + r;
         const row = rows[r];
         parts.push(`<row r="${rowIndex}">`);
         for (let c = 0; c < columnInfo.length; c++) {

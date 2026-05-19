@@ -79,9 +79,7 @@ const config = {
     loader: {
         ".tsx": "tsx",
         ".ts": "ts",
-        // Inline assets as data URIs — the renderer iframe only loads the JS
-        // entrypoint, so sibling files emitted by the "file" loader can't be
-        // resolved at runtime.
+        // Inline assets — renderer iframe can't resolve separate files.
         ".svg": "dataurl",
         ".js": "js",
         ".png": "dataurl",

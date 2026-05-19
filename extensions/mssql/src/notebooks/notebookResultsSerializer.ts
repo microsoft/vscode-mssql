@@ -6,13 +6,33 @@
 import * as os from "os";
 import * as path from "path";
 import * as vscode from "vscode";
+import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { buildXlsx } from "./notebookExcelWriter";
+import { sanitizeCsvValue } from "../profiler/csvUtils";
 import type { DbCellValue, IDbColumn } from "../sharedInterfaces/queryResult";
 import type { NotebookSaveAsFormat } from "../sharedInterfaces/notebookQueryResult";
 
-const CSV_DELIMITER = ",";
-const CSV_TEXT_IDENTIFIER = '"';
+interface CsvConfig {
+    delimiter: string;
+    textIdentifier: string;
+    lineSeparator: string;
+    includeHeaders: boolean;
+    encoding: string;
+}
+
+export function getCsvConfig(): CsvConfig {
+    const config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
+    const saveConfig = config.get(Constants.configSaveAsCsv) as any;
+
+    return {
+        delimiter: saveConfig?.delimiter ?? ",",
+        textIdentifier: saveConfig?.textIdentifier ?? '"',
+        lineSeparator: saveConfig?.lineSeparator ?? os.EOL,
+        includeHeaders: saveConfig?.includeHeaders !== false,
+        encoding: saveConfig?.encoding ?? "utf8",
+    };
+}
 
 export interface SerializeOptions {
     format: NotebookSaveAsFormat;
@@ -54,8 +74,13 @@ async function serialize(
     rows: DbCellValue[][],
 ): Promise<Uint8Array> {
     switch (format) {
-        case "csv":
-            return Buffer.from(toCsv(columnInfo, rows), "utf8");
+        case "csv": {
+            const csvConfig = getCsvConfig();
+            return Buffer.from(
+                toCsv(columnInfo, rows, csvConfig),
+                csvConfig.encoding as BufferEncoding,
+            );
+        }
         case "json":
             return Buffer.from(toJson(columnInfo, rows), "utf8");
         case "excel":
@@ -67,42 +92,72 @@ async function serialize(
     }
 }
 
-function toCsv(columnInfo: IDbColumn[], rows: DbCellValue[][]): string {
+export function toCsv(columnInfo: IDbColumn[], rows: DbCellValue[][], config: CsvConfig): string {
     const lines: string[] = [];
-    lines.push(columnInfo.map((c) => csvQuote(c.columnName)).join(CSV_DELIMITER));
+
+    if (config.includeHeaders) {
+        lines.push(columnInfo.map((c) => csvQuote(c.columnName, config)).join(config.delimiter));
+    }
+
     for (const row of rows) {
         const cells = columnInfo.map((_, colIdx) => {
             const cell = row[colIdx];
             if (!cell || cell.isNull) {
                 return "";
             }
-            return csvQuote(cell.displayValue);
+            return csvQuote(cell.displayValue, config);
         });
-        lines.push(cells.join(CSV_DELIMITER));
+        lines.push(cells.join(config.delimiter));
     }
-    return lines.join(os.EOL) + os.EOL;
+    return lines.join(config.lineSeparator) + config.lineSeparator;
 }
 
-function csvQuote(value: string): string {
+function csvQuote(value: string, config: CsvConfig): string {
+    // Sanitize to prevent formula injection
+    const sanitized = sanitizeCsvValue(value);
+
     // Always quote — matches the conservative default STS uses and avoids
     // edge cases with embedded delimiters, quotes, or newlines.
-    const escaped = value
-        .split(CSV_TEXT_IDENTIFIER)
-        .join(CSV_TEXT_IDENTIFIER + CSV_TEXT_IDENTIFIER);
-    return `${CSV_TEXT_IDENTIFIER}${escaped}${CSV_TEXT_IDENTIFIER}`;
+    const escaped = sanitized
+        .split(config.textIdentifier)
+        .join(config.textIdentifier + config.textIdentifier);
+    return `${config.textIdentifier}${escaped}${config.textIdentifier}`;
 }
 
-function toJson(columnInfo: IDbColumn[], rows: DbCellValue[][]): string {
+export function toJson(columnInfo: IDbColumn[], rows: DbCellValue[][]): string {
+    // Disambiguate duplicate column names by appending a numeric suffix
+    const columnKeys = disambiguateColumnNames(columnInfo);
+
     const objects = rows.map((row) => {
         const obj: Record<string, string | null> = {};
         for (let i = 0; i < columnInfo.length; i++) {
             const cell = row[i];
-            const key = columnInfo[i].columnName;
+            const key = columnKeys[i];
             obj[key] = cell?.isNull ? null : (cell?.displayValue ?? null);
         }
         return obj;
     });
     return JSON.stringify(objects, undefined, 4) + os.EOL;
+}
+
+function disambiguateColumnNames(columnInfo: IDbColumn[]): string[] {
+    const keys: string[] = [];
+    const seen = new Map<string, number>();
+
+    for (const col of columnInfo) {
+        const name = col.columnName;
+        const count = seen.get(name) ?? 0;
+
+        if (count === 0) {
+            keys.push(name);
+            seen.set(name, 1);
+        } else {
+            keys.push(`${name}_${count}`);
+            seen.set(name, count + 1);
+        }
+    }
+
+    return keys;
 }
 
 interface DialogConfig {
