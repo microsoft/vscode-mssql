@@ -49,19 +49,19 @@ function buildActions(): ToolbarAction[] {
     return [
         {
             id: "csv",
-            label: l10n.t("Save As CSV"),
+            label: l10n.t("Save as CSV"),
             iconLight: saveCsvIcon,
             iconDark: saveCsvIconInverse,
         },
         {
             id: "excel",
-            label: l10n.t("Save As Excel"),
+            label: l10n.t("Save as Excel"),
             iconLight: saveExcelIcon,
             iconDark: saveExcelIconInverse,
         },
         {
             id: "json",
-            label: l10n.t("Save As JSON"),
+            label: l10n.t("Save as JSON"),
             iconLight: saveJsonIcon,
             iconDark: saveJsonIconInverse,
         },

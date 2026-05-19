@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as os from "os";
+import * as path from "path";
 import * as vscode from "vscode";
 import type { IConnectionInfo } from "vscode-mssql";
 import * as Constants from "../constants/constants";
@@ -500,12 +501,13 @@ export class SqlNotebookController implements vscode.Disposable {
             format: message.format,
         });
         try {
-            const notebookName = notebook.uri.path.split(/[\\/]/).pop() ?? "results";
+            const notebookName = path.basename(notebook.uri.fsPath);
             const saved = await saveNotebookResults({
                 format: message.format,
                 columnInfo: message.columnInfo,
                 rows: message.rows,
                 notebookBaseName: notebookName,
+                notebookUri: notebook.uri,
                 resultSetIndex: message.resultSetIndex,
             });
             if (saved) {

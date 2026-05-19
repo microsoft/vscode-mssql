@@ -22,6 +22,7 @@ export interface SerializeOptions {
     columnInfo: IDbColumn[];
     rows: DbCellValue[][];
     notebookBaseName: string;
+    notebookUri: vscode.Uri;
     resultSetIndex: number;
 }
 
@@ -36,6 +37,7 @@ export async function saveNotebookResults(
     const dialog = getDialogConfig(
         options.format,
         options.notebookBaseName,
+        options.notebookUri,
         options.resultSetIndex,
     );
     const targetUri = await vscode.window.showSaveDialog({
@@ -91,13 +93,26 @@ interface DialogConfig {
 function getDialogConfig(
     format: NotebookSaveAsFormat,
     notebookBaseName: string,
+    notebookUri: vscode.Uri,
     resultSetIndex: number,
 ): DialogConfig {
     const safeBase = sanitizeFileBase(notebookBaseName) || "results";
     const suffix = `_resultset_${resultSetIndex + 1}`;
-    const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
-    const home = vscode.Uri.file(os.homedir());
-    const baseUri = workspaceFolder ?? home;
+
+    // Prefer the workspace folder that contains the notebook, fall back to
+    // the first workspace folder (for untitled notebooks), then the notebook's
+    // parent directory (if it's a file:// URI), then home directory
+    let baseUri: vscode.Uri;
+    const workspaceFolder = vscode.workspace.getWorkspaceFolder(notebookUri)?.uri;
+    if (workspaceFolder) {
+        baseUri = workspaceFolder;
+    } else if (vscode.workspace.workspaceFolders?.[0]) {
+        baseUri = vscode.workspace.workspaceFolders[0].uri;
+    } else if (notebookUri.scheme === "file") {
+        baseUri = vscode.Uri.joinPath(notebookUri, "..");
+    } else {
+        baseUri = vscode.Uri.file(os.homedir());
+    }
 
     switch (format) {
         case "csv":

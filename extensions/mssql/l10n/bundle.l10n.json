@@ -26,9 +26,9 @@
     "Copy Headers": "Copy Headers",
     "Error: Failed to parse query result data.": "Error: Failed to parse query result data.",
     "Error: Unrecognized query result data.": "Error: Unrecognized query result data.",
-    "Save As CSV": "Save As CSV",
-    "Save As Excel": "Save As Excel",
-    "Save As JSON": "Save As JSON",
+    "Save as CSV": "Save as CSV",
+    "Save as Excel": "Save as Excel",
+    "Save as JSON": "Save as JSON",
     "Export toolbar for result set {0}/{0} is the result set number (1-based index)": {
         "message": "Export toolbar for result set {0}",
         "comment": ["{0} is the result set number (1-based index)"]
@@ -443,17 +443,14 @@
         "message": "Save as CSV ({0})",
         "comment": ["{0} is the keyboard shortcut for saving as CSV"]
     },
-    "Save as CSV": "Save as CSV",
     "Save as Excel ({0})/{0} is the keyboard shortcut for saving as Excel": {
         "message": "Save as Excel ({0})",
         "comment": ["{0} is the keyboard shortcut for saving as Excel"]
     },
-    "Save as Excel": "Save as Excel",
     "Save as JSON ({0})/{0} is the keyboard shortcut for saving as JSON": {
         "message": "Save as JSON ({0})",
         "comment": ["{0} is the keyboard shortcut for saving as JSON"]
     },
-    "Save as JSON": "Save as JSON",
     "Save as INSERT INTO ({0})/{0} is the keyboard shortcut for saving as INSERT INTO": {
         "message": "Save as INSERT INTO ({0})",
         "comment": ["{0} is the keyboard shortcut for saving as INSERT INTO"]

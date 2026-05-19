@@ -47,6 +47,7 @@ suite("notebookResultsSerializer", () => {
             columnInfo: [makeColumn("id")],
             rows: [[makeCell("1")]],
             notebookBaseName: "test.ipynb",
+            notebookUri: vscode.Uri.file("/notebooks/test.ipynb"),
             resultSetIndex: 0,
         });
 
@@ -70,6 +71,7 @@ suite("notebookResultsSerializer", () => {
             columnInfo: columns,
             rows,
             notebookBaseName: "test.ipynb",
+            notebookUri: vscode.Uri.file("/notebooks/test.ipynb"),
             resultSetIndex: 0,
         });
 
@@ -109,6 +111,7 @@ suite("notebookResultsSerializer", () => {
             columnInfo: [makeColumn("untyped")],
             rows: [[makeCell("value")]],
             notebookBaseName: "test.ipynb",
+            notebookUri: vscode.Uri.file("/notebooks/test.ipynb"),
             resultSetIndex: 0,
         });
 
@@ -128,6 +131,7 @@ suite("notebookResultsSerializer", () => {
                 columnInfo: [makeColumn("id")],
                 rows: [[makeCell("1")]],
                 notebookBaseName: "test.ipynb",
+                notebookUri: vscode.Uri.file("/notebooks/test.ipynb"),
                 resultSetIndex: 0,
             });
             expect.fail("expected saveNotebookResults to throw");
@@ -146,6 +150,7 @@ suite("notebookResultsSerializer", () => {
                 columnInfo: [makeColumn("id")],
                 rows: [[makeCell("1")]],
                 notebookBaseName: "test.ipynb",
+                notebookUri: vscode.Uri.file("/notebooks/test.ipynb"),
                 resultSetIndex: 0,
             });
             expect.fail("expected saveNotebookResults to throw");
@@ -162,6 +167,7 @@ suite("notebookResultsSerializer", () => {
             columnInfo: [makeColumn("id")],
             rows: [[makeCell("1")]],
             notebookBaseName: "my report!.ipynb",
+            notebookUri: vscode.Uri.file("/notebooks/my report!.ipynb"),
             resultSetIndex: 2,
         });
 
