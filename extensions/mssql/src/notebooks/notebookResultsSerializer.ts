@@ -101,7 +101,8 @@ function getDialogConfig(
     } else if (vscode.workspace.workspaceFolders?.[0]) {
         baseUri = vscode.workspace.workspaceFolders[0].uri;
     } else if (notebookUri.scheme === "file") {
-        baseUri = vscode.Uri.joinPath(notebookUri, "..");
+        const parentDir = path.dirname(notebookUri.fsPath);
+        baseUri = vscode.Uri.file(parentDir);
     } else {
         baseUri = vscode.Uri.file(os.homedir());
     }

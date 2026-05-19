@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as l10n from "@vscode/l10n";
-import type { CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import type {
     NotebookSaveAsFormat,
     NotebookSaveAsMessage,
@@ -83,6 +83,7 @@ const buttonStyle: CSSProperties = {
     borderRadius: "4px",
     cursor: "pointer",
     color: "var(--vscode-foreground)",
+    transition: "background 0.1s ease",
 };
 
 const iconStyle: CSSProperties = {
@@ -98,7 +99,20 @@ export function NotebookResultsToolbar({
     postMessage,
 }: NotebookResultsToolbarProps) {
     const actions = buildActions();
-    const light = isLightTheme();
+    const [isLight, setIsLight] = useState(isLightTheme());
+
+    useEffect(() => {
+        const observer = new MutationObserver(() => {
+            setIsLight(isLightTheme());
+        });
+
+        observer.observe(document.body, {
+            attributes: true,
+            attributeFilter: ["class"],
+        });
+
+        return () => observer.disconnect();
+    }, []);
 
     const onClick = (format: NotebookSaveAsFormat) => {
         if (!postMessage) {
@@ -132,18 +146,12 @@ export function NotebookResultsToolbar({
                     type="button"
                     title={action.label}
                     aria-label={action.label}
+                    className="notebook-results-toolbar-button"
                     style={buttonStyle}
                     disabled={!postMessage}
-                    onClick={() => onClick(action.id)}
-                    onMouseEnter={(e) => {
-                        (e.currentTarget as HTMLButtonElement).style.background =
-                            "var(--vscode-toolbar-hoverBackground, rgba(128,128,128,0.15))";
-                    }}
-                    onMouseLeave={(e) => {
-                        (e.currentTarget as HTMLButtonElement).style.background = "transparent";
-                    }}>
+                    onClick={() => onClick(action.id)}>
                     <img
-                        src={light ? action.iconLight : action.iconDark}
+                        src={isLight ? action.iconLight : action.iconDark}
                         alt=""
                         style={iconStyle}
                     />
