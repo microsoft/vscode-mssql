@@ -54,10 +54,11 @@ suite("SchemaDesignerWebviewManager tests", () => {
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        mockContext = stubExtensionContext(sandbox);
+        mockContext = stubExtensionContext(sandbox, { name: "mssql", version: "1.0.0" });
         stubUserSurvey(sandbox);
 
         mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+        sandbox.stub(mockVscodeWrapper, "outputChannel").get(() => ({ name: "MSSQL" }) as any);
         mockMainController = sandbox.createStubInstance(MainController);
         mockSchemaDesignerService = {
             createSession: sandbox.stub().resolves(mockCreateSessionResponse),
@@ -87,7 +88,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
         treeNode.updateConnectionProfile = sandbox.stub();
 
         mockMainController.connectionManager = {
-            createConnectionDetails: sandbox.stub().resolves({
+            createConnectionDetails: sandbox.stub().returns({
                 server: "localhost",
                 database: databaseName,
             }),

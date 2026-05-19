@@ -1348,7 +1348,6 @@ export class LocConstants {
             graphql: l10n.t("GraphQL"),
             mcp: l10n.t("MCP"),
             all: l10n.t("All"),
-            table: l10n.t("Table"),
             entityEndpoints: l10n.t("Entity Endpoints"),
             allSchemas: l10n.t("All Schemas"),
             filterEntities: l10n.t("Filter entities..."),
