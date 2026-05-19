@@ -1037,6 +1037,7 @@ export class ConnectionDialog {
     );
     public static applicationClientIdIsRequired = l10n.t("Application (Client) ID is required.");
     public static clientSecretIsRequired = l10n.t("Client secret is required.");
+    public static saveSecret = l10n.t("Save Secret");
     public static createConnectionGroup = l10n.t("+ Create Connection Group");
     public static selectConnectionGroup = l10n.t("Select a connection group");
     public static searchConnectionGroups = l10n.t("Search connection groups");

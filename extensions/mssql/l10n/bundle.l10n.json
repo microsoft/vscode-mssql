@@ -2342,6 +2342,7 @@
     "The client secret for your Microsoft Entra app registration.": "The client secret for your Microsoft Entra app registration.",
     "Application (Client) ID is required.": "Application (Client) ID is required.",
     "Client secret is required.": "Client secret is required.",
+    "Save Secret": "Save Secret",
     "+ Create Connection Group": "+ Create Connection Group",
     "Select a connection group": "Select a connection group",
     "Search connection groups": "Search connection groups",

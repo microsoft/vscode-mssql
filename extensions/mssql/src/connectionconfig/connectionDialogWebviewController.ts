@@ -172,6 +172,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     private _originalUserTooltip: string | undefined;
     private _originalPasswordLabel: string | undefined;
     private _originalPasswordTooltip: string | undefined;
+    private _originalSavePasswordLabel: string | undefined;
 
     //#endregion
 
@@ -1117,6 +1118,15 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             passwordComp.tooltip = isServicePrincipal
                 ? LocAll.ConnectionDialog.clientSecretTooltip
                 : this._originalPasswordTooltip;
+        }
+        const savePasswordComp = this.state.formComponents["savePassword"];
+        if (savePasswordComp) {
+            if (savePasswordComp.label && !this._originalSavePasswordLabel) {
+                this._originalSavePasswordLabel = savePasswordComp.label;
+            }
+            savePasswordComp.label = isServicePrincipal
+                ? LocAll.ConnectionDialog.saveSecret
+                : this._originalSavePasswordLabel;
         }
 
         for (const component of Object.values(this.state.formComponents)) {
