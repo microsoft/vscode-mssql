@@ -42,6 +42,7 @@ type MainControllerTestAccess = {
     openCopilotChatFromUi(args?: CopilotChat.OpenFromUiArgs): Promise<void>;
     findChatOpenAgentCommand(): Promise<string | undefined>;
     registerLanguageModelTools(): void;
+    migrateTransferActiveEditorConnectionsSetting(): Promise<void>;
 };
 
 function accessMainController(controller: MainController): MainControllerTestAccess {
@@ -664,5 +665,213 @@ suite("MainController Tests", function () {
             );
             expect(mockDesigner.revealToForeground).to.have.been.calledOnce;
         });
+    });
+
+    suite("migrateTransferActiveEditorConnectionsSetting", () => {
+        let controller: MainController;
+        let controllerAccess: MainControllerTestAccess;
+        let configStub: sinon.SinonStub;
+        let inspectStub: sinon.SinonStub;
+        let updateStub: sinon.SinonStub;
+        let sendActionEvent: sinon.SinonStub;
+        let sendErrorEvent: sinon.SinonStub;
+
+        setup(() => {
+            controller = new MainController(context, connectionManager, vscodeWrapper);
+            controllerAccess = accessMainController(controller);
+
+            ({ sendActionEvent, sendErrorEvent } = stubTelemetry(sandbox));
+
+            inspectStub = sandbox.stub();
+            updateStub = sandbox.stub().resolves();
+
+            // WorkspaceConfiguration is an interface — plain stub object is required
+            const mockConfig = {
+                inspect: inspectStub,
+                update: updateStub,
+            } as unknown as vscode.WorkspaceConfiguration;
+
+            configStub = sandbox.stub(vscode.workspace, "getConfiguration").returns(mockConfig);
+        });
+        /* eslint-disable @typescript-eslint/no-deprecated */
+        test("migrates true → transferActive at Global scope and clears old setting", async () => {
+            inspectStub
+                .withArgs(Constants.configTransferActiveEditorConnections)
+                .returns({ globalValue: true, workspaceValue: undefined });
+
+            await controllerAccess.migrateTransferActiveEditorConnectionsSetting();
+
+            expect(updateStub).to.have.been.calledWith(
+                Constants.configNewEditorConnectionBehavior,
+                Constants.NewEditorConnectionBehavior.TransferActive,
+                vscode.ConfigurationTarget.Global,
+            );
+            expect(updateStub).to.have.been.calledWith(
+                Constants.configTransferActiveEditorConnections,
+                undefined,
+                vscode.ConfigurationTarget.Global,
+            );
+            // workspace scope was undefined — no workspace writes
+            expect(
+                updateStub.args.filter(
+                    ([, , scope]) => scope === vscode.ConfigurationTarget.Workspace,
+                ),
+            ).to.have.lengthOf(0);
+            expect(sendActionEvent).to.have.been.calledOnceWith(
+                TelemetryViews.General,
+                TelemetryActions.MigrateEditorConnectionBehavior,
+                {
+                    migratedValue: Constants.NewEditorConnectionBehavior.TransferActive,
+                    scope: "global",
+                },
+            );
+            expect(sendErrorEvent).to.not.have.been.called;
+        });
+
+        test("migrates false → none at Global scope and clears old setting", async () => {
+            inspectStub
+                .withArgs(Constants.configTransferActiveEditorConnections)
+                .returns({ globalValue: false, workspaceValue: undefined });
+
+            await controllerAccess.migrateTransferActiveEditorConnectionsSetting();
+
+            expect(updateStub).to.have.been.calledWith(
+                Constants.configNewEditorConnectionBehavior,
+                Constants.NewEditorConnectionBehavior.None,
+                vscode.ConfigurationTarget.Global,
+            );
+            expect(updateStub).to.have.been.calledWith(
+                Constants.configTransferActiveEditorConnections,
+                undefined,
+                vscode.ConfigurationTarget.Global,
+            );
+            expect(sendActionEvent).to.have.been.calledOnceWith(
+                TelemetryViews.General,
+                TelemetryActions.MigrateEditorConnectionBehavior,
+                { migratedValue: Constants.NewEditorConnectionBehavior.None, scope: "global" },
+            );
+        });
+
+        test("migrates true → transferActive at Workspace scope and clears old setting", async () => {
+            inspectStub
+                .withArgs(Constants.configTransferActiveEditorConnections)
+                .returns({ globalValue: undefined, workspaceValue: true });
+
+            await controllerAccess.migrateTransferActiveEditorConnectionsSetting();
+
+            expect(updateStub).to.have.been.calledWith(
+                Constants.configNewEditorConnectionBehavior,
+                Constants.NewEditorConnectionBehavior.TransferActive,
+                vscode.ConfigurationTarget.Workspace,
+            );
+            expect(updateStub).to.have.been.calledWith(
+                Constants.configTransferActiveEditorConnections,
+                undefined,
+                vscode.ConfigurationTarget.Workspace,
+            );
+            // global scope was undefined — no global writes
+            expect(
+                updateStub.args.filter(
+                    ([, , scope]) => scope === vscode.ConfigurationTarget.Global,
+                ),
+            ).to.have.lengthOf(0);
+            expect(sendActionEvent).to.have.been.calledOnceWith(
+                TelemetryViews.General,
+                TelemetryActions.MigrateEditorConnectionBehavior,
+                {
+                    migratedValue: Constants.NewEditorConnectionBehavior.TransferActive,
+                    scope: "workspace",
+                },
+            );
+        });
+
+        test("migrates both Global and Workspace scopes when both are explicitly set", async () => {
+            inspectStub
+                .withArgs(Constants.configTransferActiveEditorConnections)
+                .returns({ globalValue: true, workspaceValue: false });
+
+            await controllerAccess.migrateTransferActiveEditorConnectionsSetting();
+
+            expect(updateStub).to.have.been.calledWith(
+                Constants.configNewEditorConnectionBehavior,
+                Constants.NewEditorConnectionBehavior.TransferActive,
+                vscode.ConfigurationTarget.Global,
+            );
+            expect(updateStub).to.have.been.calledWith(
+                Constants.configTransferActiveEditorConnections,
+                undefined,
+                vscode.ConfigurationTarget.Global,
+            );
+            expect(updateStub).to.have.been.calledWith(
+                Constants.configNewEditorConnectionBehavior,
+                Constants.NewEditorConnectionBehavior.None,
+                vscode.ConfigurationTarget.Workspace,
+            );
+            expect(updateStub).to.have.been.calledWith(
+                Constants.configTransferActiveEditorConnections,
+                undefined,
+                vscode.ConfigurationTarget.Workspace,
+            );
+            expect(sendActionEvent).to.have.been.calledTwice;
+            expect(sendActionEvent.firstCall).to.have.been.calledWith(
+                TelemetryViews.General,
+                TelemetryActions.MigrateEditorConnectionBehavior,
+                {
+                    migratedValue: Constants.NewEditorConnectionBehavior.TransferActive,
+                    scope: "global",
+                },
+            );
+            expect(sendActionEvent.secondCall).to.have.been.calledWith(
+                TelemetryViews.General,
+                TelemetryActions.MigrateEditorConnectionBehavior,
+                { migratedValue: Constants.NewEditorConnectionBehavior.None, scope: "workspace" },
+            );
+        });
+
+        test("is a no-op when the old setting was never explicitly set", async () => {
+            inspectStub
+                .withArgs(Constants.configTransferActiveEditorConnections)
+                .returns({ globalValue: undefined, workspaceValue: undefined });
+
+            await controllerAccess.migrateTransferActiveEditorConnectionsSetting();
+
+            expect(updateStub).to.not.have.been.called;
+            expect(sendActionEvent).to.not.have.been.called;
+            expect(sendErrorEvent).to.not.have.been.called;
+        });
+
+        test("sends error telemetry and does not throw when config.update fails", async () => {
+            const writeError = new Error("write failed");
+            inspectStub
+                .withArgs(Constants.configTransferActiveEditorConnections)
+                .returns({ globalValue: true, workspaceValue: undefined });
+
+            updateStub.rejects(writeError);
+
+            // Should not throw
+            await controllerAccess.migrateTransferActiveEditorConnectionsSetting();
+
+            expect(sendActionEvent).to.not.have.been.called;
+            expect(sendErrorEvent).to.have.been.calledOnceWith(
+                TelemetryViews.General,
+                TelemetryActions.MigrateEditorConnectionBehavior,
+                writeError,
+                false,
+                undefined,
+                undefined,
+                { scope: "global" },
+            );
+        });
+
+        test("uses getConfiguration() without a section argument", async () => {
+            inspectStub
+                .withArgs(Constants.configTransferActiveEditorConnections)
+                .returns({ globalValue: undefined, workspaceValue: undefined });
+
+            await controllerAccess.migrateTransferActiveEditorConnectionsSetting();
+
+            expect(configStub).to.have.been.calledWithExactly();
+        });
+        /* eslint-enable @typescript-eslint/no-deprecated */
     });
 });

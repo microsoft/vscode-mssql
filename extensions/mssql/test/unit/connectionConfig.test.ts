@@ -12,6 +12,7 @@ import * as chai from "chai";
 import sinonChai from "sinon-chai";
 import { IConnectionGroup, IConnectionProfile } from "../../src/models/interfaces";
 import * as Constants from "../../src/constants/constants";
+import * as LocalizedConstants from "../../src/constants/locConstants";
 import { deepClone } from "../../src/models/utils";
 import { stubVscodeWrapper } from "./utils";
 
@@ -23,6 +24,7 @@ suite("ConnectionConfig Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let showWarningStub: sinon.SinonStub;
+    let workspaceConfiguration: vscode.WorkspaceConfiguration;
 
     /* eslint-disable @typescript-eslint/no-explicit-any */
     let mockGlobalConfigData: Map<string, any> = new Map();
@@ -60,7 +62,7 @@ suite("ConnectionConfig Tests", () => {
                 return deepClone(result);
             },
         };
-        const workspaceConfiguration = mockConfiguration as vscode.WorkspaceConfiguration;
+        workspaceConfiguration = mockConfiguration as vscode.WorkspaceConfiguration;
 
         mockVscodeWrapper.getConfiguration.callsFake((section: string) =>
             section === Constants.extensionName ? workspaceConfiguration : undefined,
@@ -864,6 +866,213 @@ suite("ConnectionConfig Tests", () => {
                 connections = connections.filter((c) => c.id === "dupicate-id");
                 expect(connections).to.have.lengthOf(1);
             });
+        });
+    });
+
+    suite("validateDefaultConnectionId", () => {
+        let showWarningAdvancedStub: sinon.SinonStub;
+
+        /** Stubs getConfiguration() (no section) to return a plain config object with given values. */
+        function stubRootConfig(behavior: string | undefined, defaultId: string | undefined): void {
+            const getStub = sandbox.stub();
+            getStub.withArgs(Constants.configNewEditorConnectionBehavior).returns(behavior);
+            getStub.withArgs(Constants.configDefaultConnectionId).returns(defaultId);
+
+            mockVscodeWrapper.getConfiguration.callsFake((section?: string) => {
+                if (section === Constants.extensionName) {
+                    return workspaceConfiguration;
+                }
+                return { get: getStub } as unknown as vscode.WorkspaceConfiguration;
+            });
+        }
+
+        setup(() => {
+            showWarningAdvancedStub =
+                mockVscodeWrapper.showWarningMessageAdvanced.resolves(undefined);
+        });
+
+        test("prompts when behavior is defaultConnection but defaultConnectionId is empty", async () => {
+            stubRootConfig(Constants.NewEditorConnectionBehavior.DefaultConnection, "");
+
+            const connConfig = new ConnectionConfig(mockVscodeWrapper);
+            await connConfig.initialized;
+            await new Promise((r) => setTimeout(r, 10));
+
+            expect(showWarningAdvancedStub).to.have.been.calledOnce;
+            const [msg] = showWarningAdvancedStub.firstCall.args;
+            expect(msg).to.include("mssql.defaultConnectionId");
+            expect(showWarningStub).to.not.have.been.called;
+        });
+
+        test("prompts when behavior is defaultConnection but defaultConnectionId is undefined", async () => {
+            stubRootConfig(Constants.NewEditorConnectionBehavior.DefaultConnection, undefined);
+
+            const connConfig = new ConnectionConfig(mockVscodeWrapper);
+            await connConfig.initialized;
+            await new Promise((r) => setTimeout(r, 10));
+
+            expect(showWarningAdvancedStub).to.have.been.calledOnce;
+        });
+
+        test("prompts with not-found message when ID is set but unknown", async () => {
+            const unknownId = "not-a-real-guid";
+            stubRootConfig(Constants.NewEditorConnectionBehavior.DefaultConnection, unknownId);
+
+            const connConfig = new ConnectionConfig(mockVscodeWrapper);
+            await connConfig.initialized;
+            await new Promise((r) => setTimeout(r, 10));
+
+            expect(showWarningAdvancedStub).to.have.been.calledOnce;
+            const [msg] = showWarningAdvancedStub.firstCall.args;
+            expect(msg).to.include(unknownId);
+        });
+
+        test("prompt buttons include 'Select Connection' and 'Change Setting'", async () => {
+            stubRootConfig(Constants.NewEditorConnectionBehavior.DefaultConnection, "");
+
+            const connConfig = new ConnectionConfig(mockVscodeWrapper);
+            await connConfig.initialized;
+            await new Promise((r) => setTimeout(r, 10));
+
+            const [, , items] = showWarningAdvancedStub.firstCall.args as [
+                string,
+                unknown,
+                string[],
+            ];
+            expect(items).to.include(
+                LocalizedConstants.Connection.defaultConnectionSelectConnection,
+            );
+            expect(items).to.include(LocalizedConstants.Connection.defaultConnectionChangeSetting);
+        });
+
+        test("does not prompt when behavior is not defaultConnection", async () => {
+            stubRootConfig(Constants.NewEditorConnectionBehavior.TransferActive, "some-id");
+
+            const connConfig = new ConnectionConfig(mockVscodeWrapper);
+            await connConfig.initialized;
+            await new Promise((r) => setTimeout(r, 10));
+
+            expect(showWarningAdvancedStub).to.not.have.been.called;
+        });
+
+        test("does not prompt when behavior is defaultConnection and a matching profile exists", async () => {
+            const validId = "valid-conn-id";
+            stubRootConfig(Constants.NewEditorConnectionBehavior.DefaultConnection, validId);
+
+            mockGlobalConfigData.set(Constants.connectionsArrayName, [
+                {
+                    id: validId,
+                    server: "myserver",
+                    authenticationType: "Integrated",
+                    profileName: "Valid Profile",
+                } as IConnectionProfile,
+            ]);
+
+            const connConfig = new ConnectionConfig(mockVscodeWrapper);
+            await connConfig.initialized;
+            await new Promise((r) => setTimeout(r, 10));
+
+            expect(showWarningAdvancedStub).to.not.have.been.called;
+        });
+
+        test("only shows the prompt once per session", async () => {
+            stubRootConfig(Constants.NewEditorConnectionBehavior.DefaultConnection, "");
+
+            const connConfig = new ConnectionConfig(mockVscodeWrapper);
+            await connConfig.initialized;
+            await new Promise((r) => setTimeout(r, 10));
+
+            await connConfig.initialized;
+            await new Promise((r) => setTimeout(r, 10));
+
+            expect(showWarningAdvancedStub).to.have.been.calledOnce;
+        });
+
+        test("saves chosen connection ID when user picks 'Select Connection'", async () => {
+            const savedProfile: IConnectionProfile = {
+                id: "saved-conn-id",
+                server: "myserver",
+                authenticationType: "Integrated",
+                profileName: "My Server",
+            } as IConnectionProfile;
+
+            mockGlobalConfigData.set(Constants.connectionsArrayName, [savedProfile]);
+            stubRootConfig(Constants.NewEditorConnectionBehavior.DefaultConnection, "");
+
+            showWarningAdvancedStub.resolves(
+                LocalizedConstants.Connection.defaultConnectionSelectConnection,
+            );
+            mockVscodeWrapper.showQuickPick.resolves({ profile: savedProfile } as any);
+            mockVscodeWrapper.setConfiguration.resolves();
+
+            const connConfig = new ConnectionConfig(mockVscodeWrapper);
+            await connConfig.initialized;
+            await new Promise((r) => setTimeout(r, 50));
+
+            expect(mockVscodeWrapper.setConfiguration).to.have.been.calledWith(
+                Constants.extensionName,
+                "defaultConnectionId",
+                savedProfile.id,
+                vscode.ConfigurationTarget.Global,
+            );
+        });
+
+        test("saves chosen behavior when user picks 'Change Setting' → transferActive", async () => {
+            stubRootConfig(Constants.NewEditorConnectionBehavior.DefaultConnection, "");
+
+            showWarningAdvancedStub.resolves(
+                LocalizedConstants.Connection.defaultConnectionChangeSetting,
+            );
+            mockVscodeWrapper.showQuickPick.resolves({
+                value: Constants.NewEditorConnectionBehavior.TransferActive,
+            } as any);
+            mockVscodeWrapper.setConfiguration.resolves();
+
+            const connConfig = new ConnectionConfig(mockVscodeWrapper);
+            await connConfig.initialized;
+            await new Promise((r) => setTimeout(r, 50));
+
+            expect(mockVscodeWrapper.setConfiguration).to.have.been.calledWith(
+                Constants.extensionName,
+                "newEditorConnectionBehavior",
+                Constants.NewEditorConnectionBehavior.TransferActive,
+                vscode.ConfigurationTarget.Global,
+            );
+        });
+
+        test("saves chosen behavior when user picks 'Change Setting' → none", async () => {
+            stubRootConfig(Constants.NewEditorConnectionBehavior.DefaultConnection, "");
+
+            showWarningAdvancedStub.resolves(
+                LocalizedConstants.Connection.defaultConnectionChangeSetting,
+            );
+            mockVscodeWrapper.showQuickPick.resolves({
+                value: Constants.NewEditorConnectionBehavior.None,
+            } as any);
+            mockVscodeWrapper.setConfiguration.resolves();
+
+            const connConfig = new ConnectionConfig(mockVscodeWrapper);
+            await connConfig.initialized;
+            await new Promise((r) => setTimeout(r, 50));
+
+            expect(mockVscodeWrapper.setConfiguration).to.have.been.calledWith(
+                Constants.extensionName,
+                "newEditorConnectionBehavior",
+                Constants.NewEditorConnectionBehavior.None,
+                vscode.ConfigurationTarget.Global,
+            );
+        });
+
+        test("does nothing when user dismisses the prompt", async () => {
+            stubRootConfig(Constants.NewEditorConnectionBehavior.DefaultConnection, "");
+            showWarningAdvancedStub.resolves(undefined);
+            mockVscodeWrapper.setConfiguration.resolves();
+
+            const connConfig = new ConnectionConfig(mockVscodeWrapper);
+            await connConfig.initialized;
+            await new Promise((r) => setTimeout(r, 50));
+
+            expect(mockVscodeWrapper.setConfiguration).to.not.have.been.called;
         });
     });
 });

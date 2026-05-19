@@ -6,6 +6,7 @@
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import * as Utils from "../models/utils";
+import * as vscode from "vscode";
 import { uuid } from "../utils/utils";
 import { IConnectionGroup, IConnectionProfile } from "../models/interfaces";
 import { IConnectionConfig } from "./iconnectionconfig";
@@ -29,6 +30,7 @@ export class ConnectionConfig implements IConnectionConfig {
     static readonly ROOT_GROUP_ID: string = "ROOT";
     private _hasDisplayedGroupParentWarning: boolean = false;
     private _hasDisplayedOrphanedConnectionWarning: boolean = false;
+    private _hasDisplayedDefaultConnectionIdWarning: boolean = false;
 
     /**
      * Constructor
@@ -46,8 +48,120 @@ export class ConnectionConfig implements IConnectionConfig {
         await this.addOrUpdateRootGroup();
         await this.assignConnectionGroupMissingIds();
         await this.assignConnectionMissingIds();
+        void this.validateDefaultConnectionId();
 
         this.initialized.resolve();
+    }
+
+    /**
+     * Validates the defaultConnectionId setting if newEditorConnectionBehavior is 'defaultConnection'.
+     * When the configuration is invalid (ID missing or not found), prompts the user to either select
+     * a saved connection or change the behavior setting.
+     */
+    private async validateDefaultConnectionId(): Promise<void> {
+        const behavior = this._vscodeWrapper
+            .getConfiguration()
+            .get<string>(Constants.configNewEditorConnectionBehavior);
+
+        if (behavior !== Constants.NewEditorConnectionBehavior.DefaultConnection) {
+            return;
+        }
+
+        const defaultId = this._vscodeWrapper
+            .getConfiguration()
+            .get<string>(Constants.configDefaultConnectionId);
+
+        let warningMessage: string;
+
+        if (!defaultId) {
+            warningMessage = LocalizedConstants.Connection.defaultConnectionIdNotSetWarning;
+        } else {
+            const match = await this.getConnectionById(defaultId);
+            if (match) {
+                return; // valid — nothing to do
+            }
+            warningMessage =
+                LocalizedConstants.Connection.defaultConnectionIdNotFoundWarning(defaultId);
+        }
+
+        if (this._hasDisplayedDefaultConnectionIdWarning) {
+            return;
+        }
+        this._hasDisplayedDefaultConnectionIdWarning = true;
+
+        const choice = await this._vscodeWrapper.showWarningMessageAdvanced(warningMessage, {}, [
+            LocalizedConstants.Connection.defaultConnectionSelectConnection,
+            LocalizedConstants.Connection.defaultConnectionChangeSetting,
+        ]);
+
+        if (choice === LocalizedConstants.Connection.defaultConnectionSelectConnection) {
+            await this.promptSelectDefaultConnection();
+        } else if (choice === LocalizedConstants.Connection.defaultConnectionChangeSetting) {
+            await this.promptChangeEditorConnectionBehavior();
+        }
+    }
+
+    /** Shows a QuickPick of saved connections (not MRU) and saves the chosen ID as defaultConnectionId. */
+    private async promptSelectDefaultConnection(): Promise<void> {
+        const connections = await this.getConnections();
+
+        if (connections.length === 0) {
+            return;
+        }
+
+        interface ConnectionQuickPickItem extends vscode.QuickPickItem {
+            profile: IConnectionProfile;
+        }
+
+        const items: ConnectionQuickPickItem[] = connections.map((profile) => ({
+            label: profile.profileName || profile.server,
+            description: profile.profileName ? profile.server : undefined,
+            profile,
+        }));
+
+        const selected = await this._vscodeWrapper.showQuickPick<ConnectionQuickPickItem>(items, {
+            placeHolder: LocalizedConstants.Connection.defaultConnectionSelectConnectionPlaceholder,
+        });
+
+        if (selected) {
+            await this._vscodeWrapper.setConfiguration(
+                Constants.extensionName,
+                "defaultConnectionId",
+                selected.profile.id,
+                vscode.ConfigurationTarget.Global,
+            );
+        }
+    }
+
+    /** Shows a QuickPick to switch newEditorConnectionBehavior away from 'defaultConnection'. */
+    private async promptChangeEditorConnectionBehavior(): Promise<void> {
+        interface BehaviorQuickPickItem extends vscode.QuickPickItem {
+            value: string;
+        }
+
+        const items: BehaviorQuickPickItem[] = [
+            {
+                label: LocalizedConstants.Connection.defaultConnectionBehaviorTransferActive,
+                value: Constants.NewEditorConnectionBehavior.TransferActive,
+            },
+            {
+                label: LocalizedConstants.Connection.defaultConnectionBehaviorNone,
+                value: Constants.NewEditorConnectionBehavior.None,
+            },
+        ];
+
+        const selected = await this._vscodeWrapper.showQuickPick<BehaviorQuickPickItem>(items, {
+            placeHolder: LocalizedConstants.Connection.defaultConnectionChangeSettingPlaceholder,
+        });
+
+        if (selected) {
+            await this._vscodeWrapper.setConfiguration(
+                Constants.extensionName,
+                "newEditorConnectionBehavior",
+                selected.value,
+                vscode.ConfigurationTarget.Global,
+            );
+        }
     }
 
     //#region Connection Profiles

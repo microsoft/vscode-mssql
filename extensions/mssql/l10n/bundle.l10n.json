@@ -2834,6 +2834,16 @@
         "message": "Multiple connection groups with ID '{0}' found.  Delete or rename all of them, except one in User/Global settings.json, then restart the extension.",
         "comment": ["{0} is the root id"]
     },
+    "The connection ID '{0}' set in 'mssql.defaultConnectionId' does not match any known connection profile. New editors will fall back to transferring the active connection./{0} is the connection ID that was not found": {
+        "message": "The connection ID '{0}' set in 'mssql.defaultConnectionId' does not match any known connection profile. New editors will fall back to transferring the active connection.",
+        "comment": ["{0} is the connection ID that was not found"]
+    },
+    "'mssql.newEditorConnectionBehavior' is set to 'defaultConnection', but 'mssql.defaultConnectionId' is not configured. New editors will fall back to transferring the active connection.": "'mssql.newEditorConnectionBehavior' is set to 'defaultConnection', but 'mssql.defaultConnectionId' is not configured. New editors will fall back to transferring the active connection.",
+    "Change Setting": "Change Setting",
+    "Select a connection to use as the default": "Select a connection to use as the default",
+    "Choose the behavior for new editors": "Choose the behavior for new editors",
+    "Transfer active connection (Default)": "Transfer active connection (Default)",
+    "Do not connect": "Do not connect",
     "Error migrating connection ID {0} to new format.  Please recreate this connection to use it.\nError:\n{1}/{0} is the connection id{1} is the error message": {
         "message": "Error migrating connection ID {0} to new format.  Please recreate this connection to use it.\nError:\n{1}",
         "comment": ["{0} is the connection id", "{1} is the error message"]
