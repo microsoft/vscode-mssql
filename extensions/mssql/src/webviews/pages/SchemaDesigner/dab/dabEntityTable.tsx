@@ -620,13 +620,15 @@ export const DabEntityTable = () => {
                     Dab.EntitySourceType.Table,
                     Dab.EntitySourceType.View,
                     Dab.EntitySourceType.StoredProcedure,
-                ].map((sourceType) => ({
-                    sourceType,
-                    entities: entities.filter(
-                        (entity) =>
-                            (entity.sourceType ?? Dab.EntitySourceType.Table) === sourceType,
-                    ),
-                }));
+                ]
+                    .map((sourceType) => ({
+                        sourceType,
+                        entities: entities.filter(
+                            (entity) =>
+                                (entity.sourceType ?? Dab.EntitySourceType.Table) === sourceType,
+                        ),
+                    }))
+                    .filter((group) => group.entities.length > 0);
 
                 for (const group of groups) {
                     const groupId = `schema-${schemaKey}-${group.sourceType}`;
