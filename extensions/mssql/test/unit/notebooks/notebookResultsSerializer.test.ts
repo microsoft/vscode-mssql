@@ -8,7 +8,7 @@ import * as sinon from "sinon";
 import * as vscode from "vscode";
 import type { IDbColumn, DbCellValue } from "vscode-mssql";
 import { buildXlsx } from "../../../src/notebooks/notebookExcelWriter";
-import JSZip = require("jszip");
+import * as JSZip from "jszip";
 
 function makeColumn(name: string, dataType?: string): IDbColumn {
     return { columnName: name, dataType, dataTypeName: dataType } as IDbColumn;
