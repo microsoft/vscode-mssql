@@ -164,7 +164,6 @@
         "fix-path": "^5.0.0",
         "has-proto": "^1.2.0",
         "jquery": "^3.4.1",
-        "jszip": "^3.10.1",
         "lockfile": "1.0.4",
         "lodash": "^4.18.1",
         "opener": "1.5.2",
