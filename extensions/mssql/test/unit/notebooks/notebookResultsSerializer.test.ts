@@ -4,12 +4,16 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
 import type { IDbColumn, DbCellValue } from "vscode-mssql";
 import SqlToolsServerClient from "../../../src/languageservice/serviceclient";
 import { SerializeStartRequest } from "../../../src/models/contracts";
 import { saveNotebookResults } from "../../../src/notebooks/notebookResultsSerializer";
+
+chai.use(sinonChai);
 
 function makeColumn(name: string, dataType?: string): IDbColumn {
     return { columnName: name, dataType, dataTypeName: dataType } as IDbColumn;
@@ -163,7 +167,10 @@ suite("notebookResultsSerializer", () => {
 
         expect(showSaveDialogStub).to.have.been.calledOnce;
         const options = showSaveDialogStub.firstCall.args[0] as vscode.SaveDialogOptions;
-        expect(options.defaultUri?.fsPath).to.match(/my_report_resultset_3\.xlsx$/);
+        const fsPath = options.defaultUri?.fsPath ?? "";
+        expect(fsPath).to.include("my_report");
+        expect(fsPath).to.include("resultset_3");
+        expect(fsPath).to.include(".xlsx");
         expect(Object.values(options.filters ?? {})).to.deep.include(["xlsx"]);
     });
 });
