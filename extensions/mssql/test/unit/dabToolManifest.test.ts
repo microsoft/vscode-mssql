@@ -171,6 +171,20 @@ suite("DAB LM tool manifest schema", () => {
             tool.inputSchema?.$defs?.advancedSettingsPatch?.properties?.authorizationRole?.enum,
         ).to.deep.equal(["anonymous", "authenticated"]);
         expect(
+            tool.inputSchema?.$defs?.advancedSettingsPatch?.properties?.restEnabled?.type,
+        ).to.equal("boolean");
+        expect(
+            tool.inputSchema?.$defs?.advancedSettingsPatch?.properties?.graphQLEnabled?.type,
+        ).to.equal("boolean");
+        expect(
+            tool.inputSchema?.$defs?.advancedSettingsPatch?.properties?.storedProcedureRestMethods
+                ?.oneOf?.[0]?.items?.enum,
+        ).to.deep.equal(["get", "post", "put", "patch", "delete"]);
+        expect(
+            tool.inputSchema?.$defs?.advancedSettingsPatch?.properties
+                ?.storedProcedureGraphQLOperation?.enum,
+        ).to.deep.equal(["query", "mutation"]);
+        expect(
             tool.inputSchema?.$defs?.advancedSettingsPatch?.properties?.exposeAsMcpCustomTool?.type,
         ).to.equal("boolean");
         expect(tool.inputSchema?.properties?.options?.properties?.returnState?.enum).to.deep.equal([

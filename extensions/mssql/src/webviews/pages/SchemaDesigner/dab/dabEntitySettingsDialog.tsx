@@ -16,6 +16,8 @@ import {
     Input,
     makeStyles,
     mergeClasses,
+    Radio,
+    RadioGroup,
     Text,
     ToggleButton,
     tokens,
@@ -86,10 +88,23 @@ const useStyles = makeStyles({
         minWidth: "132px",
         whiteSpace: "nowrap",
     },
+    checkboxGroup: {
+        display: "flex",
+        flexDirection: "column",
+        rowGap: "4px",
+    },
+    methodGroup: {
+        display: "flex",
+        flexWrap: "wrap",
+        columnGap: "8px",
+        rowGap: "4px",
+    },
 });
 
 interface DabEntitySettingsDialogProps {
     entity: Dab.DabEntityConfig;
+    isRestEnabled: boolean;
+    isGraphQLEnabled: boolean;
     isMcpEnabled: boolean;
     open: boolean;
     onOpenChange: (open: boolean) => void;
@@ -98,6 +113,8 @@ interface DabEntitySettingsDialogProps {
 
 export function DabEntitySettingsDialog({
     entity,
+    isRestEnabled,
+    isGraphQLEnabled,
     isMcpEnabled,
     open,
     onOpenChange,
@@ -137,8 +154,35 @@ export function DabEntitySettingsDialog({
         setLocalSettings((prev) => ({ ...prev, customRestPath: value || undefined }));
     };
 
+    const updateRestEnabled = (value: boolean) => {
+        setLocalSettings((prev) => ({ ...prev, restEnabled: value }));
+    };
+
     const updateCustomGraphQLType = (value: string) => {
         setLocalSettings((prev) => ({ ...prev, customGraphQLType: value || undefined }));
+    };
+
+    const updateGraphQLEnabled = (value: boolean) => {
+        setLocalSettings((prev) => ({ ...prev, graphQLEnabled: value }));
+    };
+
+    const updateStoredProcedureRestMethod = (method: Dab.RestMethod, isEnabled: boolean) => {
+        setLocalSettings((prev) => {
+            const methods = prev.storedProcedureRestMethods ?? [Dab.RestMethod.Post];
+            const nextMethods = isEnabled
+                ? [...methods, method]
+                : methods.filter((existingMethod) => existingMethod !== method);
+            return {
+                ...prev,
+                storedProcedureRestMethods: nextMethods.length
+                    ? Array.from(new Set(nextMethods))
+                    : [Dab.RestMethod.Post],
+            };
+        });
+    };
+
+    const updateStoredProcedureGraphQLOperation = (operation: Dab.GraphQLOperation) => {
+        setLocalSettings((prev) => ({ ...prev, storedProcedureGraphQLOperation: operation }));
     };
 
     const updateExposeAsMcpCustomTool = (value: boolean) => {
@@ -149,6 +193,15 @@ export function DabEntitySettingsDialog({
     const isAnonymousSelected = localSettings.authorizationRole === Dab.AuthorizationRole.Anonymous;
     const isAuthenticatedSelected =
         localSettings.authorizationRole === Dab.AuthorizationRole.Authenticated;
+    const isEntityRestEnabled = localSettings.restEnabled !== false;
+    const isEntityGraphQLEnabled = localSettings.graphQLEnabled !== false;
+    const isRestSectionEnabled = isRestEnabled && isEntityRestEnabled;
+    const isGraphQLSectionEnabled = isGraphQLEnabled && isEntityGraphQLEnabled;
+    const storedProcedureRestMethods = localSettings.storedProcedureRestMethods ?? [
+        Dab.RestMethod.Post,
+    ];
+    const storedProcedureGraphQLOperation =
+        localSettings.storedProcedureGraphQLOperation ?? Dab.GraphQLOperation.Mutation;
     const exposeAsMcpCustomTool = localSettings.exposeAsMcpCustomTool !== false;
     const mcpCustomToolHelpText = isMcpEnabled
         ? locConstants.schemaDesigner.exposeAsMcpCustomToolHelp
@@ -247,9 +300,23 @@ export function DabEntitySettingsDialog({
 
                         {/* Custom REST Path */}
                         <Field label={locConstants.schemaDesigner.customRestPath}>
+                            <div className={classes.checkboxGroup}>
+                                <Checkbox
+                                    checked={isEntityRestEnabled}
+                                    disabled={!isRestEnabled}
+                                    onChange={(_, data) => updateRestEnabled(!!data.checked)}
+                                    label={locConstants.schemaDesigner.enableRestForEntity}
+                                />
+                                {!isRestEnabled && (
+                                    <Text className={classes.fieldHint}>
+                                        {locConstants.schemaDesigner.enableRestForEntityHelp}
+                                    </Text>
+                                )}
+                            </div>
                             <Input
                                 value={localSettings.customRestPath ?? ""}
                                 placeholder={(entity.sourceName ?? entity.tableName).toLowerCase()}
+                                disabled={!isRestSectionEnabled}
                                 onChange={(_, data) => updateCustomRestPath(data.value)}
                             />
                             <Text className={classes.fieldHint}>
@@ -257,17 +324,85 @@ export function DabEntitySettingsDialog({
                             </Text>
                         </Field>
 
+                        {isStoredProcedure && (
+                            <Field label={locConstants.schemaDesigner.storedProcedureRestMethods}>
+                                <div className={classes.methodGroup}>
+                                    {Object.values(Dab.RestMethod).map((method) => (
+                                        <Checkbox
+                                            key={method}
+                                            checked={storedProcedureRestMethods.includes(method)}
+                                            disabled={!isRestSectionEnabled}
+                                            onChange={(_, data) =>
+                                                updateStoredProcedureRestMethod(
+                                                    method,
+                                                    !!data.checked,
+                                                )
+                                            }
+                                            label={method.toUpperCase()}
+                                        />
+                                    ))}
+                                </div>
+                                <Text className={classes.fieldHint}>
+                                    {locConstants.schemaDesigner.storedProcedureRestMethodsHelp}
+                                </Text>
+                            </Field>
+                        )}
+
                         {/* Custom GraphQL Type */}
                         <Field label={locConstants.schemaDesigner.customGraphQLType}>
+                            <div className={classes.checkboxGroup}>
+                                <Checkbox
+                                    checked={isEntityGraphQLEnabled}
+                                    disabled={!isGraphQLEnabled}
+                                    onChange={(_, data) => updateGraphQLEnabled(!!data.checked)}
+                                    label={locConstants.schemaDesigner.enableGraphQLForEntity}
+                                />
+                                {!isGraphQLEnabled && (
+                                    <Text className={classes.fieldHint}>
+                                        {locConstants.schemaDesigner.enableGraphQLForEntityHelp}
+                                    </Text>
+                                )}
+                            </div>
                             <Input
                                 value={localSettings.customGraphQLType ?? ""}
                                 placeholder={entity.sourceName ?? entity.tableName}
+                                disabled={!isGraphQLSectionEnabled}
                                 onChange={(_, data) => updateCustomGraphQLType(data.value)}
                             />
                             <Text className={classes.fieldHint}>
                                 {locConstants.schemaDesigner.customGraphQLTypeHelp}
                             </Text>
                         </Field>
+
+                        {isStoredProcedure && (
+                            <Field
+                                label={locConstants.schemaDesigner.storedProcedureGraphQLOperation}>
+                                <RadioGroup
+                                    value={storedProcedureGraphQLOperation}
+                                    disabled={!isGraphQLSectionEnabled}
+                                    layout="horizontal"
+                                    onChange={(_, data) =>
+                                        updateStoredProcedureGraphQLOperation(
+                                            data.value as Dab.GraphQLOperation,
+                                        )
+                                    }>
+                                    <Radio
+                                        value={Dab.GraphQLOperation.Mutation}
+                                        label={locConstants.schemaDesigner.graphqlMutation}
+                                    />
+                                    <Radio
+                                        value={Dab.GraphQLOperation.Query}
+                                        label={locConstants.schemaDesigner.graphqlQuery}
+                                    />
+                                </RadioGroup>
+                                <Text className={classes.fieldHint}>
+                                    {
+                                        locConstants.schemaDesigner
+                                            .storedProcedureGraphQLOperationHelp
+                                    }
+                                </Text>
+                            </Field>
+                        )}
 
                         {isStoredProcedure && (
                             <Field label={locConstants.schemaDesigner.mcpCustomTool}>

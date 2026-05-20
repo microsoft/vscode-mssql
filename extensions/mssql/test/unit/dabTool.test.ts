@@ -1370,6 +1370,74 @@ suite("DabTool Tests", () => {
             ).to.equal(true);
         });
 
+        test("apply_changes lets Copilot patch entity REST and GraphQL exposure", async () => {
+            const harness = createDabHandlerHarness({
+                tables: [createTable("t1", "dbo", "Users")],
+                dabConfig: null,
+            });
+            const state = await harness.getState();
+
+            const result = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [
+                    {
+                        type: "patch_entity_settings",
+                        entity: { id: "t1" },
+                        set: {
+                            restEnabled: false,
+                            graphQLEnabled: false,
+                        },
+                    },
+                ],
+            });
+
+            expect(result.success).to.equal(true);
+            if (!result.success) {
+                throw new Error("Expected success response");
+            }
+            expect(result.config?.entities[0].advancedSettings.restEnabled).to.equal(false);
+            expect(result.config?.entities[0].advancedSettings.graphQLEnabled).to.equal(false);
+        });
+
+        test("apply_changes lets Copilot patch stored procedure REST methods and GraphQL operation", async () => {
+            const procedureSource: Dab.DabSourceObject = {
+                id: "stored-procedure:dbo.GetUsers",
+                sourceType: Dab.EntitySourceType.StoredProcedure,
+                schemaName: "dbo",
+                sourceName: "GetUsers",
+                columns: [],
+                parameters: [{ name: "userId", dataType: "int" }],
+            };
+            const harness = createDabHandlerHarness({
+                tables: [],
+                sourceObjects: [procedureSource],
+                dabConfig: null,
+            });
+            const state = await harness.getState();
+
+            const result = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [
+                    {
+                        type: "patch_entity_settings",
+                        entity: { id: "stored-procedure:dbo.GetUsers" },
+                        set: {
+                            storedProcedureRestMethods: [Dab.RestMethod.Get, Dab.RestMethod.Post],
+                            storedProcedureGraphQLOperation: Dab.GraphQLOperation.Query,
+                        },
+                    },
+                ],
+            });
+
+            expect(result.success).to.equal(true);
+            if (!result.success) {
+                throw new Error("Expected success response");
+            }
+            const settings = result.config?.entities[0].advancedSettings;
+            expect(settings?.storedProcedureRestMethods).to.deep.equal(["get", "post"]);
+            expect(settings?.storedProcedureGraphQLOperation).to.equal("query");
+        });
+
         test("apply_changes rejects stored procedure MCP custom tool setting for non-procedure entities", async () => {
             const harness = createDabHandlerHarness({
                 tables: [createTable("t1", "dbo", "Users")],
