@@ -363,11 +363,6 @@ export function DabToolbar({
     }
 
     const supportedEntities = dabConfig.entities.filter((e) => e.isSupported);
-    const crudEntities = supportedEntities.filter(
-        (entity) =>
-            (entity.sourceType ?? Dab.EntitySourceType.Table) !==
-            Dab.EntitySourceType.StoredProcedure,
-    );
     const enabledCount = dabConfig.entities.filter((e) => e.isEnabled).length;
     const totalCount = dabConfig.entities.length;
     const activeFilterCount = getDabEntityFilterCount(entityFilters);
