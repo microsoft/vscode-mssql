@@ -3738,7 +3738,7 @@
             },
             {
                 "name": "mssql_dab",
-                "modelDescription": "Work with the Data API builder configuration in the currently active schema designer. Use 'get_state' to inspect it and 'apply_changes' to modify it; use 'show' only to open the Data API builder view for a connectionId when needed. Operations: 'get_state' returns the current version, summary, and bounded configuration state (full config may be omitted for large configurations); 'apply_changes' uses payload { expectedVersion, targetHint?, changes } and returns the post-mutation version plus summary, with optional returnState control. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with the current version and latest summary/config according to returnState. Entity refs are either { id } or { schemaName, tableName }. Column refs are either { id } or { name }. Change types: { type: 'set_api_types', apiTypes }, { type: 'set_entity_enabled', entity, isEnabled }, { type: 'set_entity_actions', entity, enabledActions }, { type: 'set_column_exposed', entity, column, isExposed }, { type: 'patch_entity_settings', entity, set }, { type: 'set_only_enabled_entities', entities }, { type: 'set_all_entities_enabled', isEnabled }.",
+                "modelDescription": "Work with the Data API builder configuration in the currently active schema designer. Use 'get_state' to inspect it and 'apply_changes' to modify it; use 'show' only to open the Data API builder view for a connectionId when needed. Operations: 'get_state' returns the current version, summary, and bounded configuration state (full config may be omitted for large configurations); 'apply_changes' uses payload { expectedVersion, targetHint?, changes } and returns the post-mutation version plus summary, with optional returnState control. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with the current version and latest summary/config according to returnState. Entity refs are either { id }, { schemaName, tableName } for table compatibility, or { schemaName, sourceName, sourceType } where sourceType is table, view, or stored-procedure. Column refs are either { id } or { name }. Change types: { type: 'set_api_types', apiTypes }, { type: 'add_entity', entity }, { type: 'remove_entity', entity }, { type: 'set_entity_enabled', entity, isEnabled }, { type: 'set_entity_actions', entity, enabledActions }, { type: 'set_column_exposed', entity, column, isExposed }, { type: 'patch_entity_settings', entity, set }, { type: 'set_only_enabled_entities', entities }, { type: 'set_all_entities_enabled', isEnabled }.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -3749,6 +3749,14 @@
                 "inputSchema": {
                     "type": "object",
                     "$defs": {
+                        "sourceType": {
+                            "type": "string",
+                            "enum": [
+                                "table",
+                                "view",
+                                "stored-procedure"
+                            ]
+                        },
                         "entityRef": {
                             "oneOf": [
                                 {
@@ -3779,6 +3787,28 @@
                                     "required": [
                                         "schemaName",
                                         "tableName"
+                                    ],
+                                    "additionalProperties": false
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "schemaName": {
+                                            "type": "string",
+                                            "minLength": 1
+                                        },
+                                        "sourceName": {
+                                            "type": "string",
+                                            "minLength": 1
+                                        },
+                                        "sourceType": {
+                                            "$ref": "#/$defs/sourceType"
+                                        }
+                                    },
+                                    "required": [
+                                        "schemaName",
+                                        "sourceName",
+                                        "sourceType"
                                     ],
                                     "additionalProperties": false
                                 }
@@ -3875,7 +3905,7 @@
                             "minLength": 1
                         },
                         "payload": {
-                            "description": "Operation-specific payload. apply_changes: { expectedVersion, targetHint?, changes }. Change types: set_api_types { apiTypes }, set_entity_enabled { entity, isEnabled }, set_entity_actions { entity, enabledActions }, set_column_exposed { entity, column, isExposed }, patch_entity_settings { entity, set }, set_only_enabled_entities { entities }, set_all_entities_enabled { isEnabled }.",
+                            "description": "Operation-specific payload. apply_changes: { expectedVersion, targetHint?, changes }. Change types: set_api_types { apiTypes }, add_entity { entity }, remove_entity { entity }, set_entity_enabled { entity, isEnabled }, set_entity_actions { entity, enabledActions }, set_column_exposed { entity, column, isExposed }, patch_entity_settings { entity, set }, set_only_enabled_entities { entities }, set_all_entities_enabled { isEnabled }.",
                             "title": "Payload",
                             "type": "object",
                             "properties": {
@@ -3944,6 +3974,44 @@
                                                     "type": {
                                                         "type": "string",
                                                         "enum": [
+                                                            "add_entity"
+                                                        ]
+                                                    },
+                                                    "entity": {
+                                                        "$ref": "#/$defs/entityRef"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "type",
+                                                    "entity"
+                                                ],
+                                                "additionalProperties": false
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "type": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "remove_entity"
+                                                        ]
+                                                    },
+                                                    "entity": {
+                                                        "$ref": "#/$defs/entityRef"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "type",
+                                                    "entity"
+                                                ],
+                                                "additionalProperties": false
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "type": {
+                                                        "type": "string",
+                                                        "enum": [
                                                             "set_entity_enabled"
                                                         ]
                                                     },
@@ -3981,7 +4049,8 @@
                                                                 "create",
                                                                 "read",
                                                                 "update",
-                                                                "delete"
+                                                                "delete",
+                                                                "execute"
                                                             ]
                                                         },
                                                         "minItems": 1,

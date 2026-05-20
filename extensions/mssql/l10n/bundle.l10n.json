@@ -871,6 +871,12 @@
     "Entity Endpoints": "Entity Endpoints",
     "All Schemas": "All Schemas",
     "Filter entities...": "Filter entities...",
+    "Filter entities": "Filter entities",
+    "Status": "Status",
+    "Object type": "Object type",
+    "Enabled": "Enabled",
+    "Disabled": "Disabled",
+    "Warnings": "Warnings",
     "{0} of {1} enabled/{0} is the number of enabled entities{1} is the total number of entities": {
         "message": "{0} of {1} enabled",
         "comment": ["{0} is the number of enabled entities", "{1} is the total number of entities"]
@@ -878,6 +884,35 @@
     "Create": "Create",
     "Read": "Read",
     "Update": "Update",
+    "Execute": "Execute",
+    "View": "View",
+    "Stored Procedure": "Stored Procedure",
+    "Tables": "Tables",
+    "Views": "Views",
+    "Stored Procedures": "Stored Procedures",
+    "Invalid entity reference. Use either id OR schemaName+tableName OR schemaName+sourceName+sourceType.": "Invalid entity reference. Use either id OR schemaName+tableName OR schemaName+sourceName+sourceType.",
+    "Invalid column reference. Use either id OR name.": "Invalid column reference. Use either id OR name.",
+    "Entity not found: {0}/{0} is the entity reference": {
+        "message": "Entity not found: {0}",
+        "comment": ["{0} is the entity reference"]
+    },
+    "Entity reference resolved to more than one entity: {0}/{0} is the entity reference": {
+        "message": "Entity reference resolved to more than one entity: {0}",
+        "comment": ["{0} is the entity reference"]
+    },
+    "Column not found: {0}/{0} is the column reference": {
+        "message": "Column not found: {0}",
+        "comment": ["{0} is the column reference"]
+    },
+    "Column reference resolved to more than one column: {0}/{0} is the column reference": {
+        "message": "Column reference resolved to more than one column: {0}",
+        "comment": ["{0} is the column reference"]
+    },
+    "Unsupported by Data API builder.": "Unsupported by Data API builder.",
+    "Entity '{0}' is not supported by Data API builder. {1}/{0} is the entity name{1} is why the entity is unsupported": {
+        "message": "Entity '{0}' is not supported by Data API builder. {1}",
+        "comment": ["{0} is the entity name", "{1} is why the entity is unsupported"]
+    },
     "Bulk Actions": "Bulk Actions",
     "Enable all entities": "Enable all entities",
     "Disable all entities": "Disable all entities",
@@ -909,6 +944,10 @@
     "Custom GraphQL Type": "Custom GraphQL Type",
     "Optional - Override default GraphQL type name": "Optional - Override default GraphQL type name",
     "Source Table": "Source Table",
+    "Source Table: {0}/{0} is the fully qualified source table name": {
+        "message": "Source Table: {0}",
+        "comment": ["{0} is the fully qualified source table name"]
+    },
     "Initializing DAB configuration...": "Initializing DAB configuration...",
     "No entities found": "No entities found",
     "Toggle all entities in {0}/{0} is the schema name": {
@@ -972,10 +1011,16 @@
     "Add MCP server to workspace configuration": "Add MCP server to workspace configuration",
     "View Swagger": "View Swagger",
     "Open Nitro": "Open Nitro",
-    "Table must have a primary key to be used with Data API builder": "Table must have a primary key to be used with Data API builder",
-    "Table contains column types not supported by Data API builder: {0}/{0} is a comma-separated list of column names and their data types": {
-        "message": "Table contains column types not supported by Data API builder: {0}",
-        "comment": ["{0} is a comma-separated list of column names and their data types"]
+    "{0} must define one or more key fields to be used with Data API builder/{0} is the DAB source type, e.g. Table or View": {
+        "message": "{0} must define one or more key fields to be used with Data API builder",
+        "comment": ["{0} is the DAB source type, e.g. Table or View"]
+    },
+    "{0} contains column types not supported by Data API builder: {1}/{0} is the DAB source type, e.g. Table or View{1} is a comma-separated list of column names and their data types": {
+        "message": "{0} contains column types not supported by Data API builder: {1}",
+        "comment": [
+            "{0} is the DAB source type, e.g. Table or View",
+            "{1} is a comma-separated list of column names and their data types"
+        ]
     },
     "Checking Docker installation": "Checking Docker installation",
     "Verifying Docker is installed on your system": "Verifying Docker is installed on your system",
@@ -1188,7 +1233,6 @@
     },
     "Database Details": "Database Details",
     "Drop Database Options": "Drop Database Options",
-    "Status": "Status",
     "-": "-",
     "Drop active connections": "Drop active connections",
     "Delete backup and restore history": "Delete backup and restore history",
@@ -1235,7 +1279,6 @@
     "Application Name": "Application Name",
     "Enter application name": "Enter application name",
     "Application Version": "Application Version",
-    "Execute": "Execute",
     "File path is required": "File path is required",
     "Invalid file": "Invalid file",
     "Invalid database": "Invalid database",
@@ -1324,13 +1367,8 @@
         "comment": ["{0} is the number of objects found"]
     },
     "Object Types": "Object Types",
-    "Tables": "Tables",
-    "Views": "Views",
-    "Stored Procedures": "Stored Procedures",
     "Functions": "Functions",
     "Schemas": "Schemas",
-    "View": "View",
-    "Stored Procedure": "Stored Procedure",
     "Function": "Function",
     "Search by object name or type (e.g. t:<name>, v:, f:, or sp:)": "Search by object name or type (e.g. t:<name>, v:, f:, or sp:)",
     "Actions": "Actions",
@@ -1753,8 +1791,6 @@
     "Object Explorer Filter": "Object Explorer Filter",
     "Azure MFA": "Azure MFA",
     "Windows Authentication": "Windows Authentication",
-    "Enabled": "Enabled",
-    "Disabled": "Disabled",
     "User": "User",
     "SQL Container Name": "SQL Container Name",
     "SQL Container Version": "SQL Container Version",

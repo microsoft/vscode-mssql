@@ -978,7 +978,7 @@ suite("SchemaDesignerWebviewController tests", () => {
                 );
             });
 
-            test("should include container name in transformed connection string when SQL Server is containerized", async () => {
+            test("should use host port in transformed connection string when SQL Server is containerized", async () => {
                 sandbox.stub(treeNode, "connectionProfile").get(
                     () =>
                         ({
@@ -996,7 +996,7 @@ suite("SchemaDesignerWebviewController tests", () => {
 
                 const parsedConfig = JSON.parse(result.configContent);
                 expect(parsedConfig["data-source"]["connection-string"]).to.equal(
-                    `Server=host.docker.internal\\my-sql-container,${DefaultSqlPortNumber};Database=testdb;`,
+                    `Server=host.docker.internal,${DefaultSqlPortNumber};Database=testdb;`,
                 );
             });
 

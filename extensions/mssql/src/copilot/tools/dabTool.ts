@@ -44,6 +44,8 @@ type DabToolFailureReason =
     | "internal_error";
 
 interface DabToolChangeCounts {
+    add_entity_count: number;
+    remove_entity_count: number;
     set_api_types_count: number;
     set_entity_enabled_count: number;
     set_entity_actions_count: number;
@@ -54,6 +56,8 @@ interface DabToolChangeCounts {
 }
 
 interface DabToolReceipt {
+    addEntityCount: number;
+    removeEntityCount: number;
     setApiTypesCount: number;
     setEntityEnabledCount: number;
     setEntityActionsCount: number;
@@ -142,6 +146,8 @@ export class DabTool extends ToolBase<DabToolParams> {
 
         const countChanges = (changes: Dab.DabToolChange[]): DabToolChangeCounts => {
             const counts: DabToolChangeCounts = {
+                add_entity_count: 0,
+                remove_entity_count: 0,
                 set_api_types_count: 0,
                 set_entity_enabled_count: 0,
                 set_entity_actions_count: 0,
@@ -155,6 +161,12 @@ export class DabTool extends ToolBase<DabToolParams> {
                 switch (change.type) {
                     case "set_api_types":
                         counts.set_api_types_count++;
+                        break;
+                    case "add_entity":
+                        counts.add_entity_count++;
+                        break;
+                    case "remove_entity":
+                        counts.remove_entity_count++;
                         break;
                     case "set_entity_enabled":
                         counts.set_entity_enabled_count++;
@@ -181,6 +193,8 @@ export class DabTool extends ToolBase<DabToolParams> {
         };
 
         const toReceipt = (counts: DabToolChangeCounts): DabToolReceipt => ({
+            addEntityCount: counts.add_entity_count,
+            removeEntityCount: counts.remove_entity_count,
             setApiTypesCount: counts.set_api_types_count,
             setEntityEnabledCount: counts.set_entity_enabled_count,
             setEntityActionsCount: counts.set_entity_actions_count,

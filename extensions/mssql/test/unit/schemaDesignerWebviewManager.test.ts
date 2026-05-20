@@ -54,10 +54,11 @@ suite("SchemaDesignerWebviewManager tests", () => {
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        mockContext = stubExtensionContext(sandbox);
+        mockContext = stubExtensionContext(sandbox, { name: "mssql", version: "1.0.0" });
         stubUserSurvey(sandbox);
 
         mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+        sandbox.stub(mockVscodeWrapper, "outputChannel").get(() => ({ name: "MSSQL" }) as any);
         mockMainController = sandbox.createStubInstance(MainController);
         mockSchemaDesignerService = {
             createSession: sandbox.stub().resolves(mockCreateSessionResponse),
@@ -87,7 +88,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
         treeNode.updateConnectionProfile = sandbox.stub();
 
         mockMainController.connectionManager = {
-            createConnectionDetails: sandbox.stub().resolves({
+            createConnectionDetails: sandbox.stub().returns({
                 server: "localhost",
                 database: databaseName,
             }),
@@ -186,8 +187,22 @@ suite("SchemaDesignerWebviewManager tests", () => {
                 connectionUri,
             );
             expect(
+                mockMainController.connectionManager.createConnectionDetails,
+            ).to.have.been.calledWithMatch({
+                server: "localhost",
+                database: databaseName,
+                azureAccountToken: "token-from-uri",
+            });
+            expect(
                 mockMainController.connectionManager.getConnectionString,
-            ).to.have.been.calledWith(connectionUri, true, true);
+            ).to.have.been.calledWithMatch(
+                {
+                    server: "localhost",
+                    database: databaseName,
+                },
+                true,
+                true,
+            );
         });
 
         test("should use azureAccountToken from connection URI", async () => {
@@ -297,7 +312,14 @@ suite("SchemaDesignerWebviewManager tests", () => {
 
             const getConnectionStringStub = mockMainController.connectionManager
                 .getConnectionString as sinon.SinonStub;
-            expect(getConnectionStringStub).to.have.been.calledWith(connectionUri, true, true);
+            expect(getConnectionStringStub).to.have.been.calledWithMatch(
+                {
+                    server: "localhost",
+                    database: databaseName,
+                },
+                true,
+                true,
+            );
         });
     });
 
@@ -421,7 +443,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
             const error = new Error("Connection failed");
             (
                 mockMainController.connectionManager.createConnectionDetails as sinon.SinonStub
-            ).rejects(error);
+            ).throws(error);
 
             try {
                 await manager.getSchemaDesigner(

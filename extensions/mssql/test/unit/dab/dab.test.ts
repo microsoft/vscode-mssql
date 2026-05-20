@@ -195,6 +195,39 @@ suite("Dab.validateTableForDab", () => {
         expect(result.reasons![0].type).to.equal("unsupportedDataTypes");
     });
 
+    test("should normalize decorated unsupported data types", () => {
+        const unsupportedTypes = [
+            " hierarchyid ",
+            "[sys].[geography]",
+            "Microsoft.SqlServer.Types.SqlHierarchyId",
+            "timestamp",
+        ];
+
+        for (const dataType of unsupportedTypes) {
+            const result = Dab.validateTableForDab(
+                createTable({
+                    columns: [
+                        createColumn({
+                            id: "col-1",
+                            name: "Id",
+                            dataType: "int",
+                            isPrimaryKey: true,
+                        }),
+                        createColumn({
+                            id: "col-2",
+                            name: "Unsupported",
+                            dataType,
+                            isPrimaryKey: false,
+                        }),
+                    ],
+                }),
+            );
+
+            expect(result.isSupported, dataType).to.be.false;
+            expect(result.reasons![0].type).to.equal("unsupportedDataTypes");
+        }
+    });
+
     suite("should detect each unsupported data type", () => {
         for (const dataType of Dab.DAB_UNSUPPORTED_DATA_TYPES) {
             test(`should detect ${dataType} as unsupported`, () => {

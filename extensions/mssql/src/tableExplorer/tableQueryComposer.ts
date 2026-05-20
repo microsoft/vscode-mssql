@@ -12,6 +12,8 @@
  * composing queries for the edit session.
  */
 
+import { escapeStringLiteral } from "../utils/sqlStringUtils";
+
 export type FilterOperator =
     | "equals"
     | "notEquals"
@@ -40,10 +42,6 @@ export interface AppliedSortColumn {
 
 export function operatorTakesValue(op: FilterOperator): boolean {
     return op !== "isNull" && op !== "isNotNull";
-}
-
-function escapeStringLiteral(v: string): string {
-    return v.replace(/'/g, "''");
 }
 
 function escapeLikePattern(value: string, escapeChar: string = "\\"): string {
