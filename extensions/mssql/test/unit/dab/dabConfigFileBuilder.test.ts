@@ -434,6 +434,31 @@ suite("DabConfigFileBuilder Tests", () => {
                     "dml-tools": false,
                 });
             });
+
+            test("should not emit stored procedure MCP settings when MCP is disabled", () => {
+                const config = createTestConfig({
+                    apiTypes: [Dab.ApiType.Rest],
+                    entities: [
+                        createTestEntity({
+                            id: "sp-dbo-GetUsers",
+                            sourceType: Dab.EntitySourceType.StoredProcedure,
+                            sourceName: "GetUsers",
+                            tableName: "GetUsers",
+                            columns: [],
+                            enabledActions: [Dab.EntityAction.Execute],
+                            advancedSettings: {
+                                entityName: "GetUsers",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                            },
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+
+                expect(parsed.entities["GetUsers"].mcp).to.be.undefined;
+            });
         });
 
         suite("entity REST property", () => {

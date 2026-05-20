@@ -520,6 +520,20 @@ ${queryString}`;
         return value === "1" || value === "true";
     }
 
+    private getPositiveOrdinalCellValue(
+        result: SimpleExecuteResult,
+        rowIndex: number,
+        columnIndex: number,
+    ): number | undefined {
+        const rawValue = this.getCellDisplayValue(result, rowIndex, columnIndex);
+        if (!rawValue) {
+            return undefined;
+        }
+
+        const ordinal = Number(rawValue);
+        return Number.isInteger(ordinal) && ordinal > 0 ? ordinal : undefined;
+    }
+
     private parseDabDatabaseObjects(result: SimpleExecuteResult): DabDatabaseObjectMetadata[] {
         return (result?.rows ?? [])
             .map((_, index) => {
@@ -540,9 +554,9 @@ ${queryString}`;
                 const id = this.getCellDisplayValue(result, index, 0);
                 const name = this.getCellDisplayValue(result, index, 1);
                 const dataType = this.getCellDisplayValue(result, index, 2);
-                const ordinal = Number(this.getCellDisplayValue(result, index, 3) ?? 0);
+                const ordinal = this.getPositiveOrdinalCellValue(result, index, 3);
                 const isPrimaryKey = this.getBooleanCellValue(result, index, 4);
-                if (!id || !name || !dataType) {
+                if (!id || !name || !dataType || ordinal === undefined) {
                     return undefined;
                 }
                 return { id, name, dataType, ordinal, isPrimaryKey };
@@ -559,9 +573,9 @@ ${queryString}`;
             const id = this.getCellDisplayValue(result, index, 1);
             const name = this.getCellDisplayValue(result, index, 2);
             const dataType = this.getCellDisplayValue(result, index, 3);
-            const ordinal = Number(this.getCellDisplayValue(result, index, 4) ?? 0);
+            const ordinal = this.getPositiveOrdinalCellValue(result, index, 4);
             const isPrimaryKey = this.getBooleanCellValue(result, index, 5);
-            if (!objectId || !id || !name || !dataType) {
+            if (!objectId || !id || !name || !dataType || ordinal === undefined) {
                 continue;
             }
 
@@ -580,8 +594,8 @@ ${queryString}`;
             .map((_, index) => {
                 const name = this.getCellDisplayValue(result, index, 0);
                 const dataType = this.getCellDisplayValue(result, index, 1);
-                const ordinal = Number(this.getCellDisplayValue(result, index, 2) ?? 0);
-                if (!name || !dataType) {
+                const ordinal = this.getPositiveOrdinalCellValue(result, index, 2);
+                if (!name || !dataType || ordinal === undefined) {
                     return undefined;
                 }
                 const parameter: DabStoredProcedureParameterMetadata = {
@@ -602,8 +616,8 @@ ${queryString}`;
             const objectId = this.getCellDisplayValue(result, index, 0);
             const name = this.getCellDisplayValue(result, index, 1);
             const dataType = this.getCellDisplayValue(result, index, 2);
-            const ordinal = Number(this.getCellDisplayValue(result, index, 3) ?? 0);
-            if (!objectId || !name || !dataType) {
+            const ordinal = this.getPositiveOrdinalCellValue(result, index, 3);
+            if (!objectId || !name || !dataType || ordinal === undefined) {
                 continue;
             }
 

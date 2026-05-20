@@ -640,6 +640,46 @@ suite("Metadata Service Tests", () => {
             ]);
         });
 
+        test("should skip DAB view columns with invalid ordinals", async () => {
+            mockClient.sendRequest.callsFake(async (_type: any, _params: any) => ({
+                rows: [
+                    [
+                        cell("view:dbo.ActiveUsers:Id"),
+                        cell("Id"),
+                        cell("int"),
+                        cell("1"),
+                        cell("1"),
+                    ],
+                    [
+                        cell("view:dbo.ActiveUsers:Name"),
+                        cell("Name"),
+                        cell("nvarchar"),
+                        cell("not-a-number"),
+                        cell("0"),
+                    ],
+                    [
+                        cell("view:dbo.ActiveUsers:Status"),
+                        cell("Status"),
+                        cell("nvarchar"),
+                        cell("0"),
+                        cell("0"),
+                    ],
+                ],
+            }));
+
+            const result = await metadataService.getDabViewColumns(ownerUri, "dbo", "ActiveUsers");
+
+            expect(result).to.deep.equal([
+                {
+                    id: "view:dbo.ActiveUsers:Id",
+                    name: "Id",
+                    dataType: "int",
+                    ordinal: 1,
+                    isPrimaryKey: true,
+                },
+            ]);
+        });
+
         test("should group DAB view columns by object and skip malformed rows", async () => {
             mockClient.sendRequest.callsFake(async (_type: any, _params: any) => ({
                 rows: [
@@ -660,6 +700,14 @@ suite("Metadata Service Tests", () => {
                         cell("false"),
                     ],
                     [cell("view:dbo.Broken"), cell("", true), cell("Name"), cell("int")],
+                    [
+                        cell("view:dbo.ActiveUsers"),
+                        cell("view:dbo.ActiveUsers:Broken"),
+                        cell("Broken"),
+                        cell("int"),
+                        cell("bad-ordinal"),
+                        cell("false"),
+                    ],
                 ],
             }));
 
@@ -704,6 +752,24 @@ suite("Metadata Service Tests", () => {
             ]);
         });
 
+        test("should skip stored procedure parameters with invalid ordinals", async () => {
+            mockClient.sendRequest.callsFake(async (_type: any, _params: any) => ({
+                rows: [
+                    [cell("@userId"), cell("int"), cell("1")],
+                    [cell("@invalid"), cell("bit"), cell("not-a-number")],
+                    [cell("@zero"), cell("bit"), cell("0")],
+                ],
+            }));
+
+            const result = await metadataService.getDabStoredProcedureParameters(
+                ownerUri,
+                "dbo",
+                "GetUsers",
+            );
+
+            expect(result).to.deep.equal([{ name: "@userId", dataType: "int", ordinal: 1 }]);
+        });
+
         test("should group stored procedure parameters by procedure and skip malformed rows", async () => {
             mockClient.sendRequest.callsFake(async (_type: any, _params: any) => ({
                 rows: [
@@ -720,6 +786,12 @@ suite("Metadata Service Tests", () => {
                         cell("2"),
                     ],
                     [cell("stored-procedure:dbo.Broken"), cell("", true), cell("int"), cell("1")],
+                    [
+                        cell("stored-procedure:dbo.GetUsers"),
+                        cell("@invalid"),
+                        cell("int"),
+                        cell("bad-ordinal"),
+                    ],
                 ],
             }));
 

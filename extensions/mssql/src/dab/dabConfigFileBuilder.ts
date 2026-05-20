@@ -109,6 +109,7 @@ export class DabConfigFileBuilder {
                 config.entities,
                 config.apiTypes.includes(Dab.ApiType.Rest),
                 config.apiTypes.includes(Dab.ApiType.GraphQL),
+                config.apiTypes.includes(Dab.ApiType.Mcp),
             ),
         };
     }
@@ -159,6 +160,7 @@ export class DabConfigFileBuilder {
         entities: Dab.DabEntityConfig[],
         isRestEnabled: boolean,
         isGraphQLEnabled: boolean,
+        isMcpEnabled: boolean,
     ): Record<string, DabEntityOutput> {
         const result: Record<string, DabEntityOutput> = {};
         for (const entity of entities) {
@@ -169,6 +171,7 @@ export class DabConfigFileBuilder {
                 entity,
                 isRestEnabled,
                 isGraphQLEnabled,
+                isMcpEnabled,
             );
         }
         return result;
@@ -184,6 +187,7 @@ export class DabConfigFileBuilder {
         entity: Dab.DabEntityConfig,
         isRestEnabled: boolean,
         isGraphQLEnabled: boolean,
+        isMcpEnabled: boolean,
     ): DabEntityOutput {
         const restConfig = isRestEnabled ? this.buildRestProperty(entity) : false;
         const graphqlConfig = isGraphQLEnabled ? this.buildGraphQLProperty(entity) : false;
@@ -215,7 +219,7 @@ export class DabConfigFileBuilder {
             }));
         }
 
-        if (entity.sourceType === Dab.EntitySourceType.StoredProcedure) {
+        if (isMcpEnabled && entity.sourceType === Dab.EntitySourceType.StoredProcedure) {
             output.mcp = {
                 "custom-tool": true,
                 "dml-tools": false,
