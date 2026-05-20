@@ -14,6 +14,10 @@
         <source xml:lang="en">$(plug)  Connect to MSSQL</source>
         <target state="translated">$(plug)  Connetti a MSSQL</target>
       </trans-unit>
+      <trans-unit id="++CODE++7ab8e89a60b445298b22409ca4e3a36b6032cd1f4b770cd638e11e0ebf23fabd">
+        <source xml:lang="en">'mssql.newEditorConnectionBehavior' is set to 'defaultConnection', but 'mssql.defaultConnectionId' is not configured. New editors will fall back to transferring the active connection.</source>
+        <target state="new">'mssql.newEditorConnectionBehavior' is set to 'defaultConnection', but 'mssql.defaultConnectionId' is not configured. New editors will fall back to transferring the active connection.</target>
+      </trans-unit>
       <trans-unit id="++CODE++e59b9e59be153f480e2e2f5836749b5d33fe1776d037625761e5a957462aadd8">
         <source xml:lang="en">'{0}' started.</source>
         <note>{0} is the service name</note>
@@ -1073,6 +1077,10 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Change Password</source>
         <target state="translated">Cambia password</target>
       </trans-unit>
+      <trans-unit id="++CODE++fad48517dc5d23758f7a5fb69e52de0ad54bde81726bd0450e14f969067d971e">
+        <source xml:lang="en">Change Setting</source>
+        <target state="new">Change Setting</target>
+      </trans-unit>
       <trans-unit id="++CODE++7cd8625322b19db450bf5b5df61bd30ef4b1905e112753ea458faf1881b2ff01">
         <source xml:lang="en">Change database to '{2}' for connection '{0}' (ID: {1})?</source>
         <note>{0} is the connection display name
@@ -1257,6 +1265,10 @@ Seleziona "{0}" per stabilire una connessione.</target>
       <trans-unit id="++CODE++4e42da2b0c2533c1a0dfa98e9f4ec67fbaf07a0da192dafa93aaf98bc07fd959">
         <source xml:lang="en">Choose the Right Version</source>
         <target state="translated">Scegliere la versione corretta</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4ccc2e9603461fb60e8f8e5a5b8dbddd023bb4a1423c348bc99e0714f6c3812e">
+        <source xml:lang="en">Choose the behavior for new editors</source>
+        <target state="new">Choose the behavior for new editors</target>
       </trans-unit>
       <trans-unit id="++CODE++be798452e0ca7a38f6487ecb9115f26ba148e2d4475608bdc4277d34d41be0a7">
         <source xml:lang="en">Circular reference detected: '{0}' → '{1}' creates a cycle</source>
@@ -2666,6 +2678,10 @@ Seleziona "{0}" per stabilire una connessione.</target>
       <trans-unit id="++CODE++1a1795b0d7f71cc3912f6117290ba9480278c1a26efb32c044c92c9071d6b559">
         <source xml:lang="en">Do not compress backup</source>
         <target state="translated">Non comprimere il backup</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c6f902ac30a459d53f79efa0c1d45fc2d272ebbfe609ada31ebb309eec06ed7c">
+        <source xml:lang="en">Do not connect</source>
+        <target state="new">Do not connect</target>
       </trans-unit>
       <trans-unit id="++CODE++5ce32ed24291b6ee178d1069ca31842e8ead67e82f070a284cec1ab95498476c">
         <source xml:lang="en">Do you mind taking a quick feedback survey about the MSSQL Extension for VS Code?</source>
@@ -7495,6 +7511,10 @@ Query: {2}</target>
         <source xml:lang="en">Select a connection group</source>
         <target state="translated">Selezionare un gruppo di connessione</target>
       </trans-unit>
+      <trans-unit id="++CODE++abf078a3e4a6e103d6da7a7075ac601a095b2ba444bfc98447f49248daa477fb">
+        <source xml:lang="en">Select a connection to use as the default</source>
+        <target state="new">Select a connection to use as the default</target>
+      </trans-unit>
       <trans-unit id="++CODE++c9e8c706a0db2ef84dc8a610e30fe22cb5709a146a0e76955dbd1f1444e5a0e6">
         <source xml:lang="en">Select a database</source>
         <target state="translated">Selezionare un database</target>
@@ -8455,6 +8475,11 @@ Query: {2}</target>
         <source xml:lang="en">The columns of the index.</source>
         <target state="translated">Colonne dell'indice.</target>
       </trans-unit>
+      <trans-unit id="++CODE++a238f8494c24670d2a99bca7863c04c3b523e1ffd7502d240c9aadca7e53c9c1">
+        <source xml:lang="en">The connection ID '{0}' set in 'mssql.defaultConnectionId' does not match any known connection profile. New editors will fall back to transferring the active connection.</source>
+        <note>{0} is the connection ID that was not found</note>
+        <target state="new">The connection ID '{0}' set in 'mssql.defaultConnectionId' does not match any known connection profile. New editors will fall back to transferring the active connection.</target>
+      </trans-unit>
       <trans-unit id="++CODE++0104b69959544fb6f98a7e7723e2df4d657c581b43004a1e47f677a02589311e">
         <source xml:lang="en">The connection with ID '{0}' does not have the 'server' property set and is being ignored.  Please set the 'server' property on this connection in order to use it.</source>
         <note>{0} is the connection ID for the connection that has been ignored</note>
@@ -8716,6 +8741,10 @@ Query: {2}</target>
       <trans-unit id="++CODE++c7363102b16228ab96af90a6f97d1ab569d452b23341820a7070e0dd8ddb859b">
         <source xml:lang="en">Transaction Log</source>
         <target state="translated">Log delle transazioni</target>
+      </trans-unit>
+      <trans-unit id="++CODE++573843c55dfcb6caf7a345bf40ff4dfe681f4e262ed72c68ac5f55ce0b2a7749">
+        <source xml:lang="en">Transfer active connection (Default)</source>
+        <target state="new">Transfer active connection (Default)</target>
       </trans-unit>
       <trans-unit id="++CODE++dadabe100e080a7068316b2a91caeb46ed5a60c2bf94a1a30acf4703bd3eb24d">
         <source xml:lang="en">Truncate the transaction log</source>
@@ -9801,6 +9830,10 @@ Query: {2}</target>
         <source xml:lang="en">Always Encrypted</source>
         <target state="translated">Always Encrypted</target>
       </trans-unit>
+      <trans-unit id="mssql.newEditorConnectionBehavior.defaultConnection.description">
+        <source xml:lang="en">Always connect new editors and opened SQL files to the connection specified by `mssql.defaultConnectionId`.</source>
+        <target state="new">Always connect new editors and opened SQL files to the connection specified by `mssql.defaultConnectionId`.</target>
+      </trans-unit>
       <trans-unit id="mssql.query.executionTimeout">
         <source xml:lang="en">An execution time-out of 0 indicates an unlimited wait (no time-out)</source>
         <target state="translated">L'impostazione del valore 0 per il timeout di esecuzione indica un'attesa illimitata (nessun timeout)</target>
@@ -9848,6 +9881,10 @@ Query: {2}</target>
       <trans-unit id="mssql.cancelBackgroundTask">
         <source xml:lang="en">Cancel Task</source>
         <target state="translated">Annullare attività</target>
+      </trans-unit>
+      <trans-unit id="mssql.newEditorConnectionBehavior.transferActive.description">
+        <source xml:lang="en">Carry the active editor's connection to newly opened query editor tabs and SQL files.</source>
+        <target state="new">Carry the active editor's connection to newly opened query editor tabs and SQL files.</target>
       </trans-unit>
       <trans-unit id="mssql.changeConnection">
         <source xml:lang="en">Change Connection (MSSQL)</source>
@@ -9941,6 +9978,10 @@ Query: {2}</target>
         <source xml:lang="en">Control which grid lines are visible in the results grid.</source>
         <target state="translated">Consente di controllare le linee griglia visibili nella griglia dei risultati.</target>
       </trans-unit>
+      <trans-unit id="mssql.newEditorConnectionBehavior.description">
+        <source xml:lang="en">Controls how new SQL editor windows and opened SQL files are automatically connected.</source>
+        <target state="new">Controls how new SQL editor windows and opened SQL files are automatically connected.</target>
+      </trans-unit>
       <trans-unit id="mssql.resultsGrid.inMemoryDataProcessingThreshold">
         <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>
         <target state="translated">Controlla il numero massimo di righe consentite per l'applicazione di filtri e ordinamento in memoria. Se il numero viene superato, l'ordinamento e il filtro verranno disabilitati. Avviso: l'aumento di questo valore può influire sulle prestazioni.</target>
@@ -10026,6 +10067,10 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
       <trans-unit id="mssql.defaultQueryResultsViewMode.grid.description">
         <source xml:lang="en">Display results in a tabular grid format (default)</source>
         <target state="translated">Visualizza i risultati in formato griglia tabulare (impostazione predefinita)</target>
+      </trans-unit>
+      <trans-unit id="mssql.newEditorConnectionBehavior.none.description">
+        <source xml:lang="en">Do not auto-connect. You must connect each SQL file manually.</source>
+        <target state="new">Do not auto-connect. You must connect each SQL file manually.</target>
       </trans-unit>
       <trans-unit id="mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description">
         <source xml:lang="en">Do not show prompts to display query results in a new tab.</source>
@@ -10633,6 +10678,10 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
         <source xml:lang="en">Temporarily store passwords for connections with 'Saved Passwords' disabled, until the extension is restarted. This prevents repeated password prompts when reusing connections within the same session.</source>
         <target state="translated">Memorizza temporaneamente le password per le connessioni con 'Password salvate' disabilitate, fino al riavvio dell'estensione. Ciò evita richieste ripetute di password quando si riutilizzano le connessioni all'interno della stessa sessione.</target>
       </trans-unit>
+      <trans-unit id="mssql.defaultConnectionId.description">
+        <source xml:lang="en">The ID (GUID) of the connection profile to use when `mssql.newEditorConnectionBehavior` is set to `defaultConnection`. The connection ID can be found in your settings.json under `mssql.connections`.</source>
+        <target state="new">The ID (GUID) of the connection profile to use when `mssql.newEditorConnectionBehavior` is set to `defaultConnection`. The connection ID can be found in your settings.json under `mssql.connections`.</target>
+      </trans-unit>
       <trans-unit id="mssql.customEnvironment">
         <source xml:lang="en">The additional, MSSQL-specific custom configuration for the Sovereign Cloud to use with the Microsoft Sovereign Cloud authentication provider. This along with setting `microsoft-sovereign-cloud.environment` to `custom` and providing values for `microsoft-sovereign-cloud.customEnvironment` is required to use this feature with MSSQL.</source>
         <target state="translated">La configurazione aggiuntiva e personalizzata specifica di MSSQL per il cloud sovrano da usare con il provider di autenticazione Microsoft Sovereign Cloud. Per usare questa funzionalità con MSSQL, è necessario impostare `microsoft-sovereign-cloud.environment` su `custom` e fornire i valori per `microsoft-sovereign-cloud.customEnvironment`.</target>
@@ -10676,6 +10725,10 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
       <trans-unit id="mssql.connection.id">
         <source xml:lang="en">The unique identifier for this connection profile.</source>
         <target state="translated">Identificatore univoco per questo profilo di connessione.</target>
+      </trans-unit>
+      <trans-unit id="mssql.transferActiveEditorConnections.deprecationMessage">
+        <source xml:lang="en">This setting is deprecated. Use `mssql.newEditorConnectionBehavior` instead. The extension will automatically migrate this setting on startup.</source>
+        <target state="new">This setting is deprecated. Use `mssql.newEditorConnectionBehavior` instead. The extension will automatically migrate this setting on startup.</target>
       </trans-unit>
       <trans-unit id="mssql.legacySetting.deprecationMessage">
         <source xml:lang="en">This setting will be removed in a future release.</source>
