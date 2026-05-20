@@ -3003,6 +3003,9 @@
     <trans-unit id="++CODE++b69848561e02841b68dcbfadcbba33ea9008d49fb44c61fd4e670bc3fa3b9968">
       <source xml:lang="en">Filter changes</source>
     </trans-unit>
+    <trans-unit id="++CODE++25f7c9810f4a804cfb8dd52d53afff3e995a0e03165362b827f6eb301d685327">
+      <source xml:lang="en">Filter entities</source>
+    </trans-unit>
     <trans-unit id="++CODE++f03ec545964ab62cf49cf19c60ffd1c9609dab0fbd2239d5bc643da5427b4270">
       <source xml:lang="en">Filter entities...</source>
     </trans-unit>
@@ -4497,6 +4500,9 @@
     </trans-unit>
     <trans-unit id="++CODE++15bcefe28749fc12d60214a94c60d8a46127c922357c31e718e1cd3d28262678">
       <source xml:lang="en">Object Types</source>
+    </trans-unit>
+    <trans-unit id="++CODE++46e7c345a4106f8dba31dee33a1559a12f24d16a1678241d55e84ae55c107d81">
+      <source xml:lang="en">Object type</source>
     </trans-unit>
     <trans-unit id="++CODE++ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1">
       <source xml:lang="en">Off</source>
@@ -6041,6 +6047,10 @@
     <trans-unit id="++CODE++59462672a9b0690bf1151b63576df991ace5811a13bbcc90f35f43c1a21c0809">
       <source xml:lang="en">Source Table</source>
     </trans-unit>
+    <trans-unit id="++CODE++a03d6436b6c5d406e7f53427dbe386f36eddd596a7230ba85f6301cfc6c2018b">
+      <source xml:lang="en">Source Table: {0}</source>
+      <note>{0} is the fully qualified source table name</note>
+    </trans-unit>
     <trans-unit id="++CODE++30ecb608c5cff9e821a41d28312d0070cbeb3901bc8e32ecefd17171f87dc53a">
       <source xml:lang="en">Source: {0}</source>
       <note>{0} is the task source</note>
@@ -6869,6 +6879,9 @@
       <source xml:lang="en">Warning: Result set is incomplete. Showing {0} of {1} rows. The full result set could not be loaded.</source>
       <note>{0} is the number of rows actually returned
 {1} is the total number of rows expected</note>
+    </trans-unit>
+    <trans-unit id="++CODE++0e04cd10f9afd7e546e176b34b56a243d8c741198aa0bfee27d7661a370dc043">
+      <source xml:lang="en">Warnings</source>
     </trans-unit>
     <trans-unit id="++CODE++4d7371c8931fdd0178f7cbdabd1fd8260039a824a5c0912e880840b4d841f41e">
       <source xml:lang="en">Warnings detected. Please review the changes.</source>

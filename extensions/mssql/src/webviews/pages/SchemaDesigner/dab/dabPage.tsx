@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { makeStyles } from "@fluentui/react-components";
-import { useContext, useEffect, useRef } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { locConstants } from "../../../common/locConstants";
 import { DabToolbar } from "./dabToolbar";
 import { DabEntityTable } from "./dabEntityTable";
@@ -16,6 +16,7 @@ import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { useDabContext } from "./dabContext";
 import { LoadingLog } from "../../../common/loadingLog";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
+import { defaultDabEntityFilters } from "./dabEntityFilters";
 
 const useStyles = makeStyles({
     root: {
@@ -68,6 +69,7 @@ interface DabPageProps {
 
 export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
     const classes = useStyles();
+    const [entityFilters, setEntityFilters] = useState(defaultDabEntityFilters);
     const schemaDesignerContext = useContext(SchemaDesignerContext);
     const {
         dabConfig,
@@ -133,9 +135,11 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
                             showDiscovery={canShowDiscovery}
                             onNavigateToSchema={onNavigateToSchema}
                             onViewConfig={() => definitionsPanelRef.current?.openPanel()}
+                            entityFilters={entityFilters}
+                            setEntityFilters={setEntityFilters}
                         />
                         <div className={classes.content}>
-                            <DabEntityTable />
+                            <DabEntityTable entityFilters={entityFilters} />
                         </div>
                     </div>
                 </Panel>

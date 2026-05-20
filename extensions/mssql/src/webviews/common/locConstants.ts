@@ -1351,6 +1351,22 @@ export class LocConstants {
             entityEndpoints: l10n.t("Entity Endpoints"),
             allSchemas: l10n.t("All Schemas"),
             filterEntities: l10n.t("Filter entities..."),
+            filterEntitiesTitle: l10n.t("Filter entities"),
+            status: l10n.t("Status"),
+            objectType: l10n.t("Object type"),
+            clearAllFilters: l10n.t("Clear all"),
+            entityStatusFilterLabel: (status: "all" | "enabled" | "disabled" | "warnings") => {
+                switch (status) {
+                    case "enabled":
+                        return l10n.t("Enabled");
+                    case "disabled":
+                        return l10n.t("Disabled");
+                    case "warnings":
+                        return l10n.t("Warnings");
+                    case "all":
+                        return l10n.t("All");
+                }
+            },
             nOfMEnabled: (enabled: number, total: number) =>
                 l10n.t({
                     message: "{0} of {1} enabled",
@@ -1411,6 +1427,12 @@ export class LocConstants {
             customGraphQLTypeHelp: l10n.t("Optional - Override default GraphQL type name"),
             applyChanges: l10n.t("Apply Changes"),
             sourceTable: l10n.t("Source Table"),
+            sourceTableWithName: (sourceName: string) =>
+                l10n.t({
+                    message: "Source Table: {0}",
+                    args: [sourceName],
+                    comment: ["{0} is the fully qualified source table name"],
+                }),
             loading: l10n.t("Loading..."),
             initializingDabConfig: l10n.t("Initializing DAB configuration..."),
             noEntitiesFound: l10n.t("No entities found"),

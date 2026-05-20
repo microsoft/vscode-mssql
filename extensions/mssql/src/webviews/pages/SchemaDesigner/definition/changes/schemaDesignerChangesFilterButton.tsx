@@ -59,61 +59,66 @@ const useStyles = makeStyles({
         color: "var(--vscode-textLink-foreground)",
     },
     surface: {
-        padding: "14px",
-        minWidth: "320px",
+        padding: "10px",
+        minWidth: "260px",
         backgroundColor: "var(--vscode-editorWidget-background)",
         border: "1px solid var(--vscode-editorWidget-border)",
-        borderRadius: "10px",
+        borderRadius: "8px",
         boxShadow: "var(--vscode-widget-shadow)",
     },
     header: {
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        marginBottom: "10px",
+        marginBottom: "6px",
     },
     headerTitle: {
-        fontSize: "14px",
+        fontSize: "13px",
         fontWeight: 600,
         color: "var(--vscode-foreground)",
     },
     closeButton: {
-        minWidth: "32px",
-        height: "32px",
-        borderRadius: "8px",
+        minWidth: "24px",
+        width: "24px",
+        height: "24px",
+        borderRadius: "6px",
         backgroundColor: "var(--vscode-editorWidget-background)",
     },
     divider: {
         height: "1px",
         backgroundColor: "var(--vscode-editorWidget-border)",
         opacity: 0.7,
-        margin: "8px 0 12px",
+        margin: "6px 0 8px",
     },
     section: {
         display: "flex",
         flexDirection: "column",
-        gap: "10px",
+        gap: "6px",
     },
     sectionTitle: {
-        fontSize: "12px",
-        letterSpacing: "0.12em",
-        textTransform: "uppercase",
+        fontSize: "11px",
         color: "var(--vscode-descriptionForeground)",
         fontWeight: 600,
     },
     toggleRow: {
         display: "flex",
         flexWrap: "wrap",
-        gap: "10px",
+        gap: "6px",
         width: "100%",
     },
     toggleButton: {
         borderRadius: "999px",
+        fontSize: "12px",
+        minWidth: "unset",
+    },
+    toggleIcon: {
+        width: "14px",
+        height: "14px",
     },
     footer: {
         display: "flex",
-        gap: "10px",
-        marginTop: "16px",
+        gap: "6px",
+        marginTop: "10px",
     },
     footerButton: {
         flex: 1,
@@ -180,7 +185,7 @@ export const SchemaDesignerChangesFilterButton = ({
                     <div className={classes.toggleRow}>
                         <ToggleButton
                             shape="circular"
-                            size="medium"
+                            size="small"
                             className={classes.toggleButton}
                             checked={isActionSelected(ChangeAction.Add)}
                             style={
@@ -193,7 +198,7 @@ export const SchemaDesignerChangesFilterButton = ({
                         </ToggleButton>
                         <ToggleButton
                             shape="circular"
-                            size="medium"
+                            size="small"
                             className={classes.toggleButton}
                             checked={isActionSelected(ChangeAction.Delete)}
                             style={
@@ -206,7 +211,7 @@ export const SchemaDesignerChangesFilterButton = ({
                         </ToggleButton>
                         <ToggleButton
                             shape="circular"
-                            size="medium"
+                            size="small"
                             className={classes.toggleButton}
                             checked={isActionSelected(ChangeAction.Modify)}
                             style={
@@ -225,9 +230,9 @@ export const SchemaDesignerChangesFilterButton = ({
                     <div className={classes.toggleRow}>
                         <ToggleButton
                             shape="circular"
-                            size="medium"
+                            size="small"
                             className={classes.toggleButton}
-                            icon={<Table20Regular />}
+                            icon={<Table20Regular className={classes.toggleIcon} />}
                             checked={isCategorySelected(ChangeCategory.Table)}
                             style={
                                 isCategorySelected(ChangeCategory.Table)
@@ -239,9 +244,9 @@ export const SchemaDesignerChangesFilterButton = ({
                         </ToggleButton>
                         <ToggleButton
                             shape="circular"
-                            size="medium"
+                            size="small"
                             className={classes.toggleButton}
-                            icon={<Column20Regular />}
+                            icon={<Column20Regular className={classes.toggleIcon} />}
                             checked={isCategorySelected(ChangeCategory.Column)}
                             style={
                                 isCategorySelected(ChangeCategory.Column)
@@ -253,9 +258,9 @@ export const SchemaDesignerChangesFilterButton = ({
                         </ToggleButton>
                         <ToggleButton
                             shape="circular"
-                            size="medium"
+                            size="small"
                             className={classes.toggleButton}
-                            icon={<Key20Regular />}
+                            icon={<Key20Regular className={classes.toggleIcon} />}
                             checked={isCategorySelected(ChangeCategory.ForeignKey)}
                             style={
                                 isCategorySelected(ChangeCategory.ForeignKey)
@@ -270,6 +275,7 @@ export const SchemaDesignerChangesFilterButton = ({
                 <div className={classes.divider} />
                 <div className={classes.footer}>
                     <Button
+                        size="small"
                         appearance="outline"
                         className={classes.footerButton}
                         disabled={!hasActiveFilters}
@@ -277,6 +283,7 @@ export const SchemaDesignerChangesFilterButton = ({
                         {loc.clearFiltersButton}
                     </Button>
                     <Button
+                        size="small"
                         appearance="primary"
                         className={classes.footerButton}
                         onClick={() => setOpen(false)}>

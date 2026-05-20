@@ -42,6 +42,7 @@ import { locConstants } from "../../../common/locConstants";
 import { PrimaryKeyIcon } from "../../../common/icons/primaryKey";
 import { useDabContext } from "./dabContext";
 import { DabEntitySettingsDialog } from "./dabEntitySettingsDialog";
+import { DabEntityFilters, doesEntityMatchDabFilters } from "./dabEntityFilters";
 import "./dabEntityTable.css";
 
 const TYPE_INDENT = 20;
@@ -142,9 +143,6 @@ function createDefaultExpandedRows(config?: Dab.DabConfig | null): Set<string> {
         const schemaKey = getSchemaGroupKey(entity.schemaName);
         expanded.add(`schema-${schemaKey}`);
         expanded.add(`schema-${schemaKey}-${entity.sourceType ?? Dab.EntitySourceType.Table}`);
-        if (entity.isSupported && entity.sourceType !== Dab.EntitySourceType.StoredProcedure) {
-            expanded.add(entity.id);
-        }
     }
     return expanded;
 }
@@ -443,7 +441,11 @@ const ProcedureIcon = () => (
 
 // ── Component ──
 
-export const DabEntityTable = () => {
+interface DabEntityTableProps {
+    entityFilters: DabEntityFilters;
+}
+
+export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
     const classes = useStyles();
     const keyboardNavAttr = useArrowNavigationGroup({ axis: "grid" });
     const context = useDabContext();
@@ -538,12 +540,16 @@ export const DabEntityTable = () => {
         if (!dabConfig) {
             return [];
         }
-        if (!dabTextFilter.trim()) {
-            return dabConfig.entities;
-        }
-
         const loweredFilter = dabTextFilter.toLowerCase().trim();
         return dabConfig.entities.filter((entity) => {
+            if (!doesEntityMatchDabFilters(entity, entityFilters)) {
+                return false;
+            }
+
+            if (!loweredFilter) {
+                return true;
+            }
+
             const entityName = entity.advancedSettings.entityName.toLowerCase();
             const schemaName = entity.schemaName.toLowerCase();
             const source =
@@ -559,7 +565,7 @@ export const DabEntityTable = () => {
                 columnNames.some((columnName) => columnName.includes(loweredFilter))
             );
         });
-    }, [dabConfig, dabTextFilter]);
+    }, [dabConfig, dabTextFilter, entityFilters]);
 
     // ── Grouped by schema and sorted ──
 

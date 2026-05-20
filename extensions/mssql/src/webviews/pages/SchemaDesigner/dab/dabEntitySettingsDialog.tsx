@@ -78,6 +78,13 @@ const useStyles = makeStyles({
         color: tokens.colorNeutralForeground3,
         marginBottom: "8px",
     },
+    actions: {
+        columnGap: "12px",
+    },
+    actionButton: {
+        minWidth: "132px",
+        whiteSpace: "nowrap",
+    },
 });
 
 interface DabEntitySettingsDialogProps {
@@ -145,8 +152,9 @@ export function DabEntitySettingsDialog({
                     <DialogContent className={classes.content}>
                         {/* Source Table Info */}
                         <Text className={classes.sourceTableText}>
-                            {locConstants.schemaDesigner.sourceTable}: {entity.schemaName}.
-                            {entity.sourceName ?? entity.tableName}
+                            {locConstants.schemaDesigner.sourceTableWithName(
+                                `${entity.schemaName}.${entity.sourceName ?? entity.tableName}`,
+                            )}
                         </Text>
 
                         {/* Entity Name Field */}
@@ -249,11 +257,17 @@ export function DabEntitySettingsDialog({
                             </Text>
                         </Field>
                     </DialogContent>
-                    <DialogActions>
-                        <Button appearance="secondary" onClick={handleCancel}>
+                    <DialogActions className={classes.actions}>
+                        <Button
+                            appearance="secondary"
+                            className={classes.actionButton}
+                            onClick={handleCancel}>
                             {locConstants.common.cancel}
                         </Button>
-                        <Button appearance="primary" onClick={handleApply}>
+                        <Button
+                            appearance="primary"
+                            className={classes.actionButton}
+                            onClick={handleApply}>
                             {locConstants.schemaDesigner.applyChanges}
                         </Button>
                     </DialogActions>

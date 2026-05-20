@@ -871,6 +871,12 @@
     "Entity Endpoints": "Entity Endpoints",
     "All Schemas": "All Schemas",
     "Filter entities...": "Filter entities...",
+    "Filter entities": "Filter entities",
+    "Status": "Status",
+    "Object type": "Object type",
+    "Enabled": "Enabled",
+    "Disabled": "Disabled",
+    "Warnings": "Warnings",
     "{0} of {1} enabled/{0} is the number of enabled entities{1} is the total number of entities": {
         "message": "{0} of {1} enabled",
         "comment": ["{0} is the number of enabled entities", "{1} is the total number of entities"]
@@ -916,6 +922,10 @@
     "Custom GraphQL Type": "Custom GraphQL Type",
     "Optional - Override default GraphQL type name": "Optional - Override default GraphQL type name",
     "Source Table": "Source Table",
+    "Source Table: {0}/{0} is the fully qualified source table name": {
+        "message": "Source Table: {0}",
+        "comment": ["{0} is the fully qualified source table name"]
+    },
     "Initializing DAB configuration...": "Initializing DAB configuration...",
     "No entities found": "No entities found",
     "Toggle all entities in {0}/{0} is the schema name": {
@@ -1201,7 +1211,6 @@
     },
     "Database Details": "Database Details",
     "Drop Database Options": "Drop Database Options",
-    "Status": "Status",
     "-": "-",
     "Drop active connections": "Drop active connections",
     "Delete backup and restore history": "Delete backup and restore history",
@@ -1760,8 +1769,6 @@
     "Object Explorer Filter": "Object Explorer Filter",
     "Azure MFA": "Azure MFA",
     "Windows Authentication": "Windows Authentication",
-    "Enabled": "Enabled",
-    "Disabled": "Disabled",
     "User": "User",
     "SQL Container Name": "SQL Container Name",
     "SQL Container Version": "SQL Container Version",
