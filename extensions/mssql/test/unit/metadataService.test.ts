@@ -687,8 +687,8 @@ suite("Metadata Service Tests", () => {
         test("should parse stored procedure parameters", async () => {
             mockClient.sendRequest.callsFake(async (_type: any, _params: any) => ({
                 rows: [
-                    [cell("@userId"), cell("1")],
-                    [cell("@includeInactive"), cell("2")],
+                    [cell("@userId"), cell("int"), cell("1")],
+                    [cell("@includeInactive"), cell("bit"), cell("2")],
                 ],
             }));
 
@@ -699,17 +699,27 @@ suite("Metadata Service Tests", () => {
             );
 
             expect(result).to.deep.equal([
-                { name: "@userId", ordinal: 1 },
-                { name: "@includeInactive", ordinal: 2 },
+                { name: "@userId", dataType: "int", ordinal: 1 },
+                { name: "@includeInactive", dataType: "bit", ordinal: 2 },
             ]);
         });
 
         test("should group stored procedure parameters by procedure and skip malformed rows", async () => {
             mockClient.sendRequest.callsFake(async (_type: any, _params: any) => ({
                 rows: [
-                    [cell("stored-procedure:dbo.GetUsers"), cell("@userId"), cell("1")],
-                    [cell("stored-procedure:dbo.GetUsers"), cell("@includeInactive"), cell("2")],
-                    [cell("stored-procedure:dbo.Broken"), cell("", true), cell("1")],
+                    [
+                        cell("stored-procedure:dbo.GetUsers"),
+                        cell("@userId"),
+                        cell("int"),
+                        cell("1"),
+                    ],
+                    [
+                        cell("stored-procedure:dbo.GetUsers"),
+                        cell("@includeInactive"),
+                        cell("bit"),
+                        cell("2"),
+                    ],
+                    [cell("stored-procedure:dbo.Broken"), cell("", true), cell("int"), cell("1")],
                 ],
             }));
 
@@ -718,8 +728,8 @@ suite("Metadata Service Tests", () => {
 
             expect([...result.keys()]).to.deep.equal(["stored-procedure:dbo.GetUsers"]);
             expect(result.get("stored-procedure:dbo.GetUsers")).to.deep.equal([
-                { name: "@userId", ordinal: 1 },
-                { name: "@includeInactive", ordinal: 2 },
+                { name: "@userId", dataType: "int", ordinal: 1 },
+                { name: "@includeInactive", dataType: "bit", ordinal: 2 },
             ]);
         });
     });

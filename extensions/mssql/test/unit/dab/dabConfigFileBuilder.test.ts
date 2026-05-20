@@ -305,6 +305,45 @@ suite("DabConfigFileBuilder Tests", () => {
                 expect(entity.source.object).to.equal("sales.Orders");
             });
 
+            test("should emit table primary keys as source key-fields", () => {
+                const result = builder.build(createTestConfig(), defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+                const entity = parsed.entities["Users"];
+                expect(entity.source["key-fields"]).to.deep.equal(["Id"]);
+            });
+
+            test("should emit composite table primary keys as source key-fields", () => {
+                const config = createTestConfig({
+                    entities: [
+                        createTestEntity({
+                            columns: [
+                                {
+                                    id: "test-id-1-column-id",
+                                    name: "Id",
+                                    dataType: "int",
+                                    isSupported: true,
+                                    isExposed: true,
+                                    isPrimaryKey: true,
+                                },
+                                {
+                                    id: "test-id-1-column-seq",
+                                    name: "Sequence",
+                                    dataType: "int",
+                                    isSupported: true,
+                                    isExposed: true,
+                                    isPrimaryKey: true,
+                                },
+                            ],
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+                const entity = parsed.entities["Users"];
+                expect(entity.source["key-fields"]).to.deep.equal(["Id", "Sequence"]);
+            });
+
             test("should use advancedSettings.entityName as the entity key", () => {
                 const config = createTestConfig({
                     entities: [
@@ -348,6 +387,7 @@ suite("DabConfigFileBuilder Tests", () => {
                     type: "view",
                     object: "dbo.ActiveUsers",
                 });
+                expect(entity.source).to.not.have.property("key-fields");
                 expect(entity.fields).to.deep.equal([
                     { name: "Id", "primary-key": true },
                     { name: "Name" },
@@ -383,6 +423,7 @@ suite("DabConfigFileBuilder Tests", () => {
                     object: "dbo.GetUsers",
                     parameters: [{ name: "userId" }],
                 });
+                expect(entity.source).to.not.have.property("key-fields");
                 expect(entity.permissions).to.deep.equal([
                     { role: "anonymous", actions: ["execute"] },
                 ]);

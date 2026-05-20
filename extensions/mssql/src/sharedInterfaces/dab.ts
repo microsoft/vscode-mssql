@@ -102,6 +102,7 @@ export namespace Dab {
 
     export interface DabParameterConfig {
         name: string;
+        dataType?: string;
         isRequired?: boolean;
         defaultValue?: string | number | boolean | null;
         description?: string;
@@ -962,14 +963,31 @@ export namespace Dab {
         "xml",
     ];
 
+    function normalizeDataTypeName(dataType?: string): string | undefined {
+        const normalized = dataType
+            ?.trim()
+            .toLowerCase()
+            .replace(/[\[\]]/g, "")
+            .replace(/\s*\(.*\)\s*$/, "");
+
+        if (!normalized) {
+            return undefined;
+        }
+
+        const unqualified = normalized.replace(/^sys\./, "");
+        const sqlClrType = unqualified.replace(/^microsoft\.sqlserver\.types\.sql/, "");
+        return sqlClrType === "timestamp" ? "rowversion" : sqlClrType;
+    }
+
+    const DAB_UNSUPPORTED_DATA_TYPE_NAMES = new Set(
+        DAB_UNSUPPORTED_DATA_TYPES.map((dataType) => normalizeDataTypeName(dataType)).filter(
+            (dataType): dataType is string => !!dataType,
+        ),
+    );
+
     function isUnsupportedDataType(dataType?: string): boolean {
-        const normalized = dataType?.toLowerCase();
-        const unqualified = normalized?.replace(/^sys\./, "");
-        return !!(
-            unqualified &&
-            (DAB_UNSUPPORTED_DATA_TYPES.includes(unqualified) ||
-                DAB_UNSUPPORTED_DATA_TYPES.includes(`sys.${unqualified}`))
-        );
+        const normalized = normalizeDataTypeName(dataType);
+        return !!normalized && DAB_UNSUPPORTED_DATA_TYPE_NAMES.has(normalized);
     }
 
     export function isDataTypeSupportedForDab(dataType?: string): boolean {
@@ -1006,22 +1024,30 @@ export namespace Dab {
         isSupported: boolean;
         reasons?: DabUnsupportedReason[];
     } {
-        if (sourceObject.sourceType === EntitySourceType.StoredProcedure) {
-            return { isSupported: true };
-        }
-
         const reasons: DabUnsupportedReason[] = [];
         const hasPrimaryKey =
             sourceObject.sourceType === EntitySourceType.Table
                 ? sourceObject.columns.some((c) => c.isPrimaryKey)
                 : (sourceObject.fields ?? []).some((field) => field.isPrimaryKey);
-        if (!hasPrimaryKey) {
+        if (sourceObject.sourceType !== EntitySourceType.StoredProcedure && !hasPrimaryKey) {
             reasons.push({ type: "noPrimaryKey" });
         }
 
-        const unsupportedColumns = sourceObject.columns.filter((c) =>
-            isUnsupportedDataType(c.dataType),
-        );
+        const unsupportedColumns = [
+            ...sourceObject.columns.filter((c) => isUnsupportedDataType(c.dataType)),
+            ...(sourceObject.parameters ?? [])
+                .filter((parameter) => isUnsupportedDataType(parameter.dataType))
+                .map(
+                    (parameter): DabColumnConfig => ({
+                        id: parameter.name,
+                        name: parameter.name,
+                        dataType: parameter.dataType ?? "",
+                        isPrimaryKey: false,
+                        isSupported: false,
+                        isExposed: true,
+                    }),
+                ),
+        ];
         if (unsupportedColumns.length > 0) {
             const details = unsupportedColumns.map((c) => `${c.name} (${c.dataType})`).join(", ");
             reasons.push({ type: "unsupportedDataTypes", columns: details });

@@ -40,6 +40,7 @@ interface DabEntityOutput {
     source: {
         type: string;
         object: string;
+        "key-fields"?: string[];
         parameters?: DabParameterOutput[];
     };
     fields?: Array<{
@@ -190,6 +191,7 @@ export class DabConfigFileBuilder {
             source: {
                 type: entity.sourceType ?? Dab.EntitySourceType.Table,
                 object: `${entity.schemaName}.${entity.sourceName ?? entity.tableName}`,
+                ...this.buildKeyFieldsProperty(entity),
                 ...(entity.sourceType === Dab.EntitySourceType.StoredProcedure &&
                 entity.parameters?.length
                     ? {
@@ -221,6 +223,18 @@ export class DabConfigFileBuilder {
         }
 
         return output;
+    }
+
+    private buildKeyFieldsProperty(entity: Dab.DabEntityConfig): { "key-fields"?: string[] } {
+        if (entity.sourceType === Dab.EntitySourceType.StoredProcedure || entity.fields?.length) {
+            return {};
+        }
+
+        const keyFields = entity.columns
+            .filter((column) => column.isPrimaryKey)
+            .map((column) => column.name);
+
+        return keyFields.length > 0 ? { "key-fields": keyFields } : {};
     }
 
     /**

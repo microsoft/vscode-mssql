@@ -120,6 +120,30 @@ suite("DAB shared interface helpers", () => {
         ]);
     });
 
+    test("createDefaultConfigFromSources disables stored procedures with unsupported parameter types", () => {
+        const config = Dab.createDefaultConfigFromSources([
+            createSourceObject({
+                id: "stored-procedure:HumanResources.uspUpdateEmployeeLogin",
+                sourceType: Dab.EntitySourceType.StoredProcedure,
+                schemaName: "HumanResources",
+                sourceName: "uspUpdateEmployeeLogin",
+                columns: [],
+                parameters: [{ name: "OrganizationNode", dataType: "hierarchyid" }],
+            }),
+        ]);
+
+        expect(config.entities[0]).to.include({
+            isEnabled: false,
+            isSupported: false,
+        });
+        expect(config.entities[0].unsupportedReasons).to.deep.equal([
+            {
+                type: "unsupportedDataTypes",
+                columns: "OrganizationNode (hierarchyid)",
+            },
+        ]);
+    });
+
     test("syncConfigWithSources removes missing entities, adds new ones, and refreshes metadata", () => {
         const currentConfig = Dab.createDefaultConfigFromSources([
             createSourceObject({ id: "TABLE:DBO.USERS" }),

@@ -111,6 +111,7 @@ const listDabStoredProcedureParametersQuery = `
 SELECT
     CONCAT('stored-procedure:', SCHEMA_NAME(sp.schema_id), '.', sp.name) AS [object_id],
     p.name AS [parameter_name],
+    TYPE_NAME(p.user_type_id) AS [data_type],
     p.parameter_id AS [ordinal]
 FROM sys.procedures AS sp
 INNER JOIN sys.parameters AS p
@@ -174,6 +175,7 @@ DECLARE @procedureObjectId int = OBJECT_ID(
 
 SELECT
     p.name AS [parameter_name],
+    TYPE_NAME(p.user_type_id) AS [data_type],
     p.parameter_id AS [ordinal]
 FROM sys.parameters AS p
 WHERE p.object_id = @procedureObjectId
@@ -577,12 +579,14 @@ ${queryString}`;
         return (result?.rows ?? [])
             .map((_, index) => {
                 const name = this.getCellDisplayValue(result, index, 0);
-                const ordinal = Number(this.getCellDisplayValue(result, index, 1) ?? 0);
-                if (!name) {
+                const dataType = this.getCellDisplayValue(result, index, 1);
+                const ordinal = Number(this.getCellDisplayValue(result, index, 2) ?? 0);
+                if (!name || !dataType) {
                     return undefined;
                 }
                 const parameter: DabStoredProcedureParameterMetadata = {
                     name,
+                    dataType,
                     ordinal,
                 };
                 return parameter;
@@ -597,13 +601,14 @@ ${queryString}`;
         for (let index = 0; index < (result?.rows ?? []).length; index++) {
             const objectId = this.getCellDisplayValue(result, index, 0);
             const name = this.getCellDisplayValue(result, index, 1);
-            const ordinal = Number(this.getCellDisplayValue(result, index, 2) ?? 0);
-            if (!objectId || !name) {
+            const dataType = this.getCellDisplayValue(result, index, 2);
+            const ordinal = Number(this.getCellDisplayValue(result, index, 3) ?? 0);
+            if (!objectId || !name || !dataType) {
                 continue;
             }
 
             const parameters = parametersByObject.get(objectId) ?? [];
-            parameters.push({ name, ordinal });
+            parameters.push({ name, dataType, ordinal });
             parametersByObject.set(objectId, parameters);
         }
 

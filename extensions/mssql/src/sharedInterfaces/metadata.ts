@@ -70,6 +70,7 @@ export interface DabViewColumnMetadata {
 
 export interface DabStoredProcedureParameterMetadata {
     name: string;
+    dataType: string;
     ordinal: number;
 }
 
