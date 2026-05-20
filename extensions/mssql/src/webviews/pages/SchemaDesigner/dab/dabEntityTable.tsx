@@ -482,6 +482,9 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
 
         if (!hasInitializedExpandedRows.current) {
             setExpandedRows(createDefaultExpandedRows(dabConfig));
+            initialEnabledEntities.current = new Set(
+                dabConfig.entities.filter((e) => e.isEnabled).map((e) => getEntityFullName(e)),
+            );
             hasInitializedExpandedRows.current = true;
         }
 
@@ -502,7 +505,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                 toggleDabEntity(entity.id, shouldCheck);
             }
         });
-    }, [currentFilteredTables]);
+    }, [currentFilteredTables, dabConfig, toggleDabEntity]);
 
     const allActions = useMemo(
         () => [
