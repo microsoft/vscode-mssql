@@ -42,7 +42,11 @@ export interface SavedNotebookResultSetOutputData {
     addBottomSpacing?: boolean;
 }
 
-export type NotebookSaveAsFormat = "csv" | "json" | "excel";
+export enum NotebookSaveAsFormat {
+    Csv = "csv",
+    Excel = "excel",
+    Json = "json",
+}
 
 export interface NotebookSaveAsMessage {
     type: "saveAs";

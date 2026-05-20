@@ -5,9 +5,9 @@
 
 import * as l10n from "@vscode/l10n";
 import { useEffect, useState, type CSSProperties } from "react";
-import type {
+import {
     NotebookSaveAsFormat,
-    NotebookSaveAsMessage,
+    type NotebookSaveAsMessage,
 } from "../../../sharedInterfaces/notebookQueryResult";
 import type { DbCellValue, IDbColumn } from "../../../sharedInterfaces/queryResult";
 import saveCsvIcon from "../../media/saveCsv.svg";
@@ -42,19 +42,19 @@ interface ToolbarAction {
 function buildActions(): ToolbarAction[] {
     return [
         {
-            id: "csv",
+            id: NotebookSaveAsFormat.Csv,
             label: l10n.t("Save as CSV"),
             iconLight: saveCsvIcon,
             iconDark: saveCsvIconInverse,
         },
         {
-            id: "excel",
+            id: NotebookSaveAsFormat.Excel,
             label: l10n.t("Save as Excel"),
             iconLight: saveExcelIcon,
             iconDark: saveExcelIconInverse,
         },
         {
-            id: "json",
+            id: NotebookSaveAsFormat.Json,
             label: l10n.t("Save as JSON"),
             iconLight: saveJsonIcon,
             iconDark: saveJsonIconInverse,
@@ -114,7 +114,7 @@ export function NotebookResultsToolbar({
         return () => observer.disconnect();
     }, []);
 
-    const onClick = (format: NotebookSaveAsFormat) => {
+    const handleSaveAs = (format: NotebookSaveAsFormat) => {
         if (!postMessage) {
             return;
         }
@@ -149,7 +149,7 @@ export function NotebookResultsToolbar({
                     className="notebook-results-toolbar-button"
                     style={buttonStyle}
                     disabled={!postMessage}
-                    onClick={() => onClick(action.id)}>
+                    onClick={() => handleSaveAs(action.id)}>
                     <img
                         src={isLight ? action.iconLight : action.iconDark}
                         alt=""

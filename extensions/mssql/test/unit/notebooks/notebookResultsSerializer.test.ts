@@ -12,6 +12,7 @@ import type { IDbColumn, DbCellValue } from "vscode-mssql";
 import SqlToolsServerClient from "../../../src/languageservice/serviceclient";
 import { SerializeStartRequest } from "../../../src/models/contracts";
 import { saveNotebookResults } from "../../../src/notebooks/notebookResultsSerializer";
+import { NotebookSaveAsFormat } from "../../../src/sharedInterfaces/notebookQueryResult";
 
 chai.use(sinonChai);
 
@@ -43,7 +44,7 @@ suite("notebookResultsSerializer", () => {
         showSaveDialogStub.resolves(undefined);
 
         const result = await saveNotebookResults({
-            format: "csv",
+            format: NotebookSaveAsFormat.Csv,
             columnInfo: [makeColumn("id")],
             rows: [[makeCell("1")]],
             notebookBaseName: "test.ipynb",
@@ -67,7 +68,7 @@ suite("notebookResultsSerializer", () => {
         ];
 
         const result = await saveNotebookResults({
-            format: "csv",
+            format: NotebookSaveAsFormat.Csv,
             columnInfo: columns,
             rows,
             notebookBaseName: "test.ipynb",
@@ -107,7 +108,7 @@ suite("notebookResultsSerializer", () => {
         mockClient.sendRequest.resolves({ succeeded: true, messages: "" });
 
         await saveNotebookResults({
-            format: "json",
+            format: NotebookSaveAsFormat.Json,
             columnInfo: [makeColumn("untyped")],
             rows: [[makeCell("value")]],
             notebookBaseName: "test.ipynb",
@@ -127,7 +128,7 @@ suite("notebookResultsSerializer", () => {
 
         try {
             await saveNotebookResults({
-                format: "csv",
+                format: NotebookSaveAsFormat.Csv,
                 columnInfo: [makeColumn("id")],
                 rows: [[makeCell("1")]],
                 notebookBaseName: "test.ipynb",
@@ -146,7 +147,7 @@ suite("notebookResultsSerializer", () => {
 
         try {
             await saveNotebookResults({
-                format: "csv",
+                format: NotebookSaveAsFormat.Csv,
                 columnInfo: [makeColumn("id")],
                 rows: [[makeCell("1")]],
                 notebookBaseName: "test.ipynb",
@@ -163,7 +164,7 @@ suite("notebookResultsSerializer", () => {
         showSaveDialogStub.resolves(undefined);
 
         await saveNotebookResults({
-            format: "excel",
+            format: NotebookSaveAsFormat.Excel,
             columnInfo: [makeColumn("id")],
             rows: [[makeCell("1")]],
             notebookBaseName: "my report!.ipynb",

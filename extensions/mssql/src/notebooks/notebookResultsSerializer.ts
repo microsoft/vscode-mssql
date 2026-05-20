@@ -15,7 +15,7 @@ import {
     SerializeStartRequest,
 } from "../models/contracts";
 import type { DbCellValue, IDbColumn } from "../sharedInterfaces/queryResult";
-import type { NotebookSaveAsFormat } from "../sharedInterfaces/notebookQueryResult";
+import { NotebookSaveAsFormat } from "../sharedInterfaces/notebookQueryResult";
 
 export interface SerializeOptions {
     format: NotebookSaveAsFormat;
@@ -108,7 +108,7 @@ function getDialogConfig(
     }
 
     switch (format) {
-        case "csv":
+        case NotebookSaveAsFormat.Csv:
             return {
                 title: LocalizedConstants.Notebooks.saveAsCsvDialogTitle,
                 defaultUri: vscode.Uri.joinPath(baseUri, `${safeBase}${suffix}.csv`),
@@ -117,7 +117,7 @@ function getDialogConfig(
                     [LocalizedConstants.fileTypeAllFilesLabel]: ["*"],
                 },
             };
-        case "excel":
+        case NotebookSaveAsFormat.Excel:
             return {
                 title: LocalizedConstants.Notebooks.saveAsExcelDialogTitle,
                 defaultUri: vscode.Uri.joinPath(baseUri, `${safeBase}${suffix}.xlsx`),
@@ -126,7 +126,7 @@ function getDialogConfig(
                     [LocalizedConstants.fileTypeAllFilesLabel]: ["*"],
                 },
             };
-        case "json":
+        case NotebookSaveAsFormat.Json:
             return {
                 title: LocalizedConstants.Notebooks.saveAsJsonDialogTitle,
                 defaultUri: vscode.Uri.joinPath(baseUri, `${safeBase}${suffix}.json`),
