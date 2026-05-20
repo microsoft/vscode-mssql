@@ -43,11 +43,7 @@ const useStyles = makeStyles({
     },
     roleButtonsContainer: {
         display: "flex",
-        gap: "2px",
-        padding: "2px",
-        border: `1px solid ${tokens.colorNeutralStroke2}`,
-        borderRadius: tokens.borderRadiusMedium,
-        backgroundColor: tokens.colorNeutralBackground3,
+        gap: "8px",
     },
     roleButton: {
         flex: 1,
@@ -55,30 +51,16 @@ const useStyles = makeStyles({
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        padding: "8px 10px",
-        minHeight: "48px",
-        borderRadius: tokens.borderRadiusSmall,
+        padding: "12px",
+        minHeight: "60px",
         whiteSpace: "normal",
-    },
-    roleButtonSelected: {
-        backgroundColor: tokens.colorBrandBackground2,
-        color: tokens.colorBrandForeground1,
-        ":hover": {
-            backgroundColor: tokens.colorBrandBackground2Hover,
-        },
-    },
-    roleButtonUnselected: {
-        backgroundColor: "transparent",
-        ":hover": {
-            backgroundColor: tokens.colorNeutralBackground3Hover,
-        },
     },
     roleButtonLabel: {
         fontWeight: 600,
         lineHeight: "18px",
     },
     roleButtonLabelSelected: {
-        color: tokens.colorBrandForeground1,
+        color: tokens.colorNeutralForegroundOnBrand,
     },
     roleButtonLabelUnselected: {
         color: tokens.colorNeutralForeground1,
@@ -95,7 +77,7 @@ const useStyles = makeStyles({
         lineHeight: "14px",
     },
     roleButtonDescriptionSelected: {
-        color: tokens.colorBrandForeground1,
+        color: tokens.colorNeutralForegroundOnBrand,
     },
     roleButtonDescriptionUnselected: {
         color: tokens.colorNeutralForeground2,
@@ -264,13 +246,8 @@ export function DabEntitySettingsDialog({
                             </Text>
                             <div className={classes.roleButtonsContainer}>
                                 <ToggleButton
-                                    className={mergeClasses(
-                                        classes.roleButton,
-                                        isAnonymousSelected
-                                            ? classes.roleButtonSelected
-                                            : classes.roleButtonUnselected,
-                                    )}
-                                    appearance="subtle"
+                                    className={classes.roleButton}
+                                    appearance={isAnonymousSelected ? "primary" : "outline"}
                                     checked={isAnonymousSelected}
                                     onClick={() =>
                                         updateAuthorizationRole(Dab.AuthorizationRole.Anonymous)
@@ -297,13 +274,8 @@ export function DabEntitySettingsDialog({
                                     </div>
                                 </ToggleButton>
                                 <ToggleButton
-                                    className={mergeClasses(
-                                        classes.roleButton,
-                                        isAuthenticatedSelected
-                                            ? classes.roleButtonSelected
-                                            : classes.roleButtonUnselected,
-                                    )}
-                                    appearance="subtle"
+                                    className={classes.roleButton}
+                                    appearance={isAuthenticatedSelected ? "primary" : "outline"}
                                     checked={isAuthenticatedSelected}
                                     onClick={() =>
                                         updateAuthorizationRole(Dab.AuthorizationRole.Authenticated)
