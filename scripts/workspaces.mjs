@@ -22,6 +22,7 @@ function parseArgs(argv) {
         action,
         forwardedArgs: [],
         prod: false,
+        preview: false,
         requireTarget: false,
         targetValue: undefined,
     };
@@ -45,6 +46,11 @@ function parseArgs(argv) {
             continue;
         }
 
+        if (arg === "--preview") {
+            options.preview = true;
+            continue;
+        }
+
         if (arg === "--require-target") {
             options.requireTarget = true;
             continue;
@@ -64,7 +70,7 @@ function printUsage() {
   npm run test [-- --target <name>[,<name>]] [-- <target args>]
   npm run smoketest [-- --target <name>[,<name>]] [-- <target args>]
   npm run lint [-- --target <name>[,<name>]]
-  npm run package [-- --target <name>[,<name>]] [-- <target args>]
+  npm run package [-- --target <name>[,<name>]] [--preview] [-- <target args>]
   npm run list:targets
 `);
 }
@@ -209,7 +215,7 @@ function listTargets() {
 }
 
 function main() {
-    const { action, forwardedArgs, prod, requireTarget, targetValue } = parseArgs(
+    const { action, forwardedArgs, prod, preview, requireTarget, targetValue } = parseArgs(
         process.argv.slice(2),
     );
 
@@ -235,10 +241,20 @@ function main() {
         );
     }
 
+    if (preview && action !== "package") {
+        throw new Error(`The --preview flag is only supported for the "package" action.`);
+    }
+
     const targets = resolveTargets(action, targetValue);
     ensureProdBuildSupport(targets, prod);
 
-    const actionArgs = prod ? [...forwardedArgs, "--prod"] : forwardedArgs;
+    let actionArgs = forwardedArgs;
+    if (prod) {
+        actionArgs = [...actionArgs, "--prod"];
+    }
+    if (preview) {
+        actionArgs = [...actionArgs, "--pre-release"];
+    }
 
     if (action === "watch") {
         const watchableTargets = pruneRedundantWatchTargets(targets);

@@ -13,6 +13,7 @@ const args = process.argv.slice(2);
 let isOnline = args.includes("--online");
 const isOffline = args.includes("--offline");
 const skipServiceInstall = args.includes("--skip-service-install");
+const isPreRelease = args.includes("--pre-release");
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 
 // Platform configurations for offline packaging
@@ -100,11 +101,15 @@ async function cleanServiceInstallFolder() {
 /**
  * Package extension using vsce
  */
-function packageExtension(packageName = null) {
+function packageExtension(packageName = null, preRelease = false) {
     logger.step("Packaging extension with vsce...");
 
     try {
         const vsceArgs = ["exec", "--", "vsce", "package", "--no-dependencies"];
+
+        if (preRelease) {
+            vsceArgs.push("--pre-release");
+        }
 
         if (packageName) {
             vsceArgs.push("-o", packageName);
@@ -124,7 +129,7 @@ function packageExtension(packageName = null) {
  * Package extension for online distribution
  */
 async function packageOnline(options = {}) {
-    const { skipServiceInstall = false } = options;
+    const { skipServiceInstall = false, preRelease = false } = options;
 
     logger.header("Package extension (Online Mode)");
     logger.info("Creating extension package with portable SQL Tools Service");
@@ -139,7 +144,7 @@ async function packageOnline(options = {}) {
             await installSqlToolsService(platform.Runtime.Portable);
         }
         // Package the extension
-        packageExtension();
+        packageExtension(null, preRelease);
         logger.success("Online packaging completed successfully!");
     } catch (error) {
         logger.error(`Online packaging failed: ${error.message}`);
@@ -150,7 +155,7 @@ async function packageOnline(options = {}) {
 /**
  * Package extension for a specific platform (offline)
  */
-async function packageOfflinePlatform(platformConfig, packageName) {
+async function packageOfflinePlatform(platformConfig, packageName, preRelease = false) {
     const { rid, runtime } = platformConfig;
 
     logger.step(`Packaging for ${rid}...`);
@@ -166,7 +171,7 @@ async function packageOfflinePlatform(platformConfig, packageName) {
         await installSqlToolsService(runtimeValue);
         // Package with platform-specific name
         const platformPackageName = `${packageName}-${rid}.vsix`;
-        packageExtension(platformPackageName);
+        packageExtension(platformPackageName, preRelease);
         logger.success(`${rid} package created`);
     } catch (error) {
         logger.error(`Failed to package ${rid}: ${error.message}`);
@@ -177,7 +182,8 @@ async function packageOfflinePlatform(platformConfig, packageName) {
 /**
  * Package extension for offline distribution (all platforms)
  */
-async function packageOffline() {
+async function packageOffline(options = {}) {
+    const { preRelease = false } = options;
     logger.header("Package extension (Offline Mode)");
 
     try {
@@ -200,7 +206,7 @@ async function packageOffline() {
                 );
 
                 try {
-                    await packageOfflinePlatform(platformConfig, packageName);
+                    await packageOfflinePlatform(platformConfig, packageName, preRelease);
                 } catch (error) {
                     logger.warning(`Skipping ${platformConfig.rid}: ${error.message}`);
                 }
@@ -230,6 +236,7 @@ Modes:
   --online     Package with portable SQL Tools Service (requires dotnet runtime at runtime). Default if not specified.
   --offline    Package with native self-contained SQL Tools Service for each platform (no dotnet needed).
     --skip-service-install  Online mode only. Reuse existing SQL Tools Service files and skip clean/install.
+  --pre-release  Mark the package as a pre-release extension.
   --help       Show this help message
 
 Examples:
@@ -272,9 +279,9 @@ async function main() {
 
     try {
         if (isOnline) {
-            await packageOnline({ skipServiceInstall });
+            await packageOnline({ skipServiceInstall, preRelease: isPreRelease });
         } else if (isOffline) {
-            await packageOffline();
+            await packageOffline({ preRelease: isPreRelease });
         }
 
         logger.success("Packaging script completed successfully!");
