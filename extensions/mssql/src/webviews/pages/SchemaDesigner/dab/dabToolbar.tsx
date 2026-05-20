@@ -175,6 +175,11 @@ const useStyles = makeStyles({
         fontSize: "12px",
         minWidth: "unset",
     },
+    filterChipSelected: {
+        border: "1px solid var(--vscode-textLink-foreground)",
+        color: "var(--vscode-textLink-foreground)",
+        backgroundColor: "color-mix(in srgb, var(--vscode-textLink-foreground) 20%, transparent)",
+    },
     schemaList: {
         position: "relative",
         overflowY: "auto",
@@ -674,7 +679,11 @@ export function DabToolbar({
                                                 key={status}
                                                 shape="circular"
                                                 size="small"
-                                                className={classes.filterChip}
+                                                className={mergeClasses(
+                                                    classes.filterChip,
+                                                    entityFilters.status === status &&
+                                                        classes.filterChipSelected,
+                                                )}
                                                 checked={entityFilters.status === status}
                                                 onClick={() =>
                                                     setEntityFilters((prev) => ({
@@ -778,7 +787,12 @@ export function DabToolbar({
                                                 key={sourceType}
                                                 shape="circular"
                                                 size="small"
-                                                className={classes.filterChip}
+                                                className={mergeClasses(
+                                                    classes.filterChip,
+                                                    entityFilters.sourceTypes.includes(
+                                                        sourceType,
+                                                    ) && classes.filterChipSelected,
+                                                )}
                                                 checked={entityFilters.sourceTypes.includes(
                                                     sourceType,
                                                 )}

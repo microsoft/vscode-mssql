@@ -162,7 +162,20 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
             }
             return {
                 ...prev,
-                entities: prev.entities.map((e) => (e.id === entityId ? { ...e, isEnabled } : e)),
+                entities: prev.entities.map((entity) => {
+                    if (entity.id !== entityId) {
+                        return entity;
+                    }
+
+                    return {
+                        ...entity,
+                        isEnabled,
+                        columns: entity.columns.map((column) => ({
+                            ...column,
+                            isExposed: isEnabled,
+                        })),
+                    };
+                }),
             };
         });
     }, []);
