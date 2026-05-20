@@ -139,5 +139,66 @@ suite("ConnectionCredentials Tests", () => {
                 AuthenticationTypes[AuthenticationTypes.ActiveDirectoryDefault],
             );
         });
+
+        test("createConnectionInfo preserves ActiveDirectoryServicePrincipal auth type", () => {
+            const connDetails: ConnectionDetails = {
+                options: {
+                    server: "someServer",
+                    authenticationType:
+                        AuthenticationTypes[AuthenticationTypes.ActiveDirectoryServicePrincipal],
+                },
+            };
+
+            const connInfo = ConnectionCredentials.createConnectionInfo(connDetails);
+            expect(connInfo.authenticationType).to.equal(
+                AuthenticationTypes[AuthenticationTypes.ActiveDirectoryServicePrincipal],
+            );
+        });
+    });
+
+    suite("isPasswordBasedCredential", () => {
+        test("returns true for SqlLogin", () => {
+            const creds = new ConnectionCredentials();
+            creds.authenticationType = AuthenticationTypes[AuthenticationTypes.SqlLogin];
+            expect(ConnectionCredentials.isPasswordBasedCredential(creds)).to.be.true;
+        });
+
+        test("returns true for ActiveDirectoryServicePrincipal", () => {
+            const creds = new ConnectionCredentials();
+            creds.authenticationType =
+                AuthenticationTypes[AuthenticationTypes.ActiveDirectoryServicePrincipal];
+            expect(ConnectionCredentials.isPasswordBasedCredential(creds)).to.be.true;
+        });
+
+        test("returns false for AzureMFA", () => {
+            const creds = new ConnectionCredentials();
+            creds.authenticationType = AuthenticationTypes[AuthenticationTypes.AzureMFA];
+            expect(ConnectionCredentials.isPasswordBasedCredential(creds)).to.be.false;
+        });
+
+        test("returns false for Integrated", () => {
+            const creds = new ConnectionCredentials();
+            creds.authenticationType = AuthenticationTypes[AuthenticationTypes.Integrated];
+            expect(ConnectionCredentials.isPasswordBasedCredential(creds)).to.be.false;
+        });
+
+        test("returns false for ActiveDirectoryDefault", () => {
+            const creds = new ConnectionCredentials();
+            creds.authenticationType =
+                AuthenticationTypes[AuthenticationTypes.ActiveDirectoryDefault];
+            expect(ConnectionCredentials.isPasswordBasedCredential(creds)).to.be.false;
+        });
+    });
+
+    suite("getAuthenticationTypesChoice", () => {
+        test("includes ActiveDirectoryServicePrincipal option", () => {
+            const choices = ConnectionCredentials.getAuthenticationTypesChoice();
+            const spChoice = choices.find(
+                (c) =>
+                    c.value ===
+                    AuthenticationTypes[AuthenticationTypes.ActiveDirectoryServicePrincipal],
+            );
+            expect(spChoice, "Service Principal choice should be present").to.not.be.undefined;
+        });
     });
 });

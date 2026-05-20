@@ -1836,7 +1836,8 @@
                                 "enum": [
                                     "Integrated",
                                     "SqlLogin",
-                                    "AzureMFA"
+                                    "AzureMFA",
+                                    "ActiveDirectoryServicePrincipal"
                                 ],
                                 "description": "%mssql.connection.authenticationType%"
                             },

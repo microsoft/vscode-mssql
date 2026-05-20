@@ -1888,6 +1888,7 @@
     "SQL Login": "SQL Login",
     "Microsoft Entra Id - Universal w/ MFA Support": "Microsoft Entra Id - Universal w/ MFA Support",
     "Microsoft Entra Id - Default": "Microsoft Entra Id - Default",
+    "Microsoft Entra Id - Service Principal": "Microsoft Entra Id - Service Principal",
     "Azure Code Grant": "Azure Code Grant",
     "Azure Device Code": "Azure Device Code",
     "MSSQL - Azure Auth Logs": "MSSQL - Azure Auth Logs",
@@ -2370,6 +2371,14 @@
     "<Default>": "<Default>",
     "Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.": "Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.",
     "Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.": "Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.",
+    "Authenticate using a Microsoft Entra service principal. Enter the Application (client) ID as the user name and the client secret as the password. Click the info icon to learn more.": "Authenticate using a Microsoft Entra service principal. Enter the Application (client) ID as the user name and the client secret as the password. Click the info icon to learn more.",
+    "Application (Client) ID": "Application (Client) ID",
+    "The Application (Client) ID of your Microsoft Entra app registration.": "The Application (Client) ID of your Microsoft Entra app registration.",
+    "Client Secret": "Client Secret",
+    "The client secret for your Microsoft Entra app registration.": "The client secret for your Microsoft Entra app registration.",
+    "Application (Client) ID is required.": "Application (Client) ID is required.",
+    "Client secret is required.": "Client secret is required.",
+    "Save Secret": "Save Secret",
     "+ Create Connection Group": "+ Create Connection Group",
     "Select a connection group": "Select a connection group",
     "Search connection groups": "Search connection groups",
@@ -2404,8 +2413,8 @@
     "No workspaces found. Please change Fabric account or tenant to view available workspaces.": "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
     "User databases": "User databases",
     "System databases": "System databases",
-    "Unable to load database list from server: {0}/{0} is the connection error message": {
-        "message": "Unable to load database list from server: {0}",
+    "Unable to load database list from server: {0} You may enter the database name directly./{0} is the connection error message": {
+        "message": "Unable to load database list from server: {0} You may enter the database name directly.",
         "comment": ["{0} is the connection error message"]
     },
     "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported./{0} is the authentication type": {

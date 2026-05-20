@@ -170,6 +170,7 @@ export const defaultCommandTimeout = 30;
 export const stsImmediateActivityTimeout = 5000; // 5 seconds
 export const azureDatabase = "Azure";
 export const azureMfa = "AzureMFA";
+export const azureServicePrincipal = "ActiveDirectoryServicePrincipal";
 export const defaultPortNumber = 1433;
 export const integratedauth = "Integrated";
 export const sqlAuthentication = "SqlLogin";

@@ -98,7 +98,7 @@ export function isEmpty(str: any): boolean {
 }
 
 export function isNotEmpty(str: any): boolean {
-    return <boolean>(str && "" !== str);
+    return !!(str && "" !== str);
 }
 
 export function authTypeToString(value: AuthenticationTypes): string {
