@@ -957,10 +957,10 @@
     "Optional - Override default api/entityName path": "Optional - Override default api/entityName path",
     "Custom GraphQL Type": "Custom GraphQL Type",
     "Optional - Override default GraphQL type name": "Optional - Override default GraphQL type name",
-    "Source Table": "Source Table",
-    "Source Table: {0}/{0} is the fully qualified source table name": {
-        "message": "Source Table: {0}",
-        "comment": ["{0} is the fully qualified source table name"]
+    "Source": "Source",
+    "Source: {0}/{0} is the fully qualified DAB source object name": {
+        "message": "Source: {0}",
+        "comment": ["{0} is the fully qualified DAB source object name"]
     },
     "Initializing DAB configuration...": "Initializing DAB configuration...",
     "No entities found": "No entities found",
@@ -1088,7 +1088,6 @@
     "Select Target": "Select Target",
     "Data-tier Application File (.dacpac)": "Data-tier Application File (.dacpac)",
     "Database Project": "Database Project",
-    "Source": "Source",
     "Target": "Target",
     "Comparison Details": "Comparison Details",
     "Are you sure you want to update the target?": "Are you sure you want to update the target?",

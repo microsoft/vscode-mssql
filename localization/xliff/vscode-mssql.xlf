@@ -6104,16 +6104,13 @@
     <trans-unit id="++CODE++7363f4432b648a803e2bf468798cf69a7be5bab4b8055e35f6a038afb54be9d7">
       <source xml:lang="en">Source Name</source>
     </trans-unit>
-    <trans-unit id="++CODE++59462672a9b0690bf1151b63576df991ace5811a13bbcc90f35f43c1a21c0809">
-      <source xml:lang="en">Source Table</source>
-    </trans-unit>
-    <trans-unit id="++CODE++a03d6436b6c5d406e7f53427dbe386f36eddd596a7230ba85f6301cfc6c2018b">
-      <source xml:lang="en">Source Table: {0}</source>
-      <note>{0} is the fully qualified source table name</note>
-    </trans-unit>
     <trans-unit id="++CODE++30ecb608c5cff9e821a41d28312d0070cbeb3901bc8e32ecefd17171f87dc53a">
       <source xml:lang="en">Source: {0}</source>
       <note>{0} is the task source</note>
+    </trans-unit>
+    <trans-unit id="++CODE++7d1b71b2bde7aa8e3125b606f3738980a13371ad3458ddd00b1193d72aad45dd">
+      <source xml:lang="en">Source: {0}</source>
+      <note>{0} is the fully qualified DAB source object name</note>
     </trans-unit>
     <trans-unit id="++CODE++1e49ea47266ab1130ffc9be417fa6eb62da7299641f30a76e728fe983c25f29d">
       <source xml:lang="en">Specifies whether the column is included in the primary key for the table.</source>

@@ -1484,12 +1484,12 @@ export class LocConstants {
             customGraphQLType: l10n.t("Custom GraphQL Type"),
             customGraphQLTypeHelp: l10n.t("Optional - Override default GraphQL type name"),
             applyChanges: l10n.t("Apply Changes"),
-            sourceTable: l10n.t("Source Table"),
-            sourceTableWithName: (sourceName: string) =>
+            source: l10n.t("Source"),
+            sourceWithName: (sourceName: string) =>
                 l10n.t({
-                    message: "Source Table: {0}",
+                    message: "Source: {0}",
                     args: [sourceName],
-                    comment: ["{0} is the fully qualified source table name"],
+                    comment: ["{0} is the fully qualified DAB source object name"],
                 }),
             loading: l10n.t("Loading..."),
             initializingDabConfig: l10n.t("Initializing DAB configuration..."),

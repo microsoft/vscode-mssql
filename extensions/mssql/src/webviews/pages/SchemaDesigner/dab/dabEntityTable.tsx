@@ -1168,7 +1168,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
             }),
             createTableColumn<FlatRow>({
                 columnId: "source",
-                renderHeaderCell: () => <span>{locConstants.schemaDesigner.sourceTable}</span>,
+                renderHeaderCell: () => <span>{locConstants.schemaDesigner.source}</span>,
                 renderCell: renderSourceContent,
             }),
             ...allActions.map((action) =>

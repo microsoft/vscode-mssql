@@ -82,7 +82,7 @@ const useStyles = makeStyles({
     roleButtonDescriptionUnselected: {
         color: tokens.colorNeutralForeground2,
     },
-    sourceTableText: {
+    sourceText: {
         fontSize: "12px",
         color: tokens.colorNeutralForeground3,
         marginBottom: "8px",
@@ -221,9 +221,9 @@ export function DabEntitySettingsDialog({
                         {locConstants.schemaDesigner.advancedEntityConfiguration}
                     </DialogTitle>
                     <DialogContent className={classes.content}>
-                        {/* Source Table Info */}
-                        <Text className={classes.sourceTableText}>
-                            {locConstants.schemaDesigner.sourceTableWithName(
+                        {/* Source Info */}
+                        <Text className={classes.sourceText}>
+                            {locConstants.schemaDesigner.sourceWithName(
                                 `${entity.schemaName}.${entity.sourceName ?? entity.tableName}`,
                             )}
                         </Text>
