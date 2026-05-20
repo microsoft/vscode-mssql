@@ -1353,7 +1353,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                 </div>
             </div>
 
-            {settingsEntity && (
+            {settingsEntity && dabConfig && (
                 <DabEntitySettingsDialog
                     entity={settingsEntity}
                     isRestEnabled={dabConfig.apiTypes.includes(Dab.ApiType.Rest)}
