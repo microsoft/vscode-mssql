@@ -40,6 +40,8 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { Dab } from "../../../../sharedInterfaces/dab";
 import { locConstants } from "../../../common/locConstants";
 import { PrimaryKeyIcon } from "../../../common/icons/primaryKey";
+import { StoredProcedureIcon16Regular } from "../../../common/icons/storedProcedure";
+import { ViewIcon16Regular } from "../../../common/icons/view";
 import { useDabContext } from "./dabContext";
 import { DabEntitySettingsDialog } from "./dabEntitySettingsDialog";
 import { DabEntityFilters, doesEntityMatchDabFilters } from "./dabEntityFilters";
@@ -382,62 +384,6 @@ const useStyles = makeStyles({
         flexShrink: 0,
     },
 });
-
-const ViewIcon = () => (
-    <svg
-        width="16"
-        height="16"
-        viewBox="0 0 16 16"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="dab-icon-view"
-        aria-hidden="true"
-        focusable="false">
-        <path
-            d="M12.25 2H3.75C3.28603 2.00053 2.84122 2.18507 2.51315 2.51315C2.18507 2.84122 2.00053 3.28603 2 3.75V12.25C2.00053 12.714 2.18507 13.1588 2.51315 13.4869C2.84122 13.8149 3.28603 13.9995 3.75 14H12.25C12.714 13.9995 13.1588 13.8149 13.4869 13.4869C13.8149 13.1588 13.9995 12.714 14 12.25V3.75C13.9995 3.28603 13.8149 2.84122 13.4869 2.51315C13.1588 2.18507 12.714 2.00053 12.25 2V2ZM3.75 13H3.709L5.854 10.856C5.94789 10.7621 6.00063 10.6348 6.00063 10.502C6.00063 10.3692 5.94789 10.2419 5.854 10.148C5.76011 10.0541 5.63278 10.0014 5.5 10.0014C5.36722 10.0014 5.23989 10.0541 5.146 10.148L3 12.291C3 12.277 3 12.264 3 12.25V3.75C3 3.736 3 3.723 3 3.709L5.146 5.854C5.23989 5.94789 5.36722 6.00063 5.5 6.00063C5.63278 6.00063 5.76011 5.94789 5.854 5.854C5.94789 5.76011 6.00063 5.63278 6.00063 5.5C6.00063 5.36722 5.94789 5.23989 5.854 5.146L3.709 3H3.75H12.25H12.291L10.146 5.146C10.0521 5.23989 9.99937 5.36722 9.99937 5.5C9.99937 5.63278 10.0521 5.76011 10.146 5.854C10.2399 5.94789 10.3672 6.00063 10.5 6.00063C10.6328 6.00063 10.7601 5.94789 10.854 5.854L13 3.709C13 3.723 13 3.736 13 3.75V12.25C13 12.264 13 12.277 13 12.291L10.856 10.146C10.7621 10.0521 10.6348 9.99937 10.502 9.99937C10.3692 9.99937 10.2419 10.0521 10.148 10.146C10.0541 10.2399 10.0014 10.3672 10.0014 10.5C10.0014 10.6328 10.0541 10.7601 10.148 10.854L12.291 13H12.25H3.75Z"
-            fill="currentColor"
-        />
-    </svg>
-);
-
-const ProcedureIcon = () => (
-    <svg
-        width="16"
-        height="16"
-        viewBox="0 0 16 16"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="dab-icon-procedure"
-        aria-hidden="true"
-        focusable="false">
-        <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M4.5 2C3.837 2 3.201 2.263 2.732 2.732C2.263 3.201 2 3.837 2 4.5V11.5C2 12.163 2.263 12.799 2.732 13.268C3.201 13.737 3.837 14 4.5 14H11.5C12.163 14 12.799 13.737 13.268 13.268C13.737 12.799 14 12.163 14 11.5V4.5C14 3.837 13.737 3.201 13.268 2.732C12.799 2.263 12.163 2 11.5 2H4.5ZM13 5H3V4.5C3 4.102 3.158 3.72 3.439 3.439C3.721 3.158 4.102 3 4.5 3H11.5C11.898 3 12.28 3.158 12.561 3.439C12.842 3.721 13 4.102 13 4.5V5ZM3 6H13V11.5C13 11.898 12.842 12.28 12.561 12.561C12.279 12.842 11.898 13 11.5 13H4.5C4.102 13 3.72 12.842 3.439 12.561C3.158 12.279 3 11.898 3 11.5V6Z"
-            fill="currentColor"
-        />
-        <path
-            d="M4.5 7C4.224 7 4 7.224 4 7.5C4 7.776 4.224 8 4.5 8H8.5C8.776 8 9 7.776 9 7.5C9 7.224 8.776 7 8.5 7H4.5Z"
-            fill="currentColor"
-        />
-        <path
-            d="M4 9.5C4 9.224 4.224 9 4.5 9H8.5C8.776 9 9 9.224 9 9.5C9 9.776 8.776 10 8.5 10H4.5C4.224 10 4 9.776 4 9.5Z"
-            fill="currentColor"
-        />
-        <path
-            d="M9 11.5C9 11.224 9.224 11 9.5 11H11.5C11.776 11 12 11.224 12 11.5C12 11.776 11.776 12 11.5 12H9.5C9.224 12 9 11.776 9 11.5Z"
-            fill="currentColor"
-        />
-        <path
-            d="M10.5 9C10.224 9 10 9.224 10 9.5C10 9.776 10.224 10 10.5 10H11.5C11.776 10 12 9.776 12 9.5C12 9.224 11.776 9 11.5 9H10.5Z"
-            fill="currentColor"
-        />
-        <path
-            d="M4.5 11C4.224 11 4 11.224 4 11.5C4 11.776 4.224 12 4.5 12H7.5C7.776 12 8 11.776 8 11.5C8 11.224 7.776 11 7.5 11H4.5Z"
-            fill="currentColor"
-        />
-    </svg>
-);
 
 // ── Component ──
 
@@ -1018,9 +964,9 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                         className={classes.nameCellContent}
                         style={{ paddingInlineStart: `${getRowIndent(row)}px` }}>
                         {sourceType === Dab.EntitySourceType.View ? (
-                            <ViewIcon />
+                            <ViewIcon16Regular className="dab-icon-view" />
                         ) : sourceType === Dab.EntitySourceType.StoredProcedure ? (
-                            <ProcedureIcon />
+                            <StoredProcedureIcon16Regular className="dab-icon-procedure" />
                         ) : (
                             <Table16Regular className="dab-icon-table" />
                         )}
