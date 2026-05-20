@@ -41,6 +41,7 @@ import {
 import { Dispatch, SetStateAction, useCallback, useEffect, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { locConstants } from "../../../common/locConstants";
+import { SegmentedControl } from "../../../common/segmentedControl";
 import { Dab } from "../../../../sharedInterfaces/dab";
 import { useDabContext } from "./dabContext";
 import { SchemaDesignerWebviewCopilotChatEntry } from "../copilot/schemaDesignerWebviewCopilotChatEntry";
@@ -169,6 +170,16 @@ const useStyles = makeStyles({
         display: "flex",
         flexWrap: "wrap",
         gap: "6px",
+    },
+    statusSegmented: {
+        display: "flex",
+        width: "100%",
+    },
+    statusSegmentButton: {
+        flex: 1,
+        minWidth: "unset",
+        fontSize: "12px",
+        padding: "0 8px",
     },
     filterChip: {
         borderRadius: "999px",
@@ -359,6 +370,10 @@ export function DabToolbar({
         [Dab.EntitySourceType.View]: locConstants.schemaDesigner.views,
         [Dab.EntitySourceType.StoredProcedure]: locConstants.schemaDesigner.storedProcedures,
     };
+    const statusFilterOptions = Object.values(DabEntityStatusFilter).map((status) => ({
+        value: status,
+        label: locConstants.schemaDesigner.entityStatusFilterLabel(status),
+    }));
 
     const sourceTypes = new Set(
         dabConfig.entities.map((entity) => entity.sourceType ?? Dab.EntitySourceType.Table),
@@ -675,30 +690,19 @@ export function DabToolbar({
                                     <Text className={classes.filterSectionTitle}>
                                         {locConstants.schemaDesigner.status}
                                     </Text>
-                                    <div className={classes.filterChipRow}>
-                                        {Object.values(DabEntityStatusFilter).map((status) => (
-                                            <ToggleButton
-                                                key={status}
-                                                shape="circular"
-                                                size="small"
-                                                className={mergeClasses(
-                                                    classes.filterChip,
-                                                    entityFilters.status === status &&
-                                                        classes.filterChipSelected,
-                                                )}
-                                                checked={entityFilters.status === status}
-                                                onClick={() =>
-                                                    setEntityFilters((prev) => ({
-                                                        ...prev,
-                                                        status,
-                                                    }))
-                                                }>
-                                                {locConstants.schemaDesigner.entityStatusFilterLabel(
-                                                    status,
-                                                )}
-                                            </ToggleButton>
-                                        ))}
-                                    </div>
+                                    <SegmentedControl<DabEntityStatusFilter>
+                                        value={entityFilters.status}
+                                        options={statusFilterOptions}
+                                        onValueChange={(status) =>
+                                            setEntityFilters((prev) => ({
+                                                ...prev,
+                                                status,
+                                            }))
+                                        }
+                                        className={classes.statusSegmented}
+                                        buttonClassName={classes.statusSegmentButton}
+                                        ariaLabel={locConstants.schemaDesigner.status}
+                                    />
                                 </div>
                                 <div className={classes.filterSection}>
                                     <Text className={classes.filterSectionTitle}>
