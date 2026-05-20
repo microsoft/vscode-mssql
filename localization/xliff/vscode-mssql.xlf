@@ -5800,6 +5800,9 @@
     <trans-unit id="++CODE++79dc22c7292b82bb5b10f7fe3e4196400d86127a91507e8487c7d2da0f6a8283">
       <source xml:lang="en">Sequelize</source>
     </trans-unit>
+    <trans-unit id="++CODE++115bef38fad466675b802fb8894b90a61134e862ded7447052405f06fb5ccc15">
+      <source xml:lang="en">Serialization failed</source>
+    </trans-unit>
     <trans-unit id="++CODE++aef7de28d52977f1b5cd0fecfdc151717610adf41e0aa33b4d9f7522a43337ef">
       <source xml:lang="en">Server</source>
     </trans-unit>

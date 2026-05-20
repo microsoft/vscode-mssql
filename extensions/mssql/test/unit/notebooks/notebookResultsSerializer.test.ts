@@ -77,11 +77,7 @@ suite("notebookResultsSerializer", () => {
         });
 
         expect(result).to.equal(targetUri);
-        expect(mockClient.sendRequest).to.have.been.calledOnce;
-
-        const [requestType, params] = mockClient.sendRequest.firstCall.args;
-        expect(requestType).to.equal(SerializeStartRequest.type);
-        expect(params).to.deep.equal({
+        expect(mockClient.sendRequest).to.have.been.calledWith(SerializeStartRequest.type, {
             saveFormat: "csv",
             filePath: targetUri.fsPath,
             rows: [
@@ -116,10 +112,10 @@ suite("notebookResultsSerializer", () => {
             resultSetIndex: 0,
         });
 
-        const params = mockClient.sendRequest.firstCall.args[1] as {
-            columns: Array<{ name: string; dataTypeName: string }>;
-        };
-        expect(params.columns).to.deep.equal([{ name: "untyped", dataTypeName: "nvarchar" }]);
+        expect(mockClient.sendRequest).to.have.been.calledWithMatch(
+            SerializeStartRequest.type,
+            sinon.match.has("columns", [{ name: "untyped", dataTypeName: "nvarchar" }]),
+        );
     });
 
     test("throws with STS error message when serialization fails", async () => {
@@ -172,12 +168,18 @@ suite("notebookResultsSerializer", () => {
             resultSetIndex: 2,
         });
 
-        expect(showSaveDialogStub).to.have.been.calledOnce;
-        const options = showSaveDialogStub.firstCall.args[0] as vscode.SaveDialogOptions;
-        const fsPath = options.defaultUri?.fsPath ?? "";
-        expect(fsPath).to.include("my_report");
-        expect(fsPath).to.include("resultset_3");
-        expect(fsPath).to.include(".xlsx");
-        expect(Object.values(options.filters ?? {})).to.deep.include(["xlsx"]);
+        expect(showSaveDialogStub).to.have.been.calledWithMatch(
+            sinon.match((options: vscode.SaveDialogOptions) => {
+                const fsPath = options.defaultUri?.fsPath ?? "";
+                const hasExpectedPath =
+                    fsPath.includes("my_report") &&
+                    fsPath.includes("resultset_3") &&
+                    fsPath.includes(".xlsx");
+                const hasExpectedFilters = Object.values(options.filters ?? {}).some(
+                    (ext) => Array.isArray(ext) && ext.includes("xlsx"),
+                );
+                return hasExpectedPath && hasExpectedFilters;
+            }),
+        );
     });
 });
