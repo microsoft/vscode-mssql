@@ -443,7 +443,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
             const error = new Error("Connection failed");
             (
                 mockMainController.connectionManager.createConnectionDetails as sinon.SinonStub
-            ).rejects(error);
+            ).throws(error);
 
             try {
                 await manager.getSchemaDesigner(
