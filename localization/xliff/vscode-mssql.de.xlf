@@ -1500,6 +1500,16 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Column name cannot be empty</source>
         <target state="translated">Der Spaltenname darf nicht leer sein</target>
       </trans-unit>
+      <trans-unit id="++CODE++661f008b35e613449a51eb1c0fd892c56789ae6d2cabbd7405abe521416975f9">
+        <source xml:lang="en">Column not found: {0}</source>
+        <note>{0} is the column reference</note>
+        <target state="new">Column not found: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++191bfe9c43b5a6888281d9067ac0d3ea4b086f8a59703b22464d2c24e41a0b08">
+        <source xml:lang="en">Column reference resolved to more than one column: {0}</source>
+        <note>{0} is the column reference</note>
+        <target state="new">Column reference resolved to more than one column: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++5c56d46cc10135f393e52c47f8001e6235ecadc91f6ced732185c1679055aa79">
         <source xml:lang="en">Column resize by content</source>
         <target state="translated">Spaltengröße nach Inhalt ändern</target>
@@ -2949,6 +2959,12 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Enter the path for the output file</source>
         <target state="translated">Pfad für die Ausgabedatei eingeben</target>
       </trans-unit>
+      <trans-unit id="++CODE++e3d4cdacc007baba40af99c4e0c4ac0ceaa8e813a8a6e0ba47f0199eaaaa3726">
+        <source xml:lang="en">Entity '{0}' is not supported by Data API builder. {1}</source>
+        <note>{0} is the entity name
+{1} is why the entity is unsupported</note>
+        <target state="new">Entity '{0}' is not supported by Data API builder. {1}</target>
+      </trans-unit>
       <trans-unit id="++CODE++f889729267bd3b6e2a0a503ad9228cced8a1d16ad04a3384dc6df5dc89d6ba4c">
         <source xml:lang="en">Entity Endpoints</source>
         <target state="translated">Entitätsendpunkte</target>
@@ -2960,6 +2976,16 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++b1d3adb989e3b895976094fd8242c98ab0d88c5e2dcd929bd6d76a8b52ce3f4c">
         <source xml:lang="en">Entity name used in API routes</source>
         <target state="translated">In API-Routen verwendeter Entitätsname</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a50c60587af9600c20b491dfec2f89043091694e9aadcbd732892ba0aca0e74f">
+        <source xml:lang="en">Entity not found: {0}</source>
+        <note>{0} is the entity reference</note>
+        <target state="new">Entity not found: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e56b4a3d26cbb48b0037daacb3a1d42209ec3769d2343dbf64eab273ca9495e3">
+        <source xml:lang="en">Entity reference resolved to more than one entity: {0}</source>
+        <note>{0} is the entity reference</note>
+        <target state="new">Entity reference resolved to more than one entity: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++d59e5e8f8a4bb3b14eb8af194553158e5dffd648ad462eeafb2f03589da5a8eb">
         <source xml:lang="en">Entra token cache cleared successfully.</source>
@@ -3930,6 +3956,10 @@ Fehler:
         <source xml:lang="en">Filter changes</source>
         <target state="translated">Änderungen filtern</target>
       </trans-unit>
+      <trans-unit id="++CODE++25f7c9810f4a804cfb8dd52d53afff3e995a0e03165362b827f6eb301d685327">
+        <source xml:lang="en">Filter entities</source>
+        <target state="new">Filter entities</target>
+      </trans-unit>
       <trans-unit id="++CODE++f03ec545964ab62cf49cf19c60ffd1c9609dab0fbd2239d5bc643da5427b4270">
         <source xml:lang="en">Filter entities...</source>
         <target state="translated">Entitäten filtern ...</target>
@@ -4568,6 +4598,10 @@ Fehler:
         <source xml:lang="en">Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy</source>
         <target state="translated">Ungültiges SQL Server-Kennwort für {0}. Das Kennwort muss 8 bis 128 Zeichen lang sein und die Komplexitätsanforderungen erfüllen.  Weitere Informationen finden Sie unter https://docs.microsoft.com/sql/relational-databases/security/password-policy</target>
       </trans-unit>
+      <trans-unit id="++CODE++604cd45c57feb58b304a4d821fbb1df3611dabd706ece140be1c19abc4c8150a">
+        <source xml:lang="en">Invalid column reference. Use either id OR name.</source>
+        <target state="new">Invalid column reference. Use either id OR name.</target>
+      </trans-unit>
       <trans-unit id="++CODE++b6b50087a99bf4427265eff9dd813914f1ceb8c55260fa6e7075f9c89fcd45d7">
         <source xml:lang="en">Invalid column width</source>
         <target state="translated">Ungültige Spaltenbreite</target>
@@ -4583,6 +4617,10 @@ Fehler:
       <trans-unit id="++CODE++5a3259a2357ce703fcc4ea2d2983346c88751c8b1f74beaab08602f5f4e721cf">
         <source xml:lang="en">Invalid database</source>
         <target state="translated">Ungültige Datenbank</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fb7db40f653a70bfcfd1879e8d0b4592488ff74e5025a253a8f20a83dc4921aa">
+        <source xml:lang="en">Invalid entity reference. Use either id OR schemaName+tableName OR schemaName+sourceName+sourceType.</source>
+        <target state="new">Invalid entity reference. Use either id OR schemaName+tableName OR schemaName+sourceName+sourceType.</target>
       </trans-unit>
       <trans-unit id="++CODE++388f0e37447ebf20167d7d8b0d203a21e726eb2d60ec4b09c13480cdadff59ee">
         <source xml:lang="en">Invalid file</source>
@@ -5891,6 +5929,10 @@ Fehler:
       <trans-unit id="++CODE++15bcefe28749fc12d60214a94c60d8a46127c922357c31e718e1cd3d28262678">
         <source xml:lang="en">Object Types</source>
         <target state="translated">Objekttypen</target>
+      </trans-unit>
+      <trans-unit id="++CODE++46e7c345a4106f8dba31dee33a1559a12f24d16a1678241d55e84ae55c107d81">
+        <source xml:lang="en">Object type</source>
+        <target state="new">Object type</target>
       </trans-unit>
       <trans-unit id="++CODE++ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1">
         <source xml:lang="en">Off</source>
@@ -7926,6 +7968,11 @@ Abfrage: {2}</target>
         <source xml:lang="en">Source Table</source>
         <target state="translated">Quelltabelle</target>
       </trans-unit>
+      <trans-unit id="++CODE++a03d6436b6c5d406e7f53427dbe386f36eddd596a7230ba85f6301cfc6c2018b">
+        <source xml:lang="en">Source Table: {0}</source>
+        <note>{0} is the fully qualified source table name</note>
+        <target state="new">Source Table: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++30ecb608c5cff9e821a41d28312d0070cbeb3901bc8e32ecefd17171f87dc53a">
         <source xml:lang="en">Source: {0}</source>
         <note>{0} is the task source</note>
@@ -8221,11 +8268,6 @@ Abfrage: {2}</target>
         <source xml:lang="en">Table added to schema designer successfully.</source>
         <target state="translated">Tabelle erfolgreich zum Schemadesigner hinzugefügt.</target>
       </trans-unit>
-      <trans-unit id="++CODE++04996289cd69a5a2f94fb144afcff1a6109090bb48cf8bb340d7b205323c4e81">
-        <source xml:lang="en">Table contains column types not supported by Data API builder: {0}</source>
-        <note>{0} is a comma-separated list of column names and their data types</note>
-        <target state="translated">Die Tabelle enthält Spaltentypen, die vom Daten-API-Generator nicht unterstützt werden: {0}</target>
-      </trans-unit>
       <trans-unit id="++CODE++7ed0604e7c45ca297246a04967b295e0c5fa232233fe154a2b1cd72a3eabe725">
         <source xml:lang="en">Table deleted from schema designer successfully.</source>
         <target state="translated">Tabelle erfolgreich aus dem Schemadesigner gelöscht.</target>
@@ -8233,10 +8275,6 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++497def392cd97e1d93e9491e97bb1b7c843582f7f6758d62b72ed67098b1edb3">
         <source xml:lang="en">Table id already exists.</source>
         <target state="translated">Die Tabellen-ID ist bereits vorhanden.</target>
-      </trans-unit>
-      <trans-unit id="++CODE++472c40383c9c44c12e38bdcddaa5c135927972c845e6f86965dc814ef56607a6">
-        <source xml:lang="en">Table must have a primary key to be used with Data API builder</source>
-        <target state="translated">Die Tabelle muss einen Primärschlüssel haben, um mit Daten-API-Generator verwendet werden zu können.</target>
       </trans-unit>
       <trans-unit id="++CODE++00723ae9a38ee6e38cc089275f523a75ef5b5aa1b834d77397409c27af379dc1">
         <source xml:lang="en">Table must include at least one column.</source>
@@ -8800,6 +8838,10 @@ Abfrage: {2}</target>
         <note>{0} is the authentication type</note>
         <target state="translated">Nicht unterstützter Authentifizierungstyp in der Verbindungszeichenfolge: {0}. Es werden nur die Authentifizierungsmethoden „SQL-Anmeldung“, „Integriert“, „Azure MFA“ und „Active Directory-Standard“ unterstützt.</target>
       </trans-unit>
+      <trans-unit id="++CODE++8e344a40ce6bcc8487a770bd157fb301e1bf5539591981c51fe39ffecedb176c">
+        <source xml:lang="en">Unsupported by Data API builder.</source>
+        <target state="new">Unsupported by Data API builder.</target>
+      </trans-unit>
       <trans-unit id="++CODE++59925dabae7544939136767d732ce4bd853e6a3822324777eb3615b997680c05">
         <source xml:lang="en">Unsupported data types detected</source>
         <target state="translated">Nicht unterstützte Datentypen erkannt</target>
@@ -9022,6 +9064,10 @@ Abfrage: {2}</target>
         <note>{0} is the number of rows actually returned
 {1} is the total number of rows expected</note>
         <target state="translated">Warnung: Das Resultset ist unvollständig. {0} von {1} Zeilen werden angezeigt. Das vollständige Resultset konnte nicht geladen werden.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0e04cd10f9afd7e546e176b34b56a243d8c741198aa0bfee27d7661a370dc043">
+        <source xml:lang="en">Warnings</source>
+        <target state="new">Warnings</target>
       </trans-unit>
       <trans-unit id="++CODE++4d7371c8931fdd0178f7cbdabd1fd8260039a824a5c0912e880840b4d841f41e">
         <source xml:lang="en">Warnings detected. Please review the changes.</source>
@@ -9432,6 +9478,12 @@ Abfrage: {2}</target>
         <note>{0} is the number of connections imported (plural)</note>
         <target state="translated">{0} Verbindungen importiert</target>
       </trans-unit>
+      <trans-unit id="++CODE++39a06811c113ad2304d8de603fc9e9ac1546b2526ee973d774012b76e767ca7c">
+        <source xml:lang="en">{0} contains column types not supported by Data API builder: {1}</source>
+        <note>{0} is the DAB source type, e.g. Table or View
+{1} is a comma-separated list of column names and their data types</note>
+        <target state="new">{0} contains column types not supported by Data API builder: {1}</target>
+      </trans-unit>
       <trans-unit id="++CODE++0362d3ecbb7ec63592961e75fdb3b9cce59a91db85f4b99e2ba5106d1bf167ed">
         <source xml:lang="en">{0} deleted successfully.</source>
         <note>{0} deleted successfully.</note>
@@ -9471,6 +9523,11 @@ Abfrage: {2}</target>
         <source xml:lang="en">{0} issues</source>
         <note>{0} is the number of issues</note>
         <target state="translated">{0} Probleme</target>
+      </trans-unit>
+      <trans-unit id="++CODE++929b85deaa0b29d7b7adb8318824ecfabb9cf7c9d0a056b0d0fe0827cdd9f141">
+        <source xml:lang="en">{0} must define one or more key fields to be used with Data API builder</source>
+        <note>{0} is the DAB source type, e.g. Table or View</note>
+        <target state="new">{0} must define one or more key fields to be used with Data API builder</target>
       </trans-unit>
       <trans-unit id="++CODE++88406d92ef64a09f40811dd2f77a5e2476fae20846f1d89e5f48fee94761d0d2">
         <source xml:lang="en">{0} objects found</source>
