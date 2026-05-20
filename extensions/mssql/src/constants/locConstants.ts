@@ -2129,6 +2129,37 @@ export class Connection {
         });
     };
 
+    public static defaultConnectionIdNotFoundWarning = (connectionId: string) => {
+        return l10n.t({
+            message:
+                "The connection ID '{0}' set in 'mssql.defaultConnectionId' does not match any known connection profile. New editors will fall back to transferring the active connection.",
+            args: [connectionId],
+            comment: ["{0} is the connection ID that was not found"],
+        });
+    };
+
+    public static defaultConnectionIdNotSetWarning = l10n.t(
+        "'mssql.newEditorConnectionBehavior' is set to 'defaultConnection', but 'mssql.defaultConnectionId' is not configured. New editors will fall back to transferring the active connection.",
+    );
+
+    public static defaultConnectionSelectConnection = l10n.t("Select Connection");
+
+    public static defaultConnectionChangeSetting = l10n.t("Change Setting");
+
+    public static defaultConnectionSelectConnectionPlaceholder = l10n.t(
+        "Select a connection to use as the default",
+    );
+
+    public static defaultConnectionChangeSettingPlaceholder = l10n.t(
+        "Choose the behavior for new editors",
+    );
+
+    public static defaultConnectionBehaviorTransferActive = l10n.t(
+        "Transfer active connection (Default)",
+    );
+
+    public static defaultConnectionBehaviorNone = l10n.t("Do not connect");
+
     public static errorMigratingLegacyConnection = (connectionId: string, errorMessage: string) => {
         return l10n.t({
             message:
