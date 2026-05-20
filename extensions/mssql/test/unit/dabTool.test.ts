@@ -1307,6 +1307,97 @@ suite("DabTool Tests", () => {
             expect(settings?.customGraphQLType).to.equal("UsersType");
         });
 
+        test("apply_changes lets Copilot patch stored procedure MCP custom tool setting", async () => {
+            const procedureSource: Dab.DabSourceObject = {
+                id: "stored-procedure:dbo.GetUsers",
+                sourceType: Dab.EntitySourceType.StoredProcedure,
+                schemaName: "dbo",
+                sourceName: "GetUsers",
+                columns: [],
+                parameters: [{ name: "userId", dataType: "int" }],
+            };
+            const harness = createDabHandlerHarness({
+                tables: [],
+                sourceObjects: [procedureSource],
+                dabConfig: null,
+            });
+            let currentState = await harness.getState();
+            expect(
+                currentState.config?.entities[0].advancedSettings.exposeAsMcpCustomTool,
+            ).to.equal(true);
+
+            const disableResult = await harness.applyChanges({
+                expectedVersion: currentState.version,
+                changes: [
+                    {
+                        type: "patch_entity_settings",
+                        entity: { id: "stored-procedure:dbo.GetUsers" },
+                        set: { exposeAsMcpCustomTool: false },
+                    },
+                ],
+            });
+
+            expect(disableResult.success).to.equal(true);
+            if (!disableResult.success) {
+                throw new Error("Expected success response");
+            }
+            expect(
+                disableResult.config?.entities[0].advancedSettings.exposeAsMcpCustomTool,
+            ).to.equal(false);
+
+            currentState = await harness.getState();
+            const enableResult = await harness.applyChanges({
+                expectedVersion: currentState.version,
+                changes: [
+                    {
+                        type: "patch_entity_settings",
+                        entity: {
+                            schemaName: "dbo",
+                            sourceName: "GetUsers",
+                            sourceType: Dab.EntitySourceType.StoredProcedure,
+                        },
+                        set: { exposeAsMcpCustomTool: true },
+                    },
+                ],
+            });
+
+            expect(enableResult.success).to.equal(true);
+            if (!enableResult.success) {
+                throw new Error("Expected success response");
+            }
+            expect(
+                enableResult.config?.entities[0].advancedSettings.exposeAsMcpCustomTool,
+            ).to.equal(true);
+        });
+
+        test("apply_changes rejects stored procedure MCP custom tool setting for non-procedure entities", async () => {
+            const harness = createDabHandlerHarness({
+                tables: [createTable("t1", "dbo", "Users")],
+                dabConfig: null,
+            });
+            const state = await harness.getState();
+
+            const result = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [
+                    {
+                        type: "patch_entity_settings",
+                        entity: { id: "t1" },
+                        set: { exposeAsMcpCustomTool: false },
+                    },
+                ],
+            });
+
+            expect(result.success).to.equal(false);
+            if (result.success) {
+                throw new Error("Expected failure response");
+            }
+            expect(result.reason).to.equal("invalid_request");
+            expect(result.message).to.equal(
+                "exposeAsMcpCustomTool can only be set for stored procedure entities.",
+            );
+        });
+
         test("apply_changes validates set_only_enabled_entities and unknown change types", async () => {
             const harness = createDabHandlerHarness({
                 tables: [createTable("t1", "dbo", "Users")],

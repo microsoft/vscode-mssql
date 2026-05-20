@@ -5,6 +5,7 @@
 
 import {
     Button,
+    Checkbox,
     Dialog,
     DialogActions,
     DialogBody,
@@ -89,6 +90,7 @@ const useStyles = makeStyles({
 
 interface DabEntitySettingsDialogProps {
     entity: Dab.DabEntityConfig;
+    isMcpEnabled: boolean;
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onApply: (settings: Dab.EntityAdvancedSettings) => void;
@@ -96,6 +98,7 @@ interface DabEntitySettingsDialogProps {
 
 export function DabEntitySettingsDialog({
     entity,
+    isMcpEnabled,
     open,
     onOpenChange,
     onApply,
@@ -138,9 +141,18 @@ export function DabEntitySettingsDialog({
         setLocalSettings((prev) => ({ ...prev, customGraphQLType: value || undefined }));
     };
 
+    const updateExposeAsMcpCustomTool = (value: boolean) => {
+        setLocalSettings((prev) => ({ ...prev, exposeAsMcpCustomTool: value }));
+    };
+
+    const isStoredProcedure = entity.sourceType === Dab.EntitySourceType.StoredProcedure;
     const isAnonymousSelected = localSettings.authorizationRole === Dab.AuthorizationRole.Anonymous;
     const isAuthenticatedSelected =
         localSettings.authorizationRole === Dab.AuthorizationRole.Authenticated;
+    const exposeAsMcpCustomTool = localSettings.exposeAsMcpCustomTool !== false;
+    const mcpCustomToolHelpText = isMcpEnabled
+        ? locConstants.schemaDesigner.exposeAsMcpCustomToolHelp
+        : locConstants.schemaDesigner.enableMcpForCustomToolHelp;
 
     return (
         <Dialog open={open} onOpenChange={(_, data) => onOpenChange(data.open)}>
@@ -182,7 +194,7 @@ export function DabEntitySettingsDialog({
                                         updateAuthorizationRole(Dab.AuthorizationRole.Anonymous)
                                     }>
                                     <div className={classes.roleButtonContent}>
-                                        <Text
+                                        <span
                                             className={mergeClasses(
                                                 classes.roleButtonLabel,
                                                 isAnonymousSelected
@@ -190,8 +202,8 @@ export function DabEntitySettingsDialog({
                                                     : classes.roleButtonLabelUnselected,
                                             )}>
                                             {locConstants.schemaDesigner.anonymous}
-                                        </Text>
-                                        <Text
+                                        </span>
+                                        <span
                                             className={mergeClasses(
                                                 classes.roleButtonDescription,
                                                 isAnonymousSelected
@@ -199,7 +211,7 @@ export function DabEntitySettingsDialog({
                                                     : classes.roleButtonDescriptionUnselected,
                                             )}>
                                             {locConstants.schemaDesigner.anonymousDescription}
-                                        </Text>
+                                        </span>
                                     </div>
                                 </ToggleButton>
                                 <ToggleButton
@@ -210,7 +222,7 @@ export function DabEntitySettingsDialog({
                                         updateAuthorizationRole(Dab.AuthorizationRole.Authenticated)
                                     }>
                                     <div className={classes.roleButtonContent}>
-                                        <Text
+                                        <span
                                             className={mergeClasses(
                                                 classes.roleButtonLabel,
                                                 isAuthenticatedSelected
@@ -218,8 +230,8 @@ export function DabEntitySettingsDialog({
                                                     : classes.roleButtonLabelUnselected,
                                             )}>
                                             {locConstants.schemaDesigner.authenticated}
-                                        </Text>
-                                        <Text
+                                        </span>
+                                        <span
                                             className={mergeClasses(
                                                 classes.roleButtonDescription,
                                                 isAuthenticatedSelected
@@ -227,7 +239,7 @@ export function DabEntitySettingsDialog({
                                                     : classes.roleButtonDescriptionUnselected,
                                             )}>
                                             {locConstants.schemaDesigner.authenticatedDescription}
-                                        </Text>
+                                        </span>
                                     </div>
                                 </ToggleButton>
                             </div>
@@ -256,6 +268,20 @@ export function DabEntitySettingsDialog({
                                 {locConstants.schemaDesigner.customGraphQLTypeHelp}
                             </Text>
                         </Field>
+
+                        {isStoredProcedure && (
+                            <Field label={locConstants.schemaDesigner.mcpCustomTool}>
+                                <Checkbox
+                                    checked={exposeAsMcpCustomTool}
+                                    disabled={!isMcpEnabled}
+                                    onChange={(_, data) =>
+                                        updateExposeAsMcpCustomTool(!!data.checked)
+                                    }
+                                    label={locConstants.schemaDesigner.exposeAsMcpCustomTool}
+                                />
+                                <Text className={classes.fieldHint}>{mcpCustomToolHelpText}</Text>
+                            </Field>
+                        )}
                     </DialogContent>
                     <DialogActions className={classes.actions}>
                         <Button

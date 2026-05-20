@@ -1347,6 +1347,14 @@ export class LocConstants {
             restApi: l10n.t("REST API"),
             graphql: l10n.t("GraphQL"),
             mcp: l10n.t("MCP"),
+            mcpCustomTool: l10n.t("MCP custom tool"),
+            exposeAsMcpCustomTool: l10n.t("Expose as MCP custom tool"),
+            exposeAsMcpCustomToolHelp: l10n.t(
+                "Creates a dedicated MCP tool for this stored procedure. When disabled, the procedure can still be available through generic MCP execute tools if MCP is enabled.",
+            ),
+            enableMcpForCustomToolHelp: l10n.t(
+                "Enable MCP in API Type to use this custom tool setting.",
+            ),
             all: l10n.t("All"),
             entityEndpoints: l10n.t("Entity Endpoints"),
             allSchemas: l10n.t("All Schemas"),

@@ -170,6 +170,9 @@ suite("DAB LM tool manifest schema", () => {
         expect(
             tool.inputSchema?.$defs?.advancedSettingsPatch?.properties?.authorizationRole?.enum,
         ).to.deep.equal(["anonymous", "authenticated"]);
+        expect(
+            tool.inputSchema?.$defs?.advancedSettingsPatch?.properties?.exposeAsMcpCustomTool?.type,
+        ).to.equal("boolean");
         expect(tool.inputSchema?.properties?.options?.properties?.returnState?.enum).to.deep.equal([
             "full",
             "summary",

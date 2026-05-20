@@ -110,6 +110,7 @@ suite("DAB shared interface helpers", () => {
             isSupported: true,
         });
         expect(config.entities[0].enabledActions).to.deep.equal([Dab.EntityAction.Execute]);
+        expect(config.entities[0].advancedSettings.exposeAsMcpCustomTool).to.equal(true);
         expect(config.entities[0].parameters).to.deep.equal([
             {
                 name: "userId",

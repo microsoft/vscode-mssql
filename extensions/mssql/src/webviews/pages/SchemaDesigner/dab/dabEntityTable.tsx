@@ -1356,6 +1356,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
             {settingsEntity && (
                 <DabEntitySettingsDialog
                     entity={settingsEntity}
+                    isMcpEnabled={dabConfig.apiTypes.includes(Dab.ApiType.Mcp)}
                     open={!!settingsEntity}
                     onOpenChange={(open) => {
                         if (!open) {

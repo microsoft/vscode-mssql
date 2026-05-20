@@ -219,7 +219,11 @@ export class DabConfigFileBuilder {
             }));
         }
 
-        if (isMcpEnabled && entity.sourceType === Dab.EntitySourceType.StoredProcedure) {
+        if (
+            isMcpEnabled &&
+            entity.sourceType === Dab.EntitySourceType.StoredProcedure &&
+            entity.advancedSettings.exposeAsMcpCustomTool !== false
+        ) {
             output.mcp = {
                 "custom-tool": true,
                 "dml-tools": false,

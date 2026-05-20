@@ -1163,6 +1163,7 @@ function normalizeDabConfigForVersion(config: Dab.DabConfig) {
                         entity.advancedSettings.customGraphQLType !== undefined
                             ? entity.advancedSettings.customGraphQLType
                             : undefined,
+                    exposeAsMcpCustomTool: entity.advancedSettings.exposeAsMcpCustomTool,
                 },
             }))
             .sort((a, b) => {
@@ -1655,6 +1656,27 @@ function applyDabToolChange(
                             };
                         }
                         updatedSettings.customGraphQLType = value.trim();
+                        break;
+                    case "exposeAsMcpCustomTool":
+                        if (typeof value !== "boolean") {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message: "exposeAsMcpCustomTool must be a boolean.",
+                            };
+                        }
+                        if (
+                            resolvedEntity.entity.sourceType !==
+                            Dab.EntitySourceType.StoredProcedure
+                        ) {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message:
+                                    "exposeAsMcpCustomTool can only be set for stored procedure entities.",
+                            };
+                        }
+                        updatedSettings.exposeAsMcpCustomTool = value;
                         break;
                     default:
                         return {

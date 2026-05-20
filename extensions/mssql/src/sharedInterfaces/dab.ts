@@ -68,6 +68,11 @@ export namespace Dab {
          * Custom GraphQL type name (overrides default entity name)
          */
         customGraphQLType?: string;
+        /**
+         * Whether a stored procedure entity should be exposed as a dedicated MCP custom tool.
+         * Defaults to true for stored procedures.
+         */
+        exposeAsMcpCustomTool?: boolean;
     }
 
     /**
@@ -1154,6 +1159,7 @@ export namespace Dab {
             advancedSettings: {
                 entityName: sourceObject.sourceName,
                 authorizationRole: AuthorizationRole.Anonymous,
+                ...(isStoredProcedure ? { exposeAsMcpCustomTool: true } : {}),
             },
         };
     }

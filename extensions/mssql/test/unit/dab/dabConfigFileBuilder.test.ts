@@ -459,6 +459,32 @@ suite("DabConfigFileBuilder Tests", () => {
 
                 expect(parsed.entities["GetUsers"].mcp).to.be.undefined;
             });
+
+            test("should not emit stored procedure MCP custom tool settings when disabled", () => {
+                const config = createTestConfig({
+                    apiTypes: [Dab.ApiType.Rest, Dab.ApiType.Mcp],
+                    entities: [
+                        createTestEntity({
+                            id: "sp-dbo-GetUsers",
+                            sourceType: Dab.EntitySourceType.StoredProcedure,
+                            sourceName: "GetUsers",
+                            tableName: "GetUsers",
+                            columns: [],
+                            enabledActions: [Dab.EntityAction.Execute],
+                            advancedSettings: {
+                                entityName: "GetUsers",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                                exposeAsMcpCustomTool: false,
+                            },
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+
+                expect(parsed.entities["GetUsers"].mcp).to.be.undefined;
+            });
         });
 
         suite("entity REST property", () => {

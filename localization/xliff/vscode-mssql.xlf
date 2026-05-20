@@ -1646,6 +1646,9 @@
       <source xml:lang="en">Created table {0}</source>
       <note>{0} is the qualified table name</note>
     </trans-unit>
+    <trans-unit id="++CODE++40321f05833c7d2deaaff609703bfef087fba72af02bb6f918d24bb50a53f955">
+      <source xml:lang="en">Creates a dedicated MCP tool for this stored procedure. When disabled, the procedure can still be available through generic MCP execute tools if MCP is enabled.</source>
+    </trans-unit>
     <trans-unit id="++CODE++e7d103b1170502b9fb94e08c67732e21aa132dbed79e58605736029791d7a8a8">
       <source xml:lang="en">Creating Container</source>
     </trans-unit>
@@ -2129,6 +2132,9 @@
     <trans-unit id="++CODE++034129a4d06ead784ef9eb0b8eaf2fb961df433a4461b6575a46956147030d12">
       <source xml:lang="en">Enable Code Analysis on Build</source>
     </trans-unit>
+    <trans-unit id="++CODE++6b4be3a8ee14a536e26c05c8b1d62473209daf08fb4f8ec66322497d5d0028f0">
+      <source xml:lang="en">Enable MCP in API Type to use this custom tool setting.</source>
+    </trans-unit>
     <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
       <source xml:lang="en">Enable Trust Server Certificate</source>
     </trans-unit>
@@ -2556,6 +2562,9 @@
     </trans-unit>
     <trans-unit id="++CODE++de5cd90f5341f8bb2ebe10270705fa436ac43f8c5ff653358b9eee3a56323ec4">
       <source xml:lang="en">Exporting BACPAC...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++886b046597112f108973a5fa0dd665428e3303b602a7c20621b6876237cb7044">
+      <source xml:lang="en">Expose as MCP custom tool</source>
     </trans-unit>
     <trans-unit id="++CODE++7758738264236e2f15e315d6e6ebca6fb9192ce031207744cc9bdd4a5a052817">
       <source xml:lang="en">Expose {0}</source>
@@ -3869,6 +3878,9 @@
     </trans-unit>
     <trans-unit id="++CODE++53f13ae99ed53bd346eb8e1c8cefb7ef8260683b50401caf101360967ea052aa">
       <source xml:lang="en">MCP</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cb571bc2bc5742ac76bfe870bd81c2d7aeefe4a9f9c828b36c7a39464c3c3ebb">
+      <source xml:lang="en">MCP custom tool</source>
     </trans-unit>
     <trans-unit id="++CODE++97364ab178f409c2e935af89200f5a56952315efb422c76bf58f40e20451b8d1">
       <source xml:lang="en">MCP server added to {0}</source>
