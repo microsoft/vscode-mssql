@@ -351,6 +351,8 @@ export function DabToolbar({
         entityFilters.schemas.length === 0 || entityFilters.schemas.length === schemaOptions.length
             ? true
             : "mixed";
+    const schemaFilterListHeight =
+        (Math.min(schemaOptions.length, SCHEMA_FILTER_VISIBLE_ROWS) + 1) * SCHEMA_FILTER_ROW_HEIGHT;
 
     const sourceTypeLabels: Record<Dab.EntitySourceType, string> = {
         [Dab.EntitySourceType.Table]: locConstants.schemaDesigner.tables,
@@ -706,12 +708,7 @@ export function DabToolbar({
                                         ref={schemaListRef}
                                         className={classes.schemaList}
                                         style={{
-                                            height: `${
-                                                Math.min(
-                                                    schemaOptions.length,
-                                                    SCHEMA_FILTER_VISIBLE_ROWS,
-                                                ) * SCHEMA_FILTER_ROW_HEIGHT
-                                            }px`,
+                                            height: `${schemaFilterListHeight}px`,
                                         }}>
                                         <div className={classes.schemaSelectAllRow}>
                                             <Checkbox
