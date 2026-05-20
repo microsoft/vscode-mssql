@@ -1140,6 +1140,14 @@
     <trans-unit id="++CODE++bb7bef87d3a1f764c39c6df670038039c136d360153a1ced5c633afa9590fd36">
       <source xml:lang="en">Column name cannot be empty</source>
     </trans-unit>
+    <trans-unit id="++CODE++661f008b35e613449a51eb1c0fd892c56789ae6d2cabbd7405abe521416975f9">
+      <source xml:lang="en">Column not found: {0}</source>
+      <note>{0} is the column reference</note>
+    </trans-unit>
+    <trans-unit id="++CODE++191bfe9c43b5a6888281d9067ac0d3ea4b086f8a59703b22464d2c24e41a0b08">
+      <source xml:lang="en">Column reference resolved to more than one column: {0}</source>
+      <note>{0} is the column reference</note>
+    </trans-unit>
     <trans-unit id="++CODE++5c56d46cc10135f393e52c47f8001e6235ecadc91f6ced732185c1679055aa79">
       <source xml:lang="en">Column resize by content</source>
     </trans-unit>
@@ -2246,6 +2254,11 @@
     <trans-unit id="++CODE++41058600ed8ab3d197264132f1b22ed25b7b2d9fa6afdffd559fc08bca9e6075">
       <source xml:lang="en">Enter the path for the output file</source>
     </trans-unit>
+    <trans-unit id="++CODE++e3d4cdacc007baba40af99c4e0c4ac0ceaa8e813a8a6e0ba47f0199eaaaa3726">
+      <source xml:lang="en">Entity &apos;{0}&apos; is not supported by Data API builder. {1}</source>
+      <note>{0} is the entity name
+{1} is why the entity is unsupported</note>
+    </trans-unit>
     <trans-unit id="++CODE++f889729267bd3b6e2a0a503ad9228cced8a1d16ad04a3384dc6df5dc89d6ba4c">
       <source xml:lang="en">Entity Endpoints</source>
     </trans-unit>
@@ -2254,6 +2267,14 @@
     </trans-unit>
     <trans-unit id="++CODE++b1d3adb989e3b895976094fd8242c98ab0d88c5e2dcd929bd6d76a8b52ce3f4c">
       <source xml:lang="en">Entity name used in API routes</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a50c60587af9600c20b491dfec2f89043091694e9aadcbd732892ba0aca0e74f">
+      <source xml:lang="en">Entity not found: {0}</source>
+      <note>{0} is the entity reference</note>
+    </trans-unit>
+    <trans-unit id="++CODE++e56b4a3d26cbb48b0037daacb3a1d42209ec3769d2343dbf64eab273ca9495e3">
+      <source xml:lang="en">Entity reference resolved to more than one entity: {0}</source>
+      <note>{0} is the entity reference</note>
     </trans-unit>
     <trans-unit id="++CODE++d59e5e8f8a4bb3b14eb8af194553158e5dffd648ad462eeafb2f03589da5a8eb">
       <source xml:lang="en">Entra token cache cleared successfully.</source>
@@ -3489,6 +3510,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0c2f118ad5933157d00e2025f7cc3d3c3da84db32e18ffbb4f1032471cc643ef">
       <source xml:lang="en">Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy</source>
+    </trans-unit>
+    <trans-unit id="++CODE++604cd45c57feb58b304a4d821fbb1df3611dabd706ece140be1c19abc4c8150a">
+      <source xml:lang="en">Invalid column reference. Use either id OR name.</source>
     </trans-unit>
     <trans-unit id="++CODE++b6b50087a99bf4427265eff9dd813914f1ceb8c55260fa6e7075f9c89fcd45d7">
       <source xml:lang="en">Invalid column width</source>
@@ -6710,6 +6734,9 @@
     <trans-unit id="++CODE++3bd96350b569900406d2b6fcd6d41c1083c5dec9bd6052587c0a4657f831fe33">
       <source xml:lang="en">Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported.</source>
       <note>{0} is the authentication type</note>
+    </trans-unit>
+    <trans-unit id="++CODE++8e344a40ce6bcc8487a770bd157fb301e1bf5539591981c51fe39ffecedb176c">
+      <source xml:lang="en">Unsupported by Data API builder.</source>
     </trans-unit>
     <trans-unit id="++CODE++59925dabae7544939136767d732ce4bd853e6a3822324777eb3615b997680c05">
       <source xml:lang="en">Unsupported data types detected</source>

@@ -24,6 +24,10 @@ export const defaultDabEntityFilters: DabEntityFilters = {
     sourceTypes: [],
 };
 
+export function getDabSchemaFilterKey(schemaName: string): string {
+    return schemaName.trim().toLowerCase();
+}
+
 export function getDabEntityFilterCount(filters: DabEntityFilters): number {
     return (
         (filters.status === DabEntityStatusFilter.All ? 0 : 1) +
@@ -45,7 +49,10 @@ export function doesEntityMatchDabFilters(
     if (filters.status === DabEntityStatusFilter.Warnings && entity.isSupported) {
         return false;
     }
-    if (filters.schemas.length > 0 && !filters.schemas.includes(entity.schemaName)) {
+    if (
+        filters.schemas.length > 0 &&
+        !filters.schemas.includes(getDabSchemaFilterKey(entity.schemaName))
+    ) {
         return false;
     }
 
@@ -53,6 +60,14 @@ export function doesEntityMatchDabFilters(
     return filters.sourceTypes.length === 0 || filters.sourceTypes.includes(sourceType);
 }
 
-export function toggleDabEntityFilterValue<T>(values: T[], value: T): T[] {
-    return values.includes(value) ? values.filter((v) => v !== value) : [...values, value];
+export function toggleDabEntityFilterValue<T>(values: T[], value: T, allValues?: T[]): T[] {
+    const updatedValues = values.includes(value)
+        ? values.filter((v) => v !== value)
+        : [...values, value];
+
+    if (allValues?.length && allValues.every((option) => updatedValues.includes(option))) {
+        return [];
+    }
+
+    return updatedValues;
 }

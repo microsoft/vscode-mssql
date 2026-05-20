@@ -99,7 +99,7 @@ export class SchemaDesignerWebviewManager {
             connectionInfo.database = databaseName;
 
             const connectionDetails =
-                await mainController.connectionManager.createConnectionDetails(connectionInfo);
+                mainController.connectionManager.createConnectionDetails(connectionInfo);
 
             treeNode.updateConnectionProfile(connectionInfo);
 

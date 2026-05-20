@@ -49,6 +49,7 @@ import {
     DabEntityFilters,
     DabEntityStatusFilter,
     defaultDabEntityFilters,
+    getDabSchemaFilterKey,
     getDabEntityFilterCount,
     toggleDabEntityFilterValue,
 } from "./dabEntityFilters";
@@ -316,12 +317,20 @@ export function DabToolbar({
     const warningTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const schemaListRef = useRef<HTMLDivElement | null>(null);
 
-    const schemaOptions = Object.entries(
-        (dabConfig?.entities ?? []).reduce<Record<string, number>>((accumulator, entity) => {
-            accumulator[entity.schemaName] = (accumulator[entity.schemaName] ?? 0) + 1;
+    const schemaOptions = Object.values(
+        (dabConfig?.entities ?? []).reduce<
+            Record<string, { key: string; schemaName: string; count: number }>
+        >((accumulator, entity) => {
+            const key = getDabSchemaFilterKey(entity.schemaName);
+            accumulator[key] ??= {
+                key,
+                schemaName: entity.schemaName.trim() || entity.schemaName,
+                count: 0,
+            };
+            accumulator[key].count++;
             return accumulator;
         }, {}),
-    ).sort(([a], [b]) => a.localeCompare(b));
+    ).sort((a, b) => a.schemaName.localeCompare(b.schemaName));
 
     const schemaVirtualizer = useVirtualizer({
         count: schemaOptions.length,
@@ -362,6 +371,7 @@ export function DabToolbar({
         entityFilters.schemas.length === 0 || entityFilters.schemas.length === schemaOptions.length
             ? true
             : "mixed";
+    const schemaFilterKeys = schemaOptions.map((option) => option.key);
     const schemaFilterListHeight =
         (Math.min(schemaOptions.length, SCHEMA_FILTER_VISIBLE_ROWS) + 1) * SCHEMA_FILTER_ROW_HEIGHT;
 
@@ -388,17 +398,21 @@ export function DabToolbar({
         setEntityFilters({ ...defaultDabEntityFilters });
     };
 
-    const toggleSchemaFilter = (schemaName: string) => {
+    const toggleSchemaFilter = (schemaKey: string) => {
         setEntityFilters((prev) => ({
             ...prev,
-            schemas: toggleDabEntityFilterValue(prev.schemas, schemaName),
+            schemas: toggleDabEntityFilterValue(prev.schemas, schemaKey, schemaFilterKeys),
         }));
     };
 
     const toggleSourceTypeFilter = (sourceType: Dab.EntitySourceType) => {
         setEntityFilters((prev) => ({
             ...prev,
-            sourceTypes: toggleDabEntityFilterValue(prev.sourceTypes, sourceType),
+            sourceTypes: toggleDabEntityFilterValue(
+                prev.sourceTypes,
+                sourceType,
+                sourceTypeOptions,
+            ),
         }));
     };
 
@@ -743,11 +757,10 @@ export function DabToolbar({
                                                         return undefined;
                                                     }
 
-                                                    const [schemaName, count] = option;
                                                     return (
                                                         <div
                                                             className={classes.schemaOption}
-                                                            key={schemaName}
+                                                            key={option.key}
                                                             style={{
                                                                 height: `${virtualItem.size}px`,
                                                                 transform: `translateY(${virtualItem.start}px)`,
@@ -755,22 +768,22 @@ export function DabToolbar({
                                                             <Checkbox
                                                                 className={classes.schemaCheckbox}
                                                                 checked={entityFilters.schemas.includes(
-                                                                    schemaName,
+                                                                    option.key,
                                                                 )}
                                                                 onChange={() =>
-                                                                    toggleSchemaFilter(schemaName)
+                                                                    toggleSchemaFilter(option.key)
                                                                 }
                                                                 label={
                                                                     <span
                                                                         className={
                                                                             classes.schemaName
                                                                         }>
-                                                                        {schemaName}
+                                                                        {option.schemaName}
                                                                     </span>
                                                                 }
                                                             />
                                                             <span className={classes.schemaCount}>
-                                                                {count}
+                                                                {option.count}
                                                             </span>
                                                         </div>
                                                     );

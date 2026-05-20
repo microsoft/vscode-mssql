@@ -30,6 +30,7 @@ import {
     TableMetadataResult,
 } from "../sharedInterfaces/metadata";
 import { bracketEscapeSqlIdentifier } from "../models/utils";
+import { escapeStringLiteral } from "../utils/sqlStringUtils";
 import { getErrorMessage } from "../utils/utils";
 
 const simpleExecuteRequest = new RequestType<
@@ -118,14 +119,10 @@ WHERE sp.is_ms_shipped = 0
     AND p.parameter_id > 0
 ORDER BY SCHEMA_NAME(sp.schema_id), sp.name, p.parameter_id;`;
 
-function escapedSqlString(value: string): string {
-    return value.replace(/'/g, "''");
-}
-
 function getDabViewColumnsQuery(schema: string, viewName: string): string {
     return `
-DECLARE @schemaName sysname = N'${escapedSqlString(schema)}';
-DECLARE @viewName sysname = N'${escapedSqlString(viewName)}';
+DECLARE @schemaName sysname = N'${escapeStringLiteral(schema)}';
+DECLARE @viewName sysname = N'${escapeStringLiteral(viewName)}';
 DECLARE @viewObjectId int = OBJECT_ID(QUOTENAME(@schemaName) + N'.' + QUOTENAME(@viewName));
 
 ;WITH selected_unique_index AS
@@ -169,8 +166,8 @@ ORDER BY c.column_id;`;
 
 function getDabStoredProcedureParametersQuery(schema: string, procedureName: string): string {
     return `
-DECLARE @schemaName sysname = N'${escapedSqlString(schema)}';
-DECLARE @procedureName sysname = N'${escapedSqlString(procedureName)}';
+DECLARE @schemaName sysname = N'${escapeStringLiteral(schema)}';
+DECLARE @procedureName sysname = N'${escapeStringLiteral(procedureName)}';
 DECLARE @procedureObjectId int = OBJECT_ID(
     QUOTENAME(@schemaName) + N'.' + QUOTENAME(@procedureName)
 );

@@ -1388,6 +1388,38 @@ export class LocConstants {
             invalidEntityReference: l10n.t(
                 "Invalid entity reference. Use either id OR schemaName+tableName OR schemaName+sourceName+sourceType.",
             ),
+            invalidColumnReference: l10n.t("Invalid column reference. Use either id OR name."),
+            entityNotFound: (entityRef: string) =>
+                l10n.t({
+                    message: "Entity not found: {0}",
+                    args: [entityRef],
+                    comment: ["{0} is the entity reference"],
+                }),
+            entityReferenceNotUnique: (entityRef: string) =>
+                l10n.t({
+                    message: "Entity reference resolved to more than one entity: {0}",
+                    args: [entityRef],
+                    comment: ["{0} is the entity reference"],
+                }),
+            dabColumnNotFound: (columnRef: string) =>
+                l10n.t({
+                    message: "Column not found: {0}",
+                    args: [columnRef],
+                    comment: ["{0} is the column reference"],
+                }),
+            columnReferenceNotUnique: (columnRef: string) =>
+                l10n.t({
+                    message: "Column reference resolved to more than one column: {0}",
+                    args: [columnRef],
+                    comment: ["{0} is the column reference"],
+                }),
+            unsupportedByDataApiBuilder: l10n.t("Unsupported by Data API builder."),
+            entityNotSupportedByDataApiBuilder: (entityName: string, reason: string) =>
+                l10n.t({
+                    message: "Entity '{0}' is not supported by Data API builder. {1}",
+                    args: [entityName, reason],
+                    comment: ["{0} is the entity name", "{1} is why the entity is unsupported"],
+                }),
             bulkActions: l10n.t("Bulk Actions"),
             enableAllEntities: l10n.t("Enable all entities"),
             disableAllEntities: l10n.t("Disable all entities"),

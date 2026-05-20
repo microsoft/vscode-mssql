@@ -891,6 +891,28 @@
     "Views": "Views",
     "Stored Procedures": "Stored Procedures",
     "Invalid entity reference. Use either id OR schemaName+tableName OR schemaName+sourceName+sourceType.": "Invalid entity reference. Use either id OR schemaName+tableName OR schemaName+sourceName+sourceType.",
+    "Invalid column reference. Use either id OR name.": "Invalid column reference. Use either id OR name.",
+    "Entity not found: {0}/{0} is the entity reference": {
+        "message": "Entity not found: {0}",
+        "comment": ["{0} is the entity reference"]
+    },
+    "Entity reference resolved to more than one entity: {0}/{0} is the entity reference": {
+        "message": "Entity reference resolved to more than one entity: {0}",
+        "comment": ["{0} is the entity reference"]
+    },
+    "Column not found: {0}/{0} is the column reference": {
+        "message": "Column not found: {0}",
+        "comment": ["{0} is the column reference"]
+    },
+    "Column reference resolved to more than one column: {0}/{0} is the column reference": {
+        "message": "Column reference resolved to more than one column: {0}",
+        "comment": ["{0} is the column reference"]
+    },
+    "Unsupported by Data API builder.": "Unsupported by Data API builder.",
+    "Entity '{0}' is not supported by Data API builder. {1}/{0} is the entity name{1} is why the entity is unsupported": {
+        "message": "Entity '{0}' is not supported by Data API builder. {1}",
+        "comment": ["{0} is the entity name", "{1} is why the entity is unsupported"]
+    },
     "Bulk Actions": "Bulk Actions",
     "Enable all entities": "Enable all entities",
     "Disable all entities": "Disable all entities",

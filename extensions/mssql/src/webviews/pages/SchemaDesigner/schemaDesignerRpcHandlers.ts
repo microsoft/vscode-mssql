@@ -1134,7 +1134,10 @@ function normalizeDabConfigForVersion(config: Dab.DabConfig) {
                 fields: [...(entity.fields ?? [])]
                     .map((field) => ({
                         name: normalizeIdentifier(field.name),
-                        alias: normalizeIdentifier(field.alias),
+                        alias:
+                            field.alias !== undefined
+                                ? normalizeIdentifier(field.alias)
+                                : undefined,
                         description: field.description,
                         isPrimaryKey: !!field.isPrimaryKey,
                     }))
@@ -1232,7 +1235,7 @@ function resolveEntityRef(
             return {
                 success: false,
                 reason: "not_found",
-                message: `Entity not found: ${id}`,
+                message: locConstants.schemaDesigner.entityNotFound(id),
             };
         }
         return { success: true, entity: config.entities[index], index };
@@ -1261,7 +1264,7 @@ function resolveEntityRef(
         return {
             success: false,
             reason: "not_found",
-            message: `Entity not found: ${displayName}`,
+            message: locConstants.schemaDesigner.entityNotFound(displayName),
         };
     }
 
@@ -1269,7 +1272,7 @@ function resolveEntityRef(
         return {
             success: false,
             reason: "validation_error",
-            message: `Entity reference resolved to more than one entity: ${displayName}`,
+            message: locConstants.schemaDesigner.entityReferenceNotUnique(displayName),
         };
     }
 
@@ -1293,7 +1296,7 @@ function resolveColumnRef(
         return {
             success: false,
             reason: "invalid_request",
-            message: "Invalid column reference. Use either id OR name.",
+            message: locConstants.schemaDesigner.invalidColumnReference,
         };
     }
 
@@ -1304,7 +1307,7 @@ function resolveColumnRef(
             return {
                 success: false,
                 reason: "not_found",
-                message: `Column not found: ${id}`,
+                message: locConstants.schemaDesigner.dabColumnNotFound(id),
             };
         }
 
@@ -1320,7 +1323,9 @@ function resolveColumnRef(
         return {
             success: false,
             reason: "not_found",
-            message: `Column not found: ${(columnRef as { name: string }).name}`,
+            message: locConstants.schemaDesigner.dabColumnNotFound(
+                (columnRef as { name: string }).name,
+            ),
         };
     }
 
@@ -1328,7 +1333,9 @@ function resolveColumnRef(
         return {
             success: false,
             reason: "validation_error",
-            message: `Column reference resolved to more than one column: ${(columnRef as { name: string }).name}`,
+            message: locConstants.schemaDesigner.columnReferenceNotUnique(
+                (columnRef as { name: string }).name,
+            ),
         };
     }
 
@@ -1365,7 +1372,7 @@ function getEntitySourceTypeLabel(entity: Dab.DabEntityConfig): string {
 function formatUnsupportedEntityReasons(entity: Dab.DabEntityConfig): string {
     const reasons = entity.unsupportedReasons;
     if (!reasons || reasons.length === 0) {
-        return "Unsupported by Data API builder.";
+        return locConstants.schemaDesigner.unsupportedByDataApiBuilder;
     }
 
     const sourceTypeLabel = getEntitySourceTypeLabel(entity);
@@ -1392,9 +1399,10 @@ function createEntityNotSupportedError(entity: Dab.DabEntityConfig): {
     return {
         success: false,
         reason: "entity_not_supported",
-        message:
-            `Entity '${entity.schemaName}.${entity.sourceName ?? entity.tableName}' is not supported by Data API builder. ` +
+        message: locConstants.schemaDesigner.entityNotSupportedByDataApiBuilder(
+            `${entity.schemaName}.${entity.sourceName ?? entity.tableName}`,
             formatUnsupportedEntityReasons(entity),
+        ),
     };
 }
 

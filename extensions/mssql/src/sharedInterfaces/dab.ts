@@ -1071,13 +1071,23 @@ export namespace Dab {
                 name: source.sourceName,
                 schema: source.schemaName,
                 columns: source.columns.map(
-                    (column) =>
-                        ({
-                            id: column.id,
-                            name: column.name,
-                            dataType: column.dataType,
-                            isPrimaryKey: column.isPrimaryKey,
-                        }) as SchemaDesigner.Column,
+                    (column): SchemaDesigner.Column => ({
+                        id: column.id,
+                        name: column.name,
+                        dataType: column.dataType,
+                        maxLength: "",
+                        precision: 0,
+                        scale: 0,
+                        isPrimaryKey: column.isPrimaryKey,
+                        isIdentity: false,
+                        identitySeed: 1,
+                        identityIncrement: 1,
+                        isNullable: !column.isPrimaryKey,
+                        defaultValue: "",
+                        isComputed: false,
+                        computedFormula: "",
+                        computedPersisted: false,
+                    }),
                 ),
                 foreignKeys: [],
             }));
