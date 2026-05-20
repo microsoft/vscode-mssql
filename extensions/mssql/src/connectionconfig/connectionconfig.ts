@@ -48,9 +48,13 @@ export class ConnectionConfig implements IConnectionConfig {
         await this.addOrUpdateRootGroup();
         await this.assignConnectionGroupMissingIds();
         await this.assignConnectionMissingIds();
-        void this.validateDefaultConnectionId();
 
         this.initialized.resolve();
+
+        // Must come after `initialized` is resolved because it calls methods that await `initialized`.
+        // Since this is only meant to show a warning if the default connection ID is misconfigured, and not a data consistency check,
+        // this can run asynchronously and doesn't need to block initialization.
+        void this.validateDefaultConnectionId();
     }
 
     /**
