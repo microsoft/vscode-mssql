@@ -142,6 +142,9 @@ function createDefaultExpandedRows(config?: Dab.DabConfig | null): Set<string> {
         const schemaKey = getSchemaGroupKey(entity.schemaName);
         expanded.add(`schema-${schemaKey}`);
         expanded.add(`schema-${schemaKey}-${entity.sourceType ?? Dab.EntitySourceType.Table}`);
+        if (entity.isSupported && entity.sourceType !== Dab.EntitySourceType.StoredProcedure) {
+            expanded.add(entity.id);
+        }
     }
     return expanded;
 }
