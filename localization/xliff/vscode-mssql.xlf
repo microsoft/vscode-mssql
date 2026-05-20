@@ -947,6 +947,9 @@
     <trans-unit id="++CODE++4e42da2b0c2533c1a0dfa98e9f4ec67fbaf07a0da192dafa93aaf98bc07fd959">
       <source xml:lang="en">Choose the Right Version</source>
     </trans-unit>
+    <trans-unit id="++CODE++988c00d268f2867e2e35f7c7de12ddee2e7c5516193dc246ff16186208f335d2">
+      <source xml:lang="en">Choose whether this stored procedure appears as a GraphQL mutation or query. DAB defaults to mutation.</source>
+    </trans-unit>
     <trans-unit id="++CODE++be798452e0ca7a38f6487ecb9115f26ba148e2d4475608bdc4277d34d41be0a7">
       <source xml:lang="en">Circular reference detected: &apos;{0}&apos; → &apos;{1}&apos; creates a cycle</source>
       <note>{0} is source table
@@ -2132,8 +2135,14 @@
     <trans-unit id="++CODE++034129a4d06ead784ef9eb0b8eaf2fb961df433a4461b6575a46956147030d12">
       <source xml:lang="en">Enable Code Analysis on Build</source>
     </trans-unit>
+    <trans-unit id="++CODE++7bce93a011075575cf98f089cee89c6108be3220cd9701e8ce2fe0c19b38f411">
+      <source xml:lang="en">Enable GraphQL in API Type to expose this entity through GraphQL.</source>
+    </trans-unit>
     <trans-unit id="++CODE++6b4be3a8ee14a536e26c05c8b1d62473209daf08fb4f8ec66322497d5d0028f0">
       <source xml:lang="en">Enable MCP in API Type to use this custom tool setting.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++19c5f25908148aedba9135a777688d044c4bfac7d9acee5f931b2c57bd8299f9">
+      <source xml:lang="en">Enable REST in API Type to expose this entity through REST.</source>
     </trans-unit>
     <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
       <source xml:lang="en">Enable Trust Server Certificate</source>
@@ -2565,6 +2574,12 @@
     </trans-unit>
     <trans-unit id="++CODE++886b046597112f108973a5fa0dd665428e3303b602a7c20621b6876237cb7044">
       <source xml:lang="en">Expose as MCP custom tool</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9baec5aafce916c9fbec6af57fe28833aca54911144354d1175f02a51595de33">
+      <source xml:lang="en">Expose this entity through GraphQL</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1d66e218f7e4f002993789d4d2f5882562de9be46ff392069f35b830da0a78f6">
+      <source xml:lang="en">Expose this entity through REST</source>
     </trans-unit>
     <trans-unit id="++CODE++7758738264236e2f15e315d6e6ebca6fb9192ce031207744cc9bdd4a5a052817">
       <source xml:lang="en">Expose {0}</source>
@@ -4104,6 +4119,9 @@
     <trans-unit id="++CODE++d7534870b07fc697bc330ff6a95d96ff85e93fe2b0c7db580d8508a0d08552cc">
       <source xml:lang="en">Must start with an alphanumeric character and contain only alphanumeric characters, underscores, periods, or hyphens</source>
     </trans-unit>
+    <trans-unit id="++CODE++c26ee0e4b915257d995cffde4cc7b77a97c1e0cfa544836fdcb28329d1dc749a">
+      <source xml:lang="en">Mutation</source>
+    </trans-unit>
     <trans-unit id="++CODE++79e53b9f38d1c9de4d84c9a78339ceb838b609638b9194a2f0caad2f05ea2c85">
       <source xml:lang="en">My Data</source>
     </trans-unit>
@@ -4991,6 +5009,9 @@
     <trans-unit id="++CODE++0e1d9858f1e51bd313981a0d8da504fb12e0405fc869634ad52babe02eff9e3d">
       <source xml:lang="en">Pulling the SQL Server container image. This might take a few minutes depending on your internet connection.</source>
     </trans-unit>
+    <trans-unit id="++CODE++b80a37564fbb3c0753202a1f92d5da8ccfb906b244f2842bba2232cea9883abd">
+      <source xml:lang="en">Query</source>
+    </trans-unit>
     <trans-unit id="++CODE++f44ad102b5dd5df1b5691408d19d39ee92cc1c9ad20f7125845df3d961a805d3">
       <source xml:lang="en">Query Plan</source>
     </trans-unit>
@@ -5806,6 +5827,9 @@
     <trans-unit id="++CODE++816fb2b1f45f1228327db6df7e553f728b2074ca7897d2b506a881d6a7e5f6f6">
       <source xml:lang="en">Select the Azure Data Studio settings.json file to scan for connection groups and connections.</source>
     </trans-unit>
+    <trans-unit id="++CODE++c3e908318ac99693f90743c99d94c8d1f123f65564685137a3236da773d4bb9b">
+      <source xml:lang="en">Select the HTTP methods that can execute this stored procedure. DAB defaults to POST.</source>
+    </trans-unit>
     <trans-unit id="++CODE++5c61a29b1d409ff2b70f6fbd1032d7250ac322407dc4b8bbff19eb20af562291">
       <source xml:lang="en">Select the SQL Server Container Image</source>
     </trans-unit>
@@ -6196,6 +6220,12 @@
     </trans-unit>
     <trans-unit id="++CODE++0a8904b5630e456e42687c74f557749fbd9e61dc13bffb6a403ced083619ba69">
       <source xml:lang="en">Stored Procedures</source>
+    </trans-unit>
+    <trans-unit id="++CODE++46407a8a229c4ff1ac5f85be1f1edf02b0761eaf67b251e2c0a397c68718619e">
+      <source xml:lang="en">Stored procedure GraphQL operation</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2c4fb82c11a12677559564607a6a178c2ff897e0c5769b72f29ec6f55931bea7">
+      <source xml:lang="en">Stored procedure REST methods</source>
     </trans-unit>
     <trans-unit id="++CODE++155f816c0407310c0dab222493370773e045ee7fe04e6c9a951b07f495531264">
       <source xml:lang="en">Submit</source>

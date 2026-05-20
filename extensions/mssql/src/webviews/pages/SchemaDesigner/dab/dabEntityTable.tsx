@@ -1356,6 +1356,8 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
             {settingsEntity && (
                 <DabEntitySettingsDialog
                     entity={settingsEntity}
+                    isRestEnabled={dabConfig.apiTypes.includes(Dab.ApiType.Rest)}
+                    isGraphQLEnabled={dabConfig.apiTypes.includes(Dab.ApiType.GraphQL)}
                     isMcpEnabled={dabConfig.apiTypes.includes(Dab.ApiType.Mcp)}
                     open={!!settingsEntity}
                     onOpenChange={(open) => {

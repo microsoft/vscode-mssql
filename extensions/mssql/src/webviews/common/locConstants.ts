@@ -1347,6 +1347,24 @@ export class LocConstants {
             restApi: l10n.t("REST API"),
             graphql: l10n.t("GraphQL"),
             mcp: l10n.t("MCP"),
+            enableRestForEntity: l10n.t("Expose this entity through REST"),
+            enableRestForEntityHelp: l10n.t(
+                "Enable REST in API Type to expose this entity through REST.",
+            ),
+            enableGraphQLForEntity: l10n.t("Expose this entity through GraphQL"),
+            enableGraphQLForEntityHelp: l10n.t(
+                "Enable GraphQL in API Type to expose this entity through GraphQL.",
+            ),
+            storedProcedureRestMethods: l10n.t("Stored procedure REST methods"),
+            storedProcedureRestMethodsHelp: l10n.t(
+                "Select the HTTP methods that can execute this stored procedure. DAB defaults to POST.",
+            ),
+            storedProcedureGraphQLOperation: l10n.t("Stored procedure GraphQL operation"),
+            storedProcedureGraphQLOperationHelp: l10n.t(
+                "Choose whether this stored procedure appears as a GraphQL mutation or query. DAB defaults to mutation.",
+            ),
+            graphqlMutation: l10n.t("Mutation"),
+            graphqlQuery: l10n.t("Query"),
             mcpCustomTool: l10n.t("MCP custom tool"),
             exposeAsMcpCustomTool: l10n.t("Expose as MCP custom tool"),
             exposeAsMcpCustomToolHelp: l10n.t(
