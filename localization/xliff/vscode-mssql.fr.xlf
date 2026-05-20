@@ -472,6 +472,14 @@ Sélectionnez « {0} » pour établir une connexion.</target>
         <source xml:lang="en">Append to the existing backup set</source>
         <target state="translated">Ajouter au jeu de sauvegarde existant</target>
       </trans-unit>
+      <trans-unit id="++CODE++a7168cfe83fa5085e397d074c440ebc49d8f9d65f5241ff5f2ea586f9a4db451">
+        <source xml:lang="en">Application (Client) ID</source>
+        <target state="new">Application (Client) ID</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e6e909c5bd0a3e25a1abcddd1dab13780ce9e4f673139a56842b1e3a26c981c0">
+        <source xml:lang="en">Application (Client) ID is required.</source>
+        <target state="new">Application (Client) ID is required.</target>
+      </trans-unit>
       <trans-unit id="++CODE++f548fb847184961d59c59fd5b4ff10720726475e1768037348dec8e7c6bd6468">
         <source xml:lang="en">Application Intent</source>
         <target state="translated">Intention de l’application</target>
@@ -580,6 +588,10 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       <trans-unit id="++CODE++8ff1f9a47f14327a26fd3a548d2babeec226cb63828a0803433b4a34a19c09ff">
         <source xml:lang="en">Auth type</source>
         <target state="translated">Type d’authentification</target>
+      </trans-unit>
+      <trans-unit id="++CODE++59480e87da5310e5046d84f52931338703cc3c68aaa8fc535e025eb621677ed9">
+        <source xml:lang="en">Authenticate using a Microsoft Entra service principal. Enter the Application (client) ID as the user name and the client secret as the password. Click the info icon to learn more.</source>
+        <target state="new">Authenticate using a Microsoft Entra service principal. Enter the Application (client) ID as the user name and the client secret as the password. Click the info icon to learn more.</target>
       </trans-unit>
       <trans-unit id="++CODE++6ab694cfc6fa5d8c7045d318bba5f3eb791ab0a859ea54c54b1c660a4ccf8ed1">
         <source xml:lang="en">Authenticated</source>
@@ -1359,6 +1371,14 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       <trans-unit id="++CODE++88af7d4ffbbad0f31d9dd918e49ceb713036db12524cbdc4b93e8922b0655429">
         <source xml:lang="en">Click to sign into an Azure account</source>
         <target state="translated">Cliquer pour vous connecter à un compte Azure</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ae21cf6d24b8ca460e91fe9dc61432a60403b1dabea53792a9c95c63a7cb0db2">
+        <source xml:lang="en">Client Secret</source>
+        <target state="new">Client Secret</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b88d22f627afd019becae5972c1ad1c05cca30f1c24c21e6a1ebf5492207904b">
+        <source xml:lang="en">Client secret is required.</source>
+        <target state="new">Client secret is required.</target>
       </trans-unit>
       <trans-unit id="++CODE++7d9eb7acb13e24625c404401d8e88b2350e32162455885f18276cf802f7701ed">
         <source xml:lang="en">Close</source>
@@ -5223,6 +5243,10 @@ Erreur :
         <source xml:lang="en">Microsoft Entra Id - Default</source>
         <target state="translated">Microsoft Entra – Par défaut</target>
       </trans-unit>
+      <trans-unit id="++CODE++abb07d0f4dfada778581c9b19ad0453201ea6d075bc434debb65d96b65f2adbc">
+        <source xml:lang="en">Microsoft Entra Id - Service Principal</source>
+        <target state="new">Microsoft Entra Id - Service Principal</target>
+      </trans-unit>
       <trans-unit id="++CODE++d24b24ff2640e9b5731d40ac97ea534034176c1478b681eca122262c4d98a8a2">
         <source xml:lang="en">Microsoft Entra Id - Universal w/ MFA Support</source>
         <target state="translated">Identifiant Microsoft Entra – Universel avec prise en charge MFA</target>
@@ -7142,6 +7166,10 @@ Requête : {2}</target>
         <source xml:lang="en">Save Plan</source>
         <target state="translated">Enregistrer le plan</target>
       </trans-unit>
+      <trans-unit id="++CODE++072fb040dae019a32d416f0ad48852b98a2544da0e126c054ea338011ae0d63a">
+        <source xml:lang="en">Save Secret</source>
+        <target state="new">Save Secret</target>
+      </trans-unit>
       <trans-unit id="++CODE++e50761ebedbdddb4dd4afb99a7c0964cf8bfed33ec03cb39f5a08e65812c795a">
         <source xml:lang="en">Save as CSV</source>
         <target state="translated">Enregistrer au format CSV</target>
@@ -8394,6 +8422,10 @@ Requête : {2}</target>
         <source xml:lang="en">Text tab - displays SQL text data</source>
         <target state="translated">Onglet de texte : affiche les données de texte SQL</target>
       </trans-unit>
+      <trans-unit id="++CODE++c2deec07495a278190de83a0820519064e332fc00b050c4fd053bae70c44da8e">
+        <source xml:lang="en">The Application (Client) ID of your Microsoft Entra app registration.</source>
+        <target state="new">The Application (Client) ID of your Microsoft Entra app registration.</target>
+      </trans-unit>
       <trans-unit id="++CODE++b0ccb68c36737cb5ef6c7a74871ab7845533f64d89c74dd7db735bb555c401e1">
         <source xml:lang="en">The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including {code-snippet-0} for lightweight T-SQL profiling.</source>
         <target state="translated">Le Profileur de requêtes prend désormais en charge les connexions des Bases de données SQL dans Microsoft Fabric, avec de nouveaux modèles Azure SQL Database, notamment {code-snippet-0} pour un profilage T-SQL léger.</target>
@@ -8414,6 +8446,10 @@ Requête : {2}</target>
       <trans-unit id="++CODE++1a4205e9f5cc50eaf70719b64956352b74a99badba266027a6244def0d016b73">
         <source xml:lang="en">The behavior when a user tries to update a row with data that is involved in a foreign key relationship.</source>
         <target state="translated">Le comportement lorsqu'un utilisateur tente de mettre à jour une ligne avec des données impliquées dans une relation de clé étrangère.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b3ed9d46f7671d126e86925d532363313c1f6795e877d3d348d134f6e7051bc3">
+        <source xml:lang="en">The client secret for your Microsoft Entra app registration.</source>
+        <target state="new">The client secret for your Microsoft Entra app registration.</target>
       </trans-unit>
       <trans-unit id="++CODE++4002a5b20dd0c7a8caf9764ba024343e8f87e2ba8221aaeae4c5112d1d7bb4ed">
         <source xml:lang="en">The columns of the index.</source>
@@ -8732,10 +8768,10 @@ Requête : {2}</target>
         <source xml:lang="en">Unable to load backup configuration. Please try again.</source>
         <target state="translated">Impossible de charger la configuration de sauvegarde. Veuillez réessayer.</target>
       </trans-unit>
-      <trans-unit id="++CODE++c8a8ab1cef4a26f5a47e6aff86611314a34effe284539cfe1421067648432eab">
-        <source xml:lang="en">Unable to load database list from server: {0}</source>
+      <trans-unit id="++CODE++d11ea02689601a129dda01909b71622e7f1a166ce25bef3aa0589beb6db8c1d7">
+        <source xml:lang="en">Unable to load database list from server: {0} You may enter the database name directly.</source>
         <note>{0} is the connection error message</note>
-        <target state="translated">Nous ne pouvons pas charger la liste des bases de données à partir du serveur : {0}</target>
+        <target state="new">Unable to load database list from server: {0} You may enter the database name directly.</target>
       </trans-unit>
       <trans-unit id="++CODE++955b62784673f0081b2a54d867245fa50ca1e830cea22348ff69caa6317e7889">
         <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>
