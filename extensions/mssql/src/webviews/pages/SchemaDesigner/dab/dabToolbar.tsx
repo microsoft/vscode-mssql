@@ -363,6 +363,11 @@ export function DabToolbar({
     }
 
     const supportedEntities = dabConfig.entities.filter((e) => e.isSupported);
+    const crudEntities = supportedEntities.filter(
+        (entity) =>
+            (entity.sourceType ?? Dab.EntitySourceType.Table) !==
+            Dab.EntitySourceType.StoredProcedure,
+    );
     const enabledCount = dabConfig.entities.filter((e) => e.isEnabled).length;
     const totalCount = dabConfig.entities.length;
     const activeFilterCount = getDabEntityFilterCount(entityFilters);
@@ -440,12 +445,9 @@ export function DabToolbar({
     };
 
     const handleMakeReadOnly = () => {
-        for (const entity of supportedEntities) {
+        for (const entity of crudEntities) {
             if (!entity.isEnabled) {
                 toggleDabEntity(entity.id, true);
-            }
-            if (entity.sourceType === Dab.EntitySourceType.StoredProcedure) {
-                continue;
             }
             for (const action of allActions) {
                 const shouldEnableAction = action === Dab.EntityAction.Read;
@@ -461,12 +463,9 @@ export function DabToolbar({
     };
 
     const handleEnableAllCruds = () => {
-        for (const entity of supportedEntities) {
+        for (const entity of crudEntities) {
             if (!entity.isEnabled) {
                 toggleDabEntity(entity.id, true);
-            }
-            if (entity.sourceType === Dab.EntitySourceType.StoredProcedure) {
-                continue;
             }
             for (const action of allActions) {
                 if (!entity.enabledActions.includes(action)) {
