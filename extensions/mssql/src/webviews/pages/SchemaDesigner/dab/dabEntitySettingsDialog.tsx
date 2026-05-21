@@ -29,6 +29,12 @@ import { StoredProcedureIcon16Regular } from "../../../common/icons/storedProced
 import { ViewIcon16Regular } from "../../../common/icons/view";
 
 const useStyles = makeStyles({
+    drawerHeader: {
+        backgroundColor: tokens.colorNeutralBackground2,
+        "::after": {
+            display: "none",
+        },
+    },
     drawerBody: {
         display: "flex",
         flexDirection: "column",
@@ -182,7 +188,11 @@ const useStyles = makeStyles({
         color: tokens.colorNeutralForeground3,
     },
     drawerFooter: {
+        backgroundColor: tokens.colorNeutralBackground2,
         columnGap: "12px",
+        "::before": {
+            display: "none",
+        },
     },
     actionButton: {
         minWidth: "132px",
@@ -365,7 +375,7 @@ export function DabEntitySettingsDialog({
             onOpenChange={(_, data) => onOpenChange(data.open)}
             position="end"
             size="medium">
-            <DrawerHeader>
+            <DrawerHeader className={classes.drawerHeader}>
                 <DrawerHeaderTitle
                     action={
                         <Button
