@@ -14,6 +14,10 @@ import {
     Field,
     Input,
     makeStyles,
+    MessageBar,
+    MessageBarActions,
+    MessageBarBody,
+    MessageBarTitle,
     mergeClasses,
     Radio,
     RadioGroup,
@@ -21,7 +25,7 @@ import {
     ToggleButton,
     tokens,
 } from "@fluentui/react-components";
-import { Dismiss24Regular, Table16Regular, Warning16Regular } from "@fluentui/react-icons";
+import { Dismiss24Regular, Table16Regular } from "@fluentui/react-icons";
 import { useEffect, useState } from "react";
 import { locConstants } from "../../../common/locConstants";
 import { Dab } from "../../../../sharedInterfaces/dab";
@@ -39,6 +43,8 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         rowGap: "20px",
+        paddingTop: "16px",
+        paddingBottom: "16px",
     },
     headerTitleContent: {
         display: "flex",
@@ -103,39 +109,22 @@ const useStyles = makeStyles({
         rowGap: "10px",
         paddingLeft: "20px",
     },
-    disabledBanner: {
-        display: "flex",
-        alignItems: "flex-start",
-        columnGap: "9px",
-        padding: "9px 11px",
-        borderRadius: tokens.borderRadiusMedium,
+    disabledMessageBar: {
         border: `1px solid ${tokens.colorPaletteYellowBorder2}`,
         backgroundColor: "transparent",
     },
-    disabledBannerIcon: {
+    disabledMessageBarIcon: {
         color: tokens.colorPaletteYellowForeground2,
-        flexShrink: 0,
-        marginTop: "1px",
     },
-    disabledBannerContent: {
-        display: "flex",
-        flexDirection: "column",
-        rowGap: "4px",
-        flex: 1,
-    },
-    disabledBannerTitle: {
+    disabledMessageBarTitle: {
         fontSize: tokens.fontSizeBase200,
         fontWeight: tokens.fontWeightSemibold,
         color: tokens.colorNeutralForeground2,
     },
-    disabledBannerText: {
+    disabledMessageBarText: {
         fontSize: tokens.fontSizeBase100,
         lineHeight: tokens.lineHeightBase200,
         color: tokens.colorNeutralForeground2,
-    },
-    disabledBannerButton: {
-        alignSelf: "flex-start",
-        marginTop: "2px",
     },
     fieldHint: {
         fontSize: "12px",
@@ -348,24 +337,26 @@ export function DabEntitySettingsDialog({
     );
 
     const renderDisabledBanner = (apiType: Dab.ApiType, label: string) => (
-        <div className={classes.disabledBanner}>
-            <Warning16Regular className={classes.disabledBannerIcon} />
-            <div className={classes.disabledBannerContent}>
-                <Text className={classes.disabledBannerTitle}>
+        <MessageBar
+            intent="warning"
+            layout="multiline"
+            shape="rounded"
+            className={classes.disabledMessageBar}
+            icon={{ className: classes.disabledMessageBarIcon }}>
+            <MessageBarBody>
+                <MessageBarTitle className={classes.disabledMessageBarTitle}>
                     {locConstants.schemaDesigner.apiTypeNotEnabledGlobally(label)}
-                </Text>
-                <Text className={classes.disabledBannerText}>
+                </MessageBarTitle>
+                <span className={classes.disabledMessageBarText}>
                     {locConstants.schemaDesigner.enableApiTypeForEntity(label)}
-                </Text>
-                <Button
-                    appearance="outline"
-                    size="small"
-                    className={classes.disabledBannerButton}
-                    onClick={() => onEnableApiType(apiType)}>
+                </span>
+            </MessageBarBody>
+            <MessageBarActions>
+                <Button appearance="outline" size="small" onClick={() => onEnableApiType(apiType)}>
                     {locConstants.schemaDesigner.enableApiTypeGlobally(label)}
                 </Button>
-            </div>
-        </div>
+            </MessageBarActions>
+        </MessageBar>
     );
 
     return (
