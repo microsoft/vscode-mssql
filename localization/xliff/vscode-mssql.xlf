@@ -1975,6 +1975,9 @@
     <trans-unit id="++CODE++75081b593d15cf6e631971bc6768723f593b88b172477e40ae7d363e4829816d">
       <source xml:lang="en">Disabled</source>
     </trans-unit>
+    <trans-unit id="++CODE++3da57703d00d6946cc3e7a5c4e76cd4651180efe589725eb472c35305120e67c">
+      <source xml:lang="en">Disabled globally</source>
+    </trans-unit>
     <trans-unit id="++CODE++eb1a70e39274bb762b5d7c1adb5debeea2b05e12af28207f21a375b596853273">
       <source xml:lang="en">Discard</source>
     </trans-unit>
@@ -2164,6 +2167,14 @@
     <trans-unit id="++CODE++e4c32239eaf3f27f3f4de229bde11e89be19a972ef77bddca6ffba07e07e8202">
       <source xml:lang="en">Enable {0}</source>
       <note>{0} is the rule identifier, e.g. SR0001</note>
+    </trans-unit>
+    <trans-unit id="++CODE++bb834e59966c805206f646b442d51561fe99a22b02c2bc0dd43ddd5f83d43843">
+      <source xml:lang="en">Enable {0} globally</source>
+      <note>{0} is the API type, e.g. REST, GraphQL, or MCP</note>
+    </trans-unit>
+    <trans-unit id="++CODE++1626a7035e3aa94fb8b04ec4401e20974b845ed50315a4dda0aa7ee2b07c4d56">
+      <source xml:lang="en">Enable {0} in API Type to expose this entity.</source>
+      <note>{0} is the API type, e.g. REST, GraphQL, or MCP</note>
     </trans-unit>
     <trans-unit id="++CODE++92c1cdfdf4cb9cf6fcca962f206de36fd5d60db1178bc9461052f8de703a0e06">
       <source xml:lang="en">Enabled</source>
@@ -7298,6 +7309,10 @@
     <trans-unit id="++CODE++8ee4e65df77291c702e67b2a14060cddd3d53d15c05a64ed6a95e8ef5c53441b">
       <source xml:lang="en">{0} is a primary key column and can&apos;t be disabled.</source>
       <note>{0} is the backing database column name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++1f44c82a6944c1ab12879c8bc4ce97845b4e39673c57cd328b2d2e81275b3c58">
+      <source xml:lang="en">{0} is not enabled globally</source>
+      <note>{0} is the API type, e.g. REST, GraphQL, or MCP</note>
     </trans-unit>
     <trans-unit id="++CODE++e3620e8a37371c6057d768faed05a7608c6e5ee783372a58b137b047300e8b7a">
       <source xml:lang="en">{0} issue</source>

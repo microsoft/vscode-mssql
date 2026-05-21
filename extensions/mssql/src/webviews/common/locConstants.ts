@@ -1373,6 +1373,24 @@ export class LocConstants {
             enableMcpForCustomToolHelp: l10n.t(
                 "Enable MCP in API Type to use this custom tool setting.",
             ),
+            apiTypeNotEnabledGlobally: (apiType: string) =>
+                l10n.t({
+                    message: "{0} is not enabled globally",
+                    args: [apiType],
+                    comment: ["{0} is the API type, e.g. REST, GraphQL, or MCP"],
+                }),
+            enableApiTypeForEntity: (apiType: string) =>
+                l10n.t({
+                    message: "Enable {0} in API Type to expose this entity.",
+                    args: [apiType],
+                    comment: ["{0} is the API type, e.g. REST, GraphQL, or MCP"],
+                }),
+            enableApiTypeGlobally: (apiType: string) =>
+                l10n.t({
+                    message: "Enable {0} globally",
+                    args: [apiType],
+                    comment: ["{0} is the API type, e.g. REST, GraphQL, or MCP"],
+                }),
             all: l10n.t("All"),
             entityEndpoints: l10n.t("Entity Endpoints"),
             allSchemas: l10n.t("All Schemas"),
@@ -1478,6 +1496,7 @@ export class LocConstants {
             entityNameHelp: l10n.t("Used in API routes and responses"),
             authorizationRole: l10n.t("Authorization Role"),
             authorizationRoleHelp: l10n.t("Define who can access this endpoint"),
+            disabledGlobally: l10n.t("Disabled globally"),
             anonymous: l10n.t("Anonymous"),
             anonymousDescription: l10n.t("No authentication required"),
             authenticated: l10n.t("Authenticated"),

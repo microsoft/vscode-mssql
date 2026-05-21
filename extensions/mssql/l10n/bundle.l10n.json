@@ -882,6 +882,18 @@
     "Expose as MCP custom tool": "Expose as MCP custom tool",
     "Creates a dedicated MCP tool for this stored procedure. When disabled, the procedure can still be available through generic MCP execute tools if MCP is enabled.": "Creates a dedicated MCP tool for this stored procedure. When disabled, the procedure can still be available through generic MCP execute tools if MCP is enabled.",
     "Enable MCP in API Type to use this custom tool setting.": "Enable MCP in API Type to use this custom tool setting.",
+    "{0} is not enabled globally/{0} is the API type, e.g. REST, GraphQL, or MCP": {
+        "message": "{0} is not enabled globally",
+        "comment": ["{0} is the API type, e.g. REST, GraphQL, or MCP"]
+    },
+    "Enable {0} in API Type to expose this entity./{0} is the API type, e.g. REST, GraphQL, or MCP": {
+        "message": "Enable {0} in API Type to expose this entity.",
+        "comment": ["{0} is the API type, e.g. REST, GraphQL, or MCP"]
+    },
+    "Enable {0} globally/{0} is the API type, e.g. REST, GraphQL, or MCP": {
+        "message": "Enable {0} globally",
+        "comment": ["{0} is the API type, e.g. REST, GraphQL, or MCP"]
+    },
     "Entity Endpoints": "Entity Endpoints",
     "All Schemas": "All Schemas",
     "Filter entities...": "Filter entities...",
@@ -951,6 +963,7 @@
     "Used in API routes and responses": "Used in API routes and responses",
     "Authorization Role": "Authorization Role",
     "Define who can access this endpoint": "Define who can access this endpoint",
+    "Disabled globally": "Disabled globally",
     "Anonymous": "Anonymous",
     "No authentication required": "No authentication required",
     "Authenticated": "Authenticated",

@@ -401,6 +401,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
         toggleDabEntityAction,
         toggleDabColumnExposure,
         updateDabEntitySettings,
+        updateDabApiTypes,
         dabTextFilter,
         currentFilteredTables,
     } = context;
@@ -1359,6 +1360,9 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                     isRestEnabled={dabConfig.apiTypes.includes(Dab.ApiType.Rest)}
                     isGraphQLEnabled={dabConfig.apiTypes.includes(Dab.ApiType.GraphQL)}
                     isMcpEnabled={dabConfig.apiTypes.includes(Dab.ApiType.Mcp)}
+                    onEnableApiType={(apiType) =>
+                        updateDabApiTypes(Array.from(new Set([...dabConfig.apiTypes, apiType])))
+                    }
                     open={!!settingsEntity}
                     onOpenChange={(open) => {
                         if (!open) {

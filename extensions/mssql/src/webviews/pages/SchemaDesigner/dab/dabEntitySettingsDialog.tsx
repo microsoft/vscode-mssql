@@ -21,16 +21,43 @@ import {
     ToggleButton,
     tokens,
 } from "@fluentui/react-components";
-import { Dismiss24Regular } from "@fluentui/react-icons";
+import { Dismiss24Regular, Table16Regular, Warning16Regular } from "@fluentui/react-icons";
 import { useEffect, useState } from "react";
 import { locConstants } from "../../../common/locConstants";
 import { Dab } from "../../../../sharedInterfaces/dab";
+import { StoredProcedureIcon16Regular } from "../../../common/icons/storedProcedure";
+import { ViewIcon16Regular } from "../../../common/icons/view";
 
 const useStyles = makeStyles({
     drawerBody: {
         display: "flex",
         flexDirection: "column",
         rowGap: "20px",
+    },
+    headerTitleContent: {
+        display: "flex",
+        flexDirection: "column",
+        rowGap: "4px",
+    },
+    headerObjectRow: {
+        display: "flex",
+        alignItems: "center",
+        columnGap: "6px",
+    },
+    headerObjectName: {
+        fontSize: tokens.fontSizeBase300,
+        fontWeight: tokens.fontWeightSemibold,
+        color: tokens.colorNeutralForeground1,
+        fontFamily: tokens.fontFamilyMonospace,
+    },
+    headerSubtitle: {
+        fontSize: tokens.fontSizeBase200,
+        color: tokens.colorNeutralForeground3,
+        fontWeight: tokens.fontWeightRegular,
+    },
+    sourceIcon: {
+        color: tokens.colorNeutralForeground3,
+        flexShrink: 0,
     },
     section: {
         display: "flex",
@@ -47,6 +74,62 @@ const useStyles = makeStyles({
         fontSize: tokens.fontSizeBase300,
         fontWeight: tokens.fontWeightSemibold,
         color: tokens.colorNeutralForeground1,
+    },
+    sectionDisabled: {
+        opacity: 0.75,
+    },
+    sectionHeader: {
+        display: "flex",
+        alignItems: "center",
+        columnGap: "8px",
+    },
+    disabledBadge: {
+        borderRadius: tokens.borderRadiusCircular,
+        border: `1px solid ${tokens.colorPaletteYellowBorder2}`,
+        backgroundColor: tokens.colorPaletteYellowBackground2,
+        color: tokens.colorPaletteYellowForeground2,
+        fontSize: "10px",
+        padding: "1px 7px",
+    },
+    sectionBody: {
+        display: "flex",
+        flexDirection: "column",
+        rowGap: "10px",
+        paddingLeft: "20px",
+    },
+    disabledBanner: {
+        display: "flex",
+        alignItems: "flex-start",
+        columnGap: "9px",
+        padding: "9px 11px",
+        borderRadius: tokens.borderRadiusMedium,
+        border: `1px solid ${tokens.colorPaletteYellowBorder2}`,
+        backgroundColor: tokens.colorPaletteYellowBackground2,
+    },
+    disabledBannerIcon: {
+        color: tokens.colorPaletteYellowForeground2,
+        flexShrink: 0,
+        marginTop: "1px",
+    },
+    disabledBannerContent: {
+        display: "flex",
+        flexDirection: "column",
+        rowGap: "4px",
+        flex: 1,
+    },
+    disabledBannerTitle: {
+        fontSize: tokens.fontSizeBase200,
+        fontWeight: tokens.fontWeightSemibold,
+        color: tokens.colorPaletteYellowForeground2,
+    },
+    disabledBannerText: {
+        fontSize: tokens.fontSizeBase100,
+        lineHeight: tokens.lineHeightBase200,
+        color: tokens.colorNeutralForeground2,
+    },
+    disabledBannerButton: {
+        alignSelf: "flex-start",
+        marginTop: "2px",
     },
     fieldHint: {
         fontSize: "12px",
@@ -126,6 +209,7 @@ interface DabEntitySettingsDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onApply: (settings: Dab.EntityAdvancedSettings) => void;
+    onEnableApiType: (apiType: Dab.ApiType) => void;
 }
 
 export function DabEntitySettingsDialog({
@@ -136,6 +220,7 @@ export function DabEntitySettingsDialog({
     open,
     onOpenChange,
     onApply,
+    onEnableApiType,
 }: DabEntitySettingsDialogProps) {
     const classes = useStyles();
 
@@ -212,17 +297,57 @@ export function DabEntitySettingsDialog({
         localSettings.authorizationRole === Dab.AuthorizationRole.Authenticated;
     const isEntityRestEnabled = localSettings.restEnabled !== false;
     const isEntityGraphQLEnabled = localSettings.graphQLEnabled !== false;
-    const isRestSectionEnabled = isRestEnabled && isEntityRestEnabled;
-    const isGraphQLSectionEnabled = isGraphQLEnabled && isEntityGraphQLEnabled;
     const storedProcedureRestMethods = localSettings.storedProcedureRestMethods ?? [
         Dab.RestMethod.Post,
     ];
     const storedProcedureGraphQLOperation =
         localSettings.storedProcedureGraphQLOperation ?? Dab.GraphQLOperation.Mutation;
     const exposeAsMcpCustomTool = localSettings.exposeAsMcpCustomTool !== false;
-    const mcpCustomToolHelpText = isMcpEnabled
-        ? locConstants.schemaDesigner.exposeAsMcpCustomToolHelp
-        : locConstants.schemaDesigner.enableMcpForCustomToolHelp;
+    const sourceObjectName = `${entity.schemaName}.${entity.sourceName ?? entity.tableName}`;
+
+    const renderSourceIcon = () => {
+        switch (entity.sourceType ?? Dab.EntitySourceType.Table) {
+            case Dab.EntitySourceType.View:
+                return <ViewIcon16Regular className={classes.sourceIcon} />;
+            case Dab.EntitySourceType.StoredProcedure:
+                return <StoredProcedureIcon16Regular className={classes.sourceIcon} />;
+            case Dab.EntitySourceType.Table:
+            default:
+                return <Table16Regular className={classes.sourceIcon} />;
+        }
+    };
+
+    const renderSectionHeader = (title: string, disabled?: boolean) => (
+        <div className={classes.sectionHeader}>
+            <Text className={classes.sectionTitle}>{title}</Text>
+            {disabled && (
+                <span className={classes.disabledBadge}>
+                    {locConstants.schemaDesigner.disabledGlobally}
+                </span>
+            )}
+        </div>
+    );
+
+    const renderDisabledBanner = (apiType: Dab.ApiType, label: string) => (
+        <div className={classes.disabledBanner}>
+            <Warning16Regular className={classes.disabledBannerIcon} />
+            <div className={classes.disabledBannerContent}>
+                <Text className={classes.disabledBannerTitle}>
+                    {locConstants.schemaDesigner.apiTypeNotEnabledGlobally(label)}
+                </Text>
+                <Text className={classes.disabledBannerText}>
+                    {locConstants.schemaDesigner.enableApiTypeForEntity(label)}
+                </Text>
+                <Button
+                    appearance="outline"
+                    size="small"
+                    className={classes.disabledBannerButton}
+                    onClick={() => onEnableApiType(apiType)}>
+                    {locConstants.schemaDesigner.enableApiTypeGlobally(label)}
+                </Button>
+            </div>
+        </div>
+    );
 
     return (
         <Drawer
@@ -241,216 +366,280 @@ export function DabEntitySettingsDialog({
                             onClick={handleCancel}
                         />
                     }>
-                    {locConstants.schemaDesigner.advancedEntityConfiguration}
+                    <div className={classes.headerTitleContent}>
+                        <div className={classes.headerObjectRow}>
+                            {renderSourceIcon()}
+                            <span className={classes.headerObjectName}>{sourceObjectName}</span>
+                        </div>
+                        <span className={classes.headerSubtitle}>
+                            {locConstants.schemaDesigner.advancedEntityConfiguration}
+                        </span>
+                    </div>
                 </DrawerHeaderTitle>
             </DrawerHeader>
             <DrawerBody className={classes.drawerBody}>
                 <section className={classes.section}>
-                    <Text className={classes.sectionTitle}>
-                        {locConstants.schemaDesigner.identity}
-                    </Text>
-                    <Text className={classes.sourceText}>
-                        {locConstants.schemaDesigner.sourceWithName(
-                            `${entity.schemaName}.${entity.sourceName ?? entity.tableName}`,
-                        )}
-                    </Text>
-                    <Field label={locConstants.schemaDesigner.entityName}>
-                        <Input
-                            value={localSettings.entityName}
-                            onChange={(_, data) => updateEntityName(data.value)}
-                        />
-                        <Text className={classes.fieldHint}>
-                            {locConstants.schemaDesigner.entityNameHelp}
-                        </Text>
-                    </Field>
-                </section>
-
-                <section className={classes.section}>
-                    <Text className={classes.sectionTitle}>
-                        {locConstants.schemaDesigner.authorizationRole}
-                    </Text>
-                    <Text className={classes.fieldHint}>
-                        {locConstants.schemaDesigner.authorizationRoleHelp}
-                    </Text>
-                    <div className={classes.roleButtonsContainer}>
-                        <ToggleButton
-                            className={classes.roleButton}
-                            appearance={isAnonymousSelected ? "primary" : "outline"}
-                            checked={isAnonymousSelected}
-                            onClick={() =>
-                                updateAuthorizationRole(Dab.AuthorizationRole.Anonymous)
-                            }>
-                            <div className={classes.roleButtonContent}>
-                                <span
-                                    className={mergeClasses(
-                                        classes.roleButtonLabel,
-                                        isAnonymousSelected
-                                            ? classes.roleButtonLabelSelected
-                                            : classes.roleButtonLabelUnselected,
-                                    )}>
-                                    {locConstants.schemaDesigner.anonymous}
-                                </span>
-                                <span
-                                    className={mergeClasses(
-                                        classes.roleButtonDescription,
-                                        isAnonymousSelected
-                                            ? classes.roleButtonDescriptionSelected
-                                            : classes.roleButtonDescriptionUnselected,
-                                    )}>
-                                    {locConstants.schemaDesigner.anonymousDescription}
-                                </span>
-                            </div>
-                        </ToggleButton>
-                        <ToggleButton
-                            className={classes.roleButton}
-                            appearance={isAuthenticatedSelected ? "primary" : "outline"}
-                            checked={isAuthenticatedSelected}
-                            onClick={() =>
-                                updateAuthorizationRole(Dab.AuthorizationRole.Authenticated)
-                            }>
-                            <div className={classes.roleButtonContent}>
-                                <span
-                                    className={mergeClasses(
-                                        classes.roleButtonLabel,
-                                        isAuthenticatedSelected
-                                            ? classes.roleButtonLabelSelected
-                                            : classes.roleButtonLabelUnselected,
-                                    )}>
-                                    {locConstants.schemaDesigner.authenticated}
-                                </span>
-                                <span
-                                    className={mergeClasses(
-                                        classes.roleButtonDescription,
-                                        isAuthenticatedSelected
-                                            ? classes.roleButtonDescriptionSelected
-                                            : classes.roleButtonDescriptionUnselected,
-                                    )}>
-                                    {locConstants.schemaDesigner.authenticatedDescription}
-                                </span>
-                            </div>
-                        </ToggleButton>
+                    {renderSectionHeader(locConstants.schemaDesigner.identity)}
+                    <div className={classes.sectionBody}>
+                        <Field label={locConstants.schemaDesigner.entityName}>
+                            <Input
+                                value={localSettings.entityName}
+                                onChange={(_, data) => updateEntityName(data.value)}
+                            />
+                            <Text className={classes.fieldHint}>
+                                {locConstants.schemaDesigner.entityNameHelp}
+                            </Text>
+                        </Field>
                     </div>
                 </section>
 
                 <section className={classes.section}>
-                    <Text className={classes.sectionTitle}>{locConstants.schemaDesigner.rest}</Text>
-                    <Field label={locConstants.schemaDesigner.customRestPath}>
-                        <div className={classes.checkboxGroup}>
-                            <Checkbox
-                                checked={isEntityRestEnabled}
-                                disabled={!isRestEnabled}
-                                onChange={(_, data) => updateRestEnabled(!!data.checked)}
-                                label={locConstants.schemaDesigner.enableRestForEntity}
-                            />
-                            {!isRestEnabled && (
-                                <Text className={classes.fieldHint}>
-                                    {locConstants.schemaDesigner.enableRestForEntityHelp}
-                                </Text>
-                            )}
-                        </div>
-                        <Input
-                            value={localSettings.customRestPath ?? ""}
-                            placeholder={(entity.sourceName ?? entity.tableName).toLowerCase()}
-                            disabled={!isRestSectionEnabled}
-                            onChange={(_, data) => updateCustomRestPath(data.value)}
-                        />
+                    {renderSectionHeader(locConstants.schemaDesigner.authorizationRole)}
+                    <div className={classes.sectionBody}>
                         <Text className={classes.fieldHint}>
-                            {locConstants.schemaDesigner.customRestPathHelp}
+                            {locConstants.schemaDesigner.authorizationRoleHelp}
                         </Text>
-                    </Field>
-
-                    {isStoredProcedure && (
-                        <Field label={locConstants.schemaDesigner.storedProcedureRestMethods}>
-                            <div className={classes.methodGroup}>
-                                {Object.values(Dab.RestMethod).map((method) => (
-                                    <Checkbox
-                                        key={method}
-                                        checked={storedProcedureRestMethods.includes(method)}
-                                        disabled={!isRestSectionEnabled}
-                                        onChange={(_, data) =>
-                                            updateStoredProcedureRestMethod(method, !!data.checked)
-                                        }
-                                        label={method.toUpperCase()}
-                                    />
-                                ))}
-                            </div>
-                            <Text className={classes.fieldHint}>
-                                {locConstants.schemaDesigner.storedProcedureRestMethodsHelp}
-                            </Text>
-                        </Field>
-                    )}
+                        <div className={classes.roleButtonsContainer}>
+                            <ToggleButton
+                                className={classes.roleButton}
+                                appearance={isAnonymousSelected ? "primary" : "outline"}
+                                checked={isAnonymousSelected}
+                                onClick={() =>
+                                    updateAuthorizationRole(Dab.AuthorizationRole.Anonymous)
+                                }>
+                                <div className={classes.roleButtonContent}>
+                                    <span
+                                        className={mergeClasses(
+                                            classes.roleButtonLabel,
+                                            isAnonymousSelected
+                                                ? classes.roleButtonLabelSelected
+                                                : classes.roleButtonLabelUnselected,
+                                        )}>
+                                        {locConstants.schemaDesigner.anonymous}
+                                    </span>
+                                    <span
+                                        className={mergeClasses(
+                                            classes.roleButtonDescription,
+                                            isAnonymousSelected
+                                                ? classes.roleButtonDescriptionSelected
+                                                : classes.roleButtonDescriptionUnselected,
+                                        )}>
+                                        {locConstants.schemaDesigner.anonymousDescription}
+                                    </span>
+                                </div>
+                            </ToggleButton>
+                            <ToggleButton
+                                className={classes.roleButton}
+                                appearance={isAuthenticatedSelected ? "primary" : "outline"}
+                                checked={isAuthenticatedSelected}
+                                onClick={() =>
+                                    updateAuthorizationRole(Dab.AuthorizationRole.Authenticated)
+                                }>
+                                <div className={classes.roleButtonContent}>
+                                    <span
+                                        className={mergeClasses(
+                                            classes.roleButtonLabel,
+                                            isAuthenticatedSelected
+                                                ? classes.roleButtonLabelSelected
+                                                : classes.roleButtonLabelUnselected,
+                                        )}>
+                                        {locConstants.schemaDesigner.authenticated}
+                                    </span>
+                                    <span
+                                        className={mergeClasses(
+                                            classes.roleButtonDescription,
+                                            isAuthenticatedSelected
+                                                ? classes.roleButtonDescriptionSelected
+                                                : classes.roleButtonDescriptionUnselected,
+                                        )}>
+                                        {locConstants.schemaDesigner.authenticatedDescription}
+                                    </span>
+                                </div>
+                            </ToggleButton>
+                        </div>
+                    </div>
                 </section>
 
-                <section className={classes.section}>
-                    <Text className={classes.sectionTitle}>
-                        {locConstants.schemaDesigner.graphQL}
-                    </Text>
-                    <Field label={locConstants.schemaDesigner.customGraphQLType}>
-                        <div className={classes.checkboxGroup}>
-                            <Checkbox
-                                checked={isEntityGraphQLEnabled}
-                                disabled={!isGraphQLEnabled}
-                                onChange={(_, data) => updateGraphQLEnabled(!!data.checked)}
-                                label={locConstants.schemaDesigner.enableGraphQLForEntity}
-                            />
-                            {!isGraphQLEnabled && (
-                                <Text className={classes.fieldHint}>
-                                    {locConstants.schemaDesigner.enableGraphQLForEntityHelp}
-                                </Text>
-                            )}
-                        </div>
-                        <Input
-                            value={localSettings.customGraphQLType ?? ""}
-                            placeholder={entity.sourceName ?? entity.tableName}
-                            disabled={!isGraphQLSectionEnabled}
-                            onChange={(_, data) => updateCustomGraphQLType(data.value)}
-                        />
-                        <Text className={classes.fieldHint}>
-                            {locConstants.schemaDesigner.customGraphQLTypeHelp}
-                        </Text>
-                    </Field>
+                <section
+                    className={mergeClasses(
+                        classes.section,
+                        !isRestEnabled && classes.sectionDisabled,
+                    )}>
+                    {renderSectionHeader(locConstants.schemaDesigner.rest, !isRestEnabled)}
+                    <div className={classes.sectionBody}>
+                        {!isRestEnabled ? (
+                            renderDisabledBanner(Dab.ApiType.Rest, locConstants.schemaDesigner.rest)
+                        ) : (
+                            <>
+                                <Checkbox
+                                    checked={isEntityRestEnabled}
+                                    onChange={(_, data) => updateRestEnabled(!!data.checked)}
+                                    label={locConstants.schemaDesigner.enableRestForEntity}
+                                />
+                                {isEntityRestEnabled && (
+                                    <>
+                                        <Field label={locConstants.schemaDesigner.customRestPath}>
+                                            <Input
+                                                value={localSettings.customRestPath ?? ""}
+                                                placeholder={(
+                                                    entity.sourceName ?? entity.tableName
+                                                ).toLowerCase()}
+                                                onChange={(_, data) =>
+                                                    updateCustomRestPath(data.value)
+                                                }
+                                            />
+                                            <Text className={classes.fieldHint}>
+                                                {locConstants.schemaDesigner.customRestPathHelp}
+                                            </Text>
+                                        </Field>
 
-                    {isStoredProcedure && (
-                        <Field label={locConstants.schemaDesigner.storedProcedureGraphQLOperation}>
-                            <RadioGroup
-                                value={storedProcedureGraphQLOperation}
-                                disabled={!isGraphQLSectionEnabled}
-                                layout="horizontal"
-                                onChange={(_, data) =>
-                                    updateStoredProcedureGraphQLOperation(
-                                        data.value as Dab.GraphQLOperation,
-                                    )
-                                }>
-                                <Radio
-                                    value={Dab.GraphQLOperation.Mutation}
-                                    label={locConstants.schemaDesigner.graphqlMutation}
+                                        {isStoredProcedure && (
+                                            <Field
+                                                label={
+                                                    locConstants.schemaDesigner
+                                                        .storedProcedureRestMethods
+                                                }>
+                                                <div className={classes.methodGroup}>
+                                                    {Object.values(Dab.RestMethod).map((method) => (
+                                                        <Checkbox
+                                                            key={method}
+                                                            checked={storedProcedureRestMethods.includes(
+                                                                method,
+                                                            )}
+                                                            onChange={(_, data) =>
+                                                                updateStoredProcedureRestMethod(
+                                                                    method,
+                                                                    !!data.checked,
+                                                                )
+                                                            }
+                                                            label={method.toUpperCase()}
+                                                        />
+                                                    ))}
+                                                </div>
+                                                <Text className={classes.fieldHint}>
+                                                    {
+                                                        locConstants.schemaDesigner
+                                                            .storedProcedureRestMethodsHelp
+                                                    }
+                                                </Text>
+                                            </Field>
+                                        )}
+                                    </>
+                                )}
+                            </>
+                        )}
+                    </div>
+                </section>
+
+                <section
+                    className={mergeClasses(
+                        classes.section,
+                        !isGraphQLEnabled && classes.sectionDisabled,
+                    )}>
+                    {renderSectionHeader(locConstants.schemaDesigner.graphQL, !isGraphQLEnabled)}
+                    <div className={classes.sectionBody}>
+                        {!isGraphQLEnabled ? (
+                            renderDisabledBanner(
+                                Dab.ApiType.GraphQL,
+                                locConstants.schemaDesigner.graphQL,
+                            )
+                        ) : (
+                            <>
+                                <Checkbox
+                                    checked={isEntityGraphQLEnabled}
+                                    onChange={(_, data) => updateGraphQLEnabled(!!data.checked)}
+                                    label={locConstants.schemaDesigner.enableGraphQLForEntity}
                                 />
-                                <Radio
-                                    value={Dab.GraphQLOperation.Query}
-                                    label={locConstants.schemaDesigner.graphqlQuery}
-                                />
-                            </RadioGroup>
-                            <Text className={classes.fieldHint}>
-                                {locConstants.schemaDesigner.storedProcedureGraphQLOperationHelp}
-                            </Text>
-                        </Field>
-                    )}
+                                {isEntityGraphQLEnabled && (
+                                    <>
+                                        <Field
+                                            label={locConstants.schemaDesigner.customGraphQLType}>
+                                            <Input
+                                                value={localSettings.customGraphQLType ?? ""}
+                                                placeholder={entity.sourceName ?? entity.tableName}
+                                                onChange={(_, data) =>
+                                                    updateCustomGraphQLType(data.value)
+                                                }
+                                            />
+                                            <Text className={classes.fieldHint}>
+                                                {locConstants.schemaDesigner.customGraphQLTypeHelp}
+                                            </Text>
+                                        </Field>
+
+                                        {isStoredProcedure && (
+                                            <Field
+                                                label={
+                                                    locConstants.schemaDesigner
+                                                        .storedProcedureGraphQLOperation
+                                                }>
+                                                <RadioGroup
+                                                    value={storedProcedureGraphQLOperation}
+                                                    layout="horizontal"
+                                                    onChange={(_, data) =>
+                                                        updateStoredProcedureGraphQLOperation(
+                                                            data.value as Dab.GraphQLOperation,
+                                                        )
+                                                    }>
+                                                    <Radio
+                                                        value={Dab.GraphQLOperation.Mutation}
+                                                        label={
+                                                            locConstants.schemaDesigner
+                                                                .graphqlMutation
+                                                        }
+                                                    />
+                                                    <Radio
+                                                        value={Dab.GraphQLOperation.Query}
+                                                        label={
+                                                            locConstants.schemaDesigner.graphqlQuery
+                                                        }
+                                                    />
+                                                </RadioGroup>
+                                                <Text className={classes.fieldHint}>
+                                                    {
+                                                        locConstants.schemaDesigner
+                                                            .storedProcedureGraphQLOperationHelp
+                                                    }
+                                                </Text>
+                                            </Field>
+                                        )}
+                                    </>
+                                )}
+                            </>
+                        )}
+                    </div>
                 </section>
 
                 {isStoredProcedure && (
-                    <section className={mergeClasses(classes.section, classes.lastSection)}>
-                        <Text className={classes.sectionTitle}>
-                            {locConstants.schemaDesigner.mcp}
-                        </Text>
-                        <Field label={locConstants.schemaDesigner.mcpCustomTool}>
-                            <Checkbox
-                                checked={exposeAsMcpCustomTool}
-                                disabled={!isMcpEnabled}
-                                onChange={(_, data) => updateExposeAsMcpCustomTool(!!data.checked)}
-                                label={locConstants.schemaDesigner.exposeAsMcpCustomTool}
-                            />
-                            <Text className={classes.fieldHint}>{mcpCustomToolHelpText}</Text>
-                        </Field>
+                    <section
+                        className={mergeClasses(
+                            classes.section,
+                            classes.lastSection,
+                            !isMcpEnabled && classes.sectionDisabled,
+                        )}>
+                        {renderSectionHeader(locConstants.schemaDesigner.mcp, !isMcpEnabled)}
+                        <div className={classes.sectionBody}>
+                            {!isMcpEnabled ? (
+                                renderDisabledBanner(
+                                    Dab.ApiType.Mcp,
+                                    locConstants.schemaDesigner.mcp,
+                                )
+                            ) : (
+                                <>
+                                    <Checkbox
+                                        checked={exposeAsMcpCustomTool}
+                                        onChange={(_, data) =>
+                                            updateExposeAsMcpCustomTool(!!data.checked)
+                                        }
+                                        label={locConstants.schemaDesigner.exposeAsMcpCustomTool}
+                                    />
+                                    {exposeAsMcpCustomTool && (
+                                        <Text className={classes.fieldHint}>
+                                            {locConstants.schemaDesigner.exposeAsMcpCustomToolHelp}
+                                        </Text>
+                                    )}
+                                </>
+                            )}
+                        </div>
                     </section>
                 )}
             </DrawerBody>
