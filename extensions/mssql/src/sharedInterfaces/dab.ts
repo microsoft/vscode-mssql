@@ -56,6 +56,47 @@ export namespace Dab {
         return restMethodSortOrder.filter((method) => uniqueMethods.has(method));
     }
 
+    export const maxDabEntityNameLength = 128;
+    export const maxDabRoutePathLength = 256;
+
+    const dabEntityNamePattern = /^[A-Za-z][A-Za-z0-9_]*$/;
+    const dabGraphQLTypePattern = /^[_A-Za-z][_0-9A-Za-z]*$/;
+    const dabRestPathPattern = /^\/?[A-Za-z0-9._~-]+(?:\/[A-Za-z0-9._~-]+)*$/;
+
+    export function normalizeDabIdentifier(value: string | undefined): string {
+        return (value ?? "").trim().toLowerCase();
+    }
+
+    export function validateDabEntityName(value: string): string | undefined {
+        if (value.length > maxDabEntityNameLength) {
+            return `entityName must be ${maxDabEntityNameLength} characters or fewer.`;
+        }
+        if (!dabEntityNamePattern.test(value)) {
+            return "entityName must start with a letter and contain only letters, numbers, and underscores.";
+        }
+        return undefined;
+    }
+
+    export function validateDabCustomRestPath(value: string): string | undefined {
+        if (value.length > maxDabRoutePathLength) {
+            return `customRestPath must be ${maxDabRoutePathLength} characters or fewer.`;
+        }
+        if (!dabRestPathPattern.test(value)) {
+            return "customRestPath must be a relative route path using letters, numbers, slash, dot, underscore, tilde, or hyphen.";
+        }
+        return undefined;
+    }
+
+    export function validateDabCustomGraphQLType(value: string): string | undefined {
+        if (value.length > maxDabEntityNameLength) {
+            return `customGraphQLType must be ${maxDabEntityNameLength} characters or fewer.`;
+        }
+        if (!dabGraphQLTypePattern.test(value)) {
+            return "customGraphQLType must be a valid GraphQL name.";
+        }
+        return undefined;
+    }
+
     export enum GraphQLOperation {
         Query = "query",
         Mutation = "mutation",

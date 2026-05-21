@@ -46,6 +46,28 @@ suite("DAB shared interface helpers", () => {
         ).to.deep.equal([Dab.RestMethod.Get, Dab.RestMethod.Post, Dab.RestMethod.Delete]);
     });
 
+    test("validates DAB entity setting strings", () => {
+        expect(Dab.validateDabEntityName("UsersApi")).to.equal(undefined);
+        expect(Dab.validateDabEntityName("<script>alert('xss')</script>")).to.include(
+            "entityName must start with a letter",
+        );
+        expect(Dab.validateDabEntityName(`A${"a".repeat(500)}`)).to.include(
+            "128 characters or fewer",
+        );
+
+        expect(Dab.validateDabCustomRestPath("/users/by-id")).to.equal(undefined);
+        expect(Dab.validateDabCustomRestPath("users.by_id")).to.equal(undefined);
+        expect(Dab.validateDabCustomRestPath("'; DROP TABLE dbo.Todos; --")).to.include(
+            "customRestPath must be a relative route path",
+        );
+
+        expect(Dab.validateDabCustomGraphQLType("UsersType")).to.equal(undefined);
+        expect(Dab.validateDabCustomGraphQLType("_UsersType")).to.equal(undefined);
+        expect(Dab.validateDabCustomGraphQLType("こんにちは")).to.equal(
+            "customGraphQLType must be a valid GraphQL name.",
+        );
+    });
+
     test("validateSourceObjectForDab uses view fields for primary key support", () => {
         const supportedView = createSourceObject({
             id: "view:dbo.ActiveUsers",

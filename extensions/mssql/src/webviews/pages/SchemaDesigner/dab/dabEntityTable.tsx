@@ -1405,6 +1405,9 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
             {settingsEntity && dabConfig && (
                 <DabEntitySettingsDialog
                     entity={settingsEntity}
+                    existingEntityNames={dabConfig.entities
+                        .filter((entity) => entity.id !== settingsEntity.id)
+                        .map((entity) => entity.advancedSettings.entityName)}
                     isRestEnabled={dabConfig.apiTypes.includes(Dab.ApiType.Rest)}
                     isGraphQLEnabled={dabConfig.apiTypes.includes(Dab.ApiType.GraphQL)}
                     isMcpEnabled={dabConfig.apiTypes.includes(Dab.ApiType.Mcp)}

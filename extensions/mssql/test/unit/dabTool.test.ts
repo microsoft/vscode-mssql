@@ -908,7 +908,7 @@ suite("DabTool Tests", () => {
             expect(unsupportedReturnState.message).to.include("Unsupported returnState");
         });
 
-        test("apply_changes validates set_api_types and fails at index 0 with partial receipt", async () => {
+        test("apply_changes validates set_api_types and fails at index 0 without committing", async () => {
             const harness = createDabHandlerHarness({
                 tables: [createTable("t1", "dbo", "Users")],
                 dabConfig: null,
@@ -934,7 +934,7 @@ suite("DabTool Tests", () => {
             expect(result.message).to.equal("apiTypes must be unique.");
             expect(result.failedChangeIndex).to.equal(0);
             expect(result.appliedChanges).to.equal(0);
-            expect(harness.commitSpy.calledOnce).to.equal(true);
+            expect(harness.commitSpy.called).to.equal(false);
         });
 
         test("apply_changes validates set_entity_actions payload", async () => {
@@ -962,7 +962,7 @@ suite("DabTool Tests", () => {
             }
             expect(emptyActions.reason).to.equal("validation_error");
             expect(emptyActions.message).to.equal("enabledActions must be a non-empty array.");
-            expect(harness.commitSpy.calledOnce).to.equal(true);
+            expect(harness.commitSpy.called).to.equal(false);
             harness.commitSpy.resetHistory();
 
             const result = await harness.applyChanges({
@@ -984,7 +984,7 @@ suite("DabTool Tests", () => {
             expect(result.message).to.equal("enabledActions contains unsupported values.");
             expect(result.failedChangeIndex).to.equal(0);
             expect(result.appliedChanges).to.equal(0);
-            expect(harness.commitSpy.calledOnce).to.equal(true);
+            expect(harness.commitSpy.called).to.equal(false);
         });
 
         test("apply_changes updates column exposure by column name", async () => {
@@ -1069,14 +1069,7 @@ suite("DabTool Tests", () => {
             }
             expect(result.reason).to.equal("validation_error");
             expect(result.message).to.equal("Primary key columns must remain exposed.");
-            expect(harness.commitSpy).to.have.been.calledWithMatch(
-                sinon.match((config: Dab.DabConfig) => {
-                    const entity = config.entities.find((candidate) => candidate.id === "t1");
-                    return (
-                        entity?.columns.find((column) => column.id === "t1-id")?.isExposed === true
-                    );
-                }),
-            );
+            expect(harness.commitSpy.called).to.equal(false);
         });
 
         test("apply_changes supports add/remove aliases and source refs for views", async () => {
@@ -1215,6 +1208,8 @@ suite("DabTool Tests", () => {
             }
             expect(duplicateName.reason).to.equal("validation_error");
             expect(duplicateName.message).to.include("entityName must be unique");
+            expect(harness.getConfig()?.entities[0].advancedSettings.entityName).to.equal("Users");
+            expect(harness.commitSpy.called).to.equal(false);
         });
 
         test("apply_changes patch_entity_settings rejects whitespace-only strings and trims accepted values", async () => {
@@ -1305,6 +1300,88 @@ suite("DabTool Tests", () => {
             expect(settings?.entityName).to.equal("UsersApi");
             expect(settings?.customRestPath).to.equal("/users");
             expect(settings?.customGraphQLType).to.equal("UsersType");
+        });
+
+        test("apply_changes patch_entity_settings rejects unsafe string values", async () => {
+            const harness = createDabHandlerHarness({
+                tables: [createTable("t1", "dbo", "Users")],
+                dabConfig: null,
+            });
+            let currentState = await harness.getState();
+
+            const scriptEntityName = await harness.applyChanges({
+                expectedVersion: currentState.version,
+                changes: [
+                    {
+                        type: "patch_entity_settings",
+                        entity: { id: "t1" },
+                        set: { entityName: "<script>alert('xss')</script>" },
+                    },
+                ],
+            });
+            expect(scriptEntityName.success).to.equal(false);
+            if (scriptEntityName.success) {
+                throw new Error("Expected failure response");
+            }
+            expect(scriptEntityName.reason).to.equal("invalid_request");
+            expect(scriptEntityName.message).to.include("entityName must start with a letter");
+
+            currentState = await harness.getState();
+            const unsafeRestPath = await harness.applyChanges({
+                expectedVersion: currentState.version,
+                changes: [
+                    {
+                        type: "patch_entity_settings",
+                        entity: { id: "t1" },
+                        set: { customRestPath: "'; DROP TABLE dbo.Todos; --" },
+                    },
+                ],
+            });
+            expect(unsafeRestPath.success).to.equal(false);
+            if (unsafeRestPath.success) {
+                throw new Error("Expected failure response");
+            }
+            expect(unsafeRestPath.reason).to.equal("invalid_request");
+            expect(unsafeRestPath.message).to.include(
+                "customRestPath must be a relative route path",
+            );
+
+            currentState = await harness.getState();
+            const unsafeGraphQLType = await harness.applyChanges({
+                expectedVersion: currentState.version,
+                changes: [
+                    {
+                        type: "patch_entity_settings",
+                        entity: { id: "t1" },
+                        set: { customGraphQLType: "こんにちは" },
+                    },
+                ],
+            });
+            expect(unsafeGraphQLType.success).to.equal(false);
+            if (unsafeGraphQLType.success) {
+                throw new Error("Expected failure response");
+            }
+            expect(unsafeGraphQLType.reason).to.equal("invalid_request");
+            expect(unsafeGraphQLType.message).to.equal(
+                "customGraphQLType must be a valid GraphQL name.",
+            );
+
+            currentState = await harness.getState();
+            const tooLongEntityName = await harness.applyChanges({
+                expectedVersion: currentState.version,
+                changes: [
+                    {
+                        type: "patch_entity_settings",
+                        entity: { id: "t1" },
+                        set: { entityName: `A${"a".repeat(500)}` },
+                    },
+                ],
+            });
+            expect(tooLongEntityName.success).to.equal(false);
+            if (tooLongEntityName.success) {
+                throw new Error("Expected failure response");
+            }
+            expect(tooLongEntityName.message).to.include("128 characters or fewer");
         });
 
         test("apply_changes lets Copilot patch stored procedure MCP custom tool setting", async () => {
@@ -1762,7 +1839,7 @@ suite("DabTool Tests", () => {
                 throw new Error("Expected failure response");
             }
             expect(settingsResult.reason).to.equal("entity_not_supported");
-            expect(harness.commitSpy.callCount).to.equal(3);
+            expect(harness.commitSpy.called).to.equal(false);
         });
 
         test("apply_changes allows disabling unsupported entities", async () => {
@@ -1832,7 +1909,7 @@ suite("DabTool Tests", () => {
             ).to.deep.equal([Dab.EntityAction.Read, Dab.EntityAction.Create]);
         });
 
-        test("apply_changes failure path uses fail-fast prefix commit semantics", async () => {
+        test("apply_changes failure path is atomic and does not commit partial changes", async () => {
             const harness = createDabHandlerHarness({
                 tables: [createTable("t1", "dbo", "Users"), createTable("t2", "sales", "Orders")],
                 dabConfig: null,
@@ -1840,6 +1917,7 @@ suite("DabTool Tests", () => {
 
             const currentState = await harness.getState();
             harness.commitSpy.resetHistory();
+            const originalVersion = currentState.version;
 
             const result = await harness.applyChanges({
                 expectedVersion: currentState.version,
@@ -1858,10 +1936,51 @@ suite("DabTool Tests", () => {
                 throw new Error("Expected failure response");
             }
             expect(result.failedChangeIndex).to.equal(1);
-            expect(result.appliedChanges).to.equal(1);
-            expect(result.version).to.match(/^dabcfg_[a-f0-9]{64}$/);
-            expect(result.summary?.apiTypes).to.deep.equal([Dab.ApiType.Rest, Dab.ApiType.GraphQL]);
-            expect(harness.commitSpy.calledOnce).to.equal(true);
+            expect(result.appliedChanges).to.equal(0);
+            expect(result.version).to.equal(originalVersion);
+            expect(result.summary?.apiTypes).to.deep.equal([Dab.ApiType.Rest]);
+            expect(harness.getConfig()?.apiTypes).to.deep.equal([Dab.ApiType.Rest]);
+            expect(harness.commitSpy.called).to.equal(false);
+        });
+
+        test("apply_changes preserves entity enablement across immediate sequential calls", async () => {
+            const harness = createDabHandlerHarness({
+                tables: [createTable("t1", "dbo", "Users"), createTable("t2", "sales", "Orders")],
+                dabConfig: null,
+            });
+
+            const currentState = await harness.getState();
+            const disableResult = await harness.applyChanges({
+                expectedVersion: currentState.version,
+                changes: [{ type: "set_entity_enabled", entity: { id: "t1" }, isEnabled: false }],
+            });
+
+            expect(disableResult.success).to.equal(true);
+            if (!disableResult.success) {
+                throw new Error("Expected success response");
+            }
+            expect(
+                disableResult.config?.entities.find((entity) => entity.id === "t1")?.isEnabled,
+            ).to.equal(false);
+
+            const secondResult = await harness.applyChanges({
+                expectedVersion: disableResult.version,
+                changes: [
+                    {
+                        type: "patch_entity_settings",
+                        entity: { id: "t2" },
+                        set: { customRestPath: "orders" },
+                    },
+                ],
+            });
+
+            expect(secondResult.success).to.equal(true);
+            if (!secondResult.success) {
+                throw new Error("Expected success response");
+            }
+            expect(
+                secondResult.config?.entities.find((entity) => entity.id === "t1")?.isEnabled,
+            ).to.equal(false);
         });
 
         test("apply_changes defaults to full returnState and auto-downgrades to summary when entityCount > 100", async () => {
@@ -1966,7 +2085,7 @@ suite("DabTool Tests", () => {
             expect(result.reason).to.equal("entity_not_supported");
             expect(result.failedChangeIndex).to.equal(0);
             expect(result.appliedChanges).to.equal(0);
-            expect(harness.commitSpy.calledOnce).to.equal(true);
+            expect(harness.commitSpy.called).to.equal(false);
         });
 
         test("apply_changes set_all_entities_enabled(true) leaves unsupported entities disabled", async () => {

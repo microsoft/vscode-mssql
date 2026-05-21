@@ -199,6 +199,7 @@ const useStyles = makeStyles({
 
 interface DabEntitySettingsDialogProps {
     entity: Dab.DabEntityConfig;
+    existingEntityNames: string[];
     isRestEnabled: boolean;
     isGraphQLEnabled: boolean;
     isMcpEnabled: boolean;
@@ -210,6 +211,7 @@ interface DabEntitySettingsDialogProps {
 
 export function DabEntitySettingsDialog({
     entity,
+    existingEntityNames,
     isRestEnabled,
     isGraphQLEnabled,
     isMcpEnabled,
@@ -231,10 +233,6 @@ export function DabEntitySettingsDialog({
             setLocalSettings(entity.advancedSettings);
         }
     }, [open, entity.advancedSettings]);
-
-    const handleApply = () => {
-        onApply(localSettings);
-    };
 
     const handleCancel = () => {
         onOpenChange(false);
@@ -300,6 +298,41 @@ export function DabEntitySettingsDialog({
         localSettings.storedProcedureGraphQLOperation ?? Dab.GraphQLOperation.Mutation;
     const exposeAsMcpCustomTool = localSettings.exposeAsMcpCustomTool !== false;
     const sourceObjectName = `${entity.schemaName}.${entity.sourceName ?? entity.tableName}`;
+    const entityName = localSettings.entityName.trim();
+    const customRestPath = localSettings.customRestPath?.trim() ?? "";
+    const customGraphQLType = localSettings.customGraphQLType?.trim() ?? "";
+    const normalizedExistingEntityNames = new Set(
+        existingEntityNames.map(Dab.normalizeDabIdentifier),
+    );
+    const entityNameValidationMessage =
+        entityName.length === 0
+            ? "entityName must be a non-empty string."
+            : normalizedExistingEntityNames.has(Dab.normalizeDabIdentifier(entityName))
+              ? `entityName must be unique across entities. Duplicate: ${entityName}`
+              : Dab.validateDabEntityName(entityName);
+    const customRestPathValidationMessage =
+        customRestPath.length > 0 ? Dab.validateDabCustomRestPath(customRestPath) : undefined;
+    const customGraphQLTypeValidationMessage =
+        customGraphQLType.length > 0
+            ? Dab.validateDabCustomGraphQLType(customGraphQLType)
+            : undefined;
+    const hasValidationError =
+        !!entityNameValidationMessage ||
+        !!customRestPathValidationMessage ||
+        !!customGraphQLTypeValidationMessage;
+
+    const handleApply = () => {
+        if (hasValidationError) {
+            return;
+        }
+
+        onApply({
+            ...localSettings,
+            entityName,
+            customRestPath: customRestPath.length > 0 ? customRestPath : undefined,
+            customGraphQLType: customGraphQLType.length > 0 ? customGraphQLType : undefined,
+        });
+    };
 
     const renderSourceIcon = () => {
         switch (entity.sourceType ?? Dab.EntitySourceType.Table) {
@@ -369,6 +402,10 @@ export function DabEntitySettingsDialog({
                             <div className={classes.sectionBody}>
                                 <Field
                                     label={locConstants.schemaDesigner.entityName}
+                                    validationState={
+                                        entityNameValidationMessage ? "error" : undefined
+                                    }
+                                    validationMessage={entityNameValidationMessage}
                                     hint={{
                                         children: locConstants.schemaDesigner.entityNameHelp,
                                         className: classes.fieldHint,
@@ -480,6 +517,14 @@ export function DabEntitySettingsDialog({
                                                     label={
                                                         locConstants.schemaDesigner.customRestPath
                                                     }
+                                                    validationState={
+                                                        customRestPathValidationMessage
+                                                            ? "error"
+                                                            : undefined
+                                                    }
+                                                    validationMessage={
+                                                        customRestPathValidationMessage
+                                                    }
                                                     hint={{
                                                         children:
                                                             locConstants.schemaDesigner
@@ -578,6 +623,14 @@ export function DabEntitySettingsDialog({
                                                     label={
                                                         locConstants.schemaDesigner
                                                             .customGraphQLType
+                                                    }
+                                                    validationState={
+                                                        customGraphQLTypeValidationMessage
+                                                            ? "error"
+                                                            : undefined
+                                                    }
+                                                    validationMessage={
+                                                        customGraphQLTypeValidationMessage
                                                     }
                                                     hint={{
                                                         children:
@@ -694,6 +747,7 @@ export function DabEntitySettingsDialog({
                         <Button
                             appearance="primary"
                             className={classes.actionButton}
+                            disabled={hasValidationError}
                             onClick={handleApply}>
                             {locConstants.schemaDesigner.applyChanges}
                         </Button>

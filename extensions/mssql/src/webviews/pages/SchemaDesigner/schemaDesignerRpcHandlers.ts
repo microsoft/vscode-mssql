@@ -1609,7 +1609,18 @@ function applyDabToolChange(
                                 message: "entityName must be a non-empty string.",
                             };
                         }
-                        updatedSettings.entityName = value.trim();
+                        {
+                            const trimmedValue = value.trim();
+                            const validationError = Dab.validateDabEntityName(trimmedValue);
+                            if (validationError) {
+                                return {
+                                    success: false,
+                                    reason: "invalid_request",
+                                    message: validationError,
+                                };
+                            }
+                            updatedSettings.entityName = trimmedValue;
+                        }
                         break;
                     case "authorizationRole":
                         if (
@@ -1644,7 +1655,18 @@ function applyDabToolChange(
                                 message: "customRestPath cannot be an empty string.",
                             };
                         }
-                        updatedSettings.customRestPath = value.trim();
+                        {
+                            const trimmedValue = value.trim();
+                            const validationError = Dab.validateDabCustomRestPath(trimmedValue);
+                            if (validationError) {
+                                return {
+                                    success: false,
+                                    reason: "invalid_request",
+                                    message: validationError,
+                                };
+                            }
+                            updatedSettings.customRestPath = trimmedValue;
+                        }
                         break;
                     case "restEnabled":
                         if (typeof value !== "boolean") {
@@ -1675,7 +1697,18 @@ function applyDabToolChange(
                                 message: "customGraphQLType cannot be an empty string.",
                             };
                         }
-                        updatedSettings.customGraphQLType = value.trim();
+                        {
+                            const trimmedValue = value.trim();
+                            const validationError = Dab.validateDabCustomGraphQLType(trimmedValue);
+                            if (validationError) {
+                                return {
+                                    success: false,
+                                    reason: "invalid_request",
+                                    message: validationError,
+                                };
+                            }
+                            updatedSettings.customGraphQLType = trimmedValue;
+                        }
                         break;
                     case "graphQLEnabled":
                         if (typeof value !== "boolean") {
@@ -1967,15 +2000,14 @@ export function registerSchemaDesignerDabToolHandlers(params: {
         for (let i = 0; i < request.changes.length; i++) {
             const applyResult = applyDabToolChange(workingSnapshot, request.changes[i]);
             if (applyResult.success === false) {
-                commitDabConfig(workingSnapshot);
                 return {
                     success: false,
                     reason: applyResult.reason,
                     message: applyResult.message,
                     failedChangeIndex: i,
-                    appliedChanges,
-                    version: await computeDabVersion(workingSnapshot),
-                    summary: buildDabSummary(workingSnapshot),
+                    appliedChanges: 0,
+                    version,
+                    summary: buildDabSummary(baseSnapshot),
                 };
             }
             appliedChanges++;
