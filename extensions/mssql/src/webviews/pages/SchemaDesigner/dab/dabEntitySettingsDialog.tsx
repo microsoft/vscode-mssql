@@ -127,9 +127,11 @@ const useStyles = makeStyles({
         color: tokens.colorNeutralForeground2,
     },
     fieldHint: {
-        fontSize: "12px",
-        color: tokens.colorNeutralForeground3,
-        marginTop: "2px",
+        display: "block",
+        color: tokens.colorNeutralForeground4,
+        fontSize: tokens.fontSizeBase200,
+        fontWeight: tokens.fontWeightRegular,
+        lineHeight: tokens.lineHeightBase200,
     },
     roleButtonsContainer: {
         display: "flex",
@@ -391,14 +393,16 @@ export function DabEntitySettingsDialog({
                 <section className={classes.section}>
                     {renderSectionHeader(locConstants.schemaDesigner.identity)}
                     <div className={classes.sectionBody}>
-                        <Field label={locConstants.schemaDesigner.entityName}>
+                        <Field
+                            label={locConstants.schemaDesigner.entityName}
+                            hint={{
+                                children: locConstants.schemaDesigner.entityNameHelp,
+                                className: classes.fieldHint,
+                            }}>
                             <Input
                                 value={localSettings.entityName}
                                 onChange={(_, data) => updateEntityName(data.value)}
                             />
-                            <Text className={classes.fieldHint}>
-                                {locConstants.schemaDesigner.entityNameHelp}
-                            </Text>
                         </Field>
                     </div>
                 </section>
@@ -406,9 +410,9 @@ export function DabEntitySettingsDialog({
                 <section className={classes.section}>
                     {renderSectionHeader(locConstants.schemaDesigner.authorizationRole)}
                     <div className={classes.sectionBody}>
-                        <Text className={classes.fieldHint}>
+                        <span className={classes.fieldHint}>
                             {locConstants.schemaDesigner.authorizationRoleHelp}
-                        </Text>
+                        </span>
                         <div className={classes.roleButtonsContainer}>
                             <ToggleButton
                                 className={classes.roleButton}
@@ -488,7 +492,13 @@ export function DabEntitySettingsDialog({
                                 />
                                 {isEntityRestEnabled && (
                                     <>
-                                        <Field label={locConstants.schemaDesigner.customRestPath}>
+                                        <Field
+                                            label={locConstants.schemaDesigner.customRestPath}
+                                            hint={{
+                                                children:
+                                                    locConstants.schemaDesigner.customRestPathHelp,
+                                                className: classes.fieldHint,
+                                            }}>
                                             <Input
                                                 value={localSettings.customRestPath ?? ""}
                                                 placeholder={(
@@ -498,9 +508,6 @@ export function DabEntitySettingsDialog({
                                                     updateCustomRestPath(data.value)
                                                 }
                                             />
-                                            <Text className={classes.fieldHint}>
-                                                {locConstants.schemaDesigner.customRestPathHelp}
-                                            </Text>
                                         </Field>
 
                                         {isStoredProcedure && (
@@ -508,7 +515,13 @@ export function DabEntitySettingsDialog({
                                                 label={
                                                     locConstants.schemaDesigner
                                                         .storedProcedureRestMethods
-                                                }>
+                                                }
+                                                hint={{
+                                                    children:
+                                                        locConstants.schemaDesigner
+                                                            .storedProcedureRestMethodsHelp,
+                                                    className: classes.fieldHint,
+                                                }}>
                                                 <div className={classes.methodGroup}>
                                                     {Object.values(Dab.RestMethod).map((method) => (
                                                         <ToggleButton
@@ -537,12 +550,6 @@ export function DabEntitySettingsDialog({
                                                         </ToggleButton>
                                                     ))}
                                                 </div>
-                                                <Text className={classes.fieldHint}>
-                                                    {
-                                                        locConstants.schemaDesigner
-                                                            .storedProcedureRestMethodsHelp
-                                                    }
-                                                </Text>
                                             </Field>
                                         )}
                                     </>
@@ -574,7 +581,13 @@ export function DabEntitySettingsDialog({
                                 {isEntityGraphQLEnabled && (
                                     <>
                                         <Field
-                                            label={locConstants.schemaDesigner.customGraphQLType}>
+                                            label={locConstants.schemaDesigner.customGraphQLType}
+                                            hint={{
+                                                children:
+                                                    locConstants.schemaDesigner
+                                                        .customGraphQLTypeHelp,
+                                                className: classes.fieldHint,
+                                            }}>
                                             <Input
                                                 value={localSettings.customGraphQLType ?? ""}
                                                 placeholder={entity.sourceName ?? entity.tableName}
@@ -582,9 +595,6 @@ export function DabEntitySettingsDialog({
                                                     updateCustomGraphQLType(data.value)
                                                 }
                                             />
-                                            <Text className={classes.fieldHint}>
-                                                {locConstants.schemaDesigner.customGraphQLTypeHelp}
-                                            </Text>
                                         </Field>
 
                                         {isStoredProcedure && (
@@ -592,7 +602,13 @@ export function DabEntitySettingsDialog({
                                                 label={
                                                     locConstants.schemaDesigner
                                                         .storedProcedureGraphQLOperation
-                                                }>
+                                                }
+                                                hint={{
+                                                    children:
+                                                        locConstants.schemaDesigner
+                                                            .storedProcedureGraphQLOperationHelp,
+                                                    className: classes.fieldHint,
+                                                }}>
                                                 <RadioGroup
                                                     value={storedProcedureGraphQLOperation}
                                                     layout="horizontal"
@@ -615,12 +631,6 @@ export function DabEntitySettingsDialog({
                                                         }
                                                     />
                                                 </RadioGroup>
-                                                <Text className={classes.fieldHint}>
-                                                    {
-                                                        locConstants.schemaDesigner
-                                                            .storedProcedureGraphQLOperationHelp
-                                                    }
-                                                </Text>
                                             </Field>
                                         )}
                                     </>
@@ -654,9 +664,9 @@ export function DabEntitySettingsDialog({
                                         label={locConstants.schemaDesigner.exposeAsMcpCustomTool}
                                     />
                                     {exposeAsMcpCustomTool && (
-                                        <Text className={classes.fieldHint}>
+                                        <span className={classes.fieldHint}>
                                             {locConstants.schemaDesigner.exposeAsMcpCustomToolHelp}
-                                        </Text>
+                                        </span>
                                     )}
                                 </>
                             )}
