@@ -116,6 +116,11 @@ const MainLayout = () => {
                     }`}
                     aria-hidden={
                         activeView !== SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner
+                    }
+                    inert={
+                        activeView !== SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner
+                            ? true
+                            : undefined
                     }>
                     <SchemaDesignerPage
                         activeView={activeView}
@@ -130,7 +135,12 @@ const MainLayout = () => {
                             ? ""
                             : classes.inactiveViewPane
                     }`}
-                    aria-hidden={activeView !== SchemaDesigner.SchemaDesignerActiveView.Dab}>
+                    aria-hidden={activeView !== SchemaDesigner.SchemaDesignerActiveView.Dab}
+                    inert={
+                        activeView !== SchemaDesigner.SchemaDesignerActiveView.Dab
+                            ? true
+                            : undefined
+                    }>
                     <DabProvider>
                         <DabPage
                             activeView={activeView}

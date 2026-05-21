@@ -112,7 +112,7 @@ export const SchemaDesignerFlow = ({ activeView }: SchemaDesignerFlowProps) => {
 
     const refreshRafId = useRef<number | undefined>(undefined);
     const fitViewRafId = useRef<number | undefined>(undefined);
-    const fitViewTimeoutId = useRef<number | undefined>(undefined);
+    const notifySchemaChangedRafId = useRef<number | undefined>(undefined);
     const didFitViewForCurrentInitialization = useRef(false);
     const isSchemaDesignerActiveRef = useRef(isSchemaDesignerActive);
     const flowWrapperRef = useRef<HTMLDivElement | null>(null);
@@ -242,15 +242,11 @@ export const SchemaDesignerFlow = ({ activeView }: SchemaDesignerFlowProps) => {
             if (fitViewRafId.current !== undefined) {
                 cancelAnimationFrame(fitViewRafId.current);
             }
-            if (fitViewTimeoutId.current !== undefined) {
-                clearTimeout(fitViewTimeoutId.current);
-            }
 
             let attempts = 0;
             const tryFitView = () => {
                 if (!isSchemaDesignerActiveRef.current) {
                     fitViewRafId.current = undefined;
-                    fitViewTimeoutId.current = undefined;
                     return;
                 }
 
@@ -262,16 +258,15 @@ export const SchemaDesignerFlow = ({ activeView }: SchemaDesignerFlowProps) => {
                     void reactFlow.fitView({ nodes });
                     didFitViewForCurrentInitialization.current = true;
                     fitViewRafId.current = undefined;
-                    fitViewTimeoutId.current = undefined;
                     return;
                 }
 
-                if (attempts < 8) {
+                if (attempts < 16) {
                     fitViewRafId.current = requestAnimationFrame(tryFitView);
                     return;
                 }
 
-                fitViewTimeoutId.current = window.setTimeout(tryFitView, 50);
+                fitViewRafId.current = undefined;
             };
 
             fitViewRafId.current = requestAnimationFrame(tryFitView);
@@ -291,9 +286,10 @@ export const SchemaDesignerFlow = ({ activeView }: SchemaDesignerFlowProps) => {
 
                 // Trigger script generation to update the changes panel
                 // This is necessary for restored sessions that may have changes
-                setTimeout(() => {
+                notifySchemaChangedRafId.current = requestAnimationFrame(() => {
+                    notifySchemaChangedRafId.current = undefined;
                     context.notifySchemaChanged();
-                }, 0);
+                });
             } catch (error) {
                 context.log?.(`Failed to initialize schema designer: ${String(error)}`);
                 setSchemaNodes([]);
@@ -314,8 +310,8 @@ export const SchemaDesignerFlow = ({ activeView }: SchemaDesignerFlowProps) => {
             if (fitViewRafId.current !== undefined) {
                 cancelAnimationFrame(fitViewRafId.current);
             }
-            if (fitViewTimeoutId.current !== undefined) {
-                clearTimeout(fitViewTimeoutId.current);
+            if (notifySchemaChangedRafId.current !== undefined) {
+                cancelAnimationFrame(notifySchemaChangedRafId.current);
             }
         };
     }, []);

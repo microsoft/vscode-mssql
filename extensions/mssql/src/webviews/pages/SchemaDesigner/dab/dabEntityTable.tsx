@@ -304,7 +304,6 @@ const useStyles = makeStyles({
     },
     searchHighlight: {
         backgroundColor: "var(--vscode-editor-findMatchBackground)",
-        color: "var(--vscode-editor-background)",
         padding: "0 2px",
         borderRadius: "3px",
     },
