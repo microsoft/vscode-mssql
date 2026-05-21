@@ -467,6 +467,19 @@ export default class SqlToolsServiceClient {
      */
     public handleLanguageServiceStatusNotification(): NotificationHandler<LanguageServiceContracts.StatusChangeParams> {
         return (event: LanguageServiceContracts.StatusChangeParams): void => {
+            const scheme = (() => {
+                try {
+                    return vscode.Uri.parse(event.ownerUri).scheme;
+                } catch {
+                    return "unknown";
+                }
+            })();
+            // Notebook cells use the vscode-notebook-cell scheme. Log these
+            // at verbose so users debugging notebook IntelliSense can see
+            // whether STS ever reports a status change for cell URIs.
+            this._logger.verbose(
+                `LanguageServiceStatus scheme=${scheme} status=${event.status} ownerUri=${event.ownerUri}`,
+            );
             this._statusView.languageServiceStatusChanged(event.ownerUri, event.status);
         };
     }
