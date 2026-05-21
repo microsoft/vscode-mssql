@@ -1471,6 +1471,9 @@ export class LocConstants {
             designApi: l10n.t("Design API"),
             // DAB Advanced Settings Dialog
             advancedEntityConfiguration: l10n.t("Advanced Entity Configuration"),
+            identity: l10n.t("Identity"),
+            rest: l10n.t("REST"),
+            graphQL: l10n.t("GraphQL"),
             entityName: l10n.t("Entity Name"),
             entityNameHelp: l10n.t("Used in API routes and responses"),
             authorizationRole: l10n.t("Authorization Role"),

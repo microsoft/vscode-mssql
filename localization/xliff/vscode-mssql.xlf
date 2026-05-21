@@ -3399,6 +3399,9 @@
     <trans-unit id="++CODE++be9ee0cf4e3d4fdd1af6d17852b5e7ef78069590b49fe086652744f0157aa268">
       <source xml:lang="en">IP address range</source>
     </trans-unit>
+    <trans-unit id="++CODE++999f23fcd7bec7075e54bb5dea0d9c548bfe7261f95b911ed8e23d2f4188724f">
+      <source xml:lang="en">Identity</source>
+    </trans-unit>
     <trans-unit id="++CODE++b37cea142b959c4f6c75754d7b3d56bc41d1a2d6667600c748d7a168f10c8818">
       <source xml:lang="en">Ignore Options</source>
     </trans-unit>
@@ -5058,6 +5061,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f9a9448d6e0b500626f784c1ea716af295bd4d8b7ef836710ab8c14a44204dc5">
       <source xml:lang="en">Quick filter all columns...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fecd5681dc5dc6e2f413b28ce95e50f6aa2ce9fbef201fa3c11844af5799b2e3">
+      <source xml:lang="en">REST</source>
     </trans-unit>
     <trans-unit id="++CODE++41a52587276c392bfdf0c5086b78662e089895fe2bf22e3d413af8e75f98bc3d">
       <source xml:lang="en">REST API</source>

@@ -945,6 +945,8 @@
     "Back to Schema": "Back to Schema",
     "Design API": "Design API",
     "Advanced Entity Configuration": "Advanced Entity Configuration",
+    "Identity": "Identity",
+    "REST": "REST",
     "Entity Name": "Entity Name",
     "Used in API routes and responses": "Used in API routes and responses",
     "Authorization Role": "Authorization Role",
