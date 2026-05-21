@@ -87,7 +87,7 @@ const useStyles = makeStyles({
         borderRadius: tokens.borderRadiusCircular,
         border: `1px solid ${tokens.colorPaletteYellowBorder2}`,
         backgroundColor: "transparent",
-        color: tokens.colorPaletteYellowForeground2,
+        color: tokens.colorNeutralForeground3,
         fontSize: "10px",
         padding: "1px 7px",
     },
@@ -107,7 +107,7 @@ const useStyles = makeStyles({
         backgroundColor: "transparent",
     },
     disabledBannerIcon: {
-        color: tokens.colorPaletteYellowForeground2,
+        color: tokens.colorNeutralForeground3,
         flexShrink: 0,
         marginTop: "1px",
     },
@@ -120,7 +120,7 @@ const useStyles = makeStyles({
     disabledBannerTitle: {
         fontSize: tokens.fontSizeBase200,
         fontWeight: tokens.fontWeightSemibold,
-        color: tokens.colorPaletteYellowForeground2,
+        color: tokens.colorNeutralForeground2,
     },
     disabledBannerText: {
         fontSize: tokens.fontSizeBase100,
