@@ -11,6 +11,8 @@ import { Dab } from "../../../src/sharedInterfaces/dab";
 function createTestEntity(overrides?: Partial<Dab.DabEntityConfig>): Dab.DabEntityConfig {
     return {
         id: "test-id-1",
+        sourceType: Dab.EntitySourceType.Table,
+        sourceName: "Users",
         tableName: "Users",
         schemaName: "dbo",
         isEnabled: true,
@@ -293,6 +295,7 @@ suite("DabConfigFileBuilder Tests", () => {
                         createTestEntity({
                             schemaName: "sales",
                             tableName: "Orders",
+                            sourceName: "Orders",
                         }),
                     ],
                 });
@@ -300,6 +303,45 @@ suite("DabConfigFileBuilder Tests", () => {
                 const parsed = JSON.parse(result);
                 const entity = parsed.entities["Users"];
                 expect(entity.source.object).to.equal("sales.Orders");
+            });
+
+            test("should emit table primary keys as source key-fields", () => {
+                const result = builder.build(createTestConfig(), defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+                const entity = parsed.entities["Users"];
+                expect(entity.source["key-fields"]).to.deep.equal(["Id"]);
+            });
+
+            test("should emit composite table primary keys as source key-fields", () => {
+                const config = createTestConfig({
+                    entities: [
+                        createTestEntity({
+                            columns: [
+                                {
+                                    id: "test-id-1-column-id",
+                                    name: "Id",
+                                    dataType: "int",
+                                    isSupported: true,
+                                    isExposed: true,
+                                    isPrimaryKey: true,
+                                },
+                                {
+                                    id: "test-id-1-column-seq",
+                                    name: "Sequence",
+                                    dataType: "int",
+                                    isSupported: true,
+                                    isExposed: true,
+                                    isPrimaryKey: true,
+                                },
+                            ],
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+                const entity = parsed.entities["Users"];
+                expect(entity.source["key-fields"]).to.deep.equal(["Id", "Sequence"]);
             });
 
             test("should use advancedSettings.entityName as the entity key", () => {
@@ -318,6 +360,104 @@ suite("DabConfigFileBuilder Tests", () => {
                 const parsed = JSON.parse(result);
                 expect(parsed.entities).to.have.property("User");
                 expect(parsed.entities).to.not.have.property("tbl_users");
+            });
+
+            test("should emit view source type and primary-key fields", () => {
+                const config = createTestConfig({
+                    entities: [
+                        createTestEntity({
+                            id: "view-dbo-ActiveUsers",
+                            sourceType: Dab.EntitySourceType.View,
+                            sourceName: "ActiveUsers",
+                            tableName: "ActiveUsers",
+                            fields: [{ name: "Id", isPrimaryKey: true }, { name: "Name" }],
+                            advancedSettings: {
+                                entityName: "ActiveUsers",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                            },
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+                const entity = parsed.entities["ActiveUsers"];
+
+                expect(entity.source).to.deep.equal({
+                    type: "view",
+                    object: "dbo.ActiveUsers",
+                });
+                expect(entity.source).to.not.have.property("key-fields");
+                expect(entity.fields).to.deep.equal([
+                    { name: "Id", "primary-key": true },
+                    { name: "Name" },
+                ]);
+            });
+
+            test("should emit stored procedure execute permissions and MCP custom tool", () => {
+                const config = createTestConfig({
+                    apiTypes: [Dab.ApiType.Rest, Dab.ApiType.GraphQL, Dab.ApiType.Mcp],
+                    entities: [
+                        createTestEntity({
+                            id: "sp-dbo-GetUsers",
+                            sourceType: Dab.EntitySourceType.StoredProcedure,
+                            sourceName: "GetUsers",
+                            tableName: "GetUsers",
+                            columns: [],
+                            enabledActions: [Dab.EntityAction.Execute],
+                            parameters: [{ name: "userId" }],
+                            advancedSettings: {
+                                entityName: "GetUsers",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                            },
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+                const entity = parsed.entities["GetUsers"];
+
+                expect(entity.source).to.deep.equal({
+                    type: "stored-procedure",
+                    object: "dbo.GetUsers",
+                    parameters: [{ name: "userId" }],
+                });
+                expect(entity.source).to.not.have.property("key-fields");
+                expect(entity.permissions).to.deep.equal([
+                    { role: "anonymous", actions: ["execute"] },
+                ]);
+                expect(entity.rest).to.be.undefined;
+                expect(entity.graphql).to.be.undefined;
+                expect(entity.mcp).to.deep.equal({
+                    "custom-tool": true,
+                    "dml-tools": false,
+                });
+            });
+
+            test("should not emit stored procedure MCP settings when MCP is disabled", () => {
+                const config = createTestConfig({
+                    apiTypes: [Dab.ApiType.Rest],
+                    entities: [
+                        createTestEntity({
+                            id: "sp-dbo-GetUsers",
+                            sourceType: Dab.EntitySourceType.StoredProcedure,
+                            sourceName: "GetUsers",
+                            tableName: "GetUsers",
+                            columns: [],
+                            enabledActions: [Dab.EntityAction.Execute],
+                            advancedSettings: {
+                                entityName: "GetUsers",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                            },
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+
+                expect(parsed.entities["GetUsers"].mcp).to.be.undefined;
             });
         });
 
@@ -573,6 +713,7 @@ suite("DabConfigFileBuilder Tests", () => {
                         createTestEntity({
                             id: "2",
                             tableName: "Orders",
+                            sourceName: "Orders",
                             schemaName: "sales",
                             isEnabled: true,
                             enabledActions: [Dab.EntityAction.Read],

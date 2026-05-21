@@ -1392,7 +1392,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     options: {
                         server: "myServer",
                         database: "myDB",
-                        authenticationType: "ActiveDirectoryServicePrincipal", // unsupported
+                        authenticationType: "UnknownAuthType", // unsupported
                     },
                 } as ConnectionDetails;
 
@@ -1406,7 +1406,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 );
                 expect(
                     (controller.state.dialog as ConnectionStringDialogProps).connectionStringError,
-                ).to.contain("ActiveDirectoryServicePrincipal");
+                ).to.contain("UnknownAuthType");
             });
 
             test("should display error message if parsing connection string throws", async () => {

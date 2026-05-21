@@ -10,6 +10,9 @@
     <trans-unit id="++CODE++18b63db64aa0aff55a9f4784ad62abdc2b70cedb95b5e89d5551996cc9bd25ac">
       <source xml:lang="en">$(plug)  Connect to MSSQL</source>
     </trans-unit>
+    <trans-unit id="++CODE++7ab8e89a60b445298b22409ca4e3a36b6032cd1f4b770cd638e11e0ebf23fabd">
+      <source xml:lang="en">&apos;mssql.newEditorConnectionBehavior&apos; is set to &apos;defaultConnection&apos;, but &apos;mssql.defaultConnectionId&apos; is not configured. New editors will fall back to transferring the active connection.</source>
+    </trans-unit>
     <trans-unit id="++CODE++e59b9e59be153f480e2e2f5836749b5d33fe1776d037625761e5a957462aadd8">
       <source xml:lang="en">&apos;{0}&apos; started.</source>
       <note>{0} is the service name</note>
@@ -359,6 +362,12 @@
     <trans-unit id="++CODE++a6f31505cd1943fe9695363ab1c0a08e79c015c0747830d411a24e29689f4899">
       <source xml:lang="en">Append to the existing backup set</source>
     </trans-unit>
+    <trans-unit id="++CODE++a7168cfe83fa5085e397d074c440ebc49d8f9d65f5241ff5f2ea586f9a4db451">
+      <source xml:lang="en">Application (Client) ID</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e6e909c5bd0a3e25a1abcddd1dab13780ce9e4f673139a56842b1e3a26c981c0">
+      <source xml:lang="en">Application (Client) ID is required.</source>
+    </trans-unit>
     <trans-unit id="++CODE++f548fb847184961d59c59fd5b4ff10720726475e1768037348dec8e7c6bd6468">
       <source xml:lang="en">Application Intent</source>
     </trans-unit>
@@ -441,6 +450,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8ff1f9a47f14327a26fd3a548d2babeec226cb63828a0803433b4a34a19c09ff">
       <source xml:lang="en">Auth type</source>
+    </trans-unit>
+    <trans-unit id="++CODE++59480e87da5310e5046d84f52931338703cc3c68aaa8fc535e025eb621677ed9">
+      <source xml:lang="en">Authenticate using a Microsoft Entra service principal. Enter the Application (client) ID as the user name and the client secret as the password. Click the info icon to learn more.</source>
     </trans-unit>
     <trans-unit id="++CODE++6ab694cfc6fa5d8c7045d318bba5f3eb791ab0a859ea54c54b1c660a4ccf8ed1">
       <source xml:lang="en">Authenticated</source>
@@ -816,6 +828,9 @@
     <trans-unit id="++CODE++a949f46230748d3f7496809b82cec6daa6ec8a671d17ac1ca03a17173cbcb2d6">
       <source xml:lang="en">Change Password</source>
     </trans-unit>
+    <trans-unit id="++CODE++fad48517dc5d23758f7a5fb69e52de0ad54bde81726bd0450e14f969067d971e">
+      <source xml:lang="en">Change Setting</source>
+    </trans-unit>
     <trans-unit id="++CODE++7cd8625322b19db450bf5b5df61bd30ef4b1905e112753ea458faf1881b2ff01">
       <source xml:lang="en">Change database to &apos;{2}&apos; for connection &apos;{0}&apos; (ID: {1})?</source>
       <note>{0} is the connection display name
@@ -959,6 +974,9 @@
     <trans-unit id="++CODE++4e42da2b0c2533c1a0dfa98e9f4ec67fbaf07a0da192dafa93aaf98bc07fd959">
       <source xml:lang="en">Choose the Right Version</source>
     </trans-unit>
+    <trans-unit id="++CODE++4ccc2e9603461fb60e8f8e5a5b8dbddd023bb4a1423c348bc99e0714f6c3812e">
+      <source xml:lang="en">Choose the behavior for new editors</source>
+    </trans-unit>
     <trans-unit id="++CODE++be798452e0ca7a38f6487ecb9115f26ba148e2d4475608bdc4277d34d41be0a7">
       <source xml:lang="en">Circular reference detected: &apos;{0}&apos; → &apos;{1}&apos; creates a cycle</source>
       <note>{0} is source table
@@ -1044,6 +1062,12 @@
     </trans-unit>
     <trans-unit id="++CODE++88af7d4ffbbad0f31d9dd918e49ceb713036db12524cbdc4b93e8922b0655429">
       <source xml:lang="en">Click to sign into an Azure account</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ae21cf6d24b8ca460e91fe9dc61432a60403b1dabea53792a9c95c63a7cb0db2">
+      <source xml:lang="en">Client Secret</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b88d22f627afd019becae5972c1ad1c05cca30f1c24c21e6a1ebf5492207904b">
+      <source xml:lang="en">Client secret is required.</source>
     </trans-unit>
     <trans-unit id="++CODE++7d9eb7acb13e24625c404401d8e88b2350e32162455885f18276cf802f7701ed">
       <source xml:lang="en">Close</source>
@@ -1154,6 +1178,14 @@
     </trans-unit>
     <trans-unit id="++CODE++bb7bef87d3a1f764c39c6df670038039c136d360153a1ced5c633afa9590fd36">
       <source xml:lang="en">Column name cannot be empty</source>
+    </trans-unit>
+    <trans-unit id="++CODE++661f008b35e613449a51eb1c0fd892c56789ae6d2cabbd7405abe521416975f9">
+      <source xml:lang="en">Column not found: {0}</source>
+      <note>{0} is the column reference</note>
+    </trans-unit>
+    <trans-unit id="++CODE++191bfe9c43b5a6888281d9067ac0d3ea4b086f8a59703b22464d2c24e41a0b08">
+      <source xml:lang="en">Column reference resolved to more than one column: {0}</source>
+      <note>{0} is the column reference</note>
     </trans-unit>
     <trans-unit id="++CODE++5c56d46cc10135f393e52c47f8001e6235ecadc91f6ced732185c1679055aa79">
       <source xml:lang="en">Column resize by content</source>
@@ -2024,6 +2056,9 @@
     <trans-unit id="++CODE++1a1795b0d7f71cc3912f6117290ba9480278c1a26efb32c044c92c9071d6b559">
       <source xml:lang="en">Do not compress backup</source>
     </trans-unit>
+    <trans-unit id="++CODE++c6f902ac30a459d53f79efa0c1d45fc2d272ebbfe609ada31ebb309eec06ed7c">
+      <source xml:lang="en">Do not connect</source>
+    </trans-unit>
     <trans-unit id="++CODE++5ce32ed24291b6ee178d1069ca31842e8ead67e82f070a284cec1ab95498476c">
       <source xml:lang="en">Do you mind taking a quick feedback survey about the MSSQL Extension for VS Code?</source>
     </trans-unit>
@@ -2261,6 +2296,11 @@
     <trans-unit id="++CODE++41058600ed8ab3d197264132f1b22ed25b7b2d9fa6afdffd559fc08bca9e6075">
       <source xml:lang="en">Enter the path for the output file</source>
     </trans-unit>
+    <trans-unit id="++CODE++e3d4cdacc007baba40af99c4e0c4ac0ceaa8e813a8a6e0ba47f0199eaaaa3726">
+      <source xml:lang="en">Entity &apos;{0}&apos; is not supported by Data API builder. {1}</source>
+      <note>{0} is the entity name
+{1} is why the entity is unsupported</note>
+    </trans-unit>
     <trans-unit id="++CODE++f889729267bd3b6e2a0a503ad9228cced8a1d16ad04a3384dc6df5dc89d6ba4c">
       <source xml:lang="en">Entity Endpoints</source>
     </trans-unit>
@@ -2269,6 +2309,14 @@
     </trans-unit>
     <trans-unit id="++CODE++b1d3adb989e3b895976094fd8242c98ab0d88c5e2dcd929bd6d76a8b52ce3f4c">
       <source xml:lang="en">Entity name used in API routes</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a50c60587af9600c20b491dfec2f89043091694e9aadcbd732892ba0aca0e74f">
+      <source xml:lang="en">Entity not found: {0}</source>
+      <note>{0} is the entity reference</note>
+    </trans-unit>
+    <trans-unit id="++CODE++e56b4a3d26cbb48b0037daacb3a1d42209ec3769d2343dbf64eab273ca9495e3">
+      <source xml:lang="en">Entity reference resolved to more than one entity: {0}</source>
+      <note>{0} is the entity reference</note>
     </trans-unit>
     <trans-unit id="++CODE++d59e5e8f8a4bb3b14eb8af194553158e5dffd648ad462eeafb2f03589da5a8eb">
       <source xml:lang="en">Entra token cache cleared successfully.</source>
@@ -3024,6 +3072,9 @@
     <trans-unit id="++CODE++b69848561e02841b68dcbfadcbba33ea9008d49fb44c61fd4e670bc3fa3b9968">
       <source xml:lang="en">Filter changes</source>
     </trans-unit>
+    <trans-unit id="++CODE++25f7c9810f4a804cfb8dd52d53afff3e995a0e03165362b827f6eb301d685327">
+      <source xml:lang="en">Filter entities</source>
+    </trans-unit>
     <trans-unit id="++CODE++f03ec545964ab62cf49cf19c60ffd1c9609dab0fbd2239d5bc643da5427b4270">
       <source xml:lang="en">Filter entities...</source>
     </trans-unit>
@@ -3508,6 +3559,9 @@
     <trans-unit id="++CODE++0c2f118ad5933157d00e2025f7cc3d3c3da84db32e18ffbb4f1032471cc643ef">
       <source xml:lang="en">Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy</source>
     </trans-unit>
+    <trans-unit id="++CODE++604cd45c57feb58b304a4d821fbb1df3611dabd706ece140be1c19abc4c8150a">
+      <source xml:lang="en">Invalid column reference. Use either id OR name.</source>
+    </trans-unit>
     <trans-unit id="++CODE++b6b50087a99bf4427265eff9dd813914f1ceb8c55260fa6e7075f9c89fcd45d7">
       <source xml:lang="en">Invalid column width</source>
     </trans-unit>
@@ -3519,6 +3573,9 @@
     </trans-unit>
     <trans-unit id="++CODE++5a3259a2357ce703fcc4ea2d2983346c88751c8b1f74beaab08602f5f4e721cf">
       <source xml:lang="en">Invalid database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fb7db40f653a70bfcfd1879e8d0b4592488ff74e5025a253a8f20a83dc4921aa">
+      <source xml:lang="en">Invalid entity reference. Use either id OR schemaName+tableName OR schemaName+sourceName+sourceType.</source>
     </trans-unit>
     <trans-unit id="++CODE++388f0e37447ebf20167d7d8b0d203a21e726eb2d60ec4b09c13480cdadff59ee">
       <source xml:lang="en">Invalid file</source>
@@ -3990,6 +4047,9 @@
     </trans-unit>
     <trans-unit id="++CODE++585389836e18976b372ada3cfd7a57608ccff88fc27ade1458fd968b3c089ff5">
       <source xml:lang="en">Microsoft Entra Id - Default</source>
+    </trans-unit>
+    <trans-unit id="++CODE++abb07d0f4dfada778581c9b19ad0453201ea6d075bc434debb65d96b65f2adbc">
+      <source xml:lang="en">Microsoft Entra Id - Service Principal</source>
     </trans-unit>
     <trans-unit id="++CODE++d24b24ff2640e9b5731d40ac97ea534034176c1478b681eca122262c4d98a8a2">
       <source xml:lang="en">Microsoft Entra Id - Universal w/ MFA Support</source>
@@ -4536,6 +4596,9 @@
     </trans-unit>
     <trans-unit id="++CODE++15bcefe28749fc12d60214a94c60d8a46127c922357c31e718e1cd3d28262678">
       <source xml:lang="en">Object Types</source>
+    </trans-unit>
+    <trans-unit id="++CODE++46e7c345a4106f8dba31dee33a1559a12f24d16a1678241d55e84ae55c107d81">
+      <source xml:lang="en">Object type</source>
     </trans-unit>
     <trans-unit id="++CODE++ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1">
       <source xml:lang="en">Off</source>
@@ -5453,6 +5516,9 @@
     <trans-unit id="++CODE++22995cab793b6ddc02993f48d7042dff97e62df3faf4b7742629243a36ce968d">
       <source xml:lang="en">Save Plan</source>
     </trans-unit>
+    <trans-unit id="++CODE++072fb040dae019a32d416f0ad48852b98a2544da0e126c054ea338011ae0d63a">
+      <source xml:lang="en">Save Secret</source>
+    </trans-unit>
     <trans-unit id="++CODE++e50761ebedbdddb4dd4afb99a7c0964cf8bfed33ec03cb39f5a08e65812c795a">
       <source xml:lang="en">Save as CSV</source>
     </trans-unit>
@@ -5702,6 +5768,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c4300a3eee24147d9593a09a659650b44b4733e2979fef9cae3e3db10f116831">
       <source xml:lang="en">Select a connection group</source>
+    </trans-unit>
+    <trans-unit id="++CODE++abf078a3e4a6e103d6da7a7075ac601a095b2ba444bfc98447f49248daa477fb">
+      <source xml:lang="en">Select a connection to use as the default</source>
     </trans-unit>
     <trans-unit id="++CODE++c9e8c706a0db2ef84dc8a610e30fe22cb5709a146a0e76955dbd1f1444e5a0e6">
       <source xml:lang="en">Select a database</source>
@@ -6086,6 +6155,10 @@
     <trans-unit id="++CODE++59462672a9b0690bf1151b63576df991ace5811a13bbcc90f35f43c1a21c0809">
       <source xml:lang="en">Source Table</source>
     </trans-unit>
+    <trans-unit id="++CODE++a03d6436b6c5d406e7f53427dbe386f36eddd596a7230ba85f6301cfc6c2018b">
+      <source xml:lang="en">Source Table: {0}</source>
+      <note>{0} is the fully qualified source table name</note>
+    </trans-unit>
     <trans-unit id="++CODE++30ecb608c5cff9e821a41d28312d0070cbeb3901bc8e32ecefd17171f87dc53a">
       <source xml:lang="en">Source: {0}</source>
       <note>{0} is the task source</note>
@@ -6312,18 +6385,11 @@
     <trans-unit id="++CODE++489ffeb09845485513055db4da8e56fe571fe94399e73a32fd47c930a3e80fad">
       <source xml:lang="en">Table added to schema designer successfully.</source>
     </trans-unit>
-    <trans-unit id="++CODE++04996289cd69a5a2f94fb144afcff1a6109090bb48cf8bb340d7b205323c4e81">
-      <source xml:lang="en">Table contains column types not supported by Data API builder: {0}</source>
-      <note>{0} is a comma-separated list of column names and their data types</note>
-    </trans-unit>
     <trans-unit id="++CODE++7ed0604e7c45ca297246a04967b295e0c5fa232233fe154a2b1cd72a3eabe725">
       <source xml:lang="en">Table deleted from schema designer successfully.</source>
     </trans-unit>
     <trans-unit id="++CODE++497def392cd97e1d93e9491e97bb1b7c843582f7f6758d62b72ed67098b1edb3">
       <source xml:lang="en">Table id already exists.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++472c40383c9c44c12e38bdcddaa5c135927972c845e6f86965dc814ef56607a6">
-      <source xml:lang="en">Table must have a primary key to be used with Data API builder</source>
     </trans-unit>
     <trans-unit id="++CODE++00723ae9a38ee6e38cc089275f523a75ef5b5aa1b834d77397409c27af379dc1">
       <source xml:lang="en">Table must include at least one column.</source>
@@ -6414,6 +6480,9 @@
     <trans-unit id="++CODE++33c3b491fa743d2c355067a31dceaf799d4baaef0778d786cf5aafa5406ecf47">
       <source xml:lang="en">Text tab - displays SQL text data</source>
     </trans-unit>
+    <trans-unit id="++CODE++c2deec07495a278190de83a0820519064e332fc00b050c4fd053bae70c44da8e">
+      <source xml:lang="en">The Application (Client) ID of your Microsoft Entra app registration.</source>
+    </trans-unit>
     <trans-unit id="++CODE++b0ccb68c36737cb5ef6c7a74871ab7845533f64d89c74dd7db735bb555c401e1">
       <source xml:lang="en">The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including {code-snippet-0} for lightweight T-SQL profiling.</source>
     </trans-unit>
@@ -6430,8 +6499,15 @@
     <trans-unit id="++CODE++1a4205e9f5cc50eaf70719b64956352b74a99badba266027a6244def0d016b73">
       <source xml:lang="en">The behavior when a user tries to update a row with data that is involved in a foreign key relationship.</source>
     </trans-unit>
+    <trans-unit id="++CODE++b3ed9d46f7671d126e86925d532363313c1f6795e877d3d348d134f6e7051bc3">
+      <source xml:lang="en">The client secret for your Microsoft Entra app registration.</source>
+    </trans-unit>
     <trans-unit id="++CODE++4002a5b20dd0c7a8caf9764ba024343e8f87e2ba8221aaeae4c5112d1d7bb4ed">
       <source xml:lang="en">The columns of the index.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a238f8494c24670d2a99bca7863c04c3b523e1ffd7502d240c9aadca7e53c9c1">
+      <source xml:lang="en">The connection ID &apos;{0}&apos; set in &apos;mssql.defaultConnectionId&apos; does not match any known connection profile. New editors will fall back to transferring the active connection.</source>
+      <note>{0} is the connection ID that was not found</note>
     </trans-unit>
     <trans-unit id="++CODE++0104b69959544fb6f98a7e7723e2df4d657c581b43004a1e47f677a02589311e">
       <source xml:lang="en">The connection with ID &apos;{0}&apos; does not have the &apos;server&apos; property set and is being ignored.  Please set the &apos;server&apos; property on this connection in order to use it.</source>
@@ -6633,6 +6709,9 @@
     <trans-unit id="++CODE++c7363102b16228ab96af90a6f97d1ab569d452b23341820a7070e0dd8ddb859b">
       <source xml:lang="en">Transaction Log</source>
     </trans-unit>
+    <trans-unit id="++CODE++573843c55dfcb6caf7a345bf40ff4dfe681f4e262ed72c68ac5f55ce0b2a7749">
+      <source xml:lang="en">Transfer active connection (Default)</source>
+    </trans-unit>
     <trans-unit id="++CODE++dadabe100e080a7068316b2a91caeb46ed5a60c2bf94a1a30acf4703bd3eb24d">
       <source xml:lang="en">Truncate the transaction log</source>
     </trans-unit>
@@ -6672,8 +6751,8 @@
     <trans-unit id="++CODE++4355e7352a614a58a8051157468baaf1102b9be2bdc6334597a8298aefbfbed6">
       <source xml:lang="en">Unable to load backup configuration. Please try again.</source>
     </trans-unit>
-    <trans-unit id="++CODE++c8a8ab1cef4a26f5a47e6aff86611314a34effe284539cfe1421067648432eab">
-      <source xml:lang="en">Unable to load database list from server: {0}</source>
+    <trans-unit id="++CODE++d11ea02689601a129dda01909b71622e7f1a166ce25bef3aa0589beb6db8c1d7">
+      <source xml:lang="en">Unable to load database list from server: {0} You may enter the database name directly.</source>
       <note>{0} is the connection error message</note>
     </trans-unit>
     <trans-unit id="++CODE++955b62784673f0081b2a54d867245fa50ca1e830cea22348ff69caa6317e7889">
@@ -6752,6 +6831,9 @@
     <trans-unit id="++CODE++3bd96350b569900406d2b6fcd6d41c1083c5dec9bd6052587c0a4657f831fe33">
       <source xml:lang="en">Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported.</source>
       <note>{0} is the authentication type</note>
+    </trans-unit>
+    <trans-unit id="++CODE++8e344a40ce6bcc8487a770bd157fb301e1bf5539591981c51fe39ffecedb176c">
+      <source xml:lang="en">Unsupported by Data API builder.</source>
     </trans-unit>
     <trans-unit id="++CODE++59925dabae7544939136767d732ce4bd853e6a3822324777eb3615b997680c05">
       <source xml:lang="en">Unsupported data types detected</source>
@@ -6921,6 +7003,9 @@
       <source xml:lang="en">Warning: Result set is incomplete. Showing {0} of {1} rows. The full result set could not be loaded.</source>
       <note>{0} is the number of rows actually returned
 {1} is the total number of rows expected</note>
+    </trans-unit>
+    <trans-unit id="++CODE++0e04cd10f9afd7e546e176b34b56a243d8c741198aa0bfee27d7661a370dc043">
+      <source xml:lang="en">Warnings</source>
     </trans-unit>
     <trans-unit id="++CODE++4d7371c8931fdd0178f7cbdabd1fd8260039a824a5c0912e880840b4d841f41e">
       <source xml:lang="en">Warnings detected. Please review the changes.</source>
@@ -7237,6 +7322,11 @@
       <source xml:lang="en">{0} connections imported</source>
       <note>{0} is the number of connections imported (plural)</note>
     </trans-unit>
+    <trans-unit id="++CODE++39a06811c113ad2304d8de603fc9e9ac1546b2526ee973d774012b76e767ca7c">
+      <source xml:lang="en">{0} contains column types not supported by Data API builder: {1}</source>
+      <note>{0} is the DAB source type, e.g. Table or View
+{1} is a comma-separated list of column names and their data types</note>
+    </trans-unit>
     <trans-unit id="++CODE++0362d3ecbb7ec63592961e75fdb3b9cce59a91db85f4b99e2ba5106d1bf167ed">
       <source xml:lang="en">{0} deleted successfully.</source>
       <note>{0} deleted successfully.</note>
@@ -7268,6 +7358,10 @@
     <trans-unit id="++CODE++4960928686dec57850ef0fde437021e4bec60d6d0fcc3e196448bb01c88d3920">
       <source xml:lang="en">{0} issues</source>
       <note>{0} is the number of issues</note>
+    </trans-unit>
+    <trans-unit id="++CODE++929b85deaa0b29d7b7adb8318824ecfabb9cf7c9d0a056b0d0fe0827cdd9f141">
+      <source xml:lang="en">{0} must define one or more key fields to be used with Data API builder</source>
+      <note>{0} is the DAB source type, e.g. Table or View</note>
     </trans-unit>
     <trans-unit id="++CODE++88406d92ef64a09f40811dd2f77a5e2476fae20846f1d89e5f48fee94761d0d2">
       <source xml:lang="en">{0} objects found</source>
@@ -7458,6 +7552,9 @@
     <trans-unit id="mssql.objectExplorer.Tooltip.alwaysEncryptedLabel">
       <source xml:lang="en">Always Encrypted</source>
     </trans-unit>
+    <trans-unit id="mssql.newEditorConnectionBehavior.defaultConnection.description">
+      <source xml:lang="en">Always connect new editors and opened SQL files to the connection specified by `mssql.defaultConnectionId`.</source>
+    </trans-unit>
     <trans-unit id="mssql.query.executionTimeout">
       <source xml:lang="en">An execution time-out of 0 indicates an unlimited wait (no time-out)</source>
     </trans-unit>
@@ -7493,6 +7590,9 @@
     </trans-unit>
     <trans-unit id="mssql.cancelBackgroundTask">
       <source xml:lang="en">Cancel Task</source>
+    </trans-unit>
+    <trans-unit id="mssql.newEditorConnectionBehavior.transferActive.description">
+      <source xml:lang="en">Carry the active editor&apos;s connection to newly opened query editor tabs and SQL files.</source>
     </trans-unit>
     <trans-unit id="mssql.changeConnection">
       <source xml:lang="en">Change Connection (MSSQL)</source>
@@ -7563,6 +7663,9 @@
     <trans-unit id="mssql.resultsGrid.showGridLines">
       <source xml:lang="en">Control which grid lines are visible in the results grid.</source>
     </trans-unit>
+    <trans-unit id="mssql.newEditorConnectionBehavior.description">
+      <source xml:lang="en">Controls how new SQL editor windows and opened SQL files are automatically connected.</source>
+    </trans-unit>
     <trans-unit id="mssql.resultsGrid.inMemoryDataProcessingThreshold">
       <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>
     </trans-unit>
@@ -7625,6 +7728,9 @@
     </trans-unit>
     <trans-unit id="mssql.defaultQueryResultsViewMode.grid.description">
       <source xml:lang="en">Display results in a tabular grid format (default)</source>
+    </trans-unit>
+    <trans-unit id="mssql.newEditorConnectionBehavior.none.description">
+      <source xml:lang="en">Do not auto-connect. You must connect each SQL file manually.</source>
     </trans-unit>
     <trans-unit id="mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description">
       <source xml:lang="en">Do not show prompts to display query results in a new tab.</source>
@@ -8079,6 +8185,9 @@
     <trans-unit id="mssql.connectionManagement.rememberPasswordsUntilRestart">
       <source xml:lang="en">Temporarily store passwords for connections with &apos;Saved Passwords&apos; disabled, until the extension is restarted. This prevents repeated password prompts when reusing connections within the same session.</source>
     </trans-unit>
+    <trans-unit id="mssql.defaultConnectionId.description">
+      <source xml:lang="en">The ID (GUID) of the connection profile to use when `mssql.newEditorConnectionBehavior` is set to `defaultConnection`. The connection ID can be found in your settings.json under `mssql.connections`.</source>
+    </trans-unit>
     <trans-unit id="mssql.customEnvironment">
       <source xml:lang="en">The additional, MSSQL-specific custom configuration for the Sovereign Cloud to use with the Microsoft Sovereign Cloud authentication provider. This along with setting `microsoft-sovereign-cloud.environment` to `custom` and providing values for `microsoft-sovereign-cloud.customEnvironment` is required to use this feature with MSSQL.</source>
     </trans-unit>
@@ -8111,6 +8220,9 @@
     </trans-unit>
     <trans-unit id="mssql.connection.id">
       <source xml:lang="en">The unique identifier for this connection profile.</source>
+    </trans-unit>
+    <trans-unit id="mssql.transferActiveEditorConnections.deprecationMessage">
+      <source xml:lang="en">This setting is deprecated. Use `mssql.newEditorConnectionBehavior` instead. The extension will automatically migrate this setting on startup.</source>
     </trans-unit>
     <trans-unit id="mssql.legacySetting.deprecationMessage">
       <source xml:lang="en">This setting will be removed in a future release.</source>

@@ -31,7 +31,7 @@ export function isXmlCell(value: string): boolean {
         // For non-XMLs, parsererror element is present in the parsed document.
         const parserErrors = doc.getElementsByTagName("parsererror");
         return parserErrors?.length === 0;
-    } catch (e) {
+    } catch {
         return false;
     }
 }

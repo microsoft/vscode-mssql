@@ -66,6 +66,12 @@ export const AADSTS50173 = "AADSTS50173";
  */
 export const AADSTS50020 = "AADSTS50020";
 /**
+ * The presented token is not valid. This often occurs when the token has been sent
+ * to a different tenant than it was intended for (multi-tenant scenario).
+ * Have the user sign in again with the correct tenant.
+ */
+export const AADSTS50078 = "AADSTS50078";
+/**
  * Error thrown from STS - indicates user account not found in MSAL cache.
  * We request user to sign in again.
  */

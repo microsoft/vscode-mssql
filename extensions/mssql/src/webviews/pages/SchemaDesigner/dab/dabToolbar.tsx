@@ -6,15 +6,21 @@
 import {
     Button,
     Checkbox,
+    CounterBadge,
     Divider,
     Input,
     makeStyles,
+    mergeClasses,
     Menu,
     MenuItem,
     MenuList,
     MenuPopover,
     MenuTrigger,
+    Popover,
+    PopoverSurface,
+    PopoverTrigger,
     Text,
+    ToggleButton,
     tokens,
     Tooltip,
 } from "@fluentui/react-components";
@@ -24,17 +30,32 @@ import {
     CheckboxUnchecked16Regular as CheckboxUncheckedIcon,
     ChevronDown16Regular as ChevronDownIcon,
     Column16Regular as ColumnIcon,
+    Dismiss12Regular,
     Dismiss16Regular,
     Eye16Regular as EyeIcon,
+    Filter16Regular,
     Play16Filled as PlayIcon,
     Search16Regular,
     TableEdit16Regular as TableEditIcon,
 } from "@fluentui/react-icons";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useCallback, useEffect, useRef, useState } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { locConstants } from "../../../common/locConstants";
+import { SegmentedControl } from "../../../common/segmentedControl";
 import { Dab } from "../../../../sharedInterfaces/dab";
 import { useDabContext } from "./dabContext";
 import { SchemaDesignerWebviewCopilotChatEntry } from "../copilot/schemaDesignerWebviewCopilotChatEntry";
+import {
+    DabEntityFilters,
+    DabEntityStatusFilter,
+    defaultDabEntityFilters,
+    getDabSchemaFilterKey,
+    getDabEntityFilterCount,
+    toggleDabEntityFilterValue,
+} from "./dabEntityFilters";
+
+const SCHEMA_FILTER_ROW_HEIGHT = 22;
+const SCHEMA_FILTER_VISIBLE_ROWS = 4;
 
 const useStyles = makeStyles({
     toolbarContainer: {
@@ -84,9 +105,173 @@ const useStyles = makeStyles({
         justifyContent: "space-between",
         width: "100%",
     },
+    filterControls: {
+        display: "flex",
+        alignItems: "center",
+        gap: "6px",
+        minWidth: 0,
+    },
     searchInput: {
         minWidth: "180px",
         maxWidth: "300px",
+    },
+    filterButtonActive: {
+        color: "var(--vscode-textLink-foreground)",
+    },
+    filterButtonBadge: {
+        marginLeft: "6px",
+    },
+    filterSurface: {
+        minWidth: "260px",
+        padding: "10px",
+        backgroundColor: "var(--vscode-editorWidget-background)",
+        border: "1px solid var(--vscode-editorWidget-border)",
+        borderRadius: "8px",
+        boxShadow: "var(--vscode-widget-shadow)",
+    },
+    filterPopupHeader: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "8px",
+    },
+    filterPopupTitle: {
+        fontSize: "13px",
+        fontWeight: 600,
+        color: "var(--vscode-foreground)",
+    },
+    closeButton: {
+        minWidth: "24px",
+        width: "24px",
+        height: "24px",
+        borderRadius: "6px",
+    },
+    filterDivider: {
+        height: "1px",
+        backgroundColor: "var(--vscode-editorWidget-border)",
+        opacity: 0.7,
+        margin: "6px 0 8px",
+    },
+    filterPopupBody: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "10px",
+    },
+    filterSection: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "6px",
+    },
+    filterSectionTitle: {
+        fontSize: "11px",
+        fontWeight: 600,
+        color: tokens.colorNeutralForeground3,
+    },
+    filterChipRow: {
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "6px",
+    },
+    statusSegmented: {
+        display: "flex",
+        width: "100%",
+    },
+    statusSegmentButton: {
+        flex: 1,
+        minWidth: "unset",
+        fontSize: "12px",
+        padding: "0 8px",
+    },
+    filterChip: {
+        borderRadius: "999px",
+        fontSize: "12px",
+        minWidth: "unset",
+    },
+    filterChipSelected: {
+        border: "1px solid var(--vscode-textLink-foreground)",
+        color: "var(--vscode-textLink-foreground)",
+        backgroundColor: "color-mix(in srgb, var(--vscode-textLink-foreground) 20%, transparent)",
+    },
+    schemaList: {
+        position: "relative",
+        overflowY: "auto",
+        overflowX: "hidden",
+        padding: "0 4px",
+    },
+    schemaSelectAllRow: {
+        position: "sticky",
+        top: 0,
+        zIndex: 1,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        minHeight: `${SCHEMA_FILTER_ROW_HEIGHT}px`,
+        height: `${SCHEMA_FILTER_ROW_HEIGHT}px`,
+        padding: "0 4px 0 0",
+        backgroundColor: "var(--vscode-editorWidget-background)",
+        borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+    },
+    schemaListContent: {
+        position: "relative",
+        width: "100%",
+    },
+    schemaOption: {
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "6px",
+        minHeight: "22px",
+        height: "22px",
+        cursor: "pointer",
+        "&:hover": {
+            backgroundColor: tokens.colorNeutralBackground1Hover,
+        },
+    },
+    schemaCheckbox: {
+        minWidth: 0,
+        minHeight: "22px",
+        height: "22px",
+        fontSize: tokens.fontSizeBase200,
+        lineHeight: tokens.lineHeightBase200,
+        "& .fui-Checkbox__indicator": {
+            width: "12px",
+            height: "12px",
+            fontSize: "10px",
+            flexShrink: 0,
+            alignSelf: "center",
+        },
+        "& .fui-Checkbox__label": {
+            minWidth: 0,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+        },
+    },
+    schemaName: {
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+        fontFamily: "var(--vscode-editor-font-family)",
+        fontSize: tokens.fontSizeBase200,
+    },
+    schemaCount: {
+        color: tokens.colorNeutralForeground4,
+        fontSize: tokens.fontSizeBase100,
+        lineHeight: tokens.lineHeightBase100,
+        flexShrink: 0,
+        paddingRight: "4px",
+    },
+    filterFooter: {
+        display: "flex",
+        gap: "6px",
+        marginTop: "10px",
+    },
+    filterFooterButton: {
+        flex: 1,
     },
     enabledCount: {
         fontSize: "12px",
@@ -102,9 +287,17 @@ interface DabToolbarProps {
     showDiscovery: boolean;
     onNavigateToSchema?: () => void;
     onViewConfig?: () => void;
+    entityFilters: DabEntityFilters;
+    setEntityFilters: Dispatch<SetStateAction<DabEntityFilters>>;
 }
 
-export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: DabToolbarProps) {
+export function DabToolbar({
+    showDiscovery,
+    onNavigateToSchema,
+    onViewConfig,
+    entityFilters,
+    setEntityFilters,
+}: DabToolbarProps) {
     const classes = useStyles();
     const context = useDabContext();
     const {
@@ -120,7 +313,31 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: 
     } = context;
 
     const [showApiTypeWarning, setShowApiTypeWarning] = useState(false);
+    const [filterOpen, setFilterOpen] = useState(false);
     const warningTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+    const schemaListRef = useRef<HTMLDivElement | null>(null);
+
+    const schemaOptions = Object.values(
+        (dabConfig?.entities ?? []).reduce<
+            Record<string, { key: string; schemaName: string; count: number }>
+        >((accumulator, entity) => {
+            const key = getDabSchemaFilterKey(entity.schemaName);
+            accumulator[key] ??= {
+                key,
+                schemaName: entity.schemaName.trim() || entity.schemaName,
+                count: 0,
+            };
+            accumulator[key].count++;
+            return accumulator;
+        }, {}),
+    ).sort((a, b) => a.schemaName.localeCompare(b.schemaName));
+
+    const schemaVirtualizer = useVirtualizer({
+        count: schemaOptions.length,
+        getScrollElement: () => schemaListRef.current,
+        estimateSize: () => SCHEMA_FILTER_ROW_HEIGHT,
+        overscan: 4,
+    });
 
     const showMinApiTypeWarning = useCallback(() => {
         setShowApiTypeWarning(true);
@@ -146,8 +363,62 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: 
     }
 
     const supportedEntities = dabConfig.entities.filter((e) => e.isSupported);
+    const crudEntities = supportedEntities.filter(
+        (e) =>
+            (e.sourceType ?? Dab.EntitySourceType.Table) !== Dab.EntitySourceType.StoredProcedure,
+    );
     const enabledCount = dabConfig.entities.filter((e) => e.isEnabled).length;
     const totalCount = dabConfig.entities.length;
+    const activeFilterCount = getDabEntityFilterCount(entityFilters);
+    const hasActiveFilters = activeFilterCount > 0;
+    const schemaFilterState =
+        entityFilters.schemas.length === 0 || entityFilters.schemas.length === schemaOptions.length
+            ? true
+            : "mixed";
+    const schemaFilterKeys = schemaOptions.map((option) => option.key);
+    const schemaFilterListHeight =
+        (Math.min(schemaOptions.length, SCHEMA_FILTER_VISIBLE_ROWS) + 1) * SCHEMA_FILTER_ROW_HEIGHT;
+
+    const sourceTypeLabels: Record<Dab.EntitySourceType, string> = {
+        [Dab.EntitySourceType.Table]: locConstants.schemaDesigner.tables,
+        [Dab.EntitySourceType.View]: locConstants.schemaDesigner.views,
+        [Dab.EntitySourceType.StoredProcedure]: locConstants.schemaDesigner.storedProcedures,
+    };
+    const statusFilterOptions = Object.values(DabEntityStatusFilter).map((status) => ({
+        value: status,
+        label: locConstants.schemaDesigner.entityStatusFilterLabel(status),
+    }));
+
+    const sourceTypes = new Set(
+        dabConfig.entities.map((entity) => entity.sourceType ?? Dab.EntitySourceType.Table),
+    );
+    const sourceTypeOptions = [
+        Dab.EntitySourceType.Table,
+        Dab.EntitySourceType.View,
+        Dab.EntitySourceType.StoredProcedure,
+    ].filter((sourceType) => sourceTypes.has(sourceType));
+
+    const clearFilters = () => {
+        setEntityFilters({ ...defaultDabEntityFilters });
+    };
+
+    const toggleSchemaFilter = (schemaKey: string) => {
+        setEntityFilters((prev) => ({
+            ...prev,
+            schemas: toggleDabEntityFilterValue(prev.schemas, schemaKey, schemaFilterKeys),
+        }));
+    };
+
+    const toggleSourceTypeFilter = (sourceType: Dab.EntitySourceType) => {
+        setEntityFilters((prev) => ({
+            ...prev,
+            sourceTypes: toggleDabEntityFilterValue(
+                prev.sourceTypes,
+                sourceType,
+                sourceTypeOptions,
+            ),
+        }));
+    };
 
     const allActions = [
         Dab.EntityAction.Create,
@@ -173,7 +444,7 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: 
     };
 
     const handleMakeReadOnly = () => {
-        for (const entity of supportedEntities) {
+        for (const entity of crudEntities) {
             if (!entity.isEnabled) {
                 toggleDabEntity(entity.id, true);
             }
@@ -191,7 +462,7 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: 
     };
 
     const handleEnableAllCruds = () => {
-        for (const entity of supportedEntities) {
+        for (const entity of crudEntities) {
             if (!entity.isEnabled) {
                 toggleDabEntity(entity.id, true);
             }
@@ -366,27 +637,205 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: 
 
             {/* Filter row */}
             <div className={classes.filterRow}>
-                <Input
-                    className={classes.searchInput}
-                    size="small"
-                    placeholder={locConstants.schemaDesigner.filterEntities}
-                    aria-label={locConstants.schemaDesigner.filterEntities}
-                    value={dabTextFilter}
-                    onChange={(_, data) => setDabTextFilter(data.value)}
-                    contentBefore={<Search16Regular />}
-                    contentAfter={
-                        dabTextFilter ? (
+                <div className={classes.filterControls}>
+                    <Input
+                        className={classes.searchInput}
+                        size="small"
+                        placeholder={locConstants.schemaDesigner.filterEntities}
+                        aria-label={locConstants.schemaDesigner.filterEntities}
+                        value={dabTextFilter}
+                        onChange={(_, data) => setDabTextFilter(data.value)}
+                        contentBefore={<Search16Regular />}
+                        contentAfter={
+                            dabTextFilter ? (
+                                <Button
+                                    appearance="transparent"
+                                    icon={<Dismiss16Regular />}
+                                    size="small"
+                                    aria-label={locConstants.common.clear}
+                                    onClick={() => setDabTextFilter("")}
+                                    style={{ minWidth: "auto", padding: 0 }}
+                                />
+                            ) : undefined
+                        }
+                    />
+                    <Popover
+                        withArrow
+                        positioning="below-start"
+                        open={filterOpen}
+                        onOpenChange={(_, data) => setFilterOpen(data.open)}>
+                        <PopoverTrigger disableButtonEnhancement>
                             <Button
-                                appearance="transparent"
-                                icon={<Dismiss16Regular />}
-                                size="small"
-                                aria-label={locConstants.common.clear}
-                                onClick={() => setDabTextFilter("")}
-                                style={{ minWidth: "auto", padding: 0 }}
-                            />
-                        ) : undefined
-                    }
-                />
+                                appearance="subtle"
+                                icon={<Filter16Regular />}
+                                className={mergeClasses(
+                                    hasActiveFilters && classes.filterButtonActive,
+                                )}>
+                                {locConstants.schemaDesigner.filter(0)}
+                                {hasActiveFilters && (
+                                    <CounterBadge
+                                        className={classes.filterButtonBadge}
+                                        size="small"
+                                        count={activeFilterCount}
+                                        color="brand"
+                                    />
+                                )}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverSurface className={classes.filterSurface}>
+                            <div className={classes.filterPopupHeader}>
+                                <Text className={classes.filterPopupTitle}>
+                                    {locConstants.schemaDesigner.filterEntitiesTitle}
+                                </Text>
+                                <Button
+                                    appearance="subtle"
+                                    size="small"
+                                    icon={<Dismiss12Regular />}
+                                    className={classes.closeButton}
+                                    aria-label={locConstants.common.close}
+                                    onClick={() => setFilterOpen(false)}
+                                />
+                            </div>
+                            <div className={classes.filterDivider} />
+                            <div className={classes.filterPopupBody}>
+                                <div className={classes.filterSection}>
+                                    <Text className={classes.filterSectionTitle}>
+                                        {locConstants.schemaDesigner.status}
+                                    </Text>
+                                    <SegmentedControl<DabEntityStatusFilter>
+                                        value={entityFilters.status}
+                                        options={statusFilterOptions}
+                                        onValueChange={(status) =>
+                                            setEntityFilters((prev) => ({
+                                                ...prev,
+                                                status,
+                                            }))
+                                        }
+                                        className={classes.statusSegmented}
+                                        buttonClassName={classes.statusSegmentButton}
+                                        ariaLabel={locConstants.schemaDesigner.status}
+                                    />
+                                </div>
+                                <div className={classes.filterSection}>
+                                    <Text className={classes.filterSectionTitle}>
+                                        {locConstants.schemaDesigner.schema}
+                                    </Text>
+                                    <div
+                                        ref={schemaListRef}
+                                        className={classes.schemaList}
+                                        style={{
+                                            height: `${schemaFilterListHeight}px`,
+                                        }}>
+                                        <div className={classes.schemaSelectAllRow}>
+                                            <Checkbox
+                                                className={classes.schemaCheckbox}
+                                                checked={schemaFilterState}
+                                                onChange={() =>
+                                                    setEntityFilters((prev) => ({
+                                                        ...prev,
+                                                        schemas: [],
+                                                    }))
+                                                }
+                                                label={locConstants.schemaDesigner.allSchemas}
+                                            />
+                                            <span className={classes.schemaCount}>
+                                                {schemaOptions.length}
+                                            </span>
+                                        </div>
+                                        <div
+                                            className={classes.schemaListContent}
+                                            style={{
+                                                height: `${schemaVirtualizer.getTotalSize()}px`,
+                                            }}>
+                                            {schemaVirtualizer
+                                                .getVirtualItems()
+                                                .map((virtualItem) => {
+                                                    const option = schemaOptions[virtualItem.index];
+                                                    if (!option) {
+                                                        return undefined;
+                                                    }
+
+                                                    return (
+                                                        <div
+                                                            className={classes.schemaOption}
+                                                            key={option.key}
+                                                            style={{
+                                                                height: `${virtualItem.size}px`,
+                                                                transform: `translateY(${virtualItem.start}px)`,
+                                                            }}>
+                                                            <Checkbox
+                                                                className={classes.schemaCheckbox}
+                                                                checked={entityFilters.schemas.includes(
+                                                                    option.key,
+                                                                )}
+                                                                onChange={() =>
+                                                                    toggleSchemaFilter(option.key)
+                                                                }
+                                                                label={
+                                                                    <span
+                                                                        className={
+                                                                            classes.schemaName
+                                                                        }>
+                                                                        {option.schemaName}
+                                                                    </span>
+                                                                }
+                                                            />
+                                                            <span className={classes.schemaCount}>
+                                                                {option.count}
+                                                            </span>
+                                                        </div>
+                                                    );
+                                                })}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className={classes.filterSection}>
+                                    <Text className={classes.filterSectionTitle}>
+                                        {locConstants.schemaDesigner.objectType}
+                                    </Text>
+                                    <div className={classes.filterChipRow}>
+                                        {sourceTypeOptions.map((sourceType) => (
+                                            <ToggleButton
+                                                key={sourceType}
+                                                shape="circular"
+                                                size="small"
+                                                className={mergeClasses(
+                                                    classes.filterChip,
+                                                    entityFilters.sourceTypes.includes(
+                                                        sourceType,
+                                                    ) && classes.filterChipSelected,
+                                                )}
+                                                checked={entityFilters.sourceTypes.includes(
+                                                    sourceType,
+                                                )}
+                                                onClick={() => toggleSourceTypeFilter(sourceType)}>
+                                                {sourceTypeLabels[sourceType]}
+                                            </ToggleButton>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className={classes.filterDivider} />
+                            <div className={classes.filterFooter}>
+                                <Button
+                                    size="small"
+                                    appearance="outline"
+                                    className={classes.filterFooterButton}
+                                    disabled={!hasActiveFilters}
+                                    onClick={clearFilters}>
+                                    {locConstants.schemaDesigner.clearAllFilters}
+                                </Button>
+                                <Button
+                                    size="small"
+                                    appearance="primary"
+                                    className={classes.filterFooterButton}
+                                    onClick={() => setFilterOpen(false)}>
+                                    {locConstants.schemaDesigner.applyFilter}
+                                </Button>
+                            </div>
+                        </PopoverSurface>
+                    </Popover>
+                </div>
                 <Text className={classes.enabledCount}>
                     {locConstants.schemaDesigner.nOfMEnabled(enabledCount, totalCount)}
                 </Text>

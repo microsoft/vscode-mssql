@@ -160,6 +160,21 @@ suite("TableDesignerWebviewController tests", () => {
             (controller as any)._state.tableInfo.database,
             "Table Info should be loaded",
         ).to.equal("master");
+        expect(
+            (controller as any)._state.hasUnpublishedChanges,
+            "Table designer should not be dirty immediately after initialization",
+        ).to.be.false;
+        expect(mockTableDesignerService.initializeTableDesigner).to.have.been.calledWith(
+            sinon.match({
+                sessionId: sinon.match.string,
+                tableInfo: sinon.match({
+                    id: sinon.match.string,
+                    database: "master",
+                    schema: "dbo",
+                    name: tableName,
+                }),
+            }),
+        );
     });
 
     test("should call processTableEdit in processTableEdit reducer", async () => {
@@ -186,6 +201,16 @@ suite("TableDesignerWebviewController tests", () => {
         ).to.have.been.calledOnceWithExactly(mockPayload.table, mockPayload.tableChangeInfo);
         expect(result.tabStates.resultPaneTab, "State tab should be set to Script").to.equal(
             td.DesignerResultPaneTabs.Script,
+        );
+        expect(
+            result.hasUnpublishedChanges,
+            "State should track unpublished changes after a successful edit",
+        ).to.be.true;
+        expect(result.apiState.previewState, "Preview state should reset after edit").to.equal(
+            td.LoadState.NotStarted,
+        );
+        expect(result.apiState.publishState, "Publish state should reset after edit").to.equal(
+            td.LoadState.NotStarted,
         );
 
         processTableEditStub.restore();
@@ -271,6 +296,10 @@ suite("TableDesignerWebviewController tests", () => {
         expect(result.apiState.previewState, "Preview State should be not started").to.equal(
             td.LoadState.NotStarted,
         );
+        expect(
+            result.hasUnpublishedChanges,
+            "Publish should clear unpublished changes after success",
+        ).to.be.false;
 
         expect(controller.panel.title, "Panel title should be table name").to.equal(
             publishResponse.newTableInfo.title,
@@ -305,7 +334,13 @@ suite("TableDesignerWebviewController tests", () => {
             table: mockResult.tableInfo,
         };
 
-        const callState = (controller as any)._state;
+        const callState = {
+            ...(controller as any)._state,
+            apiState: {
+                ...(controller as any)._state.apiState,
+                generateScriptState: td.LoadState.Loading,
+            },
+        };
 
         let result = await controller["_reducerHandlers"].get("generateScript")(
             callState,
@@ -350,7 +385,13 @@ suite("TableDesignerWebviewController tests", () => {
             table: mockResult.tableInfo,
         };
 
-        const callState = (controller as any)._state;
+        const callState = {
+            ...(controller as any)._state,
+            apiState: {
+                ...(controller as any)._state.apiState,
+                generateScriptState: td.LoadState.Loading,
+            },
+        };
 
         // Success scenario
         let result = await controller["_reducerHandlers"].get("generatePreviewReport")(
@@ -370,6 +411,10 @@ suite("TableDesignerWebviewController tests", () => {
         expect(result.apiState.publishState, "Publish state should remain NotStarted").to.equal(
             td.LoadState.NotStarted,
         );
+        expect(
+            result.apiState.generateScriptState,
+            "Generate script state should reset when preview loads",
+        ).to.equal(td.LoadState.NotStarted);
         expect(
             result.generatePreviewReportResult,
             "Should store the preview report result",
@@ -394,6 +439,10 @@ suite("TableDesignerWebviewController tests", () => {
         expect(
             result.apiState.publishState,
             "Publish state should remain NotStarted on failure",
+        ).to.equal(td.LoadState.NotStarted);
+        expect(
+            result.apiState.generateScriptState,
+            "Generate script state should reset when preview fails",
         ).to.equal(td.LoadState.NotStarted);
         expect(
             result.generatePreviewReportResult.schemaValidationError,

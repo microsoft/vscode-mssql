@@ -10,8 +10,27 @@ import { SchemaDesignerRequests } from "../models/contracts/schemaDesigner";
 export class SchemaDesignerService implements SchemaDesigner.ISchemaDesignerService {
     private _modelReadyListeners: ((modelReady: SchemaDesigner.SchemaDesignerSession) => void)[] =
         [];
+    private _progressListeners: ((
+        progress: SchemaDesigner.SchemaDesignerProgressNotificationParams,
+    ) => void)[] = [];
+    private _messageListeners: ((
+        message: SchemaDesigner.SchemaDesignerMessageNotificationParams,
+    ) => void)[] = [];
 
-    constructor(private _sqlToolsClient: SqlToolsServiceClient) {}
+    constructor(private _sqlToolsClient: SqlToolsServiceClient) {
+        this._sqlToolsClient.onNotification(
+            SchemaDesignerRequests.ProgressNotification.type,
+            (progress) => {
+                this._progressListeners.forEach((listener) => listener(progress));
+            },
+        );
+        this._sqlToolsClient.onNotification(
+            SchemaDesignerRequests.MessageNotification.type,
+            (message) => {
+                this._messageListeners.forEach((listener) => listener(message));
+            },
+        );
+    }
 
     async createSession(
         request: SchemaDesigner.CreateSessionRequest,
@@ -95,5 +114,33 @@ export class SchemaDesignerService implements SchemaDesigner.ISchemaDesignerServ
 
     onSchemaReady(listener: (model: SchemaDesigner.SchemaDesignerSession) => void): void {
         this._modelReadyListeners.push(listener);
+    }
+
+    onProgress(
+        listener: (progress: SchemaDesigner.SchemaDesignerProgressNotificationParams) => void,
+    ): void {
+        this._progressListeners.push(listener);
+    }
+
+    removeProgressListener(
+        listener: (progress: SchemaDesigner.SchemaDesignerProgressNotificationParams) => void,
+    ): void {
+        this._progressListeners = this._progressListeners.filter(
+            (registeredListener) => registeredListener !== listener,
+        );
+    }
+
+    onMessage(
+        listener: (message: SchemaDesigner.SchemaDesignerMessageNotificationParams) => void,
+    ): void {
+        this._messageListeners.push(listener);
+    }
+
+    removeMessageListener(
+        listener: (message: SchemaDesigner.SchemaDesignerMessageNotificationParams) => void,
+    ): void {
+        this._messageListeners = this._messageListeners.filter(
+            (registeredListener) => registeredListener !== listener,
+        );
     }
 }

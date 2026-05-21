@@ -14,13 +14,16 @@ import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { IConnectionProfile } from "../models/interfaces";
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { copied, scriptCopiedToClipboard } from "../constants/locConstants";
+import { LoadingLogEntry } from "../sharedInterfaces/webview";
+import * as LocConstants from "../constants/locConstants";
 import { UserSurvey } from "../nps/userSurvey";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { getErrorMessage } from "../utils/utils";
 import VscodeWrapper from "../controllers/vscodeWrapper";
+import logger2 from "../models/logger2";
 
 const TABLE_DESIGNER_VIEW_ID = "tableDesigner";
+const logger = logger2.withPrefix("TableDesignerWebviewController");
 
 export class TableDesignerWebviewController extends WebviewPanelController<
     designer.TableDesignerWebviewState,
@@ -28,6 +31,13 @@ export class TableDesignerWebviewController extends WebviewPanelController<
 > {
     private _isEdit: boolean = false;
     private _correlationId: string = randomUUID();
+    private _sessionId: string = randomUUID();
+    private _progressListener:
+        | ((progress: designer.TableDesignerProgressNotificationParams) => void)
+        | undefined;
+    private _messageListener:
+        | ((message: designer.TableDesignerMessageNotificationParams) => void)
+        | undefined;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -52,6 +62,8 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     publishState: designer.LoadState.NotStarted,
                     initializeState: designer.LoadState.Loading,
                 },
+                loadingMessages: [],
+                hasUnpublishedChanges: false,
             },
             {
                 title: "Table Designer",
@@ -72,7 +84,20 @@ export class TableDesignerWebviewController extends WebviewPanelController<
             },
         );
         this.registerRpcHandlers();
-        void this.initialize();
+        this.setupTableDesignerProgressListeners();
+        void this.initializeAfterWebviewReady();
+    }
+
+    private async initializeAfterWebviewReady() {
+        try {
+            await this.whenWebviewReady();
+        } catch {
+            // If the ready signal times out, still attempt initialization.
+        }
+
+        if (this.state.apiState?.initializeState === designer.LoadState.Loading) {
+            await this.initialize();
+        }
     }
 
     private async initialize() {
@@ -93,6 +118,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     initializeState: designer.LoadState.Error,
                 },
                 initializationError: errorMessage,
+                loadingMessages: this.appendLoadingMessage(errorMessage, true),
             };
             return;
         }
@@ -140,6 +166,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     initializeState: designer.LoadState.Error,
                 },
                 initializationError: getErrorMessage(e),
+                loadingMessages: this.appendLoadingMessage(getErrorMessage(e), true),
             };
             return;
         }
@@ -175,6 +202,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                         initializeState: designer.LoadState.Error,
                     },
                     initializationError: errorMessage,
+                    loadingMessages: this.appendLoadingMessage(errorMessage, true),
                 };
 
                 return;
@@ -196,6 +224,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     initializeState: designer.LoadState.Error,
                 },
                 initializationError: getErrorMessage(e),
+                loadingMessages: this.appendLoadingMessage(getErrorMessage(e), true),
             };
             return;
         }
@@ -216,7 +245,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
             let tableInfo: designer.TableInfo;
             if (this._isEdit) {
                 tableInfo = {
-                    id: randomUUID(),
+                    id: this._sessionId,
                     isNewTable: false,
                     title: this._targetNode.label as string,
                     tooltip: `${connectionInfo.server} - ${databaseName} - ${this._targetNode.label}`,
@@ -229,7 +258,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                 };
             } else {
                 tableInfo = {
-                    id: randomUUID(),
+                    id: this._sessionId,
                     isNewTable: true,
                     title: "New Table",
                     tooltip: `${connectionInfo.server} - ${databaseName} - New Table`,
@@ -240,16 +269,19 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                 };
             }
             this.panel.title = tableInfo.title;
-            const initializeResult =
-                await this._tableDesignerService.initializeTableDesigner(tableInfo);
+            const initializeResult = await this._tableDesignerService.initializeTableDesigner({
+                sessionId: this._sessionId,
+                tableInfo,
+            });
             endActivity.end(ActivityStatus.Succeeded);
             initializeResult.tableInfo.database = databaseName ?? "master";
             this.state = {
-                tableInfo: tableInfo,
+                tableInfo: initializeResult.tableInfo,
                 view: getDesignerView(initializeResult.view),
                 model: initializeResult.viewModel,
                 issues: initializeResult.issues,
                 isValid: true,
+                hasUnpublishedChanges: false,
                 tabStates: {
                     mainPaneTab: designer.DesignerMainPaneTabs.Columns,
                     resultPaneTab: designer.DesignerResultPaneTabs.Script,
@@ -269,6 +301,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     initializeState: designer.LoadState.Error,
                 },
                 initializationError: getErrorMessage(e),
+                loadingMessages: this.appendLoadingMessage(getErrorMessage(e), true),
             };
         }
     }
@@ -285,6 +318,14 @@ export class TableDesignerWebviewController extends WebviewPanelController<
     }
 
     public override dispose() {
+        if (this._progressListener) {
+            this._tableDesignerService.removeProgressListener(this._progressListener);
+            this._progressListener = undefined;
+        }
+        if (this._messageListener) {
+            this._tableDesignerService.removeMessageListener(this._messageListener);
+            this._messageListener = undefined;
+        }
         this._tableDesignerService.disposeTableDesigner(this.state.tableInfo);
         super.dispose();
         sendActionEvent(TelemetryViews.TableDesigner, TelemetryActions.Close, {
@@ -321,7 +362,10 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     apiState: {
                         ...state.apiState,
                         editState: designer.LoadState.Loaded,
+                        previewState: designer.LoadState.NotStarted,
+                        publishState: designer.LoadState.NotStarted,
                     },
+                    hasUnpublishedChanges: true,
                 };
 
                 return afterEditState;
@@ -340,6 +384,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
         });
 
         this.registerReducer("publishChanges", async (state, payload) => {
+            const publishProgressMessages: LoadingLogEntry[] = [];
             const endActivity = startActivity(
                 TelemetryViews.TableDesigner,
                 TelemetryActions.Publish,
@@ -354,6 +399,15 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     ...this.state.apiState,
                     publishState: designer.LoadState.Loading,
                 },
+                publishProgressMessages,
+            };
+            state = {
+                ...state,
+                apiState: {
+                    ...state.apiState,
+                    publishState: designer.LoadState.Loading,
+                },
+                publishProgressMessages,
             };
             try {
                 const publishResponse = await this._tableDesignerService.publishChanges(
@@ -370,7 +424,9 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                         publishState: designer.LoadState.Loaded,
                         previewState: designer.LoadState.NotStarted,
                     },
+                    hasUnpublishedChanges: false,
                 };
+                this._sessionId = publishResponse.newTableInfo.id;
                 this.panel.title = state.tableInfo.title;
                 this.showRestorePromptAfterClose = false;
                 UserSurvey.getInstance().promptUserForNPSFeedback(TABLE_DESIGNER_VIEW_ID);
@@ -382,6 +438,11 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                         publishState: designer.LoadState.Error,
                     },
                     publishingError: e.toString(),
+                    publishProgressMessages: this.appendProgressMessage(
+                        state.publishProgressMessages,
+                        getErrorMessage(e),
+                        true,
+                    ),
                 };
                 endActivity.endFailed(e, false);
             }
@@ -409,35 +470,60 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     generateScriptState: designer.LoadState.Loading,
                 },
             };
-            const script = await this._tableDesignerService.generateScript(payload.table);
-            sendActionEvent(TelemetryViews.TableDesigner, TelemetryActions.GenerateScript, {
-                correlationId: this._correlationId,
-            });
-            state = {
-                ...state,
-                apiState: {
-                    ...state.apiState,
-                    generateScriptState: designer.LoadState.Loaded,
-                },
-            };
-            await this._sqlDocumentService.newQuery({
-                content: script,
-                connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
-                connectionInfo: payload.table.connectionInfo,
-            });
-            UserSurvey.getInstance().promptUserForNPSFeedback(TABLE_DESIGNER_VIEW_ID);
+            try {
+                const script = await this._tableDesignerService.generateScript(payload.table);
+                sendActionEvent(TelemetryViews.TableDesigner, TelemetryActions.GenerateScript, {
+                    correlationId: this._correlationId,
+                });
+                state = {
+                    ...state,
+                    apiState: {
+                        ...state.apiState,
+                        generateScriptState: designer.LoadState.Loaded,
+                    },
+                };
+                await this._sqlDocumentService.newQuery({
+                    content: script,
+                    connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
+                    connectionInfo: payload.table.connectionInfo,
+                });
+                UserSurvey.getInstance().promptUserForNPSFeedback(TABLE_DESIGNER_VIEW_ID);
+            } catch (e) {
+                state = {
+                    ...state,
+                    apiState: {
+                        ...state.apiState,
+                        generateScriptState: designer.LoadState.Error,
+                    },
+                };
+                vscode.window.showErrorMessage(getErrorMessage(e));
+            }
             return state;
         });
 
         this.registerReducer("generatePreviewReport", async (state, payload) => {
+            const reportProgressMessages: LoadingLogEntry[] = [];
             this.state = {
                 ...this.state,
                 apiState: {
                     ...this.state.apiState,
                     previewState: designer.LoadState.Loading,
                     publishState: designer.LoadState.NotStarted,
+                    generateScriptState: designer.LoadState.NotStarted,
                 },
                 publishingError: undefined,
+                reportProgressMessages,
+            };
+            state = {
+                ...state,
+                apiState: {
+                    ...state.apiState,
+                    previewState: designer.LoadState.Loading,
+                    publishState: designer.LoadState.NotStarted,
+                    generateScriptState: designer.LoadState.NotStarted,
+                },
+                publishingError: undefined,
+                reportProgressMessages,
             };
             try {
                 const previewReport = await this._tableDesignerService.generatePreviewReport(
@@ -451,8 +537,16 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                             ? designer.LoadState.Error
                             : designer.LoadState.Loaded,
                         publishState: designer.LoadState.NotStarted,
+                        generateScriptState: designer.LoadState.NotStarted,
                     },
                     generatePreviewReportResult: previewReport,
+                    reportProgressMessages: previewReport.schemaValidationError
+                        ? this.appendProgressMessage(
+                              state.reportProgressMessages,
+                              previewReport.schemaValidationError,
+                              true,
+                          )
+                        : state.reportProgressMessages,
                 };
             } catch (e) {
                 state = {
@@ -461,12 +555,18 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                         ...state.apiState,
                         previewState: designer.LoadState.Error,
                         publishState: designer.LoadState.NotStarted,
+                        generateScriptState: designer.LoadState.NotStarted,
                     },
                     generatePreviewReportResult: {
                         schemaValidationError: getErrorMessage(e),
                         report: "",
                         mimeType: "",
                     },
+                    reportProgressMessages: this.appendProgressMessage(
+                        state.reportProgressMessages,
+                        getErrorMessage(e),
+                        true,
+                    ),
                 };
             }
             sendActionEvent(TelemetryViews.TableDesigner, TelemetryActions.GenerateScript, {
@@ -491,7 +591,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
             designer.CopyScriptAsCreateToClipboardNotification.type,
             async (params) => {
                 await vscode.env.clipboard.writeText(params.script);
-                await vscode.window.showInformationMessage(scriptCopiedToClipboard);
+                await vscode.window.showInformationMessage(LocConstants.scriptCopiedToClipboard);
             },
         );
 
@@ -529,8 +629,113 @@ export class TableDesignerWebviewController extends WebviewPanelController<
             designer.CopyPublishErrorToClipboardNotification.type,
             async (params) => {
                 await vscode.env.clipboard.writeText(params.error);
-                void vscode.window.showInformationMessage(copied);
+                void vscode.window.showInformationMessage(LocConstants.copied);
             },
         );
+    }
+
+    private setupTableDesignerProgressListeners() {
+        this._progressListener = (progress) => {
+            if (progress.sessionId !== this._sessionId) {
+                return;
+            }
+
+            logger.info("Progress", progress);
+            this.appendOperationProgress(progress.operation, progress.message, progress.status);
+
+            try {
+                void this.sendNotification(
+                    designer.TableDesignerProgressNotification.type,
+                    progress,
+                );
+            } catch {
+                // Ignore notifications racing with webview disposal.
+            }
+        };
+
+        this._messageListener = (message) => {
+            if (message.sessionId !== this._sessionId) {
+                return;
+            }
+
+            logger.info("Message", message);
+            this.appendOperationProgress(message.operation, message.message, message.messageType);
+
+            try {
+                void this.sendNotification(designer.TableDesignerMessageNotification.type, message);
+            } catch {
+                // Ignore notifications racing with webview disposal.
+            }
+        };
+
+        this._tableDesignerService.onProgress(this._progressListener);
+        this._tableDesignerService.onMessage(this._messageListener);
+    }
+
+    private appendLoadingMessage(message: string, isError = false): LoadingLogEntry[] {
+        return this.appendProgressMessage(this.state.loadingMessages, message, isError);
+    }
+
+    private appendProgressMessage(
+        messages: LoadingLogEntry[] | undefined,
+        message: string,
+        isError = false,
+    ): LoadingLogEntry[] {
+        const nextMessage: LoadingLogEntry = {
+            message,
+            kind: isError ? "error" : "progress",
+        };
+        const currentMessages = messages ?? [];
+        const previousMessage = currentMessages[currentMessages.length - 1];
+        if (
+            previousMessage?.message === nextMessage.message &&
+            previousMessage?.kind === nextMessage.kind
+        ) {
+            return currentMessages;
+        }
+
+        return [...currentMessages, nextMessage];
+    }
+
+    private appendOperationProgress(
+        operation: string,
+        message: string,
+        statusOrMessageType: string,
+    ) {
+        const normalizedOperation = operation.toLowerCase();
+        const isError = this.isErrorStatus(statusOrMessageType);
+        if (normalizedOperation.includes("report") || normalizedOperation.includes("preview")) {
+            this.state = {
+                ...this.state,
+                reportProgressMessages: this.appendProgressMessage(
+                    this.state.reportProgressMessages,
+                    message,
+                    isError,
+                ),
+            };
+            return;
+        }
+
+        if (normalizedOperation.includes("publish")) {
+            this.state = {
+                ...this.state,
+                publishProgressMessages: this.appendProgressMessage(
+                    this.state.publishProgressMessages,
+                    message,
+                    isError,
+                ),
+            };
+            return;
+        }
+
+        this.state = {
+            ...this.state,
+            loadingMessages: this.appendLoadingMessage(message, isError),
+        };
+    }
+
+    private isErrorStatus(statusOrMessageType: string): boolean {
+        const normalized = statusOrMessageType.toLowerCase();
+        return normalized === "error" || normalized === "failed";
     }
 }

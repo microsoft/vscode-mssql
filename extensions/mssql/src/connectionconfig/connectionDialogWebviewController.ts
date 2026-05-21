@@ -152,6 +152,14 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     /** Cache of database lists keyed by fetch key, reused within the same dialog session. */
     private _databaseListCache: Map<string, string[]> = new Map();
 
+    // Original labels/tooltips for user/password fields from STS, cached so they
+    // can be restored when switching away from Service Principal auth.
+    private _originalUserLabel: string | undefined;
+    private _originalUserTooltip: string | undefined;
+    private _originalPasswordLabel: string | undefined;
+    private _originalPasswordTooltip: string | undefined;
+    private _originalSavePasswordLabel: string | undefined;
+
     //#endregion
 
     constructor(
@@ -537,6 +545,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     AuthenticationType.Integrated,
                     AuthenticationType.AzureMFA,
                     AuthenticationType.ActiveDirectoryDefault,
+                    AuthenticationType.ActiveDirectoryServicePrincipal,
                 ];
 
                 if (
@@ -898,6 +907,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 [AuthenticationType.ActiveDirectoryDefault]:
                     "https://aka.ms/vscode-mssql-auth-entra-default",
                 [AuthenticationType.AzureMFA]: "https://aka.ms/vscode-mssql-auth-entra-mfa",
+                [AuthenticationType.ActiveDirectoryServicePrincipal]:
+                    "https://learn.microsoft.com/en-us/sql/connect/ado-net/sql/azure-active-directory-authentication?view=sql-server-ver17#using-service-principal-authentication",
             };
 
             const url = infoLinkMap[payload.option.value as AuthenticationType];
@@ -1033,19 +1044,27 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         if (
             this.state.connectionProfile.authenticationType !== AuthenticationType.SqlLogin &&
             this.state.connectionProfile.authenticationType !==
-                AuthenticationType.ActiveDirectoryDefault
+                AuthenticationType.ActiveDirectoryDefault &&
+            this.state.connectionProfile.authenticationType !==
+                AuthenticationType.ActiveDirectoryServicePrincipal
         ) {
             hiddenProperties.push("user");
         }
-        if (this.state.connectionProfile.authenticationType !== AuthenticationType.SqlLogin) {
+        if (
+            this.state.connectionProfile.authenticationType !== AuthenticationType.SqlLogin &&
+            this.state.connectionProfile.authenticationType !==
+                AuthenticationType.ActiveDirectoryServicePrincipal
+        ) {
             hiddenProperties.push("password", "savePassword");
         }
 
         const userComponent = this.state.formComponents["user"];
         if (userComponent) {
-            // userId is required for SQL Login, optional for AD Default, and hidden (above) for everything else
+            // userId is required for SQL Login and Service Principal, optional for AD Default, and hidden (above) for everything else
             userComponent.required =
-                this.state.connectionProfile.authenticationType === AuthenticationType.SqlLogin;
+                this.state.connectionProfile.authenticationType === AuthenticationType.SqlLogin ||
+                this.state.connectionProfile.authenticationType ===
+                    AuthenticationType.ActiveDirectoryServicePrincipal;
         }
 
         if (this.state.connectionProfile.authenticationType !== AuthenticationType.AzureMFA) {
@@ -1072,6 +1091,51 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     hiddenProperties.push("tenantId");
                 }
             }
+        }
+
+        // Relabel user/password fields for Service Principal to disambiguate from SQL Login
+        const isServicePrincipal =
+            this.state.connectionProfile.authenticationType ===
+            AuthenticationType.ActiveDirectoryServicePrincipal;
+        const userComp = this.state.formComponents["user"];
+        if (userComp) {
+            // Lazily cache the original capability-sourced label/tooltip the first time we see them
+            if (userComp.label && !this._originalUserLabel) {
+                this._originalUserLabel = userComp.label;
+            }
+            if (userComp.tooltip && !this._originalUserTooltip) {
+                this._originalUserTooltip = userComp.tooltip;
+            }
+            userComp.label = isServicePrincipal
+                ? LocAll.ConnectionDialog.applicationClientId
+                : this._originalUserLabel;
+            userComp.tooltip = isServicePrincipal
+                ? LocAll.ConnectionDialog.applicationClientIdTooltip
+                : this._originalUserTooltip;
+        }
+        const passwordComp = this.state.formComponents["password"];
+        if (passwordComp) {
+            if (passwordComp.label && !this._originalPasswordLabel) {
+                this._originalPasswordLabel = passwordComp.label;
+            }
+            if (passwordComp.tooltip && !this._originalPasswordTooltip) {
+                this._originalPasswordTooltip = passwordComp.tooltip;
+            }
+            passwordComp.label = isServicePrincipal
+                ? LocAll.ConnectionDialog.clientSecret
+                : this._originalPasswordLabel;
+            passwordComp.tooltip = isServicePrincipal
+                ? LocAll.ConnectionDialog.clientSecretTooltip
+                : this._originalPasswordTooltip;
+        }
+        const savePasswordComp = this.state.formComponents["savePassword"];
+        if (savePasswordComp) {
+            if (savePasswordComp.label && !this._originalSavePasswordLabel) {
+                this._originalSavePasswordLabel = savePasswordComp.label;
+            }
+            savePasswordComp.label = isServicePrincipal
+                ? LocAll.ConnectionDialog.saveSecret
+                : this._originalSavePasswordLabel;
         }
 
         for (const component of Object.values(this.state.formComponents)) {
@@ -1464,6 +1528,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             case AuthenticationType.Integrated:
             case AuthenticationType.ActiveDirectoryDefault:
                 return true;
+            case AuthenticationType.ActiveDirectoryServicePrincipal:
+                return !!(profile.user && profile.password);
             default:
                 return false;
         }

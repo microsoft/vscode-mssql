@@ -98,7 +98,7 @@ export function isEmpty(str: any): boolean {
 }
 
 export function isNotEmpty(str: any): boolean {
-    return <boolean>(str && "" !== str);
+    return !!(str && "" !== str);
 }
 
 export function authTypeToString(value: AuthenticationTypes): string {
@@ -509,7 +509,7 @@ export function isFileExisting(filePath: string): boolean {
     try {
         fs.statSync(filePath);
         return true;
-    } catch (err) {
+    } catch {
         return false;
     }
 }

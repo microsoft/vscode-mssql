@@ -176,6 +176,7 @@ export let authTypeIntegrated = l10n.t("Integrated");
 export let authTypeSql = l10n.t("SQL Login");
 export let authTypeAzureActiveDirectory = l10n.t("Microsoft Entra Id - Universal w/ MFA Support");
 export let authTypeAzureActiveDirectoryDefault = l10n.t("Microsoft Entra Id - Default");
+export let authTypeAzureServicePrincipal = l10n.t("Microsoft Entra Id - Service Principal");
 export let azureAuthTypeCodeGrant = l10n.t("Azure Code Grant");
 export let azureAuthTypeDeviceCode = l10n.t("Azure Device Code");
 export let azureLogChannelName = l10n.t("MSSQL - Azure Auth Logs");
@@ -1023,6 +1024,20 @@ export class ConnectionDialog {
     public static entraMfaAuthTooltip = l10n.t(
         "Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.",
     );
+    public static entraServicePrincipalAuthTooltip = l10n.t(
+        "Authenticate using a Microsoft Entra service principal. Enter the Application (client) ID as the user name and the client secret as the password. Click the info icon to learn more.",
+    );
+    public static applicationClientId = l10n.t("Application (Client) ID");
+    public static applicationClientIdTooltip = l10n.t(
+        "The Application (Client) ID of your Microsoft Entra app registration.",
+    );
+    public static clientSecret = l10n.t("Client Secret");
+    public static clientSecretTooltip = l10n.t(
+        "The client secret for your Microsoft Entra app registration.",
+    );
+    public static applicationClientIdIsRequired = l10n.t("Application (Client) ID is required.");
+    public static clientSecretIsRequired = l10n.t("Client secret is required.");
+    public static saveSecret = l10n.t("Save Secret");
     public static createConnectionGroup = l10n.t("+ Create Connection Group");
     public static selectConnectionGroup = l10n.t("Select a connection group");
     public static searchConnectionGroups = l10n.t("Search connection groups");
@@ -1095,7 +1110,8 @@ export class ConnectionDialog {
     public static systemDatabasesGroup = l10n.t("System databases");
     public static unableToLoadDatabaseList(errorMessage: string) {
         return l10n.t({
-            message: "Unable to load database list from server: {0}",
+            message:
+                "Unable to load database list from server: {0} You may enter the database name directly.",
             args: [errorMessage],
             comment: ["{0} is the connection error message"],
         });
@@ -2116,6 +2132,37 @@ export class Connection {
             comment: ["{0} is the root id"],
         });
     };
+
+    public static defaultConnectionIdNotFoundWarning = (connectionId: string) => {
+        return l10n.t({
+            message:
+                "The connection ID '{0}' set in 'mssql.defaultConnectionId' does not match any known connection profile. New editors will fall back to transferring the active connection.",
+            args: [connectionId],
+            comment: ["{0} is the connection ID that was not found"],
+        });
+    };
+
+    public static defaultConnectionIdNotSetWarning = l10n.t(
+        "'mssql.newEditorConnectionBehavior' is set to 'defaultConnection', but 'mssql.defaultConnectionId' is not configured. New editors will fall back to transferring the active connection.",
+    );
+
+    public static defaultConnectionSelectConnection = l10n.t("Select Connection");
+
+    public static defaultConnectionChangeSetting = l10n.t("Change Setting");
+
+    public static defaultConnectionSelectConnectionPlaceholder = l10n.t(
+        "Select a connection to use as the default",
+    );
+
+    public static defaultConnectionChangeSettingPlaceholder = l10n.t(
+        "Choose the behavior for new editors",
+    );
+
+    public static defaultConnectionBehaviorTransferActive = l10n.t(
+        "Transfer active connection (Default)",
+    );
+
+    public static defaultConnectionBehaviorNone = l10n.t("Do not connect");
 
     public static errorMigratingLegacyConnection = (connectionId: string, errorMessage: string) => {
         return l10n.t({

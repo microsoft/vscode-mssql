@@ -895,6 +895,12 @@
     "Entity Endpoints": "Entity Endpoints",
     "All Schemas": "All Schemas",
     "Filter entities...": "Filter entities...",
+    "Filter entities": "Filter entities",
+    "Status": "Status",
+    "Object type": "Object type",
+    "Enabled": "Enabled",
+    "Disabled": "Disabled",
+    "Warnings": "Warnings",
     "{0} of {1} enabled/{0} is the number of enabled entities{1} is the total number of entities": {
         "message": "{0} of {1} enabled",
         "comment": ["{0} is the number of enabled entities", "{1} is the total number of entities"]
@@ -902,6 +908,35 @@
     "Create": "Create",
     "Read": "Read",
     "Update": "Update",
+    "Execute": "Execute",
+    "View": "View",
+    "Stored Procedure": "Stored Procedure",
+    "Tables": "Tables",
+    "Views": "Views",
+    "Stored Procedures": "Stored Procedures",
+    "Invalid entity reference. Use either id OR schemaName+tableName OR schemaName+sourceName+sourceType.": "Invalid entity reference. Use either id OR schemaName+tableName OR schemaName+sourceName+sourceType.",
+    "Invalid column reference. Use either id OR name.": "Invalid column reference. Use either id OR name.",
+    "Entity not found: {0}/{0} is the entity reference": {
+        "message": "Entity not found: {0}",
+        "comment": ["{0} is the entity reference"]
+    },
+    "Entity reference resolved to more than one entity: {0}/{0} is the entity reference": {
+        "message": "Entity reference resolved to more than one entity: {0}",
+        "comment": ["{0} is the entity reference"]
+    },
+    "Column not found: {0}/{0} is the column reference": {
+        "message": "Column not found: {0}",
+        "comment": ["{0} is the column reference"]
+    },
+    "Column reference resolved to more than one column: {0}/{0} is the column reference": {
+        "message": "Column reference resolved to more than one column: {0}",
+        "comment": ["{0} is the column reference"]
+    },
+    "Unsupported by Data API builder.": "Unsupported by Data API builder.",
+    "Entity '{0}' is not supported by Data API builder. {1}/{0} is the entity name{1} is why the entity is unsupported": {
+        "message": "Entity '{0}' is not supported by Data API builder. {1}",
+        "comment": ["{0} is the entity name", "{1} is why the entity is unsupported"]
+    },
     "Bulk Actions": "Bulk Actions",
     "Enable all entities": "Enable all entities",
     "Disable all entities": "Disable all entities",
@@ -933,6 +968,10 @@
     "Custom GraphQL Type": "Custom GraphQL Type",
     "Optional - Override default GraphQL type name": "Optional - Override default GraphQL type name",
     "Source Table": "Source Table",
+    "Source Table: {0}/{0} is the fully qualified source table name": {
+        "message": "Source Table: {0}",
+        "comment": ["{0} is the fully qualified source table name"]
+    },
     "Initializing DAB configuration...": "Initializing DAB configuration...",
     "No entities found": "No entities found",
     "Toggle all entities in {0}/{0} is the schema name": {
@@ -996,10 +1035,16 @@
     "Add MCP server to workspace configuration": "Add MCP server to workspace configuration",
     "View Swagger": "View Swagger",
     "Open Nitro": "Open Nitro",
-    "Table must have a primary key to be used with Data API builder": "Table must have a primary key to be used with Data API builder",
-    "Table contains column types not supported by Data API builder: {0}/{0} is a comma-separated list of column names and their data types": {
-        "message": "Table contains column types not supported by Data API builder: {0}",
-        "comment": ["{0} is a comma-separated list of column names and their data types"]
+    "{0} must define one or more key fields to be used with Data API builder/{0} is the DAB source type, e.g. Table or View": {
+        "message": "{0} must define one or more key fields to be used with Data API builder",
+        "comment": ["{0} is the DAB source type, e.g. Table or View"]
+    },
+    "{0} contains column types not supported by Data API builder: {1}/{0} is the DAB source type, e.g. Table or View{1} is a comma-separated list of column names and their data types": {
+        "message": "{0} contains column types not supported by Data API builder: {1}",
+        "comment": [
+            "{0} is the DAB source type, e.g. Table or View",
+            "{1} is a comma-separated list of column names and their data types"
+        ]
     },
     "Checking Docker installation": "Checking Docker installation",
     "Verifying Docker is installed on your system": "Verifying Docker is installed on your system",
@@ -1212,7 +1257,6 @@
     },
     "Database Details": "Database Details",
     "Drop Database Options": "Drop Database Options",
-    "Status": "Status",
     "-": "-",
     "Drop active connections": "Drop active connections",
     "Delete backup and restore history": "Delete backup and restore history",
@@ -1259,7 +1303,6 @@
     "Application Name": "Application Name",
     "Enter application name": "Enter application name",
     "Application Version": "Application Version",
-    "Execute": "Execute",
     "File path is required": "File path is required",
     "Invalid file": "Invalid file",
     "Invalid database": "Invalid database",
@@ -1348,13 +1391,8 @@
         "comment": ["{0} is the number of objects found"]
     },
     "Object Types": "Object Types",
-    "Tables": "Tables",
-    "Views": "Views",
-    "Stored Procedures": "Stored Procedures",
     "Functions": "Functions",
     "Schemas": "Schemas",
-    "View": "View",
-    "Stored Procedure": "Stored Procedure",
     "Function": "Function",
     "Search by object name or type (e.g. t:<name>, v:, f:, or sp:)": "Search by object name or type (e.g. t:<name>, v:, f:, or sp:)",
     "Actions": "Actions",
@@ -1777,8 +1815,6 @@
     "Object Explorer Filter": "Object Explorer Filter",
     "Azure MFA": "Azure MFA",
     "Windows Authentication": "Windows Authentication",
-    "Enabled": "Enabled",
-    "Disabled": "Disabled",
     "Authentication Type": "Authentication Type",
     "User": "User",
     "SQL Container Name": "SQL Container Name",
@@ -1877,6 +1913,7 @@
     "SQL Login": "SQL Login",
     "Microsoft Entra Id - Universal w/ MFA Support": "Microsoft Entra Id - Universal w/ MFA Support",
     "Microsoft Entra Id - Default": "Microsoft Entra Id - Default",
+    "Microsoft Entra Id - Service Principal": "Microsoft Entra Id - Service Principal",
     "Azure Code Grant": "Azure Code Grant",
     "Azure Device Code": "Azure Device Code",
     "MSSQL - Azure Auth Logs": "MSSQL - Azure Auth Logs",
@@ -2359,6 +2396,14 @@
     "<Default>": "<Default>",
     "Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.": "Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.",
     "Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.": "Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.",
+    "Authenticate using a Microsoft Entra service principal. Enter the Application (client) ID as the user name and the client secret as the password. Click the info icon to learn more.": "Authenticate using a Microsoft Entra service principal. Enter the Application (client) ID as the user name and the client secret as the password. Click the info icon to learn more.",
+    "Application (Client) ID": "Application (Client) ID",
+    "The Application (Client) ID of your Microsoft Entra app registration.": "The Application (Client) ID of your Microsoft Entra app registration.",
+    "Client Secret": "Client Secret",
+    "The client secret for your Microsoft Entra app registration.": "The client secret for your Microsoft Entra app registration.",
+    "Application (Client) ID is required.": "Application (Client) ID is required.",
+    "Client secret is required.": "Client secret is required.",
+    "Save Secret": "Save Secret",
     "+ Create Connection Group": "+ Create Connection Group",
     "Select a connection group": "Select a connection group",
     "Search connection groups": "Search connection groups",
@@ -2394,8 +2439,8 @@
     "No subscriptions found. Please change Azure account or tenant to view available subscriptions.": "No subscriptions found. Please change Azure account or tenant to view available subscriptions.",
     "User databases": "User databases",
     "System databases": "System databases",
-    "Unable to load database list from server: {0}/{0} is the connection error message": {
-        "message": "Unable to load database list from server: {0}",
+    "Unable to load database list from server: {0} You may enter the database name directly./{0} is the connection error message": {
+        "message": "Unable to load database list from server: {0} You may enter the database name directly.",
         "comment": ["{0} is the connection error message"]
     },
     "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported./{0} is the authentication type": {
@@ -2860,6 +2905,16 @@
         "message": "Multiple connection groups with ID '{0}' found.  Delete or rename all of them, except one in User/Global settings.json, then restart the extension.",
         "comment": ["{0} is the root id"]
     },
+    "The connection ID '{0}' set in 'mssql.defaultConnectionId' does not match any known connection profile. New editors will fall back to transferring the active connection./{0} is the connection ID that was not found": {
+        "message": "The connection ID '{0}' set in 'mssql.defaultConnectionId' does not match any known connection profile. New editors will fall back to transferring the active connection.",
+        "comment": ["{0} is the connection ID that was not found"]
+    },
+    "'mssql.newEditorConnectionBehavior' is set to 'defaultConnection', but 'mssql.defaultConnectionId' is not configured. New editors will fall back to transferring the active connection.": "'mssql.newEditorConnectionBehavior' is set to 'defaultConnection', but 'mssql.defaultConnectionId' is not configured. New editors will fall back to transferring the active connection.",
+    "Change Setting": "Change Setting",
+    "Select a connection to use as the default": "Select a connection to use as the default",
+    "Choose the behavior for new editors": "Choose the behavior for new editors",
+    "Transfer active connection (Default)": "Transfer active connection (Default)",
+    "Do not connect": "Do not connect",
     "Error migrating connection ID {0} to new format.  Please recreate this connection to use it.\nError:\n{1}/{0} is the connection id{1} is the error message": {
         "message": "Error migrating connection ID {0} to new format.  Please recreate this connection to use it.\nError:\n{1}",
         "comment": ["{0} is the connection id", "{1} is the error message"]

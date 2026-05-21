@@ -1392,6 +1392,22 @@ export class LocConstants {
             entityEndpoints: l10n.t("Entity Endpoints"),
             allSchemas: l10n.t("All Schemas"),
             filterEntities: l10n.t("Filter entities..."),
+            filterEntitiesTitle: l10n.t("Filter entities"),
+            status: l10n.t("Status"),
+            objectType: l10n.t("Object type"),
+            clearAllFilters: l10n.t("Clear all"),
+            entityStatusFilterLabel: (status: "all" | "enabled" | "disabled" | "warnings") => {
+                switch (status) {
+                    case "enabled":
+                        return l10n.t("Enabled");
+                    case "disabled":
+                        return l10n.t("Disabled");
+                    case "warnings":
+                        return l10n.t("Warnings");
+                    case "all":
+                        return l10n.t("All");
+                }
+            },
             nOfMEnabled: (enabled: number, total: number) =>
                 l10n.t({
                     message: "{0} of {1} enabled",
@@ -1404,6 +1420,47 @@ export class LocConstants {
             create: l10n.t("Create"),
             read: l10n.t("Read"),
             update: l10n.t("Update"),
+            execute: l10n.t("Execute"),
+            view: l10n.t("View"),
+            storedProcedure: l10n.t("Stored Procedure"),
+            tables: l10n.t("Tables"),
+            views: l10n.t("Views"),
+            storedProcedures: l10n.t("Stored Procedures"),
+            invalidEntityReference: l10n.t(
+                "Invalid entity reference. Use either id OR schemaName+tableName OR schemaName+sourceName+sourceType.",
+            ),
+            invalidColumnReference: l10n.t("Invalid column reference. Use either id OR name."),
+            entityNotFound: (entityRef: string) =>
+                l10n.t({
+                    message: "Entity not found: {0}",
+                    args: [entityRef],
+                    comment: ["{0} is the entity reference"],
+                }),
+            entityReferenceNotUnique: (entityRef: string) =>
+                l10n.t({
+                    message: "Entity reference resolved to more than one entity: {0}",
+                    args: [entityRef],
+                    comment: ["{0} is the entity reference"],
+                }),
+            dabColumnNotFound: (columnRef: string) =>
+                l10n.t({
+                    message: "Column not found: {0}",
+                    args: [columnRef],
+                    comment: ["{0} is the column reference"],
+                }),
+            columnReferenceNotUnique: (columnRef: string) =>
+                l10n.t({
+                    message: "Column reference resolved to more than one column: {0}",
+                    args: [columnRef],
+                    comment: ["{0} is the column reference"],
+                }),
+            unsupportedByDataApiBuilder: l10n.t("Unsupported by Data API builder."),
+            entityNotSupportedByDataApiBuilder: (entityName: string, reason: string) =>
+                l10n.t({
+                    message: "Entity '{0}' is not supported by Data API builder. {1}",
+                    args: [entityName, reason],
+                    comment: ["{0} is the entity name", "{1} is why the entity is unsupported"],
+                }),
             bulkActions: l10n.t("Bulk Actions"),
             enableAllEntities: l10n.t("Enable all entities"),
             disableAllEntities: l10n.t("Disable all entities"),
@@ -1443,6 +1500,12 @@ export class LocConstants {
             customGraphQLTypeHelp: l10n.t("Optional - Override default GraphQL type name"),
             applyChanges: l10n.t("Apply Changes"),
             sourceTable: l10n.t("Source Table"),
+            sourceTableWithName: (sourceName: string) =>
+                l10n.t({
+                    message: "Source Table: {0}",
+                    args: [sourceName],
+                    comment: ["{0} is the fully qualified source table name"],
+                }),
             loading: l10n.t("Loading..."),
             initializingDabConfig: l10n.t("Initializing DAB configuration..."),
             noEntitiesFound: l10n.t("No entities found"),
@@ -1540,14 +1603,21 @@ export class LocConstants {
             openNitro: l10n.t("Open Nitro"),
 
             // DAB Unsupported Reasons
-            unsupportedNoPrimaryKey: l10n.t(
-                "Table must have a primary key to be used with Data API builder",
-            ),
-            unsupportedDataTypes: (columns: string) =>
+            unsupportedNoPrimaryKey: (sourceType: string = "Table") =>
                 l10n.t({
-                    message: "Table contains column types not supported by Data API builder: {0}",
-                    args: [columns],
-                    comment: ["{0} is a comma-separated list of column names and their data types"],
+                    message:
+                        "{0} must define one or more key fields to be used with Data API builder",
+                    args: [sourceType],
+                    comment: ["{0} is the DAB source type, e.g. Table or View"],
+                }),
+            unsupportedDataTypes: (columns: string, sourceType: string = "Table") =>
+                l10n.t({
+                    message: "{0} contains column types not supported by Data API builder: {1}",
+                    args: [sourceType, columns],
+                    comment: [
+                        "{0} is the DAB source type, e.g. Table or View",
+                        "{1} is a comma-separated list of column names and their data types",
+                    ],
                 }),
 
             // DAB Deployment Steps

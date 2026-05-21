@@ -59,7 +59,7 @@ export const ProjectProviderRegistry: IProjectProviderRegistry = new (class
         this._providers.length = 0;
     }
 
-    validateProvider(provider: IProjectProvider): void {}
+    validateProvider(_provider: IProjectProvider): void {}
 
     getProviderByProjectExtension(extension: string): IProjectProvider | undefined {
         return extension ? this._providerFileExtensionMapping[extension.toUpperCase()] : undefined;
