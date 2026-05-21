@@ -46,6 +46,7 @@ export namespace Dab {
         RestMethod.Patch,
         RestMethod.Delete,
     ];
+    export const storedProcedureAllowedRestMethods = [RestMethod.Get, RestMethod.Post] as const;
 
     /**
      * Canonicalizes REST methods so semantically equivalent method sets do not
@@ -87,12 +88,15 @@ export namespace Dab {
         return undefined;
     }
 
-    export function validateDabCustomGraphQLType(value: string): string | undefined {
+    export function validateDabCustomGraphQLType(
+        value: string,
+        fieldName = "customGraphQLType",
+    ): string | undefined {
         if (value.length > maxDabEntityNameLength) {
-            return `customGraphQLType must be ${maxDabEntityNameLength} characters or fewer.`;
+            return `${fieldName} must be ${maxDabEntityNameLength} characters or fewer.`;
         }
         if (!dabGraphQLTypePattern.test(value)) {
-            return "customGraphQLType must be a valid GraphQL name.";
+            return `${fieldName} must be a valid GraphQL name.`;
         }
         return undefined;
     }
@@ -141,9 +145,18 @@ export namespace Dab {
          */
         restEnabled?: boolean;
         /**
-         * Custom GraphQL type name (overrides default entity name)
+         * Legacy custom GraphQL type name (overrides default entity name).
+         * Kept so older cached DAB configs continue to load.
          */
         customGraphQLType?: string;
+        /**
+         * Custom singular GraphQL type name (overrides default entity name).
+         */
+        customGraphQLSingularType?: string;
+        /**
+         * Custom plural GraphQL type name (overrides default pluralization).
+         */
+        customGraphQLPluralType?: string;
         /**
          * Whether this entity should be exposed through GraphQL when GraphQL is globally enabled.
          * Defaults to true.
@@ -427,11 +440,17 @@ export namespace Dab {
     export type DabEntitySettingsPatch = Partial<
         Omit<
             EntityAdvancedSettings,
-            "customRestPath" | "customGraphQLType" | "storedProcedureRestMethods"
+            | "customRestPath"
+            | "customGraphQLType"
+            | "customGraphQLSingularType"
+            | "customGraphQLPluralType"
+            | "storedProcedureRestMethods"
         >
     > & {
         customRestPath?: string | null;
-        customGraphQLType?: string | null;
+        customGraphQLType?: string | { singular: string; plural?: string | null } | null;
+        customGraphQLSingularType?: string | null;
+        customGraphQLPluralType?: string | null;
         storedProcedureRestMethods?: RestMethod[] | null;
     };
 

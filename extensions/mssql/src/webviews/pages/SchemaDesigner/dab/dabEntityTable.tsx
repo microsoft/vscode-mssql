@@ -127,10 +127,6 @@ function formatUnsupportedReasons(entity: Dab.DabEntityConfig): string {
         .join("; ");
 }
 
-function getEntityFullName(entity: Dab.DabEntityConfig): string {
-    return `${entity.schemaName}.${entity.sourceName ?? entity.tableName}`;
-}
-
 function getSchemaGroupKey(schemaName: string): string {
     return schemaName.trim().toLowerCase();
 }
@@ -433,7 +429,6 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
         updateDabEntitySettings,
         updateDabApiTypes,
         dabTextFilter,
-        currentFilteredTables,
     } = context;
 
     const [expandedRows, setExpandedRows] = useState<Set<string>>(() =>
@@ -446,12 +441,6 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
     const hasInitializedExpandedRows = useRef(Boolean(dabConfig));
     const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
-    const initialEnabledEntities = useRef<Set<string>>(
-        new Set(
-            dabConfig?.entities.filter((e) => e.isEnabled).map((e) => getEntityFullName(e)) ?? [],
-        ),
-    );
-
     useEffect(() => {
         if (!dabConfig) {
             return;
@@ -459,30 +448,9 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
 
         if (!hasInitializedExpandedRows.current) {
             setExpandedRows(createDefaultExpandedRows(dabConfig));
-            initialEnabledEntities.current = new Set(
-                dabConfig.entities.filter((e) => e.isEnabled).map((e) => getEntityFullName(e)),
-            );
             hasInitializedExpandedRows.current = true;
         }
-
-        const tablesToCheck: Set<string> =
-            currentFilteredTables.length > 0
-                ? new Set(currentFilteredTables)
-                : initialEnabledEntities.current;
-
-        dabConfig.entities.forEach((entity) => {
-            if ((entity.sourceType ?? Dab.EntitySourceType.Table) !== Dab.EntitySourceType.Table) {
-                return;
-            }
-
-            const fullName = getEntityFullName(entity);
-            const shouldCheck = tablesToCheck.has(fullName);
-
-            if (initialEnabledEntities.current.has(fullName) && shouldCheck !== entity.isEnabled) {
-                toggleDabEntity(entity.id, shouldCheck);
-            }
-        });
-    }, [currentFilteredTables, dabConfig, toggleDabEntity]);
+    }, [dabConfig]);
 
     const allActions = useMemo(
         () => [
@@ -717,18 +685,30 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
         [filteredEntities, headerActionState, toggleDabEntityAction],
     );
 
-    // ── Schema-level checkbox ──
+    // ── Entity selection checkboxes ──
 
-    const toggleSchemaEntities = useCallback(
+    const entitySelectionState = useCallback((entities: Dab.DabEntityConfig[]): CheckedState => {
+        const supported = entities.filter((e) => e.isSupported);
+        const enabledCount = supported.filter((e) => e.isEnabled).length;
+        return getCheckedState(supported.length, enabledCount);
+    }, []);
+
+    const toggleEntities = useCallback(
         (entities: Dab.DabEntityConfig[]) => {
             const supported = entities.filter((e) => e.isSupported);
-            const enabledCount = supported.filter((e) => e.isEnabled).length;
-            const shouldEnable = getCheckedState(supported.length, enabledCount) !== "checked";
+            const shouldEnable = entitySelectionState(supported) !== "checked";
             for (const entity of supported) {
-                toggleDabEntity(entity.id, shouldEnable);
+                if (entity.isEnabled !== shouldEnable) {
+                    toggleDabEntity(entity.id, shouldEnable);
+                }
             }
         },
-        [toggleDabEntity],
+        [entitySelectionState, toggleDabEntity],
+    );
+
+    const headerSelectionState = useMemo(
+        () => entitySelectionState(filteredEntities),
+        [entitySelectionState, filteredEntities],
     );
 
     // ── Settings dialog ──
@@ -782,15 +762,14 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
         (row: FlatRow) => {
             if (row.type === "schema") {
                 const supported = row.entities.filter((e) => e.isSupported);
-                const enabledCount = supported.filter((e) => e.isEnabled).length;
-                const checkState = getCheckedState(supported.length, enabledCount);
+                const checkState = entitySelectionState(row.entities);
 
                 return (
                     <div className={classes.centeredCell}>
                         <Checkbox
                             checked={toNativeChecked(checkState)}
                             disabled={supported.length === 0}
-                            onChange={() => toggleSchemaEntities(row.entities)}
+                            onChange={() => toggleEntities(row.entities)}
                             aria-label={locConstants.schemaDesigner.toggleAllEntitiesInSchema(
                                 row.schemaName,
                             )}
@@ -801,15 +780,14 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
 
             if (row.type === "objectGroup") {
                 const supported = row.entities.filter((e) => e.isSupported);
-                const enabledCount = supported.filter((e) => e.isEnabled).length;
-                const checkState = getCheckedState(supported.length, enabledCount);
+                const checkState = entitySelectionState(row.entities);
 
                 return (
                     <div className={classes.centeredCell}>
                         <Checkbox
                             checked={toNativeChecked(checkState)}
                             disabled={supported.length === 0}
-                            onChange={() => toggleSchemaEntities(row.entities)}
+                            onChange={() => toggleEntities(row.entities)}
                             aria-label={sourceTypeLabels[row.sourceType]}
                         />
                     </div>
@@ -879,10 +857,11 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
         },
         [
             classes.centeredCell,
+            entitySelectionState,
             sourceTypeLabels,
             toggleDabColumnExposure,
             toggleDabEntity,
-            toggleSchemaEntities,
+            toggleEntities,
         ],
     );
 
@@ -1181,7 +1160,16 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
         () => [
             createTableColumn<FlatRow>({
                 columnId: "select",
-                renderHeaderCell: () => <span />,
+                renderHeaderCell: () => (
+                    <div className={classes.headerActionCell}>
+                        <Checkbox
+                            checked={toNativeChecked(headerSelectionState)}
+                            disabled={filteredEntities.filter((e) => e.isSupported).length === 0}
+                            onChange={() => toggleEntities(filteredEntities)}
+                            aria-label={locConstants.schemaDesigner.selectAllEntities}
+                        />
+                    </div>
+                ),
                 renderCell: renderSelectContent,
             }),
             createTableColumn<FlatRow>({
@@ -1260,6 +1248,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
             classes.sortableHeader,
             filteredEntities,
             headerActionState,
+            headerSelectionState,
             renderActionContent,
             renderExpandContent,
             renderNameContent,
@@ -1267,6 +1256,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
             renderSettingsContent,
             renderSourceContent,
             sortDirection,
+            toggleEntities,
             toggleHeaderAction,
         ],
     );

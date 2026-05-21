@@ -185,16 +185,6 @@ const useStyles = makeStyles({
         flexWrap: "wrap",
         gap: "6px",
     },
-    methodChip: {
-        borderRadius: "999px",
-        fontSize: "12px",
-        minWidth: "unset",
-    },
-    methodChipSelected: {
-        border: "1px solid var(--vscode-textLink-foreground)",
-        color: "var(--vscode-textLink-foreground)",
-        backgroundColor: "color-mix(in srgb, var(--vscode-textLink-foreground) 20%, transparent)",
-    },
 });
 
 interface DabEntitySettingsDialogProps {
@@ -254,27 +244,30 @@ export function DabEntitySettingsDialog({
         setLocalSettings((prev) => ({ ...prev, restEnabled: value }));
     };
 
-    const updateCustomGraphQLType = (value: string) => {
-        setLocalSettings((prev) => ({ ...prev, customGraphQLType: value || undefined }));
+    const updateCustomGraphQLSingularType = (value: string) => {
+        setLocalSettings((prev) => ({
+            ...prev,
+            customGraphQLType: undefined,
+            customGraphQLSingularType: value || undefined,
+        }));
+    };
+
+    const updateCustomGraphQLPluralType = (value: string) => {
+        setLocalSettings((prev) => ({
+            ...prev,
+            customGraphQLPluralType: value || undefined,
+        }));
     };
 
     const updateGraphQLEnabled = (value: boolean) => {
         setLocalSettings((prev) => ({ ...prev, graphQLEnabled: value }));
     };
 
-    const updateStoredProcedureRestMethod = (method: Dab.RestMethod, isEnabled: boolean) => {
-        setLocalSettings((prev) => {
-            const methods = prev.storedProcedureRestMethods ?? [Dab.RestMethod.Post];
-            const nextMethods = isEnabled
-                ? [...methods, method]
-                : methods.filter((existingMethod) => existingMethod !== method);
-            return {
-                ...prev,
-                storedProcedureRestMethods: nextMethods.length
-                    ? Dab.normalizeRestMethods(nextMethods)
-                    : [Dab.RestMethod.Post],
-            };
-        });
+    const updateStoredProcedureRestMethod = (method: Dab.RestMethod) => {
+        setLocalSettings((prev) => ({
+            ...prev,
+            storedProcedureRestMethods: [method],
+        }));
     };
 
     const updateStoredProcedureGraphQLOperation = (operation: Dab.GraphQLOperation) => {
@@ -294,13 +287,22 @@ export function DabEntitySettingsDialog({
     const storedProcedureRestMethods = localSettings.storedProcedureRestMethods ?? [
         Dab.RestMethod.Post,
     ];
+    const storedProcedureRestMethod =
+        storedProcedureRestMethods.find((method) =>
+            Dab.storedProcedureAllowedRestMethods.some((allowedMethod) => allowedMethod === method),
+        ) ?? Dab.RestMethod.Post;
     const storedProcedureGraphQLOperation =
         localSettings.storedProcedureGraphQLOperation ?? Dab.GraphQLOperation.Mutation;
     const exposeAsMcpCustomTool = localSettings.exposeAsMcpCustomTool !== false;
+    const authorizationRoleHelp = isStoredProcedure
+        ? locConstants.schemaDesigner.authorizationRoleStoredProcedureHelp
+        : locConstants.schemaDesigner.authorizationRoleHelp;
     const sourceObjectName = `${entity.schemaName}.${entity.sourceName ?? entity.tableName}`;
     const entityName = localSettings.entityName.trim();
     const customRestPath = localSettings.customRestPath?.trim() ?? "";
-    const customGraphQLType = localSettings.customGraphQLType?.trim() ?? "";
+    const customGraphQLSingularType =
+        (localSettings.customGraphQLSingularType ?? localSettings.customGraphQLType)?.trim() ?? "";
+    const customGraphQLPluralType = localSettings.customGraphQLPluralType?.trim() ?? "";
     const normalizedExistingEntityNames = new Set(
         existingEntityNames.map(Dab.normalizeDabIdentifier),
     );
@@ -312,14 +314,24 @@ export function DabEntitySettingsDialog({
               : Dab.validateDabEntityName(entityName);
     const customRestPathValidationMessage =
         customRestPath.length > 0 ? Dab.validateDabCustomRestPath(customRestPath) : undefined;
-    const customGraphQLTypeValidationMessage =
-        customGraphQLType.length > 0
-            ? Dab.validateDabCustomGraphQLType(customGraphQLType)
+    const customGraphQLSingularTypeValidationMessage =
+        customGraphQLPluralType.length > 0 && customGraphQLSingularType.length === 0
+            ? "customGraphQLSingularType is required when customGraphQLPluralType is set."
+            : customGraphQLSingularType.length > 0
+              ? Dab.validateDabCustomGraphQLType(
+                    customGraphQLSingularType,
+                    "customGraphQLSingularType",
+                )
+              : undefined;
+    const customGraphQLPluralTypeValidationMessage =
+        customGraphQLPluralType.length > 0
+            ? Dab.validateDabCustomGraphQLType(customGraphQLPluralType, "customGraphQLPluralType")
             : undefined;
     const hasValidationError =
         !!entityNameValidationMessage ||
         !!customRestPathValidationMessage ||
-        !!customGraphQLTypeValidationMessage;
+        !!customGraphQLSingularTypeValidationMessage ||
+        !!customGraphQLPluralTypeValidationMessage;
 
     const handleApply = () => {
         if (hasValidationError) {
@@ -330,7 +342,14 @@ export function DabEntitySettingsDialog({
             ...localSettings,
             entityName,
             customRestPath: customRestPath.length > 0 ? customRestPath : undefined,
-            customGraphQLType: customGraphQLType.length > 0 ? customGraphQLType : undefined,
+            customGraphQLType: undefined,
+            customGraphQLSingularType:
+                customGraphQLSingularType.length > 0 ? customGraphQLSingularType : undefined,
+            customGraphQLPluralType:
+                customGraphQLPluralType.length > 0 ? customGraphQLPluralType : undefined,
+            ...(isStoredProcedure
+                ? { storedProcedureRestMethods: [storedProcedureRestMethod] }
+                : {}),
         });
     };
 
@@ -402,6 +421,7 @@ export function DabEntitySettingsDialog({
                             <div className={classes.sectionBody}>
                                 <Field
                                     label={locConstants.schemaDesigner.entityName}
+                                    required
                                     validationState={
                                         entityNameValidationMessage ? "error" : undefined
                                     }
@@ -421,9 +441,7 @@ export function DabEntitySettingsDialog({
                         <section className={classes.section}>
                             {renderSectionTitle(locConstants.schemaDesigner.authorizationRole)}
                             <div className={classes.sectionBody}>
-                                <span className={classes.fieldHint}>
-                                    {locConstants.schemaDesigner.authorizationRoleHelp}
-                                </span>
+                                <span className={classes.fieldHint}>{authorizationRoleHelp}</span>
                                 <div className={classes.roleButtonsContainer}>
                                     <ToggleButton
                                         className={classes.roleButton}
@@ -548,43 +566,32 @@ export function DabEntitySettingsDialog({
                                                             locConstants.schemaDesigner
                                                                 .storedProcedureRestMethods
                                                         }
+                                                        required
                                                         hint={{
                                                             children:
                                                                 locConstants.schemaDesigner
                                                                     .storedProcedureRestMethodsHelp,
                                                             className: classes.fieldHint,
                                                         }}>
-                                                        <div className={classes.methodGroup}>
-                                                            {Object.values(Dab.RestMethod).map(
+                                                        <RadioGroup
+                                                            className={classes.methodGroup}
+                                                            value={storedProcedureRestMethod}
+                                                            layout="horizontal"
+                                                            onChange={(_, data) =>
+                                                                updateStoredProcedureRestMethod(
+                                                                    data.value as Dab.RestMethod,
+                                                                )
+                                                            }>
+                                                            {Dab.storedProcedureAllowedRestMethods.map(
                                                                 (method) => (
-                                                                    <ToggleButton
+                                                                    <Radio
                                                                         key={method}
-                                                                        shape="circular"
-                                                                        size="small"
-                                                                        className={mergeClasses(
-                                                                            classes.methodChip,
-                                                                            storedProcedureRestMethods.includes(
-                                                                                method,
-                                                                            ) &&
-                                                                                classes.methodChipSelected,
-                                                                        )}
-                                                                        checked={storedProcedureRestMethods.includes(
-                                                                            method,
-                                                                        )}
-                                                                        onClick={() =>
-                                                                            updateStoredProcedureRestMethod(
-                                                                                method,
-                                                                                !storedProcedureRestMethods.includes(
-                                                                                    method,
-                                                                                ),
-                                                                            )
-                                                                        }
-                                                                        aria-label={method.toUpperCase()}>
-                                                                        {method.toUpperCase()}
-                                                                    </ToggleButton>
+                                                                        value={method}
+                                                                        label={method.toUpperCase()}
+                                                                    />
                                                                 ),
                                                             )}
-                                                        </div>
+                                                        </RadioGroup>
                                                     </Field>
                                                 )}
                                             </>
@@ -622,31 +629,63 @@ export function DabEntitySettingsDialog({
                                                 <Field
                                                     label={
                                                         locConstants.schemaDesigner
-                                                            .customGraphQLType
+                                                            .customGraphQLSingularType
                                                     }
+                                                    required={customGraphQLPluralType.length > 0}
                                                     validationState={
-                                                        customGraphQLTypeValidationMessage
+                                                        customGraphQLSingularTypeValidationMessage
                                                             ? "error"
                                                             : undefined
                                                     }
                                                     validationMessage={
-                                                        customGraphQLTypeValidationMessage
+                                                        customGraphQLSingularTypeValidationMessage
                                                     }
                                                     hint={{
                                                         children:
                                                             locConstants.schemaDesigner
-                                                                .customGraphQLTypeHelp,
+                                                                .customGraphQLSingularTypeHelp,
                                                         className: classes.fieldHint,
                                                     }}>
                                                     <Input
-                                                        value={
-                                                            localSettings.customGraphQLType ?? ""
-                                                        }
+                                                        value={customGraphQLSingularType}
                                                         placeholder={
                                                             entity.sourceName ?? entity.tableName
                                                         }
                                                         onChange={(_, data) =>
-                                                            updateCustomGraphQLType(data.value)
+                                                            updateCustomGraphQLSingularType(
+                                                                data.value,
+                                                            )
+                                                        }
+                                                    />
+                                                </Field>
+                                                <Field
+                                                    label={
+                                                        locConstants.schemaDesigner
+                                                            .customGraphQLPluralType
+                                                    }
+                                                    validationState={
+                                                        customGraphQLPluralTypeValidationMessage
+                                                            ? "error"
+                                                            : undefined
+                                                    }
+                                                    validationMessage={
+                                                        customGraphQLPluralTypeValidationMessage
+                                                    }
+                                                    hint={{
+                                                        children:
+                                                            locConstants.schemaDesigner
+                                                                .customGraphQLPluralTypeHelp,
+                                                        className: classes.fieldHint,
+                                                    }}>
+                                                    <Input
+                                                        value={customGraphQLPluralType}
+                                                        placeholder={`${
+                                                            entity.sourceName ?? entity.tableName
+                                                        }s`}
+                                                        onChange={(_, data) =>
+                                                            updateCustomGraphQLPluralType(
+                                                                data.value,
+                                                            )
                                                         }
                                                     />
                                                 </Field>
@@ -657,6 +696,7 @@ export function DabEntitySettingsDialog({
                                                             locConstants.schemaDesigner
                                                                 .storedProcedureGraphQLOperation
                                                         }
+                                                        required
                                                         hint={{
                                                             children:
                                                                 locConstants.schemaDesigner

@@ -877,7 +877,7 @@
     "Expose this entity through GraphQL": "Expose this entity through GraphQL",
     "Enable GraphQL in API Type to expose this entity through GraphQL.": "Enable GraphQL in API Type to expose this entity through GraphQL.",
     "Stored procedure REST methods": "Stored procedure REST methods",
-    "Select the HTTP methods that can execute this stored procedure. DAB defaults to POST.": "Select the HTTP methods that can execute this stored procedure. DAB defaults to POST.",
+    "Select the HTTP method that can execute this stored procedure. DAB defaults to POST.": "Select the HTTP method that can execute this stored procedure. DAB defaults to POST.",
     "Stored procedure GraphQL operation": "Stored procedure GraphQL operation",
     "Choose whether this stored procedure appears as a GraphQL mutation or query. DAB defaults to mutation.": "Choose whether this stored procedure appears as a GraphQL mutation or query. DAB defaults to mutation.",
     "Mutation": "Mutation",
@@ -967,6 +967,7 @@
     "Used in API routes and responses": "Used in API routes and responses",
     "Authorization Role": "Authorization Role",
     "Define who can access this endpoint": "Define who can access this endpoint",
+    "Define who can execute this stored procedure": "Define who can execute this stored procedure",
     "Disabled globally": "Disabled globally",
     "Anonymous": "Anonymous",
     "No authentication required": "No authentication required",
@@ -975,7 +976,10 @@
     "Custom REST Path": "Custom REST Path",
     "Optional - Override default api/entityName path": "Optional - Override default api/entityName path",
     "Custom GraphQL Type": "Custom GraphQL Type",
-    "Optional - Override default GraphQL type name": "Optional - Override default GraphQL type name",
+    "Custom GraphQL Singular Type": "Custom GraphQL Singular Type",
+    "Optional - Override default GraphQL singular type name": "Optional - Override default GraphQL singular type name",
+    "Custom GraphQL Plural Type": "Custom GraphQL Plural Type",
+    "Optional - Override default GraphQL plural type name": "Optional - Override default GraphQL plural type name",
     "Source": "Source",
     "Source: {0}/{0} is the fully qualified DAB source object name": {
         "message": "Source: {0}",
@@ -983,6 +987,7 @@
     },
     "Initializing DAB configuration...": "Initializing DAB configuration...",
     "No entities found": "No entities found",
+    "Select all entities": "Select all entities",
     "Toggle all entities in {0}/{0} is the schema name": {
         "message": "Toggle all entities in {0}",
         "comment": ["{0} is the schema name"]

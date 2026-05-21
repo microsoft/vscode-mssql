@@ -1718,6 +1718,12 @@
     <trans-unit id="++CODE++87a66e3c88ffbca47508d5dcd250ebaa992c772a4b9d260c36216d4695e05475">
       <source xml:lang="en">Currently signed in as:</source>
     </trans-unit>
+    <trans-unit id="++CODE++10e83a09a01b19a7e3094aff3a98451a8413276d7f6266cd15d23ccf5ac6c38e">
+      <source xml:lang="en">Custom GraphQL Plural Type</source>
+    </trans-unit>
+    <trans-unit id="++CODE++561ba11b002a5ba8dea88b4a98186d829c0f8b551c04f331c6985d16c2b2b2e2">
+      <source xml:lang="en">Custom GraphQL Singular Type</source>
+    </trans-unit>
     <trans-unit id="++CODE++c01dcd0e5ceb3a50adfe0ba0d9ab5e70b74daf484cbce1b937f8fa14910f7928">
       <source xml:lang="en">Custom GraphQL Type</source>
     </trans-unit>
@@ -1862,6 +1868,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9912ff507e2f48ad028b400bce2df6d1b4a673fe69fddcacf1cbfd3836275ab1">
       <source xml:lang="en">Define who can access this endpoint</source>
+    </trans-unit>
+    <trans-unit id="++CODE++03477f19d9c2a8d64507c67756d40cf9945e802a3c7f0b52d45a4127ebfd53a2">
+      <source xml:lang="en">Define who can execute this stored procedure</source>
     </trans-unit>
     <trans-unit id="++CODE++9813fafb098c218090536790280a91ee70062a8490eb3615395ee731cdd40023">
       <source xml:lang="en">Definition</source>
@@ -4717,8 +4726,11 @@
     <trans-unit id="++CODE++da53ba1a285ffae9c6528e235b57336fa85b4f05e9fc00a51ee922069c3d9865">
       <source xml:lang="en">Optional (False)</source>
     </trans-unit>
-    <trans-unit id="++CODE++7f528941bf8224f8dd6956f98aa9ae63472375cfaebddbcb78005f15c5f239df">
-      <source xml:lang="en">Optional - Override default GraphQL type name</source>
+    <trans-unit id="++CODE++4458e9d6c19d14a28dfe913b227c80ac7aa74c2a66d830bc962c2e7bbc6350fa">
+      <source xml:lang="en">Optional - Override default GraphQL plural type name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4109ca63fed7620f568296b7854396c09c0453afd1a5d3e7b1427e88a7e62101">
+      <source xml:lang="en">Optional - Override default GraphQL singular type name</source>
     </trans-unit>
     <trans-unit id="++CODE++88f7acca017a3a274d4c9ee22712b49f567fcadb30287e007c1ac2ea00cb6927">
       <source xml:lang="en">Optional - Override default api/entityName path</source>
@@ -5851,6 +5863,9 @@
     <trans-unit id="++CODE++1fc9a387654d410febd202b81bddbe62d38368260b69b9f73ee6630164536bdf">
       <source xml:lang="en">Select all</source>
     </trans-unit>
+    <trans-unit id="++CODE++958a0500f227e31bede1c2aaac7f01cb586d081a4fa0396928370f797a956bd7">
+      <source xml:lang="en">Select all entities</source>
+    </trans-unit>
     <trans-unit id="++CODE++80a484c3416afd950fcefa87e88b0514e65144c7d45c12bf0bc9809c46837f89">
       <source xml:lang="en">Select all options</source>
     </trans-unit>
@@ -5904,8 +5919,8 @@
     <trans-unit id="++CODE++816fb2b1f45f1228327db6df7e553f728b2074ca7897d2b506a881d6a7e5f6f6">
       <source xml:lang="en">Select the Azure Data Studio settings.json file to scan for connection groups and connections.</source>
     </trans-unit>
-    <trans-unit id="++CODE++c3e908318ac99693f90743c99d94c8d1f123f65564685137a3236da773d4bb9b">
-      <source xml:lang="en">Select the HTTP methods that can execute this stored procedure. DAB defaults to POST.</source>
+    <trans-unit id="++CODE++f51936575cf1dc8077bff593b9237f2ab580f19bf6e25bc409e294768ed1a10c">
+      <source xml:lang="en">Select the HTTP method that can execute this stored procedure. DAB defaults to POST.</source>
     </trans-unit>
     <trans-unit id="++CODE++5c61a29b1d409ff2b70f6fbd1032d7250ac322407dc4b8bbff19eb20af562291">
       <source xml:lang="en">Select the SQL Server Container Image</source>

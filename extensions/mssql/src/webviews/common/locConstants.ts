@@ -1357,7 +1357,7 @@ export class LocConstants {
             ),
             storedProcedureRestMethods: l10n.t("Stored procedure REST methods"),
             storedProcedureRestMethodsHelp: l10n.t(
-                "Select the HTTP methods that can execute this stored procedure. DAB defaults to POST.",
+                "Select the HTTP method that can execute this stored procedure. DAB defaults to POST.",
             ),
             storedProcedureGraphQLOperation: l10n.t("Stored procedure GraphQL operation"),
             storedProcedureGraphQLOperationHelp: l10n.t(
@@ -1495,6 +1495,9 @@ export class LocConstants {
             entityNameHelp: l10n.t("Used in API routes and responses"),
             authorizationRole: l10n.t("Authorization Role"),
             authorizationRoleHelp: l10n.t("Define who can access this endpoint"),
+            authorizationRoleStoredProcedureHelp: l10n.t(
+                "Define who can execute this stored procedure",
+            ),
             disabledGlobally: l10n.t("Disabled globally"),
             anonymous: l10n.t("Anonymous"),
             anonymousDescription: l10n.t("No authentication required"),
@@ -1503,7 +1506,14 @@ export class LocConstants {
             customRestPath: l10n.t("Custom REST Path"),
             customRestPathHelp: l10n.t("Optional - Override default api/entityName path"),
             customGraphQLType: l10n.t("Custom GraphQL Type"),
-            customGraphQLTypeHelp: l10n.t("Optional - Override default GraphQL type name"),
+            customGraphQLSingularType: l10n.t("Custom GraphQL Singular Type"),
+            customGraphQLSingularTypeHelp: l10n.t(
+                "Optional - Override default GraphQL singular type name",
+            ),
+            customGraphQLPluralType: l10n.t("Custom GraphQL Plural Type"),
+            customGraphQLPluralTypeHelp: l10n.t(
+                "Optional - Override default GraphQL plural type name",
+            ),
             applyChanges: l10n.t("Apply Changes"),
             source: l10n.t("Source"),
             sourceWithName: (sourceName: string) =>
@@ -1515,6 +1525,7 @@ export class LocConstants {
             loading: l10n.t("Loading..."),
             initializingDabConfig: l10n.t("Initializing DAB configuration..."),
             noEntitiesFound: l10n.t("No entities found"),
+            selectAllEntities: l10n.t("Select all entities"),
             toggleAllEntitiesInSchema: (schemaName: string) =>
                 l10n.t({
                     message: "Toggle all entities in {0}",
