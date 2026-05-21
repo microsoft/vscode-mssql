@@ -39,6 +39,23 @@ export namespace Dab {
         Delete = "delete",
     }
 
+    const restMethodSortOrder = [
+        RestMethod.Get,
+        RestMethod.Post,
+        RestMethod.Put,
+        RestMethod.Patch,
+        RestMethod.Delete,
+    ];
+
+    /**
+     * Canonicalizes REST methods so semantically equivalent method sets do not
+     * produce noisy config diffs or version hash changes.
+     */
+    export function normalizeRestMethods(methods: RestMethod[]): RestMethod[] {
+        const uniqueMethods = new Set(methods);
+        return restMethodSortOrder.filter((method) => uniqueMethods.has(method));
+    }
+
     export enum GraphQLOperation {
         Query = "query",
         Mutation = "mutation",

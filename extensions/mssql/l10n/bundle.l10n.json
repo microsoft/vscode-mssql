@@ -26,6 +26,13 @@
     "Copy Headers": "Copy Headers",
     "Error: Failed to parse query result data.": "Error: Failed to parse query result data.",
     "Error: Unrecognized query result data.": "Error: Unrecognized query result data.",
+    "Save as CSV": "Save as CSV",
+    "Save as Excel": "Save as Excel",
+    "Save as JSON": "Save as JSON",
+    "Export toolbar for result set {0}/{0} is the result set number (1-based index)": {
+        "message": "Export toolbar for result set {0}",
+        "comment": ["{0} is the result set number (1-based index)"]
+    },
     "Cancel": "Cancel",
     "Are you sure?": "Are you sure?",
     "Are you sure you want to {0}?/{0} is the action being confirmed": {
@@ -436,17 +443,14 @@
         "message": "Save as CSV ({0})",
         "comment": ["{0} is the keyboard shortcut for saving as CSV"]
     },
-    "Save as CSV": "Save as CSV",
     "Save as Excel ({0})/{0} is the keyboard shortcut for saving as Excel": {
         "message": "Save as Excel ({0})",
         "comment": ["{0} is the keyboard shortcut for saving as Excel"]
     },
-    "Save as Excel": "Save as Excel",
     "Save as JSON ({0})/{0} is the keyboard shortcut for saving as JSON": {
         "message": "Save as JSON ({0})",
         "comment": ["{0} is the keyboard shortcut for saving as JSON"]
     },
-    "Save as JSON": "Save as JSON",
     "Save as INSERT INTO ({0})/{0} is the keyboard shortcut for saving as INSERT INTO": {
         "message": "Save as INSERT INTO ({0})",
         "comment": ["{0} is the keyboard shortcut for saving as INSERT INTO"]
@@ -1828,6 +1832,7 @@
     "Always Encrypted": "Always Encrypted",
     "Replication": "Replication",
     "{0} (filtered)": "{0} (filtered)",
+    "Serialization failed": "Serialization failed",
     "Remind Me Later": "Remind Me Later",
     "Don't Show Again": "Don't Show Again",
     "Public": "Public",
@@ -1916,6 +1921,7 @@
     "SQL Login": "SQL Login",
     "Microsoft Entra Id - Universal w/ MFA Support": "Microsoft Entra Id - Universal w/ MFA Support",
     "Microsoft Entra Id - Default": "Microsoft Entra Id - Default",
+    "Microsoft Entra Id - Service Principal": "Microsoft Entra Id - Service Principal",
     "Azure Code Grant": "Azure Code Grant",
     "Azure Device Code": "Azure Device Code",
     "MSSQL - Azure Auth Logs": "MSSQL - Azure Auth Logs",
@@ -2113,6 +2119,7 @@
     "CSV": "CSV",
     "JSON": "JSON",
     "Excel": "Excel",
+    "All files": "All files",
     "Executing query...": "Executing query...",
     "Query executed": "Query executed",
     "Total execution time: {0}/{0} is the elapsed time": {
@@ -2350,6 +2357,17 @@
     "Query execution was canceled.": "Query execution was canceled.",
     "Execute SQL against SQL Server / Azure SQL": "Execute SQL against SQL Server / Azure SQL",
     "Not connected": "Not connected",
+    "Save results as CSV": "Save results as CSV",
+    "Save results as Excel": "Save results as Excel",
+    "Save results as JSON": "Save results as JSON",
+    "Failed to save results: {0}/{0} is the underlying error message": {
+        "message": "Failed to save results: {0}",
+        "comment": ["{0} is the underlying error message"]
+    },
+    "Saved results to {0}/{0} is the saved file path": {
+        "message": "Saved results to {0}",
+        "comment": ["{0} is the saved file path"]
+    },
     "Error loading; refresh to try again": "Error loading; refresh to try again",
     "No items": "No items",
     "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?": "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?",
@@ -2398,6 +2416,14 @@
     "<Default>": "<Default>",
     "Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.": "Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.",
     "Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.": "Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.",
+    "Authenticate using a Microsoft Entra service principal. Enter the Application (client) ID as the user name and the client secret as the password. Click the info icon to learn more.": "Authenticate using a Microsoft Entra service principal. Enter the Application (client) ID as the user name and the client secret as the password. Click the info icon to learn more.",
+    "Application (Client) ID": "Application (Client) ID",
+    "The Application (Client) ID of your Microsoft Entra app registration.": "The Application (Client) ID of your Microsoft Entra app registration.",
+    "Client Secret": "Client Secret",
+    "The client secret for your Microsoft Entra app registration.": "The client secret for your Microsoft Entra app registration.",
+    "Application (Client) ID is required.": "Application (Client) ID is required.",
+    "Client secret is required.": "Client secret is required.",
+    "Save Secret": "Save Secret",
     "+ Create Connection Group": "+ Create Connection Group",
     "Select a connection group": "Select a connection group",
     "Search connection groups": "Search connection groups",
@@ -2432,8 +2458,8 @@
     "No workspaces found. Please change Fabric account or tenant to view available workspaces.": "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
     "User databases": "User databases",
     "System databases": "System databases",
-    "Unable to load database list from server: {0}/{0} is the connection error message": {
-        "message": "Unable to load database list from server: {0}",
+    "Unable to load database list from server: {0} You may enter the database name directly./{0} is the connection error message": {
+        "message": "Unable to load database list from server: {0} You may enter the database name directly.",
         "comment": ["{0} is the connection error message"]
     },
     "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported./{0} is the authentication type": {
@@ -2898,6 +2924,16 @@
         "message": "Multiple connection groups with ID '{0}' found.  Delete or rename all of them, except one in User/Global settings.json, then restart the extension.",
         "comment": ["{0} is the root id"]
     },
+    "The connection ID '{0}' set in 'mssql.defaultConnectionId' does not match any known connection profile. New editors will fall back to transferring the active connection./{0} is the connection ID that was not found": {
+        "message": "The connection ID '{0}' set in 'mssql.defaultConnectionId' does not match any known connection profile. New editors will fall back to transferring the active connection.",
+        "comment": ["{0} is the connection ID that was not found"]
+    },
+    "'mssql.newEditorConnectionBehavior' is set to 'defaultConnection', but 'mssql.defaultConnectionId' is not configured. New editors will fall back to transferring the active connection.": "'mssql.newEditorConnectionBehavior' is set to 'defaultConnection', but 'mssql.defaultConnectionId' is not configured. New editors will fall back to transferring the active connection.",
+    "Change Setting": "Change Setting",
+    "Select a connection to use as the default": "Select a connection to use as the default",
+    "Choose the behavior for new editors": "Choose the behavior for new editors",
+    "Transfer active connection (Default)": "Transfer active connection (Default)",
+    "Do not connect": "Do not connect",
     "Error migrating connection ID {0} to new format.  Please recreate this connection to use it.\nError:\n{1}/{0} is the connection id{1} is the error message": {
         "message": "Error migrating connection ID {0} to new format.  Please recreate this connection to use it.\nError:\n{1}",
         "comment": ["{0} is the connection id", "{1} is the error message"]

@@ -339,7 +339,8 @@
                 "entrypoint": "./dist/notebookRenderer.js",
                 "mimeTypes": [
                     "application/vnd.mssql.query-result"
-                ]
+                ],
+                "requiresMessaging": "optional"
             }
         ],
         "languages": [
@@ -1711,10 +1712,32 @@
                     "description": "%mssql.defaultQueryResultsViewMode.description%",
                     "scope": "application"
                 },
+                "mssql.newEditorConnectionBehavior": {
+                    "type": "string",
+                    "default": "transferActive",
+                    "enum": [
+                        "none",
+                        "transferActive",
+                        "defaultConnection"
+                    ],
+                    "enumDescriptions": [
+                        "%mssql.newEditorConnectionBehavior.none.description%",
+                        "%mssql.newEditorConnectionBehavior.transferActive.description%",
+                        "%mssql.newEditorConnectionBehavior.defaultConnection.description%"
+                    ],
+                    "description": "%mssql.newEditorConnectionBehavior.description%",
+                    "scope": "application"
+                },
+                "mssql.defaultConnectionId": {
+                    "type": "string",
+                    "default": "",
+                    "description": "%mssql.defaultConnectionId.description%",
+                    "scope": "application"
+                },
                 "mssql.transferActiveEditorConnections": {
                     "type": "boolean",
-                    "default": true,
                     "description": "%mssql.transferActiveEditorConnections.description%",
+                    "deprecationMessage": "%mssql.transferActiveEditorConnections.deprecationMessage%",
                     "scope": "application"
                 },
                 "mssql.selectedAzureSubscriptions": {
@@ -1836,7 +1859,8 @@
                                 "enum": [
                                     "Integrated",
                                     "SqlLogin",
-                                    "AzureMFA"
+                                    "AzureMFA",
+                                    "ActiveDirectoryServicePrincipal"
                                 ],
                                 "description": "%mssql.connection.authenticationType%"
                             },

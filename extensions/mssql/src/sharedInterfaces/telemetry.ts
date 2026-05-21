@@ -151,6 +151,7 @@ export enum TelemetryActions {
     ConnectToFabricDatabase = "ConnectToFabricDatabase",
     LoadFromConnectionString = "LoadFromConnectionString",
     MigrateLegacyConnections = "MigrateLegacyConnections",
+    MigrateEditorConnectionBehavior = "MigrateEditorConnectionBehavior",
     FilterAzureSubscriptions = "FilterAzureSubscriptions",
     ScriptNode = "ScriptNode",
     CreateSession = "CreateSession",

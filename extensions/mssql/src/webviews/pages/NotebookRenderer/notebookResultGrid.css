@@ -344,3 +344,20 @@
         var(--vscode-editorWidget-border, #454545)
     );
 }
+
+/* ── Notebook results toolbar ──────────────────────────────────────────── */
+
+.notebook-results-toolbar-button:hover:not(:disabled) {
+    background: var(--vscode-toolbar-hoverBackground) !important;
+}
+
+.notebook-results-toolbar-button:focus-visible:not(:disabled) {
+    background: var(--vscode-toolbar-hoverBackground) !important;
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: -1px;
+}
+
+.notebook-results-toolbar-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+}

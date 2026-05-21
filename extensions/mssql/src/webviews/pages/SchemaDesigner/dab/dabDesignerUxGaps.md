@@ -1,6 +1,6 @@
 # DAB Designer UX Gaps
 
-This note compares the current vscode-mssql DAB designer UX with the DAB config surface in `/Users/aasim/src/data-api-builder`.
+This note compares the current vscode-mssql DAB designer UX with the DAB config surface in the upstream [Data API builder repo](https://github.com/Azure/data-api-builder).
 
 ## Summary
 

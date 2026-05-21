@@ -1422,7 +1422,11 @@ suite("DabTool Tests", () => {
                         type: "patch_entity_settings",
                         entity: { id: "stored-procedure:dbo.GetUsers" },
                         set: {
-                            storedProcedureRestMethods: [Dab.RestMethod.Get, Dab.RestMethod.Post],
+                            storedProcedureRestMethods: [
+                                Dab.RestMethod.Post,
+                                Dab.RestMethod.Get,
+                                Dab.RestMethod.Post,
+                            ],
                             storedProcedureGraphQLOperation: Dab.GraphQLOperation.Query,
                         },
                     },

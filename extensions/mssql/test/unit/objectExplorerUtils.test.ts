@@ -300,6 +300,25 @@ suite("Object Explorer Utils Tests", () => {
         expect(result).to.equal("testServer_testDB_testProfile");
     });
 
+    test("should create URI for Service Principal authentication including client ID", () => {
+        // Setup
+        const profile: IConnectionProfile = {
+            server: "spServer",
+            database: "spDB",
+            authenticationType: Constants.azureServicePrincipal,
+            user: "my-client-id",
+            profileName: "spProfile",
+            id: "id",
+        } as IConnectionProfile;
+
+        // Execute
+        const result = ObjectExplorerUtils.getNodeUriFromProfile(profile);
+
+        // Verify — client ID (user) must be in the URI so different service principals
+        // connecting to the same server/database get distinct connection nodes.
+        expect(result).to.equal("spServer_spDB_my-client-id_spProfile");
+    });
+
     test("Test getDatabaseName", () => {
         const testProfile = new ConnectionProfile();
         testProfile.server = "test_server";

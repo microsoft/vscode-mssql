@@ -18,7 +18,11 @@ import { IConnectionInfo, IServerInfo } from "vscode-mssql";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { IConnectionProfile } from "../../src/models/interfaces";
 import { ConnectionStore } from "../../src/models/connectionStore";
-import { stubTelemetry } from "./utils";
+import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
+import { CredentialStore } from "../../src/credentialstore/credentialstore";
+import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import { Deferred } from "../../src/protocol";
+import { createStubLogger, stubExtensionContext, stubTelemetry } from "./utils";
 
 chai.use(sinonChai);
 
@@ -145,6 +149,13 @@ suite("SqlDocumentService Tests", () => {
     });
 
     test("handleNewQueryCommand uses CopyLastActive when last active connection exists", async () => {
+        sandbox.stub(vscode.workspace, "getConfiguration").returns({
+            get: sandbox
+                .stub()
+                .withArgs(Constants.configNewEditorConnectionBehavior)
+                .returns(Constants.NewEditorConnectionBehavior.TransferActive),
+        } as unknown as vscode.WorkspaceConfiguration);
+
         const editor: vscode.TextEditor = { document: { uri: "test_uri" } } as any;
         const newQueryStub = sandbox.stub(sqlDocumentService, "newQuery").callsFake((opts: any) => {
             expect(opts.connectionStrategy).to.equal(ConnectionStrategy.CopyLastActive);
@@ -167,32 +178,28 @@ suite("SqlDocumentService Tests", () => {
         newQueryStub.restore();
     });
 
-    test("handleNewQueryCommand uses OE selection when exactly one node is selected", async () => {
-        const nodeConnection = { server: "oeServer" } as IConnectionProfile;
+    test("handleNewQueryCommand uses OE selection when exactly one node is selected and behavior is transferActive", async () => {
+        // With newEditorConnectionBehavior = transferActive and no last-active, falls through to prompt
+        sandbox.stub(vscode.workspace, "getConfiguration").returns({
+            get: sandbox
+                .stub()
+                .withArgs(Constants.configNewEditorConnectionBehavior)
+                .returns(Constants.NewEditorConnectionBehavior.TransferActive),
+        } as unknown as vscode.WorkspaceConfiguration);
 
-        const selectedNode: TreeNodeInfo = sandbox.createStubInstance(TreeNodeInfo);
-        sandbox.stub(selectedNode, "connectionProfile").get(() => nodeConnection);
-        sandbox.stub(selectedNode, "nodeType").get(() => "Server");
-
-        mainController.objectExplorerTree = {
-            selection: [selectedNode],
-        } as any;
-        connectionManager.handlePasswordBasedCredentials.resolves();
+        sqlDocumentService["_lastActiveConnectionInfo"] = undefined;
+        mainController.objectExplorerTree = { selection: [] } as any;
         connectionManager.connectionStore = {
             removeRecentlyUsed: sandbox.stub().resolves(),
         } as any;
 
         const editor: vscode.TextEditor = { document: { uri: "t" } } as any;
         const newQueryStub = sandbox.stub(sqlDocumentService, "newQuery").callsFake((opts: any) => {
-            expect(opts.connectionStrategy).to.equal(ConnectionStrategy.CopyConnectionFromInfo);
-            expect(opts.connectionInfo).to.equal(nodeConnection);
+            expect(opts.connectionStrategy).to.equal(ConnectionStrategy.PromptForConnection);
             return Promise.resolve(editor);
         });
 
         await sqlDocumentService.handleNewQueryCommand(undefined, undefined);
-        expect(connectionManager.handlePasswordBasedCredentials).to.have.been.calledOnceWith(
-            nodeConnection,
-        );
         expect(newQueryStub).to.have.been.calledOnce;
         newQueryStub.restore();
     });
@@ -251,6 +258,13 @@ suite("SqlDocumentService Tests", () => {
     });
 
     test("handleNewQueryCommand prompts for connection when no context", async () => {
+        sandbox.stub(vscode.workspace, "getConfiguration").returns({
+            get: sandbox
+                .stub()
+                .withArgs(Constants.configNewEditorConnectionBehavior)
+                .returns(Constants.NewEditorConnectionBehavior.TransferActive),
+        } as unknown as vscode.WorkspaceConfiguration);
+
         // clear last active and OE selection
         sqlDocumentService["_lastActiveConnectionInfo"] = undefined;
         mainController.objectExplorerTree = { selection: [] } as any;
@@ -1024,45 +1038,415 @@ suite("SqlDocumentService Tests", () => {
         });
     });
 
-    suite("transferActiveEditorConnections flag", () => {
-        let configFlagStub: sinon.SinonStub;
+    suite("newEditorConnectionBehavior setting", () => {
+        let configGetStub: sinon.SinonStub;
+
+        const testConnection: IConnectionProfile = {
+            server: "localhost",
+            database: "testdb",
+        } as IConnectionProfile;
+
+        const defaultProfile: IConnectionProfile = {
+            server: "default-server",
+            database: "default-db",
+        } as IConnectionProfile;
+
+        const defaultConnectionId = "default-conn-id";
+
+        function makeConnectionStore(
+            sandbox: sinon.SinonSandbox,
+            mockConnectionConfig: sinon.SinonStubbedInstance<ConnectionConfig>,
+        ): ConnectionStore {
+            const initializedDeferred = new Deferred<void>();
+            initializedDeferred.resolve();
+            mockConnectionConfig.initialized = initializedDeferred;
+
+            return new ConnectionStore(
+                stubExtensionContext(sandbox),
+                sandbox.createStubInstance(CredentialStore),
+                createStubLogger(sandbox),
+                mockConnectionConfig,
+                sandbox.createStubInstance(VscodeWrapper),
+            );
+        }
 
         setup(() => {
-            configFlagStub = sandbox.stub();
-
+            configGetStub = sandbox.stub();
             sandbox.stub(vscode.workspace, "getConfiguration").returns({
-                get: configFlagStub,
+                get: configGetStub,
             } as unknown as vscode.WorkspaceConfiguration);
         });
 
-        test("should transfer connection when transferActiveEditorConnections is true", async () => {
-            configFlagStub.withArgs(Constants.configTransferActiveEditorConnections).returns(true);
+        suite("onDidOpenTextDocument", () => {
+            test("should transfer connection when behavior is transferActive and last active exists", async () => {
+                configGetStub
+                    .withArgs(Constants.configNewEditorConnectionBehavior)
+                    .returns(Constants.NewEditorConnectionBehavior.TransferActive);
 
-            const testConnection: IConnectionInfo = {
-                server: "localhost",
-                database: "testdb",
-            } as IConnectionInfo;
-            sqlDocumentService["_lastActiveConnectionInfo"] = testConnection;
+                sqlDocumentService["_lastActiveConnectionInfo"] = testConnection;
 
-            await sqlDocumentService.onDidOpenTextDocument(document);
+                await sqlDocumentService.onDidOpenTextDocument(document);
 
-            expect(connectionManager.connect).to.have.been.calledOnce;
-            expect(connectionManager.connect.firstCall.args[0]).to.equal(document.uri.toString());
+                expect(connectionManager.connect).to.have.been.calledWith(document.uri.toString());
+            });
+
+            test("should NOT transfer connection when behavior is none", async () => {
+                configGetStub
+                    .withArgs(Constants.configNewEditorConnectionBehavior)
+                    .returns(Constants.NewEditorConnectionBehavior.None);
+
+                sqlDocumentService["_lastActiveConnectionInfo"] = testConnection;
+
+                await sqlDocumentService.onDidOpenTextDocument(document);
+
+                expect(connectionManager.connect).to.not.have.been.called;
+            });
+
+            test("should NOT transfer connection when behavior is transferActive but no last active connection", async () => {
+                configGetStub
+                    .withArgs(Constants.configNewEditorConnectionBehavior)
+                    .returns(Constants.NewEditorConnectionBehavior.TransferActive);
+
+                sqlDocumentService["_lastActiveConnectionInfo"] = undefined;
+
+                await sqlDocumentService.onDidOpenTextDocument(document);
+
+                expect(connectionManager.connect).to.not.have.been.called;
+            });
+
+            test("should connect to default connection when behavior is defaultConnection and ID is valid", async () => {
+                configGetStub
+                    .withArgs(Constants.configNewEditorConnectionBehavior)
+                    .returns(Constants.NewEditorConnectionBehavior.DefaultConnection);
+                configGetStub
+                    .withArgs(Constants.configDefaultConnectionId)
+                    .returns(defaultConnectionId);
+
+                const mockConnectionConfig = sandbox.createStubInstance(ConnectionConfig);
+                mockConnectionConfig.getConnectionById
+                    .withArgs(defaultConnectionId)
+                    .resolves(defaultProfile);
+                connectionManager.connectionStore = makeConnectionStore(
+                    sandbox,
+                    mockConnectionConfig,
+                );
+
+                await sqlDocumentService.onDidOpenTextDocument(document);
+
+                expect(connectionManager.connect).to.have.been.calledWith(document.uri.toString());
+            });
+
+            test("should fall back to transferActive when behavior is defaultConnection but ID is not found (last active exists)", async () => {
+                configGetStub
+                    .withArgs(Constants.configNewEditorConnectionBehavior)
+                    .returns(Constants.NewEditorConnectionBehavior.DefaultConnection);
+                configGetStub.withArgs(Constants.configDefaultConnectionId).returns("unknown-id");
+
+                sqlDocumentService["_lastActiveConnectionInfo"] = testConnection;
+
+                const mockConnectionConfig = sandbox.createStubInstance(ConnectionConfig);
+                mockConnectionConfig.getConnectionById.resolves(undefined);
+                connectionManager.connectionStore = makeConnectionStore(
+                    sandbox,
+                    mockConnectionConfig,
+                );
+
+                await sqlDocumentService.onDidOpenTextDocument(document);
+
+                expect(connectionManager.connect).to.have.been.calledWith(document.uri.toString());
+            });
+
+            test("should NOT connect when behavior is defaultConnection, ID is not found, and no last active", async () => {
+                configGetStub
+                    .withArgs(Constants.configNewEditorConnectionBehavior)
+                    .returns(Constants.NewEditorConnectionBehavior.DefaultConnection);
+                configGetStub.withArgs(Constants.configDefaultConnectionId).returns("unknown-id");
+
+                sqlDocumentService["_lastActiveConnectionInfo"] = undefined;
+
+                const mockConnectionConfig = sandbox.createStubInstance(ConnectionConfig);
+                mockConnectionConfig.getConnectionById.resolves(undefined);
+                connectionManager.connectionStore = makeConnectionStore(
+                    sandbox,
+                    mockConnectionConfig,
+                );
+
+                await sqlDocumentService.onDidOpenTextDocument(document);
+
+                expect(connectionManager.connect).to.not.have.been.called;
+            });
+
+            test("should fall back to transferActive when behavior is defaultConnection but ID is empty (last active exists)", async () => {
+                configGetStub
+                    .withArgs(Constants.configNewEditorConnectionBehavior)
+                    .returns(Constants.NewEditorConnectionBehavior.DefaultConnection);
+                configGetStub.withArgs(Constants.configDefaultConnectionId).returns("");
+
+                sqlDocumentService["_lastActiveConnectionInfo"] = testConnection;
+
+                await sqlDocumentService.onDidOpenTextDocument(document);
+
+                expect(connectionManager.connect).to.have.been.calledWith(document.uri.toString());
+            });
+
+            test("should NOT connect when behavior is defaultConnection, ID is empty, and no last active", async () => {
+                configGetStub
+                    .withArgs(Constants.configNewEditorConnectionBehavior)
+                    .returns(Constants.NewEditorConnectionBehavior.DefaultConnection);
+                configGetStub.withArgs(Constants.configDefaultConnectionId).returns("");
+
+                sqlDocumentService["_lastActiveConnectionInfo"] = undefined;
+
+                await sqlDocumentService.onDidOpenTextDocument(document);
+
+                expect(connectionManager.connect).to.not.have.been.called;
+            });
         });
 
-        test("should NOT transfer connection when transferActiveEditorConnections is false", async () => {
-            configFlagStub.withArgs(Constants.configTransferActiveEditorConnections).returns(false);
+        suite("handleNewQueryCommand", () => {
+            setup(() => {
+                const mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
+                connectionManager.connectionStore = mockConnectionStore;
+                mainController.objectExplorerTree = { selection: [] } as any;
+            });
 
-            // Set a last active connection
-            const testConnection: IConnectionInfo = {
-                server: "localhost",
-                database: "testdb",
-            } as IConnectionInfo;
-            sqlDocumentService["_lastActiveConnectionInfo"] = testConnection;
+            test("should use UseDefaultConnection strategy when behavior is defaultConnection (no last active)", async () => {
+                configGetStub
+                    .withArgs(Constants.configNewEditorConnectionBehavior)
+                    .returns(Constants.NewEditorConnectionBehavior.DefaultConnection);
 
-            await sqlDocumentService.onDidOpenTextDocument(document);
+                sqlDocumentService["_lastActiveConnectionInfo"] = undefined;
 
-            expect(connectionManager.connect).to.not.have.been.called;
+                const editor: vscode.TextEditor = { document: { uri: "x" } } as any;
+                const newQueryStub = sandbox
+                    .stub(sqlDocumentService, "newQuery")
+                    .callsFake((opts: any) => {
+                        expect(opts.connectionStrategy).to.equal(
+                            ConnectionStrategy.UseDefaultConnection,
+                        );
+                        return Promise.resolve(editor);
+                    });
+
+                await sqlDocumentService.handleNewQueryCommand(undefined, undefined);
+                expect(newQueryStub).to.have.been.calledOnce;
+                newQueryStub.restore();
+            });
+
+            test("should use UseDefaultConnection strategy when behavior is defaultConnection (even when last active exists)", async () => {
+                configGetStub
+                    .withArgs(Constants.configNewEditorConnectionBehavior)
+                    .returns(Constants.NewEditorConnectionBehavior.DefaultConnection);
+
+                sqlDocumentService["_lastActiveConnectionInfo"] = testConnection;
+
+                const editor: vscode.TextEditor = { document: { uri: "x" } } as any;
+                const newQueryStub = sandbox
+                    .stub(sqlDocumentService, "newQuery")
+                    .callsFake((opts: any) => {
+                        expect(opts.connectionStrategy).to.equal(
+                            ConnectionStrategy.UseDefaultConnection,
+                        );
+                        return Promise.resolve(editor);
+                    });
+
+                await sqlDocumentService.handleNewQueryCommand(undefined, undefined);
+                expect(newQueryStub).to.have.been.calledOnce;
+                newQueryStub.restore();
+            });
+
+            test("should prompt when behavior is none and no last active", async () => {
+                configGetStub
+                    .withArgs(Constants.configNewEditorConnectionBehavior)
+                    .returns(Constants.NewEditorConnectionBehavior.None);
+
+                sqlDocumentService["_lastActiveConnectionInfo"] = undefined;
+
+                const editor: vscode.TextEditor = { document: { uri: "x" } } as any;
+                const newQueryStub = sandbox
+                    .stub(sqlDocumentService, "newQuery")
+                    .callsFake((opts: any) => {
+                        expect(opts.connectionStrategy).to.equal(
+                            ConnectionStrategy.PromptForConnection,
+                        );
+                        return Promise.resolve(editor);
+                    });
+
+                await sqlDocumentService.handleNewQueryCommand(undefined, undefined);
+                expect(newQueryStub).to.have.been.calledOnce;
+                newQueryStub.restore();
+            });
+
+            test("should prompt when behavior is none even when last active exists", async () => {
+                configGetStub
+                    .withArgs(Constants.configNewEditorConnectionBehavior)
+                    .returns(Constants.NewEditorConnectionBehavior.None);
+
+                sqlDocumentService["_lastActiveConnectionInfo"] = testConnection;
+
+                const editor: vscode.TextEditor = { document: { uri: "x" } } as any;
+                const newQueryStub = sandbox
+                    .stub(sqlDocumentService, "newQuery")
+                    .callsFake((opts: any) => {
+                        expect(opts.connectionStrategy).to.equal(
+                            ConnectionStrategy.PromptForConnection,
+                        );
+                        return Promise.resolve(editor);
+                    });
+
+                await sqlDocumentService.handleNewQueryCommand(undefined, undefined);
+                expect(newQueryStub).to.have.been.calledOnce;
+                newQueryStub.restore();
+            });
+
+            test("OE right-click node always wins regardless of behavior", async () => {
+                configGetStub
+                    .withArgs(Constants.configNewEditorConnectionBehavior)
+                    .returns(Constants.NewEditorConnectionBehavior.DefaultConnection);
+                connectionManager.handlePasswordBasedCredentials.resolves();
+                connectionManager.getServerInfo.returns(undefined as any);
+                connectionManager.getConnectionInfo.returns({} as ConnectionInfo);
+
+                const nodeConnection = { server: "oeServer" } as IConnectionProfile;
+                const node: TreeNodeInfo = sandbox.createStubInstance(TreeNodeInfo);
+                sandbox.stub(node, "connectionProfile").get(() => nodeConnection);
+                sandbox.stub(node, "nodeType").get(() => "Server");
+
+                stubTelemetry(sandbox);
+
+                const editor: vscode.TextEditor = { document: { uri: "t" } } as any;
+                const newQueryStub = sandbox
+                    .stub(sqlDocumentService, "newQuery")
+                    .callsFake((opts: any) => {
+                        expect(opts.connectionStrategy).to.equal(
+                            ConnectionStrategy.CopyConnectionFromInfo,
+                        );
+                        expect(opts.connectionInfo).to.equal(nodeConnection);
+                        return Promise.resolve(editor);
+                    });
+
+                await sqlDocumentService.handleNewQueryCommand(node, undefined);
+                expect(newQueryStub).to.have.been.calledOnce;
+                newQueryStub.restore();
+            });
+        });
+
+        suite("ConnectionStrategy.UseDefaultConnection", () => {
+            let mockCreateDocument: sinon.SinonStub;
+            let mockConnect: sinon.SinonStub;
+            let editor: vscode.TextEditor;
+
+            setup(() => {
+                editor = {
+                    document: { uri: vscode.Uri.parse("test_uri.sql") },
+                    viewColumn: vscode.ViewColumn.One,
+                    selection: undefined,
+                } as any;
+
+                mockCreateDocument = sandbox.stub(sqlDocumentService as any, "createDocument");
+                mockCreateDocument.resolves(editor);
+
+                const mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
+                mockConnect = mockConnectionManager.connect;
+                mockConnect.resolves(true);
+                sqlDocumentService["_connectionMgr"] = mockConnectionManager;
+            });
+
+            test("should connect using default connection profile when found", async () => {
+                configGetStub
+                    .withArgs(Constants.configDefaultConnectionId)
+                    .returns(defaultConnectionId);
+
+                const mockConnectionConfig = sandbox.createStubInstance(ConnectionConfig);
+                mockConnectionConfig.getConnectionById
+                    .withArgs(defaultConnectionId)
+                    .resolves(defaultProfile);
+                sqlDocumentService["_connectionMgr"].connectionStore = makeConnectionStore(
+                    sandbox,
+                    mockConnectionConfig,
+                );
+
+                const result = await sqlDocumentService.newQuery({
+                    connectionStrategy: ConnectionStrategy.UseDefaultConnection,
+                    content: "SELECT 1",
+                });
+
+                expect(result).to.equal(editor);
+                expect(mockConnect).to.have.been.calledOnce;
+            });
+
+            test("should fall back to last-active when default connection ID is not found", async () => {
+                configGetStub
+                    .withArgs(Constants.configDefaultConnectionId)
+                    .returns("not-a-real-id");
+
+                sqlDocumentService["_lastActiveConnectionInfo"] = testConnection;
+
+                const mockConnectionConfig = sandbox.createStubInstance(ConnectionConfig);
+                mockConnectionConfig.getConnectionById.resolves(undefined);
+                sqlDocumentService["_connectionMgr"].connectionStore = makeConnectionStore(
+                    sandbox,
+                    mockConnectionConfig,
+                );
+
+                const result = await sqlDocumentService.newQuery({
+                    connectionStrategy: ConnectionStrategy.UseDefaultConnection,
+                    content: "SELECT 2",
+                });
+
+                expect(result).to.equal(editor);
+                expect(mockConnect).to.have.been.calledOnce;
+            });
+
+            test("should not connect when default connection ID is not found and no last active", async () => {
+                configGetStub
+                    .withArgs(Constants.configDefaultConnectionId)
+                    .returns("not-a-real-id");
+
+                sqlDocumentService["_lastActiveConnectionInfo"] = undefined;
+
+                const mockConnectionConfig = sandbox.createStubInstance(ConnectionConfig);
+                mockConnectionConfig.getConnectionById.resolves(undefined);
+                sqlDocumentService["_connectionMgr"].connectionStore = makeConnectionStore(
+                    sandbox,
+                    mockConnectionConfig,
+                );
+
+                const result = await sqlDocumentService.newQuery({
+                    connectionStrategy: ConnectionStrategy.UseDefaultConnection,
+                    content: "SELECT 2b",
+                });
+
+                expect(result).to.equal(editor);
+                expect(mockConnect).to.not.have.been.called;
+            });
+
+            test("should fall back to last-active when default connection ID is empty", async () => {
+                configGetStub.withArgs(Constants.configDefaultConnectionId).returns("");
+
+                sqlDocumentService["_lastActiveConnectionInfo"] = testConnection;
+
+                const result = await sqlDocumentService.newQuery({
+                    connectionStrategy: ConnectionStrategy.UseDefaultConnection,
+                    content: "SELECT 3",
+                });
+
+                expect(result).to.equal(editor);
+                expect(mockConnect).to.have.been.calledOnce;
+            });
+
+            test("should not connect when default connection ID is empty and no last active", async () => {
+                configGetStub.withArgs(Constants.configDefaultConnectionId).returns("");
+
+                sqlDocumentService["_lastActiveConnectionInfo"] = undefined;
+
+                const result = await sqlDocumentService.newQuery({
+                    connectionStrategy: ConnectionStrategy.UseDefaultConnection,
+                    content: "SELECT 3b",
+                });
+
+                expect(result).to.equal(editor);
+                expect(mockConnect).to.not.have.been.called;
+            });
         });
     });
 });

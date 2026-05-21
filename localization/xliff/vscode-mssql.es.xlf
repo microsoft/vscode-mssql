@@ -14,6 +14,10 @@
         <source xml:lang="en">$(plug)  Connect to MSSQL</source>
         <target state="translated">$(plug) Conectar a MSSQL</target>
       </trans-unit>
+      <trans-unit id="++CODE++7ab8e89a60b445298b22409ca4e3a36b6032cd1f4b770cd638e11e0ebf23fabd">
+        <source xml:lang="en">'mssql.newEditorConnectionBehavior' is set to 'defaultConnection', but 'mssql.defaultConnectionId' is not configured. New editors will fall back to transferring the active connection.</source>
+        <target state="new">'mssql.newEditorConnectionBehavior' is set to 'defaultConnection', but 'mssql.defaultConnectionId' is not configured. New editors will fall back to transferring the active connection.</target>
+      </trans-unit>
       <trans-unit id="++CODE++e59b9e59be153f480e2e2f5836749b5d33fe1776d037625761e5a957462aadd8">
         <source xml:lang="en">'{0}' started.</source>
         <note>{0} is the service name</note>
@@ -472,6 +476,14 @@ Seleccione "{0}" para establecer una conexión.</target>
         <source xml:lang="en">Append to the existing backup set</source>
         <target state="translated">Añadir al conjunto de copia de seguridad existente</target>
       </trans-unit>
+      <trans-unit id="++CODE++a7168cfe83fa5085e397d074c440ebc49d8f9d65f5241ff5f2ea586f9a4db451">
+        <source xml:lang="en">Application (Client) ID</source>
+        <target state="new">Application (Client) ID</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e6e909c5bd0a3e25a1abcddd1dab13780ce9e4f673139a56842b1e3a26c981c0">
+        <source xml:lang="en">Application (Client) ID is required.</source>
+        <target state="new">Application (Client) ID is required.</target>
+      </trans-unit>
       <trans-unit id="++CODE++f548fb847184961d59c59fd5b4ff10720726475e1768037348dec8e7c6bd6468">
         <source xml:lang="en">Application Intent</source>
         <target state="translated">Intención de aplicaciones</target>
@@ -580,6 +592,10 @@ Seleccione "{0}" para establecer una conexión.</target>
       <trans-unit id="++CODE++8ff1f9a47f14327a26fd3a548d2babeec226cb63828a0803433b4a34a19c09ff">
         <source xml:lang="en">Auth type</source>
         <target state="translated">Tipo de autenticación</target>
+      </trans-unit>
+      <trans-unit id="++CODE++59480e87da5310e5046d84f52931338703cc3c68aaa8fc535e025eb621677ed9">
+        <source xml:lang="en">Authenticate using a Microsoft Entra service principal. Enter the Application (client) ID as the user name and the client secret as the password. Click the info icon to learn more.</source>
+        <target state="new">Authenticate using a Microsoft Entra service principal. Enter the Application (client) ID as the user name and the client secret as the password. Click the info icon to learn more.</target>
       </trans-unit>
       <trans-unit id="++CODE++6ab694cfc6fa5d8c7045d318bba5f3eb791ab0a859ea54c54b1c660a4ccf8ed1">
         <source xml:lang="en">Authenticated</source>
@@ -1061,6 +1077,10 @@ Seleccione "{0}" para establecer una conexión.</target>
         <source xml:lang="en">Change Password</source>
         <target state="translated">Cambiar contraseña</target>
       </trans-unit>
+      <trans-unit id="++CODE++fad48517dc5d23758f7a5fb69e52de0ad54bde81726bd0450e14f969067d971e">
+        <source xml:lang="en">Change Setting</source>
+        <target state="new">Change Setting</target>
+      </trans-unit>
       <trans-unit id="++CODE++7cd8625322b19db450bf5b5df61bd30ef4b1905e112753ea458faf1881b2ff01">
         <source xml:lang="en">Change database to '{2}' for connection '{0}' (ID: {1})?</source>
         <note>{0} is the connection display name
@@ -1246,6 +1266,10 @@ Seleccione "{0}" para establecer una conexión.</target>
         <source xml:lang="en">Choose the Right Version</source>
         <target state="translated">Elegir la versión correcta</target>
       </trans-unit>
+      <trans-unit id="++CODE++4ccc2e9603461fb60e8f8e5a5b8dbddd023bb4a1423c348bc99e0714f6c3812e">
+        <source xml:lang="en">Choose the behavior for new editors</source>
+        <target state="new">Choose the behavior for new editors</target>
+      </trans-unit>
       <trans-unit id="++CODE++be798452e0ca7a38f6487ecb9115f26ba148e2d4475608bdc4277d34d41be0a7">
         <source xml:lang="en">Circular reference detected: '{0}' → '{1}' creates a cycle</source>
         <note>{0} is source table
@@ -1359,6 +1383,14 @@ Seleccione "{0}" para establecer una conexión.</target>
       <trans-unit id="++CODE++88af7d4ffbbad0f31d9dd918e49ceb713036db12524cbdc4b93e8922b0655429">
         <source xml:lang="en">Click to sign into an Azure account</source>
         <target state="translated">Haga clic para iniciar sesión en una cuenta de Azure</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ae21cf6d24b8ca460e91fe9dc61432a60403b1dabea53792a9c95c63a7cb0db2">
+        <source xml:lang="en">Client Secret</source>
+        <target state="new">Client Secret</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b88d22f627afd019becae5972c1ad1c05cca30f1c24c21e6a1ebf5492207904b">
+        <source xml:lang="en">Client secret is required.</source>
+        <target state="new">Client secret is required.</target>
       </trans-unit>
       <trans-unit id="++CODE++7d9eb7acb13e24625c404401d8e88b2350e32162455885f18276cf802f7701ed">
         <source xml:lang="en">Close</source>
@@ -2646,6 +2678,10 @@ Seleccione "{0}" para establecer una conexión.</target>
       <trans-unit id="++CODE++1a1795b0d7f71cc3912f6117290ba9480278c1a26efb32c044c92c9071d6b559">
         <source xml:lang="en">Do not compress backup</source>
         <target state="translated">No comprimir copia de seguridad</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c6f902ac30a459d53f79efa0c1d45fc2d272ebbfe609ada31ebb309eec06ed7c">
+        <source xml:lang="en">Do not connect</source>
+        <target state="new">Do not connect</target>
       </trans-unit>
       <trans-unit id="++CODE++5ce32ed24291b6ee178d1069ca31842e8ead67e82f070a284cec1ab95498476c">
         <source xml:lang="en">Do you mind taking a quick feedback survey about the MSSQL Extension for VS Code?</source>
@@ -5223,6 +5259,10 @@ Error:
         <source xml:lang="en">Microsoft Entra Id - Default</source>
         <target state="translated">Id. de Microsoft Entra: predeterminado</target>
       </trans-unit>
+      <trans-unit id="++CODE++abb07d0f4dfada778581c9b19ad0453201ea6d075bc434debb65d96b65f2adbc">
+        <source xml:lang="en">Microsoft Entra Id - Service Principal</source>
+        <target state="new">Microsoft Entra Id - Service Principal</target>
+      </trans-unit>
       <trans-unit id="++CODE++d24b24ff2640e9b5731d40ac97ea534034176c1478b681eca122262c4d98a8a2">
         <source xml:lang="en">Microsoft Entra Id - Universal w/ MFA Support</source>
         <target state="translated">Id. de Microsoft Entra: compatibilidad universal con MFA</target>
@@ -7142,6 +7182,10 @@ Consulta: {2}</target>
         <source xml:lang="en">Save Plan</source>
         <target state="translated">Guardar plan</target>
       </trans-unit>
+      <trans-unit id="++CODE++072fb040dae019a32d416f0ad48852b98a2544da0e126c054ea338011ae0d63a">
+        <source xml:lang="en">Save Secret</source>
+        <target state="new">Save Secret</target>
+      </trans-unit>
       <trans-unit id="++CODE++e50761ebedbdddb4dd4afb99a7c0964cf8bfed33ec03cb39f5a08e65812c795a">
         <source xml:lang="en">Save as CSV</source>
         <target state="translated">Guardar como CSV</target>
@@ -7466,6 +7510,10 @@ Consulta: {2}</target>
       <trans-unit id="++CODE++c4300a3eee24147d9593a09a659650b44b4733e2979fef9cae3e3db10f116831">
         <source xml:lang="en">Select a connection group</source>
         <target state="translated">Seleccionar un grupo de conexiones</target>
+      </trans-unit>
+      <trans-unit id="++CODE++abf078a3e4a6e103d6da7a7075ac601a095b2ba444bfc98447f49248daa477fb">
+        <source xml:lang="en">Select a connection to use as the default</source>
+        <target state="new">Select a connection to use as the default</target>
       </trans-unit>
       <trans-unit id="++CODE++c9e8c706a0db2ef84dc8a610e30fe22cb5709a146a0e76955dbd1f1444e5a0e6">
         <source xml:lang="en">Select a database</source>
@@ -8394,6 +8442,10 @@ Consulta: {2}</target>
         <source xml:lang="en">Text tab - displays SQL text data</source>
         <target state="translated">Pestaña Texto: muestra datos de texto SQL</target>
       </trans-unit>
+      <trans-unit id="++CODE++c2deec07495a278190de83a0820519064e332fc00b050c4fd053bae70c44da8e">
+        <source xml:lang="en">The Application (Client) ID of your Microsoft Entra app registration.</source>
+        <target state="new">The Application (Client) ID of your Microsoft Entra app registration.</target>
+      </trans-unit>
       <trans-unit id="++CODE++b0ccb68c36737cb5ef6c7a74871ab7845533f64d89c74dd7db735bb555c401e1">
         <source xml:lang="en">The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including {code-snippet-0} for lightweight T-SQL profiling.</source>
         <target state="translated">Query Profiler ahora admite la base de datos SQL en conexiones de Microsoft Fabric, con nuevas plantillas de Azure SQL Database, incluida {code-snippet-0} para la generación de perfiles T-SQL ligera.</target>
@@ -8415,9 +8467,18 @@ Consulta: {2}</target>
         <source xml:lang="en">The behavior when a user tries to update a row with data that is involved in a foreign key relationship.</source>
         <target state="translated">Comportamiento cuando un usuario intenta actualizar una fila con datos que intervienen en una relación de clave externa.</target>
       </trans-unit>
+      <trans-unit id="++CODE++b3ed9d46f7671d126e86925d532363313c1f6795e877d3d348d134f6e7051bc3">
+        <source xml:lang="en">The client secret for your Microsoft Entra app registration.</source>
+        <target state="new">The client secret for your Microsoft Entra app registration.</target>
+      </trans-unit>
       <trans-unit id="++CODE++4002a5b20dd0c7a8caf9764ba024343e8f87e2ba8221aaeae4c5112d1d7bb4ed">
         <source xml:lang="en">The columns of the index.</source>
         <target state="translated">Las columnas del índice.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a238f8494c24670d2a99bca7863c04c3b523e1ffd7502d240c9aadca7e53c9c1">
+        <source xml:lang="en">The connection ID '{0}' set in 'mssql.defaultConnectionId' does not match any known connection profile. New editors will fall back to transferring the active connection.</source>
+        <note>{0} is the connection ID that was not found</note>
+        <target state="new">The connection ID '{0}' set in 'mssql.defaultConnectionId' does not match any known connection profile. New editors will fall back to transferring the active connection.</target>
       </trans-unit>
       <trans-unit id="++CODE++0104b69959544fb6f98a7e7723e2df4d657c581b43004a1e47f677a02589311e">
         <source xml:lang="en">The connection with ID '{0}' does not have the 'server' property set and is being ignored.  Please set the 'server' property on this connection in order to use it.</source>
@@ -8681,6 +8742,10 @@ Consulta: {2}</target>
         <source xml:lang="en">Transaction Log</source>
         <target state="translated">Registro de transacciones</target>
       </trans-unit>
+      <trans-unit id="++CODE++573843c55dfcb6caf7a345bf40ff4dfe681f4e262ed72c68ac5f55ce0b2a7749">
+        <source xml:lang="en">Transfer active connection (Default)</source>
+        <target state="new">Transfer active connection (Default)</target>
+      </trans-unit>
       <trans-unit id="++CODE++dadabe100e080a7068316b2a91caeb46ed5a60c2bf94a1a30acf4703bd3eb24d">
         <source xml:lang="en">Truncate the transaction log</source>
         <target state="translated">Truncar el registro de transacciones</target>
@@ -8732,10 +8797,10 @@ Consulta: {2}</target>
         <source xml:lang="en">Unable to load backup configuration. Please try again.</source>
         <target state="translated">No se puede cargar la configuración de copia de seguridad. Inténtelo de nuevo.</target>
       </trans-unit>
-      <trans-unit id="++CODE++c8a8ab1cef4a26f5a47e6aff86611314a34effe284539cfe1421067648432eab">
-        <source xml:lang="en">Unable to load database list from server: {0}</source>
+      <trans-unit id="++CODE++d11ea02689601a129dda01909b71622e7f1a166ce25bef3aa0589beb6db8c1d7">
+        <source xml:lang="en">Unable to load database list from server: {0} You may enter the database name directly.</source>
         <note>{0} is the connection error message</note>
-        <target state="translated">No se puede cargar la lista de bases de datos desde el servidor: {0}</target>
+        <target state="new">Unable to load database list from server: {0} You may enter the database name directly.</target>
       </trans-unit>
       <trans-unit id="++CODE++955b62784673f0081b2a54d867245fa50ca1e830cea22348ff69caa6317e7889">
         <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>
@@ -9765,6 +9830,10 @@ Consulta: {2}</target>
         <source xml:lang="en">Always Encrypted</source>
         <target state="translated">Always Encrypted</target>
       </trans-unit>
+      <trans-unit id="mssql.newEditorConnectionBehavior.defaultConnection.description">
+        <source xml:lang="en">Always connect new editors and opened SQL files to the connection specified by `mssql.defaultConnectionId`.</source>
+        <target state="new">Always connect new editors and opened SQL files to the connection specified by `mssql.defaultConnectionId`.</target>
+      </trans-unit>
       <trans-unit id="mssql.query.executionTimeout">
         <source xml:lang="en">An execution time-out of 0 indicates an unlimited wait (no time-out)</source>
         <target state="translated">Un tiempo de espera de ejecución de 0 indica una espera ilimitada (sin tiempo de espera)</target>
@@ -9812,6 +9881,10 @@ Consulta: {2}</target>
       <trans-unit id="mssql.cancelBackgroundTask">
         <source xml:lang="en">Cancel Task</source>
         <target state="translated">Cancelar tarea</target>
+      </trans-unit>
+      <trans-unit id="mssql.newEditorConnectionBehavior.transferActive.description">
+        <source xml:lang="en">Carry the active editor's connection to newly opened query editor tabs and SQL files.</source>
+        <target state="new">Carry the active editor's connection to newly opened query editor tabs and SQL files.</target>
       </trans-unit>
       <trans-unit id="mssql.changeConnection">
         <source xml:lang="en">Change Connection (MSSQL)</source>
@@ -9905,6 +9978,10 @@ Consulta: {2}</target>
         <source xml:lang="en">Control which grid lines are visible in the results grid.</source>
         <target state="translated">Controla qué líneas de la cuadrícula son visibles en la cuadrícula de resultados.</target>
       </trans-unit>
+      <trans-unit id="mssql.newEditorConnectionBehavior.description">
+        <source xml:lang="en">Controls how new SQL editor windows and opened SQL files are automatically connected.</source>
+        <target state="new">Controls how new SQL editor windows and opened SQL files are automatically connected.</target>
+      </trans-unit>
       <trans-unit id="mssql.resultsGrid.inMemoryDataProcessingThreshold">
         <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>
         <target state="translated">Controla el número máximo de filas permitidas para filtrar y ordenar en memoria. Si se supera el número, se deshabilitará la ordenación y el filtrado. Advertencia: El incremento de este número puede afectar al rendimiento.</target>
@@ -9990,6 +10067,10 @@ Cuando haya terminado de realizar los cambios, haga clic en el botón 'Publicar'
       <trans-unit id="mssql.defaultQueryResultsViewMode.grid.description">
         <source xml:lang="en">Display results in a tabular grid format (default)</source>
         <target state="translated">Mostrar los resultados en un formato de cuadrícula tabular (valor predeterminado)</target>
+      </trans-unit>
+      <trans-unit id="mssql.newEditorConnectionBehavior.none.description">
+        <source xml:lang="en">Do not auto-connect. You must connect each SQL file manually.</source>
+        <target state="new">Do not auto-connect. You must connect each SQL file manually.</target>
       </trans-unit>
       <trans-unit id="mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description">
         <source xml:lang="en">Do not show prompts to display query results in a new tab.</source>
@@ -10597,6 +10678,10 @@ Empiece haciendo clic en el botón de filtro situado junto a la mayoría de las 
         <source xml:lang="en">Temporarily store passwords for connections with 'Saved Passwords' disabled, until the extension is restarted. This prevents repeated password prompts when reusing connections within the same session.</source>
         <target state="translated">Almacene temporalmente las contraseñas de las conexiones con la opción "Contraseñas guardadas" deshabilitada, hasta que se reinicie la extensión. Esto evita que se repitan las solicitudes de contraseña al reutilizar las conexiones dentro de la misma sesión.</target>
       </trans-unit>
+      <trans-unit id="mssql.defaultConnectionId.description">
+        <source xml:lang="en">The ID (GUID) of the connection profile to use when `mssql.newEditorConnectionBehavior` is set to `defaultConnection`. The connection ID can be found in your settings.json under `mssql.connections`.</source>
+        <target state="new">The ID (GUID) of the connection profile to use when `mssql.newEditorConnectionBehavior` is set to `defaultConnection`. The connection ID can be found in your settings.json under `mssql.connections`.</target>
+      </trans-unit>
       <trans-unit id="mssql.customEnvironment">
         <source xml:lang="en">The additional, MSSQL-specific custom configuration for the Sovereign Cloud to use with the Microsoft Sovereign Cloud authentication provider. This along with setting `microsoft-sovereign-cloud.environment` to `custom` and providing values for `microsoft-sovereign-cloud.customEnvironment` is required to use this feature with MSSQL.</source>
         <target state="translated">La configuración personalizada adicional específica para MSSQL de la nube soberana que se va a usar con el proveedor de autenticación de Microsoft Sovereign Cloud. Esto, además de configurar "microsoft-sovereign-cloud.environment" en "custom" y proporcionar valores para "microsoft-sovereign-cloud.customEnvironment", es necesario para usar esta función con MSSQL.</target>
@@ -10640,6 +10725,10 @@ Empiece haciendo clic en el botón de filtro situado junto a la mayoría de las 
       <trans-unit id="mssql.connection.id">
         <source xml:lang="en">The unique identifier for this connection profile.</source>
         <target state="translated">Identificador único de este perfil de conexión.</target>
+      </trans-unit>
+      <trans-unit id="mssql.transferActiveEditorConnections.deprecationMessage">
+        <source xml:lang="en">This setting is deprecated. Use `mssql.newEditorConnectionBehavior` instead. The extension will automatically migrate this setting on startup.</source>
+        <target state="new">This setting is deprecated. Use `mssql.newEditorConnectionBehavior` instead. The extension will automatically migrate this setting on startup.</target>
       </trans-unit>
       <trans-unit id="mssql.legacySetting.deprecationMessage">
         <source xml:lang="en">This setting will be removed in a future release.</source>

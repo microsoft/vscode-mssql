@@ -273,7 +273,7 @@ export function DabEntitySettingsDialog({
             return {
                 ...prev,
                 storedProcedureRestMethods: nextMethods.length
-                    ? Array.from(new Set(nextMethods))
+                    ? Dab.normalizeRestMethods(nextMethods)
                     : [Dab.RestMethod.Post],
             };
         });
@@ -317,7 +317,7 @@ export function DabEntitySettingsDialog({
         <Text className={classes.sectionTitle}>{title}</Text>
     );
 
-    const renderDisabledBanner = (apiType: Dab.ApiType, label: string) => (
+    const renderDisabledBanner = (apiType: Dab.ApiType, label: string, helpText?: string) => (
         <MessageBar
             intent="warning"
             layout="multiline"
@@ -329,7 +329,7 @@ export function DabEntitySettingsDialog({
                     {locConstants.schemaDesigner.apiTypeNotEnabledGlobally(label)}
                 </MessageBarTitle>
                 <span className={classes.disabledMessageBarText}>
-                    {locConstants.schemaDesigner.enableApiTypeForEntity(label)}
+                    {helpText ?? locConstants.schemaDesigner.enableApiTypeForEntity(label)}
                 </span>
             </MessageBarBody>
             <MessageBarActions>
@@ -554,12 +554,12 @@ export function DabEntitySettingsDialog({
                                 classes.section,
                                 !isGraphQLEnabled && classes.sectionDisabled,
                             )}>
-                            {renderSectionTitle(locConstants.schemaDesigner.graphQL)}
+                            {renderSectionTitle(locConstants.schemaDesigner.graphql)}
                             <div className={classes.sectionBody}>
                                 {!isGraphQLEnabled ? (
                                     renderDisabledBanner(
                                         Dab.ApiType.GraphQL,
-                                        locConstants.schemaDesigner.graphQL,
+                                        locConstants.schemaDesigner.graphql,
                                     )
                                 ) : (
                                     <>
@@ -656,6 +656,7 @@ export function DabEntitySettingsDialog({
                                         renderDisabledBanner(
                                             Dab.ApiType.Mcp,
                                             locConstants.schemaDesigner.mcp,
+                                            locConstants.schemaDesigner.enableMcpForCustomToolHelp,
                                         )
                                     ) : (
                                         <>

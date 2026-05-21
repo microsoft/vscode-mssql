@@ -272,7 +272,7 @@ export class DabConfigFileBuilder {
             restConfig.path = customPath.startsWith("/") ? customPath : `/${customPath}`;
         }
         if (restMethods?.length) {
-            restConfig.methods = [...restMethods];
+            restConfig.methods = Dab.normalizeRestMethods(restMethods);
         }
         return Object.keys(restConfig).length > 0 ? restConfig : undefined;
     }

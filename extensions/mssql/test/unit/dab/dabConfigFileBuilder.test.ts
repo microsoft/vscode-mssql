@@ -579,6 +579,7 @@ suite("DabConfigFileBuilder Tests", () => {
                                 entityName: "GetUsers",
                                 authorizationRole: Dab.AuthorizationRole.Anonymous,
                                 storedProcedureRestMethods: [
+                                    Dab.RestMethod.Post,
                                     Dab.RestMethod.Get,
                                     Dab.RestMethod.Post,
                                 ],

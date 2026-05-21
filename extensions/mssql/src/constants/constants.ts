@@ -170,6 +170,7 @@ export const defaultCommandTimeout = 30;
 export const stsImmediateActivityTimeout = 5000; // 5 seconds
 export const azureDatabase = "Azure";
 export const azureMfa = "AzureMFA";
+export const azureServicePrincipal = "ActiveDirectoryServicePrincipal";
 export const defaultPortNumber = 1433;
 export const integratedauth = "Integrated";
 export const sqlAuthentication = "SqlLogin";
@@ -314,7 +315,22 @@ export const configAutoRevealResultsPanel = "mssql.autoRevealResultsPanel";
 export const configCustomEnvironment = "mssql.customEnvironment";
 export const configShortcuts = "mssql.shortcuts";
 export const configShowChangelogOnUpdate = "mssql.showChangelogOnUpdate";
+/** @deprecated Use configNewEditorConnectionBehavior instead. */
 export const configTransferActiveEditorConnections = "mssql.transferActiveEditorConnections";
+export const configNewEditorConnectionBehavior = "mssql.newEditorConnectionBehavior";
+export const configDefaultConnectionId = "mssql.defaultConnectionId";
+
+/**
+ * Controls how new SQL editor windows and opened SQL files are automatically connected.
+ */
+export enum NewEditorConnectionBehavior {
+    /** Do not auto-connect; the user must connect manually. */
+    None = "none",
+    /** Carry the last active editor's connection to the new document (legacy default). */
+    TransferActive = "transferActive",
+    /** Connect using the profile identified by mssql.defaultConnectionId. */
+    DefaultConnection = "defaultConnection",
+}
 
 // Built into VS Code
 export const sovereignCloudSectionName = "microsoft-sovereign-cloud";

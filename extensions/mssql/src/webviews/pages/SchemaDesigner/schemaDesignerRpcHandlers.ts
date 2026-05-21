@@ -1166,9 +1166,11 @@ function normalizeDabConfigForVersion(config: Dab.DabConfig) {
                             : undefined,
                     graphQLEnabled: entity.advancedSettings.graphQLEnabled,
                     storedProcedureRestMethods:
-                        entity.advancedSettings.storedProcedureRestMethods?.map((method) =>
-                            normalizeIdentifier(method),
-                        ),
+                        entity.advancedSettings.storedProcedureRestMethods !== undefined
+                            ? Dab.normalizeRestMethods(
+                                  entity.advancedSettings.storedProcedureRestMethods,
+                              )
+                            : undefined,
                     storedProcedureGraphQLOperation:
                         entity.advancedSettings.storedProcedureGraphQLOperation,
                     exposeAsMcpCustomTool: entity.advancedSettings.exposeAsMcpCustomTool,
@@ -1718,9 +1720,9 @@ function applyDabToolChange(
                                 };
                             }
                         }
-                        updatedSettings.storedProcedureRestMethods = Array.from(
-                            new Set(value),
-                        ) as Dab.RestMethod[];
+                        updatedSettings.storedProcedureRestMethods = Dab.normalizeRestMethods(
+                            value as Dab.RestMethod[],
+                        );
                         break;
                     case "storedProcedureGraphQLOperation":
                         if (
