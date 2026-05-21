@@ -37,7 +37,12 @@ const useStyles = makeStyles({
     dialogSurface: {
         width: "640px",
         maxWidth: "calc(100vw - 48px)",
-        maxHeight: "80vh",
+        maxHeight: "calc(100vh - 48px)",
+        height: "auto",
+    },
+    dialogBody: {
+        maxHeight: "calc(100vh - 96px)",
+        minHeight: 0,
     },
     dialogContent: {
         display: "flex",
@@ -46,6 +51,7 @@ const useStyles = makeStyles({
         paddingTop: "16px",
         paddingBottom: "16px",
         overflowY: "auto",
+        minHeight: 0,
     },
     headerTitleContent: {
         display: "flex",
@@ -354,7 +360,7 @@ export function DabEntitySettingsDialog({
     return (
         <Dialog open={open} modalType="modal" onOpenChange={(_, data) => onOpenChange(data.open)}>
             <DialogSurface className={classes.dialogSurface}>
-                <DialogBody>
+                <DialogBody className={classes.dialogBody}>
                     <DialogTitle
                         action={
                             <Button
