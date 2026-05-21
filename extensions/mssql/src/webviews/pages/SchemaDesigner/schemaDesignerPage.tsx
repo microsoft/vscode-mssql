@@ -62,7 +62,7 @@ export const SchemaDesignerPage = ({ activeView, onNavigateToDab }: SchemaDesign
                                             showDiscovery={canShowDiscovery}
                                             onNavigateToDab={onNavigateToDab}
                                         />
-                                        <SchemaDesignerFlow />
+                                        <SchemaDesignerFlow activeView={activeView} />
                                     </GraphContainer>
                                 </Panel>
                                 <PanelResizeHandle className={classes.resizeHandle} />

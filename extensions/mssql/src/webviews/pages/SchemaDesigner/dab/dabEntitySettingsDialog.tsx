@@ -38,10 +38,10 @@ const useStyles = makeStyles({
         width: "640px",
         maxWidth: "calc(100vw - 48px)",
         maxHeight: "calc(100vh - 48px)",
-        height: "auto",
+        height: "calc(100vh - 48px)",
     },
     dialogBody: {
-        maxHeight: "calc(100vh - 96px)",
+        height: "100%",
         minHeight: 0,
     },
     dialogContent: {
@@ -90,19 +90,6 @@ const useStyles = makeStyles({
     },
     sectionDisabled: {
         opacity: 0.75,
-    },
-    sectionHeader: {
-        display: "flex",
-        alignItems: "center",
-        columnGap: "8px",
-    },
-    disabledBadge: {
-        borderRadius: tokens.borderRadiusCircular,
-        border: `1px solid ${tokens.colorPaletteYellowBorder2}`,
-        backgroundColor: "transparent",
-        color: tokens.colorNeutralForeground3,
-        fontSize: "10px",
-        padding: "1px 7px",
     },
     sectionBody: {
         display: "flex",
@@ -179,7 +166,10 @@ const useStyles = makeStyles({
         color: tokens.colorNeutralForeground3,
     },
     dialogActions: {
+        alignSelf: "stretch",
         columnGap: "12px",
+        paddingTop: "12px",
+        marginTop: 0,
     },
     actionButton: {
         minWidth: "132px",
@@ -323,15 +313,8 @@ export function DabEntitySettingsDialog({
         }
     };
 
-    const renderSectionHeader = (title: string, disabled?: boolean) => (
-        <div className={classes.sectionHeader}>
-            <Text className={classes.sectionTitle}>{title}</Text>
-            {disabled && (
-                <span className={classes.disabledBadge}>
-                    {locConstants.schemaDesigner.disabledGlobally}
-                </span>
-            )}
-        </div>
+    const renderSectionTitle = (title: string) => (
+        <Text className={classes.sectionTitle}>{title}</Text>
     );
 
     const renderDisabledBanner = (apiType: Dab.ApiType, label: string) => (
@@ -382,7 +365,7 @@ export function DabEntitySettingsDialog({
                     </DialogTitle>
                     <DialogContent className={classes.dialogContent}>
                         <section className={classes.section}>
-                            {renderSectionHeader(locConstants.schemaDesigner.identity)}
+                            {renderSectionTitle(locConstants.schemaDesigner.identity)}
                             <div className={classes.sectionBody}>
                                 <Field
                                     label={locConstants.schemaDesigner.entityName}
@@ -399,7 +382,7 @@ export function DabEntitySettingsDialog({
                         </section>
 
                         <section className={classes.section}>
-                            {renderSectionHeader(locConstants.schemaDesigner.authorizationRole)}
+                            {renderSectionTitle(locConstants.schemaDesigner.authorizationRole)}
                             <div className={classes.sectionBody}>
                                 <span className={classes.fieldHint}>
                                     {locConstants.schemaDesigner.authorizationRoleHelp}
@@ -475,7 +458,7 @@ export function DabEntitySettingsDialog({
                                 classes.section,
                                 !isRestEnabled && classes.sectionDisabled,
                             )}>
-                            {renderSectionHeader(locConstants.schemaDesigner.rest, !isRestEnabled)}
+                            {renderSectionTitle(locConstants.schemaDesigner.rest)}
                             <div className={classes.sectionBody}>
                                 {!isRestEnabled ? (
                                     renderDisabledBanner(
@@ -571,10 +554,7 @@ export function DabEntitySettingsDialog({
                                 classes.section,
                                 !isGraphQLEnabled && classes.sectionDisabled,
                             )}>
-                            {renderSectionHeader(
-                                locConstants.schemaDesigner.graphQL,
-                                !isGraphQLEnabled,
-                            )}
+                            {renderSectionTitle(locConstants.schemaDesigner.graphQL)}
                             <div className={classes.sectionBody}>
                                 {!isGraphQLEnabled ? (
                                     renderDisabledBanner(
@@ -670,10 +650,7 @@ export function DabEntitySettingsDialog({
                                     classes.section,
                                     !isMcpEnabled && classes.sectionDisabled,
                                 )}>
-                                {renderSectionHeader(
-                                    locConstants.schemaDesigner.mcp,
-                                    !isMcpEnabled,
-                                )}
+                                {renderSectionTitle(locConstants.schemaDesigner.mcp)}
                                 <div className={classes.sectionBody}>
                                     {!isMcpEnabled ? (
                                         renderDisabledBanner(
