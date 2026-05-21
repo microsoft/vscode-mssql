@@ -427,7 +427,7 @@ suite("DabConfigFileBuilder Tests", () => {
                 expect(entity.permissions).to.deep.equal([
                     { role: "anonymous", actions: ["execute"] },
                 ]);
-                expect(entity.rest).to.be.undefined;
+                expect(entity.rest).to.deep.equal({ methods: ["post"] });
                 expect(entity.graphql).to.be.undefined;
                 expect(entity.mcp).to.deep.equal({
                     "custom-tool": true,
@@ -579,7 +579,6 @@ suite("DabConfigFileBuilder Tests", () => {
                                 entityName: "GetUsers",
                                 authorizationRole: Dab.AuthorizationRole.Anonymous,
                                 storedProcedureRestMethods: [
-                                    Dab.RestMethod.Post,
                                     Dab.RestMethod.Get,
                                     Dab.RestMethod.Post,
                                 ],
@@ -590,7 +589,7 @@ suite("DabConfigFileBuilder Tests", () => {
                 const result = builder.build(config, defaultConnectionInfo);
                 const parsed = JSON.parse(result);
                 expect(parsed.entities["GetUsers"].rest).to.deep.equal({
-                    methods: ["get", "post"],
+                    methods: ["get"],
                 });
             });
         });

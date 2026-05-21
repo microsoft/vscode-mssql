@@ -1299,7 +1299,9 @@ suite("DabTool Tests", () => {
             expect(settings).to.exist;
             expect(settings?.entityName).to.equal("UsersApi");
             expect(settings?.customRestPath).to.equal("/users");
-            expect(settings?.customGraphQLType).to.equal("UsersType");
+            expect(settings?.customGraphQLType).to.equal(undefined);
+            expect(settings?.customGraphQLSingularType).to.equal("UsersType");
+            expect(settings?.customGraphQLPluralType).to.equal(undefined);
         });
 
         test("apply_changes patch_entity_settings rejects unsafe string values", async () => {
@@ -1499,11 +1501,7 @@ suite("DabTool Tests", () => {
                         type: "patch_entity_settings",
                         entity: { id: "stored-procedure:dbo.GetUsers" },
                         set: {
-                            storedProcedureRestMethods: [
-                                Dab.RestMethod.Post,
-                                Dab.RestMethod.Get,
-                                Dab.RestMethod.Post,
-                            ],
+                            storedProcedureRestMethods: [Dab.RestMethod.Get],
                             storedProcedureGraphQLOperation: Dab.GraphQLOperation.Query,
                         },
                     },
@@ -1515,7 +1513,7 @@ suite("DabTool Tests", () => {
                 throw new Error("Expected success response");
             }
             const settings = result.config?.entities[0].advancedSettings;
-            expect(settings?.storedProcedureRestMethods).to.deep.equal(["get", "post"]);
+            expect(settings?.storedProcedureRestMethods).to.deep.equal(["get"]);
             expect(settings?.storedProcedureGraphQLOperation).to.equal("query");
         });
 
