@@ -86,7 +86,7 @@ const useStyles = makeStyles({
     disabledBadge: {
         borderRadius: tokens.borderRadiusCircular,
         border: `1px solid ${tokens.colorPaletteYellowBorder2}`,
-        backgroundColor: tokens.colorPaletteYellowBackground2,
+        backgroundColor: "transparent",
         color: tokens.colorPaletteYellowForeground2,
         fontSize: "10px",
         padding: "1px 7px",
@@ -104,7 +104,7 @@ const useStyles = makeStyles({
         padding: "9px 11px",
         borderRadius: tokens.borderRadiusMedium,
         border: `1px solid ${tokens.colorPaletteYellowBorder2}`,
-        backgroundColor: tokens.colorPaletteYellowBackground2,
+        backgroundColor: "transparent",
     },
     disabledBannerIcon: {
         color: tokens.colorPaletteYellowForeground2,
@@ -196,8 +196,17 @@ const useStyles = makeStyles({
     methodGroup: {
         display: "flex",
         flexWrap: "wrap",
-        columnGap: "8px",
-        rowGap: "4px",
+        gap: "6px",
+    },
+    methodChip: {
+        borderRadius: "999px",
+        fontSize: "12px",
+        minWidth: "unset",
+    },
+    methodChipSelected: {
+        border: "1px solid var(--vscode-textLink-foreground)",
+        color: "var(--vscode-textLink-foreground)",
+        backgroundColor: "color-mix(in srgb, var(--vscode-textLink-foreground) 20%, transparent)",
     },
 });
 
@@ -501,19 +510,30 @@ export function DabEntitySettingsDialog({
                                                 }>
                                                 <div className={classes.methodGroup}>
                                                     {Object.values(Dab.RestMethod).map((method) => (
-                                                        <Checkbox
+                                                        <ToggleButton
                                                             key={method}
+                                                            shape="circular"
+                                                            size="small"
+                                                            className={mergeClasses(
+                                                                classes.methodChip,
+                                                                storedProcedureRestMethods.includes(
+                                                                    method,
+                                                                ) && classes.methodChipSelected,
+                                                            )}
                                                             checked={storedProcedureRestMethods.includes(
                                                                 method,
                                                             )}
-                                                            onChange={(_, data) =>
+                                                            onClick={() =>
                                                                 updateStoredProcedureRestMethod(
                                                                     method,
-                                                                    !!data.checked,
+                                                                    !storedProcedureRestMethods.includes(
+                                                                        method,
+                                                                    ),
                                                                 )
                                                             }
-                                                            label={method.toUpperCase()}
-                                                        />
+                                                            aria-label={method.toUpperCase()}>
+                                                            {method.toUpperCase()}
+                                                        </ToggleButton>
                                                     ))}
                                                 </div>
                                                 <Text className={classes.fieldHint}>
