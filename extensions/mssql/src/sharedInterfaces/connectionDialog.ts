@@ -52,7 +52,6 @@ export class ConnectionDialogWebviewState
     public azureSubscriptionsLoadStatus: Status = { status: ApiStatus.NotStarted };
     public unauthenticatedAzureTenants: IUnauthenticatedAzureTenant[] = [];
     public azureTenantStatus: IAzureTenantStatus[] = [];
-    public azureTenantSignInCounts: IAzureTenantSignInStatus | undefined;
     public savedConnections: IConnectionDialogProfile[] = [];
     public recentConnections: IConnectionDialogProfile[] = [];
     public isEditingConnection: boolean = false;

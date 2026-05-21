@@ -1445,11 +1445,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     signedInTenants: [mockTenants[0].displayName],
                 },
             ]);
-
-            expect(controller.state.azureTenantSignInCounts).to.deep.equal({
-                totalTenants: 2,
-                signedInTenants: 1,
-            });
         });
     });
 

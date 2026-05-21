@@ -35,7 +35,7 @@ import {
     SqlCollectionInfo,
     SqlArtifactTypes,
 } from "../../../../../sharedInterfaces/fabric";
-import { useState, useMemo } from "react";
+import { useState, useMemo, ReactNode, CSSProperties, KeyboardEvent } from "react";
 import {
     ErrorCircleRegular,
     ChevronRight16Regular,
@@ -382,7 +382,7 @@ export const SqlCollectionContentsList = ({
 
     //#region Render helper methods
 
-    const renderGridContent = (): React.ReactNode => {
+    const renderGridContent = (): ReactNode => {
         // Workspace list states
         if (effectiveCollectionsLoadStatus.status === ApiStatus.NotStarted) {
             return undefined;
@@ -521,8 +521,8 @@ export const SqlCollectionContentsList = ({
 
     function renderRow(
         { item, rowId }: TableRowData<SqlDbGridItem>,
-        style: React.CSSProperties,
-    ): React.ReactNode {
+        style: CSSProperties,
+    ): ReactNode {
         const isSelectable = !item.isServerRow;
         const isSelected = isSelectable && selectedRowId === item.id;
         return (
@@ -533,13 +533,13 @@ export const SqlCollectionContentsList = ({
                 onClick={() => {
                     handleRowActivated(item);
                 }}
-                onKeyDown={(e: React.KeyboardEvent) => {
+                onKeyDown={(e: KeyboardEvent) => {
                     if (e.code === KeyCode.Enter || e.code === KeyCode.Space) {
                         handleRowActivated(item);
                         e.preventDefault();
                     }
                 }}>
-                {({ renderCell }: { renderCell: (item: SqlDbGridItem) => React.ReactNode }) => (
+                {({ renderCell }: { renderCell: (item: SqlDbGridItem) => ReactNode }) => (
                     <>{renderCell(item)}</>
                 )}
             </DataGridRow>

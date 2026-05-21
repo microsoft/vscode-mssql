@@ -348,6 +348,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this.updateState();
 
             const provider = this.getActiveProvider(state);
+
             if (provider) {
                 await this.ensureAzureBrowseContext(state);
 
@@ -814,14 +815,14 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             // If the tenant is not signed in, show error state and immediately prompt sign-in
             const tenant = state.azureTenants.find((t) => t.id === payload.tenantId);
+
             if (tenant && !tenant.isSignedIn) {
                 state.notSignedInTenant = { id: tenant.id, name: tenant.name };
                 this._azureBrowseProvider.clearCollectionsState(state);
                 this._fabricBrowseProvider.clearCollectionsState(state);
                 this.updateState(state);
 
-                const signed = await this.signInToTenant(state, payload.tenantId);
-                if (!signed) {
+                if (!(await this.signInToTenant(state, payload.tenantId))) {
                     return state;
                 }
 
@@ -2360,7 +2361,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             // Capture all the tenants
             const allTenants = await auth.getTenants();
-            const totalTenants = allTenants.length;
             const unauthenticatedSet = new Set(
                 state.unauthenticatedAzureTenants.map(
                     (tenant) => `${tenant.accountId}/${tenant.tenantId}`,
@@ -2396,21 +2396,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             state.azureTenantStatus = Array.from(tenantStatusMap.values()).filter(
                 (entry) => entry.signedInTenants.length > 0,
             );
-
-            // Calculate the summary counts
-            const signedInTenants = Math.max(
-                0,
-                totalTenants - state.unauthenticatedAzureTenants.length,
-            );
-
-            state.azureTenantSignInCounts = {
-                totalTenants,
-                signedInTenants,
-            };
         } catch (error) {
             state.unauthenticatedAzureTenants = [];
             state.azureTenantStatus = [];
-            state.azureTenantSignInCounts = undefined;
+
             this.logger.error(
                 "Error determining Azure tenants without active sessions: " +
                     getErrorMessage(error),
@@ -2419,16 +2408,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     }
 
     /**
-     * Ensures that Azure accounts and tenants are loaded for browsing and that an
-     * account/tenant are selected. Shared between Azure Browse and Fabric Browse so that
-     * switching between modes doesn't reload accounts/tenants or lose the current selection.
-     *
-     * - Loads accounts (if not already loaded or `forceRefreshAccounts` is set)
-     * - Auto-selects the first account if none is currently selected
-     * - Loads tenants for the selected account (if not already loaded or `forceRefreshTenants`
-     *   is set), and auto-selects the home tenant (or first tenant) if none is selected
-     *
-     * Calls `updateState` along the way so the UI shows progress.
+     * Ensures that Azure accounts and tenants are loaded for browsing and that an account/tenant are selected.
      */
     private async ensureAzureBrowseContext(
         state: ConnectionDialogWebviewState,

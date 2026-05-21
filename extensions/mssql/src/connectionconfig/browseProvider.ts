@@ -38,7 +38,7 @@ import { getErrorMessage } from "../utils/utils";
 
 /** Per-mode limit for auto-loading the contents of every collection on the current tenant. */
 export const AZURE_SUBSCRIPTION_AUTOLOAD_LIMIT = 20;
-/** Fabric REST API rate-limits to 50 requests/user/minute. */
+/** Fabric REST API rate-limits to 50 requests/user/minute; each workspace takes two requests, so leave some headroom */
 export const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 10;
 
 /**
@@ -59,15 +59,6 @@ export interface BrowseProviderHost {
 
 /**
  * Common abstraction over Azure Browse and Fabric Browse flows.
- *
- * Each implementation owns:
- *   - the slice of `ConnectionDialogWebviewState` that holds its top-level collections
- *     (Azure subscriptions or Fabric workspaces) and that list's load status
- *   - its favorites list, including the VS Code configuration key it persists to
- *   - any provider-side caches of upstream API responses
- *   - the API calls to load the collection list and the contents of a single collection
- *
- * Reducers delegate to `getActiveProvider(state)` so the same code path drives both modes.
  */
 export abstract class BrowseProvider {
     public abstract readonly inputMode: ConnectionInputMode;
