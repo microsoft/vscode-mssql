@@ -442,7 +442,7 @@ export default class SqlToolsServiceClient {
                     // volume manageable while preserving the diagnostic signal
                     // for the notebook IntelliSense issue.
                     if (count === 0 || scheme === "vscode-notebook-cell") {
-                        this._logger.verbose(
+                        this._logger.info(
                             `Completion count=${count} scheme=${scheme} triggerKind=${context.triggerKind} uri=${document.uri.toString()}`,
                         );
                     }
@@ -493,10 +493,7 @@ export default class SqlToolsServiceClient {
                     return "unknown";
                 }
             })();
-            // Notebook cells use the vscode-notebook-cell scheme. Log these
-            // at verbose so users debugging notebook IntelliSense can see
-            // whether STS ever reports a status change for cell URIs.
-            this._logger.verbose(
+            this._logger.info(
                 `LanguageServiceStatus scheme=${scheme} status=${event.status} ownerUri=${event.ownerUri}`,
             );
             this._statusView.languageServiceStatusChanged(event.ownerUri, event.status);
