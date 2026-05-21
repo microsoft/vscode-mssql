@@ -2735,6 +2735,10 @@
     <trans-unit id="++CODE++3124ddbedded23af64f8d5506005863517b446c2767c1d81660d1074b969e089">
       <source xml:lang="en">Failed to load publish profile</source>
     </trans-unit>
+    <trans-unit id="++CODE++d6b0a48cb928a9e30f5e95e88aaf9883983106aea355923b6170c6a35db8c106">
+      <source xml:lang="en">Failed to load {0}: {1} validation issue(s) found. See output for details.</source>
+      <note>{0} is a file path; {1} is the number of validation issues found</note>
+    </trans-unit>
     <trans-unit id="++CODE++14efaa6a7c132b195742fbff720af5eae802f47b83f7e56896d431c86cb0a172">
       <source xml:lang="en">Failed to obtain token for resource &apos;{1}&apos;.  Error: {0}</source>
       <note>{0} is the error message
