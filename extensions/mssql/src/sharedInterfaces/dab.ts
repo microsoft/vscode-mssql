@@ -31,6 +31,36 @@ export namespace Dab {
         Execute = "execute",
     }
 
+    export enum RestMethod {
+        Get = "get",
+        Post = "post",
+        Put = "put",
+        Patch = "patch",
+        Delete = "delete",
+    }
+
+    const restMethodSortOrder = [
+        RestMethod.Get,
+        RestMethod.Post,
+        RestMethod.Put,
+        RestMethod.Patch,
+        RestMethod.Delete,
+    ];
+
+    /**
+     * Canonicalizes REST methods so semantically equivalent method sets do not
+     * produce noisy config diffs or version hash changes.
+     */
+    export function normalizeRestMethods(methods: RestMethod[]): RestMethod[] {
+        const uniqueMethods = new Set(methods);
+        return restMethodSortOrder.filter((method) => uniqueMethods.has(method));
+    }
+
+    export enum GraphQLOperation {
+        Query = "query",
+        Mutation = "mutation",
+    }
+
     /**
      * Database object source types supported by DAB.
      */
@@ -65,9 +95,32 @@ export namespace Dab {
          */
         customRestPath?: string;
         /**
+         * Whether this entity should be exposed through REST when REST is globally enabled.
+         * Defaults to true.
+         */
+        restEnabled?: boolean;
+        /**
          * Custom GraphQL type name (overrides default entity name)
          */
         customGraphQLType?: string;
+        /**
+         * Whether this entity should be exposed through GraphQL when GraphQL is globally enabled.
+         * Defaults to true.
+         */
+        graphQLEnabled?: boolean;
+        /**
+         * Stored procedure REST methods. Defaults to POST.
+         */
+        storedProcedureRestMethods?: RestMethod[];
+        /**
+         * Stored procedure GraphQL operation. Defaults to mutation.
+         */
+        storedProcedureGraphQLOperation?: GraphQLOperation;
+        /**
+         * Whether a stored procedure entity should be exposed as a dedicated MCP custom tool.
+         * Defaults to true for stored procedures.
+         */
+        exposeAsMcpCustomTool?: boolean;
     }
 
     /**
@@ -331,10 +384,14 @@ export namespace Dab {
     export type DabColumnRef = { id: string } | { name: string };
 
     export type DabEntitySettingsPatch = Partial<
-        Omit<EntityAdvancedSettings, "customRestPath" | "customGraphQLType">
+        Omit<
+            EntityAdvancedSettings,
+            "customRestPath" | "customGraphQLType" | "storedProcedureRestMethods"
+        >
     > & {
         customRestPath?: string | null;
         customGraphQLType?: string | null;
+        storedProcedureRestMethods?: RestMethod[] | null;
     };
 
     export type DabToolChange =
@@ -1154,6 +1211,7 @@ export namespace Dab {
             advancedSettings: {
                 entityName: sourceObject.sourceName,
                 authorizationRole: AuthorizationRole.Anonymous,
+                ...(isStoredProcedure ? { exposeAsMcpCustomTool: true } : {}),
             },
         };
     }

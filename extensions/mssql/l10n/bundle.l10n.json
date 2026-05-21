@@ -872,6 +872,32 @@
     "REST API": "REST API",
     "GraphQL": "GraphQL",
     "MCP": "MCP",
+    "Expose this entity through REST": "Expose this entity through REST",
+    "Enable REST in API Type to expose this entity through REST.": "Enable REST in API Type to expose this entity through REST.",
+    "Expose this entity through GraphQL": "Expose this entity through GraphQL",
+    "Enable GraphQL in API Type to expose this entity through GraphQL.": "Enable GraphQL in API Type to expose this entity through GraphQL.",
+    "Stored procedure REST methods": "Stored procedure REST methods",
+    "Select the HTTP methods that can execute this stored procedure. DAB defaults to POST.": "Select the HTTP methods that can execute this stored procedure. DAB defaults to POST.",
+    "Stored procedure GraphQL operation": "Stored procedure GraphQL operation",
+    "Choose whether this stored procedure appears as a GraphQL mutation or query. DAB defaults to mutation.": "Choose whether this stored procedure appears as a GraphQL mutation or query. DAB defaults to mutation.",
+    "Mutation": "Mutation",
+    "Query": "Query",
+    "MCP custom tool": "MCP custom tool",
+    "Expose as MCP custom tool": "Expose as MCP custom tool",
+    "Creates a dedicated MCP tool for this stored procedure. When disabled, the procedure can still be available through generic MCP execute tools if MCP is enabled.": "Creates a dedicated MCP tool for this stored procedure. When disabled, the procedure can still be available through generic MCP execute tools if MCP is enabled.",
+    "Enable MCP in API Type to use this custom tool setting.": "Enable MCP in API Type to use this custom tool setting.",
+    "{0} is not enabled globally/{0} is the API type, e.g. REST, GraphQL, or MCP": {
+        "message": "{0} is not enabled globally",
+        "comment": ["{0} is the API type, e.g. REST, GraphQL, or MCP"]
+    },
+    "Enable {0} in API Type to expose this entity./{0} is the API type, e.g. REST, GraphQL, or MCP": {
+        "message": "Enable {0} in API Type to expose this entity.",
+        "comment": ["{0} is the API type, e.g. REST, GraphQL, or MCP"]
+    },
+    "Enable {0} globally/{0} is the API type, e.g. REST, GraphQL, or MCP": {
+        "message": "Enable {0} globally",
+        "comment": ["{0} is the API type, e.g. REST, GraphQL, or MCP"]
+    },
     "Entity Endpoints": "Entity Endpoints",
     "All Schemas": "All Schemas",
     "Filter entities...": "Filter entities...",
@@ -935,10 +961,13 @@
     "Back to Schema": "Back to Schema",
     "Design API": "Design API",
     "Advanced Entity Configuration": "Advanced Entity Configuration",
+    "Identity": "Identity",
+    "REST": "REST",
     "Entity Name": "Entity Name",
     "Used in API routes and responses": "Used in API routes and responses",
     "Authorization Role": "Authorization Role",
     "Define who can access this endpoint": "Define who can access this endpoint",
+    "Disabled globally": "Disabled globally",
     "Anonymous": "Anonymous",
     "No authentication required": "No authentication required",
     "Authenticated": "Authenticated",
@@ -947,10 +976,10 @@
     "Optional - Override default api/entityName path": "Optional - Override default api/entityName path",
     "Custom GraphQL Type": "Custom GraphQL Type",
     "Optional - Override default GraphQL type name": "Optional - Override default GraphQL type name",
-    "Source Table": "Source Table",
-    "Source Table: {0}/{0} is the fully qualified source table name": {
-        "message": "Source Table: {0}",
-        "comment": ["{0} is the fully qualified source table name"]
+    "Source": "Source",
+    "Source: {0}/{0} is the fully qualified DAB source object name": {
+        "message": "Source: {0}",
+        "comment": ["{0} is the fully qualified DAB source object name"]
     },
     "Initializing DAB configuration...": "Initializing DAB configuration...",
     "No entities found": "No entities found",
@@ -1078,7 +1107,6 @@
     "Select Target": "Select Target",
     "Data-tier Application File (.dacpac)": "Data-tier Application File (.dacpac)",
     "Database Project": "Database Project",
-    "Source": "Source",
     "Target": "Target",
     "Comparison Details": "Comparison Details",
     "Are you sure you want to update the target?": "Are you sure you want to update the target?",

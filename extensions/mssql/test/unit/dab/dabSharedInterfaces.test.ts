@@ -35,6 +35,17 @@ function createSourceObject(overrides?: Partial<Dab.DabSourceObject>): Dab.DabSo
 }
 
 suite("DAB shared interface helpers", () => {
+    test("normalizeRestMethods de-dupes and sorts methods in canonical order", () => {
+        expect(
+            Dab.normalizeRestMethods([
+                Dab.RestMethod.Delete,
+                Dab.RestMethod.Post,
+                Dab.RestMethod.Get,
+                Dab.RestMethod.Post,
+            ]),
+        ).to.deep.equal([Dab.RestMethod.Get, Dab.RestMethod.Post, Dab.RestMethod.Delete]);
+    });
+
     test("validateSourceObjectForDab uses view fields for primary key support", () => {
         const supportedView = createSourceObject({
             id: "view:dbo.ActiveUsers",
@@ -110,6 +121,7 @@ suite("DAB shared interface helpers", () => {
             isSupported: true,
         });
         expect(config.entities[0].enabledActions).to.deep.equal([Dab.EntityAction.Execute]);
+        expect(config.entities[0].advancedSettings.exposeAsMcpCustomTool).to.equal(true);
         expect(config.entities[0].parameters).to.deep.equal([
             {
                 name: "userId",
