@@ -41,3 +41,17 @@ export interface SavedNotebookResultSetOutputData {
     rowCount: number;
     addBottomSpacing?: boolean;
 }
+
+export enum NotebookSaveAsFormat {
+    Csv = "csv",
+    Excel = "excel",
+    Json = "json",
+}
+
+export interface NotebookSaveAsMessage {
+    type: "saveAs";
+    format: NotebookSaveAsFormat;
+    columnInfo: IDbColumn[];
+    rows: DbCellValue[][];
+    resultSetIndex: number;
+}

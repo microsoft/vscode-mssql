@@ -26,6 +26,13 @@
     "Copy Headers": "Copy Headers",
     "Error: Failed to parse query result data.": "Error: Failed to parse query result data.",
     "Error: Unrecognized query result data.": "Error: Unrecognized query result data.",
+    "Save as CSV": "Save as CSV",
+    "Save as Excel": "Save as Excel",
+    "Save as JSON": "Save as JSON",
+    "Export toolbar for result set {0}/{0} is the result set number (1-based index)": {
+        "message": "Export toolbar for result set {0}",
+        "comment": ["{0} is the result set number (1-based index)"]
+    },
     "Cancel": "Cancel",
     "Are you sure?": "Are you sure?",
     "Are you sure you want to {0}?/{0} is the action being confirmed": {
@@ -436,17 +443,14 @@
         "message": "Save as CSV ({0})",
         "comment": ["{0} is the keyboard shortcut for saving as CSV"]
     },
-    "Save as CSV": "Save as CSV",
     "Save as Excel ({0})/{0} is the keyboard shortcut for saving as Excel": {
         "message": "Save as Excel ({0})",
         "comment": ["{0} is the keyboard shortcut for saving as Excel"]
     },
-    "Save as Excel": "Save as Excel",
     "Save as JSON ({0})/{0} is the keyboard shortcut for saving as JSON": {
         "message": "Save as JSON ({0})",
         "comment": ["{0} is the keyboard shortcut for saving as JSON"]
     },
-    "Save as JSON": "Save as JSON",
     "Save as INSERT INTO ({0})/{0} is the keyboard shortcut for saving as INSERT INTO": {
         "message": "Save as INSERT INTO ({0})",
         "comment": ["{0} is the keyboard shortcut for saving as INSERT INTO"]
@@ -1800,6 +1804,7 @@
     "Always Encrypted": "Always Encrypted",
     "Replication": "Replication",
     "{0} (filtered)": "{0} (filtered)",
+    "Serialization failed": "Serialization failed",
     "Remind Me Later": "Remind Me Later",
     "Don't Show Again": "Don't Show Again",
     "Public": "Public",
@@ -2086,6 +2091,7 @@
     "CSV": "CSV",
     "JSON": "JSON",
     "Excel": "Excel",
+    "All files": "All files",
     "Executing query...": "Executing query...",
     "Query executed": "Query executed",
     "Total execution time: {0}/{0} is the elapsed time": {
@@ -2323,6 +2329,17 @@
     "Query execution was canceled.": "Query execution was canceled.",
     "Execute SQL against SQL Server / Azure SQL": "Execute SQL against SQL Server / Azure SQL",
     "Not connected": "Not connected",
+    "Save results as CSV": "Save results as CSV",
+    "Save results as Excel": "Save results as Excel",
+    "Save results as JSON": "Save results as JSON",
+    "Failed to save results: {0}/{0} is the underlying error message": {
+        "message": "Failed to save results: {0}",
+        "comment": ["{0} is the underlying error message"]
+    },
+    "Saved results to {0}/{0} is the saved file path": {
+        "message": "Saved results to {0}",
+        "comment": ["{0} is the saved file path"]
+    },
     "Error loading; refresh to try again": "Error loading; refresh to try again",
     "No items": "No items",
     "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?": "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?",

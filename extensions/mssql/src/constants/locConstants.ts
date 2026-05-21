@@ -501,6 +501,7 @@ export let saveExcelLabel = l10n.t("Save as Excel");
 export let fileTypeCSVLabel = l10n.t("CSV");
 export let fileTypeJSONLabel = l10n.t("JSON");
 export let fileTypeExcelLabel = l10n.t("Excel");
+export let fileTypeAllFilesLabel = l10n.t("All files");
 export let resultPaneLabel = l10n.t("Results");
 export let selectAll = l10n.t("Select all");
 export let copyLabel = l10n.t("Copy");
@@ -927,6 +928,25 @@ export class Notebooks {
 
     // Renderer
     public static parseError = l10n.t("Error: Failed to parse query result data.");
+
+    // Save as
+    public static saveAsCsvDialogTitle = l10n.t("Save results as CSV");
+    public static saveAsExcelDialogTitle = l10n.t("Save results as Excel");
+    public static saveAsJsonDialogTitle = l10n.t("Save results as JSON");
+    public static saveResultsFailed(message: string) {
+        return l10n.t({
+            message: "Failed to save results: {0}",
+            args: [message],
+            comment: ["{0} is the underlying error message"],
+        });
+    }
+    public static savedResultsTo(uri: string) {
+        return l10n.t({
+            message: "Saved results to {0}",
+            args: [uri],
+            comment: ["{0} is the saved file path"],
+        });
+    }
 }
 
 export class ObjectExplorer {
