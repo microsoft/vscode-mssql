@@ -361,6 +361,10 @@
         <source xml:lang="en">All Schemas</source>
         <target state="translated">Todos os Esquemas</target>
       </trans-unit>
+      <trans-unit id="++CODE++866956901fd1536273ad6dd922ba6ae8f46bf4cc51a14b5f21353cdd56d7570d">
+        <source xml:lang="en">All files</source>
+        <target state="new">All files</target>
+      </trans-unit>
       <trans-unit id="++CODE++08d0861fba87c9910b6c76342c1783be7d5504ff5248fbacd869963a7322992d">
         <source xml:lang="en">All permissions for extensions to access your connections have been cleared.</source>
         <target state="translated">Todas as permissões para extensões acessarem suas conexões foram limpas.</target>
@@ -1269,6 +1273,10 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       <trans-unit id="++CODE++4ccc2e9603461fb60e8f8e5a5b8dbddd023bb4a1423c348bc99e0714f6c3812e">
         <source xml:lang="en">Choose the behavior for new editors</source>
         <target state="new">Choose the behavior for new editors</target>
+      </trans-unit>
+      <trans-unit id="++CODE++988c00d268f2867e2e35f7c7de12ddee2e7c5516193dc246ff16186208f335d2">
+        <source xml:lang="en">Choose whether this stored procedure appears as a GraphQL mutation or query. DAB defaults to mutation.</source>
+        <target state="new">Choose whether this stored procedure appears as a GraphQL mutation or query. DAB defaults to mutation.</target>
       </trans-unit>
       <trans-unit id="++CODE++be798452e0ca7a38f6487ecb9115f26ba148e2d4475608bdc4277d34d41be0a7">
         <source xml:lang="en">Circular reference detected: '{0}' → '{1}' creates a cycle</source>
@@ -2192,6 +2200,10 @@ Selecione "{0}" para estabelecer uma conexão.</target>
         <note>{0} is the qualified table name</note>
         <target state="translated">Tabela criada {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++40321f05833c7d2deaaff609703bfef087fba72af02bb6f918d24bb50a53f955">
+        <source xml:lang="en">Creates a dedicated MCP tool for this stored procedure. When disabled, the procedure can still be available through generic MCP execute tools if MCP is enabled.</source>
+        <target state="new">Creates a dedicated MCP tool for this stored procedure. When disabled, the procedure can still be available through generic MCP execute tools if MCP is enabled.</target>
+      </trans-unit>
       <trans-unit id="++CODE++e7d103b1170502b9fb94e08c67732e21aa132dbed79e58605736029791d7a8a8">
         <source xml:lang="en">Creating Container</source>
         <target state="translated">Criando Contêiner</target>
@@ -2617,6 +2629,10 @@ Selecione "{0}" para estabelecer uma conexão.</target>
         <source xml:lang="en">Disabled</source>
         <target state="translated">Desabilitado</target>
       </trans-unit>
+      <trans-unit id="++CODE++3da57703d00d6946cc3e7a5c4e76cd4651180efe589725eb472c35305120e67c">
+        <source xml:lang="en">Disabled globally</source>
+        <target state="new">Disabled globally</target>
+      </trans-unit>
       <trans-unit id="++CODE++eb1a70e39274bb762b5d7c1adb5debeea2b05e12af28207f21a375b596853273">
         <source xml:lang="en">Discard</source>
         <target state="translated">Descartar</target>
@@ -2830,6 +2846,18 @@ Selecione "{0}" para estabelecer uma conexão.</target>
         <source xml:lang="en">Enable Code Analysis on Build</source>
         <target state="translated">Habilitar Análise de Código na Compilação</target>
       </trans-unit>
+      <trans-unit id="++CODE++7bce93a011075575cf98f089cee89c6108be3220cd9701e8ce2fe0c19b38f411">
+        <source xml:lang="en">Enable GraphQL in API Type to expose this entity through GraphQL.</source>
+        <target state="new">Enable GraphQL in API Type to expose this entity through GraphQL.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6b4be3a8ee14a536e26c05c8b1d62473209daf08fb4f8ec66322497d5d0028f0">
+        <source xml:lang="en">Enable MCP in API Type to use this custom tool setting.</source>
+        <target state="new">Enable MCP in API Type to use this custom tool setting.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++19c5f25908148aedba9135a777688d044c4bfac7d9acee5f931b2c57bd8299f9">
+        <source xml:lang="en">Enable REST in API Type to expose this entity through REST.</source>
+        <target state="new">Enable REST in API Type to expose this entity through REST.</target>
+      </trans-unit>
       <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
         <source xml:lang="en">Enable Trust Server Certificate</source>
         <target state="translated">Habilitar Confiar no certificado do servidor</target>
@@ -2856,6 +2884,16 @@ Selecione "{0}" para estabelecer uma conexão.</target>
         <source xml:lang="en">Enable {0}</source>
         <note>{0} is the rule identifier, e.g. SR0001</note>
         <target state="translated">Habilitar {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bb834e59966c805206f646b442d51561fe99a22b02c2bc0dd43ddd5f83d43843">
+        <source xml:lang="en">Enable {0} globally</source>
+        <note>{0} is the API type, e.g. REST, GraphQL, or MCP</note>
+        <target state="new">Enable {0} globally</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1626a7035e3aa94fb8b04ec4401e20974b845ed50315a4dda0aa7ee2b07c4d56">
+        <source xml:lang="en">Enable {0} in API Type to expose this entity.</source>
+        <note>{0} is the API type, e.g. REST, GraphQL, or MCP</note>
+        <target state="new">Enable {0} in API Type to expose this entity.</target>
       </trans-unit>
       <trans-unit id="++CODE++92c1cdfdf4cb9cf6fcca962f206de36fd5d60db1178bc9461052f8de703a0e06">
         <source xml:lang="en">Enabled</source>
@@ -3389,9 +3427,26 @@ Erro:
         <source xml:lang="en">Export to text format</source>
         <target state="translated">Exportar para formato de texto</target>
       </trans-unit>
+      <trans-unit id="++CODE++bb23445ee7d8532372f93a9907877a8cce31215c8c2f7b75df1e68baf1d251c9">
+        <source xml:lang="en">Export toolbar for result set {0}</source>
+        <note>{0} is the result set number (1-based index)</note>
+        <target state="new">Export toolbar for result set {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++de5cd90f5341f8bb2ebe10270705fa436ac43f8c5ff653358b9eee3a56323ec4">
         <source xml:lang="en">Exporting BACPAC...</source>
         <target state="translated">Exportando BACPAC...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++886b046597112f108973a5fa0dd665428e3303b602a7c20621b6876237cb7044">
+        <source xml:lang="en">Expose as MCP custom tool</source>
+        <target state="new">Expose as MCP custom tool</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9baec5aafce916c9fbec6af57fe28833aca54911144354d1175f02a51595de33">
+        <source xml:lang="en">Expose this entity through GraphQL</source>
+        <target state="new">Expose this entity through GraphQL</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1d66e218f7e4f002993789d4d2f5882562de9be46ff392069f35b830da0a78f6">
+        <source xml:lang="en">Expose this entity through REST</source>
+        <target state="new">Expose this entity through REST</target>
       </trans-unit>
       <trans-unit id="++CODE++7758738264236e2f15e315d6e6ebca6fb9192ce031207744cc9bdd4a5a052817">
         <source xml:lang="en">Expose {0}</source>
@@ -3796,6 +3851,11 @@ Erro:
       <trans-unit id="++CODE++283dc9bd4f27ff0efed1b3ac27910746f64f860e2e0c2240f9723ff02c1dc29c">
         <source xml:lang="en">Failed to save results. </source>
         <target state="translated">Falha ao salvar os resultados. </target>
+      </trans-unit>
+      <trans-unit id="++CODE++295dc600027d16c46d0596df1afe12f2c8db841203c77f15207d06851c0d50ec">
+        <source xml:lang="en">Failed to save results: {0}</source>
+        <note>{0} is the underlying error message</note>
+        <target state="new">Failed to save results: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++d264deec475c02adeccd53122253873cb7011b90f23c7af978cbfff13f3f92a6">
         <source xml:lang="en">Failed to save scmp file: '{0}'</source>
@@ -4453,6 +4513,10 @@ Erro:
         <source xml:lang="en">IP address range</source>
         <target state="translated">Intervalo de endereços IP</target>
       </trans-unit>
+      <trans-unit id="++CODE++999f23fcd7bec7075e54bb5dea0d9c548bfe7261f95b911ed8e23d2f4188724f">
+        <source xml:lang="en">Identity</source>
+        <target state="new">Identity</target>
+      </trans-unit>
       <trans-unit id="++CODE++b37cea142b959c4f6c75754d7b3d56bc41d1a2d6667600c748d7a168f10c8818">
         <source xml:lang="en">Ignore Options</source>
         <target state="translated">Ignorar Opções</target>
@@ -5101,6 +5165,10 @@ Erro:
         <source xml:lang="en">MCP</source>
         <target state="translated">MCP</target>
       </trans-unit>
+      <trans-unit id="++CODE++cb571bc2bc5742ac76bfe870bd81c2d7aeefe4a9f9c828b36c7a39464c3c3ebb">
+        <source xml:lang="en">MCP custom tool</source>
+        <target state="new">MCP custom tool</target>
+      </trans-unit>
       <trans-unit id="++CODE++97364ab178f409c2e935af89200f5a56952315efb422c76bf58f40e20451b8d1">
         <source xml:lang="en">MCP server added to {0}</source>
         <note>{0} is the file path where the MCP server was added</note>
@@ -5394,6 +5462,10 @@ Erro:
       <trans-unit id="++CODE++d7534870b07fc697bc330ff6a95d96ff85e93fe2b0c7db580d8508a0d08552cc">
         <source xml:lang="en">Must start with an alphanumeric character and contain only alphanumeric characters, underscores, periods, or hyphens</source>
         <target state="translated">Deve começar com um caractere alfanumérico e conter apenas caracteres alfanuméricos, sublinhados, pontos ou hifens</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c26ee0e4b915257d995cffde4cc7b77a97c1e0cfa544836fdcb28329d1dc749a">
+        <source xml:lang="en">Mutation</source>
+        <target state="new">Mutation</target>
       </trans-unit>
       <trans-unit id="++CODE++79e53b9f38d1c9de4d84c9a78339ceb838b609638b9194a2f0caad2f05ea2c85">
         <source xml:lang="en">My Data</source>
@@ -6567,6 +6639,10 @@ Erro:
         <source xml:lang="en">Pulling the SQL Server container image. This might take a few minutes depending on your internet connection.</source>
         <target state="translated">Efetuando o pull da imagem do contêiner do SQL Server. Isso pode demorar alguns minutos, dependendo da sua conexão com a Internet.</target>
       </trans-unit>
+      <trans-unit id="++CODE++b80a37564fbb3c0753202a1f92d5da8ccfb906b244f2842bba2232cea9883abd">
+        <source xml:lang="en">Query</source>
+        <target state="new">Query</target>
+      </trans-unit>
       <trans-unit id="++CODE++f44ad102b5dd5df1b5691408d19d39ee92cc1c9ad20f7125845df3d961a805d3">
         <source xml:lang="en">Query Plan</source>
         <target state="translated">Plano de Consulta</target>
@@ -6627,6 +6703,10 @@ Erro:
       <trans-unit id="++CODE++f9a9448d6e0b500626f784c1ea716af295bd4d8b7ef836710ab8c14a44204dc5">
         <source xml:lang="en">Quick filter all columns...</source>
         <target state="translated">Filtro rápido de todas as colunas...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fecd5681dc5dc6e2f413b28ce95e50f6aa2ce9fbef201fa3c11844af5799b2e3">
+        <source xml:lang="en">REST</source>
+        <target state="new">REST</target>
       </trans-unit>
       <trans-unit id="++CODE++41a52587276c392bfdf0c5086b78662e089895fe2bf22e3d413af8e75f98bc3d">
         <source xml:lang="en">REST API</source>
@@ -7230,6 +7310,18 @@ Consulta: {2}</target>
         <source xml:lang="en">Save connection profile changes without establishing a connection</source>
         <target state="translated">Salvar alterações de perfil de conexão sem estabelecer uma conexão</target>
       </trans-unit>
+      <trans-unit id="++CODE++d6bc7e3a2c2812f6a418849b1c49e1bf35faa6e05092eed85651b0f6554be31e">
+        <source xml:lang="en">Save results as CSV</source>
+        <target state="new">Save results as CSV</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cfcac84335530cc40295a54ac9d1ef7a5999d6294e947d69e00b1b42f1e5f95b">
+        <source xml:lang="en">Save results as Excel</source>
+        <target state="new">Save results as Excel</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9ec5cd9a56d3b361b5d614149a73d6014c7d2520a64e9fa2578cc50ac0e8da82">
+        <source xml:lang="en">Save results as JSON</source>
+        <target state="new">Save results as JSON</target>
+      </trans-unit>
       <trans-unit id="++CODE++bae1da28225af71a125385224716f5ff7870573e6c01494c597e8ed4168b12e3">
         <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
         <target state="translated">O comando para salvar resultados não pode ser usado com múltiplas seleções.</target>
@@ -7253,6 +7345,11 @@ Consulta: {2}</target>
       <trans-unit id="++CODE++5a2df8a2745d54fa2197753e1c2c22a8dea9676916677120da5c44550647180d">
         <source xml:lang="en">Saved Connections</source>
         <target state="translated">Conexões Salvas</target>
+      </trans-unit>
+      <trans-unit id="++CODE++214bf67326266805ed0887a2154efa6a38e78d684c4f4c69c33cbecdb16feb13">
+        <source xml:lang="en">Saved results to {0}</source>
+        <note>{0} is the saved file path</note>
+        <target state="new">Saved results to {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++28b9471fbcdd3a3ce3799551c1cee3825afe4ea4ce67688c764bd4a364028bd9">
         <source xml:lang="en">Scaffold backend components (e.g., data-access layers) based on your current database context</source>
@@ -7651,6 +7748,10 @@ Consulta: {2}</target>
         <source xml:lang="en">Select the Azure Data Studio settings.json file to scan for connection groups and connections.</source>
         <target state="translated">Selecione o arquivo settings.json do Azure Data Studio para examinar grupos de conexões e conexões.</target>
       </trans-unit>
+      <trans-unit id="++CODE++c3e908318ac99693f90743c99d94c8d1f123f65564685137a3236da773d4bb9b">
+        <source xml:lang="en">Select the HTTP methods that can execute this stored procedure. DAB defaults to POST.</source>
+        <target state="new">Select the HTTP methods that can execute this stored procedure. DAB defaults to POST.</target>
+      </trans-unit>
       <trans-unit id="++CODE++5c61a29b1d409ff2b70f6fbd1032d7250ac322407dc4b8bbff19eb20af562291">
         <source xml:lang="en">Select the SQL Server Container Image</source>
         <target state="translated">Selecione a imagem do contêiner do SQL Server</target>
@@ -7670,6 +7771,10 @@ Consulta: {2}</target>
       <trans-unit id="++CODE++79dc22c7292b82bb5b10f7fe3e4196400d86127a91507e8487c7d2da0f6a8283">
         <source xml:lang="en">Sequelize</source>
         <target state="translated">Sequelize</target>
+      </trans-unit>
+      <trans-unit id="++CODE++115bef38fad466675b802fb8894b90a61134e862ded7447052405f06fb5ccc15">
+        <source xml:lang="en">Serialization failed</source>
+        <target state="new">Serialization failed</target>
       </trans-unit>
       <trans-unit id="++CODE++aef7de28d52977f1b5cd0fecfdc151717610adf41e0aa33b4d9f7522a43337ef">
         <source xml:lang="en">Server</source>
@@ -8012,19 +8117,15 @@ Consulta: {2}</target>
         <source xml:lang="en">Source Name</source>
         <target state="translated">Nome da Origem</target>
       </trans-unit>
-      <trans-unit id="++CODE++59462672a9b0690bf1151b63576df991ace5811a13bbcc90f35f43c1a21c0809">
-        <source xml:lang="en">Source Table</source>
-        <target state="translated">Tabela de Origem</target>
-      </trans-unit>
-      <trans-unit id="++CODE++a03d6436b6c5d406e7f53427dbe386f36eddd596a7230ba85f6301cfc6c2018b">
-        <source xml:lang="en">Source Table: {0}</source>
-        <note>{0} is the fully qualified source table name</note>
-        <target state="new">Source Table: {0}</target>
-      </trans-unit>
       <trans-unit id="++CODE++30ecb608c5cff9e821a41d28312d0070cbeb3901bc8e32ecefd17171f87dc53a">
         <source xml:lang="en">Source: {0}</source>
         <note>{0} is the task source</note>
         <target state="translated">Fonte: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7d1b71b2bde7aa8e3125b606f3738980a13371ad3458ddd00b1193d72aad45dd">
+        <source xml:lang="en">Source: {0}</source>
+        <note>{0} is the fully qualified DAB source object name</note>
+        <target state="new">Source: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++1e49ea47266ab1130ffc9be417fa6eb62da7299641f30a76e728fe983c25f29d">
         <source xml:lang="en">Specifies whether the column is included in the primary key for the table.</source>
@@ -8164,6 +8265,14 @@ Consulta: {2}</target>
       <trans-unit id="++CODE++0a8904b5630e456e42687c74f557749fbd9e61dc13bffb6a403ced083619ba69">
         <source xml:lang="en">Stored Procedures</source>
         <target state="translated">Procedimentos Armazenados</target>
+      </trans-unit>
+      <trans-unit id="++CODE++46407a8a229c4ff1ac5f85be1f1edf02b0761eaf67b251e2c0a397c68718619e">
+        <source xml:lang="en">Stored procedure GraphQL operation</source>
+        <target state="new">Stored procedure GraphQL operation</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2c4fb82c11a12677559564607a6a178c2ff897e0c5769b72f29ec6f55931bea7">
+        <source xml:lang="en">Stored procedure REST methods</source>
+        <target state="new">Stored procedure REST methods</target>
       </trans-unit>
       <trans-unit id="++CODE++155f816c0407310c0dab222493370773e045ee7fe04e6c9a951b07f495531264">
         <source xml:lang="en">Submit</source>
@@ -9578,6 +9687,11 @@ Consulta: {2}</target>
         <source xml:lang="en">{0} is a primary key column and can't be disabled.</source>
         <note>{0} is the backing database column name</note>
         <target state="translated">{0} é uma coluna de chave primária e não pode ser desabilitada.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1f44c82a6944c1ab12879c8bc4ce97845b4e39673c57cd328b2d2e81275b3c58">
+        <source xml:lang="en">{0} is not enabled globally</source>
+        <note>{0} is the API type, e.g. REST, GraphQL, or MCP</note>
+        <target state="new">{0} is not enabled globally</target>
       </trans-unit>
       <trans-unit id="++CODE++e3620e8a37371c6057d768faed05a7608c6e5ee783372a58b137b047300e8b7a">
         <source xml:lang="en">{0} issue</source>
