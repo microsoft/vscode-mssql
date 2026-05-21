@@ -107,7 +107,7 @@ const useStyles = makeStyles({
         backgroundColor: "transparent",
     },
     disabledBannerIcon: {
-        color: tokens.colorNeutralForeground3,
+        color: tokens.colorPaletteYellowForeground2,
         flexShrink: 0,
         marginTop: "1px",
     },
