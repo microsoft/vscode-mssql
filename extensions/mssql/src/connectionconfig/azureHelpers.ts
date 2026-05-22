@@ -20,17 +20,27 @@ import { IAccount, ITenant } from "../models/contracts/azure";
 import { FormItemOptions } from "../sharedInterfaces/form";
 import { AzureAccountService } from "../services/azureAccountService";
 import {
+    AuthenticationType,
     AzureSqlServerInfo,
     ConnectionDialogWebviewState,
 } from "../sharedInterfaces/connectionDialog";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendErrorEvent } from "../telemetry/telemetry";
 import { getErrorMessage, listAllIterator } from "../utils/utils";
-import { configSelectedAzureSubscriptions, https } from "../constants/constants";
+import {
+    activeDirectory,
+    configSelectedAzureSubscriptions,
+    https,
+    user,
+} from "../constants/constants";
 import { Logger } from "../models/logger";
 import { groupQuickPickItems, MssqlQuickPickItem } from "../utils/quickpickHelpers";
 import {
+    AlwaysEncryptedEnclaveType,
     Database,
+    FirewallRule,
+    KnownFreeLimitExhaustionBehavior,
+    KnownSampleName,
     ManagedDatabase,
     ManagedInstance,
     Server,
@@ -44,12 +54,20 @@ import {
     StorageAccountsListKeysResponse,
     StorageManagementClient,
 } from "@azure/arm-storage";
+import { ResourceManagementClient, ResourceGroup } from "@azure/arm-resources";
+import { SubscriptionClient } from "@azure/arm-subscriptions";
 import {
     BlobServiceClient,
     ContainerClient,
     BlobItem,
     StorageSharedKeyCredential,
 } from "@azure/storage-blob";
+import { MaintenanceManagementClient, MaintenanceConfiguration } from "@azure/arm-maintenance";
+import {
+    acquireTokenFromVscodeAccountForResource,
+    getCloudResourceEndpoint,
+    VscodeEntraSqlTokenInfo,
+} from "../azure/vscodeEntraMfaUtils";
 
 export const azureSubscriptionFilterConfigKey = "mssql.selectedAzureSubscriptions";
 export const MANAGED_INSTANCE_PUBLIC_PORT = 3342;
@@ -177,6 +195,36 @@ export class VsCodeAzureHelper {
     }
 
     /**
+     * Gets the user's Object ID (OID) from the subscription's authentication session token.
+     * The OID in the token reflects the user's identity in the target tenant, which is
+     * required for setting up Entra admin when Azure SQL servers.
+     * Falls back to parsing the first segment of the account ID if token decode fails.
+     */
+    public static async getAccountObjectId(
+        subscription: AzureSubscription,
+        account?: { id: string },
+    ): Promise<string | undefined> {
+        try {
+            const session = await subscription.authentication.getSession();
+            if (session?.accessToken) {
+                const tokenParts = session.accessToken.split(".");
+                if (tokenParts.length >= 2) {
+                    const tokenBody = tokenParts[1].replace(/-/g, "+").replace(/_/g, "/");
+                    const claims = JSON.parse(Buffer.from(tokenBody, "base64").toString("utf8"));
+                    if (claims.oid) {
+                        return claims.oid;
+                    }
+                }
+            }
+        } catch {
+            // Fall through to fallback
+        }
+
+        // Fall back to parsing the first segment of the account ID
+        return account?.id?.split(".")[0];
+    }
+
+    /**
      * Gets the tenants available for a specific Azure account
      * @param account The account to get tenants for
      * @returns Array of tenant information
@@ -217,6 +265,250 @@ export class VsCodeAzureHelper {
         // Filter subscriptions by tenant
         const subs = allSubs.filter((sub) => sub.tenantId === tenant.tenantId);
         return subs;
+    }
+
+    /**
+     * Gets the resource groups available for a specific Azure subscription
+     * @param subscription The subscription to get resource groups for
+     * @returns Array of resource group names sorted alphabetically
+     */
+    public static async getResourceGroupsForSubscription(
+        subscription: AzureSubscription,
+    ): Promise<string[]> {
+        try {
+            const client = new ResourceManagementClient(
+                subscription.credential,
+                subscription.subscriptionId,
+                {
+                    endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+                },
+            );
+            const groups = await listAllIterator(client.resourceGroups.list());
+            return groups
+                .map((g) => g.name ?? "")
+                .filter((name) => name !== "")
+                .sort((a, b) => a.localeCompare(b));
+        } catch (error) {
+            console.error("Error fetching resource groups for subscription:", error);
+            return [];
+        }
+    }
+
+    public static async getDefaultLocationForResourceGroup(
+        resourceGroupName: string,
+        subscription: AzureSubscription,
+    ): Promise<string> {
+        try {
+            const client = new ResourceManagementClient(
+                subscription.credential,
+                subscription.subscriptionId,
+                {
+                    endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+                },
+            );
+            const rg = await client.resourceGroups.get(resourceGroupName);
+            return rg.location;
+        } catch (error) {
+            console.error("Error fetching default location for resource group:", error);
+            return "";
+        }
+    }
+
+    /**
+     * Fetches available Azure locations for a subscription.
+     */
+    public static async getLocationsForSubscription(
+        subscription: AzureSubscription,
+    ): Promise<{ name: string; displayName: string }[]> {
+        try {
+            const client = new SubscriptionClient(subscription.credential, {
+                endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+            });
+            const locations = await listAllIterator(
+                client.subscriptions.listLocations(subscription.subscriptionId),
+            );
+            return locations
+                .map((loc) => ({
+                    name: loc.name ?? "",
+                    displayName: loc.displayName ?? loc.name ?? "",
+                }))
+                .filter((loc) => loc.name !== "")
+                .sort((a, b) => a.displayName.localeCompare(b.displayName));
+        } catch (error) {
+            console.error("Error fetching locations for subscription:", error);
+            return [];
+        }
+    }
+
+    /**
+     * Creates a new resource group in the given subscription and location.
+     */
+    public static async createResourceGroup(
+        subscription: AzureSubscription,
+        resourceGroupName: string,
+        location: string,
+        tags?: Record<string, string>,
+    ): Promise<ResourceGroup> {
+        const client = new ResourceManagementClient(
+            subscription.credential,
+            subscription.subscriptionId,
+            {
+                endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+            },
+        );
+        return client.resourceGroups.createOrUpdate(resourceGroupName, {
+            location,
+            tags: tags && Object.keys(tags).length > 0 ? tags : undefined,
+        });
+    }
+
+    /**
+     * Fetches the SQL servers within a given resource group.
+     */
+    public static async getSqlServersForResourceGroup(
+        subscription: AzureSubscription,
+        resourceGroupName: string,
+    ): Promise<Server[]> {
+        try {
+            const sql = new SqlManagementClient(
+                subscription.credential,
+                subscription.subscriptionId,
+                {
+                    endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+                },
+            );
+            const servers = await listAllIterator(
+                sql.servers.listByResourceGroup(resourceGroupName),
+            );
+
+            return servers.sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+        } catch (error) {
+            console.error("Error fetching logical servers for resource group:", error);
+            return [];
+        }
+    }
+
+    /**
+     * Creates or updates an Azure SQL Database using the ARM SDK.
+     * @returns The created/updated database resource.
+     */
+    public static async createAzureSqlDatabase(
+        subscription: AzureSubscription,
+        resourceGroupName: string,
+        serverName: string,
+        databaseName: string,
+        options: {
+            sampleName?: KnownSampleName;
+            collation?: string;
+            preferredEnclaveType?: AlwaysEncryptedEnclaveType;
+            maintenanceConfigurationId?: string;
+            tags?: {
+                [propertyName: string]: string;
+            };
+            freeLimitExhaustionBehavior?: KnownFreeLimitExhaustionBehavior;
+            useFreeLimit?: boolean;
+        },
+    ): Promise<Database> {
+        const sql = new SqlManagementClient(subscription.credential, subscription.subscriptionId, {
+            endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+        });
+
+        const server = await sql.servers.get(resourceGroupName, serverName);
+
+        const freeOfferOptions = options.useFreeLimit
+            ? {
+                  sku: {
+                      name: "GP_S_Gen5",
+                      tier: "GeneralPurpose",
+                      family: "Gen5",
+                      capacity: 2,
+                  },
+                  autoPauseDelay: 60,
+                  minCapacity: 0.5,
+                  requestedBackupStorageRedundancy: "Local",
+              }
+            : {};
+
+        const poller = await sql.databases.beginCreateOrUpdate(
+            resourceGroupName,
+            serverName,
+            databaseName,
+            { ...options, ...freeOfferOptions, location: server.location },
+        );
+        return poller.pollUntilDone();
+    }
+
+    /**
+     * Creates a new Azure SQL Server using the ARM SDK.
+     */
+    public static async createSqlServer(
+        subscription: AzureSubscription,
+        resourceGroupName: string,
+        serverName: string,
+        location: string,
+        authConfig: {
+            authenticationType: string;
+            adminLogin?: string;
+            adminPassword?: string;
+            entraAdmin?: {
+                login: string;
+                sid: string;
+                tenantId: string;
+                principalType?: string;
+            };
+        },
+    ): Promise<Server> {
+        const sql = new SqlManagementClient(subscription.credential, subscription.subscriptionId, {
+            endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+        });
+
+        const serverParams: Server = { location };
+
+        if (authConfig.authenticationType !== AuthenticationType.AzureMFA) {
+            serverParams.administratorLogin = authConfig.adminLogin;
+            serverParams.administratorLoginPassword = authConfig.adminPassword;
+        }
+
+        if (authConfig.authenticationType !== AuthenticationType.SqlLogin) {
+            serverParams.administrators = {
+                administratorType: activeDirectory,
+                principalType: authConfig.entraAdmin?.principalType ?? user,
+                azureADOnlyAuthentication:
+                    authConfig.authenticationType === AuthenticationType.AzureMFA,
+                login: authConfig.entraAdmin?.login,
+                sid: authConfig.entraAdmin?.sid,
+                tenantId: authConfig.entraAdmin?.tenantId,
+            };
+        }
+
+        const poller = await sql.servers.beginCreateOrUpdate(
+            resourceGroupName,
+            serverName,
+            serverParams,
+        );
+        return poller.pollUntilDone();
+    }
+
+    /**
+     * Creates a firewall rule on an Azure SQL Server using the ARM SDK directly,
+     * bypassing the STS server-name lookup that can fail for newly created servers.
+     */
+    public static async createFirewallRule(
+        subscription: AzureSubscription,
+        resourceGroupName: string,
+        serverName: string,
+        ruleName: string,
+        startIpAddress: string,
+        endIpAddress: string,
+    ): Promise<FirewallRule> {
+        const sql = new SqlManagementClient(subscription.credential, subscription.subscriptionId, {
+            endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+        });
+
+        return sql.firewallRules.createOrUpdate(resourceGroupName, serverName, ruleName, {
+            startIpAddress,
+            endIpAddress,
+        });
     }
 
     public static async fetchSqlResourcesForSubscription<
@@ -409,6 +701,19 @@ export class VsCodeAzureHelper {
             console.error("Error fetching blobs for container:", error);
             throw error;
         }
+    }
+
+    public static async fetchPublicMaintenanceConfigurations(
+        subscription: AzureSubscription,
+    ): Promise<MaintenanceConfiguration[]> {
+        const client = new MaintenanceManagementClient(
+            subscription.credential,
+            subscription.subscriptionId,
+            {
+                endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+            },
+        );
+        return await listAllIterator(client.publicMaintenanceConfigurations.list());
     }
 
     /**
@@ -609,6 +914,13 @@ export async function getSubscriptionQuickPickItems(
         .sort((a, b) => a.label.localeCompare(b.label));
 
     return groupQuickPickItems(quickPickItems);
+}
+
+// https://learn.microsoft.com/en-us/azure/azure-sql/database/maintenance-window-configure
+export enum MaintenanceSchedule {
+    Default = "Default",
+    Weekday = "DB_1",
+    Weekend = "DB_2",
 }
 
 //#endregion
@@ -823,6 +1135,22 @@ export function getDefaultTenantId(accountId: string, tenants: AzureTenant[]): s
         : tenants.length > 0
           ? tenants[0].tenantId
           : "";
+}
+
+/**
+ * Acquires a SQL access token from a VS Code authentication account.
+ * Convenience wrapper around {@link acquireTokenFromVscodeAccountForResource}
+ * that targets the SQL resource endpoint for the current cloud.
+ */
+export async function acquireSqlAccessTokenFromVscodeAccount(
+    accountId?: string,
+    tenantId?: string,
+): Promise<VscodeEntraSqlTokenInfo> {
+    return acquireTokenFromVscodeAccountForResource(
+        getCloudResourceEndpoint("sqlResource"),
+        accountId,
+        tenantId,
+    );
 }
 
 //#endregion

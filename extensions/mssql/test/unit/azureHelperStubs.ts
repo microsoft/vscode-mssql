@@ -15,17 +15,32 @@ import * as AzureHelpers from "../../src/connectionconfig/azureHelpers";
 import { AzureSqlServerInfo } from "../../src/sharedInterfaces/connectionDialog";
 import { GenericResourceExpanded } from "@azure/arm-resources";
 import { Database, ManagedDatabase, ManagedInstance, Server } from "@azure/arm-sql";
+import { TokenCredential, AccessToken } from "@azure/core-auth";
+
+/**
+ * A no-op TokenCredential for use in unit tests where the credential
+ * must be non-null but is never actually invoked.
+ */
+export const mockCredential: TokenCredential = {
+    getToken: () =>
+        Promise.resolve({
+            token: "mock-token",
+            expiresOnTimestamp: Date.now() + 3600000,
+        } as AccessToken),
+};
 
 export const mockSubscriptions = [
     {
         name: "Ten0Sub1",
         subscriptionId: "00000000-0000-0000-0000-111111111111",
         tenantId: "00000000-0000-0000-0000-000000000000",
+        credential: mockCredential,
     },
     {
         name: "Ten1Sub1",
         subscriptionId: "11111111-0000-0000-0000-111111111111",
         tenantId: "11111111-1111-1111-1111-111111111111",
+        credential: mockCredential,
     },
 ] as AzureSubscription[];
 

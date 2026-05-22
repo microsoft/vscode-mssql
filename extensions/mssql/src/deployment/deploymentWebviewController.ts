@@ -25,8 +25,13 @@ import { ApiStatus } from "../sharedInterfaces/webview";
 import * as localContainers from "./localContainersHelpers";
 import { LocalContainersState } from "../sharedInterfaces/localContainers";
 import * as fabricProvisioning from "./fabricProvisioningHelpers";
+import * as azureSqlDatabase from "./azureSqlDatabaseHelpers";
 import { newDeployment } from "../constants/locConstants";
 import { FabricProvisioningState } from "../sharedInterfaces/fabricProvisioning";
+import {
+    AzureSqlDatabaseState,
+    AZURE_SQL_DB_COMPONENT_ORDER,
+} from "../sharedInterfaces/azureSqlDatabase";
 
 export const DEPLOYMENT_VIEW_ID = "deployment";
 
@@ -95,6 +100,13 @@ export class DeploymentWebviewController extends FormWebviewController<
                 );
             } else if (payload.deploymentType === DeploymentType.FabricProvisioning) {
                 newDeploymentTypeState = await fabricProvisioning.initializeFabricProvisioningState(
+                    this,
+                    state.connectionGroupOptions,
+                    this.logger,
+                    selectedGroupId,
+                );
+            } else if (payload.deploymentType === DeploymentType.AzureSqlDatabase) {
+                newDeploymentTypeState = await azureSqlDatabase.initializeAzureSqlDatabaseState(
                     this,
                     state.connectionGroupOptions,
                     this.logger,
@@ -173,6 +185,10 @@ export class DeploymentWebviewController extends FormWebviewController<
                 fabricProvisioning.sendFabricProvisioningCloseEventTelemetry(
                     state.deploymentTypeState as FabricProvisioningState,
                 );
+            } else if (state.deploymentType === DeploymentType.AzureSqlDatabase) {
+                azureSqlDatabase.sendAzureSqlDatabaseCloseEventTelemetry(
+                    state.deploymentTypeState as AzureSqlDatabaseState,
+                );
             }
 
             this.panel.dispose();
@@ -182,6 +198,7 @@ export class DeploymentWebviewController extends FormWebviewController<
 
         localContainers.registerLocalContainersReducers(this);
         fabricProvisioning.registerFabricProvisioningReducers(this);
+        azureSqlDatabase.registerAzureSqlDatabaseReducers(this);
     }
 
     async updateItemVisibility() {}
@@ -211,6 +228,28 @@ export class DeploymentWebviewController extends FormWebviewController<
             this.state.deploymentTypeState.formState = state.formState;
             await this.validateDeploymentForm(payload.event.propertyName);
         }
+
+        // For Azure SQL Database, reset downstream components when an azure field changes
+        if (state.deploymentType === DeploymentType.AzureSqlDatabase) {
+            const componentOrder = AZURE_SQL_DB_COMPONENT_ORDER as readonly string[];
+            if (componentOrder.includes(payload.event.propertyName)) {
+                azureSqlDatabase.reloadAzureComponentsDownstream(
+                    state.deploymentTypeState as AzureSqlDatabaseState,
+                    payload.event.propertyName,
+                );
+            }
+            // Re-detect auth type when user selects a different server
+            if (payload.event.propertyName === "serverName") {
+                const azureSqlState = state.deploymentTypeState as AzureSqlDatabaseState;
+                // Reset the flag so applyServerAuthSettings can detect auth from the new server
+                azureSqlState.serverCreatedWithAuth = false;
+                azureSqlDatabase.applyServerAuthSettings(
+                    azureSqlState,
+                    payload.event.value as string,
+                );
+            }
+        }
+
         await this.updateItemVisibility();
 
         return state;
@@ -224,7 +263,7 @@ export class DeploymentWebviewController extends FormWebviewController<
         let errors: string[] = [];
         if (propertyName) {
             const component = state.formComponents[propertyName];
-            if (!component.validate) return errors;
+            if (!component?.validate) return errors;
             const componentValidation = component.validate(
                 state as any,
                 state.formState[propertyName],
@@ -236,7 +275,7 @@ export class DeploymentWebviewController extends FormWebviewController<
         } else {
             for (const componentKey of Object.keys(state.formState)) {
                 const component = state.formComponents[componentKey];
-                if (!component.validate) continue;
+                if (!component?.validate) continue;
                 const componentValidation = component.validate(
                     state as any,
                     state.formState[componentKey],
