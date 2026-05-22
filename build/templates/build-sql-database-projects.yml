@@ -34,7 +34,7 @@ steps:
     continueOnError: true
 
   - pwsh: |
-      npm run package -- --target sql-database-projects
+      npm run package -- --target sql-database-projects --preview
     displayName: SqlProj - Package extension
     workingDirectory: "$(Build.SourcesDirectory)"
 
