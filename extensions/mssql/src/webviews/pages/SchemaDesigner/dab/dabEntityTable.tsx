@@ -30,7 +30,6 @@ import {
     ArrowSortUp16Filled,
     ChevronDown16Regular,
     ChevronRight16Regular,
-    Folder16Regular,
     Settings16Regular,
     Table16Regular,
     Warning16Regular,
@@ -40,6 +39,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { Dab } from "../../../../sharedInterfaces/dab";
 import { locConstants } from "../../../common/locConstants";
 import { PrimaryKeyIcon } from "../../../common/icons/primaryKey";
+import { SchemaIcon } from "../../../common/icons/schema";
 import { useDabContext } from "./dabContext";
 import { DabEntitySettingsDialog } from "./dabEntitySettingsDialog";
 import { DabEntityFilters, doesEntityMatchDabFilters, isDabTableEntity } from "./dabEntityFilters";
@@ -845,7 +845,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                     <div
                         className={classes.nameCellContent}
                         style={{ paddingInlineStart: `${getRowIndent(row)}px` }}>
-                        <Folder16Regular className="dab-icon-schema" />
+                        <SchemaIcon className="dab-icon-schema" />
                         <span className={classes.nameLabel}>
                             {highlightText(row.schemaName, dabTextFilter, classes.searchHighlight)}
                         </span>

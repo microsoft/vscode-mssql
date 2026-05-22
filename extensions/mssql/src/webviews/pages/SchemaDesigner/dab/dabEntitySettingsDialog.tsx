@@ -112,13 +112,6 @@ const useStyles = makeStyles({
         lineHeight: tokens.lineHeightBase200,
         color: tokens.colorNeutralForeground2,
     },
-    fieldHint: {
-        display: "block",
-        color: tokens.colorNeutralForeground4,
-        fontSize: tokens.fontSizeBase200,
-        fontWeight: tokens.fontWeightRegular,
-        lineHeight: tokens.lineHeightBase200,
-    },
     labelWithInfo: {
         display: "inline-flex",
         alignItems: "center",
@@ -740,26 +733,22 @@ export function DabEntitySettingsDialog({
                                     onChange={(_, data) =>
                                         updateExposeAsMcpCustomTool(!!data.checked)
                                     }
-                                    label={locConstants.schemaDesigner.exposeAsMcpCustomTool}
+                                    label={renderLabelWithInfo(
+                                        locConstants.schemaDesigner.exposeAsMcpCustomTool,
+                                        locConstants.schemaDesigner.exposeAsMcpCustomToolHelp,
+                                    )}
                                 />
-                                {exposeAsMcpCustomTool && (
-                                    <span className={classes.fieldHint}>
-                                        {locConstants.schemaDesigner.exposeAsMcpCustomToolHelp}
-                                    </span>
-                                )}
                             </>
                         ) : (
                             <>
                                 <Checkbox
                                     checked={mcpDmlToolsEnabled}
                                     onChange={(_, data) => updateMcpDmlToolsEnabled(!!data.checked)}
-                                    label={locConstants.schemaDesigner.exposeAsMcpDmlTools}
+                                    label={renderLabelWithInfo(
+                                        locConstants.schemaDesigner.exposeAsMcpDmlTools,
+                                        locConstants.schemaDesigner.exposeAsMcpDmlToolsHelp,
+                                    )}
                                 />
-                                {mcpDmlToolsEnabled && (
-                                    <span className={classes.fieldHint}>
-                                        {locConstants.schemaDesigner.exposeAsMcpDmlToolsHelp}
-                                    </span>
-                                )}
                             </>
                         )}
                     </div>
