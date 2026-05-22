@@ -49,6 +49,8 @@ const useStyles = makeStyles({
         rowGap: "16px",
         overflowY: "auto",
         backgroundColor: "var(--vscode-editor-background)",
+        paddingTop: "16px",
+        paddingBottom: "16px",
     },
     headerTitleContent: {
         display: "flex",
