@@ -498,7 +498,7 @@ export class SqlNotebookController implements vscode.Disposable {
 
         this.log.debug(
             `[executeCell] start order=${execution.executionOrder} cellIndex=${cell.index} ` +
-                `notebook=${notebook.uri.toString()} isUntitled=${notebook.isUntitled} ` +
+                `notebook=${notebook.uri.scheme}:${notebook.isUntitled ? "untitled" : notebook.uri.path.split("/").pop()} ` +
                 `codeLen=${code.length}`,
         );
 
