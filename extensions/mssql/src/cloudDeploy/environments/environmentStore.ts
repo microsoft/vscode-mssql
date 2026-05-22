@@ -92,7 +92,7 @@ export class EnvironmentStore implements vscode.Disposable {
 
     public list(): readonly Environment[] {
         this.assertInitialized();
-        return this._envs;
+        return [...this._envs];
     }
 
     public get(id: string): Environment | undefined {
@@ -136,11 +136,12 @@ export class EnvironmentStore implements vscode.Disposable {
             if (!before.some((e) => e.id === id)) {
                 return;
             }
+            const wasDefault = this.getDefaultEnvironmentId() === id;
             const next = before.filter((e) => e.id !== id);
             await this.persist(next);
             this.fireChange({ added: [], updated: [], removed: [id] });
             // If the deleted env was the default, clear the default.
-            if (this.getDefaultEnvironmentId() === id) {
+            if (wasDefault) {
                 await this.setDefaultEnvironmentId(undefined);
             }
         });
@@ -211,10 +212,10 @@ export class EnvironmentStore implements vscode.Disposable {
         };
         // Validate before writing — never persist an invalid shape, even if a
         // caller passed something the file validator would later reject.
-        validateEnvironmentsFile(file, this.workspaceFolder.uri.fsPath);
+        const filePath = vscode.Uri.joinPath(this.workspaceFolder.uri, ".mssql", "environments.json").fsPath;
+        validateEnvironmentsFile(file, filePath);
         await saveEnvironmentsFile(this.workspaceFolder, file);
         this._envs = next;
-    }
 
     /** Serializes a write-style operation behind any in-flight writes. */
     private runWrite(op: () => void | Promise<void>): Promise<void> {

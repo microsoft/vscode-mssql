@@ -171,8 +171,11 @@ function validateValidationConfig(
     if (typeof raw.enabled !== "boolean") {
         issues.push(error(`${path}.enabled`, "Expected a boolean."));
     }
-    if (raw.settings !== undefined && !isPlainObject(raw.settings)) {
-        issues.push(error(`${path}.settings`, "Expected an object if present."));
+    if (raw.settings === undefined) {
+        // `settings` is required by the typed model; default to an empty object for forwards/backwards compat.
+        raw.settings = {};
+    } else if (!isPlainObject(raw.settings)) {
+        issues.push(error(`${path}.settings`, "Expected an object."));
     }
 }
 
