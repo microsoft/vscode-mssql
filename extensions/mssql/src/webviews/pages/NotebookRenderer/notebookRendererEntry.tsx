@@ -8,6 +8,7 @@ import { createRoot, Root } from "react-dom/client";
 import * as l10n from "@vscode/l10n";
 import { NotebookResultGrid, NotebookResultGridProps } from "./notebookResultGrid";
 import { NotebookResultsOutput } from "./notebookResultsOutput";
+import { NotebookResultsToolbar } from "./notebookResultsToolbar";
 import type {
     NotebookQueryResultOutputData,
     SavedNotebookResultSetOutputData,
@@ -39,6 +40,8 @@ interface OutputItem {
 interface RendererContext {
     readonly workspace: { readonly isTrusted: boolean };
     readonly settings: { readonly lineLimit: number };
+    postMessage?: (message: unknown) => void;
+    onDidReceiveMessage?: (listener: (message: unknown) => void) => { dispose: () => void };
 }
 
 interface RenderOutputInfo {
@@ -77,7 +80,8 @@ function isSavedNotebookResultSetOutputData(
 // Track React roots per output element for proper cleanup
 const roots = new Map<string, Root>();
 
-export const activate: ActivationFunction = (_context: RendererContext) => {
+export const activate: ActivationFunction = (context: RendererContext) => {
+    const postMessage = context.postMessage?.bind(context);
     return {
         renderOutputItem(data: OutputItem, element: HTMLElement) {
             const existingRoot = roots.get(data.id);
@@ -100,17 +104,27 @@ export const activate: ActivationFunction = (_context: RendererContext) => {
             if (isNotebookResultsOutputData(parsedData)) {
                 const root = createRoot(element);
                 roots.set(data.id, root);
-                root.render(<NotebookResultsOutput blocks={parsedData.blocks} />);
+                root.render(
+                    <NotebookResultsOutput blocks={parsedData.blocks} postMessage={postMessage} />,
+                );
             } else if (isSavedNotebookResultSetOutputData(parsedData)) {
                 const root = createRoot(element);
                 roots.set(data.id, root);
                 root.render(
-                    <NotebookResultGrid
-                        columnInfo={parsedData.columnInfo}
-                        rows={parsedData.rows}
-                        rowCount={parsedData.rowCount}
-                        addBottomSpacing={parsedData.addBottomSpacing}
-                    />,
+                    <>
+                        <NotebookResultsToolbar
+                            columnInfo={parsedData.columnInfo}
+                            rows={parsedData.rows}
+                            resultSetIndex={0}
+                            postMessage={postMessage}
+                        />
+                        <NotebookResultGrid
+                            columnInfo={parsedData.columnInfo}
+                            rows={parsedData.rows}
+                            rowCount={parsedData.rowCount}
+                            addBottomSpacing={parsedData.addBottomSpacing}
+                        />
+                    </>,
                 );
             } else {
                 element.textContent = l10n.t("Error: Unrecognized query result data.");

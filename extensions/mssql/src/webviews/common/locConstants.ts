@@ -1388,6 +1388,50 @@ export class LocConstants {
             restApi: l10n.t("REST API"),
             graphql: l10n.t("GraphQL"),
             mcp: l10n.t("MCP"),
+            enableRestForEntity: l10n.t("Expose this entity through REST"),
+            enableRestForEntityHelp: l10n.t(
+                "Enable REST in API Type to expose this entity through REST.",
+            ),
+            enableGraphQLForEntity: l10n.t("Expose this entity through GraphQL"),
+            enableGraphQLForEntityHelp: l10n.t(
+                "Enable GraphQL in API Type to expose this entity through GraphQL.",
+            ),
+            storedProcedureRestMethods: l10n.t("Stored procedure REST methods"),
+            storedProcedureRestMethodsHelp: l10n.t(
+                "Select the HTTP methods that can execute this stored procedure. DAB defaults to POST.",
+            ),
+            storedProcedureGraphQLOperation: l10n.t("Stored procedure GraphQL operation"),
+            storedProcedureGraphQLOperationHelp: l10n.t(
+                "Choose whether this stored procedure appears as a GraphQL mutation or query. DAB defaults to mutation.",
+            ),
+            graphqlMutation: l10n.t("Mutation"),
+            graphqlQuery: l10n.t("Query"),
+            mcpCustomTool: l10n.t("MCP custom tool"),
+            exposeAsMcpCustomTool: l10n.t("Expose as MCP custom tool"),
+            exposeAsMcpCustomToolHelp: l10n.t(
+                "Creates a dedicated MCP tool for this stored procedure. When disabled, the procedure can still be available through generic MCP execute tools if MCP is enabled.",
+            ),
+            enableMcpForCustomToolHelp: l10n.t(
+                "Enable MCP in API Type to use this custom tool setting.",
+            ),
+            apiTypeNotEnabledGlobally: (apiType: string) =>
+                l10n.t({
+                    message: "{0} is not enabled globally",
+                    args: [apiType],
+                    comment: ["{0} is the API type, e.g. REST, GraphQL, or MCP"],
+                }),
+            enableApiTypeForEntity: (apiType: string) =>
+                l10n.t({
+                    message: "Enable {0} in API Type to expose this entity.",
+                    args: [apiType],
+                    comment: ["{0} is the API type, e.g. REST, GraphQL, or MCP"],
+                }),
+            enableApiTypeGlobally: (apiType: string) =>
+                l10n.t({
+                    message: "Enable {0} globally",
+                    args: [apiType],
+                    comment: ["{0} is the API type, e.g. REST, GraphQL, or MCP"],
+                }),
             all: l10n.t("All"),
             entityEndpoints: l10n.t("Entity Endpoints"),
             allSchemas: l10n.t("All Schemas"),
@@ -1486,10 +1530,13 @@ export class LocConstants {
             designApi: l10n.t("Design API"),
             // DAB Advanced Settings Dialog
             advancedEntityConfiguration: l10n.t("Advanced Entity Configuration"),
+            identity: l10n.t("Identity"),
+            rest: l10n.t("REST"),
             entityName: l10n.t("Entity Name"),
             entityNameHelp: l10n.t("Used in API routes and responses"),
             authorizationRole: l10n.t("Authorization Role"),
             authorizationRoleHelp: l10n.t("Define who can access this endpoint"),
+            disabledGlobally: l10n.t("Disabled globally"),
             anonymous: l10n.t("Anonymous"),
             anonymousDescription: l10n.t("No authentication required"),
             authenticated: l10n.t("Authenticated"),
@@ -1499,12 +1546,12 @@ export class LocConstants {
             customGraphQLType: l10n.t("Custom GraphQL Type"),
             customGraphQLTypeHelp: l10n.t("Optional - Override default GraphQL type name"),
             applyChanges: l10n.t("Apply Changes"),
-            sourceTable: l10n.t("Source Table"),
-            sourceTableWithName: (sourceName: string) =>
+            source: l10n.t("Source"),
+            sourceWithName: (sourceName: string) =>
                 l10n.t({
-                    message: "Source Table: {0}",
+                    message: "Source: {0}",
                     args: [sourceName],
-                    comment: ["{0} is the fully qualified source table name"],
+                    comment: ["{0} is the fully qualified DAB source object name"],
                 }),
             loading: l10n.t("Loading..."),
             initializingDabConfig: l10n.t("Initializing DAB configuration..."),

@@ -1159,10 +1159,21 @@ function normalizeDabConfigForVersion(config: Dab.DabConfig) {
                         entity.advancedSettings.customRestPath !== undefined
                             ? entity.advancedSettings.customRestPath
                             : undefined,
+                    restEnabled: entity.advancedSettings.restEnabled,
                     customGraphQLType:
                         entity.advancedSettings.customGraphQLType !== undefined
                             ? entity.advancedSettings.customGraphQLType
                             : undefined,
+                    graphQLEnabled: entity.advancedSettings.graphQLEnabled,
+                    storedProcedureRestMethods:
+                        entity.advancedSettings.storedProcedureRestMethods !== undefined
+                            ? Dab.normalizeRestMethods(
+                                  entity.advancedSettings.storedProcedureRestMethods,
+                              )
+                            : undefined,
+                    storedProcedureGraphQLOperation:
+                        entity.advancedSettings.storedProcedureGraphQLOperation,
+                    exposeAsMcpCustomTool: entity.advancedSettings.exposeAsMcpCustomTool,
                 },
             }))
             .sort((a, b) => {
@@ -1598,7 +1609,18 @@ function applyDabToolChange(
                                 message: "entityName must be a non-empty string.",
                             };
                         }
-                        updatedSettings.entityName = value.trim();
+                        {
+                            const trimmedValue = value.trim();
+                            const validationError = Dab.validateDabEntityName(trimmedValue);
+                            if (validationError) {
+                                return {
+                                    success: false,
+                                    reason: "invalid_request",
+                                    message: validationError,
+                                };
+                            }
+                            updatedSettings.entityName = trimmedValue;
+                        }
                         break;
                     case "authorizationRole":
                         if (
@@ -1633,7 +1655,28 @@ function applyDabToolChange(
                                 message: "customRestPath cannot be an empty string.",
                             };
                         }
-                        updatedSettings.customRestPath = value.trim();
+                        {
+                            const trimmedValue = value.trim();
+                            const validationError = Dab.validateDabCustomRestPath(trimmedValue);
+                            if (validationError) {
+                                return {
+                                    success: false,
+                                    reason: "invalid_request",
+                                    message: validationError,
+                                };
+                            }
+                            updatedSettings.customRestPath = trimmedValue;
+                        }
+                        break;
+                    case "restEnabled":
+                        if (typeof value !== "boolean") {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message: "restEnabled must be a boolean.",
+                            };
+                        }
+                        updatedSettings.restEnabled = value;
                         break;
                     case "customGraphQLType":
                         if (value === null || typeof value === "undefined") {
@@ -1654,7 +1697,111 @@ function applyDabToolChange(
                                 message: "customGraphQLType cannot be an empty string.",
                             };
                         }
-                        updatedSettings.customGraphQLType = value.trim();
+                        {
+                            const trimmedValue = value.trim();
+                            const validationError = Dab.validateDabCustomGraphQLType(trimmedValue);
+                            if (validationError) {
+                                return {
+                                    success: false,
+                                    reason: "invalid_request",
+                                    message: validationError,
+                                };
+                            }
+                            updatedSettings.customGraphQLType = trimmedValue;
+                        }
+                        break;
+                    case "graphQLEnabled":
+                        if (typeof value !== "boolean") {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message: "graphQLEnabled must be a boolean.",
+                            };
+                        }
+                        updatedSettings.graphQLEnabled = value;
+                        break;
+                    case "storedProcedureRestMethods":
+                        if (value === null || typeof value === "undefined") {
+                            delete updatedSettings.storedProcedureRestMethods;
+                            break;
+                        }
+                        if (
+                            resolvedEntity.entity.sourceType !==
+                            Dab.EntitySourceType.StoredProcedure
+                        ) {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message:
+                                    "storedProcedureRestMethods can only be set for stored procedure entities.",
+                            };
+                        }
+                        if (!Array.isArray(value) || value.length === 0) {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message: "storedProcedureRestMethods must be a non-empty array.",
+                            };
+                        }
+                        for (const method of value) {
+                            if (!Object.values(Dab.RestMethod).includes(method as Dab.RestMethod)) {
+                                return {
+                                    success: false,
+                                    reason: "invalid_request",
+                                    message:
+                                        "storedProcedureRestMethods must contain valid REST methods.",
+                                };
+                            }
+                        }
+                        updatedSettings.storedProcedureRestMethods = Dab.normalizeRestMethods(
+                            value as Dab.RestMethod[],
+                        );
+                        break;
+                    case "storedProcedureGraphQLOperation":
+                        if (
+                            resolvedEntity.entity.sourceType !==
+                            Dab.EntitySourceType.StoredProcedure
+                        ) {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message:
+                                    "storedProcedureGraphQLOperation can only be set for stored procedure entities.",
+                            };
+                        }
+                        if (
+                            value !== Dab.GraphQLOperation.Query &&
+                            value !== Dab.GraphQLOperation.Mutation
+                        ) {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message:
+                                    "storedProcedureGraphQLOperation must be 'query' or 'mutation'.",
+                            };
+                        }
+                        updatedSettings.storedProcedureGraphQLOperation = value;
+                        break;
+                    case "exposeAsMcpCustomTool":
+                        if (typeof value !== "boolean") {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message: "exposeAsMcpCustomTool must be a boolean.",
+                            };
+                        }
+                        if (
+                            resolvedEntity.entity.sourceType !==
+                            Dab.EntitySourceType.StoredProcedure
+                        ) {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message:
+                                    "exposeAsMcpCustomTool can only be set for stored procedure entities.",
+                            };
+                        }
+                        updatedSettings.exposeAsMcpCustomTool = value;
                         break;
                     default:
                         return {
@@ -1853,15 +2000,14 @@ export function registerSchemaDesignerDabToolHandlers(params: {
         for (let i = 0; i < request.changes.length; i++) {
             const applyResult = applyDabToolChange(workingSnapshot, request.changes[i]);
             if (applyResult.success === false) {
-                commitDabConfig(workingSnapshot);
                 return {
                     success: false,
                     reason: applyResult.reason,
                     message: applyResult.message,
                     failedChangeIndex: i,
-                    appliedChanges,
-                    version: await computeDabVersion(workingSnapshot),
-                    summary: buildDabSummary(workingSnapshot),
+                    appliedChanges: 0,
+                    version,
+                    summary: buildDabSummary(baseSnapshot),
                 };
             }
             appliedChanges++;

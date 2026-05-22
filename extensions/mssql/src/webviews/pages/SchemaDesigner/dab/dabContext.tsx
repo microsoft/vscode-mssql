@@ -96,6 +96,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 ...dabSourceObjectsRef.current,
             ],
             commitDabConfig: (config) => {
+                dabConfigRef.current = config;
                 setDabConfig(config);
             },
         });

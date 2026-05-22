@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as os from "os";
+import * as path from "path";
 import * as vscode from "vscode";
 import type { IConnectionInfo } from "vscode-mssql";
 import * as Constants from "../constants/constants";
@@ -19,9 +20,13 @@ import type {
     NotebookQueryResultBlock,
     NotebookQueryResultGridBlock,
     NotebookQueryResultOutputData,
+    NotebookSaveAsMessage,
 } from "../sharedInterfaces/notebookQueryResult";
+import { saveNotebookResults } from "./notebookResultsSerializer";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions, ActivityStatus } from "../sharedInterfaces/telemetry";
+
+const NOTEBOOK_RESULT_RENDERER_ID = "ms-mssql.sql-result-renderer";
 
 const MIME_TEXT_PLAIN = "text/plain";
 const MIME_NOTEBOOK_QUERY_RESULT = "application/vnd.mssql.query-result";
@@ -183,6 +188,17 @@ export class SqlNotebookController implements vscode.Disposable {
                     this.connections.delete(key);
                 }
                 // Note: WeakMap entry will be garbage collected automatically
+            }),
+        );
+
+        const messaging = vscode.notebooks.createRendererMessaging(NOTEBOOK_RESULT_RENDERER_ID);
+        this.disposables.push(
+            messaging.onDidReceiveMessage((e) => {
+                const message = e.message as NotebookSaveAsMessage | undefined;
+                if (message?.type !== "saveAs") {
+                    return;
+                }
+                void this.handleSaveAs(e.editor.notebook, message);
             }),
         );
 
@@ -470,6 +486,37 @@ export class SqlNotebookController implements vscode.Disposable {
             this.statusBarItem.tooltip = LocalizedConstants.StatusBar.notConnectedTooltip;
             this.statusBarItem.command = Constants.cmdNotebooksChangeConnection;
             this.statusBarItem.show();
+        }
+    }
+
+    private async handleSaveAs(
+        notebook: vscode.NotebookDocument,
+        message: NotebookSaveAsMessage,
+    ): Promise<void> {
+        sendActionEvent(TelemetryViews.SqlNotebooks, TelemetryActions.SaveResults, {
+            format: message.format,
+        });
+        try {
+            const notebookName = path.basename(notebook.uri.fsPath);
+            const saved = await saveNotebookResults({
+                format: message.format,
+                columnInfo: message.columnInfo,
+                rows: message.rows,
+                notebookBaseName: notebookName,
+                notebookUri: notebook.uri,
+                resultSetIndex: message.resultSetIndex,
+            });
+            if (saved) {
+                void vscode.window.showInformationMessage(
+                    LocalizedConstants.Notebooks.savedResultsTo(saved.fsPath),
+                );
+            }
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : String(err);
+            this.log.error(`[handleSaveAs] Failed to save results: ${errorMsg}`);
+            void vscode.window.showErrorMessage(
+                LocalizedConstants.Notebooks.saveResultsFailed(errorMsg),
+            );
         }
     }
 

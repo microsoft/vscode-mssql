@@ -35,7 +35,7 @@ import {
     Table16Regular,
     Warning16Regular,
 } from "@fluentui/react-icons";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Dab } from "../../../../sharedInterfaces/dab";
 import { locConstants } from "../../../common/locConstants";
@@ -170,6 +170,31 @@ function getUnsupportedReasonText(entity: Dab.DabEntityConfig): string {
     return "";
 }
 
+function highlightText(text: string, searchText: string, highlightClassName: string): ReactNode {
+    const trimmedSearch = searchText.trim();
+    if (!trimmedSearch) {
+        return text;
+    }
+
+    const escapedSearch = trimmedSearch.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(`(${escapedSearch})`, "gi");
+    const parts = text.split(regex);
+
+    if (parts.length === 1) {
+        return text;
+    }
+
+    return parts.map((part, index) =>
+        part.toLowerCase() === trimmedSearch.toLowerCase() ? (
+            <span key={index} className={highlightClassName}>
+                {part}
+            </span>
+        ) : (
+            part
+        ),
+    );
+}
+
 // ── Styles ──
 
 const ROW_HEIGHT = 32;
@@ -276,6 +301,11 @@ const useStyles = makeStyles({
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
         minWidth: 0,
+    },
+    searchHighlight: {
+        backgroundColor: "var(--vscode-editor-findMatchBackground)",
+        padding: "0 2px",
+        borderRadius: "3px",
     },
     nameCellContent: {
         display: "flex",
@@ -401,6 +431,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
         toggleDabEntityAction,
         toggleDabColumnExposure,
         updateDabEntitySettings,
+        updateDabApiTypes,
         dabTextFilter,
         currentFilteredTables,
     } = context;
@@ -931,7 +962,9 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                         className={classes.nameCellContent}
                         style={{ paddingInlineStart: `${getRowIndent(row)}px` }}>
                         <Folder16Regular className="dab-icon-schema" />
-                        <span className={classes.nameLabel}>{row.schemaName}</span>
+                        <span className={classes.nameLabel}>
+                            {highlightText(row.schemaName, dabTextFilter, classes.searchHighlight)}
+                        </span>
                         <Badge appearance="filled" size="small" color="informative">
                             {row.enabledEntityCount}/{row.entities.length}
                         </Badge>
@@ -946,7 +979,11 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                         style={{ paddingInlineStart: `${getRowIndent(row)}px` }}>
                         <Folder16Regular className="dab-icon-schema" />
                         <span className={classes.nameLabel}>
-                            {sourceTypeLabels[row.sourceType]}
+                            {highlightText(
+                                sourceTypeLabels[row.sourceType],
+                                dabTextFilter,
+                                classes.searchHighlight,
+                            )}
                         </span>
                         <Badge appearance="filled" size="small" color="informative">
                             {row.enabledEntityCount}/{row.entities.length}
@@ -971,7 +1008,11 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                             <Table16Regular className="dab-icon-table" />
                         )}
                         <span className={classes.nameLabel}>
-                            {row.entity.advancedSettings.entityName}
+                            {highlightText(
+                                row.entity.advancedSettings.entityName,
+                                dabTextFilter,
+                                classes.searchHighlight,
+                            )}
                         </span>
                         {sourceType !== Dab.EntitySourceType.StoredProcedure && (
                             <Badge appearance="filled" size="small" color="informative">
@@ -1015,7 +1056,9 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                         aria-hidden="true">
                         <path d="M3.25 2C4.22 2 5 2.78 5 3.75v8.5C5 13.22 4.22 14 3.25 14H2.5a.5.5 0 0 1 0-1h.75c.41 0 .75-.34.75-.75v-8.5A.75.75 0 0 0 3.25 3H2.5a.5.5 0 0 1 0-1h.75ZM8.5 2c.83 0 1.5.67 1.5 1.5v9c0 .83-.67 1.5-1.5 1.5h-1A1.5 1.5 0 0 1 6 12.5v-9C6 2.67 6.67 2 7.5 2h1Zm5 0a.5.5 0 0 1 0 1h-.75a.75.75 0 0 0-.75.75v8.5c0 .41.34.75.75.75h.75a.5.5 0 0 1 0 1h-.75c-.97 0-1.75-.78-1.75-1.75v-8.5c0-.97.78-1.75 1.75-1.75h.75Zm-6 1a.5.5 0 0 0-.5.5v9c0 .28.22.5.5.5h1a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5h-1Z" />
                     </svg>
-                    <span className={classes.nameLabel}>{row.column.name}</span>
+                    <span className={classes.nameLabel}>
+                        {highlightText(row.column.name, dabTextFilter, classes.searchHighlight)}
+                    </span>
                     {row.column.isPrimaryKey && (
                         <Tooltip
                             content={locConstants.schemaDesigner.primaryKey}
@@ -1038,7 +1081,9 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
             classes.nameCellContent,
             classes.nameLabel,
             classes.primaryKeyIcon,
+            classes.searchHighlight,
             classes.warningIcon,
+            dabTextFilter,
             getRowIndent,
             sourceTypeLabels,
         ],
@@ -1052,11 +1097,15 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
 
             return (
                 <span className={classes.sourceCell}>
-                    {row.entity.schemaName}.{row.entity.sourceName ?? row.entity.tableName}
+                    {highlightText(
+                        `${row.entity.schemaName}.${row.entity.sourceName ?? row.entity.tableName}`,
+                        dabTextFilter,
+                        classes.searchHighlight,
+                    )}
                 </span>
             );
         },
-        [classes.sourceCell, renderBlankContent],
+        [classes.searchHighlight, classes.sourceCell, dabTextFilter, renderBlankContent],
     );
 
     const renderActionContent = useCallback(
@@ -1168,7 +1217,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
             }),
             createTableColumn<FlatRow>({
                 columnId: "source",
-                renderHeaderCell: () => <span>{locConstants.schemaDesigner.sourceTable}</span>,
+                renderHeaderCell: () => <span>{locConstants.schemaDesigner.source}</span>,
                 renderCell: renderSourceContent,
             }),
             ...allActions.map((action) =>
@@ -1353,9 +1402,18 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                 </div>
             </div>
 
-            {settingsEntity && (
+            {settingsEntity && dabConfig && (
                 <DabEntitySettingsDialog
                     entity={settingsEntity}
+                    existingEntityNames={dabConfig.entities
+                        .filter((entity) => entity.id !== settingsEntity.id)
+                        .map((entity) => entity.advancedSettings.entityName)}
+                    isRestEnabled={dabConfig.apiTypes.includes(Dab.ApiType.Rest)}
+                    isGraphQLEnabled={dabConfig.apiTypes.includes(Dab.ApiType.GraphQL)}
+                    isMcpEnabled={dabConfig.apiTypes.includes(Dab.ApiType.Mcp)}
+                    onEnableApiType={(apiType) =>
+                        updateDabApiTypes(Array.from(new Set([...dabConfig.apiTypes, apiType])))
+                    }
                     open={!!settingsEntity}
                     onOpenChange={(open) => {
                         if (!open) {

@@ -35,7 +35,23 @@ const useStyles = makeStyles({
         flex: 1,
         minWidth: 0,
         height: "100%",
-        display: "flex",
+        position: "relative",
+        overflow: "hidden",
+    },
+    viewPane: {
+        position: "absolute",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        minWidth: 0,
+        maxWidth: "100%",
+        transitionProperty: "none",
+        zIndex: 1,
+    },
+    inactiveViewPane: {
+        pointerEvents: "none",
+        transform: "translateX(-100%)",
+        zIndex: 0,
     },
 });
 
@@ -93,17 +109,19 @@ const MainLayout = () => {
             </div>
             <div className={classes.content}>
                 <div
-                    style={{
-                        height: "100%",
-                        width: "100%",
-                        flex: 1,
-                        minWidth: 0,
-                        maxWidth: "100%",
-                        display:
-                            activeView === SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner
-                                ? "block"
-                                : "none",
-                    }}>
+                    className={`${classes.viewPane} ${
+                        activeView === SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner
+                            ? ""
+                            : classes.inactiveViewPane
+                    }`}
+                    aria-hidden={
+                        activeView !== SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner
+                    }
+                    inert={
+                        activeView !== SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner
+                            ? true
+                            : undefined
+                    }>
                     <SchemaDesignerPage
                         activeView={activeView}
                         onNavigateToDab={() =>
@@ -112,17 +130,17 @@ const MainLayout = () => {
                     />
                 </div>
                 <div
-                    style={{
-                        height: "100%",
-                        width: "100%",
-                        flex: 1,
-                        minWidth: 0,
-                        maxWidth: "100%",
-                        display:
-                            activeView === SchemaDesigner.SchemaDesignerActiveView.Dab
-                                ? "block"
-                                : "none",
-                    }}>
+                    className={`${classes.viewPane} ${
+                        activeView === SchemaDesigner.SchemaDesignerActiveView.Dab
+                            ? ""
+                            : classes.inactiveViewPane
+                    }`}
+                    aria-hidden={activeView !== SchemaDesigner.SchemaDesignerActiveView.Dab}
+                    inert={
+                        activeView !== SchemaDesigner.SchemaDesignerActiveView.Dab
+                            ? true
+                            : undefined
+                    }>
                     <DabProvider>
                         <DabPage
                             activeView={activeView}
