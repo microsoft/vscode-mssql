@@ -3,12 +3,8 @@
     // for the documentation about the extensions.json format
     "recommendations": [
         "dbaeumer.vscode-eslint",
-        "EditorConfig.EditorConfig",
-        "GitHub.vscode-pull-request-github",
         "ms-playwright.playwright",
         "esbenp.prettier-vscode",
-        "ms-vscode.extension-test-runner",
-        "tenninebt.vscode-koverage",
-        "ryanluker.vscode-coverage-gutters"
+        "ms-vscode.extension-test-runner"
     ]
 }

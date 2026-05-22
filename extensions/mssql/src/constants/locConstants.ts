@@ -1121,6 +1121,10 @@ export class ConnectionDialog {
         "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
     );
 
+    public static noSubscriptionsFound = l10n.t(
+        "No subscriptions found. Please change Azure account or tenant to view available subscriptions.",
+    );
+
     public static selectDatabase = l10n.t("Select a database");
     public static userDatabasesGroup = l10n.t("User databases");
     public static systemDatabasesGroup = l10n.t("System databases");
@@ -1422,6 +1426,87 @@ export class Accounts {
         });
     };
     public static clearedEntraTokenCache = l10n.t("Entra token cache cleared successfully.");
+}
+
+export class AzureSqlDatabase {
+    public static azureAccount = l10n.t("Azure Account");
+    public static azureAccountIsRequired = l10n.t("Azure Account is required");
+    public static subscription = l10n.t("Subscription");
+    public static selectASubscription = l10n.t("Select a subscription");
+    public static subscriptionIsRequired = l10n.t("Subscription is required");
+    public static resourceGroup = l10n.t("Resource Group");
+    public static selectAResourceGroup = l10n.t("Select a resource group");
+    public static resourceGroupIsRequired = l10n.t("Resource Group is required");
+    public static databaseName = l10n.t("Database Name");
+    public static enterDatabaseName = l10n.t("Enter database name");
+    public static databaseNameIsRequired = l10n.t("Database Name is required");
+    public static noAzureAccountsFound = l10n.t("No Azure accounts found");
+    public static noTenantsFound = l10n.t("No tenants found");
+    public static noSubscriptionsFound = l10n.t("No subscriptions found");
+    public static noResourceGroupsFound = l10n.t("No resource groups found");
+    public static server = l10n.t("Server");
+    public static selectAServer = l10n.t("Select a server");
+    public static serverIsRequired = l10n.t("SQL Server is required");
+    public static noServersFound = l10n.t("No servers found");
+    public static connectionFailed = l10n.t("Connection failed");
+    public static firewallRuleCreationFailed = (error: string) =>
+        l10n.t({
+            message: "Failed to create firewall rule: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+    public static clientIpDetectionFailed = l10n.t(
+        "Could not detect your client IP address. Please add a firewall rule manually in the Azure portal.",
+    );
+    public static createNew = l10n.t("Create New");
+    public static enterResourceGroupName = l10n.t("Enter a name for the new resource group");
+    public static selectLocation = l10n.t("Select a location for the resource group");
+    public static resourceGroupNameIsRequired = l10n.t("Resource group name is required");
+    public static creating = l10n.t("Creating...");
+    public static enterServerName = l10n.t("Enter a name for the new server");
+    public static serverNameIsRequired = l10n.t("Server name is required");
+    public static creatingServer = l10n.t("Creating server...");
+    public static authenticationType = l10n.t("Authentication Type");
+    public static sqlLogin = l10n.t("SQL Authentication");
+    public static azureMFA = l10n.t("Microsoft Entra ID");
+    public static azureMFAAndUser = l10n.t("Both");
+    public static userName = l10n.t("Username");
+    public static enterUserName = l10n.t("Enter username");
+    public static password = l10n.t("Password");
+    public static enterPassword = l10n.t("Enter password");
+    public static savePassword = l10n.t("Save password");
+    public static userNameIsRequired = l10n.t("Username is required");
+    public static passwordIsRequired = l10n.t("Password is required");
+    public static dataSource = l10n.t("Data Source");
+    public static selectDataSource = l10n.t("Select a data source");
+    public static noDataSource = l10n.t("None (empty database)");
+    public static collation = l10n.t("Collation");
+    public static selectCollation = l10n.t("Select a collation");
+    public static loadingCollations = l10n.t("Loading collations...");
+    public static enableAlwaysEncrypted = l10n.t("Always Encrypted");
+    public static maintenanceWindow = l10n.t("Maintenance Window");
+    public static selectMaintenanceWindow = l10n.t("Select a maintenance window");
+    public static loadingMaintenanceConfigs = l10n.t("Loading maintenance windows...");
+    public static serverTooltipMFA = l10n.t(
+        "This server only supports Microsoft Entra ID authentication.",
+    );
+    public static databaseTooltipMFA = l10n.t(
+        "Use Microsoft Entra ID authentication to provision and connect to this database.",
+    );
+    public static serverTooltipMFAAndUser = l10n.t(
+        "This server supports Microsoft Entra ID and SQL Authentication.",
+    );
+    public static databaseTooltipMFAAndUser = l10n.t(
+        "Connect using either Microsoft Entra ID or SQL Authentication.",
+    );
+    public static userNameTooltip = l10n.t("[Read-only] Pre-filled from the server properties.");
+    public static serverTooltipSqlLogin = l10n.t("This server only supports SQL Authentication.");
+    public static databaseTooltipSqlLogin = l10n.t(
+        "Use SQL Authentication with a valid username and password.",
+    );
+    public static serverAuthTypeUnknown = l10n.t(
+        "Unable to determine the server authentication type.",
+    );
 }
 
 export class FabricProvisioning {

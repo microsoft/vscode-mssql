@@ -19,6 +19,12 @@ import {
     FabricProvisioningReducers,
     FabricProvisioningState,
 } from "./fabricProvisioning";
+import {
+    AzureSqlDatabaseContextProps,
+    AzureSqlDatabaseFormState,
+    AzureSqlDatabaseReducers,
+    AzureSqlDatabaseState,
+} from "./azureSqlDatabase";
 
 export class DeploymentWebviewState
     implements FormState<DeploymentFormState, DeploymentWebviewState, DeploymentFormItemSpec>
@@ -111,14 +117,22 @@ export interface DeploymentFormItemSpec
     componentWidth: string;
 }
 
-export type DeploymentTypeState = LocalContainersState | FabricProvisioningState;
+export type DeploymentTypeState =
+    | LocalContainersState
+    | FabricProvisioningState
+    | AzureSqlDatabaseState;
 
 export type DeploymentContextProps = DeploymentCommonContextProps &
     LocalContainersContextProps &
-    FabricProvisioningContextProps;
+    FabricProvisioningContextProps &
+    AzureSqlDatabaseContextProps;
 
 export type DeploymentReducers = DeploymentCommonReducers &
     LocalContainersReducers &
-    FabricProvisioningReducers;
+    FabricProvisioningReducers &
+    AzureSqlDatabaseReducers;
 
-export type DeploymentFormState = LocalContainersFormState | FabricProvisioningFormState;
+export type DeploymentFormState =
+    | LocalContainersFormState
+    | FabricProvisioningFormState
+    | AzureSqlDatabaseFormState;
