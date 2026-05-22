@@ -37,12 +37,18 @@ const useStyles = makeStyles({
     drawer: {
         width: "640px",
         maxWidth: "calc(100vw - 32px)",
+        backgroundColor: "var(--vscode-editor-background)",
+    },
+    drawerHeader: {
+        backgroundColor: "var(--vscode-editorWidget-background, var(--vscode-editor-background))",
+        borderBottom: "1px solid var(--vscode-editorGroup-border)",
     },
     drawerBody: {
         display: "flex",
         flexDirection: "column",
         rowGap: "16px",
         overflowY: "auto",
+        backgroundColor: "var(--vscode-editor-background)",
     },
     headerTitleContent: {
         display: "flex",
@@ -174,6 +180,8 @@ const useStyles = makeStyles({
         columnGap: "12px",
         paddingTop: "12px",
         marginTop: 0,
+        backgroundColor: "var(--vscode-editorWidget-background, var(--vscode-editor-background))",
+        borderTop: "1px solid var(--vscode-editorGroup-border)",
     },
     actionButton: {
         minWidth: "132px",
@@ -414,7 +422,7 @@ export function DabEntitySettingsDialog({
             open={open}
             onOpenChange={(_, { open }) => onOpenChange(open)}
             className={classes.drawer}>
-            <DrawerHeader>
+            <DrawerHeader className={classes.drawerHeader}>
                 <DrawerHeaderTitle
                     action={
                         <Button
