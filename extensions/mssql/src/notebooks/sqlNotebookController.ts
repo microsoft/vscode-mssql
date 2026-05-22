@@ -220,13 +220,13 @@ export class SqlNotebookController implements vscode.Disposable {
                 const notebookKey = e.notebook.uri.toString();
                 const mgr = this.connections.get(notebookKey);
                 if (!mgr) {
-                    this.log.info(
+                    this.log.debug(
                         `[onDidChangeNotebookDocument] Skipped ${totalAdded} added cell(s) (no manager) notebook=${notebookKey}`,
                     );
                     return;
                 }
                 if (!mgr.isConnected()) {
-                    this.log.info(
+                    this.log.debug(
                         `[onDidChangeNotebookDocument] Skipped ${totalAdded} added cell(s) (not connected) notebook=${notebookKey}`,
                     );
                     return;
@@ -246,7 +246,7 @@ export class SqlNotebookController implements vscode.Disposable {
                         }
                     }
                 }
-                this.log.info(
+                this.log.debug(
                     `[onDidChangeNotebookDocument] Registered ${registered} added cell(s), skipped ${skippedNonSql} non-SQL code cell(s) notebook=${notebookKey}`,
                 );
             }),
@@ -387,19 +387,19 @@ export class SqlNotebookController implements vscode.Disposable {
         const notebookKey = notebook.uri.toString();
         const mgr = this.connections.get(notebookKey);
         if (!mgr) {
-            this.log.info(
+            this.log.debug(
                 `[connectCellsForIntellisense] Skipped (no manager) trigger=${trigger} notebook=${notebookKey}`,
             );
             return;
         }
         if (!mgr.isConnected()) {
-            this.log.info(
+            this.log.debug(
                 `[connectCellsForIntellisense] Skipped (not connected) trigger=${trigger} notebook=${notebookKey}`,
             );
             return;
         }
         if (!mgr.getConnectionInfo()) {
-            this.log.info(
+            this.log.debug(
                 `[connectCellsForIntellisense] Skipped (no connectionInfo) trigger=${trigger} notebook=${notebookKey}`,
             );
             return;
@@ -421,7 +421,7 @@ export class SqlNotebookController implements vscode.Disposable {
             sqlCellCount++;
             void mgr.connectCellForIntellisense(cell.document.uri.toString());
         }
-        this.log.info(
+        this.log.debug(
             `[connectCellsForIntellisense] trigger=${trigger} notebook=${notebookKey} sqlCells=${sqlCellCount} nonSqlCells=${nonSqlCellCount} nonCodeCells=${nonCodeCellCount}`,
         );
     }

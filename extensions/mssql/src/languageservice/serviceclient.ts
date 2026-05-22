@@ -442,7 +442,7 @@ export default class SqlToolsServiceClient {
                     // volume manageable while preserving the diagnostic signal
                     // for the notebook IntelliSense issue.
                     if (count === 0 || scheme === "vscode-notebook-cell") {
-                        this._logger.info(
+                        this._logger.logDebug(
                             `Completion count=${count} scheme=${scheme} triggerKind=${context.triggerKind} uri=${document.uri.toString()}`,
                         );
                     }

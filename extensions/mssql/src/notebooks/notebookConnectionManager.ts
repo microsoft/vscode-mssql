@@ -358,7 +358,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
     async connectCellForIntellisense(cellDocumentUri: string): Promise<void> {
         const cellUriScheme = vscode.Uri.parse(cellDocumentUri).scheme;
         if (!this.connectionInfo) {
-            this.log.info(
+            this.log.debug(
                 `[connectCellForIntellisense] Skipped (no connectionInfo) cell=${cellDocumentUri}`,
             );
             return;
@@ -375,7 +375,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
         }
 
         const authType = connectionDetails.options?.authenticationType ?? "unknown";
-        this.log.info(
+        this.log.debug(
             `[connectCellForIntellisense] Sending connect request scheme=${cellUriScheme} server=${this.connectionInfo.server} database=${this.connectionInfo.database || "(default)"} auth=${authType} cell=${cellDocumentUri}`,
         );
 
@@ -387,7 +387,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
 
             const result = await this.connectionMgr.sendRequest(ConnectionRequest.type, params);
 
-            this.log.info(
+            this.log.debug(
                 `[connectCellForIntellisense] STS connect returned ${result === true ? "true" : result === false ? "false" : String(result)} cell=${cellDocumentUri}`,
             );
         } catch (err: any) {
