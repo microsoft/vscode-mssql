@@ -144,8 +144,9 @@
         "yargs": "^17.7.2"
     },
     "dependencies": {
+        "@azure/arm-maintenance": "^1.0.0-beta.2",
         "@azure/arm-resources": "^5.0.0",
-        "@azure/arm-sql": "^10.0.0",
+        "@azure/arm-sql": "^11.0.0-beta.4",
         "@azure/arm-storage": "^19.0.0",
         "@azure/arm-subscriptions": "^5.0.0",
         "@azure/ms-rest-azure-env": "^2.0.0",
@@ -1743,6 +1744,13 @@
                 "mssql.selectedAzureSubscriptions": {
                     "type": "array",
                     "description": "%mssql.selectedAzureSubscriptions%",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "mssql.selectedFabricWorkspaces": {
+                    "type": "array",
+                    "description": "%mssql.selectedFabricWorkspaces%",
                     "items": {
                         "type": "string"
                     }

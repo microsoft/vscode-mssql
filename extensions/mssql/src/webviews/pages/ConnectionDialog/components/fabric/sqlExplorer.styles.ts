@@ -5,23 +5,46 @@
 
 import { makeStyles, shorthands } from "@fluentui/react-components";
 
-export const useFabricExplorerStyles = makeStyles({
+export const useSqlExplorerStyles = makeStyles({
+    sqlExplorerWrapper: {
+        width: "125%",
+        marginLeft: "-12.5%",
+        border: "0.5px solid var(--vscode-editorWidget-border)",
+        borderRadius: "2px",
+        padding: "8px",
+        boxSizing: "border-box",
+    },
+    sqlExplorerTitle: {
+        display: "block",
+        marginBottom: "8px",
+        fontSize: "13px",
+        fontWeight: "600",
+    },
     workspaceExplorer: {
         display: "flex",
         height: "400px",
         width: "100%",
-        gap: "10px",
-        overflow: "hidden",
+        overflowX: "visible",
+        overflowY: "hidden",
     },
     workspaceList: {
         display: "flex",
         flexDirection: "column",
-        width: "250px",
-        minWidth: "250px",
         height: "100%",
         overflow: "hidden",
         borderRight: "1px solid var(--vscode-panel-border)",
         backgroundColor: "var(--vscode-sideBar-background)",
+        flexShrink: 0,
+    },
+    dragHandle: {
+        width: "4px",
+        cursor: "ew-resize",
+        flexShrink: 0,
+        backgroundColor: "transparent",
+        transition: "background-color 0.15s",
+        "&:hover": {
+            backgroundColor: "var(--vscode-sash-hoverBorder, var(--vscode-panel-border))",
+        },
     },
     workspaceListCollapsed: {
         display: "flex",
@@ -147,6 +170,7 @@ export const useFabricExplorerStyles = makeStyles({
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
+        gap: "12px",
         position: "absolute",
         top: 0,
         left: 0,
@@ -207,5 +231,30 @@ export const useFabricExplorerStyles = makeStyles({
     filterIcon: {
         width: "12px",
         height: "12px",
+    },
+    starButton: {
+        flexShrink: 0,
+        marginLeft: "4px",
+        padding: "0",
+        width: "16px",
+        height: "16px",
+        minWidth: "16px",
+        cursor: "pointer",
+        background: "transparent",
+        border: "none",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "inherit",
+        borderRadius: "2px",
+        "&:hover": {
+            backgroundColor: "var(--vscode-toolbar-hoverBackground)",
+        },
+        "&:focus-visible": {
+            outline: "1px solid var(--vscode-focusBorder)",
+        },
+    },
+    starFilled: {
+        color: "var(--vscode-charts-yellow)",
     },
 });

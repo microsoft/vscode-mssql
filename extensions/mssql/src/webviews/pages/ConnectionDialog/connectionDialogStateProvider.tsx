@@ -18,7 +18,7 @@ import { FirewallRuleSpec } from "../../../sharedInterfaces/firewallRule";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { getCoreRPCs } from "../../common/utils";
 import { ConnectionGroupSpec } from "../../../sharedInterfaces/connectionGroup";
-import { FabricSqlDbInfo } from "../../../sharedInterfaces/fabric";
+import { SqlDbInfo } from "../../../sharedInterfaces/fabric";
 import {
     ChangePasswordResult,
     ChangePasswordWebviewRequest,
@@ -72,11 +72,6 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
             retryLastSubmitAction: function (): void {
                 extensionRpc.action("retryLastSubmitAction");
             },
-            loadAzureServers: function (subscriptionId: string): void {
-                extensionRpc.action("loadAzureServers", {
-                    subscriptionId: subscriptionId,
-                });
-            },
             addFirewallRule: function (firewallRuleSpec: FirewallRuleSpec): void {
                 extensionRpc.action("addFirewallRule", {
                     firewallRuleSpec,
@@ -95,9 +90,6 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
             },
             closeMessage: function (): void {
                 extensionRpc.action("closeMessage");
-            },
-            filterAzureSubscriptions: function (): void {
-                extensionRpc.action("filterAzureSubscriptions");
             },
             refreshConnectionsList: function (): void {
                 extensionRpc.action("refreshConnectionsList");
@@ -130,23 +122,26 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                     browseTarget,
                 });
             },
-            signIntoAzureTenantForBrowse: function (): void {
-                extensionRpc.action("signIntoAzureTenantForBrowse");
-            },
             selectAzureAccount: (accountId: string) => {
                 extensionRpc.action("selectAzureAccount", {
                     accountId,
                 });
             },
-            selectAzureTenant: (tenantId: string) => {
-                extensionRpc.action("selectAzureTenant", {
+            setSelectedTenantId: (tenantId: string) => {
+                extensionRpc.action("setSelectedTenantId", {
                     tenantId,
                 });
             },
-            selectFabricWorkspace: (workspaceId: string) => {
-                extensionRpc.action("selectFabricWorkspace", {
-                    workspaceId,
+            toggleFavoriteCollection: (collectionId: string, inputMode: ConnectionInputMode) => {
+                extensionRpc.action("toggleFavoriteCollection", { collectionId, inputMode });
+            },
+            selectSqlCollection: (collectionId: string) => {
+                extensionRpc.action("selectSqlCollection", {
+                    collectionId,
                 });
+            },
+            signIntoTenantForBrowse: () => {
+                extensionRpc.action("signIntoTenantForBrowse", {});
             },
             openInfoLink: (option: FormItemOptions) => {
                 void extensionRpc.sendNotification(OpenOptionInfoLinkNotification.type, {
@@ -167,7 +162,7 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                 );
             },
             getSqlAnalyticsEndpointUriFromFabric: async function (
-                sqlDb: FabricSqlDbInfo,
+                sqlDb: SqlDbInfo,
             ): Promise<string> {
                 return await extensionRpc.sendRequest(
                     GetSqlAnalyticsEndpointUriFromFabricRequest.type,
