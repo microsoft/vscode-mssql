@@ -233,6 +233,7 @@ export class SqlNotebookController implements vscode.Disposable {
                 }
                 let registered = 0;
                 let skippedNonSql = 0;
+                let skippedNonCode = 0;
                 for (const change of e.contentChanges) {
                     for (const cell of change.addedCells) {
                         if (
@@ -243,11 +244,13 @@ export class SqlNotebookController implements vscode.Disposable {
                             void mgr.connectCellForIntellisense(cell.document.uri.toString());
                         } else if (cell.kind === vscode.NotebookCellKind.Code) {
                             skippedNonSql++;
+                        } else {
+                            skippedNonCode++;
                         }
                     }
                 }
                 this.log.debug(
-                    `[onDidChangeNotebookDocument] Registered ${registered} added cell(s), skipped ${skippedNonSql} non-SQL code cell(s) notebook=${notebookKey}`,
+                    `[onDidChangeNotebookDocument] Registered ${registered} added cell(s), skipped ${skippedNonSql} non-SQL code cell(s), skipped ${skippedNonCode} non-code cell(s) notebook=${notebookKey}`,
                 );
             }),
         );
