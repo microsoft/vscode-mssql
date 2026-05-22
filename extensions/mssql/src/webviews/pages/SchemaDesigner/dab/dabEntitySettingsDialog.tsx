@@ -24,9 +24,10 @@ import {
     RadioGroup,
     Text,
     ToggleButton,
+    Tooltip,
     tokens,
 } from "@fluentui/react-components";
-import { Dismiss24Regular, Table16Regular } from "@fluentui/react-icons";
+import { Dismiss24Regular, Info16Regular, Table16Regular } from "@fluentui/react-icons";
 import { useEffect, useState } from "react";
 import { locConstants } from "../../../common/locConstants";
 import { Dab } from "../../../../sharedInterfaces/dab";
@@ -119,6 +120,19 @@ const useStyles = makeStyles({
         fontSize: tokens.fontSizeBase200,
         fontWeight: tokens.fontWeightRegular,
         lineHeight: tokens.lineHeightBase200,
+    },
+    labelWithInfo: {
+        display: "inline-flex",
+        alignItems: "center",
+        columnGap: "4px",
+    },
+    infoButton: {
+        color: tokens.colorNeutralForeground3,
+        minWidth: "16px",
+        width: "16px",
+        height: "16px",
+        padding: 0,
+        verticalAlign: "middle",
     },
     roleButtonsContainer: {
         display: "flex",
@@ -294,9 +308,6 @@ export function DabEntitySettingsDialog({
     const storedProcedureGraphQLOperation =
         localSettings.storedProcedureGraphQLOperation ?? Dab.GraphQLOperation.Mutation;
     const exposeAsMcpCustomTool = localSettings.exposeAsMcpCustomTool !== false;
-    const authorizationRoleHelp = isStoredProcedure
-        ? locConstants.schemaDesigner.authorizationRoleStoredProcedureHelp
-        : locConstants.schemaDesigner.authorizationRoleHelp;
     const sourceObjectName = `${entity.schemaName}.${entity.sourceName ?? entity.tableName}`;
     const entityName = localSettings.entityName.trim();
     const customRestPath = localSettings.customRestPath?.trim() ?? "";
@@ -369,6 +380,21 @@ export function DabEntitySettingsDialog({
         <Text className={classes.sectionTitle}>{title}</Text>
     );
 
+    const renderLabelWithInfo = (label: string, infoText: string) => (
+        <span className={classes.labelWithInfo}>
+            <span>{label}</span>
+            <Tooltip content={infoText} relationship="description" positioning="after" withArrow>
+                <Button
+                    appearance="transparent"
+                    className={classes.infoButton}
+                    icon={<Info16Regular />}
+                    size="small"
+                    aria-label={infoText}
+                />
+            </Tooltip>
+        </span>
+    );
+
     const renderDisabledBanner = (apiType: Dab.ApiType, label: string, helpText?: string) => (
         <MessageBar
             intent="warning"
@@ -425,11 +451,7 @@ export function DabEntitySettingsDialog({
                                     validationState={
                                         entityNameValidationMessage ? "error" : undefined
                                     }
-                                    validationMessage={entityNameValidationMessage}
-                                    hint={{
-                                        children: locConstants.schemaDesigner.entityNameHelp,
-                                        className: classes.fieldHint,
-                                    }}>
+                                    validationMessage={entityNameValidationMessage}>
                                     <Input
                                         value={localSettings.entityName}
                                         onChange={(_, data) => updateEntityName(data.value)}
@@ -441,7 +463,6 @@ export function DabEntitySettingsDialog({
                         <section className={classes.section}>
                             {renderSectionTitle(locConstants.schemaDesigner.authorizationRole)}
                             <div className={classes.sectionBody}>
-                                <span className={classes.fieldHint}>{authorizationRoleHelp}</span>
                                 <div className={classes.roleButtonsContainer}>
                                     <ToggleButton
                                         className={classes.roleButton}
@@ -532,9 +553,11 @@ export function DabEntitySettingsDialog({
                                         {isEntityRestEnabled && (
                                             <>
                                                 <Field
-                                                    label={
-                                                        locConstants.schemaDesigner.customRestPath
-                                                    }
+                                                    label={renderLabelWithInfo(
+                                                        locConstants.schemaDesigner.customRestPath,
+                                                        locConstants.schemaDesigner
+                                                            .customRestPathHelp,
+                                                    )}
                                                     validationState={
                                                         customRestPathValidationMessage
                                                             ? "error"
@@ -542,13 +565,7 @@ export function DabEntitySettingsDialog({
                                                     }
                                                     validationMessage={
                                                         customRestPathValidationMessage
-                                                    }
-                                                    hint={{
-                                                        children:
-                                                            locConstants.schemaDesigner
-                                                                .customRestPathHelp,
-                                                        className: classes.fieldHint,
-                                                    }}>
+                                                    }>
                                                     <Input
                                                         value={localSettings.customRestPath ?? ""}
                                                         placeholder={(
@@ -562,17 +579,13 @@ export function DabEntitySettingsDialog({
 
                                                 {isStoredProcedure && (
                                                     <Field
-                                                        label={
+                                                        label={renderLabelWithInfo(
                                                             locConstants.schemaDesigner
-                                                                .storedProcedureRestMethods
-                                                        }
-                                                        required
-                                                        hint={{
-                                                            children:
-                                                                locConstants.schemaDesigner
-                                                                    .storedProcedureRestMethodsHelp,
-                                                            className: classes.fieldHint,
-                                                        }}>
+                                                                .storedProcedureRestMethods,
+                                                            locConstants.schemaDesigner
+                                                                .storedProcedureRestMethodsHelp,
+                                                        )}
+                                                        required>
                                                         <RadioGroup
                                                             className={classes.methodGroup}
                                                             value={storedProcedureRestMethod}
@@ -627,10 +640,12 @@ export function DabEntitySettingsDialog({
                                         {isEntityGraphQLEnabled && (
                                             <>
                                                 <Field
-                                                    label={
+                                                    label={renderLabelWithInfo(
                                                         locConstants.schemaDesigner
-                                                            .customGraphQLSingularType
-                                                    }
+                                                            .customGraphQLSingularType,
+                                                        locConstants.schemaDesigner
+                                                            .customGraphQLSingularTypeHelp,
+                                                    )}
                                                     required={customGraphQLPluralType.length > 0}
                                                     validationState={
                                                         customGraphQLSingularTypeValidationMessage
@@ -639,13 +654,7 @@ export function DabEntitySettingsDialog({
                                                     }
                                                     validationMessage={
                                                         customGraphQLSingularTypeValidationMessage
-                                                    }
-                                                    hint={{
-                                                        children:
-                                                            locConstants.schemaDesigner
-                                                                .customGraphQLSingularTypeHelp,
-                                                        className: classes.fieldHint,
-                                                    }}>
+                                                    }>
                                                     <Input
                                                         value={customGraphQLSingularType}
                                                         placeholder={
@@ -659,10 +668,12 @@ export function DabEntitySettingsDialog({
                                                     />
                                                 </Field>
                                                 <Field
-                                                    label={
+                                                    label={renderLabelWithInfo(
                                                         locConstants.schemaDesigner
-                                                            .customGraphQLPluralType
-                                                    }
+                                                            .customGraphQLPluralType,
+                                                        locConstants.schemaDesigner
+                                                            .customGraphQLPluralTypeHelp,
+                                                    )}
                                                     validationState={
                                                         customGraphQLPluralTypeValidationMessage
                                                             ? "error"
@@ -670,13 +681,7 @@ export function DabEntitySettingsDialog({
                                                     }
                                                     validationMessage={
                                                         customGraphQLPluralTypeValidationMessage
-                                                    }
-                                                    hint={{
-                                                        children:
-                                                            locConstants.schemaDesigner
-                                                                .customGraphQLPluralTypeHelp,
-                                                        className: classes.fieldHint,
-                                                    }}>
+                                                    }>
                                                     <Input
                                                         value={customGraphQLPluralType}
                                                         placeholder={`${
@@ -692,17 +697,13 @@ export function DabEntitySettingsDialog({
 
                                                 {isStoredProcedure && (
                                                     <Field
-                                                        label={
+                                                        label={renderLabelWithInfo(
                                                             locConstants.schemaDesigner
-                                                                .storedProcedureGraphQLOperation
-                                                        }
-                                                        required
-                                                        hint={{
-                                                            children:
-                                                                locConstants.schemaDesigner
-                                                                    .storedProcedureGraphQLOperationHelp,
-                                                            className: classes.fieldHint,
-                                                        }}>
+                                                                .storedProcedureGraphQLOperation,
+                                                            locConstants.schemaDesigner
+                                                                .storedProcedureGraphQLOperationHelp,
+                                                        )}
+                                                        required>
                                                         <RadioGroup
                                                             value={storedProcedureGraphQLOperation}
                                                             layout="horizontal"
