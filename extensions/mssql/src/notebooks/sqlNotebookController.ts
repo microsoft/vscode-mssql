@@ -220,9 +220,11 @@ export class SqlNotebookController implements vscode.Disposable {
                 const notebookKey = e.notebook.uri.toString();
                 const mgr = this.connections.get(notebookKey);
                 if (!mgr) {
-                    this.log.debug(
-                        `[onDidChangeNotebookDocument] Skipped ${totalAdded} added cell(s) (no manager) notebook=${notebookKey}`,
-                    );
+                    if (this.selectedNotebooks.has(e.notebook)) {
+                        this.log.debug(
+                            `[onDidChangeNotebookDocument] Skipped ${totalAdded} added cell(s) (no manager) notebook=${notebookKey}`,
+                        );
+                    }
                     return;
                 }
                 if (!mgr.isConnected()) {
