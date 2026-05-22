@@ -31,7 +31,7 @@ import {
     AzureSqlDatabaseState,
     AZURE_SQL_DB_COMPONENT_ORDER,
 } from "../../../../sharedInterfaces/azureSqlDatabase";
-import { ApiStatus } from "../../../../sharedInterfaces/webview";
+import { ApiStatus, Status } from "../../../../sharedInterfaces/webview";
 import { AuthenticationType } from "../../../../sharedInterfaces/connectionDialog";
 import { locConstants } from "../../../common/locConstants";
 import {
@@ -284,9 +284,15 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
         const loadStatus = azureComponentStatuses[propertyName];
         const isLoading = loadStatus === ApiStatus.Loading || loadStatus === ApiStatus.NotStarted;
 
+        const derivedLoadStatus: Status = isLoading
+            ? { status: ApiStatus.Loading }
+            : loadStatus === ApiStatus.Error
+              ? { status: ApiStatus.Error, message: component.loadStatus?.message }
+              : { status: ApiStatus.Loaded };
+
         const derivedComponent: AzureSqlDatabaseFormItemSpec = {
             ...component,
-            loadStatus: isLoading ? { status: ApiStatus.Loading } : { status: ApiStatus.Loaded },
+            loadStatus: derivedLoadStatus,
             ...(isLoading && {
                 placeholder: getLoadingPlaceholder(propertyName),
             }),
@@ -366,10 +372,11 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                     {createResourceGroupDrawerState && (
                         <CreateResourceGroupDrawer
                             state={createResourceGroupDrawerState}
-                            onSubmit={(resourceGroupName, location) => {
+                            onSubmit={(resourceGroupName, location, tags) => {
                                 context.submitCreateResourceGroup({
                                     resourceGroupName,
                                     location,
+                                    tags,
                                 });
                             }}
                             onClose={() => context.setCreateResourceGroupDrawerState(false)}

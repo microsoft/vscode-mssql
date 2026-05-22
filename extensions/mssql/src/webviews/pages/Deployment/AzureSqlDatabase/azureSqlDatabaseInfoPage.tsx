@@ -4,12 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { makeStyles } from "@fluentui/react-components";
+import { Database24Regular, DataTrending24Regular, Shield24Regular } from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import { AzureSqlDatabaseLinks } from "../../../../sharedInterfaces/azureSqlDatabase";
 import { DocsLinkCard } from "./docsLinkCard";
-import { BuiltOnAzureSqlIcon } from "../../../common/icons/builtOnAzureSql";
-import { AnalyticsReadyIcon } from "../../../common/icons/analyticsReady";
-import { InstantSetupIcon } from "../../../common/icons/instantSetup";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -67,10 +65,6 @@ const useStyles = makeStyles({
         justifyContent: "center",
         flexShrink: 0,
     },
-    icon: {
-        width: "32px",
-        height: "32px",
-    },
 });
 
 export const AzureSqlDatabaseInfoPage: React.FC = () => {
@@ -96,10 +90,10 @@ export const AzureSqlDatabaseInfoPage: React.FC = () => {
             <div className={classes.stepsDiv}>
                 <div className={classes.itemDiv}>
                     <div className={classes.iconWrap}>
-                        <BuiltOnAzureSqlIcon
-                            className={classes.icon}
-                            role="img"
-                            aria-label={locConstants.azureSqlDatabase.oltpAzureSql}
+                        <Database24Regular
+                            style={{
+                                color: "var(--colorBrandForeground1)",
+                            }}
                         />
                     </div>
                     <div className={classes.textDiv}>
@@ -113,10 +107,10 @@ export const AzureSqlDatabaseInfoPage: React.FC = () => {
                 </div>
                 <div className={classes.itemDiv}>
                     <div className={classes.iconWrap}>
-                        <AnalyticsReadyIcon
-                            className={classes.icon}
-                            role="img"
-                            aria-label={locConstants.azureSqlDatabase.freeComputeAndScaling}
+                        <DataTrending24Regular
+                            style={{
+                                color: "var(--colorBrandForeground1)",
+                            }}
                         />
                     </div>
                     <div className={classes.textDiv}>
@@ -130,13 +124,13 @@ export const AzureSqlDatabaseInfoPage: React.FC = () => {
                 </div>
                 <div className={classes.itemDiv}>
                     <div className={classes.iconWrap}>
-                        <InstantSetupIcon
-                            className={classes.icon}
-                            role="img"
-                            aria-label={locConstants.azureSqlDatabase.integratedAndSecure}
+                        <Shield24Regular
+                            style={{
+                                color: "var(--colorBrandForeground1)",
+                            }}
                         />
                     </div>
-                    <div className={classes.textDiv}>
+                    <div className={classes.textDiv} style={{ marginBottom: "8px" }}>
                         <div className={classes.titleDiv}>
                             {locConstants.azureSqlDatabase.integratedAndSecure}
                         </div>

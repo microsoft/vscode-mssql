@@ -1432,9 +1432,6 @@ export class AzureSqlDatabase {
     public static azureMFAAndUser = l10n.t("Both");
     public static userName = l10n.t("Username");
     public static enterUserName = l10n.t("Enter username");
-    public static userNameTooltip = l10n.t(
-        "The SQL Authentication username is automatically populated through server properties.",
-    );
     public static password = l10n.t("Password");
     public static enterPassword = l10n.t("Enter password");
     public static savePassword = l10n.t("Save password");
@@ -1450,6 +1447,26 @@ export class AzureSqlDatabase {
     public static maintenanceWindow = l10n.t("Maintenance Window");
     public static selectMaintenanceWindow = l10n.t("Select a maintenance window");
     public static loadingMaintenanceConfigs = l10n.t("Loading maintenance windows...");
+    public static serverTooltipMFA = l10n.t(
+        "This server only supports Microsoft Entra ID authentication.",
+    );
+    public static databaseTooltipMFA = l10n.t(
+        "Use Microsoft Entra ID authentication to provision and connect to this database.",
+    );
+    public static serverTooltipMFAAndUser = l10n.t(
+        "This server supports Microsoft Entra ID and SQL Authentication.",
+    );
+    public static databaseTooltipMFAAndUser = l10n.t(
+        "Connect using either Microsoft Entra ID or SQL Authentication.",
+    );
+    public static userNameTooltip = l10n.t("[Read-only] Pre-filled from the server properties.");
+    public static serverTooltipSqlLogin = l10n.t("This server only supports SQL Authentication.");
+    public static databaseTooltipSqlLogin = l10n.t(
+        "Use SQL Authentication with a valid username and password.",
+    );
+    public static serverAuthTypeUnknown = l10n.t(
+        "Unable to determine the server authentication type.",
+    );
 }
 
 export class FabricProvisioning {

@@ -121,6 +121,7 @@ export interface CreateResourceGroupDrawerState {
 export interface CreateResourceGroupSpec {
     resourceGroupName: string;
     location: string;
+    tags?: Record<string, string>;
 }
 
 export interface CreateServerDrawerState {

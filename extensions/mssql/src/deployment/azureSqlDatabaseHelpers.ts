@@ -163,6 +163,25 @@ export function applyServerAuthSettings(
     azureSqlState.formState.userName = adminLogin;
     azureSqlState.formState.password = "";
     azureSqlState.formState.savePassword = false;
+
+    const serverComponent = azureSqlState.formComponents.serverName;
+    const databaseComponent = azureSqlState.formComponents.databaseName;
+    switch (authType) {
+        case AuthenticationType.AzureMFA:
+            serverComponent.tooltip = AzureSqlDatabase.serverTooltipMFA;
+            databaseComponent.tooltip = AzureSqlDatabase.databaseTooltipMFA;
+            break;
+        case AuthenticationType.AzureMFAAndUser:
+            serverComponent.tooltip = AzureSqlDatabase.serverTooltipMFAAndUser;
+            databaseComponent.tooltip = AzureSqlDatabase.databaseTooltipMFAAndUser;
+            break;
+        case AuthenticationType.SqlLogin:
+            serverComponent.tooltip = AzureSqlDatabase.serverTooltipSqlLogin;
+            databaseComponent.tooltip = AzureSqlDatabase.databaseTooltipSqlLogin;
+            break;
+        default:
+            serverComponent.tooltip = AzureSqlDatabase.serverAuthTypeUnknown;
+    }
 }
 
 export async function initializeAzureSqlDatabaseState(
@@ -258,7 +277,19 @@ export function registerAzureSqlDatabaseReducers(
                 liveMaintenanceConfig || preservedMaintenanceConfig;
         }
 
-        azureSqlState.azureComponentStatuses[payload.componentName] = ApiStatus.Loaded;
+        // If the load function set the component to Error (e.g. no results found),
+        // propagate that error to all downstream components.
+        if (azureSqlState.azureComponentStatuses[payload.componentName] === ApiStatus.Error) {
+            const componentOrder = asd.AZURE_SQL_DB_COMPONENT_ORDER as readonly string[];
+            const fromIndex = componentOrder.indexOf(payload.componentName);
+            if (fromIndex !== -1) {
+                for (let i = fromIndex + 1; i < componentOrder.length; i++) {
+                    azureSqlState.azureComponentStatuses[componentOrder[i]] = ApiStatus.Error;
+                }
+            }
+        } else {
+            azureSqlState.azureComponentStatuses[payload.componentName] = ApiStatus.Loaded;
+        }
         state.deploymentTypeState = azureSqlState;
         return state;
     });
@@ -405,7 +436,7 @@ export function registerAzureSqlDatabaseReducers(
 
     deploymentController.registerReducer("submitCreateResourceGroup", async (state, payload) => {
         const azureSqlState = state.deploymentTypeState as asd.AzureSqlDatabaseState;
-        const { resourceGroupName, location } = payload.spec;
+        const { resourceGroupName, location, tags } = payload.spec;
 
         // Show creating state in the drawer
         const drawerState = azureSqlState.createResourceGroupDrawerState;
@@ -424,7 +455,12 @@ export function registerAzureSqlDatabaseReducers(
                 throw new Error(AzureSqlDatabase.noSubscriptionsFound);
             }
 
-            await VsCodeAzureHelper.createResourceGroup(subscription, resourceGroupName, location);
+            await VsCodeAzureHelper.createResourceGroup(
+                subscription,
+                resourceGroupName,
+                location,
+                tags,
+            );
 
             // Set the new resource group as selected and reload downstream
             azureSqlState.formState.resourceGroup = resourceGroupName;
@@ -690,8 +726,6 @@ export async function connectToAzureSqlDatabase(
                 state.formState.accountId,
                 state.formState.tenantId,
             );
-            connectionProfile.azureAccountToken = tokenInfo.token.token;
-            connectionProfile.expiresOn = tokenInfo.token.expiresOn;
             connectionProfile.accountId = tokenInfo.account.id;
             connectionProfile.tenantId = tokenInfo.tenantId;
             connectionProfile.user = tokenInfo.account.label;

@@ -10,6 +10,7 @@ import {
     DrawerBody,
     DrawerHeader,
     DrawerHeaderTitle,
+    Field,
     Input,
     Label,
     OverlayDrawer,
@@ -217,13 +218,11 @@ export const AdvancedOptionsDrawer = ({
                         ))}
 
                         {tagError && (
-                            <Label
-                                style={{
-                                    color: "var(--vscode-errorForeground)",
-                                    fontSize: "12px",
-                                }}>
-                                {tagError}
-                            </Label>
+                            <Field
+                                validationMessage={tagError}
+                                validationState="error"
+                                style={{ marginBottom: "8px" }}
+                            />
                         )}
 
                         <Button

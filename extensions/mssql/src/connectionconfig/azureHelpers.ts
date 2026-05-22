@@ -345,6 +345,7 @@ export class VsCodeAzureHelper {
         subscription: AzureSubscription,
         resourceGroupName: string,
         location: string,
+        tags?: Record<string, string>,
     ): Promise<ResourceGroup> {
         const client = new ResourceManagementClient(
             subscription.credential,
@@ -353,7 +354,10 @@ export class VsCodeAzureHelper {
                 endpoint: getCloudProviderSettings().settings.armResource.endpoint,
             },
         );
-        return client.resourceGroups.createOrUpdate(resourceGroupName, { location });
+        return client.resourceGroups.createOrUpdate(resourceGroupName, {
+            location,
+            tags: tags && Object.keys(tags).length > 0 ? tags : undefined,
+        });
     }
 
     /**

@@ -1304,6 +1304,9 @@
       <source xml:lang="en">Connect to {0}</source>
       <note>{0} is the name of the connection profile</note>
     </trans-unit>
+    <trans-unit id="++CODE++c61a620e1fbfff5241621d0469c0cf2dabee8f8cf66f37b4b854355917855b70">
+      <source xml:lang="en">Connect using either Microsoft Entra ID or SQL Authentication.</source>
+    </trans-unit>
     <trans-unit id="++CODE++6f00f15723c8b6718a4b05d9bb29188131a2a38b58f11c451e6522a7762c5ad5">
       <source xml:lang="en">Connect using profile {0}?</source>
       <note>{0} is the profile ID</note>
@@ -6658,9 +6661,6 @@
     <trans-unit id="++CODE++b0ccb68c36737cb5ef6c7a74871ab7845533f64d89c74dd7db735bb555c401e1">
       <source xml:lang="en">The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including {code-snippet-0} for lightweight T-SQL profiling.</source>
     </trans-unit>
-    <trans-unit id="++CODE++27adb272e4333f9ae1d57d713d3537abb8fd170369efa8bc33e07fb4bf43efd4">
-      <source xml:lang="en">The SQL Authentication username is automatically populated through server properties.</source>
-    </trans-unit>
     <trans-unit id="++CODE++ba973d3ac7388307810e82027b3e31a9c129166646b4dda5ec93c249f05e7431">
       <source xml:lang="en">The SQL Server extension couldn&apos;t start because its required background service failed to launch. Install the offline VSIX for your operating system, or check your network connection and try again. Details: {0}</source>
       <note>{0} is the error message</note>
@@ -6802,6 +6802,15 @@
     <trans-unit id="++CODE++461401ab1ef5eb94c409a7d6de3ad223b3733f4a8823944fc070fcfdf5ebed6b">
       <source xml:lang="en">This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.</source>
     </trans-unit>
+    <trans-unit id="++CODE++cbc6ae36d1aec69e8b4ab32b18eac65c87ac1ded2fe8e3c342df068fb83be36d">
+      <source xml:lang="en">This server only supports Microsoft Entra ID authentication.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1bb6be5ab437360bab6d5fc59d72d16ba5c0ed71d17cb0b2e7a269f070ef6535">
+      <source xml:lang="en">This server only supports SQL Authentication.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2058e7768297cdc1b7cbeb655cd4f06450ec8900fad7f2b06367934185d5967a">
+      <source xml:lang="en">This server supports Microsoft Entra ID and SQL Authentication.</source>
+    </trans-unit>
     <trans-unit id="++CODE++680b3510100d0d19288133607ee876d6e1928b0e0f6e0de1afd08a9aa88f55f2">
       <source xml:lang="en">This value was not provided in the Azure Data Studio settings file.</source>
     </trans-unit>
@@ -6909,6 +6918,9 @@
       <source xml:lang="en">Unable to acquire a valid token. (expires: {0}, but is currently {1})</source>
       <note>{0} is the token expiration time
 {1} is the current time</note>
+    </trans-unit>
+    <trans-unit id="++CODE++45f72ef532c602c155033a6d27f0b8842d5514272f174487daece16c8ae600a1">
+      <source xml:lang="en">Unable to determine the server authentication type.</source>
     </trans-unit>
     <trans-unit id="++CODE++e395097d9cde221cdb9af8b04e1073d0d3394439fce660d1c954d012cdeae6c1">
       <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source>
@@ -7024,6 +7036,12 @@
     </trans-unit>
     <trans-unit id="++CODE++c83ce937073615b8c93e7c38ed529e567ff2c01f291f92e3b4d08245018f362b">
       <source xml:lang="en">Usage limits exceeded. Try again later, or consider optimizing your requests.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b5561dc4caff598b3f5a9190b224cd34587621b1d44cb0f024a6308777d211df">
+      <source xml:lang="en">Use Microsoft Entra ID authentication to provision and connect to this database.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++78651c0e93c0ad6baf965a9c39a603425c45f989e391c49a6724d98de8583a85">
+      <source xml:lang="en">Use SQL Authentication with a valid username and password.</source>
     </trans-unit>
     <trans-unit id="++CODE++eeefe579e45c25e1a551b536d8eecc680562bce4d0aa58ffee1ad7df8cc84e63">
       <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
@@ -7325,6 +7343,9 @@
     </trans-unit>
     <trans-unit id="++CODE++48a9c1333b8297748a7cf4f38e479f6d1722302a0ce72f8516d8a749fe49d752">
       <source xml:lang="en">[Optional] Enter a display name for this connection profile</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3a7dcd8bd70596d3a3f8343c0be10cdac9018d127b885095507bad71ee11f18c">
+      <source xml:lang="en">[Read-only] Pre-filled from the server properties.</source>
     </trans-unit>
     <trans-unit id="++CODE++e7be1f1c5defef15839893c3ee18563f46ff1e9f16abc46983c3811f8bec0b62">
       <source xml:lang="en">[{0}] {1}</source>
