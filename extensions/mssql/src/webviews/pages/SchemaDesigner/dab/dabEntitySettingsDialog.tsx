@@ -6,12 +6,10 @@
 import {
     Button,
     Checkbox,
-    Dialog,
-    DialogActions,
-    DialogBody,
-    DialogContent,
-    DialogSurface,
-    DialogTitle,
+    DrawerBody,
+    DrawerFooter,
+    DrawerHeader,
+    DrawerHeaderTitle,
     Field,
     Input,
     makeStyles,
@@ -22,6 +20,7 @@ import {
     mergeClasses,
     Radio,
     RadioGroup,
+    OverlayDrawer,
     Text,
     ToggleButton,
     Tooltip,
@@ -35,24 +34,15 @@ import { StoredProcedureIcon16Regular } from "../../../common/icons/storedProced
 import { ViewIcon16Regular } from "../../../common/icons/view";
 
 const useStyles = makeStyles({
-    dialogSurface: {
+    drawer: {
         width: "640px",
-        maxWidth: "calc(100vw - 48px)",
-        maxHeight: "calc(100vh - 48px)",
-        height: "calc(100vh - 48px)",
+        maxWidth: "calc(100vw - 32px)",
     },
-    dialogBody: {
-        height: "100%",
-        minHeight: 0,
-    },
-    dialogContent: {
+    drawerBody: {
         display: "flex",
         flexDirection: "column",
         rowGap: "16px",
-        paddingTop: "16px",
-        paddingBottom: "16px",
         overflowY: "auto",
-        minHeight: 0,
     },
     headerTitleContent: {
         display: "flex",
@@ -179,7 +169,7 @@ const useStyles = makeStyles({
         fontSize: "12px",
         color: tokens.colorNeutralForeground3,
     },
-    dialogActions: {
+    drawerFooter: {
         alignSelf: "stretch",
         columnGap: "12px",
         paddingTop: "12px",
@@ -419,382 +409,349 @@ export function DabEntitySettingsDialog({
     );
 
     return (
-        <Dialog open={open} modalType="modal" onOpenChange={(_, data) => onOpenChange(data.open)}>
-            <DialogSurface className={classes.dialogSurface}>
-                <DialogBody className={classes.dialogBody}>
-                    <DialogTitle
-                        action={
-                            <Button
-                                appearance="subtle"
-                                aria-label={locConstants.common.close}
-                                icon={<Dismiss24Regular />}
-                                onClick={handleCancel}
-                            />
-                        }>
-                        <div className={classes.headerTitleContent}>
-                            <div className={classes.headerObjectRow}>
-                                {renderSourceIcon()}
-                                <span className={classes.headerObjectName}>{sourceObjectName}</span>
-                            </div>
-                            <span className={classes.headerSubtitle}>
-                                {locConstants.schemaDesigner.advancedEntityConfiguration}
-                            </span>
+        <OverlayDrawer
+            position="end"
+            open={open}
+            onOpenChange={(_, { open }) => onOpenChange(open)}
+            className={classes.drawer}>
+            <DrawerHeader>
+                <DrawerHeaderTitle
+                    action={
+                        <Button
+                            appearance="subtle"
+                            aria-label={locConstants.common.close}
+                            icon={<Dismiss24Regular />}
+                            onClick={handleCancel}
+                        />
+                    }>
+                    <div className={classes.headerTitleContent}>
+                        <div className={classes.headerObjectRow}>
+                            {renderSourceIcon()}
+                            <span className={classes.headerObjectName}>{sourceObjectName}</span>
                         </div>
-                    </DialogTitle>
-                    <DialogContent className={classes.dialogContent}>
-                        <section className={classes.section}>
-                            {renderSectionTitle(locConstants.schemaDesigner.identity)}
-                            <div className={classes.sectionBody}>
-                                <Field
-                                    label={locConstants.schemaDesigner.entityName}
-                                    required
-                                    validationState={
-                                        entityNameValidationMessage ? "error" : undefined
-                                    }
-                                    validationMessage={entityNameValidationMessage}>
-                                    <Input
-                                        value={localSettings.entityName}
-                                        onChange={(_, data) => updateEntityName(data.value)}
-                                    />
-                                </Field>
-                            </div>
-                        </section>
+                        <span className={classes.headerSubtitle}>
+                            {locConstants.schemaDesigner.advancedEntityConfiguration}
+                        </span>
+                    </div>
+                </DrawerHeaderTitle>
+            </DrawerHeader>
+            <DrawerBody className={classes.drawerBody}>
+                <section className={classes.section}>
+                    {renderSectionTitle(locConstants.schemaDesigner.identity)}
+                    <div className={classes.sectionBody}>
+                        <Field
+                            label={locConstants.schemaDesigner.entityName}
+                            required
+                            validationState={entityNameValidationMessage ? "error" : undefined}
+                            validationMessage={entityNameValidationMessage}>
+                            <Input
+                                value={localSettings.entityName}
+                                onChange={(_, data) => updateEntityName(data.value)}
+                            />
+                        </Field>
+                    </div>
+                </section>
 
-                        <section className={classes.section}>
-                            {renderSectionTitle(locConstants.schemaDesigner.authorizationRole)}
-                            <div className={classes.sectionBody}>
-                                <div className={classes.roleButtonsContainer}>
-                                    <ToggleButton
-                                        className={classes.roleButton}
-                                        appearance={isAnonymousSelected ? "primary" : "outline"}
-                                        checked={isAnonymousSelected}
-                                        onClick={() =>
-                                            updateAuthorizationRole(Dab.AuthorizationRole.Anonymous)
-                                        }>
-                                        <div className={classes.roleButtonContent}>
-                                            <span
-                                                className={mergeClasses(
-                                                    classes.roleButtonLabel,
-                                                    isAnonymousSelected
-                                                        ? classes.roleButtonLabelSelected
-                                                        : classes.roleButtonLabelUnselected,
-                                                )}>
-                                                {locConstants.schemaDesigner.anonymous}
-                                            </span>
-                                            <span
-                                                className={mergeClasses(
-                                                    classes.roleButtonDescription,
-                                                    isAnonymousSelected
-                                                        ? classes.roleButtonDescriptionSelected
-                                                        : classes.roleButtonDescriptionUnselected,
-                                                )}>
-                                                {locConstants.schemaDesigner.anonymousDescription}
-                                            </span>
-                                        </div>
-                                    </ToggleButton>
-                                    <ToggleButton
-                                        className={classes.roleButton}
-                                        appearance={isAuthenticatedSelected ? "primary" : "outline"}
-                                        checked={isAuthenticatedSelected}
-                                        onClick={() =>
-                                            updateAuthorizationRole(
-                                                Dab.AuthorizationRole.Authenticated,
-                                            )
-                                        }>
-                                        <div className={classes.roleButtonContent}>
-                                            <span
-                                                className={mergeClasses(
-                                                    classes.roleButtonLabel,
-                                                    isAuthenticatedSelected
-                                                        ? classes.roleButtonLabelSelected
-                                                        : classes.roleButtonLabelUnselected,
-                                                )}>
-                                                {locConstants.schemaDesigner.authenticated}
-                                            </span>
-                                            <span
-                                                className={mergeClasses(
-                                                    classes.roleButtonDescription,
-                                                    isAuthenticatedSelected
-                                                        ? classes.roleButtonDescriptionSelected
-                                                        : classes.roleButtonDescriptionUnselected,
-                                                )}>
-                                                {
-                                                    locConstants.schemaDesigner
-                                                        .authenticatedDescription
-                                                }
-                                            </span>
-                                        </div>
-                                    </ToggleButton>
+                <section className={classes.section}>
+                    {renderSectionTitle(locConstants.schemaDesigner.authorizationRole)}
+                    <div className={classes.sectionBody}>
+                        <div className={classes.roleButtonsContainer}>
+                            <ToggleButton
+                                className={classes.roleButton}
+                                appearance={isAnonymousSelected ? "primary" : "outline"}
+                                checked={isAnonymousSelected}
+                                onClick={() =>
+                                    updateAuthorizationRole(Dab.AuthorizationRole.Anonymous)
+                                }>
+                                <div className={classes.roleButtonContent}>
+                                    <span
+                                        className={mergeClasses(
+                                            classes.roleButtonLabel,
+                                            isAnonymousSelected
+                                                ? classes.roleButtonLabelSelected
+                                                : classes.roleButtonLabelUnselected,
+                                        )}>
+                                        {locConstants.schemaDesigner.anonymous}
+                                    </span>
+                                    <span
+                                        className={mergeClasses(
+                                            classes.roleButtonDescription,
+                                            isAnonymousSelected
+                                                ? classes.roleButtonDescriptionSelected
+                                                : classes.roleButtonDescriptionUnselected,
+                                        )}>
+                                        {locConstants.schemaDesigner.anonymousDescription}
+                                    </span>
                                 </div>
-                            </div>
-                        </section>
+                            </ToggleButton>
+                            <ToggleButton
+                                className={classes.roleButton}
+                                appearance={isAuthenticatedSelected ? "primary" : "outline"}
+                                checked={isAuthenticatedSelected}
+                                onClick={() =>
+                                    updateAuthorizationRole(Dab.AuthorizationRole.Authenticated)
+                                }>
+                                <div className={classes.roleButtonContent}>
+                                    <span
+                                        className={mergeClasses(
+                                            classes.roleButtonLabel,
+                                            isAuthenticatedSelected
+                                                ? classes.roleButtonLabelSelected
+                                                : classes.roleButtonLabelUnselected,
+                                        )}>
+                                        {locConstants.schemaDesigner.authenticated}
+                                    </span>
+                                    <span
+                                        className={mergeClasses(
+                                            classes.roleButtonDescription,
+                                            isAuthenticatedSelected
+                                                ? classes.roleButtonDescriptionSelected
+                                                : classes.roleButtonDescriptionUnselected,
+                                        )}>
+                                        {locConstants.schemaDesigner.authenticatedDescription}
+                                    </span>
+                                </div>
+                            </ToggleButton>
+                        </div>
+                    </div>
+                </section>
 
-                        <section
-                            className={mergeClasses(
-                                classes.section,
-                                !isRestEnabled && classes.sectionDisabled,
-                            )}>
-                            {renderSectionTitle(locConstants.schemaDesigner.rest)}
-                            <div className={classes.sectionBody}>
-                                {!isRestEnabled ? (
-                                    renderDisabledBanner(
-                                        Dab.ApiType.Rest,
-                                        locConstants.schemaDesigner.rest,
-                                    )
-                                ) : (
+                <section
+                    className={mergeClasses(
+                        classes.section,
+                        !isRestEnabled && classes.sectionDisabled,
+                    )}>
+                    {renderSectionTitle(locConstants.schemaDesigner.rest)}
+                    <div className={classes.sectionBody}>
+                        {!isRestEnabled ? (
+                            renderDisabledBanner(Dab.ApiType.Rest, locConstants.schemaDesigner.rest)
+                        ) : (
+                            <>
+                                <Checkbox
+                                    checked={isEntityRestEnabled}
+                                    onChange={(_, data) => updateRestEnabled(!!data.checked)}
+                                    label={locConstants.schemaDesigner.enableRestForEntity}
+                                />
+                                {isEntityRestEnabled && (
                                     <>
-                                        <Checkbox
-                                            checked={isEntityRestEnabled}
-                                            onChange={(_, data) =>
-                                                updateRestEnabled(!!data.checked)
+                                        <Field
+                                            label={renderLabelWithInfo(
+                                                locConstants.schemaDesigner.customRestPath,
+                                                locConstants.schemaDesigner.customRestPathHelp,
+                                            )}
+                                            validationState={
+                                                customRestPathValidationMessage
+                                                    ? "error"
+                                                    : undefined
                                             }
-                                            label={locConstants.schemaDesigner.enableRestForEntity}
-                                        />
-                                        {isEntityRestEnabled && (
-                                            <>
-                                                <Field
-                                                    label={renderLabelWithInfo(
-                                                        locConstants.schemaDesigner.customRestPath,
-                                                        locConstants.schemaDesigner
-                                                            .customRestPathHelp,
-                                                    )}
-                                                    validationState={
-                                                        customRestPathValidationMessage
-                                                            ? "error"
-                                                            : undefined
-                                                    }
-                                                    validationMessage={
-                                                        customRestPathValidationMessage
-                                                    }>
-                                                    <Input
-                                                        value={localSettings.customRestPath ?? ""}
-                                                        placeholder={(
-                                                            entity.sourceName ?? entity.tableName
-                                                        ).toLowerCase()}
-                                                        onChange={(_, data) =>
-                                                            updateCustomRestPath(data.value)
-                                                        }
-                                                    />
-                                                </Field>
-
-                                                {isStoredProcedure && (
-                                                    <Field
-                                                        label={renderLabelWithInfo(
-                                                            locConstants.schemaDesigner
-                                                                .storedProcedureRestMethods,
-                                                            locConstants.schemaDesigner
-                                                                .storedProcedureRestMethodsHelp,
-                                                        )}
-                                                        required>
-                                                        <RadioGroup
-                                                            className={classes.methodGroup}
-                                                            value={storedProcedureRestMethod}
-                                                            layout="horizontal"
-                                                            onChange={(_, data) =>
-                                                                updateStoredProcedureRestMethod(
-                                                                    data.value as Dab.RestMethod,
-                                                                )
-                                                            }>
-                                                            {Dab.storedProcedureAllowedRestMethods.map(
-                                                                (method) => (
-                                                                    <Radio
-                                                                        key={method}
-                                                                        value={method}
-                                                                        label={method.toUpperCase()}
-                                                                    />
-                                                                ),
-                                                            )}
-                                                        </RadioGroup>
-                                                    </Field>
-                                                )}
-                                            </>
-                                        )}
-                                    </>
-                                )}
-                            </div>
-                        </section>
-
-                        <section
-                            className={mergeClasses(
-                                classes.section,
-                                !isGraphQLEnabled && classes.sectionDisabled,
-                            )}>
-                            {renderSectionTitle(locConstants.schemaDesigner.graphql)}
-                            <div className={classes.sectionBody}>
-                                {!isGraphQLEnabled ? (
-                                    renderDisabledBanner(
-                                        Dab.ApiType.GraphQL,
-                                        locConstants.schemaDesigner.graphql,
-                                    )
-                                ) : (
-                                    <>
-                                        <Checkbox
-                                            checked={isEntityGraphQLEnabled}
-                                            onChange={(_, data) =>
-                                                updateGraphQLEnabled(!!data.checked)
-                                            }
-                                            label={
-                                                locConstants.schemaDesigner.enableGraphQLForEntity
-                                            }
-                                        />
-                                        {isEntityGraphQLEnabled && (
-                                            <>
-                                                <Field
-                                                    label={renderLabelWithInfo(
-                                                        locConstants.schemaDesigner
-                                                            .customGraphQLSingularType,
-                                                        locConstants.schemaDesigner
-                                                            .customGraphQLSingularTypeHelp,
-                                                    )}
-                                                    required={customGraphQLPluralType.length > 0}
-                                                    validationState={
-                                                        customGraphQLSingularTypeValidationMessage
-                                                            ? "error"
-                                                            : undefined
-                                                    }
-                                                    validationMessage={
-                                                        customGraphQLSingularTypeValidationMessage
-                                                    }>
-                                                    <Input
-                                                        value={customGraphQLSingularType}
-                                                        placeholder={
-                                                            entity.sourceName ?? entity.tableName
-                                                        }
-                                                        onChange={(_, data) =>
-                                                            updateCustomGraphQLSingularType(
-                                                                data.value,
-                                                            )
-                                                        }
-                                                    />
-                                                </Field>
-                                                <Field
-                                                    label={renderLabelWithInfo(
-                                                        locConstants.schemaDesigner
-                                                            .customGraphQLPluralType,
-                                                        locConstants.schemaDesigner
-                                                            .customGraphQLPluralTypeHelp,
-                                                    )}
-                                                    validationState={
-                                                        customGraphQLPluralTypeValidationMessage
-                                                            ? "error"
-                                                            : undefined
-                                                    }
-                                                    validationMessage={
-                                                        customGraphQLPluralTypeValidationMessage
-                                                    }>
-                                                    <Input
-                                                        value={customGraphQLPluralType}
-                                                        placeholder={`${
-                                                            entity.sourceName ?? entity.tableName
-                                                        }s`}
-                                                        onChange={(_, data) =>
-                                                            updateCustomGraphQLPluralType(
-                                                                data.value,
-                                                            )
-                                                        }
-                                                    />
-                                                </Field>
-
-                                                {isStoredProcedure && (
-                                                    <Field
-                                                        label={renderLabelWithInfo(
-                                                            locConstants.schemaDesigner
-                                                                .storedProcedureGraphQLOperation,
-                                                            locConstants.schemaDesigner
-                                                                .storedProcedureGraphQLOperationHelp,
-                                                        )}
-                                                        required>
-                                                        <RadioGroup
-                                                            value={storedProcedureGraphQLOperation}
-                                                            layout="horizontal"
-                                                            onChange={(_, data) =>
-                                                                updateStoredProcedureGraphQLOperation(
-                                                                    data.value as Dab.GraphQLOperation,
-                                                                )
-                                                            }>
-                                                            <Radio
-                                                                value={
-                                                                    Dab.GraphQLOperation.Mutation
-                                                                }
-                                                                label={
-                                                                    locConstants.schemaDesigner
-                                                                        .graphqlMutation
-                                                                }
-                                                            />
-                                                            <Radio
-                                                                value={Dab.GraphQLOperation.Query}
-                                                                label={
-                                                                    locConstants.schemaDesigner
-                                                                        .graphqlQuery
-                                                                }
-                                                            />
-                                                        </RadioGroup>
-                                                    </Field>
-                                                )}
-                                            </>
-                                        )}
-                                    </>
-                                )}
-                            </div>
-                        </section>
-
-                        {isStoredProcedure && (
-                            <section
-                                className={mergeClasses(
-                                    classes.section,
-                                    !isMcpEnabled && classes.sectionDisabled,
-                                )}>
-                                {renderSectionTitle(locConstants.schemaDesigner.mcp)}
-                                <div className={classes.sectionBody}>
-                                    {!isMcpEnabled ? (
-                                        renderDisabledBanner(
-                                            Dab.ApiType.Mcp,
-                                            locConstants.schemaDesigner.mcp,
-                                            locConstants.schemaDesigner.enableMcpForCustomToolHelp,
-                                        )
-                                    ) : (
-                                        <>
-                                            <Checkbox
-                                                checked={exposeAsMcpCustomTool}
+                                            validationMessage={customRestPathValidationMessage}>
+                                            <Input
+                                                value={localSettings.customRestPath ?? ""}
+                                                placeholder={(
+                                                    entity.sourceName ?? entity.tableName
+                                                ).toLowerCase()}
                                                 onChange={(_, data) =>
-                                                    updateExposeAsMcpCustomTool(!!data.checked)
-                                                }
-                                                label={
-                                                    locConstants.schemaDesigner
-                                                        .exposeAsMcpCustomTool
+                                                    updateCustomRestPath(data.value)
                                                 }
                                             />
-                                            {exposeAsMcpCustomTool && (
-                                                <span className={classes.fieldHint}>
-                                                    {
-                                                        locConstants.schemaDesigner
-                                                            .exposeAsMcpCustomToolHelp
-                                                    }
-                                                </span>
-                                            )}
-                                        </>
-                                    )}
-                                </div>
-                            </section>
+                                        </Field>
+
+                                        {isStoredProcedure && (
+                                            <Field
+                                                label={renderLabelWithInfo(
+                                                    locConstants.schemaDesigner
+                                                        .storedProcedureRestMethods,
+                                                    locConstants.schemaDesigner
+                                                        .storedProcedureRestMethodsHelp,
+                                                )}
+                                                required>
+                                                <RadioGroup
+                                                    className={classes.methodGroup}
+                                                    value={storedProcedureRestMethod}
+                                                    layout="horizontal"
+                                                    onChange={(_, data) =>
+                                                        updateStoredProcedureRestMethod(
+                                                            data.value as Dab.RestMethod,
+                                                        )
+                                                    }>
+                                                    {Dab.storedProcedureAllowedRestMethods.map(
+                                                        (method) => (
+                                                            <Radio
+                                                                key={method}
+                                                                value={method}
+                                                                label={method.toUpperCase()}
+                                                            />
+                                                        ),
+                                                    )}
+                                                </RadioGroup>
+                                            </Field>
+                                        )}
+                                    </>
+                                )}
+                            </>
                         )}
-                    </DialogContent>
-                    <DialogActions className={classes.dialogActions}>
-                        <Button
-                            appearance="secondary"
-                            className={classes.actionButton}
-                            onClick={handleCancel}>
-                            {locConstants.common.cancel}
-                        </Button>
-                        <Button
-                            appearance="primary"
-                            className={classes.actionButton}
-                            disabled={hasValidationError}
-                            onClick={handleApply}>
-                            {locConstants.schemaDesigner.applyChanges}
-                        </Button>
-                    </DialogActions>
-                </DialogBody>
-            </DialogSurface>
-        </Dialog>
+                    </div>
+                </section>
+
+                <section
+                    className={mergeClasses(
+                        classes.section,
+                        !isGraphQLEnabled && classes.sectionDisabled,
+                    )}>
+                    {renderSectionTitle(locConstants.schemaDesigner.graphql)}
+                    <div className={classes.sectionBody}>
+                        {!isGraphQLEnabled ? (
+                            renderDisabledBanner(
+                                Dab.ApiType.GraphQL,
+                                locConstants.schemaDesigner.graphql,
+                            )
+                        ) : (
+                            <>
+                                <Checkbox
+                                    checked={isEntityGraphQLEnabled}
+                                    onChange={(_, data) => updateGraphQLEnabled(!!data.checked)}
+                                    label={locConstants.schemaDesigner.enableGraphQLForEntity}
+                                />
+                                {isEntityGraphQLEnabled && (
+                                    <>
+                                        <Field
+                                            label={renderLabelWithInfo(
+                                                locConstants.schemaDesigner
+                                                    .customGraphQLSingularType,
+                                                locConstants.schemaDesigner
+                                                    .customGraphQLSingularTypeHelp,
+                                            )}
+                                            required={customGraphQLPluralType.length > 0}
+                                            validationState={
+                                                customGraphQLSingularTypeValidationMessage
+                                                    ? "error"
+                                                    : undefined
+                                            }
+                                            validationMessage={
+                                                customGraphQLSingularTypeValidationMessage
+                                            }>
+                                            <Input
+                                                value={customGraphQLSingularType}
+                                                placeholder={entity.sourceName ?? entity.tableName}
+                                                onChange={(_, data) =>
+                                                    updateCustomGraphQLSingularType(data.value)
+                                                }
+                                            />
+                                        </Field>
+                                        <Field
+                                            label={renderLabelWithInfo(
+                                                locConstants.schemaDesigner.customGraphQLPluralType,
+                                                locConstants.schemaDesigner
+                                                    .customGraphQLPluralTypeHelp,
+                                            )}
+                                            validationState={
+                                                customGraphQLPluralTypeValidationMessage
+                                                    ? "error"
+                                                    : undefined
+                                            }
+                                            validationMessage={
+                                                customGraphQLPluralTypeValidationMessage
+                                            }>
+                                            <Input
+                                                value={customGraphQLPluralType}
+                                                placeholder={`${
+                                                    entity.sourceName ?? entity.tableName
+                                                }s`}
+                                                onChange={(_, data) =>
+                                                    updateCustomGraphQLPluralType(data.value)
+                                                }
+                                            />
+                                        </Field>
+
+                                        {isStoredProcedure && (
+                                            <Field
+                                                label={renderLabelWithInfo(
+                                                    locConstants.schemaDesigner
+                                                        .storedProcedureGraphQLOperation,
+                                                    locConstants.schemaDesigner
+                                                        .storedProcedureGraphQLOperationHelp,
+                                                )}
+                                                required>
+                                                <RadioGroup
+                                                    value={storedProcedureGraphQLOperation}
+                                                    layout="horizontal"
+                                                    onChange={(_, data) =>
+                                                        updateStoredProcedureGraphQLOperation(
+                                                            data.value as Dab.GraphQLOperation,
+                                                        )
+                                                    }>
+                                                    <Radio
+                                                        value={Dab.GraphQLOperation.Mutation}
+                                                        label={
+                                                            locConstants.schemaDesigner
+                                                                .graphqlMutation
+                                                        }
+                                                    />
+                                                    <Radio
+                                                        value={Dab.GraphQLOperation.Query}
+                                                        label={
+                                                            locConstants.schemaDesigner.graphqlQuery
+                                                        }
+                                                    />
+                                                </RadioGroup>
+                                            </Field>
+                                        )}
+                                    </>
+                                )}
+                            </>
+                        )}
+                    </div>
+                </section>
+
+                {isStoredProcedure && (
+                    <section
+                        className={mergeClasses(
+                            classes.section,
+                            !isMcpEnabled && classes.sectionDisabled,
+                        )}>
+                        {renderSectionTitle(locConstants.schemaDesigner.mcp)}
+                        <div className={classes.sectionBody}>
+                            {!isMcpEnabled ? (
+                                renderDisabledBanner(
+                                    Dab.ApiType.Mcp,
+                                    locConstants.schemaDesigner.mcp,
+                                    locConstants.schemaDesigner.enableMcpForCustomToolHelp,
+                                )
+                            ) : (
+                                <>
+                                    <Checkbox
+                                        checked={exposeAsMcpCustomTool}
+                                        onChange={(_, data) =>
+                                            updateExposeAsMcpCustomTool(!!data.checked)
+                                        }
+                                        label={locConstants.schemaDesigner.exposeAsMcpCustomTool}
+                                    />
+                                    {exposeAsMcpCustomTool && (
+                                        <span className={classes.fieldHint}>
+                                            {locConstants.schemaDesigner.exposeAsMcpCustomToolHelp}
+                                        </span>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    </section>
+                )}
+            </DrawerBody>
+            <DrawerFooter className={classes.drawerFooter}>
+                <Button
+                    appearance="secondary"
+                    className={classes.actionButton}
+                    onClick={handleCancel}>
+                    {locConstants.common.cancel}
+                </Button>
+                <Button
+                    appearance="primary"
+                    className={classes.actionButton}
+                    disabled={hasValidationError}
+                    onClick={handleApply}>
+                    {locConstants.schemaDesigner.applyChanges}
+                </Button>
+            </DrawerFooter>
+        </OverlayDrawer>
     );
 }
