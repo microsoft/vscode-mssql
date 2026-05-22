@@ -14,6 +14,7 @@ import { generateQueryUri } from "../models/utils";
 import * as LocalizedConstants from "../constants/locConstants";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions, ActivityStatus } from "../sharedInterfaces/telemetry";
+import { ILogger2 } from "../models/logger2";
 import { NotebookQueryExecutor, NotebookQueryResult } from "./notebookQueryExecutor";
 
 /**
@@ -37,7 +38,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
     private connectionUri: string | undefined;
     private connectionInfo: IConnectionInfo | undefined;
     private connectionLabel: string = "";
-    private log: vscode.LogOutputChannel;
+    private log: ILogger2;
     private readonly queryExecutor: NotebookQueryExecutor;
 
     /**
@@ -51,7 +52,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
     constructor(
         private connectionMgr: ConnectionManager,
         private connectionSharingService: ConnectionSharingService,
-        log: vscode.LogOutputChannel,
+        log: ILogger2,
         client?: SqlToolsServiceClient,
         notificationHandler?: QueryNotificationHandler,
     ) {
@@ -90,7 +91,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
      */
     private async connectInternal(connectionInfo: IConnectionInfo): Promise<string> {
         const uri = generateQueryUri().toString();
-        this.log.info(
+        this.log.debug(
             `[connectInternal] begin adhocUri=${uri} ` +
                 `server=${connectionInfo.server} database=${connectionInfo.database ?? "(default)"}`,
         );
@@ -107,7 +108,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
             );
             throw err;
         }
-        this.log.info(
+        this.log.debug(
             `[connectInternal] connect returned success=${success} ` +
                 `after ${Date.now() - started}ms uri=${uri}`,
         );
@@ -122,13 +123,13 @@ export class NotebookConnectionManager implements vscode.Disposable {
      * otherwise prompts the user to pick one.
      */
     async ensureConnection(): Promise<string> {
-        this.log.info(
+        this.log.debug(
             `[ensureConnection] begin currentUri=${this.connectionUri ?? "none"} ` +
                 `hasStoredInfo=${!!this.connectionInfo}`,
         );
         if (this.connectionUri) {
             const alive = this.connectionSharingService.isConnected(this.connectionUri);
-            this.log.info(`[ensureConnection] existing uri alive=${alive}`);
+            this.log.debug(`[ensureConnection] existing uri alive=${alive}`);
             if (alive) {
                 return this.connectionUri;
             }
@@ -298,7 +299,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
             throw new Error(LocalizedConstants.Notebooks.noActiveConnection);
         }
         const alive = this.connectionSharingService.isConnected(this.connectionUri);
-        this.log.info(
+        this.log.debug(
             `[executeQueryString] dispatch uri=${this.connectionUri} ` +
                 `aliveAtDispatch=${alive} sqlLen=${sql.length}`,
         );

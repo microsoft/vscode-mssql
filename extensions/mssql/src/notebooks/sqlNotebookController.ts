@@ -11,6 +11,7 @@ import * as LocalizedConstants from "../constants/locConstants";
 import ConnectionManager from "../controllers/connectionManager";
 import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
 import * as Utils from "../models/utils";
+import { ILogger2, Logger2 } from "../models/logger2";
 import { NotebookConnectionManager } from "./notebookConnectionManager";
 import { NotebookCodeLensProvider } from "./notebookCodeLensProvider";
 import { NotebookBatchResult } from "./notebookQueryExecutor";
@@ -62,7 +63,7 @@ export class SqlNotebookController implements vscode.Disposable {
     readonly connections = new Map<string, NotebookConnectionManager>();
     private readonly codeLensProvider: NotebookCodeLensProvider;
     private readonly statusBarItem: vscode.StatusBarItem;
-    private readonly log: vscode.LogOutputChannel;
+    private readonly log: ILogger2;
     private readonly disposables: vscode.Disposable[] = [];
     private executionOrder = 0;
     // Track notebooks by their document object to handle URI changes on save
@@ -79,10 +80,10 @@ export class SqlNotebookController implements vscode.Disposable {
         private readonly _connectionManagerFactory?: (
             connectionMgr: ConnectionManager,
             connectionSharingService: ConnectionSharingService,
-            log: vscode.LogOutputChannel,
+            log: ILogger2,
         ) => NotebookConnectionManager,
     ) {
-        this.log = vscode.window.createOutputChannel("MSSQL - Notebooks", { log: true });
+        this.log = Logger2.forChannelName("MSSQL - Notebooks", "SqlNotebookController");
 
         this.controller = vscode.notebooks.createNotebookController(
             "ms-mssql.sql-notebook-controller",
@@ -495,27 +496,27 @@ export class SqlNotebookController implements vscode.Disposable {
 
         const code = cell.document.getText().trim();
 
-        this.log.info(
+        this.log.debug(
             `[executeCell] start order=${execution.executionOrder} cellIndex=${cell.index} ` +
                 `notebook=${notebook.uri.toString()} isUntitled=${notebook.isUntitled} ` +
                 `codeLen=${code.length}`,
         );
 
         if (!code) {
-            this.log.info(`[executeCell] empty cell, skipping`);
+            this.log.debug(`[executeCell] empty cell, skipping`);
             execution.end(true, Date.now());
             return;
         }
 
         const connMgr = this.getConnectionManager(notebook);
-        this.log.info(
+        this.log.debug(
             `[executeCell] preConn existingUri=${connMgr.getConnectionUri() ?? "none"} ` +
                 `isConnected=${connMgr.isConnected()}`,
         );
 
         // Handle magic commands
         if (code.startsWith("%%")) {
-            this.log.info(`[executeCell] magic command path`);
+            this.log.debug(`[executeCell] magic command path`);
             await this.handleMagic(code, execution, connMgr, notebook);
             this.updateStatusBar(notebook);
             this.codeLensProvider.refresh();
@@ -524,9 +525,9 @@ export class SqlNotebookController implements vscode.Disposable {
 
         // Ensure we have a connection (one per notebook, reused across cells)
         try {
-            this.log.info(`[executeCell] ensureConnection: begin`);
+            this.log.debug(`[executeCell] ensureConnection: begin`);
             const ensuredUri = await connMgr.ensureConnection();
-            this.log.info(
+            this.log.debug(
                 `[executeCell] ensureConnection: ok uri=${ensuredUri} ` +
                     `isConnected=${connMgr.isConnected()}`,
             );
@@ -558,12 +559,12 @@ export class SqlNotebookController implements vscode.Disposable {
         );
 
         try {
-            this.log.info(
+            this.log.debug(
                 `[executeCell] executeQueryString: begin uri=${connMgr.getConnectionUri() ?? "none"} ` +
                     `sqlLen=${code.length}`,
             );
             const result = await connMgr.executeQueryString(code, execution.token);
-            this.log.info(
+            this.log.debug(
                 `[executeCell] executeQueryString: done canceled=${result.canceled} ` +
                     `batches=${result.batches.length}`,
             );

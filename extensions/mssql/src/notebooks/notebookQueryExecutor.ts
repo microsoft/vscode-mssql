@@ -27,6 +27,7 @@ import { QueryDisposeRequest, QueryDisposeParams } from "../models/contracts/que
 import { QueryCancelRequest, QueryCancelParams } from "../models/contracts/queryCancel";
 import { IDbColumn, IResultMessage } from "../models/interfaces";
 import { Deferred } from "../protocol";
+import { ILogger2 } from "../models/logger2";
 
 export interface NotebookResultSetData {
     columnInfo: IDbColumn[];
@@ -68,7 +69,7 @@ export class NotebookQueryExecutor {
     constructor(
         private readonly client: SqlToolsServiceClient,
         private readonly notificationHandler: QueryNotificationHandler,
-        private readonly log?: vscode.LogOutputChannel,
+        private readonly log?: ILogger2,
     ) {}
 
     async execute(
@@ -76,7 +77,7 @@ export class NotebookQueryExecutor {
         query: string,
         cancellationToken?: vscode.CancellationToken,
     ): Promise<NotebookQueryResult> {
-        this.log?.info(
+        this.log?.debug(
             `[QueryExecutor.execute] begin ownerUri=${ownerUri} queryLen=${query.length}`,
         );
         const batchResults = new Map<number, NotebookBatchResult>();
@@ -156,11 +157,11 @@ export class NotebookQueryExecutor {
 
         // Register handler and set up cancellation
         this.notificationHandler.registerRunner(handler, ownerUri);
-        this.log?.info(`[QueryExecutor.execute] handler registered ownerUri=${ownerUri}`);
+        this.log?.trace(`[QueryExecutor.execute] handler registered ownerUri=${ownerUri}`);
 
         const cancelDisposable = cancellationToken?.onCancellationRequested(async () => {
             canceled = true;
-            this.log?.info(`[QueryExecutor.execute] cancel requested ownerUri=${ownerUri}`);
+            this.log?.debug(`[QueryExecutor.execute] cancel requested ownerUri=${ownerUri}`);
             try {
                 const cancelParams: QueryCancelParams = { ownerUri };
                 await this.client.sendRequest(QueryCancelRequest.type, cancelParams);
@@ -174,12 +175,12 @@ export class NotebookQueryExecutor {
             const params = new QueryExecuteStringParams();
             params.ownerUri = ownerUri;
             params.query = query;
-            this.log?.info(
+            this.log?.trace(
                 `[QueryExecutor.execute] sendRequest(QueryExecuteString): begin ownerUri=${ownerUri}`,
             );
             const sendStarted = Date.now();
             await this.client.sendRequest(QueryExecuteStringRequest.type, params);
-            this.log?.info(
+            this.log?.debug(
                 `[QueryExecutor.execute] sendRequest(QueryExecuteString): ack after ` +
                     `${Date.now() - sendStarted}ms; waiting for query/complete ownerUri=${ownerUri}`,
             );
@@ -187,7 +188,7 @@ export class NotebookQueryExecutor {
             // Wait for query/complete notification
             const waitStarted = Date.now();
             await completion.promise;
-            this.log?.info(
+            this.log?.debug(
                 `[QueryExecutor.execute] query/complete received after ` +
                     `${Date.now() - waitStarted}ms ownerUri=${ownerUri}`,
             );
