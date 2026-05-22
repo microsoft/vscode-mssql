@@ -40,11 +40,9 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { Dab } from "../../../../sharedInterfaces/dab";
 import { locConstants } from "../../../common/locConstants";
 import { PrimaryKeyIcon } from "../../../common/icons/primaryKey";
-import { StoredProcedureIcon16Regular } from "../../../common/icons/storedProcedure";
-import { ViewIcon16Regular } from "../../../common/icons/view";
 import { useDabContext } from "./dabContext";
 import { DabEntitySettingsDialog } from "./dabEntitySettingsDialog";
-import { DabEntityFilters, doesEntityMatchDabFilters } from "./dabEntityFilters";
+import { DabEntityFilters, doesEntityMatchDabFilters, isDabTableEntity } from "./dabEntityFilters";
 import "./dabEntityTable.css";
 
 const TYPE_INDENT = 20;
@@ -77,7 +75,6 @@ type FlatRow =
           type: "objectGroup";
           id: string;
           schemaName: string;
-          sourceType: Dab.EntitySourceType;
           entities: Dab.DabEntityConfig[];
           enabledEntityCount: number;
           isExpanded: boolean;
@@ -101,11 +98,9 @@ type CheckedState = "checked" | "mixed" | "unchecked";
 
 function getSourceTypeLabel(sourceType?: Dab.EntitySourceType): string {
     switch (sourceType ?? Dab.EntitySourceType.Table) {
-        case Dab.EntitySourceType.View:
-            return locConstants.schemaDesigner.view;
-        case Dab.EntitySourceType.StoredProcedure:
-            return locConstants.schemaDesigner.storedProcedure;
         case Dab.EntitySourceType.Table:
+            return locConstants.schemaDesigner.table;
+        default:
             return locConstants.schemaDesigner.table;
     }
 }
@@ -138,9 +133,12 @@ function createDefaultExpandedRows(config?: Dab.DabConfig | null): Set<string> {
 
     const expanded = new Set<string>();
     for (const entity of config.entities) {
+        if (!isDabTableEntity(entity)) {
+            continue;
+        }
         const schemaKey = getSchemaGroupKey(entity.schemaName);
         expanded.add(`schema-${schemaKey}`);
-        expanded.add(`schema-${schemaKey}-${entity.sourceType ?? Dab.EntitySourceType.Table}`);
+        expanded.add(`schema-${schemaKey}-${Dab.EntitySourceType.Table}`);
     }
     return expanded;
 }
@@ -473,15 +471,6 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
         [],
     );
 
-    const sourceTypeLabels: Record<Dab.EntitySourceType, string> = useMemo(
-        () => ({
-            [Dab.EntitySourceType.Table]: locConstants.schemaDesigner.tables,
-            [Dab.EntitySourceType.View]: locConstants.schemaDesigner.views,
-            [Dab.EntitySourceType.StoredProcedure]: locConstants.schemaDesigner.storedProcedures,
-        }),
-        [],
-    );
-
     // ── Filtering ──
 
     const filteredEntities = useMemo(() => {
@@ -502,14 +491,12 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
             const schemaName = entity.schemaName.toLowerCase();
             const source =
                 `${entity.schemaName}.${entity.sourceName ?? entity.tableName}`.toLowerCase();
-            const sourceType = (entity.sourceType ?? Dab.EntitySourceType.Table).toLowerCase();
             const columnNames = entity.columns.map((column) => column.name.toLowerCase());
 
             return (
                 entityName.includes(loweredFilter) ||
                 schemaName.includes(loweredFilter) ||
                 source.includes(loweredFilter) ||
-                sourceType.includes(loweredFilter) ||
                 columnNames.some((columnName) => columnName.includes(loweredFilter))
             );
         });
@@ -573,28 +560,15 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
             });
 
             if (schemaExpanded) {
-                const groups = [
-                    Dab.EntitySourceType.Table,
-                    Dab.EntitySourceType.View,
-                    Dab.EntitySourceType.StoredProcedure,
-                ]
-                    .map((sourceType) => ({
-                        sourceType,
-                        entities: entities.filter(
-                            (entity) =>
-                                (entity.sourceType ?? Dab.EntitySourceType.Table) === sourceType,
-                        ),
-                    }))
-                    .filter((group) => group.entities.length > 0);
+                const groups = [{ entities }].filter((group) => group.entities.length > 0);
 
                 for (const group of groups) {
-                    const groupId = `schema-${schemaKey}-${group.sourceType}`;
+                    const groupId = `schema-${schemaKey}-${Dab.EntitySourceType.Table}`;
                     const groupExpanded = expandedRows.has(groupId);
                     rows.push({
                         type: "objectGroup",
                         id: groupId,
                         schemaName,
-                        sourceType: group.sourceType,
                         entities: group.entities,
                         enabledEntityCount: group.entities.filter((e) => e.isEnabled).length,
                         isExpanded: groupExpanded,
@@ -603,9 +577,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                     if (groupExpanded) {
                         for (const entity of group.entities) {
                             const entityExpanded =
-                                entity.isSupported &&
-                                entity.sourceType !== Dab.EntitySourceType.StoredProcedure &&
-                                expandedRows.has(entity.id);
+                                entity.isSupported && expandedRows.has(entity.id);
                             rows.push({
                                 type: "entity",
                                 id: entity.id,
@@ -650,12 +622,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
 
     const headerActionState = useCallback(
         (action: Dab.EntityAction): CheckedState => {
-            const enabledEntities = filteredEntities.filter(
-                (e) =>
-                    e.isSupported &&
-                    e.isEnabled &&
-                    e.sourceType !== Dab.EntitySourceType.StoredProcedure,
-            );
+            const enabledEntities = filteredEntities.filter((e) => e.isSupported && e.isEnabled);
             const withAction = enabledEntities.filter((e) => e.enabledActions.includes(action));
             return getCheckedState(enabledEntities.length, withAction.length);
         },
@@ -664,12 +631,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
 
     const toggleHeaderAction = useCallback(
         (action: Dab.EntityAction) => {
-            const enabledEntities = filteredEntities.filter(
-                (e) =>
-                    e.isSupported &&
-                    e.isEnabled &&
-                    e.sourceType !== Dab.EntitySourceType.StoredProcedure,
-            );
+            const enabledEntities = filteredEntities.filter((e) => e.isSupported && e.isEnabled);
             if (enabledEntities.length === 0) {
                 return;
             }
@@ -788,7 +750,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                             checked={toNativeChecked(checkState)}
                             disabled={supported.length === 0}
                             onChange={() => toggleEntities(row.entities)}
-                            aria-label={sourceTypeLabels[row.sourceType]}
+                            aria-label={locConstants.schemaDesigner.tables}
                         />
                     </div>
                 );
@@ -858,7 +820,6 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
         [
             classes.centeredCell,
             entitySelectionState,
-            sourceTypeLabels,
             toggleDabColumnExposure,
             toggleDabEntity,
             toggleEntities,
@@ -906,15 +867,9 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                                 )
                             }
                             className={classes.expandButton}
-                            disabled={
-                                !row.entity.isSupported ||
-                                row.entity.sourceType === Dab.EntitySourceType.StoredProcedure
-                            }
+                            disabled={!row.entity.isSupported}
                             onClick={() => {
-                                if (
-                                    row.entity.isSupported &&
-                                    row.entity.sourceType !== Dab.EntitySourceType.StoredProcedure
-                                ) {
+                                if (row.entity.isSupported) {
                                     toggleExpanded(row.entity.id);
                                 }
                             }}
@@ -959,7 +914,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                         <Folder16Regular className="dab-icon-schema" />
                         <span className={classes.nameLabel}>
                             {highlightText(
-                                sourceTypeLabels[row.sourceType],
+                                locConstants.schemaDesigner.tables,
                                 dabTextFilter,
                                 classes.searchHighlight,
                             )}
@@ -973,19 +928,12 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
 
             if (row.type === "entity") {
                 const unsupportedText = getUnsupportedReasonText(row.entity);
-                const sourceType = row.entity.sourceType ?? Dab.EntitySourceType.Table;
 
                 const nameContent = (
                     <div
                         className={classes.nameCellContent}
                         style={{ paddingInlineStart: `${getRowIndent(row)}px` }}>
-                        {sourceType === Dab.EntitySourceType.View ? (
-                            <ViewIcon16Regular className="dab-icon-view" />
-                        ) : sourceType === Dab.EntitySourceType.StoredProcedure ? (
-                            <StoredProcedureIcon16Regular className="dab-icon-procedure" />
-                        ) : (
-                            <Table16Regular className="dab-icon-table" />
-                        )}
+                        <Table16Regular className="dab-icon-table" />
                         <span className={classes.nameLabel}>
                             {highlightText(
                                 row.entity.advancedSettings.entityName,
@@ -993,12 +941,10 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                                 classes.searchHighlight,
                             )}
                         </span>
-                        {sourceType !== Dab.EntitySourceType.StoredProcedure && (
-                            <Badge appearance="filled" size="small" color="informative">
-                                {row.entity.columns.filter((c) => c.isExposed).length}/
-                                {row.entity.columns.length}
-                            </Badge>
-                        )}
+                        <Badge appearance="filled" size="small" color="informative">
+                            {row.entity.columns.filter((c) => c.isExposed).length}/
+                            {row.entity.columns.length}
+                        </Badge>
                         {unsupportedText && (
                             <Tooltip content={unsupportedText} relationship="description">
                                 <Warning16Regular className={classes.warningIcon} />
@@ -1064,7 +1010,6 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
             classes.warningIcon,
             dabTextFilter,
             getRowIndent,
-            sourceTypeLabels,
         ],
     );
 
@@ -1089,10 +1034,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
 
     const renderActionContent = useCallback(
         (row: FlatRow, action: Dab.EntityAction) => {
-            if (
-                row.type !== "entity" ||
-                row.entity.sourceType === Dab.EntitySourceType.StoredProcedure
-            ) {
+            if (row.type !== "entity") {
                 return renderBlankContent();
             }
 
@@ -1216,12 +1158,8 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                             <Checkbox
                                 checked={toNativeChecked(headerActionState(action))}
                                 disabled={
-                                    filteredEntities.filter(
-                                        (e) =>
-                                            e.isSupported &&
-                                            e.isEnabled &&
-                                            e.sourceType !== Dab.EntitySourceType.StoredProcedure,
-                                    ).length === 0
+                                    filteredEntities.filter((e) => e.isSupported && e.isEnabled)
+                                        .length === 0
                                 }
                                 onChange={() => toggleHeaderAction(action)}
                                 aria-label={locConstants.schemaDesigner.selectAllAction(

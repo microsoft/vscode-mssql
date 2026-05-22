@@ -416,16 +416,6 @@ export namespace Dab {
         );
     }
 
-    export interface GetDatabaseObjectsResponse {
-        sourceObjects: DabSourceObject[];
-    }
-
-    export namespace GetDatabaseObjectsRequest {
-        export const type = new RequestType<void, GetDatabaseObjectsResponse, void>(
-            "dab/getDatabaseObjects",
-        );
-    }
-
     /**
      * Entity reference for DAB tool operations.
      * Exactly one form is supported: id OR schemaName+tableName OR schemaName+sourceName+sourceType.
@@ -1487,7 +1477,7 @@ export namespace Dab {
 
     export function createDefaultConfigFromSources(sourceObjects: DabSourceObject[]): DabConfig {
         return {
-            apiTypes: [ApiType.Rest],
+            apiTypes: [ApiType.Rest, ApiType.GraphQL, ApiType.Mcp],
             entities: sourceObjects.map((sourceObject) =>
                 createDefaultEntityConfigFromSource(sourceObject),
             ),

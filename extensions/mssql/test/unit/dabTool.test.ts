@@ -1936,8 +1936,16 @@ suite("DabTool Tests", () => {
             expect(result.failedChangeIndex).to.equal(1);
             expect(result.appliedChanges).to.equal(0);
             expect(result.version).to.equal(originalVersion);
-            expect(result.summary?.apiTypes).to.deep.equal([Dab.ApiType.Rest]);
-            expect(harness.getConfig()?.apiTypes).to.deep.equal([Dab.ApiType.Rest]);
+            expect(result.summary?.apiTypes).to.deep.equal([
+                Dab.ApiType.Rest,
+                Dab.ApiType.GraphQL,
+                Dab.ApiType.Mcp,
+            ]);
+            expect(harness.getConfig()?.apiTypes).to.deep.equal([
+                Dab.ApiType.Rest,
+                Dab.ApiType.GraphQL,
+                Dab.ApiType.Mcp,
+            ]);
             expect(harness.commitSpy.called).to.equal(false);
         });
 
