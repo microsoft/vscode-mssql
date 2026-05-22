@@ -13,7 +13,7 @@ steps:
     workingDirectory: "$(Build.SourcesDirectory)"
 
   - pwsh: |
-      node scripts/stamp-prerelease-version.mjs "$(Build.BuildId)" --label pr
+      node scripts/stamp-prerelease-version.mjs "$(Build.BuildNumber)" --label pr
     displayName: Stamp build as pull request version
     workingDirectory: "$(Build.SourcesDirectory)"
 
