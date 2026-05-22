@@ -605,6 +605,78 @@ suite("NotebookConnectionManager", () => {
             await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
             expect(log.warn).to.have.been.called;
         });
+
+        test("memoizes per cell URI — repeat calls do not re-send", async () => {
+            await mgr.connectWith(makeConnectionInfo());
+            connectionMgr.sendRequest.resetHistory();
+
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+
+            expect(connectionMgr.sendRequest).to.have.callCount(1);
+        });
+
+        test("sends one request per distinct cell URI", async () => {
+            await mgr.connectWith(makeConnectionInfo());
+            connectionMgr.sendRequest.resetHistory();
+
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell2");
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+
+            expect(connectionMgr.sendRequest).to.have.callCount(2);
+        });
+
+        test("re-sends after sendRequest failure (no false memoization)", async () => {
+            await mgr.connectWith(makeConnectionInfo());
+            connectionMgr.sendRequest.rejects(new Error("transient failure"));
+
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+            expect(connectionMgr.sendRequest).to.have.callCount(1);
+
+            // Recover and retry — should fire again, not be silently memoized
+            connectionMgr.sendRequest.resolves(true);
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+            expect(connectionMgr.sendRequest).to.have.callCount(2);
+        });
+
+        test("disconnect clears memoization", async () => {
+            await mgr.connectWith(makeConnectionInfo());
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+
+            mgr.disconnect();
+
+            await mgr.connectWith(makeConnectionInfo());
+            connectionMgr.sendRequest.resetHistory();
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+
+            expect(connectionMgr.sendRequest).to.have.callCount(1);
+        });
+
+        test("connectWith clears memoization (re-establishing connection)", async () => {
+            await mgr.connectWith(makeConnectionInfo());
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+
+            // Switching connection profile must force cells to be re-registered
+            // because the underlying STS connection is new.
+            await mgr.connectWith(makeConnectionInfo({ database: "OtherDB" }));
+            connectionMgr.sendRequest.resetHistory();
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+
+            expect(connectionMgr.sendRequest).to.have.callCount(1);
+        });
+
+        test("changeDatabase clears memoization", async () => {
+            await mgr.connectWith(makeConnectionInfo());
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+
+            await mgr.changeDatabase("OtherDB");
+            connectionMgr.sendRequest.resetHistory();
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+
+            expect(connectionMgr.sendRequest).to.have.callCount(1);
+        });
     });
 
     // ----------------------------------------------------------------

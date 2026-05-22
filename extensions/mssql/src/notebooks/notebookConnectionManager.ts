@@ -42,6 +42,17 @@ export class NotebookConnectionManager implements vscode.Disposable {
     private readonly queryExecutor: NotebookQueryExecutor;
 
     /**
+     * Cell document URIs already registered with STS for IntelliSense against
+     * the current connectionUri. Cleared whenever the connection changes so
+     * cells get re-registered against the new connection.
+     *
+     * Without this, every executeCell re-fires a `connection/connect` RPC per
+     * cell, and those serialize ahead of `query/executeString` on the STS
+     * JSON-RPC channel — adding seconds of latency on slow connections.
+     */
+    private registeredCellUris: Set<string> = new Set();
+
+    /**
      * Saved reconnection context from notebook metadata.
      * Used to restore the database when the user picks a server-level
      * profile (no explicit database) during reconnection.
@@ -137,6 +148,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
             this.log.info(`[ensureConnection] Connection stale, clearing: ${this.connectionUri}`);
             this.connectionUri = undefined;
             this.connectionLabel = "";
+            this.registeredCellUris.clear();
         }
 
         // Try reconnecting with stored connection info (within-session stale connection)
@@ -145,6 +157,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
             try {
                 const uri = await this.connectInternal(this.connectionInfo);
                 this.connectionUri = uri;
+                this.registeredCellUris.clear();
                 const actualDb = this.getActualDatabase(uri);
                 this.connectionLabel = formatConnectionLabel(this.connectionInfo.server, actualDb);
                 return uri;
@@ -203,6 +216,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
 
             this.connectionUri = uri;
             this.connectionInfo = connectionInfo;
+            this.registeredCellUris.clear();
             activity.end(ActivityStatus.Succeeded);
             return uri;
         } catch (err) {
@@ -236,6 +250,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
             this.connectionUri = uri;
             this.connectionInfo = { ...connectionInfo, database: actualDb || database };
             this.connectionLabel = formatConnectionLabel(server, actualDb || database);
+            this.registeredCellUris.clear();
             activity.end(ActivityStatus.Succeeded);
             return uri;
         } catch (err) {
@@ -284,6 +299,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
         this.connectionUri = uri;
         this.connectionInfo = newInfo;
         this.connectionLabel = formatConnectionLabel(newInfo.server, actualDb);
+        this.registeredCellUris.clear();
     }
 
     getCurrentDatabase(): string {
@@ -322,6 +338,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
         this.connectionUri = undefined;
         this.connectionInfo = undefined;
         this.connectionLabel = "";
+        this.registeredCellUris.clear();
     }
 
     /**
@@ -354,9 +371,18 @@ export class NotebookConnectionManager implements vscode.Disposable {
      * document URI as ownerUri and the notebook's connection details.
      * STS shares metadata caches across connections with the same
      * server/database/auth, so this doesn't cause redundant queries.
+     *
+     * Memoized per connection: subsequent calls for the same cell URI
+     * are no-ops until the connection changes. This prevents redundant
+     * connect RPCs from queuing ahead of query execution on the STS
+     * JSON-RPC channel when re-running cells in a notebook.
      */
     async connectCellForIntellisense(cellDocumentUri: string): Promise<void> {
         if (!this.connectionInfo) {
+            return;
+        }
+
+        if (this.registeredCellUris.has(cellDocumentUri)) {
             return;
         }
 
@@ -377,6 +403,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
             };
 
             await this.connectionMgr.sendRequest(ConnectionRequest.type, params);
+            this.registeredCellUris.add(cellDocumentUri);
 
             this.log.info(`[connectCellForIntellisense] Connected cell: ${cellDocumentUri}`);
         } catch (err: any) {
