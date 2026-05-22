@@ -111,6 +111,26 @@
         <source xml:lang="en">-</source>
         <target state="translated">-</target>
       </trans-unit>
+      <trans-unit id="++CODE++6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b">
+        <source xml:lang="en">1</source>
+        <target state="new">1</target>
+      </trans-unit>
+      <trans-unit id="++CODE++88af2fae162f54cc7b5d4efe02c132217c5bccb05fd1b82cbbfee5b450dc9a44">
+        <source xml:lang="en">100K vCore seconds</source>
+        <target state="new">100K vCore seconds</target>
+      </trans-unit>
+      <trans-unit id="++CODE++edf70be4cc3997d84703d19bd61ed05b95494ec7d58abb5a78ae4250ddefadcf">
+        <source xml:lang="en">32 GB</source>
+        <target state="new">32 GB</target>
+      </trans-unit>
+      <trans-unit id="++CODE++346775f99a4124e307b5630841a9cb4c7644ebec17c660619ad58ec1caba4196">
+        <source xml:lang="en">32 GB storage + 32 GB backup</source>
+        <target state="new">32 GB storage + 32 GB backup</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b63f1f48f79dc3c0319a846b9df813b98c4882df4d8b885b7f74d4ad237cf24f">
+        <source xml:lang="en">60 min</source>
+        <target state="new">60 min</target>
+      </trans-unit>
       <trans-unit id="++CODE++380918b946a526640a40df5dced6516794f3d97bbd9e6bb553d037c4439f31c3">
         <source xml:lang="en">=</source>
         <target state="translated">=</target>
@@ -291,6 +311,10 @@
         <source xml:lang="en">Add new foreign key</source>
         <target state="translated">Neuen Fremdschlüssel hinzufügen</target>
       </trans-unit>
+      <trans-unit id="++CODE++3e10b08cc874514175b51ba372ff955b27e2817963bc53ab489344968d5a472d">
+        <source xml:lang="en">Add tag</source>
+        <target state="new">Add tag</target>
+      </trans-unit>
       <trans-unit id="++CODE++4eeee164cd7b783f58eca583f898bdb923ed56ab94ae7d3604dc11738090fe7f">
         <source xml:lang="en">Add to VS Code</source>
         <target state="translated">Zu VS Code hinzufügen</target>
@@ -320,6 +344,18 @@
       <trans-unit id="++CODE++69bcade64ab9094e6b5fd3b235f0dcc9e723977c25283af0fa746bd154fc386e">
         <source xml:lang="en">Additional parameters</source>
         <target state="translated">Zusätzliche Parameter</target>
+      </trans-unit>
+      <trans-unit id="++CODE++435a3f4d792a8772b32b4787b99aa0ecb672b0117b1ff49bd8f5f35046e055ed">
+        <source xml:lang="en">Additional usage beyond the free amount will be charged at serverless rates.</source>
+        <target state="new">Additional usage beyond the free amount will be charged at serverless rates.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2e28aab93b90457d1678d144ede550e870c9826d92e8e4ca66e1d0ae05415fda">
+        <source xml:lang="en">Admin Password</source>
+        <target state="new">Admin Password</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ecef2e758186fef1d545bd27435cb4a5a1e8ec826ca16f545247ce6216b8e1ff">
+        <source xml:lang="en">Admin Username</source>
+        <target state="new">Admin Username</target>
       </trans-unit>
       <trans-unit id="++CODE++9f088dbebd6c3c70a5ddbc2c943b11e4ca9acea5757b0b4f2b32479f0dbb747e">
         <source xml:lang="en">Advanced</source>
@@ -659,6 +695,14 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you've created will be lost. Do you want to proceed with auto-arranging your schema diagram?</source>
         <target state="translated">Die automatische Anordnung wird alle Diagrammelemente basierend auf optimalen Layoutalgorithmen neu positionieren. Alle benutzerdefinierten Positionierungen, die Sie erstellt haben, gehen verloren. Möchten Sie mit der automatischen Anordnung Ihres Schemadiagramms fortfahren?</target>
       </trans-unit>
+      <trans-unit id="++CODE++4c5540399ea50cb52c6ca24ab5aebf272d0e39920af434bec1fa87fa821f1bbd">
+        <source xml:lang="en">Auto-pause</source>
+        <target state="new">Auto-pause</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3be95ed18980393b7f3c2f3f80286751e450d52d3015de1965c1671a001c56d3">
+        <source xml:lang="en">Auto-pause the database until next month</source>
+        <target state="new">Auto-pause the database until next month</target>
+      </trans-unit>
       <trans-unit id="++CODE++30fb5ec81b38c80bd2d85fce38abae5feb4cd8e3afcf2084fc37b76c8e2ae6a8">
         <source xml:lang="en">Auto-scroll</source>
         <target state="translated">Automatisch scrollen</target>
@@ -841,6 +885,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Backup Name</source>
         <target state="translated">Backupname</target>
       </trans-unit>
+      <trans-unit id="++CODE++963f6af0c0aac8420cc06761893d8cd2c2196561f20f537a6b4073da6eda141a">
+        <source xml:lang="en">Backup Storage Redundancy</source>
+        <target state="new">Backup Storage Redundancy</target>
+      </trans-unit>
       <trans-unit id="++CODE++767e443808512901f6097797d8054570a7bbd053e7db6fc556679e2757ac4162">
         <source xml:lang="en">Backup Type</source>
         <target state="translated">Backup-Typ</target>
@@ -865,6 +913,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++9bb725005055412c75a8e8d1fb5a0780595174ac8bbe5a24f768647bd4e4debe">
         <source xml:lang="en">Before</source>
         <target state="translated">Vor</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bd9e4be7933baafca2a9806ee618f7371c78f98b06064c26600bb18992282fde">
+        <source xml:lang="en">Behavior when free offer limit is reached</source>
+        <target state="new">Behavior when free offer limit is reached</target>
       </trans-unit>
       <trans-unit id="++CODE++c1ea3f5e7aa473034872296473c7fcf9c79344355ba4fd003120627f6ec1a5f7">
         <source xml:lang="en">Between</source>
@@ -898,6 +950,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Block this extension from accessing your connections</source>
         <target state="translated">Verhindern Sie, dass diese Erweiterung auf Ihre Verbindungen zugreift.</target>
       </trans-unit>
+      <trans-unit id="++CODE++b6c1d862f9f75ec31eb9829b6a5968eb291dc8785e7fb59d4bc6ef00f292d3f7">
+        <source xml:lang="en">Both</source>
+        <target state="new">Both</target>
+      </trans-unit>
       <trans-unit id="++CODE++ec811d30a89ce96d1c7555ffaede78b188fedb1d283adf7cdf55a4edae6697a7">
         <source xml:lang="en">Brightness</source>
         <target state="translated">Helligkeit</target>
@@ -913,6 +969,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++221cedb44469e4b0b105f777c771d70c7097c40a4e3e914cec4b6ba266db1970">
         <source xml:lang="en">Browse Azure</source>
         <target state="translated">Azure durchsuchen</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1fd919fd5e24a6e11c02245971437276dd6793359fce501d4dc634b83a54982a">
+        <source xml:lang="en">Browse Azure SQL Database tutorials and docs</source>
+        <target state="new">Browse Azure SQL Database tutorials and docs</target>
       </trans-unit>
       <trans-unit id="++CODE++9b0636db073a79048ef4de667c447e516b7241e55ecf311c2a6f1fbe662574a1">
         <source xml:lang="en">Browse Fabric</source>
@@ -957,6 +1017,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++9168a1046e45504ed34edeecd99ec73be336161e82395399aa9a3c1d912be6b2">
         <source xml:lang="en">Building {0}...</source>
         <target state="translated">„{0}“ wird erstellt …</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0e065649e8d08d5182df2d21e09c4601b250d55237faf7166fb300ea125f3d8b">
+        <source xml:lang="en">Built-in encryption, firewall rules, and Microsoft Entra ID integration to protect your data.</source>
+        <target state="new">Built-in encryption, firewall rules, and Microsoft Entra ID integration to protect your data.</target>
       </trans-unit>
       <trans-unit id="++CODE++24908cc5593d5d8ea1f67ad6b873dd49a8a045f441e35de15d8041d2caccfa93">
         <source xml:lang="en">Bulk Actions</source>
@@ -1599,6 +1663,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Compare</source>
         <target state="translated">Vergleichen</target>
       </trans-unit>
+      <trans-unit id="++CODE++ac33cc2b7f21b9e3f168a36d2c3c32a35216ffc2faf0630c9ae6aabc347c1b79">
+        <source xml:lang="en">Compare Azure SQL Database service tiers</source>
+        <target state="new">Compare Azure SQL Database service tiers</target>
+      </trans-unit>
       <trans-unit id="++CODE++c76e4efa9bdedc294be4e0c0a7e42040e5c921d0b30a36e1c6249893b941b662">
         <source xml:lang="en">Compare SQL Server editions</source>
         <target state="translated">Editionen von SQL Server vergleichen</target>
@@ -1619,6 +1687,14 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Compression</source>
         <target state="translated">Komprimierung</target>
       </trans-unit>
+      <trans-unit id="++CODE++cedc516df056195108208c53c37b1b3ba2b1f25b3e0772e954b98b9bc4ec76ec">
+        <source xml:lang="en">Compute</source>
+        <target state="new">Compute</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cbd2167917b36ef54fa6044f33009b01e0793c6fda74f2488762f9cdb26793fc">
+        <source xml:lang="en">Compute + Storage</source>
+        <target state="new">Compute + Storage</target>
+      </trans-unit>
       <trans-unit id="++CODE++7ddbffc16744c2642445a4ec489967d4201fe93f5ec6af10738ba783cbd78680">
         <source xml:lang="en">Config copied to clipboard</source>
         <target state="translated">Konfiguration in Zwischenablage kopiert</target>
@@ -1635,6 +1711,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Configure Rosetta in Docker Desktop</source>
         <target state="translated">Rosetta in Docker Desktop konfigurieren</target>
       </trans-unit>
+      <trans-unit id="++CODE++c6cc40d1bb74f7c0333c4264cbd7d9ac832fcd4a39f54a4f044b54471beffd71">
+        <source xml:lang="en">Configure and customize Azure SQL Databases</source>
+        <target state="new">Configure and customize Azure SQL Databases</target>
+      </trans-unit>
       <trans-unit id="++CODE++33e3ae10b101f647412be0f940cfc04d7d17e7c6f8027b42ae6697852588d1fe">
         <source xml:lang="en">Configure and customize SQL Server containers</source>
         <target state="translated">Konfigurieren und Anpassen von SQL Server-Containern</target>
@@ -1646,6 +1726,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++73dd96f4085ccfca56f43ca281a29ab8d195fe5fc79b4cb45be11d7830230d63">
         <source xml:lang="en">Confirm SQL Server admin password</source>
         <target state="translated">Bestätigen Sie das SQL Server-Administratorkennwort</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8062e054268463a31bf1409a2928cb7e54cf8cdebadeef0e739dc55c473774c1">
+        <source xml:lang="en">Confirm admin password</source>
+        <target state="new">Confirm admin password</target>
       </trans-unit>
       <trans-unit id="++CODE++bf000421aeb39493cf8044ec73846d7da8ca97b7166208c0d1172a17ba23a388">
         <source xml:lang="en">Confirm new password</source>
@@ -1703,10 +1787,18 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <note>{0} is the name of the connection profile</note>
         <target state="translated">Mit „{0}“ verbinden</target>
       </trans-unit>
+      <trans-unit id="++CODE++c61a620e1fbfff5241621d0469c0cf2dabee8f8cf66f37b4b854355917855b70">
+        <source xml:lang="en">Connect using either Microsoft Entra ID or SQL Authentication.</source>
+        <target state="new">Connect using either Microsoft Entra ID or SQL Authentication.</target>
+      </trans-unit>
       <trans-unit id="++CODE++6f00f15723c8b6718a4b05d9bb29188131a2a38b58f11c451e6522a7762c5ad5">
         <source xml:lang="en">Connect using profile {0}?</source>
         <note>{0} is the profile ID</note>
         <target state="translated">Verbindung über Profil „{0}“ herstellen?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f2d0178ddb6ab66f3ba6afff663a52bf766e08a8f4e7996d9890c75862ac6d29">
+        <source xml:lang="en">Connect with SQL tools and run your first query</source>
+        <target state="new">Connect with SQL tools and run your first query</target>
       </trans-unit>
       <trans-unit id="++CODE++bf2b06cf5edeeb66a098a3a052ced6d9f0c647f587aa00f072c6de26abcacfa0">
         <source xml:lang="en">Connect with the current settings and save the connection profile</source>
@@ -1743,6 +1835,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++bd02214c7799ec6a69018761f76fed82a6516c170ddbc3fdbf6f0c2a7b566d9f">
         <source xml:lang="en">Connecting to Database</source>
         <target state="translated">Verbindung zur Datenbank wird hergestellt.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2e2706212eec134e00b88651a09bcbab6a28eb15560d24a9c6d3690d6c06b57b">
+        <source xml:lang="en">Connecting to database</source>
+        <target state="new">Connecting to database</target>
       </trans-unit>
       <trans-unit id="++CODE++4f7403da68117c9595b82a6c264837910b1421a60537bcfa77a004a58b0a4c7a">
         <source xml:lang="en">Connecting to server "{0}" on document "{1}".</source>
@@ -1831,6 +1927,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++e4ce453aa184d4cd0a2051dfb91ab491ba8b19c756bd9f113b7a1ce1e807b02e">
         <source xml:lang="en">Connection Timeout</source>
         <target state="translated">Verbindungstimeout</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bd5a82074112e68d5443f566c1472ae08dec8c6773160c6c6c4b9c37787bf984">
+        <source xml:lang="en">Connection Timeout (seconds)</source>
+        <target state="new">Connection Timeout (seconds)</target>
       </trans-unit>
       <trans-unit id="++CODE++9e1bbb65014b6b6675d9921d3f4f67079e6646332e4bc7aff7f12acfc0b9d3d4">
         <source xml:lang="en">Connection actions</source>
@@ -1988,6 +2088,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Continue on error</source>
         <target state="translated">Bei Fehler fortsetzen</target>
       </trans-unit>
+      <trans-unit id="++CODE++36788a4bbad501fe2c69d37d0d7ce128868a41848663752a28c886a54df70752">
+        <source xml:lang="en">Continue using for additional charges</source>
+        <target state="new">Continue using for additional charges</target>
+      </trans-unit>
       <trans-unit id="++CODE++8d525e5f158b9afe05f3122af363ac67763bdc4e1395b46597b320c289766ce3">
         <source xml:lang="en">Copied</source>
         <target state="translated">Kopiert</target>
@@ -2112,6 +2216,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <note>{0} is the database name</note>
         <target state="translated">Es konnte keine Verbindung mit der Datenbank {0} hergestellt werden.</target>
       </trans-unit>
+      <trans-unit id="++CODE++03c0e95da7ae52bf9392b845b82870dbf28db813a7fd4a72085f8a544de37916">
+        <source xml:lang="en">Could not detect your client IP address. Please add a firewall rule manually in the Azure portal.</source>
+        <target state="new">Could not detect your client IP address. Please add a firewall rule manually in the Azure portal.</target>
+      </trans-unit>
       <trans-unit id="++CODE++f630f91edbf1dc6649a7de55179cb551ef8245ef63461de0094de54e58d5ea62">
         <source xml:lang="en">Could not find scripting metadata for {0} '{1}'.</source>
         <note>{0} is the node type
@@ -2168,6 +2276,14 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Create New Connection Group</source>
         <target state="translated">Neue Verbindungsgruppe erstellen</target>
       </trans-unit>
+      <trans-unit id="++CODE++9d81b93dc08c52e0f2e02d5397b390f7a94f0d4621c48a18a1a59b163acfda78">
+        <source xml:lang="en">Create New Resource Group</source>
+        <target state="new">Create New Resource Group</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bab90f75906255b3122103084e6016632ae14f76d6447b95c84c4e4d7db51ec1">
+        <source xml:lang="en">Create New Server</source>
+        <target state="new">Create New Server</target>
+      </trans-unit>
       <trans-unit id="++CODE++12d088d1b1386a6196de28580f5092baa6b0e0241453a084aa45af5d5b218d4f">
         <source xml:lang="en">Create REST, GraphQL, and MCP endpoints for your SQL database tables from a visual interface within Visual Studio Code. Configure entities, permissions, and deployment settings — then deploy locally with Docker.</source>
         <target state="translated">Erstellen Sie REST-, GraphQL- und MCP-Endpunkte für Ihre SQL-Datenbanktabellen über eine visuelle Oberfläche in Visual Studio Code. Konfigurieren Sie Entitäten, Berechtigungen und Bereitstellungseinstellungen und stellen Sie sie dann lokal mit Docker bereit.</target>
@@ -2201,9 +2317,17 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Create a new profiling session</source>
         <target state="translated">Neue Profiler-Sitzung erstellen</target>
       </trans-unit>
+      <trans-unit id="++CODE++2dda2d5e705c870b4711000d9e6e1a1552a6426ff2835af34a45eb0ea5f3182b">
+        <source xml:lang="en">Create an Azure SQL Database</source>
+        <target state="new">Create an Azure SQL Database</target>
+      </trans-unit>
       <trans-unit id="++CODE++920a110919d9017fb66218139efb71c5907532cbe6292a1db645f05d06a171ae">
         <source xml:lang="en">Create as Script</source>
         <target state="translated">Als Skript erstellen</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9f3df753a41ae98ee68246dcf9727a0e2c18af3b99e9921a55b7d75aed543f44">
+        <source xml:lang="en">Create new</source>
+        <target state="new">Create new</target>
       </trans-unit>
       <trans-unit id="++CODE++df70f437cafdeb7517ec4a9fd9ce6fc0c92b4b70ef5e7c79436341201f731fdb">
         <source xml:lang="en">Create new connection copied from {0}</source>
@@ -2248,6 +2372,14 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++725716b6df2a2ce3060b1681ae49712313e3156ab2af1b2ee7585b72b69dc7d5">
         <source xml:lang="en">Creating database</source>
         <target state="translated">Datenbank wird erstellt</target>
+      </trans-unit>
+      <trans-unit id="++CODE++db8b5a02307f785d43d26d74dc565aea97f8ac3f8ff36d6f7979440b000973c0">
+        <source xml:lang="en">Creating resource group...</source>
+        <target state="new">Creating resource group...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f0484b375485ef8d2883902cf1f5e0c2a204fc76cae01d6b3864c461c55df828">
+        <source xml:lang="en">Creating server...</source>
+        <target state="new">Creating server...</target>
       </trans-unit>
       <trans-unit id="++CODE++aafbad1d95b40db9d90a7665175501a1a2717b2b4ce3ab2e91b9d58ef5c4bb5b">
         <source xml:lang="en">Creating session...</source>
@@ -2347,6 +2479,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
 {1} is the operation name 'get_state' and must not be translated
 {2} is the operation name 'apply_changes' and must not be translated</note>
         <target state="translated">Daten-API-Generator wurde geöffnet. Fahren Sie mit {0}-Vorgängen ({1}/{2}) fort.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e136aee7826b55f91d1b030832bc4be35b9ee07563c09627052aeecb9335a039">
+        <source xml:lang="en">Data Source</source>
+        <target state="new">Data Source</target>
       </trans-unit>
       <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
         <source xml:lang="en">Data Type</source>
@@ -2448,6 +2584,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++0c44c1ef5c326d66d59992daca9150070537b80433d82792a6f4a8451bbba635">
         <source xml:lang="en">Database not found on the server</source>
         <target state="translated">Die Datenbank wurde auf dem Server nicht gefunden.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++74243f86c3e0868010e2216f08236ed91a5ca829759c64e8321c9eb1750dada1">
+        <source xml:lang="en">Database pauses until the next billing cycle when free amount is renewed.</source>
+        <target state="new">Database pauses until the next billing cycle when free amount is renewed.</target>
       </trans-unit>
       <trans-unit id="++CODE++dc235092072ac5817e5dbd55f1d76a649819cab27de89743dfd611f78bd52c5e">
         <source xml:lang="en">Database the table is created in</source>
@@ -2580,6 +2720,14 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Deployment Name</source>
         <target state="translated">Bereitstellungsname</target>
       </trans-unit>
+      <trans-unit id="++CODE++658cfc002aa81e1127e8652d0514d231cb7414501f5932b093e1939c4305781f">
+        <source xml:lang="en">Deployment failed</source>
+        <target state="new">Deployment failed</target>
+      </trans-unit>
+      <trans-unit id="++CODE++33b7ce06f20e0b1b9cdd74b2e5469a3b0053ab25eb1586e0f10309c321ecaae1">
+        <source xml:lang="en">Deployment finished</source>
+        <target state="new">Deployment finished</target>
+      </trans-unit>
       <trans-unit id="++CODE++cc51187ae9dbe9ccc606865c0177000cdeca2af5bca1c36c7f3065882c6ee18b">
         <source xml:lang="en">Deployment in progress</source>
         <target state="translated">Bereitstellung wird ausgeführt</target>
@@ -2624,6 +2772,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++b77717c5f83b6e956ddee4a19420a4f7c0bed4934cd5d6cec4c61ac92420743e">
         <source xml:lang="en">Details tab - displays all event properties</source>
         <target state="translated">Registerkarte „Details“ – zeigt alle Ereigniseigenschaften an</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3ee76edbdcf0a31ed7285d2f1bc2de28bfa973b84056bc08fd6a6a4516152e49">
+        <source xml:lang="en">Developer-friendly transactional database using the Azure SQL Database Engine — at no cost for prototyping and learning.</source>
+        <target state="new">Developer-friendly transactional database using the Azure SQL Database Engine — at no cost for prototyping and learning.</target>
       </trans-unit>
       <trans-unit id="++CODE++4140839b57403cf1b132332262ad00592590d6f7970b0f83fc60fb9b8c53d707">
         <source xml:lang="en">Developer-friendly transactional database using the Azure SQL Database Engine.</source>
@@ -2984,9 +3136,25 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Enter a name for the new profiler session</source>
         <target state="translated">Einen Namen für die neue Profiler-Sitzung eingeben</target>
       </trans-unit>
+      <trans-unit id="++CODE++66b21d157405ff2789b283f4f29e225854443edee43a0694233cdd063de255dc">
+        <source xml:lang="en">Enter a name for the new resource group</source>
+        <target state="new">Enter a name for the new resource group</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f302fdbca94d65797221e8c829c55961e7b47aebf753ca2dd797862c8453649a">
+        <source xml:lang="en">Enter a name for the new server</source>
+        <target state="new">Enter a name for the new server</target>
+      </trans-unit>
       <trans-unit id="++CODE++8c50a1a6a69f19f52d48a8ec9ac6d8fa30c1b8ae5f3b9448aabffc2dd94184c9">
         <source xml:lang="en">Enter a number...</source>
         <target state="translated">Zahl eingeben…</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6086fe9511daa7a6fa39f0af8abaf8b553c8292375dfd76bc8d583b28ce3c808">
+        <source xml:lang="en">Enter admin password</source>
+        <target state="new">Enter admin password</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2029b6cedb7a8d6b58872d33896e8d2d86134cb98d9194706758d32238c9dee2">
+        <source xml:lang="en">Enter admin username</source>
+        <target state="new">Enter admin username</target>
       </trans-unit>
       <trans-unit id="++CODE++db8916a9e121c88e488cc019e97f752538fe362701a492cbf905fa8e1cddf4d1">
         <source xml:lang="en">Enter application name</source>
@@ -3040,6 +3208,14 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Enter profile name</source>
         <target state="translated">Profilnamen eingeben</target>
       </trans-unit>
+      <trans-unit id="++CODE++aae46441eaafc59419fdc91d2a14f13e534b533fecd19a1b47833c18862731fe">
+        <source xml:lang="en">Enter resource group name</source>
+        <target state="new">Enter resource group name</target>
+      </trans-unit>
+      <trans-unit id="++CODE++01361e7512312c886672147a57fe766787e82c148e04d8c5e26897ff5bba3bef">
+        <source xml:lang="en">Enter server name</source>
+        <target state="new">Enter server name</target>
+      </trans-unit>
       <trans-unit id="++CODE++a462b8c590652563cb55e5dc6e55e0b7ac0123f0a5dd70f9043bdef3d4fa5417">
         <source xml:lang="en">Enter text...</source>
         <target state="translated">Text eingeben...</target>
@@ -3052,6 +3228,14 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++41058600ed8ab3d197264132f1b22ed25b7b2d9fa6afdffd559fc08bca9e6075">
         <source xml:lang="en">Enter the path for the output file</source>
         <target state="translated">Pfad für die Ausgabedatei eingeben</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4cd95a398bcc4e99d1d5ddc3f92702e41fa5ce370a10569104474d290505cf56">
+        <source xml:lang="en">Enter user name</source>
+        <target state="new">Enter user name</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1b216be66c84c2da4deaf986de6e71b165d9433c29e1790e5939f0f092eeaa1c">
+        <source xml:lang="en">Enter username</source>
+        <target state="new">Enter username</target>
       </trans-unit>
       <trans-unit id="++CODE++e3d4cdacc007baba40af99c4e0c4ac0ceaa8e813a8a6e0ba47f0199eaaaa3726">
         <source xml:lang="en">Entity '{0}' is not supported by Data API builder. {1}</source>
@@ -3627,6 +3811,11 @@ Fehler:
 {1} is the error message</note>
         <target state="translated">Beim Erstellen der Datenbank „{0}“ ist ein Fehler aufgetreten. {1}</target>
       </trans-unit>
+      <trans-unit id="++CODE++83183f85bfea0220389f0642b618bb70d21e77bf68028be1d05abb4bd2772407">
+        <source xml:lang="en">Failed to create firewall rule: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Failed to create firewall rule: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++e1610b299a2b8eaa35bfb68aba2bf7a2c49383d9a8f9046abd8ceb5cb7f640e1">
         <source xml:lang="en">Failed to create profiler session: {0}</source>
         <note>{0} is the error message</note>
@@ -4158,6 +4347,10 @@ Fehler:
         <note>{0} is the document name</note>
         <target state="translated">Die Abfrageausführung für Dokument "{0}" wurde abgeschlossen.</target>
       </trans-unit>
+      <trans-unit id="++CODE++f12efc4df249bedf344f5c5e1c0200fa7227e5e01e0844090e4ed9f805f35cb0">
+        <source xml:lang="en">Firewall</source>
+        <target state="new">Firewall</target>
+      </trans-unit>
       <trans-unit id="++CODE++8a9ba2938bc6bfe8f093b2168aeb656e1be8e1792c61db93cb074a6e32300b1b">
         <source xml:lang="en">Firewall rule name</source>
         <target state="translated">Name der Firewallregel</target>
@@ -4267,6 +4460,14 @@ Fehler:
         <note>{0} is the number of connection profiles</note>
         <target state="translated">Es wurden {0} gespeicherte Verbindungsprofile gefunden.</target>
       </trans-unit>
+      <trans-unit id="++CODE++101e791740d73043fdbe1492a661f8c4194d1881957dc2ba8f08d2739474ae53">
+        <source xml:lang="en">Free compute &amp; storage</source>
+        <target state="new">Free compute &amp; storage</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1da20df88686d477364e048fe92b392449ad8e0f1226ff2903d0d54cae8a24c8">
+        <source xml:lang="en">Free offer applied</source>
+        <target state="new">Free offer applied</target>
+      </trans-unit>
       <trans-unit id="++CODE++bb2f46cfafa54c18afeb7e7efc7ccf3b2d72b160c0381d2ad116e8f7139be42d">
         <source xml:lang="en">Freeze columns</source>
         <target state="translated">Spalten fixieren</target>
@@ -4295,6 +4496,10 @@ Fehler:
       <trans-unit id="++CODE++e6fcb24896423f9739a20e841d3c3f2ab319f222be60b150ed664e611be89ed4">
         <source xml:lang="en">General Options</source>
         <target state="translated">Allgemeine Optionen</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fe9fa5778e6299904ef31d5f6e87aed494f00eb96d5aba3ab8b23beed99759c9">
+        <source xml:lang="en">General Purpose</source>
+        <target state="new">General Purpose</target>
       </trans-unit>
       <trans-unit id="++CODE++752307275e5358665596d28a3080462e4933b77005bbbf2ba1eca87f1dca1fcc">
         <source xml:lang="en">Generate Data API builder configurations using natural language through GitHub Copilot chat and agent tools. Describe your API requirements and let GitHub Copilot scaffold the configuration for you.</source>
@@ -4337,6 +4542,10 @@ Fehler:
       <trans-unit id="++CODE++915fc447c859d56fa8e745484ac300e07e104e9ef318105f82b578bedf32c405">
         <source xml:lang="en">Generating script...</source>
         <target state="translated">Skript wird generiert …</target>
+      </trans-unit>
+      <trans-unit id="++CODE++10990bf5e602e929a28b2b4c29a15161d0b50a53837cfaf936e89bed619098ac">
+        <source xml:lang="en">Geo-redundant backup storage</source>
+        <target state="new">Geo-redundant backup storage</target>
       </trans-unit>
       <trans-unit id="++CODE++fddd3d1537452414b2a4c7bb1b231ca37398b9f211c1e0d8d80e6f69a7f58f2d">
         <source xml:lang="en">Get Connection Details</source>
@@ -4820,9 +5029,21 @@ Fehler:
         <source xml:lang="en">Keep in query pane</source>
         <target state="translated">Im Abfragebereich beibehalten</target>
       </trans-unit>
+      <trans-unit id="++CODE++99a52df3ff3d499488e2fa28150c4106a2cb5e928891a830a9aa3922b2d32160">
+        <source xml:lang="en">Key</source>
+        <target state="new">Key</target>
+      </trans-unit>
       <trans-unit id="++CODE++a3c13b491573b0d54bf743caf0f5d59d5a791c42ae1072f16bb941be925fae18">
         <source xml:lang="en">Keys for token cache could not be saved in credential store, this may cause Microsoft Entra Id access token persistence issues and connection instabilities. It's likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with "Microsoft.SqlTools|" in Windows Credential Manager and reload.</source>
         <target state="translated">Schlüssel für den Tokencache konnten nicht im Anmeldeinformationsspeicher gespeichert werden. Dies kann zu Problemen mit der Microsoft Entra-ID-Zugriffstokenpersistenz und Verbindungsinstabilitäten führen. Es ist wahrscheinlich, dass SqlTools das Speicherlimit für Anmeldeinformationen unter Windows erreicht hat. Löschen Sie mindestens 2 Anmeldeinformationen, die mit "Microsoft.SqlTools|" in Windows Anmeldeinformationsverwaltung beginnen, und laden Sie sie erneut.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0ca9017c8fb85ae12ca8668af23d92b03040f0d7f3b3dc6df332a7ec59ef611f">
+        <source xml:lang="en">LRS</source>
+        <target state="new">LRS</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f89417d53ba776c805f239fe55d55177f66764a88a5ae08085341e904985b900">
+        <source xml:lang="en">LRS backup (locally redundant)</source>
+        <target state="new">LRS backup (locally redundant)</target>
       </trans-unit>
       <trans-unit id="++CODE++c7d299ed6b2896187b535a86fd6b04f01669a9b72528a8f2021fff2f42d9f6e3">
         <source xml:lang="en">Last Page</source>
@@ -4835,6 +5056,10 @@ Fehler:
       <trans-unit id="++CODE++1445799c033a2d17e2bad5d8610879e71ff0d73a8a3c2b932b43ad0449dac3a1">
         <source xml:lang="en">Learn more</source>
         <target state="translated">Weitere Informationen</target>
+      </trans-unit>
+      <trans-unit id="++CODE++51f271b7eaf83c5deef5741d74dab59a856cea83ec2362b518b5de09c5b1d9f5">
+        <source xml:lang="en">Learn more about Azure SQL Database free tier</source>
+        <target state="new">Learn more about Azure SQL Database free tier</target>
       </trans-unit>
       <trans-unit id="++CODE++51da53a813a79b97741fb115a94a72fe1629a0b0e9018767157ca28d863c53e3">
         <source xml:lang="en">Learn more about SQL Server 2025 features</source>
@@ -5022,6 +5247,14 @@ Fehler:
         <source xml:lang="en">Loading Azure Accounts</source>
         <target state="translated">Laden von Azure-Konten</target>
       </trans-unit>
+      <trans-unit id="++CODE++13a937f0cc56c417b9315c6d08c42cce016b514491d1a3778422a5e8da7ccfe9">
+        <source xml:lang="en">Loading Azure SQL Database...</source>
+        <target state="new">Loading Azure SQL Database...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b3c53352119c42e3f1700a4b0a090c01515a82216dccd5ef19b6cddd1d70cacd">
+        <source xml:lang="en">Loading Azure accounts</source>
+        <target state="new">Loading Azure accounts</target>
+      </trans-unit>
       <trans-unit id="++CODE++c11efeef9812b5933f66f281e1df758fca0d28ff6c96462aa5caa7a72f0637ed">
         <source xml:lang="en">Loading Fabric Accounts</source>
         <target state="translated">Laden von Fabric-Konten</target>
@@ -5059,6 +5292,10 @@ Fehler:
         <source xml:lang="en">Loading code analysis rules...</source>
         <target state="translated">Codeanalyseregeln werden geladen...</target>
       </trans-unit>
+      <trans-unit id="++CODE++d7bd166a0fcb99c1a76bef916c6d48f1f627d8572d33c48399e2979659c8766f">
+        <source xml:lang="en">Loading collations...</source>
+        <target state="new">Loading collations...</target>
+      </trans-unit>
       <trans-unit id="++CODE++f2b912496817d1e0b2ab2560cbc08d38b2d5080aa631caffae27c4afa2f0c291">
         <source xml:lang="en">Loading database objects</source>
         <target state="translated">Datenbankobjekte werden geladen</target>
@@ -5088,6 +5325,18 @@ Fehler:
         <source xml:lang="en">Loading local containers...</source>
         <target state="translated">Lokale Container werden geladen...</target>
       </trans-unit>
+      <trans-unit id="++CODE++93f000d094c33f601abe918b123741f26201c34c891d36c1358c862e209bdf14">
+        <source xml:lang="en">Loading locations</source>
+        <target state="new">Loading locations</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b4eb78ee43fade6ba490bb64508b7dc359f5f67a8438030d28f54d46a222ee4b">
+        <source xml:lang="en">Loading maintenance windows...</source>
+        <target state="new">Loading maintenance windows...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c81954973ca0121a610a95a9872f6e71c08df9f100dd5dfb65dfee8545d2df2f">
+        <source xml:lang="en">Loading resource groups</source>
+        <target state="new">Loading resource groups</target>
+      </trans-unit>
       <trans-unit id="++CODE++9939a413e6f35f632ac5745748127482e1422e46a473769ae9804605e5ac946a">
         <source xml:lang="en">Loading restore database...</source>
         <target state="translated">Wiederherstellungsdatenbank wird geladen...</target>
@@ -5104,6 +5353,10 @@ Fehler:
         <source xml:lang="en">Loading schemas...</source>
         <target state="translated">Schemas werden geladen...</target>
       </trans-unit>
+      <trans-unit id="++CODE++5a3fe99089f1cfa6786ebfc90e68d4305f98c4a9132f49b7e57fbfe37b9f4916">
+        <source xml:lang="en">Loading servers</source>
+        <target state="new">Loading servers</target>
+      </trans-unit>
       <trans-unit id="++CODE++f01407578cbde4669a268b1fbcadffd19797d7e3f51bc0f176a52d5eb76f1358">
         <source xml:lang="en">Loading servers in '{0}'...</source>
         <note>{0} is the name of the subscription</note>
@@ -5112,6 +5365,10 @@ Fehler:
       <trans-unit id="++CODE++d6fd520e2618b0231a03b251ea5831f125d0087382f96b0a6b8c57f1fa97a69c">
         <source xml:lang="en">Loading servers in selected subscription...</source>
         <target state="new">Loading servers in selected subscription...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++44a08fe61f9d3024b58081bde56db3941ca139f52396dce09e0fbfc2c9a67897">
+        <source xml:lang="en">Loading subscriptions</source>
+        <target state="new">Loading subscriptions</target>
       </trans-unit>
       <trans-unit id="++CODE++42245d3f61aef75893195e1e0856f76292f910c8f5b8e671e515321ff9cd843b">
         <source xml:lang="en">Loading subscriptions...</source>
@@ -5129,6 +5386,10 @@ Fehler:
       <trans-unit id="++CODE++e96fc8b40ca909f818f5677d99cd419b69170253e04fc2848ec08fe2b31c6b0f">
         <source xml:lang="en">Loading table preview...</source>
         <target state="translated">Tabellenvorschau wird geladen...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8827253bb1a2a0581d324b1945989a83d7056565bc43c20ce67eba8d60c1166e">
+        <source xml:lang="en">Loading tenants</source>
+        <target state="new">Loading tenants</target>
       </trans-unit>
       <trans-unit id="++CODE++6fdb41249bacbb3684e7217e3b3d938e36b39e8d0f4300681cba1968b3301495">
         <source xml:lang="en">Loading tenants...</source>
@@ -5161,6 +5422,10 @@ Fehler:
       <trans-unit id="++CODE++b64b39db74a66e751069b0400f71efd0fb9a78f49fe418b7f73f9c96b173c105">
         <source xml:lang="en">Local container deployment is currently only supported with SQL Authentication connections.</source>
         <target state="translated">Die lokale Containerbereitstellung wird derzeit nur für Verbindungen mit SQL-Authentifizierung unterstützt.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++244f980d2c1c7cc5eb149270dda53e475cdf951f712ccb9a4039f295653912d1">
+        <source xml:lang="en">Locally-redundant backup storage</source>
+        <target state="new">Locally-redundant backup storage</target>
       </trans-unit>
       <trans-unit id="++CODE++a33a6dbd416ebaa5cdafa7c33ddc623bd52eb841a2206542a8f47b1d4eafa3b1">
         <source xml:lang="en">Locate an Azure Data Studio settings.json file to import</source>
@@ -5261,6 +5526,10 @@ Fehler:
         <source xml:lang="en">MSSQL: What's new</source>
         <target state="translated">MSSQL: Neuigkeiten</target>
       </trans-unit>
+      <trans-unit id="++CODE++4812f4553152a2d4f7e8c4ddbd2740db0fd157638b9723fc369790631aa21061">
+        <source xml:lang="en">Maintenance Window</source>
+        <target state="new">Maintenance Window</target>
+      </trans-unit>
       <trans-unit id="++CODE++af56abadd6f783641801adf6ed9b7d1fcf4b7a5d207dab320252520f49d4894f">
         <source xml:lang="en">Make everything read-only</source>
         <target state="translated">Alles schreibgeschützt machen</target>
@@ -5280,6 +5549,10 @@ Fehler:
       <trans-unit id="++CODE++d54543fb6beb1b6dc5aaa5961c0d92fe25a4ae3bc6fe81b241bd9064e43f46d7">
         <source xml:lang="en">Mandatory (True)</source>
         <target state="translated">Erforderlich (WAHR)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5493d99b17c225af455b0fdaa53425c8fadd62f34935b8c02b8c1504f281acba">
+        <source xml:lang="en">Max 10 databases / subscription</source>
+        <target state="new">Max 10 databases / subscription</target>
       </trans-unit>
       <trans-unit id="++CODE++305fd6adb2295a939e62e4fed83349c610aa4e1840280503e6b64c8042dccd16">
         <source xml:lang="en">Max Length</source>
@@ -5359,6 +5632,10 @@ Fehler:
       <trans-unit id="++CODE++73c5b19bd87f6238ea91f7a12afda7927ec9708f0d2a5ca86154b2e0bbe06109">
         <source xml:lang="en">Microsoft Entra Account</source>
         <target state="translated">Microsoft Entra-Konto</target>
+      </trans-unit>
+      <trans-unit id="++CODE++eda567f3ec45bd45068c5e275d9a4acdcf64217bc5c76c47427cda124aa7bed3">
+        <source xml:lang="en">Microsoft Entra ID</source>
+        <target state="new">Microsoft Entra ID</target>
       </trans-unit>
       <trans-unit id="++CODE++4cca27a3569729f8e3fa178db33f438eaa136c7491a5c3d26c807c876a02c292">
         <source xml:lang="en">Microsoft Entra Id</source>
@@ -5474,6 +5751,14 @@ Fehler:
       <trans-unit id="++CODE++999447c73dea8a58e7845ced946ec9030d22db88790df0320f35bf6bac6c588f">
         <source xml:lang="en">Modify Table</source>
         <target state="translated">Tabelle ändern</target>
+      </trans-unit>
+      <trans-unit id="++CODE++20d04708439a97fe2875163d4e29918be227f86d5fa82847438232e6e626b5f5">
+        <source xml:lang="en">Monitor usage and manage your free tier limits</source>
+        <target state="new">Monitor usage and manage your free tier limits</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7b2f513a67abc570d3348717ad85ae669570734afe2bf57015c2cc9b0dce3764">
+        <source xml:lang="en">Monthly limits</source>
+        <target state="new">Monthly limits</target>
       </trans-unit>
       <trans-unit id="++CODE++0149b409a73e8498a5256e13dbf70225738e9e1fed0d976e20ad8ef338cc2d22">
         <source xml:lang="en">More Query Actions</source>
@@ -5647,6 +5932,10 @@ Fehler:
       <trans-unit id="++CODE++4e43f09881e3742e225d5e39243fa725d8dd7e9a9d64f05c7c814a12a0b32935">
         <source xml:lang="en">No Action</source>
         <target state="translated">Keine Aktion</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6d7af8a57c85229b9b08306d93d38a7f0f2d369dc90a339ea4708ca45a92252b">
+        <source xml:lang="en">No Azure accounts found</source>
+        <target state="new">No Azure accounts found</target>
       </trans-unit>
       <trans-unit id="++CODE++dd1e244b4e319bb25477890a9327b3a2419908e042cd4063f9235a0afed6e908">
         <source xml:lang="en">No Microsoft Entra account can be found for removal.</source>
@@ -5880,6 +6169,10 @@ Fehler:
         <source xml:lang="en">No property changes available.</source>
         <target state="translated">Keine Eigenschaftsänderungen verfügbar.</target>
       </trans-unit>
+      <trans-unit id="++CODE++fb3366f4457488366aacf21f69259ad9213cd246963ee0e9a6c11fa0ab19a058">
+        <source xml:lang="en">No resource groups found</source>
+        <target state="new">No resource groups found</target>
+      </trans-unit>
       <trans-unit id="++CODE++9852a3d3be7fa108f0b4d5bce724ab20c0b86b122015c4d368f27476cc0e154a">
         <source xml:lang="en">No resource of type '{0}' is configured for the current cloud '{1}'. Please update your Azure account settings.</source>
         <note>{0} is the resource type
@@ -5929,6 +6222,10 @@ Fehler:
       <trans-unit id="++CODE++4208eed39129c84332acd1dcb2c74e8e6073039e80862fc02cb09aa3fae5ed8e">
         <source xml:lang="en">No script generated.</source>
         <target state="translated">Es wurde kein Skript generiert.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++71e873a7b235e16960c8ae5cae169f48638a136d88236664fdd7f82cf88ce2c8">
+        <source xml:lang="en">No servers found</source>
+        <target state="new">No servers found</target>
       </trans-unit>
       <trans-unit id="++CODE++b823f4fb895582ef515ab18d8dd18f72160ed258f33dfb727a8e37f91ebda1b6">
         <source xml:lang="en">No servers found in subscription '{0}'.</source>
@@ -5998,6 +6295,10 @@ Fehler:
       <trans-unit id="++CODE++dc937b59892604f5a86ac96936cd7ff09e25f18ae6b758e8014a24c7fa039e91">
         <source xml:lang="en">None</source>
         <target state="translated">Keine</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4e936619770404c3fab784d2d0276b4f617b67ed037e49b3a36481f7929bcac7">
+        <source xml:lang="en">None (empty database)</source>
+        <target state="new">None (empty database)</target>
       </trans-unit>
       <trans-unit id="++CODE++58601e3ffba5990d1be4db9f2bcc6107f9a72949aabd8f68f79bcb2c92195b5f">
         <source xml:lang="en">Not Between</source>
@@ -6874,6 +7175,10 @@ Fehler:
         <source xml:lang="en">Refresh dataset</source>
         <target state="translated">Dataset aktualisieren</target>
       </trans-unit>
+      <trans-unit id="++CODE++d3a008ef1335692d9d045175ba9ea1dcd39ae48da9e2043a9baabad6c3818c28">
+        <source xml:lang="en">Region</source>
+        <target state="new">Region</target>
+      </trans-unit>
       <trans-unit id="++CODE++ab604a360777735fe2993aec7d4ffae415f1515b0a4c989269603fd3d5c07b61">
         <source xml:lang="en">Reject</source>
         <target state="translated">Ablehnen</target>
@@ -6926,6 +7231,10 @@ Fehler:
       <trans-unit id="++CODE++d5001dd4aab39b12094fd9e9b68e3b8ab67a6437c8eeaf592f0943dcd5851890">
         <source xml:lang="en">Remove sort</source>
         <target state="translated">Sortierung entfernen</target>
+      </trans-unit>
+      <trans-unit id="++CODE++488464ba45b0e8e2bb24fac5530ec868c24851f486b82ab6e95c95e4f31ae79a">
+        <source xml:lang="en">Remove tag</source>
+        <target state="new">Remove tag</target>
       </trans-unit>
       <trans-unit id="++CODE++4f98318295cf61965501b5ff934574dfd3efea58641100c01dfa70131a732b31">
         <source xml:lang="en">Remove {0}</source>
@@ -7000,6 +7309,18 @@ Fehler:
       <trans-unit id="++CODE++ae6d9c313ef115d3be932d158acd74f5ab4db5c068cdc2c10ade081168b185d5">
         <source xml:lang="en">Resource Group</source>
         <target state="translated">Ressourcengruppe</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fe2fcab4acca97ade901dba3dcfe91a73a08201d713ff737a3bbecdeb78dc0c8">
+        <source xml:lang="en">Resource Group Name</source>
+        <target state="new">Resource Group Name</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2f15b48a0d26c41fdc8a6d366cfc1ab170dc26794f40856a804b062614c02d9b">
+        <source xml:lang="en">Resource Group is required</source>
+        <target state="new">Resource Group is required</target>
+      </trans-unit>
+      <trans-unit id="++CODE++575874d7f7e259d7f9b8c15418105d5f0bac4a56e628837e68b5513a504b6a93">
+        <source xml:lang="en">Resource group name is required</source>
+        <target state="new">Resource group name is required</target>
       </trans-unit>
       <trans-unit id="++CODE++e89b30aa1dc30a6ad8c34610689bede83b3ef645a24c3a84a0990826687fb735">
         <source xml:lang="en">Resources</source>
@@ -7208,6 +7529,10 @@ Abfrage: {2}</target>
         <source xml:lang="en">SQL Analytics Endpoint</source>
         <target state="translated">SQL-Analyseendpunkt</target>
       </trans-unit>
+      <trans-unit id="++CODE++062e564e29f0e723196471058d927f3259686301de0e59f8f13938ec71d7994c">
+        <source xml:lang="en">SQL Authentication</source>
+        <target state="new">SQL Authentication</target>
+      </trans-unit>
       <trans-unit id="++CODE++fa728e3cf6aa4aa3207afe540af912463db2631cd2358004e457e71dc0107148">
         <source xml:lang="en">SQL Container Name</source>
         <target state="translated">SQL-Containername</target>
@@ -7247,6 +7572,10 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++49946129c776c67af592a7bd5399b229d9e11260362f8dd0ee8a96778dbc3bee">
         <source xml:lang="en">SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.</source>
         <target state="translated">SQL Server unterstützt keine Windows-Container. Wechseln Sie in den Einstellungen für den Docker-Desktop zu Linux-Containern.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7eab787ddc514e76e7b746ec2374beb0b043f1f3b1123ec6872bec5a6f0147fc">
+        <source xml:lang="en">SQL Server is required</source>
+        <target state="new">SQL Server is required</target>
       </trans-unit>
       <trans-unit id="++CODE++035f6f2b97a039d49cb4ed684e5e8118c2acf2ff2fcc0e25fc94e2eacbc63b80">
         <source xml:lang="en">SQL Server port number</source>
@@ -7364,6 +7693,10 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++e7e6421e77a208718956538ea14f589ab43207800d985563be7e407d0a369c96">
         <source xml:lang="en">Save connection profile changes without establishing a connection</source>
         <target state="translated">Verbindungsprofiländerungen speichern, ohne eine Verbindung herzustellen.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e86cf7b88cde4602bf09208d61b915b3990896c08dfc027f85aaf61296311506">
+        <source xml:lang="en">Save password</source>
+        <target state="new">Save password</target>
       </trans-unit>
       <trans-unit id="++CODE++d6bc7e3a2c2812f6a418849b1c49e1bf35faa6e05092eed85651b0f6554be31e">
         <source xml:lang="en">Save results as CSV</source>
@@ -7599,6 +7932,10 @@ Abfrage: {2}</target>
         <source xml:lang="en">Searching...</source>
         <target state="translated">Suche wird ausgeführt...</target>
       </trans-unit>
+      <trans-unit id="++CODE++c4038f47497f61adc776523835e82f3bab98d497b1978fced8d46e61e6f435a4">
+        <source xml:lang="en">Seed sample data or import an existing schema</source>
+        <target state="new">Seed sample data or import an existing schema</target>
+      </trans-unit>
       <trans-unit id="++CODE++2a78025de6aae5e7ff88e5a951bb3a78ddd67388913529cf9e2dd9653e62b02d">
         <source xml:lang="en">Select</source>
         <target state="translated">Auswählen</target>
@@ -7663,6 +8000,10 @@ Abfrage: {2}</target>
         <source xml:lang="en">Select a blob container</source>
         <target state="translated">Blobcontainer auswählen</target>
       </trans-unit>
+      <trans-unit id="++CODE++c89b52fc072a9370c7bb8c9a726985b7632c38a45d1e06c14d8b650a87dc1e3c">
+        <source xml:lang="en">Select a collation</source>
+        <target state="new">Select a collation</target>
+      </trans-unit>
       <trans-unit id="++CODE++c4300a3eee24147d9593a09a659650b44b4733e2979fef9cae3e3db10f116831">
         <source xml:lang="en">Select a connection group</source>
         <target state="translated">Verbindungsgruppe auswählen</target>
@@ -7670,6 +8011,10 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++abf078a3e4a6e103d6da7a7075ac601a095b2ba444bfc98447f49248daa477fb">
         <source xml:lang="en">Select a connection to use as the default</source>
         <target state="new">Select a connection to use as the default</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4e6644fdcf104792709d58c5309c2a4ec5a14b58e94a40bdd9da2af532e8e534">
+        <source xml:lang="en">Select a data source</source>
+        <target state="new">Select a data source</target>
       </trans-unit>
       <trans-unit id="++CODE++c9e8c706a0db2ef84dc8a610e30fe22cb5709a146a0e76955dbd1f1444e5a0e6">
         <source xml:lang="en">Select a database</source>
@@ -7687,9 +8032,21 @@ Abfrage: {2}</target>
         <source xml:lang="en">Select a folder</source>
         <target state="translated">Ordner auswählen</target>
       </trans-unit>
+      <trans-unit id="++CODE++741a06b13d57f36b0e124ffa0f78c13e53741b902f999b2656bbc8e7f75d625a">
+        <source xml:lang="en">Select a location for the resource group</source>
+        <target state="new">Select a location for the resource group</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cf093e7e2e997d1c42be65be5bd833c01393db39c48aa6dcf3bfc1675a4a83d0">
+        <source xml:lang="en">Select a maintenance window</source>
+        <target state="new">Select a maintenance window</target>
+      </trans-unit>
       <trans-unit id="++CODE++a54be20a16dd8a5a2524e93c5127f2965bd47dc3ee2f00eed80390be902e3f74">
         <source xml:lang="en">Select a profiler template</source>
         <target state="translated">Profiler-Vorlage auswählen</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d80286a389f6cbd72a837db93310e6ca50fa84e403f2bfa5e55d39e3e521279f">
+        <source xml:lang="en">Select a resource group</source>
+        <target state="new">Select a resource group</target>
       </trans-unit>
       <trans-unit id="++CODE++8a953dbed756a0be682ea17fe4c3be30e723ec8c98816d4b73fd86719df8dcc0">
         <source xml:lang="en">Select a server</source>
@@ -7773,6 +8130,10 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++6a8027c451f5eed5d0e62f3f599e8d39a787706b19612279423f6b706b1751f3">
         <source xml:lang="en">Select image</source>
         <target state="translated">Image auswählen</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a8cde5c6159c971e8c8d7cbb13844a520f02109201678c5934c9ecc190000ebd">
+        <source xml:lang="en">Select location</source>
+        <target state="new">Select location</target>
       </trans-unit>
       <trans-unit id="++CODE++154f133b3d7ef488e01090c00b0104ba7bf48bf4368e2ad71333fd3d863fb270">
         <source xml:lang="en">Select new permission for extension: '{0}'</source>
@@ -7876,6 +8237,10 @@ Abfrage: {2}</target>
         <source xml:lang="en">Server is required</source>
         <target state="translated">Der Server ist erforderlich.</target>
       </trans-unit>
+      <trans-unit id="++CODE++065750f922eb26ea9f58d758bc1adbc7a22a2c8642a4f5f2b82e27c31e053d3a">
+        <source xml:lang="en">Server name is required</source>
+        <target state="new">Server name is required</target>
+      </trans-unit>
       <trans-unit id="++CODE++9e28d8dd2c02f540827e4ea6f0fb6d1340a82e35a653a2ea2cc3ef0ce1ba0ce3">
         <source xml:lang="en">Server name not set.</source>
         <target state="translated">Der Servername ist nicht festgelegt.</target>
@@ -7889,9 +8254,17 @@ Abfrage: {2}</target>
         <note>{0} is the server name</note>
         <target state="translated">Server „{0}“ nicht gefunden.</target>
       </trans-unit>
+      <trans-unit id="++CODE++a4469e8491766ec6b1f6d3c2f4e3861d58829898ba912fad682eb8133520cb6d">
+        <source xml:lang="en">Serverless</source>
+        <target state="new">Serverless</target>
+      </trans-unit>
       <trans-unit id="++CODE++dac743dff083eb4e7426ed1b0a586ff5ead5b87a35759f12eea61e57638fcbc3">
         <source xml:lang="en">Service installation failed.</source>
         <target state="translated">Fehler bei der Dienstinstallation.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e9cf6025703e6809e20b33168b1ad2c6120b938ab5fe8d648892d50ac54d3051">
+        <source xml:lang="en">Service tier</source>
+        <target state="new">Service tier</target>
       </trans-unit>
       <trans-unit id="++CODE++6959b4159575d8dd76d9f3bbe2c6437904f861e7860c35abd18deffb1c3425a0">
         <source xml:lang="en">Session</source>
@@ -7957,6 +8330,10 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++6211b4404e51962560c0371e86dbaf688cfbd5d1c08e6324222089404db2929e">
         <source xml:lang="en">Settings and Keybindings</source>
         <target state="translated">Einstellungen und Tastenzuordnungen</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5074b0dd3fec65cf6816a26ce347ffaf826056d587bd830f605d29e34c2601ec">
+        <source xml:lang="en">Settings are fixed for free tier.</source>
+        <target state="new">Settings are fixed for free tier.</target>
       </trans-unit>
       <trans-unit id="++CODE++b22da542e3738190f2e199b6289592b40f09bcc9b373984a97bea17c1b5d619b">
         <source xml:lang="en">Settings for {0}</source>
@@ -8313,6 +8690,10 @@ Abfrage: {2}</target>
         <note>{0} is the session name</note>
         <target state="translated">Die Profiler-Sitzung „{0}“ wird beendet...</target>
       </trans-unit>
+      <trans-unit id="++CODE++a69c4dece144a46e40d430726395533d8f335a7d601d8ca292220b3a4a7faca4">
+        <source xml:lang="en">Storage</source>
+        <target state="new">Storage</target>
+      </trans-unit>
       <trans-unit id="++CODE++1755a01ae9117c06e6710451545424a51fd152c0e0d4609bd9db3732ae4b24f7">
         <source xml:lang="en">Storage Account</source>
         <target state="translated">Speicherkonto</target>
@@ -8519,6 +8900,14 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++e3fe2a3fe52c9c35874478d22328281ebf754f1b35747152c13e441a9eed92df">
         <source xml:lang="en">Tables</source>
         <target state="translated">Tabellen</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ab25773875891beef60edb4b69226e94a44e347625f2188a767af0552f50f33f">
+        <source xml:lang="en">Tag keys must be unique.</source>
+        <target state="new">Tag keys must be unique.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1331275bc537b4c2bf1e46f7275677967515342e30b572e6852fa6f51b831fe8">
+        <source xml:lang="en">Tags</source>
+        <target state="new">Tags</target>
       </trans-unit>
       <trans-unit id="++CODE++51ce7311bb14de484f1ef7778458ba51f5948e01fc4a51fd53cd0437b188b2db">
         <source xml:lang="en">Tail-log backup</source>
@@ -8817,6 +9206,18 @@ Abfrage: {2}</target>
         <source xml:lang="en">This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.</source>
         <target state="translated">Durch diesen Vorgang wurde die Eingabedateistruktur analysiert, um die nachstehende Vorschau für die ersten 50 Zeilen zu generieren.</target>
       </trans-unit>
+      <trans-unit id="++CODE++cbc6ae36d1aec69e8b4ab32b18eac65c87ac1ded2fe8e3c342df068fb83be36d">
+        <source xml:lang="en">This server only supports Microsoft Entra ID authentication.</source>
+        <target state="new">This server only supports Microsoft Entra ID authentication.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1bb6be5ab437360bab6d5fc59d72d16ba5c0ed71d17cb0b2e7a269f070ef6535">
+        <source xml:lang="en">This server only supports SQL Authentication.</source>
+        <target state="new">This server only supports SQL Authentication.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2058e7768297cdc1b7cbeb655cd4f06450ec8900fad7f2b06367934185d5967a">
+        <source xml:lang="en">This server supports Microsoft Entra ID and SQL Authentication.</source>
+        <target state="new">This server supports Microsoft Entra ID and SQL Authentication.</target>
+      </trans-unit>
       <trans-unit id="++CODE++680b3510100d0d19288133607ee876d6e1928b0e0f6e0de1afd08a9aa88f55f2">
         <source xml:lang="en">This value was not provided in the Azure Data Studio settings file.</source>
         <target state="translated">Dieser Wert wurde in der Azure Data Studio-Einstellungsdatei nicht angegeben.</target>
@@ -8922,6 +9323,10 @@ Abfrage: {2}</target>
         <source xml:lang="en">Truncate the transaction log</source>
         <target state="translated">Transaktionsprotokoll abschneiden</target>
       </trans-unit>
+      <trans-unit id="++CODE++d7f5ff6e4dad9f838e47b0ebe6e7599c967ad07620a3329436b4887f723d649e">
+        <source xml:lang="en">Try Azure SQL Database at no cost with our free tier offer! Provision a fully managed cloud database directly from VS Code.</source>
+        <target state="new">Try Azure SQL Database at no cost with our free tier offer! Provision a fully managed cloud database directly from VS Code.</target>
+      </trans-unit>
       <trans-unit id="++CODE++54f7b4c24a0e08663b5d9d1cf65cdbb9e6e5e94413398f2480b1f2b717ab8ec4">
         <source xml:lang="en">Try adjusting your search or filters</source>
         <target state="translated">Versuchen Sie, Ihre Suche oder Filter anzupassen</target>
@@ -8956,6 +9361,10 @@ Abfrage: {2}</target>
         <note>{0} is the token expiration time
 {1} is the current time</note>
         <target state="translated">Es kann kein gültiges Token abgerufen werden. (läuft ab: {0}, ist aber zurzeit {1})</target>
+      </trans-unit>
+      <trans-unit id="++CODE++45f72ef532c602c155033a6d27f0b8842d5514272f174487daece16c8ae600a1">
+        <source xml:lang="en">Unable to determine the server authentication type.</source>
+        <target state="new">Unable to determine the server authentication type.</target>
       </trans-unit>
       <trans-unit id="++CODE++e395097d9cde221cdb9af8b04e1073d0d3394439fce660d1c954d012cdeae6c1">
         <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source>
@@ -9088,6 +9497,10 @@ Abfrage: {2}</target>
         <note>{0} is the platform name of the machine</note>
         <target state="translated">Nicht unterstützte Plattform für Docker: {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++31ab92c035a309794019f563cf5059e4ecc3e8ce19afc665de2b384d99e0fb61">
+        <source xml:lang="en">Up to 10 databases with 100K vCore seconds, 32 GB storage, and backups renewed monthly.</source>
+        <target state="new">Up to 10 databases with 100K vCore seconds, 32 GB storage, and backups renewed monthly.</target>
+      </trans-unit>
       <trans-unit id="++CODE++c1c1009d3f37ec058070a62e22caf9ac9dae2169d452487c5c271a8bcf57a291">
         <source xml:lang="en">Update</source>
         <target state="translated">Aktualisieren</target>
@@ -9107,6 +9520,14 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++c83ce937073615b8c93e7c38ed529e567ff2c01f291f92e3b4d08245018f362b">
         <source xml:lang="en">Usage limits exceeded. Try again later, or consider optimizing your requests.</source>
         <target state="translated">Die Nutzungslimits wurden überschritten. Versuchen Sie es später noch mal, oder erwägen Sie, Ihre Anforderungen zu optimieren.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b5561dc4caff598b3f5a9190b224cd34587621b1d44cb0f024a6308777d211df">
+        <source xml:lang="en">Use Microsoft Entra ID authentication to provision and connect to this database.</source>
+        <target state="new">Use Microsoft Entra ID authentication to provision and connect to this database.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++78651c0e93c0ad6baf965a9c39a603425c45f989e391c49a6724d98de8583a85">
+        <source xml:lang="en">Use SQL Authentication with a valid username and password.</source>
+        <target state="new">Use SQL Authentication with a valid username and password.</target>
       </trans-unit>
       <trans-unit id="++CODE++eeefe579e45c25e1a551b536d8eecc680562bce4d0aa58ffee1ad7df8cc84e63">
         <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
@@ -9145,6 +9566,10 @@ Abfrage: {2}</target>
         <source xml:lang="en">User ID</source>
         <target state="translated">Benutzer-ID</target>
       </trans-unit>
+      <trans-unit id="++CODE++a969d04ec2d003299e81414a53a2c4079a10d8f181ff0a10505a33caef8f3af5">
+        <source xml:lang="en">User Name</source>
+        <target state="new">User Name</target>
+      </trans-unit>
       <trans-unit id="++CODE++7b2227d51ac2087125e6e9ef2fff2d56b0f6bf97b6698bf014026833e0e43cba">
         <source xml:lang="en">User databases</source>
         <target state="translated">Benutzerdatenbanken</target>
@@ -9164,6 +9589,10 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++e3b89e9d33f88e523083d8b4436adcc3726c89e97fd3179a2e102d765d1b16ed">
         <source xml:lang="en">Username</source>
         <target state="translated">Benutzername</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d18de1563a616cb53199d56202336f6b481375ac8ecb8d0eeafb53466f42c4bf">
+        <source xml:lang="en">Username is required</source>
+        <target state="new">Username is required</target>
       </trans-unit>
       <trans-unit id="++CODE++4c0f47c92a61b83f5a3505071ff1ba53361768bccee0021da6a0d341daa653a1">
         <source xml:lang="en">Uses the WITH KEEP_REPLICATION option during restore</source>
@@ -9348,6 +9777,10 @@ Abfrage: {2}</target>
         <source xml:lang="en">What can we do to improve?</source>
         <target state="translated">Was können wir zur Verbesserung tun?</target>
       </trans-unit>
+      <trans-unit id="++CODE++9d42472185c6fe080e6ab7a93b676c943ab7e5b29b29b760346898bf579c031d">
+        <source xml:lang="en">What's next?</source>
+        <target state="new">What's next?</target>
+      </trans-unit>
       <trans-unit id="++CODE++4aa3356437232c6d45b29802f09eee6e201660a67cf78e145f39ad1fada6feab">
         <source xml:lang="en">Width cannot be 0 or negative</source>
         <target state="translated">Die Breite darf nicht 0 oder negativ sein.</target>
@@ -9452,6 +9885,15 @@ Abfrage: {2}</target>
         <source xml:lang="en">Your client IP address does not have access to the server. Add a Microsoft Entra account and create a new firewall rule to enable access.</source>
         <target state="translated">Ihre Client-IP-Adresse hat keinen Zugriff auf den Server. Fügen Sie ein Microsoft Entra-Konto hinzu, und erstellen Sie eine neue Firewallregel, um den Zugriff zu ermöglichen.</target>
       </trans-unit>
+      <trans-unit id="++CODE++72d3d1e6e874aa94ab02c4aac4ea2399ce299ddcad4b38a795754c92e158ac4d">
+        <source xml:lang="en">Your current IP {0} will be added automatically.</source>
+        <note>{0} is the current IP address</note>
+        <target state="new">Your current IP {0} will be added automatically.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fba27c1cc726f650cd3eceb3a036cce31854cde7aa2ad9fe4a073c12417098c4">
+        <source xml:lang="en">Your database will continue running after the free offer limit and you will be charged for overages.</source>
+        <target state="new">Your database will continue running after the free offer limit and you will be charged for overages.</target>
+      </trans-unit>
       <trans-unit id="++CODE++e22a8e55997a44b12ff4f976b12df9cf1fd9b41a7521198b72b15a3cb9952ed0">
         <source xml:lang="en">Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).</source>
         <target state="translated">Ihr Kennwort muss Zeichen aus mindestens drei der folgenden Kategorien enthalten: Großbuchstaben, Kleinbuchstaben, Zahlen (0-9) und Sonderzeichen (!, $, #, % usw.).</target>
@@ -9462,6 +9904,10 @@ Abfrage: {2}</target>
 {1} is the tenant id
 {2} is the resource</note>
         <target state="translated">Für Ihren Mandanten "{0} ({1})" müssen Sie sich erneut authentifizieren, um auf {2}-Ressourcen zuzugreifen. Drücken Sie "Öffnen", um den Authentifizierungsprozess zu starten.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fabfc8c046b35f76ce8c88c7bae9507cdb100c97019311594afde7a283d3bb61">
+        <source xml:lang="en">Zone-redundant backup storage</source>
+        <target state="new">Zone-redundant backup storage</target>
       </trans-unit>
       <trans-unit id="++CODE++5a982cf9dc11b4ec88b6151a75c4b45e269a5694c941c3c4c96689bed0c7d312">
         <source xml:lang="en">Zoom In</source>
@@ -9482,6 +9928,10 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++48a9c1333b8297748a7cf4f38e479f6d1722302a0ce72f8516d8a749fe49d752">
         <source xml:lang="en">[Optional] Enter a display name for this connection profile</source>
         <target state="translated">[Optional] Gibt einen Anzeigenamen für dieses Verbindungsprofil an.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3a7dcd8bd70596d3a3f8343c0be10cdac9018d127b885095507bad71ee11f18c">
+        <source xml:lang="en">[Read-only] Pre-filled from the server properties.</source>
+        <target state="new">[Read-only] Pre-filled from the server properties.</target>
       </trans-unit>
       <trans-unit id="++CODE++e7be1f1c5defef15839893c3ee18563f46ff1e9f16abc46983c3811f8bec0b62">
         <source xml:lang="en">[{0}] {1}</source>
@@ -9625,6 +10075,10 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++f39d8207a23b19fa52f06809909505464af2764c6b3ade40db823f0a46b33487">
         <source xml:lang="en">updatingIntelliSense</source>
         <target state="translated">updatingIntelliSense</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7ff2c6370613ed94cff5b41da2922691d968855c00b28dc39d101079cc59f673">
+        <source xml:lang="en">vCores</source>
+        <target state="new">vCores</target>
       </trans-unit>
       <trans-unit id="++CODE++cd42404d52ad55ccfa9aca4adc828aa5800ad9d385a0671fbcbf724118320619">
         <source xml:lang="en">value</source>
