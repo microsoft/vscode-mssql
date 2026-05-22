@@ -11,23 +11,24 @@ import {
     Option,
     OptionOnSelectData,
     SelectionEvents,
+    Tooltip,
     makeStyles,
 } from "@fluentui/react-components";
-import { DismissRegular, SearchRegular } from "@fluentui/react-icons";
+import { DismissRegular, SearchRegular, WarningRegular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../../../sharedInterfaces/webview";
 import { locConstants as Loc } from "../../../../common/locConstants";
 import { addNewMicrosoftAccount } from "../../../../common/constants";
 import { KeyCode } from "../../../../common/keys";
 import { useConnectionDialogSelector } from "../../connectionDialogSelector";
 
-const FabricExplorerHeader = ({
+const SqlExplorerHeader = ({
     onSignIntoMicrosoftAccount,
     onSelectAccountId,
     onSelectTenantId,
     onSearchValueChanged,
     searchValue = "",
     selectedTypeFilters: _selectedTypeFilters = [],
-}: FabricBrowserHeaderProps) => {
+}: SqlExplorerHeaderProps) => {
     const styles = useStyles();
 
     const azureAccounts = useConnectionDialogSelector((s) => s.azureAccounts);
@@ -39,33 +40,25 @@ const FabricExplorerHeader = ({
     const [selectedAccountName, setSelectedAccountName] = useState<string>("");
     const [selectedTenantName, setSelectedTenantName] = useState<string>("");
 
-    // Load accounts from state when component mounts
+    // Sync local display names when the selected account/tenant changes in state
     useEffect(() => {
         if (selectedAccountId) {
             const account = azureAccounts.find((a) => a.id === selectedAccountId);
             if (account) {
-                handleAccountChange({} as SelectionEvents, {
-                    optionText: account.name,
-                    optionValue: account.id,
-                    selectedOptions: [account.id],
-                });
+                setSelectedAccountName(account.name);
             }
         }
-    }, [selectedAccountId]);
+    }, [selectedAccountId, azureAccounts]);
 
-    // Load tenants from state when component mounts
+    // Sync local display names when the selected tenant changes in state
     useEffect(() => {
         if (selectedTenantId) {
             const tenant = azureTenants.find((t) => t.id === selectedTenantId);
             if (tenant) {
-                handleTenantChange({} as SelectionEvents, {
-                    optionText: tenant.name,
-                    optionValue: tenant.id,
-                    selectedOptions: [tenant.id],
-                });
+                setSelectedTenantName(tenant.name);
             }
         }
-    }, [selectedTenantId]);
+    }, [selectedTenantId, azureTenants]);
 
     function handleAccountChange(_event: SelectionEvents, data: OptionOnSelectData) {
         if (data.optionValue === addNewMicrosoftAccount) {
@@ -80,9 +73,7 @@ const FabricExplorerHeader = ({
     }
 
     function handleTenantChange(_event: SelectionEvents, data: OptionOnSelectData) {
-        const tenantName = data.optionText || "";
         const tenantId = data.optionValue || "";
-        setSelectedTenantName(tenantName);
         onSelectTenantId(tenantId);
     }
 
@@ -134,11 +125,39 @@ const FabricExplorerHeader = ({
                         }
                         disabled={azureTenantsLoadStatus === ApiStatus.Loading}
                         size="small">
-                        {azureTenants.map((tenant) => (
-                            <Option key={tenant.id} value={tenant.id} text={tenant.name}>
-                                {tenant.name}
-                            </Option>
-                        ))}
+                        {azureTenants.map((tenant) => {
+                            const tooltipContent = tenant.isSignedIn ? (
+                                <span>
+                                    {tenant.name} ({tenant.id})
+                                </span>
+                            ) : (
+                                <span>
+                                    {tenant.name} ({tenant.id})
+                                    <br />
+                                    {Loc.azure.tenantNotSignedIn}
+                                </span>
+                            );
+                            return (
+                                <Option key={tenant.id} value={tenant.id} text={tenant.name}>
+                                    <Tooltip
+                                        content={tooltipContent}
+                                        relationship="description"
+                                        positioning="after">
+                                        <div className={styles.tenantOptionContent}>
+                                            <span className={styles.tenantOptionLabel}>
+                                                {tenant.name}
+                                            </span>
+                                            {!tenant.isSignedIn && (
+                                                <WarningRegular
+                                                    className={styles.tenantWarningIcon}
+                                                    aria-label={Loc.azure.tenantNotSignedIn}
+                                                />
+                                            )}
+                                        </div>
+                                    </Tooltip>
+                                </Option>
+                            );
+                        })}
                     </Dropdown>
                 </div>
             </div>
@@ -176,9 +195,9 @@ const FabricExplorerHeader = ({
     );
 };
 
-export default FabricExplorerHeader;
+export default SqlExplorerHeader;
 
-interface FabricBrowserHeaderProps {
+interface SqlExplorerHeaderProps {
     onSignIntoMicrosoftAccount: () => void;
     onSelectAccountId: (accountId: string) => void;
     onSelectTenantId: (tenantId: string) => void;
@@ -216,11 +235,13 @@ const useStyles = makeStyles({
     compactDropdown: {
         width: "200px",
         minWidth: "200px",
+        maxWidth: "200px",
         fontSize: "12px",
         "& .fui-Dropdown__button": {
             fontSize: "12px",
             minHeight: "24px",
             padding: "4px 8px",
+            overflow: "hidden",
         },
         "& .fui-Option": {
             fontSize: "12px",
@@ -240,5 +261,21 @@ const useStyles = makeStyles({
         flex: 1,
         minWidth: 0,
         marginLeft: "8px",
+    },
+    tenantOptionContent: {
+        display: "flex",
+        alignItems: "center",
+        gap: "4px",
+        width: "100%",
+        overflow: "hidden",
+    },
+    tenantWarningIcon: {
+        flexShrink: 0,
+        fontSize: "14px",
+    },
+    tenantOptionLabel: {
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
     },
 });

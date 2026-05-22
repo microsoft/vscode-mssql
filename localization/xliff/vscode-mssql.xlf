@@ -223,6 +223,9 @@
     <trans-unit id="++CODE++4eeee164cd7b783f58eca583f898bdb923ed56ab94ae7d3604dc11738090fe7f">
       <source xml:lang="en">Add to VS Code</source>
     </trans-unit>
+    <trans-unit id="++CODE++7f3c0782afd7e95577665f17f90a5890669c0f3a33850a85278c7432e5b00fec">
+      <source xml:lang="en">Add to favorites</source>
+    </trans-unit>
     <trans-unit id="++CODE++dcc475b31b6d6d1bc68eede1badaf4b6af93c3683fe3a25ae08c8544b572e7fa">
       <source xml:lang="en">Add to workspace</source>
     </trans-unit>
@@ -548,6 +551,9 @@
     <trans-unit id="++CODE++386d70c1c775d30bdadd4cb0db6b7e6d55f6fce325963f190afcdf24cf67f7b7">
       <source xml:lang="en">Azure Data Studio settings file</source>
     </trans-unit>
+    <trans-unit id="++CODE++ef29c3acfb3de5b5cb395ebd30039cc6d6120e9d1f9581301573425449e535c5">
+      <source xml:lang="en">Azure Databases</source>
+    </trans-unit>
     <trans-unit id="++CODE++c5023bdd36d362e05c245ab15ab6839ad7562bcd42f1e1b0c759dca9d5fec4f7">
       <source xml:lang="en">Azure Device Code</source>
     </trans-unit>
@@ -560,12 +566,21 @@
     <trans-unit id="++CODE++bc2a386616d4df1bf0313bdc4a7161a6c66b93554d20c9ad2dd3bc8ffe04e4ad">
       <source xml:lang="en">Azure SQL Database is not supported for restore.</source>
     </trans-unit>
+    <trans-unit id="++CODE++2827add936f31415e16e0670d8686084ec2e21fed7686c0aa91fffdfa09e4e38">
+      <source xml:lang="en">Azure SQL Server</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6d457cc1e5982858c386c637bec86a3c2615e648054d4d5472a261e0b5004b2d">
+      <source xml:lang="en">Azure Subscriptions</source>
+    </trans-unit>
     <trans-unit id="++CODE++27dda4355b44df3f400de7845fe1bfc83a880707d4630f52be097d95625f7bfa">
       <source xml:lang="en">Azure account &apos;{0}&apos; was not found. Sign in with the correct account or select a different one.</source>
       <note>{0} is the display name or ID of the Azure account that was not found</note>
     </trans-unit>
     <trans-unit id="++CODE++314afcc6e23d362133e764e1ebfacabe4d330308b528392570949a17270248b9">
       <source xml:lang="en">Azure sign in failed.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e0868c0da82fbd352b2f49a90707e78962f7dee85e12b74bdfe8ade99936640f">
+      <source xml:lang="en">Azure subscription not found in cache.</source>
     </trans-unit>
     <trans-unit id="++CODE++f71dfcecebed757febe54c711e436e17521c71da90d4c5cc61ef6717918173a4">
       <source xml:lang="en">Azure: Sign In</source>
@@ -675,9 +690,6 @@
     </trans-unit>
     <trans-unit id="++CODE++221cedb44469e4b0b105f777c771d70c7097c40a4e3e914cec4b6ba266db1970">
       <source xml:lang="en">Browse Azure</source>
-    </trans-unit>
-    <trans-unit id="++CODE++d2945638af819132af21f6c456f562493e7bf76e6ce1bb782eeef16cbfbeb85b">
-      <source xml:lang="en">Browse By</source>
     </trans-unit>
     <trans-unit id="++CODE++9b0636db073a79048ef4de667c447e516b7241e55ecf311c2a6f1fbe662574a1">
       <source xml:lang="en">Browse Fabric</source>
@@ -1108,6 +1120,9 @@
     </trans-unit>
     <trans-unit id="++CODE++55988e28a4e8720a588c5c53fd47616d929a404d3d2af7e6f8ba313dce6dc3e4">
       <source xml:lang="en">Collapse All</source>
+    </trans-unit>
+    <trans-unit id="++CODE++55fbcb99ed7e8209673d373c82ce28bcbb2600ed756fae1b62f505adf64314bc">
+      <source xml:lang="en">Collapse Subscription Explorer</source>
     </trans-unit>
     <trans-unit id="++CODE++73bdb3fe57af851db2313c3716cc6e6d8584314063030d5262237ad2fa9f8201">
       <source xml:lang="en">Collapse Workspace Explorer</source>
@@ -2381,9 +2396,6 @@
       <note>{0} is the subscription name
 {1} is the subscription id</note>
     </trans-unit>
-    <trans-unit id="++CODE++4eca430ed6ea02cdcd0e956ce27d238e2659997f15a4f580b0fd3385cfd815a0">
-      <source xml:lang="en">Error loading Azure databases.</source>
-    </trans-unit>
     <trans-unit id="++CODE++5b149b9da8f7cd0bdae05ad12cd9e4f650db61436fb31c868a6568695dce21f2">
       <source xml:lang="en">Error loading Azure subscriptions.</source>
     </trans-unit>
@@ -2401,6 +2413,12 @@
     </trans-unit>
     <trans-unit id="++CODE++6d89c16c7cf3f832b29fe1d181d420d4a583f93bb02e63fdfa266c33b6b3fcaf">
       <source xml:lang="en">Error loading preview</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b1307da140c4be5df01b2bdc2bf078e18eb719d00068b0eb22132d47dbfa869d">
+      <source xml:lang="en">Error loading servers</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d793e9856eaed8553a411a2ee12f9c1631c70cf86945645baa5a3edb00888235">
+      <source xml:lang="en">Error loading subscriptions</source>
     </trans-unit>
     <trans-unit id="++CODE++fa8002fe1d41e09812880f2bfb97ef0849885d8a4de95a67b26294b7e83e912f">
       <source xml:lang="en">Error loading summary</source>
@@ -2543,6 +2561,9 @@
     <trans-unit id="++CODE++9f5b023a413a7d0771cc3fb51b103dc0aaaafe8f7b7c88c7258d43e3bc5b243d">
       <source xml:lang="en">Expand All</source>
     </trans-unit>
+    <trans-unit id="++CODE++acd7d6334485ffa9ac31c98945eaf0360abb86e3c80cbb460cb7e0b0e280466f">
+      <source xml:lang="en">Expand Subscription Explorer</source>
+    </trans-unit>
     <trans-unit id="++CODE++48ad32aba89e3b0bbab4397b56bd23794212fe69606e0b644ff3b543035a048d">
       <source xml:lang="en">Expand Workspace Explorer</source>
     </trans-unit>
@@ -2658,6 +2679,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c7869b25e42d5683ca7cf9fc6cc3bbe5c8c39dab0ee1f2938b5570714350d0bb">
       <source xml:lang="en">Fabric Account is required</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7a77e8a8f80ab358ff1261e8047b81ffa298288509fc45ae56d2760997839dda">
+      <source xml:lang="en">Fabric Databases</source>
     </trans-unit>
     <trans-unit id="++CODE++3070527056fcbd2ba823f6ed6ec72a556b5d82695b4490bc28c86d210c696bad">
       <source xml:lang="en">Fabric Workspaces</source>
@@ -3000,9 +3024,6 @@
     </trans-unit>
     <trans-unit id="++CODE++b68093b3b98a837c8ebe082fc05f901c3e6aa924fecbb9ddb686339d7b40ffb9">
       <source xml:lang="en">Failed to update table.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++7a1f2a83aca9a0819f244d5b4a7a0e7f6b779eb709dd4744136b22e724dbb10b">
-      <source xml:lang="en">Favorites</source>
     </trans-unit>
     <trans-unit id="++CODE++aac77df347205252b074d45aff7891debdba0ff1466cc0c351416d1662bb71ab">
       <source xml:lang="en">Feedback</source>
@@ -3879,6 +3900,16 @@
     <trans-unit id="++CODE++11915518f7318632b91b797ca08f2be829f1364847dda216d397370f2287a83a">
       <source xml:lang="en">Loading schemas...</source>
     </trans-unit>
+    <trans-unit id="++CODE++f01407578cbde4669a268b1fbcadffd19797d7e3f51bc0f176a52d5eb76f1358">
+      <source xml:lang="en">Loading servers in &apos;{0}&apos;...</source>
+      <note>{0} is the name of the subscription</note>
+    </trans-unit>
+    <trans-unit id="++CODE++d6fd520e2618b0231a03b251ea5831f125d0087382f96b0a6b8c57f1fa97a69c">
+      <source xml:lang="en">Loading servers in selected subscription...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++42245d3f61aef75893195e1e0856f76292f910c8f5b8e671e515321ff9cd843b">
+      <source xml:lang="en">Loading subscriptions...</source>
+    </trans-unit>
     <trans-unit id="++CODE++71499b4de6ef3b8d0c19b76e76295f5dd9f5690a180de07ed861fdce757182aa">
       <source xml:lang="en">Loading summary for {0} rows (Click to cancel)</source>
       <note>{0} is the total number of rows</note>
@@ -4176,9 +4207,6 @@
     </trans-unit>
     <trans-unit id="++CODE++c26ee0e4b915257d995cffde4cc7b77a97c1e0cfa544836fdcb28329d1dc749a">
       <source xml:lang="en">Mutation</source>
-    </trans-unit>
-    <trans-unit id="++CODE++79e53b9f38d1c9de4d84c9a78339ceb838b609638b9194a2f0caad2f05ea2c85">
-      <source xml:lang="en">My Data</source>
     </trans-unit>
     <trans-unit id="++CODE++4f597d21c43ad4296c13690ad65aaff476273a489afc5e5d6f91073de96baf9b">
       <source xml:lang="en">MyProfilerSession</source>
@@ -4498,14 +4526,21 @@
     <trans-unit id="++CODE++4208eed39129c84332acd1dcb2c74e8e6073039e80862fc02cb09aa3fae5ed8e">
       <source xml:lang="en">No script generated.</source>
     </trans-unit>
+    <trans-unit id="++CODE++b823f4fb895582ef515ab18d8dd18f72160ed258f33dfb727a8e37f91ebda1b6">
+      <source xml:lang="en">No servers found in subscription &apos;{0}&apos;.</source>
+      <note>{0} is the name of the subscription</note>
+    </trans-unit>
+    <trans-unit id="++CODE++42f23e5323393c23245d6bbe61f912df022f3f9e6df0eb0b21e66939a788b773">
+      <source xml:lang="en">No servers found in the selected subscription.</source>
+    </trans-unit>
     <trans-unit id="++CODE++ca74b0c5b8a73c286ae5bc0d7802f72e6e591364956dd16f3a5210582b6f4212">
       <source xml:lang="en">No storage accounts found</source>
     </trans-unit>
-    <trans-unit id="++CODE++548271493601de8634bf0793fb0e09522c1bcce8e1e61c9e51186c9661137729">
-      <source xml:lang="en">No subscriptions available.  Adjust your subscription filters to try again.</source>
-    </trans-unit>
     <trans-unit id="++CODE++2d7cb28a8d1ce5542ed3f5c73805f318fa5a52d02a6f03e4a008093d1ee3e538">
       <source xml:lang="en">No subscriptions found</source>
+    </trans-unit>
+    <trans-unit id="++CODE++06ee056a2b74c9a72b5a3191ecc4eb8fef75ff62ddcb3b4076c33179ef7fb4ab">
+      <source xml:lang="en">No subscriptions found. Please change Azure account or tenant to view available subscriptions.</source>
     </trans-unit>
     <trans-unit id="++CODE++6150f2aa36fc0da88b93d47481d99a988bcafd046bd60d962401893399cd0995">
       <source xml:lang="en">No templates available</source>
@@ -4570,6 +4605,9 @@
     <trans-unit id="++CODE++c823d53ecfb4b96ba917d2a3edff1316f73db7ddcead1f0cc26aed3c36053741">
       <source xml:lang="en">Not contains</source>
     </trans-unit>
+    <trans-unit id="++CODE++a5b634627aea24b14fcd3b33054a4dcf3c0385853fe5a22235b84f3c42eb17ac">
+      <source xml:lang="en">Not currently signed in. Select to sign in to tenant.</source>
+    </trans-unit>
     <trans-unit id="++CODE++c9a7c5601ef0cf94864a294ea116e414d2e0cf571ab03baabf79b726e1dcb294">
       <source xml:lang="en">Not equal to</source>
     </trans-unit>
@@ -4581,6 +4619,10 @@
     </trans-unit>
     <trans-unit id="++CODE++491fc91cd76e51571a745d780f0fc91f8ae62622e790cb113828988bba2e3c2c">
       <source xml:lang="en">Not signed in</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7bec39b28409bec8fc720f39f7c30fd934272f52f1c41c1d00988827bab07d3b">
+      <source xml:lang="en">Not signed into tenant {0}</source>
+      <note>{0} is the tenant display name</note>
     </trans-unit>
     <trans-unit id="++CODE++ba35f0c47d862763dafa955d6716942f79b8bfe1d01d5968520db6f9ba665f6f">
       <source xml:lang="en">Not started</source>
@@ -5160,9 +5202,6 @@
     <trans-unit id="++CODE++6aafab6eae72092eb7c25ffb6f34dab1a3eb70f1ef79e6e159f0fe540ca6b675">
       <source xml:lang="en">Receive natural language explanations to help developers unfamiliar with T-SQL understand code</source>
     </trans-unit>
-    <trans-unit id="++CODE++690dbe9dc0993c4256683738fc3fd541cfa96f60d299be33343615dd58179d93">
-      <source xml:lang="en">Recent</source>
-    </trans-unit>
     <trans-unit id="++CODE++705aa26f40f31a71c622836f9a913bf837817f54e45133215a5d222489e6a7c8">
       <source xml:lang="en">Recent Connections</source>
     </trans-unit>
@@ -5237,6 +5276,9 @@
     <trans-unit id="++CODE++094e39c37800d5830e170aa0fbb976b10df2e3a9b847a6ec019c1e304bc509a6">
       <source xml:lang="en">Remove filter for {0}</source>
       <note>{0} is the column name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++18720329ca307c792fee6c6c1f707145c981d07c2b5a1b7127732ccd6e7203eb">
+      <source xml:lang="en">Remove from favorites</source>
     </trans-unit>
     <trans-unit id="++CODE++d5001dd4aab39b12094fd9e9b68e3b8ab67a6437c8eeaf592f0943dcd5851890">
       <source xml:lang="en">Remove sort</source>
@@ -5728,6 +5770,9 @@
     <trans-unit id="++CODE++6801207d5994165123a10ab767fd9439130fae500f8c407877ae5070843b906d">
       <source xml:lang="en">Search settings...</source>
     </trans-unit>
+    <trans-unit id="++CODE++14b4e9b2b94c620edf0bfa25d44598818614a26a5343ecf963a54d6ff12bedb7">
+      <source xml:lang="en">Search subscriptions...</source>
+    </trans-unit>
     <trans-unit id="++CODE++771f5d2c0599dcf4194e3fdddd9a5212d6392f4703d29971575bb455b5287a84">
       <source xml:lang="en">Search tables...</source>
     </trans-unit>
@@ -5830,6 +5875,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ed19c10287619e289e998f2c861e139754820af50b549c527483425879ea3bf0">
       <source xml:lang="en">Select a subscription</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fac4c702f7790e41763806f2cdc67d0521f91fe1cd0cc1ac492506ea2842b5dc">
+      <source xml:lang="en">Select a subscription to view servers in it.</source>
     </trans-unit>
     <trans-unit id="++CODE++ebe0dbee443b4562c7925a01e3bc69a3d5d0a3b0e8b3e11041c69fa067b65ef7">
       <source xml:lang="en">Select a tenant</source>
@@ -8103,6 +8151,9 @@
     </trans-unit>
     <trans-unit id="mssql.selectedAzureSubscriptions">
       <source xml:lang="en">Selected Azure subscriptions for browsing and managing servers and databases</source>
+    </trans-unit>
+    <trans-unit id="mssql.selectedFabricWorkspaces">
+      <source xml:lang="en">Selected Microsoft Fabric workspaces for browsing and managing SQL databases</source>
     </trans-unit>
     <trans-unit id="mssql.userFeedback">
       <source xml:lang="en">Send Feedback</source>

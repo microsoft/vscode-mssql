@@ -1121,6 +1121,10 @@ export class ConnectionDialog {
         "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
     );
 
+    public static noSubscriptionsFound = l10n.t(
+        "No subscriptions found. Please change Azure account or tenant to view available subscriptions.",
+    );
+
     public static selectDatabase = l10n.t("Select a database");
     public static userDatabasesGroup = l10n.t("User databases");
     public static systemDatabasesGroup = l10n.t("System databases");

@@ -236,11 +236,7 @@
     "Select an account": "Select an account",
     "Account": "Account",
     "Tenant ID": "Tenant ID",
-    "Authentication Type": "Authentication Type",
-    "Browse By": "Browse By",
-    "My Data": "My Data",
-    "Recent": "Recent",
-    "Favorites": "Favorites",
+    "Fabric Databases": "Fabric Databases",
     "Fabric Workspaces": "Fabric Workspaces",
     "Sign into Fabric": "Sign into Fabric",
     "Filter by keyword": "Filter by keyword",
@@ -256,6 +252,8 @@
     "Expand Workspace Explorer": "Expand Workspace Explorer",
     "Explorer": "Explorer",
     "Collapse Workspace Explorer": "Collapse Workspace Explorer",
+    "Expand Subscription Explorer": "Expand Subscription Explorer",
+    "Collapse Subscription Explorer": "Collapse Subscription Explorer",
     "Select a workspace to view the databases in it.": "Select a workspace to view the databases in it.",
     "No databases found in workspace '{0}'./{0} is the name of the workspace": {
         "message": "No databases found in workspace '{0}'.",
@@ -349,9 +347,34 @@
     "Loading databases in selected workspace...": "Loading databases in selected workspace...",
     "Error loading workspaces": "Error loading workspaces",
     "Error loading databases": "Error loading databases",
+    "Not signed into tenant {0}/{0} is the tenant display name": {
+        "message": "Not signed into tenant {0}",
+        "comment": ["{0} is the tenant display name"]
+    },
     "Connection Authentication": "Connection Authentication",
     "Advanced Options": "Advanced Options",
     "Import from Azure Data Studio": "Import from Azure Data Studio",
+    "Add to favorites": "Add to favorites",
+    "Remove from favorites": "Remove from favorites",
+    "Azure Databases": "Azure Databases",
+    "Azure Subscriptions": "Azure Subscriptions",
+    "Search subscriptions...": "Search subscriptions...",
+    "No subscriptions found": "No subscriptions found",
+    "Select a subscription to view servers in it.": "Select a subscription to view servers in it.",
+    "No servers found in subscription '{0}'./{0} is the name of the subscription": {
+        "message": "No servers found in subscription '{0}'.",
+        "comment": ["{0} is the name of the subscription"]
+    },
+    "No servers found in the selected subscription.": "No servers found in the selected subscription.",
+    "Loading subscriptions...": "Loading subscriptions...",
+    "Loading servers in '{0}'.../{0} is the name of the subscription": {
+        "message": "Loading servers in '{0}'...",
+        "comment": ["{0} is the name of the subscription"]
+    },
+    "Loading servers in selected subscription...": "Loading servers in selected subscription...",
+    "Error loading subscriptions": "Error loading subscriptions",
+    "Error loading servers": "Error loading servers",
+    "Azure SQL Server": "Azure SQL Server",
     "Sign into Azure": "Sign into Azure",
     "Not signed in": "Not signed in",
     "Azure Account": "Azure Account",
@@ -367,6 +390,7 @@
     "Tenant": "Tenant",
     "Loading tenants...": "Loading tenants...",
     "Select a tenant": "Select a tenant",
+    "Not currently signed in. Select to sign in to tenant.": "Not currently signed in. Select to sign in to tenant.",
     "Loading execution plan...": "Loading execution plan...",
     "Query {0}:  Query cost (relative to the script):  {1}%/{0} is the query number{1} is the query cost": {
         "message": "Query {0}:  Query cost (relative to the script):  {1}%",
@@ -1823,6 +1847,7 @@
     "Object Explorer Filter": "Object Explorer Filter",
     "Azure MFA": "Azure MFA",
     "Windows Authentication": "Windows Authentication",
+    "Authentication Type": "Authentication Type",
     "User": "User",
     "SQL Container Name": "SQL Container Name",
     "SQL Container Version": "SQL Container Version",
@@ -2456,6 +2481,7 @@
         "comment": ["{0} is the error message"]
     },
     "No workspaces found. Please change Fabric account or tenant to view available workspaces.": "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
+    "No subscriptions found. Please change Azure account or tenant to view available subscriptions.": "No subscriptions found. Please change Azure account or tenant to view available subscriptions.",
     "User databases": "User databases",
     "System databases": "System databases",
     "Unable to load database list from server: {0} You may enter the database name directly./{0} is the connection error message": {
@@ -3650,7 +3676,6 @@
     "Backup Files (*.bak, *.log, *.trn)": "Backup Files (*.bak, *.log, *.trn)",
     "All Files (*.*)": "All Files (*.*)",
     "No tenants found": "No tenants found",
-    "No subscriptions found": "No subscriptions found",
     "No storage accounts found": "No storage accounts found",
     "No blob containers found": "No blob containers found",
     "Generating SAS key failed: {0}/{0} is the error message": {
@@ -3739,7 +3764,6 @@
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
-    "Invalid connection string: {0}": "Invalid connection string: {0}",
-    "No subscriptions available.  Adjust your subscription filters to try again.": "No subscriptions available.  Adjust your subscription filters to try again.",
-    "Error loading Azure databases.": "Error loading Azure databases."
+    "Azure subscription not found in cache.": "Azure subscription not found in cache.",
+    "Invalid connection string: {0}": "Invalid connection string: {0}"
 }
