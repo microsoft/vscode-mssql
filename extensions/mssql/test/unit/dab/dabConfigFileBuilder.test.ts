@@ -485,6 +485,70 @@ suite("DabConfigFileBuilder Tests", () => {
 
                 expect(parsed.entities["GetUsers"].mcp).to.be.undefined;
             });
+
+            test("should emit table MCP DML tools setting when enabled explicitly", () => {
+                const config = createTestConfig({
+                    apiTypes: [Dab.ApiType.Rest, Dab.ApiType.Mcp],
+                    entities: [
+                        createTestEntity({
+                            advancedSettings: {
+                                entityName: "Users",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                                mcpDmlToolsEnabled: true,
+                            },
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+
+                expect(parsed.entities["Users"].mcp).to.deep.equal({
+                    "dml-tools": true,
+                });
+            });
+
+            test("should emit table MCP DML tools setting when disabled explicitly", () => {
+                const config = createTestConfig({
+                    apiTypes: [Dab.ApiType.Rest, Dab.ApiType.Mcp],
+                    entities: [
+                        createTestEntity({
+                            advancedSettings: {
+                                entityName: "Users",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                                mcpDmlToolsEnabled: false,
+                            },
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+
+                expect(parsed.entities["Users"].mcp).to.deep.equal({
+                    "dml-tools": false,
+                });
+            });
+
+            test("should not emit table MCP DML tools setting when MCP is disabled", () => {
+                const config = createTestConfig({
+                    apiTypes: [Dab.ApiType.Rest],
+                    entities: [
+                        createTestEntity({
+                            advancedSettings: {
+                                entityName: "Users",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                                mcpDmlToolsEnabled: false,
+                            },
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+
+                expect(parsed.entities["Users"].mcp).to.be.undefined;
+            });
         });
 
         suite("entity REST property", () => {

@@ -292,6 +292,10 @@ export function DabEntitySettingsDialog({
         setLocalSettings((prev) => ({ ...prev, exposeAsMcpCustomTool: value }));
     };
 
+    const updateMcpDmlToolsEnabled = (value: boolean) => {
+        setLocalSettings((prev) => ({ ...prev, mcpDmlToolsEnabled: value }));
+    };
+
     const isStoredProcedure = entity.sourceType === Dab.EntitySourceType.StoredProcedure;
     const isAnonymousSelected = localSettings.authorizationRole === Dab.AuthorizationRole.Anonymous;
     const isAuthenticatedSelected =
@@ -308,6 +312,7 @@ export function DabEntitySettingsDialog({
     const storedProcedureGraphQLOperation =
         localSettings.storedProcedureGraphQLOperation ?? Dab.GraphQLOperation.Mutation;
     const exposeAsMcpCustomTool = localSettings.exposeAsMcpCustomTool !== false;
+    const mcpDmlToolsEnabled = localSettings.mcpDmlToolsEnabled !== false;
     const sourceObjectName = `${entity.schemaName}.${entity.sourceName ?? entity.tableName}`;
     const entityName = localSettings.entityName.trim();
     const customRestPath = localSettings.customRestPath?.trim() ?? "";
@@ -713,39 +718,52 @@ export function DabEntitySettingsDialog({
                     </div>
                 </section>
 
-                {isStoredProcedure && (
-                    <section
-                        className={mergeClasses(
-                            classes.section,
-                            !isMcpEnabled && classes.sectionDisabled,
-                        )}>
-                        {renderSectionTitle(locConstants.schemaDesigner.mcp)}
-                        <div className={classes.sectionBody}>
-                            {!isMcpEnabled ? (
-                                renderDisabledBanner(
-                                    Dab.ApiType.Mcp,
-                                    locConstants.schemaDesigner.mcp,
-                                    locConstants.schemaDesigner.enableMcpForCustomToolHelp,
-                                )
-                            ) : (
-                                <>
-                                    <Checkbox
-                                        checked={exposeAsMcpCustomTool}
-                                        onChange={(_, data) =>
-                                            updateExposeAsMcpCustomTool(!!data.checked)
-                                        }
-                                        label={locConstants.schemaDesigner.exposeAsMcpCustomTool}
-                                    />
-                                    {exposeAsMcpCustomTool && (
-                                        <span className={classes.fieldHint}>
-                                            {locConstants.schemaDesigner.exposeAsMcpCustomToolHelp}
-                                        </span>
-                                    )}
-                                </>
-                            )}
-                        </div>
-                    </section>
-                )}
+                <section
+                    className={mergeClasses(
+                        classes.section,
+                        !isMcpEnabled && classes.sectionDisabled,
+                    )}>
+                    {renderSectionTitle(locConstants.schemaDesigner.mcp)}
+                    <div className={classes.sectionBody}>
+                        {!isMcpEnabled ? (
+                            renderDisabledBanner(
+                                Dab.ApiType.Mcp,
+                                locConstants.schemaDesigner.mcp,
+                                isStoredProcedure
+                                    ? locConstants.schemaDesigner.enableMcpForCustomToolHelp
+                                    : locConstants.schemaDesigner.enableMcpForDmlToolsHelp,
+                            )
+                        ) : isStoredProcedure ? (
+                            <>
+                                <Checkbox
+                                    checked={exposeAsMcpCustomTool}
+                                    onChange={(_, data) =>
+                                        updateExposeAsMcpCustomTool(!!data.checked)
+                                    }
+                                    label={locConstants.schemaDesigner.exposeAsMcpCustomTool}
+                                />
+                                {exposeAsMcpCustomTool && (
+                                    <span className={classes.fieldHint}>
+                                        {locConstants.schemaDesigner.exposeAsMcpCustomToolHelp}
+                                    </span>
+                                )}
+                            </>
+                        ) : (
+                            <>
+                                <Checkbox
+                                    checked={mcpDmlToolsEnabled}
+                                    onChange={(_, data) => updateMcpDmlToolsEnabled(!!data.checked)}
+                                    label={locConstants.schemaDesigner.exposeAsMcpDmlTools}
+                                />
+                                {mcpDmlToolsEnabled && (
+                                    <span className={classes.fieldHint}>
+                                        {locConstants.schemaDesigner.exposeAsMcpDmlToolsHelp}
+                                    </span>
+                                )}
+                            </>
+                        )}
+                    </div>
+                </section>
             </DrawerBody>
             <DrawerFooter className={classes.drawerFooter}>
                 <Button

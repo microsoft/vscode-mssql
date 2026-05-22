@@ -885,6 +885,9 @@
     "MCP custom tool": "MCP custom tool",
     "Expose as MCP custom tool": "Expose as MCP custom tool",
     "Creates a dedicated MCP tool for this stored procedure. When disabled, the procedure can still be available through generic MCP execute tools if MCP is enabled.": "Creates a dedicated MCP tool for this stored procedure. When disabled, the procedure can still be available through generic MCP execute tools if MCP is enabled.",
+    "Expose as MCP DML tools": "Expose as MCP DML tools",
+    "Allows MCP clients to use generic create, read, update, and delete tools for this table.": "Allows MCP clients to use generic create, read, update, and delete tools for this table.",
+    "Enable MCP in API Type to use this DML tools setting.": "Enable MCP in API Type to use this DML tools setting.",
     "Enable MCP in API Type to use this custom tool setting.": "Enable MCP in API Type to use this custom tool setting.",
     "{0} is not enabled globally/{0} is the API type, e.g. REST, GraphQL, or MCP": {
         "message": "{0} is not enabled globally",

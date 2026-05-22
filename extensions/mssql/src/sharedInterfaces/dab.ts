@@ -163,6 +163,11 @@ export namespace Dab {
          */
         graphQLEnabled?: boolean;
         /**
+         * Whether this table entity should be exposed through MCP DML tools.
+         * Defaults to true in DAB when omitted.
+         */
+        mcpDmlToolsEnabled?: boolean;
+        /**
          * Stored procedure REST methods. Defaults to POST.
          */
         storedProcedureRestMethods?: RestMethod[];

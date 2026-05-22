@@ -227,18 +227,38 @@ export class DabConfigFileBuilder {
             }));
         }
 
-        if (
-            isMcpEnabled &&
-            entity.sourceType === Dab.EntitySourceType.StoredProcedure &&
-            entity.advancedSettings.exposeAsMcpCustomTool !== false
-        ) {
-            output.mcp = {
-                "custom-tool": true,
-                "dml-tools": false,
-            };
+        const mcpConfig = this.buildMcpProperty(entity, isMcpEnabled);
+        if (mcpConfig) {
+            output.mcp = mcpConfig;
         }
 
         return output;
+    }
+
+    private buildMcpProperty(
+        entity: Dab.DabEntityConfig,
+        isMcpEnabled: boolean,
+    ): DabEntityOutput["mcp"] | undefined {
+        if (!isMcpEnabled) {
+            return undefined;
+        }
+
+        if (entity.sourceType === Dab.EntitySourceType.StoredProcedure) {
+            return entity.advancedSettings.exposeAsMcpCustomTool !== false
+                ? {
+                      "custom-tool": true,
+                      "dml-tools": false,
+                  }
+                : undefined;
+        }
+
+        if (entity.advancedSettings.mcpDmlToolsEnabled === undefined) {
+            return undefined;
+        }
+
+        return {
+            "dml-tools": entity.advancedSettings.mcpDmlToolsEnabled,
+        };
     }
 
     private buildKeyFieldsProperty(entity: Dab.DabEntityConfig): { "key-fields"?: string[] } {

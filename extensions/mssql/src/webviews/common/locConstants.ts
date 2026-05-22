@@ -1370,6 +1370,13 @@ export class LocConstants {
             exposeAsMcpCustomToolHelp: l10n.t(
                 "Creates a dedicated MCP tool for this stored procedure. When disabled, the procedure can still be available through generic MCP execute tools if MCP is enabled.",
             ),
+            exposeAsMcpDmlTools: l10n.t("Expose as MCP DML tools"),
+            exposeAsMcpDmlToolsHelp: l10n.t(
+                "Allows MCP clients to use generic create, read, update, and delete tools for this table.",
+            ),
+            enableMcpForDmlToolsHelp: l10n.t(
+                "Enable MCP in API Type to use this DML tools setting.",
+            ),
             enableMcpForCustomToolHelp: l10n.t(
                 "Enable MCP in API Type to use this custom tool setting.",
             ),

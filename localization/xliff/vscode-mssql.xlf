@@ -297,6 +297,9 @@
     <trans-unit id="++CODE++5823192e37f38baf2e14f1fba3486615cbfa097b26c05b2a13a6c3473ce11c74">
       <source xml:lang="en">Allow this extension to access your connections</source>
     </trans-unit>
+    <trans-unit id="++CODE++6e71f5fc0d9c6c4b7b332b728876a1d39748494efe2355bdae2383b90c86f050">
+      <source xml:lang="en">Allows MCP clients to use generic create, read, update, and delete tools for this table.</source>
+    </trans-unit>
     <trans-unit id="++CODE++a49d631f8c6cf6fb1660fb5229dfa0c08b55727549c0e48cc0cef1f7770ba0e2">
       <source xml:lang="en">Alphabetical</source>
     </trans-unit>
@@ -2177,6 +2180,9 @@
     <trans-unit id="++CODE++7bce93a011075575cf98f089cee89c6108be3220cd9701e8ce2fe0c19b38f411">
       <source xml:lang="en">Enable GraphQL in API Type to expose this entity through GraphQL.</source>
     </trans-unit>
+    <trans-unit id="++CODE++15435d09b1cffdaf56b14da1b895b33f43e8c959a77676be198778deca88c203">
+      <source xml:lang="en">Enable MCP in API Type to use this DML tools setting.</source>
+    </trans-unit>
     <trans-unit id="++CODE++6b4be3a8ee14a536e26c05c8b1d62473209daf08fb4f8ec66322497d5d0028f0">
       <source xml:lang="en">Enable MCP in API Type to use this custom tool setting.</source>
     </trans-unit>
@@ -2622,6 +2628,9 @@
     </trans-unit>
     <trans-unit id="++CODE++de5cd90f5341f8bb2ebe10270705fa436ac43f8c5ff653358b9eee3a56323ec4">
       <source xml:lang="en">Exporting BACPAC...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++29b442400008bbd807940df17eeffd10d069f415bd2c1320d813f2e61a223095">
+      <source xml:lang="en">Expose as MCP DML tools</source>
     </trans-unit>
     <trans-unit id="++CODE++886b046597112f108973a5fa0dd665428e3303b602a7c20621b6876237cb7044">
       <source xml:lang="en">Expose as MCP custom tool</source>

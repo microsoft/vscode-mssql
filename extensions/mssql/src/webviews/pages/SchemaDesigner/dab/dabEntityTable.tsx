@@ -45,9 +45,8 @@ import { DabEntitySettingsDialog } from "./dabEntitySettingsDialog";
 import { DabEntityFilters, doesEntityMatchDabFilters, isDabTableEntity } from "./dabEntityFilters";
 import "./dabEntityTable.css";
 
-const TYPE_INDENT = 20;
-const ENTITY_INDENT = 40;
-const COLUMN_INDENT = 60;
+const ENTITY_INDENT = 20;
+const COLUMN_INDENT = 40;
 
 type FlatRowColumnId =
     | "select"
@@ -65,14 +64,6 @@ type FlatRowColumnId =
 type FlatRow =
     | {
           type: "schema";
-          id: string;
-          schemaName: string;
-          entities: Dab.DabEntityConfig[];
-          enabledEntityCount: number;
-          isExpanded: boolean;
-      }
-    | {
-          type: "objectGroup";
           id: string;
           schemaName: string;
           entities: Dab.DabEntityConfig[];
@@ -138,7 +129,6 @@ function createDefaultExpandedRows(config?: Dab.DabConfig | null): Set<string> {
         }
         const schemaKey = getSchemaGroupKey(entity.schemaName);
         expanded.add(`schema-${schemaKey}`);
-        expanded.add(`schema-${schemaKey}-${Dab.EntitySourceType.Table}`);
     }
     return expanded;
 }
@@ -234,10 +224,6 @@ const useStyles = makeStyles({
     },
     schemaRow: {
         backgroundColor: "var(--vscode-sideBar-background, var(--vscode-editor-background))",
-        fontWeight: 600,
-    },
-    objectGroupRow: {
-        backgroundColor: "var(--vscode-editor-background)",
         fontWeight: 600,
     },
     entityRow: {
@@ -560,41 +546,23 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
             });
 
             if (schemaExpanded) {
-                const groups = [{ entities }].filter((group) => group.entities.length > 0);
-
-                for (const group of groups) {
-                    const groupId = `schema-${schemaKey}-${Dab.EntitySourceType.Table}`;
-                    const groupExpanded = expandedRows.has(groupId);
+                for (const entity of entities) {
+                    const entityExpanded = entity.isSupported && expandedRows.has(entity.id);
                     rows.push({
-                        type: "objectGroup",
-                        id: groupId,
-                        schemaName,
-                        entities: group.entities,
-                        enabledEntityCount: group.entities.filter((e) => e.isEnabled).length,
-                        isExpanded: groupExpanded,
+                        type: "entity",
+                        id: entity.id,
+                        entity,
+                        isExpanded: entityExpanded,
                     });
 
-                    if (groupExpanded) {
-                        for (const entity of group.entities) {
-                            const entityExpanded =
-                                entity.isSupported && expandedRows.has(entity.id);
+                    if (entityExpanded) {
+                        for (const column of entity.columns) {
                             rows.push({
-                                type: "entity",
-                                id: entity.id,
+                                type: "column",
+                                id: `${entity.id}-${column.id}`,
                                 entity,
-                                isExpanded: entityExpanded,
+                                column,
                             });
-
-                            if (entityExpanded) {
-                                for (const column of entity.columns) {
-                                    rows.push({
-                                        type: "column",
-                                        id: `${entity.id}-${column.id}`,
-                                        entity,
-                                        column,
-                                    });
-                                }
-                            }
                         }
                     }
                 }
@@ -711,8 +679,6 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
         switch (row.type) {
             case "entity":
                 return ENTITY_INDENT;
-            case "objectGroup":
-                return TYPE_INDENT;
             case "column":
                 return COLUMN_INDENT;
             default:
@@ -735,22 +701,6 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                             aria-label={locConstants.schemaDesigner.toggleAllEntitiesInSchema(
                                 row.schemaName,
                             )}
-                        />
-                    </div>
-                );
-            }
-
-            if (row.type === "objectGroup") {
-                const supported = row.entities.filter((e) => e.isSupported);
-                const checkState = entitySelectionState(row.entities);
-
-                return (
-                    <div className={classes.centeredCell}>
-                        <Checkbox
-                            checked={toNativeChecked(checkState)}
-                            disabled={supported.length === 0}
-                            onChange={() => toggleEntities(row.entities)}
-                            aria-label={locConstants.schemaDesigner.tables}
                         />
                     </div>
                 );
@@ -828,7 +778,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
 
     const renderExpandContent = useCallback(
         (row: FlatRow) => {
-            if (row.type === "schema" || row.type === "objectGroup") {
+            if (row.type === "schema") {
                 return (
                     <div className={classes.centeredCell}>
                         <Button
@@ -898,26 +848,6 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                         <Folder16Regular className="dab-icon-schema" />
                         <span className={classes.nameLabel}>
                             {highlightText(row.schemaName, dabTextFilter, classes.searchHighlight)}
-                        </span>
-                        <Badge appearance="filled" size="small" color="informative">
-                            {row.enabledEntityCount}/{row.entities.length}
-                        </Badge>
-                    </div>
-                );
-            }
-
-            if (row.type === "objectGroup") {
-                return (
-                    <div
-                        className={classes.nameCellContent}
-                        style={{ paddingInlineStart: `${getRowIndent(row)}px` }}>
-                        <Folder16Regular className="dab-icon-schema" />
-                        <span className={classes.nameLabel}>
-                            {highlightText(
-                                locConstants.schemaDesigner.tables,
-                                dabTextFilter,
-                                classes.searchHighlight,
-                            )}
                         </span>
                         <Badge appearance="filled" size="small" color="informative">
                             {row.enabledEntityCount}/{row.entities.length}
@@ -1286,11 +1216,9 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                                         classes.row,
                                         row.item.type === "schema"
                                             ? classes.schemaRow
-                                            : row.item.type === "objectGroup"
-                                              ? classes.objectGroupRow
-                                              : row.item.type === "entity"
-                                                ? classes.entityRow
-                                                : classes.columnRow,
+                                            : row.item.type === "entity"
+                                              ? classes.entityRow
+                                              : classes.columnRow,
                                     );
 
                                     return (
@@ -1300,12 +1228,10 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                                             aria-expanded={
                                                 row.item.type === "schema"
                                                     ? row.item.isExpanded
-                                                    : row.item.type === "objectGroup"
+                                                    : row.item.type === "entity" &&
+                                                        row.item.entity.isSupported
                                                       ? row.item.isExpanded
-                                                      : row.item.type === "entity" &&
-                                                          row.item.entity.isSupported
-                                                        ? row.item.isExpanded
-                                                        : undefined
+                                                      : undefined
                                             }
                                             className={mergeClasses(rowClass, classes.virtualRow)}
                                             style={{

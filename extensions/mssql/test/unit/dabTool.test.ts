@@ -1478,6 +1478,33 @@ suite("DabTool Tests", () => {
             expect(result.config?.entities[0].advancedSettings.graphQLEnabled).to.equal(false);
         });
 
+        test("apply_changes lets Copilot patch table MCP DML tools exposure", async () => {
+            const harness = createDabHandlerHarness({
+                tables: [createTable("t1", "dbo", "Users")],
+                dabConfig: null,
+            });
+            const state = await harness.getState();
+
+            const result = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [
+                    {
+                        type: "patch_entity_settings",
+                        entity: { id: "t1" },
+                        set: {
+                            mcpDmlToolsEnabled: false,
+                        },
+                    },
+                ],
+            });
+
+            expect(result.success).to.equal(true);
+            if (!result.success) {
+                throw new Error("Expected success response");
+            }
+            expect(result.config?.entities[0].advancedSettings.mcpDmlToolsEnabled).to.equal(false);
+        });
+
         test("apply_changes lets Copilot patch stored procedure REST methods and GraphQL operation", async () => {
             const procedureSource: Dab.DabSourceObject = {
                 id: "stored-procedure:dbo.GetUsers",
@@ -1542,6 +1569,42 @@ suite("DabTool Tests", () => {
             expect(result.reason).to.equal("invalid_request");
             expect(result.message).to.equal(
                 "exposeAsMcpCustomTool can only be set for stored procedure entities.",
+            );
+        });
+
+        test("apply_changes rejects table MCP DML tools setting for non-table entities", async () => {
+            const procedureSource: Dab.DabSourceObject = {
+                id: "stored-procedure:dbo.GetUsers",
+                sourceType: Dab.EntitySourceType.StoredProcedure,
+                schemaName: "dbo",
+                sourceName: "GetUsers",
+                columns: [],
+            };
+            const harness = createDabHandlerHarness({
+                tables: [],
+                sourceObjects: [procedureSource],
+                dabConfig: null,
+            });
+            const state = await harness.getState();
+
+            const result = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [
+                    {
+                        type: "patch_entity_settings",
+                        entity: { id: "stored-procedure:dbo.GetUsers" },
+                        set: { mcpDmlToolsEnabled: false },
+                    },
+                ],
+            });
+
+            expect(result.success).to.equal(false);
+            if (result.success) {
+                throw new Error("Expected failure response");
+            }
+            expect(result.reason).to.equal("invalid_request");
+            expect(result.message).to.equal(
+                "mcpDmlToolsEnabled can only be set for table entities.",
             );
         });
 

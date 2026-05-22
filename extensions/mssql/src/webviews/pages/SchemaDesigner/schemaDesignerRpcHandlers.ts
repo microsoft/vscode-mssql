@@ -1173,6 +1173,7 @@ function normalizeDabConfigForVersion(config: Dab.DabConfig) {
                             ? entity.advancedSettings.customGraphQLPluralType
                             : undefined,
                     graphQLEnabled: entity.advancedSettings.graphQLEnabled,
+                    mcpDmlToolsEnabled: entity.advancedSettings.mcpDmlToolsEnabled,
                     storedProcedureRestMethods:
                         entity.advancedSettings.storedProcedureRestMethods !== undefined
                             ? Dab.normalizeRestMethods(
@@ -1840,6 +1841,26 @@ function applyDabToolChange(
                             };
                         }
                         updatedSettings.graphQLEnabled = value;
+                        break;
+                    case "mcpDmlToolsEnabled":
+                        if (typeof value !== "boolean") {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message: "mcpDmlToolsEnabled must be a boolean.",
+                            };
+                        }
+                        if (
+                            (resolvedEntity.entity.sourceType ?? Dab.EntitySourceType.Table) !==
+                            Dab.EntitySourceType.Table
+                        ) {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message: "mcpDmlToolsEnabled can only be set for table entities.",
+                            };
+                        }
+                        updatedSettings.mcpDmlToolsEnabled = value;
                         break;
                     case "storedProcedureRestMethods":
                         if (value === null || typeof value === "undefined") {

@@ -3762,7 +3762,7 @@
             },
             {
                 "name": "mssql_dab",
-                "modelDescription": "Work with the Data API builder configuration in the currently active schema designer. Use 'get_state' to inspect it and 'apply_changes' to modify it; use 'show' only to open the Data API builder view for a connectionId when needed. Operations: 'get_state' returns the current version, summary, and bounded configuration state (full config may be omitted for large configurations); 'apply_changes' uses payload { expectedVersion, targetHint?, changes } and returns the post-mutation version plus summary, with optional returnState control. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with the current version and latest summary/config according to returnState. Entity refs are either { id }, { schemaName, tableName } for table compatibility, or { schemaName, sourceName, sourceType } where sourceType is table, view, or stored-procedure. Column refs are either { id } or { name }. Change types: { type: 'set_api_types', apiTypes }, { type: 'add_entity', entity }, { type: 'remove_entity', entity }, { type: 'set_entity_enabled', entity, isEnabled }, { type: 'set_entity_actions', entity, enabledActions }, { type: 'set_column_exposed', entity, column, isExposed }, { type: 'patch_entity_settings', entity, set }, { type: 'set_only_enabled_entities', entities }, { type: 'set_all_entities_enabled', isEnabled }. patch_entity_settings.set supports entityName, authorizationRole, customRestPath, restEnabled, customGraphQLType, graphQLEnabled, and stored-procedure-only storedProcedureRestMethods, storedProcedureGraphQLOperation, exposeAsMcpCustomTool.",
+                "modelDescription": "Work with the Data API builder configuration in the currently active schema designer. Use 'get_state' to inspect it and 'apply_changes' to modify it; use 'show' only to open the Data API builder view for a connectionId when needed. Operations: 'get_state' returns the current version, summary, and bounded configuration state (full config may be omitted for large configurations); 'apply_changes' uses payload { expectedVersion, targetHint?, changes } and returns the post-mutation version plus summary, with optional returnState control. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with the current version and latest summary/config according to returnState. Entity refs are either { id }, { schemaName, tableName } for table compatibility, or { schemaName, sourceName, sourceType } where sourceType is table, view, or stored-procedure. Column refs are either { id } or { name }. Change types: { type: 'set_api_types', apiTypes }, { type: 'add_entity', entity }, { type: 'remove_entity', entity }, { type: 'set_entity_enabled', entity, isEnabled }, { type: 'set_entity_actions', entity, enabledActions }, { type: 'set_column_exposed', entity, column, isExposed }, { type: 'patch_entity_settings', entity, set }, { type: 'set_only_enabled_entities', entities }, { type: 'set_all_entities_enabled', isEnabled }. patch_entity_settings.set supports entityName, authorizationRole, customRestPath, restEnabled, customGraphQLType, graphQLEnabled, table-only mcpDmlToolsEnabled, and stored-procedure-only storedProcedureRestMethods, storedProcedureGraphQLOperation, exposeAsMcpCustomTool.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -3912,6 +3912,10 @@
                                 },
                                 "graphQLEnabled": {
                                     "description": "When true, exposes the entity through GraphQL if GraphQL is globally enabled.",
+                                    "type": "boolean"
+                                },
+                                "mcpDmlToolsEnabled": {
+                                    "description": "Table only. When true, exposes the table through generic MCP DML tools (create/read/update/delete) if MCP is globally enabled. When false, emits mcp { dml-tools: false } for the table.",
                                     "type": "boolean"
                                 },
                                 "storedProcedureRestMethods": {
@@ -4171,7 +4175,7 @@
                                                         "$ref": "#/$defs/entityRef"
                                                     },
                                                     "set": {
-                                                        "description": "Patch advanced settings. Example: { entityName: '41', authorizationRole: 'authenticated', restEnabled: true, customRestPath: 't_41', graphQLEnabled: true, customGraphQLType: null, storedProcedureRestMethods: ['post'], storedProcedureGraphQLOperation: 'mutation', exposeAsMcpCustomTool: true }. Stored procedure settings are only valid for stored procedures.",
+                                                        "description": "Patch advanced settings. Example: { entityName: '41', authorizationRole: 'authenticated', restEnabled: true, customRestPath: 't_41', graphQLEnabled: true, customGraphQLType: null, mcpDmlToolsEnabled: true, storedProcedureRestMethods: ['post'], storedProcedureGraphQLOperation: 'mutation', exposeAsMcpCustomTool: true }. mcpDmlToolsEnabled is table-only. Stored procedure settings are only valid for stored procedures.",
                                                         "$ref": "#/$defs/advancedSettingsPatch"
                                                     }
                                                 },
