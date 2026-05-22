@@ -6,10 +6,16 @@ _The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
-## [1.5.10] - 2026-06-02
+## [1.6.0] - 2026-06-02
 
 - Improved Publish Project dialog performance for faster initial loading, and improved port number validation in Publish Project dialog to correctly show available port.
 - Improved SQL project loading performance.
+- Added IntelliSense support for SQL projects, including:
+  - Go to Definition and Peek Definition for SQL objects across project files
+  - Hover information for SQL objects (tables, views, stored procedures, functions, etc.)
+  - Code completions for SQL objects within the project
+  - Diagnostics (red squiggles) for SQL errors and warnings
+  - Cross-file duplicate naming detection
 
 ## [1.5.9] - 2026-04-22
 
