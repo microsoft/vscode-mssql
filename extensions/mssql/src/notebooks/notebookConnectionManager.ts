@@ -356,7 +356,6 @@ export class NotebookConnectionManager implements vscode.Disposable {
      * server/database/auth, so this doesn't cause redundant queries.
      */
     async connectCellForIntellisense(cellDocumentUri: string): Promise<void> {
-        const cellUriScheme = vscode.Uri.parse(cellDocumentUri).scheme;
         if (!this.connectionInfo) {
             this.log.debug(
                 `[connectCellForIntellisense] Skipped (no connectionInfo) cell=${cellDocumentUri}`,
@@ -374,6 +373,12 @@ export class NotebookConnectionManager implements vscode.Disposable {
             return;
         }
 
+        let cellUriScheme = "unknown";
+        try {
+            cellUriScheme = vscode.Uri.parse(cellDocumentUri).scheme;
+        } catch {
+            // ignore parse errors
+        }
         const authType = connectionDetails.options?.authenticationType ?? "unknown";
         this.log.debug(
             `[connectCellForIntellisense] Sending connect request scheme=${cellUriScheme} server=${this.connectionInfo.server} database=${this.connectionInfo.database || "(default)"} auth=${authType} cell=${cellDocumentUri}`,

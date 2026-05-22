@@ -493,9 +493,11 @@ export default class SqlToolsServiceClient {
                     return "unknown";
                 }
             })();
-            this._logger.info(
-                `LanguageServiceStatus scheme=${scheme} status=${event.status} ownerUri=${event.ownerUri}`,
-            );
+            if (scheme === "vscode-notebook-cell" || scheme === "unknown") {
+                this._logger.verbose(
+                    `LanguageServiceStatus scheme=${scheme} status=${event.status} ownerUri=${event.ownerUri}`,
+                );
+            }
             this._statusView.languageServiceStatusChanged(event.ownerUri, event.status);
         };
     }
