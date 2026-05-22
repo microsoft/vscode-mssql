@@ -3676,12 +3676,3 @@ export class ServiceClient {
 
     public static installFailedStatusText = l10n.t("Service installation failed.");
 }
-
-export class CloudDeploy {
-    public static parseErrorSummary = (filePath: string, count: number): string =>
-        l10n.t({
-            message: "Failed to load {0}: {1} validation issue(s) found. See output for details.",
-            args: [filePath, count],
-            comment: ["{0} is a file path; {1} is the number of validation issues found"],
-        });
-}

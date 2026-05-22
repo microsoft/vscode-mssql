@@ -219,6 +219,6 @@ function throwIfIssues(filePath: string, issues: EnvironmentsFileIssue[]): void 
         filePath,
         `environments.json has ${issues.length} issue${issues.length === 1 ? "" : "s"}:\n${summary}`,
     );
-    (err as EnvironmentsFileParseError & { issues: EnvironmentsFileIssue[] }).issues = issues;
+    err.issues = issues;
     throw err;
 }

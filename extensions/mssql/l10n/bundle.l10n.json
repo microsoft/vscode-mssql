@@ -3603,10 +3603,6 @@
     },
     "View known issues": "View known issues",
     "Service installation failed.": "Service installation failed.",
-    "Failed to load {0}: {1} validation issue(s) found. See output for details./{0} is a file path; {1} is the number of validation issues found": {
-        "message": "Failed to load {0}: {1} validation issue(s) found. See output for details.",
-        "comment": ["{0} is a file path; {1} is the number of validation issues found"]
-    },
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
