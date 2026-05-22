@@ -965,7 +965,7 @@
     "REST": "REST",
     "Entity Name": "Entity Name",
     "Used in API routes and responses": "Used in API routes and responses",
-    "Authorization Role": "Authorization Role",
+    "Permissions": "Permissions",
     "Define who can access this endpoint": "Define who can access this endpoint",
     "Define who can execute this stored procedure": "Define who can execute this stored procedure",
     "Disabled globally": "Disabled globally",

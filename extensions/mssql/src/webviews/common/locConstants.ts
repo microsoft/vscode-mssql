@@ -1493,7 +1493,7 @@ export class LocConstants {
             rest: l10n.t("REST"),
             entityName: l10n.t("Entity Name"),
             entityNameHelp: l10n.t("Used in API routes and responses"),
-            authorizationRole: l10n.t("Authorization Role"),
+            authorizationRole: l10n.t("Permissions"),
             authorizationRoleHelp: l10n.t("Define who can access this endpoint"),
             authorizationRoleStoredProcedureHelp: l10n.t(
                 "Define who can execute this stored procedure",

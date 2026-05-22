@@ -483,9 +483,6 @@
     <trans-unit id="++CODE++7eaca18a3c11c60ab2d50c764174699f66bb634b8d7324a2303d1e3ea541b626">
       <source xml:lang="en">Authentication not supported</source>
     </trans-unit>
-    <trans-unit id="++CODE++a06725099766746b634d3d1caf6928e6553311ad0e910f795ab97c69fac0f246">
-      <source xml:lang="en">Authorization Role</source>
-    </trans-unit>
     <trans-unit id="++CODE++d58bbb838e095ea400fb432477d5657a6b5a32da8da836299f4f7e20020bb42d">
       <source xml:lang="en">Auto Arrange</source>
     </trans-unit>
@@ -4823,6 +4820,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e87dbc12e88933c84d9ccdb30d89a4c9977b80894c26a85504ed7b1b42fda674">
       <source xml:lang="en">Perform checksum before writing to media</source>
+    </trans-unit>
+    <trans-unit id="++CODE++abccc78cc93c07931feccfbd0665c003373b48334fd8d4cf5c6d0c714e68f26e">
+      <source xml:lang="en">Permissions</source>
     </trans-unit>
     <trans-unit id="++CODE++4c09d189302f2506e79be79caf623ccc300816ff936119f9dc5f5bbfd9ee5b0a">
       <source xml:lang="en">Pick from multiple SQL Server versions, including SQL Server 2025 with built-in AI capabilities like vector search and JSON enhancements.</source>
