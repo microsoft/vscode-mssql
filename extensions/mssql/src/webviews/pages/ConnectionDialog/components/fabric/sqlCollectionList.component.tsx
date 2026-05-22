@@ -80,12 +80,15 @@ export const SqlCollectionList = ({
 
     // Sort: favorites first (stable), then alphabetical by displayName (case-insensitive)
     const sortedWorkspaces = useMemo(() => {
+        const favoriteSet = new Set(favoritedIds ?? []);
         return [...workspaces].sort((a, b) => {
-            const aFav = favoritedIds?.includes(a.id) ?? false;
-            const bFav = favoritedIds?.includes(b.id) ?? false;
+            const aFav = favoriteSet.has(a.id);
+            const bFav = favoriteSet.has(b.id);
+
             if (aFav !== bFav) {
                 return aFav ? -1 : 1;
             }
+
             return a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase());
         });
     }, [workspaces, favoritedIds]);

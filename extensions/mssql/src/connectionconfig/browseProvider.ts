@@ -33,7 +33,7 @@ import { FabricHelper } from "../fabric/fabricHelper";
 import { VsCodeAzureHelper } from "./azureHelpers";
 import { Logger } from "../models/logger";
 import { getCloudId } from "../azure/providerSettings";
-import { sendErrorEvent, startActivity } from "../telemetry/telemetry";
+import { startActivity } from "../telemetry/telemetry";
 import { getErrorMessage } from "../utils/utils";
 
 /** Per-mode limit for auto-loading the contents of every collection on the current tenant. */
@@ -220,9 +220,9 @@ export class AzureBrowseProvider extends BrowseProvider {
         accountId: string,
         tenantId: string,
     ): Promise<void> {
-        const endActivity = startActivity(
+        const telemActivity = startActivity(
             TelemetryViews.ConnectionDialog,
-            TelemetryActions.LoadAzureServers,
+            TelemetryActions.LoadAzureSubscriptions,
         );
 
         // Snapshot selection at call time to discard results if the user navigates away.
@@ -269,7 +269,11 @@ export class AzureBrowseProvider extends BrowseProvider {
             this.refreshFavoritesIntoState(state);
             this.host.updateState(state);
 
-            endActivity.end(ActivityStatus.Succeeded, undefined, {
+            this.host.logger.log(
+                `Loaded ${subsForTenant.length} Azure subscriptions for tenant ${tenantId}`,
+            );
+
+            telemActivity.end(ActivityStatus.Succeeded, undefined, {
                 subscriptionCount: subsForTenant.length,
             });
         } catch (error) {
@@ -279,7 +283,7 @@ export class AzureBrowseProvider extends BrowseProvider {
                 message: getErrorMessage(error),
             });
             this.host.logger.error(state.formMessage.message + os.EOL + getErrorMessage(error));
-            endActivity.endFailed(
+            telemActivity.endFailed(
                 error,
                 false, // includeErrorMessage
             );
@@ -290,6 +294,11 @@ export class AzureBrowseProvider extends BrowseProvider {
         state: ConnectionDialogWebviewState,
         subscription: SqlCollectionInfo,
     ): Promise<void> {
+        const telemActivity = startActivity(
+            TelemetryViews.ConnectionDialog,
+            TelemetryActions.LoadAzureDatabases,
+        );
+
         const azSub = this._subscriptionCache.get(subscription.id);
         if (!azSub) {
             subscription.loadStatus = {
@@ -319,20 +328,20 @@ export class AzureBrowseProvider extends BrowseProvider {
             this.host.logger.log(
                 `Loaded ${servers.length} servers for subscription ${azSub.name} (${azSub.subscriptionId})`,
             );
+
+            telemActivity.end(ActivityStatus.Succeeded, undefined, {
+                serverCount: servers.length,
+            });
         } catch (error) {
             const errorMessage = getErrorMessage(error);
             this.host.logger.error(
-                Loc.errorLoadingAzureDatabases(azSub.name, azSub.subscriptionId) +
-                    os.EOL +
-                    errorMessage,
+                `Error loading servers for Azure subscription ${azSub.name} (${azSub.subscriptionId}): ${errorMessage}`,
             );
 
             subscription.loadStatus = { status: ApiStatus.Error, message: errorMessage };
             this.host.updateState(state);
 
-            sendErrorEvent(
-                TelemetryViews.ConnectionDialog,
-                TelemetryActions.LoadAzureServers,
+            telemActivity.endFailed(
                 error,
                 true, // includeErrorMessage
                 undefined, // errorCode
@@ -415,7 +424,7 @@ export class FabricBrowseProvider extends BrowseProvider {
         accountId: string,
         tenantId: string,
     ): Promise<void> {
-        const endActivity = startActivity(
+        const telemActivity = startActivity(
             TelemetryViews.ConnectionDialog,
             TelemetryActions.LoadFabricWorkspaces,
         );
@@ -446,7 +455,7 @@ export class FabricBrowseProvider extends BrowseProvider {
                     message: locMessage,
                 });
 
-                endActivity.endFailed(
+                telemActivity.endFailed(
                     new Error(
                         "Failed to get tenant info from VS Code; may have been user-canceled.",
                     ),
@@ -479,7 +488,7 @@ export class FabricBrowseProvider extends BrowseProvider {
                         message: locMessage,
                     });
 
-                    endActivity.endFailed(
+                    telemActivity.endFailed(
                         new Error("Failed to fetch Fabric workspaces"),
                         true, // includeErrorMessage
                     );
@@ -511,13 +520,17 @@ export class FabricBrowseProvider extends BrowseProvider {
             this.refreshFavoritesIntoState(state);
             this.host.updateState(state);
 
-            endActivity.end(ActivityStatus.Succeeded, undefined, {
+            this.host.logger.log(
+                `Loaded ${cachedWorkspaces.length} Fabric workspaces for tenant ${tenantId}`,
+            );
+
+            telemActivity.end(ActivityStatus.Succeeded, undefined, {
                 workspaceCount: cachedWorkspaces.length,
             });
         } catch (err) {
             state.formMessage = { message: getErrorMessage(err) };
 
-            endActivity.endFailed(
+            telemActivity.endFailed(
                 new Error("Failure while getting Fabric workspaces"),
                 true, // includeErrorMessage
             );
@@ -528,9 +541,9 @@ export class FabricBrowseProvider extends BrowseProvider {
         state: ConnectionDialogWebviewState,
         workspace: SqlCollectionInfo,
     ): Promise<void> {
-        const loadDatabasesActivity = startActivity(
+        const telemActivity = startActivity(
             TelemetryViews.ConnectionDialog,
-            TelemetryActions.LoadDatabases,
+            TelemetryActions.LoadFabricDatabases,
         );
 
         workspace.loadStatus = { status: ApiStatus.Loading };
@@ -585,7 +598,12 @@ export class FabricBrowseProvider extends BrowseProvider {
                     ? { status: ApiStatus.Error, message: errorMessages.join("\n") }
                     : { status: ApiStatus.Loaded };
 
-            loadDatabasesActivity.end(
+            const totalCount = workspace.databases.length;
+            this.host.logger.log(
+                `Loaded ${sqlDbCount} Fabric databases and ${totalCount - sqlDbCount} SQL endpoints for workspace ${workspace.id}`,
+            );
+
+            telemActivity.end(
                 ActivityStatus.Succeeded,
                 {
                     sqlDbErrored: String(sqlDbErrored),
@@ -601,14 +619,17 @@ export class FabricBrowseProvider extends BrowseProvider {
 
             this.host.updateState(state);
         } catch (err) {
-            const message = `Failed to load Fabric databases for workspace ${workspace.id}: ${getErrorMessage(err)}`;
+            const errorMessage = getErrorMessage(err);
+            this.host.logger.error(
+                `Error loading Fabric databases for workspace ${workspace.id}: ${errorMessage}`,
+            );
+            workspace.loadStatus = { status: ApiStatus.Error, message: errorMessage };
 
-            this.host.logger.error(message);
-            workspace.loadStatus = { status: ApiStatus.Error, message: getErrorMessage(err) };
-
-            loadDatabasesActivity.endFailed(
-                new Error("Failure while getting Fabric databases"),
+            telemActivity.endFailed(
+                err,
                 true, // includeErrorMessage
+                undefined, // errorCode
+                undefined, // errorType
             );
         }
     }

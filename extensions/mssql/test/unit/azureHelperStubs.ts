@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import Sinon from "sinon";
+import sinon from "sinon";
 import {
     AzureSubscription,
     AzureTenant,
@@ -150,7 +150,7 @@ export const mockManagedInstanceList = {
     databases: [mockAzureResources.azureManagedInstanceDatabase],
 };
 
-export function stubIsSignedIn(sandbox: Sinon.SinonSandbox, result: boolean) {
+export function stubIsSignedIn(sandbox: sinon.SinonSandbox, result: boolean) {
     return sandbox.stub(AzureHelpers.VsCodeAzureHelper, "isSignedIn").resolves(result);
 }
 
@@ -193,7 +193,7 @@ export function stubFetchServersFromAzure(sandbox: sinon.SinonSandbox) {
         });
 }
 
-export function stubPromptForAzureSubscriptionFilter(sandbox: Sinon.SinonSandbox, result: boolean) {
+export function stubPromptForAzureSubscriptionFilter(sandbox: sinon.SinonSandbox, result: boolean) {
     return sandbox.stub(AzureHelpers, "promptForAzureSubscriptionFilter").resolves(result);
 }
 
