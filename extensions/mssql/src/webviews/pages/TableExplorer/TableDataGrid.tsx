@@ -407,7 +407,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         const escapedTooltip = htmlEncode(displayValue);
 
                         // Build CSS classes based on cell state
-                        const cellClasses = [];
+                        const cellClasses: string[] = [];
 
                         // Failed cells get error styling
                         if (hasFailed) {

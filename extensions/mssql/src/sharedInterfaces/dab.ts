@@ -28,6 +28,87 @@ export namespace Dab {
         Read = "read",
         Update = "update",
         Delete = "delete",
+        Execute = "execute",
+    }
+
+    export enum RestMethod {
+        Get = "get",
+        Post = "post",
+        Put = "put",
+        Patch = "patch",
+        Delete = "delete",
+    }
+
+    const restMethodSortOrder = [
+        RestMethod.Get,
+        RestMethod.Post,
+        RestMethod.Put,
+        RestMethod.Patch,
+        RestMethod.Delete,
+    ];
+
+    /**
+     * Canonicalizes REST methods so semantically equivalent method sets do not
+     * produce noisy config diffs or version hash changes.
+     */
+    export function normalizeRestMethods(methods: RestMethod[]): RestMethod[] {
+        const uniqueMethods = new Set(methods);
+        return restMethodSortOrder.filter((method) => uniqueMethods.has(method));
+    }
+
+    export const maxDabEntityNameLength = 128;
+    export const maxDabRoutePathLength = 256;
+
+    const dabEntityNamePattern = /^[A-Za-z][A-Za-z0-9_]*$/;
+    const dabGraphQLTypePattern = /^[_A-Za-z][_0-9A-Za-z]*$/;
+    const dabRestPathPattern = /^\/?[A-Za-z0-9._~-]+(?:\/[A-Za-z0-9._~-]+)*$/;
+
+    export function normalizeDabIdentifier(value: string | undefined): string {
+        return (value ?? "").trim().toLowerCase();
+    }
+
+    export function validateDabEntityName(value: string): string | undefined {
+        if (value.length > maxDabEntityNameLength) {
+            return `entityName must be ${maxDabEntityNameLength} characters or fewer.`;
+        }
+        if (!dabEntityNamePattern.test(value)) {
+            return "entityName must start with a letter and contain only letters, numbers, and underscores.";
+        }
+        return undefined;
+    }
+
+    export function validateDabCustomRestPath(value: string): string | undefined {
+        if (value.length > maxDabRoutePathLength) {
+            return `customRestPath must be ${maxDabRoutePathLength} characters or fewer.`;
+        }
+        if (!dabRestPathPattern.test(value)) {
+            return "customRestPath must be a relative route path using letters, numbers, slash, dot, underscore, tilde, or hyphen.";
+        }
+        return undefined;
+    }
+
+    export function validateDabCustomGraphQLType(value: string): string | undefined {
+        if (value.length > maxDabEntityNameLength) {
+            return `customGraphQLType must be ${maxDabEntityNameLength} characters or fewer.`;
+        }
+        if (!dabGraphQLTypePattern.test(value)) {
+            return "customGraphQLType must be a valid GraphQL name.";
+        }
+        return undefined;
+    }
+
+    export enum GraphQLOperation {
+        Query = "query",
+        Mutation = "mutation",
+    }
+
+    /**
+     * Database object source types supported by DAB.
+     */
+    export enum EntitySourceType {
+        Table = "table",
+        View = "view",
+        StoredProcedure = "stored-procedure",
     }
 
     /**
@@ -55,9 +136,32 @@ export namespace Dab {
          */
         customRestPath?: string;
         /**
+         * Whether this entity should be exposed through REST when REST is globally enabled.
+         * Defaults to true.
+         */
+        restEnabled?: boolean;
+        /**
          * Custom GraphQL type name (overrides default entity name)
          */
         customGraphQLType?: string;
+        /**
+         * Whether this entity should be exposed through GraphQL when GraphQL is globally enabled.
+         * Defaults to true.
+         */
+        graphQLEnabled?: boolean;
+        /**
+         * Stored procedure REST methods. Defaults to POST.
+         */
+        storedProcedureRestMethods?: RestMethod[];
+        /**
+         * Stored procedure GraphQL operation. Defaults to mutation.
+         */
+        storedProcedureGraphQLOperation?: GraphQLOperation;
+        /**
+         * Whether a stored procedure entity should be exposed as a dedicated MCP custom tool.
+         * Defaults to true for stored procedures.
+         */
+        exposeAsMcpCustomTool?: boolean;
     }
 
     /**
@@ -90,6 +194,31 @@ export namespace Dab {
         isExposed: boolean;
     }
 
+    export interface DabParameterConfig {
+        name: string;
+        dataType?: string;
+        isRequired?: boolean;
+        defaultValue?: string | number | boolean | null;
+        description?: string;
+    }
+
+    export interface DabFieldConfig {
+        name: string;
+        alias?: string;
+        description?: string;
+        isPrimaryKey?: boolean;
+    }
+
+    export interface DabSourceObject {
+        id: string;
+        sourceType: EntitySourceType;
+        schemaName: string;
+        sourceName: string;
+        columns: DabColumnConfig[];
+        fields?: DabFieldConfig[];
+        parameters?: DabParameterConfig[];
+    }
+
     /**
      * Represents a table entity configured for DAB
      */
@@ -99,7 +228,15 @@ export namespace Dab {
          */
         id: string;
         /**
-         * Table name
+         * Source database object type.
+         */
+        sourceType?: EntitySourceType;
+        /**
+         * Source database object name.
+         */
+        sourceName?: string;
+        /**
+         * Table name. Kept for compatibility with existing table-only callers.
          */
         tableName: string;
         /**
@@ -129,6 +266,14 @@ export namespace Dab {
          * Column exposure state for backing database columns.
          */
         columns: DabColumnConfig[];
+        /**
+         * Field metadata for generated DAB config. Views use this to mark inferred keys.
+         */
+        fields?: DabFieldConfig[];
+        /**
+         * Stored procedure parameter metadata.
+         */
+        parameters?: DabParameterConfig[];
         /**
          * Advanced settings for this entity
          */
@@ -258,23 +403,42 @@ export namespace Dab {
         );
     }
 
+    export interface GetDatabaseObjectsResponse {
+        sourceObjects: DabSourceObject[];
+    }
+
+    export namespace GetDatabaseObjectsRequest {
+        export const type = new RequestType<void, GetDatabaseObjectsResponse, void>(
+            "dab/getDatabaseObjects",
+        );
+    }
+
     /**
      * Entity reference for DAB tool operations.
-     * Exactly one form is supported: id OR schemaName+tableName.
+     * Exactly one form is supported: id OR schemaName+tableName OR schemaName+sourceName+sourceType.
      */
-    export type DabEntityRef = { id: string } | { schemaName: string; tableName: string };
+    export type DabEntityRef =
+        | { id: string }
+        | { schemaName: string; tableName: string }
+        | { schemaName: string; sourceName: string; sourceType: EntitySourceType };
 
     export type DabColumnRef = { id: string } | { name: string };
 
     export type DabEntitySettingsPatch = Partial<
-        Omit<EntityAdvancedSettings, "customRestPath" | "customGraphQLType">
+        Omit<
+            EntityAdvancedSettings,
+            "customRestPath" | "customGraphQLType" | "storedProcedureRestMethods"
+        >
     > & {
         customRestPath?: string | null;
         customGraphQLType?: string | null;
+        storedProcedureRestMethods?: RestMethod[] | null;
     };
 
     export type DabToolChange =
         | { type: "set_api_types"; apiTypes: ApiType[] }
+        | { type: "add_entity"; entity: DabEntityRef }
+        | { type: "remove_entity"; entity: DabEntityRef }
         | { type: "set_entity_enabled"; entity: DabEntityRef; isEnabled: boolean }
         | { type: "set_entity_actions"; entity: DabEntityRef; enabledActions: EntityAction[] }
         | {
@@ -897,6 +1061,37 @@ export namespace Dab {
         "xml",
     ];
 
+    function normalizeDataTypeName(dataType?: string): string | undefined {
+        const normalized = dataType
+            ?.trim()
+            .toLowerCase()
+            .replace(/[\[\]]/g, "")
+            .replace(/\s*\(.*\)\s*$/, "");
+
+        if (!normalized) {
+            return undefined;
+        }
+
+        const unqualified = normalized.replace(/^sys\./, "");
+        const sqlClrType = unqualified.replace(/^microsoft\.sqlserver\.types\.sql/, "");
+        return sqlClrType === "timestamp" ? "rowversion" : sqlClrType;
+    }
+
+    const DAB_UNSUPPORTED_DATA_TYPE_NAMES = new Set(
+        DAB_UNSUPPORTED_DATA_TYPES.map((dataType) => normalizeDataTypeName(dataType)).filter(
+            (dataType): dataType is string => !!dataType,
+        ),
+    );
+
+    function isUnsupportedDataType(dataType?: string): boolean {
+        const normalized = normalizeDataTypeName(dataType);
+        return !!normalized && DAB_UNSUPPORTED_DATA_TYPE_NAMES.has(normalized);
+    }
+
+    export function isDataTypeSupportedForDab(dataType?: string): boolean {
+        return !isUnsupportedDataType(dataType);
+    }
+
     /**
      * Validates whether a schema table is supported by DAB.
      * Runs all checks and collects all reasons for unsupported tables.
@@ -914,9 +1109,43 @@ export namespace Dab {
             reasons.push({ type: "noPrimaryKey" });
         }
 
-        const unsupportedColumns = columns.filter(
-            (c) => c.dataType && DAB_UNSUPPORTED_DATA_TYPES.includes(c.dataType.toLowerCase()),
-        );
+        const unsupportedColumns = columns.filter((c) => isUnsupportedDataType(c.dataType));
+        if (unsupportedColumns.length > 0) {
+            const details = unsupportedColumns.map((c) => `${c.name} (${c.dataType})`).join(", ");
+            reasons.push({ type: "unsupportedDataTypes", columns: details });
+        }
+
+        return reasons.length > 0 ? { isSupported: false, reasons } : { isSupported: true };
+    }
+
+    export function validateSourceObjectForDab(sourceObject: DabSourceObject): {
+        isSupported: boolean;
+        reasons?: DabUnsupportedReason[];
+    } {
+        const reasons: DabUnsupportedReason[] = [];
+        const hasPrimaryKey =
+            sourceObject.sourceType === EntitySourceType.Table
+                ? sourceObject.columns.some((c) => c.isPrimaryKey)
+                : (sourceObject.fields ?? []).some((field) => field.isPrimaryKey);
+        if (sourceObject.sourceType !== EntitySourceType.StoredProcedure && !hasPrimaryKey) {
+            reasons.push({ type: "noPrimaryKey" });
+        }
+
+        const unsupportedColumns = [
+            ...sourceObject.columns.filter((c) => isUnsupportedDataType(c.dataType)),
+            ...(sourceObject.parameters ?? [])
+                .filter((parameter) => isUnsupportedDataType(parameter.dataType))
+                .map(
+                    (parameter): DabColumnConfig => ({
+                        id: parameter.name,
+                        name: parameter.name,
+                        dataType: parameter.dataType ?? "",
+                        isPrimaryKey: false,
+                        isSupported: false,
+                        isExposed: true,
+                    }),
+                ),
+        ];
         if (unsupportedColumns.length > 0) {
             const details = unsupportedColumns.map((c) => `${c.name} (${c.dataType})`).join(", ");
             reasons.push({ type: "unsupportedDataTypes", columns: details });
@@ -929,9 +1158,7 @@ export namespace Dab {
      * Determines whether an individual column is supported by DAB.
      */
     export function isColumnSupportedForDab(column: SchemaDesigner.Column): boolean {
-        return !(
-            column.dataType && DAB_UNSUPPORTED_DATA_TYPES.includes(column.dataType.toLowerCase())
-        );
+        return isDataTypeSupportedForDab(column.dataType);
     }
 
     /**
@@ -948,28 +1175,84 @@ export namespace Dab {
         };
     }
 
+    export function createSourceObjectFromTable(table: SchemaDesigner.Table): DabSourceObject {
+        return {
+            id: table.id,
+            sourceType: EntitySourceType.Table,
+            schemaName: table.schema,
+            sourceName: table.name,
+            columns: table.columns.map((column) => createDefaultColumnConfig(column)),
+        };
+    }
+
+    export function createSchemaTablesFromSources(
+        sourceObjects: DabSourceObject[],
+    ): SchemaDesigner.Table[] {
+        return sourceObjects
+            .filter((source) => source.sourceType === EntitySourceType.Table)
+            .map((source) => ({
+                id: source.id,
+                name: source.sourceName,
+                schema: source.schemaName,
+                columns: source.columns.map(
+                    (column): SchemaDesigner.Column => ({
+                        id: column.id,
+                        name: column.name,
+                        dataType: column.dataType,
+                        maxLength: "",
+                        precision: 0,
+                        scale: 0,
+                        isPrimaryKey: column.isPrimaryKey,
+                        isIdentity: false,
+                        identitySeed: 1,
+                        identityIncrement: 1,
+                        isNullable: !column.isPrimaryKey,
+                        defaultValue: "",
+                        isComputed: false,
+                        computedFormula: "",
+                        computedPersisted: false,
+                    }),
+                ),
+                foreignKeys: [],
+            }));
+    }
+
     /**
      * Creates default entity configuration from a schema table
      */
     export function createDefaultEntityConfig(table: SchemaDesigner.Table): DabEntityConfig {
-        const { isSupported, reasons } = validateTableForDab(table);
+        return createDefaultEntityConfigFromSource(createSourceObjectFromTable(table));
+    }
+
+    export function createDefaultEntityConfigFromSource(
+        sourceObject: DabSourceObject,
+    ): DabEntityConfig {
+        const { isSupported, reasons } = validateSourceObjectForDab(sourceObject);
+        const isStoredProcedure = sourceObject.sourceType === EntitySourceType.StoredProcedure;
         return {
-            id: table.id,
-            tableName: table.name,
-            schemaName: table.schema,
+            id: sourceObject.id,
+            sourceType: sourceObject.sourceType,
+            sourceName: sourceObject.sourceName,
+            tableName: sourceObject.sourceName,
+            schemaName: sourceObject.schemaName,
             isEnabled: isSupported,
             isSupported,
             unsupportedReasons: reasons,
-            enabledActions: [
-                EntityAction.Create,
-                EntityAction.Read,
-                EntityAction.Update,
-                EntityAction.Delete,
-            ],
-            columns: table.columns.map((column) => createDefaultColumnConfig(column)),
+            enabledActions: isStoredProcedure
+                ? [EntityAction.Execute]
+                : [
+                      EntityAction.Create,
+                      EntityAction.Read,
+                      EntityAction.Update,
+                      EntityAction.Delete,
+                  ],
+            columns: sourceObject.columns.map((column) => ({ ...column })),
+            fields: sourceObject.fields?.map((field) => ({ ...field })),
+            parameters: sourceObject.parameters?.map((parameter) => ({ ...parameter })),
             advancedSettings: {
-                entityName: table.name,
+                entityName: sourceObject.sourceName,
                 authorizationRole: AuthorizationRole.Anonymous,
+                ...(isStoredProcedure ? { exposeAsMcpCustomTool: true } : {}),
             },
         };
     }
@@ -984,6 +1267,16 @@ export namespace Dab {
         return columns.map((column) => ({ ...column }));
     }
 
+    function cloneFields(fields: DabFieldConfig[] | undefined): DabFieldConfig[] | undefined {
+        return fields?.map((field) => ({ ...field }));
+    }
+
+    function cloneParameters(
+        parameters: DabParameterConfig[] | undefined,
+    ): DabParameterConfig[] | undefined {
+        return parameters?.map((parameter) => ({ ...parameter }));
+    }
+
     function cloneConfig(config: DabConfig): DabConfig {
         return {
             apiTypes: [...config.apiTypes],
@@ -991,6 +1284,8 @@ export namespace Dab {
                 ...entity,
                 enabledActions: [...entity.enabledActions],
                 columns: cloneColumns(entity.columns),
+                fields: cloneFields(entity.fields),
+                parameters: cloneParameters(entity.parameters),
                 unsupportedReasons: cloneUnsupportedReasons(entity.unsupportedReasons),
                 advancedSettings: { ...entity.advancedSettings },
             })),
@@ -1045,48 +1340,83 @@ export namespace Dab {
         entity: DabEntityConfig,
         table: SchemaDesigner.Table,
     ): DabEntityConfig {
-        const { isSupported, reasons } = validateTableForDab(table);
-        const syncedColumns = syncColumnsWithTable(entity.columns, table.columns ?? []);
+        return syncEntityConfigWithSource(entity, createSourceObjectFromTable(table));
+    }
+
+    export function syncEntityConfigWithSource(
+        entity: DabEntityConfig,
+        sourceObject: DabSourceObject,
+    ): DabEntityConfig {
+        const { isSupported, reasons } = validateSourceObjectForDab(sourceObject);
+        const syncedColumns =
+            sourceObject.sourceType === EntitySourceType.StoredProcedure
+                ? { columns: cloneColumns(sourceObject.columns), changed: false }
+                : syncColumnsWithTable(
+                      entity.columns,
+                      sourceObject.columns.map(
+                          (column) =>
+                              ({
+                                  id: column.id,
+                                  name: column.name,
+                                  dataType: column.dataType,
+                                  isPrimaryKey: column.isPrimaryKey,
+                              }) as SchemaDesigner.Column,
+                      ),
+                  );
         return {
             ...entity,
-            tableName: table.name,
-            schemaName: table.schema,
+            id: sourceObject.id,
+            sourceType: sourceObject.sourceType,
+            sourceName: sourceObject.sourceName,
+            tableName: sourceObject.sourceName,
+            schemaName: sourceObject.schemaName,
             isSupported,
             unsupportedReasons: reasons,
             columns: syncedColumns.columns,
+            fields: cloneFields(sourceObject.fields),
+            parameters: cloneParameters(sourceObject.parameters),
             // Unsupported entities must remain disabled until the schema is fixed.
             isEnabled: !isSupported ? false : entity.isEnabled,
         };
     }
 
-    export function syncConfigWithSchema(
+    export function syncConfigWithSources(
         currentConfig: DabConfig | null,
-        schemaTables: SchemaDesigner.Table[],
+        sourceObjects: DabSourceObject[],
     ): { config: DabConfig; changed: boolean } {
+        const allSourceObjects = sourceObjects;
         let changed = false;
         const normalizedConfig = currentConfig
             ? cloneConfig(currentConfig)
-            : createDefaultConfig(schemaTables);
+            : createDefaultConfigFromSources(allSourceObjects);
         if (!currentConfig) {
             changed = true;
         }
 
-        const tablesById = new Map(schemaTables.map((table) => [table.id, table]));
+        const getSourceKey = (id: string): string => id.toLowerCase();
+        const sourcesById = new Map(
+            allSourceObjects.map((source) => [getSourceKey(source.id), source]),
+        );
         const syncedEntities: DabEntityConfig[] = [];
 
         for (const entity of normalizedConfig.entities) {
-            const table = tablesById.get(entity.id);
-            if (!table) {
+            const sourceObject = sourcesById.get(getSourceKey(entity.id));
+            if (!sourceObject) {
                 changed = true;
                 continue;
             }
 
-            const syncedEntity = syncEntityConfigWithTable(entity, table);
+            const syncedEntity = syncEntityConfigWithSource(entity, sourceObject);
             if (
                 entity.tableName !== syncedEntity.tableName ||
+                entity.id !== syncedEntity.id ||
+                entity.sourceName !== syncedEntity.sourceName ||
+                entity.sourceType !== syncedEntity.sourceType ||
                 entity.schemaName !== syncedEntity.schemaName ||
                 entity.isSupported !== syncedEntity.isSupported ||
                 JSON.stringify(entity.columns) !== JSON.stringify(syncedEntity.columns) ||
+                JSON.stringify(entity.fields) !== JSON.stringify(syncedEntity.fields) ||
+                JSON.stringify(entity.parameters) !== JSON.stringify(syncedEntity.parameters) ||
                 JSON.stringify(entity.unsupportedReasons) !==
                     JSON.stringify(syncedEntity.unsupportedReasons) ||
                 entity.isEnabled !== syncedEntity.isEnabled
@@ -1095,15 +1425,15 @@ export namespace Dab {
             }
 
             syncedEntities.push(syncedEntity);
-            tablesById.delete(entity.id);
+            sourcesById.delete(getSourceKey(entity.id));
         }
 
-        for (const table of schemaTables) {
-            if (!tablesById.has(table.id)) {
+        for (const sourceObject of allSourceObjects) {
+            if (!sourcesById.has(getSourceKey(sourceObject.id))) {
                 continue;
             }
 
-            syncedEntities.push(createDefaultEntityConfig(table));
+            syncedEntities.push(createDefaultEntityConfigFromSource(sourceObject));
             changed = true;
         }
 
@@ -1116,13 +1446,32 @@ export namespace Dab {
         };
     }
 
+    export function syncConfigWithSchema(
+        currentConfig: DabConfig | null,
+        schemaTables: SchemaDesigner.Table[],
+        sourceObjects?: DabSourceObject[],
+    ): { config: DabConfig; changed: boolean } {
+        return syncConfigWithSources(
+            currentConfig,
+            sourceObjects ?? schemaTables.map((table) => createSourceObjectFromTable(table)),
+        );
+    }
+
     /**
      * Creates default DAB configuration from schema tables
      */
     export function createDefaultConfig(tables: SchemaDesigner.Table[]): DabConfig {
+        return createDefaultConfigFromSources(
+            tables.map((table) => createSourceObjectFromTable(table)),
+        );
+    }
+
+    export function createDefaultConfigFromSources(sourceObjects: DabSourceObject[]): DabConfig {
         return {
             apiTypes: [ApiType.Rest],
-            entities: tables.map((table) => createDefaultEntityConfig(table)),
+            entities: sourceObjects.map((sourceObject) =>
+                createDefaultEntityConfigFromSource(sourceObject),
+            ),
         };
     }
 }

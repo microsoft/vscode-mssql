@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as designer from "../../sharedInterfaces/tableDesigner";
-import { RequestType } from "vscode-languageclient";
+import { NotificationType, RequestType } from "vscode-languageclient";
 
 export interface ITableDesignerEditRequestParams {
     tableInfo: designer.TableInfo;
@@ -12,8 +12,24 @@ export interface ITableDesignerEditRequestParams {
 }
 
 export namespace InitializeTableDesignerRequest {
-    export const type = new RequestType<designer.TableInfo, designer.TableDesignerInfo, void, void>(
-        "tabledesigner/initialize",
+    export const type = new RequestType<
+        designer.InitializeTableDesignerRequest,
+        designer.TableDesignerInfo,
+        void,
+        void
+    >("tabledesigner/initialize");
+}
+
+export namespace TableDesignerProgressNotification {
+    export const type = new NotificationType<
+        designer.TableDesignerProgressNotificationParams,
+        void
+    >("tabledesigner/progress");
+}
+
+export namespace TableDesignerMessageNotification {
+    export const type = new NotificationType<designer.TableDesignerMessageNotificationParams, void>(
+        "tabledesigner/message",
     );
 }
 

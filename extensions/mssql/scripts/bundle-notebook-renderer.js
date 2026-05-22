@@ -79,10 +79,11 @@ const config = {
     loader: {
         ".tsx": "tsx",
         ".ts": "ts",
-        ".svg": "file",
+        // Inline assets — renderer iframe can't resolve separate files.
+        ".svg": "dataurl",
         ".js": "js",
-        ".png": "file",
-        ".gif": "file",
+        ".png": "dataurl",
+        ".gif": "dataurl",
     },
     tsconfig: "./tsconfig.webviews.json",
     plugins: [inlineCssPlugin, esbuildProblemMatcherPlugin("notebook-renderer")],

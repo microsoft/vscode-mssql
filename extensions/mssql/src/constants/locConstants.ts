@@ -176,6 +176,7 @@ export let authTypeIntegrated = l10n.t("Integrated");
 export let authTypeSql = l10n.t("SQL Login");
 export let authTypeAzureActiveDirectory = l10n.t("Microsoft Entra Id - Universal w/ MFA Support");
 export let authTypeAzureActiveDirectoryDefault = l10n.t("Microsoft Entra Id - Default");
+export let authTypeAzureServicePrincipal = l10n.t("Microsoft Entra Id - Service Principal");
 export let azureAuthTypeCodeGrant = l10n.t("Azure Code Grant");
 export let azureAuthTypeDeviceCode = l10n.t("Azure Device Code");
 export let azureLogChannelName = l10n.t("MSSQL - Azure Auth Logs");
@@ -500,6 +501,7 @@ export let saveExcelLabel = l10n.t("Save as Excel");
 export let fileTypeCSVLabel = l10n.t("CSV");
 export let fileTypeJSONLabel = l10n.t("JSON");
 export let fileTypeExcelLabel = l10n.t("Excel");
+export let fileTypeAllFilesLabel = l10n.t("All files");
 export let resultPaneLabel = l10n.t("Results");
 export let selectAll = l10n.t("Select all");
 export let copyLabel = l10n.t("Copy");
@@ -926,6 +928,25 @@ export class Notebooks {
 
     // Renderer
     public static parseError = l10n.t("Error: Failed to parse query result data.");
+
+    // Save as
+    public static saveAsCsvDialogTitle = l10n.t("Save results as CSV");
+    public static saveAsExcelDialogTitle = l10n.t("Save results as Excel");
+    public static saveAsJsonDialogTitle = l10n.t("Save results as JSON");
+    public static saveResultsFailed(message: string) {
+        return l10n.t({
+            message: "Failed to save results: {0}",
+            args: [message],
+            comment: ["{0} is the underlying error message"],
+        });
+    }
+    public static savedResultsTo(uri: string) {
+        return l10n.t({
+            message: "Saved results to {0}",
+            args: [uri],
+            comment: ["{0} is the saved file path"],
+        });
+    }
 }
 
 export class ObjectExplorer {
@@ -1023,6 +1044,20 @@ export class ConnectionDialog {
     public static entraMfaAuthTooltip = l10n.t(
         "Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.",
     );
+    public static entraServicePrincipalAuthTooltip = l10n.t(
+        "Authenticate using a Microsoft Entra service principal. Enter the Application (client) ID as the user name and the client secret as the password. Click the info icon to learn more.",
+    );
+    public static applicationClientId = l10n.t("Application (Client) ID");
+    public static applicationClientIdTooltip = l10n.t(
+        "The Application (Client) ID of your Microsoft Entra app registration.",
+    );
+    public static clientSecret = l10n.t("Client Secret");
+    public static clientSecretTooltip = l10n.t(
+        "The client secret for your Microsoft Entra app registration.",
+    );
+    public static applicationClientIdIsRequired = l10n.t("Application (Client) ID is required.");
+    public static clientSecretIsRequired = l10n.t("Client secret is required.");
+    public static saveSecret = l10n.t("Save Secret");
     public static createConnectionGroup = l10n.t("+ Create Connection Group");
     public static selectConnectionGroup = l10n.t("Select a connection group");
     public static searchConnectionGroups = l10n.t("Search connection groups");
@@ -1086,12 +1121,17 @@ export class ConnectionDialog {
         "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
     );
 
+    public static noSubscriptionsFound = l10n.t(
+        "No subscriptions found. Please change Azure account or tenant to view available subscriptions.",
+    );
+
     public static selectDatabase = l10n.t("Select a database");
     public static userDatabasesGroup = l10n.t("User databases");
     public static systemDatabasesGroup = l10n.t("System databases");
     public static unableToLoadDatabaseList(errorMessage: string) {
         return l10n.t({
-            message: "Unable to load database list from server: {0}",
+            message:
+                "Unable to load database list from server: {0} You may enter the database name directly.",
             args: [errorMessage],
             comment: ["{0} is the connection error message"],
         });
@@ -2193,6 +2233,37 @@ export class Connection {
             comment: ["{0} is the root id"],
         });
     };
+
+    public static defaultConnectionIdNotFoundWarning = (connectionId: string) => {
+        return l10n.t({
+            message:
+                "The connection ID '{0}' set in 'mssql.defaultConnectionId' does not match any known connection profile. New editors will fall back to transferring the active connection.",
+            args: [connectionId],
+            comment: ["{0} is the connection ID that was not found"],
+        });
+    };
+
+    public static defaultConnectionIdNotSetWarning = l10n.t(
+        "'mssql.newEditorConnectionBehavior' is set to 'defaultConnection', but 'mssql.defaultConnectionId' is not configured. New editors will fall back to transferring the active connection.",
+    );
+
+    public static defaultConnectionSelectConnection = l10n.t("Select Connection");
+
+    public static defaultConnectionChangeSetting = l10n.t("Change Setting");
+
+    public static defaultConnectionSelectConnectionPlaceholder = l10n.t(
+        "Select a connection to use as the default",
+    );
+
+    public static defaultConnectionChangeSettingPlaceholder = l10n.t(
+        "Choose the behavior for new editors",
+    );
+
+    public static defaultConnectionBehaviorTransferActive = l10n.t(
+        "Transfer active connection (Default)",
+    );
+
+    public static defaultConnectionBehaviorNone = l10n.t("Do not connect");
 
     public static errorMigratingLegacyConnection = (connectionId: string, errorMessage: string) => {
         return l10n.t({

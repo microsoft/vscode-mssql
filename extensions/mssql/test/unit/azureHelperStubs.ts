@@ -4,12 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import Sinon from "sinon";
-import { AzureSubscription, AzureTenant } from "@microsoft/vscode-azext-azureauth";
+import sinon from "sinon";
+import {
+    AzureSubscription,
+    AzureTenant,
+    VSCodeAzureSubscriptionProvider,
+} from "@microsoft/vscode-azext-azureauth";
 
 import * as AzureHelpers from "../../src/connectionconfig/azureHelpers";
 import { AzureSqlServerInfo } from "../../src/sharedInterfaces/connectionDialog";
-import { MssqlVSCodeAzureSubscriptionProvider } from "../../src/azure/MssqlVSCodeAzureSubscriptionProvider";
 import { GenericResourceExpanded } from "@azure/arm-resources";
 import { Database, ManagedDatabase, ManagedInstance, Server } from "@azure/arm-sql";
 import { TokenCredential, AccessToken } from "@azure/core-auth";
@@ -162,7 +165,7 @@ export const mockManagedInstanceList = {
     databases: [mockAzureResources.azureManagedInstanceDatabase],
 };
 
-export function stubIsSignedIn(sandbox: Sinon.SinonSandbox, result: boolean) {
+export function stubIsSignedIn(sandbox: sinon.SinonSandbox, result: boolean) {
     return sandbox.stub(AzureHelpers.VsCodeAzureHelper, "isSignedIn").resolves(result);
 }
 
@@ -175,7 +178,7 @@ export function stubVscodeAzureSignIn(sandbox: sinon.SinonSandbox) {
                     mockTenants.filter((t) => t.account.id === mockAccounts.signedInAccount.id),
                 ),
             getUnauthenticatedTenants: () => Promise.resolve([]),
-        } as unknown as MssqlVSCodeAzureSubscriptionProvider,
+        } as unknown as VSCodeAzureSubscriptionProvider,
         newAccountId: mockAccounts.signedInAccount.id,
     });
 }
@@ -192,23 +195,45 @@ export function stubFetchServersFromAzure(sandbox: sinon.SinonSandbox) {
         .callsFake(async (sub: AzureSubscription) => {
             return [
                 {
-                    location: "TestRegion",
                     resourceGroup: `testResourceGroup-${sub.name}`,
                     server: `testServer-${sub.name}-1`,
                     databases: ["testDatabase1", "testDatabase2"],
-                    subscription: `${sub.name} (${sub.subscriptionId})`,
                 },
                 {
-                    location: "TestRegion",
                     resourceGroup: `testResourceGroup-${sub.name}`,
                     server: `testServer-${sub.name}-2`,
                     databases: ["testDatabase1", "testDatabase2"],
-                    subscription: `${sub.name} (${sub.subscriptionId})`,
                 },
             ] as AzureSqlServerInfo[];
         });
 }
 
-export function stubPromptForAzureSubscriptionFilter(sandbox: Sinon.SinonSandbox, result: boolean) {
+export function stubPromptForAzureSubscriptionFilter(sandbox: sinon.SinonSandbox, result: boolean) {
     return sandbox.stub(AzureHelpers, "promptForAzureSubscriptionFilter").resolves(result);
+}
+
+/**
+ * Stubs the helpers used by `ensureAzureBrowseContext` to load tenants for the signed-in
+ * account: `getAccountById`, `getTenantsForAccount`, `getHomeTenantIdForAccount`, and
+ * `MssqlVSCodeAzureSubscriptionProvider.getInstance().isSignedIn` (all tenants signed in).
+ */
+export function stubVscodeAzureTenantsForAccount(sandbox: sinon.SinonSandbox) {
+    sandbox
+        .stub(AzureHelpers.VsCodeAzureHelper, "getAccountById")
+        .resolves(mockAccounts.signedInAccount);
+    sandbox
+        .stub(AzureHelpers.VsCodeAzureHelper, "getTenantsForAccount")
+        .resolves(
+            mockTenants.filter(
+                (t) => t.account.id === mockAccounts.signedInAccount.id,
+            ) as AzureTenant[],
+        );
+    sandbox
+        .stub(AzureHelpers.VsCodeAzureHelper, "getHomeTenantIdForAccount")
+        .returns(mockTenants[0].tenantId);
+
+    // isSignedIn is called once per tenant to populate the isSignedIn flag
+    const providerStub = sandbox.createStubInstance(VSCodeAzureSubscriptionProvider);
+    providerStub.isSignedIn.resolves(true);
+    sandbox.stub(AzureHelpers.VsCodeAzureHelper, "getProvider").returns(providerStub);
 }

@@ -71,6 +71,16 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                     AuthenticationTypes[AuthenticationTypes.ActiveDirectoryDefault]
             ) {
                 return utils.isNotEmpty(this.server);
+            } else if (
+                this.authenticationType ===
+                AuthenticationTypes[AuthenticationTypes.ActiveDirectoryServicePrincipal]
+            ) {
+                // Service Principal requires server, App (client) ID (user), and client secret (password)
+                return (
+                    utils.isNotEmpty(this.server) &&
+                    utils.isNotEmpty(this.user) &&
+                    utils.isNotEmpty(this.password)
+                );
             } else {
                 return utils.isNotEmpty(this.server) && utils.isNotEmpty(this.user);
             }
@@ -79,7 +89,11 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
     }
 
     public isAzureActiveDirectory(): boolean {
-        return this.authenticationType === AuthenticationTypes[AuthenticationTypes.AzureMFA];
+        return (
+            this.authenticationType === AuthenticationTypes[AuthenticationTypes.AzureMFA] ||
+            this.authenticationType ===
+                AuthenticationTypes[AuthenticationTypes.ActiveDirectoryServicePrincipal]
+        );
     }
 
     public static getAzureAuthChoices(): INameValueChoice[] {

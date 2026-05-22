@@ -47,7 +47,10 @@ export class ObjectExplorerUtils {
             uri = fields.join(";");
             return uri;
         }
-        if (profile.authenticationType === Constants.sqlAuthentication) {
+        if (
+            profile.authenticationType === Constants.sqlAuthentication ||
+            profile.authenticationType === Constants.azureServicePrincipal
+        ) {
             uri = `${profile.server}_${profile.database}_${profile.user}_${profile.profileName}`;
         } else {
             uri = `${profile.server}_${profile.database}_${profile.profileName}`;

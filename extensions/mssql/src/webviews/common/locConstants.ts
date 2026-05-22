@@ -321,17 +321,13 @@ export class LocConstants {
 
     public get connectionDialog() {
         return {
-            searchWorkspaces: l10n.t("Search workspaces..."),
+            searchFabricWorkspaces: l10n.t("Search workspaces..."),
             loadingFabricAccounts: l10n.t("Loading Fabric Accounts"),
             fabricAccount: l10n.t("Fabric Account"),
             selectAnAccount: l10n.t("Select an account"),
             account: l10n.t("Account"),
             tenantId: l10n.t("Tenant ID"),
-            authenticationType: l10n.t("Authentication Type"),
-            browseBy: l10n.t("Browse By"),
-            myData: l10n.t("My Data"),
-            recent: l10n.t("Recent"),
-            favorites: l10n.t("Favorites"),
+            fabricDatabases: l10n.t("Fabric Databases"),
             fabricWorkspaces: l10n.t("Fabric Workspaces"),
             signIntoFabric: l10n.t("Sign into Fabric"),
             filterByKeyword: l10n.t("Filter by keyword"),
@@ -340,17 +336,19 @@ export class LocConstants {
             showAll: l10n.t("Show All"),
             sqlAnalyticsEndpoint: l10n.t("SQL Analytics Endpoint"),
             sqlDatabase: l10n.t("SQL Database"),
-            noWorkspacesFound: l10n.t("No workspaces found"),
+            noFabricWorkspacesFound: l10n.t("No workspaces found"),
             nameColumnHeader: l10n.t("Name"),
             typeColumnHeader: l10n.t("Type"),
             locationColumnHeader: l10n.t("Location (Workspace)"),
-            expandWorkspaceExplorer: l10n.t("Expand Workspace Explorer"),
+            expandFabricWorkspaceExplorer: l10n.t("Expand Workspace Explorer"),
             explorer: l10n.t("Explorer"),
-            collapseWorkspaceExplorer: l10n.t("Collapse Workspace Explorer"),
-            selectAWorkspaceToViewDatabases: l10n.t(
+            collapseFabricWorkspaceExplorer: l10n.t("Collapse Workspace Explorer"),
+            expandAzureSubscriptionExplorer: l10n.t("Expand Subscription Explorer"),
+            collapseAzureSubscriptionExplorer: l10n.t("Collapse Subscription Explorer"),
+            selectAFabricWorkspaceToViewDatabases: l10n.t(
                 "Select a workspace to view the databases in it.",
             ),
-            noDatabasesFoundInWorkspace: (workspaceName?: string) => {
+            noDatabasesFoundInFabricWorkspace: (workspaceName?: string) => {
                 if (workspaceName) {
                     return l10n.t({
                         message: "No databases found in workspace '{0}'.",
@@ -471,8 +469,8 @@ export class LocConstants {
                 }),
             signIntoTenantLink: l10n.t("Sign into tenant"),
             noTenantsSignedIn: l10n.t("No tenants are currently signed in."),
-            loadingWorkspaces: l10n.t("Loading workspaces..."),
-            loadingDatabasesInWorkspace: (workspaceName?: string) => {
+            loadingFabricWorkspaces: l10n.t("Loading workspaces..."),
+            loadingFabricWorkspaceDatabases: (workspaceName?: string) => {
                 if (workspaceName) {
                     return l10n.t({
                         message: "Loading databases in '{0}'...",
@@ -483,11 +481,53 @@ export class LocConstants {
                     return l10n.t("Loading databases in selected workspace...");
                 }
             },
-            errorLoadingWorkspaces: l10n.t("Error loading workspaces"),
-            errorLoadingDatabases: l10n.t("Error loading databases"),
+            errorLoadingFabricWorkspaces: l10n.t("Error loading workspaces"),
+            errorLoadingFabricWorkspaceDatabases: l10n.t("Error loading databases"),
+            notSignedIntoTenant: (tenantName: string) =>
+                l10n.t({
+                    message: "Not signed into tenant {0}",
+                    args: [tenantName],
+                    comment: ["{0} is the tenant display name"],
+                }),
             connectionAuthentication: l10n.t("Connection Authentication"),
             advancedOptions: l10n.t("Advanced Options"),
             importFromAzureDataStudio: l10n.t("Import from Azure Data Studio"),
+            addToFavorites: l10n.t("Add to favorites"),
+            removeFromFavorites: l10n.t("Remove from favorites"),
+            azureDatabases: l10n.t("Azure Databases"),
+            azureSubscriptions: l10n.t("Azure Subscriptions"),
+            searchSubscriptions: l10n.t("Search subscriptions..."),
+            noSubscriptionsFound: l10n.t("No subscriptions found"),
+            selectASubscriptionToViewServers: l10n.t(
+                "Select a subscription to view servers in it.",
+            ),
+            noServersFoundInSubscription: (subscriptionName?: string) => {
+                if (subscriptionName) {
+                    return l10n.t({
+                        message: "No servers found in subscription '{0}'.",
+                        args: [subscriptionName],
+                        comment: ["{0} is the name of the subscription"],
+                    });
+                } else {
+                    return l10n.t("No servers found in the selected subscription.");
+                }
+            },
+            loadingSubscriptions: l10n.t("Loading subscriptions..."),
+            loadingServersInSubscription: (subscriptionName?: string) => {
+                if (subscriptionName) {
+                    return l10n.t({
+                        message: "Loading servers in '{0}'...",
+                        args: [subscriptionName],
+                        comment: ["{0} is the name of the subscription"],
+                    });
+                } else {
+                    return l10n.t("Loading servers in selected subscription...");
+                }
+            },
+            errorLoadingSubscriptions: l10n.t("Error loading subscriptions"),
+            errorLoadingServers: l10n.t("Error loading servers"),
+            resourceGroupColumnHeader: l10n.t("Resource Group"),
+            azureSqlServer: l10n.t("Azure SQL Server"),
         };
     }
 
@@ -510,6 +550,7 @@ export class LocConstants {
             tenant: l10n.t("Tenant"),
             loadingTenants: l10n.t("Loading tenants..."),
             selectATenant: l10n.t("Select a tenant"),
+            tenantNotSignedIn: l10n.t("Not currently signed in. Select to sign in to tenant."),
         };
     }
 
@@ -1347,10 +1388,70 @@ export class LocConstants {
             restApi: l10n.t("REST API"),
             graphql: l10n.t("GraphQL"),
             mcp: l10n.t("MCP"),
+            enableRestForEntity: l10n.t("Expose this entity through REST"),
+            enableRestForEntityHelp: l10n.t(
+                "Enable REST in API Type to expose this entity through REST.",
+            ),
+            enableGraphQLForEntity: l10n.t("Expose this entity through GraphQL"),
+            enableGraphQLForEntityHelp: l10n.t(
+                "Enable GraphQL in API Type to expose this entity through GraphQL.",
+            ),
+            storedProcedureRestMethods: l10n.t("Stored procedure REST methods"),
+            storedProcedureRestMethodsHelp: l10n.t(
+                "Select the HTTP methods that can execute this stored procedure. DAB defaults to POST.",
+            ),
+            storedProcedureGraphQLOperation: l10n.t("Stored procedure GraphQL operation"),
+            storedProcedureGraphQLOperationHelp: l10n.t(
+                "Choose whether this stored procedure appears as a GraphQL mutation or query. DAB defaults to mutation.",
+            ),
+            graphqlMutation: l10n.t("Mutation"),
+            graphqlQuery: l10n.t("Query"),
+            mcpCustomTool: l10n.t("MCP custom tool"),
+            exposeAsMcpCustomTool: l10n.t("Expose as MCP custom tool"),
+            exposeAsMcpCustomToolHelp: l10n.t(
+                "Creates a dedicated MCP tool for this stored procedure. When disabled, the procedure can still be available through generic MCP execute tools if MCP is enabled.",
+            ),
+            enableMcpForCustomToolHelp: l10n.t(
+                "Enable MCP in API Type to use this custom tool setting.",
+            ),
+            apiTypeNotEnabledGlobally: (apiType: string) =>
+                l10n.t({
+                    message: "{0} is not enabled globally",
+                    args: [apiType],
+                    comment: ["{0} is the API type, e.g. REST, GraphQL, or MCP"],
+                }),
+            enableApiTypeForEntity: (apiType: string) =>
+                l10n.t({
+                    message: "Enable {0} in API Type to expose this entity.",
+                    args: [apiType],
+                    comment: ["{0} is the API type, e.g. REST, GraphQL, or MCP"],
+                }),
+            enableApiTypeGlobally: (apiType: string) =>
+                l10n.t({
+                    message: "Enable {0} globally",
+                    args: [apiType],
+                    comment: ["{0} is the API type, e.g. REST, GraphQL, or MCP"],
+                }),
             all: l10n.t("All"),
             entityEndpoints: l10n.t("Entity Endpoints"),
             allSchemas: l10n.t("All Schemas"),
             filterEntities: l10n.t("Filter entities..."),
+            filterEntitiesTitle: l10n.t("Filter entities"),
+            status: l10n.t("Status"),
+            objectType: l10n.t("Object type"),
+            clearAllFilters: l10n.t("Clear all"),
+            entityStatusFilterLabel: (status: "all" | "enabled" | "disabled" | "warnings") => {
+                switch (status) {
+                    case "enabled":
+                        return l10n.t("Enabled");
+                    case "disabled":
+                        return l10n.t("Disabled");
+                    case "warnings":
+                        return l10n.t("Warnings");
+                    case "all":
+                        return l10n.t("All");
+                }
+            },
             nOfMEnabled: (enabled: number, total: number) =>
                 l10n.t({
                     message: "{0} of {1} enabled",
@@ -1363,6 +1464,47 @@ export class LocConstants {
             create: l10n.t("Create"),
             read: l10n.t("Read"),
             update: l10n.t("Update"),
+            execute: l10n.t("Execute"),
+            view: l10n.t("View"),
+            storedProcedure: l10n.t("Stored Procedure"),
+            tables: l10n.t("Tables"),
+            views: l10n.t("Views"),
+            storedProcedures: l10n.t("Stored Procedures"),
+            invalidEntityReference: l10n.t(
+                "Invalid entity reference. Use either id OR schemaName+tableName OR schemaName+sourceName+sourceType.",
+            ),
+            invalidColumnReference: l10n.t("Invalid column reference. Use either id OR name."),
+            entityNotFound: (entityRef: string) =>
+                l10n.t({
+                    message: "Entity not found: {0}",
+                    args: [entityRef],
+                    comment: ["{0} is the entity reference"],
+                }),
+            entityReferenceNotUnique: (entityRef: string) =>
+                l10n.t({
+                    message: "Entity reference resolved to more than one entity: {0}",
+                    args: [entityRef],
+                    comment: ["{0} is the entity reference"],
+                }),
+            dabColumnNotFound: (columnRef: string) =>
+                l10n.t({
+                    message: "Column not found: {0}",
+                    args: [columnRef],
+                    comment: ["{0} is the column reference"],
+                }),
+            columnReferenceNotUnique: (columnRef: string) =>
+                l10n.t({
+                    message: "Column reference resolved to more than one column: {0}",
+                    args: [columnRef],
+                    comment: ["{0} is the column reference"],
+                }),
+            unsupportedByDataApiBuilder: l10n.t("Unsupported by Data API builder."),
+            entityNotSupportedByDataApiBuilder: (entityName: string, reason: string) =>
+                l10n.t({
+                    message: "Entity '{0}' is not supported by Data API builder. {1}",
+                    args: [entityName, reason],
+                    comment: ["{0} is the entity name", "{1} is why the entity is unsupported"],
+                }),
             bulkActions: l10n.t("Bulk Actions"),
             enableAllEntities: l10n.t("Enable all entities"),
             disableAllEntities: l10n.t("Disable all entities"),
@@ -1388,10 +1530,13 @@ export class LocConstants {
             designApi: l10n.t("Design API"),
             // DAB Advanced Settings Dialog
             advancedEntityConfiguration: l10n.t("Advanced Entity Configuration"),
+            identity: l10n.t("Identity"),
+            rest: l10n.t("REST"),
             entityName: l10n.t("Entity Name"),
             entityNameHelp: l10n.t("Used in API routes and responses"),
             authorizationRole: l10n.t("Authorization Role"),
             authorizationRoleHelp: l10n.t("Define who can access this endpoint"),
+            disabledGlobally: l10n.t("Disabled globally"),
             anonymous: l10n.t("Anonymous"),
             anonymousDescription: l10n.t("No authentication required"),
             authenticated: l10n.t("Authenticated"),
@@ -1401,7 +1546,13 @@ export class LocConstants {
             customGraphQLType: l10n.t("Custom GraphQL Type"),
             customGraphQLTypeHelp: l10n.t("Optional - Override default GraphQL type name"),
             applyChanges: l10n.t("Apply Changes"),
-            sourceTable: l10n.t("Source Table"),
+            source: l10n.t("Source"),
+            sourceWithName: (sourceName: string) =>
+                l10n.t({
+                    message: "Source: {0}",
+                    args: [sourceName],
+                    comment: ["{0} is the fully qualified DAB source object name"],
+                }),
             loading: l10n.t("Loading..."),
             initializingDabConfig: l10n.t("Initializing DAB configuration..."),
             noEntitiesFound: l10n.t("No entities found"),
@@ -1499,14 +1650,21 @@ export class LocConstants {
             openNitro: l10n.t("Open Nitro"),
 
             // DAB Unsupported Reasons
-            unsupportedNoPrimaryKey: l10n.t(
-                "Table must have a primary key to be used with Data API builder",
-            ),
-            unsupportedDataTypes: (columns: string) =>
+            unsupportedNoPrimaryKey: (sourceType: string = "Table") =>
                 l10n.t({
-                    message: "Table contains column types not supported by Data API builder: {0}",
-                    args: [columns],
-                    comment: ["{0} is a comma-separated list of column names and their data types"],
+                    message:
+                        "{0} must define one or more key fields to be used with Data API builder",
+                    args: [sourceType],
+                    comment: ["{0} is the DAB source type, e.g. Table or View"],
+                }),
+            unsupportedDataTypes: (columns: string, sourceType: string = "Table") =>
+                l10n.t({
+                    message: "{0} contains column types not supported by Data API builder: {1}",
+                    args: [sourceType, columns],
+                    comment: [
+                        "{0} is the DAB source type, e.g. Table or View",
+                        "{1} is a comma-separated list of column names and their data types",
+                    ],
                 }),
 
             // DAB Deployment Steps

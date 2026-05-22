@@ -23,34 +23,6 @@ import {
 import { locConstants } from "../../../../common/locConstants";
 import { ChangeAction, ChangeCategory } from "../../diff/diffUtils";
 
-// Static style objects - defined outside component to avoid recreation on each render
-const ACTION_CHECKED_STYLES = {
-    [ChangeAction.Add]: {
-        border: "1px solid var(--vscode-gitDecoration-addedResourceForeground)",
-        color: "var(--vscode-gitDecoration-addedResourceForeground)",
-        backgroundColor:
-            "color-mix(in srgb, var(--vscode-gitDecoration-addedResourceForeground) 20%, transparent)",
-    },
-    [ChangeAction.Delete]: {
-        border: "1px solid var(--vscode-gitDecoration-deletedResourceForeground)",
-        color: "var(--vscode-gitDecoration-deletedResourceForeground)",
-        backgroundColor:
-            "color-mix(in srgb, var(--vscode-gitDecoration-deletedResourceForeground) 20%, transparent)",
-    },
-    [ChangeAction.Modify]: {
-        border: "1px solid var(--vscode-gitDecoration-modifiedResourceForeground)",
-        color: "var(--vscode-gitDecoration-modifiedResourceForeground)",
-        backgroundColor:
-            "color-mix(in srgb, var(--vscode-gitDecoration-modifiedResourceForeground) 20%, transparent)",
-    },
-} as const;
-
-const OBJECT_CHECKED_STYLE = {
-    border: "1px solid var(--vscode-textLink-foreground)",
-    color: "var(--vscode-textLink-foreground)",
-    backgroundColor: "color-mix(in srgb, var(--vscode-textLink-foreground) 20%, transparent)",
-} as const;
-
 const useStyles = makeStyles({
     triggerButton: {
         flexShrink: 0,
@@ -59,61 +31,71 @@ const useStyles = makeStyles({
         color: "var(--vscode-textLink-foreground)",
     },
     surface: {
-        padding: "14px",
-        minWidth: "320px",
+        padding: "10px",
+        minWidth: "260px",
         backgroundColor: "var(--vscode-editorWidget-background)",
         border: "1px solid var(--vscode-editorWidget-border)",
-        borderRadius: "10px",
+        borderRadius: "8px",
         boxShadow: "var(--vscode-widget-shadow)",
     },
     header: {
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        marginBottom: "10px",
+        marginBottom: "6px",
     },
     headerTitle: {
-        fontSize: "14px",
+        fontSize: "13px",
         fontWeight: 600,
         color: "var(--vscode-foreground)",
     },
     closeButton: {
-        minWidth: "32px",
-        height: "32px",
-        borderRadius: "8px",
+        minWidth: "24px",
+        width: "24px",
+        height: "24px",
+        borderRadius: "6px",
         backgroundColor: "var(--vscode-editorWidget-background)",
     },
     divider: {
         height: "1px",
         backgroundColor: "var(--vscode-editorWidget-border)",
         opacity: 0.7,
-        margin: "8px 0 12px",
+        margin: "6px 0 8px",
     },
     section: {
         display: "flex",
         flexDirection: "column",
-        gap: "10px",
+        gap: "6px",
     },
     sectionTitle: {
-        fontSize: "12px",
-        letterSpacing: "0.12em",
-        textTransform: "uppercase",
+        fontSize: "11px",
         color: "var(--vscode-descriptionForeground)",
         fontWeight: 600,
     },
     toggleRow: {
         display: "flex",
         flexWrap: "wrap",
-        gap: "10px",
+        gap: "6px",
         width: "100%",
     },
     toggleButton: {
         borderRadius: "999px",
+        fontSize: "12px",
+        minWidth: "unset",
+    },
+    toggleButtonSelected: {
+        border: "1px solid var(--vscode-textLink-foreground)",
+        color: "var(--vscode-textLink-foreground)",
+        backgroundColor: "color-mix(in srgb, var(--vscode-textLink-foreground) 20%, transparent)",
+    },
+    toggleIcon: {
+        width: "14px",
+        height: "14px",
     },
     footer: {
         display: "flex",
-        gap: "10px",
-        marginTop: "16px",
+        gap: "6px",
+        marginTop: "10px",
     },
     footerButton: {
         flex: 1,
@@ -180,40 +162,36 @@ export const SchemaDesignerChangesFilterButton = ({
                     <div className={classes.toggleRow}>
                         <ToggleButton
                             shape="circular"
-                            size="medium"
-                            className={classes.toggleButton}
+                            size="small"
+                            className={mergeClasses(
+                                classes.toggleButton,
+                                isActionSelected(ChangeAction.Add) && classes.toggleButtonSelected,
+                            )}
                             checked={isActionSelected(ChangeAction.Add)}
-                            style={
-                                isActionSelected(ChangeAction.Add)
-                                    ? ACTION_CHECKED_STYLES[ChangeAction.Add]
-                                    : undefined
-                            }
                             onClick={() => onToggleAction(ChangeAction.Add)}>
                             {loc.filterAdded}
                         </ToggleButton>
                         <ToggleButton
                             shape="circular"
-                            size="medium"
-                            className={classes.toggleButton}
+                            size="small"
+                            className={mergeClasses(
+                                classes.toggleButton,
+                                isActionSelected(ChangeAction.Delete) &&
+                                    classes.toggleButtonSelected,
+                            )}
                             checked={isActionSelected(ChangeAction.Delete)}
-                            style={
-                                isActionSelected(ChangeAction.Delete)
-                                    ? ACTION_CHECKED_STYLES[ChangeAction.Delete]
-                                    : undefined
-                            }
                             onClick={() => onToggleAction(ChangeAction.Delete)}>
                             {loc.filterDeleted}
                         </ToggleButton>
                         <ToggleButton
                             shape="circular"
-                            size="medium"
-                            className={classes.toggleButton}
+                            size="small"
+                            className={mergeClasses(
+                                classes.toggleButton,
+                                isActionSelected(ChangeAction.Modify) &&
+                                    classes.toggleButtonSelected,
+                            )}
                             checked={isActionSelected(ChangeAction.Modify)}
-                            style={
-                                isActionSelected(ChangeAction.Modify)
-                                    ? ACTION_CHECKED_STYLES[ChangeAction.Modify]
-                                    : undefined
-                            }
                             onClick={() => onToggleAction(ChangeAction.Modify)}>
                             {loc.filterModified}
                         </ToggleButton>
@@ -225,43 +203,40 @@ export const SchemaDesignerChangesFilterButton = ({
                     <div className={classes.toggleRow}>
                         <ToggleButton
                             shape="circular"
-                            size="medium"
-                            className={classes.toggleButton}
-                            icon={<Table20Regular />}
+                            size="small"
+                            className={mergeClasses(
+                                classes.toggleButton,
+                                isCategorySelected(ChangeCategory.Table) &&
+                                    classes.toggleButtonSelected,
+                            )}
+                            icon={<Table20Regular className={classes.toggleIcon} />}
                             checked={isCategorySelected(ChangeCategory.Table)}
-                            style={
-                                isCategorySelected(ChangeCategory.Table)
-                                    ? OBJECT_CHECKED_STYLE
-                                    : undefined
-                            }
                             onClick={() => onToggleCategory(ChangeCategory.Table)}>
                             {loc.tableCategory}
                         </ToggleButton>
                         <ToggleButton
                             shape="circular"
-                            size="medium"
-                            className={classes.toggleButton}
-                            icon={<Column20Regular />}
+                            size="small"
+                            className={mergeClasses(
+                                classes.toggleButton,
+                                isCategorySelected(ChangeCategory.Column) &&
+                                    classes.toggleButtonSelected,
+                            )}
+                            icon={<Column20Regular className={classes.toggleIcon} />}
                             checked={isCategorySelected(ChangeCategory.Column)}
-                            style={
-                                isCategorySelected(ChangeCategory.Column)
-                                    ? OBJECT_CHECKED_STYLE
-                                    : undefined
-                            }
                             onClick={() => onToggleCategory(ChangeCategory.Column)}>
                             {loc.columnCategory}
                         </ToggleButton>
                         <ToggleButton
                             shape="circular"
-                            size="medium"
-                            className={classes.toggleButton}
-                            icon={<Key20Regular />}
+                            size="small"
+                            className={mergeClasses(
+                                classes.toggleButton,
+                                isCategorySelected(ChangeCategory.ForeignKey) &&
+                                    classes.toggleButtonSelected,
+                            )}
+                            icon={<Key20Regular className={classes.toggleIcon} />}
                             checked={isCategorySelected(ChangeCategory.ForeignKey)}
-                            style={
-                                isCategorySelected(ChangeCategory.ForeignKey)
-                                    ? OBJECT_CHECKED_STYLE
-                                    : undefined
-                            }
                             onClick={() => onToggleCategory(ChangeCategory.ForeignKey)}>
                             {loc.foreignKeyCategory}
                         </ToggleButton>
@@ -270,6 +245,7 @@ export const SchemaDesignerChangesFilterButton = ({
                 <div className={classes.divider} />
                 <div className={classes.footer}>
                     <Button
+                        size="small"
                         appearance="outline"
                         className={classes.footerButton}
                         disabled={!hasActiveFilters}
@@ -277,6 +253,7 @@ export const SchemaDesignerChangesFilterButton = ({
                         {loc.clearFiltersButton}
                     </Button>
                     <Button
+                        size="small"
                         appearance="primary"
                         className={classes.footerButton}
                         onClick={() => setOpen(false)}>

@@ -30,6 +30,13 @@ export interface Status {
     message?: string;
 }
 
+export type LoadingLogEntryKind = "progress" | "error";
+
+export interface LoadingLogEntry {
+    message: string;
+    kind?: LoadingLogEntryKind;
+}
+
 function isApiStatus(value: unknown): value is ApiStatus {
     return typeof value === "string" && (Object.values(ApiStatus) as string[]).includes(value);
 }

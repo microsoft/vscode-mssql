@@ -14,6 +14,10 @@
         <source xml:lang="en">$(plug)  Connect to MSSQL</source>
         <target state="translated">$(plug)  Подключение к MSSQL</target>
       </trans-unit>
+      <trans-unit id="++CODE++7ab8e89a60b445298b22409ca4e3a36b6032cd1f4b770cd638e11e0ebf23fabd">
+        <source xml:lang="en">'mssql.newEditorConnectionBehavior' is set to 'defaultConnection', but 'mssql.defaultConnectionId' is not configured. New editors will fall back to transferring the active connection.</source>
+        <target state="new">'mssql.newEditorConnectionBehavior' is set to 'defaultConnection', but 'mssql.defaultConnectionId' is not configured. New editors will fall back to transferring the active connection.</target>
+      </trans-unit>
       <trans-unit id="++CODE++e59b9e59be153f480e2e2f5836749b5d33fe1776d037625761e5a957462aadd8">
         <source xml:lang="en">'{0}' started.</source>
         <note>{0} is the service name</note>
@@ -357,6 +361,10 @@
         <source xml:lang="en">All Schemas</source>
         <target state="translated">Все схемы</target>
       </trans-unit>
+      <trans-unit id="++CODE++866956901fd1536273ad6dd922ba6ae8f46bf4cc51a14b5f21353cdd56d7570d">
+        <source xml:lang="en">All files</source>
+        <target state="new">All files</target>
+      </trans-unit>
       <trans-unit id="++CODE++08d0861fba87c9910b6c76342c1783be7d5504ff5248fbacd869963a7322992d">
         <source xml:lang="en">All permissions for extensions to access your connections have been cleared.</source>
         <target state="translated">Все разрешения для расширений на доступ к вашим подключениям очищены.</target>
@@ -472,6 +480,14 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Append to the existing backup set</source>
         <target state="translated">Добавить к существующему резервному набору данных</target>
       </trans-unit>
+      <trans-unit id="++CODE++a7168cfe83fa5085e397d074c440ebc49d8f9d65f5241ff5f2ea586f9a4db451">
+        <source xml:lang="en">Application (Client) ID</source>
+        <target state="new">Application (Client) ID</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e6e909c5bd0a3e25a1abcddd1dab13780ce9e4f673139a56842b1e3a26c981c0">
+        <source xml:lang="en">Application (Client) ID is required.</source>
+        <target state="new">Application (Client) ID is required.</target>
+      </trans-unit>
       <trans-unit id="++CODE++f548fb847184961d59c59fd5b4ff10720726475e1768037348dec8e7c6bd6468">
         <source xml:lang="en">Application Intent</source>
         <target state="translated">Намерение приложения</target>
@@ -580,6 +596,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++8ff1f9a47f14327a26fd3a548d2babeec226cb63828a0803433b4a34a19c09ff">
         <source xml:lang="en">Auth type</source>
         <target state="translated">Тип аутентификации</target>
+      </trans-unit>
+      <trans-unit id="++CODE++59480e87da5310e5046d84f52931338703cc3c68aaa8fc535e025eb621677ed9">
+        <source xml:lang="en">Authenticate using a Microsoft Entra service principal. Enter the Application (client) ID as the user name and the client secret as the password. Click the info icon to learn more.</source>
+        <target state="new">Authenticate using a Microsoft Entra service principal. Enter the Application (client) ID as the user name and the client secret as the password. Click the info icon to learn more.</target>
       </trans-unit>
       <trans-unit id="++CODE++6ab694cfc6fa5d8c7045d318bba5f3eb791ab0a859ea54c54b1c660a4ccf8ed1">
         <source xml:lang="en">Authenticated</source>
@@ -1061,6 +1081,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Change Password</source>
         <target state="translated">Изменить пароль</target>
       </trans-unit>
+      <trans-unit id="++CODE++fad48517dc5d23758f7a5fb69e52de0ad54bde81726bd0450e14f969067d971e">
+        <source xml:lang="en">Change Setting</source>
+        <target state="new">Change Setting</target>
+      </trans-unit>
       <trans-unit id="++CODE++7cd8625322b19db450bf5b5df61bd30ef4b1905e112753ea458faf1881b2ff01">
         <source xml:lang="en">Change database to '{2}' for connection '{0}' (ID: {1})?</source>
         <note>{0} is the connection display name
@@ -1246,6 +1270,14 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Choose the Right Version</source>
         <target state="translated">Выберите подходящую версию</target>
       </trans-unit>
+      <trans-unit id="++CODE++4ccc2e9603461fb60e8f8e5a5b8dbddd023bb4a1423c348bc99e0714f6c3812e">
+        <source xml:lang="en">Choose the behavior for new editors</source>
+        <target state="new">Choose the behavior for new editors</target>
+      </trans-unit>
+      <trans-unit id="++CODE++988c00d268f2867e2e35f7c7de12ddee2e7c5516193dc246ff16186208f335d2">
+        <source xml:lang="en">Choose whether this stored procedure appears as a GraphQL mutation or query. DAB defaults to mutation.</source>
+        <target state="new">Choose whether this stored procedure appears as a GraphQL mutation or query. DAB defaults to mutation.</target>
+      </trans-unit>
       <trans-unit id="++CODE++be798452e0ca7a38f6487ecb9115f26ba148e2d4475608bdc4277d34d41be0a7">
         <source xml:lang="en">Circular reference detected: '{0}' → '{1}' creates a cycle</source>
         <note>{0} is source table
@@ -1359,6 +1391,14 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++88af7d4ffbbad0f31d9dd918e49ceb713036db12524cbdc4b93e8922b0655429">
         <source xml:lang="en">Click to sign into an Azure account</source>
         <target state="translated">Щелкните, чтобы войти в учетную запись Azure</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ae21cf6d24b8ca460e91fe9dc61432a60403b1dabea53792a9c95c63a7cb0db2">
+        <source xml:lang="en">Client Secret</source>
+        <target state="new">Client Secret</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b88d22f627afd019becae5972c1ad1c05cca30f1c24c21e6a1ebf5492207904b">
+        <source xml:lang="en">Client secret is required.</source>
+        <target state="new">Client secret is required.</target>
       </trans-unit>
       <trans-unit id="++CODE++7d9eb7acb13e24625c404401d8e88b2350e32162455885f18276cf802f7701ed">
         <source xml:lang="en">Close</source>
@@ -1499,6 +1539,16 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++bb7bef87d3a1f764c39c6df670038039c136d360153a1ced5c633afa9590fd36">
         <source xml:lang="en">Column name cannot be empty</source>
         <target state="translated">Имя столбца не может быть пустым.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++661f008b35e613449a51eb1c0fd892c56789ae6d2cabbd7405abe521416975f9">
+        <source xml:lang="en">Column not found: {0}</source>
+        <note>{0} is the column reference</note>
+        <target state="new">Column not found: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++191bfe9c43b5a6888281d9067ac0d3ea4b086f8a59703b22464d2c24e41a0b08">
+        <source xml:lang="en">Column reference resolved to more than one column: {0}</source>
+        <note>{0} is the column reference</note>
+        <target state="new">Column reference resolved to more than one column: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++5c56d46cc10135f393e52c47f8001e6235ecadc91f6ced732185c1679055aa79">
         <source xml:lang="en">Column resize by content</source>
@@ -2150,6 +2200,10 @@ Select "{0}" to establish a connection.</source>
         <note>{0} is the qualified table name</note>
         <target state="translated">Создана таблица {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++40321f05833c7d2deaaff609703bfef087fba72af02bb6f918d24bb50a53f955">
+        <source xml:lang="en">Creates a dedicated MCP tool for this stored procedure. When disabled, the procedure can still be available through generic MCP execute tools if MCP is enabled.</source>
+        <target state="new">Creates a dedicated MCP tool for this stored procedure. When disabled, the procedure can still be available through generic MCP execute tools if MCP is enabled.</target>
+      </trans-unit>
       <trans-unit id="++CODE++e7d103b1170502b9fb94e08c67732e21aa132dbed79e58605736029791d7a8a8">
         <source xml:lang="en">Creating Container</source>
         <target state="translated">Создание контейнера</target>
@@ -2575,6 +2629,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Disabled</source>
         <target state="translated">Отключено</target>
       </trans-unit>
+      <trans-unit id="++CODE++3da57703d00d6946cc3e7a5c4e76cd4651180efe589725eb472c35305120e67c">
+        <source xml:lang="en">Disabled globally</source>
+        <target state="new">Disabled globally</target>
+      </trans-unit>
       <trans-unit id="++CODE++eb1a70e39274bb762b5d7c1adb5debeea2b05e12af28207f21a375b596853273">
         <source xml:lang="en">Discard</source>
         <target state="translated">Отменить</target>
@@ -2636,6 +2694,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++1a1795b0d7f71cc3912f6117290ba9480278c1a26efb32c044c92c9071d6b559">
         <source xml:lang="en">Do not compress backup</source>
         <target state="translated">Не сжимать резервные копии</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c6f902ac30a459d53f79efa0c1d45fc2d272ebbfe609ada31ebb309eec06ed7c">
+        <source xml:lang="en">Do not connect</source>
+        <target state="new">Do not connect</target>
       </trans-unit>
       <trans-unit id="++CODE++5ce32ed24291b6ee178d1069ca31842e8ead67e82f070a284cec1ab95498476c">
         <source xml:lang="en">Do you mind taking a quick feedback survey about the MSSQL Extension for VS Code?</source>
@@ -2784,6 +2846,18 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Enable Code Analysis on Build</source>
         <target state="translated">Включить анализ кода при построении</target>
       </trans-unit>
+      <trans-unit id="++CODE++7bce93a011075575cf98f089cee89c6108be3220cd9701e8ce2fe0c19b38f411">
+        <source xml:lang="en">Enable GraphQL in API Type to expose this entity through GraphQL.</source>
+        <target state="new">Enable GraphQL in API Type to expose this entity through GraphQL.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6b4be3a8ee14a536e26c05c8b1d62473209daf08fb4f8ec66322497d5d0028f0">
+        <source xml:lang="en">Enable MCP in API Type to use this custom tool setting.</source>
+        <target state="new">Enable MCP in API Type to use this custom tool setting.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++19c5f25908148aedba9135a777688d044c4bfac7d9acee5f931b2c57bd8299f9">
+        <source xml:lang="en">Enable REST in API Type to expose this entity through REST.</source>
+        <target state="new">Enable REST in API Type to expose this entity through REST.</target>
+      </trans-unit>
       <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
         <source xml:lang="en">Enable Trust Server Certificate</source>
         <target state="translated">Включить опцию "Доверять сертификату сервера"</target>
@@ -2810,6 +2884,16 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Enable {0}</source>
         <note>{0} is the rule identifier, e.g. SR0001</note>
         <target state="translated">Включить {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bb834e59966c805206f646b442d51561fe99a22b02c2bc0dd43ddd5f83d43843">
+        <source xml:lang="en">Enable {0} globally</source>
+        <note>{0} is the API type, e.g. REST, GraphQL, or MCP</note>
+        <target state="new">Enable {0} globally</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1626a7035e3aa94fb8b04ec4401e20974b845ed50315a4dda0aa7ee2b07c4d56">
+        <source xml:lang="en">Enable {0} in API Type to expose this entity.</source>
+        <note>{0} is the API type, e.g. REST, GraphQL, or MCP</note>
+        <target state="new">Enable {0} in API Type to expose this entity.</target>
       </trans-unit>
       <trans-unit id="++CODE++92c1cdfdf4cb9cf6fcca962f206de36fd5d60db1178bc9461052f8de703a0e06">
         <source xml:lang="en">Enabled</source>
@@ -2949,6 +3033,12 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Enter the path for the output file</source>
         <target state="translated">Введите путь к выходному файлу</target>
       </trans-unit>
+      <trans-unit id="++CODE++e3d4cdacc007baba40af99c4e0c4ac0ceaa8e813a8a6e0ba47f0199eaaaa3726">
+        <source xml:lang="en">Entity '{0}' is not supported by Data API builder. {1}</source>
+        <note>{0} is the entity name
+{1} is why the entity is unsupported</note>
+        <target state="new">Entity '{0}' is not supported by Data API builder. {1}</target>
+      </trans-unit>
       <trans-unit id="++CODE++f889729267bd3b6e2a0a503ad9228cced8a1d16ad04a3384dc6df5dc89d6ba4c">
         <source xml:lang="en">Entity Endpoints</source>
         <target state="translated">Конечные точки сущности</target>
@@ -2960,6 +3050,16 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++b1d3adb989e3b895976094fd8242c98ab0d88c5e2dcd929bd6d76a8b52ce3f4c">
         <source xml:lang="en">Entity name used in API routes</source>
         <target state="translated">Имя сущности, используемое в маршрутах API</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a50c60587af9600c20b491dfec2f89043091694e9aadcbd732892ba0aca0e74f">
+        <source xml:lang="en">Entity not found: {0}</source>
+        <note>{0} is the entity reference</note>
+        <target state="new">Entity not found: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e56b4a3d26cbb48b0037daacb3a1d42209ec3769d2343dbf64eab273ca9495e3">
+        <source xml:lang="en">Entity reference resolved to more than one entity: {0}</source>
+        <note>{0} is the entity reference</note>
+        <target state="new">Entity reference resolved to more than one entity: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++d59e5e8f8a4bb3b14eb8af194553158e5dffd648ad462eeafb2f03589da5a8eb">
         <source xml:lang="en">Entra token cache cleared successfully.</source>
@@ -3327,9 +3427,26 @@ Error:
         <source xml:lang="en">Export to text format</source>
         <target state="translated">Экспорт в текстовый формат</target>
       </trans-unit>
+      <trans-unit id="++CODE++bb23445ee7d8532372f93a9907877a8cce31215c8c2f7b75df1e68baf1d251c9">
+        <source xml:lang="en">Export toolbar for result set {0}</source>
+        <note>{0} is the result set number (1-based index)</note>
+        <target state="new">Export toolbar for result set {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++de5cd90f5341f8bb2ebe10270705fa436ac43f8c5ff653358b9eee3a56323ec4">
         <source xml:lang="en">Exporting BACPAC...</source>
         <target state="translated">Экспорт BACPAC...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++886b046597112f108973a5fa0dd665428e3303b602a7c20621b6876237cb7044">
+        <source xml:lang="en">Expose as MCP custom tool</source>
+        <target state="new">Expose as MCP custom tool</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9baec5aafce916c9fbec6af57fe28833aca54911144354d1175f02a51595de33">
+        <source xml:lang="en">Expose this entity through GraphQL</source>
+        <target state="new">Expose this entity through GraphQL</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1d66e218f7e4f002993789d4d2f5882562de9be46ff392069f35b830da0a78f6">
+        <source xml:lang="en">Expose this entity through REST</source>
+        <target state="new">Expose this entity through REST</target>
       </trans-unit>
       <trans-unit id="++CODE++7758738264236e2f15e315d6e6ebca6fb9192ce031207744cc9bdd4a5a052817">
         <source xml:lang="en">Expose {0}</source>
@@ -3735,6 +3852,11 @@ Error:
         <source xml:lang="en">Failed to save results. </source>
         <target state="translated">Не удалось сохранить результаты. </target>
       </trans-unit>
+      <trans-unit id="++CODE++295dc600027d16c46d0596df1afe12f2c8db841203c77f15207d06851c0d50ec">
+        <source xml:lang="en">Failed to save results: {0}</source>
+        <note>{0} is the underlying error message</note>
+        <target state="new">Failed to save results: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++d264deec475c02adeccd53122253873cb7011b90f23c7af978cbfff13f3f92a6">
         <source xml:lang="en">Failed to save scmp file: '{0}'</source>
         <note>{0} is the error message returned from the save scmp operation</note>
@@ -3929,6 +4051,10 @@ Error:
       <trans-unit id="++CODE++b69848561e02841b68dcbfadcbba33ea9008d49fb44c61fd4e670bc3fa3b9968">
         <source xml:lang="en">Filter changes</source>
         <target state="translated">Фильтровать изменения</target>
+      </trans-unit>
+      <trans-unit id="++CODE++25f7c9810f4a804cfb8dd52d53afff3e995a0e03165362b827f6eb301d685327">
+        <source xml:lang="en">Filter entities</source>
+        <target state="new">Filter entities</target>
       </trans-unit>
       <trans-unit id="++CODE++f03ec545964ab62cf49cf19c60ffd1c9609dab0fbd2239d5bc643da5427b4270">
         <source xml:lang="en">Filter entities...</source>
@@ -4387,6 +4513,10 @@ Error:
         <source xml:lang="en">IP address range</source>
         <target state="translated">Диапазон IP-адресов</target>
       </trans-unit>
+      <trans-unit id="++CODE++999f23fcd7bec7075e54bb5dea0d9c548bfe7261f95b911ed8e23d2f4188724f">
+        <source xml:lang="en">Identity</source>
+        <target state="new">Identity</target>
+      </trans-unit>
       <trans-unit id="++CODE++b37cea142b959c4f6c75754d7b3d56bc41d1a2d6667600c748d7a168f10c8818">
         <source xml:lang="en">Ignore Options</source>
         <target state="translated">Игнорировать параметры</target>
@@ -4568,6 +4698,10 @@ Error:
         <source xml:lang="en">Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy</source>
         <target state="translated">Недопустимый пароль SQL Server для {0}. Пароль должен содержать от 8 до 128 символов и соответствовать требованиям по сложности.  Подробнее: https://docs.microsoft.com/sql/relational-databases/security/password-policy</target>
       </trans-unit>
+      <trans-unit id="++CODE++604cd45c57feb58b304a4d821fbb1df3611dabd706ece140be1c19abc4c8150a">
+        <source xml:lang="en">Invalid column reference. Use either id OR name.</source>
+        <target state="new">Invalid column reference. Use either id OR name.</target>
+      </trans-unit>
       <trans-unit id="++CODE++b6b50087a99bf4427265eff9dd813914f1ceb8c55260fa6e7075f9c89fcd45d7">
         <source xml:lang="en">Invalid column width</source>
         <target state="translated">Недопустимая ширина столбца</target>
@@ -4583,6 +4717,10 @@ Error:
       <trans-unit id="++CODE++5a3259a2357ce703fcc4ea2d2983346c88751c8b1f74beaab08602f5f4e721cf">
         <source xml:lang="en">Invalid database</source>
         <target state="translated">Недопустимая база данных</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fb7db40f653a70bfcfd1879e8d0b4592488ff74e5025a253a8f20a83dc4921aa">
+        <source xml:lang="en">Invalid entity reference. Use either id OR schemaName+tableName OR schemaName+sourceName+sourceType.</source>
+        <target state="new">Invalid entity reference. Use either id OR schemaName+tableName OR schemaName+sourceName+sourceType.</target>
       </trans-unit>
       <trans-unit id="++CODE++388f0e37447ebf20167d7d8b0d203a21e726eb2d60ec4b09c13480cdadff59ee">
         <source xml:lang="en">Invalid file</source>
@@ -5027,6 +5165,10 @@ Error:
         <source xml:lang="en">MCP</source>
         <target state="translated">MCP</target>
       </trans-unit>
+      <trans-unit id="++CODE++cb571bc2bc5742ac76bfe870bd81c2d7aeefe4a9f9c828b36c7a39464c3c3ebb">
+        <source xml:lang="en">MCP custom tool</source>
+        <target state="new">MCP custom tool</target>
+      </trans-unit>
       <trans-unit id="++CODE++97364ab178f409c2e935af89200f5a56952315efb422c76bf58f40e20451b8d1">
         <source xml:lang="en">MCP server added to {0}</source>
         <note>{0} is the file path where the MCP server was added</note>
@@ -5185,6 +5327,10 @@ Error:
         <source xml:lang="en">Microsoft Entra Id - Default</source>
         <target state="translated">Microsoft Entra ID — по умолчанию</target>
       </trans-unit>
+      <trans-unit id="++CODE++abb07d0f4dfada778581c9b19ad0453201ea6d075bc434debb65d96b65f2adbc">
+        <source xml:lang="en">Microsoft Entra Id - Service Principal</source>
+        <target state="new">Microsoft Entra Id - Service Principal</target>
+      </trans-unit>
       <trans-unit id="++CODE++d24b24ff2640e9b5731d40ac97ea534034176c1478b681eca122262c4d98a8a2">
         <source xml:lang="en">Microsoft Entra Id - Universal w/ MFA Support</source>
         <target state="translated">Microsoft Entra ID — универсальный с поддержкой MFA</target>
@@ -5316,6 +5462,10 @@ Error:
       <trans-unit id="++CODE++d7534870b07fc697bc330ff6a95d96ff85e93fe2b0c7db580d8508a0d08552cc">
         <source xml:lang="en">Must start with an alphanumeric character and contain only alphanumeric characters, underscores, periods, or hyphens</source>
         <target state="translated">Должно начинаться буквой или цифрой и содержать только буквы, цифры, символы подчеркивания, точки или дефисы</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c26ee0e4b915257d995cffde4cc7b77a97c1e0cfa544836fdcb28329d1dc749a">
+        <source xml:lang="en">Mutation</source>
+        <target state="new">Mutation</target>
       </trans-unit>
       <trans-unit id="++CODE++79e53b9f38d1c9de4d84c9a78339ceb838b609638b9194a2f0caad2f05ea2c85">
         <source xml:lang="en">My Data</source>
@@ -5891,6 +6041,10 @@ Error:
       <trans-unit id="++CODE++15bcefe28749fc12d60214a94c60d8a46127c922357c31e718e1cd3d28262678">
         <source xml:lang="en">Object Types</source>
         <target state="translated">Типы объектов</target>
+      </trans-unit>
+      <trans-unit id="++CODE++46e7c345a4106f8dba31dee33a1559a12f24d16a1678241d55e84ae55c107d81">
+        <source xml:lang="en">Object type</source>
+        <target state="new">Object type</target>
       </trans-unit>
       <trans-unit id="++CODE++ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1">
         <source xml:lang="en">Off</source>
@@ -6485,6 +6639,10 @@ Error:
         <source xml:lang="en">Pulling the SQL Server container image. This might take a few minutes depending on your internet connection.</source>
         <target state="translated">Получение образа контейнера SQL Server. Это может занять несколько минут в зависимости от вашего подключения к Интернету.</target>
       </trans-unit>
+      <trans-unit id="++CODE++b80a37564fbb3c0753202a1f92d5da8ccfb906b244f2842bba2232cea9883abd">
+        <source xml:lang="en">Query</source>
+        <target state="new">Query</target>
+      </trans-unit>
       <trans-unit id="++CODE++f44ad102b5dd5df1b5691408d19d39ee92cc1c9ad20f7125845df3d961a805d3">
         <source xml:lang="en">Query Plan</source>
         <target state="translated">План запроса</target>
@@ -6545,6 +6703,10 @@ Error:
       <trans-unit id="++CODE++f9a9448d6e0b500626f784c1ea716af295bd4d8b7ef836710ab8c14a44204dc5">
         <source xml:lang="en">Quick filter all columns...</source>
         <target state="translated">Быстрая фильтрация всех столбцов...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fecd5681dc5dc6e2f413b28ce95e50f6aa2ce9fbef201fa3c11844af5799b2e3">
+        <source xml:lang="en">REST</source>
+        <target state="new">REST</target>
       </trans-unit>
       <trans-unit id="++CODE++41a52587276c392bfdf0c5086b78662e089895fe2bf22e3d413af8e75f98bc3d">
         <source xml:lang="en">REST API</source>
@@ -7100,6 +7262,10 @@ Query: {2}</source>
         <source xml:lang="en">Save Plan</source>
         <target state="translated">Сохранить план</target>
       </trans-unit>
+      <trans-unit id="++CODE++072fb040dae019a32d416f0ad48852b98a2544da0e126c054ea338011ae0d63a">
+        <source xml:lang="en">Save Secret</source>
+        <target state="new">Save Secret</target>
+      </trans-unit>
       <trans-unit id="++CODE++e50761ebedbdddb4dd4afb99a7c0964cf8bfed33ec03cb39f5a08e65812c795a">
         <source xml:lang="en">Save as CSV</source>
         <target state="translated">Сохранить в формате CSV</target>
@@ -7144,6 +7310,18 @@ Query: {2}</source>
         <source xml:lang="en">Save connection profile changes without establishing a connection</source>
         <target state="translated">Сохранить изменения профиля подключения без установления подключения</target>
       </trans-unit>
+      <trans-unit id="++CODE++d6bc7e3a2c2812f6a418849b1c49e1bf35faa6e05092eed85651b0f6554be31e">
+        <source xml:lang="en">Save results as CSV</source>
+        <target state="new">Save results as CSV</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cfcac84335530cc40295a54ac9d1ef7a5999d6294e947d69e00b1b42f1e5f95b">
+        <source xml:lang="en">Save results as Excel</source>
+        <target state="new">Save results as Excel</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9ec5cd9a56d3b361b5d614149a73d6014c7d2520a64e9fa2578cc50ac0e8da82">
+        <source xml:lang="en">Save results as JSON</source>
+        <target state="new">Save results as JSON</target>
+      </trans-unit>
       <trans-unit id="++CODE++bae1da28225af71a125385224716f5ff7870573e6c01494c597e8ed4168b12e3">
         <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
         <target state="translated">Команда сохранения результатов не может быть использована при выборе нескольких элементов.</target>
@@ -7167,6 +7345,11 @@ Query: {2}</source>
       <trans-unit id="++CODE++5a2df8a2745d54fa2197753e1c2c22a8dea9676916677120da5c44550647180d">
         <source xml:lang="en">Saved Connections</source>
         <target state="translated">Сохраненные подключения</target>
+      </trans-unit>
+      <trans-unit id="++CODE++214bf67326266805ed0887a2154efa6a38e78d684c4f4c69c33cbecdb16feb13">
+        <source xml:lang="en">Saved results to {0}</source>
+        <note>{0} is the saved file path</note>
+        <target state="new">Saved results to {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++28b9471fbcdd3a3ce3799551c1cee3825afe4ea4ce67688c764bd4a364028bd9">
         <source xml:lang="en">Scaffold backend components (e.g., data-access layers) based on your current database context</source>
@@ -7425,6 +7608,10 @@ Query: {2}</source>
         <source xml:lang="en">Select a connection group</source>
         <target state="translated">Выберите группу подключений</target>
       </trans-unit>
+      <trans-unit id="++CODE++abf078a3e4a6e103d6da7a7075ac601a095b2ba444bfc98447f49248daa477fb">
+        <source xml:lang="en">Select a connection to use as the default</source>
+        <target state="new">Select a connection to use as the default</target>
+      </trans-unit>
       <trans-unit id="++CODE++c9e8c706a0db2ef84dc8a610e30fe22cb5709a146a0e76955dbd1f1444e5a0e6">
         <source xml:lang="en">Select a database</source>
         <target state="translated">Выбрать базу данных</target>
@@ -7561,6 +7748,10 @@ Query: {2}</source>
         <source xml:lang="en">Select the Azure Data Studio settings.json file to scan for connection groups and connections.</source>
         <target state="translated">Выберите файл Azure Data Studio settings.json для проверки на наличие подключений и групп подключений.</target>
       </trans-unit>
+      <trans-unit id="++CODE++c3e908318ac99693f90743c99d94c8d1f123f65564685137a3236da773d4bb9b">
+        <source xml:lang="en">Select the HTTP methods that can execute this stored procedure. DAB defaults to POST.</source>
+        <target state="new">Select the HTTP methods that can execute this stored procedure. DAB defaults to POST.</target>
+      </trans-unit>
       <trans-unit id="++CODE++5c61a29b1d409ff2b70f6fbd1032d7250ac322407dc4b8bbff19eb20af562291">
         <source xml:lang="en">Select the SQL Server Container Image</source>
         <target state="translated">Выберите образ контейнера SQL Server</target>
@@ -7580,6 +7771,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++79dc22c7292b82bb5b10f7fe3e4196400d86127a91507e8487c7d2da0f6a8283">
         <source xml:lang="en">Sequelize</source>
         <target state="translated">Sequelize</target>
+      </trans-unit>
+      <trans-unit id="++CODE++115bef38fad466675b802fb8894b90a61134e862ded7447052405f06fb5ccc15">
+        <source xml:lang="en">Serialization failed</source>
+        <target state="new">Serialization failed</target>
       </trans-unit>
       <trans-unit id="++CODE++aef7de28d52977f1b5cd0fecfdc151717610adf41e0aa33b4d9f7522a43337ef">
         <source xml:lang="en">Server</source>
@@ -7922,14 +8117,15 @@ Query: {2}</source>
         <source xml:lang="en">Source Name</source>
         <target state="translated">Имя источника</target>
       </trans-unit>
-      <trans-unit id="++CODE++59462672a9b0690bf1151b63576df991ace5811a13bbcc90f35f43c1a21c0809">
-        <source xml:lang="en">Source Table</source>
-        <target state="translated">Исходная таблица</target>
-      </trans-unit>
       <trans-unit id="++CODE++30ecb608c5cff9e821a41d28312d0070cbeb3901bc8e32ecefd17171f87dc53a">
         <source xml:lang="en">Source: {0}</source>
         <note>{0} is the task source</note>
         <target state="translated">Источник: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7d1b71b2bde7aa8e3125b606f3738980a13371ad3458ddd00b1193d72aad45dd">
+        <source xml:lang="en">Source: {0}</source>
+        <note>{0} is the fully qualified DAB source object name</note>
+        <target state="new">Source: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++1e49ea47266ab1130ffc9be417fa6eb62da7299641f30a76e728fe983c25f29d">
         <source xml:lang="en">Specifies whether the column is included in the primary key for the table.</source>
@@ -8069,6 +8265,14 @@ Query: {2}</source>
       <trans-unit id="++CODE++0a8904b5630e456e42687c74f557749fbd9e61dc13bffb6a403ced083619ba69">
         <source xml:lang="en">Stored Procedures</source>
         <target state="translated">Хранимые процедуры</target>
+      </trans-unit>
+      <trans-unit id="++CODE++46407a8a229c4ff1ac5f85be1f1edf02b0761eaf67b251e2c0a397c68718619e">
+        <source xml:lang="en">Stored procedure GraphQL operation</source>
+        <target state="new">Stored procedure GraphQL operation</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2c4fb82c11a12677559564607a6a178c2ff897e0c5769b72f29ec6f55931bea7">
+        <source xml:lang="en">Stored procedure REST methods</source>
+        <target state="new">Stored procedure REST methods</target>
       </trans-unit>
       <trans-unit id="++CODE++155f816c0407310c0dab222493370773e045ee7fe04e6c9a951b07f495531264">
         <source xml:lang="en">Submit</source>
@@ -8221,11 +8425,6 @@ Query: {2}</source>
         <source xml:lang="en">Table added to schema designer successfully.</source>
         <target state="translated">Таблица успешно добавлена в конструктор схем.</target>
       </trans-unit>
-      <trans-unit id="++CODE++04996289cd69a5a2f94fb144afcff1a6109090bb48cf8bb340d7b205323c4e81">
-        <source xml:lang="en">Table contains column types not supported by Data API builder: {0}</source>
-        <note>{0} is a comma-separated list of column names and their data types</note>
-        <target state="translated">Таблица содержит типы столбцов, не поддерживаемые построителем API данных: {0}</target>
-      </trans-unit>
       <trans-unit id="++CODE++7ed0604e7c45ca297246a04967b295e0c5fa232233fe154a2b1cd72a3eabe725">
         <source xml:lang="en">Table deleted from schema designer successfully.</source>
         <target state="translated">Таблица успешно удалена из конструктора схем.</target>
@@ -8233,10 +8432,6 @@ Query: {2}</source>
       <trans-unit id="++CODE++497def392cd97e1d93e9491e97bb1b7c843582f7f6758d62b72ed67098b1edb3">
         <source xml:lang="en">Table id already exists.</source>
         <target state="translated">Этот идентификатор таблицы уже существует.</target>
-      </trans-unit>
-      <trans-unit id="++CODE++472c40383c9c44c12e38bdcddaa5c135927972c845e6f86965dc814ef56607a6">
-        <source xml:lang="en">Table must have a primary key to be used with Data API builder</source>
-        <target state="translated">Для работы с построителем API данных таблица должна иметь первичный ключ</target>
       </trans-unit>
       <trans-unit id="++CODE++00723ae9a38ee6e38cc089275f523a75ef5b5aa1b834d77397409c27af379dc1">
         <source xml:lang="en">Table must include at least one column.</source>
@@ -8356,6 +8551,10 @@ Query: {2}</source>
         <source xml:lang="en">Text tab - displays SQL text data</source>
         <target state="translated">Вкладка "Текст" — отображает текстовые данные SQL</target>
       </trans-unit>
+      <trans-unit id="++CODE++c2deec07495a278190de83a0820519064e332fc00b050c4fd053bae70c44da8e">
+        <source xml:lang="en">The Application (Client) ID of your Microsoft Entra app registration.</source>
+        <target state="new">The Application (Client) ID of your Microsoft Entra app registration.</target>
+      </trans-unit>
       <trans-unit id="++CODE++b0ccb68c36737cb5ef6c7a74871ab7845533f64d89c74dd7db735bb555c401e1">
         <source xml:lang="en">The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including {code-snippet-0} for lightweight T-SQL profiling.</source>
         <target state="translated">Профилировщик запросов теперь поддерживает базы данных SQL в подключениях Microsoft Fabric с новыми шаблонами базы данных SQL Azure, в том числе {code-snippet-0} для облегченного профилирования T-SQL.</target>
@@ -8377,9 +8576,18 @@ Query: {2}</source>
         <source xml:lang="en">The behavior when a user tries to update a row with data that is involved in a foreign key relationship.</source>
         <target state="translated">Поведение при попытке пользователя обновить строку с данными, участвующую в отношении по внешнему ключу.</target>
       </trans-unit>
+      <trans-unit id="++CODE++b3ed9d46f7671d126e86925d532363313c1f6795e877d3d348d134f6e7051bc3">
+        <source xml:lang="en">The client secret for your Microsoft Entra app registration.</source>
+        <target state="new">The client secret for your Microsoft Entra app registration.</target>
+      </trans-unit>
       <trans-unit id="++CODE++4002a5b20dd0c7a8caf9764ba024343e8f87e2ba8221aaeae4c5112d1d7bb4ed">
         <source xml:lang="en">The columns of the index.</source>
         <target state="translated">Столбцы индекса.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a238f8494c24670d2a99bca7863c04c3b523e1ffd7502d240c9aadca7e53c9c1">
+        <source xml:lang="en">The connection ID '{0}' set in 'mssql.defaultConnectionId' does not match any known connection profile. New editors will fall back to transferring the active connection.</source>
+        <note>{0} is the connection ID that was not found</note>
+        <target state="new">The connection ID '{0}' set in 'mssql.defaultConnectionId' does not match any known connection profile. New editors will fall back to transferring the active connection.</target>
       </trans-unit>
       <trans-unit id="++CODE++0104b69959544fb6f98a7e7723e2df4d657c581b43004a1e47f677a02589311e">
         <source xml:lang="en">The connection with ID '{0}' does not have the 'server' property set and is being ignored.  Please set the 'server' property on this connection in order to use it.</source>
@@ -8643,6 +8851,10 @@ Query: {2}</source>
         <source xml:lang="en">Transaction Log</source>
         <target state="translated">Журнал транзакций</target>
       </trans-unit>
+      <trans-unit id="++CODE++573843c55dfcb6caf7a345bf40ff4dfe681f4e262ed72c68ac5f55ce0b2a7749">
+        <source xml:lang="en">Transfer active connection (Default)</source>
+        <target state="new">Transfer active connection (Default)</target>
+      </trans-unit>
       <trans-unit id="++CODE++dadabe100e080a7068316b2a91caeb46ed5a60c2bf94a1a30acf4703bd3eb24d">
         <source xml:lang="en">Truncate the transaction log</source>
         <target state="translated">Усечь журнал транзакций</target>
@@ -8694,10 +8906,10 @@ Query: {2}</source>
         <source xml:lang="en">Unable to load backup configuration. Please try again.</source>
         <target state="translated">Не удалось загрузить резервную конфигурацию. Повторите попытку.</target>
       </trans-unit>
-      <trans-unit id="++CODE++c8a8ab1cef4a26f5a47e6aff86611314a34effe284539cfe1421067648432eab">
-        <source xml:lang="en">Unable to load database list from server: {0}</source>
+      <trans-unit id="++CODE++d11ea02689601a129dda01909b71622e7f1a166ce25bef3aa0589beb6db8c1d7">
+        <source xml:lang="en">Unable to load database list from server: {0} You may enter the database name directly.</source>
         <note>{0} is the connection error message</note>
-        <target state="translated">Не удалось загрузить список баз данных с сервера: {0}</target>
+        <target state="new">Unable to load database list from server: {0} You may enter the database name directly.</target>
       </trans-unit>
       <trans-unit id="++CODE++955b62784673f0081b2a54d867245fa50ca1e830cea22348ff69caa6317e7889">
         <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>
@@ -8799,6 +9011,10 @@ Query: {2}</source>
         <source xml:lang="en">Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported.</source>
         <note>{0} is the authentication type</note>
         <target state="translated">Неподдерживаемый тип проверки подлинности в строке подключения: {0}. Поддерживаются только вход SQL, интегрированная проверка подлинности, многофакторная проверка подлинности Azure и проверка подлинности Active Directory по умолчанию.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8e344a40ce6bcc8487a770bd157fb301e1bf5539591981c51fe39ffecedb176c">
+        <source xml:lang="en">Unsupported by Data API builder.</source>
+        <target state="new">Unsupported by Data API builder.</target>
       </trans-unit>
       <trans-unit id="++CODE++59925dabae7544939136767d732ce4bd853e6a3822324777eb3615b997680c05">
         <source xml:lang="en">Unsupported data types detected</source>
@@ -9022,6 +9238,10 @@ Query: {2}</source>
         <note>{0} is the number of rows actually returned
 {1} is the total number of rows expected</note>
         <target state="translated">Внимание: результирующий набор неполон. Показано строк: {0} из {1}. Не удалось загрузить полный набор результатов.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0e04cd10f9afd7e546e176b34b56a243d8c741198aa0bfee27d7661a370dc043">
+        <source xml:lang="en">Warnings</source>
+        <target state="new">Warnings</target>
       </trans-unit>
       <trans-unit id="++CODE++4d7371c8931fdd0178f7cbdabd1fd8260039a824a5c0912e880840b4d841f41e">
         <source xml:lang="en">Warnings detected. Please review the changes.</source>
@@ -9432,6 +9652,12 @@ Query: {2}</source>
         <note>{0} is the number of connections imported (plural)</note>
         <target state="translated">Импортировано подключений: {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++39a06811c113ad2304d8de603fc9e9ac1546b2526ee973d774012b76e767ca7c">
+        <source xml:lang="en">{0} contains column types not supported by Data API builder: {1}</source>
+        <note>{0} is the DAB source type, e.g. Table or View
+{1} is a comma-separated list of column names and their data types</note>
+        <target state="new">{0} contains column types not supported by Data API builder: {1}</target>
+      </trans-unit>
       <trans-unit id="++CODE++0362d3ecbb7ec63592961e75fdb3b9cce59a91db85f4b99e2ba5106d1bf167ed">
         <source xml:lang="en">{0} deleted successfully.</source>
         <note>{0} deleted successfully.</note>
@@ -9462,6 +9688,11 @@ Query: {2}</source>
         <note>{0} is the backing database column name</note>
         <target state="translated">{0} — это столбец с первичным ключом, его нельзя отключить.</target>
       </trans-unit>
+      <trans-unit id="++CODE++1f44c82a6944c1ab12879c8bc4ce97845b4e39673c57cd328b2d2e81275b3c58">
+        <source xml:lang="en">{0} is not enabled globally</source>
+        <note>{0} is the API type, e.g. REST, GraphQL, or MCP</note>
+        <target state="new">{0} is not enabled globally</target>
+      </trans-unit>
       <trans-unit id="++CODE++e3620e8a37371c6057d768faed05a7608c6e5ee783372a58b137b047300e8b7a">
         <source xml:lang="en">{0} issue</source>
         <note>{0} is the number of issues</note>
@@ -9471,6 +9702,11 @@ Query: {2}</source>
         <source xml:lang="en">{0} issues</source>
         <note>{0} is the number of issues</note>
         <target state="translated">Проблем: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++929b85deaa0b29d7b7adb8318824ecfabb9cf7c9d0a056b0d0fe0827cdd9f141">
+        <source xml:lang="en">{0} must define one or more key fields to be used with Data API builder</source>
+        <note>{0} is the DAB source type, e.g. Table or View</note>
+        <target state="new">{0} must define one or more key fields to be used with Data API builder</target>
       </trans-unit>
       <trans-unit id="++CODE++88406d92ef64a09f40811dd2f77a5e2476fae20846f1d89e5f48fee94761d0d2">
         <source xml:lang="en">{0} objects found</source>
@@ -9708,6 +9944,10 @@ Query: {2}</source>
         <source xml:lang="en">Always Encrypted</source>
         <target state="translated">Always Encrypted</target>
       </trans-unit>
+      <trans-unit id="mssql.newEditorConnectionBehavior.defaultConnection.description">
+        <source xml:lang="en">Always connect new editors and opened SQL files to the connection specified by `mssql.defaultConnectionId`.</source>
+        <target state="new">Always connect new editors and opened SQL files to the connection specified by `mssql.defaultConnectionId`.</target>
+      </trans-unit>
       <trans-unit id="mssql.query.executionTimeout">
         <source xml:lang="en">An execution time-out of 0 indicates an unlimited wait (no time-out)</source>
         <target state="translated">Время ожидания выполнения, равное 0, указывает на неограниченное время ожидания</target>
@@ -9755,6 +9995,10 @@ Query: {2}</source>
       <trans-unit id="mssql.cancelBackgroundTask">
         <source xml:lang="en">Cancel Task</source>
         <target state="translated">Отменить задачу</target>
+      </trans-unit>
+      <trans-unit id="mssql.newEditorConnectionBehavior.transferActive.description">
+        <source xml:lang="en">Carry the active editor's connection to newly opened query editor tabs and SQL files.</source>
+        <target state="new">Carry the active editor's connection to newly opened query editor tabs and SQL files.</target>
       </trans-unit>
       <trans-unit id="mssql.changeConnection">
         <source xml:lang="en">Change Connection (MSSQL)</source>
@@ -9848,6 +10092,10 @@ Query: {2}</source>
         <source xml:lang="en">Control which grid lines are visible in the results grid.</source>
         <target state="translated">Управление отображением линий сетки в таблице результатов.</target>
       </trans-unit>
+      <trans-unit id="mssql.newEditorConnectionBehavior.description">
+        <source xml:lang="en">Controls how new SQL editor windows and opened SQL files are automatically connected.</source>
+        <target state="new">Controls how new SQL editor windows and opened SQL files are automatically connected.</target>
+      </trans-unit>
       <trans-unit id="mssql.resultsGrid.inMemoryDataProcessingThreshold">
         <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>
         <target state="translated">Определяет максимальное количество строк, разрешенных для фильтрации и сортировки в памяти. Если число будет превышено, сортировка и фильтрация будут отключены. Предупреждение. Увеличение этого параметра может сказаться на производительности.</target>
@@ -9933,6 +10181,10 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       <trans-unit id="mssql.defaultQueryResultsViewMode.grid.description">
         <source xml:lang="en">Display results in a tabular grid format (default)</source>
         <target state="translated">Показывать результаты в виде табличной сетки (по умолчанию).</target>
+      </trans-unit>
+      <trans-unit id="mssql.newEditorConnectionBehavior.none.description">
+        <source xml:lang="en">Do not auto-connect. You must connect each SQL file manually.</source>
+        <target state="new">Do not auto-connect. You must connect each SQL file manually.</target>
       </trans-unit>
       <trans-unit id="mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description">
         <source xml:lang="en">Do not show prompts to display query results in a new tab.</source>
@@ -10540,6 +10792,10 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Temporarily store passwords for connections with 'Saved Passwords' disabled, until the extension is restarted. This prevents repeated password prompts when reusing connections within the same session.</source>
         <target state="translated">Временное хранение паролей для подключений с отключенным параметром "Сохраненные пароли" до перезапуска расширения. Это дает возможность исключить повторные запросы паролей при многократном использовании подключений в рамках одного и того же сеанса.</target>
       </trans-unit>
+      <trans-unit id="mssql.defaultConnectionId.description">
+        <source xml:lang="en">The ID (GUID) of the connection profile to use when `mssql.newEditorConnectionBehavior` is set to `defaultConnection`. The connection ID can be found in your settings.json under `mssql.connections`.</source>
+        <target state="new">The ID (GUID) of the connection profile to use when `mssql.newEditorConnectionBehavior` is set to `defaultConnection`. The connection ID can be found in your settings.json under `mssql.connections`.</target>
+      </trans-unit>
       <trans-unit id="mssql.customEnvironment">
         <source xml:lang="en">The additional, MSSQL-specific custom configuration for the Sovereign Cloud to use with the Microsoft Sovereign Cloud authentication provider. This along with setting `microsoft-sovereign-cloud.environment` to `custom` and providing values for `microsoft-sovereign-cloud.customEnvironment` is required to use this feature with MSSQL.</source>
         <target state="translated">Дополнительная пользовательская конфигурация (конкретно для MSSQL) национального облака с целью использования с поставщиком проверки подлинности Microsoft Sovereign Cloud. Для использования этой функции с MSSQL необходимо настроить для "microsoft-sovereign-cloud.environment" значение "custom" и предоставить значения для "microsoft-sovereign-cloud.customEnvironment".</target>
@@ -10583,6 +10839,10 @@ Start by clicking the filter button next to most folders in the Connections view
       <trans-unit id="mssql.connection.id">
         <source xml:lang="en">The unique identifier for this connection profile.</source>
         <target state="translated">Уникальный идентификатор этого профиля подключения.</target>
+      </trans-unit>
+      <trans-unit id="mssql.transferActiveEditorConnections.deprecationMessage">
+        <source xml:lang="en">This setting is deprecated. Use `mssql.newEditorConnectionBehavior` instead. The extension will automatically migrate this setting on startup.</source>
+        <target state="new">This setting is deprecated. Use `mssql.newEditorConnectionBehavior` instead. The extension will automatically migrate this setting on startup.</target>
       </trans-unit>
       <trans-unit id="mssql.legacySetting.deprecationMessage">
         <source xml:lang="en">This setting will be removed in a future release.</source>

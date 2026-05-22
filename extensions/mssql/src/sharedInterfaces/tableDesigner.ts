@@ -4,16 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { NotificationType } from "vscode-jsonrpc/browser";
+import { LoadingLogEntry } from "./webview";
 
 /**
  * Definition for the table designer service.
  */
 export interface ITableDesignerService {
     /**
-     * Initialize the table designer for the specified table.
-     * @param table the table information.
+     * Initialize the table designer for the specified session and table.
+     * @param request the initialize request containing the session id and table information.
      */
-    initializeTableDesigner(table: TableInfo): Thenable<TableDesignerInfo>;
+    initializeTableDesigner(request: InitializeTableDesignerRequest): Thenable<TableDesignerInfo>;
 
     /**
      * Process the table change.
@@ -48,6 +49,23 @@ export interface ITableDesignerService {
      * @param table the table information
      */
     disposeTableDesigner(table: TableInfo): Thenable<void>;
+
+    onProgress(listener: (progress: TableDesignerProgressNotificationParams) => void): void;
+
+    removeProgressListener(
+        listener: (progress: TableDesignerProgressNotificationParams) => void,
+    ): void;
+
+    onMessage(listener: (message: TableDesignerMessageNotificationParams) => void): void;
+
+    removeMessageListener(
+        listener: (message: TableDesignerMessageNotificationParams) => void,
+    ): void;
+}
+
+export interface InitializeTableDesignerRequest {
+    sessionId: string;
+    tableInfo: TableInfo;
 }
 
 /**
@@ -109,6 +127,46 @@ export interface TableDesignerInfo {
      * The issues.
      */
     issues?: DesignerIssue[];
+}
+
+export interface TableDesignerProgressNotificationParams {
+    sessionId: string;
+    operation: DesignerOperation;
+    status: DesignerProgressStatus;
+    message: string;
+}
+
+export enum DesignerOperation {
+    Initialize = "Initialize",
+    LoadSimpleSchema = "LoadSimpleSchema",
+    GenerateReport = "GenerateReport",
+    Publish = "Publish",
+}
+
+export enum DesignerMessageType {
+    Message = "Message",
+    Warning = "Warning",
+    Error = "Error",
+}
+
+export enum DesignerProgressStatus {
+    NotStarted = "NotStarted",
+    InProgress = "InProgress",
+    Succeeded = "Succeeded",
+    Failed = "Failed",
+    Canceled = "Canceled",
+}
+
+export interface TableDesignerMessageNotificationParams {
+    sessionId: string;
+    operation: DesignerOperation;
+    messageType: DesignerMessageType;
+    message: string;
+    number: number;
+    prefix?: string | null;
+    progress?: number | null;
+    schemaName?: string | null;
+    tableName?: string | null;
 }
 
 /**
@@ -706,6 +764,7 @@ export interface TableDesignerWebviewState {
     model?: DesignerViewModel;
     issues?: DesignerIssue[];
     isValid?: boolean;
+    hasUnpublishedChanges?: boolean;
     generateScriptResult?: string;
     generatePreviewReportResult?: GeneratePreviewReportResult;
     publishChangesResult?: PublishChangesResult;
@@ -714,6 +773,9 @@ export interface TableDesignerWebviewState {
     propertiesPaneData?: PropertiesPaneData;
     publishingError?: string;
     initializationError?: string;
+    loadingMessages?: LoadingLogEntry[];
+    reportProgressMessages?: LoadingLogEntry[];
+    publishProgressMessages?: LoadingLogEntry[];
 }
 
 export interface DesignerView {
@@ -787,4 +849,16 @@ export namespace CopyPublishErrorToClipboardNotification {
 
 export namespace InitializeTableDesignerNotification {
     export const type = new NotificationType<void>("initializeTableDesigner");
+}
+
+export namespace TableDesignerProgressNotification {
+    export const type = new NotificationType<TableDesignerProgressNotificationParams>(
+        "tableDesignerProgress",
+    );
+}
+
+export namespace TableDesignerMessageNotification {
+    export const type = new NotificationType<TableDesignerMessageNotificationParams>(
+        "tableDesignerMessage",
+    );
 }

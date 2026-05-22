@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { makeStyles, Spinner, Text } from "@fluentui/react-components";
-import { useEffect, useRef } from "react";
+import { makeStyles } from "@fluentui/react-components";
+import { useContext, useEffect, useRef, useState } from "react";
 import { locConstants } from "../../../common/locConstants";
 import { DabToolbar } from "./dabToolbar";
 import { DabEntityTable } from "./dabEntityTable";
@@ -14,11 +14,15 @@ import { DabDeploymentDialog } from "./deployment/dabDeploymentDialog";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { useDabContext } from "./dabContext";
+import { LoadingLog } from "../../../common/loadingLog";
+import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
+import { defaultDabEntityFilters } from "./dabEntityFilters";
 
 const useStyles = makeStyles({
     root: {
         display: "flex",
         flexDirection: "column",
+        position: "relative",
         height: "100%",
         width: "100%",
         overflow: "hidden",
@@ -41,12 +45,16 @@ const useStyles = makeStyles({
         minHeight: 0,
     },
     loadingContainer: {
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
         display: "flex",
-        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        height: "100%",
-        gap: "12px",
+        backgroundColor: "var(--vscode-editor-background)",
+        zIndex: 1000,
     },
     resizeHandle: {
         height: "2px",
@@ -61,6 +69,8 @@ interface DabPageProps {
 
 export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
     const classes = useStyles();
+    const [entityFilters, setEntityFilters] = useState(defaultDabEntityFilters);
+    const schemaDesignerContext = useContext(SchemaDesignerContext);
     const {
         dabConfig,
         initializeDabConfig,
@@ -75,8 +85,10 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
                 !e.isSupported &&
                 e.unsupportedReasons?.some((r) => r.type === "unsupportedDataTypes"),
         ) ?? false;
-    const canShowDiscovery = isDabTabActive && isInitialized && dabConfig != null;
-    const definitionsPanelRef = useRef<DabDefinitionsPanelRef>(null);
+    const canShowDiscovery = isDabTabActive && isInitialized && Boolean(dabConfig);
+    const definitionsPanelRef = useRef<DabDefinitionsPanelRef>(
+        undefined as unknown as DabDefinitionsPanelRef,
+    );
 
     // Initialize DAB config when schema is first initialized
     useEffect(() => {
@@ -93,29 +105,11 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
         }
     }, [activeView]);
 
-    // Show loading state while schema is being initialized
-    if (!isInitialized) {
-        return (
-            <div className={classes.root}>
-                <div className={classes.loadingContainer}>
-                    <Spinner size="medium" />
-                    <Text>{locConstants.schemaDesigner.loading}</Text>
-                </div>
-            </div>
-        );
-    }
-
-    // Show loading state while DAB config is being initialized
-    if (!dabConfig) {
-        return (
-            <div className={classes.root}>
-                <div className={classes.loadingContainer}>
-                    <Spinner size="medium" />
-                    <Text>{locConstants.schemaDesigner.initializingDabConfig}</Text>
-                </div>
-            </div>
-        );
-    }
+    const isSchemaLoading = !isInitialized;
+    const isDabConfigLoading = isInitialized && !dabConfig;
+    const loadingMessages = isSchemaLoading
+        ? (schemaDesignerContext?.initializationProgressMessages ?? [])
+        : [];
 
     return (
         <div className={classes.root}>
@@ -141,15 +135,22 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
                             showDiscovery={canShowDiscovery}
                             onNavigateToSchema={onNavigateToSchema}
                             onViewConfig={() => definitionsPanelRef.current?.openPanel()}
+                            entityFilters={entityFilters}
+                            setEntityFilters={setEntityFilters}
                         />
                         <div className={classes.content}>
-                            <DabEntityTable />
+                            <DabEntityTable entityFilters={entityFilters} />
                         </div>
                     </div>
                 </Panel>
                 <PanelResizeHandle className={classes.resizeHandle} />
                 <DabDefinitionsPanel ref={definitionsPanelRef} />
             </PanelGroup>
+            {(isSchemaLoading || isDabConfigLoading) && (
+                <div className={classes.loadingContainer}>
+                    <LoadingLog messages={loadingMessages} minHeight="100%" />
+                </div>
+            )}
         </div>
     );
 };

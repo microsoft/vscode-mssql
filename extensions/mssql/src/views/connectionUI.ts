@@ -113,7 +113,7 @@ export class ConnectionUI {
 
     public promptLanguageFlavor(): Promise<string> {
         const self = this;
-        return new Promise<string>(async (resolve, reject) => {
+        return new Promise<string>(async (resolve, _reject) => {
             let picklist: ISqlProviderItem[] = [
                 {
                     label: LocalizedConstants.mssqlProviderName,
@@ -174,7 +174,7 @@ export class ConnectionUI {
      */
     private waitForLanguageModeToBeSql(): Promise<boolean> {
         const self = this;
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve, _reject) => {
             let timer: Timer = new Timer();
             timer.start();
             self.waitForLanguageModeToBeSqlHelper(resolve, timer);
@@ -186,7 +186,7 @@ export class ConnectionUI {
      */
     public promptToCancelConnection(): Promise<boolean> {
         const self = this;
-        return new Promise<boolean>((resolve, reject) => {
+        return new Promise<boolean>((resolve, _reject) => {
             let question: IQuestion = {
                 type: QuestionTypes.confirm,
                 name: LocalizedConstants.msgPromptCancelConnect,
@@ -197,7 +197,7 @@ export class ConnectionUI {
                 .then((result) => {
                     resolve(result ? true : false);
                 })
-                .catch((err) => {
+                .catch((_err) => {
                     resolve(false);
                 });
         });
@@ -343,7 +343,7 @@ export class ConnectionUI {
 
     private promptToClearRecentConnectionsList(): Promise<boolean> {
         const self = this;
-        return new Promise<boolean>((resolve, reject) => {
+        return new Promise<boolean>((resolve, _reject) => {
             let question: IQuestion = {
                 type: QuestionTypes.confirm,
                 name: LocalizedConstants.msgPromptClearRecentConnections,
@@ -354,7 +354,7 @@ export class ConnectionUI {
                 .then((result) => {
                     resolve(result ? true : false);
                 })
-                .catch((err) => {
+                .catch((_err) => {
                     resolve(false);
                 });
         });

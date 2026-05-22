@@ -11,6 +11,7 @@ import {
     getConfiguredAuthProviderId,
     getUnauthenticatedTenants,
     signInToTenant,
+    VSCodeAzureSubscriptionProvider,
 } from "@microsoft/vscode-azext-azureauth";
 
 import { Azure as Loc, Common as LocCommon } from "../constants/locConstants";
@@ -26,7 +27,6 @@ import {
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendErrorEvent } from "../telemetry/telemetry";
 import { getErrorMessage, listAllIterator } from "../utils/utils";
-import { MssqlVSCodeAzureSubscriptionProvider } from "../azure/MssqlVSCodeAzureSubscriptionProvider";
 import {
     activeDirectory,
     configSelectedAzureSubscriptions,
@@ -74,7 +74,17 @@ export const MANAGED_INSTANCE_PUBLIC_PORT = 3342;
 
 //#region VS Code integration
 
+let _azureProvider: VSCodeAzureSubscriptionProvider | undefined;
+
 export class VsCodeAzureHelper {
+    /**
+     * Returns the singleton `VSCodeAzureSubscriptionProvider` instance used for all Azure auth operations.
+     */
+    public static getProvider(): VSCodeAzureSubscriptionProvider {
+        _azureProvider ??= new VSCodeAzureSubscriptionProvider();
+        return _azureProvider;
+    }
+
     /**
      * Retrieves the list of Azure accounts available to MSSQL in the current VS Code session.
      */
@@ -96,10 +106,7 @@ export class VsCodeAzureHelper {
             const filteredAccounts = [];
             for (const account of accounts) {
                 try {
-                    const tenants =
-                        await MssqlVSCodeAzureSubscriptionProvider.getInstance().getTenants(
-                            account,
-                        );
+                    const tenants = await VsCodeAzureHelper.getProvider().getTenants(account);
                     if (tenants.length > 0) {
                         filteredAccounts.push(account);
                     } else {
@@ -139,9 +146,7 @@ export class VsCodeAzureHelper {
      * @returns true if the user is signed in, false otherwise
      */
     public static async isSignedIn(): Promise<boolean> {
-        const auth: MssqlVSCodeAzureSubscriptionProvider =
-            MssqlVSCodeAzureSubscriptionProvider.getInstance();
-        return await auth.isSignedIn();
+        return await VsCodeAzureHelper.getProvider().isSignedIn();
     }
 
     /**
@@ -152,9 +157,8 @@ export class VsCodeAzureHelper {
      */
     public static async signIn(
         forceSignInPrompt: boolean = false,
-    ): Promise<{ auth: MssqlVSCodeAzureSubscriptionProvider; newAccountId: string | undefined }> {
-        const auth: MssqlVSCodeAzureSubscriptionProvider =
-            MssqlVSCodeAzureSubscriptionProvider.getInstance();
+    ): Promise<{ auth: VSCodeAzureSubscriptionProvider; newAccountId: string | undefined }> {
+        const auth: VSCodeAzureSubscriptionProvider = VsCodeAzureHelper.getProvider();
 
         if (forceSignInPrompt || !(await auth.isSignedIn())) {
             const accountsBefore = new Set(
@@ -231,8 +235,7 @@ export class VsCodeAzureHelper {
         try {
             account = typeof account === "string" ? await this.getAccountById(account) : account;
 
-            const auth: MssqlVSCodeAzureSubscriptionProvider =
-                MssqlVSCodeAzureSubscriptionProvider.getInstance();
+            const auth: VSCodeAzureSubscriptionProvider = VsCodeAzureHelper.getProvider();
             const tenants = [...(await auth.getTenants(account))]; // spread operator to create a new array since sort() mutates the array
 
             return tenants.sort((a, b) => a.displayName.localeCompare(b.displayName));
@@ -258,8 +261,7 @@ export class VsCodeAzureHelper {
     public static async getSubscriptionsForTenant(
         tenant: AzureTenant,
     ): Promise<AzureSubscription[]> {
-        const auth = MssqlVSCodeAzureSubscriptionProvider.getInstance();
-        const allSubs = await auth.getSubscriptions(false);
+        const allSubs = await VsCodeAzureHelper.getProvider().getSubscriptions(false);
         // Filter subscriptions by tenant
         const subs = allSubs.filter((sub) => sub.tenantId === tenant.tenantId);
         return subs;
@@ -769,18 +771,22 @@ export class VsCodeAzureHelper {
 
                     // Public endpoint URI is the private FQDN, but with ".public" inserted after the server name and on port 3342
                     const publicServerUri =
-                        serverEntry.uri?.replace(`${server.name}.`, `${server.name}.public.`) +
+                        serverEntry.server?.replace(`${server.name}.`, `${server.name}.public.`) +
                         `,${MANAGED_INSTANCE_PUBLIC_PORT}`;
 
+                    const publicDisplayName = `${serverEntry.displayName} (${LocCommon.publicString})`;
                     const publicServerEntry: AzureSqlServerInfo = {
                         ...serverEntry,
-                        server: `${serverEntry.server} (${LocCommon.publicString})`,
-                        uri: publicServerUri,
+                        id: publicDisplayName,
+                        displayName: publicDisplayName,
+                        server: publicServerUri,
                     };
-                    serverMap.set(publicServerEntry.server.toLowerCase(), publicServerEntry);
+                    serverMap.set(publicDisplayName.toLowerCase(), publicServerEntry);
 
                     // Label the existing endpoint as private
-                    serverEntry.server = `${serverEntry.server} (${LocCommon.privateString})`;
+                    const privateDisplayName = `${serverEntry.displayName} (${LocCommon.privateString})`;
+                    serverEntry.id = privateDisplayName;
+                    serverEntry.displayName = privateDisplayName;
                 }
             }
         }
@@ -796,13 +802,16 @@ export class VsCodeAzureHelper {
         const serverMap = new Map<string, AzureSqlServerInfo>();
 
         for (const server of servers) {
-            serverMap.set(server.name.toLowerCase(), {
-                server: server.name,
+            serverMap.set(server.name!.toLowerCase(), {
+                id: server.name!,
+                displayName: server.name!,
+                server: server.fullyQualifiedDomainName!,
                 databases: [],
-                location: server.location,
-                resourceGroup: extractFromResourceId(server.id, "resourceGroups"),
-                subscription: `${subscription.name} (${subscription.subscriptionId})`,
-                uri: server.fullyQualifiedDomainName,
+                type: "AzureSqlServer",
+                collectionId: subscription.subscriptionId,
+                collectionName: subscription.name,
+                tenantId: subscription.tenantId,
+                resourceGroup: extractFromResourceId(server.id!, "resourceGroups"),
             });
         }
 
@@ -880,7 +889,7 @@ export interface SubscriptionPickItem extends MssqlQuickPickItem {
 }
 
 export async function getSubscriptionQuickPickItems(
-    auth: MssqlVSCodeAzureSubscriptionProvider,
+    auth: VSCodeAzureSubscriptionProvider,
 ): Promise<SubscriptionPickItem[]> {
     const allSubs = await auth.getSubscriptions(
         false /* don't use the current filter, 'cause we're gonna set it */,
