@@ -21,7 +21,7 @@
     },
     "homepage": "https://github.com/Microsoft/vscode-mssql/blob/main/mssql/README.md",
     "engines": {
-        "vscode": "^1.98.0"
+        "vscode": "^1.105.0"
     },
     "categories": [
         "Programming Languages",
@@ -154,6 +154,7 @@
         "@azure/storage-blob": "^12.31.0",
         "@microsoft/ads-extension-telemetry": "^3.0.2",
         "@microsoft/vscode-azext-azureauth": "^5.1.1",
+        "@microsoft/vscode-azureresources-api": "^3.1.0",
         "@xmldom/xmldom": "^0.9.10",
         "axios": "^1.15.2",
         "dockerode": "^4.0.9",
@@ -190,6 +191,19 @@
         }
     },
     "contributes": {
+        "x-azResources": {
+            "azure": {
+                "branches": [
+                    {
+                        "type": "SqlServers"
+                    },
+                    {
+                        "type": "SqlDatabases",
+                        "hideWhenGroupedByType": true
+                    }
+                ]
+            }
+        },
         "vscode-sql-common-features": {
             "uriOwnershipApi": true
         },
@@ -569,6 +583,11 @@
                 }
             ],
             "view/item/context": [
+                {
+                    "command": "mssql.openInObjectExplorer",
+                    "when": "view == azureResourceGroups && viewItem =~ /type=Server/",
+                    "group": "1_MSSQL_primary@0"
+                },
                 {
                     "command": "mssql.addObjectExplorer",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(ConnectionGroup)\\b/",
@@ -1627,6 +1646,11 @@
             {
                 "command": "mssql.notebooks.copyCellMessages",
                 "title": "%mssql.notebooks.copyCellMessages%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.openInObjectExplorer",
+                "title": "Open in MSSQL Extension",
                 "category": "MS SQL"
             }
         ],

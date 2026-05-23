@@ -114,6 +114,12 @@ export class ObjectExplorerService {
         Deferred<ExpandResponse>
     >();
 
+    /**
+     * Additional refresh listeners registered by external providers (e.g. the Azure Resources branch data provider).
+     */
+    private readonly _additionalRefreshListeners: Set<(node: TreeNodeInfo | undefined) => void> =
+        new Set();
+
     constructor(
         private _vscodeWrapper: VscodeWrapper,
         private _connectionManager: ConnectionManager,
@@ -169,6 +175,26 @@ export class ObjectExplorerService {
     }
 
     /**
+     * Registers an additional listener to be notified when the OE tree needs to refresh.
+     * Used by external providers such as the Azure Resources branch data provider.
+     * @returns A disposable that unregisters the listener.
+     */
+    public addRefreshListener(
+        listener: (node: TreeNodeInfo | undefined) => void,
+    ): vscode.Disposable {
+        this._additionalRefreshListeners.add(listener);
+        return { dispose: () => this._additionalRefreshListeners.delete(listener) };
+    }
+
+    /**
+     * Fires the primary refresh callback and all registered additional listeners.
+     */
+    private fireRefresh(node: TreeNodeInfo | undefined): void {
+        this._refreshCallback(node);
+        this._additionalRefreshListeners.forEach((l) => l(node));
+    }
+
+    /**
      * Adds a connection node to the OE tree at the right position based on its label.
      * @param profile The connection profile to reconnect.
      */
@@ -177,7 +203,7 @@ export class ObjectExplorerService {
         if (node) {
             node.updateConnectionProfile(profile);
             this.cleanNodeChildren(node);
-            this._refreshCallback(node);
+            this.fireRefresh(node);
         }
     }
 
@@ -520,7 +546,7 @@ export class ObjectExplorerService {
         );
         loadingNode.iconPath = new vscode.ThemeIcon("loading~spin");
         this._treeNodeToChildrenMap.set(element, [loadingNode]);
-        this._refreshCallback(element);
+        this.fireRefresh(element);
 
         return this._treeNodeToChildrenMap.get(element);
     }
@@ -538,7 +564,7 @@ export class ObjectExplorerService {
             await this.createSessionAndExpandNode(element);
         }
         element.shouldRefresh = false;
-        this._refreshCallback(element);
+        this.fireRefresh(element);
     }
 
     /**
@@ -582,7 +608,7 @@ export class ObjectExplorerService {
             return this.createSignInNode(element);
         } else {
             const children = this.expandExistingNode(element);
-            setTimeout(() => this._refreshCallback(element), 0);
+            setTimeout(() => this.fireRefresh(element), 0);
             return children;
         }
     }
@@ -830,7 +856,16 @@ export class ObjectExplorerService {
             !this._connectionManager.isConnected(nodeUri) &&
             !this._connectionManager.isConnecting(nodeUri)
         ) {
-            await this._connectionManager.connect(nodeUri, connectionNode.connectionProfile);
+            try {
+                await this._connectionManager.connect(nodeUri, connectionNode.connectionProfile);
+            } catch (err) {
+                // Non-fatal: OE session can function without a separate editor connection.
+                // This can happen (e.g.) when the account isn't registered in mssql's MSAL
+                // store, which is expected for connections created via Azure Resources.
+                this._logger.error(
+                    `Failed to establish editor SQL connection for "${connectionProfile.server}": ${getErrorMessage(err)}`,
+                );
+            }
         }
         const dockerConnectionContainerName =
             await this._connectionManager.checkForDockerConnection(connectionProfile);
@@ -934,7 +969,7 @@ export class ObjectExplorerService {
             );
         }
 
-        this._refreshCallback(undefined); // Refresh tree root.
+        this.fireRefresh(undefined); // Refresh tree root.
         await this._connectionManager.connectionStore.removeProfile(node.connectionProfile, false);
     }
 
@@ -1006,6 +1041,29 @@ export class ObjectExplorerService {
         this._connectionGroupNodes
             .get(connectionNode.connectionProfile.groupId)
             ?.addChild(connectionNode);
+    }
+
+    /**
+     * Adds a connection node to the root of the Object Explorer panel (if not already present)
+     * and fires a root refresh so the node appears. Used when opening a server from the
+     * Azure Resources tree into the mssql Object Explorer.
+     */
+    public revealInObjectExplorer(connectionNode: ConnectionNode): void {
+        const rootGroup = this._connectionGroupNodes.get(ConnectionConfig.ROOT_GROUP_ID);
+        if (!rootGroup) {
+            this._logger.error("Root group not found; cannot reveal node in Object Explorer.");
+            return;
+        }
+
+        const alreadyInRoot = rootGroup.children.some((c) => c.id === connectionNode.id);
+        if (!alreadyInRoot) {
+            connectionNode.connectionProfile.groupId = ConnectionConfig.ROOT_GROUP_ID;
+            this._connectionNodes.set(connectionNode.connectionProfile.id, connectionNode);
+            rootGroup.addChild(connectionNode);
+        }
+
+        // Fire a root refresh so the OE panel tree picks up the change.
+        this.fireRefresh(undefined);
     }
 
     /**

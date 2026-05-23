@@ -2958,6 +2958,14 @@ export default class MainController implements vscode.Disposable {
         return this._objectExplorerProvider;
     }
 
+    public get objectExplorerProvider(): ObjectExplorerProvider {
+        return this._objectExplorerProvider;
+    }
+
+    public get vscodeWrapper(): VscodeWrapper {
+        return this._vscodeWrapper;
+    }
+
     /**
      * Verifies the extension is initilized and if not shows an error message
      */
