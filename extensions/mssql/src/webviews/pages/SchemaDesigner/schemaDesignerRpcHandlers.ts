@@ -1164,7 +1164,16 @@ function normalizeDabConfigForVersion(config: Dab.DabConfig) {
                         entity.advancedSettings.customGraphQLType !== undefined
                             ? entity.advancedSettings.customGraphQLType
                             : undefined,
+                    customGraphQLSingularType:
+                        entity.advancedSettings.customGraphQLSingularType !== undefined
+                            ? entity.advancedSettings.customGraphQLSingularType
+                            : undefined,
+                    customGraphQLPluralType:
+                        entity.advancedSettings.customGraphQLPluralType !== undefined
+                            ? entity.advancedSettings.customGraphQLPluralType
+                            : undefined,
                     graphQLEnabled: entity.advancedSettings.graphQLEnabled,
+                    mcpDmlToolsEnabled: entity.advancedSettings.mcpDmlToolsEnabled,
                     storedProcedureRestMethods:
                         entity.advancedSettings.storedProcedureRestMethods !== undefined
                             ? Dab.normalizeRestMethods(
@@ -1681,23 +1690,29 @@ function applyDabToolChange(
                     case "customGraphQLType":
                         if (value === null || typeof value === "undefined") {
                             delete updatedSettings.customGraphQLType;
+                            delete updatedSettings.customGraphQLSingularType;
+                            delete updatedSettings.customGraphQLPluralType;
                             break;
                         }
-                        if (typeof value !== "string") {
+                        if (
+                            typeof value !== "string" &&
+                            !(typeof value === "object" && value !== null && !Array.isArray(value))
+                        ) {
                             return {
                                 success: false,
                                 reason: "invalid_request",
-                                message: "customGraphQLType must be a string or null.",
+                                message:
+                                    "customGraphQLType must be a string, singular/plural object, or null.",
                             };
                         }
-                        if (value.trim().length === 0) {
+                        if (typeof value === "string" && value.trim().length === 0) {
                             return {
                                 success: false,
                                 reason: "invalid_request",
                                 message: "customGraphQLType cannot be an empty string.",
                             };
                         }
-                        {
+                        if (typeof value === "string") {
                             const trimmedValue = value.trim();
                             const validationError = Dab.validateDabCustomGraphQLType(trimmedValue);
                             if (validationError) {
@@ -1707,9 +1722,116 @@ function applyDabToolChange(
                                     message: validationError,
                                 };
                             }
-                            updatedSettings.customGraphQLType = trimmedValue;
+                            delete updatedSettings.customGraphQLType;
+                            updatedSettings.customGraphQLSingularType = trimmedValue;
+                            delete updatedSettings.customGraphQLPluralType;
+                        } else {
+                            const graphQLTypeValue = value as Record<string, unknown>;
+                            const singularValue = graphQLTypeValue.singular;
+                            const pluralValue = graphQLTypeValue.plural;
+                            if (typeof singularValue !== "string" || singularValue.trim() === "") {
+                                return {
+                                    success: false,
+                                    reason: "invalid_request",
+                                    message:
+                                        "customGraphQLType.singular must be a non-empty string.",
+                                };
+                            }
+                            if (
+                                typeof pluralValue !== "undefined" &&
+                                pluralValue !== null &&
+                                (typeof pluralValue !== "string" || pluralValue.trim() === "")
+                            ) {
+                                return {
+                                    success: false,
+                                    reason: "invalid_request",
+                                    message:
+                                        "customGraphQLType.plural must be a non-empty string or null.",
+                                };
+                            }
+
+                            const singular = singularValue.trim();
+                            const plural =
+                                typeof pluralValue === "string" ? pluralValue.trim() : undefined;
+                            const singularValidationError = Dab.validateDabCustomGraphQLType(
+                                singular,
+                                "customGraphQLType.singular",
+                            );
+                            if (singularValidationError) {
+                                return {
+                                    success: false,
+                                    reason: "invalid_request",
+                                    message: singularValidationError,
+                                };
+                            }
+                            const pluralValidationError = plural
+                                ? Dab.validateDabCustomGraphQLType(
+                                      plural,
+                                      "customGraphQLType.plural",
+                                  )
+                                : undefined;
+                            if (pluralValidationError) {
+                                return {
+                                    success: false,
+                                    reason: "invalid_request",
+                                    message: pluralValidationError,
+                                };
+                            }
+
+                            delete updatedSettings.customGraphQLType;
+                            updatedSettings.customGraphQLSingularType = singular;
+                            if (plural) {
+                                updatedSettings.customGraphQLPluralType = plural;
+                            } else {
+                                delete updatedSettings.customGraphQLPluralType;
+                            }
                         }
                         break;
+                    case "customGraphQLSingularType":
+                    case "customGraphQLPluralType": {
+                        const propertyName = key;
+                        if (value === null || typeof value === "undefined") {
+                            if (propertyName === "customGraphQLSingularType") {
+                                delete updatedSettings.customGraphQLSingularType;
+                            } else {
+                                delete updatedSettings.customGraphQLPluralType;
+                            }
+                            break;
+                        }
+                        if (typeof value !== "string") {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message: `${propertyName} must be a string or null.`,
+                            };
+                        }
+                        if (value.trim().length === 0) {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message: `${propertyName} cannot be an empty string.`,
+                            };
+                        }
+                        const trimmedValue = value.trim();
+                        const validationError = Dab.validateDabCustomGraphQLType(
+                            trimmedValue,
+                            propertyName,
+                        );
+                        if (validationError) {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message: validationError,
+                            };
+                        }
+                        delete updatedSettings.customGraphQLType;
+                        if (propertyName === "customGraphQLSingularType") {
+                            updatedSettings.customGraphQLSingularType = trimmedValue;
+                        } else {
+                            updatedSettings.customGraphQLPluralType = trimmedValue;
+                        }
+                        break;
+                    }
                     case "graphQLEnabled":
                         if (typeof value !== "boolean") {
                             return {
@@ -1719,6 +1841,26 @@ function applyDabToolChange(
                             };
                         }
                         updatedSettings.graphQLEnabled = value;
+                        break;
+                    case "mcpDmlToolsEnabled":
+                        if (typeof value !== "boolean") {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message: "mcpDmlToolsEnabled must be a boolean.",
+                            };
+                        }
+                        if (
+                            (resolvedEntity.entity.sourceType ?? Dab.EntitySourceType.Table) !==
+                            Dab.EntitySourceType.Table
+                        ) {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message: "mcpDmlToolsEnabled can only be set for table entities.",
+                            };
+                        }
+                        updatedSettings.mcpDmlToolsEnabled = value;
                         break;
                     case "storedProcedureRestMethods":
                         if (value === null || typeof value === "undefined") {
@@ -1736,26 +1878,29 @@ function applyDabToolChange(
                                     "storedProcedureRestMethods can only be set for stored procedure entities.",
                             };
                         }
-                        if (!Array.isArray(value) || value.length === 0) {
+                        if (!Array.isArray(value) || value.length !== 1) {
                             return {
                                 success: false,
                                 reason: "invalid_request",
-                                message: "storedProcedureRestMethods must be a non-empty array.",
+                                message:
+                                    "storedProcedureRestMethods must contain exactly one method.",
                             };
                         }
                         for (const method of value) {
-                            if (!Object.values(Dab.RestMethod).includes(method as Dab.RestMethod)) {
+                            if (
+                                !Dab.storedProcedureAllowedRestMethods.some(
+                                    (allowedMethod) => allowedMethod === method,
+                                )
+                            ) {
                                 return {
                                     success: false,
                                     reason: "invalid_request",
                                     message:
-                                        "storedProcedureRestMethods must contain valid REST methods.",
+                                        "storedProcedureRestMethods must contain either 'get' or 'post'.",
                                 };
                             }
                         }
-                        updatedSettings.storedProcedureRestMethods = Dab.normalizeRestMethods(
-                            value as Dab.RestMethod[],
-                        );
+                        updatedSettings.storedProcedureRestMethods = [value[0] as Dab.RestMethod];
                         break;
                     case "storedProcedureGraphQLOperation":
                         if (
@@ -1810,6 +1955,19 @@ function applyDabToolChange(
                             message: `Unsupported patch property: ${key}.`,
                         };
                 }
+            }
+
+            if (
+                updatedSettings.customGraphQLPluralType &&
+                !updatedSettings.customGraphQLSingularType &&
+                !updatedSettings.customGraphQLType
+            ) {
+                return {
+                    success: false,
+                    reason: "validation_error",
+                    message:
+                        "customGraphQLSingularType is required when customGraphQLPluralType is set.",
+                };
             }
 
             config.entities[resolvedEntity.index] = {
