@@ -50,10 +50,12 @@ interface DabEntityOutput {
         "primary-key"?: boolean;
     }>;
     rest: boolean | { path?: string; methods?: string[] } | undefined;
-    graphql: boolean | { type?: string; operation?: string } | undefined;
+    graphql: boolean | { type?: DabGraphQLTypeOutput; operation?: string } | undefined;
     permissions: DabPermissionEntry[];
     mcp?: { "custom-tool"?: boolean; "dml-tools"?: boolean };
 }
+
+type DabGraphQLTypeOutput = string | { singular: string; plural?: string };
 
 interface DabPermissionEntry {
     role: string;
@@ -225,18 +227,38 @@ export class DabConfigFileBuilder {
             }));
         }
 
-        if (
-            isMcpEnabled &&
-            entity.sourceType === Dab.EntitySourceType.StoredProcedure &&
-            entity.advancedSettings.exposeAsMcpCustomTool !== false
-        ) {
-            output.mcp = {
-                "custom-tool": true,
-                "dml-tools": false,
-            };
+        const mcpConfig = this.buildMcpProperty(entity, isMcpEnabled);
+        if (mcpConfig) {
+            output.mcp = mcpConfig;
         }
 
         return output;
+    }
+
+    private buildMcpProperty(
+        entity: Dab.DabEntityConfig,
+        isMcpEnabled: boolean,
+    ): DabEntityOutput["mcp"] | undefined {
+        if (!isMcpEnabled) {
+            return undefined;
+        }
+
+        if (entity.sourceType === Dab.EntitySourceType.StoredProcedure) {
+            return entity.advancedSettings.exposeAsMcpCustomTool !== false
+                ? {
+                      "custom-tool": true,
+                      "dml-tools": false,
+                  }
+                : undefined;
+        }
+
+        if (entity.advancedSettings.mcpDmlToolsEnabled === undefined) {
+            return undefined;
+        }
+
+        return {
+            "dml-tools": entity.advancedSettings.mcpDmlToolsEnabled,
+        };
     }
 
     private buildKeyFieldsProperty(entity: Dab.DabEntityConfig): { "key-fields"?: string[] } {
@@ -265,7 +287,9 @@ export class DabConfigFileBuilder {
         const customPath = entity.advancedSettings.customRestPath;
         const restMethods =
             entity.sourceType === Dab.EntitySourceType.StoredProcedure
-                ? entity.advancedSettings.storedProcedureRestMethods
+                ? this.getStoredProcedureRestMethod(
+                      entity.advancedSettings.storedProcedureRestMethods,
+                  )
                 : undefined;
         const restConfig: { path?: string; methods?: string[] } = {};
         if (customPath) {
@@ -275,6 +299,16 @@ export class DabConfigFileBuilder {
             restConfig.methods = Dab.normalizeRestMethods(restMethods);
         }
         return Object.keys(restConfig).length > 0 ? restConfig : undefined;
+    }
+
+    private getStoredProcedureRestMethod(methods?: Dab.RestMethod[]): Dab.RestMethod[] {
+        const method =
+            methods?.find((configuredMethod) =>
+                Dab.storedProcedureAllowedRestMethods.some(
+                    (allowedMethod) => allowedMethod === configuredMethod,
+                ),
+            ) ?? Dab.RestMethod.Post;
+        return [method];
     }
 
     /**
@@ -287,13 +321,13 @@ export class DabConfigFileBuilder {
      */
     private buildGraphQLProperty(
         entity: Dab.DabEntityConfig,
-    ): undefined | { type?: string; operation?: string } {
-        const customType = entity.advancedSettings.customGraphQLType;
+    ): undefined | { type?: DabGraphQLTypeOutput; operation?: string } {
+        const customType = this.buildGraphQLTypeProperty(entity.advancedSettings);
         const graphQLOperation =
             entity.sourceType === Dab.EntitySourceType.StoredProcedure
                 ? entity.advancedSettings.storedProcedureGraphQLOperation
                 : undefined;
-        const graphqlConfig: { type?: string; operation?: string } = {};
+        const graphqlConfig: { type?: DabGraphQLTypeOutput; operation?: string } = {};
         if (customType) {
             graphqlConfig.type = customType;
         }
@@ -301,6 +335,26 @@ export class DabConfigFileBuilder {
             graphqlConfig.operation = graphQLOperation;
         }
         return Object.keys(graphqlConfig).length > 0 ? graphqlConfig : undefined;
+    }
+
+    private buildGraphQLTypeProperty(
+        settings: Dab.EntityAdvancedSettings,
+    ): DabGraphQLTypeOutput | undefined {
+        const singular = settings.customGraphQLSingularType ?? settings.customGraphQLType;
+        const plural = settings.customGraphQLPluralType;
+
+        if (!singular) {
+            return undefined;
+        }
+
+        if (singular && !plural) {
+            return singular;
+        }
+
+        return {
+            singular,
+            plural,
+        };
     }
 
     private buildParameterProperty(parameter: Dab.DabParameterConfig): DabParameterOutput {
