@@ -433,6 +433,10 @@
         <source xml:lang="en">Allow this extension to access your connections</source>
         <target state="translated">Dieser Erweiterung den Zugriff auf Ihre Verbindungen gestatten</target>
       </trans-unit>
+      <trans-unit id="++CODE++6e71f5fc0d9c6c4b7b332b728876a1d39748494efe2355bdae2383b90c86f050">
+        <source xml:lang="en">Allows MCP clients to use generic create, read, update, and delete tools for this table.</source>
+        <target state="new">Allows MCP clients to use generic create, read, update, and delete tools for this table.</target>
+      </trans-unit>
       <trans-unit id="++CODE++a49d631f8c6cf6fb1660fb5229dfa0c08b55727549c0e48cc0cef1f7770ba0e2">
         <source xml:lang="en">Alphabetical</source>
         <target state="translated">Alphabetisch</target>
@@ -678,10 +682,6 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++7eaca18a3c11c60ab2d50c764174699f66bb634b8d7324a2303d1e3ea541b626">
         <source xml:lang="en">Authentication not supported</source>
         <target state="translated">Authentifizierung wird nicht unterstützt.</target>
-      </trans-unit>
-      <trans-unit id="++CODE++a06725099766746b634d3d1caf6928e6553311ad0e910f795ab97c69fac0f246">
-        <source xml:lang="en">Authorization Role</source>
-        <target state="translated">Autorisierungsrolle</target>
       </trans-unit>
       <trans-unit id="++CODE++d58bbb838e095ea400fb432477d5657a6b5a32da8da836299f4f7e20020bb42d">
         <source xml:lang="en">Auto Arrange</source>
@@ -2407,6 +2407,14 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Currently signed in as:</source>
         <target state="translated">Derzeit angemeldet als:</target>
       </trans-unit>
+      <trans-unit id="++CODE++10e83a09a01b19a7e3094aff3a98451a8413276d7f6266cd15d23ccf5ac6c38e">
+        <source xml:lang="en">Custom GraphQL Plural Type</source>
+        <target state="new">Custom GraphQL Plural Type</target>
+      </trans-unit>
+      <trans-unit id="++CODE++561ba11b002a5ba8dea88b4a98186d829c0f8b551c04f331c6985d16c2b2b2e2">
+        <source xml:lang="en">Custom GraphQL Singular Type</source>
+        <target state="new">Custom GraphQL Singular Type</target>
+      </trans-unit>
       <trans-unit id="++CODE++c01dcd0e5ceb3a50adfe0ba0d9ab5e70b74daf484cbce1b937f8fa14910f7928">
         <source xml:lang="en">Custom GraphQL Type</source>
         <target state="translated">Benutzerdefinierter GraphQL-Typ</target>
@@ -2604,6 +2612,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++9912ff507e2f48ad028b400bce2df6d1b4a673fe69fddcacf1cbfd3836275ab1">
         <source xml:lang="en">Define who can access this endpoint</source>
         <target state="translated">Festlegen, wer auf diesen Endpunkt zugreifen kann</target>
+      </trans-unit>
+      <trans-unit id="++CODE++03477f19d9c2a8d64507c67756d40cf9945e802a3c7f0b52d45a4127ebfd53a2">
+        <source xml:lang="en">Define who can execute this stored procedure</source>
+        <target state="new">Define who can execute this stored procedure</target>
       </trans-unit>
       <trans-unit id="++CODE++9813fafb098c218090536790280a91ee70062a8490eb3615395ee731cdd40023">
         <source xml:lang="en">Definition</source>
@@ -3021,6 +3033,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++7bce93a011075575cf98f089cee89c6108be3220cd9701e8ce2fe0c19b38f411">
         <source xml:lang="en">Enable GraphQL in API Type to expose this entity through GraphQL.</source>
         <target state="new">Enable GraphQL in API Type to expose this entity through GraphQL.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++15435d09b1cffdaf56b14da1b895b33f43e8c959a77676be198778deca88c203">
+        <source xml:lang="en">Enable MCP in API Type to use this DML tools setting.</source>
+        <target state="new">Enable MCP in API Type to use this DML tools setting.</target>
       </trans-unit>
       <trans-unit id="++CODE++6b4be3a8ee14a536e26c05c8b1d62473209daf08fb4f8ec66322497d5d0028f0">
         <source xml:lang="en">Enable MCP in API Type to use this custom tool setting.</source>
@@ -3647,6 +3663,10 @@ Fehler:
       <trans-unit id="++CODE++de5cd90f5341f8bb2ebe10270705fa436ac43f8c5ff653358b9eee3a56323ec4">
         <source xml:lang="en">Exporting BACPAC...</source>
         <target state="translated">BACPAC wird exportiert...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++29b442400008bbd807940df17eeffd10d069f415bd2c1320d813f2e61a223095">
+        <source xml:lang="en">Expose as MCP DML tools</source>
+        <target state="new">Expose as MCP DML tools</target>
       </trans-unit>
       <trans-unit id="++CODE++886b046597112f108973a5fa0dd665428e3303b602a7c20621b6876237cb7044">
         <source xml:lang="en">Expose as MCP custom tool</source>
@@ -6540,9 +6560,13 @@ Fehler:
         <source xml:lang="en">Optional (False)</source>
         <target state="translated">Optional (FALSCH)</target>
       </trans-unit>
-      <trans-unit id="++CODE++7f528941bf8224f8dd6956f98aa9ae63472375cfaebddbcb78005f15c5f239df">
-        <source xml:lang="en">Optional - Override default GraphQL type name</source>
-        <target state="translated">Optional – Standard-GraphQL-Typname überschreiben</target>
+      <trans-unit id="++CODE++4458e9d6c19d14a28dfe913b227c80ac7aa74c2a66d830bc962c2e7bbc6350fa">
+        <source xml:lang="en">Optional - Override default GraphQL plural type name</source>
+        <target state="new">Optional - Override default GraphQL plural type name</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4109ca63fed7620f568296b7854396c09c0453afd1a5d3e7b1427e88a7e62101">
+        <source xml:lang="en">Optional - Override default GraphQL singular type name</source>
+        <target state="new">Optional - Override default GraphQL singular type name</target>
       </trans-unit>
       <trans-unit id="++CODE++88f7acca017a3a274d4c9ee22712b49f567fcadb30287e007c1ac2ea00cb6927">
         <source xml:lang="en">Optional - Override default api/entityName path</source>
@@ -6664,6 +6688,10 @@ Fehler:
       <trans-unit id="++CODE++e87dbc12e88933c84d9ccdb30d89a4c9977b80894c26a85504ed7b1b42fda674">
         <source xml:lang="en">Perform checksum before writing to media</source>
         <target state="translated">Vor dem Schreiben auf Medium Prüfsumme berechnen</target>
+      </trans-unit>
+      <trans-unit id="++CODE++abccc78cc93c07931feccfbd0665c003373b48334fd8d4cf5c6d0c714e68f26e">
+        <source xml:lang="en">Permissions</source>
+        <target state="new">Permissions</target>
       </trans-unit>
       <trans-unit id="++CODE++4c09d189302f2506e79be79caf623ccc300816ff936119f9dc5f5bbfd9ee5b0a">
         <source xml:lang="en">Pick from multiple SQL Server versions, including SQL Server 2025 with built-in AI capabilities like vector search and JSON enhancements.</source>
@@ -8098,6 +8126,10 @@ Abfrage: {2}</target>
         <source xml:lang="en">Select all</source>
         <target state="translated">Alle auswählen</target>
       </trans-unit>
+      <trans-unit id="++CODE++958a0500f227e31bede1c2aaac7f01cb586d081a4fa0396928370f797a956bd7">
+        <source xml:lang="en">Select all entities</source>
+        <target state="new">Select all entities</target>
+      </trans-unit>
       <trans-unit id="++CODE++80a484c3416afd950fcefa87e88b0514e65144c7d45c12bf0bc9809c46837f89">
         <source xml:lang="en">Select all options</source>
         <target state="translated">Alle Optionen auswählen</target>
@@ -8172,9 +8204,9 @@ Abfrage: {2}</target>
         <source xml:lang="en">Select the Azure Data Studio settings.json file to scan for connection groups and connections.</source>
         <target state="translated">Wählen Sie die Azure Data Studio settings.json-Datei aus, um Verbindungsgruppen und Verbindungen zu scannen.</target>
       </trans-unit>
-      <trans-unit id="++CODE++c3e908318ac99693f90743c99d94c8d1f123f65564685137a3236da773d4bb9b">
-        <source xml:lang="en">Select the HTTP methods that can execute this stored procedure. DAB defaults to POST.</source>
-        <target state="new">Select the HTTP methods that can execute this stored procedure. DAB defaults to POST.</target>
+      <trans-unit id="++CODE++f51936575cf1dc8077bff593b9237f2ab580f19bf6e25bc409e294768ed1a10c">
+        <source xml:lang="en">Select the HTTP method that can execute this stored procedure. DAB defaults to POST.</source>
+        <target state="new">Select the HTTP method that can execute this stored procedure. DAB defaults to POST.</target>
       </trans-unit>
       <trans-unit id="++CODE++5c61a29b1d409ff2b70f6fbd1032d7250ac322407dc4b8bbff19eb20af562291">
         <source xml:lang="en">Select the SQL Server Container Image</source>
