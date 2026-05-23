@@ -48,8 +48,13 @@ interface DabToolChangeCounts {
     remove_entity_count: number;
     set_api_types_count: number;
     set_entity_enabled_count: number;
+    set_entity_surface_count: number;
     set_entity_actions_count: number;
+    set_entity_permissions_count: number;
     set_column_exposed_count: number;
+    set_field_metadata_count: number;
+    set_parameter_metadata_count: number;
+    set_entity_mcp_count: number;
     patch_entity_settings_count: number;
     set_only_enabled_entities_count: number;
     set_all_entities_enabled_count: number;
@@ -60,8 +65,13 @@ interface DabToolReceipt {
     removeEntityCount: number;
     setApiTypesCount: number;
     setEntityEnabledCount: number;
+    setEntitySurfaceCount: number;
     setEntityActionsCount: number;
+    setEntityPermissionsCount: number;
     setColumnExposedCount: number;
+    setFieldMetadataCount: number;
+    setParameterMetadataCount: number;
+    setEntityMcpCount: number;
     patchEntitySettingsCount: number;
     setOnlyEnabledEntitiesCount: number;
     setAllEntitiesEnabledCount: number;
@@ -150,8 +160,13 @@ export class DabTool extends ToolBase<DabToolParams> {
                 remove_entity_count: 0,
                 set_api_types_count: 0,
                 set_entity_enabled_count: 0,
+                set_entity_surface_count: 0,
                 set_entity_actions_count: 0,
+                set_entity_permissions_count: 0,
                 set_column_exposed_count: 0,
+                set_field_metadata_count: 0,
+                set_parameter_metadata_count: 0,
+                set_entity_mcp_count: 0,
                 patch_entity_settings_count: 0,
                 set_only_enabled_entities_count: 0,
                 set_all_entities_enabled_count: 0,
@@ -171,11 +186,26 @@ export class DabTool extends ToolBase<DabToolParams> {
                     case "set_entity_enabled":
                         counts.set_entity_enabled_count++;
                         break;
+                    case "set_entity_surface":
+                        counts.set_entity_surface_count++;
+                        break;
                     case "set_entity_actions":
                         counts.set_entity_actions_count++;
                         break;
+                    case "set_entity_permissions":
+                        counts.set_entity_permissions_count++;
+                        break;
                     case "set_column_exposed":
                         counts.set_column_exposed_count++;
+                        break;
+                    case "set_field_metadata":
+                        counts.set_field_metadata_count++;
+                        break;
+                    case "set_parameter_metadata":
+                        counts.set_parameter_metadata_count++;
+                        break;
+                    case "set_entity_mcp":
+                        counts.set_entity_mcp_count++;
                         break;
                     case "patch_entity_settings":
                         counts.patch_entity_settings_count++;
@@ -197,8 +227,13 @@ export class DabTool extends ToolBase<DabToolParams> {
             removeEntityCount: counts.remove_entity_count,
             setApiTypesCount: counts.set_api_types_count,
             setEntityEnabledCount: counts.set_entity_enabled_count,
+            setEntitySurfaceCount: counts.set_entity_surface_count,
             setEntityActionsCount: counts.set_entity_actions_count,
+            setEntityPermissionsCount: counts.set_entity_permissions_count,
             setColumnExposedCount: counts.set_column_exposed_count,
+            setFieldMetadataCount: counts.set_field_metadata_count,
+            setParameterMetadataCount: counts.set_parameter_metadata_count,
+            setEntityMcpCount: counts.set_entity_mcp_count,
             patchEntitySettingsCount: counts.patch_entity_settings_count,
             setOnlyEnabledEntitiesCount: counts.set_only_enabled_entities_count,
             setAllEntitiesEnabledCount: counts.set_all_entities_enabled_count,

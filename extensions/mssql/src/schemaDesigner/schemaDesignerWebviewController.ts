@@ -729,6 +729,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 parameters: parameters.map((parameter) => ({
                     name: parameter.name.replace(/^@/, ""),
                     dataType: parameter.dataType,
+                    isRequired: true,
                 })),
             };
         });

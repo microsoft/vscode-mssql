@@ -264,6 +264,9 @@
     <trans-unit id="++CODE++7b68fe5510851da3d89100c569d3265e044d8656d95750c376b7a0972dea7330">
       <source xml:lang="en">After</source>
     </trans-unit>
+    <trans-unit id="++CODE++b19e02e9502bbe5ac59dff4b2d4160768a4a7b8feff5693e5769613562290a45">
+      <source xml:lang="en">Alias</source>
+    </trans-unit>
     <trans-unit id="++CODE++a52ace420f2175d08b1577a1bea5445e36801229c074ef9ed6c55a73401fd9c2">
       <source xml:lang="en">All</source>
     </trans-unit>
@@ -356,6 +359,9 @@
     <trans-unit id="++CODE++0f67514b901da8b9c613167848294cb0010b3c0e696732aa1a0c9737e5be69b1">
       <source xml:lang="en">And</source>
     </trans-unit>
+    <trans-unit id="++CODE++90395d452a308fcb26c44a7a5fb70916b2aaf592fccdd187ac7c6e1192b217c1">
+      <source xml:lang="en">Anon</source>
+    </trans-unit>
     <trans-unit id="++CODE++e7a8aa2df7e5d0b233da615af4e7fef148bec39aef1709da0a80391ad0316563">
       <source xml:lang="en">Anonymous</source>
     </trans-unit>
@@ -447,6 +453,12 @@
     </trans-unit>
     <trans-unit id="++CODE++6b17def22e3775d608a7cdc7f600aa9fd107e2209e657a6d358a5687f9f7c7bd">
       <source xml:lang="en">At least one API type must be selected.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8eb3ea9bbde631592dfac3150044fabe4678c820a107c026035c13bf0c8ba9d7">
+      <source xml:lang="en">Auth</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0fdea2ab7469cfd94d44d8c7d77dd529199dc868fd6bc8b1d9c3c331744edeb0">
+      <source xml:lang="en">Auth mode</source>
     </trans-unit>
     <trans-unit id="++CODE++8ff1f9a47f14327a26fd3a548d2babeec226cb63828a0803433b4a34a19c09ff">
       <source xml:lang="en">Auth type</source>
@@ -1730,6 +1742,9 @@
     <trans-unit id="++CODE++3cc30692596cf10ca4319a818741998997632cce895dbf138cb3299b1314d37f">
       <source xml:lang="en">Custom Zoom</source>
     </trans-unit>
+    <trans-unit id="++CODE++2382ba5d273153b70b946e94dce6917ebe7aa25b0d46f4cc7b31ec891ec8784e">
+      <source xml:lang="en">Custom tool creates a dedicated MCP tool for this stored procedure.</source>
+    </trans-unit>
     <trans-unit id="++CODE++c525ed2944e05f661b7bc658ddccb355cd47a8daab5629ce4310c575aa58e2a1">
       <source xml:lang="en">Customize keyboard shortcuts</source>
     </trans-unit>
@@ -1758,6 +1773,12 @@
     </trans-unit>
     <trans-unit id="++CODE++859430fa647177df2bca8384a1b91e9f607ab6c35eba8d61c1ff399e80cf0ac2">
       <source xml:lang="en">DACPAC path not found. Please build the project first.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a624c53f324c90b7a7da7401d49f23d00dc78cdad529bbb41bdd319c1e6f4cbb">
+      <source xml:lang="en">DML tools expose this entity through generic MCP tools.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a724eec1c740993b1bd30143c1d2ef8b6a4f3560e19c4e2355e786a18d3ce48e">
+      <source xml:lang="en">DML tools expose this stored procedure through generic execute tools.</source>
     </trans-unit>
     <trans-unit id="++CODE++02b435f9a4c73633bef7d3b2b6548de6bb7ec5414c63e0bb6db520a4ca4d1004">
       <source xml:lang="en">DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.</source>
@@ -2177,6 +2198,9 @@
     <trans-unit id="++CODE++7bce93a011075575cf98f089cee89c6108be3220cd9701e8ce2fe0c19b38f411">
       <source xml:lang="en">Enable GraphQL in API Type to expose this entity through GraphQL.</source>
     </trans-unit>
+    <trans-unit id="++CODE++88c59d6325c5f9cb638b3671a4ed7680c56c924d8b07a98dadce93466d269197">
+      <source xml:lang="en">Enable MCP in API Type to expose this entity through MCP.</source>
+    </trans-unit>
     <trans-unit id="++CODE++6b4be3a8ee14a536e26c05c8b1d62473209daf08fb4f8ec66322497d5d0028f0">
       <source xml:lang="en">Enable MCP in API Type to use this custom tool setting.</source>
     </trans-unit>
@@ -2506,6 +2530,9 @@
     <trans-unit id="++CODE++01ae099f23b8fe85d27a9e26613eb2624bd76e11505385e3493f316afde824c2">
       <source xml:lang="en">Exclude Object Types</source>
     </trans-unit>
+    <trans-unit id="++CODE++eae47ccdd51f34b36191e508f439eb4539be120218976462316ea74d1011cc2a">
+      <source xml:lang="en">Exec</source>
+    </trans-unit>
     <trans-unit id="++CODE++e3a67d9540e9a204f7dc4aa9d44a0ec652856cfa932a21196bf9df23aa0e4cd1">
       <source xml:lang="en">Execute</source>
     </trans-unit>
@@ -2623,11 +2650,17 @@
     <trans-unit id="++CODE++de5cd90f5341f8bb2ebe10270705fa436ac43f8c5ff653358b9eee3a56323ec4">
       <source xml:lang="en">Exporting BACPAC...</source>
     </trans-unit>
+    <trans-unit id="++CODE++9687fa49cbabe130e6700fb6dba29d6650f2a4f3ed416a9956a1f494c16a5c36">
+      <source xml:lang="en">Expose</source>
+    </trans-unit>
     <trans-unit id="++CODE++886b046597112f108973a5fa0dd665428e3303b602a7c20621b6876237cb7044">
       <source xml:lang="en">Expose as MCP custom tool</source>
     </trans-unit>
     <trans-unit id="++CODE++9baec5aafce916c9fbec6af57fe28833aca54911144354d1175f02a51595de33">
       <source xml:lang="en">Expose this entity through GraphQL</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bf42d779f126ae3f936e2ed856401f447e8c5b071da8d1001f276728942fd678">
+      <source xml:lang="en">Expose this entity through MCP</source>
     </trans-unit>
     <trans-unit id="++CODE++1d66e218f7e4f002993789d4d2f5882562de9be46ff392069f35b830da0a78f6">
       <source xml:lang="en">Expose this entity through REST</source>
@@ -2635,6 +2668,12 @@
     <trans-unit id="++CODE++7758738264236e2f15e315d6e6ebca6fb9192ce031207744cc9bdd4a5a052817">
       <source xml:lang="en">Expose {0}</source>
       <note>{0} is the backing database column name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++d85cdd4a3e9b81d2f16b2dad8854d17525cd7dfdab8d72741b36e86805bc2519">
+      <source xml:lang="en">Exposed</source>
+    </trans-unit>
+    <trans-unit id="++CODE++843e65c123943ded912c77e1bc283de1b9fb26e1ee2a1ba2401c286edfa16cda">
+      <source xml:lang="en">Exposed via</source>
     </trans-unit>
     <trans-unit id="++CODE++c67415bcff328a59fd399e2a7ca9691e0044192fb7480ae501644339965d046d">
       <source xml:lang="en">Expression</source>
@@ -3387,6 +3426,9 @@
     <trans-unit id="++CODE++fe44c8ac09e3996f71f7153cac29fe00113075f95611f98e76cf3aae6232d0dd">
       <source xml:lang="en">Help us improve by sharing your thoughts.</source>
     </trans-unit>
+    <trans-unit id="++CODE++7e6fefff0f0aeb6ca93086d3855d0406bdd0ee53b56771f8c794cf07af6598b7">
+      <source xml:lang="en">Hidden</source>
+    </trans-unit>
     <trans-unit id="++CODE++cf7a4462cdb4e65708d6da34fafbdbd520b0300850a68be92f1fe3d5be3811d2">
       <source xml:lang="en">Hide Changes</source>
     </trans-unit>
@@ -3548,6 +3590,10 @@
     <trans-unit id="++CODE++ac665fafc5f9732c9d322749a1f726be51f8b31d2ec83ecde83a6e1d2b632eda">
       <source xml:lang="en">Include all object types</source>
     </trans-unit>
+    <trans-unit id="++CODE++38ccbbcbe0241e051909d6867d0528e4eff3bed6cbd9360cbaa67a0301f67066">
+      <source xml:lang="en">Include {0}</source>
+      <note>{0} is the entity name</note>
+    </trans-unit>
     <trans-unit id="++CODE++a19caa35e133f5a0e94975762741c4c73b09c8a830908934206474fea30817b0">
       <source xml:lang="en">Incomplete or orphaned connections</source>
     </trans-unit>
@@ -3663,6 +3709,9 @@
     </trans-unit>
     <trans-unit id="++CODE++29b39d81b8651e8717f85c00002b2b087bafb969eb289ac991fa41b17522e775">
       <source xml:lang="en">Keep in query pane</source>
+    </trans-unit>
+    <trans-unit id="++CODE++99a52df3ff3d499488e2fa28150c4106a2cb5e928891a830a9aa3922b2d32160">
+      <source xml:lang="en">Key</source>
     </trans-unit>
     <trans-unit id="++CODE++a3c13b491573b0d54bf743caf0f5d59d5a791c42ae1072f16bb941be925fae18">
       <source xml:lang="en">Keys for token cache could not be saved in credential store, this may cause Microsoft Entra Id access token persistence issues and connection instabilities. It&apos;s likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with &quot;Microsoft.SqlTools|&quot; in Windows Credential Manager and reload.</source>
@@ -3937,6 +3986,9 @@
     <trans-unit id="++CODE++ddeb248a914ea9f6af2303de9341990c1da5d7dfdfc631d25734d57768e85394">
       <source xml:lang="en">Logical file name</source>
     </trans-unit>
+    <trans-unit id="++CODE++8336175b8ad79d9ee20c64d8271504a8d4cddaf613f831c0be0465ed761ef21d">
+      <source xml:lang="en">Logical key</source>
+    </trans-unit>
     <trans-unit id="++CODE++155952ddf38c19af2c08d64095b80c9fe510faade4f78b6f0c6113fda082eda0">
       <source xml:lang="en">Logical operator</source>
     </trans-unit>
@@ -3951,6 +4003,9 @@
     </trans-unit>
     <trans-unit id="++CODE++53f13ae99ed53bd346eb8e1c8cefb7ef8260683b50401caf101360967ea052aa">
       <source xml:lang="en">MCP</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bfd23a1362b4cd5f3c66dc3b8860ed4511a3ef7e1f8d69db59f764e0fc65851b">
+      <source xml:lang="en">MCP DML tools</source>
     </trans-unit>
     <trans-unit id="++CODE++cb571bc2bc5742ac76bfe870bd81c2d7aeefe4a9f9c828b36c7a39464c3c3ebb">
       <source xml:lang="en">MCP custom tool</source>
@@ -4354,6 +4409,9 @@
     <trans-unit id="++CODE++294bba553d6958c3b25354a196e6bdb356fc76d4053754eb434c38618f9fff38">
       <source xml:lang="en">No code analysis rules available.</source>
     </trans-unit>
+    <trans-unit id="++CODE++92b96197f4ff0a723964fe779267ba475892eb8f744fe5482fd3c6bc752892a3">
+      <source xml:lang="en">No columns were discovered for this entity.</source>
+    </trans-unit>
     <trans-unit id="++CODE++d359844ae129bd7d51eda9e3c61dcf5c4036be148cdf783fc11d6454e8ca372b">
       <source xml:lang="en">No connection credentials found</source>
     </trans-unit>
@@ -4454,8 +4512,14 @@
     <trans-unit id="++CODE++5aa25ab8e1d89c0563f5cf32fc56ca21e52cefa7663326b1527eaa567ab33a8c">
       <source xml:lang="en">No objects found</source>
     </trans-unit>
+    <trans-unit id="++CODE++c2a1a3e03cf67c0ac40fabfee38ee5346f05417614d1a55e7eed85e87de976d7">
+      <source xml:lang="en">No parameters were discovered for this stored procedure.</source>
+    </trans-unit>
     <trans-unit id="++CODE++b4722b7d6b5e5dd7c69480a9bd436e71d151acf1a05b81fcace235ba42c83375">
       <source xml:lang="en">No pending changes. Make edits to generate a script.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ef5bb5141fd8afa4951e5674000f5cb3307e6b129c57298ff8f5853ed1f893ae">
+      <source xml:lang="en">No permissions</source>
     </trans-unit>
     <trans-unit id="++CODE++4d2b6723246a1c9f0623c0c48a49e0303cd42b98acd1bc981582ca59a83b2ccc">
       <source xml:lang="en">No profiler connection available</source>
@@ -4578,6 +4642,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c9a7c5601ef0cf94864a294ea116e414d2e0cf571ab03baabf79b726e1dcb294">
       <source xml:lang="en">Not equal to</source>
+    </trans-unit>
+    <trans-unit id="++CODE++441818ccc4c33fe807938249c80e7be1eddc196d87077b06367d567dc08eaf05">
+      <source xml:lang="en">Not exposed</source>
     </trans-unit>
     <trans-unit id="++CODE++972711d90594be0ec9340bc56950dc455b2764187dcad7093ae641df2cbc10c5">
       <source xml:lang="en">Not likely at all</source>
@@ -4719,6 +4786,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e262d629c99156bd48e759790fae3387d08f1b1651ff7ec74a3ca9ad9202e0c9">
       <source xml:lang="en">Option Description</source>
+    </trans-unit>
+    <trans-unit id="++CODE++59be71333c960fd08e7e4fe9862206d9355f0a9884121a5b50ef8b36efdfe4cf">
+      <source xml:lang="en">Optional</source>
     </trans-unit>
     <trans-unit id="++CODE++da53ba1a285ffae9c6528e235b57336fa85b4f05e9fc00a51ee922069c3d9865">
       <source xml:lang="en">Optional (False)</source>
@@ -5287,6 +5357,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4850b174b713d88cfc63de107830d5388929020e78abc91fc19bba7a6821625f">
       <source xml:lang="en">Required</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a0bd6e6936bbac62dd89c1012d9ccddc307a904c3cb34cbceed2500075fe3b5d">
+      <source xml:lang="en">Required parameter</source>
     </trans-unit>
     <trans-unit id="++CODE++98fe17bca293f3dccd1fbe14ff7b0f12d73ba72e6a3e47310982e8de208f560f">
       <source xml:lang="en">Requirements:</source>
@@ -5884,6 +5957,9 @@
     </trans-unit>
     <trans-unit id="++CODE++16900742d2f35c9ffb6cc72369893127a8357154e22d9c4b84f020e87dac0602">
       <source xml:lang="en">Select an operation</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1f44d9cdb4b2b64253e0642a79bda7f3738c87e3a22ce505d6454ee7a10d1623">
+      <source xml:lang="en">Select at least one logical key column before applying or deploying this exposed table or view.</source>
     </trans-unit>
     <trans-unit id="++CODE++1dd75b0dd68914e185b547fe475e416fe18bc8a68709129eada033866baf612c">
       <source xml:lang="en">Select file to import</source>

@@ -24,6 +24,7 @@ interface DabContextProps {
     toggleDabEntityAction: (entityId: string, action: Dab.EntityAction, isEnabled: boolean) => void;
     toggleDabColumnExposure: (entityId: string, columnId: string, isExposed: boolean) => void;
     updateDabEntitySettings: (entityId: string, settings: Dab.EntityAdvancedSettings) => void;
+    updateDabEntityConfig: (entity: Dab.DabEntityConfig) => void;
     dabTextFilter: string;
     setDabTextFilter: (text: string) => void;
     dabConfigTextFileContent: string;
@@ -171,10 +172,19 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                     return {
                         ...entity,
                         isEnabled,
-                        columns: entity.columns.map((column) => ({
-                            ...column,
-                            isExposed: isEnabled,
-                        })),
+                        advancedSettings: {
+                            ...entity.advancedSettings,
+                            restEnabled: isEnabled,
+                            graphQLEnabled: isEnabled,
+                            mcpEnabled: isEnabled,
+                            mcpDmlToolsEnabled: isEnabled,
+                            ...(entity.sourceType === Dab.EntitySourceType.StoredProcedure
+                                ? {
+                                      exposeAsMcpCustomTool: false,
+                                      mcpCustomToolEnabled: false,
+                                  }
+                                : {}),
+                        },
                     };
                 }),
             };
@@ -203,7 +213,20 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                     const enabledActions = isEnabled
                         ? [...e.enabledActions, action]
                         : e.enabledActions.filter((a) => a !== action);
-                    return { ...e, enabledActions };
+                    const role = e.advancedSettings.authorizationRole;
+                    const permissions = Dab.getEntityPermissions(e).map((permission) =>
+                        permission.role === role
+                            ? { ...permission, actions: enabledActions }
+                            : permission,
+                    );
+                    return {
+                        ...e,
+                        enabledActions,
+                        advancedSettings: {
+                            ...e.advancedSettings,
+                            permissions,
+                        },
+                    };
                 });
 
                 if (!didChange) {
@@ -260,6 +283,21 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         },
         [],
     );
+
+    const updateDabEntityConfig = useCallback((updatedEntity: Dab.DabEntityConfig) => {
+        setDabConfig((prev) => {
+            if (!prev) {
+                return prev;
+            }
+
+            return {
+                ...prev,
+                entities: prev.entities.map((entity) =>
+                    entity.id === updatedEntity.id ? updatedEntity : entity,
+                ),
+            };
+        });
+    }, []);
 
     // Auto-generate text config whenever dabConfig changes
     useEffect(() => {
@@ -523,6 +561,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 toggleDabEntityAction,
                 toggleDabColumnExposure,
                 updateDabEntitySettings,
+                updateDabEntityConfig,
                 dabTextFilter,
                 setDabTextFilter,
                 dabConfigTextFileContent,

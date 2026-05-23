@@ -162,11 +162,26 @@ suite("DAB LM tool manifest schema", () => {
         expect(
             byType.get("set_entity_actions")?.properties?.enabledActions?.items?.enum,
         ).to.deep.equal(["create", "read", "update", "delete", "execute"]);
+        expect(byType.get("set_entity_surface")?.properties?.apiType?.enum).to.deep.equal([
+            "rest",
+            "graphql",
+            "mcp",
+        ]);
+        expect(byType.get("set_entity_permissions")?.properties?.permissions?.items?.$ref).to.equal(
+            "#/$defs/entityPermission",
+        );
         expect(byType.get("add_entity")?.properties?.entity?.$ref).to.equal("#/$defs/entityRef");
         expect(byType.get("remove_entity")?.properties?.entity?.$ref).to.equal("#/$defs/entityRef");
         expect(byType.get("set_column_exposed")?.properties?.column?.$ref).to.equal(
             "#/$defs/columnRef",
         );
+        expect(byType.get("set_field_metadata")?.properties?.field?.$ref).to.equal(
+            "#/$defs/columnRef",
+        );
+        expect(byType.get("set_parameter_metadata")?.properties?.parameter?.$ref).to.equal(
+            "#/$defs/parameterRef",
+        );
+        expect(byType.get("set_entity_mcp")?.properties?.dmlToolsEnabled?.type).to.equal("boolean");
         expect(
             tool.inputSchema?.$defs?.advancedSettingsPatch?.properties?.authorizationRole?.enum,
         ).to.deep.equal(["anonymous", "authenticated"]);
@@ -177,15 +192,24 @@ suite("DAB LM tool manifest schema", () => {
             tool.inputSchema?.$defs?.advancedSettingsPatch?.properties?.graphQLEnabled?.type,
         ).to.equal("boolean");
         expect(
+            tool.inputSchema?.$defs?.advancedSettingsPatch?.properties?.mcpEnabled?.type,
+        ).to.equal("boolean");
+        expect(
+            tool.inputSchema?.$defs?.advancedSettingsPatch?.properties?.mcpDmlToolsEnabled?.type,
+        ).to.equal("boolean");
+        expect(
             tool.inputSchema?.$defs?.advancedSettingsPatch?.properties?.storedProcedureRestMethods
                 ?.oneOf?.[0]?.items?.enum,
-        ).to.deep.equal(["get", "post", "put", "patch", "delete"]);
+        ).to.deep.equal(["get", "post"]);
         expect(
             tool.inputSchema?.$defs?.advancedSettingsPatch?.properties
                 ?.storedProcedureGraphQLOperation?.enum,
         ).to.deep.equal(["query", "mutation"]);
         expect(
             tool.inputSchema?.$defs?.advancedSettingsPatch?.properties?.exposeAsMcpCustomTool?.type,
+        ).to.equal("boolean");
+        expect(
+            tool.inputSchema?.$defs?.advancedSettingsPatch?.properties?.mcpCustomToolEnabled?.type,
         ).to.equal("boolean");
         expect(tool.inputSchema?.properties?.options?.properties?.returnState?.enum).to.deep.equal([
             "full",

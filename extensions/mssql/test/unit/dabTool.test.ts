@@ -56,7 +56,7 @@ suite("DabTool Tests", () => {
         };
     };
 
-    const createUnsupportedTable = (
+    const createKeylessTable = (
         id: string,
         schemaName: string,
         tableName: string,
@@ -67,6 +67,28 @@ suite("DabTool Tests", () => {
                 id: `${id}-name`,
                 name: "Name",
                 dataType: "nvarchar",
+                isPrimaryKey: false,
+            } as SchemaDesigner.Column,
+        ],
+    });
+
+    const createUnsupportedTable = (
+        id: string,
+        schemaName: string,
+        tableName: string,
+    ): SchemaDesigner.Table => ({
+        ...createTable(id, schemaName, tableName),
+        columns: [
+            {
+                id: `${id}-id`,
+                name: "Id",
+                dataType: "int",
+                isPrimaryKey: true,
+            } as SchemaDesigner.Column,
+            {
+                id: `${id}-geo`,
+                name: "Geo",
+                dataType: "sys.geography",
                 isPrimaryKey: false,
             } as SchemaDesigner.Column,
         ],
@@ -463,7 +485,12 @@ suite("DabTool Tests", () => {
                 setApiTypesCount: 1,
                 setEntityEnabledCount: 1,
                 setEntityActionsCount: 1,
+                setEntitySurfaceCount: 0,
+                setEntityPermissionsCount: 0,
                 setColumnExposedCount: 1,
+                setFieldMetadataCount: 0,
+                setParameterMetadataCount: 0,
+                setEntityMcpCount: 0,
                 patchEntitySettingsCount: 1,
                 setOnlyEnabledEntitiesCount: 1,
                 setAllEntitiesEnabledCount: 1,
@@ -560,7 +587,12 @@ suite("DabTool Tests", () => {
                 setApiTypesCount: 1,
                 setEntityEnabledCount: 0,
                 setEntityActionsCount: 0,
+                setEntitySurfaceCount: 0,
+                setEntityPermissionsCount: 0,
                 setColumnExposedCount: 0,
+                setFieldMetadataCount: 0,
+                setParameterMetadataCount: 0,
+                setEntityMcpCount: 0,
                 patchEntitySettingsCount: 0,
                 setOnlyEnabledEntitiesCount: 0,
                 setAllEntitiesEnabledCount: 1,
@@ -819,19 +851,19 @@ suite("DabTool Tests", () => {
             expect(harness.commitSpy.called).to.equal(false);
         });
 
-        test("get_state revalidates support status and disables entities that become unsupported", async () => {
+        test("get_state revalidates support status and keeps keyless entities enabled with a fixable warning", async () => {
             const supportedTable = createTable("t1", "dbo", "Users");
             const harness = createDabHandlerHarness({
                 tables: [supportedTable],
                 dabConfig: Dab.createDefaultConfig([supportedTable]),
             });
 
-            harness.setTables([createUnsupportedTable("t1", "dbo", "Users")]);
+            harness.setTables([createKeylessTable("t1", "dbo", "Users")]);
             const state = await harness.getState();
 
             expect(state.returnState).to.equal("full");
-            expect(state.config?.entities[0].isSupported).to.equal(false);
-            expect(state.config?.entities[0].isEnabled).to.equal(false);
+            expect(state.config?.entities[0].isSupported).to.equal(true);
+            expect(state.config?.entities[0].isEnabled).to.equal(true);
             expect(state.config?.entities[0].unsupportedReasons?.[0].type).to.equal("noPrimaryKey");
             expect(harness.commitSpy.calledOnce).to.equal(true);
         });
@@ -844,7 +876,7 @@ suite("DabTool Tests", () => {
             });
 
             const initialState = await harness.getState();
-            harness.setTables([createUnsupportedTable("t1", "dbo", "Users")]);
+            harness.setTables([createKeylessTable("t1", "dbo", "Users")]);
             const updatedState = await harness.getState();
 
             expect(updatedState.version).to.not.equal(initialState.version);
@@ -1403,7 +1435,7 @@ suite("DabTool Tests", () => {
             let currentState = await harness.getState();
             expect(
                 currentState.config?.entities[0].advancedSettings.exposeAsMcpCustomTool,
-            ).to.equal(true);
+            ).to.equal(false);
 
             const disableResult = await harness.applyChanges({
                 expectedVersion: currentState.version,
@@ -1803,7 +1835,7 @@ suite("DabTool Tests", () => {
             expect(enableResult.reason).to.equal("entity_not_supported");
             expect(enableResult.message).to.include("dbo.Users");
             expect(enableResult.message).to.include(
-                locConstants.schemaDesigner.unsupportedNoPrimaryKey("Table"),
+                locConstants.schemaDesigner.unsupportedDataTypes("Geo (sys.geography)", "Table"),
             );
 
             const actionsResult = await harness.applyChanges({
@@ -1936,8 +1968,8 @@ suite("DabTool Tests", () => {
             expect(result.failedChangeIndex).to.equal(1);
             expect(result.appliedChanges).to.equal(0);
             expect(result.version).to.equal(originalVersion);
-            expect(result.summary?.apiTypes).to.deep.equal([Dab.ApiType.Rest]);
-            expect(harness.getConfig()?.apiTypes).to.deep.equal([Dab.ApiType.Rest]);
+            expect(result.summary?.apiTypes).to.deep.equal(Dab.defaultApiTypes);
+            expect(harness.getConfig()?.apiTypes).to.deep.equal(Dab.defaultApiTypes);
             expect(harness.commitSpy.called).to.equal(false);
         });
 

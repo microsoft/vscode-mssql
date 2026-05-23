@@ -9,7 +9,7 @@ import { DabConfigFileBuilder } from "../../../src/dab/dabConfigFileBuilder";
 import { Dab } from "../../../src/sharedInterfaces/dab";
 
 function createTestEntity(overrides?: Partial<Dab.DabEntityConfig>): Dab.DabEntityConfig {
-    return {
+    const entity: Dab.DabEntityConfig = {
         id: "test-id-1",
         sourceType: Dab.EntitySourceType.Table,
         sourceName: "Users",
@@ -47,6 +47,17 @@ function createTestEntity(overrides?: Partial<Dab.DabEntityConfig>): Dab.DabEnti
         },
         ...overrides,
     };
+
+    if (overrides?.isEnabled === false) {
+        entity.advancedSettings = {
+            ...entity.advancedSettings,
+            restEnabled: entity.advancedSettings.restEnabled ?? false,
+            graphQLEnabled: entity.advancedSettings.graphQLEnabled ?? false,
+            mcpEnabled: entity.advancedSettings.mcpEnabled ?? false,
+        };
+    }
+
+    return entity;
 }
 
 function createTestConfig(overrides?: Partial<Dab.DabConfig>): Dab.DabConfig {
@@ -305,14 +316,18 @@ suite("DabConfigFileBuilder Tests", () => {
                 expect(entity.source.object).to.equal("sales.Orders");
             });
 
-            test("should emit table primary keys as source key-fields", () => {
+            test("should emit table primary keys as fields metadata", () => {
                 const result = builder.build(createTestConfig(), defaultConnectionInfo);
                 const parsed = JSON.parse(result);
                 const entity = parsed.entities["Users"];
-                expect(entity.source["key-fields"]).to.deep.equal(["Id"]);
+                expect(entity.source).to.not.have.property("key-fields");
+                expect(entity.fields).to.deep.equal([
+                    { name: "Id", "primary-key": true },
+                    { name: "Name" },
+                ]);
             });
 
-            test("should emit composite table primary keys as source key-fields", () => {
+            test("should emit composite table primary keys as fields metadata", () => {
                 const config = createTestConfig({
                     entities: [
                         createTestEntity({
@@ -341,7 +356,33 @@ suite("DabConfigFileBuilder Tests", () => {
                 const result = builder.build(config, defaultConnectionInfo);
                 const parsed = JSON.parse(result);
                 const entity = parsed.entities["Users"];
-                expect(entity.source["key-fields"]).to.deep.equal(["Id", "Sequence"]);
+                expect(entity.source).to.not.have.property("key-fields");
+                expect(entity.fields).to.deep.equal([
+                    { name: "Id", "primary-key": true },
+                    { name: "Sequence", "primary-key": true },
+                ]);
+            });
+
+            test("should emit field alias and description metadata", () => {
+                const config = createTestConfig({
+                    entities: [
+                        createTestEntity({
+                            fields: [
+                                { name: "Id", isPrimaryKey: true, description: "Identifier" },
+                                { name: "Name", alias: "displayName", description: "Display name" },
+                            ],
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+                const entity = parsed.entities["Users"];
+
+                expect(entity.fields).to.deep.equal([
+                    { name: "Id", description: "Identifier", "primary-key": true },
+                    { name: "Name", alias: "displayName", description: "Display name" },
+                ]);
             });
 
             test("should use advancedSettings.entityName as the entity key", () => {
@@ -394,7 +435,7 @@ suite("DabConfigFileBuilder Tests", () => {
                 ]);
             });
 
-            test("should emit stored procedure execute permissions and MCP custom tool", () => {
+            test("should emit stored procedure execute permissions and MCP settings", () => {
                 const config = createTestConfig({
                     apiTypes: [Dab.ApiType.Rest, Dab.ApiType.GraphQL, Dab.ApiType.Mcp],
                     entities: [
@@ -430,8 +471,8 @@ suite("DabConfigFileBuilder Tests", () => {
                 expect(entity.rest).to.deep.equal({ methods: ["post"] });
                 expect(entity.graphql).to.be.undefined;
                 expect(entity.mcp).to.deep.equal({
-                    "custom-tool": true,
-                    "dml-tools": false,
+                    "custom-tool": false,
+                    "dml-tools": true,
                 });
             });
 
@@ -460,7 +501,7 @@ suite("DabConfigFileBuilder Tests", () => {
                 expect(parsed.entities["GetUsers"].mcp).to.be.undefined;
             });
 
-            test("should not emit stored procedure MCP custom tool settings when disabled", () => {
+            test("should emit stored procedure MCP settings when custom tool is disabled", () => {
                 const config = createTestConfig({
                     apiTypes: [Dab.ApiType.Rest, Dab.ApiType.Mcp],
                     entities: [
@@ -483,7 +524,10 @@ suite("DabConfigFileBuilder Tests", () => {
                 const result = builder.build(config, defaultConnectionInfo);
                 const parsed = JSON.parse(result);
 
-                expect(parsed.entities["GetUsers"].mcp).to.be.undefined;
+                expect(parsed.entities["GetUsers"].mcp).to.deep.equal({
+                    "custom-tool": false,
+                    "dml-tools": true,
+                });
             });
         });
 
@@ -742,7 +786,7 @@ suite("DabConfigFileBuilder Tests", () => {
                 });
                 const result = builder.build(config, defaultConnectionInfo);
                 const parsed = JSON.parse(result);
-                expect(parsed.entities["Users"].permissions[0].actions).to.deep.equal([]);
+                expect(parsed.entities["Users"].permissions).to.deep.equal([]);
             });
 
             test("should emit field exclusions for hidden columns on create/read/update", () => {

@@ -12,16 +12,26 @@ export enum DabEntityStatusFilter {
     Warnings = "warnings",
 }
 
+export enum DabEntityAuthFilter {
+    Anonymous = "anonymous",
+    Authenticated = "authenticated",
+    None = "none",
+}
+
 export interface DabEntityFilters {
     status: DabEntityStatusFilter;
     schemas: string[];
     sourceTypes: Dab.EntitySourceType[];
+    apiTypes: Array<Dab.ApiType | "none">;
+    authTypes: DabEntityAuthFilter[];
 }
 
 export const defaultDabEntityFilters: DabEntityFilters = {
     status: DabEntityStatusFilter.All,
     schemas: [],
     sourceTypes: [],
+    apiTypes: [],
+    authTypes: [],
 };
 
 export function getDabSchemaFilterKey(schemaName: string): string {
@@ -32,7 +42,9 @@ export function getDabEntityFilterCount(filters: DabEntityFilters): number {
     return (
         (filters.status === DabEntityStatusFilter.All ? 0 : 1) +
         filters.schemas.length +
-        filters.sourceTypes.length
+        filters.sourceTypes.length +
+        filters.apiTypes.length +
+        filters.authTypes.length
     );
 }
 
@@ -40,13 +52,17 @@ export function doesEntityMatchDabFilters(
     entity: Dab.DabEntityConfig,
     filters: DabEntityFilters,
 ): boolean {
-    if (filters.status === DabEntityStatusFilter.Enabled && !entity.isEnabled) {
+    if (filters.status === DabEntityStatusFilter.Enabled && !Dab.isEntityExposed(entity)) {
         return false;
     }
-    if (filters.status === DabEntityStatusFilter.Disabled && entity.isEnabled) {
+    if (filters.status === DabEntityStatusFilter.Disabled && Dab.isEntityExposed(entity)) {
         return false;
     }
-    if (filters.status === DabEntityStatusFilter.Warnings && entity.isSupported) {
+    if (
+        filters.status === DabEntityStatusFilter.Warnings &&
+        !Dab.hasBlockingUnsupportedReason(entity) &&
+        !Dab.hasFixableKeyWarning(entity)
+    ) {
         return false;
     }
     if (
@@ -57,7 +73,46 @@ export function doesEntityMatchDabFilters(
     }
 
     const sourceType = entity.sourceType ?? Dab.EntitySourceType.Table;
-    return filters.sourceTypes.length === 0 || filters.sourceTypes.includes(sourceType);
+    if (filters.sourceTypes.length > 0 && !filters.sourceTypes.includes(sourceType)) {
+        return false;
+    }
+
+    if (filters.apiTypes.length > 0) {
+        const enabledApiTypes: Array<Dab.ApiType | "none"> = [];
+        if (Dab.isEntityRestEnabled(entity)) {
+            enabledApiTypes.push(Dab.ApiType.Rest);
+        }
+        if (Dab.isEntityGraphQLEnabled(entity)) {
+            enabledApiTypes.push(Dab.ApiType.GraphQL);
+        }
+        if (Dab.isEntityMcpEnabled(entity)) {
+            enabledApiTypes.push(Dab.ApiType.Mcp);
+        }
+        if (enabledApiTypes.length === 0) {
+            enabledApiTypes.push("none");
+        }
+        if (!filters.apiTypes.some((apiType) => enabledApiTypes.includes(apiType))) {
+            return false;
+        }
+    }
+
+    if (filters.authTypes.length > 0) {
+        const enabledAuthTypes: DabEntityAuthFilter[] = [];
+        if (Dab.hasEntityPermission(entity, Dab.AuthorizationRole.Anonymous)) {
+            enabledAuthTypes.push(DabEntityAuthFilter.Anonymous);
+        }
+        if (Dab.hasEntityPermission(entity, Dab.AuthorizationRole.Authenticated)) {
+            enabledAuthTypes.push(DabEntityAuthFilter.Authenticated);
+        }
+        if (enabledAuthTypes.length === 0) {
+            enabledAuthTypes.push(DabEntityAuthFilter.None);
+        }
+        if (!filters.authTypes.some((authType) => enabledAuthTypes.includes(authType))) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 export function toggleDabEntityFilterValue<T>(values: T[], value: T, allValues?: T[]): T[] {
