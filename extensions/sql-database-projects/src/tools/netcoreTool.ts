@@ -10,13 +10,13 @@ import * as path from "path";
 import * as semver from "semver";
 import { isNullOrUndefined } from "util";
 import * as vscode from "vscode";
-import { l10n } from "vscode";
 import {
     DoNotAskAgain,
     Install,
     DotnetInstallationConfirmation,
     NetCoreSupportedVersionInstallationConfirmation,
     UpdateDotnetLocation,
+    loc0ErroredOut1,
     microsoftBuildSqlVersionKey,
 } from "../common/constants";
 import * as utils from "../common/utils";
@@ -286,11 +286,7 @@ export class NetCoreTool extends ShellExecutionHelper {
             return await this.runStreamedCommand(dotnetPath, args, options);
         } catch (error) {
             this._outputChannel.append(
-                l10n.t(
-                    "\t>>> {0}   … errored out: {1}",
-                    [dotnetPath, ...args].join(" "),
-                    utils.getErrorMessage(error),
-                ),
+                loc0ErroredOut1([dotnetPath, ...args].join(" "), utils.getErrorMessage(error)),
             ); //errors are localized in our code where emitted, other errors are pass through from external components that are not easily localized
             throw error;
         }

@@ -15,9 +15,7 @@
  *    and copies locally via the clipboard API using in-memory data.
  */
 
-import * as l10n from "@vscode/l10n";
-import { IDisposableDataProvider } from "../QueryResult/table/dataProvider";
-
+import { locConstants } from "../../common/locConstants";
 /** Actions available in the notebook grid context menu. */
 enum NotebookContextMenuAction {
     SelectAll = "select-all",
@@ -123,7 +121,7 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
 
         this.addMenuItem(
             menu,
-            l10n.t("Select All"),
+            locConstants.queryResult.selectAll,
             `${modKey}A`,
             NotebookContextMenuAction.SelectAll,
         );
@@ -132,19 +130,19 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
 
         this.addMenuItem(
             menu,
-            l10n.t("Copy"),
+            locConstants.queryResult.copy,
             `${modKey}C`,
             NotebookContextMenuAction.CopySelection,
         );
         this.addMenuItem(
             menu,
-            l10n.t("Copy with Headers"),
+            locConstants.queryResult.copyWithHeaders,
             undefined,
             NotebookContextMenuAction.CopyWithHeaders,
         );
         this.addMenuItem(
             menu,
-            l10n.t("Copy Headers"),
+            locConstants.queryResult.copyHeaders,
             undefined,
             NotebookContextMenuAction.CopyHeaders,
         );

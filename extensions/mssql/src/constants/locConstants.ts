@@ -3763,3 +3763,245 @@ export class ServiceClient {
 
     public static installFailedStatusText = l10n.t("Service installation failed.");
 }
+
+export const azureSignInFailed = l10n.t("Azure sign in failed.");
+
+export const selectSubscriptions = l10n.t("Select subscriptions");
+
+export const errorLoadingAzureSubscriptions = l10n.t("Error loading Azure subscriptions.");
+
+export const errorLoadingAzureSubscriptions2 = l10n.t("Error loading Azure subscriptions.");
+
+export const azureSubscriptionNotFoundInCache = l10n.t("Azure subscription not found in cache.");
+
+export function invalidConnectionString0(arg0: string | number | boolean) {
+    return l10n.t("Invalid connection string: {0}", arg0);
+}
+
+export const serializationFailed = l10n.t("Serialization failed");
+
+export const azureMFA = l10n.t("Azure MFA");
+
+export const windowsAuthentication = l10n.t("Windows Authentication");
+
+export const enabled = l10n.t("Enabled");
+
+export const disabled = l10n.t("Disabled");
+
+export const server = l10n.t("Server");
+
+export const database = l10n.t("Database");
+
+export const authenticationType = l10n.t("Authentication Type");
+
+export const user = l10n.t("User");
+
+export const port = l10n.t("Port");
+
+export const sqlContainerName = l10n.t("SQL Container Name");
+
+export const sqlContainerVersion = l10n.t("SQL Container Version");
+
+export const applicationIntent = l10n.t("Application Intent");
+
+export const connectionTimeout = l10n.t("Connection Timeout");
+
+export const commandTimeout = l10n.t("Command Timeout");
+
+export const alwaysEncrypted = l10n.t("Always Encrypted");
+
+export const replication = l10n.t("Replication");
+
+export function loc0Filtered(arg0: string | number | boolean) {
+    return l10n.t("{0} (filtered)", arg0);
+}
+
+export const objectExplorerFilter = l10n.t("Object Explorer Filter");
+
+export const descriptionForTheTable = l10n.t("Description for the table.");
+
+export const description = l10n.t("Description");
+
+export const theNameOfTheColumnObject = l10n.t("The name of the column object.");
+
+export const name = l10n.t("Name");
+
+export const displaysTheDescriptionOfTheColumn = l10n.t("Displays the description of the column");
+
+export const description2 = l10n.t("Description");
+
+export const displaysTheUnifiedDataTypeIncludingLength = l10n.t(
+    "Displays the unified data type (including length, scale and precision) for the column",
+);
+
+export const dataType = l10n.t("Data Type");
+
+export const displaysTheDataTypeNameForThe = l10n.t("Displays the data type name for the column");
+
+export const typeLabel = l10n.t("Type");
+
+export const theMaximumLengthInCharactersThatCan = l10n.t(
+    "The maximum length (in characters) that can be stored in this database object.",
+);
+
+export const length = l10n.t("Length");
+
+export const aPredefinedGlobalDefaultValueForThe = l10n.t(
+    "A predefined global default value for the column or binding.",
+);
+
+export const defaultValue = l10n.t("Default Value");
+
+export const specifiesWhetherTheColumnMayHaveA = l10n.t(
+    "Specifies whether the column may have a NULL value.",
+);
+
+export const allowNulls = l10n.t("Allow Nulls");
+
+export const specifiesWhetherTheColumnIsIncludedIn = l10n.t(
+    "Specifies whether the column is included in the primary key for the table.",
+);
+
+export const primaryKey = l10n.t("Primary Key");
+
+export const forNumericDataTheMaximumNumberOf = l10n.t(
+    "For numeric data, the maximum number of decimal digits that can be stored in this database object.",
+);
+
+export const precision = l10n.t("Precision");
+
+export const forNumericDataTheMaximumNumberOf2 = l10n.t(
+    "For numeric data, the maximum number of decimal digits that can be stored in this database object to the right of decimal point.",
+);
+
+export const scale = l10n.t("Scale");
+
+export const columns = l10n.t("Columns");
+
+export const column = l10n.t("Column");
+
+export const newColumn = l10n.t("New Column");
+
+export const theNameOfTheColumn = l10n.t("The name of the column.");
+
+export const column2 = l10n.t("Column");
+
+export const nameOfThePrimaryKey = l10n.t("Name of the primary key.");
+
+export const name2 = l10n.t("Name");
+
+export const theDescriptionOfThePrimaryKey = l10n.t("The description of the primary key.");
+
+export const description3 = l10n.t("Description");
+
+export const columnsInThePrimaryKey = l10n.t("Columns in the primary key.");
+
+export const primaryKeyColumns = l10n.t("Primary Key Columns");
+
+export const primaryKeyColumns2 = l10n.t("Primary Key Columns");
+
+export const addColumn = l10n.t("Add Column");
+
+export const theNameOfTheColumn2 = l10n.t("The name of the column.");
+
+export const column3 = l10n.t("Column");
+
+export const theNameOfTheIndex = l10n.t("The name of the index.");
+
+export const name3 = l10n.t("Name");
+
+export const theDescriptionOfTheIndex = l10n.t("The description of the index.");
+
+export const description4 = l10n.t("Description");
+
+export const theColumnsOfTheIndex = l10n.t("The columns of the index.");
+
+export const columns2 = l10n.t("Columns");
+
+export const addColumn2 = l10n.t("Add Column");
+
+export const indexes = l10n.t("Indexes");
+
+export const index = l10n.t("Index");
+
+export const newIndex = l10n.t("New Index");
+
+export const foreignColumn = l10n.t("Foreign Column");
+
+export const column4 = l10n.t("Column");
+
+export const theNameOfTheForeignKey = l10n.t("The name of the foreign key.");
+
+export const name4 = l10n.t("Name");
+
+export const theDescriptionOfTheForeignKey = l10n.t("The description of the foreign key.");
+
+export const description5 = l10n.t("Description");
+
+export const theTableWhichContainsThePrimaryOr = l10n.t(
+    "The table which contains the primary or unique key column.",
+);
+
+export const foreignTable = l10n.t("Foreign Table");
+
+export const theBehaviorWhenAUserTriesTo = l10n.t(
+    "The behavior when a user tries to update a row with data that is involved in a foreign key relationship.",
+);
+
+export const onUpdateAction = l10n.t("On Update Action");
+
+export const theBehaviorWhenAUserTriesTo2 = l10n.t(
+    "The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.",
+);
+
+export const onDeleteAction = l10n.t("On Delete Action");
+
+export const theMappingBetweenForeignKeyColumnsAnd = l10n.t(
+    "The mapping between foreign key columns and primary key columns.",
+);
+
+export const columns3 = l10n.t("Columns");
+
+export const columns4 = l10n.t("Columns");
+
+export const newColumnMapping = l10n.t("New Column Mapping");
+
+export const foreignKeys = l10n.t("Foreign Keys");
+
+export const foreignKey = l10n.t("Foreign Key");
+
+export const newForeignKey = l10n.t("New Foreign Key");
+
+export const theNameOfTheCheckConstraint = l10n.t("The name of the check constraint.");
+
+export const name5 = l10n.t("Name");
+
+export const theDescriptionOfTheCheckConstraint = l10n.t(
+    "The description of the check constraint.",
+);
+
+export const description6 = l10n.t("Description");
+
+export const theExpressionDefiningTheCheckConstraint = l10n.t(
+    "The expression defining the check constraint.",
+);
+
+export const expression = l10n.t("Expression");
+
+export const checkConstraints = l10n.t("Check Constraints");
+
+export const checkConstraint = l10n.t("Check Constraint");
+
+export const newCheckConstraint = l10n.t("New Check Constraint");
+
+export const columns5 = l10n.t("Columns");
+
+export const primaryKey2 = l10n.t("Primary Key");
+
+export const indexes2 = l10n.t("Indexes");
+
+export const foreignKeys2 = l10n.t("Foreign Keys");
+
+export const checkConstraints2 = l10n.t("Check Constraints");
+
+export const advancedOptions = l10n.t("Advanced Options");

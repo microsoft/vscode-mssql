@@ -3,27 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    Button,
-    Dialog,
-    DialogActions,
-    DialogBody,
-    DialogContent,
-    DialogSurface,
-    DialogTitle,
-    Divider,
-    makeStyles,
-    mergeClasses,
-    Menu,
-    MenuButton,
-    MenuItem,
-    MenuList,
-    MenuPopover,
-    MenuTrigger,
-    Text,
-    Tooltip,
-} from "@fluentui/react-components";
-import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import { Handle, NodeProps, Position, useUpdateNodeInternals } from "@xyflow/react";
 import {
@@ -40,7 +19,6 @@ import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import eventBus from "../schemaDesignerEvents";
 import { NODE_WIDTH } from "../model";
-import * as l10n from "@vscode/l10n";
 import { ForeignKeyIcon } from "../../../common/icons/foreignKey";
 import { PrimaryKeyIcon } from "../../../common/icons/primaryKey";
 import { mergeColumnsWithDeleted } from "../diff/deletedVisualUtils";
@@ -732,8 +710,8 @@ const TableColumns = ({
     const hiddenColumns = isCollapsedView ? mergedColumns.slice(10) : [];
     const hiddenHandleColumns = hiddenColumns;
 
-    const EXPAND = l10n.t("Expand");
-    const COLLAPSE = l10n.t("Collapse");
+    const EXPAND = expand;
+    const COLLAPSE = collapse;
 
     return (
         <div style={{ position: "relative" }}>

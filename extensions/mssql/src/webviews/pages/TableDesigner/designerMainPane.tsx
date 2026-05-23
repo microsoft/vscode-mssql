@@ -3,20 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Tab, TabList } from "@fluentui/react-tabs";
-import { CounterBadge, Field, Input, Text, makeStyles } from "@fluentui/react-components";
-import { TableDesignerContext } from "./tableDesignerStateProvider";
-import { useTableDesignerSelector } from "./tableDesignerSelector";
-import { useContext, useEffect, useState } from "react";
-import {
-    DesignerEditType,
-    DesignerMainPaneTabs,
-    DesignerTab,
-    DropDownProperties,
-    InputBoxProperties,
-} from "../../../sharedInterfaces/tableDesigner";
-import { DesignerMainPaneTab } from "./designerMainPaneTab";
-import * as l10n from "@vscode/l10n";
 import { locConstants } from "../../common/locConstants";
 import { SearchableDropdown } from "../../common/searchableDropdown.component";
 
@@ -95,17 +81,9 @@ export const DesignerMainPane = () => {
     function getTableIssuesCountLabel(id: string) {
         const issues = getCurrentTabIssuesCount(id);
         if (issues === 1) {
-            return l10n.t({
-                message: "{0} issue",
-                args: [issues],
-                comment: ["{0} is the number of issues"],
-            });
+            return locConstants.tableDesigner.issue(issues);
         } else if (issues > 1 || issues === 0) {
-            return l10n.t({
-                message: "{0} issues",
-                args: [issues],
-                comment: ["{0} is the number of issues"],
-            });
+            return locConstants.tableDesigner.issues(issues);
         }
     }
 
@@ -114,17 +92,9 @@ export const DesignerMainPane = () => {
         if (issues === 0) {
             return tabId;
         } else if (issues === 1) {
-            return l10n.t({
-                message: "{0} {1} issue",
-                args: [tabId, issues],
-                comment: ["{0} is the tab name", "{1} is the number of issues"],
-            });
+            return locConstants.tableDesigner.tabIssue(tabId, issues);
         } else {
-            return l10n.t({
-                message: "{0} {1} issues",
-                args: [tabId, issues],
-                comment: ["{0} is the tab name", "{1} is the number of issues"],
-            });
+            return locConstants.tableDesigner.tabIssues(tabId, issues);
         }
     }
 

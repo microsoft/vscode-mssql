@@ -3,19 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { TreeNodeInfo } from "./treeNodeInfo";
-import * as vscode from "vscode";
-import * as os from "os";
-import * as vscodeMssql from "vscode-mssql";
-import { ConnectionProfile } from "../../models/connectionProfile";
-import { ObjectExplorerUtils } from "../objectExplorerUtils";
-import * as ConnInfo from "../../models/connectionInfo";
-import { NodeInfo } from "../../models/contracts/objectExplorer/nodeInfo";
-import { disconnectedDockerContainer, dockerContainer } from "../../constants/constants";
-import { IConnectionProfile } from "../../models/interfaces";
-import * as Constants from "../../constants/constants";
-import { getDefaultConnection } from "../../models/connectionInfo";
-
+import * as LocalizedConstants from "../../constants/locConstants";
 // Constants for node types and icon names
 export const SERVER_NODE_DISCONNECTED = "disconnectedServer";
 export const DATABASE_SUBTYPE = "Database";
@@ -55,8 +43,8 @@ const createConnectedNodeContextValue = (
     };
 };
 
-export class ConnectionNode extends TreeNodeInfo {
-    constructor(connectionProfile: ConnectionProfile, parentNode?: TreeNodeInfo) {
+export class ConnectionNode extends LocalizedConstants {
+    constructor(connectionProfile: ConnectionProfile, parentNode?: LocalizedConstants) {
         const displayName = ConnInfo.getConnectionDisplayName(connectionProfile);
         super(
             displayName,
@@ -195,13 +183,13 @@ export class ConnectionNode extends TreeNodeInfo {
                     // Show authentication type as "Azure MFA" or "Windows Authentication"
                     const authTypeValueLabel =
                         connectionProfile.authenticationType === Constants.azureMfa
-                            ? vscode.l10n.t("Azure MFA")
-                            : vscode.l10n.t("Windows Authentication");
+                            ? azureMFA
+                            : windowsAuthentication;
                     p.value = authTypeValueLabel;
                 } else if (value === true) {
-                    p.value = vscode.l10n.t("Enabled");
+                    p.value = enabled;
                 } else if (value === false) {
-                    p.value = vscode.l10n.t("Disabled");
+                    p.value = disabled;
                 } else {
                     p.value = value;
                 }
@@ -216,29 +204,29 @@ export class ConnectionNode extends TreeNodeInfo {
                     const localizedLabel = (() => {
                         switch (p.key) {
                             case "server":
-                                return vscode.l10n.t("Server");
+                                return server;
                             case "database":
-                                return vscode.l10n.t("Database");
+                                return database;
                             case "authenticationType":
-                                return vscode.l10n.t("Authentication Type");
+                                return authenticationType;
                             case "user":
-                                return vscode.l10n.t("User");
+                                return user;
                             case "port":
-                                return vscode.l10n.t("Port");
+                                return port;
                             case "containerName":
-                                return vscode.l10n.t("SQL Container Name");
+                                return sqlContainerName;
                             case "version":
-                                return vscode.l10n.t("SQL Container Version");
+                                return sqlContainerVersion;
                             case "applicationIntent":
-                                return vscode.l10n.t("Application Intent");
+                                return applicationIntent;
                             case "connectTimeout":
-                                return vscode.l10n.t("Connection Timeout");
+                                return connectionTimeout;
                             case "commandTimeout":
-                                return vscode.l10n.t("Command Timeout");
+                                return commandTimeout;
                             case "alwaysEncrypted":
-                                return vscode.l10n.t("Always Encrypted");
+                                return alwaysEncrypted;
                             case "replication":
-                                return vscode.l10n.t("Replication");
+                                return replication;
                             default:
                                 return p.key;
                         }
@@ -263,7 +251,7 @@ export class ConnectionNode extends TreeNodeInfo {
     public updateToConnectedState(options: {
         nodeInfo: NodeInfo;
         sessionId: string;
-        parentNode: TreeNodeInfo;
+        parentNode: LocalizedConstants;
         connectionProfile: ConnectionProfile;
     }) {
         const { nodeInfo, sessionId, parentNode, connectionProfile } = options;

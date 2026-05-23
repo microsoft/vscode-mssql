@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as l10n from "@vscode/l10n";
+import { locConstants } from "../../common/locConstants";
 import { useEffect, useState, type CSSProperties } from "react";
 import {
     NotebookSaveAsFormat,
@@ -16,7 +16,6 @@ import saveJsonIcon from "../../media/saveJson.svg";
 import saveJsonIconInverse from "../../media/saveJson_inverse.svg";
 import saveExcelIcon from "../../media/saveExcel.svg";
 import saveExcelIconInverse from "../../media/saveExcel_inverse.svg";
-
 export interface NotebookResultsToolbarProps {
     columnInfo: IDbColumn[];
     rows: DbCellValue[][];
@@ -43,19 +42,19 @@ function buildActions(): ToolbarAction[] {
     return [
         {
             id: NotebookSaveAsFormat.Csv,
-            label: l10n.t("Save as CSV"),
+            label: locConstants.queryResult.saveAsCSV,
             iconLight: saveCsvIcon,
             iconDark: saveCsvIconInverse,
         },
         {
             id: NotebookSaveAsFormat.Excel,
-            label: l10n.t("Save as Excel"),
+            label: locConstants.queryResult.saveAsExcelLabel,
             iconLight: saveExcelIcon,
             iconDark: saveExcelIconInverse,
         },
         {
             id: NotebookSaveAsFormat.Json,
-            label: l10n.t("Save as JSON"),
+            label: locConstants.queryResult.saveAsJSON,
             iconLight: saveJsonIcon,
             iconDark: saveJsonIconInverse,
         },
@@ -128,11 +127,7 @@ export function NotebookResultsToolbar({
         postMessage(msg);
     };
 
-    const toolbarLabel = l10n.t({
-        message: "Export toolbar for result set {0}",
-        args: [resultSetIndex + 1],
-        comment: ["{0} is the result set number (1-based index)"],
-    });
+    const toolbarLabel = locConstants.queryResult.exportToolbarForResultSet(resultSetIndex + 1);
 
     return (
         <div

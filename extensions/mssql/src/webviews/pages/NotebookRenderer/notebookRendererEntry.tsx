@@ -5,7 +5,6 @@
 
 import $ from "jquery";
 import { createRoot, Root } from "react-dom/client";
-import * as l10n from "@vscode/l10n";
 import { NotebookResultGrid, NotebookResultGridProps } from "./notebookResultGrid";
 import { NotebookResultsOutput } from "./notebookResultsOutput";
 import { NotebookResultsToolbar } from "./notebookResultsToolbar";
@@ -13,7 +12,7 @@ import type {
     NotebookQueryResultOutputData,
     SavedNotebookResultSetOutputData,
 } from "../../../sharedInterfaces/notebookQueryResult";
-
+import { locConstants } from "../../common/locConstants";
 window.jQuery = $ as any;
 require("slickgrid/lib/jquery.event.drag-2.3.0.js");
 require("slickgrid/lib/jquery-1.11.2.min.js");
@@ -97,7 +96,7 @@ export const activate: ActivationFunction = (context: RendererContext) => {
             try {
                 parsedData = data.json();
             } catch {
-                element.textContent = l10n.t("Error: Failed to parse query result data.");
+                element.textContent = locConstants.queryResult.errorFailedToParseQueryResultData;
                 return;
             }
 
@@ -127,7 +126,7 @@ export const activate: ActivationFunction = (context: RendererContext) => {
                     </>,
                 );
             } else {
-                element.textContent = l10n.t("Error: Unrecognized query result data.");
+                element.textContent = locConstants.queryResult.errorUnrecognizedQueryResultData;
             }
         },
 
