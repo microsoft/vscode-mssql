@@ -430,6 +430,25 @@ export default class SqlToolsServiceClient {
                 ],
             },
             errorHandler: new LanguageClientErrorHandler(Constants.sqlToolsServiceName),
+            middleware: {
+                provideCompletionItem: async (document, position, context, token, next) => {
+                    const result = await next(document, position, context, token);
+                    const count = Array.isArray(result)
+                        ? result.length
+                        : (result?.items?.length ?? 0);
+                    const scheme = document.uri.scheme;
+                    // Gate logging: only log when STS returned no completions, or
+                    // when the request came from a notebook cell. This keeps log
+                    // volume manageable while preserving the diagnostic signal
+                    // for the notebook IntelliSense issue.
+                    if (count === 0 || scheme === "vscode-notebook-cell") {
+                        this._logger.logDebug(
+                            `Completion count=${count} scheme=${scheme} triggerKind=${context.triggerKind} uri=${document.uri.toString()}`,
+                        );
+                    }
+                    return result;
+                },
+            },
         };
 
         // cache the client instance for later use
@@ -467,6 +486,18 @@ export default class SqlToolsServiceClient {
      */
     public handleLanguageServiceStatusNotification(): NotificationHandler<LanguageServiceContracts.StatusChangeParams> {
         return (event: LanguageServiceContracts.StatusChangeParams): void => {
+            const scheme = (() => {
+                try {
+                    return vscode.Uri.parse(event.ownerUri).scheme;
+                } catch {
+                    return "unknown";
+                }
+            })();
+            if (scheme === "vscode-notebook-cell" || scheme === "unknown") {
+                this._logger.verbose(
+                    `LanguageServiceStatus scheme=${scheme} status=${event.status} ownerUri=${event.ownerUri}`,
+                );
+            }
             this._statusView.languageServiceStatusChanged(event.ownerUri, event.status);
         };
     }
