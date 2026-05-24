@@ -3,10 +3,31 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as vscode from "vscode";
+import { shallowEqualObjects } from "shallow-equal";
 import * as LocalizedConstants from "../constants/locConstants";
 import { getAccounts, getTenants, VsCodeAzureHelper, VsCodeAzureAuth } from "./azureHelpers";
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 
+import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import {
+    AuthenticationType,
+    ConnectionDialogReducers,
+    ConnectionDialogWebviewState,
+    ConnectionInputMode,
+    AddFirewallRuleDialogProps,
+    IConnectionDialogProfile,
+    TrustServerCertDialogProps,
+    ConnectionDialogFormItemSpec,
+    ConnectionStringDialogProps,
+    GetConnectionDisplayNameRequest,
+    OpenOptionInfoLinkNotification,
+    IAzureAccount,
+    GetSqlAnalyticsEndpointUriFromFabricRequest,
+    ChangePasswordDialogProps,
+    ConnectionSubmitAction,
+} from "../sharedInterfaces/connectionDialog";
+import { FormItemActionButton, FormItemOptions } from "../sharedInterfaces/form";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { AzureController } from "../azure/azureController";
 import { VSCodeAzureSubscriptionProvider } from "@microsoft/vscode-azext-azureauth";
@@ -599,7 +620,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 let connectionString = "";
 
                 // if the current connection is the untouched default connection, connection string is left empty
-                if (!LocalizedConstants(state.connectionProfile, getDefaultConnection())) {
+                if (!shallowEqualObjects(state.connectionProfile, getDefaultConnection())) {
                     const cleanedConnection = this.cleanConnection(state.connectionProfile);
 
                     const connectionDetails =
