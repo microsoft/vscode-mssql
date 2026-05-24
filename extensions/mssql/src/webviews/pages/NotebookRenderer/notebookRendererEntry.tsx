@@ -13,6 +13,7 @@ import type {
     SavedNotebookResultSetOutputData,
 } from "../../../sharedInterfaces/notebookQueryResult";
 import { locConstants } from "../../common/locConstants";
+
 window.jQuery = $ as any;
 require("slickgrid/lib/jquery.event.drag-2.3.0.js");
 require("slickgrid/lib/jquery-1.11.2.min.js");

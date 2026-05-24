@@ -3,6 +3,27 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import {
+    Button,
+    Dialog,
+    DialogActions,
+    DialogBody,
+    DialogContent,
+    DialogSurface,
+    DialogTitle,
+    Divider,
+    makeStyles,
+    mergeClasses,
+    Menu,
+    MenuButton,
+    MenuItem,
+    MenuList,
+    MenuPopover,
+    MenuTrigger,
+    Text,
+    Tooltip,
+} from "@fluentui/react-components";
+import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import { Handle, NodeProps, Position, useUpdateNodeInternals } from "@xyflow/react";
 import {
@@ -710,8 +731,8 @@ const TableColumns = ({
     const hiddenColumns = isCollapsedView ? mergedColumns.slice(10) : [];
     const hiddenHandleColumns = hiddenColumns;
 
-    const EXPAND = expand;
-    const COLLAPSE = collapse;
+    const EXPAND = locConstants.common.expand;
+    const COLLAPSE = locConstants.common.collapse;
 
     return (
         <div style={{ position: "relative" }}>

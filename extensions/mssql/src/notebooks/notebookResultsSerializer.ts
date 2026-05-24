@@ -3,6 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as os from "os";
+import * as path from "path";
+import * as vscode from "vscode";
 import * as LocalizedConstants from "../constants/locConstants";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import {

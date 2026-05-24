@@ -172,7 +172,7 @@ export class AzureBrowseProvider extends BrowseProvider {
     public readonly autoloadLimit = AZURE_SUBSCRIPTION_AUTOLOAD_LIMIT;
     public readonly favoritesConfigKey = configSelectedAzureSubscriptions;
 
-    /** Cached `LocalizedConstants` instances, keyed by subscription ID, across all tenants. */
+    /** Cached `AzureSubscription` instances, keyed by subscription ID, across all tenants. */
     private _subscriptionCache: Map<string, AzureSubscription> = new Map();
 
     public getCollections(state: ConnectionDialogWebviewState): SqlCollectionInfo[] {

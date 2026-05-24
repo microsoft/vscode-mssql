@@ -16,9 +16,9 @@ export function getAdvancedOptionsComponents(
         {
             componentType: "textarea",
             propertyName: designer.TableProperty.Description,
-            LocalizedConstants: LocalizedConstants,
+            description: LocalizedConstants.descriptionForTheTable,
             componentProperties: {
-                title: LocalizedConstants,
+                title: LocalizedConstants.description,
                 width: 350,
             },
         },
@@ -44,27 +44,27 @@ export function getColumnsTabComponents(
         {
             componentType: "input",
             propertyName: designer.TableColumnProperty.Name,
-            LocalizedConstants: LocalizedConstants,
+            description: LocalizedConstants.theNameOfTheColumnObject,
             componentProperties: {
-                title: LocalizedConstants,
+                title: LocalizedConstants.name,
                 width: 150,
             },
         },
         {
             componentType: "input",
             propertyName: designer.TableColumnProperty.Description,
-            LocalizedConstants: LocalizedConstants,
+            description: LocalizedConstants.displaysTheDescriptionOfTheColumn,
             componentProperties: {
-                title: LocalizedConstants,
+                title: LocalizedConstants.description,
                 width: 400,
             },
         },
         {
             componentType: "dropdown",
             propertyName: designer.TableColumnProperty.AdvancedType,
-            LocalizedConstants: LocalizedConstants,
+            description: LocalizedConstants.displaysTheUnifiedDataTypeIncludingLength,
             componentProperties: {
-                title: LocalizedConstants,
+                title: LocalizedConstants.dataType,
                 width: 120,
                 isEditable: true,
             },
@@ -73,52 +73,52 @@ export function getColumnsTabComponents(
             componentType: "dropdown",
             propertyName: designer.TableColumnProperty.Type,
             showInPropertiesView: false,
-            LocalizedConstants: LocalizedConstants,
+            description: LocalizedConstants.displaysTheDataTypeNameForThe,
             componentProperties: {
-                title: LocalizedConstants,
+                title: LocalizedConstants.typeLabel,
                 width: 100,
             },
         },
         {
             componentType: "input",
             propertyName: designer.TableColumnProperty.Length,
-            LocalizedConstants: LocalizedConstants,
+            description: LocalizedConstants.theMaximumLengthInCharactersThatCan,
             componentProperties: {
-                title: LocalizedConstants,
+                title: LocalizedConstants.length,
                 width: 60,
             },
         },
         {
             componentType: "input",
             propertyName: designer.TableColumnProperty.DefaultValue,
-            LocalizedConstants: LocalizedConstants,
+            description: LocalizedConstants.aPredefinedGlobalDefaultValueForThe,
             componentProperties: {
-                title: LocalizedConstants,
+                title: LocalizedConstants.defaultValue,
                 width: 150,
             },
         },
         {
             componentType: "checkbox",
             propertyName: designer.TableColumnProperty.AllowNulls,
-            LocalizedConstants: LocalizedConstants,
+            description: LocalizedConstants.specifiesWhetherTheColumnMayHaveA,
             componentProperties: {
-                title: LocalizedConstants,
+                title: LocalizedConstants.allowNulls,
             },
         },
         {
             componentType: "checkbox",
             propertyName: designer.TableColumnProperty.IsPrimaryKey,
-            LocalizedConstants: LocalizedConstants,
+            description: LocalizedConstants.specifiesWhetherTheColumnIsIncludedIn,
             componentProperties: {
-                title: LocalizedConstants,
+                title: LocalizedConstants.primaryKey,
             },
         },
         {
             componentType: "input",
             propertyName: designer.TableColumnProperty.Precision,
-            LocalizedConstants: LocalizedConstants,
+            description: LocalizedConstants.forNumericDataTheMaximumNumberOf,
             componentProperties: {
-                title: LocalizedConstants,
+                title: LocalizedConstants.precision,
                 width: 60,
                 inputType: designer.InputType.Number,
             },
@@ -126,9 +126,9 @@ export function getColumnsTabComponents(
         {
             componentType: "input",
             propertyName: designer.TableColumnProperty.Scale,
-            LocalizedConstants: LocalizedConstants,
+            description: LocalizedConstants.forNumericDataTheMaximumNumberOf2,
             componentProperties: {
-                title: LocalizedConstants,
+                title: LocalizedConstants.scale,
                 width: 60,
                 inputType: designer.InputType.Number,
             },
@@ -150,21 +150,22 @@ export function getColumnsTabComponents(
             propertyName: designer.TableProperty.Columns,
             showInPropertiesView: false,
             componentProperties: {
-                ariaLabel: LocalizedConstants,
-                LocalizedConstants: displayProperties,
+                ariaLabel: LocalizedConstants.columns,
+                columns: displayProperties,
                 itemProperties: addAdditionalTableProperties(
                     columnTableOptions,
                     columnTableColumnDefinitions,
                 ),
-                objectTypeDisplayName: LocalizedConstants,
+                objectTypeDisplayName: LocalizedConstants.column,
                 canAddRows: columnTableOptions.canAddRows,
                 canInsertRows: columnTableOptions.canInsertRows,
                 canMoveRows: columnTableOptions.canMoveRows,
                 canRemoveRows: columnTableOptions.canRemoveRows,
                 removeRowConfirmationMessage: columnTableOptions.removeRowConfirmationMessage,
                 showRemoveRowConfirmation: columnTableOptions.showRemoveRowConfirmation,
-                labelForAddNewButton: columnTableOptions.labelForAddNewButton ?? LocalizedConstants,
-                expandedGroups: [LocalizedConstants.General],
+                labelForAddNewButton:
+                    columnTableOptions.labelForAddNewButton ?? LocalizedConstants.newColumn,
+                expandedGroups: [LocalizedConstants.TableDesigner.General],
             } as designer.DesignerTableProperties,
         },
     ];
@@ -189,9 +190,9 @@ export function getPrimaryKeyTabComponents(
         {
             componentType: "dropdown",
             propertyName: designer.TableIndexColumnSpecificationProperty.Column,
-            LocalizedConstants: LocalizedConstants,
+            description: LocalizedConstants.theNameOfTheColumn,
             componentProperties: {
-                title: LocalizedConstants,
+                title: LocalizedConstants.column,
                 width: 150,
             },
         },
@@ -202,9 +203,9 @@ export function getPrimaryKeyTabComponents(
             componentType: "input",
             propertyName: designer.TableProperty.PrimaryKeyName,
             showInPropertiesView: false,
-            LocalizedConstants: LocalizedConstants,
+            description: LocalizedConstants.nameOfThePrimaryKey,
             componentProperties: {
-                title: LocalizedConstants,
+                title: LocalizedConstants.name,
                 width: 250,
             },
         },
@@ -212,9 +213,9 @@ export function getPrimaryKeyTabComponents(
             componentType: "textarea",
             propertyName: designer.TableProperty.PrimaryKeyDescription,
             showInPropertiesView: false,
-            LocalizedConstants: LocalizedConstants,
+            description: LocalizedConstants.theDescriptionOfThePrimaryKey,
             componentProperties: {
-                title: LocalizedConstants,
+                title: LocalizedConstants.description,
                 width: 250,
             },
         },
@@ -234,11 +235,11 @@ export function getPrimaryKeyTabComponents(
             componentType: "table",
             propertyName: designer.TableProperty.PrimaryKeyColumns,
             showInPropertiesView: false,
-            LocalizedConstants: LocalizedConstants,
+            description: LocalizedConstants.columnsInThePrimaryKey,
             componentProperties: {
-                title: LocalizedConstants,
-                ariaLabel: LocalizedConstants,
-                LocalizedConstants: getTableDisplayProperties(primaryKeyTableOptions, [
+                title: LocalizedConstants.primaryKeyColumns,
+                ariaLabel: LocalizedConstants.primaryKeyColumns,
+                columns: getTableDisplayProperties(primaryKeyTableOptions, [
                     designer.TableIndexColumnSpecificationProperty.Column,
                 ]),
                 itemProperties: addAdditionalTableProperties(
@@ -252,7 +253,7 @@ export function getPrimaryKeyTabComponents(
                 showRemoveRowConfirmation: primaryKeyTableOptions.showRemoveRowConfirmation,
                 showItemDetailInPropertiesView: false,
                 labelForAddNewButton:
-                    primaryKeyTableOptions.labelForAddNewButton ?? LocalizedConstants,
+                    primaryKeyTableOptions.labelForAddNewButton ?? LocalizedConstants.addColumn,
                 canMoveRows: primaryKeyTableOptions.canMoveRows,
             } as designer.DesignerTableProperties,
         });
@@ -280,9 +281,9 @@ export function getIndexesTabComponents(
         {
             componentType: "dropdown",
             propertyName: designer.TableIndexColumnSpecificationProperty.Column,
-            LocalizedConstants: LocalizedConstants,
+            description: LocalizedConstants.theNameOfTheColumn,
             componentProperties: {
-                title: LocalizedConstants,
+                title: LocalizedConstants.column,
                 width: 100,
             },
         },
@@ -291,20 +292,20 @@ export function getIndexesTabComponents(
         {
             componentType: "input",
             propertyName: designer.TableIndexProperty.Name,
-            LocalizedConstants: LocalizedConstants,
-            group: LocalizedConstants.AdvancedOptions,
+            description: LocalizedConstants.theNameOfTheIndex,
+            group: LocalizedConstants.TableDesigner.AdvancedOptions,
             componentProperties: {
-                title: LocalizedConstants,
+                title: LocalizedConstants.name,
                 width: 200,
             },
         },
         {
             componentType: "input",
             propertyName: designer.TableIndexProperty.Description,
-            LocalizedConstants: LocalizedConstants,
-            group: LocalizedConstants.AdvancedOptions,
+            description: LocalizedConstants.theDescriptionOfTheIndex,
+            group: LocalizedConstants.TableDesigner.AdvancedOptions,
             componentProperties: {
-                title: LocalizedConstants,
+                title: LocalizedConstants.description,
                 width: 200,
             },
         },
@@ -314,11 +315,11 @@ export function getIndexesTabComponents(
         indexProperties.push({
             componentType: "table",
             propertyName: designer.TableIndexProperty.Columns,
-            LocalizedConstants: LocalizedConstants,
-            group: LocalizedConstants.Columns,
+            description: LocalizedConstants.theColumnsOfTheIndex,
+            group: LocalizedConstants.TableDesigner.Columns,
             componentProperties: {
-                ariaLabel: LocalizedConstants,
-                LocalizedConstants: getTableDisplayProperties(columnSpecTableOptions, [
+                ariaLabel: LocalizedConstants.columns,
+                columns: getTableDisplayProperties(columnSpecTableOptions, [
                     designer.TableIndexColumnSpecificationProperty.Column,
                 ]),
                 itemProperties: addAdditionalTableProperties(
@@ -331,7 +332,7 @@ export function getIndexesTabComponents(
                 removeRowConfirmationMessage: columnSpecTableOptions.removeRowConfirmationMessage,
                 showRemoveRowConfirmation: columnSpecTableOptions.showRemoveRowConfirmation,
                 labelForAddNewButton:
-                    columnSpecTableOptions.labelForAddNewButton ?? LocalizedConstants,
+                    columnSpecTableOptions.labelForAddNewButton ?? LocalizedConstants.addColumn,
             } as designer.DesignerTableProperties,
         });
     }
@@ -346,7 +347,7 @@ export function getIndexesTabComponents(
         // Making all other properties as advanced options
         indexTableOptions.additionalProperties.forEach((property) => {
             if (!property.group) {
-                property.group = LocalizedConstants.AdvancedOptions;
+                property.group = LocalizedConstants.TableDesigner.AdvancedOptions;
             }
         });
         tabComponents.push({
@@ -354,18 +355,22 @@ export function getIndexesTabComponents(
             propertyName: designer.TableProperty.Indexes,
             showInPropertiesView: false,
             componentProperties: {
-                ariaLabel: LocalizedConstants,
-                LocalizedConstants: getTableDisplayProperties(indexTableOptions, [
+                ariaLabel: LocalizedConstants.indexes,
+                columns: getTableDisplayProperties(indexTableOptions, [
                     designer.TableIndexProperty.Name,
                 ]),
                 itemProperties: addAdditionalTableProperties(indexTableOptions, indexProperties),
-                objectTypeDisplayName: LocalizedConstants,
+                objectTypeDisplayName: LocalizedConstants.index,
                 canAddRows: indexTableOptions.canAddRows,
                 canRemoveRows: indexTableOptions.canRemoveRows,
                 removeRowConfirmationMessage: indexTableOptions.removeRowConfirmationMessage,
                 showRemoveRowConfirmation: indexTableOptions.showRemoveRowConfirmation,
-                labelForAddNewButton: indexTableOptions.labelForAddNewButton ?? LocalizedConstants,
-                expandedGroups: [LocalizedConstants.Columns, includedColumnsGroupName],
+                labelForAddNewButton:
+                    indexTableOptions.labelForAddNewButton ?? LocalizedConstants.newIndex,
+                expandedGroups: [
+                    LocalizedConstants.TableDesigner.Columns,
+                    includedColumnsGroupName,
+                ],
             } as designer.DesignerTableProperties,
         });
     }
@@ -378,13 +383,13 @@ export function getIndexesTabComponents(
     if (additionalComponents) {
         additionalComponents.forEach((component) => {
             if (component.propertyName === designer.TableIndexProperty.ColumnStoreIndex) {
-                // Making all ungrouped properties of LocalizedConstants store LocalizedConstants as advanced options
+                // Making all ungrouped properties of column store index as advanced options
                 const properties =
                     component.componentProperties as designer.DesignerTableProperties;
-                properties.expandedGroups = [LocalizedConstants.Columns];
+                properties.expandedGroups = [LocalizedConstants.TableDesigner.Columns];
                 properties.itemProperties.forEach((property) => {
                     if (!property.group) {
-                        property.group = LocalizedConstants.AdvancedOptions;
+                        property.group = LocalizedConstants.TableDesigner.AdvancedOptions;
                     }
                 });
             }
@@ -407,7 +412,7 @@ export function getForeignKeysTabComponents(
             componentType: "dropdown",
             propertyName: designer.ForeignKeyColumnMappingProperty.ForeignColumn,
             componentProperties: {
-                title: LocalizedConstants,
+                title: LocalizedConstants.foreignColumn,
                 width: 150,
             },
         },
@@ -415,7 +420,7 @@ export function getForeignKeysTabComponents(
             componentType: "dropdown",
             propertyName: designer.ForeignKeyColumnMappingProperty.Column,
             componentProperties: {
-                title: LocalizedConstants,
+                title: LocalizedConstants.column,
                 width: 150,
             },
         },
@@ -425,45 +430,45 @@ export function getForeignKeysTabComponents(
         {
             componentType: "input",
             propertyName: designer.TableForeignKeyProperty.Name,
-            LocalizedConstants: LocalizedConstants,
+            description: LocalizedConstants.theNameOfTheForeignKey,
             componentProperties: {
-                title: LocalizedConstants,
+                title: LocalizedConstants.name,
                 width: 300,
             },
         },
         {
             componentType: "input",
             propertyName: designer.TableForeignKeyProperty.Description,
-            LocalizedConstants: LocalizedConstants,
+            description: LocalizedConstants.theDescriptionOfTheForeignKey,
             componentProperties: {
-                title: LocalizedConstants,
+                title: LocalizedConstants.description,
             },
         },
         {
             componentType: "dropdown",
             propertyName: designer.TableForeignKeyProperty.ForeignTable,
-            LocalizedConstants: LocalizedConstants,
+            description: LocalizedConstants.theTableWhichContainsThePrimaryOr,
             showInPropertiesView: false,
             componentProperties: {
-                title: LocalizedConstants,
+                title: LocalizedConstants.foreignTable,
                 width: 200,
             },
         },
         {
             componentType: "dropdown",
             propertyName: designer.TableForeignKeyProperty.OnUpdateAction,
-            LocalizedConstants: LocalizedConstants,
+            description: LocalizedConstants.theBehaviorWhenAUserTriesTo,
             componentProperties: {
-                title: LocalizedConstants,
+                title: LocalizedConstants.onUpdateAction,
                 width: 100,
             },
         },
         {
             componentType: "dropdown",
             propertyName: designer.TableForeignKeyProperty.OnDeleteAction,
-            LocalizedConstants: LocalizedConstants,
+            description: LocalizedConstants.theBehaviorWhenAUserTriesTo2,
             componentProperties: {
-                title: LocalizedConstants,
+                title: LocalizedConstants.onDeleteAction,
                 width: 100,
             },
         },
@@ -473,11 +478,11 @@ export function getForeignKeysTabComponents(
         foreignKeyProperties.push({
             componentType: "table",
             propertyName: designer.TableForeignKeyProperty.Columns,
-            LocalizedConstants: LocalizedConstants,
-            group: LocalizedConstants,
+            description: LocalizedConstants.theMappingBetweenForeignKeyColumnsAnd,
+            group: LocalizedConstants.columns,
             componentProperties: {
-                ariaLabel: LocalizedConstants,
-                LocalizedConstants: getTableDisplayProperties(columnMappingTableOptions, [
+                ariaLabel: LocalizedConstants.columns,
+                columns: getTableDisplayProperties(columnMappingTableOptions, [
                     designer.ForeignKeyColumnMappingProperty.Column,
                     designer.ForeignKeyColumnMappingProperty.ForeignColumn,
                 ]),
@@ -490,7 +495,8 @@ export function getForeignKeysTabComponents(
                 removeRowConfirmationMessage:
                     columnMappingTableOptions.removeRowConfirmationMessage,
                 labelForAddNewButton:
-                    columnMappingTableOptions.labelForAddNewButton ?? LocalizedConstants,
+                    columnMappingTableOptions.labelForAddNewButton ??
+                    LocalizedConstants.newColumnMapping,
             } as designer.DesignerTableProperties,
         });
     }
@@ -501,12 +507,12 @@ export function getForeignKeysTabComponents(
         // Making all ungrouped properties of foreign key as advanced options
         foreignKeyProperties.forEach((property) => {
             if (!property.group) {
-                property.group = LocalizedConstants.AdvancedOptions;
+                property.group = LocalizedConstants.TableDesigner.AdvancedOptions;
             }
         });
         foreignKeyTableOptions.additionalProperties.forEach((property) => {
             if (!property.group) {
-                property.group = LocalizedConstants.AdvancedOptions;
+                property.group = LocalizedConstants.TableDesigner.AdvancedOptions;
             }
         });
         tabComponents.push({
@@ -514,8 +520,8 @@ export function getForeignKeysTabComponents(
             propertyName: designer.TableProperty.ForeignKeys,
             showInPropertiesView: false,
             componentProperties: {
-                ariaLabel: LocalizedConstants,
-                LocalizedConstants: getTableDisplayProperties(foreignKeyTableOptions, [
+                ariaLabel: LocalizedConstants.foreignKeys,
+                columns: getTableDisplayProperties(foreignKeyTableOptions, [
                     designer.TableForeignKeyProperty.Name,
                     designer.TableForeignKeyProperty.ForeignTable,
                 ]),
@@ -523,14 +529,14 @@ export function getForeignKeysTabComponents(
                     foreignKeyTableOptions,
                     foreignKeyProperties,
                 ),
-                objectTypeDisplayName: LocalizedConstants,
+                objectTypeDisplayName: LocalizedConstants.foreignKey,
                 canAddRows: foreignKeyTableOptions.canAddRows,
                 canRemoveRows: foreignKeyTableOptions.canRemoveRows,
                 removeRowConfirmationMessage: foreignKeyTableOptions.removeRowConfirmationMessage,
                 showRemoveRowConfirmation: foreignKeyTableOptions.showRemoveRowConfirmation,
                 labelForAddNewButton:
-                    foreignKeyTableOptions.labelForAddNewButton ?? LocalizedConstants,
-                expandedGroups: [LocalizedConstants.Columns],
+                    foreignKeyTableOptions.labelForAddNewButton ?? LocalizedConstants.newForeignKey,
+                expandedGroups: [LocalizedConstants.TableDesigner.Columns],
             } as designer.DesignerTableProperties,
         });
     }
@@ -557,26 +563,26 @@ export function getCheckConstraintsTabComponents(
         {
             componentType: "input",
             propertyName: designer.TableCheckConstraintProperty.Name,
-            LocalizedConstants: LocalizedConstants,
+            description: LocalizedConstants.theNameOfTheCheckConstraint,
             componentProperties: {
-                title: LocalizedConstants,
+                title: LocalizedConstants.name,
                 width: 200,
             },
         },
         {
             componentType: "input",
             propertyName: designer.TableCheckConstraintProperty.Description,
-            LocalizedConstants: LocalizedConstants,
+            description: LocalizedConstants.theDescriptionOfTheCheckConstraint,
             componentProperties: {
-                title: LocalizedConstants,
+                title: LocalizedConstants.description,
             },
         },
         {
             componentType: "input",
             propertyName: designer.TableCheckConstraintProperty.Expression,
-            LocalizedConstants: LocalizedConstants,
+            description: LocalizedConstants.theExpressionDefiningTheCheckConstraint,
             componentProperties: {
-                title: LocalizedConstants,
+                title: LocalizedConstants.expression,
                 width: 300,
             },
         },
@@ -590,8 +596,8 @@ export function getCheckConstraintsTabComponents(
             propertyName: designer.TableProperty.CheckConstraints,
             showInPropertiesView: false,
             componentProperties: {
-                ariaLabel: LocalizedConstants,
-                LocalizedConstants: getTableDisplayProperties(checkConstraintTableOptions, [
+                ariaLabel: LocalizedConstants.checkConstraints,
+                columns: getTableDisplayProperties(checkConstraintTableOptions, [
                     designer.TableCheckConstraintProperty.Name,
                     designer.TableCheckConstraintProperty.Expression,
                 ]),
@@ -599,15 +605,16 @@ export function getCheckConstraintsTabComponents(
                     checkConstraintTableOptions,
                     checkConstraintProperties,
                 ),
-                objectTypeDisplayName: LocalizedConstants,
+                objectTypeDisplayName: LocalizedConstants.checkConstraint,
                 canAddRows: checkConstraintTableOptions.canAddRows,
                 canRemoveRows: checkConstraintTableOptions.canRemoveRows,
                 removeRowConfirmationMessage:
                     checkConstraintTableOptions.removeRowConfirmationMessage,
                 showRemoveRowConfirmation: checkConstraintTableOptions.showRemoveRowConfirmation,
                 labelForAddNewButton:
-                    checkConstraintTableOptions.labelForAddNewButton ?? LocalizedConstants,
-                expandedGroups: [LocalizedConstants.General],
+                    checkConstraintTableOptions.labelForAddNewButton ??
+                    LocalizedConstants.newCheckConstraint,
+                expandedGroups: [LocalizedConstants.TableDesigner.General],
             } as designer.DesignerTableProperties,
         });
     }
@@ -628,27 +635,27 @@ export function getDesignerView(
     const viewDefinition = {
         tabs: [
             {
-                title: LocalizedConstants,
+                title: LocalizedConstants.columns,
                 id: designer.DesignerMainPaneTabs.Columns,
                 components: getColumnsTabComponents(view),
             },
             {
-                title: LocalizedConstants,
+                title: LocalizedConstants.primaryKey,
                 id: designer.DesignerMainPaneTabs.PrimaryKey,
                 components: getPrimaryKeyTabComponents(view),
             },
             {
-                title: LocalizedConstants,
+                title: LocalizedConstants.indexes,
                 id: designer.DesignerMainPaneTabs.Indexes,
                 components: getIndexesTabComponents(view),
             },
             {
-                title: LocalizedConstants,
+                title: LocalizedConstants.foreignKeys,
                 id: designer.DesignerMainPaneTabs.ForeignKeys,
                 components: getForeignKeysTabComponents(view),
             },
             {
-                title: LocalizedConstants,
+                title: LocalizedConstants.checkConstraints,
                 id: designer.DesignerMainPaneTabs.CheckConstraints,
                 components: getCheckConstraintsTabComponents(view),
             },
@@ -664,7 +671,7 @@ export function getDesignerView(
     }
 
     viewDefinition.tabs.push({
-        title: LocalizedConstants,
+        title: LocalizedConstants.advancedOptions,
         id: designer.DesignerMainPaneTabs.AboutTable,
         components: getAdvancedOptionsComponents(view),
     });

@@ -16,6 +16,7 @@ import saveJsonIcon from "../../media/saveJson.svg";
 import saveJsonIconInverse from "../../media/saveJson_inverse.svg";
 import saveExcelIcon from "../../media/saveExcel.svg";
 import saveExcelIconInverse from "../../media/saveExcel_inverse.svg";
+
 export interface NotebookResultsToolbarProps {
     columnInfo: IDbColumn[];
     rows: DbCellValue[][];

@@ -16,6 +16,8 @@
  */
 
 import { locConstants } from "../../common/locConstants";
+import { IDisposableDataProvider } from "../QueryResult/table/dataProvider";
+
 /** Actions available in the notebook grid context menu. */
 enum NotebookContextMenuAction {
     SelectAll = "select-all",

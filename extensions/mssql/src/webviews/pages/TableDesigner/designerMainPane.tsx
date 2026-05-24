@@ -3,6 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { Tab, TabList } from "@fluentui/react-tabs";
+import { CounterBadge, Field, Input, Text, makeStyles } from "@fluentui/react-components";
+import { TableDesignerContext } from "./tableDesignerStateProvider";
+import { useTableDesignerSelector } from "./tableDesignerSelector";
+import { useContext, useEffect, useState } from "react";
+import {
+    DesignerEditType,
+    DesignerMainPaneTabs,
+    DesignerTab,
+    DropDownProperties,
+    InputBoxProperties,
+} from "../../../sharedInterfaces/tableDesigner";
+import { DesignerMainPaneTab } from "./designerMainPaneTab";
 import { locConstants } from "../../common/locConstants";
 import { SearchableDropdown } from "../../common/searchableDropdown.component";
 

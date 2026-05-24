@@ -3,7 +3,20 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { TreeNodeInfo } from "./treeNodeInfo";
+import * as vscode from "vscode";
+import * as os from "os";
+import * as vscodeMssql from "vscode-mssql";
+import { ConnectionProfile } from "../../models/connectionProfile";
+import { ObjectExplorerUtils } from "../objectExplorerUtils";
+import * as ConnInfo from "../../models/connectionInfo";
+import { NodeInfo } from "../../models/contracts/objectExplorer/nodeInfo";
+import { disconnectedDockerContainer, dockerContainer } from "../../constants/constants";
+import { IConnectionProfile } from "../../models/interfaces";
+import * as Constants from "../../constants/constants";
+import { getDefaultConnection } from "../../models/connectionInfo";
 import * as LocalizedConstants from "../../constants/locConstants";
+
 // Constants for node types and icon names
 export const SERVER_NODE_DISCONNECTED = "disconnectedServer";
 export const DATABASE_SUBTYPE = "Database";
@@ -43,8 +56,8 @@ const createConnectedNodeContextValue = (
     };
 };
 
-export class ConnectionNode extends LocalizedConstants {
-    constructor(connectionProfile: ConnectionProfile, parentNode?: LocalizedConstants) {
+export class ConnectionNode extends TreeNodeInfo {
+    constructor(connectionProfile: ConnectionProfile, parentNode?: TreeNodeInfo) {
         const displayName = ConnInfo.getConnectionDisplayName(connectionProfile);
         super(
             displayName,
@@ -183,13 +196,13 @@ export class ConnectionNode extends LocalizedConstants {
                     // Show authentication type as "Azure MFA" or "Windows Authentication"
                     const authTypeValueLabel =
                         connectionProfile.authenticationType === Constants.azureMfa
-                            ? azureMFA
-                            : windowsAuthentication;
+                            ? LocalizedConstants.azureMFA
+                            : LocalizedConstants.windowsAuthentication;
                     p.value = authTypeValueLabel;
                 } else if (value === true) {
-                    p.value = enabled;
+                    p.value = LocalizedConstants.enabled;
                 } else if (value === false) {
-                    p.value = disabled;
+                    p.value = LocalizedConstants.disabled;
                 } else {
                     p.value = value;
                 }
@@ -204,29 +217,29 @@ export class ConnectionNode extends LocalizedConstants {
                     const localizedLabel = (() => {
                         switch (p.key) {
                             case "server":
-                                return server;
+                                return LocalizedConstants.server;
                             case "database":
-                                return database;
+                                return LocalizedConstants.database;
                             case "authenticationType":
-                                return authenticationType;
+                                return LocalizedConstants.authenticationType;
                             case "user":
-                                return user;
+                                return LocalizedConstants.user;
                             case "port":
-                                return port;
+                                return LocalizedConstants.port;
                             case "containerName":
-                                return sqlContainerName;
+                                return LocalizedConstants.sqlContainerName;
                             case "version":
-                                return sqlContainerVersion;
+                                return LocalizedConstants.sqlContainerVersion;
                             case "applicationIntent":
-                                return applicationIntent;
+                                return LocalizedConstants.applicationIntent;
                             case "connectTimeout":
-                                return connectionTimeout;
+                                return LocalizedConstants.connectionTimeout;
                             case "commandTimeout":
-                                return commandTimeout;
+                                return LocalizedConstants.commandTimeout;
                             case "alwaysEncrypted":
-                                return alwaysEncrypted;
+                                return LocalizedConstants.alwaysEncrypted;
                             case "replication":
-                                return replication;
+                                return LocalizedConstants.replication;
                             default:
                                 return p.key;
                         }
@@ -251,7 +264,7 @@ export class ConnectionNode extends LocalizedConstants {
     public updateToConnectedState(options: {
         nodeInfo: NodeInfo;
         sessionId: string;
-        parentNode: LocalizedConstants;
+        parentNode: TreeNodeInfo;
         connectionProfile: ConnectionProfile;
     }) {
         const { nodeInfo, sessionId, parentNode, connectionProfile } = options;
