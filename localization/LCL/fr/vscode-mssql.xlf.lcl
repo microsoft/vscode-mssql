@@ -562,6 +562,9 @@
       <Item ItemId=";bundle.++CODE++06ee056a2b74c9a72b5a3191ecc4eb8fef75ff62ddcb3b4076c33179ef7fb4ab" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No subscriptions found. Please change Azure account or tenant to view available subscriptions.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nous n’avons trouvé aucun abonnement. Veuillez changer de compte ou de locataire Azure pour afficher les abonnements disponibles.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1549,6 +1552,9 @@
       <Item ItemId=";bundle.++CODE++115bef38fad466675b802fb8894b90a61134e862ded7447052405f06fb5ccc15" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Serialization failed]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Échec de la sérialisation]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1789,6 +1795,9 @@
       <Item ItemId=";bundle.++CODE++14b4e9b2b94c620edf0bfa25d44598818614a26a5343ecf963a54d6ff12bedb7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Search subscriptions...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Rechercher des abonnements...]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2002,6 +2011,9 @@
       <Item ItemId=";bundle.++CODE++1626a7035e3aa94fb8b04ec4401e20974b845ed50315a4dda0aa7ee2b07c4d56" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enable {0} in API Type to expose this entity.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Activez {0} dans le type d’API pour exposer cette entité.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2170,6 +2182,9 @@
       <Item ItemId=";bundle.++CODE++18720329ca307c792fee6c6c1f707145c981d07c2b5a1b7127732ccd6e7203eb" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Remove from favorites]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Supprimer des favoris]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2275,6 +2290,9 @@
       <Item ItemId=";bundle.++CODE++19c5f25908148aedba9135a777688d044c4bfac7d9acee5f931b2c57bd8299f9" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enable REST in API Type to expose this entity through REST.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Activez REST dans le type d’API pour exposer cette entité via REST.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2506,6 +2524,9 @@
       <Item ItemId=";bundle.++CODE++1d66e218f7e4f002993789d4d2f5882562de9be46ff392069f35b830da0a78f6" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Expose this entity through REST]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Exposer cette entité via REST]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2602,6 +2623,9 @@
       <Item ItemId=";bundle.++CODE++1f44c82a6944c1ab12879c8bc4ce97845b4e39673c57cd328b2d2e81275b3c58" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{0} is not enabled globally]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} n’est pas activé globalement]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2770,6 +2794,9 @@
       <Item ItemId=";bundle.++CODE++214bf67326266805ed0887a2154efa6a38e78d684c4f4c69c33cbecdb16feb13" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Saved results to {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Résultats enregistrés dans {0}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3379,6 +3406,9 @@
       <Item ItemId=";bundle.++CODE++2827add936f31415e16e0670d8686084ec2e21fed7686c0aa91fffdfa09e4e38" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure SQL Server]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure SQL Server]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3556,6 +3586,9 @@
       <Item ItemId=";bundle.++CODE++295dc600027d16c46d0596df1afe12f2c8db841203c77f15207d06851c0d50ec" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to save results: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nous n’avons pas pu enregistrer les résultats : {0}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3760,6 +3793,9 @@
       <Item ItemId=";bundle.++CODE++2c4fb82c11a12677559564607a6a178c2ff897e0c5769b72f29ec6f55931bea7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Stored procedure REST methods]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Méthodes REST de procédure stockée]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5143,6 +5179,9 @@
       <Item ItemId=";bundle.++CODE++3da57703d00d6946cc3e7a5c4e76cd4651180efe589725eb472c35305120e67c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Disabled globally]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Activé globalement]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5383,6 +5422,9 @@
       <Item ItemId=";bundle.++CODE++40321f05833c7d2deaaff609703bfef087fba72af02bb6f918d24bb50a53f955" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Creates a dedicated MCP tool for this stored procedure. When disabled, the procedure can still be available through generic MCP execute tools if MCP is enabled.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Crée un outil MCP dédié pour cette procédure stockée. Lorsque cet élément est désactivé, la procédure peut toujours être disponible via les outils d’exécution MCP génériques si MCP est activé.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5551,6 +5593,9 @@
       <Item ItemId=";bundle.++CODE++42245d3f61aef75893195e1e0856f76292f910c8f5b8e671e515321ff9cd843b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Loading subscriptions...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Chargement en cours des abonnements...]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5620,6 +5665,9 @@
       <Item ItemId=";bundle.++CODE++42f23e5323393c23245d6bbe61f912df022f3f9e6df0eb0b21e66939a788b773" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No servers found in the selected subscription.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Aucun serveur trouvé dans l’abonnement sélectionné.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5896,6 +5944,9 @@
       <Item ItemId=";bundle.++CODE++46407a8a229c4ff1ac5f85be1f1edf02b0761eaf67b251e2c0a397c68718619e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Stored procedure GraphQL operation]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Opération GraphQL de procédure stockée]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -7270,6 +7321,9 @@
       <Item ItemId=";bundle.++CODE++55fbcb99ed7e8209673d373c82ce28bcbb2600ed756fae1b62f505adf64314bc" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Collapse Subscription Explorer]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Réduire l’Explorateur d’abonnements]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -8905,6 +8959,9 @@
       <Item ItemId=";bundle.++CODE++6b4be3a8ee14a536e26c05c8b1d62473209daf08fb4f8ec66322497d5d0028f0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enable MCP in API Type to use this custom tool setting.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Activez MCP dans le type d’API pour utiliser ce paramètre d’outil personnalisé.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -9082,6 +9139,9 @@
       <Item ItemId=";bundle.++CODE++6d457cc1e5982858c386c637bec86a3c2615e648054d4d5472a261e0b5004b2d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure Subscriptions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Abonnements Azure]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -10222,6 +10282,9 @@
       <Item ItemId=";bundle.++CODE++7a77e8a8f80ab358ff1261e8047b81ffa298288509fc45ae56d2760997839dda" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Fabric Databases]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Bases de données Fabric]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -10336,12 +10399,18 @@
       <Item ItemId=";bundle.++CODE++7bce93a011075575cf98f089cee89c6108be3220cd9701e8ce2fe0c19b38f411" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enable GraphQL in API Type to expose this entity through GraphQL.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Activez GraphQL dans le type d’API pour exposer cette entité via GraphQL.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++7bec39b28409bec8fc720f39f7c30fd934272f52f1c41c1d00988827bab07d3b" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Not signed into tenant {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Non connecté au tenant {0}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -10456,6 +10525,9 @@
       <Item ItemId=";bundle.++CODE++7d1b71b2bde7aa8e3125b606f3738980a13371ad3458ddd00b1193d72aad45dd" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Source: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Source : {0}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -10633,6 +10705,9 @@
       <Item ItemId=";bundle.++CODE++7f3c0782afd7e95577665f17f90a5890669c0f3a33850a85278c7432e5b00fec" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add to favorites]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ajouter aux favoris]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -11305,6 +11380,9 @@
       <Item ItemId=";bundle.++CODE++886b046597112f108973a5fa0dd665428e3303b602a7c20621b6876237cb7044" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Expose as MCP custom tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Exposer en tant qu’outil personnalisé MCP]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -12544,6 +12622,9 @@
       <Item ItemId=";bundle.++CODE++988c00d268f2867e2e35f7c7de12ddee2e7c5516193dc246ff16186208f335d2" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Choose whether this stored procedure appears as a GraphQL mutation or query. DAB defaults to mutation.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Indiquez si cette procédure stockée s’affiche sous la forme d’une mutation ou d’une requête GraphQL. DAB est défini par défaut sur mutation.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -12676,6 +12757,9 @@
       <Item ItemId=";bundle.++CODE++999f23fcd7bec7075e54bb5dea0d9c548bfe7261f95b911ed8e23d2f4188724f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Identity]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Identité]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -12826,6 +12910,9 @@
       <Item ItemId=";bundle.++CODE++9baec5aafce916c9fbec6af57fe28833aca54911144354d1175f02a51595de33" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Expose this entity through GraphQL]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Exposer cette entité via GraphQL]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -13039,6 +13126,9 @@
       <Item ItemId=";bundle.++CODE++9ec5cd9a56d3b361b5d614149a73d6014c7d2520a64e9fa2578cc50ac0e8da82" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Save results as JSON]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Enregistrer les résultats au format JSON]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -13648,6 +13738,9 @@
       <Item ItemId=";bundle.++CODE++a5b634627aea24b14fcd3b33054a4dcf3c0385853fe5a22235b84f3c42eb17ac" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Not currently signed in. Select to sign in to tenant.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Actuellement non connecté. Sélectionnez cette option pour vous connecter au tenant.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -14266,6 +14359,9 @@
       <Item ItemId=";bundle.++CODE++acd7d6334485ffa9ac31c98945eaf0360abb86e3c80cbb460cb7e0b0e280466f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Expand Subscription Explorer]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Développer l’Explorateur d’abonnements]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -14524,6 +14620,9 @@
       <Item ItemId=";bundle.++CODE++b1307da140c4be5df01b2bdc2bf078e18eb719d00068b0eb22132d47dbfa869d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Error loading servers]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Erreur lors du chargement des serveurs]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -15079,6 +15178,9 @@
       <Item ItemId=";bundle.++CODE++b823f4fb895582ef515ab18d8dd18f72160ed258f33dfb727a8e37f91ebda1b6" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No servers found in subscription '{0}'.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Aucun serveur trouvé dans l’abonnement « {0} ».]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -15355,6 +15457,9 @@
       <Item ItemId=";bundle.++CODE++bb23445ee7d8532372f93a9907877a8cce31215c8c2f7b75df1e68baf1d251c9" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Export toolbar for result set {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Barre d’outils d’exportation du jeu de résultats {0}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -15433,6 +15538,9 @@
       <Item ItemId=";bundle.++CODE++bb834e59966c805206f646b442d51561fe99a22b02c2bc0dd43ddd5f83d43843" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enable {0} globally]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Activer {0} globalement]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -15925,6 +16033,9 @@
       <Item ItemId=";bundle.++CODE++c26ee0e4b915257d995cffde4cc7b77a97c1e0cfa544836fdcb28329d1dc749a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Mutation]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Mutation]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -16066,6 +16177,9 @@
       <Item ItemId=";bundle.++CODE++c3e908318ac99693f90743c99d94c8d1f123f65564685137a3236da773d4bb9b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select the HTTP methods that can execute this stored procedure. DAB defaults to POST.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Sélectionnez les méthodes HTTP qui peuvent exécuter cette procédure stockée. DAB est défini par défaut sur POST.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -16675,6 +16789,9 @@
       <Item ItemId=";bundle.++CODE++cb571bc2bc5742ac76bfe870bd81c2d7aeefe4a9f9c828b36c7a39464c3c3ebb" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[MCP custom tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ajouter un outil MCP]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -16942,6 +17059,9 @@
       <Item ItemId=";bundle.++CODE++cfcac84335530cc40295a54ac9d1ef7a5999d6294e947d69e00b1b42f1e5f95b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Save results as Excel]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Enregistrer les résultats au format Excel]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -17488,6 +17608,9 @@
       <Item ItemId=";bundle.++CODE++d6bc7e3a2c2812f6a418849b1c49e1bf35faa6e05092eed85651b0f6554be31e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Save results as CSV]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Enregistrer les résultats au format CSV]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -17530,6 +17653,9 @@
       <Item ItemId=";bundle.++CODE++d6fd520e2618b0231a03b251ea5831f125d0087382f96b0a6b8c57f1fa97a69c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Loading servers in selected subscription...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Chargement des serveurs dans l’abonnement sélectionné...]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -17563,6 +17689,9 @@
       <Item ItemId=";bundle.++CODE++d793e9856eaed8553a411a2ee12f9c1631c70cf86945645baa5a3edb00888235" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Error loading subscriptions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Erreur lors du chargement des abonnements]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -18415,6 +18544,9 @@
       <Item ItemId=";bundle.++CODE++e0868c0da82fbd352b2f49a90707e78962f7dee85e12b74bdfe8ade99936640f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure subscription not found in cache.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nous n’avons pas pu trouver l’abonnement Azure dans le cache.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -19735,6 +19867,9 @@
       <Item ItemId=";bundle.++CODE++ef29c3acfb3de5b5cb395ebd30039cc6d6120e9d1f9581301573425449e535c5" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure Databases]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Bases de données Azure]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -19777,6 +19912,9 @@
       <Item ItemId=";bundle.++CODE++f01407578cbde4669a268b1fbcadffd19797d7e3f51bc0f176a52d5eb76f1358" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Loading servers in '{0}'...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Chargement des serveurs dans « {0} »...]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -20494,6 +20632,9 @@
       <Item ItemId=";bundle.++CODE++fac4c702f7790e41763806f2cdc67d0521f91fe1cd0cc1ac492506ea2842b5dc" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select a subscription to view servers in it.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Sélectionnez un abonnement pour afficher les serveurs qu’il contient.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -20860,6 +21001,9 @@
       <Item ItemId=";bundle.++CODE++fecd5681dc5dc6e2f413b28ce95e50f6aa2ce9fbef201fa3c11844af5799b2e3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[REST]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[REST]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -23449,6 +23593,9 @@
       <Item ItemId=";package.mssql.selectedFabricWorkspaces" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Selected Microsoft Fabric workspaces for browsing and managing SQL databases]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Espaces de travail Microsoft Fabric sélectionnés pour la navigation et la gestion des bases de données SQL]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
