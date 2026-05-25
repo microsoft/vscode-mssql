@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { RequestType } from "vscode-languageclient";
+import { NotificationType, RequestType } from "vscode-languageclient";
 import { SchemaDesigner } from "../../sharedInterfaces/schemaDesigner";
 
 export namespace SchemaDesignerRequests {
@@ -71,5 +71,19 @@ export namespace SchemaDesignerRequests {
         export const type = new RequestType<SchemaDesigner.PublishSessionRequest, void, void, void>(
             "schemaDesigner/publishSession",
         );
+    }
+
+    export namespace ProgressNotification {
+        export const type = new NotificationType<
+            SchemaDesigner.SchemaDesignerProgressNotificationParams,
+            void
+        >("schemaDesigner/progress");
+    }
+
+    export namespace MessageNotification {
+        export const type = new NotificationType<
+            SchemaDesigner.SchemaDesignerMessageNotificationParams,
+            void
+        >("schemaDesigner/message");
     }
 }

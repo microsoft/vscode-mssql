@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
     ReactFlow,
     MiniMap,
@@ -34,6 +34,7 @@ import {
 } from "@fluentui/react-icons";
 import { SchemaDesignerTableNode } from "./schemaDesignerTableNode.js";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
+import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import {
     filterDeletedEdges,
     filterDeletedNodes,
@@ -83,7 +84,11 @@ const NODE_TYPES: NodeTypes = {
  * Schema Designer Flow Component
  * Renders a visual editor for database schema relationships using ReactFlow
  */
-export const SchemaDesignerFlow = () => {
+interface SchemaDesignerFlowProps {
+    activeView?: SchemaDesigner.SchemaDesignerActiveView;
+}
+
+export const SchemaDesignerFlow = ({ activeView }: SchemaDesignerFlowProps) => {
     // Toast notification setup
     const toasterId = useId("toaster");
     const { dispatchToast } = useToastController(toasterId);
@@ -91,6 +96,7 @@ export const SchemaDesignerFlow = () => {
     // Context for schema data
     const context = useContext(SchemaDesignerContext);
     const changeContext = useSchemaDesignerChangeContext();
+    const isReadOnly = useSchemaDesignerSelector((s) => s?.isReadOnly) ?? false;
 
     // State for nodes and edges
     const [schemaNodes, setSchemaNodes, onNodesChange] = useNodesState<Node<SchemaDesigner.Table>>(
@@ -102,8 +108,13 @@ export const SchemaDesignerFlow = () => {
     >([]);
 
     const reactFlow = useReactFlow();
+    const isSchemaDesignerActive = activeView !== SchemaDesigner.SchemaDesignerActiveView.Dab;
 
     const refreshRafId = useRef<number | undefined>(undefined);
+    const fitViewRafId = useRef<number | undefined>(undefined);
+    const notifySchemaChangedRafId = useRef<number | undefined>(undefined);
+    const didFitViewForCurrentInitialization = useRef(false);
+    const isSchemaDesignerActiveRef = useRef(isSchemaDesignerActive);
     const flowWrapperRef = useRef<HTMLDivElement | null>(null);
     const edgeUndoWrapperRef = useRef<HTMLDivElement | null>(null);
 
@@ -198,6 +209,10 @@ export const SchemaDesignerFlow = () => {
     }, [changeContext.showChangesHighlight]);
 
     useEffect(() => {
+        isSchemaDesignerActiveRef.current = isSchemaDesignerActive;
+    }, [isSchemaDesignerActive]);
+
+    useEffect(() => {
         setDeletedSchemaNodes((prev) => {
             if (changeContext.deletedTableNodes.length === 0) {
                 return [];
@@ -218,18 +233,63 @@ export const SchemaDesignerFlow = () => {
         });
     }, [changeContext.deletedTableNodes]);
 
+    const fitViewWhenVisible = useCallback(
+        (nodes: Node<SchemaDesigner.Table>[]) => {
+            if (!isSchemaDesignerActiveRef.current || nodes.length === 0) {
+                return;
+            }
+
+            if (fitViewRafId.current !== undefined) {
+                cancelAnimationFrame(fitViewRafId.current);
+            }
+
+            let attempts = 0;
+            const tryFitView = () => {
+                if (!isSchemaDesignerActiveRef.current) {
+                    fitViewRafId.current = undefined;
+                    return;
+                }
+
+                attempts += 1;
+                const bounds = flowWrapperRef.current?.getBoundingClientRect();
+                const hasVisibleSize = bounds && bounds.width > 0 && bounds.height > 0;
+
+                if (hasVisibleSize) {
+                    void reactFlow.fitView({ nodes });
+                    didFitViewForCurrentInitialization.current = true;
+                    fitViewRafId.current = undefined;
+                    return;
+                }
+
+                if (attempts < 16) {
+                    fitViewRafId.current = requestAnimationFrame(tryFitView);
+                    return;
+                }
+
+                fitViewRafId.current = undefined;
+            };
+
+            fitViewRafId.current = requestAnimationFrame(tryFitView);
+        },
+        [reactFlow],
+    );
+
     useEffect(() => {
         const intialize = async () => {
             try {
                 const { nodes, edges } = await context.initializeSchemaDesigner();
                 setSchemaNodes(nodes);
                 setRelationshipEdges(edges);
+                didFitViewForCurrentInitialization.current = false;
+
+                fitViewWhenVisible(nodes);
 
                 // Trigger script generation to update the changes panel
                 // This is necessary for restored sessions that may have changes
-                setTimeout(() => {
+                notifySchemaChangedRafId.current = requestAnimationFrame(() => {
+                    notifySchemaChangedRafId.current = undefined;
                     context.notifySchemaChanged();
-                }, 0);
+                });
             } catch (error) {
                 context.log?.(`Failed to initialize schema designer: ${String(error)}`);
                 setSchemaNodes([]);
@@ -237,7 +297,24 @@ export const SchemaDesignerFlow = () => {
             }
         };
         void intialize();
-    }, [context.initializationRequestId]);
+    }, [context.initializationRequestId, fitViewWhenVisible]);
+
+    useEffect(() => {
+        if (isSchemaDesignerActive && !didFitViewForCurrentInitialization.current) {
+            fitViewWhenVisible(schemaNodes);
+        }
+    }, [fitViewWhenVisible, isSchemaDesignerActive, schemaNodes]);
+
+    useEffect(() => {
+        return () => {
+            if (fitViewRafId.current !== undefined) {
+                cancelAnimationFrame(fitViewRafId.current);
+            }
+            if (notifySchemaChangedRafId.current !== undefined) {
+                cancelAnimationFrame(notifySchemaChangedRafId.current);
+            }
+        };
+    }, []);
 
     // Keep the local controlled state in sync with programmatic updates done via useReactFlow() elsewhere.
     useEffect(() => {
@@ -499,6 +576,10 @@ export const SchemaDesignerFlow = () => {
                 nodes={displayNodes}
                 edges={displayEdges}
                 nodeTypes={NODE_TYPES}
+                nodesDraggable={!isReadOnly}
+                nodesConnectable={!isReadOnly}
+                edgesReconnectable={!isReadOnly}
+                deleteKeyCode={isReadOnly ? null : undefined}
                 onNodesChange={(changes) => {
                     const isDeletedNodeChange = (change: NodeChange<Node<SchemaDesigner.Table>>) =>
                         "id" in change &&
@@ -515,9 +596,9 @@ export const SchemaDesignerFlow = () => {
                         setDeletedSchemaNodes((nodes) => applyNodeChanges(deletedChanges, nodes));
                     }
                 }}
-                onEdgesChange={onEdgesChange}
-                onConnect={handleConnect}
-                onConnectEnd={handleConnectEnd}
+                onEdgesChange={isReadOnly ? undefined : onEdgesChange}
+                onConnect={isReadOnly ? undefined : handleConnect}
+                onConnectEnd={isReadOnly ? undefined : handleConnectEnd}
                 onlyRenderVisibleElements={context.renderOnlyVisibleTables}
                 proOptions={{
                     hideAttribution: true,
@@ -618,8 +699,7 @@ export const SchemaDesignerFlow = () => {
                     }
                     return await deleteElementsConfirmation();
                 }}
-                minZoom={0.05}
-                fitView>
+                minZoom={0.05}>
                 <Controls>
                     <ControlButton
                         onClick={() =>

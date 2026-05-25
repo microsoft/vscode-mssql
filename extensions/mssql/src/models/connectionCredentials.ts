@@ -205,7 +205,11 @@ export class ConnectionCredentials implements IConnectionInfo {
         if (typeof credentials.authenticationType === "undefined") {
             authenticationType = utils.authTypeToString(AuthenticationTypes.SqlLogin);
         }
-        return authenticationType === utils.authTypeToString(AuthenticationTypes.SqlLogin);
+        return (
+            authenticationType === utils.authTypeToString(AuthenticationTypes.SqlLogin) ||
+            authenticationType ===
+                utils.authTypeToString(AuthenticationTypes.ActiveDirectoryServicePrincipal)
+        );
     }
 
     public static isPasswordBasedConnectionString(connectionString: string): boolean {
@@ -246,6 +250,10 @@ export class ConnectionCredentials implements IConnectionInfo {
             {
                 name: LocalizedConstants.authTypeAzureActiveDirectoryDefault,
                 value: utils.authTypeToString(AuthenticationTypes.ActiveDirectoryDefault),
+            },
+            {
+                name: LocalizedConstants.authTypeAzureServicePrincipal,
+                value: utils.authTypeToString(AuthenticationTypes.ActiveDirectoryServicePrincipal),
             },
         ];
 

@@ -9,46 +9,31 @@ import { makeStyles, Text } from "@fluentui/react-components";
 const useStyles = makeStyles({
     empty: {
         flex: 1,
+        minHeight: 0,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        gap: "12px",
-        padding: "24px",
+        gap: "6px",
+        padding: "8px 16px",
         textAlign: "center",
+        overflow: "hidden",
     },
     emptyIllustration: {
-        position: "relative",
-        width: "72px",
-        height: "72px",
         display: "grid",
         placeItems: "center",
-    },
-    emptyOuterRing: {
-        position: "absolute",
-        inset: 0,
-        borderRadius: "999px",
-        border: "1px solid var(--vscode-editorWidget-border)",
-        opacity: 0.5,
-    },
-    emptyInnerRing: {
-        width: "46px",
-        height: "46px",
-        borderRadius: "999px",
-        border: "1px solid var(--vscode-editorWidget-border)",
-        backgroundColor: "var(--vscode-editorWidget-background)",
-        display: "grid",
-        placeItems: "center",
-        boxShadow: "0 0 0 1px var(--vscode-editorWidget-border) inset",
-        fontSize: "22px",
+        fontSize: "24px",
+        lineHeight: "24px",
         color: "var(--vscode-descriptionForeground)",
+        flexShrink: 0,
     },
     emptyTextBlock: {
         display: "flex",
         flexDirection: "column",
-        gap: "4px",
+        gap: "2px",
         maxWidth: "220px",
         textAlign: "center",
+        minHeight: 0,
     },
     emptyTitle: {
         color: "var(--vscode-foreground)",
@@ -78,13 +63,10 @@ export const SchemaDesignerChangesEmptyState = ({
 
     return (
         <div className={classes.empty}>
-            <div className={classes.emptyIllustration}>
-                <div className={classes.emptyOuterRing} />
-                <div className={classes.emptyInnerRing}>{icon}</div>
-            </div>
+            <div className={classes.emptyIllustration}>{icon}</div>
             <div className={classes.emptyTextBlock}>
                 <Text className={classes.emptyTitle}>{title}</Text>
-                {subtitle ? <Text className={classes.emptySubtitle}>{subtitle}</Text> : null}
+                {subtitle ? <Text className={classes.emptySubtitle}>{subtitle}</Text> : undefined}
             </div>
         </div>
     );

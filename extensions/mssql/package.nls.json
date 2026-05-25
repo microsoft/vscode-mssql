@@ -1,6 +1,6 @@
 {
     "mssql.runQuery": "Execute Query (MSSQL)",
-    "mssql.runCurrentStatement": "Execute Current Statement (MSSQL)",
+    "mssql.runCurrentStatement": "Execute Selection or Current Statement (MSSQL)",
     "mssql.cancelQuery": "Cancel Query (MSSQL)",
     "mssql.revealQueryResult": "Reveal Query Result (MSSQL)",
     "mssql.toggleQueryResultPanel": "Toggle Query Result Panel Visibility (MSSQL)",
@@ -235,11 +235,18 @@
     "mssql.openQueryResultsInTabByDefault.description": "Automatically display query results in a new tab instead of the query pane.",
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description": "Do not show prompts to display query results in a new tab.",
     "mssql.transferActiveEditorConnections.description": "When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.",
+    "mssql.transferActiveEditorConnections.deprecationMessage": "This setting is deprecated. Use `mssql.newEditorConnectionBehavior` instead. The extension will automatically migrate this setting on startup.",
+    "mssql.newEditorConnectionBehavior.description": "Controls how new SQL editor windows and opened SQL files are automatically connected.",
+    "mssql.newEditorConnectionBehavior.transferActive.description": "Carry the active editor's connection to newly opened query editor tabs and SQL files.",
+    "mssql.newEditorConnectionBehavior.none.description": "Do not auto-connect. You must connect each SQL file manually.",
+    "mssql.newEditorConnectionBehavior.defaultConnection.description": "Always connect new editors and opened SQL files to the connection specified by `mssql.defaultConnectionId`.",
+    "mssql.defaultConnectionId.description": "The ID (GUID) of the connection profile to use when `mssql.newEditorConnectionBehavior` is set to `defaultConnection`. The connection ID can be found in your settings.json under `mssql.connections`.",
     "mssql.defaultQueryResultsViewMode.description": "Default view mode for query results display.",
     "mssql.defaultQueryResultsViewMode.grid.description": "Display results in a tabular grid format (default)",
     "mssql.defaultQueryResultsViewMode.text.description": "Display results in a formatted text format.",
     "mssql.userFeedback": "Send Feedback",
     "mssql.selectedAzureSubscriptions": "Selected Azure subscriptions for browsing and managing servers and databases",
+    "mssql.selectedFabricWorkspaces": "Selected Microsoft Fabric workspaces for browsing and managing SQL databases",
     "mssql.schemaDesigner": "Visualize and Design Schema...",
     "mssql.buildDataApi": "Build Data API...",
     "mssql.newDeployment": "New Deployment",
@@ -294,5 +301,6 @@
     "mssql.flatFileImport": "Import Data...",
     "mssql.notebooks.createNotebook": "New SQL Notebook",
     "mssql.notebooks.changeDatabase": "Change Notebook Database",
-    "mssql.notebooks.changeConnection": "Change Notebook Connection"
+    "mssql.notebooks.changeConnection": "Change Notebook Connection",
+    "mssql.notebooks.copyCellMessages": "Copy Cell Messages"
 }

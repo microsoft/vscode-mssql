@@ -125,4 +125,57 @@ suite("Connection Profile tests", () => {
 
         expect(profile.isValidProfile()).to.be.true;
     });
+
+    test("ActiveDirectoryServicePrincipal profile requires server, user (App ID), and password (secret)", () => {
+        const profile = new ConnectionProfile();
+        profile.server = "my-server";
+        profile.authenticationType =
+            AuthenticationTypes[AuthenticationTypes.ActiveDirectoryServicePrincipal];
+
+        expect(profile.isValidProfile(), "Missing user and password should be invalid").to.be.false;
+
+        profile.user = "app-client-id";
+        expect(profile.isValidProfile(), "Missing password should be invalid").to.be.false;
+
+        profile.password = "client-secret";
+        expect(profile.isValidProfile(), "Server + user + password should be valid").to.be.true;
+    });
+
+    test("isAzureActiveDirectory returns true for AzureMFA", () => {
+        const profile = new ConnectionProfile();
+        profile.authenticationType = AuthenticationTypes[AuthenticationTypes.AzureMFA];
+        expect(profile.isAzureActiveDirectory()).to.be.true;
+    });
+
+    test("isAzureActiveDirectory returns true for ActiveDirectoryServicePrincipal", () => {
+        const profile = new ConnectionProfile();
+        profile.authenticationType =
+            AuthenticationTypes[AuthenticationTypes.ActiveDirectoryServicePrincipal];
+        expect(profile.isAzureActiveDirectory()).to.be.true;
+    });
+
+    test("isAzureActiveDirectory returns false for SqlLogin", () => {
+        const profile = new ConnectionProfile();
+        profile.authenticationType = AuthenticationTypes[AuthenticationTypes.SqlLogin];
+        expect(profile.isAzureActiveDirectory()).to.be.false;
+    });
+});
+
+test("isAzureActiveDirectory returns true for AzureMFA", () => {
+    const profile = new ConnectionProfile();
+    profile.authenticationType = AuthenticationTypes[AuthenticationTypes.AzureMFA];
+    expect(profile.isAzureActiveDirectory()).to.be.true;
+});
+
+test("isAzureActiveDirectory returns true for ActiveDirectoryServicePrincipal", () => {
+    const profile = new ConnectionProfile();
+    profile.authenticationType =
+        AuthenticationTypes[AuthenticationTypes.ActiveDirectoryServicePrincipal];
+    expect(profile.isAzureActiveDirectory()).to.be.true;
+});
+
+test("isAzureActiveDirectory returns false for SqlLogin", () => {
+    const profile = new ConnectionProfile();
+    profile.authenticationType = AuthenticationTypes[AuthenticationTypes.SqlLogin];
+    expect(profile.isAzureActiveDirectory()).to.be.false;
 });

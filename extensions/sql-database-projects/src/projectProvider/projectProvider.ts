@@ -185,15 +185,8 @@ export class SqlDatabaseProjectProvider
     }
 
     public openSqlNewProjectDialog(
-        allowedTargetPlatforms?: sqldbproj.SqlTargetPlatform[],
+        _allowedTargetPlatforms?: sqldbproj.SqlTargetPlatform[],
     ): Promise<vscode.Uri | undefined> {
-        let targetPlatforms = Array.from(constants.targetPlatformToVersion.keys());
-        if (allowedTargetPlatforms) {
-            targetPlatforms = targetPlatforms.filter((p) =>
-                allowedTargetPlatforms.toString().includes(p),
-            );
-        }
-
         const projectUri = getDataWorkspaceExtensionApi().openSpecificProjectNewProjectDialog();
         return projectUri;
     }

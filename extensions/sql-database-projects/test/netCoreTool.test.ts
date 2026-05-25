@@ -100,7 +100,7 @@ suite("NetCoreTool: Net core tests", function (): void {
         } finally {
             try {
                 await fs.promises.unlink(dummyFile);
-            } catch (err) {
+            } catch {
                 console.warn(`Failed to clean up ${dummyFile}`);
             }
         }

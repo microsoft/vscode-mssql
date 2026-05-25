@@ -134,7 +134,7 @@
         "sinon": "^21.0.3",
         "sinon-chai": "^4.0.1",
         "slickgrid": "github:Microsoft/SlickGrid.ADS#v2.3.51",
-        "slickgrid-react": "10.5.1",
+        "slickgrid-react": "10.7.0",
         "source-map-support": "^0.5.21",
         "ts-node": "^10.9.2",
         "typescript": "^5.8.3",
@@ -144,8 +144,9 @@
         "yargs": "^17.7.2"
     },
     "dependencies": {
+        "@azure/arm-maintenance": "^1.0.0-beta.2",
         "@azure/arm-resources": "^5.0.0",
-        "@azure/arm-sql": "^10.0.0",
+        "@azure/arm-sql": "^11.0.0-beta.4",
         "@azure/arm-storage": "^19.0.0",
         "@azure/arm-subscriptions": "^5.0.0",
         "@azure/ms-rest-azure-env": "^2.0.0",
@@ -339,7 +340,8 @@
                 "entrypoint": "./dist/notebookRenderer.js",
                 "mimeTypes": [
                     "application/vnd.mssql.query-result"
-                ]
+                ],
+                "requiresMessaging": "optional"
             }
         ],
         "languages": [
@@ -468,6 +470,11 @@
                 {
                     "command": "mssql.runQuery",
                     "when": "editorLangId == sql && !mssql.hideUIElements",
+                    "group": "0_mssql"
+                },
+                {
+                    "command": "mssql.changeConnection",
+                    "when": "editorLangId == sql && !isInDiffEditor && resource in mssql.connections && resourcePath not in mssql.runningQueries && !mssql.hideUIElements",
                     "group": "0_mssql"
                 },
                 {
@@ -909,6 +916,10 @@
             "commandPalette": [
                 {
                     "command": "mssql.viewBackgroundTaskLogs",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.notebooks.copyCellMessages",
                     "when": "false"
                 },
                 {
@@ -1613,6 +1624,11 @@
                 "command": "mssql.notebooks.changeConnection",
                 "title": "%mssql.notebooks.changeConnection%",
                 "category": "MS SQL"
+            },
+            {
+                "command": "mssql.notebooks.copyCellMessages",
+                "title": "%mssql.notebooks.copyCellMessages%",
+                "category": "MS SQL"
             }
         ],
         "keybindings": [
@@ -1621,6 +1637,12 @@
                 "key": "ctrl+shift+e",
                 "mac": "cmd+shift+e",
                 "when": "editorTextFocus && editorLangId == 'sql' && !notebookEditorFocused"
+            },
+            {
+                "command": "notebook.cell.execute",
+                "key": "ctrl+shift+e",
+                "mac": "cmd+shift+e",
+                "when": "notebookCellListFocused && notebookMissingKernelExtension && !notebookCellExecuting && notebookCellType == 'code' || notebookCellListFocused && !notebookCellExecuting && notebookCellType == 'code' && notebookKernelCount > 0 || notebookCellListFocused && !notebookCellExecuting && notebookCellType == 'code' && notebookKernelSourceCount > 0"
             },
             {
                 "command": "mssql.connect",
@@ -1661,7 +1683,7 @@
                         "boolean",
                         "null"
                     ],
-                    "default": null,
+                    "default": true,
                     "description": "%mssql.preview.useVscodeAccountsForEntraMFA.description%",
                     "scope": "application"
                 },
@@ -1691,15 +1713,44 @@
                     "description": "%mssql.defaultQueryResultsViewMode.description%",
                     "scope": "application"
                 },
+                "mssql.newEditorConnectionBehavior": {
+                    "type": "string",
+                    "default": "transferActive",
+                    "enum": [
+                        "none",
+                        "transferActive",
+                        "defaultConnection"
+                    ],
+                    "enumDescriptions": [
+                        "%mssql.newEditorConnectionBehavior.none.description%",
+                        "%mssql.newEditorConnectionBehavior.transferActive.description%",
+                        "%mssql.newEditorConnectionBehavior.defaultConnection.description%"
+                    ],
+                    "description": "%mssql.newEditorConnectionBehavior.description%",
+                    "scope": "application"
+                },
+                "mssql.defaultConnectionId": {
+                    "type": "string",
+                    "default": "",
+                    "description": "%mssql.defaultConnectionId.description%",
+                    "scope": "application"
+                },
                 "mssql.transferActiveEditorConnections": {
                     "type": "boolean",
-                    "default": true,
                     "description": "%mssql.transferActiveEditorConnections.description%",
+                    "deprecationMessage": "%mssql.transferActiveEditorConnections.deprecationMessage%",
                     "scope": "application"
                 },
                 "mssql.selectedAzureSubscriptions": {
                     "type": "array",
                     "description": "%mssql.selectedAzureSubscriptions%",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "mssql.selectedFabricWorkspaces": {
+                    "type": "array",
+                    "description": "%mssql.selectedFabricWorkspaces%",
                     "items": {
                         "type": "string"
                     }
@@ -1816,7 +1867,8 @@
                                 "enum": [
                                     "Integrated",
                                     "SqlLogin",
-                                    "AzureMFA"
+                                    "AzureMFA",
+                                    "ActiveDirectoryServicePrincipal"
                                 ],
                                 "description": "%mssql.connection.authenticationType%"
                             },
@@ -3718,7 +3770,7 @@
             },
             {
                 "name": "mssql_dab",
-                "modelDescription": "Work with the Data API builder configuration in the currently active schema designer. Use 'get_state' to inspect it and 'apply_changes' to modify it; use 'show' only to open the Data API builder view for a connectionId when needed. Operations: 'get_state' returns the current version, summary, and bounded configuration state (full config may be omitted for large configurations); 'apply_changes' uses payload { expectedVersion, targetHint?, changes } and returns the post-mutation version plus summary, with optional returnState control. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with the current version and latest summary/config according to returnState. Entity refs are either { id } or { schemaName, tableName }. Column refs are either { id } or { name }. Change types: { type: 'set_api_types', apiTypes }, { type: 'set_entity_enabled', entity, isEnabled }, { type: 'set_entity_actions', entity, enabledActions }, { type: 'set_column_exposed', entity, column, isExposed }, { type: 'patch_entity_settings', entity, set }, { type: 'set_only_enabled_entities', entities }, { type: 'set_all_entities_enabled', isEnabled }.",
+                "modelDescription": "Work with the Data API builder configuration in the currently active schema designer. Use 'get_state' to inspect it and 'apply_changes' to modify it; use 'show' only to open the Data API builder view for a connectionId when needed. Operations: 'get_state' returns the current version, summary, and bounded configuration state (full config may be omitted for large configurations); 'apply_changes' uses payload { expectedVersion, targetHint?, changes } and returns the post-mutation version plus summary, with optional returnState control. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with the current version and latest summary/config according to returnState. Entity refs are either { id }, { schemaName, tableName } for table compatibility, or { schemaName, sourceName, sourceType } where sourceType is table, view, or stored-procedure. Column refs are either { id } or { name }. Change types: { type: 'set_api_types', apiTypes }, { type: 'add_entity', entity }, { type: 'remove_entity', entity }, { type: 'set_entity_enabled', entity, isEnabled }, { type: 'set_entity_actions', entity, enabledActions }, { type: 'set_column_exposed', entity, column, isExposed }, { type: 'patch_entity_settings', entity, set }, { type: 'set_only_enabled_entities', entities }, { type: 'set_all_entities_enabled', isEnabled }. patch_entity_settings.set supports entityName, authorizationRole, customRestPath, restEnabled, customGraphQLType, graphQLEnabled, table-only mcpDmlToolsEnabled, and stored-procedure-only storedProcedureRestMethods, storedProcedureGraphQLOperation, exposeAsMcpCustomTool.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -3729,6 +3781,14 @@
                 "inputSchema": {
                     "type": "object",
                     "$defs": {
+                        "sourceType": {
+                            "type": "string",
+                            "enum": [
+                                "table",
+                                "view",
+                                "stored-procedure"
+                            ]
+                        },
                         "entityRef": {
                             "oneOf": [
                                 {
@@ -3759,6 +3819,28 @@
                                     "required": [
                                         "schemaName",
                                         "tableName"
+                                    ],
+                                    "additionalProperties": false
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "schemaName": {
+                                            "type": "string",
+                                            "minLength": 1
+                                        },
+                                        "sourceName": {
+                                            "type": "string",
+                                            "minLength": 1
+                                        },
+                                        "sourceType": {
+                                            "$ref": "#/$defs/sourceType"
+                                        }
+                                    },
+                                    "required": [
+                                        "schemaName",
+                                        "sourceName",
+                                        "sourceType"
                                     ],
                                     "additionalProperties": false
                                 }
@@ -3820,6 +3902,10 @@
                                         }
                                     ]
                                 },
+                                "restEnabled": {
+                                    "description": "When true, exposes the entity through REST if REST is globally enabled.",
+                                    "type": "boolean"
+                                },
                                 "customGraphQLType": {
                                     "description": "Entity GraphQL type override. Use null to clear.",
                                     "oneOf": [
@@ -3831,6 +3917,49 @@
                                             "type": "null"
                                         }
                                     ]
+                                },
+                                "graphQLEnabled": {
+                                    "description": "When true, exposes the entity through GraphQL if GraphQL is globally enabled.",
+                                    "type": "boolean"
+                                },
+                                "mcpDmlToolsEnabled": {
+                                    "description": "Table only. When true, exposes the table through generic MCP DML tools (create/read/update/delete) if MCP is globally enabled. When false, emits mcp { dml-tools: false } for the table.",
+                                    "type": "boolean"
+                                },
+                                "storedProcedureRestMethods": {
+                                    "description": "Stored procedure only. HTTP methods that can execute the stored procedure through REST. Use null to clear and use the DAB default.",
+                                    "oneOf": [
+                                        {
+                                            "type": "array",
+                                            "minItems": 1,
+                                            "uniqueItems": true,
+                                            "items": {
+                                                "type": "string",
+                                                "enum": [
+                                                    "get",
+                                                    "post",
+                                                    "put",
+                                                    "patch",
+                                                    "delete"
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "type": "null"
+                                        }
+                                    ]
+                                },
+                                "storedProcedureGraphQLOperation": {
+                                    "description": "Stored procedure only. GraphQL operation kind for the stored procedure.",
+                                    "type": "string",
+                                    "enum": [
+                                        "query",
+                                        "mutation"
+                                    ]
+                                },
+                                "exposeAsMcpCustomTool": {
+                                    "description": "Stored procedure only. When true, exposes the stored procedure as a dedicated MCP custom tool and hides it from generic MCP DML tools.",
+                                    "type": "boolean"
                                 }
                             },
                             "minProperties": 1,
@@ -3855,7 +3984,7 @@
                             "minLength": 1
                         },
                         "payload": {
-                            "description": "Operation-specific payload. apply_changes: { expectedVersion, targetHint?, changes }. Change types: set_api_types { apiTypes }, set_entity_enabled { entity, isEnabled }, set_entity_actions { entity, enabledActions }, set_column_exposed { entity, column, isExposed }, patch_entity_settings { entity, set }, set_only_enabled_entities { entities }, set_all_entities_enabled { isEnabled }.",
+                            "description": "Operation-specific payload. apply_changes: { expectedVersion, targetHint?, changes }. Change types: set_api_types { apiTypes }, add_entity { entity }, remove_entity { entity }, set_entity_enabled { entity, isEnabled }, set_entity_actions { entity, enabledActions }, set_column_exposed { entity, column, isExposed }, patch_entity_settings { entity, set }, set_only_enabled_entities { entities }, set_all_entities_enabled { isEnabled }.",
                             "title": "Payload",
                             "type": "object",
                             "properties": {
@@ -3924,6 +4053,44 @@
                                                     "type": {
                                                         "type": "string",
                                                         "enum": [
+                                                            "add_entity"
+                                                        ]
+                                                    },
+                                                    "entity": {
+                                                        "$ref": "#/$defs/entityRef"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "type",
+                                                    "entity"
+                                                ],
+                                                "additionalProperties": false
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "type": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "remove_entity"
+                                                        ]
+                                                    },
+                                                    "entity": {
+                                                        "$ref": "#/$defs/entityRef"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "type",
+                                                    "entity"
+                                                ],
+                                                "additionalProperties": false
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "type": {
+                                                        "type": "string",
+                                                        "enum": [
                                                             "set_entity_enabled"
                                                         ]
                                                     },
@@ -3961,7 +4128,8 @@
                                                                 "create",
                                                                 "read",
                                                                 "update",
-                                                                "delete"
+                                                                "delete",
+                                                                "execute"
                                                             ]
                                                         },
                                                         "minItems": 1,
@@ -4015,7 +4183,7 @@
                                                         "$ref": "#/$defs/entityRef"
                                                     },
                                                     "set": {
-                                                        "description": "Patch advanced settings. Example: { entityName: '41', authorizationRole: 'authenticated', customRestPath: 't_41', customGraphQLType: null }.",
+                                                        "description": "Patch advanced settings. Example: { entityName: '41', authorizationRole: 'authenticated', restEnabled: true, customRestPath: 't_41', graphQLEnabled: true, customGraphQLType: null, mcpDmlToolsEnabled: true, storedProcedureRestMethods: ['post'], storedProcedureGraphQLOperation: 'mutation', exposeAsMcpCustomTool: true }. mcpDmlToolsEnabled is table-only. Stored procedure settings are only valid for stored procedures.",
                                                         "$ref": "#/$defs/advancedSettingsPatch"
                                                     }
                                                 },

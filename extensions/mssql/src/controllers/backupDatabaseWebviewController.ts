@@ -128,7 +128,7 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
                 this.profile,
                 this.connectionManager,
             );
-        } catch (error) {
+        } catch {
             backupModel.loadState = ApiStatus.Error;
             this.state.errorMessage = LocConstants.BackupDatabase.couldNotConnectToDatabase(
                 backupModel.databaseName,

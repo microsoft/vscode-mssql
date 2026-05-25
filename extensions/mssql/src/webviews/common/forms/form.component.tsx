@@ -88,7 +88,7 @@ export const useFormStyles = makeStyles({
     labelDecoration: {
         display: "inline-flex",
         alignItems: "center",
-        columnGap: "0px",
+        gap: "4px",
     },
 });
 
