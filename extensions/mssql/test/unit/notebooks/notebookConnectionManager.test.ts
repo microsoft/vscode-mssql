@@ -611,10 +611,14 @@ suite("NotebookConnectionManager", () => {
             connectionMgr.sendRequest.resetHistory();
 
             await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
-            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
-            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+            expect(connectionMgr.sendRequest).to.have.been.calledWithMatch({
+                ownerUri: "vscode-notebook-cell://cell1",
+            });
 
-            expect(connectionMgr.sendRequest).to.have.callCount(1);
+            connectionMgr.sendRequest.resetHistory();
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+            expect(connectionMgr.sendRequest).to.not.have.been.called;
         });
 
         test("sends one request per distinct cell URI", async () => {
@@ -622,10 +626,19 @@ suite("NotebookConnectionManager", () => {
             connectionMgr.sendRequest.resetHistory();
 
             await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
-            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell2");
-            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+            expect(connectionMgr.sendRequest).to.have.been.calledWithMatch({
+                ownerUri: "vscode-notebook-cell://cell1",
+            });
 
-            expect(connectionMgr.sendRequest).to.have.callCount(2);
+            connectionMgr.sendRequest.resetHistory();
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell2");
+            expect(connectionMgr.sendRequest).to.have.been.calledWithMatch({
+                ownerUri: "vscode-notebook-cell://cell2",
+            });
+
+            connectionMgr.sendRequest.resetHistory();
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+            expect(connectionMgr.sendRequest).to.not.have.been.called;
         });
 
         test("re-sends after sendRequest failure (no false memoization)", async () => {
@@ -633,12 +646,17 @@ suite("NotebookConnectionManager", () => {
             connectionMgr.sendRequest.rejects(new Error("transient failure"));
 
             await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
-            expect(connectionMgr.sendRequest).to.have.callCount(1);
+            expect(connectionMgr.sendRequest).to.have.been.calledWithMatch({
+                ownerUri: "vscode-notebook-cell://cell1",
+            });
 
             // Recover and retry — should fire again, not be silently memoized
+            connectionMgr.sendRequest.resetHistory();
             connectionMgr.sendRequest.resolves(true);
             await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
-            expect(connectionMgr.sendRequest).to.have.callCount(2);
+            expect(connectionMgr.sendRequest).to.have.been.calledWithMatch({
+                ownerUri: "vscode-notebook-cell://cell1",
+            });
         });
 
         test("concurrent fire-and-forget calls for same URI dedupe to one request", async () => {
@@ -661,7 +679,14 @@ suite("NotebookConnectionManager", () => {
             resolveSend(true);
             await Promise.all([p1, p2, p3]);
 
-            expect(connectionMgr.sendRequest).to.have.callCount(1);
+            expect(connectionMgr.sendRequest).to.have.been.calledWithMatch({
+                ownerUri: "vscode-notebook-cell://cell1",
+            });
+
+            // Verify subsequent call is memoized (no new request)
+            connectionMgr.sendRequest.resetHistory();
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+            expect(connectionMgr.sendRequest).to.not.have.been.called;
         });
 
         test("disconnect clears memoization", async () => {
@@ -674,7 +699,9 @@ suite("NotebookConnectionManager", () => {
             connectionMgr.sendRequest.resetHistory();
             await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
 
-            expect(connectionMgr.sendRequest).to.have.callCount(1);
+            expect(connectionMgr.sendRequest).to.have.been.calledWithMatch({
+                ownerUri: "vscode-notebook-cell://cell1",
+            });
         });
 
         test("connectWith clears memoization (re-establishing connection)", async () => {
@@ -687,7 +714,9 @@ suite("NotebookConnectionManager", () => {
             connectionMgr.sendRequest.resetHistory();
             await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
 
-            expect(connectionMgr.sendRequest).to.have.callCount(1);
+            expect(connectionMgr.sendRequest).to.have.been.calledWithMatch({
+                ownerUri: "vscode-notebook-cell://cell1",
+            });
         });
 
         test("changeDatabase clears memoization", async () => {
@@ -698,7 +727,9 @@ suite("NotebookConnectionManager", () => {
             connectionMgr.sendRequest.resetHistory();
             await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
 
-            expect(connectionMgr.sendRequest).to.have.callCount(1);
+            expect(connectionMgr.sendRequest).to.have.been.calledWithMatch({
+                ownerUri: "vscode-notebook-cell://cell1",
+            });
         });
 
         test("stale in-flight failure does not delete new-generation registration", async () => {
@@ -730,7 +761,7 @@ suite("NotebookConnectionManager", () => {
             // Subsequent call under current gen must remain memoized.
             connectionMgr.sendRequest.resetHistory();
             await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
-            expect(connectionMgr.sendRequest).to.have.callCount(0);
+            expect(connectionMgr.sendRequest).to.not.have.been.called;
         });
     });
 
