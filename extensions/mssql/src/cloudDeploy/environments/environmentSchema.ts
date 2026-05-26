@@ -14,7 +14,12 @@
  * checks live elsewhere — this validator only checks file shape.
  */
 
-import { ENVIRONMENTS_FILE_SCHEMA_VERSION, EnvironmentsFile, ValidationType } from "./types";
+import {
+    ENVIRONMENTS_FILE_SCHEMA_VERSION,
+    EnvironmentsFile,
+    SourceOfTruthKind,
+    ValidationType,
+} from "./types";
 import { EnvironmentsFileParseError } from "./environmentFile";
 
 // =============================================================================
@@ -76,9 +81,14 @@ export function validateEnvironmentsFile(raw: unknown, filePath: string): Enviro
 // =============================================================================
 
 const VALIDATION_TYPES: readonly ValidationType[] = [
-    "static-analysis",
-    "unit-tests",
-    "workload-playback",
+    ValidationType.StaticAnalysis,
+    ValidationType.UnitTests,
+    ValidationType.WorkloadPlayback,
+];
+const SOURCE_OF_TRUTH_KINDS: readonly SourceOfTruthKind[] = [
+    SourceOfTruthKind.SqlProj,
+    SourceOfTruthKind.Dacpac,
+    SourceOfTruthKind.Container,
 ];
 const ID_PATTERN = /^[a-z0-9][a-z0-9_-]*$/i;
 
@@ -136,19 +146,24 @@ function validateSourceOfTruth(raw: unknown, path: string, issues: EnvironmentsF
     }
 
     const kind = raw.kind;
-    if (kind === "sqlproj" || kind === "dacpac") {
+    if (kind === SourceOfTruthKind.SqlProj || kind === SourceOfTruthKind.Dacpac) {
         if (!isNonEmptyString(raw.path)) {
             issues.push(error(`${path}.path`, "Expected a non-empty string."));
         }
         return;
     }
-    if (kind === "container") {
+    if (kind === SourceOfTruthKind.Container) {
         if (!isNonEmptyString(raw.connectionProfileId)) {
             issues.push(error(`${path}.connectionProfileId`, "Expected a non-empty string."));
         }
         return;
     }
-    issues.push(error(`${path}.kind`, 'Expected one of "sqlproj", "dacpac", "container".'));
+    issues.push(
+        error(
+            `${path}.kind`,
+            `Expected one of ${SOURCE_OF_TRUTH_KINDS.map((k) => `"${k}"`).join(", ")}.`,
+        ),
+    );
 }
 
 function validateValidationConfig(

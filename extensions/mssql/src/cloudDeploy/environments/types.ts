@@ -26,23 +26,37 @@
 /**
  * The set of first-party validations available today. Each env opts in/out per
  * validation via `ValidationConfig`. Intended to be replaced by a registry
- * lookup once third-party validations land; a closed union keeps the initial
+ * lookup once third-party validations land; a closed enum keeps the initial
  * surface small without precluding that.
  */
-export type ValidationType = "static-analysis" | "unit-tests" | "workload-playback";
+export enum ValidationType {
+    StaticAnalysis = "static-analysis",
+    UnitTests = "unit-tests",
+    WorkloadPlayback = "workload-playback",
+}
 
 // =============================================================================
 // Source of truth
 // =============================================================================
 
 /**
+ * Discriminator for `SourceOfTruth`. String values are persisted as-is in
+ * `.mssql/environments.json`, so changing them is a file-format break.
+ */
+export enum SourceOfTruthKind {
+    SqlProj = "sqlproj",
+    Dacpac = "dacpac",
+    Container = "container",
+}
+
+/**
  * Where the schema for this env comes from. Discriminated union: exactly one
  * variant is set per env. Validators must reject any other shape.
  */
 export type SourceOfTruth =
-    | { kind: "sqlproj"; path: string }
-    | { kind: "dacpac"; path: string }
-    | { kind: "container"; connectionProfileId: string };
+    | { kind: SourceOfTruthKind.SqlProj; path: string }
+    | { kind: SourceOfTruthKind.Dacpac; path: string }
+    | { kind: SourceOfTruthKind.Container; connectionProfileId: string };
 
 // =============================================================================
 // Per-validation settings
@@ -70,9 +84,13 @@ export interface WorkloadPlaybackSettings {
  * validation's `settings` is correctly typed.
  */
 export type ValidationConfig =
-    | { type: "static-analysis"; enabled: boolean; settings: StaticAnalysisSettings }
-    | { type: "unit-tests"; enabled: boolean; settings: UnitTestsSettings }
-    | { type: "workload-playback"; enabled: boolean; settings: WorkloadPlaybackSettings };
+    | { type: ValidationType.StaticAnalysis; enabled: boolean; settings: StaticAnalysisSettings }
+    | { type: ValidationType.UnitTests; enabled: boolean; settings: UnitTestsSettings }
+    | {
+          type: ValidationType.WorkloadPlayback;
+          enabled: boolean;
+          settings: WorkloadPlaybackSettings;
+      };
 
 // =============================================================================
 // Environment

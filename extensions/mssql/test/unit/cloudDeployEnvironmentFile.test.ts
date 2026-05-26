@@ -13,6 +13,7 @@ import {
     ENVIRONMENTS_FILE_SCHEMA_VERSION,
     Environment,
     EnvironmentsFile,
+    SourceOfTruthKind,
 } from "../../src/cloudDeploy/environments/types";
 import {
     EnvironmentsFileParseError,
@@ -33,7 +34,7 @@ function makeEnv(id: string): Environment {
     return {
         id,
         name: id,
-        sourceOfTruth: { kind: "container", connectionProfileId: "conn-1" },
+        sourceOfTruth: { kind: SourceOfTruthKind.Container, connectionProfileId: "conn-1" },
         validations: [],
     };
 }

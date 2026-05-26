@@ -9,7 +9,12 @@ import * as os from "os";
 import * as path from "path";
 import * as vscode from "vscode";
 
-import { Environment, ValidationConfig } from "../../src/cloudDeploy/environments/types";
+import {
+    Environment,
+    SourceOfTruthKind,
+    ValidationConfig,
+    ValidationType,
+} from "../../src/cloudDeploy/environments/types";
 import {
     EnvironmentsChangeEvent,
     EnvironmentStore,
@@ -49,14 +54,14 @@ function makeEnv(id: string, overrides: Partial<Environment> = {}): Environment 
     return {
         id,
         name: id,
-        sourceOfTruth: { kind: "container", connectionProfileId: "conn-1" },
+        sourceOfTruth: { kind: SourceOfTruthKind.Container, connectionProfileId: "conn-1" },
         validations: [],
         ...overrides,
     };
 }
 
 const unitTestValidation: ValidationConfig = {
-    type: "unit-tests",
+    type: ValidationType.UnitTests,
     enabled: true,
     settings: {},
 };

@@ -1,4 +1,4 @@
-﻿/*---------------------------------------------------------------------------------------------
+/*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
@@ -90,8 +90,9 @@ export class EnvironmentStore implements vscode.Disposable {
 
     /**
      * Loads `.mssql/environments.json` from disk. Must be called (and awaited)
-     * exactly once before any other method. Surfaces parse errors to the caller
-     * so extension activation can react to a malformed file.
+     * before any other method. Safe to call multiple times; subsequent calls
+     * are no-ops. Surfaces parse errors to the caller so extension activation
+     * can react to a malformed file.
      */
 
     public async init(): Promise<void> {
@@ -138,7 +139,7 @@ export class EnvironmentStore implements vscode.Disposable {
 
     /**
      * Inserts or replaces an env by id. Validates the entire post-mutation file
-     * shape before writing to disk â€” defense in depth against in-process bugs
+     * shape before writing to disk — defense in depth against in-process bugs
      * passing malformed envs.
      */
 
@@ -278,7 +279,7 @@ export class EnvironmentStore implements vscode.Disposable {
             environments: next,
         };
 
-        // Validate before writing â€” never persist an invalid shape, even if a
+        // Validate before writing — never persist an invalid shape, even if a
 
         // caller passed something the file validator would later reject.
 
@@ -297,7 +298,7 @@ export class EnvironmentStore implements vscode.Disposable {
 
         // Swallow rejections in the chain so one failure doesn't poison
 
-        // subsequent writes â€” but propagate them to the original caller.
+        // subsequent writes — but propagate them to the original caller.
 
         this._writeChain = next.catch(() => undefined);
 
