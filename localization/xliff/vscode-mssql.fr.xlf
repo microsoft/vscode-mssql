@@ -952,7 +952,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++b6c1d862f9f75ec31eb9829b6a5968eb291dc8785e7fb59d4bc6ef00f292d3f7">
         <source xml:lang="en">Both</source>
-        <target state="new">Both</target>
+        <target state="translated">Les deux</target>
       </trans-unit>
       <trans-unit id="++CODE++ec811d30a89ce96d1c7555ffaede78b188fedb1d283adf7cdf55a4edae6697a7">
         <source xml:lang="en">Brightness</source>
@@ -1689,7 +1689,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++cedc516df056195108208c53c37b1b3ba2b1f25b3e0772e954b98b9bc4ec76ec">
         <source xml:lang="en">Compute</source>
-        <target state="new">Compute</target>
+        <target state="translated">Calcul</target>
       </trans-unit>
       <trans-unit id="++CODE++cbd2167917b36ef54fa6044f33009b01e0793c6fda74f2488762f9cdb26793fc">
         <source xml:lang="en">Compute + Storage</source>
@@ -2278,7 +2278,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++9d81b93dc08c52e0f2e02d5397b390f7a94f0d4621c48a18a1a59b163acfda78">
         <source xml:lang="en">Create New Resource Group</source>
-        <target state="new">Create New Resource Group</target>
+        <target state="translated">Créer un groupe de ressources</target>
       </trans-unit>
       <trans-unit id="++CODE++bab90f75906255b3122103084e6016632ae14f76d6447b95c84c4e4d7db51ec1">
         <source xml:lang="en">Create New Server</source>
@@ -2327,7 +2327,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++9f3df753a41ae98ee68246dcf9727a0e2c18af3b99e9921a55b7d75aed543f44">
         <source xml:lang="en">Create new</source>
-        <target state="new">Create new</target>
+        <target state="translated">Créer</target>
       </trans-unit>
       <trans-unit id="++CODE++df70f437cafdeb7517ec4a9fd9ce6fc0c92b4b70ef5e7c79436341201f731fdb">
         <source xml:lang="en">Create new connection copied from {0}</source>
@@ -2490,7 +2490,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++e136aee7826b55f91d1b030832bc4be35b9ee07563c09627052aeecb9335a039">
         <source xml:lang="en">Data Source</source>
-        <target state="new">Data Source</target>
+        <target state="translated">Source de données</target>
       </trans-unit>
       <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
         <source xml:lang="en">Data Type</source>
@@ -3154,7 +3154,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++66b21d157405ff2789b283f4f29e225854443edee43a0694233cdd063de255dc">
         <source xml:lang="en">Enter a name for the new resource group</source>
-        <target state="new">Enter a name for the new resource group</target>
+        <target state="translated">Entrez un nom pour le nouveau groupe de ressources</target>
       </trans-unit>
       <trans-unit id="++CODE++f302fdbca94d65797221e8c829c55961e7b47aebf753ca2dd797862c8453649a">
         <source xml:lang="en">Enter a name for the new server</source>
@@ -3226,11 +3226,11 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++aae46441eaafc59419fdc91d2a14f13e534b533fecd19a1b47833c18862731fe">
         <source xml:lang="en">Enter resource group name</source>
-        <target state="new">Enter resource group name</target>
+        <target state="translated">Entrer le nom du groupe de ressources</target>
       </trans-unit>
       <trans-unit id="++CODE++01361e7512312c886672147a57fe766787e82c148e04d8c5e26897ff5bba3bef">
         <source xml:lang="en">Enter server name</source>
-        <target state="new">Enter server name</target>
+        <target state="translated">Entrer un nom de serveur</target>
       </trans-unit>
       <trans-unit id="++CODE++a462b8c590652563cb55e5dc6e55e0b7ac0123f0a5dd70f9043bdef3d4fa5417">
         <source xml:lang="en">Enter text...</source>
@@ -4519,7 +4519,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++fe9fa5778e6299904ef31d5f6e87aed494f00eb96d5aba3ab8b23beed99759c9">
         <source xml:lang="en">General Purpose</source>
-        <target state="new">General Purpose</target>
+        <target state="translated">Usage général</target>
       </trans-unit>
       <trans-unit id="++CODE++752307275e5358665596d28a3080462e4933b77005bbbf2ba1eca87f1dca1fcc">
         <source xml:lang="en">Generate Data API builder configurations using natural language through GitHub Copilot chat and agent tools. Describe your API requirements and let GitHub Copilot scaffold the configuration for you.</source>
@@ -6191,7 +6191,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++fb3366f4457488366aacf21f69259ad9213cd246963ee0e9a6c11fa0ab19a058">
         <source xml:lang="en">No resource groups found</source>
-        <target state="new">No resource groups found</target>
+        <target state="translated">Aucun groupe de ressources trouvé</target>
       </trans-unit>
       <trans-unit id="++CODE++9852a3d3be7fa108f0b4d5bce724ab20c0b86b122015c4d368f27476cc0e154a">
         <source xml:lang="en">No resource of type '{0}' is configured for the current cloud '{1}'. Please update your Azure account settings.</source>
@@ -7205,7 +7205,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++d3a008ef1335692d9d045175ba9ea1dcd39ae48da9e2043a9baabad6c3818c28">
         <source xml:lang="en">Region</source>
-        <target state="new">Region</target>
+        <target state="translated">Région</target>
       </trans-unit>
       <trans-unit id="++CODE++ab604a360777735fe2993aec7d4ffae415f1515b0a4c989269603fd3d5c07b61">
         <source xml:lang="en">Reject</source>
@@ -7344,11 +7344,11 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++2f15b48a0d26c41fdc8a6d366cfc1ab170dc26794f40856a804b062614c02d9b">
         <source xml:lang="en">Resource Group is required</source>
-        <target state="new">Resource Group is required</target>
+        <target state="translated">Un groupe de ressources est obligatoire</target>
       </trans-unit>
       <trans-unit id="++CODE++575874d7f7e259d7f9b8c15418105d5f0bac4a56e628837e68b5513a504b6a93">
         <source xml:lang="en">Resource group name is required</source>
-        <target state="new">Resource group name is required</target>
+        <target state="translated">Le nom de groupe de ressources est obligatoire</target>
       </trans-unit>
       <trans-unit id="++CODE++e89b30aa1dc30a6ad8c34610689bede83b3ef645a24c3a84a0990826687fb735">
         <source xml:lang="en">Resources</source>
@@ -8042,7 +8042,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++4e6644fdcf104792709d58c5309c2a4ec5a14b58e94a40bdd9da2af532e8e534">
         <source xml:lang="en">Select a data source</source>
-        <target state="new">Select a data source</target>
+        <target state="translated">Sélectionner une source de données</target>
       </trans-unit>
       <trans-unit id="++CODE++c9e8c706a0db2ef84dc8a610e30fe22cb5709a146a0e76955dbd1f1444e5a0e6">
         <source xml:lang="en">Select a database</source>
@@ -8074,7 +8074,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++d80286a389f6cbd72a837db93310e6ca50fa84e403f2bfa5e55d39e3e521279f">
         <source xml:lang="en">Select a resource group</source>
-        <target state="new">Select a resource group</target>
+        <target state="translated">Sélectionner un groupe de ressources</target>
       </trans-unit>
       <trans-unit id="++CODE++8a953dbed756a0be682ea17fe4c3be30e723ec8c98816d4b73fd86719df8dcc0">
         <source xml:lang="en">Select a server</source>
@@ -8271,7 +8271,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++065750f922eb26ea9f58d758bc1adbc7a22a2c8642a4f5f2b82e27c31e053d3a">
         <source xml:lang="en">Server name is required</source>
-        <target state="new">Server name is required</target>
+        <target state="translated">Le nom de serveur est obligatoire</target>
       </trans-unit>
       <trans-unit id="++CODE++9e28d8dd2c02f540827e4ea6f0fb6d1340a82e35a653a2ea2cc3ef0ce1ba0ce3">
         <source xml:lang="en">Server name not set.</source>
@@ -8724,7 +8724,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++a69c4dece144a46e40d430726395533d8f335a7d601d8ca292220b3a4a7faca4">
         <source xml:lang="en">Storage</source>
-        <target state="new">Storage</target>
+        <target state="translated">Stockage</target>
       </trans-unit>
       <trans-unit id="++CODE++1755a01ae9117c06e6710451545424a51fd152c0e0d4609bd9db3732ae4b24f7">
         <source xml:lang="en">Storage Account</source>
@@ -8935,7 +8935,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++ab25773875891beef60edb4b69226e94a44e347625f2188a767af0552f50f33f">
         <source xml:lang="en">Tag keys must be unique.</source>
-        <target state="new">Tag keys must be unique.</target>
+        <target state="translated">Les clés d'étiquette doivent être uniques.</target>
       </trans-unit>
       <trans-unit id="++CODE++1331275bc537b4c2bf1e46f7275677967515342e30b572e6852fa6f51b831fe8">
         <source xml:lang="en">Tags</source>
@@ -10110,7 +10110,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++7ff2c6370613ed94cff5b41da2922691d968855c00b28dc39d101079cc59f673">
         <source xml:lang="en">vCores</source>
-        <target state="new">vCores</target>
+        <target state="translated">cœurs virtuels</target>
       </trans-unit>
       <trans-unit id="++CODE++cd42404d52ad55ccfa9aca4adc828aa5800ad9d385a0671fbcbf724118320619">
         <source xml:lang="en">value</source>
