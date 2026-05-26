@@ -1258,7 +1258,7 @@
     "Smart performance": "Smart performance",
     "Automatic tuning features like automatic index creation enabled by default.": "Automatic tuning features like automatic index creation enabled by default.",
     "Loading Azure SQL Database...": "Loading Azure SQL Database...",
-    "Create an Azure SQL Database": "Create an Azure SQL Database",
+    "Create an Azure SQL Database (Preview)": "Create an Azure SQL Database (Preview)",
     "Try Azure SQL Database at no cost with our free tier offer! Provision a fully managed cloud database directly from VS Code.": "Try Azure SQL Database at no cost with our free tier offer! Provision a fully managed cloud database directly from VS Code.",
     "Developer-friendly transactional database using the Azure SQL Database Engine — at no cost for prototyping and learning.": "Developer-friendly transactional database using the Azure SQL Database Engine — at no cost for prototyping and learning.",
     "Free compute & storage": "Free compute & storage",

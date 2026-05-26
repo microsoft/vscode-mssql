@@ -1983,7 +1983,7 @@ export class LocConstants {
     public get azureSqlDatabase() {
         return {
             loadingAzureSqlDatabase: l10n.t("Loading Azure SQL Database..."),
-            azureSqlDatabaseHeader: l10n.t("Create an Azure SQL Database"),
+            azureSqlDatabaseHeader: l10n.t("Create an Azure SQL Database (Preview)"),
             azureSqlDatabaseDescription: l10n.t(
                 "Try Azure SQL Database at no cost with our free tier offer! Provision a fully managed cloud database directly from VS Code.",
             ),
