@@ -385,7 +385,7 @@ suite("PublishProjectWebViewController Tests", () => {
 
         const profilePath = "c:/profiles/TestProfile.publish.xml";
 
-        // Mock file system read - simulate a file saved by Visual Studio with a UTF-8 BOM (﻿).
+        // Mock file system read - simulate a file saved by Visual Studio with a UTF-8 BOM (\uFEFF).
         // @xmldom/xmldom 0.9.x throws when the XML declaration is not at
         // position 0, causing SQLCMD variables to silently return empty.
         const fs = await import("fs");
