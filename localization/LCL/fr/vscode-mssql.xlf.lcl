@@ -11113,6 +11113,12 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++7f528941bf8224f8dd6956f98aa9ae63472375cfaebddbcb78005f15c5f239df" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Optional - Override default GraphQL type name]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++7f55382219f0202c1b4f56deb099e2fedcec87ee73fe2edb2105df5447323bc6" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Search...]]></Val>
@@ -13204,12 +13210,6 @@
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Identité]]></Val>
           </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++99a52df3ff3d499488e2fa28150c4106a2cb5e928891a830a9aa3922b2d32160" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Key]]></Val>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -16749,7 +16749,10 @@
       </Item>
       <Item ItemId=";bundle.++CODE++c4038f47497f61adc776523835e82f3bab98d497b1978fced8d46e61e6f435a4" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Seed sample data or import an existing schema]]></Val>
+          <Val><![CDATA[Select the HTTP methods that can execute this stored procedure. DAB defaults to POST.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Sélectionnez les méthodes HTTP qui peuvent exécuter cette procédure stockée. DAB est défini par défaut sur POST.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
