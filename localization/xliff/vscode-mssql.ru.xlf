@@ -2317,9 +2317,9 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Create a new profiling session</source>
         <target state="translated">Создать новый сеанс профилирования</target>
       </trans-unit>
-      <trans-unit id="++CODE++2dda2d5e705c870b4711000d9e6e1a1552a6426ff2835af34a45eb0ea5f3182b">
-        <source xml:lang="en">Create an Azure SQL Database</source>
-        <target state="translated">Создайте базу данных Azure SQL</target>
+      <trans-unit id="++CODE++ba9ae98bcb402b5a736ffd9e5da622d3bf7e67b5a7da246d9238029b9d1449ed">
+        <source xml:lang="en">Create an Azure SQL Database (Preview)</source>
+        <target state="new">Create an Azure SQL Database (Preview)</target>
       </trans-unit>
       <trans-unit id="++CODE++920a110919d9017fb66218139efb71c5907532cbe6292a1db645f05d06a171ae">
         <source xml:lang="en">Create as Script</source>
