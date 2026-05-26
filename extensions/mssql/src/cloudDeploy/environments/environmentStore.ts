@@ -1,34 +1,17 @@
-/*---------------------------------------------------------------------------------------------
+﻿/*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
-
-/*---------------------------------------------------------------------------------------------
-
- *  Copyright (c) Microsoft Corporation. All rights reserved.
-
- *  Licensed under the MIT License. See License.txt in the project root for license information.
-
  *--------------------------------------------------------------------------------------------*/
 
 /**
-
  * Cloud Deploy — environment store.
-
  *
-
  * In-memory cache + CRUD over the on-disk environments file. One instance per
-
  * workspace folder. Loads once via `init()`, persists each mutation
-
  * write-through, and emits a typed change event on every modification.
-
  *
-
  * Also owns the per-user default-environment selection, stored in workspace
-
  * `Memento` state so it doesn't pollute the shared `.mssql/environments.json`.
-
  */
 
 import * as vscode from "vscode";
@@ -106,13 +89,9 @@ export class EnvironmentStore implements vscode.Disposable {
     // -------------------------------------------------------------------------
 
     /**
-
      * Loads `.mssql/environments.json` from disk. Must be called (and awaited)
-
      * exactly once before any other method. Surfaces parse errors to the caller
-
      * so extension activation can react to a malformed file.
-
      */
 
     public async init(): Promise<void> {
@@ -158,13 +137,9 @@ export class EnvironmentStore implements vscode.Disposable {
     // -------------------------------------------------------------------------
 
     /**
-
      * Inserts or replaces an env by id. Validates the entire post-mutation file
-
-     * shape before writing to disk — defense in depth against in-process bugs
-
+     * shape before writing to disk â€” defense in depth against in-process bugs
      * passing malformed envs.
-
      */
 
     public async upsert(env: Environment): Promise<void> {
@@ -218,11 +193,8 @@ export class EnvironmentStore implements vscode.Disposable {
     }
 
     /**
-
      * Re-reads the file from disk, replacing the in-memory cache. Fires a
-
      * change event with the diff against the previous cache.
-
      */
 
     public async reload(): Promise<void> {
@@ -252,11 +224,8 @@ export class EnvironmentStore implements vscode.Disposable {
     // -------------------------------------------------------------------------
 
     /**
-
      * Returns the user's preferred default env id, or undefined if none is set
-
      * or the previously-set id no longer exists.
-
      */
 
     public getDefaultEnvironmentId(): string | undefined {
@@ -298,11 +267,8 @@ export class EnvironmentStore implements vscode.Disposable {
     }
 
     /**
-
      * Validates `next`, writes the file, and commits the in-memory cache.
-
      * On any failure, the in-memory state is left untouched.
-
      */
 
     private async persist(next: Environment[]): Promise<void> {
@@ -312,7 +278,7 @@ export class EnvironmentStore implements vscode.Disposable {
             environments: next,
         };
 
-        // Validate before writing — never persist an invalid shape, even if a
+        // Validate before writing â€” never persist an invalid shape, even if a
 
         // caller passed something the file validator would later reject.
 
@@ -331,7 +297,7 @@ export class EnvironmentStore implements vscode.Disposable {
 
         // Swallow rejections in the chain so one failure doesn't poison
 
-        // subsequent writes — but propagate them to the original caller.
+        // subsequent writes â€” but propagate them to the original caller.
 
         this._writeChain = next.catch(() => undefined);
 
