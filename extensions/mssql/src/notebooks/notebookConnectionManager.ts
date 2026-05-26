@@ -442,8 +442,16 @@ export class NotebookConnectionManager implements vscode.Disposable {
                 return;
             }
 
+            if (result !== true) {
+                this.registeredCellUris.delete(cellDocumentUri);
+                this.log.warn(
+                    `[connectCellForIntellisense] STS connect did not succeed (result=${String(result)}) cell=${cellDocumentUri}`,
+                );
+                return;
+            }
+
             this.log.debug(
-                `[connectCellForIntellisense] STS connect returned ${result === true ? "true" : result === false ? "false" : String(result)} cell=${cellDocumentUri}`,
+                `[connectCellForIntellisense] STS connect returned true cell=${cellDocumentUri}`,
             );
         } catch (err: any) {
             if (generation === this.connectionGeneration) {
