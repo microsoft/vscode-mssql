@@ -54,26 +54,6 @@ export interface ColumnMetadata {
     isTrustworthyForUniqueness?: boolean;
 }
 
-export interface DabDatabaseObjectMetadata {
-    id: string;
-    schema: string;
-    name: string;
-}
-
-export interface DabViewColumnMetadata {
-    id: string;
-    name: string;
-    dataType: string;
-    isPrimaryKey: boolean;
-    ordinal: number;
-}
-
-export interface DabStoredProcedureParameterMetadata {
-    name: string;
-    dataType: string;
-    ordinal: number;
-}
-
 /**
  * Represents information about a database.
  */

@@ -379,6 +379,9 @@ export class NotebookConnectionManager implements vscode.Disposable {
      */
     async connectCellForIntellisense(cellDocumentUri: string): Promise<void> {
         if (!this.connectionInfo) {
+            this.log.debug(
+                `[connectCellForIntellisense] Skipped (no connectionInfo) cell=${cellDocumentUri}`,
+            );
             return;
         }
 
@@ -391,10 +394,21 @@ export class NotebookConnectionManager implements vscode.Disposable {
             connectionDetails = this.connectionMgr.createConnectionDetails(this.connectionInfo);
         } catch (err: any) {
             this.log.warn(
-                `[connectCellForIntellisense] createConnectionDetails failed: ${err.message}`,
+                `[connectCellForIntellisense] createConnectionDetails failed: ${err.message} cell=${cellDocumentUri}`,
             );
             return;
         }
+
+        let cellUriScheme = "unknown";
+        try {
+            cellUriScheme = vscode.Uri.parse(cellDocumentUri).scheme;
+        } catch {
+            // ignore parse errors
+        }
+        const authType = connectionDetails.options?.authenticationType ?? "unknown";
+        this.log.debug(
+            `[connectCellForIntellisense] Sending connect request scheme=${cellUriScheme} server=${this.connectionInfo.server} database=${this.connectionInfo.database || "(default)"} auth=${authType} cell=${cellDocumentUri}`,
+        );
 
         try {
             const params: ConnectParams = {
@@ -402,12 +416,16 @@ export class NotebookConnectionManager implements vscode.Disposable {
                 connection: connectionDetails,
             };
 
-            await this.connectionMgr.sendRequest(ConnectionRequest.type, params);
+            const result = await this.connectionMgr.sendRequest(ConnectionRequest.type, params);
             this.registeredCellUris.add(cellDocumentUri);
 
-            this.log.info(`[connectCellForIntellisense] Connected cell: ${cellDocumentUri}`);
+            this.log.debug(
+                `[connectCellForIntellisense] STS connect returned ${result === true ? "true" : result === false ? "false" : String(result)} cell=${cellDocumentUri}`,
+            );
         } catch (err: any) {
-            this.log.warn(`[connectCellForIntellisense] sendRequest failed: ${err.message}`);
+            this.log.warn(
+                `[connectCellForIntellisense] sendRequest failed: ${err.message} cell=${cellDocumentUri}`,
+            );
         }
     }
 

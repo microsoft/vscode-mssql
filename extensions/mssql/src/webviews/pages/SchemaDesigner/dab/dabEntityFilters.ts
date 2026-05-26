@@ -15,13 +15,11 @@ export enum DabEntityStatusFilter {
 export interface DabEntityFilters {
     status: DabEntityStatusFilter;
     schemas: string[];
-    sourceTypes: Dab.EntitySourceType[];
 }
 
 export const defaultDabEntityFilters: DabEntityFilters = {
     status: DabEntityStatusFilter.All,
     schemas: [],
-    sourceTypes: [],
 };
 
 export function getDabSchemaFilterKey(schemaName: string): string {
@@ -29,17 +27,20 @@ export function getDabSchemaFilterKey(schemaName: string): string {
 }
 
 export function getDabEntityFilterCount(filters: DabEntityFilters): number {
-    return (
-        (filters.status === DabEntityStatusFilter.All ? 0 : 1) +
-        filters.schemas.length +
-        filters.sourceTypes.length
-    );
+    return (filters.status === DabEntityStatusFilter.All ? 0 : 1) + filters.schemas.length;
+}
+
+export function isDabTableEntity(entity: Dab.DabEntityConfig): boolean {
+    return (entity.sourceType ?? Dab.EntitySourceType.Table) === Dab.EntitySourceType.Table;
 }
 
 export function doesEntityMatchDabFilters(
     entity: Dab.DabEntityConfig,
     filters: DabEntityFilters,
 ): boolean {
+    if (!isDabTableEntity(entity)) {
+        return false;
+    }
     if (filters.status === DabEntityStatusFilter.Enabled && !entity.isEnabled) {
         return false;
     }
@@ -56,8 +57,7 @@ export function doesEntityMatchDabFilters(
         return false;
     }
 
-    const sourceType = entity.sourceType ?? Dab.EntitySourceType.Table;
-    return filters.sourceTypes.length === 0 || filters.sourceTypes.includes(sourceType);
+    return true;
 }
 
 export function toggleDabEntityFilterValue<T>(values: T[], value: T, allValues?: T[]): T[] {
