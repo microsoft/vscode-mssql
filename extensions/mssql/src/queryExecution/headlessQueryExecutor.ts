@@ -26,6 +26,7 @@ import { QueryDisposeRequest, QueryDisposeParams } from "../models/contracts/que
 import { QueryCancelRequest, QueryCancelParams } from "../models/contracts/queryCancel";
 import { IDbColumn, IResultMessage } from "../models/interfaces";
 import { Deferred } from "../protocol";
+import { ILogger2 } from "../models/logger2";
 
 export interface HeadlessQueryCancellationToken {
     readonly isCancellationRequested: boolean;
@@ -52,16 +53,21 @@ export interface HeadlessQueryResult {
 
 const SUBSET_PAGE_SIZE = 500;
 
+// Why not reuse QueryRunner? QueryRunner is tightly coupled to the query
+// editor: it requires StatusView/VscodeWrapper, fires Query Editor telemetry,
+// manages editor toolbar state, adjusts batch selections by editor line
+// offsets, and exposes results through UI-oriented EventEmitters. Notebooks
+// and MCP need a promise-based STS execution path without those dependencies.
+
 /**
- * Lightweight headless wrapper over the STS query/executeString pipeline.
- *
- * This intentionally avoids QueryRunner because QueryRunner is coupled to
- * editor UI, status-bar state, query panels, and query-editor telemetry.
+ * Lightweight executor that wraps the STS notification flow into a simple
+ * promise-based API for headless callers.
  */
 export class HeadlessQueryExecutor {
     constructor(
         private readonly client: SqlToolsServiceClient,
         private readonly notificationHandler: QueryNotificationHandler,
+        private readonly log?: ILogger2,
     ) {}
 
     async execute(
@@ -69,8 +75,14 @@ export class HeadlessQueryExecutor {
         query: string,
         cancellationToken?: HeadlessQueryCancellationToken,
     ): Promise<HeadlessQueryResult> {
+        this.log?.debug(
+            `[HeadlessQueryExecutor.execute] begin ownerUri=${ownerUri} queryLen=${query.length}`,
+        );
         const batchResults = new Map<number, HeadlessBatchResult>();
         let canceled = false;
+        // Tracks the most recently started batch so that messages with
+        // batchId=-1 or undefined (for example parse/syntax errors) can be
+        // attached to the batch they logically belong to.
         let lastStartedBatchId = -1;
         const completion = new Deferred<QueryExecuteCompleteNotificationResult>();
 
@@ -133,9 +145,13 @@ export class HeadlessQueryExecutor {
         };
 
         this.notificationHandler.registerRunner(handler, ownerUri);
+        this.log?.trace(`[HeadlessQueryExecutor.execute] handler registered ownerUri=${ownerUri}`);
 
         const cancelDisposable = cancellationToken?.onCancellationRequested(async () => {
             canceled = true;
+            this.log?.debug(
+                `[HeadlessQueryExecutor.execute] cancel requested ownerUri=${ownerUri}`,
+            );
             try {
                 const cancelParams: QueryCancelParams = { ownerUri };
                 await this.client.sendRequest(QueryCancelRequest.type, cancelParams);
@@ -148,9 +164,22 @@ export class HeadlessQueryExecutor {
             const params = new QueryExecuteStringParams();
             params.ownerUri = ownerUri;
             params.query = query;
+            this.log?.trace(
+                `[HeadlessQueryExecutor.execute] sendRequest(QueryExecuteString): begin ownerUri=${ownerUri}`,
+            );
+            const sendStarted = Date.now();
             await this.client.sendRequest(QueryExecuteStringRequest.type, params);
+            this.log?.debug(
+                `[HeadlessQueryExecutor.execute] sendRequest(QueryExecuteString): ack after ` +
+                    `${Date.now() - sendStarted}ms; waiting for query/complete ownerUri=${ownerUri}`,
+            );
 
+            const waitStarted = Date.now();
             await completion.promise;
+            this.log?.debug(
+                `[HeadlessQueryExecutor.execute] query/complete received after ` +
+                    `${Date.now() - waitStarted}ms ownerUri=${ownerUri}`,
+            );
 
             if (!canceled) {
                 await this.fetchAllRows(ownerUri, batchResults);

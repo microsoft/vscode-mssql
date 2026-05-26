@@ -82,7 +82,7 @@ const sharedRules = {
         },
     ],
     "@typescript-eslint/no-unused-vars": [
-        "warn",
+        "error",
         {
             argsIgnorePattern: "^_",
         },

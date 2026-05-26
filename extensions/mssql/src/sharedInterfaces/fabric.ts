@@ -5,24 +5,31 @@
 
 import { Status } from "./webview";
 
-export interface FabricSqlDbInfo {
+export interface SqlDbInfo {
     id: string;
     server: string;
     displayName: string;
-    database: string;
+    databases: string[];
     type: string;
-    workspaceId: string;
-    workspaceName: string;
+    collectionId: string;
+    collectionName: string;
     tenantId: string;
+    resourceGroup?: string;
 }
 
-export interface FabricWorkspaceInfo {
+/** @deprecated Use SqlDbInfo */
+export type FabricSqlDbInfo = SqlDbInfo;
+
+export interface SqlCollectionInfo {
     id: string;
     displayName: string;
     tenantId: string;
-    databases: FabricSqlDbInfo[];
+    databases: SqlDbInfo[];
     loadStatus: Status;
 }
+
+/** @deprecated Use SqlCollectionInfo */
+export type FabricWorkspaceInfo = SqlCollectionInfo;
 
 export enum SqlArtifactTypes {
     SqlDatabase = "SQLDatabase",

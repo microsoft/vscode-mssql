@@ -131,7 +131,10 @@ export abstract class MsalAzureAuth {
         return account;
     }
 
-    protected abstract login(tenant: ITenant): Promise<{
+    protected abstract login(
+        tenant: ITenant,
+        scopes?: string[],
+    ): Promise<{
         response: AuthenticationResult | null;
         authComplete: IDeferred<void, Error>;
     }>;
@@ -227,7 +230,8 @@ export abstract class MsalAzureAuth {
             error instanceof InteractionRequiredAuthError ||
             error.errorMessage.includes(Constants.AADSTS70043) ||
             error.errorMessage.includes(Constants.AADSTS50020) ||
-            error.errorMessage.includes(Constants.AADSTS50173)
+            error.errorMessage.includes(Constants.AADSTS50173) ||
+            error.errorMessage.includes(Constants.AADSTS50078)
         );
     }
 
@@ -254,7 +258,9 @@ export abstract class MsalAzureAuth {
                     key: tokenResult.account!.homeAccountId,
                     token: tokenResult.accessToken,
                     tokenType: tokenResult.tokenType,
-                    expiresOn: tokenResult.account!.idTokenClaims!.exp,
+                    expiresOn: tokenResult.expiresOn
+                        ? Math.floor(tokenResult.expiresOn.getTime() / 1000)
+                        : undefined,
                 };
 
                 return await this.hydrateAccount(token, tokenClaims);
@@ -358,16 +364,32 @@ export abstract class MsalAzureAuth {
         settings: IAADResource,
         promptUser: boolean = true,
     ): Promise<AuthenticationResult | null> {
+        // Compute the correct scopes for the target resource so that
+        // re-auth acquires a token for the right audience.  Using the
+        // default this.scopes (ARM-only for the public cloud) when the
+        // caller needs a SQL token causes Error 18456 in multi-tenant
+        // scenarios.
+        const endpoint = settings.endpoint.endsWith("/")
+            ? settings.endpoint
+            : settings.endpoint + "/";
+        const resourceScopes =
+            settings.id === this.providerSettings.settings.windowsManagementResource.id
+                ? [`${endpoint}user_impersonation`]
+                : [`${endpoint}.default`];
+        // Always include OpenID Connect scopes so the login result
+        // contains an id_token that can be used for account hydration.
+        const loginScopes = [...resourceScopes, "openid", "email", "profile", "offline_access"];
+
         let shouldOpen: boolean;
         if (promptUser) {
             shouldOpen = await this.askUserForInteraction(tenant, settings);
             if (shouldOpen) {
-                const result = await this.login(tenant);
+                const result = await this.login(tenant, loginScopes);
                 result?.authComplete?.resolve();
                 return result?.response;
             }
         } else {
-            const result = await this.login(tenant);
+            const result = await this.login(tenant, loginScopes);
             result?.authComplete?.resolve();
             return result?.response;
         }

@@ -154,6 +154,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++01361e7512312c886672147a57fe766787e82c148e04d8c5e26897ff5bba3bef" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter server name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[输入服务器名称]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++0149b409a73e8498a5256e13dbf70225738e9e1fed0d976e20ad8ef338cc2d22" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[More Query Actions]]></Val>
@@ -316,6 +325,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++03477f19d9c2a8d64507c67756d40cf9945e802a3c7f0b52d45a4127ebfd53a2" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Define who can execute this stored procedure]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[定义可以执行此存储过程的人员]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++035f6f2b97a039d49cb4ed684e5e8118c2acf2ff2fcc0e25fc94e2eacbc63b80" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[SQL Server port number]]></Val>
@@ -339,6 +357,15 @@
           <Val><![CDATA[Create New Connection Group]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[创建新连接组]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++03c0e95da7ae52bf9392b845b82870dbf28db813a7fd4a72085f8a544de37916" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Could not detect your client IP address. Please add a firewall rule manually in the Azure portal.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[无法检测客户端 IP 地址。请在 Azure 门户中手动添加防火墙规则。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -393,15 +420,6 @@
           <Val><![CDATA[Total execution time: {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[总执行时间: {0}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++04996289cd69a5a2f94fb144afcff1a6109090bb48cf8bb340d7b205323c4e81" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Table contains column types not supported by Data API builder: {0}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[表包含数据 API 生成器不支持的列类型: {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -514,6 +532,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++062e564e29f0e723196471058d927f3259686301de0e59f8f13938ec71d7994c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[SQL Authentication]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SQL 身份验证]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++062ed1eb39f94280e66412038f4fe1971935cfefdde249136051b69c28ed683b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No connection groups were found in the file.]]></Val>
@@ -528,6 +555,15 @@
           <Val><![CDATA[Design Schemas with GitHub Copilot]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[使用 GitHub Copilot 设计架构]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++065750f922eb26ea9f58d758bc1adbc7a22a2c8642a4f5f2b82e27c31e053d3a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Server name is required]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[服务器名称是必填项]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -568,6 +604,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++06ee056a2b74c9a72b5a3191ecc4eb8fef75ff62ddcb3b4076c33179ef7fb4ab" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No subscriptions found. Please change Azure account or tenant to view available subscriptions.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[找不到任何订阅。请更改 Azure 帐户或租户以查看可用订阅。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++07080ed580a25638b50eb21b524d3f1e8530bf3c0d3d4949a33bcc5bc189e757" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Take tail-log backup before restore]]></Val>
@@ -582,6 +627,15 @@
           <Val><![CDATA[Build {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[生成 {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++072fb040dae019a32d416f0ad48852b98a2544da0e126c054ea338011ae0d63a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Save Secret]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[保存机密]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1108,6 +1162,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++0ca9017c8fb85ae12ca8668af23d92b03040f0d7f3b3dc6df332a7ec59ef611f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[LRS]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[LRS]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++0cd1ba1d31d508fcf599096e647eb0c1a60819928248e404a3f71ea9f7aafad8" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Reload Visual Studio Code]]></Val>
@@ -1194,6 +1257,24 @@
           <Val><![CDATA[Ask GitHub Copilot to Fix]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[要求 GitHub Copilot 修复]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++0e04cd10f9afd7e546e176b34b56a243d8c741198aa0bfee27d7661a370dc043" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Warnings]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[警告]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++0e065649e8d08d5182df2d21e09c4601b250d55237faf7166fb300ea125f3d8b" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Built-in encryption, firewall rules, and Microsoft Entra ID integration to protect your data.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[内置用于保护数据的加密、防火墙规则和 Microsoft Entra ID 集成。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1396,6 +1477,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++101e791740d73043fdbe1492a661f8c4194d1881957dc2ba8f08d2739474ae53" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Free compute & storage]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[免费计算 + 存储]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++10209ed1750a4b5c09b80ea470ed45083d8d1ad3d1da877d160d9ab61a5031fc" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Publishing Changes]]></Val>
@@ -1459,6 +1549,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++10990bf5e602e929a28b2b4c29a15161d0b50a53837cfaf936e89bed619098ac" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Geo-redundant backup storage]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[异地冗余备份存储]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++10a371b8dc47cdf83c4cd7f926daf76305a6b52311a69b3087d744151dc53501" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Loading Table Designer]]></Val>
@@ -1504,6 +1603,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++10e83a09a01b19a7e3094aff3a98451a8413276d7f6266cd15d23ccf5ac6c38e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Custom GraphQL Plural Type]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[自定义 GraphQL 复数类型]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++10f7faa3b83b31a2dcc21bc5b0517143a936fee3e48b0291f480f0d2287d3d51" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to run table query: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[未能运行表查询: {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++110b7288ee54432862487c6ca5ea2579493dc3b078d51218ff4e2bfdcac4986c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Original file name]]></Val>
@@ -1518,6 +1635,15 @@
           <Val><![CDATA[Timestamp]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[时间戳]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++115bef38fad466675b802fb8894b90a61134e862ded7447052405f06fb5ccc15" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Serialization failed]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[序列化失败]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1639,6 +1765,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++1331275bc537b4c2bf1e46f7275677967515342e30b572e6852fa6f51b831fe8" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Tags]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[标记]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++13329d1a1f2527d959fddce415af48d6141533dbec36dd8d8e33fae7bce865df" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Creating SQL Server container...]]></Val>
@@ -1689,6 +1824,15 @@
           <Val><![CDATA[Failed to open script in editor.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[无法在编辑器中打开脚本。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++13a937f0cc56c417b9315c6d08c42cce016b514491d1a3778422a5e8da7ccfe9" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Loading Azure SQL Database...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[正在加载 Azure SQL 数据库...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1752,6 +1896,15 @@
           <Val><![CDATA[Object Type]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[对象类型]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++14b4e9b2b94c620edf0bfa25d44598818614a26a5343ecf963a54d6ff12bedb7" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Search subscriptions...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[搜索订阅...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1837,6 +1990,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++15435d09b1cffdaf56b14da1b895b33f43e8c959a77676be198778deca88c203" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enable MCP in API Type to use this DML tools setting.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[在 API 类型中启用 MCP 以使用此 DML 工具设置。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++154e484fc5e1a7cb4991c071caef673c453eaa7dcfef4321db537c576a5c56cf" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Schema Compare]]></Val>
@@ -1851,6 +2013,15 @@
           <Val><![CDATA[Select new permission for extension: '{0}']]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[为扩展选择新权限:“{0}”]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++155952ddf38c19af2c08d64095b80c9fe510faade4f78b6f0c6113fda082eda0" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Logical operator]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[逻辑运算符]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1950,6 +2121,15 @@
           <Val><![CDATA[Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[使用 Microsoft Entra ID 帐户登录，包括启用多重身份验证的帐户。单击信息图标了解详细信息。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++1626a7035e3aa94fb8b04ec4401e20974b845ed50315a4dda0aa7ee2b07c4d56" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enable {0} in API Type to expose this entity.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[在 API 类型中启用 {0} 以公开此实体。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2116,6 +2296,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++18720329ca307c792fee6c6c1f707145c981d07c2b5a1b7127732ccd6e7203eb" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Remove from favorites]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[从收藏夹移除]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++1879af23a37978ff5873d50e56a20f354d53be9278d4075d63e9291b22924af8" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No model found.]]></Val>
@@ -2170,6 +2359,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++191bfe9c43b5a6888281d9067ac0d3ea4b086f8a59703b22464d2c24e41a0b08" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Column reference resolved to more than one column: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[已将列引用解析为多个列: {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++1927927f4e169b240939c3ed252262deee4fe1099424c667f89b962549c01dd9" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Deleted foreign key '{0}']]></Val>
@@ -2202,6 +2400,24 @@
           <Val><![CDATA[Error migrating connection ID {0} to new format.  Please recreate this connection to use it.]A;Error:]A;{1}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[将连接 ID {0} 迁移到新格式时出错。 请重新创建此连接以使用它。]A;错误:]A;{1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++19c5f25908148aedba9135a777688d044c4bfac7d9acee5f931b2c57bd8299f9" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enable REST in API Type to expose this entity through REST.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[在 API 类型中启用 REST 以通过 REST 公开此实体。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++19ecc104ac1b52b3645832bd247ae9fc353060b435aa391e707deb92db017728" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[ends with]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[结尾为]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2314,6 +2530,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++1b216be66c84c2da4deaf986de6e71b165d9433c29e1790e5939f0f092eeaa1c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter username]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[输入用户名]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++1b301aefb6d539ae0f9ad9d0a548549459322b5271d33f2b041df5c096e996b6" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Finished Deployment]]></Val>
@@ -2337,6 +2562,15 @@
           <Val><![CDATA[Failed to connect: {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[连接失败: {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++1bb6be5ab437360bab6d5fc59d72d16ba5c0ed71d17cb0b2e7a269f070ef6535" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This server only supports SQL Authentication.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[此服务器仅支持 SQL 身份验证。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2422,11 +2656,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++1d66e218f7e4f002993789d4d2f5882562de9be46ff392069f35b830da0a78f6" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Expose this entity through REST]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[通过 REST 公开此实体]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++1d67edd010ff15a6a63697ef986d3e7e4a4921ce4e990716031c70c1ccbc1d0f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to update table in schema designer.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[未能更新架构设计器中的表。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++1da20df88686d477364e048fe92b392449ad8e0f1226ff2903d0d54cae8a24c8" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Free offer applied]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[已应用免费套餐]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2512,6 +2764,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++1f44c82a6944c1ab12879c8bc4ce97845b4e39673c57cd328b2d2e81275b3c58" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0} is not enabled globally]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} 未全局启用]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++1f5c209a4ee7cb85322b1d1fbde63de014d0871930fa88895405ebaea926535d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions about the use of feedback data, please contact your tenant administrator. Processing of feedback data is governed by the Microsoft Products and Services Data Protection Addendum between your organization and Microsoft, and the feedback you submit is considered Personal Data under that addendum.]]></Val>
@@ -2548,6 +2809,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++1fd919fd5e24a6e11c02245971437276dd6793359fce501d4dc634b83a54982a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Browse Azure SQL Database tutorials and docs]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[浏览 Azure SQL 数据库教程和文档]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++1ff57a29d7c9d11bdf61c1b80f2b289b44c1ea844824d4b94a0d52b6ba5fc858" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Next]]></Val>
@@ -2566,11 +2836,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++2029b6cedb7a8d6b58872d33896e8d2d86134cb98d9194706758d32238c9dee2" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter admin username]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[输入管理员用户名]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++204a5eb2cd28bcfdf3be9f8c765948e9e831609e3c57048cdbd6b8a94cf49126" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Cost]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[成本]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++2058e7768297cdc1b7cbeb655cd4f06450ec8900fad7f2b06367934185d5967a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This server supports Microsoft Entra ID and SQL Authentication.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[此服务器支持 Microsoft Entra ID 和 SQL 身份验证。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2629,6 +2917,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++20d04708439a97fe2875163d4e29918be227f86d5fa82847438232e6e626b5f5" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Monitor usage and manage your free tier limits]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[监视使用情况并管理免费层限制]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++20d05307976810a29eedcdd82a29eb034086a79de4932ea3bab85093679f6580" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Expand settings]]></Val>
@@ -2670,6 +2967,15 @@
           <Val><![CDATA[No databases found to import into.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[找不到可导入的数据库。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++214bf67326266805ed0887a2154efa6a38e78d684c4f4c69c33cbecdb16feb13" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Saved results to {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[已将结果保存到 {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2980,6 +3286,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++244f980d2c1c7cc5eb149270dda53e475cdf951f712ccb9a4039f295653912d1" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Locally-redundant backup storage]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[本地冗余备份存储]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++2458834a3d92abf750b8161a959ff2bb0405a29bd8b3b77015d065249bd02b7f" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Disconnected on document "{0}"]]></Val>
@@ -3084,6 +3399,15 @@
           <Val><![CDATA[Privacy Statement]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[隐私声明]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++25f7c9810f4a804cfb8dd52d53afff3e995a0e03165362b827f6eb301d685327" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Filter entities]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[筛选实体]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3196,6 +3520,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++271b246dd5c8c0147565430dfae32c60cd66bb5821bf414c7a99698c26e9a476" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Delete 1 row]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[删除 1 行]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++275defa851ac09403faf8a674e5bdba13cf70e44dcd812b90e2c515db391a7ed" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Missing table target for delete_table operation. Provide tableId or tableName+schemaName.]]></Val>
@@ -3255,6 +3588,15 @@
           <Val><![CDATA[Save to URL]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[保存到 URL]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++2827add936f31415e16e0670d8686084ec2e21fed7686c0aa91fffdfa09e4e38" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure SQL Server]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure SQL Server]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3430,6 +3772,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++295dc600027d16c46d0596df1afe12f2c8db841203c77f15207d06851c0d50ec" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to save results: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[未能保存结果: {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++2982897442ab8ee74ad10f968e801f2979c59ecc19ae9d2041eeedec219fd8f1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Error running Docker commands. Please make sure Docker is running.]]></Val>
@@ -3462,6 +3813,15 @@
           <Val><![CDATA[Keep in query pane]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[保留在查询窗格中]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++29b442400008bbd807940df17eeffd10d069f415bd2c1320d813f2e61a223095" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Expose as MCP DML tools]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[公开为 MCP DML 工具]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3628,6 +3988,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++2c4fb82c11a12677559564607a6a178c2ff897e0c5769b72f29ec6f55931bea7" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Stored procedure REST methods]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[存储过程 REST 方法]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++2c599b85806c57eccd08af9ac2bfb4a6f1f81b2ea125bdca3fdb22dc902695e3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Active filters:]]></Val>
@@ -3790,6 +4159,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++2dda2d5e705c870b4711000d9e6e1a1552a6426ff2835af34a45eb0ea5f3182b" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Create an Azure SQL Database]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[创建 Azure SQL 数据库]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++2de12c616c9f918c2f9b8736ac202dcfef66460ded9a0292131caaf08466ff3f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Output file]]></Val>
@@ -3822,6 +4200,24 @@
           <Val><![CDATA[Clear all filters and show all events]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[清除所有筛选器并显示所有事件]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++2e2706212eec134e00b88651a09bcbab6a28eb15560d24a9c6d3690d6c06b57b" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connecting to database]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[正在连接到数据库]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++2e28aab93b90457d1678d144ede550e870c9826d92e8e4ca66e1d0ae05415fda" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Admin Password]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[管理员密码]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3894,6 +4290,15 @@
           <Val><![CDATA[Click to change database]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[单击以更改数据库]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++2f15b48a0d26c41fdc8a6d366cfc1ab170dc26794f40856a804b062614c02d9b" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Resource Group is required]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[资源组为必需项]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4150,6 +4555,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++31ab92c035a309794019f563cf5059e4ecc3e8ce19afc665de2b384d99e0fb61" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Up to 10 databases with 100K vCore seconds, 32 GB storage, and backups renewed monthly.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[每月最多续订 10 个数据库，包含 10 万 vCore 秒、32 GB 存储空间和备份。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++31c1868de5b07d10224f472d3f5957b4502175ab68a89839134a1f1dd747ab3b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select subscriptions]]></Val>
@@ -4173,6 +4587,15 @@
           <Val><![CDATA[Apply]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[应用]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++31fbef162594de01bab0cd525c51f74de7bcb15063029fa1a54b2cf5944c80d8" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Continue]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[继续]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4294,6 +4717,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++33b7ce06f20e0b1b9cdd74b2e5469a3b0053ab25eb1586e0f10309c321ecaae1" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deployment finished]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[已完成部署]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++33c3b491fa743d2c355067a31dceaf799d4baaef0778d786cf5aafa5406ecf47" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Text tab - displays SQL text data]]></Val>
@@ -4353,6 +4785,15 @@
           <Val><![CDATA[Foreign Table]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[外表]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++346775f99a4124e307b5630841a9cb4c7644ebec17c660619ad58ec1caba4196" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[32 GB storage + 32 GB backup]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[32 GB 存储 + 32 GB 备份]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4488,6 +4929,15 @@
           <Val><![CDATA[Export]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[导出]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++36788a4bbad501fe2c69d37d0d7ce128868a41848663752a28c886a54df70752" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Continue using for additional charges]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[继续使用将产生额外费用]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4717,6 +5167,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++39a06811c113ad2304d8de603fc9e9ac1546b2526ee973d774012b76e767ca7c" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0} contains column types not supported by Data API builder: {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} 包含数据 API 生成器不支持的列类型: {1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++39b10e9a29841c96618fdf773450de8dbc3c86e0d4392b03e0c13ae1c6dfd938" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Rename Options]]></Val>
@@ -4758,6 +5217,15 @@
           <Val><![CDATA[Actual Elapsed Time]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[实际占用的时间]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++3a7dcd8bd70596d3a3f8343c0be10cdac9018d127b885095507bad71ee11f18c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[[Read-only]5D; Pre-filled from the server properties.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[[只读]5D; 已根据服务器属性预填充。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4857,6 +5325,24 @@
           <Val><![CDATA[Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[连接字符串中的身份验证类型不受支持: {0}。仅支持 SQL 登录、集成、Azure MFA 和 Active Directory 默认身份验证。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++3be95ed18980393b7f3c2f3f80286751e450d52d3015de1965c1671a001c56d3" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Auto-pause the database until next month]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[自动暂停数据库到下个月]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++3bec2df151fc5b4ef02b080b35228b4482f64c6d47f20c948867d1ec579b3c82" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Conjunction]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[连接]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4978,6 +5464,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++3da57703d00d6946cc3e7a5c4e76cd4651180efe589725eb472c35305120e67c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Disabled globally]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[已全局禁用]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++3da75270eacf985d78bd5f504130e299acb9022f261146dfc7f1ac655fba70bd" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No customized settings found]]></Val>
@@ -5001,6 +5496,15 @@
           <Val><![CDATA[Tenant ID is required]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[租户 ID 为必填项]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++3e10b08cc874514175b51ba372ff955b27e2817963bc53ab489344968d5a472d" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Add tag]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[添加标记]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5073,6 +5577,15 @@
           <Val><![CDATA[SVG]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[SVG]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++3ee76edbdcf0a31ed7285d2f1bc2de28bfa973b84056bc08fd6a6a4516152e49" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Developer-friendly transactional database using the Azure SQL Database Engine — at no cost for prototyping and learning.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[使用 Azure SQL 数据库引擎的开发人员友好事务数据库 - 可免费用于原型制作和学习。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5212,6 +5725,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++40321f05833c7d2deaaff609703bfef087fba72af02bb6f918d24bb50a53f955" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Creates a dedicated MCP tool for this stored procedure. When disabled, the procedure can still be available through generic MCP execute tools if MCP is enabled.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[创建适用于此存储过程的专用 MCP 工具。禁用后，如果启用了 MCP，则仍可通过泛型 MCP 执行工具使用该过程。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++404b4ef5cba30d5d524422e7639bb1502d686405be95ff2dec636eb5fedfe992" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Search values...]]></Val>
@@ -5289,6 +5811,15 @@
           <Val><![CDATA[Enter the path for the output file]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[输入输出文件的路径]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++4109ca63fed7620f568296b7854396c09c0453afd1a5d3e7b1427e88a7e62101" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Optional - Override default GraphQL singular type name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[可选 - 替代默认 GraphQL 单数类型名称]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5374,6 +5905,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++42245d3f61aef75893195e1e0856f76292f910c8f5b8e671e515321ff9cd843b" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Loading subscriptions...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[正在加载订阅...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++4228aeb07c410ffc9d15b458bf7c2bf8d9dfa7af632f2c339e69f8cb54654da3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Rules]]></Val>
@@ -5437,6 +5977,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++42f23e5323393c23245d6bbe61f912df022f3f9e6df0eb0b21e66939a788b773" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No servers found in the selected subscription.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[在所选订阅中找不到服务器。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++43034967e711bc54bfe87c71c74ca2a19a39ca0d6e18c5d495cd90634d25eea0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Checking Docker Engine Configuration]]></Val>
@@ -5451,6 +6000,15 @@
           <Val><![CDATA[Unable to load backup configuration. Please try again.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[无法加载备份配置。请重试。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++435a3f4d792a8772b32b4787b99aa0ecb672b0117b1ff49bd8f5f35046e055ed" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Additional usage beyond the free amount will be charged at serverless rates.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[超出免费金额的其他使用量将按无服务器费率收费。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5527,6 +6085,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++4458e9d6c19d14a28dfe913b227c80ac7aa74c2a66d830bc962c2e7bbc6350fa" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Optional - Override default GraphQL plural type name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[可选 - 替代默认 GraphQL 复数类型名称]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++4480c895a6e66acfc4e43550d8a60598168463e52699be5ed28eae3ecf7200c7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Invalid IP Address]]></Val>
@@ -5550,6 +6117,15 @@
           <Val><![CDATA[Hide New Password]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[隐藏新密码]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++44a08fe61f9d3024b58081bde56db3941ca139f52396dce09e0fbfc2c9a67897" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Loading subscriptions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[正在加载订阅]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5680,6 +6256,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++45f72ef532c602c155033a6d27f0b8842d5514272f174487daece16c8ae600a1" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unable to determine the server authentication type.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[无法确定服务器身份验证类型。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++460b3a7da007b7af9d35bca54181dc91382263b2bf133ca214871ca1fed1fc1c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Chat]]></Val>
@@ -5703,6 +6288,15 @@
           <Val><![CDATA[Found pending reconnect promise for uri {0}, waiting.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[找到 URI {0} 的挂起的重新连接承诺，正在等待。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++46407a8a229c4ff1ac5f85be1f1edf02b0761eaf67b251e2c0a397c68718619e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Stored procedure GraphQL operation]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[存储过程 GraphQL 操作]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5752,11 +6346,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++472c40383c9c44c12e38bdcddaa5c135927972c845e6f86965dc814ef56607a6" ItemType="0" PsrId="308" Leaf="true">
+      <Item ItemId=";bundle.++CODE++46e7c345a4106f8dba31dee33a1559a12f24d16a1678241d55e84ae55c107d81" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Table must have a primary key to be used with Data API builder]]></Val>
+          <Val><![CDATA[Object type]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[表必须具有要与数据 API 生成器一起使用的主键]]></Val>
+            <Val><![CDATA[对象类型]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5793,6 +6387,15 @@
           <Val><![CDATA[Please select a file, not a folder.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[请选择文件，而不是文件夹。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++47bb8fce457824650a59df9b1bad1399919759ca1b7dc1096976d8e812ae773a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[is null]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[为 null]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5869,6 +6472,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++4812f4553152a2d4f7e8c4ddbd2740db0fd157638b9723fc369790631aa21061" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Maintenance Window]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[维护时段]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++482b98e1609bd828db30a1c85f78a5e6e6ee55dcfb01db094432c1db2c1ae168" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Alter]]></Val>
@@ -5901,6 +6513,15 @@
           <Val><![CDATA[Dismiss]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[关闭]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++488464ba45b0e8e2bb24fac5530ec868c24851f486b82ab6e95c95e4f31ae79a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Remove tag]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[移除标记]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6301,6 +6922,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++4c5540399ea50cb52c6ca24ab5aebf272d0e39920af434bec1fa87fa821f1bbd" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Auto-pause]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[自动暂停]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++4c7dd73e4af7d97c296dc01ab37edd119e5ef22592cb6a302bd9dc9a55264873" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Close Find]]></Val>
@@ -6333,6 +6963,24 @@
           <Val><![CDATA[Microsoft Entra Id]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Microsoft Entra ID]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++4ccc2e9603461fb60e8f8e5a5b8dbddd023bb4a1423c348bc99e0714f6c3812e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Choose the behavior for new editors]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[选择新编辑器的行为]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++4cd95a398bcc4e99d1d5ddc3f92702e41fa5ce370a10569104474d290505cf56" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter user name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[输入用户名]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6436,15 +7084,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++4db3d9917ade1a9560b2a46de7b387634aedd4114bec8fb31abfb7e403241c76" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Fetch rows]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[提取行]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++4dd8d9584066dcf1db567b8f698595cd5da2385469531e7c7684fa0792be1fcc" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Warning: Result set is incomplete. Showing {0} of {1} rows. The full result set could not be loaded.]]></Val>
@@ -6535,11 +7174,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++4eca430ed6ea02cdcd0e956ce27d238e2659997f15a4f580b0fd3385cfd815a0" ItemType="0" PsrId="308" Leaf="true">
+      <Item ItemId=";bundle.++CODE++4e6644fdcf104792709d58c5309c2a4ec5a14b58e94a40bdd9da2af532e8e534" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Error loading Azure databases.]]></Val>
+          <Val><![CDATA[Select a data source]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[加载 Azure 数据库时出错。]]></Val>
+            <Val><![CDATA[选择数据源]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++4e936619770404c3fab784d2d0276b4f617b67ed037e49b3a36481f7929bcac7" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[None (empty database)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[无(空数据库)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6724,6 +7372,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++5074b0dd3fec65cf6816a26ce347ffaf826056d587bd830f605d29e34c2601ec" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Settings are fixed for free tier.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[免费层的设置是固定的。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++50ee55cd30fcbff4593b799f78f7ee159d3eb0ad52bcf7b43f6fea7ea5cf5050" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Filter {0}]]></Val>
@@ -6783,6 +7440,15 @@
           <Val><![CDATA[{0} of {1} connection groups selected.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[已选择 {0}/{1} 个连接组。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++51f271b7eaf83c5deef5741d74dab59a856cea83ec2362b518b5de09c5b1d9f5" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Learn more about Azure SQL Database free tier]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[了解有关 Azure SQL 数据库免费层的详细信息]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6958,11 +7624,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++548271493601de8634bf0793fb0e09522c1bcce8e1e61c9e51186c9661137729" ItemType="0" PsrId="308" Leaf="true">
+      <Item ItemId=";bundle.++CODE++546ebb8eb993ea561029d9febd84c363bdb09010bb2cb915a8287762b76b9a64" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[No subscriptions available.  Adjust your subscription filters to try again.]]></Val>
+          <Val><![CDATA[Filters]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[没有可用的订阅。调整订阅筛选器以重试。]]></Val>
+            <Val><![CDATA[筛选器]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6972,6 +7638,15 @@
           <Val><![CDATA[Close the current connection]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[关闭当前连接]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++5493d99b17c225af455b0fdaa53425c8fadd62f34935b8c02b8c1504f281acba" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Max 10 databases / subscription]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[最多 10 个数据库/订阅]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7075,11 +7750,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++55fbcb99ed7e8209673d373c82ce28bcbb2600ed756fae1b62f505adf64314bc" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Collapse Subscription Explorer]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[折叠订阅资源管理器]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++56034cb01aa84b5c8abe9389abf03d1c9a91ecea712a8711d611abb0ddd1637c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[✅ Grant Access (Current)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[✅ 授予访问权限(当前)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++561ba11b002a5ba8dea88b4a98186d829c0f8b551c04f331c6985d16c2b2b2e2" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Custom GraphQL Singular Type]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[自定义 GraphQL 单数类型]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7161,6 +7854,24 @@
           <Val><![CDATA[Copied "{0}" to clipboard]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[已将“{0}”复制到剪贴板]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++573843c55dfcb6caf7a345bf40ff4dfe681f4e262ed72c68ac5f55ce0b2a7749" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Transfer active connection (Default)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[传输活动连接(默认)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++575874d7f7e259d7f9b8c15418105d5f0bac4a56e628837e68b5513a504b6a93" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Resource group name is required]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[资源组名称是必填项]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7309,6 +8020,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++59238e4f67ce8670dfec068a47b8042ccb8025a41dcafaf97e332f7593422008" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[less than]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[小于]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++592bd375fa7c9d7ab616ecb3debb297c018a80c6a903167afbd6f1c4d68b0d0b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.]]></Val>
@@ -7318,20 +8038,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++59462672a9b0690bf1151b63576df991ace5811a13bbcc90f35f43c1a21c0809" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Source Table]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[源表]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++594683ed5533aeeab2a537f670f9a1ae7394eef4784dc9398b23309a6b88a965" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Hide Definition]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[隐藏定义]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++59480e87da5310e5046d84f52931338703cc3c68aaa8fc535e025eb621677ed9" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Authenticate using a Microsoft Entra service principal. Enter the Application (client) ID as the user name and the client secret as the password. Click the info icon to learn more.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[使用 Microsoft Entra 服务主体进行身份验证。输入应用程序(客户端)ID 作为用户名，客户端密码作为密码。单击信息图标以了解详细信息。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7413,6 +8133,15 @@
           <Val><![CDATA[Invalid database]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[无效数据库]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++5a3fe99089f1cfa6786ebfc90e68d4305f98c4a9132f49b7e57fbfe37b9f4916" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Loading servers]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[正在加载服务器]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7795,6 +8524,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++604cd45c57feb58b304a4d821fbb1df3611dabd706ece140be1c19abc4c8150a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Invalid column reference. Use either id OR name.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[列引用无效。使用 ID 或名称。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++6051d2070e8e51a99adfa6b3f5171cfa92107943f46417bcd51a8f5e995c881f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[End IP Address]]></Val>
@@ -7809,6 +8547,15 @@
           <Val><![CDATA[Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[探查器处于 XEL 文件 "{0}" 的只读和断开连接模式，无法在没有数据库连接的情况下启动或创建实时会话。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++6086fe9511daa7a6fa39f0af8abaf8b553c8292375dfd76bc8d583b28ce3c808" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter admin password]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[输入管理员密码]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7935,6 +8682,15 @@
           <Val><![CDATA[Choose Query History]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[选择“查询历史记录”]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++6201111b83a0cb5b0922cb37cc442b9a40e24e3b1ce100a4bb204f4c63fd2ac0" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[and]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[与]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8200,6 +8956,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++658cfc002aa81e1127e8652d0514d231cb7414501f5932b093e1939c4305781f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deployment failed]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[部署失败]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++65abe5d6d2a9bdcd83c3acd37c760bca33782062560df379bb995b27056969af" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select a session first]]></Val>
@@ -8232,6 +8997,15 @@
           <Val><![CDATA[An unexpected error occurred]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[出现了意外错误]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++661f008b35e613449a51eb1c0fd892c56789ae6d2cabbd7405abe521416975f9" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Column not found: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[找不到列: {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8295,6 +9069,15 @@
           <Val><![CDATA[Click to load summary]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[单击以加载摘要]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++66b21d157405ff2789b283f4f29e225854443edee43a0694233cdd063de255dc" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter a name for the new resource group]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[请输入新资源组的名称]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8430,15 +9213,6 @@
           <Val><![CDATA[Data Type]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[数据类型]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++690dbe9dc0993c4256683738fc3fd541cfa96f60d299be33343615dd58179d93" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Recent]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[最新动态]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8668,6 +9442,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++6b4be3a8ee14a536e26c05c8b1d62473209daf08fb4f8ec66322497d5d0028f0" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enable MCP in API Type to use this custom tool setting.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[在 API 类型中启用 MCP 以使用此自定义工具设置。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++6b590dbe3ca2ba02770a0f91a1d06fddd3d9f474ffc479853d323f0545a6397b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Load from Connection String]]></Val>
@@ -8691,6 +9474,15 @@
           <Val><![CDATA[Color]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[颜色]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[1]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[1]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8839,6 +9631,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++6d457cc1e5982858c386c637bec86a3c2615e648054d4d5472a261e0b5004b2d" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure Subscriptions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure 订阅]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++6d54f9ecea632e075385f044d66bfd47b2f26322cec751084d0f45b0532cf7ba" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Not Started]]></Val>
@@ -8853,6 +9654,15 @@
           <Val><![CDATA[Export to tab delimited]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[导出为制表符分隔格式]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++6d7af8a57c85229b9b08306d93d38a7f0f2d369dc90a339ea4708ca45a92252b" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No Azure accounts found]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[找不到 Azure 帐户]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8952,6 +9762,15 @@
           <Val><![CDATA[Preview Data]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[预览数据]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++6e71f5fc0d9c6c4b7b332b728876a1d39748494efe2355bdae2383b90c86f050" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Allows MCP clients to use generic create, read, update, and delete tools for this table.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[允许 MCP 客户端使用此表的通用创建、读取、更新和删除工具。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9163,6 +9982,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++7175517a370b5cd2e664e3fd29c4ea9db5ce17058eb9772fe090a5485e49dad6" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[or]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[或]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++7179ea0035fca783ec62b7185659b68c75f2a7c12b909306a57183dc9b3fa44b" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Clear filters]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[清除筛选器]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++71988c4d8e0803ba4519f0b2864c1331c14a1890bf8694e251379177bfedb5c3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Text]]></Val>
@@ -9195,6 +10032,15 @@
           <Val><![CDATA[Reliability]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[可靠性]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++71e873a7b235e16960c8ae5cae169f48638a136d88236664fdd7f82cf88ce2c8" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No servers found]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[找不到服务器]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9267,6 +10113,24 @@
           <Val><![CDATA[Starts With]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[开头为]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++72d3d1e6e874aa94ab02c4aac4ea2399ce299ddcad4b38a795754c92e158ac4d" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Your current IP {0} will be added automatically.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[将自动添加当前 IP {0}。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++72d975d00b2a6ec753bd80833252852de2c69720c3bbcd404493650cb4cdca41" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Add filters to modify the SQL query]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[添加筛选器以修改 SQL 查询]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9438,6 +10302,33 @@
           <Val><![CDATA[Checking if the Docker Engine is configured correctly on your machine.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[正在检查计算机上是否正确配置了 Docker 引擎。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++741a06b13d57f36b0e124ffa0f78c13e53741b902f999b2656bbc8e7f75d625a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select a location for the resource group]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[选择资源组的位置]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++74227d33f90778ab9d478fc47a23870e056fa595915b05e530895f6e5de219ac" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[is not null]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[不为 null]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++74243f86c3e0868010e2216f08236ed91a5ca829759c64e8321c9eb1750dada1" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Database pauses until the next billing cycle when free amount is renewed.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[续订免费金额后，数据库将暂停到下一个计费周期。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9784,6 +10675,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++78651c0e93c0ad6baf965a9c39a603425c45f989e391c49a6724d98de8583a85" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Use SQL Authentication with a valid username and password.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[将 SQL 身份验证与有效的用户名和密码配合使用。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++786e414ca02e9f29012f60d724020a6925dc54275709eb8ac3b2aacbb7262945" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[👋 I'm GitHub Copilot for MSSQL extension, your intelligent SQL development assistant in Visual Studio Code. I help you connect, explore, design, and evolve your SQL databases directly from VS Code.]]></Val>
@@ -9910,29 +10810,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++79e53b9f38d1c9de4d84c9a78339ceb838b609638b9194a2f0caad2f05ea2c85" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[My Data]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[我的数据]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++79e6ae7e99e1a20fac22d0e96d3c6655da33fa78e816b9cb389c74e94963eddc" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Import New File]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[导入新文件]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++7a1f2a83aca9a0819f244d5b4a7a0e7f6b779eb709dd4744136b22e724dbb10b" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Favorites]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[收藏夹]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9955,11 +10837,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++7a77e8a8f80ab358ff1261e8047b81ffa298288509fc45ae56d2760997839dda" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Fabric Databases]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fabric 数据库]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++7a9b119953ead192b4e7b7566d7d84fd0ce1077b116269a1b10c5116270196ba" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[探查器处于 XEL 文件“{0}”的只读和断开连接模式，无法在没有数据库连接的情况下启动或创建实时会话]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++7ab8e89a60b445298b22409ca4e3a36b6032cd1f4b770cd638e11e0ebf23fabd" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA['mssql.newEditorConnectionBehavior' is set to 'defaultConnection', but 'mssql.defaultConnectionId' is not configured. New editors will fall back to transferring the active connection.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA['mssql.newEditorConnectionBehavior' 已设置为 'defaultConnection'，但未配置 'mssql.defaultConnectionId'。新编辑器将回退以传输活动连接。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9996,6 +10896,15 @@
           <Val><![CDATA[User databases]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[用户数据库]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++7b2f513a67abc570d3348717ad85ae669570734afe2bf57015c2cc9b0dce3764" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Monthly limits]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[每月限制]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10050,6 +10959,24 @@
           <Val><![CDATA[Displays the unified data type (including length, scale and precision) for the column]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[显示列的统一数据类型(包括长度、小数位数和精准率)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++7bce93a011075575cf98f089cee89c6108be3220cd9701e8ce2fe0c19b38f411" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enable GraphQL in API Type to expose this entity through GraphQL.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[在 API 类型中启用 GraphQL 以通过 GraphQL 公开此实体。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++7bec39b28409bec8fc720f39f7c30fd934272f52f1c41c1d00988827bab07d3b" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Not signed into tenant {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[未登录到租户 {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10158,6 +11085,15 @@
           <Val><![CDATA[Error retrieving server list: {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[检索服务器列表时出错: {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++7d1b71b2bde7aa8e3125b606f3738980a13371ad3458ddd00b1193d72aad45dd" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Source: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[源: {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10288,6 +11224,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++7eab787ddc514e76e7b746ec2374beb0b043f1f3b1123ec6872bec5a6f0147fc" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[SQL Server is required]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SQL Server是必需的]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++7eaca18a3c11c60ab2d50c764174699f66bb634b8d7324a2303d1e3ea541b626" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Authentication not supported]]></Val>
@@ -10333,11 +11278,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++7f528941bf8224f8dd6956f98aa9ae63472375cfaebddbcb78005f15c5f239df" ItemType="0" PsrId="308" Leaf="true">
+      <Item ItemId=";bundle.++CODE++7f3c0782afd7e95577665f17f90a5890669c0f3a33850a85278c7432e5b00fec" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Optional - Override default GraphQL type name]]></Val>
+          <Val><![CDATA[Add to favorites]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[可选 - 替代默认 GraphQL 类型名称]]></Val>
+            <Val><![CDATA[添加到收藏夹]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10396,6 +11341,33 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++7fd01ceb3818cceef27950ff76d58797a9f61633acd27b5741afe1c6a7be4150" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Table Diagram]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[表图]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++7fece940250621eb25c13ea209ec79306d678bd12dc752b6906e3fe0584f8575" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Show SQL]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[显示 SQL]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++7ff2c6370613ed94cff5b41da2922691d968855c00b28dc39d101079cc59f673" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[vCores]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[vCore]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++803814693885dfb92ec8373f4c02f31015541e0e97e437287cdd0db681e0dae6" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select session]]></Val>
@@ -10432,6 +11404,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++8062e054268463a31bf1409a2928cb7e54cf8cdebadeef0e739dc55c473774c1" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Confirm admin password]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[确认管理员密码]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++8074b19c0365b61c3a88fe5cbd2d5c6193b9a601b425c22c0acea8273b880251" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No entities found]]></Val>
@@ -10446,6 +11427,15 @@
           <Val><![CDATA[Select all options]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[选择所有选项]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++80ccd8c9b9af87acd9ce5bea7f8b6c9978971ca8f81888ab1d2ab3a3de6d2c06" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[does not contain]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[不包含]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10549,6 +11539,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++82504e524f0fff2954a2fe00d8fa93299502a613d6de6b0264fc1ee72af3db88" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Hide SQL Pane]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[隐藏 SQL 窗格]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++826cea94aca7f2bce9e97c214c1df682ea9fa53a85d642e06993064d077eda60" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Run Query]]></Val>
@@ -10617,6 +11616,15 @@
           <Val><![CDATA[Filter active]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[筛选器处于活动状态]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++83183f85bfea0220389f0642b618bb70d21e77bf68028be1d05abb4bd2772407" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to create firewall rule: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[未能创建防火墙规则: {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10819,6 +11827,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++866956901fd1536273ad6dd922ba6ae8f46bf4cc51a14b5f21353cdd56d7570d" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[All files]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[所有文件]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++867d2664362bce58e979ee3de5b436d12ab50da730929367290fd6b9043b2a90" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[You are not connected to any database.]]></Val>
@@ -10927,6 +11944,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++8827253bb1a2a0581d324b1945989a83d7056565bc43c20ce67eba8d60c1166e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Loading tenants]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[正在加载租户]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++88406d92ef64a09f40811dd2f77a5e2476fae20846f1d89e5f48fee94761d0d2" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{0} objects found]]></Val>
@@ -10954,6 +11980,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++886b046597112f108973a5fa0dd665428e3303b602a7c20621b6876237cb7044" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Expose as MCP custom tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[公开为 MCP 自定义工具]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++8882381c4129993cbaf9650deef13f6320270deb238c6d124489eb7ecfab1c29" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Switch to Grid View ({0})]]></Val>
@@ -10968,6 +12003,15 @@
           <Val><![CDATA[{0} color swatch ({1})]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[{0} 颜色样本 ({1})]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++88af2fae162f54cc7b5d4efe02c132217c5bccb05fd1b82cbbfee5b450dc9a44" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[100K vCore seconds]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[10 万 vCore 秒]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11413,6 +12457,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++8e344a40ce6bcc8487a770bd157fb301e1bf5539591981c51fe39ffecedb176c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unsupported by Data API builder.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[数据 API生成器不支持。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++8e37953d23daca5ff01b8282c33f4e0a2152f1d1885f94c06418617e3ee1d24e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Value]]></Val>
@@ -11800,6 +12853,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++929b85deaa0b29d7b7adb8318824ecfabb9cf7c9d0a056b0d0fe0827cdd9f141" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0} must define one or more key fields to be used with Data API builder]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} 必须定义要与数据 API生成器一起使用的一个或多个关键字段]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++92c1cdfdf4cb9cf6fcca962f206de36fd5d60db1178bc9461052f8de703a0e06" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enabled]]></Val>
@@ -11859,6 +12921,15 @@
           <Val><![CDATA[Add Server Connection]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[添加服务器连接]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++93f000d094c33f601abe918b123741f26201c34c891d36c1358c862e209bdf14" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Loading locations]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[正在加载位置]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11953,6 +13024,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++958a0500f227e31bede1c2aaac7f01cb586d081a4fa0396928370f797a956bd7" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select all entities]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[选择所有实体]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++95fa4a329ceeda46847f23c83d8b2df1c86ab5e6ec17645bd1ade313919d0481" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{0} setting imported]]></Val>
@@ -11976,6 +13056,15 @@
           <Val><![CDATA[I have read the summary and understand the potential risks.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[我已阅读摘要并了解潜在风险。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++963f6af0c0aac8420cc06761893d8cd2c2196561f20f537a6b4073da6eda141a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Backup Storage Redundancy]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[备份存储冗余]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12070,6 +13159,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++97862730c3a13cd957b766b03489cdf46b415e9d465b67812974158d631d6107" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[starts with]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[开头为]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++9792b2d9b35834148ffb14e491f3ab556bea3ad38904c8f7ca27142bb4f3d92d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Execute SQL against SQL Server / Azure SQL]]></Val>
@@ -12156,6 +13254,15 @@
           <Val><![CDATA[{0}/{1}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[{0}/{1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++988c00d268f2867e2e35f7c7de12ddee2e7c5516193dc246ff16186208f335d2" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Choose whether this stored procedure appears as a GraphQL mutation or query. DAB defaults to mutation.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[选择此存储过程是显示为 GraphQL 突变还是查询。DAB 默认为突变。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12286,6 +13393,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++999f23fcd7bec7075e54bb5dea0d9c548bfe7261f95b911ed8e23d2f4188724f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Identity]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[标识]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++99a52df3ff3d499488e2fa28150c4106a2cb5e928891a830a9aa3922b2d32160" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Key]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[密钥]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++99fb39ba4e498877a20049303aa3318b2004884dab008c65a3b5dd48f47cdd04" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Confirm to remove this profile.]]></Val>
@@ -12394,6 +13519,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++9b81b5011a165afc4b0dccfe4e1844cb34942cc91f07317e1a9731706c80804d" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to run table query.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[未能运行表查询。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++9b8df2904fd9e25473fed50a3df04dc0629dec82daa72d6085cab8d1c63e4f65" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connecting to {0}...]]></Val>
@@ -12417,6 +13551,15 @@
           <Val><![CDATA[Target Name]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[目标名称]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++9baec5aafce916c9fbec6af57fe28833aca54911144354d1175f02a51595de33" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Expose this entity through GraphQL]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[通过 GraphQL 公开此实体]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12520,6 +13663,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++9d42472185c6fe080e6ab7a93b676c943ab7e5b29b29b760346898bf579c031d" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[What's next?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[接下来会发生什么?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++9d57c82931ed2fcf9bbbc9dbc259e850c0c2b7d57b06e24b627597e60019bc6a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Clear quick filter and all column filters]]></Val>
@@ -12543,6 +13695,15 @@
           <Val><![CDATA[No script available. Make changes to the table data and generate a script first.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[没有可用的脚本。对表数据进行更改，并首先生成脚本。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++9d81b93dc08c52e0f2e02d5397b390f7a94f0d4621c48a18a1a59b163acfda78" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Create New Resource Group]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[创建新资源组]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12628,6 +13789,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++9ec5cd9a56d3b361b5d614149a73d6014c7d2520a64e9fa2578cc50ac0e8da82" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Save results as JSON]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[将结果另存为 JSON]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++9efa6488b1453597a16946eec3bec93d89632493aae8e137b09ed9ffcaf70e7b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Drop Database Options]]></Val>
@@ -12669,6 +13839,15 @@
           <Val><![CDATA[Query {0}:  Query cost (relative to the script):  {1}%]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[查询 {0}: 查询成本(相对于脚本): {1}%]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++9f3df753a41ae98ee68246dcf9727a0e2c18af3b99e9921a55b7d75aed543f44" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Create new]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[新建]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12741,24 +13920,6 @@
           <Val><![CDATA[Checking container readiness]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[正在检查容器就绪情况]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++a06725099766746b634d3d1caf6928e6553311ad0e910f795ab97c69fac0f246" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Authorization Role]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[授权角色]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++a069cbd94b3bf5f1823f5bf4b82de717737a0b9c646396ef1a43229edd089b8e" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Show Script]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[显示脚本]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12912,6 +14073,15 @@
           <Val><![CDATA[Port {0} is already in use. Please choose a different port.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[端口 {0} 已在使用中。请选择其他端口。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++a238f8494c24670d2a99bca7863c04c3b523e1ffd7502d240c9aadca7e53c9c1" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The connection ID '{0}' set in 'mssql.defaultConnectionId' does not match any known connection profile. New editors will fall back to transferring the active connection.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[`mssql.defaultConnectionId` 中设置的连接 ID“{0}”与任何已知的连接配置文件均不匹配。新编辑器将回退以传输活动连接。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13087,6 +14257,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++a4469e8491766ec6b1f6d3c2f4e3861d58829898ba912fad682eb8133520cb6d" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Serverless]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[无服务器]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++a462b8c590652563cb55e5dc6e55e0b7ac0123f0a5dd70f9043bdef3d4fa5417" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enter text...]]></Val>
@@ -13137,6 +14316,15 @@
           <Val><![CDATA[Start IP Address]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[起始 IP 地址]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++a50c60587af9600c20b491dfec2f89043091694e9aadcbd732892ba0aca0e74f" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Entity not found: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[找不到实体: {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13222,6 +14410,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++a5b634627aea24b14fcd3b33054a4dcf3c0385853fe5a22235b84f3c42eb17ac" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Not currently signed in. Select to sign in to tenant.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[当前未登录。选择以登录到租户。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++a5b956b22e4c5bb017d2718dae7b2f61356ba499722efe676ae4feb162cf49e9" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Deleted table {0}]]></Val>
@@ -13303,6 +14500,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++a69c4dece144a46e40d430726395533d8f335a7d601d8ca292220b3a4a7faca4" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Storage]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[存储]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++a6c7a84baa6750fce33f7512acd6793e53def1d228b5f2efb8074b42648424fc" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Finish]]></Val>
@@ -13335,6 +14541,24 @@
           <Val><![CDATA[Save to Disk]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[保存到磁盘]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++a7056a455639d1c7deec82ee787db24a0c1878e2792b4597709f0facf7cc7b35" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[SQL]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SQL]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++a7168cfe83fa5085e397d074c440ebc49d8f9d65f5241ff5f2ea586f9a4db451" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Application (Client) ID]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[应用程序(客户端) ID]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13420,6 +14644,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++a8cde5c6159c971e8c8d7cbb13844a520f02109201678c5934c9ecc190000ebd" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select location]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[选择位置]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++a8e5ca29d45327e2790dbaef626ac6f467741af4efddd4d0aede688f4612677e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Switch to Grid View]]></Val>
@@ -13452,6 +14685,15 @@
           <Val><![CDATA[Schema designer details are not available.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[架构设计器详细信息不可用。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++a969d04ec2d003299e81414a53a2c4079a10d8f181ff0a10505a33caef8f3af5" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[User Name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[用户名]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13573,6 +14815,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++aae46441eaafc59419fdc91d2a14f13e534b533fecd19a1b47833c18862731fe" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter resource group name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[输入资源组名]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++aafbad1d95b40db9d90a7665175501a1a2717b2b4ce3ab2e91b9d58ef5c4bb5b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Creating session...]]></Val>
@@ -13587,6 +14838,15 @@
           <Val><![CDATA[New Deployment]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[新部署]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++ab25773875891beef60edb4b69226e94a44e347625f2188a767af0552f50f33f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Tag keys must be unique.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[标记键必须是唯一的。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13663,11 +14923,38 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++abb07d0f4dfada778581c9b19ad0453201ea6d075bc434debb65d96b65f2adbc" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Microsoft Entra Id - Service Principal]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Microsoft Entra ID - 服务主体]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++abc7e9892806b047b4d4786b3685285543f76ca314c4c76246d5f6544c7856c9" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Files]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[文件]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++abccc78cc93c07931feccfbd0665c003373b48334fd8d4cf5c6d0c714e68f26e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Permissions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[权限]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++abf078a3e4a6e103d6da7a7075ac601a095b2ba444bfc98447f49248daa477fb" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select a connection to use as the default]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[选择要用作默认值的连接]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13686,6 +14973,15 @@
           <Val><![CDATA[Copy as CSV]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[复制为 csv]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++ac33cc2b7f21b9e3f168a36d2c3c32a35216ffc2faf0630c9ae6aabc347c1b79" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Compare Azure SQL Database service tiers]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[比较 Azure SQL 数据库服务层级]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13798,6 +15094,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++acd7d6334485ffa9ac31c98945eaf0360abb86e3c80cbb460cb7e0b0e280466f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Expand Subscription Explorer]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[展开订阅资源管理器]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++acfc5be785a9bb3da11c9f05adb69bd5633096f09002aa44813a1b3207e912ad" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Disconnect]]></Val>
@@ -13834,6 +15139,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++add79c55dcd9eda049b523c3c0cb29ddc1d8fe587e1398765599d574914762ec" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Running a custom query will discard all pending changes. Do you want to continue?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[运行自定义查询将放弃所有挂起的更改。是否要继续操作?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++addd610c6d7490077d732bef42a410cdb12538afd39f1bbdc7a3942f39222645" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Importing selections]]></Val>
@@ -13866,6 +15180,15 @@
           <Val><![CDATA[Less than or equal to]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[小于或等于]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++ae21cf6d24b8ca460e91fe9dc61432a60403b1dabea53792a9c95c63a7cb0db2" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Client Secret]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[客户端密码]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14028,6 +15351,15 @@
           <Val><![CDATA[Password (SQL Login)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[密码(SQL 登录名)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++b1307da140c4be5df01b2bdc2bf078e18eb719d00068b0eb22132d47dbfa869d" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Error loading servers]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[加载服务器时发生错误]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14221,11 +15553,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++b3c53352119c42e3f1700a4b0a090c01515a82216dccd5ef19b6cddd1d70cacd" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Loading Azure accounts]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[正在加载 Azure 帐户]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++b3eacd33433b31b5252351032c9b3e7a2e7aa7738d5decdf0dd6c62680853c06" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[server]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[服务器]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++b3ed9d46f7671d126e86925d532363313c1f6795e877d3d348d134f6e7051bc3" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The client secret for your Microsoft Entra app registration.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Microsoft Entra 应用注册的客户端密码。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14266,6 +15616,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++b4eb78ee43fade6ba490bb64508b7dc359f5f67a8438030d28f54d46a222ee4b" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Loading maintenance windows...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[正在加载维护时段...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++b512d97e7cbf97c273e4db073bbb547aa65a84589227f8f3d9e4a72b9372a24d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[User]]></Val>
@@ -14298,6 +15657,15 @@
           <Val><![CDATA[No Queries Available]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[没有可用的查询]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++b5561dc4caff598b3f5a9190b224cd34587621b1d44cb0f024a6308777d211df" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Use Microsoft Entra ID authentication to provision and connect to this database.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[使用 Microsoft Entra ID 身份验证预配并连接到此数据库。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14383,6 +15751,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++b63f1f48f79dc3c0319a846b9df813b98c4882df4d8b885b7f74d4ad237cf24f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[60 min]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[60 分钟]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++b64b39db74a66e751069b0400f71efd0fb9a78f49fe418b7f73f9c96b173c105" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Local container deployment is currently only supported with SQL Authentication connections.]]></Val>
@@ -14437,11 +15814,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++b6af395c5020f3f19337172a94b2607d19ef6f8fed2424cf788b0d00b0572264" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[WHERE]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[WHERE]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++b6b50087a99bf4427265eff9dd813914f1ceb8c55260fa6e7075f9c89fcd45d7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Invalid column width]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[列宽无效]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++b6c1d862f9f75ec31eb9829b6a5968eb291dc8785e7fb59d4bc6ef00f292d3f7" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Both]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[两者]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14545,11 +15940,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++b80a37564fbb3c0753202a1f92d5da8ccfb906b244f2842bba2232cea9883abd" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Query]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[查询]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++b80f19578e3d6cc4f8693e307caf7f4fc739be0f2eb550a9f78a0874ae0205e5" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[An error occurred while processing your request.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[处理你的请求时出错。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++b823f4fb895582ef515ab18d8dd18f72160ed258f33dfb727a8e37f91ebda1b6" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No servers found in subscription '{0}'.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[在订阅“{0}”中找不到服务器。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14577,6 +15990,15 @@
           <Val><![CDATA[Failed to start '{0}': {1}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[未能启动“{0}”: {1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++b88d22f627afd019becae5972c1ad1c05cca30f1c24c21e6a1ebf5492207904b" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Client secret is required.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[客户端密码是必需的。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14770,6 +16192,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++bab90f75906255b3122103084e6016632ae14f76d6447b95c84c4e4d7db51ec1" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Create New Server]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[创建新服务器]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++bacb967a562a0c1059bd81be06c024c01789e81d12dd3fe6e3d74ae2641c9566" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Install the MSSQL Database Management Keymap extension]]></Val>
@@ -14811,6 +16242,15 @@
           <Val><![CDATA[Drizzle]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Drizzle]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++bb23445ee7d8532372f93a9907877a8cce31215c8c2f7b75df1e68baf1d251c9" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Export toolbar for result set {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[结果集 {0} 的导出工具栏]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14887,6 +16327,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++bb834e59966c805206f646b442d51561fe99a22b02c2bc0dd43ddd5f83d43843" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enable {0} globally]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[全局启用 {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++bba88aa8201682fe4d61d60b4a68cce37fef65f62111ab2d3ef125630e2b9c57" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Verifying Docker is installed on your system]]></Val>
@@ -14901,6 +16350,15 @@
           <Val><![CDATA[Container name, port, and config content are required to start the container.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[需要提供容器名称、端口和配置内容才能启动容器。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++bbd4b6a86bc65b6ac8e79e97afc61499158edb40f7bb404c70637b46d80a7ad2" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Changes]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[更改]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15022,11 +16480,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++bd14bb5ac76069fd6986a3c7ddfae7081104904eef01f76793939696ec76917e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Delete {0} rows]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[删除 {0} 行]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++bd24852e1bccb2d3a2353ce971a9b8d5166a6e4be8011bff6ca03e8fd24b51a1" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[List tables for connection '{0}' (ID: {1})?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[列出连接 ‘{0}’ (ID: {1})的表?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++bd5a82074112e68d5443f566c1472ae08dec8c6773160c6c6c4b9c37787bf984" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connection Timeout (seconds)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[连接超时(秒)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15045,6 +16521,15 @@
           <Val><![CDATA[Search Workspaces]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[搜索工作区]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++bd9e4be7933baafca2a9806ee618f7371c78f98b06064c26600bb18992282fde" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Behavior when free offer limit is reached]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[达到免费套餐限制时的行为]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15153,6 +16638,15 @@
           <Val><![CDATA[Sort]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[排序]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++beeb20fbd67695085c26c5dfa7b5ece4d1985d201cb6f0dd9aa66a36ed987ce5" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[contains]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[包含]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15346,6 +16840,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++c26ee0e4b915257d995cffde4cc7b77a97c1e0cfa544836fdcb28329d1dc749a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Mutation]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[突变]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++c292210c44167923a75b092a008f9d2b194fb08631a6aa43d753ed7931ad4d5e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Confirm Password]]></Val>
@@ -15369,6 +16872,15 @@
           <Val><![CDATA[Provisioning]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[正在预配]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++c2deec07495a278190de83a0820519064e332fc00b050c4fd053bae70c44da8e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The Application (Client) ID of your Microsoft Entra app registration.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Microsoft Entra 应用注册的应用程序(客户端) ID。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15468,6 +16980,15 @@
           <Val><![CDATA[Stored Procedure]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[存储过程]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++c4038f47497f61adc776523835e82f3bab98d497b1978fced8d46e61e6f435a4" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Seed sample data or import an existing schema]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[为示例数据设定种子或导入现有架构]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15652,6 +17173,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++c61a620e1fbfff5241621d0469c0cf2dabee8f8cf66f37b4b854355917855b70" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connect using either Microsoft Entra ID or SQL Authentication.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[使用 Microsoft Entra ID 或 SQL 身份验证进行连接。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++c629f4154b93588541a43212104dda942f74b6b1c384f17ed00ccd062e649fb4" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connect to server {0}?]]></Val>
@@ -15688,11 +17218,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++c6cc40d1bb74f7c0333c4264cbd7d9ac832fcd4a39f54a4f044b54471beffd71" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Configure and customize Azure SQL Databases]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[配置和自定义 Azure SQL 数据库]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++c6d0c9d65b752916c8f5647d310c760cc1f9e2aa20e9994942fe8a8219f5e043" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Save as Excel ({0})]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[另存为 Excel 文件({0})]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++c6f902ac30a459d53f79efa0c1d45fc2d272ebbfe609ada31ebb309eec06ed7c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Do not connect]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[不连接]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15805,11 +17353,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++c81954973ca0121a610a95a9872f6e71c08df9f100dd5dfb65dfee8545d2df2f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Loading resource groups]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[正在加载资源组]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++c823d53ecfb4b96ba917d2a3edff1316f73db7ddcead1f0cc26aed3c36053741" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Not contains]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[不包含]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++c83cb9c83f01a1dd4f46165ee292e834d69397b661e8c6d72689019245f92d71" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[not equals]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[不等于]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15841,11 +17407,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++c8a8ab1cef4a26f5a47e6aff86611314a34effe284539cfe1421067648432eab" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+      <Item ItemId=";bundle.++CODE++c89b52fc072a9370c7bb8c9a726985b7632c38a45d1e06c14d8b650a87dc1e3c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Unable to load database list from server: {0}]]></Val>
+          <Val><![CDATA[Select a collation]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[无法从服务器加载数据库列表: {0}]]></Val>
+            <Val><![CDATA[选择排序规则]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16066,11 +17632,38 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++cb571bc2bc5742ac76bfe870bd81c2d7aeefe4a9f9c828b36c7a39464c3c3ebb" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[MCP custom tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[MCP 自定义工具]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++cbc187e255409f8de0f011bbebfc96b04028928cce72ccb35ca8a088f156aba9" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add Table]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[添加表]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++cbc6ae36d1aec69e8b4ab32b18eac65c87ac1ded2fe8e3c342df068fb83be36d" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This server only supports Microsoft Entra ID authentication.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[此服务器仅支持 Microsoft Entra ID 身份验证。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++cbd2167917b36ef54fa6044f33009b01e0793c6fda74f2488762f9cdb26793fc" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Compute + Storage]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Compute + Storage]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16152,6 +17745,15 @@
           <Val><![CDATA[Overall, how satisfied are you with {0}?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[总的来说，你对 {0} 的满意度如何?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++cd42404d52ad55ccfa9aca4adc828aa5800ad9d385a0671fbcbf724118320619" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[value]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[值]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16255,6 +17857,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++cedc516df056195108208c53c37b1b3ba2b1f25b3e0772e954b98b9bc4ec76ec" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Compute]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[计算]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++cf093e7e2e997d1c42be65be5bd833c01393db39c48aa6dcf3bfc1675a4a83d0" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select a maintenance window]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[选择维护时段]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++cf3c1d568793b842a356b2e44265de54b7f5c9d301b8de3487afd3b1689f7215" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Publish DACPAC]]></Val>
@@ -16314,6 +17934,15 @@
           <Val><![CDATA[Advanced restore options]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[高级还原选项]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++cfcac84335530cc40295a54ac9d1ef7a5999d6294e947d69e00b1b42f1e5f95b" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Save results as Excel]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[将结果另存为 Excel]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16426,6 +18055,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++d11ea02689601a129dda01909b71622e7f1a166ce25bef3aa0589beb6db8c1d7" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unable to load database list from server: {0} You may enter the database name directly.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[无法从服务器加载数据库列表: {0}。可以直接输入数据库名称。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++d160b49baa7c6e4e8b95a21a984b19fda338b9d47a01d61c2d7445ed29cf174e" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The first value must be less than the second value for the {0} operator in the {1} filter]]></Val>
@@ -16440,6 +18078,15 @@
           <Val><![CDATA[Loading Fabric provisioning...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[正在加载 Fabric 预配...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++d18de1563a616cb53199d56202336f6b481375ac8ecb8d0eeafb53466f42c4bf" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Username is required]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[用户名为必填项]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16530,15 +18177,6 @@
           <Val><![CDATA[{0} accounts]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[{0} 个帐户]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++d2945638af819132af21f6c456f562493e7bf76e6ce1bb782eeef16cbfbeb85b" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Browse By]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[浏览依据]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16647,6 +18285,15 @@
           <Val><![CDATA[Messages ({0})]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[消息({0})]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++d3a008ef1335692d9d045175ba9ea1dcd39ae48da9e2043a9baabad6c3818c28" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Region]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[区域]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16858,6 +18505,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++d6bc7e3a2c2812f6a418849b1c49e1bf35faa6e05092eed85651b0f6554be31e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Save results as CSV]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[将结果另存为 CSV]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++d6ca257a745c3035dfd24b1cf8bddd511b93f0c4ae8036dc0d88ece8501d4d13" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to connect to server.]]></Val>
@@ -16894,6 +18550,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++d6fd520e2618b0231a03b251ea5831f125d0087382f96b0a6b8c57f1fa97a69c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Loading servers in selected subscription...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[正在所选订阅中加载服务器...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++d70ef3a0d3dafd1dfb3ac896ba331f0c11c35f7638de133a8739a0a7d5a87056" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{0} events]]></Val>
@@ -16921,6 +18586,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++d793e9856eaed8553a411a2ee12f9c1631c70cf86945645baa5a3edb00888235" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Error loading subscriptions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[加载订阅时出错]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++d7a082f416fcd5289f06b3cda1fdf7b7d3999dabb4209c0d324fdf0c57ff2ee2" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Pulling SQL Server Image]]></Val>
@@ -16944,6 +18618,15 @@
           <Val><![CDATA[Connection sharing permission denied for extension: '{0}'. Use the permission management commands to change this.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[已拒绝扩展 ‘{0}’ 的连接共享权限。使用权限管理命令更改此项。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++d7bd166a0fcb99c1a76bef916c6d48f1f627d8572d33c48399e2979659c8766f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Loading collations...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[正在加载排序规则...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16993,11 +18676,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++d7f5ff6e4dad9f838e47b0ebe6e7599c967ad07620a3329436b4887f723d649e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Try Azure SQL Database at no cost with our free tier offer! Provision a fully managed cloud database directly from VS Code.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[利用免费层套餐免费试用 Azure SQL 数据库!直接从 VS Code 预配完全托管的云数据库。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++d7f9cfdbfc45384b7521ed4b8082d476a2d3cae5cbb8c57eec64003513cacbf2" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The table which contains the primary or unique key column.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[包含主键列或唯一键列的表。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++d80286a389f6cbd72a837db93310e6ca50fa84e403f2bfa5e55d39e3e521279f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select a resource group]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[选择资源组]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17286,6 +18987,15 @@
           <Val><![CDATA[Enter application name]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[输入应用程序名称]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++db8b5a02307f785d43d26d74dc565aea97f8ac3f8ff36d6f7979440b000973c0" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Creating resource group...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[正在创建资源组...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17767,6 +19477,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++e0868c0da82fbd352b2f49a90707e78962f7dee85e12b74bdfe8ade99936640f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure subscription not found in cache.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[在缓存中找不到 Azure 订阅。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++e08a733c492b2319e9a7c554501990699416bcc3636fae9900a228f1f37a5785" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Please choose a backup file to load restore plan]]></Val>
@@ -17790,6 +19509,15 @@
           <Val><![CDATA[The selected file is not a valid XEL file.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[所选文件不是有效的 XEL 文件。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++e136aee7826b55f91d1b030832bc4be35b9ee07563c09627052aeecb9335a039" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Data Source]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[数据源]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18073,6 +19801,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++e3d4cdacc007baba40af99c4e0c4ac0ceaa8e813a8a6e0ba47f0199eaaaa3726" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Entity '{0}' is not supported by Data API builder. {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[数据 API生成器不支持实体“{0}”。{1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++e3d91814a2d89326a2afb1cc16c31bbae8c0e2b80db75026503b604e9eea23d3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Folder is required]]></Val>
@@ -18226,11 +19963,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++e520df698000f85f2862a9e7403a405b562c793f67bebe0ad0235ef93a55a84e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Add filter]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[添加筛选器]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++e53c65fb2c5014c76bacb8ae7e110d59e8f5a57507db2682d0bd4fdbd156c8f4" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[To use this command, you must set the language to "SQL". Confirm to change language mode.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[若要使用此命令，必须将语言设定为“SQL”。确认要更改语言模式。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++e56b4a3d26cbb48b0037daacb3a1d42209ec3769d2343dbf64eab273ca9495e3" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Entity reference resolved to more than one entity: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[已解析为多个实体的实体引用: {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18339,6 +20094,15 @@
           <Val><![CDATA[Include Object Types]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[包括对象类型]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++e6e909c5bd0a3e25a1abcddd1dab13780ce9e4f673139a56842b1e3a26c981c0" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Application (Client) ID is required.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[应用程序(客户端)ID 是必需的。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18505,6 +20269,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++e86cf7b88cde4602bf09208d61b915b3990896c08dfc027f85aaf61296311506" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Save password]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[保存密码]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++e87dbc12e88933c84d9ccdb30d89a4c9977b80894c26a85504ed7b1b42fda674" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Perform checksum before writing to media]]></Val>
@@ -18555,6 +20328,15 @@
           <Val><![CDATA[{0} started successfully.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[已成功启动 {0}。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++e93cb41d4a7d2395d9bdfe4d8616f9b52762523bb44e75bf7701cd9d2e0d1cb7" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[equals]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[等于]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18618,6 +20400,15 @@
           <Val><![CDATA[Connection Import Warning]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[连接导入警告]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++e9cf6025703e6809e20b33168b1ad2c6120b938ab5fe8d648892d50ac54d3051" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Service tier]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[服务层级]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18838,6 +20629,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++eca206dacc5627de738a49f5b7cc3a89393f5c0d8e5da0dadfb8baec1c274678" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Open the generated SELECT statement in a new editor]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[在新编辑器中打开生成的 SELECT 语句]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++ecc77aec6ef08eda8ac83e4a4062c7509261b6fadd0f7939f483aed310bea9e3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Bring your saved connections, groups, and configuration from Azure Data Studio into the MSSQL extension and discover familiar experiences.]]></Val>
@@ -18861,6 +20661,15 @@
           <Val><![CDATA[Invalid Firewall rule name]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[防火墙规则名称无效]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++ecef2e758186fef1d545bd27435cb4a5a1e8ec826ca16f545247ce6216b8e1ff" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Admin Username]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[管理员用户名]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18919,6 +20728,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++eda567f3ec45bd45068c5e275d9a4acdcf64217bc5c76c47427cda124aa7bed3" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Microsoft Entra ID]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Microsoft Entra ID]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++edb45df4d9dc81d0ba51ac48d83da35e32f4a62efc89a3d227df9e1794fee394" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[DAB container logs]]></Val>
@@ -18951,6 +20769,15 @@
           <Val><![CDATA[Microsoft SQL Server License Agreement]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Microsoft SQL Server 许可协议]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++edf70be4cc3997d84703d19bd61ed05b95494ec7d58abb5a78ae4250ddefadcf" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[32 GB]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[32 GB]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19027,6 +20854,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++ef29c3acfb3de5b5cb395ebd30039cc6d6120e9d1f9581301573425449e535c5" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure Databases]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure 数据库]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++efa7adedb651f5d8d6be99873aeb53ef49aa29f82f94aeaab24cd02f25ca6305" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enable all CRUD operations]]></Val>
@@ -19063,6 +20899,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++f01407578cbde4669a268b1fbcadffd19797d7e3f51bc0f176a52d5eb76f1358" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Loading servers in '{0}'...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[正在“{0}”中加载服务器...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++f0266af4455c8f348df74a77502b563a575637604e905429b302d78ec39c00e4" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Successfully refreshed token for connection {0} with uri {1}, {2}]]></Val>
@@ -19077,6 +20922,15 @@
           <Val><![CDATA[Filter entities...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[筛选实体...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++f0484b375485ef8d2883902cf1f5e0c2a204fc76cae01d6b3864c461c55df828" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Creating server...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[正在创建服务器...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19171,6 +21025,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++f12efc4df249bedf344f5c5e1c0200fa7227e5e01e0844090e4ed9f805f35cb0" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Firewall]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[防火墙]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++f1488f38e72433af73c22c2016b43e97e5d652e4cdd8ee0baa86d2ddd19e4447" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Added foreign key '{0}']]></Val>
@@ -19261,11 +21124,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++f2d0178ddb6ab66f3ba6afff663a52bf766e08a8f4e7996d9890c75862ac6d29" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connect with SQL tools and run your first query]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[使用 SQL 工具连接并运行第一个查询]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++f2dabec2cf9b7f24f2e1ea799fac8dda0eda5f1ecb9109abc5211c31f5dc5bbb" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Showing {0} of {1} events]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[正在显示 {0}/{1} 个事件]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++f302fdbca94d65797221e8c829c55961e7b47aebf753ca2dd797862c8453649a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter a name for the new server]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[输入新服务器的名称]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19342,6 +21223,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++f391d0b8aa51bd3c69921465420fb0019c3d59d273fb86d2bfe0bca752722bfc" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Show SQL Pane]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[显示 SQL 窗格]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++f395ae5e32b4cc24f8030096918e6a2318d4be5fb9274dbeedc0002ce9840bb7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Open in Editor]]></Val>
@@ -19405,15 +21295,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++f499a7a9c57676d65af8383d5a0f6c5d6b649bb599235e6e20900f73a55968bd" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Hide Script]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[隐藏脚本]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++f4ccae29e1bb0c20a124570a1b43f4347ea94bba9f84ffdfddd9c7445b126128" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Running]]></Val>
@@ -19446,6 +21327,15 @@
           <Val><![CDATA[Unsaved Changes]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[未保存的更改]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++f51936575cf1dc8077bff593b9237f2ab580f19bf6e25bc409e294768ed1a10c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select the HTTP method that can execute this stored procedure. DAB defaults to POST.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[选择可以执行此存储过程的 HTTP 方法。DAB 默认为 POST。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19585,6 +21475,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++f792652c06ffa9d795e75118a7c8329290a516dfd060a9ee0163093db50664f1" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[greater than]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[大于]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++f7a651621eb764f916f46ebe62caf229dac567051acd6540f0e2b87d50e3f59c" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to drop database '{0}'. {1}]]></Val>
@@ -19626,6 +21525,15 @@
           <Val><![CDATA[Entity Endpoints]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[实体终结点]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++f89417d53ba776c805f239fe55d55177f66764a88a5ae08085341e904985b900" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[LRS backup (locally redundant)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[LRS 备份(本地冗余)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19765,6 +21673,33 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++fabfc8c046b35f76ce8c88c7bae9507cdb100c97019311594afde7a283d3bb61" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Zone-redundant backup storage]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[区域冗余备份存储]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++fac4c702f7790e41763806f2cdc67d0521f91fe1cd0cc1ac492506ea2842b5dc" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select a subscription to view servers in it.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[选择订阅以查看其中的服务器。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++fad48517dc5d23758f7a5fb69e52de0ad54bde81726bd0450e14f969067d971e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Change Setting]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[更改设置]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++fb226d6b73aa48dadaf6a46992c5d7a707fb8d1fe58b0865de04d08c848fecff" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Average: {0}]]></Val>
@@ -19779,6 +21714,15 @@
           <Val><![CDATA[NULL]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[NULL]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++fb3366f4457488366aacf21f69259ad9213cd246963ee0e9a6c11fa0ab19a058" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No resource groups found]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[未找到资源组]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19810,11 +21754,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++fb7db40f653a70bfcfd1879e8d0b4592488ff74e5025a253a8f20a83dc4921aa" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Invalid entity reference. Use either id OR schemaName+tableName OR schemaName+sourceName+sourceType.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[无效的实体引用。使用 ID、schemaName+tableName 或 schemaName+sourceName+sourceType。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++fb8d3f9bd43cabe4c37397705e459f16b67ee8c01ea4c4f23371fac86d720bf7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connection test succeeded]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[连接测试成功]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++fba27c1cc726f650cd3eceb3a036cce31854cde7aa2ad9fe4a073c12417098c4" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Your database will continue running after the free offer limit and you will be charged for overages.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[达到免费套餐限制后，你的数据库将继续运行，并向你收取超额费用。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -20044,6 +22006,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++fe2fcab4acca97ade901dba3dcfe91a73a08201d713ff737a3bbecdeb78dc0c8" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Resource Group Name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[资源组名称]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++fe44c8ac09e3996f71f7153cac29fe00113075f95611f98e76cf3aae6232d0dd" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Help us improve by sharing your thoughts.]]></Val>
@@ -20089,6 +22060,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++fe9fa5778e6299904ef31d5f6e87aed494f00eb96d5aba3ab8b23beed99759c9" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[General Purpose]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[常规用途]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++fea70af0cad96e7c97f889724e5dfe0e2d28cbf958e905f5e51ba2584c3d9458" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connection Group]]></Val>
@@ -20103,6 +22083,15 @@
           <Val><![CDATA[DACPAC extracted successfully]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[DACPAC 已成功提取]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++fecd5681dc5dc6e2f413b28ce95e50f6aa2ce9fbef201fa3c11844af5799b2e3" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[REST]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[REST]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21205,6 +23194,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";package.mssql.defaultConnectionId.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The ID (GUID) of the connection profile to use when `mssql.newEditorConnectionBehavior` is set to `defaultConnection`. The connection ID can be found in your settings.json under `mssql.connections`.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[`mssql.newEditorConnectionBehavior` 设置为 `defaultConnection` 时要使用的连接配置文件的 ID (GUID)。可以在 `mssql.connections` 下的 settings.json 中找到连接 ID。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";package.mssql.defaultQueryResultsViewMode.description" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Default view mode for query results display.]]></Val>
@@ -21555,6 +23553,42 @@
           <Val><![CDATA[New Deployment]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[新部署]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.newEditorConnectionBehavior.defaultConnection.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Always connect new editors and opened SQL files to the connection specified by `mssql.defaultConnectionId`.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[始终连接新编辑器，并将 SQL 文件打开到 `mssql.defaultConnectionId` 指定的连接。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.newEditorConnectionBehavior.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Controls how new SQL editor windows and opened SQL files are automatically connected.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[控制如何自动连接新的 SQL 编辑器窗口和打开的 SQL 文件。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.newEditorConnectionBehavior.none.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Do not auto-connect. You must connect each SQL file manually.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[不要自动连接。必须手动连接每个 SQL 文件。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.newEditorConnectionBehavior.transferActive.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Carry the active editor's connection to newly opened query editor tabs and SQL files.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[将活动编辑器的连接传递到新打开的查询编辑器选项卡和 SQL 文件。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22645,6 +24679,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";package.mssql.selectedFabricWorkspaces" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Selected Microsoft Fabric workspaces for browsing and managing SQL databases]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[用于浏览和管理 SQL 数据库的所选 Microsoft Fabric 工作区]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";package.mssql.shortcuts" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Shortcuts related to the results window]]></Val>
@@ -22812,6 +24855,15 @@
           <Val><![CDATA[[Optional]5D; Log level for backend services. Azure Data Studio generates a file name every time it starts and if the file already exists the logs entries are appended to that file. For cleanup of old log files see logRetentionMinutes and logFilesRemovalLimit settings. The default tracingLevel does not log much. Changing verbosity could lead to extensive logging and disk space requirements for the logs. Error includes Critical, Warning includes Error, Information includes Warning and Verbose includes Information]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[[可选]5D; 后端服务的日志级别。Azure Data Studio 在每次启动时都会生成文件名；如果文件已存在，日志条目将追加到该文件。有关旧日志文件的清理，请参阅 logRetentionMinutes 和 logFilesRemovalLimit 设置。默认 tracingLevel 记录的内容很少。更改详细级别可能提升日志的记录和磁盘空间要求。“错误”包含“严重”，“警告”包含“错误”，“信息”包含“警告”，“详细级别”包含“信息”]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.transferActiveEditorConnections.deprecationMessage" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This setting is deprecated. Use `mssql.newEditorConnectionBehavior` instead. The extension will automatically migrate this setting on startup.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[此设置已弃用。请改用 ‘mssql.newEditorConnectionBehavior’。该扩展将在启动时自动迁移此设置。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

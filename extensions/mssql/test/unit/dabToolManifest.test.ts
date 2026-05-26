@@ -112,16 +112,25 @@ suite("DAB LM tool manifest schema", () => {
         }
     });
 
-    test("validates EntityRef XOR shape (id OR schemaName+tableName)", () => {
+    test("validates EntityRef XOR shape (id OR schemaName+tableName OR schemaName+sourceName+sourceType)", () => {
         const tool = getTool();
         const entityRef = tool.inputSchema?.$defs?.entityRef;
         expect(entityRef?.oneOf, "missing $defs.entityRef.oneOf").to.be.an("array");
-        expect(entityRef.oneOf).to.have.length(2);
+        expect(entityRef.oneOf).to.have.length(3);
 
         const requiredLists = entityRef.oneOf.map((variant: any) =>
             (variant.required ?? []).slice().sort(),
         );
-        expect(requiredLists).to.deep.include.members([["id"], ["schemaName", "tableName"]]);
+        expect(requiredLists).to.deep.include.members([
+            ["id"],
+            ["schemaName", "tableName"],
+            ["schemaName", "sourceName", "sourceType"],
+        ]);
+        expect(tool.inputSchema?.$defs?.sourceType?.enum).to.deep.equal([
+            "table",
+            "view",
+            "stored-procedure",
+        ]);
     });
 
     test("validates ColumnRef XOR shape (id OR name)", () => {
@@ -152,13 +161,32 @@ suite("DAB LM tool manifest schema", () => {
         ]);
         expect(
             byType.get("set_entity_actions")?.properties?.enabledActions?.items?.enum,
-        ).to.deep.equal(["create", "read", "update", "delete"]);
+        ).to.deep.equal(["create", "read", "update", "delete", "execute"]);
+        expect(byType.get("add_entity")?.properties?.entity?.$ref).to.equal("#/$defs/entityRef");
+        expect(byType.get("remove_entity")?.properties?.entity?.$ref).to.equal("#/$defs/entityRef");
         expect(byType.get("set_column_exposed")?.properties?.column?.$ref).to.equal(
             "#/$defs/columnRef",
         );
         expect(
             tool.inputSchema?.$defs?.advancedSettingsPatch?.properties?.authorizationRole?.enum,
         ).to.deep.equal(["anonymous", "authenticated"]);
+        expect(
+            tool.inputSchema?.$defs?.advancedSettingsPatch?.properties?.restEnabled?.type,
+        ).to.equal("boolean");
+        expect(
+            tool.inputSchema?.$defs?.advancedSettingsPatch?.properties?.graphQLEnabled?.type,
+        ).to.equal("boolean");
+        expect(
+            tool.inputSchema?.$defs?.advancedSettingsPatch?.properties?.storedProcedureRestMethods
+                ?.oneOf?.[0]?.items?.enum,
+        ).to.deep.equal(["get", "post", "put", "patch", "delete"]);
+        expect(
+            tool.inputSchema?.$defs?.advancedSettingsPatch?.properties
+                ?.storedProcedureGraphQLOperation?.enum,
+        ).to.deep.equal(["query", "mutation"]);
+        expect(
+            tool.inputSchema?.$defs?.advancedSettingsPatch?.properties?.exposeAsMcpCustomTool?.type,
+        ).to.equal("boolean");
         expect(tool.inputSchema?.properties?.options?.properties?.returnState?.enum).to.deep.equal([
             "full",
             "summary",

@@ -144,7 +144,7 @@ export function getPicklistDescription(connCreds: IConnectionInfo): string {
  * @param connCreds connection
  * @returns details
  */
-export function getPicklistDetails(connCreds: IConnectionInfo): string {
+export function getPicklistDetails(_connCreds: IConnectionInfo): string {
     // In the current spec this is left empty intentionally. Leaving the method as this may change in the future
     return undefined;
 }

@@ -17,7 +17,7 @@ suite("Server Status View Tests", () => {
 
     test("Test installing service status", (done) => {
         serverStatusView.installingService();
-        let p = new Promise<void>((resolve, reject) => {
+        let p = new Promise<void>((resolve, _reject) => {
             setTimeout(() => {
                 let statusBarItem = serverStatusView.statusBarItem;
                 expect(statusBarItem.command, "Status Bar Item command should be undefined").to.be

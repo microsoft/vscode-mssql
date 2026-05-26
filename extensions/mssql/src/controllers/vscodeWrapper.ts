@@ -107,7 +107,7 @@ export default class VscodeWrapper {
         if (typeof resource === "string") {
             try {
                 resource = this.parseUri(resource);
-            } catch (e) {
+            } catch {
                 resource = undefined;
             }
         }
