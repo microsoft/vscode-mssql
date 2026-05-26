@@ -52,6 +52,8 @@ export class NotebookConnectionManager implements vscode.Disposable {
      */
     private registeredCellUris: Set<string> = new Set();
 
+    private connectionGeneration = 0;
+
     /**
      * Saved reconnection context from notebook metadata.
      * Used to restore the database when the user picks a server-level
@@ -148,7 +150,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
             this.log.info(`[ensureConnection] Connection stale, clearing: ${this.connectionUri}`);
             this.connectionUri = undefined;
             this.connectionLabel = "";
-            this.registeredCellUris.clear();
+            this.invalidateCellRegistrations();
         }
 
         // Try reconnecting with stored connection info (within-session stale connection)
@@ -157,7 +159,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
             try {
                 const uri = await this.connectInternal(this.connectionInfo);
                 this.connectionUri = uri;
-                this.registeredCellUris.clear();
+                this.invalidateCellRegistrations();
                 const actualDb = this.getActualDatabase(uri);
                 this.connectionLabel = formatConnectionLabel(this.connectionInfo.server, actualDb);
                 return uri;
@@ -216,7 +218,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
 
             this.connectionUri = uri;
             this.connectionInfo = connectionInfo;
-            this.registeredCellUris.clear();
+            this.invalidateCellRegistrations();
             activity.end(ActivityStatus.Succeeded);
             return uri;
         } catch (err) {
@@ -250,7 +252,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
             this.connectionUri = uri;
             this.connectionInfo = { ...connectionInfo, database: actualDb || database };
             this.connectionLabel = formatConnectionLabel(server, actualDb || database);
-            this.registeredCellUris.clear();
+            this.invalidateCellRegistrations();
             activity.end(ActivityStatus.Succeeded);
             return uri;
         } catch (err) {
@@ -299,7 +301,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
         this.connectionUri = uri;
         this.connectionInfo = newInfo;
         this.connectionLabel = formatConnectionLabel(newInfo.server, actualDb);
-        this.registeredCellUris.clear();
+        this.invalidateCellRegistrations();
     }
 
     getCurrentDatabase(): string {
@@ -338,7 +340,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
         this.connectionUri = undefined;
         this.connectionInfo = undefined;
         this.connectionLabel = "";
-        this.registeredCellUris.clear();
+        this.invalidateCellRegistrations();
     }
 
     /**
@@ -361,6 +363,17 @@ export class NotebookConnectionManager implements vscode.Disposable {
 
     getConnectionUri(): string | undefined {
         return this.connectionUri;
+    }
+
+    /**
+     * Reset the IntelliSense cell registration cache. Called whenever the
+     * connection identity changes so cells get re-registered against the new
+     * connection. Bumping the generation lets in-flight cell registrations
+     * detect that they're stale and skip writing back into the cache.
+     */
+    private invalidateCellRegistrations(): void {
+        this.connectionGeneration++;
+        this.registeredCellUris.clear();
     }
 
     /**
@@ -389,6 +402,8 @@ export class NotebookConnectionManager implements vscode.Disposable {
             return;
         }
 
+        const generation = this.connectionGeneration;
+
         let connectionDetails: ConnectionDetails;
         try {
             connectionDetails = this.connectionMgr.createConnectionDetails(this.connectionInfo);
@@ -410,6 +425,8 @@ export class NotebookConnectionManager implements vscode.Disposable {
             `[connectCellForIntellisense] Sending connect request scheme=${cellUriScheme} server=${this.connectionInfo.server} database=${this.connectionInfo.database || "(default)"} auth=${authType} cell=${cellDocumentUri}`,
         );
 
+        this.registeredCellUris.add(cellDocumentUri);
+
         try {
             const params: ConnectParams = {
                 ownerUri: cellDocumentUri,
@@ -417,12 +434,21 @@ export class NotebookConnectionManager implements vscode.Disposable {
             };
 
             const result = await this.connectionMgr.sendRequest(ConnectionRequest.type, params);
-            this.registeredCellUris.add(cellDocumentUri);
+
+            if (generation !== this.connectionGeneration) {
+                this.log.debug(
+                    `[connectCellForIntellisense] connection changed mid-request (gen ${generation} → ${this.connectionGeneration}); dropping stale registration cell=${cellDocumentUri}`,
+                );
+                return;
+            }
 
             this.log.debug(
                 `[connectCellForIntellisense] STS connect returned ${result === true ? "true" : result === false ? "false" : String(result)} cell=${cellDocumentUri}`,
             );
         } catch (err: any) {
+            if (generation === this.connectionGeneration) {
+                this.registeredCellUris.delete(cellDocumentUri);
+            }
             this.log.warn(
                 `[connectCellForIntellisense] sendRequest failed: ${err.message} cell=${cellDocumentUri}`,
             );
