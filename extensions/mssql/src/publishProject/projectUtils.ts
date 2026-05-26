@@ -254,7 +254,12 @@ export function readSqlCmdVariables(profileText: string): { [key: string]: strin
 
     try {
         const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(profileText, "application/xml");
+        // Strip UTF-8 BOM (\uFEFF) if present — xmldom requires the XML declaration to be
+        // at position 0 and throws if a BOM character precedes it.
+        const xmlDoc = parser.parseFromString(
+            profileText.replace(/^\uFEFF/, ""),
+            "application/xml",
+        );
 
         // Get all SqlCmdVariable elements
         const sqlCmdVarElements = xmlDoc.documentElement.getElementsByTagName("SqlCmdVariable");

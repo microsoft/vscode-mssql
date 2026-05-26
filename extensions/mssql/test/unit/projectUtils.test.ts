@@ -9,6 +9,7 @@ import * as path from "path";
 import {
     parseSqlprojRuleOverrides,
     readProjectProperties,
+    readSqlCmdVariables,
 } from "../../src/publishProject/projectUtils";
 import { SqlProjectsService } from "../../src/services/sqlProjectsService";
 import { GetProjectPropertiesResult } from "vscode-mssql";
@@ -158,6 +159,45 @@ suite("projectUtils Tests", () => {
         expect(result.get("SR0008")).to.equal("Disabled");
         expect(result.get("SR0009")).to.equal("Disabled");
     });
+
+    // #region readSqlCmdVariables Tests
+
+    const SQLCMD_PROFILE_XML = `<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <SqlCmdVariable Include="Var1">
+      <Value>Value1</Value>
+    </SqlCmdVariable>
+    <SqlCmdVariable Include="Var2">
+      <Value>Value&amp;2</Value>
+    </SqlCmdVariable>
+  </ItemGroup>
+</Project>`;
+
+    test("readSqlCmdVariables parses SQLCMD variables from normal XML", () => {
+        const result = readSqlCmdVariables(SQLCMD_PROFILE_XML);
+
+        expect(result).to.deep.equal({
+            Var1: "Value1",
+            Var2: "Value&2", // XML entity &amp; decoded to &
+        });
+    });
+
+    test("readSqlCmdVariables parses SQLCMD variables from UTF-8 BOM-prefixed XML", () => {
+        // Visual Studio saves .publish.xml files with a UTF-8 BOM (\uFEFF).
+        // @xmldom/xmldom 0.9.x rejects the XML declaration when
+        // it is not at position 0, causing silent empty-object returns.
+        const bomPrefixedXml = "\uFEFF" + SQLCMD_PROFILE_XML;
+
+        const result = readSqlCmdVariables(bomPrefixedXml);
+
+        expect(result).to.deep.equal({
+            Var1: "Value1",
+            Var2: "Value&2",
+        });
+    });
+
+    // #endregion
 
     test("parseSqlprojRuleOverrides handles edge cases", () => {
         // Empty / blank input → empty map
