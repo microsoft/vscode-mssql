@@ -197,6 +197,19 @@ suite("projectUtils Tests", () => {
         });
     });
 
+    test("readSqlCmdVariables parses SQLCMD variables from XML without a declaration", () => {
+        // Hand-authored publish profiles may omit the <?xml ...?> declaration entirely.
+        // The parser should still handle them correctly by prepending one.
+        const xmlWithoutDeclaration = SQLCMD_PROFILE_XML.replace(/^<\?xml.*?\?>\n?/, "");
+
+        const result = readSqlCmdVariables(xmlWithoutDeclaration);
+
+        expect(result).to.deep.equal({
+            Var1: "Value1",
+            Var2: "Value&2",
+        });
+    });
+
     // #endregion
 
     test("parseSqlprojRuleOverrides handles edge cases", () => {
