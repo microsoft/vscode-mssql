@@ -34,6 +34,7 @@ export type FabricWorkspaceInfo = SqlCollectionInfo;
 export enum SqlArtifactTypes {
     SqlDatabase = "SQLDatabase",
     SqlAnalyticsEndpoint = "SQLEndpoint",
+    Warehouse = "Warehouse",
 }
 
 /**
@@ -143,6 +144,15 @@ export interface ISqlDbArtifact extends IArtifact {
 }
 
 export interface ISqlEndpointArtifact extends IArtifact {}
+
+export interface IWarehouseArtifact extends IArtifact {
+    properties: {
+        connectionString: string;
+        createdDate: string;
+        lastUpdatedTime: string;
+        collationType: string;
+    };
+}
 
 export interface IOperationState {
     createdTimeUtc: string;

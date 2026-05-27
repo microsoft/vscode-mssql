@@ -763,6 +763,7 @@ export class VsCodeAzureHelper {
         for (const server of servers) {
             const serverEntry = serverMap.get(server.name.toLowerCase());
             if (serverEntry) {
+                serverEntry.type = "AzureSqlManagedInstance";
                 const publicEndpointEnabled =
                     (server.publicDataEndpointEnabled as boolean) ?? false;
 
@@ -802,12 +803,29 @@ export class VsCodeAzureHelper {
         const serverMap = new Map<string, AzureSqlServerInfo>();
 
         for (const server of servers) {
+            // Synapse workspaces appear in Microsoft.Sql/servers with workspaceFeature === "Connected"
+            // (and a kind containing "analytics"), but their fullyQualifiedDomainName is the underlying
+            // *.database.windows.net address rather than the SQL endpoint used to connect to the workspace.
+            // Connections must instead target [workspace].sql.azuresynapse.net (analyticsDnsSuffix).
+            const isSynapseWorkspace =
+                server.workspaceFeature === "Connected" ||
+                (server.kind?.toLowerCase().includes("analytics") ?? false);
+
+            let serverFqdn = server.fullyQualifiedDomainName!;
+            if (isSynapseWorkspace) {
+                const analyticsDnsSuffix =
+                    getCloudProviderSettings().settings.sqlResource.analyticsDnsSuffix;
+                if (analyticsDnsSuffix && server.name) {
+                    serverFqdn = `${server.name}${analyticsDnsSuffix}`;
+                }
+            }
+
             serverMap.set(server.name!.toLowerCase(), {
                 id: server.name!,
                 displayName: server.name!,
-                server: server.fullyQualifiedDomainName!,
+                server: serverFqdn,
                 databases: [],
-                type: "AzureSqlServer",
+                type: isSynapseWorkspace ? "AzureSynapseAnalytics" : "AzureSqlServer",
                 collectionId: subscription.subscriptionId,
                 collectionName: subscription.name,
                 tenantId: subscription.tenantId,
