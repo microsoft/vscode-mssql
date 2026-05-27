@@ -38,8 +38,8 @@ import { getErrorMessage } from "../utils/utils";
 
 /** Per-mode limit for auto-loading the contents of every collection on the current tenant. */
 export const AZURE_SUBSCRIPTION_AUTOLOAD_LIMIT = 20;
-/** Fabric REST API rate-limits to 50 requests/user/minute; each workspace takes two requests, so leave some headroom */
-export const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 10;
+/** Fabric REST API rate-limits to 50 requests/user/minute; each workspace takes three requests, so leave some headroom */
+export const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 7;
 
 /**
  * Subset of the controller surface that browse providers need to interact with.

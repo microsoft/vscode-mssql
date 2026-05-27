@@ -571,7 +571,7 @@ export const SqlCollectionContentsList = ({
             case "AzureSqlServer":
                 return sqlDatabaseIcon(theme);
             case "AzureSqlManagedInstance":
-                return sqlDatabaseIcon(theme);
+                return sqlManagedInstanceIcon(theme);
             case "AzureSynapseAnalytics":
                 return sqlAnalyticsEndpointIcon(theme);
             default:
@@ -595,6 +595,15 @@ export const SqlCollectionContentsList = ({
             theme === "dark"
                 ? require("../../../../media/dataWarehouse-inverse.svg")
                 : require("../../../../media/dataWarehouse.svg");
+        return saveIcon;
+    }
+
+    function sqlManagedInstanceIcon(colorTheme: ColorThemeKind) {
+        const theme = themeType(colorTheme);
+        const saveIcon =
+            theme === "dark"
+                ? require("../../../../media/managedInstance-inverse.svg")
+                : require("../../../../media/managedInstance.svg");
         return saveIcon;
     }
 
