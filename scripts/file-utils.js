@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 const fs = require("fs").promises;
-const { execSync } = require("child_process");
+const { execFileSync } = require("child_process");
 
 // Prettier output respects endOfLine, but enforce CRLF after formatting to guard against
 // contributors with custom setups.
@@ -18,8 +18,10 @@ const LF = "\n";
  */
 async function formatWithPrettier(filePaths) {
     try {
-        const paths = Array.isArray(filePaths) ? filePaths.join(" ") : filePaths;
-        execSync(`npx prettier --write ${paths}`, {
+        const paths = Array.isArray(filePaths) ? filePaths : [filePaths];
+        const npxCommand = process.platform === "win32" ? "npx.cmd" : "npx";
+        // execFileSync handles path escaping and quoting automatically
+        execFileSync(npxCommand, ["prettier", "--write", ...paths], {
             stdio: "inherit",
         });
         return true;
