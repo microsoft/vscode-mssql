@@ -37,22 +37,34 @@ import { ViewIcon16Regular } from "../../../common/icons/view";
 
 const useStyles = makeStyles({
     drawer: {
-        width: "720px",
+        width: "900px",
         maxWidth: "calc(100vw - 32px)",
         backgroundColor: "var(--vscode-editor-background)",
+        display: "flex",
+        flexDirection: "column",
     },
     drawerHeader: {
         backgroundColor: "var(--vscode-editorWidget-background, var(--vscode-editor-background))",
         borderBottom: "1px solid var(--vscode-editorGroup-border)",
     },
     drawerBody: {
-        display: "flex",
-        flexDirection: "column",
-        rowGap: "18px",
-        overflowY: "auto",
+        flex: 1,
+        minHeight: 0,
+        height: "100%",
+        overflow: "hidden",
         backgroundColor: "var(--vscode-editor-background)",
-        paddingTop: 0,
-        paddingBottom: "18px",
+        padding: 0,
+        boxSizing: "border-box",
+    },
+    settingsLayout: {
+        display: "grid",
+        gridTemplateColumns: "150px minmax(0, 1fr)",
+        columnGap: "18px",
+        alignItems: "start",
+        height: "100%",
+        minHeight: 0,
+        padding: "0 18px 18px 0",
+        boxSizing: "border-box",
     },
     headerTitleContent: {
         display: "flex",
@@ -80,16 +92,27 @@ const useStyles = makeStyles({
         flexShrink: 0,
     },
     tabs: {
-        position: "sticky",
-        top: 0,
         zIndex: 3,
-        backgroundColor: "var(--vscode-editor-background)",
-        borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+        alignSelf: "start",
+        height: "100%",
+        minHeight: 0,
+        padding: "12px 8px",
+        overflow: "hidden",
+        backgroundColor: "var(--vscode-editorWidget-background, var(--vscode-editor-background))",
+        borderRight: `1px solid ${tokens.colorNeutralStroke2}`,
     },
     tabPanel: {
         display: "flex",
         flexDirection: "column",
-        rowGap: "18px",
+        rowGap: "22px",
+        minWidth: 0,
+        height: "100%",
+        minHeight: 0,
+        overflowY: "auto",
+        scrollPaddingBottom: "96px",
+        paddingTop: "18px",
+        paddingBottom: "96px",
+        boxSizing: "border-box",
     },
     section: {
         display: "flex",
@@ -152,6 +175,60 @@ const useStyles = makeStyles({
         gap: "8px 12px",
         paddingLeft: "24px",
     },
+    permissionGrid: {
+        display: "flex",
+        flexDirection: "column",
+        maxHeight: "220px",
+        overflowY: "auto",
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
+        borderRadius: "4px",
+        marginLeft: "24px",
+    },
+    permissionGridHeader: {
+        display: "grid",
+        gridTemplateColumns: "minmax(140px, 1fr) repeat(4, 72px)",
+        position: "sticky",
+        top: 0,
+        zIndex: 1,
+        backgroundColor: "var(--vscode-editorWidget-background, var(--vscode-editor-background))",
+        borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+        color: tokens.colorNeutralForeground3,
+        fontSize: tokens.fontSizeBase200,
+        fontWeight: tokens.fontWeightSemibold,
+    },
+    permissionGridRow: {
+        display: "grid",
+        gridTemplateColumns: "minmax(140px, 1fr) repeat(4, 72px)",
+        position: "absolute",
+        left: 0,
+        right: 0,
+        top: 0,
+        alignItems: "center",
+        minHeight: "34px",
+        borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+    },
+    permissionGridBody: {
+        position: "relative",
+        width: "100%",
+    },
+    permissionGridCell: {
+        minWidth: 0,
+        padding: "5px 8px",
+    },
+    permissionGridNameCell: {
+        fontFamily: tokens.fontFamilyMonospace,
+        color: tokens.colorNeutralForeground1,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+    },
+    columnAccessSummary: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "8px",
+        paddingLeft: "24px",
+    },
     methodGroup: {
         display: "flex",
         flexWrap: "wrap",
@@ -167,6 +244,7 @@ const useStyles = makeStyles({
         overflowY: "auto",
         border: `1px solid ${tokens.colorNeutralStroke2}`,
         borderRadius: "4px",
+        boxSizing: "border-box",
     },
     metadataGridHeader: {
         display: "grid",
@@ -195,7 +273,7 @@ const useStyles = makeStyles({
     },
     columnMetadataGrid: {
         gridTemplateColumns:
-            "64px 56px minmax(140px, 1fr) 120px minmax(120px, 1fr) minmax(140px, 1.4fr)",
+            "56px minmax(140px, 1fr) 120px minmax(120px, 1fr) minmax(140px, 1.4fr)",
         columnGap: "8px",
     },
     parameterMetadataGrid: {
@@ -268,8 +346,23 @@ const useStyles = makeStyles({
 type DabSettingsTab = "identity" | "permissions" | "rest" | "graphql" | "mcp" | "schema";
 type MetadataGridKind = "columns" | "parameters";
 
-const COLUMN_METADATA_GRID_COLUMN_COUNT = 6;
+const COLUMN_METADATA_GRID_COLUMN_COUNT = 5;
 const PARAMETER_METADATA_GRID_COLUMN_COUNT = 5;
+const TABLE_PERMISSION_ACTIONS = [
+    Dab.EntityAction.Create,
+    Dab.EntityAction.Read,
+    Dab.EntityAction.Update,
+    Dab.EntityAction.Delete,
+] as const;
+
+const SETTINGS_TABS: DabSettingsTab[] = [
+    "identity",
+    "permissions",
+    "rest",
+    "graphql",
+    "mcp",
+    "schema",
+];
 
 interface DabEntitySettingsDialogProps {
     entity: Dab.DabEntityConfig;
@@ -282,6 +375,115 @@ interface DabEntitySettingsDialogProps {
     onOpenChange: (open: boolean) => void;
     onApply: (entity: Dab.DabEntityConfig) => void;
     onEnableApiType: (apiType: Dab.ApiType) => void;
+}
+
+interface PermissionColumnAccessGridProps {
+    classes: ReturnType<typeof useStyles>;
+    role: Dab.AuthorizationRole;
+    permission: Dab.EntityPermissionConfig;
+    actions: Dab.EntityAction[];
+    columns: Dab.DabColumnConfig[];
+    entity: Dab.DabEntityConfig;
+    getPermissionActionFields: (
+        permission: Dab.EntityPermissionConfig,
+        action: Dab.EntityAction,
+    ) => string[];
+    onChange: (
+        role: Dab.AuthorizationRole,
+        column: Dab.DabColumnConfig,
+        action: Dab.EntityAction,
+        enabled: boolean,
+    ) => void;
+}
+
+function PermissionColumnAccessGrid({
+    classes,
+    role,
+    permission,
+    actions,
+    columns,
+    entity,
+    getPermissionActionFields,
+    onChange,
+}: PermissionColumnAccessGridProps) {
+    const scrollRef = useRef<HTMLDivElement | null>(null);
+    const virtualizer = useVirtualizer({
+        count: columns.length,
+        getScrollElement: () => scrollRef.current,
+        estimateSize: () => 34,
+        overscan: 8,
+    });
+
+    return (
+        <div className={classes.permissionGrid} role="grid" ref={scrollRef}>
+            <div className={classes.permissionGridHeader} role="row">
+                <div className={classes.permissionGridCell} role="columnheader">
+                    {locConstants.schemaDesigner.columnName}
+                </div>
+                {TABLE_PERMISSION_ACTIONS.map((action) => (
+                    <div key={action} className={classes.permissionGridCell} role="columnheader">
+                        {getActionLabel(action)}
+                    </div>
+                ))}
+            </div>
+            <div
+                className={classes.permissionGridBody}
+                style={{ height: `${virtualizer.getTotalSize()}px` }}>
+                {virtualizer.getVirtualItems().map((virtualRow) => {
+                    const column = columns[virtualRow.index];
+                    const isLogicalKey = Dab.isLogicalKeyColumn(entity, column);
+                    return (
+                        <div
+                            className={classes.permissionGridRow}
+                            role="row"
+                            key={column.id}
+                            style={{
+                                height: `${virtualRow.size}px`,
+                                transform: `translateY(${virtualRow.start}px)`,
+                            }}>
+                            <div
+                                className={`${classes.permissionGridCell} ${classes.permissionGridNameCell}`}
+                                role="gridcell"
+                                title={column.name}>
+                                {column.name}
+                            </div>
+                            {TABLE_PERMISSION_ACTIONS.map((action) => {
+                                const actionEnabled = actions.includes(action);
+                                const checked =
+                                    actionEnabled &&
+                                    (isLogicalKey ||
+                                        getPermissionActionFields(permission, action).some(
+                                            (field) =>
+                                                Dab.normalizeDabIdentifier(field) ===
+                                                Dab.normalizeDabIdentifier(column.name),
+                                        ));
+                                return (
+                                    <div
+                                        key={action}
+                                        className={classes.permissionGridCell}
+                                        role="gridcell">
+                                        <Checkbox
+                                            checked={checked}
+                                            disabled={!actionEnabled || isLogicalKey}
+                                            onChange={(_, data) =>
+                                                onChange(
+                                                    role,
+                                                    column,
+                                                    action,
+                                                    data.checked === true,
+                                                )
+                                            }
+                                            aria-label={`${role} ${action} ${column.name}`}
+                                        />
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
 }
 
 function cloneEntityForEditing(entity: Dab.DabEntityConfig): Dab.DabEntityConfig {
@@ -314,6 +516,10 @@ function cloneEntityForEditing(entity: Dab.DabEntityConfig): Dab.DabEntityConfig
             permissions: Dab.getEntityPermissions(entity).map((permission) => ({
                 role: permission.role,
                 actions: [...permission.actions],
+                fieldAccess: permission.fieldAccess?.map((access) => ({
+                    action: access.action,
+                    fields: [...access.fields],
+                })),
             })),
             restEnabled: Dab.isEntityRestEnabled(entity),
             graphQLEnabled: Dab.isEntityGraphQLEnabled(entity),
@@ -386,10 +592,11 @@ export function DabEntitySettingsDialog({
     const [localEntity, setLocalEntity] = useState<Dab.DabEntityConfig>(() =>
         cloneEntityForEditing(entity),
     );
-    const [selectedTab, setSelectedTab] = useState<DabSettingsTab>("identity");
     const [activeTab, setActiveTab] = useState<DabSettingsTab>("identity");
+    const [expandedColumnAccessRoles, setExpandedColumnAccessRoles] = useState<
+        Set<Dab.AuthorizationRole>
+    >(new Set());
     const drawerBodyRef = useRef<HTMLDivElement | null>(null);
-    const tabsRef = useRef<HTMLDivElement | null>(null);
     const metadataScrollRef = useRef<HTMLDivElement | null>(null);
     const identitySectionRef = useRef<HTMLElement | null>(null);
     const permissionsSectionRef = useRef<HTMLElement | null>(null);
@@ -452,39 +659,38 @@ export function DabEntitySettingsDialog({
 
     const scrollToSelectedTab = (value: DabSettingsTab, behavior: ScrollBehavior = "smooth") => {
         window.setTimeout(() => {
-            if (value === "schema") {
-                const drawerBody = drawerBodyRef.current;
-                const schemaSection = schemaSectionRef.current;
-                if (!drawerBody || !schemaSection) {
-                    return;
-                }
-
-                drawerBody.scrollTo({
-                    top: Math.max(
-                        0,
-                        schemaSection.offsetTop - (tabsRef.current?.offsetHeight ?? 0),
-                    ),
-                    behavior,
-                });
-            } else {
-                drawerBodyRef.current?.scrollTo({ top: 0, behavior });
+            const drawerBody = drawerBodyRef.current;
+            const section = getSectionElement(value);
+            if (!drawerBody || !section) {
+                return;
             }
+
+            drawerBody.scrollTo({
+                top: Math.max(0, section.offsetTop - 12),
+                behavior,
+            });
 
             window.setTimeout(() => focusSectionControl(value), behavior === "auto" ? 0 : 180);
         }, 0);
     };
 
     const handleTabSelect = (value: DabSettingsTab) => {
-        setSelectedTab(value);
         setActiveTab(value);
         scrollToSelectedTab(value);
     };
 
     useEffect(() => {
         if (open) {
-            setLocalEntity(cloneEntityForEditing(entity));
+            const editingEntity = cloneEntityForEditing(entity);
+            setLocalEntity(editingEntity);
+            setExpandedColumnAccessRoles(
+                new Set(
+                    Dab.getEntityPermissions(editingEntity)
+                        .filter((permission) => permission.fieldAccess?.length)
+                        .map((permission) => permission.role),
+                ),
+            );
             const tab = initialTab ?? "identity";
-            setSelectedTab(tab);
             setActiveTab(tab);
             scrollToSelectedTab(tab, "auto");
         }
@@ -497,21 +703,20 @@ export function DabEntitySettingsDialog({
         }
 
         const handleScroll = () => {
-            const schemaSection = schemaSectionRef.current;
-            if (!schemaSection) {
-                setActiveTab(selectedTab);
-                return;
+            let currentTab: DabSettingsTab = "identity";
+            for (const tab of SETTINGS_TABS) {
+                const section = getSectionElement(tab);
+                if (section && section.offsetTop - 48 <= drawerBody.scrollTop) {
+                    currentTab = tab;
+                }
             }
-
-            const stickyTabsHeight = tabsRef.current?.offsetHeight ?? 0;
-            const activationOffset = Math.max(0, schemaSection.offsetTop - stickyTabsHeight - 12);
-            setActiveTab(drawerBody.scrollTop >= activationOffset ? "schema" : selectedTab);
+            setActiveTab(currentTab);
         };
 
         handleScroll();
         drawerBody.addEventListener("scroll", handleScroll, { passive: true });
         return () => drawerBody.removeEventListener("scroll", handleScroll);
-    }, [open, selectedTab]);
+    }, [open]);
 
     const settings = localEntity.advancedSettings;
     const isStoredProcedure = localEntity.sourceType === Dab.EntitySourceType.StoredProcedure;
@@ -772,6 +977,10 @@ export function DabEntitySettingsDialog({
                     permissions: updatedPermissions.map((permission) => ({
                         role: permission.role,
                         actions: [...permission.actions],
+                        fieldAccess: permission.fieldAccess?.map((access) => ({
+                            action: access.action,
+                            fields: [...access.fields],
+                        })),
                     })),
                 },
             };
@@ -788,6 +997,7 @@ export function DabEntitySettingsDialog({
                               ? permission.actions
                               : getDefaultActionsForRole(localEntity.sourceType, role)
                           : [],
+                      fieldAccess: enabled ? permission.fieldAccess : undefined,
                   }
                 : permission,
         );
@@ -807,9 +1017,90 @@ export function DabEntitySettingsDialog({
             const actions = enabled
                 ? [...new Set([...permission.actions, action])]
                 : permission.actions.filter((a) => a !== action);
-            return { ...permission, actions };
+            return {
+                ...permission,
+                actions,
+                fieldAccess: enabled
+                    ? permission.fieldAccess
+                    : permission.fieldAccess?.filter((access) => access.action !== action),
+            };
         });
         updatePermissions(updatedPermissions);
+    };
+
+    const getPermissionActionFields = (
+        permission: Dab.EntityPermissionConfig,
+        action: Dab.EntityAction,
+    ): string[] => {
+        const explicitFields = permission.fieldAccess?.find(
+            (access) => access.action === action,
+        )?.fields;
+        return explicitFields ?? localEntity.columns.map((column) => column.name);
+    };
+
+    const updateRoleColumnAction = (
+        role: Dab.AuthorizationRole,
+        column: Dab.DabColumnConfig,
+        action: Dab.EntityAction,
+        enabled: boolean,
+    ) => {
+        setLocalEntity((prev) => {
+            const updatedPermissions = Dab.getEntityPermissions(prev).map((permission) => {
+                if (permission.role !== role) {
+                    return permission;
+                }
+
+                const allColumnNames = prev.columns.map((c) => c.name);
+                const currentFields =
+                    permission.fieldAccess?.find((access) => access.action === action)?.fields ??
+                    allColumnNames;
+                const nextFields = enabled
+                    ? [...new Set([...currentFields, column.name])]
+                    : currentFields.filter(
+                          (field) =>
+                              Dab.normalizeDabIdentifier(field) !==
+                              Dab.normalizeDabIdentifier(column.name),
+                      );
+                const existingFieldAccess =
+                    permission.fieldAccess?.filter((access) => access.action !== action) ?? [];
+                const fieldAccess =
+                    nextFields.length === allColumnNames.length
+                        ? existingFieldAccess
+                        : [...existingFieldAccess, { action, fields: nextFields }];
+
+                return {
+                    ...permission,
+                    fieldAccess: fieldAccess.length > 0 ? fieldAccess : undefined,
+                };
+            });
+
+            const activePermission =
+                updatedPermissions.find(
+                    (permission) =>
+                        permission.role === prev.advancedSettings.authorizationRole &&
+                        permission.actions.length > 0,
+                ) ??
+                updatedPermissions.find((permission) => permission.actions.length > 0) ??
+                updatedPermissions[0];
+
+            return {
+                ...prev,
+                enabledActions: activePermission ? [...activePermission.actions] : [],
+                advancedSettings: {
+                    ...prev.advancedSettings,
+                    authorizationRole:
+                        activePermission?.role ?? prev.advancedSettings.authorizationRole,
+                    permissions: updatedPermissions.map((permission) => ({
+                        role: permission.role,
+                        actions: [...permission.actions],
+                        fieldAccess: permission.fieldAccess?.map((access) => ({
+                            action: access.action,
+                            fields: [...access.fields],
+                        })),
+                    })),
+                },
+            };
+        });
     };
 
     const updateField = (
@@ -835,19 +1126,6 @@ export function DabEntitySettingsDialog({
                 columns: prev.columns.map((c) =>
                     c.id === column.id && logicalKey ? { ...c, isExposed: true } : c,
                 ),
-            };
-        });
-    };
-
-    const updateColumnExposure = (column: Dab.DabColumnConfig, isExposed: boolean) => {
-        setLocalEntity((prev) => {
-            if (!isExposed && Dab.isLogicalKeyColumn(prev, column)) {
-                return prev;
-            }
-
-            return {
-                ...prev,
-                columns: prev.columns.map((c) => (c.id === column.id ? { ...c, isExposed } : c)),
             };
         });
     };
@@ -931,10 +1209,23 @@ export function DabEntitySettingsDialog({
         const allSelected = enabled && allowedActions.every((action) => actions.includes(action));
         const toggleAllForRole = () => {
             const updatedPermissions = permissions.map((p) =>
-                p.role === role ? { ...p, actions: allSelected ? [] : [...allowedActions] } : p,
+                p.role === role
+                    ? {
+                          ...p,
+                          actions: allSelected ? [] : [...allowedActions],
+                          fieldAccess: allSelected ? undefined : p.fieldAccess,
+                      }
+                    : p,
             );
             updatePermissions(updatedPermissions);
         };
+        const showColumnAccess =
+            enabled && !isStoredProcedure && localEntity.columns.length > 0 && permission;
+        const hasCustomColumnAccess = (permission?.fieldAccess?.length ?? 0) > 0;
+        const isColumnAccessExpanded = expandedColumnAccessRoles.has(role) || hasCustomColumnAccess;
+        const roleColumnAccessLabel = hasCustomColumnAccess
+            ? locConstants.schemaDesigner.customizeColumnAccess
+            : locConstants.schemaDesigner.includeAllColumns;
 
         return (
             <div className={classes.roleCard} key={role}>
@@ -967,6 +1258,43 @@ export function DabEntitySettingsDialog({
                             />
                         ))}
                     </div>
+                )}
+                {showColumnAccess && (
+                    <>
+                        <div className={classes.columnAccessSummary}>
+                            <Text className={classes.fieldHint}>{roleColumnAccessLabel}</Text>
+                            <Button
+                                appearance="outline"
+                                size="small"
+                                onClick={() =>
+                                    setExpandedColumnAccessRoles((prev) => {
+                                        const next = new Set(prev);
+                                        if (next.has(role) && !hasCustomColumnAccess) {
+                                            next.delete(role);
+                                        } else {
+                                            next.add(role);
+                                        }
+                                        return next;
+                                    })
+                                }>
+                                {isColumnAccessExpanded && !hasCustomColumnAccess
+                                    ? locConstants.common.collapse
+                                    : locConstants.schemaDesigner.customizeColumnAccess}
+                            </Button>
+                        </div>
+                        {isColumnAccessExpanded && (
+                            <PermissionColumnAccessGrid
+                                classes={classes}
+                                role={role}
+                                permission={permission}
+                                actions={actions}
+                                columns={localEntity.columns}
+                                entity={localEntity}
+                                getPermissionActionFields={getPermissionActionFields}
+                                onChange={updateRoleColumnAction}
+                            />
+                        )}
+                    </>
                 )}
             </div>
         );
@@ -1012,35 +1340,29 @@ export function DabEntitySettingsDialog({
                                 role="columnheader"
                                 aria-colindex={1}
                                 className={classes.metadataGridCell}>
-                                {locConstants.schemaDesigner.expose}
+                                {locConstants.schemaDesigner.key}
                             </div>
                             <div
                                 role="columnheader"
                                 aria-colindex={2}
                                 className={classes.metadataGridCell}>
-                                {locConstants.schemaDesigner.key}
+                                {locConstants.schemaDesigner.entityName}
                             </div>
                             <div
                                 role="columnheader"
                                 aria-colindex={3}
                                 className={classes.metadataGridCell}>
-                                {locConstants.schemaDesigner.entityName}
+                                {locConstants.schemaDesigner.dataType}
                             </div>
                             <div
                                 role="columnheader"
                                 aria-colindex={4}
                                 className={classes.metadataGridCell}>
-                                {locConstants.schemaDesigner.dataType}
-                            </div>
-                            <div
-                                role="columnheader"
-                                aria-colindex={5}
-                                className={classes.metadataGridCell}>
                                 {locConstants.schemaDesigner.alias}
                             </div>
                             <div
                                 role="columnheader"
-                                aria-colindex={6}
+                                aria-colindex={5}
                                 className={classes.metadataGridCell}>
                                 {locConstants.schemaDesigner.description}
                             </div>
@@ -1070,27 +1392,6 @@ export function DabEntitySettingsDialog({
                                             )}
                                             className={classes.metadataGridCell}>
                                             <Checkbox
-                                                checked={isLogicalKey || column.isExposed}
-                                                disabled={isLogicalKey}
-                                                onChange={(_, data) =>
-                                                    updateColumnExposure(
-                                                        column,
-                                                        data.checked === true,
-                                                    )
-                                                }
-                                                aria-label={locConstants.schemaDesigner.exposeColumn(
-                                                    column.name,
-                                                )}
-                                            />
-                                        </div>
-                                        <div
-                                            {...getMetadataCellProps(
-                                                "columns",
-                                                virtualRow.index,
-                                                1,
-                                            )}
-                                            className={classes.metadataGridCell}>
-                                            <Checkbox
                                                 checked={isLogicalKey}
                                                 onChange={(_, data) =>
                                                     updateField(column, {
@@ -1104,7 +1405,7 @@ export function DabEntitySettingsDialog({
                                             {...getMetadataCellProps(
                                                 "columns",
                                                 virtualRow.index,
-                                                2,
+                                                1,
                                             )}
                                             className={`${classes.metadataGridCell} ${classes.tableNameCell}`}>
                                             {column.name}
@@ -1113,7 +1414,7 @@ export function DabEntitySettingsDialog({
                                             {...getMetadataCellProps(
                                                 "columns",
                                                 virtualRow.index,
-                                                3,
+                                                2,
                                             )}
                                             className={`${classes.metadataGridCell} ${classes.tableTypeCell}`}>
                                             {column.dataType}
@@ -1122,7 +1423,7 @@ export function DabEntitySettingsDialog({
                                             {...getMetadataCellProps(
                                                 "columns",
                                                 virtualRow.index,
-                                                4,
+                                                3,
                                             )}
                                             className={classes.metadataGridCell}>
                                             <Input
@@ -1140,7 +1441,7 @@ export function DabEntitySettingsDialog({
                                             {...getMetadataCellProps(
                                                 "columns",
                                                 virtualRow.index,
-                                                5,
+                                                4,
                                             )}
                                             className={classes.metadataGridCell}>
                                             <Input
@@ -1339,6 +1640,10 @@ export function DabEntitySettingsDialog({
         const sanitizedPermissions = Dab.getEntityPermissions(localEntity).map((permission) => ({
             role: permission.role,
             actions: [...permission.actions],
+            fieldAccess: permission.fieldAccess?.map((access) => ({
+                action: access.action,
+                fields: [...access.fields],
+            })),
         }));
         const activePermission =
             sanitizedPermissions.find(
@@ -1436,349 +1741,354 @@ export function DabEntitySettingsDialog({
                     </div>
                 </DrawerHeaderTitle>
             </DrawerHeader>
-            <DrawerBody className={classes.drawerBody} ref={drawerBodyRef}>
-                <TabList
-                    ref={tabsRef}
-                    className={classes.tabs}
-                    selectedValue={activeTab}
-                    onTabSelect={(_, data) => handleTabSelect(data.value as DabSettingsTab)}>
-                    <Tab value="identity">{locConstants.schemaDesigner.identity}</Tab>
-                    <Tab value="permissions">{locConstants.schemaDesigner.authorizationRole}</Tab>
-                    <Tab value="rest">{locConstants.schemaDesigner.rest}</Tab>
-                    <Tab value="graphql">{locConstants.schemaDesigner.graphql}</Tab>
-                    <Tab value="mcp">{locConstants.schemaDesigner.mcp}</Tab>
-                    <Tab value="schema">
-                        {isStoredProcedure
-                            ? locConstants.schemaDesigner.parameters
-                            : locConstants.schemaDesigner.columns}
-                    </Tab>
-                </TabList>
-                <div className={classes.tabPanel}>
-                    <section
-                        ref={identitySectionRef}
-                        className={classes.section}
-                        hidden={selectedTab !== "identity"}>
-                        {renderSectionTitle(locConstants.schemaDesigner.identity)}
-                        <div className={classes.sectionBody}>
-                            <Field
-                                label={locConstants.schemaDesigner.entityName}
-                                required
-                                validationState={entityNameValidationMessage ? "error" : undefined}
-                                validationMessage={entityNameValidationMessage}>
-                                <Input
-                                    value={settings.entityName}
-                                    onChange={(_, data) =>
-                                        updateAdvancedSettings({ entityName: data.value })
+            <DrawerBody className={classes.drawerBody}>
+                <div className={classes.settingsLayout}>
+                    <TabList
+                        className={classes.tabs}
+                        vertical
+                        selectedValue={activeTab}
+                        onTabSelect={(_, data) => handleTabSelect(data.value as DabSettingsTab)}>
+                        <Tab value="identity">{locConstants.schemaDesigner.identity}</Tab>
+                        <Tab value="permissions">
+                            {locConstants.schemaDesigner.authorizationRole}
+                        </Tab>
+                        <Tab value="rest">{locConstants.schemaDesigner.rest}</Tab>
+                        <Tab value="graphql">{locConstants.schemaDesigner.graphql}</Tab>
+                        <Tab value="mcp">{locConstants.schemaDesigner.mcp}</Tab>
+                        <Tab value="schema">
+                            {isStoredProcedure
+                                ? locConstants.schemaDesigner.parameters
+                                : locConstants.schemaDesigner.columns}
+                        </Tab>
+                    </TabList>
+                    <div className={classes.tabPanel} ref={drawerBodyRef}>
+                        <section ref={identitySectionRef} className={classes.section}>
+                            {renderSectionTitle(locConstants.schemaDesigner.identity)}
+                            <div className={classes.sectionBody}>
+                                <Field
+                                    label={locConstants.schemaDesigner.entityName}
+                                    required
+                                    validationState={
+                                        entityNameValidationMessage ? "error" : undefined
                                     }
-                                />
-                            </Field>
-                            <Field label={locConstants.schemaDesigner.description}>
-                                <Textarea
-                                    value={settings.description ?? ""}
-                                    onChange={(_, data) =>
-                                        updateAdvancedSettings({
-                                            description: data.value || undefined,
-                                        })
-                                    }
-                                />
-                            </Field>
-                        </div>
-                    </section>
-
-                    <section
-                        ref={permissionsSectionRef}
-                        className={classes.section}
-                        hidden={selectedTab !== "permissions"}>
-                        {renderSectionTitle(locConstants.schemaDesigner.authorizationRole)}
-                        <div className={classes.sectionBody}>
-                            {renderPermissionRole(Dab.AuthorizationRole.Anonymous)}
-                            {renderPermissionRole(Dab.AuthorizationRole.Authenticated)}
-                        </div>
-                    </section>
-
-                    <section
-                        ref={restSectionRef}
-                        className={classes.section}
-                        hidden={selectedTab !== "rest"}>
-                        {renderSectionTitle(locConstants.schemaDesigner.rest)}
-                        <div className={classes.sectionBody}>
-                            {!isRestEnabled ? (
-                                renderDisabledBanner(
-                                    Dab.ApiType.Rest,
-                                    locConstants.schemaDesigner.rest,
-                                )
-                            ) : (
-                                <>
-                                    <Checkbox
-                                        checked={isEntityRestEnabled}
+                                    validationMessage={entityNameValidationMessage}>
+                                    <Input
+                                        value={settings.entityName}
+                                        onChange={(_, data) =>
+                                            updateAdvancedSettings({ entityName: data.value })
+                                        }
+                                    />
+                                </Field>
+                                <Field label={locConstants.schemaDesigner.description}>
+                                    <Textarea
+                                        value={settings.description ?? ""}
                                         onChange={(_, data) =>
                                             updateAdvancedSettings({
-                                                restEnabled: data.checked === true,
+                                                description: data.value || undefined,
                                             })
                                         }
-                                        label={locConstants.schemaDesigner.enableRestForEntity}
                                     />
-                                    {isEntityRestEnabled && (
-                                        <>
-                                            <Field
-                                                label={renderInfoLabel(
-                                                    locConstants.schemaDesigner.customRestPath,
-                                                    locConstants.schemaDesigner.customRestPathHelp,
-                                                )}
-                                                validationState={
-                                                    customRestPathValidationMessage
-                                                        ? "error"
-                                                        : undefined
-                                                }
-                                                validationMessage={customRestPathValidationMessage}>
-                                                <Input
-                                                    value={settings.customRestPath ?? ""}
-                                                    placeholder={(
-                                                        localEntity.sourceName ??
-                                                        localEntity.tableName
-                                                    ).toLowerCase()}
-                                                    onChange={(_, data) =>
-                                                        updateAdvancedSettings({
-                                                            customRestPath: data.value || undefined,
-                                                        })
-                                                    }
-                                                />
-                                            </Field>
+                                </Field>
+                            </div>
+                        </section>
 
-                                            {isStoredProcedure && (
+                        <section ref={permissionsSectionRef} className={classes.section}>
+                            {renderSectionTitle(locConstants.schemaDesigner.authorizationRole)}
+                            <div className={classes.sectionBody}>
+                                {renderPermissionRole(Dab.AuthorizationRole.Anonymous)}
+                                {renderPermissionRole(Dab.AuthorizationRole.Authenticated)}
+                            </div>
+                        </section>
+
+                        <section ref={restSectionRef} className={classes.section}>
+                            {renderSectionTitle(locConstants.schemaDesigner.rest)}
+                            <div className={classes.sectionBody}>
+                                {!isRestEnabled ? (
+                                    renderDisabledBanner(
+                                        Dab.ApiType.Rest,
+                                        locConstants.schemaDesigner.rest,
+                                    )
+                                ) : (
+                                    <>
+                                        <Checkbox
+                                            checked={isEntityRestEnabled}
+                                            onChange={(_, data) =>
+                                                updateAdvancedSettings({
+                                                    restEnabled: data.checked === true,
+                                                })
+                                            }
+                                            label={locConstants.schemaDesigner.enableRestForEntity}
+                                        />
+                                        {isEntityRestEnabled && (
+                                            <>
                                                 <Field
                                                     label={renderInfoLabel(
+                                                        locConstants.schemaDesigner.customRestPath,
                                                         locConstants.schemaDesigner
-                                                            .storedProcedureRestMethods,
-                                                        locConstants.schemaDesigner
-                                                            .storedProcedureRestMethodsHelp,
+                                                            .customRestPathHelp,
                                                     )}
-                                                    required>
-                                                    <RadioGroup
-                                                        className={classes.methodGroup}
-                                                        value={storedProcedureRestMethod}
-                                                        layout="horizontal"
-                                                        onChange={(_, data) =>
-                                                            updateAdvancedSettings({
-                                                                storedProcedureRestMethods: [
-                                                                    data.value as Dab.RestMethod,
-                                                                ],
-                                                            })
-                                                        }>
-                                                        {Dab.storedProcedureAllowedRestMethods.map(
-                                                            (method) => (
-                                                                <Radio
-                                                                    key={method}
-                                                                    value={method}
-                                                                    label={method.toUpperCase()}
-                                                                />
-                                                            ),
-                                                        )}
-                                                    </RadioGroup>
-                                                </Field>
-                                            )}
-                                        </>
-                                    )}
-                                </>
-                            )}
-                        </div>
-                    </section>
-
-                    <section
-                        ref={graphQLSectionRef}
-                        className={classes.section}
-                        hidden={selectedTab !== "graphql"}>
-                        {renderSectionTitle(locConstants.schemaDesigner.graphql)}
-                        <div className={classes.sectionBody}>
-                            {!isGraphQLEnabled ? (
-                                renderDisabledBanner(
-                                    Dab.ApiType.GraphQL,
-                                    locConstants.schemaDesigner.graphql,
-                                )
-                            ) : (
-                                <>
-                                    <Checkbox
-                                        checked={isEntityGraphQLEnabled}
-                                        onChange={(_, data) =>
-                                            updateAdvancedSettings({
-                                                graphQLEnabled: data.checked === true,
-                                            })
-                                        }
-                                        label={locConstants.schemaDesigner.enableGraphQLForEntity}
-                                    />
-                                    {isEntityGraphQLEnabled && (
-                                        <>
-                                            <div className={classes.twoColumnGrid}>
-                                                <Field
-                                                    label={renderInfoLabel(
-                                                        locConstants.schemaDesigner
-                                                            .customGraphQLSingularType,
-                                                        locConstants.schemaDesigner
-                                                            .customGraphQLSingularTypeHelp,
-                                                    )}
-                                                    required={customGraphQLPluralType.length > 0}
                                                     validationState={
-                                                        customGraphQLSingularTypeValidationMessage
+                                                        customRestPathValidationMessage
                                                             ? "error"
                                                             : undefined
                                                     }
                                                     validationMessage={
-                                                        customGraphQLSingularTypeValidationMessage
+                                                        customRestPathValidationMessage
                                                     }>
                                                     <Input
-                                                        value={customGraphQLSingularType}
-                                                        placeholder={
+                                                        value={settings.customRestPath ?? ""}
+                                                        placeholder={(
                                                             localEntity.sourceName ??
                                                             localEntity.tableName
-                                                        }
+                                                        ).toLowerCase()}
                                                         onChange={(_, data) =>
                                                             updateAdvancedSettings({
-                                                                customGraphQLType: undefined,
-                                                                customGraphQLSingularType:
+                                                                customRestPath:
                                                                     data.value || undefined,
                                                             })
                                                         }
                                                     />
                                                 </Field>
-                                                {!isStoredProcedure && (
+
+                                                {isStoredProcedure && (
                                                     <Field
                                                         label={renderInfoLabel(
                                                             locConstants.schemaDesigner
-                                                                .customGraphQLPluralType,
+                                                                .storedProcedureRestMethods,
                                                             locConstants.schemaDesigner
-                                                                .customGraphQLPluralTypeHelp,
+                                                                .storedProcedureRestMethodsHelp,
                                                         )}
+                                                        required>
+                                                        <RadioGroup
+                                                            className={classes.methodGroup}
+                                                            value={storedProcedureRestMethod}
+                                                            layout="horizontal"
+                                                            onChange={(_, data) =>
+                                                                updateAdvancedSettings({
+                                                                    storedProcedureRestMethods: [
+                                                                        data.value as Dab.RestMethod,
+                                                                    ],
+                                                                })
+                                                            }>
+                                                            {Dab.storedProcedureAllowedRestMethods.map(
+                                                                (method) => (
+                                                                    <Radio
+                                                                        key={method}
+                                                                        value={method}
+                                                                        label={method.toUpperCase()}
+                                                                    />
+                                                                ),
+                                                            )}
+                                                        </RadioGroup>
+                                                    </Field>
+                                                )}
+                                            </>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        </section>
+
+                        <section ref={graphQLSectionRef} className={classes.section}>
+                            {renderSectionTitle(locConstants.schemaDesigner.graphql)}
+                            <div className={classes.sectionBody}>
+                                {!isGraphQLEnabled ? (
+                                    renderDisabledBanner(
+                                        Dab.ApiType.GraphQL,
+                                        locConstants.schemaDesigner.graphql,
+                                    )
+                                ) : (
+                                    <>
+                                        <Checkbox
+                                            checked={isEntityGraphQLEnabled}
+                                            onChange={(_, data) =>
+                                                updateAdvancedSettings({
+                                                    graphQLEnabled: data.checked === true,
+                                                })
+                                            }
+                                            label={
+                                                locConstants.schemaDesigner.enableGraphQLForEntity
+                                            }
+                                        />
+                                        {isEntityGraphQLEnabled && (
+                                            <>
+                                                <div className={classes.twoColumnGrid}>
+                                                    <Field
+                                                        label={renderInfoLabel(
+                                                            locConstants.schemaDesigner
+                                                                .customGraphQLSingularType,
+                                                            locConstants.schemaDesigner
+                                                                .customGraphQLSingularTypeHelp,
+                                                        )}
+                                                        required={
+                                                            customGraphQLPluralType.length > 0
+                                                        }
                                                         validationState={
-                                                            customGraphQLPluralTypeValidationMessage
+                                                            customGraphQLSingularTypeValidationMessage
                                                                 ? "error"
                                                                 : undefined
                                                         }
                                                         validationMessage={
-                                                            customGraphQLPluralTypeValidationMessage
+                                                            customGraphQLSingularTypeValidationMessage
                                                         }>
                                                         <Input
-                                                            value={customGraphQLPluralType}
-                                                            placeholder={`${
+                                                            value={customGraphQLSingularType}
+                                                            placeholder={
                                                                 localEntity.sourceName ??
                                                                 localEntity.tableName
-                                                            }s`}
+                                                            }
                                                             onChange={(_, data) =>
                                                                 updateAdvancedSettings({
-                                                                    customGraphQLPluralType:
+                                                                    customGraphQLType: undefined,
+                                                                    customGraphQLSingularType:
                                                                         data.value || undefined,
                                                                 })
                                                             }
                                                         />
                                                     </Field>
-                                                )}
-                                            </div>
-
-                                            {isStoredProcedure && (
-                                                <Field
-                                                    label={renderInfoLabel(
-                                                        locConstants.schemaDesigner
-                                                            .storedProcedureGraphQLOperation,
-                                                        locConstants.schemaDesigner
-                                                            .storedProcedureGraphQLOperationHelp,
+                                                    {!isStoredProcedure && (
+                                                        <Field
+                                                            label={renderInfoLabel(
+                                                                locConstants.schemaDesigner
+                                                                    .customGraphQLPluralType,
+                                                                locConstants.schemaDesigner
+                                                                    .customGraphQLPluralTypeHelp,
+                                                            )}
+                                                            validationState={
+                                                                customGraphQLPluralTypeValidationMessage
+                                                                    ? "error"
+                                                                    : undefined
+                                                            }
+                                                            validationMessage={
+                                                                customGraphQLPluralTypeValidationMessage
+                                                            }>
+                                                            <Input
+                                                                value={customGraphQLPluralType}
+                                                                placeholder={`${
+                                                                    localEntity.sourceName ??
+                                                                    localEntity.tableName
+                                                                }s`}
+                                                                onChange={(_, data) =>
+                                                                    updateAdvancedSettings({
+                                                                        customGraphQLPluralType:
+                                                                            data.value || undefined,
+                                                                    })
+                                                                }
+                                                            />
+                                                        </Field>
                                                     )}
-                                                    required>
-                                                    <RadioGroup
-                                                        value={storedProcedureGraphQLOperation}
-                                                        layout="horizontal"
-                                                        onChange={(_, data) =>
-                                                            updateAdvancedSettings({
-                                                                storedProcedureGraphQLOperation:
-                                                                    data.value as Dab.GraphQLOperation,
-                                                            })
-                                                        }>
-                                                        <Radio
-                                                            value={Dab.GraphQLOperation.Mutation}
-                                                            label={
-                                                                locConstants.schemaDesigner
-                                                                    .graphqlMutation
-                                                            }
-                                                        />
-                                                        <Radio
-                                                            value={Dab.GraphQLOperation.Query}
-                                                            label={
-                                                                locConstants.schemaDesigner
-                                                                    .graphqlQuery
-                                                            }
-                                                        />
-                                                    </RadioGroup>
-                                                </Field>
-                                            )}
-                                        </>
-                                    )}
-                                </>
-                            )}
-                        </div>
-                    </section>
+                                                </div>
 
-                    <section
-                        ref={mcpSectionRef}
-                        className={classes.section}
-                        hidden={selectedTab !== "mcp"}>
-                        {renderSectionTitle(locConstants.schemaDesigner.mcp)}
-                        <div className={classes.sectionBody}>
-                            {!isMcpEnabled ? (
-                                renderDisabledBanner(
-                                    Dab.ApiType.Mcp,
-                                    locConstants.schemaDesigner.mcp,
-                                    locConstants.schemaDesigner.enableMcpForEntityHelp,
-                                )
-                            ) : (
-                                <>
-                                    <Checkbox
-                                        checked={isEntityMcpEnabled}
-                                        onChange={(_, data) =>
-                                            updateMcpParentEnabled(data.checked === true)
-                                        }
-                                        label={
-                                            isStoredProcedure
-                                                ? locConstants.schemaDesigner.enableMcpForEntity
-                                                : renderInfoLabel(
-                                                      locConstants.schemaDesigner
-                                                          .enableMcpForEntity,
-                                                      locConstants.schemaDesigner.mcpDmlToolsHelp,
-                                                  )
-                                        }
-                                    />
-                                    {isEntityMcpEnabled && isStoredProcedure && (
-                                        <div className={classes.sectionBody}>
-                                            <Checkbox
-                                                checked={isEntityMcpDmlToolsEnabled}
-                                                onChange={(_, data) =>
-                                                    updateMcpDmlToolsEnabled(data.checked === true)
-                                                }
-                                                label={renderInfoLabel(
-                                                    locConstants.schemaDesigner.mcpDmlTools,
-                                                    locConstants.schemaDesigner
-                                                        .mcpStoredProcedureDmlToolsHelp,
+                                                {isStoredProcedure && (
+                                                    <Field
+                                                        label={renderInfoLabel(
+                                                            locConstants.schemaDesigner
+                                                                .storedProcedureGraphQLOperation,
+                                                            locConstants.schemaDesigner
+                                                                .storedProcedureGraphQLOperationHelp,
+                                                        )}
+                                                        required>
+                                                        <RadioGroup
+                                                            value={storedProcedureGraphQLOperation}
+                                                            layout="horizontal"
+                                                            onChange={(_, data) =>
+                                                                updateAdvancedSettings({
+                                                                    storedProcedureGraphQLOperation:
+                                                                        data.value as Dab.GraphQLOperation,
+                                                                })
+                                                            }>
+                                                            <Radio
+                                                                value={
+                                                                    Dab.GraphQLOperation.Mutation
+                                                                }
+                                                                label={
+                                                                    locConstants.schemaDesigner
+                                                                        .graphqlMutation
+                                                                }
+                                                            />
+                                                            <Radio
+                                                                value={Dab.GraphQLOperation.Query}
+                                                                label={
+                                                                    locConstants.schemaDesigner
+                                                                        .graphqlQuery
+                                                                }
+                                                            />
+                                                        </RadioGroup>
+                                                    </Field>
                                                 )}
-                                            />
-                                            <Checkbox
-                                                checked={isEntityMcpCustomToolEnabled}
-                                                onChange={(_, data) =>
-                                                    updateMcpCustomToolEnabled(
-                                                        data.checked === true,
-                                                    )
-                                                }
-                                                label={renderInfoLabel(
-                                                    locConstants.schemaDesigner.mcpCustomTool,
-                                                    locConstants.schemaDesigner.mcpCustomToolHelp,
-                                                )}
-                                            />
-                                        </div>
-                                    )}
-                                </>
-                            )}
+                                            </>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        </section>
+
+                        <section ref={mcpSectionRef} className={classes.section}>
+                            {renderSectionTitle(locConstants.schemaDesigner.mcp)}
+                            <div className={classes.sectionBody}>
+                                {!isMcpEnabled ? (
+                                    renderDisabledBanner(
+                                        Dab.ApiType.Mcp,
+                                        locConstants.schemaDesigner.mcp,
+                                        locConstants.schemaDesigner.enableMcpForEntityHelp,
+                                    )
+                                ) : (
+                                    <>
+                                        <Checkbox
+                                            checked={isEntityMcpEnabled}
+                                            onChange={(_, data) =>
+                                                updateMcpParentEnabled(data.checked === true)
+                                            }
+                                            label={
+                                                isStoredProcedure
+                                                    ? locConstants.schemaDesigner.enableMcpForEntity
+                                                    : renderInfoLabel(
+                                                          locConstants.schemaDesigner
+                                                              .enableMcpForEntity,
+                                                          locConstants.schemaDesigner
+                                                              .mcpDmlToolsHelp,
+                                                      )
+                                            }
+                                        />
+                                        {isEntityMcpEnabled && isStoredProcedure && (
+                                            <div className={classes.sectionBody}>
+                                                <Checkbox
+                                                    checked={isEntityMcpDmlToolsEnabled}
+                                                    onChange={(_, data) =>
+                                                        updateMcpDmlToolsEnabled(
+                                                            data.checked === true,
+                                                        )
+                                                    }
+                                                    label={renderInfoLabel(
+                                                        locConstants.schemaDesigner.mcpDmlTools,
+                                                        locConstants.schemaDesigner
+                                                            .mcpStoredProcedureDmlToolsHelp,
+                                                    )}
+                                                />
+                                                <Checkbox
+                                                    checked={isEntityMcpCustomToolEnabled}
+                                                    onChange={(_, data) =>
+                                                        updateMcpCustomToolEnabled(
+                                                            data.checked === true,
+                                                        )
+                                                    }
+                                                    label={renderInfoLabel(
+                                                        locConstants.schemaDesigner.mcpCustomTool,
+                                                        locConstants.schemaDesigner
+                                                            .mcpCustomToolHelp,
+                                                    )}
+                                                />
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        </section>
+                        <div ref={schemaSectionRef}>
+                            {renderColumnsSection()}
+                            {renderParametersSection()}
                         </div>
-                    </section>
-                </div>
-                <div ref={schemaSectionRef}>
-                    {renderColumnsSection()}
-                    {renderParametersSection()}
+                    </div>
                 </div>
             </DrawerBody>
             <DrawerFooter className={classes.drawerFooter}>

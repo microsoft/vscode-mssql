@@ -1487,6 +1487,7 @@ export class LocConstants {
             makeReadOnly: l10n.t("Make everything read-only"),
             enableAllCruds: l10n.t("Enable all CRUD operations"),
             includeAllColumns: l10n.t("Include all columns"),
+            customizeColumnAccess: l10n.t("Customize column access"),
             entityNameDescription: l10n.t("Entity name used in API routes"),
             viewConfig: l10n.t("View Config"),
             deploy: l10n.t("Deploy"),

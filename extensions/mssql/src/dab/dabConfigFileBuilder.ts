@@ -73,7 +73,8 @@ interface DabParameterOutput {
 interface DabPermissionAction {
     action: string;
     fields?: {
-        exclude: string[];
+        include?: string[];
+        exclude?: string[];
     };
 }
 
@@ -369,21 +370,34 @@ export class DabConfigFileBuilder {
         const hiddenColumns = entity.columns
             .filter((column) => !column.isExposed && !Dab.isLogicalKeyColumn(entity, column))
             .map((column) => column.name);
+        const allColumns = entity.columns.map((column) => column.name);
 
         return Dab.getEntityPermissions(entity)
             .filter((permission) => permission.actions.length > 0)
             .map((permission) => ({
                 role: permission.role,
-                actions: permission.actions.map((action) =>
-                    hiddenColumns.length > 0 && action !== Dab.EntityAction.Delete
+                actions: permission.actions.map((action) => {
+                    const actionFieldAccess = permission.fieldAccess?.find(
+                        (access) => access.action === action,
+                    );
+                    if (actionFieldAccess || permission.fieldAccess?.length) {
+                        return {
+                            action,
+                            fields: {
+                                include: [...(actionFieldAccess?.fields ?? allColumns)],
+                            },
+                        };
+                    }
+
+                    return hiddenColumns.length > 0 && action !== Dab.EntityAction.Delete
                         ? {
                               action,
                               fields: {
                                   exclude: [...hiddenColumns],
                               },
                           }
-                        : action,
-                ),
+                        : action;
+                }),
             }));
     }
 

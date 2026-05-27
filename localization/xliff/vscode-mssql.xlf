@@ -1745,6 +1745,9 @@
     <trans-unit id="++CODE++2382ba5d273153b70b946e94dce6917ebe7aa25b0d46f4cc7b31ec891ec8784e">
       <source xml:lang="en">Custom tool creates a dedicated MCP tool for this stored procedure.</source>
     </trans-unit>
+    <trans-unit id="++CODE++51ca74e23be7acf03bd1740c2091cbf8a1124e81866eb6ed6b2e937136cb5f67">
+      <source xml:lang="en">Customize column access</source>
+    </trans-unit>
     <trans-unit id="++CODE++c525ed2944e05f661b7bc658ddccb355cd47a8daab5629ce4310c575aa58e2a1">
       <source xml:lang="en">Customize keyboard shortcuts</source>
     </trans-unit>

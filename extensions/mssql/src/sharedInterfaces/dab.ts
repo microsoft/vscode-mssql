@@ -128,9 +128,15 @@ export namespace Dab {
         AuthorizationRole.Authenticated,
     ] as const;
 
+    export interface EntityPermissionFieldAccess {
+        action: EntityAction;
+        fields: string[];
+    }
+
     export interface EntityPermissionConfig {
         role: AuthorizationRole;
         actions: EntityAction[];
+        fieldAccess?: EntityPermissionFieldAccess[];
     }
 
     /**
@@ -1361,9 +1367,32 @@ export namespace Dab {
         return [...new Set(actions ?? [])].filter((action) => allowedActions.has(action));
     }
 
+    function normalizePermissionFieldAccess(
+        fieldAccess: EntityPermissionFieldAccess[] | undefined,
+        actions: EntityAction[],
+        sourceType?: EntitySourceType,
+    ): EntityPermissionFieldAccess[] | undefined {
+        if (!fieldAccess?.length || sourceType === EntitySourceType.StoredProcedure) {
+            return undefined;
+        }
+
+        const actionSet = new Set(actions);
+        const normalized = fieldAccess
+            .filter((access) => actionSet.has(access.action))
+            .map((access) => ({
+                action: access.action,
+                fields: [...new Set(access.fields)],
+            }));
+        return normalized.length > 0 ? normalized : undefined;
+    }
+
     export function getEntityPermissions(entity: DabEntityConfig): EntityPermissionConfig[] {
         if (entity.advancedSettings.permissions?.length) {
             const byRole = new Map<AuthorizationRole, EntityAction[]>();
+            const fieldAccessByRole = new Map<
+                AuthorizationRole,
+                EntityPermissionFieldAccess[] | undefined
+            >();
             for (const role of supportedAuthorizationRoles) {
                 byRole.set(role, []);
             }
@@ -1375,10 +1404,16 @@ export namespace Dab {
                     permission.role,
                     normalizePermissionActions(permission.actions, entity.sourceType),
                 );
+                fieldAccessByRole.set(permission.role, permission.fieldAccess);
             }
             return supportedAuthorizationRoles.map((role) => ({
                 role,
                 actions: byRole.get(role) ?? [],
+                fieldAccess: normalizePermissionFieldAccess(
+                    fieldAccessByRole.get(role),
+                    byRole.get(role) ?? [],
+                    entity.sourceType,
+                ),
             }));
         }
 

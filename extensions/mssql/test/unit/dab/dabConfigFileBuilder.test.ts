@@ -846,6 +846,109 @@ suite("DabConfigFileBuilder Tests", () => {
                     "delete",
                 ]);
             });
+
+            test("should emit role and action specific field includes when configured", () => {
+                const config = createTestConfig({
+                    entities: [
+                        createTestEntity({
+                            advancedSettings: {
+                                entityName: "Users",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                                permissions: [
+                                    {
+                                        role: Dab.AuthorizationRole.Anonymous,
+                                        actions: [Dab.EntityAction.Read, Dab.EntityAction.Update],
+                                        fieldAccess: [
+                                            {
+                                                action: Dab.EntityAction.Read,
+                                                fields: ["Id", "Name"],
+                                            },
+                                            {
+                                                action: Dab.EntityAction.Update,
+                                                fields: ["Name"],
+                                            },
+                                        ],
+                                    },
+                                    {
+                                        role: Dab.AuthorizationRole.Authenticated,
+                                        actions: [Dab.EntityAction.Read],
+                                    },
+                                ],
+                            },
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+
+                expect(parsed.entities["Users"].permissions).to.deep.equal([
+                    {
+                        role: "anonymous",
+                        actions: [
+                            {
+                                action: "read",
+                                fields: {
+                                    include: ["Id", "Name"],
+                                },
+                            },
+                            {
+                                action: "update",
+                                fields: {
+                                    include: ["Name"],
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        role: "authenticated",
+                        actions: ["read"],
+                    },
+                ]);
+            });
+
+            test("should emit all action includes for a role once column access is customized", () => {
+                const config = createTestConfig({
+                    entities: [
+                        createTestEntity({
+                            advancedSettings: {
+                                entityName: "Users",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                                permissions: [
+                                    {
+                                        role: Dab.AuthorizationRole.Anonymous,
+                                        actions: [Dab.EntityAction.Create, Dab.EntityAction.Read],
+                                        fieldAccess: [
+                                            {
+                                                action: Dab.EntityAction.Create,
+                                                fields: ["Id"],
+                                            },
+                                        ],
+                                    },
+                                ],
+                            },
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+
+                expect(parsed.entities["Users"].permissions[0].actions).to.deep.equal([
+                    {
+                        action: "create",
+                        fields: {
+                            include: ["Id"],
+                        },
+                    },
+                    {
+                        action: "read",
+                        fields: {
+                            include: ["Id", "Name"],
+                        },
+                    },
+                ]);
+            });
         });
 
         suite("full integration", () => {
