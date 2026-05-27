@@ -30,6 +30,7 @@ const MAX_COLUMN_WIDTH = 400;
 const MAX_GRID_HEIGHT = 500;
 const HEADER_HEIGHT = 30;
 const HORIZONTAL_SCROLLBAR_HEIGHT = 20;
+const MAX_SAMPLE_ROWS = 50;
 
 /**
  * Measure the pixel width of a string using a canvas context.
@@ -49,8 +50,7 @@ function measureTextWidth(text: string, font: string): number {
  */
 function computeColumnWidths(columns: IDbColumn[], rows: DbCellValue[][], font: string): number[] {
     const padding = 20 + FilterButtonWidth; // cell padding + sort/filter button space
-    const maxSampleRows = 50;
-    const sampleRows = rows.slice(0, maxSampleRows);
+    const sampleRows = rows.slice(0, MAX_SAMPLE_ROWS);
 
     return columns.map((col, colIdx) => {
         let maxWidth = measureTextWidth(col.columnName, font) + padding;
@@ -67,6 +67,19 @@ function computeColumnWidths(columns: IDbColumn[], rows: DbCellValue[][], font: 
         }
         return Math.max(MIN_COLUMN_WIDTH, Math.min(MAX_COLUMN_WIDTH, Math.ceil(maxWidth)));
     });
+}
+
+function computeColumnWidth(
+    column: IDbColumn,
+    columnIndex: number,
+    rows: DbCellValue[][],
+    font: string,
+): number {
+    return computeColumnWidths(
+        [column],
+        rows.map((row) => [row[columnIndex]]),
+        font,
+    )[0];
 }
 
 /**
@@ -235,6 +248,51 @@ export function NotebookResultGrid({
         // Now set columns — this triggers header rendering with plugins active
         grid.setColumns(columns);
 
+        const onHeaderClick = (
+            e: Slick.EventData,
+            args: Slick.OnHeaderClickEventArgs<Slick.SlickData>,
+        ) => {
+            const originalEvent = (e as JQuery.TriggeredEvent).originalEvent;
+            if (!(originalEvent instanceof MouseEvent) || originalEvent.detail !== 2) {
+                return;
+            }
+
+            const columnId = args.column?.id;
+            if (!columnId || columnId === "rowNumber") {
+                return;
+            }
+
+            const columnIndex = Number(columnId);
+            if (Number.isNaN(columnIndex) || columnIndex < 0 || columnIndex >= columnInfo.length) {
+                return;
+            }
+
+            const resizedWidth = computeColumnWidth(
+                columnInfo[columnIndex],
+                columnIndex,
+                rows,
+                font,
+            );
+            const currentColumns = grid.getColumns();
+            const targetColumnIndex = currentColumns.findIndex((col) => col.id === columnId);
+
+            if (
+                targetColumnIndex <= 0 ||
+                currentColumns[targetColumnIndex].width === resizedWidth
+            ) {
+                return;
+            }
+
+            currentColumns[targetColumnIndex] = {
+                ...currentColumns[targetColumnIndex],
+                width: resizedWidth,
+            };
+            grid.setColumns(currentColumns);
+            grid.resizeCanvas();
+        };
+
+        grid.onHeaderClick.subscribe(onHeaderClick);
+
         // Ctrl+C / Cmd+C copy handler
         gridDiv.addEventListener("keydown", (e: KeyboardEvent) => {
             if ((e.ctrlKey || e.metaKey) && e.key === "c") {
@@ -291,6 +349,7 @@ export function NotebookResultGrid({
 
         // Cleanup
         return () => {
+            grid.onHeaderClick.unsubscribe(onHeaderClick);
             resizeObserver.disconnect();
             grid.destroy();
             tableDataView.dispose();
