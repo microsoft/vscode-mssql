@@ -12,22 +12,30 @@
  *
  * `environments` is `undefined` when no workspace folder is open — Cloud
  * Deploy is a folder-scoped feature, so the rest of the extension still works
- * without it.
+ * without it. `diagnostics` is always present; subscribers can attach at
+ * extension activation regardless of workspace state.
  */
 
 import * as vscode from "vscode";
 
+import { DiagnosticEventBus } from "./diagnostics";
 import { EnvironmentStore } from "./environments/environmentStore";
 
 export class CloudDeployService implements vscode.Disposable {
+    public readonly diagnostics: DiagnosticEventBus;
     public readonly environments: EnvironmentStore | undefined;
 
     public constructor(
         workspaceFolder: vscode.WorkspaceFolder | undefined,
         workspaceState: vscode.Memento,
     ) {
+        this.diagnostics = new DiagnosticEventBus();
         if (workspaceFolder !== undefined) {
-            this.environments = new EnvironmentStore(workspaceFolder, workspaceState);
+            this.environments = new EnvironmentStore(
+                workspaceFolder,
+                workspaceState,
+                this.diagnostics,
+            );
         }
     }
 
@@ -39,6 +47,8 @@ export class CloudDeployService implements vscode.Disposable {
     }
 
     public dispose(): void {
+        // Dispose subsystems first so any final emissions still reach subscribers.
         this.environments?.dispose();
+        this.diagnostics.dispose();
     }
 }

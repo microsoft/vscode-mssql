@@ -9,6 +9,7 @@ import * as os from "os";
 import * as path from "path";
 import * as vscode from "vscode";
 
+import { DiagnosticEventBus } from "../../src/cloudDeploy/diagnostics";
 import {
     Environment,
     SourceOfTruthKind,
@@ -19,6 +20,7 @@ import {
     EnvironmentsChangeEvent,
     EnvironmentStore,
 } from "../../src/cloudDeploy/environments/environmentStore";
+import { TestEventCollector } from "./cloudDeployTestEventCollector";
 
 /**
  * Minimal in-memory `vscode.Memento` for the per-user default-env preference.
@@ -70,18 +72,21 @@ suite("CloudDeploy EnvironmentStore", () => {
     let workspaceRoot: string;
     let folder: vscode.WorkspaceFolder;
     let memento: vscode.Memento;
+    let bus: DiagnosticEventBus;
     let store: EnvironmentStore;
 
     setup(async () => {
         workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), "mssql-envstore-"));
         folder = makeFolder(workspaceRoot);
         memento = makeMemento();
-        store = new EnvironmentStore(folder, memento);
+        bus = new DiagnosticEventBus();
+        store = new EnvironmentStore(folder, memento, bus);
         await store.init();
     });
 
     teardown(async () => {
         store.dispose();
+        bus.dispose();
         await fs.rm(workspaceRoot, { recursive: true, force: true });
     });
 
@@ -97,7 +102,7 @@ suite("CloudDeploy EnvironmentStore", () => {
         });
 
         test("calling list() before init throws", () => {
-            const s = new EnvironmentStore(folder, makeMemento());
+            const s = new EnvironmentStore(folder, makeMemento(), new DiagnosticEventBus());
             expect(() => s.list()).to.throw(/init/i);
             s.dispose();
         });
@@ -153,7 +158,7 @@ suite("CloudDeploy EnvironmentStore", () => {
         test("persists validations through round-trip", async () => {
             await store.upsert(makeEnv("a", { validations: [unitTestValidation] }));
             // Reload via a fresh store to confirm the file shape survives.
-            const fresh = new EnvironmentStore(folder, makeMemento());
+            const fresh = new EnvironmentStore(folder, makeMemento(), new DiagnosticEventBus());
             await fresh.init();
             const reloaded = fresh.get("a");
             fresh.dispose();
@@ -193,7 +198,11 @@ suite("CloudDeploy EnvironmentStore", () => {
 
     suite("reload", () => {
         test("picks up envs added to the file externally", async () => {
-            const otherStore = new EnvironmentStore(folder, makeMemento());
+            const otherStore = new EnvironmentStore(
+                folder,
+                makeMemento(),
+                new DiagnosticEventBus(),
+            );
             await otherStore.init();
             await otherStore.upsert(makeEnv("external"));
             otherStore.dispose();
@@ -259,6 +268,86 @@ suite("CloudDeploy EnvironmentStore", () => {
                 store.upsert(makeEnv("good")), // valid, queued behind
             ]);
             expect(store.list().map((e) => e.id)).to.deep.equal(["good"]);
+        });
+    });
+
+    suite("diagnostic event emissions", () => {
+        test("init emits environments-loaded with the correct count", async () => {
+            // Seed the file via the setup store, then init a fresh store with
+            // a fresh bus + collector so we observe just that init's emissions.
+            await store.upsert(makeEnv("a"));
+            await store.upsert(makeEnv("b"));
+            const freshBus = new DiagnosticEventBus();
+            const collector = new TestEventCollector(freshBus);
+            const fresh = new EnvironmentStore(folder, makeMemento(), freshBus);
+            await fresh.init();
+
+            const loaded = collector.eventsOfType("environments-loaded");
+            expect(loaded).to.have.length(1);
+            expect(loaded[0].payload.count).to.equal(2);
+            expect(loaded[0].source).to.equal("environment-store");
+
+            collector.dispose();
+            fresh.dispose();
+            freshBus.dispose();
+        });
+
+        test("init emits environments-file-parse-failed on a malformed file (and re-throws)", async () => {
+            const mssqlDir = path.join(workspaceRoot, ".mssql");
+            await fs.mkdir(mssqlDir, { recursive: true });
+            await fs.writeFile(path.join(mssqlDir, "environments.json"), "{ not json");
+
+            const freshBus = new DiagnosticEventBus();
+            const collector = new TestEventCollector(freshBus);
+            const fresh = new EnvironmentStore(folder, makeMemento(), freshBus);
+
+            let caught: unknown;
+            try {
+                await fresh.init();
+            } catch (err) {
+                caught = err;
+            }
+            expect(caught, "expected init to re-throw the parse error").to.exist;
+
+            const parseFailed = collector.eventsOfType("environments-file-parse-failed");
+            expect(parseFailed).to.have.length(1);
+            expect(parseFailed[0].severity).to.equal("error");
+            expect(parseFailed[0].payload.filePath).to.contain("environments.json");
+
+            collector.dispose();
+            fresh.dispose();
+            freshBus.dispose();
+        });
+
+        test("upsert (add) emits environments-changed with the new id in addedIds", async () => {
+            const collector = new TestEventCollector(bus);
+            await store.upsert(makeEnv("a"));
+            const changes = collector.eventsOfType("environments-changed");
+            expect(changes).to.have.length(1);
+            expect(changes[0].payload.addedIds).to.deep.equal(["a"]);
+            expect(changes[0].payload.updatedIds).to.deep.equal([]);
+            expect(changes[0].payload.removedIds).to.deep.equal([]);
+            collector.dispose();
+        });
+
+        test("delete emits environments-changed with the removed id in removedIds", async () => {
+            await store.upsert(makeEnv("a"));
+            const collector = new TestEventCollector(bus);
+            await store.delete("a");
+            const changes = collector.eventsOfType("environments-changed");
+            expect(changes).to.have.length(1);
+            expect(changes[0].payload.removedIds).to.deep.equal(["a"]);
+            collector.dispose();
+        });
+
+        test("setDefaultEnvironmentId emits default-environment-changed with the new id", async () => {
+            await store.upsert(makeEnv("a"));
+            const collector = new TestEventCollector(bus);
+            await store.setDefaultEnvironmentId("a");
+            const changes = collector.eventsOfType("default-environment-changed");
+            expect(changes).to.have.length(1);
+            expect(changes[0].payload.id).to.equal("a");
+            collector.dispose();
         });
     });
 });
