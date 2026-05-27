@@ -1302,6 +1302,14 @@ export class Fabric {
         });
     };
 
+    public static listingWarehousesForWorkspace = (workspaceId: string) => {
+        return l10n.t({
+            message: "Listing Fabric Warehouses for workspace '{0}'",
+            args: [workspaceId],
+            comment: ["{0} is the workspace ID"],
+        });
+    };
+
     public static gettingConnectionStringForSqlEndpoint = (
         sqlEndpointId: string,
         workspaceId: string,
