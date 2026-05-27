@@ -84,23 +84,7 @@ export class EnvironmentStore implements vscode.Disposable {
         if (this._initialized) {
             return;
         }
-        let file: EnvironmentsFile;
-        try {
-            file = await loadEnvironmentsFile(this.workspaceFolder);
-        } catch (err) {
-            if (err instanceof EnvironmentsFileParseError) {
-                this._bus.emit({
-                    source: "environment-store",
-                    type: "environments-file-parse-failed",
-                    severity: "error",
-                    payload: {
-                        filePath: err.filePath,
-                        issueCount: err.issues?.length ?? 0,
-                    },
-                });
-            }
-            throw err;
-        }
+        const file = await this.loadFileOrEmitParseError();
         this._envs = [...file.environments];
         this._initialized = true;
         this._bus.emit({
@@ -198,7 +182,7 @@ export class EnvironmentStore implements vscode.Disposable {
     public async reload(): Promise<void> {
         this.assertInitialized();
         await this.runWrite(async () => {
-            const file = await loadEnvironmentsFile(this.workspaceFolder);
+            const file = await this.loadFileOrEmitParseError();
             const before = this._envs;
             const after = file.environments;
             this._envs = [...after];
@@ -285,6 +269,31 @@ export class EnvironmentStore implements vscode.Disposable {
 
     private fireChange(evt: EnvironmentsChangeEvent): void {
         this._onDidChangeEnvironmentsEmitter.fire(evt);
+    }
+
+    /**
+     * Loads the env file; if loading throws a parse error, emits the
+     * `environments-file-parse-failed` diagnostic event before re-throwing.
+     * Shared by `init()` and `reload()` so the bus catalog reflects parse
+     * failures consistently regardless of when they happen.
+     */
+    private async loadFileOrEmitParseError(): Promise<EnvironmentsFile> {
+        try {
+            return await loadEnvironmentsFile(this.workspaceFolder);
+        } catch (err) {
+            if (err instanceof EnvironmentsFileParseError) {
+                this._bus.emit({
+                    source: "environment-store",
+                    type: "environments-file-parse-failed",
+                    severity: "error",
+                    payload: {
+                        filePath: err.filePath,
+                        issueCount: err.issues?.length ?? 0,
+                    },
+                });
+            }
+            throw err;
+        }
     }
 
     private emitEnvironmentsChanged(payload: {

@@ -319,6 +319,29 @@ suite("CloudDeploy EnvironmentStore", () => {
             freshBus.dispose();
         });
 
+        test("reload emits environments-file-parse-failed when the file is corrupted between sessions (and re-throws)", async () => {
+            // Start from a good state, then corrupt the file out-of-band and reload.
+            await store.upsert(makeEnv("a"));
+            const collector = new TestEventCollector(bus);
+            const filePath = path.join(workspaceRoot, ".mssql", "environments.json");
+            await fs.writeFile(filePath, "{ not json");
+
+            let caught: unknown;
+            try {
+                await store.reload();
+            } catch (err) {
+                caught = err;
+            }
+            expect(caught, "expected reload to re-throw the parse error").to.exist;
+
+            const parseFailed = collector.eventsOfType("environments-file-parse-failed");
+            expect(parseFailed).to.have.length(1);
+            expect(parseFailed[0].severity).to.equal("error");
+            expect(parseFailed[0].payload.filePath).to.contain("environments.json");
+
+            collector.dispose();
+        });
+
         test("upsert (add) emits environments-changed with the new id in addedIds", async () => {
             const collector = new TestEventCollector(bus);
             await store.upsert(makeEnv("a"));
