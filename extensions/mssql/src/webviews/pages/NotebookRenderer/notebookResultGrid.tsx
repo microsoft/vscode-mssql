@@ -75,11 +75,52 @@ function computeColumnWidth(
     rows: DbCellValue[][],
     font: string,
 ): number {
+    const sampleRows = rows.slice(0, MAX_SAMPLE_ROWS);
     return computeColumnWidths(
         [column],
-        rows.map((row) => [row[columnIndex]]),
+        sampleRows.map((row) => [row[columnIndex]]),
         font,
     )[0];
+}
+
+function parsePx(value: string): number {
+    const parsed = Number.parseFloat(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function getOuterWidthWithMargins(element: HTMLElement): number {
+    const style = getComputedStyle(element);
+    return element.offsetWidth + parsePx(style.marginLeft) + parsePx(style.marginRight);
+}
+
+function getMinimumHeaderWidth(headerElement: HTMLElement | null): number {
+    if (!headerElement) {
+        return MIN_COLUMN_WIDTH;
+    }
+
+    const headerStyle = getComputedStyle(headerElement);
+    const horizontalChrome =
+        parsePx(headerStyle.paddingLeft) +
+        parsePx(headerStyle.paddingRight) +
+        parsePx(headerStyle.borderLeftWidth) +
+        parsePx(headerStyle.borderRightWidth);
+
+    const headerName = headerElement.querySelector(".slick-column-name") as HTMLElement | null;
+    const headerTextWidth = headerName ? Math.ceil(headerName.scrollWidth) : 0;
+
+    const sortButton = headerElement.querySelector(
+        ".slick-header-sortbutton",
+    ) as HTMLElement | null;
+    const filterButton = headerElement.querySelector(
+        ".slick-header-filterbutton",
+    ) as HTMLElement | null;
+    const controlsWidth =
+        (sortButton ? getOuterWidthWithMargins(sortButton) : 0) +
+        (filterButton ? getOuterWidthWithMargins(filterButton) : 0);
+
+    // Keep a small visual gap before the resizable handle.
+    const requiredWidth = headerTextWidth + controlsWidth + horizontalChrome + 6;
+    return Math.max(MIN_COLUMN_WIDTH, Math.min(MAX_COLUMN_WIDTH, Math.ceil(requiredWidth)));
 }
 
 /**
@@ -273,19 +314,21 @@ export function NotebookResultGrid({
                 rows,
                 font,
             );
+            const headerElement = (originalEvent.target as HTMLElement | null)?.closest(
+                ".slick-header-column",
+            ) as HTMLElement | null;
+            const minHeaderWidth = getMinimumHeaderWidth(headerElement);
+            const targetWidth = Math.max(resizedWidth, minHeaderWidth);
             const currentColumns = grid.getColumns();
             const targetColumnIndex = currentColumns.findIndex((col) => col.id === columnId);
 
-            if (
-                targetColumnIndex <= 0 ||
-                currentColumns[targetColumnIndex].width === resizedWidth
-            ) {
+            if (targetColumnIndex <= 0 || currentColumns[targetColumnIndex].width >= targetWidth) {
                 return;
             }
 
             currentColumns[targetColumnIndex] = {
                 ...currentColumns[targetColumnIndex],
-                width: resizedWidth,
+                width: targetWidth,
             };
             grid.setColumns(currentColumns);
             grid.resizeCanvas();
