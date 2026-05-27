@@ -6,6 +6,7 @@
 import { useEffect, useRef } from "react";
 import { TableDataView, defaultFilter } from "../QueryResult/table/tableDataView";
 import { RowNumberColumn } from "../QueryResult/table/plugins/rowNumberColumn.plugin";
+import { AutoColumnSize } from "../QueryResult/table/plugins/autoColumnSize.plugin";
 import { NotebookHeaderMenu, FilterButtonWidth } from "./notebookHeaderMenu.plugin";
 import { CellSelectionModel } from "../QueryResult/table/plugins/cellSelectionModel.plugin";
 import { CellRangeSelector } from "../QueryResult/table/plugins/cellRangeSelector";
@@ -67,60 +68,6 @@ function computeColumnWidths(columns: IDbColumn[], rows: DbCellValue[][], font: 
         }
         return Math.max(MIN_COLUMN_WIDTH, Math.min(MAX_COLUMN_WIDTH, Math.ceil(maxWidth)));
     });
-}
-
-function computeColumnWidth(
-    column: IDbColumn,
-    columnIndex: number,
-    rows: DbCellValue[][],
-    font: string,
-): number {
-    const sampleRows = rows.slice(0, MAX_SAMPLE_ROWS);
-    return computeColumnWidths(
-        [column],
-        sampleRows.map((row) => [row[columnIndex]]),
-        font,
-    )[0];
-}
-
-function parsePx(value: string): number {
-    const parsed = Number.parseFloat(value);
-    return Number.isFinite(parsed) ? parsed : 0;
-}
-
-function getOuterWidthWithMargins(element: HTMLElement): number {
-    const style = getComputedStyle(element);
-    return element.offsetWidth + parsePx(style.marginLeft) + parsePx(style.marginRight);
-}
-
-function getMinimumHeaderWidth(headerElement: HTMLElement | null): number {
-    if (!headerElement) {
-        return MIN_COLUMN_WIDTH;
-    }
-
-    const headerStyle = getComputedStyle(headerElement);
-    const horizontalChrome =
-        parsePx(headerStyle.paddingLeft) +
-        parsePx(headerStyle.paddingRight) +
-        parsePx(headerStyle.borderLeftWidth) +
-        parsePx(headerStyle.borderRightWidth);
-
-    const headerName = headerElement.querySelector(".slick-column-name") as HTMLElement | null;
-    const headerTextWidth = headerName ? Math.ceil(headerName.scrollWidth) : 0;
-
-    const sortButton = headerElement.querySelector(
-        ".slick-header-sortbutton",
-    ) as HTMLElement | null;
-    const filterButton = headerElement.querySelector(
-        ".slick-header-filterbutton",
-    ) as HTMLElement | null;
-    const controlsWidth =
-        (sortButton ? getOuterWidthWithMargins(sortButton) : 0) +
-        (filterButton ? getOuterWidthWithMargins(filterButton) : 0);
-
-    // Keep a small visual gap before the resizable handle.
-    const requiredWidth = headerTextWidth + controlsWidth + horizontalChrome + 6;
-    return Math.max(MIN_COLUMN_WIDTH, Math.min(MAX_COLUMN_WIDTH, Math.ceil(requiredWidth)));
 }
 
 /**
@@ -286,60 +233,17 @@ export function NotebookResultGrid({
         const contextMenu = new NotebookContextMenu<Slick.SlickData>();
         grid.registerPlugin(contextMenu);
 
+        // Reuse Query Result auto-size behavior for double-clicking a resize handle.
+        const autoColumnSize = new AutoColumnSize<Slick.SlickData>({
+            maxWidth: MAX_COLUMN_WIDTH,
+            autoSizeOnRender: false,
+            // Notebook headers already include sort/filter button width in-flow.
+            extraColumnHeaderWidth: 0,
+        });
+        grid.registerPlugin(autoColumnSize);
+
         // Now set columns — this triggers header rendering with plugins active
         grid.setColumns(columns);
-
-        const onHeaderClick = (
-            e: Slick.EventData,
-            args: Slick.OnHeaderClickEventArgs<Slick.SlickData>,
-        ) => {
-            const originalEvent = (e as JQuery.TriggeredEvent).originalEvent;
-            if (!(originalEvent instanceof MouseEvent) || originalEvent.detail !== 2) {
-                return;
-            }
-
-            const columnId = args.column?.id;
-            if (!columnId || columnId === "rowNumber") {
-                return;
-            }
-
-            const columnIndex = Number(columnId);
-            if (Number.isNaN(columnIndex) || columnIndex < 0 || columnIndex >= columnInfo.length) {
-                return;
-            }
-
-            const resizedWidth = computeColumnWidth(
-                columnInfo[columnIndex],
-                columnIndex,
-                rows,
-                font,
-            );
-            const headerElement = (originalEvent.target as HTMLElement | null)?.closest(
-                ".slick-header-column",
-            ) as HTMLElement | null;
-            const minHeaderWidth = getMinimumHeaderWidth(headerElement);
-            const targetWidth = Math.max(resizedWidth, minHeaderWidth);
-            const currentColumns = grid.getColumns();
-            const targetColumnIndex = currentColumns.findIndex((col) => col.id === columnId);
-            if (targetColumnIndex < 1) {
-                return;
-            }
-            const targetColumn = currentColumns[targetColumnIndex];
-            const currentWidth = targetColumn?.width ?? 0;
-
-            if (!targetColumn || currentWidth >= targetWidth) {
-                return;
-            }
-
-            currentColumns[targetColumnIndex] = {
-                ...targetColumn,
-                width: targetWidth,
-            };
-            grid.setColumns(currentColumns);
-            grid.resizeCanvas();
-        };
-
-        grid.onHeaderClick.subscribe(onHeaderClick);
 
         // Ctrl+C / Cmd+C copy handler
         gridDiv.addEventListener("keydown", (e: KeyboardEvent) => {
@@ -397,7 +301,6 @@ export function NotebookResultGrid({
 
         // Cleanup
         return () => {
-            grid.onHeaderClick.unsubscribe(onHeaderClick);
             resizeObserver.disconnect();
             grid.destroy();
             tableDataView.dispose();
