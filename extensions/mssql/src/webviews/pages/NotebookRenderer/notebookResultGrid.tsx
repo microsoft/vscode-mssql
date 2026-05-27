@@ -321,13 +321,18 @@ export function NotebookResultGrid({
             const targetWidth = Math.max(resizedWidth, minHeaderWidth);
             const currentColumns = grid.getColumns();
             const targetColumnIndex = currentColumns.findIndex((col) => col.id === columnId);
+            if (targetColumnIndex < 1) {
+                return;
+            }
+            const targetColumn = currentColumns[targetColumnIndex];
+            const currentWidth = targetColumn?.width ?? 0;
 
-            if (targetColumnIndex <= 0 || currentColumns[targetColumnIndex].width >= targetWidth) {
+            if (!targetColumn || currentWidth >= targetWidth) {
                 return;
             }
 
             currentColumns[targetColumnIndex] = {
-                ...currentColumns[targetColumnIndex],
+                ...targetColumn,
                 width: targetWidth,
             };
             grid.setColumns(currentColumns);
