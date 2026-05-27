@@ -328,6 +328,9 @@
       <Item ItemId=";bundle.++CODE++03477f19d9c2a8d64507c67756d40cf9945e802a3c7f0b52d45a4127ebfd53a2" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Define who can execute this stored procedure]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Consente di definire chi può eseguire questa stored procedure]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -361,6 +364,9 @@
       <Item ItemId=";bundle.++CODE++03c0e95da7ae52bf9392b845b82870dbf28db813a7fd4a72085f8a544de37916" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Could not detect your client IP address. Please add a firewall rule manually in the Azure portal.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Non è stato possibile rilevare l'indirizzo IP del client. Aggiungi manualmente una regola del firewall nel portale di Azure.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -529,6 +535,9 @@
       <Item ItemId=";bundle.++CODE++062e564e29f0e723196471058d927f3259686301de0e59f8f13938ec71d7994c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[SQL Authentication]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Autenticazione SQL]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1156,6 +1165,9 @@
       <Item ItemId=";bundle.++CODE++0ca9017c8fb85ae12ca8668af23d92b03040f0d7f3b3dc6df332a7ec59ef611f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[LRS]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Archiviazione con ridondanza locale]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1261,6 +1273,9 @@
       <Item ItemId=";bundle.++CODE++0e065649e8d08d5182df2d21e09c4601b250d55237faf7166fb300ea125f3d8b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Built-in encryption, firewall rules, and Microsoft Entra ID integration to protect your data.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Crittografia predefinita, regole del firewall e integrazione con Microsoft Entra ID per proteggere i dati.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1465,6 +1480,9 @@
       <Item ItemId=";bundle.++CODE++101e791740d73043fdbe1492a661f8c4194d1881957dc2ba8f08d2739474ae53" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Free compute & storage]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Risorse di calcolo e archiviazione gratuite]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1534,6 +1552,9 @@
       <Item ItemId=";bundle.++CODE++10990bf5e602e929a28b2b4c29a15161d0b50a53837cfaf936e89bed619098ac" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Geo-redundant backup storage]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Archivio di backup con ridondanza geografica]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1585,6 +1606,9 @@
       <Item ItemId=";bundle.++CODE++10e83a09a01b19a7e3094aff3a98451a8413276d7f6266cd15d23ccf5ac6c38e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Custom GraphQL Plural Type]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tipo GraphQL plurale personalizzato]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1744,6 +1768,9 @@
       <Item ItemId=";bundle.++CODE++1331275bc537b4c2bf1e46f7275677967515342e30b572e6852fa6f51b831fe8" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Tags]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tag]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1804,6 +1831,9 @@
       <Item ItemId=";bundle.++CODE++13a937f0cc56c417b9315c6d08c42cce016b514491d1a3778422a5e8da7ccfe9" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Loading Azure SQL Database...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Caricamento database SQL di Azure in corso...]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1963,6 +1993,9 @@
       <Item ItemId=";bundle.++CODE++15435d09b1cffdaf56b14da1b895b33f43e8c959a77676be198778deca88c203" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enable MCP in API Type to use this DML tools setting.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Abilita MCP come tipo di API per usare l'impostazione degli strumenti DML.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2500,6 +2533,9 @@
       <Item ItemId=";bundle.++CODE++1b216be66c84c2da4deaf986de6e71b165d9433c29e1790e5939f0f092eeaa1c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enter username]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Immettere il nome utente]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2533,6 +2569,9 @@
       <Item ItemId=";bundle.++CODE++1bb6be5ab437360bab6d5fc59d72d16ba5c0ed71d17cb0b2e7a269f070ef6535" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[This server only supports SQL Authentication.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Questo server supporta solo l'autenticazione SQL.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2638,6 +2677,9 @@
       <Item ItemId=";bundle.++CODE++1da20df88686d477364e048fe92b392449ad8e0f1226ff2903d0d54cae8a24c8" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Free offer applied]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[È stata applicata l'offerta gratuita]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2770,6 +2812,9 @@
       <Item ItemId=";bundle.++CODE++1fd919fd5e24a6e11c02245971437276dd6793359fce501d4dc634b83a54982a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Browse Azure SQL Database tutorials and docs]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Esplora le esercitazioni e la documentazione sul database SQL di Azure]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2794,6 +2839,9 @@
       <Item ItemId=";bundle.++CODE++2029b6cedb7a8d6b58872d33896e8d2d86134cb98d9194706758d32238c9dee2" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enter admin username]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Immettere il nome utente amministratore]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2809,6 +2857,9 @@
       <Item ItemId=";bundle.++CODE++2058e7768297cdc1b7cbeb655cd4f06450ec8900fad7f2b06367934185d5967a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[This server supports Microsoft Entra ID and SQL Authentication.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Questo server supporta Microsoft Entra ID e l'autenticazione SQL.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2869,6 +2920,9 @@
       <Item ItemId=";bundle.++CODE++20d04708439a97fe2875163d4e29918be227f86d5fa82847438232e6e626b5f5" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Monitor usage and manage your free tier limits]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Monitora l'utilizzo e gestisci i limiti del livello gratuito]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3235,6 +3289,9 @@
       <Item ItemId=";bundle.++CODE++244f980d2c1c7cc5eb149270dda53e475cdf951f712ccb9a4039f295653912d1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Locally-redundant backup storage]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Archivio di backup con ridondanza locale]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3763,6 +3820,9 @@
       <Item ItemId=";bundle.++CODE++29b442400008bbd807940df17eeffd10d069f415bd2c1320d813f2e61a223095" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Expose as MCP DML tools]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Esponi come strumenti DML MCP]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4102,6 +4162,9 @@
       <Item ItemId=";bundle.++CODE++2dda2d5e705c870b4711000d9e6e1a1552a6426ff2835af34a45eb0ea5f3182b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Create an Azure SQL Database]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Creare un database SQL di Azure]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4144,12 +4207,18 @@
       <Item ItemId=";bundle.++CODE++2e2706212eec134e00b88651a09bcbab6a28eb15560d24a9c6d3690d6c06b57b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connecting to database]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Connessione al database]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++2e28aab93b90457d1678d144ede550e870c9826d92e8e4ca66e1d0ae05415fda" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Admin Password]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Password amministratore]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4489,6 +4558,9 @@
       <Item ItemId=";bundle.++CODE++31ab92c035a309794019f563cf5059e4ecc3e8ce19afc665de2b384d99e0fb61" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Up to 10 databases with 100K vCore seconds, 32 GB storage, and backups renewed monthly.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fino a 10 database con 100.000 secondi vCore, 32 GB di spazio di archiviazione e backup rinnovati ogni mese.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4648,6 +4720,9 @@
       <Item ItemId=";bundle.++CODE++33b7ce06f20e0b1b9cdd74b2e5469a3b0053ab25eb1586e0f10309c321ecaae1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Deployment finished]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Distribuzione completata]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4717,6 +4792,9 @@
       <Item ItemId=";bundle.++CODE++346775f99a4124e307b5630841a9cb4c7644ebec17c660619ad58ec1caba4196" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[32 GB storage + 32 GB backup]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[32 GB di spazio di archiviazione + 32 GB di backup]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4858,6 +4936,9 @@
       <Item ItemId=";bundle.++CODE++36788a4bbad501fe2c69d37d0d7ce128868a41848663752a28c886a54df70752" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Continue using for additional charges]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Continua a usarlo per costi aggiuntivi]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5143,6 +5224,9 @@
       <Item ItemId=";bundle.++CODE++3a7dcd8bd70596d3a3f8343c0be10cdac9018d127b885095507bad71ee11f18c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[[Read-only]5D; Pre-filled from the server properties.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[[Sola lettura]5D; Precompilato dalle proprietà del server.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5248,6 +5332,9 @@
       <Item ItemId=";bundle.++CODE++3be95ed18980393b7f3c2f3f80286751e450d52d3015de1965c1671a001c56d3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Auto-pause the database until next month]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Sospendi automaticamente il database fino al mese successivo]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5416,6 +5503,9 @@
       <Item ItemId=";bundle.++CODE++3e10b08cc874514175b51ba372ff955b27e2817963bc53ab489344968d5a472d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add tag]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Aggiungi il tag]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5494,6 +5584,9 @@
       <Item ItemId=";bundle.++CODE++3ee76edbdcf0a31ed7285d2f1bc2de28bfa973b84056bc08fd6a6a4516152e49" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Developer-friendly transactional database using the Azure SQL Database Engine — at no cost for prototyping and learning.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Database transazionale adatto agli sviluppatori che usa il motore di database SQL di Microsoft Azure, senza costi per prototipazione e apprendimento.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5725,6 +5818,9 @@
       <Item ItemId=";bundle.++CODE++4109ca63fed7620f568296b7854396c09c0453afd1a5d3e7b1427e88a7e62101" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Optional - Override default GraphQL singular type name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Facoltativo - Esegui l'override del nome del tipo singolo GraphQL predefinito]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5911,6 +6007,9 @@
       <Item ItemId=";bundle.++CODE++435a3f4d792a8772b32b4787b99aa0ecb672b0117b1ff49bd8f5f35046e055ed" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Additional usage beyond the free amount will be charged at serverless rates.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[L'utilizzo aggiuntivo oltre l'importo gratuito verrà addebitato alle tariffe serverless.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5989,6 +6088,9 @@
       <Item ItemId=";bundle.++CODE++4458e9d6c19d14a28dfe913b227c80ac7aa74c2a66d830bc962c2e7bbc6350fa" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Optional - Override default GraphQL plural type name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Facoltativo - Esegui l'override del nome del tipo plurale GraphQL predefinito]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6022,6 +6124,9 @@
       <Item ItemId=";bundle.++CODE++44a08fe61f9d3024b58081bde56db3941ca139f52396dce09e0fbfc2c9a67897" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Loading subscriptions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Caricamento delle sottoscrizioni]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6154,6 +6259,9 @@
       <Item ItemId=";bundle.++CODE++45f72ef532c602c155033a6d27f0b8842d5514272f174487daece16c8ae600a1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Unable to determine the server authentication type.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Impossibile determinare il tipo di autenticazione del server.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6367,6 +6475,9 @@
       <Item ItemId=";bundle.++CODE++4812f4553152a2d4f7e8c4ddbd2740db0fd157638b9723fc369790631aa21061" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Maintenance Window]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Finestra di manutenzione]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6409,6 +6520,9 @@
       <Item ItemId=";bundle.++CODE++488464ba45b0e8e2bb24fac5530ec868c24851f486b82ab6e95c95e4f31ae79a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Remove tag]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Rimuovi tag]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6811,6 +6925,9 @@
       <Item ItemId=";bundle.++CODE++4c5540399ea50cb52c6ca24ab5aebf272d0e39920af434bec1fa87fa821f1bbd" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Auto-pause]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Sospendi automaticamente]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6862,6 +6979,9 @@
       <Item ItemId=";bundle.++CODE++4cd95a398bcc4e99d1d5ddc3f92702e41fa5ce370a10569104474d290505cf56" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enter user name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Immetti il nome utente]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -7066,6 +7186,9 @@
       <Item ItemId=";bundle.++CODE++4e936619770404c3fab784d2d0276b4f617b67ed037e49b3a36481f7929bcac7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[None (empty database)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nessuno (database vuoto)]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -7252,6 +7375,9 @@
       <Item ItemId=";bundle.++CODE++5074b0dd3fec65cf6816a26ce347ffaf826056d587bd830f605d29e34c2601ec" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Settings are fixed for free tier.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Le impostazioni sono fisse per il livello gratuito.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -7321,6 +7447,9 @@
       <Item ItemId=";bundle.++CODE++51f271b7eaf83c5deef5741d74dab59a856cea83ec2362b518b5de09c5b1d9f5" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Learn more about Azure SQL Database free tier]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Altre informazioni sul livello gratuito di database SQL di Azure]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -7516,6 +7645,9 @@
       <Item ItemId=";bundle.++CODE++5493d99b17c225af455b0fdaa53425c8fadd62f34935b8c02b8c1504f281acba" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Max 10 databases / subscription]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Massimo 10 database/sottoscrizione]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -7639,6 +7771,9 @@
       <Item ItemId=";bundle.++CODE++561ba11b002a5ba8dea88b4a98186d829c0f8b551c04f331c6985d16c2b2b2e2" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Custom GraphQL Singular Type]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tipo GraphQL singolare personalizzato]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -8005,6 +8140,9 @@
       <Item ItemId=";bundle.++CODE++5a3fe99089f1cfa6786ebfc90e68d4305f98c4a9132f49b7e57fbfe37b9f4916" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Loading servers]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Caricamento dei server]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -8416,6 +8554,9 @@
       <Item ItemId=";bundle.++CODE++6086fe9511daa7a6fa39f0af8abaf8b553c8292375dfd76bc8d583b28ce3c808" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enter admin password]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Immetti la password dell'amministratore]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -8818,6 +8959,9 @@
       <Item ItemId=";bundle.++CODE++658cfc002aa81e1127e8652d0514d231cb7414501f5932b093e1939c4305781f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Deployment failed]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Distribuzione non riuscita]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -9337,6 +9481,9 @@
       <Item ItemId=";bundle.++CODE++6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[1]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[1]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -9514,6 +9661,9 @@
       <Item ItemId=";bundle.++CODE++6d7af8a57c85229b9b08306d93d38a7f0f2d369dc90a339ea4708ca45a92252b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No Azure accounts found]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Non sono stati trovati account Azure]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -9619,6 +9769,9 @@
       <Item ItemId=";bundle.++CODE++6e71f5fc0d9c6c4b7b332b728876a1d39748494efe2355bdae2383b90c86f050" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Allows MCP clients to use generic create, read, update, and delete tools for this table.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Consente ai client MCP di usare strumenti di creazione, lettura, aggiornamento ed eliminazione generici per questa tabella.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -9886,6 +10039,9 @@
       <Item ItemId=";bundle.++CODE++71e873a7b235e16960c8ae5cae169f48638a136d88236664fdd7f82cf88ce2c8" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No servers found]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nessun server trovato]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -9964,6 +10120,9 @@
       <Item ItemId=";bundle.++CODE++72d3d1e6e874aa94ab02c4aac4ea2399ce299ddcad4b38a795754c92e158ac4d" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Your current IP {0} will be added automatically.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Il tuo indirizzo IP {0} corrente verrà aggiunto automaticamente.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -10150,6 +10309,9 @@
       <Item ItemId=";bundle.++CODE++741a06b13d57f36b0e124ffa0f78c13e53741b902f999b2656bbc8e7f75d625a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select a location for the resource group]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Seleziona una località per il gruppo di risorse]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -10165,6 +10327,9 @@
       <Item ItemId=";bundle.++CODE++74243f86c3e0868010e2216f08236ed91a5ca829759c64e8321c9eb1750dada1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Database pauses until the next billing cycle when free amount is renewed.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Il database viene messo in pausa fino al ciclo di fatturazione successivo, quando l'importo gratuito viene rinnovato.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -10513,6 +10678,9 @@
       <Item ItemId=";bundle.++CODE++78651c0e93c0ad6baf965a9c39a603425c45f989e391c49a6724d98de8583a85" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Use SQL Authentication with a valid username and password.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Usa l'autenticazione SQL con un nome utente e una password validi.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -10735,6 +10903,9 @@
       <Item ItemId=";bundle.++CODE++7b2f513a67abc570d3348717ad85ae669570734afe2bf57015c2cc9b0dce3764" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Monthly limits]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Limiti mensili]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -11056,6 +11227,9 @@
       <Item ItemId=";bundle.++CODE++7eab787ddc514e76e7b746ec2374beb0b043f1f3b1123ec6872bec5a6f0147fc" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[SQL Server is required]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SQL Server è obbligatorio]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -11233,6 +11407,9 @@
       <Item ItemId=";bundle.++CODE++8062e054268463a31bf1409a2928cb7e54cf8cdebadeef0e739dc55c473774c1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Confirm admin password]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Conferma password amministratore]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -11446,6 +11623,9 @@
       <Item ItemId=";bundle.++CODE++83183f85bfea0220389f0642b618bb70d21e77bf68028be1d05abb4bd2772407" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to create firewall rule: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Non è stato possibile creare la regola del firewall: {0}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -11767,6 +11947,9 @@
       <Item ItemId=";bundle.++CODE++8827253bb1a2a0581d324b1945989a83d7056565bc43c20ce67eba8d60c1166e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Loading tenants]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Caricamento dei tenant]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -11827,6 +12010,9 @@
       <Item ItemId=";bundle.++CODE++88af2fae162f54cc7b5d4efe02c132217c5bccb05fd1b82cbbfee5b450dc9a44" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[100K vCore seconds]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[100.000 secondi vCore]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -12742,6 +12928,9 @@
       <Item ItemId=";bundle.++CODE++93f000d094c33f601abe918b123741f26201c34c891d36c1358c862e209bdf14" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Loading locations]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Caricamento posizioni]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -12838,6 +13027,9 @@
       <Item ItemId=";bundle.++CODE++958a0500f227e31bede1c2aaac7f01cb586d081a4fa0396928370f797a956bd7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select all entities]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Seleziona tutte le entità]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -12871,6 +13063,9 @@
       <Item ItemId=";bundle.++CODE++963f6af0c0aac8420cc06761893d8cd2c2196561f20f537a6b4073da6eda141a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Backup Storage Redundancy]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ridondanza dell'archivio di backup]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -13210,6 +13405,9 @@
       <Item ItemId=";bundle.++CODE++99a52df3ff3d499488e2fa28150c4106a2cb5e928891a830a9aa3922b2d32160" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Key]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Chiave]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -13468,6 +13666,9 @@
       <Item ItemId=";bundle.++CODE++9d42472185c6fe080e6ab7a93b676c943ab7e5b29b29b760346898bf579c031d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[What's next?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Passaggi successivi]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -14059,6 +14260,9 @@
       <Item ItemId=";bundle.++CODE++a4469e8491766ec6b1f6d3c2f4e3861d58829898ba912fad682eb8133520cb6d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Serverless]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Serverless]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -14443,6 +14647,9 @@
       <Item ItemId=";bundle.++CODE++a8cde5c6159c971e8c8d7cbb13844a520f02109201678c5934c9ecc190000ebd" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select location]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Seleziona la posizione]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -14485,6 +14692,9 @@
       <Item ItemId=";bundle.++CODE++a969d04ec2d003299e81414a53a2c4079a10d8f181ff0a10505a33caef8f3af5" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[User Name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nome utente]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -14734,6 +14944,9 @@
       <Item ItemId=";bundle.++CODE++abccc78cc93c07931feccfbd0665c003373b48334fd8d4cf5c6d0c714e68f26e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Permissions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Autorizzazioni]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -14767,6 +14980,9 @@
       <Item ItemId=";bundle.++CODE++ac33cc2b7f21b9e3f168a36d2c3c32a35216ffc2faf0630c9ae6aabc347c1b79" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Compare Azure SQL Database service tiers]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Confronta i livelli di servizio del database SQL di Azure]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -15340,6 +15556,9 @@
       <Item ItemId=";bundle.++CODE++b3c53352119c42e3f1700a4b0a090c01515a82216dccd5ef19b6cddd1d70cacd" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Loading Azure accounts]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Caricamento degli account Azure]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -15400,6 +15619,9 @@
       <Item ItemId=";bundle.++CODE++b4eb78ee43fade6ba490bb64508b7dc359f5f67a8438030d28f54d46a222ee4b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Loading maintenance windows...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Caricamento delle finestre di manutenzione in corso...]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -15442,6 +15664,9 @@
       <Item ItemId=";bundle.++CODE++b5561dc4caff598b3f5a9190b224cd34587621b1d44cb0f024a6308777d211df" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Use Microsoft Entra ID authentication to provision and connect to this database.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Usa l'autenticazione di Microsoft Entra ID per effettuare il provisioning e connetterti a questo database.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -15529,6 +15754,9 @@
       <Item ItemId=";bundle.++CODE++b63f1f48f79dc3c0319a846b9df813b98c4882df4d8b885b7f74d4ad237cf24f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[60 min]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[60 min]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -15967,6 +16195,9 @@
       <Item ItemId=";bundle.++CODE++bab90f75906255b3122103084e6016632ae14f76d6447b95c84c4e4d7db51ec1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Create New Server]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Crea nuovo server]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -16270,6 +16501,9 @@
       <Item ItemId=";bundle.++CODE++bd5a82074112e68d5443f566c1472ae08dec8c6773160c6c6c4b9c37787bf984" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connection Timeout (seconds)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Timeout connessione (secondi)]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -16294,6 +16528,9 @@
       <Item ItemId=";bundle.++CODE++bd9e4be7933baafca2a9806ee618f7371c78f98b06064c26600bb18992282fde" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Behavior when free offer limit is reached]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Comportamento quando viene raggiunto il limite dell'offerta gratuita]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -16750,6 +16987,9 @@
       <Item ItemId=";bundle.++CODE++c4038f47497f61adc776523835e82f3bab98d497b1978fced8d46e61e6f435a4" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Seed sample data or import an existing schema]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Esegui il seeding dei dati di esempio o importa uno schema esistente]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -16936,6 +17176,9 @@
       <Item ItemId=";bundle.++CODE++c61a620e1fbfff5241621d0469c0cf2dabee8f8cf66f37b4b854355917855b70" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connect using either Microsoft Entra ID or SQL Authentication.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Connettiti usando Microsoft Entra ID o l'autenticazione SQL.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -16978,6 +17221,9 @@
       <Item ItemId=";bundle.++CODE++c6cc40d1bb74f7c0333c4264cbd7d9ac832fcd4a39f54a4f044b54471beffd71" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Configure and customize Azure SQL Databases]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Configura e personalizza database SQL di Azure]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -17110,6 +17356,9 @@
       <Item ItemId=";bundle.++CODE++c81954973ca0121a610a95a9872f6e71c08df9f100dd5dfb65dfee8545d2df2f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Loading resource groups]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Caricamento dei gruppi di risorse]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -17161,6 +17410,9 @@
       <Item ItemId=";bundle.++CODE++c89b52fc072a9370c7bb8c9a726985b7632c38a45d1e06c14d8b650a87dc1e3c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select a collation]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Seleziona regole di confronto]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -17401,12 +17653,18 @@
       <Item ItemId=";bundle.++CODE++cbc6ae36d1aec69e8b4ab32b18eac65c87ac1ded2fe8e3c342df068fb83be36d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[This server only supports Microsoft Entra ID authentication.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Questo server supporta solo l'autenticazione con Microsoft Entra ID.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++cbd2167917b36ef54fa6044f33009b01e0793c6fda74f2488762f9cdb26793fc" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Compute + Storage]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Calcolo + Archiviazione]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -17611,6 +17869,9 @@
       <Item ItemId=";bundle.++CODE++cf093e7e2e997d1c42be65be5bd833c01393db39c48aa6dcf3bfc1675a4a83d0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select a maintenance window]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Seleziona una finestra di manutenzione]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -17824,6 +18085,9 @@
       <Item ItemId=";bundle.++CODE++d18de1563a616cb53199d56202336f6b481375ac8ecb8d0eeafb53466f42c4bf" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Username is required]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Il nome utente è obbligatorio]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -18361,6 +18625,9 @@
       <Item ItemId=";bundle.++CODE++d7bd166a0fcb99c1a76bef916c6d48f1f627d8572d33c48399e2979659c8766f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Loading collations...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Caricamento delle regole di confronto in corso...]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -18412,6 +18679,9 @@
       <Item ItemId=";bundle.++CODE++d7f5ff6e4dad9f838e47b0ebe6e7599c967ad07620a3329436b4887f723d649e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Try Azure SQL Database at no cost with our free tier offer! Provision a fully managed cloud database directly from VS Code.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Prova database SQL di Azure gratuitamente con la nostra offerta del livello gratuito! Esegui il provisioning di un database cloud completamente gestito direttamente da VS Code.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -18724,6 +18994,9 @@
       <Item ItemId=";bundle.++CODE++db8b5a02307f785d43d26d74dc565aea97f8ac3f8ff36d6f7979440b000973c0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Creating resource group...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Creazione del gruppo di risorse in corso...]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -19999,6 +20272,9 @@
       <Item ItemId=";bundle.++CODE++e86cf7b88cde4602bf09208d61b915b3990896c08dfc027f85aaf61296311506" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Save password]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Salva password]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -20131,6 +20407,9 @@
       <Item ItemId=";bundle.++CODE++e9cf6025703e6809e20b33168b1ad2c6120b938ab5fe8d648892d50ac54d3051" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Service tier]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Livello di servizio]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -20389,6 +20668,9 @@
       <Item ItemId=";bundle.++CODE++ecef2e758186fef1d545bd27435cb4a5a1e8ec826ca16f545247ce6216b8e1ff" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Admin Username]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nome utente amministratore]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -20449,6 +20731,9 @@
       <Item ItemId=";bundle.++CODE++eda567f3ec45bd45068c5e275d9a4acdcf64217bc5c76c47427cda124aa7bed3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Microsoft Entra ID]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Microsoft Entra ID]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -20491,6 +20776,9 @@
       <Item ItemId=";bundle.++CODE++edf70be4cc3997d84703d19bd61ed05b95494ec7d58abb5a78ae4250ddefadcf" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[32 GB]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[32 GB]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -20641,6 +20929,9 @@
       <Item ItemId=";bundle.++CODE++f0484b375485ef8d2883902cf1f5e0c2a204fc76cae01d6b3864c461c55df828" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Creating server...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Creazione del server in corso...]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -20737,6 +21028,9 @@
       <Item ItemId=";bundle.++CODE++f12efc4df249bedf344f5c5e1c0200fa7227e5e01e0844090e4ed9f805f35cb0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Firewall]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Firewall]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -20833,6 +21127,9 @@
       <Item ItemId=";bundle.++CODE++f2d0178ddb6ab66f3ba6afff663a52bf766e08a8f4e7996d9890c75862ac6d29" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connect with SQL tools and run your first query]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Connettiti agli strumenti SQL ed esegui la prima query]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -20848,6 +21145,9 @@
       <Item ItemId=";bundle.++CODE++f302fdbca94d65797221e8c829c55961e7b47aebf753ca2dd797862c8453649a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enter a name for the new server]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Immetti un nome per il nuovo server]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -21034,6 +21334,9 @@
       <Item ItemId=";bundle.++CODE++f51936575cf1dc8077bff593b9237f2ab580f19bf6e25bc409e294768ed1a10c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select the HTTP method that can execute this stored procedure. DAB defaults to POST.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Seleziona il metodo HTTP che può eseguire questa stored procedure. DAB usa POST per impostazione predefinita.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -21229,6 +21532,9 @@
       <Item ItemId=";bundle.++CODE++f89417d53ba776c805f239fe55d55177f66764a88a5ae08085341e904985b900" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[LRS backup (locally redundant)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Backup LRS (archiviazione con ridondanza locale)]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -21370,6 +21676,9 @@
       <Item ItemId=";bundle.++CODE++fabfc8c046b35f76ce8c88c7bae9507cdb100c97019311594afde7a283d3bb61" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Zone-redundant backup storage]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Archivio di backup con ridondanza della zona]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -21466,6 +21775,9 @@
       <Item ItemId=";bundle.++CODE++fba27c1cc726f650cd3eceb3a036cce31854cde7aa2ad9fe4a073c12417098c4" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Your database will continue running after the free offer limit and you will be charged for overages.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Il database continuerà a funzionare dopo il limite dell'offerta gratuita e ti verranno addebitati i costi in eccesso.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -21697,6 +22009,9 @@
       <Item ItemId=";bundle.++CODE++fe2fcab4acca97ade901dba3dcfe91a73a08201d713ff737a3bbecdeb78dc0c8" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Resource Group Name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nome del gruppo di risorse]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
