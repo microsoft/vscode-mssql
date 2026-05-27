@@ -750,6 +750,10 @@
         "message": "Listing Fabric SQL Endpoints for workspace '{0}'",
         "comment": ["{0} is the workspace ID"]
     },
+    "Listing Fabric Warehouses for workspace '{0}'/{0} is the workspace ID": {
+        "message": "Listing Fabric Warehouses for workspace '{0}'",
+        "comment": ["{0} is the workspace ID"]
+    },
     "Getting connection string for SQL Endpoint '{0}' in workspace '{1}'/{0} is the SQL endpoint ID{1} is the workspace ID": {
         "message": "Getting connection string for SQL Endpoint '{0}' in workspace '{1}'",
         "comment": ["{0} is the SQL endpoint ID", "{1} is the workspace ID"]
@@ -2393,6 +2397,7 @@
     "Show All": "Show All",
     "SQL Analytics Endpoint": "SQL Analytics Endpoint",
     "SQL Database": "SQL Database",
+    "Warehouse": "Warehouse",
     "No workspaces found": "No workspaces found",
     "Location (Workspace)": "Location (Workspace)",
     "Expand Workspace Explorer": "Expand Workspace Explorer",
@@ -2509,6 +2514,8 @@
     "Error loading subscriptions": "Error loading subscriptions",
     "Error loading servers": "Error loading servers",
     "Azure SQL Server": "Azure SQL Server",
+    "Azure SQL Managed Instance": "Azure SQL Managed Instance",
+    "Azure Synapse Analytics": "Azure Synapse Analytics",
     "Sign into Azure": "Sign into Azure",
     "Not signed in": "Not signed in",
     "Add Account": "Add Account",
@@ -3323,7 +3330,7 @@
     "Smart performance": "Smart performance",
     "Automatic tuning features like automatic index creation enabled by default.": "Automatic tuning features like automatic index creation enabled by default.",
     "Loading Azure SQL Database...": "Loading Azure SQL Database...",
-    "Create an Azure SQL Database": "Create an Azure SQL Database",
+    "Create an Azure SQL Database (Preview)": "Create an Azure SQL Database (Preview)",
     "Try Azure SQL Database at no cost with our free tier offer! Provision a fully managed cloud database directly from VS Code.": "Try Azure SQL Database at no cost with our free tier offer! Provision a fully managed cloud database directly from VS Code.",
     "Developer-friendly transactional database using the Azure SQL Database Engine — at no cost for prototyping and learning.": "Developer-friendly transactional database using the Azure SQL Database Engine — at no cost for prototyping and learning.",
     "Free compute & storage": "Free compute & storage",

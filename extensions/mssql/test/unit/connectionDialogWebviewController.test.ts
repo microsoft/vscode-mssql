@@ -16,7 +16,6 @@ import {
 import {
     ConnectionDialog as Loc,
     Connection as ConnectionLoc,
-    refreshTokenLabel,
 } from "../../src/constants/locConstants";
 import MainController from "../../src/controllers/mainController";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
@@ -42,7 +41,7 @@ import {
     IConnectionProfileWithSource,
 } from "../../src/models/interfaces";
 import { AzureAccountService } from "../../src/services/azureAccountService";
-import { ConnectionDetails, IAccount, IToken } from "vscode-mssql";
+import { ConnectionDetails, IAccount } from "vscode-mssql";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import { VSCodeAzureSubscriptionProvider } from "@microsoft/vscode-azext-azureauth";
 import {
@@ -66,7 +65,6 @@ import {
 import * as AzureHelpers from "../../src/connectionconfig/azureHelpers";
 import { CreateSessionResponse } from "../../src/models/contracts/objectExplorer/createSessionRequest";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
-import { AzureController } from "../../src/azure/azureController";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import { multiple_matching_tokens_error } from "../../src/azure/constants";
 import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
@@ -1461,86 +1459,11 @@ suite("ConnectionDialogWebviewController Tests", () => {
         controller.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
         controller.state.connectionProfile.accountId = "TestUserId";
 
-        azureAccountService.getAccountSecurityToken.resolves({
-            token: "testToken",
-            expiresOn: Date.now() / 1000,
-        } as IToken);
-
-        const isTokenValidStub = sandbox.stub(AzureController, "isTokenValid").returns(false);
-
-        // When there's no error, we should have refreshToken button
-        let buttons = await controller["getAzureActionButtons"]();
-        expect(buttons.length).to.equal(2);
-        expect(buttons[1].id).to.equal("refreshToken");
-
-        // Test error handling when getAccountSecurityToken throws
-        isTokenValidStub.restore();
-        mockVscodeWrapper.showErrorMessage.resolves(undefined);
-        azureAccountService.getAccountSecurityToken.throws(new Error("Test error"));
-
-        buttons = await controller["getAzureActionButtons"]();
-        expect(buttons.length).to.equal(2);
-        expect(buttons[1].id).to.equal("refreshToken");
-    });
-
-    test("getAzureActionButtons shows error prompt with refreshTokenLabel when token validation fails", async () => {
-        stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: false });
-        controller.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
-        controller.state.connectionProfile.accountId = "TestUserId";
-
-        azureAccountService.getAccountSecurityToken.rejects(new Error("Token error"));
-        mockVscodeWrapper.showErrorMessage.resolves(undefined);
-
-        await controller["getAzureActionButtons"]();
-
-        expect(mockVscodeWrapper.showErrorMessage).to.have.been.calledWith(
-            sinon.match.string,
-            refreshTokenLabel,
-        );
-    });
-
-    test("getAzureActionButtons error prompt: selecting refresh triggers a refresh attempt", async () => {
-        stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: false });
-        const clock = sinon.useFakeTimers();
-        try {
-            controller.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
-            controller.state.connectionProfile.accountId = "TestUserId";
-
-            azureAccountService.getAccountSecurityToken.rejects(new Error("Token error"));
-            mockVscodeWrapper.showErrorMessage.resolves(refreshTokenLabel);
-
-            await controller["getAzureActionButtons"]();
-
-            // Advance the stubbed clock so the fire-and-forget prompt to refresh and
-            // the async refreshToken() function have a chance to run.
-            await clock.tickAsync(0);
-
-            // Called once for initial validation and once inside refreshToken()
-            expect(azureAccountService.getAccountSecurityToken.callCount).to.equal(2);
-        } finally {
-            clock.restore();
-        }
-    });
-
-    test("getAzureActionButtons error prompt: dismissing does not trigger a refresh attempt", async () => {
-        stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: false });
-        const clock = sinon.useFakeTimers();
-        try {
-            controller.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
-            controller.state.connectionProfile.accountId = "TestUserId";
-
-            azureAccountService.getAccountSecurityToken.rejects(new Error("Token error"));
-            mockVscodeWrapper.showErrorMessage.resolves(undefined);
-
-            await controller["getAzureActionButtons"]();
-
-            await clock.tickAsync(0);
-
-            // Only called once for validation; no refresh attempt was made
-            expect(azureAccountService.getAccountSecurityToken.callCount).to.equal(1);
-        } finally {
-            clock.restore();
-        }
+        const buttons = await controller["getAzureActionButtons"]();
+        expect(buttons.length).to.equal(1, "Should not surface token refresh for MSAL auth");
+        expect(buttons[0].id).to.equal("azureSignIn");
+        expect(azureAccountService.getAccountSecurityToken).to.not.have.been.called;
+        expect(mockVscodeWrapper.showErrorMessage).to.not.have.been.called;
     });
 
     suite("database loading", () => {

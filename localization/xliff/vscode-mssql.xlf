@@ -599,11 +599,17 @@
     <trans-unit id="++CODE++bc2a386616d4df1bf0313bdc4a7161a6c66b93554d20c9ad2dd3bc8ffe04e4ad">
       <source xml:lang="en">Azure SQL Database is not supported for restore.</source>
     </trans-unit>
+    <trans-unit id="++CODE++0a2105a1fadf7c199d8e23465ad8d288b97a0456a72b51bcf57cba2eb8f9606d">
+      <source xml:lang="en">Azure SQL Managed Instance</source>
+    </trans-unit>
     <trans-unit id="++CODE++2827add936f31415e16e0670d8686084ec2e21fed7686c0aa91fffdfa09e4e38">
       <source xml:lang="en">Azure SQL Server</source>
     </trans-unit>
     <trans-unit id="++CODE++6d457cc1e5982858c386c637bec86a3c2615e648054d4d5472a261e0b5004b2d">
       <source xml:lang="en">Azure Subscriptions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a2a46725ee7a38c9f7136bbc583fe472b90c5b22586050da352cc033ca18e346">
+      <source xml:lang="en">Azure Synapse Analytics</source>
     </trans-unit>
     <trans-unit id="++CODE++27dda4355b44df3f400de7845fe1bfc83a880707d4630f52be097d95625f7bfa">
       <source xml:lang="en">Azure account &apos;{0}&apos; was not found. Sign in with the correct account or select a different one.</source>
@@ -1763,8 +1769,8 @@
     <trans-unit id="++CODE++80faaf9291799236b19a2c456248f32cf3aa3c5d9760093871da70c540cd9240">
       <source xml:lang="en">Create a new profiling session</source>
     </trans-unit>
-    <trans-unit id="++CODE++2dda2d5e705c870b4711000d9e6e1a1552a6426ff2835af34a45eb0ea5f3182b">
-      <source xml:lang="en">Create an Azure SQL Database</source>
+    <trans-unit id="++CODE++ba9ae98bcb402b5a736ffd9e5da622d3bf7e67b5a7da246d9238029b9d1449ed">
+      <source xml:lang="en">Create an Azure SQL Database (Preview)</source>
     </trans-unit>
     <trans-unit id="++CODE++920a110919d9017fb66218139efb71c5907532cbe6292a1db645f05d06a171ae">
       <source xml:lang="en">Create as Script</source>
@@ -3962,6 +3968,10 @@
     </trans-unit>
     <trans-unit id="++CODE++d63cd16cd7f14f873a95c39ea88cdd895461edd04b9fa7894a5b050274e85b1f">
       <source xml:lang="en">Listing Fabric SQL Endpoints for workspace &apos;{0}&apos;</source>
+      <note>{0} is the workspace ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++8a4c943120e561689b5545e70b8fa64b48da3eb09a8b14c6d2283f29af79e201">
+      <source xml:lang="en">Listing Fabric Warehouses for workspace &apos;{0}&apos;</source>
       <note>{0} is the workspace ID</note>
     </trans-unit>
     <trans-unit id="++CODE++a5c14e0446ba987ee1804ac7f75c2cf29a526c5b3efc8ec431eeb50d200ad7f0">
@@ -7424,6 +7434,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b6af395c5020f3f19337172a94b2607d19ef6f8fed2424cf788b0d00b0572264">
       <source xml:lang="en">WHERE</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2a625c251683ca2ba8a1125319cb76d8f3d448d9e4d5a6c97bd948145217e36f">
+      <source xml:lang="en">Warehouse</source>
     </trans-unit>
     <trans-unit id="++CODE++e981ddae45d8f4ca53f1ccbe613ad254a041dacf65a06026099a6302d332113b">
       <source xml:lang="en">Warning</source>

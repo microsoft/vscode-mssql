@@ -1,7 +1,7 @@
 {
     "name": "mssql",
     "displayName": "SQL Server (mssql)",
-    "version": "1.43.0",
+    "version": "1.44.0",
     "description": "Design and optimize schemas for SQL Server, Azure SQL, and SQL Database in Fabric using a modern, lightweight extension built for developers",
     "publisher": "ms-mssql",
     "preview": false,
@@ -698,12 +698,12 @@
                 },
                 {
                     "command": "mssql.objectExplorerNewQuery",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|HistoryTable)\\b/",
                     "group": "1_MSSQL_primary@1"
                 },
                 {
                     "command": "mssql.scriptSelect",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|HistoryTable)\\b/",
                     "group": "1_MSSQL_primary@2"
                 },
                 {
@@ -718,7 +718,7 @@
                 },
                 {
                     "submenu": "mssql.sqlScriptsSubmenu",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|HistoryTable)\\b/",
                     "group": "3a_MSSQL_tableScripts@1"
                 },
                 {
@@ -783,12 +783,12 @@
                 },
                 {
                     "command": "mssql.objectExplorerChatWithDatabase",
-                    "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database|Table)\\b/",
+                    "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database|Table|HistoryTable)\\b/",
                     "group": "6_MSSQL_copilot@1"
                 },
                 {
                     "command": "mssql.objectExplorerChatWithDatabaseInAgentMode",
-                    "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database|Table)\\b/",
+                    "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database|Table|HistoryTable)\\b/",
                     "group": "6_MSSQL_copilot@2"
                 },
                 {
@@ -948,15 +948,15 @@
                 },
                 {
                     "command": "mssql.scriptSelect",
-                    "when": "view == objectExplorer && viewItem =~  /\\btype=(Table|View)\\b/"
+                    "when": "view == objectExplorer && viewItem =~  /\\btype=(Table|HistoryTable|View)\\b/"
                 },
                 {
                     "command": "mssql.scriptCreate",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/"
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|HistoryTable|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/"
                 },
                 {
                     "command": "mssql.scriptDelete",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/"
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|HistoryTable|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/"
                 },
                 {
                     "command": "mssql.scriptExecute",
