@@ -385,10 +385,9 @@ suite("PublishProjectWebViewController Tests", () => {
 
         const profilePath = "c:/profiles/TestProfile.publish.xml";
 
-        // Mock file system read - simulate a file saved by Visual Studio with a UTF-8 BOM (\uFEFF).
-        // @xmldom/xmldom 0.9.x throws when the XML declaration is not at position 0, causing SQLCMD variables to silently return empty.
+        // Mock file system read
         const fs = await import("fs");
-        sandbox.stub(fs.promises, "readFile").resolves("\uFEFF" + SAMPLE_PUBLISH_PROFILE_XML);
+        sandbox.stub(fs.promises, "readFile").resolves(SAMPLE_PUBLISH_PROFILE_XML);
 
         // Mock file picker
         sandbox.stub(vscode.window, "showOpenDialog").resolves([vscode.Uri.file(profilePath)]);
