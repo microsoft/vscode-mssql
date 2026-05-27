@@ -7,14 +7,18 @@
 
 ### What's new in 1.43.0
 
-- Released SQL Notebooks and Data API builder as generally available (GA), and removed preview labeling from these and other GA-ready experiences including Schema Designer, Global Search, and Query Profiler
-- Added export options for SQL Notebooks
-- Added support for Microsoft Entra Service Principal authentication in the Connection Dialog and improved default connection behavior
-- Improved Microsoft Entra ID token refresh and reauthentication handling to reduce stale token loops and connection failures
-- Added inline SQL notebook message output improvements, long-message copy support, and fixes for notebook execution shortcuts and save behavior
-- Improved Edit Data filtering behavior so filters apply across the full result set, not only prefetched rows
-- Improved SQL Database Projects performance, including faster project load time and reduced Publish Project dialog launch latency
-- Fixed query execution and editor command behavior, including Execute Current Statement selection behavior and line numbers in query error messages
+- Released SQL Notebooks and Data API builder as generally available (GA)
+- Introduced Azure SQL Provisioning (Public Preview) for easily creating a new Azure SQL database
+- Added support for including and excluding columns and ORM-based definitions to the Data API builder
+- Added query result export options for SQL Notebooks
+- Fixed SQL notebook keyboard shortcuts, save behavior, and issues related to message output
+- Added support for Microsoft Entra Service Principal authentication
+- Added an option to specify how a newly-opened .SQL file or query editor should connect via `mssql.newEditorConnectionBehavior`.
+- Added query-level filtering for Edit Data so filters apply across the full result set, not only the visible rows
+- Added detailed loading progress for Table Designer and Schema Designer
+- Rebuilt the experience for browsing Azure databases in the Connection Dialog to be more intuitive and familiar
+- Improved Microsoft Entra ID MFA token refresh and reauthentication handling to reduce stale token loops and connection failures
+- Fixed an issues where Execute Current Statement selection behavior and line numbers in query error messages may not align correctly
 
 ## Version 1.42.2
 
