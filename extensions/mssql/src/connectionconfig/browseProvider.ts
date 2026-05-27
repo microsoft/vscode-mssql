@@ -38,8 +38,8 @@ import { getErrorMessage } from "../utils/utils";
 
 /** Per-mode limit for auto-loading the contents of every collection on the current tenant. */
 export const AZURE_SUBSCRIPTION_AUTOLOAD_LIMIT = 20;
-/** Fabric REST API rate-limits to 50 requests/user/minute; each workspace takes two requests, so leave some headroom */
-export const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 10;
+/** Fabric REST API rate-limits to 50 requests/user/minute; each workspace takes three requests, so leave some headroom */
+export const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 7;
 
 /**
  * Subset of the controller surface that browse providers need to interact with.
@@ -580,6 +580,21 @@ export class FabricBrowseProvider extends BrowseProvider {
                 errorMessages.push(errorMessage);
             }
 
+            const sqlEndpointCount = databases.length - sqlDbCount;
+            const sqlEndpointErrored = errorMessages.length > (sqlDbErrored ? 1 : 0);
+
+            try {
+                databases.push(
+                    ...(await FabricHelper.getFabricWarehouses(workspace.id, workspace.tenantId)),
+                );
+            } catch (error) {
+                const errorMessage = getErrorMessage(error);
+                this.host.logger.error(
+                    `Error loading Fabric warehouses for workspace ${workspace.id}: ${errorMessage}`,
+                );
+                errorMessages.push(errorMessage);
+            }
+
             workspace.databases = databases.map((db) => ({
                 id: db.id,
                 databases: db.databases,
@@ -599,21 +614,26 @@ export class FabricBrowseProvider extends BrowseProvider {
                     : { status: ApiStatus.Loaded };
 
             const totalCount = workspace.databases.length;
+            const warehouseCount = totalCount - sqlDbCount - sqlEndpointCount;
             this.host.logger.log(
-                `Loaded ${sqlDbCount} Fabric databases and ${totalCount - sqlDbCount} SQL endpoints for workspace ${workspace.id}`,
+                `Loaded ${sqlDbCount} Fabric databases, ${sqlEndpointCount} SQL endpoints, and ${warehouseCount} warehouses for workspace ${workspace.id}`,
             );
 
             telemActivity.end(
                 ActivityStatus.Succeeded,
                 {
                     sqlDbErrored: String(sqlDbErrored),
-                    sqlAnalyticsEndpointErrored: String(
-                        errorMessages.length - (sqlDbErrored ? 1 : 0),
+                    sqlAnalyticsEndpointErrored: String(sqlEndpointErrored),
+                    warehouseErrored: String(
+                        errorMessages.length -
+                            (sqlDbErrored ? 1 : 0) -
+                            (sqlEndpointErrored ? 1 : 0),
                     ),
                 },
                 {
-                    sqlDbCount: sqlDbCount,
-                    sqlAnalyticsEndpointCount: workspace.databases.length - sqlDbCount,
+                    sqlDbCount,
+                    sqlAnalyticsEndpointCount: sqlEndpointCount,
+                    warehouseCount,
                 },
             );
 

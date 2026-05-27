@@ -248,6 +248,10 @@ suite("Azure Helpers", () => {
         expect(servers[1].displayName).to.equal(
             mockAzureResources.azureSynapseAnalyticsServer.name,
         );
+        expect(servers[1].type).to.equal("AzureSynapseAnalytics");
+        expect(servers[1].server).to.equal(
+            `${mockAzureResources.azureSynapseAnalyticsServer.name}.sql.azuresynapse.net`,
+        );
         const managedInstances = servers.filter((s) =>
             s.displayName.startsWith(mockAzureResources.azureManagedInstance.name),
         );
