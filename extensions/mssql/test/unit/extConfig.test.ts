@@ -25,9 +25,6 @@ suite("ExtConfig Tests", () => {
     const fromConfig = "fromConfig";
     const fromExtensionConfig = "fromExtensionConfig";
 
-    const toolsKey = (configKey: string): string =>
-        `${Constants.sqlToolsServiceConfigKey}.${configKey}`;
-
     const createExtConfigInstance = (
         configKey: string,
         expectedFromConfig: string | undefined,
@@ -39,7 +36,9 @@ suite("ExtConfig Tests", () => {
         extensionConfigGet.reset();
         extensionConfigGet.returns(undefined);
         if (expectedFromExtension !== undefined) {
-            extensionConfigGet.withArgs(toolsKey(configKey)).returns(expectedFromExtension);
+            extensionConfigGet
+                .withArgs(`${Constants.sqlToolsServiceConfigKey}.${configKey}`)
+                .returns(expectedFromExtension);
         }
 
         return new ExtConfig(config, extensionConfig, workspaceConfig);
@@ -73,32 +72,42 @@ suite("ExtConfig Tests", () => {
         sandbox.restore();
     });
 
-    test("getSqlToolsServiceDownloadUrl should return value from extension config first", () => {
+    test("getSqlToolsServiceDownloadUrl should ignore extension config overrides", () => {
         const configKey = Constants.sqlToolsServiceDownloadUrlConfigKey;
         const extConfig = createExtConfigInstance(configKey, fromConfig, fromExtensionConfig);
         const actual = extConfig.getSqlToolsServiceDownloadUrl();
-        expect(actual).to.equal(fromExtensionConfig);
+        expect(actual).to.equal(fromConfig);
+        expect(extensionConfigGet).to.not.have.been.called;
     });
 
-    test("getSqlToolsServiceDownloadUrl should return value from config.json if not exist in extension config", () => {
+    test("getSqlToolsServiceDownloadUrl should return value from config.json", () => {
         const configKey = Constants.sqlToolsServiceDownloadUrlConfigKey;
         const extConfig = createExtConfigInstance(configKey, fromConfig, undefined);
         const actual = extConfig.getSqlToolsServiceDownloadUrl();
         expect(actual).to.equal(fromConfig);
     });
 
-    test("getSqlToolsConfigValue should return value from extension config first", () => {
+    test("getSqlToolsConfigValue should ignore extension config overrides", () => {
         const configKey = Constants.sqlToolsServiceInstallDirConfigKey;
         const extConfig = createExtConfigInstance(configKey, fromConfig, fromExtensionConfig);
         const actual = extConfig.getSqlToolsConfigValue(configKey);
-        expect(actual).to.equal(fromExtensionConfig);
+        expect(actual).to.equal(fromConfig);
+        expect(extensionConfigGet).to.not.have.been.called;
     });
 
-    test("getSqlToolsConfigValue should return value from config.json if not exist in extension config", () => {
+    test("getSqlToolsConfigValue should return value from config.json", () => {
         const configKey = Constants.sqlToolsServiceInstallDirConfigKey;
         const extConfig = createExtConfigInstance(configKey, fromConfig, undefined);
         const actual = extConfig.getSqlToolsConfigValue(configKey);
         expect(actual).to.equal(fromConfig);
+    });
+
+    test("getSqlToolsConfigValue should not fall back to extension config when config.json has no value", () => {
+        const configKey = Constants.sqlToolsServiceInstallDirConfigKey;
+        const extConfig = createExtConfigInstance(configKey, undefined, fromExtensionConfig);
+        const actual = extConfig.getSqlToolsConfigValue(configKey);
+        expect(actual).to.be.undefined;
+        expect(extensionConfigGet).to.not.have.been.called;
     });
 
     test("getExtensionConfig should return value from extension config", () => {
