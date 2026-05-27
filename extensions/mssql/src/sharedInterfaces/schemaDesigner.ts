@@ -187,6 +187,12 @@ export namespace SchemaDesigner {
          */
         accessToken?: string;
         /**
+         * Owner URI of the underlying connection. When provided, the service will use the
+         * connection's AzureTokenFetcher (if available) so DacFx can obtain a fresh access
+         * token for every connection it opens, instead of being limited to the static accessToken.
+         */
+        ownerUri?: string;
+        /**
          * Database name to fetch the schema from
          */
         databaseName: string;

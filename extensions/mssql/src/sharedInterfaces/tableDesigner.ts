@@ -105,6 +105,12 @@ export interface TableInfo {
      * Access token to be used for Azure MFA authentication.
      */
     accessToken?: string;
+    /**
+     * Owner URI of the underlying connection. When provided, the service will use the
+     * connection's AzureTokenFetcher (if available) so DacFx can obtain a fresh access
+     * token for every connection it opens, instead of being limited to the static accessToken.
+     */
+    ownerUri?: string;
 }
 
 /**

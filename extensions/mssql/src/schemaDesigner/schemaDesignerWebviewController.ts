@@ -198,6 +198,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                         sessionId: this._sessionId,
                         connectionString: this.connectionString,
                         accessToken: this.accessToken,
+                        ownerUri: this.connectionUri,
                         databaseName: this.databaseName,
                     });
                     this.baselineSchema = sessionResponse.schema;

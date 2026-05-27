@@ -253,6 +253,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     database: databaseName,
                     connectionString: connectionString,
                     accessToken: accessToken,
+                    ownerUri: this._targetNode?.sessionId,
                     schema: this._targetNode.metadata.schema,
                     name: this._targetNode.metadata.name,
                 };
@@ -265,6 +266,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     server: connectionInfo.server,
                     database: databaseName,
                     accessToken: accessToken,
+                    ownerUri: this._targetNode?.sessionId,
                     connectionString: connectionString,
                 };
             }
