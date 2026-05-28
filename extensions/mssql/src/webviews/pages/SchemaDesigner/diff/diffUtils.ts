@@ -91,6 +91,37 @@ export const FOREIGN_KEY_PROPERTIES: PropertyMetadata[] = [
     { key: "onUpdateAction", displayName: "On Update Action" },
 ];
 
+function isEmptyValue(value: unknown): boolean {
+    return value === null || value === undefined || value === "";
+}
+
+function isLengthBasedType(type: unknown): boolean {
+    return (
+        typeof type === "string" &&
+        ["char", "varchar", "nchar", "nvarchar", "binary", "varbinary", "vector"].includes(type)
+    );
+}
+
+function isPrecisionBasedType(type: unknown): boolean {
+    return typeof type === "string" && ["decimal", "numeric"].includes(type);
+}
+
+function isTimeBasedWithScale(type: unknown): boolean {
+    return typeof type === "string" && ["datetime2", "datetimeoffset", "time"].includes(type);
+}
+
+function normalizeEmptyString(value: unknown): unknown {
+    return isEmptyValue(value) ? "" : value;
+}
+
+function normalizeOptionalNumber(value: unknown): unknown {
+    return value === null || value === undefined || value === "" ? 0 : value;
+}
+
+function normalizeOptionalBoolean(value: unknown): unknown {
+    return value === null || value === undefined ? false : value;
+}
+
 export function diffObject<T extends object>(
     original: T,
     current: T,
@@ -126,6 +157,64 @@ function mapById<T extends { id: string }>(items: T[]): Map<string, T> {
     return map;
 }
 
+export function normalizeColumnForDiff(column: sd.SchemaDesigner.Column): sd.SchemaDesigner.Column {
+    const normalized: sd.SchemaDesigner.Column = {
+        ...column,
+        maxLength: isLengthBasedType(column.dataType)
+            ? (normalizeEmptyString(column.maxLength) as string)
+            : "",
+        precision: isPrecisionBasedType(column.dataType)
+            ? (normalizeOptionalNumber(column.precision) as number)
+            : 0,
+        scale:
+            isPrecisionBasedType(column.dataType) || isTimeBasedWithScale(column.dataType)
+                ? (normalizeOptionalNumber(column.scale) as number)
+                : 0,
+        identitySeed: column.isIdentity
+            ? (normalizeOptionalNumber(column.identitySeed) as number)
+            : 0,
+        identityIncrement: column.isIdentity
+            ? (normalizeOptionalNumber(column.identityIncrement) as number)
+            : 0,
+        defaultValue: normalizeEmptyString(column.defaultValue) as string,
+        computedFormula: column.isComputed
+            ? (normalizeEmptyString(column.computedFormula) as string)
+            : "",
+        computedPersisted: column.isComputed
+            ? (normalizeOptionalBoolean(column.computedPersisted) as boolean)
+            : false,
+    };
+
+    return normalized;
+}
+
+export function normalizeForeignKeyForDiff(
+    foreignKey: sd.SchemaDesigner.ForeignKey,
+): sd.SchemaDesigner.ForeignKey {
+    return {
+        ...foreignKey,
+        columnsIds: Array.isArray(foreignKey.columnsIds) ? [...foreignKey.columnsIds] : [],
+        referencedTableId: foreignKey.referencedTableId ?? "",
+        referencedColumnsIds: Array.isArray(foreignKey.referencedColumnsIds)
+            ? [...foreignKey.referencedColumnsIds]
+            : [],
+    };
+}
+
+export function normalizeTableForDiff(table: sd.SchemaDesigner.Table): sd.SchemaDesigner.Table {
+    return {
+        ...table,
+        columns: (table.columns ?? []).map(normalizeColumnForDiff),
+        foreignKeys: (table.foreignKeys ?? []).map(normalizeForeignKeyForDiff),
+    };
+}
+
+export function normalizeSchemaForDiff(schema: sd.SchemaDesigner.Schema): sd.SchemaDesigner.Schema {
+    return {
+        tables: (schema.tables ?? []).map(normalizeTableForDiff),
+    };
+}
+
 /**
  * Compares two schemas and returns changes grouped by table.
  *
@@ -152,8 +241,11 @@ export function calculateSchemaDiff(
     oldSchema: sd.SchemaDesigner.Schema,
     newSchema: sd.SchemaDesigner.Schema,
 ): SchemaChangesSummary {
-    const oldTablesById = mapById(oldSchema.tables ?? []);
-    const newTablesById = mapById(newSchema.tables ?? []);
+    const normalizedOldSchema = normalizeSchemaForDiff(oldSchema);
+    const normalizedNewSchema = normalizeSchemaForDiff(newSchema);
+
+    const oldTablesById = mapById(normalizedOldSchema.tables ?? []);
+    const newTablesById = mapById(normalizedNewSchema.tables ?? []);
 
     const allTableIds = new Set<string>([...oldTablesById.keys(), ...newTablesById.keys()]);
     const groupsByTableId = new Map<string, TableChangeGroup>();
@@ -384,10 +476,10 @@ export function calculateSchemaDiff(
             const oldReferencedTableId = oldFk.referencedTableId ?? "";
             const newReferencedTableId = newFk.referencedTableId ?? "";
 
-            const oldReferencedTable = oldSchema.tables.find(
+            const oldReferencedTable = normalizedOldSchema.tables.find(
                 (table) => table.id === oldReferencedTableId,
             );
-            const newReferencedTable = newSchema.tables.find(
+            const newReferencedTable = normalizedNewSchema.tables.find(
                 (table) => table.id === newReferencedTableId,
             );
 
@@ -468,8 +560,14 @@ export function calculateSchemaDiff(
                     case "referencedTableId":
                         return {
                             ...propertyChange,
-                            oldValue: getTableDisplayName(propertyChange.oldValue, oldSchema),
-                            newValue: getTableDisplayName(propertyChange.newValue, newSchema),
+                            oldValue: getTableDisplayName(
+                                propertyChange.oldValue,
+                                normalizedOldSchema,
+                            ),
+                            newValue: getTableDisplayName(
+                                propertyChange.newValue,
+                                normalizedNewSchema,
+                            ),
                         };
                     case "referencedColumnIds":
                         return {
