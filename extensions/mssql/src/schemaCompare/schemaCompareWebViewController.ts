@@ -42,7 +42,6 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { DiffEntry } from "vscode-mssql";
 import { sendActionEvent, startActivity, sendErrorEvent } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { isNullOrUndefined } from "util";
 import * as locConstants from "../constants/locConstants";
 import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import {
@@ -2240,7 +2239,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
     }
 
     private formatEntryName(nameParts: string[]): string {
-        if (isNullOrUndefined(nameParts) || nameParts.length === 0) {
+        if (!Array.isArray(nameParts) || nameParts.length === 0) {
             return "";
         }
         return nameParts.join(".");
