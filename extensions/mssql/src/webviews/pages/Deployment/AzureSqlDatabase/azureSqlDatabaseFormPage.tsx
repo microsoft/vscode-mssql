@@ -4,30 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
-import {
-    Button,
-    Card,
-    Link,
-    // Label,
-    makeStyles,
-    // Radio,
-    // RadioGroup,
-    Spinner,
-    Text,
-} from "@fluentui/react-components";
-import {
-    // ArrowRight12Regular,
-    ErrorCircleRegular,
-    GiftRegular,
-    LockClosedRegular,
-    // WarningFilled,
-} from "@fluentui/react-icons";
+import { Button, Card, Link, makeStyles, Spinner, Text } from "@fluentui/react-components";
+import { ErrorCircleRegular, GiftRegular, LockClosedRegular } from "@fluentui/react-icons";
 import { FormField } from "../../../common/forms/form.component";
 import {
     AzureSqlDatabaseContextProps,
     AzureSqlDatabaseFormItemSpec,
     AzureSqlDatabaseFormState,
-    // AzureSqlDatabaseLinks,
     AzureSqlDatabaseState,
     AZURE_SQL_DB_COMPONENT_ORDER,
 } from "../../../../sharedInterfaces/azureSqlDatabase";
@@ -148,7 +131,6 @@ const useStyles = makeStyles({
 });
 
 import { TagEntry } from "./azureSqlDatabaseDeploymentWizard";
-// import { KnownFreeLimitExhaustionBehavior } from "@azure/arm-sql";
 
 interface AzureSqlDatabaseFormPageProps {
     onValidated?: () => void;
@@ -185,15 +167,8 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
     );
     const hostIp = useAzureSqlDatabaseDeploymentSelector((s) => s.publicIp);
 
-    // const [localFreeLimitBehavior, setLocalFreeLimitBehavior] = useState(
-    //     String(formState.freeLimitBehavior),
-    // );
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
     const prevFormValidationLoadState = useRef(formValidationLoadState);
-
-    // useEffect(() => {
-    //     setLocalFreeLimitBehavior(String(formState.freeLimitBehavior));
-    // }, [formState.freeLimitBehavior]);
 
     useEffect(() => {
         const changed = prevFormValidationLoadState.current !== formValidationLoadState;
@@ -413,93 +388,6 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                                 {renderFormField("savePassword")}
                             </>
                         )}
-                    {/*
-                    <div className={classes.fieldContainer}>
-                        <div style={{ flex: 1, width: "100%" }}>
-                            <Label weight="semibold">
-                                {locConstants.azureSqlDatabase.freeLimitBehavior}
-                            </Label>
-                            <RadioGroup
-                                value={localFreeLimitBehavior}
-                                onChange={(_e, data) => {
-                                    setLocalFreeLimitBehavior(data.value);
-                                    context.formAction({
-                                        propertyName: "freeLimitBehavior",
-                                        isAction: false,
-                                        value: data.value,
-                                    });
-                                }}>
-                                <div>
-                                    <Radio
-                                        value={KnownFreeLimitExhaustionBehavior.AutoPause}
-                                        label={locConstants.azureSqlDatabase.autoPauseOption}
-                                    />
-                                    <Text
-                                        size={200}
-                                        style={{
-                                            display: "block",
-                                            color: "var(--vscode-descriptionForeground)",
-                                            marginLeft: "36px",
-                                            marginTop: "-4px",
-                                        }}>
-                                        {locConstants.azureSqlDatabase.autoPauseDescription}
-                                    </Text>
-                                </div>
-                                <div>
-                                    <Radio
-                                        value={KnownFreeLimitExhaustionBehavior.BillOverUsage}
-                                        label={locConstants.azureSqlDatabase.continueChargesOption}
-                                    />
-                                    <Text
-                                        size={200}
-                                        style={{
-                                            display: "block",
-                                            color: "var(--vscode-descriptionForeground)",
-                                            marginLeft: "36px",
-                                            marginTop: "-4px",
-                                        }}>
-                                        {locConstants.azureSqlDatabase.continueChargesDescription}
-                                    </Text>
-                                </div>
-                            </RadioGroup>
-                        </div>
-                    </div>
-                    {localFreeLimitBehavior === KnownFreeLimitExhaustionBehavior.BillOverUsage && (
-                        <Card
-                            style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                backgroundColor: "var(--colorPaletteYellowBackground1)",
-                                borderLeft: "3px solid var(--colorPaletteYellowForeground1)",
-                                padding: "10px 12px",
-                                gap: "6px",
-                                marginLeft: "2px",
-                            }}>
-                            <div
-                                style={{
-                                    display: "flex",
-                                    flexDirection: "row",
-                                    alignItems: "center",
-                                    gap: "10px",
-                                }}>
-                                <WarningFilled
-                                    style={{
-                                        color: "var(--colorStatusWarningForeground1)",
-                                        fontSize: "20px",
-                                        flexShrink: 0,
-                                    }}
-                                />
-                                <span>{locConstants.azureSqlDatabase.continueChargesWarning}</span>
-                            </div>
-                            <Link
-                                className={classes.linkDiv}
-                                href={AzureSqlDatabaseLinks.freeOffer}>
-                                {locConstants.common.learnMore}
-                                <ArrowRight12Regular style={{ marginTop: "2px" }} />
-                            </Link>
-                        </Card>
-                    )}
-                    */}
                     {renderFormField("profileName")}
                     <div className={classes.fieldContainer}>
                         <div style={{ flex: 1, width: "100%" }}>
