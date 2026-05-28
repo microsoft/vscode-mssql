@@ -1515,6 +1515,8 @@ export class AzureSqlDatabase {
     public static serverAuthTypeUnknown = l10n.t(
         "Unable to determine the server authentication type.",
     );
+    public static maxVcores = l10n.t("Max vCores");
+    public static selectMaxVcores = l10n.t("Select Max vCores");
 }
 
 export class FabricProvisioning {

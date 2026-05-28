@@ -8,26 +8,26 @@ import {
     Button,
     Card,
     Link,
-    Label,
+    // Label,
     makeStyles,
-    Radio,
-    RadioGroup,
+    // Radio,
+    // RadioGroup,
     Spinner,
     Text,
 } from "@fluentui/react-components";
 import {
-    ArrowRight12Regular,
+    // ArrowRight12Regular,
     ErrorCircleRegular,
     GiftRegular,
     LockClosedRegular,
-    WarningFilled,
+    // WarningFilled,
 } from "@fluentui/react-icons";
 import { FormField } from "../../../common/forms/form.component";
 import {
     AzureSqlDatabaseContextProps,
     AzureSqlDatabaseFormItemSpec,
     AzureSqlDatabaseFormState,
-    AzureSqlDatabaseLinks,
+    // AzureSqlDatabaseLinks,
     AzureSqlDatabaseState,
     AZURE_SQL_DB_COMPONENT_ORDER,
 } from "../../../../sharedInterfaces/azureSqlDatabase";
@@ -148,7 +148,7 @@ const useStyles = makeStyles({
 });
 
 import { TagEntry } from "./azureSqlDatabaseDeploymentWizard";
-import { KnownFreeLimitExhaustionBehavior } from "@azure/arm-sql";
+// import { KnownFreeLimitExhaustionBehavior } from "@azure/arm-sql";
 
 interface AzureSqlDatabaseFormPageProps {
     onValidated?: () => void;
@@ -185,15 +185,15 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
     );
     const hostIp = useAzureSqlDatabaseDeploymentSelector((s) => s.publicIp);
 
-    const [localFreeLimitBehavior, setLocalFreeLimitBehavior] = useState(
-        String(formState.freeLimitBehavior),
-    );
+    // const [localFreeLimitBehavior, setLocalFreeLimitBehavior] = useState(
+    //     String(formState.freeLimitBehavior),
+    // );
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
     const prevFormValidationLoadState = useRef(formValidationLoadState);
 
-    useEffect(() => {
-        setLocalFreeLimitBehavior(String(formState.freeLimitBehavior));
-    }, [formState.freeLimitBehavior]);
+    // useEffect(() => {
+    //     setLocalFreeLimitBehavior(String(formState.freeLimitBehavior));
+    // }, [formState.freeLimitBehavior]);
 
     useEffect(() => {
         const changed = prevFormValidationLoadState.current !== formValidationLoadState;
@@ -413,6 +413,7 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                                 {renderFormField("savePassword")}
                             </>
                         )}
+                    {/*
                     <div className={classes.fieldContainer}>
                         <div style={{ flex: 1, width: "100%" }}>
                             <Label weight="semibold">
@@ -498,6 +499,7 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                             </Link>
                         </Card>
                     )}
+                    */}
                     {renderFormField("profileName")}
                     <div className={classes.fieldContainer}>
                         <div style={{ flex: 1, width: "100%" }}>
