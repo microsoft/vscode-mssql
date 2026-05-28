@@ -407,6 +407,7 @@ export class VsCodeAzureHelper {
             };
             freeLimitExhaustionBehavior?: KnownFreeLimitExhaustionBehavior;
             useFreeLimit?: boolean;
+            maxVcores?: string;
         },
     ): Promise<Database> {
         const sql = new SqlManagementClient(subscription.credential, subscription.subscriptionId, {
@@ -415,13 +416,15 @@ export class VsCodeAzureHelper {
 
         const server = await sql.servers.get(resourceGroupName, serverName);
 
+        const skuName = options.maxVcores ? `GP_S_Gen5_${options.maxVcores}` : "GP_S_Gen5";
+
         const freeOfferOptions = options.useFreeLimit
             ? {
                   sku: {
-                      name: "GP_S_Gen5",
+                      name: skuName,
                       tier: "GeneralPurpose",
                       family: "Gen5",
-                      capacity: 2,
+                      capacity: options.maxVcores ? Number(options.maxVcores) : 2,
                   },
                   autoPauseDelay: 60,
                   minCapacity: 0.5,
