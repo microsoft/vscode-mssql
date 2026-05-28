@@ -180,7 +180,8 @@
         "vscode-languageclient": "5.2.1",
         "xml-formatter": "^3.6.7",
         "yallist": "^5.0.0",
-        "yauzl": "^3.2.1"
+        "yauzl": "^3.2.1",
+        "zod": "^3.25.0"
     },
     "capabilities": {
         "untrustedWorkspaces": {
