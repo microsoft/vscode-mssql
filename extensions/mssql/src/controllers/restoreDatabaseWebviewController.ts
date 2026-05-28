@@ -381,7 +381,7 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
     }
 
     protected async handleScript(
-        params: ObjectManagementActionParams["params"],
+        _params: ObjectManagementActionParams["params"],
     ): Promise<ObjectManagementActionResult> {
         const scriptResult = await this.restoreHelper(TaskExecutionMode.script);
         return {
@@ -391,7 +391,7 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
     }
 
     protected async handleSubmit(
-        params: ObjectManagementActionParams["params"],
+        _params: ObjectManagementActionParams["params"],
     ): Promise<ObjectManagementActionResult> {
         const restoreResult = await this.restoreHelper(TaskExecutionMode.executeAndScript);
         return {
@@ -448,9 +448,7 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
                 propertyName: "targetDatabaseName",
                 label: LocConstants.RestoreDatabase.targetDatabase,
                 options: [],
-                componentProps: {
-                    freeform: true,
-                },
+                freeform: true,
             }),
 
             accountId: createFormItem({

@@ -28,6 +28,7 @@ interface DabContextProps {
     setDabTextFilter: (text: string) => void;
     dabConfigTextFileContent: string;
     openDabConfigInEditor: (configContent: string) => void;
+    addDabConfigToWorkspace: (configContent: string) => void;
     dabDeploymentState: Dab.DabDeploymentState;
     openDabDeploymentDialog: () => void;
     closeDabDeploymentDialog: () => void;
@@ -82,8 +83,12 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
             isInitializedRef,
             waitForInitialization,
             getCurrentDabConfig: () => dabConfigRef.current,
-            getCurrentSchemaTables: () => extractSchemaRef.current().tables,
+            getCurrentSourceObjects: () =>
+                extractSchemaRef
+                    .current()
+                    .tables.map((table) => Dab.createSourceObjectFromTable(table)),
             commitDabConfig: (config) => {
+                dabConfigRef.current = config;
                 setDabConfig(config);
             },
         });
@@ -94,8 +99,12 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
             .sendRequest(Dab.GetCachedConfigRequest.type)
             .then((response) => {
                 const schema = extractSchema();
-                const baseConfig = response.config ?? Dab.createDefaultConfig(schema.tables);
-                const synced = Dab.syncConfigWithSchema(baseConfig, schema.tables);
+                const sourceObjects = schema.tables.map((table) =>
+                    Dab.createSourceObjectFromTable(table),
+                );
+                const baseConfig =
+                    response.config ?? Dab.createDefaultConfigFromSources(sourceObjects);
+                const synced = Dab.syncConfigWithSources(baseConfig, sourceObjects);
                 setDabConfig(synced.config);
             })
             .catch((error) => {
@@ -110,7 +119,9 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
             return;
         }
 
-        const synced = Dab.syncConfigWithSchema(dabConfig, extractSchema().tables);
+        const schema = extractSchema();
+        const sourceObjects = schema.tables.map((table) => Dab.createSourceObjectFromTable(table));
+        const synced = Dab.syncConfigWithSources(dabConfig, sourceObjects);
         if (synced.changed) {
             setDabConfig(synced.config);
         }
@@ -135,7 +146,20 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
             }
             return {
                 ...prev,
-                entities: prev.entities.map((e) => (e.id === entityId ? { ...e, isEnabled } : e)),
+                entities: prev.entities.map((entity) => {
+                    if (entity.id !== entityId) {
+                        return entity;
+                    }
+
+                    return {
+                        ...entity,
+                        isEnabled,
+                        columns: entity.columns.map((column) => ({
+                            ...column,
+                            isExposed: isEnabled,
+                        })),
+                    };
+                }),
             };
         });
     }, []);
@@ -264,6 +288,15 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
     const openDabConfigInEditor = useCallback(
         (configContent: string) => {
             void extensionRpc.sendNotification(Dab.OpenConfigInEditorNotification.type, {
+                configContent,
+            });
+        },
+        [extensionRpc],
+    );
+
+    const addDabConfigToWorkspace = useCallback(
+        (configContent: string) => {
+            void extensionRpc.sendNotification(Dab.AddConfigToWorkspaceNotification.type, {
                 configContent,
             });
         },
@@ -477,6 +510,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 setDabTextFilter,
                 dabConfigTextFileContent,
                 openDabConfigInEditor,
+                addDabConfigToWorkspace,
                 dabDeploymentState,
                 openDabDeploymentDialog,
                 closeDabDeploymentDialog,

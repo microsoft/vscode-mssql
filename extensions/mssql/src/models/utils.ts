@@ -98,7 +98,7 @@ export function isEmpty(str: any): boolean {
 }
 
 export function isNotEmpty(str: any): boolean {
-    return <boolean>(str && "" !== str);
+    return !!(str && "" !== str);
 }
 
 export function authTypeToString(value: AuthenticationTypes): string {
@@ -109,8 +109,24 @@ export function azureAuthTypeToString(value: AzureAuthType): string {
     return AzureAuthType[value];
 }
 
-export function escapeClosingBrackets(str: string): string {
-    return str.replace("]", "]]");
+/**
+ * Escapes a SQL identifier by escaping any closing brackets within the name,
+ * and optionally wrapping it in square brackets.
+ *
+ * @param name The identifier name to escape
+ * @param includeSurroundingBrackets Whether to wrap the result in square brackets (default: true)
+ * @returns The escaped identifier
+ *
+ * Examples:
+ * - `bracketEscapeSqlIdentifier("my]table")` returns `[my]]table]`
+ * - `bracketEscapeSqlIdentifier("my]table", false)` returns `my]]table`
+ */
+export function bracketEscapeSqlIdentifier(
+    name: string,
+    includeSurroundingBrackets: boolean = true,
+): string {
+    const escaped = name.replace(/\]/g, "]]");
+    return includeSurroundingBrackets ? `[${escaped}]` : escaped;
 }
 
 /**
@@ -493,7 +509,7 @@ export function isFileExisting(filePath: string): boolean {
     try {
         fs.statSync(filePath);
         return true;
-    } catch (err) {
+    } catch {
         return false;
     }
 }

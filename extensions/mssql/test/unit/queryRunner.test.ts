@@ -160,7 +160,7 @@ suite("Query Runner tests", () => {
             await queryRunner.runQuery(standardSelection);
             // If we reach here, the test should fail because we expected an error
             expect.fail("Expected runQuery to throw an error");
-        } catch (error) {
+        } catch {
             // Then:
             // ... The view status should have started and stopped
             expect(testVscodeWrapper.logToOutputChannel as sinon.SinonStub).to.have.been.calledOnce;
@@ -199,6 +199,39 @@ suite("Query Runner tests", () => {
         // Then: It should store the batch, messages and emit a batch start
         expect(queryRunner.batchSets.indexOf(batchStart.batchSummary)).to.equal(0);
         expect(queryRunner.batchSetMessages[batchStart.batchSummary.id]).to.be.ok;
+    });
+
+    test("Notification - Batch Start preserves absolute selection from service", () => {
+        let batchStart: QueryExecuteBatchNotificationParams = {
+            ownerUri: "uri",
+            batchSummary: {
+                executionElapsed: null,
+                executionEnd: null,
+                executionStart: new Date().toISOString(),
+                hasError: false,
+                id: 0,
+                selection: {
+                    startLine: 5,
+                    endLine: 7,
+                    startColumn: 2,
+                    endColumn: 4,
+                },
+                resultSetSummaries: null,
+            },
+        };
+
+        let queryRunner = createQueryRunner("", "");
+        queryRunner.setupQueryExecution({
+            startLine: 20,
+            endLine: 20,
+            startColumn: 0,
+            endColumn: 0,
+        });
+
+        queryRunner.handleBatchStart(batchStart);
+
+        expect(queryRunner.batchSets[0].selection.startLine).to.equal(5);
+        expect(queryRunner.batchSets[0].selection.endLine).to.equal(7);
     });
 
     function testBatchCompleteNotification(sendBatchTime: boolean): void {
@@ -430,6 +463,41 @@ suite("Query Runner tests", () => {
         // ... The state of the query runner has been updated
         expect(queryRunner.batchSets.length).to.equal(1);
         expect(queryRunner.isExecutingQuery).to.equal(false);
+    });
+
+    test("Notification - Query complete preserves absolute batch selection from service", () => {
+        let result: QueryExecuteCompleteNotificationResult = {
+            ownerUri: "uri",
+            batchSummaries: [
+                {
+                    hasError: false,
+                    id: 0,
+                    selection: {
+                        startLine: 8,
+                        endLine: 9,
+                        startColumn: 1,
+                        endColumn: 6,
+                    },
+                    resultSetSummaries: [],
+                    executionElapsed: undefined,
+                    executionStart: new Date().toISOString(),
+                    executionEnd: new Date().toISOString(),
+                },
+            ],
+        };
+
+        let queryRunner = createQueryRunner();
+        queryRunner.setupQueryExecution({
+            startLine: 30,
+            endLine: 30,
+            startColumn: 0,
+            endColumn: 0,
+        });
+
+        queryRunner.handleQueryComplete(result);
+
+        expect(queryRunner.batchSets[0].selection.startLine).to.equal(8);
+        expect(queryRunner.batchSets[0].selection.endLine).to.equal(9);
     });
 
     test("Correctly handles subset", async () => {

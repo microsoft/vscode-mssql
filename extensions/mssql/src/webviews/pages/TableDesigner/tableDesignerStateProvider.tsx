@@ -229,7 +229,7 @@ const TableDesignerStateProvider: React.FC<TableDesignerProviderProps> = ({ chil
             getComponentId: getComponentId,
             getErrorMessage: function (componentPath: (string | number)[]): string | undefined {
                 const componentPathStr = componentPath.join(".");
-                const result = [];
+                const result: string[] = [];
                 for (const issue of stateRef.current?.issues ?? []) {
                     if (issue.propertyPath) {
                         if (issue.propertyPath?.join(".") === componentPathStr) {

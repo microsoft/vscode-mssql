@@ -13,14 +13,16 @@ import {
     CLEAR_TOKEN_CACHE,
     ConnectionDialogWebviewController,
 } from "../../src/connectionconfig/connectionDialogWebviewController";
-import { refreshTokenLabel } from "../../src/constants/locConstants";
+import {
+    ConnectionDialog as Loc,
+    Connection as ConnectionLoc,
+} from "../../src/constants/locConstants";
 import MainController from "../../src/controllers/mainController";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { ObjectExplorerProvider } from "../../src/objectExplorer/objectExplorerProvider";
 import {
     AddFirewallRuleDialogProps,
     AuthenticationType,
-    AzureSqlServerInfo,
     ConnectionInputMode,
     ConnectionStringDialogProps,
     IConnectionDialogProfile,
@@ -39,9 +41,9 @@ import {
     IConnectionProfileWithSource,
 } from "../../src/models/interfaces";
 import { AzureAccountService } from "../../src/services/azureAccountService";
-import { ConnectionDetails, IAccount, IToken } from "vscode-mssql";
+import { ConnectionDetails, IAccount } from "vscode-mssql";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
-import { MssqlVSCodeAzureSubscriptionProvider } from "../../src/azure/MssqlVSCodeAzureSubscriptionProvider";
+import { VSCodeAzureSubscriptionProvider } from "@microsoft/vscode-azext-azureauth";
 import {
     createStubLogger,
     initializeIconUtils,
@@ -53,10 +55,9 @@ import {
 } from "./utils";
 import {
     stubVscodeAzureSignIn,
-    stubFetchServersFromAzure,
-    stubPromptForAzureSubscriptionFilter,
     mockAccounts,
     stubVscodeAzureHelperGetAccounts,
+    stubVscodeAzureTenantsForAccount,
     mockServerName,
     mockUserName,
     mockTenants,
@@ -64,7 +65,6 @@ import {
 import * as AzureHelpers from "../../src/connectionconfig/azureHelpers";
 import { CreateSessionResponse } from "../../src/models/contracts/objectExplorer/createSessionRequest";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
-import { AzureController } from "../../src/azure/azureController";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import { multiple_matching_tokens_error } from "../../src/azure/constants";
 import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
@@ -224,14 +224,9 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 "Azure account load status should be NotStarted",
             );
 
-            expect(controller.state.loadingAzureSubscriptionsStatus).to.equal(
+            expect(controller.state.azureSubscriptionsLoadStatus.status).to.equal(
                 ApiStatus.NotStarted,
                 "Azure subscription load status should be NotStarted",
-            );
-
-            expect(controller.state.loadingAzureServersStatus).to.equal(
-                ApiStatus.NotStarted,
-                "Azure server load status should be NotStarted",
             );
 
             expect(controller.state.formComponents).to.contains.all.keys(["server", "user"]);
@@ -556,25 +551,33 @@ suite("ConnectionDialogWebviewController Tests", () => {
         });
 
         suite("setConnectionInputType", () => {
-            test("Should set connection input type correctly for Parameters", async () => {
-                stubVscodeAzureHelperGetAccounts(sandbox);
-                stubVscodeAzureSignIn(sandbox);
+            // Browse-mode reducers delegate to BrowseProvider instances; provider behavior is
+            // covered separately in browseProvider.test.ts. Here we stub the providers and
+            // assert that the controller wires the reducers to the correct provider methods.
+            let azureLoadCollections: sinon.SinonStub;
+            let azureAutoLoadContents: sinon.SinonStub;
+            let fabricLoadCollections: sinon.SinonStub;
+            let fabricAutoLoadContents: sinon.SinonStub;
 
+            setup(() => {
+                azureLoadCollections = sandbox
+                    .stub(controller["_azureBrowseProvider"], "loadCollections")
+                    .resolves();
+                azureAutoLoadContents = sandbox
+                    .stub(controller["_azureBrowseProvider"], "autoLoadContents")
+                    .resolves();
+                fabricLoadCollections = sandbox
+                    .stub(controller["_fabricBrowseProvider"], "loadCollections")
+                    .resolves();
+                fabricAutoLoadContents = sandbox
+                    .stub(controller["_fabricBrowseProvider"], "autoLoadContents")
+                    .resolves();
+            });
+
+            test("Should set connection input type correctly for Parameters", async () => {
                 expect(controller.state.selectedInputMode).to.equal(
                     ConnectionInputMode.Parameters,
                     "Default input mode should be Parameters",
-                );
-
-                await controller["_reducerHandlers"].get("setConnectionInputType")(
-                    controller.state,
-                    {
-                        inputMode: ConnectionInputMode.AzureBrowse,
-                    },
-                );
-
-                expect(controller.state.selectedInputMode).to.equal(
-                    ConnectionInputMode.AzureBrowse,
-                    "Should set connection input type to AzureBrowse",
                 );
 
                 await controller["_reducerHandlers"].get("setConnectionInputType")(
@@ -588,14 +591,14 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     ConnectionInputMode.Parameters,
                     "Should set connection input type to Parameters",
                 );
+                expect(azureLoadCollections.notCalled).to.be.true;
+                expect(fabricLoadCollections.notCalled).to.be.true;
             });
 
-            test("should set connection input mode correctly and load server info for AzureBrowse", async () => {
-                const { sendErrorEvent } = stubTelemetry(sandbox);
-
+            test("delegates to the Azure provider when switching to AzureBrowse", async () => {
                 stubVscodeAzureSignIn(sandbox);
                 stubVscodeAzureHelperGetAccounts(sandbox);
-                stubFetchServersFromAzure(sandbox);
+                stubVscodeAzureTenantsForAccount(sandbox);
 
                 await controller["_reducerHandlers"].get("setConnectionInputType")(
                     controller.state,
@@ -604,25 +607,285 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     },
                 );
 
-                // validate that subscriptions and servers are loaded correctly
+                expect(controller.state.selectedInputMode).to.equal(
+                    ConnectionInputMode.AzureBrowse,
+                );
+                expect(azureLoadCollections.calledOnce).to.be.true;
+                expect(azureAutoLoadContents.calledOnce).to.be.true;
+                expect(fabricLoadCollections.notCalled).to.be.true;
+            });
 
-                expect(sendErrorEvent.notCalled, "sendErrorEvent should not be called").to.be.true;
+            test("delegates to the Fabric provider when switching to FabricBrowse", async () => {
+                stubVscodeAzureSignIn(sandbox);
+                stubVscodeAzureHelperGetAccounts(sandbox);
+                stubVscodeAzureTenantsForAccount(sandbox);
 
-                expect(controller.state.azureSubscriptions).to.have.lengthOf(2);
-                expect(controller.state.azureSubscriptions).to.satisfy(
-                    (subs) => subs.some((s) => s.name === "Ten0Sub1"),
-                    "Subscription list should contain expected subscription",
+                await controller["_reducerHandlers"].get("setConnectionInputType")(
+                    controller.state,
+                    {
+                        inputMode: ConnectionInputMode.FabricBrowse,
+                    },
                 );
 
-                expect(controller.state.azureServers).to.have.lengthOf(
-                    4,
-                    "Should have 4 servers; 2 for each subscription",
+                expect(controller.state.selectedInputMode).to.equal(
+                    ConnectionInputMode.FabricBrowse,
                 );
-                expect(controller.state.azureServers).to.satisfy(
-                    (servers: AzureSqlServerInfo[]) =>
-                        servers.some((server) => server.server === "testServer-Ten1Sub1-2"),
-                    "Server list should contain expected server",
+                expect(fabricLoadCollections.calledOnce).to.be.true;
+                expect(fabricAutoLoadContents.calledOnce).to.be.true;
+                expect(azureLoadCollections.notCalled).to.be.true;
+            });
+
+            test("skips the provider load when collections are already loaded", async () => {
+                stubVscodeAzureSignIn(sandbox);
+                stubVscodeAzureHelperGetAccounts(sandbox);
+                stubVscodeAzureTenantsForAccount(sandbox);
+
+                controller.state.azureSubscriptions = [
+                    {
+                        id: "sub-1",
+                        displayName: "Sub 1",
+                        tenantId: mockTenants[0].tenantId,
+                        databases: [],
+                        loadStatus: { status: ApiStatus.Loaded },
+                    },
+                ];
+                controller.state.azureSubscriptionsLoadStatus = { status: ApiStatus.Loaded };
+
+                await controller["_reducerHandlers"].get("setConnectionInputType")(
+                    controller.state,
+                    {
+                        inputMode: ConnectionInputMode.AzureBrowse,
+                    },
                 );
+
+                expect(azureLoadCollections.notCalled).to.be.true;
+                expect(azureAutoLoadContents.notCalled).to.be.true;
+            });
+
+            test("clears connection profile fields when switching into a browse mode", async () => {
+                stubVscodeAzureSignIn(sandbox);
+                stubVscodeAzureHelperGetAccounts(sandbox);
+                stubVscodeAzureTenantsForAccount(sandbox);
+
+                controller.state.connectionProfile.server = "old-server";
+                controller.state.connectionProfile.database = "old-db";
+
+                await controller["_reducerHandlers"].get("setConnectionInputType")(
+                    controller.state,
+                    {
+                        inputMode: ConnectionInputMode.FabricBrowse,
+                    },
+                );
+
+                expect(controller.state.connectionProfile.server).to.be.undefined;
+                expect(controller.state.connectionProfile.database).to.be.undefined;
+            });
+        });
+
+        suite("selectAzureAccount", () => {
+            test("clears both providers, invalidates caches, and reloads via the active provider", async () => {
+                stubVscodeAzureSignIn(sandbox);
+                stubVscodeAzureHelperGetAccounts(sandbox);
+                stubVscodeAzureTenantsForAccount(sandbox);
+
+                const azureClear = sandbox.spy(
+                    controller["_azureBrowseProvider"],
+                    "clearCollectionsState",
+                );
+                const fabricClear = sandbox.spy(
+                    controller["_fabricBrowseProvider"],
+                    "clearCollectionsState",
+                );
+                const azureInvalidate = sandbox.spy(
+                    controller["_azureBrowseProvider"],
+                    "invalidateCache",
+                );
+                const fabricInvalidate = sandbox.spy(
+                    controller["_fabricBrowseProvider"],
+                    "invalidateCache",
+                );
+                const azureLoad = sandbox
+                    .stub(controller["_azureBrowseProvider"], "loadCollections")
+                    .resolves();
+                sandbox.stub(controller["_azureBrowseProvider"], "autoLoadContents").resolves();
+
+                controller.state.selectedAccountId = "old-account-id";
+                controller.state.selectedInputMode = ConnectionInputMode.AzureBrowse;
+
+                await controller["_reducerHandlers"].get("selectAzureAccount")(controller.state, {
+                    accountId: mockAccounts.signedInAccount.id,
+                });
+
+                expect(controller.state.selectedAccountId).to.equal(
+                    mockAccounts.signedInAccount.id,
+                );
+                expect(azureClear.calledOnce).to.be.true;
+                expect(fabricClear.calledOnce).to.be.true;
+                expect(azureInvalidate.calledOnce).to.be.true;
+                expect(fabricInvalidate.calledOnce).to.be.true;
+                expect(azureLoad.calledOnce).to.be.true;
+            });
+
+            test("is a no-op when the account is already selected and tenants are loaded", async () => {
+                const getAccountsStub = stubVscodeAzureHelperGetAccounts(sandbox);
+                stubVscodeAzureSignIn(sandbox);
+                stubVscodeAzureTenantsForAccount(sandbox);
+
+                controller.state.selectedAccountId = mockAccounts.signedInAccount.id;
+                controller.state.azureTenants = [
+                    {
+                        id: mockTenants[0].tenantId,
+                        name: mockTenants[0].displayName,
+                        isSignedIn: true,
+                    },
+                ];
+
+                await controller["_reducerHandlers"].get("selectAzureAccount")(controller.state, {
+                    accountId: mockAccounts.signedInAccount.id,
+                });
+
+                expect(getAccountsStub.called).to.be.false;
+            });
+        });
+
+        suite("setSelectedTenantId", () => {
+            test("is a no-op when tenant unchanged", async () => {
+                const signInStub = stubVscodeAzureSignIn(sandbox);
+                const azureLoad = sandbox
+                    .stub(controller["_azureBrowseProvider"], "loadCollections")
+                    .resolves();
+
+                controller.state.selectedTenantId = mockTenants[0].tenantId;
+                controller.state.selectedInputMode = ConnectionInputMode.AzureBrowse;
+
+                await controller["_reducerHandlers"].get("setSelectedTenantId")(controller.state, {
+                    tenantId: mockTenants[0].tenantId,
+                });
+
+                expect(signInStub.called).to.be.false;
+                expect(azureLoad.called).to.be.false;
+            });
+
+            test("delegates to the active provider when tenant changes", async () => {
+                const azureLoad = sandbox
+                    .stub(controller["_azureBrowseProvider"], "loadCollections")
+                    .resolves();
+                const azureAutoLoad = sandbox
+                    .stub(controller["_azureBrowseProvider"], "autoLoadContents")
+                    .resolves();
+                const fabricLoad = sandbox
+                    .stub(controller["_fabricBrowseProvider"], "loadCollections")
+                    .resolves();
+
+                controller.state.selectedAccountId = mockAccounts.signedInAccount.id;
+                controller.state.selectedTenantId = mockTenants[1].tenantId;
+                controller.state.selectedInputMode = ConnectionInputMode.AzureBrowse;
+
+                await controller["_reducerHandlers"].get("setSelectedTenantId")(controller.state, {
+                    tenantId: mockTenants[0].tenantId,
+                });
+
+                expect(controller.state.selectedTenantId).to.equal(mockTenants[0].tenantId);
+                expect(
+                    azureLoad.calledOnceWith(
+                        controller.state,
+                        mockAccounts.signedInAccount.id,
+                        mockTenants[0].tenantId,
+                    ),
+                ).to.be.true;
+                expect(azureAutoLoad.calledOnce).to.be.true;
+                expect(fabricLoad.notCalled).to.be.true;
+            });
+        });
+
+        suite("toggleFavoriteCollection", () => {
+            test("delegates to the Azure provider for AzureBrowse", async () => {
+                const azureToggle = sandbox
+                    .stub(controller["_azureBrowseProvider"], "toggleFavorite")
+                    .resolves();
+                const fabricToggle = sandbox
+                    .stub(controller["_fabricBrowseProvider"], "toggleFavorite")
+                    .resolves();
+
+                await controller["_reducerHandlers"].get("toggleFavoriteCollection")(
+                    controller.state,
+                    {
+                        inputMode: ConnectionInputMode.AzureBrowse,
+                        collectionId: "sub-1",
+                    },
+                );
+
+                expect(azureToggle.calledOnceWith(controller.state, "sub-1")).to.be.true;
+                expect(fabricToggle.notCalled).to.be.true;
+            });
+
+            test("delegates to the Fabric provider for FabricBrowse", async () => {
+                const azureToggle = sandbox
+                    .stub(controller["_azureBrowseProvider"], "toggleFavorite")
+                    .resolves();
+                const fabricToggle = sandbox
+                    .stub(controller["_fabricBrowseProvider"], "toggleFavorite")
+                    .resolves();
+
+                await controller["_reducerHandlers"].get("toggleFavoriteCollection")(
+                    controller.state,
+                    {
+                        inputMode: ConnectionInputMode.FabricBrowse,
+                        collectionId: "ws-1",
+                    },
+                );
+
+                expect(fabricToggle.calledOnceWith(controller.state, "ws-1")).to.be.true;
+                expect(azureToggle.notCalled).to.be.true;
+            });
+        });
+
+        suite("selectSqlCollection", () => {
+            test("loads contents via the active provider for an unloaded collection", async () => {
+                const azureLoadContents = sandbox
+                    .stub(controller["_azureBrowseProvider"], "loadCollectionContents")
+                    .resolves();
+
+                controller.state.selectedInputMode = ConnectionInputMode.AzureBrowse;
+                controller.state.azureSubscriptions = [
+                    {
+                        id: "sub-1",
+                        displayName: "Sub 1",
+                        tenantId: mockTenants[0].tenantId,
+                        databases: [],
+                        loadStatus: { status: ApiStatus.NotStarted },
+                    },
+                ];
+
+                await controller["_reducerHandlers"].get("selectSqlCollection")(controller.state, {
+                    collectionId: "sub-1",
+                });
+
+                expect(azureLoadContents.calledOnce).to.be.true;
+                expect(azureLoadContents.firstCall.args[1].id).to.equal("sub-1");
+            });
+
+            test("skips contents load when collection is already Loaded", async () => {
+                const azureLoadContents = sandbox
+                    .stub(controller["_azureBrowseProvider"], "loadCollectionContents")
+                    .resolves();
+
+                controller.state.selectedInputMode = ConnectionInputMode.AzureBrowse;
+                controller.state.azureSubscriptions = [
+                    {
+                        id: "sub-1",
+                        displayName: "Sub 1",
+                        tenantId: mockTenants[0].tenantId,
+                        databases: [],
+                        loadStatus: { status: ApiStatus.Loaded },
+                    },
+                ];
+
+                await controller["_reducerHandlers"].get("selectSqlCollection")(controller.state, {
+                    collectionId: "sub-1",
+                });
+
+                expect(azureLoadContents.notCalled).to.be.true;
             });
         });
 
@@ -972,46 +1235,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
             });
         });
 
-        suite("filterAzureSubscriptions", () => {
-            test("Filter change cancelled", async () => {
-                stubPromptForAzureSubscriptionFilter(sandbox, false);
-
-                await controller["_reducerHandlers"].get("filterAzureSubscriptions")(
-                    controller.state,
-                    {},
-                );
-
-                const stub = (controller["loadAllAzureServers"] = sandbox.stub().resolves());
-
-                expect(stub.notCalled, "loadAllAzureServers should not be called").to.be.true;
-            });
-
-            test("Filter updated", async () => {
-                const { sendErrorEvent } = stubTelemetry(sandbox);
-
-                stubPromptForAzureSubscriptionFilter(sandbox, true);
-                stubVscodeAzureHelperGetAccounts(sandbox);
-                stubVscodeAzureSignIn(sandbox);
-                stubFetchServersFromAzure(sandbox);
-
-                expect(
-                    controller.state.azureSubscriptions,
-                    "No subscriptions should be loaded initially",
-                ).to.have.lengthOf(0);
-
-                await controller["_reducerHandlers"].get("filterAzureSubscriptions")(
-                    controller.state,
-                    {},
-                );
-
-                expect(sendErrorEvent.notCalled, "sendErrorEvent should not be called").to.be.true;
-                expect(
-                    controller.state.azureSubscriptions,
-                    "changing Azure subscription filter settings should trigger reloading subscriptions",
-                ).to.have.lengthOf(2);
-            });
-        });
-
         suite("messageButtonClicked", () => {
             test("clearTokenCache", async () => {
                 controller.state.formMessage = {
@@ -1167,7 +1390,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     options: {
                         server: "myServer",
                         database: "myDB",
-                        authenticationType: "ActiveDirectoryServicePrincipal", // unsupported
+                        authenticationType: "UnknownAuthType", // unsupported
                     },
                 } as ConnectionDetails;
 
@@ -1181,7 +1404,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 );
                 expect(
                     (controller.state.dialog as ConnectionStringDialogProps).connectionStringError,
-                ).to.contain("ActiveDirectoryServicePrincipal");
+                ).to.contain("UnknownAuthType");
             });
 
             test("should display error message if parsing connection string throws", async () => {
@@ -1194,35 +1417,12 @@ suite("ConnectionDialogWebviewController Tests", () => {
             });
         });
 
-        test("signIntoAzureTenantForBrowse", async () => {
-            const fakeAuth = {} as unknown as MssqlVSCodeAzureSubscriptionProvider;
-
-            const signInStub = sandbox
-                .stub(AzureHelpers.VsCodeAzureHelper, "signIn")
-                .resolves(fakeAuth);
-            const signInToTenantStub = sandbox
-                .stub(AzureHelpers.VsCodeAzureAuth, "signInToTenant")
-                .resolves();
-            const loadAllAzureServersStub = sandbox
-                .stub(controller as any, "loadAllAzureServers")
-                .resolves();
-
-            await controller["_reducerHandlers"].get("signIntoAzureTenantForBrowse")(
-                controller.state,
-                {},
-            );
-
-            expect(signInStub).to.have.been.calledOnce;
-            expect(signInToTenantStub).to.have.been.calledOnceWithExactly(fakeAuth);
-            expect(loadAllAzureServersStub).to.have.been.calledOnceWithExactly(controller.state);
-        });
-
         test("refreshUnauthenticatedTenants", async () => {
             const unauthenticated = mockTenants[1];
 
             const fakeAuth = {
                 getTenants: sandbox.stub().resolves([mockTenants[0], mockTenants[1]]),
-            } as unknown as MssqlVSCodeAzureSubscriptionProvider;
+            } as unknown as VSCodeAzureSubscriptionProvider;
 
             sandbox
                 .stub(AzureHelpers.VsCodeAzureAuth, "getUnauthenticatedTenants")
@@ -1243,15 +1443,12 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     signedInTenants: [mockTenants[0].displayName],
                 },
             ]);
-
-            expect(controller.state.azureTenantSignInCounts).to.deep.equal({
-                totalTenants: 2,
-                signedInTenants: 1,
-            });
         });
     });
 
     test("getAzureActionButtons", async () => {
+        // Tests the MSAL path (non-VS-Code-accounts)
+        stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: false });
         controller.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
         controller.state.connectionProfile.accountId = "TestEntraAccountId";
 
@@ -1262,83 +1459,301 @@ suite("ConnectionDialogWebviewController Tests", () => {
         controller.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
         controller.state.connectionProfile.accountId = "TestUserId";
 
-        azureAccountService.getAccountSecurityToken.resolves({
-            token: "testToken",
-            expiresOn: Date.now() / 1000,
-        } as IToken);
-
-        const isTokenValidStub = sandbox.stub(AzureController, "isTokenValid").returns(false);
-
-        // When there's no error, we should have refreshToken button
-        let buttons = await controller["getAzureActionButtons"]();
-        expect(buttons.length).to.equal(2);
-        expect(buttons[1].id).to.equal("refreshToken");
-
-        // Test error handling when getAccountSecurityToken throws
-        isTokenValidStub.restore();
-        mockVscodeWrapper.showErrorMessage.resolves(undefined);
-        azureAccountService.getAccountSecurityToken.throws(new Error("Test error"));
-
-        buttons = await controller["getAzureActionButtons"]();
-        expect(buttons.length).to.equal(2);
-        expect(buttons[1].id).to.equal("refreshToken");
+        const buttons = await controller["getAzureActionButtons"]();
+        expect(buttons.length).to.equal(1, "Should not surface token refresh for MSAL auth");
+        expect(buttons[0].id).to.equal("azureSignIn");
+        expect(azureAccountService.getAccountSecurityToken).to.not.have.been.called;
+        expect(mockVscodeWrapper.showErrorMessage).to.not.have.been.called;
     });
 
-    test("getAzureActionButtons shows error prompt with refreshTokenLabel when token validation fails", async () => {
-        controller.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
-        controller.state.connectionProfile.accountId = "TestUserId";
+    suite("database loading", () => {
+        const sqlLoginProfile: IConnectionDialogProfile = {
+            server: "localhost",
+            authenticationType: AuthenticationType.SqlLogin,
+            user: "sa",
+            password: "Password1!",
+            groupId: ConnectionConfig.ROOT_GROUP_ID,
+        } as IConnectionDialogProfile;
 
-        azureAccountService.getAccountSecurityToken.rejects(new Error("Token error"));
-        mockVscodeWrapper.showErrorMessage.resolves(undefined);
+        setup(() => {
+            connectionManager.connect.resolves(true);
+            connectionManager.listDatabases.resolves(["master", "tempdb", "mydb"]);
+            connectionManager.disconnect.resolves();
+        });
 
-        await controller["getAzureActionButtons"]();
+        test("isConnectionReadyForDatabaseFetch", () => {
+            const check = (profile: IConnectionDialogProfile) =>
+                controller["isConnectionReadyForDatabaseFetch"](profile);
 
-        expect(mockVscodeWrapper.showErrorMessage).to.have.been.calledWith(
-            sinon.match.string,
-            refreshTokenLabel,
-        );
-    });
+            // Missing server — always false
+            expect(check({ ...sqlLoginProfile, server: "" })).to.be.false;
 
-    test("getAzureActionButtons error prompt: selecting refresh triggers a refresh attempt", async () => {
-        const clock = sinon.useFakeTimers();
-        try {
-            controller.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
-            controller.state.connectionProfile.accountId = "TestUserId";
+            // SqlLogin — requires user + password
+            expect(check({ ...sqlLoginProfile, user: "" })).to.be.false;
+            expect(check({ ...sqlLoginProfile, password: "" })).to.be.false;
+            expect(check({ ...sqlLoginProfile })).to.be.true;
 
-            azureAccountService.getAccountSecurityToken.rejects(new Error("Token error"));
-            mockVscodeWrapper.showErrorMessage.resolves(refreshTokenLabel);
+            // AzureMFA — requires accountId
+            expect(
+                check({
+                    server: "localhost",
+                    authenticationType: AuthenticationType.AzureMFA,
+                } as IConnectionDialogProfile),
+            ).to.be.false;
+            expect(
+                check({
+                    server: "localhost",
+                    authenticationType: AuthenticationType.AzureMFA,
+                    accountId: "user@example.com",
+                } as IConnectionDialogProfile),
+            ).to.be.true;
 
-            await controller["getAzureActionButtons"]();
+            // Integrated and ActiveDirectoryDefault — server only
+            expect(
+                check({
+                    server: "localhost",
+                    authenticationType: AuthenticationType.Integrated,
+                } as IConnectionDialogProfile),
+            ).to.be.true;
+            expect(
+                check({
+                    server: "localhost",
+                    authenticationType: AuthenticationType.ActiveDirectoryDefault,
+                } as IConnectionDialogProfile),
+            ).to.be.true;
+        });
 
-            // Advance the stubbed clock so the fire-and-forget prompt to refresh and
-            // the async refreshToken() function have a chance to run.
-            await clock.tickAsync(0);
+        test("buildDatabaseFetchKey includes connection fields but excludes password", () => {
+            const base = {
+                server: "myServer",
+                authenticationType: AuthenticationType.SqlLogin,
+                user: "sa",
+                accountId: "acc1",
+                tenantId: "ten1",
+            } as IConnectionDialogProfile;
 
-            // Called once for initial validation and once inside refreshToken()
-            expect(azureAccountService.getAccountSecurityToken.callCount).to.equal(2);
-        } finally {
-            clock.restore();
-        }
-    });
+            controller.state.connectionProfile = { ...base, password: "pw1" };
+            const key1 = controller["buildDatabaseFetchKey"]();
+            controller.state.connectionProfile = { ...base, password: "pw2" };
+            const key2 = controller["buildDatabaseFetchKey"]();
 
-    test("getAzureActionButtons error prompt: dismissing does not trigger a refresh attempt", async () => {
-        const clock = sinon.useFakeTimers();
-        try {
-            controller.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
-            controller.state.connectionProfile.accountId = "TestUserId";
+            expect(key1)
+                .to.include("myServer")
+                .and.include("sa")
+                .and.include("acc1")
+                .and.include("ten1");
+            expect(key1).to.not.include("pw1");
+            expect(key1).to.equal(key2, "password changes should not bust the cache key");
+        });
 
-            azureAccountService.getAccountSecurityToken.rejects(new Error("Token error"));
-            mockVscodeWrapper.showErrorMessage.resolves(undefined);
+        suite("loadDatabaseList", () => {
+            test("success: populates options and clears loadStatus", async () => {
+                controller.state.connectionProfile = { ...sqlLoginProfile };
+                await controller["loadDatabaseList"]();
 
-            await controller["getAzureActionButtons"]();
+                const dbComponent = controller.state.formComponents["database"];
+                expect(dbComponent.options).to.have.lengthOf(3);
+                // user DBs first, then system DBs, each group sorted alphabetically
+                expect(dbComponent.options.map((o) => o.value)).to.deep.equal([
+                    "mydb",
+                    "master",
+                    "tempdb",
+                ]);
+                expect(dbComponent.options.map((o) => o.groupName)).to.deep.equal([
+                    Loc.userDatabasesGroup,
+                    Loc.systemDatabasesGroup,
+                    Loc.systemDatabasesGroup,
+                ]);
+                expect(dbComponent.loadStatus).to.be.undefined;
+                expect(connectionManager.disconnect.calledOnce).to.be.true;
+            });
 
-            await clock.tickAsync(0);
+            test("success: caches result so second call skips connect", async () => {
+                controller.state.connectionProfile = { ...sqlLoginProfile };
+                await controller["loadDatabaseList"]();
+                expect(connectionManager.connect.calledOnce).to.be.true;
 
-            // Only called once for validation; no refresh attempt was made
-            expect(azureAccountService.getAccountSecurityToken.callCount).to.equal(1);
-        } finally {
-            clock.restore();
-        }
+                await controller["loadDatabaseList"]();
+                expect(
+                    connectionManager.connect.calledOnce,
+                    "second call should be served from cache without connecting",
+                ).to.be.true;
+
+                const dbComponent = controller.state.formComponents["database"];
+                expect(dbComponent.options).to.have.lengthOf(3);
+                expect(dbComponent.loadStatus).to.be.undefined;
+            });
+
+            test("failed connection: sets error loadStatus with connection error message", async () => {
+                const errorMessage = "Login failed for user 'sa'";
+                connectionManager.connect.resolves(false);
+                connectionManager.getConnectionInfo.returns({
+                    errorMessage,
+                    errorNumber: 18456,
+                    messages: errorMessage,
+                    credentials: { server: "localhost", user: "sa" },
+                } as ConnectionInfo);
+                sandbox
+                    .stub(ConnectionManagerModule, "getSqlConnectionErrorType")
+                    .resolves(SqlConnectionErrorType.Generic);
+
+                controller.state.connectionProfile = { ...sqlLoginProfile };
+                await controller["loadDatabaseList"]();
+
+                const dbComponent = controller.state.formComponents["database"];
+                expect(dbComponent.loadStatus?.status).to.equal(ApiStatus.Error);
+                expect(dbComponent.loadStatus?.message).to.equal(
+                    Loc.unableToLoadDatabaseList(errorMessage),
+                );
+                expect(connectionManager.disconnect.calledOnce).to.be.true;
+            });
+
+            test("TrustServerCertificate error: message contains trust cert guidance", async () => {
+                connectionManager.connect.resolves(false);
+                connectionManager.getConnectionInfo.returns({
+                    errorMessage: "connection failed",
+                    errorNumber: 0,
+                    messages: "",
+                    credentials: { server: "localhost", user: "sa" },
+                } as ConnectionInfo);
+                sandbox
+                    .stub(ConnectionManagerModule, "getSqlConnectionErrorType")
+                    .resolves(SqlConnectionErrorType.TrustServerCertificateNotEnabled);
+
+                controller.state.connectionProfile = { ...sqlLoginProfile };
+                await controller["loadDatabaseList"]();
+
+                const dbComponent = controller.state.formComponents["database"];
+                expect(dbComponent.loadStatus?.status).to.equal(ApiStatus.Error);
+                expect(dbComponent.loadStatus?.message).to.equal(
+                    Loc.unableToLoadDatabaseList(
+                        ConnectionLoc.trustServerCertificateMustBeEnabledMessage,
+                    ),
+                );
+            });
+
+            test("exception during fetch: sets error loadStatus", async () => {
+                const errorMessage = "network timeout";
+                connectionManager.connect.rejects(new Error(errorMessage));
+
+                controller.state.connectionProfile = { ...sqlLoginProfile };
+                await controller["loadDatabaseList"]();
+
+                const dbComponent = controller.state.formComponents["database"];
+                expect(dbComponent.loadStatus?.status).to.equal(ApiStatus.Error);
+                expect(dbComponent.loadStatus?.message).to.include(errorMessage);
+                expect(connectionManager.disconnect.calledOnce).to.be.true;
+            });
+
+            test("superseded request does not update state", async () => {
+                let resolveConnect: (val: boolean) => void;
+                connectionManager.connect.returns(
+                    new Promise((res) => {
+                        resolveConnect = res;
+                    }),
+                );
+
+                controller.state.connectionProfile = { ...sqlLoginProfile };
+
+                // Start first fetch (will hang on connect)
+                const firstFetch = controller["loadDatabaseList"]();
+
+                // Increment token to supersede it
+                controller["_dbFetchCounter"]++;
+
+                // Resolve the connect so the first fetch can continue to completion
+                resolveConnect(true);
+                await firstFetch;
+
+                // State should not have been updated by the superseded first fetch
+                const dbComponent = controller.state.formComponents["database"];
+                expect(dbComponent.options).to.deep.equal(
+                    [],
+                    "superseded fetch should not populate options",
+                );
+            });
+        });
+
+        suite("afterSetFormProperty integration", () => {
+            async function setFormProperty(
+                propertyName: keyof IConnectionDialogProfile,
+                value: string,
+                isBlur = false,
+            ) {
+                await controller["_reducerHandlers"].get("formAction")(controller.state, {
+                    event: { propertyName, value, isAction: false, updateValidation: isBlur },
+                });
+            }
+
+            async function blurFormProperty(
+                propertyName: keyof IConnectionDialogProfile,
+                value: string,
+            ) {
+                return setFormProperty(propertyName, value, true);
+            }
+
+            async function flushMicrotasks() {
+                // Allow fire-and-forget loadDatabaseList to complete
+                await new Promise<void>((resolve) => setImmediate(resolve));
+            }
+
+            test("triggers fetch on blur when sufficient SqlLogin credentials are set", async () => {
+                controller.state.connectionProfile = { ...sqlLoginProfile };
+
+                await blurFormProperty("server", "localhost");
+                await flushMicrotasks();
+
+                expect(
+                    connectionManager.connect.calledOnce,
+                    "should connect when all SqlLogin fields are present and field is blurred",
+                ).to.be.true;
+            });
+
+            test("does not trigger fetch on change (only on blur)", async () => {
+                controller.state.connectionProfile = { ...sqlLoginProfile };
+
+                await setFormProperty("server", "localhost");
+                await flushMicrotasks();
+
+                expect(
+                    connectionManager.connect.called,
+                    "should not connect on keystroke change, only on blur",
+                ).to.be.false;
+            });
+
+            test("clears database options when auth info becomes insufficient", async () => {
+                controller.state.connectionProfile = { ...sqlLoginProfile };
+
+                // First load databases successfully
+                await controller["loadDatabaseList"]();
+                expect(controller.state.formComponents["database"].options).to.have.lengthOf(3);
+
+                // Now remove the user on blur, making info insufficient
+                await blurFormProperty("user", "");
+
+                const dbComponent = controller.state.formComponents["database"];
+                expect(dbComponent.options).to.deep.equal(
+                    [],
+                    "options should be cleared when auth is incomplete",
+                );
+                expect(dbComponent.loadStatus).to.be.undefined;
+            });
+
+            test("does not re-fetch when fetchKey is unchanged", async () => {
+                controller.state.connectionProfile = { ...sqlLoginProfile };
+
+                await controller["loadDatabaseList"]();
+                expect(connectionManager.connect.calledOnce).to.be.true;
+
+                await blurFormProperty("server", sqlLoginProfile.server);
+                await flushMicrotasks();
+
+                expect(
+                    connectionManager.connect.calledOnce,
+                    "should not re-fetch when fetchKey is unchanged",
+                ).to.be.true;
+            });
+        });
     });
 
     test("getAzureActionButtons uses VS Code sign-in when VS Code account mode is enabled", async () => {
@@ -1355,9 +1770,9 @@ suite("ConnectionDialogWebviewController Tests", () => {
             return true;
         });
 
-        sandbox.stub(MssqlVSCodeAzureSubscriptionProvider, "getInstance").returns({
+        sandbox.stub(AzureHelpers.VsCodeAzureHelper, "getProvider").returns({
             signIn: signInStub,
-        } as unknown as MssqlVSCodeAzureSubscriptionProvider);
+        } as unknown as VSCodeAzureSubscriptionProvider);
 
         controller.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
         controller.state.connectionProfile.accountId = mockAccounts.signedInAccount.id;

@@ -35,6 +35,7 @@ import { getAppDataPath, getEnableConnectionPoolingConfig } from "../azure/utils
 import { serviceName } from "../azure/constants";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { PreviewFeature, previewService } from "../previews/previewService";
 import { getRuntimeConfigPath, ServiceExecutable } from "./serviceExecutablePaths";
 
 const STS_OVERRIDE_ENV_VAR = "MSSQL_SQLTOOLSSERVICE";
@@ -429,6 +430,25 @@ export default class SqlToolsServiceClient {
                 ],
             },
             errorHandler: new LanguageClientErrorHandler(Constants.sqlToolsServiceName),
+            middleware: {
+                provideCompletionItem: async (document, position, context, token, next) => {
+                    const result = await next(document, position, context, token);
+                    const count = Array.isArray(result)
+                        ? result.length
+                        : (result?.items?.length ?? 0);
+                    const scheme = document.uri.scheme;
+                    // Gate logging: only log when STS returned no completions, or
+                    // when the request came from a notebook cell. This keeps log
+                    // volume manageable while preserving the diagnostic signal
+                    // for the notebook IntelliSense issue.
+                    if (count === 0 || scheme === "vscode-notebook-cell") {
+                        this._logger.logDebug(
+                            `Completion count=${count} scheme=${scheme} triggerKind=${context.triggerKind} uri=${document.uri.toString()}`,
+                        );
+                    }
+                    return result;
+                },
+            },
         };
 
         // cache the client instance for later use
@@ -466,6 +486,18 @@ export default class SqlToolsServiceClient {
      */
     public handleLanguageServiceStatusNotification(): NotificationHandler<LanguageServiceContracts.StatusChangeParams> {
         return (event: LanguageServiceContracts.StatusChangeParams): void => {
+            const scheme = (() => {
+                try {
+                    return vscode.Uri.parse(event.ownerUri).scheme;
+                } catch {
+                    return "unknown";
+                }
+            })();
+            if (scheme === "vscode-notebook-cell" || scheme === "unknown") {
+                this._logger.verbose(
+                    `LanguageServiceStatus scheme=${scheme} status=${event.status} ownerUri=${event.ownerUri}`,
+                );
+            }
             this._statusView.languageServiceStatusChanged(event.ownerUri, event.status);
         };
     }
@@ -562,8 +594,13 @@ export default class SqlToolsServiceClient {
             args.push("--vscode-debug-launch");
         }
 
-        // Enable SQL Auth Provider registration for Azure MFA Authentication
-        args.push("--enable-sql-authentication-provider");
+        // When the VS Code accounts preview is enabled, delegate MFA token acquisition to the
+        // client via AccessTokenCallback. Otherwise use MSAL via SqlAuthenticationProvider.
+        if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+            args.push("--request-mfa-token-from-client");
+        } else {
+            args.push("--enable-sql-authentication-provider");
+        }
 
         // Enable Connection pooling to improve connection performance
         const enableConnectionPooling = getEnableConnectionPoolingConfig();

@@ -99,7 +99,7 @@ export class ExecutionPlanView {
             this.expensiveMetricTypes.add(ep.ExpensiveMetricType.ActualElapsedTime);
         }
 
-        let costMetrics = [];
+        let costMetrics: ep.CostMetric[] = [];
         for (let i = 0; node.costMetrics && i < node.costMetrics.length; ++i) {
             costMetrics.push(node.costMetrics[i]);
 

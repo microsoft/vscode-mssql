@@ -26,6 +26,7 @@ import {
 import { QueryResultReactProvider } from "../queryResultStateProvider";
 import { CopyKeybind } from "./plugins/copyKeybind.plugin";
 import { AutoColumnSize } from "./plugins/autoColumnSize.plugin";
+import { ColumnResizeAutoScroll } from "./plugins/columnResizeAutoScroll.plugin";
 import { MouseButton } from "../../../common/utils";
 import { ColorThemeKind, WebviewKeyBindings } from "../../../../sharedInterfaces/webview";
 import debounce from "lodash/debounce";
@@ -191,6 +192,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         } else {
             this.columns = new Array<Slick.Column<T>>();
         }
+        this.registerPlugin(new ColumnResizeAutoScroll<T>({ minColumnWidth: MIN_COLUMN_WIDTH_PX }));
 
         this.idPrefix = this._tableContainer.classList[0];
         this._container.classList.add(this.idPrefix);

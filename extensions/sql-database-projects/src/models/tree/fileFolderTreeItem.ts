@@ -105,19 +105,6 @@ export class ExternalStreamingJobFileNode extends SqlObjectFileNode {
     }
 }
 
-export class TableFileNode extends SqlObjectFileNode {
-    public override get treeItem(): vscode.TreeItem {
-        const treeItem = super.treeItem;
-        treeItem.contextValue = this.type;
-
-        return treeItem;
-    }
-
-    public override get type(): DatabaseProjectItemType {
-        return DatabaseProjectItemType.table;
-    }
-}
-
 export class PreDeployNode extends FileNode {
     public override get treeItem(): vscode.TreeItem {
         const treeItem = super.treeItem;

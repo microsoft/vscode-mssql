@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as os from "os";
 import * as vscode from "vscode";
 import { WebviewPanelController } from "../controllers/webviewPanelController";
 import {
@@ -10,6 +11,7 @@ import {
     TableExplorerReducers,
     EditSessionReadyParams,
     DbCellValue,
+    SqlPaneMode,
 } from "../sharedInterfaces/tableExplorer";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import ConnectionManager from "../controllers/connectionManager";
@@ -17,11 +19,11 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { ITableExplorerService } from "../services/tableExplorerService";
 import { EditSessionReadyNotification } from "../models/contracts/tableExplorer";
-import { NotificationHandler } from "vscode-languageclient";
 import * as LocConstants from "../constants/locConstants";
 import { getErrorMessage, uuid } from "../utils/utils";
+import { bracketEscapeSqlIdentifier } from "../models/utils";
 import * as Constants from "../constants/constants";
-import { sendActionEvent, startActivity } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { ApiStatus } from "../sharedInterfaces/webview";
 
@@ -30,6 +32,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     TableExplorerReducers
 > {
     private operationId: string;
+    private _preserveTableQuery = false;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -63,6 +66,8 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 deletedRows: [], // Track rows marked for deletion
                 updateScript: undefined, // No script initially
                 showScriptPane: false, // Script pane hidden by default
+                sqlPaneMode: SqlPaneMode.ScriptChanges, // Default to script changes mode
+                tableQuery: undefined, // Populated after data loads
                 currentPage: 1, // Start on page 1
                 failedCells: [], // Track cells that failed to update
                 originalCellValues: new Map<string, DbCellValue>(), // Cache original values for reliable revert
@@ -74,14 +79,12 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     dark: vscode.Uri.joinPath(
                         context.extensionUri,
                         "media",
-                        "objectTypes",
-                        "EditTableData_Dark.svg",
+                        "tableExplorerEditor_dark.svg",
                     ),
                     light: vscode.Uri.joinPath(
                         context.extensionUri,
                         "media",
-                        "objectTypes",
-                        "EditTableData_Light.svg",
+                        "tableExplorerEditor_light.svg",
                     ),
                 },
                 showRestorePromptAfterClose: false, // Will be set to true when changes are made
@@ -95,11 +98,52 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
         this._tableExplorerService.sqlToolsClient.onNotification(
             EditSessionReadyNotification.type,
-            this.handleEditSessionReadyNotification(),
+            (params: EditSessionReadyParams) => this.onEditSessionReady(params),
         );
 
         void this.initialize();
         this.registerRpcHandlers();
+    }
+
+    private onEditSessionReady(result: EditSessionReadyParams): void {
+        if (result.success) {
+            this.state.ownerUri = result.ownerUri;
+            this.state.loadStatus = ApiStatus.Loading;
+            this.updateState();
+
+            sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.EditSessionReady, {
+                operationId: this.operationId,
+            });
+
+            void this.loadResultSet();
+        } else {
+            const serverMessage = result.message?.trim() ?? "";
+            const toastMessage =
+                serverMessage.length > 0
+                    ? LocConstants.TableExplorer.failedToRunTableQuery(serverMessage)
+                    : LocConstants.TableExplorer.failedToRunTableQueryUnknown;
+            this.logger.error(
+                `Edit session failed to initialize: ${toastMessage} - OperationId: ${this.operationId}`,
+            );
+            this.state.loadStatus = ApiStatus.Error;
+            this.state.resultSet = undefined;
+            this._preserveTableQuery = false;
+            this.updateState();
+
+            sendErrorEvent(
+                TelemetryViews.TableExplorer,
+                TelemetryActions.EditSessionReady,
+                new Error("Edit session failed to initialize"),
+                true /* includeErrorMessage */,
+                undefined /* errorCode */,
+                undefined /* errorType */,
+                {
+                    operationId: this.operationId,
+                },
+            );
+
+            void vscode.window.showErrorMessage(toastMessage);
+        }
     }
 
     /**
@@ -167,7 +211,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             await this._tableExplorerService.initialize(
                 ownerUri,
                 objectName,
-                schemaName,
+                schemaName ?? "",
                 objectType,
                 undefined,
             );
@@ -196,29 +240,71 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     operationId: this.operationId,
                 },
             );
-            throw error;
         }
     }
 
-    private handleEditSessionReadyNotification(): NotificationHandler<EditSessionReadyParams> {
-        const self = this;
-        return (result: EditSessionReadyParams): void => {
-            if (result.success) {
-                self.state.ownerUri = result.ownerUri;
-                self.state.loadStatus = ApiStatus.Loading;
-                self.updateState();
+    private async loadResultSet(): Promise<void> {
+        try {
+            const subsetResult = await this._tableExplorerService.subset(
+                this.state.ownerUri,
+                0,
+                this.state.currentRowCount,
+            );
+            this.state.resultSet = subsetResult;
+            this.state.loadStatus = ApiStatus.Loaded;
 
-                void self.loadResultSet();
+            if (this._preserveTableQuery) {
+                this._preserveTableQuery = false;
+            } else {
+                this.state.tableQuery = this.buildDefaultSelectQuery();
             }
-        };
+
+            this.updateState();
+        } catch (error) {
+            // subset() is invoked fire-and-forget from onEditSessionReady, so an
+            // unhandled rejection here would leave the grid stuck in the Loading
+            // overlay forever. Surface the failure and drop the stale result set
+            // so the UI can transition to the error state.
+            this.logger.error(
+                `Error loading result set: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+            );
+            this.state.loadStatus = ApiStatus.Error;
+            this.state.resultSet = undefined;
+            this._preserveTableQuery = false;
+            this.updateState();
+
+            void vscode.window.showErrorMessage(
+                LocConstants.TableExplorer.failedToLoadData(getErrorMessage(error)),
+            );
+        }
     }
 
-    private async loadResultSet(): Promise<void> {
-        const subsetResult = await this._tableExplorerService.subset(this.state.ownerUri, 0, 100);
-        this.state.resultSet = subsetResult;
-        this.state.loadStatus = ApiStatus.Loaded;
+    /**
+     * Builds a default SELECT query based on the current result set columns and table metadata.
+     * Format:
+     *   SELECT TOP {currentRowCount}
+     *       [col1],
+     *       [col2],
+     *       ...
+     *   FROM [schema].[table]
+     */
+    private buildDefaultSelectQuery(): string {
+        const columns = this.state.resultSet?.columnInfo;
+        if (!columns || columns.length === 0) {
+            return "";
+        }
 
-        this.updateState();
+        const columnList = columns
+            .map((col) => `    ${bracketEscapeSqlIdentifier(col.name)}`)
+            .join("," + os.EOL);
+        const schemaName = this.state.schemaName;
+        const tableName = this.state.tableName;
+        const escapedTable = bracketEscapeSqlIdentifier(tableName);
+        const qualifiedName = schemaName
+            ? `${bracketEscapeSqlIdentifier(schemaName)}.${escapedTable}`
+            : escapedTable;
+
+        return `SELECT TOP ${this.state.currentRowCount}${os.EOL}${columnList}${os.EOL}FROM ${qualifiedName}`;
     }
 
     /**
@@ -228,7 +314,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     private async regenerateScript(state: TableExplorerWebViewState): Promise<void> {
         try {
             const scriptResult = await this._tableExplorerService.generateScripts(state.ownerUri);
-            const combinedScript = scriptResult.scripts?.join("\n") || "";
+            const combinedScript = scriptResult.scripts?.join(os.EOL) || "";
             state.updateScript = combinedScript;
             this.updateState();
             this.logger.info("Script regenerated successfully in real-time");
@@ -242,8 +328,93 @@ export class TableExplorerWebViewController extends WebviewPanelController<
      * Call this after updating state when data changes occur.
      */
     private async regenerateScriptIfVisible(state: TableExplorerWebViewState): Promise<void> {
-        if (state.showScriptPane) {
+        if (state.showScriptPane && state.sqlPaneMode === SqlPaneMode.ScriptChanges) {
             await this.regenerateScript(state);
+        }
+    }
+
+    /**
+     * True if there are uncommitted edits (new rows, deleted rows, or modified cells).
+     */
+    private hasPendingChanges(state: TableExplorerWebViewState): boolean {
+        return (
+            state.newRows.length > 0 ||
+            state.deletedRows.length > 0 ||
+            (state.originalCellValues !== undefined && state.originalCellValues.size > 0)
+        );
+    }
+
+    /**
+     * Shows a modal warning that pending changes will be lost.
+     * Returns true if the user chose to continue, false if they cancelled.
+     */
+    private async promptDiscardPendingChanges(): Promise<boolean> {
+        const result = await vscode.window.showWarningMessage(
+            LocConstants.TableExplorer.pendingChangesWillBeLost,
+            { modal: true },
+            LocConstants.TableExplorer.Continue,
+        );
+        return result === LocConstants.TableExplorer.Continue;
+    }
+
+    /**
+     * Resets the in-state record of uncommitted edits. Does not touch the backend session.
+     */
+    private resetPendingChangesState(state: TableExplorerWebViewState): void {
+        state.newRows = [];
+        state.deletedRows = [];
+        state.failedCells = [];
+        state.originalCellValues?.clear();
+        state.updateScript = undefined;
+    }
+
+    /**
+     * Tears down the active edit session in preparation for re-initializing with a new query:
+     * marks state as loading, clears the stale result set so the webview re-initializes the grid,
+     * disposes the backend session (best-effort), and clears any pending-edit bookkeeping.
+     */
+    private async tearDownEditSession(state: TableExplorerWebViewState): Promise<void> {
+        state.loadStatus = ApiStatus.Loading;
+
+        state.resultSet = undefined;
+        this.updateState();
+
+        try {
+            await this._tableExplorerService.dispose(state.ownerUri);
+        } catch {}
+
+        this.resetPendingChangesState(state);
+        this.showRestorePromptAfterClose = false;
+        this.updateState();
+    }
+
+    /**
+     * Re-initializes the edit session without a custom query, restoring the table's default view.
+     * Used as a recovery step when a custom query fails. Sets state.loadStatus to Error
+     * if the recovery init itself fails. Returns true on success, false on failure.
+     */
+    private async tryRestoreOriginalSession(
+        state: TableExplorerWebViewState,
+        objectName: string,
+        schemaName: string | undefined,
+        objectType: string,
+    ): Promise<boolean> {
+        try {
+            await this._tableExplorerService.initialize(
+                state.ownerUri,
+                objectName,
+                schemaName ?? "",
+                objectType,
+                undefined,
+            );
+            this.logger.info("Restored original session after custom query failure");
+            return true;
+        } catch (restoreError) {
+            this.logger.error(
+                `Failed to restore original session: ${getErrorMessage(restoreError)}`,
+            );
+            state.loadStatus = ApiStatus.Error;
+            return false;
         }
     }
 
@@ -356,6 +527,11 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
                 state.currentRowCount = payload.rowCount;
                 state.loadStatus = ApiStatus.Loaded;
+
+                // Regenerate the displayed query so the toolbar's row count
+                // and the SQL pane stay in sync. buildDefaultSelectQuery reads
+                // currentRowCount, which we just updated.
+                state.tableQuery = this.buildDefaultSelectQuery();
 
                 this.updateState();
 
@@ -1013,7 +1189,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 );
 
                 // Combine script array into single string
-                const combinedScript = scriptResult.scripts?.join("\n") || "";
+                const combinedScript = scriptResult.scripts?.join(os.EOL) || "";
                 this.logger.info(
                     `Script result received: ${scriptResult.scripts?.length} script(s), combined length: ${combinedScript.length} - OperationId: ${this.operationId}`,
                 );
@@ -1021,6 +1197,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 // Update state with script and show pane
                 state.updateScript = combinedScript;
                 state.showScriptPane = true;
+                state.sqlPaneMode = SqlPaneMode.ScriptChanges;
 
                 this.logger.info(
                     `State before updateState - updateScript length: ${state.updateScript?.length}, showScriptPane: ${state.showScriptPane}`,
@@ -1254,6 +1431,150 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             return state;
         });
 
+        this.registerReducer("showTableQuery", async (state) => {
+            this.logger.info(`Showing table query pane - OperationId: ${this.operationId}`);
+
+            sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.ShowTableQuery, {
+                operationId: this.operationId,
+            });
+
+            state.showScriptPane = true;
+            state.sqlPaneMode = SqlPaneMode.TableQuery;
+            this.updateState();
+
+            return state;
+        });
+
+        this.registerReducer("runTableQuery", async (state, payload) => {
+            this.logger.info(`Running custom table query - OperationId: ${this.operationId}`);
+
+            const startTime = Date.now();
+            // Only operator type names (e.g. "equals", "lessThan") flow through this
+            // payload — column names and user-entered values stay in the webview.
+            const filterOperators = payload.filterOperators ?? [];
+            const filterTelemetry = {
+                filterCount: filterOperators.length.toString(),
+                filterOperators: filterOperators.join(","),
+            };
+            const endActivity = startActivity(
+                TelemetryViews.TableExplorer,
+                TelemetryActions.RunTableQuery,
+                uuid(),
+                {
+                    startTime: startTime.toString(),
+                    operationId: this.operationId,
+                    ...filterTelemetry,
+                },
+            );
+
+            // Validate input before tearing down the session
+            if (!payload.queryString || !payload.queryString.trim()) {
+                this.logger.info("Empty query string provided, skipping custom query");
+                endActivity.end(ActivityStatus.Succeeded, {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                    cancelled: "true",
+                    ...filterTelemetry,
+                });
+                return state;
+            }
+
+            if (!state.ownerUri) {
+                this.logger.error(
+                    "Cannot run custom query without an active session (missing ownerUri)",
+                );
+                endActivity.endFailed(
+                    new Error("No active session"),
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
+                    {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                        ...filterTelemetry,
+                    },
+                );
+                return state;
+            }
+
+            if (this.hasPendingChanges(state) && !(await this.promptDiscardPendingChanges())) {
+                this.logger.info("User cancelled custom query due to pending changes");
+                endActivity.end(ActivityStatus.Succeeded, {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                    cancelled: "true",
+                    ...filterTelemetry,
+                });
+                return state;
+            }
+
+            await this.tearDownEditSession(state);
+
+            const objectName = state.tableName;
+            const schemaName = state.schemaName;
+            const objectType = this._targetNode.metadata.metadataTypeName.toUpperCase();
+
+            try {
+                // Re-initialize with the custom query. This kicks off the session;
+                // the actual query execution completes asynchronously and is signalled
+                // by EditSessionReady
+                await this._tableExplorerService.initialize(
+                    state.ownerUri,
+                    objectName,
+                    schemaName ?? "",
+                    objectType,
+                    payload.queryString,
+                );
+
+                // Persist the custom query so loadResultSet won't overwrite it with the default
+                state.tableQuery = payload.queryString;
+                this._preserveTableQuery = true;
+
+                // Callers that change the row count (e.g. the toolbar selector)
+                // pass the new count alongside the query so the toolbar stays in
+                // sync. Filter apply/clear paths leave it undefined since they
+                // don't change the count.
+                if (payload.rowCount !== undefined) {
+                    state.currentRowCount = payload.rowCount;
+                }
+
+                this.logger.info(
+                    `Custom query session re-initialized successfully - OperationId: ${this.operationId}`,
+                );
+
+                endActivity.end(ActivityStatus.Succeeded, {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                    ...filterTelemetry,
+                });
+            } catch (error) {
+                this.logger.error(
+                    `Error running custom table query: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                );
+
+                await this.tryRestoreOriginalSession(state, objectName, schemaName, objectType);
+                this.updateState();
+
+                endActivity.endFailed(
+                    new Error("Failed to run custom table query"),
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
+                    {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                        ...filterTelemetry,
+                    },
+                );
+
+                void vscode.window.showErrorMessage(
+                    LocConstants.TableExplorer.failedToRunTableQuery(getErrorMessage(error)),
+                );
+            }
+
+            return state;
+        });
+
         this.registerReducer("modifyTable", async (state, _payload) => {
             this.logger.info(`Opening Table Designer - OperationId: ${this.operationId}`);
 
@@ -1361,6 +1682,33 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
             return state;
         });
+
+        this.registerReducer("showSql", async (state, payload) => {
+            const sqlScript = (payload?.sqlScript ?? state.tableQuery ?? "").toString();
+            if (!sqlScript.trim()) {
+                void vscode.window.showWarningMessage(LocConstants.TableExplorer.noScriptToOpen);
+                return state;
+            }
+            try {
+                const doc = await vscode.workspace.openTextDocument({
+                    content: sqlScript,
+                    language: "sql",
+                });
+                await vscode.window.showTextDocument(doc, { preview: false });
+                sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.Open, {
+                    operationId: this.operationId,
+                    context: "showSql",
+                });
+            } catch (error) {
+                this.logger.error(
+                    `Error opening SQL in editor: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                );
+                void vscode.window.showErrorMessage(
+                    LocConstants.TableExplorer.failedToOpenScript(getErrorMessage(error)),
+                );
+            }
+            return state;
+        });
     }
 
     /**
@@ -1369,10 +1717,13 @@ export class TableExplorerWebViewController extends WebviewPanelController<
      * Prompts the user to save or discard changes, then allows disposal to continue.
      * Always returns undefined to allow the close to proceed after handling the user's choice.
      */
-    protected override async showRestorePrompt(): Promise<{
-        title: string;
-        run: () => Promise<void>;
-    }> {
+    protected override async showRestorePrompt(): Promise<
+        | {
+              title: string;
+              run: () => Promise<void>;
+          }
+        | undefined
+    > {
         const result = await vscode.window.showWarningMessage(
             LocConstants.TableExplorer.unsavedChangesPrompt(this.state.tableName),
             {
@@ -1418,6 +1769,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             this.logger.info(
                 `Disposing Table Explorer resources for ownerUri: ${this.state.ownerUri}`,
             );
+
             void this._tableExplorerService.dispose(this.state.ownerUri).catch((error) => {
                 this.logger.error(
                     `Error disposing table explorer service: ${getErrorMessage(error)}`,

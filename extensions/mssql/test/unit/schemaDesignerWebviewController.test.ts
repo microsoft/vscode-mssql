@@ -9,6 +9,9 @@ import sinonChai from "sinon-chai";
 import { expect } from "chai";
 import * as chai from "chai";
 import * as jsonRpc from "vscode-jsonrpc/node";
+import * as fs from "fs/promises";
+import * as os from "os";
+import * as path from "path";
 import { SchemaDesignerWebviewController } from "../../src/schemaDesigner/schemaDesignerWebviewController";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
@@ -98,6 +101,10 @@ suite("SchemaDesignerWebviewController tests", () => {
             generateScript: sandbox.stub(),
             getReport: sandbox.stub(),
             onSchemaReady: sandbox.stub(),
+            onProgress: sandbox.stub(),
+            removeProgressListener: sandbox.stub(),
+            onMessage: sandbox.stub(),
+            removeMessageListener: sandbox.stub(),
         } as any;
 
         schemaDesignerCache = new Map();
@@ -227,6 +234,11 @@ suite("SchemaDesignerWebviewController tests", () => {
                 .be.true;
             expect(
                 notificationHandlers.has(
+                    SchemaDesigner.AddDefinitionToWorkspaceNotification.type.method,
+                ),
+            ).to.be.true;
+            expect(
+                notificationHandlers.has(
                     SchemaDesigner.OpenInEditorWithConnectionNotification.type.method,
                 ),
             ).to.be.true;
@@ -286,11 +298,13 @@ suite("SchemaDesignerWebviewController tests", () => {
             const params = {};
             const result = await handler(params);
 
-            expect(mockSchemaDesignerService.createSession).to.have.been.calledOnceWithExactly({
-                connectionString,
-                accessToken,
-                databaseName,
-            });
+            expect(mockSchemaDesignerService.createSession).to.have.been.calledOnceWith(
+                sinon.match({
+                    connectionString,
+                    accessToken,
+                    databaseName,
+                }),
+            );
             expect(result).to.deep.equal(mockCreateSessionResponse);
             expect(ctrl.schemaDesignerDetails).to.deep.equal(mockCreateSessionResponse);
             expect(schemaDesignerCache.size).to.equal(1);
@@ -436,7 +450,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             const handler = requestHandlers.get(SchemaDesigner.GetReportWebviewRequest.type.method);
             const result = await handler({ updatedSchema });
 
-            expect(result.error).to.equal(error.toString());
+            expect(result.error).to.equal(error.message);
         });
     });
 
@@ -466,6 +480,14 @@ suite("SchemaDesignerWebviewController tests", () => {
 
         test("should handle publish error", async () => {
             const error = new Error("Publish failed");
+            const attemptedSchema: SchemaDesigner.Schema = {
+                tables: [
+                    {
+                        ...mockSchema.tables[0],
+                        name: "AttemptedUsers",
+                    },
+                ],
+            };
             mockSchemaDesignerService.publishSession.rejects(error);
             schemaDesignerCache.set(`${connectionString}-${databaseName}`, {
                 schemaDesignerDetails: mockCreateSessionResponse,
@@ -478,10 +500,14 @@ suite("SchemaDesignerWebviewController tests", () => {
             (ctrl as any)._sessionId = "test-session-id";
 
             const handler = requestHandlers.get(SchemaDesigner.PublishSessionRequest.type.method);
-            const result = await handler({ schema: mockSchema });
+            const result = await handler({ schema: attemptedSchema });
 
             expect(result.success).to.be.false;
-            expect(result.error).to.equal(error.toString());
+            expect(result.error).to.equal(error.message);
+            expect(result.updatedSchema).to.be.undefined;
+            expect(
+                schemaDesignerCache.get(`${connectionString}-${databaseName}`)?.baselineSchema,
+            ).to.equal(mockCreateSessionResponse.schema);
         });
     });
 
@@ -622,6 +648,75 @@ suite("SchemaDesignerWebviewController tests", () => {
                 content: "CREATE TABLE Test;",
                 connectionStrategy: sinon.match.any,
             });
+        });
+    });
+
+    suite("AddDefinitionToWorkspaceNotification handler", () => {
+        test("should add generated ORM text to the workspace", async () => {
+            const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "mssql-schema-designer-"));
+            try {
+                const workspaceFolder = vscode.Uri.file(tempDir);
+                sandbox
+                    .stub(vscode.workspace, "workspaceFolders")
+                    .value([{ uri: workspaceFolder }]);
+                const document = { uri: vscode.Uri.file(path.join(tempDir, "opened.prisma")) };
+                const openTextDocumentStub = sandbox
+                    .stub(vscode.workspace, "openTextDocument")
+                    .resolves(document as any);
+                const showTextDocumentStub = sandbox
+                    .stub(vscode.window, "showTextDocument")
+                    .resolves();
+                const showInfoStub = sandbox
+                    .stub(vscode.window, "showInformationMessage")
+                    .resolves();
+
+                const ctrl = createController();
+                ctrl.schemaDesignerDetails = mockCreateSessionResponse;
+
+                const handler = notificationHandlers.get(
+                    SchemaDesigner.AddDefinitionToWorkspaceNotification.type.method,
+                );
+                expect(handler).to.be.a("function");
+
+                await handler({
+                    updatedSchema: mockSchema,
+                    definitionKind: SchemaDesigner.DefinitionKind.Prisma,
+                });
+
+                expect(mockSchemaDesignerService.getDefinition).to.not.have.been.called;
+                expect(openTextDocumentStub).to.have.been.calledOnce;
+                const writtenUri = openTextDocumentStub.firstCall.args[0] as vscode.Uri;
+                const content = await fs.readFile(writtenUri.fsPath, "utf8");
+                expect(writtenUri.fsPath).to.match(/testdb_\d{8}\.prisma$/);
+                expect(content).to.contain("model Users");
+                expect(showTextDocumentStub).to.have.been.calledOnceWith(document, {
+                    preview: false,
+                });
+                expect(showInfoStub).to.have.been.calledOnce;
+            } finally {
+                await fs.rm(tempDir, { recursive: true, force: true });
+            }
+        });
+
+        test("should show an error when no workspace folder is open", async () => {
+            sandbox.stub(vscode.workspace, "workspaceFolders").value(undefined);
+            const showErrorStub = sandbox.stub(vscode.window, "showErrorMessage").resolves();
+
+            const ctrl = createController();
+            ctrl.schemaDesignerDetails = mockCreateSessionResponse;
+
+            const handler = notificationHandlers.get(
+                SchemaDesigner.AddDefinitionToWorkspaceNotification.type.method,
+            );
+            expect(handler).to.be.a("function");
+
+            await handler({
+                updatedSchema: mockSchema,
+                definitionKind: SchemaDesigner.DefinitionKind.TypeOrm,
+            });
+
+            expect(showErrorStub).to.have.been.calledOnce;
+            expect(showErrorStub.firstCall.args[0]).to.contain("No workspace folder is open");
         });
     });
 
@@ -883,7 +978,7 @@ suite("SchemaDesignerWebviewController tests", () => {
                 );
             });
 
-            test("should include container name in transformed connection string when SQL Server is containerized", async () => {
+            test("should use host port in transformed connection string when SQL Server is containerized", async () => {
                 sandbox.stub(treeNode, "connectionProfile").get(
                     () =>
                         ({
@@ -901,7 +996,7 @@ suite("SchemaDesignerWebviewController tests", () => {
 
                 const parsedConfig = JSON.parse(result.configContent);
                 expect(parsedConfig["data-source"]["connection-string"]).to.equal(
-                    `Server=host.docker.internal\\my-sql-container,${DefaultSqlPortNumber};Database=testdb;`,
+                    `Server=host.docker.internal,${DefaultSqlPortNumber};Database=testdb;`,
                 );
             });
 
@@ -962,6 +1057,8 @@ suite("SchemaDesignerWebviewController tests", () => {
 
                 expect(notificationHandlers.has(Dab.OpenConfigInEditorNotification.type.method)).to
                     .be.true;
+                expect(notificationHandlers.has(Dab.AddConfigToWorkspaceNotification.type.method))
+                    .to.be.true;
             });
 
             test("should open config content in a new editor", async () => {
@@ -988,6 +1085,50 @@ suite("SchemaDesignerWebviewController tests", () => {
                     language: "json",
                 });
                 expect(showTextDocumentStub).to.have.been.calledOnceWith(mockDocument);
+            });
+
+            test("should add config content to the workspace", async () => {
+                const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "mssql-dab-config-"));
+                try {
+                    const workspaceFolder = vscode.Uri.file(tempDir);
+                    sandbox
+                        .stub(vscode.workspace, "workspaceFolders")
+                        .value([{ uri: workspaceFolder }]);
+                    const mockDocument = {
+                        uri: vscode.Uri.file(path.join(tempDir, "opened.json")),
+                    };
+                    const openTextDocumentStub = sandbox
+                        .stub(vscode.workspace, "openTextDocument")
+                        .resolves(mockDocument as any);
+                    const showTextDocumentStub = sandbox
+                        .stub(vscode.window, "showTextDocument")
+                        .resolves();
+                    const showInfoStub = sandbox
+                        .stub(vscode.window, "showInformationMessage")
+                        .resolves();
+
+                    createController();
+
+                    const handler = notificationHandlers.get(
+                        Dab.AddConfigToWorkspaceNotification.type.method,
+                    );
+                    expect(handler).to.be.a("function");
+
+                    const configContent = '{"$schema": "test"}';
+                    await handler({ configContent });
+
+                    expect(openTextDocumentStub).to.have.been.calledOnce;
+                    const writtenUri = openTextDocumentStub.firstCall.args[0] as vscode.Uri;
+                    const content = await fs.readFile(writtenUri.fsPath, "utf8");
+                    expect(writtenUri.fsPath).to.match(/testdb_\d{8}\.json$/);
+                    expect(content).to.equal(configContent);
+                    expect(showTextDocumentStub).to.have.been.calledOnceWith(mockDocument, {
+                        preview: false,
+                    });
+                    expect(showInfoStub).to.have.been.calledOnce;
+                } finally {
+                    await fs.rm(tempDir, { recursive: true, force: true });
+                }
             });
         });
 

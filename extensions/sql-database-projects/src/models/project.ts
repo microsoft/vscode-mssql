@@ -442,47 +442,10 @@ export class Project implements ISqlProject {
         const sqlObjectScriptEntries: FileProjectEntry[] = [];
 
         for (let f of Array.from(filesSet.values())) {
-            const containsCreateTableStatement = await this.checkForCreateTableStatement(f);
-
-            sqlObjectScriptEntries.push(
-                this.createFileProjectEntry(
-                    f,
-                    EntryType.File,
-                    undefined,
-                    containsCreateTableStatement,
-                ),
-            );
+            sqlObjectScriptEntries.push(this.createFileProjectEntry(f, EntryType.File, undefined));
         }
 
         this._sqlObjectScripts = sqlObjectScriptEntries;
-    }
-
-    /**
-     * Checks if a SQL script file contains a CREATE TABLE statement
-     * @param relativePath Relative path to the script file
-     * @returns true if the file contains a CREATE TABLE statement, false otherwise
-     */
-    private async checkForCreateTableStatement(relativePath: string): Promise<boolean> {
-        const fullPath = path.join(
-            utils.getPlatformSafeFileEntryPath(this.projectFolderPath),
-            utils.getPlatformSafeFileEntryPath(relativePath),
-        );
-
-        if (!(await utils.exists(fullPath))) {
-            return false;
-        }
-
-        try {
-            const dacFxService = await utils.getDacFxService();
-            const parseResult = await dacFxService.parseTSqlScript(
-                fullPath,
-                this._databaseSchemaProvider,
-            );
-            return parseResult.containsCreateTableStatement;
-        } catch {
-            // If parsing fails, silently default to false
-            return false;
-        }
     }
 
     private async readFolders(): Promise<void> {
@@ -1397,7 +1360,6 @@ export class Project implements ISqlProject {
         relativePath: string,
         entryType: EntryType,
         sqlObjectType?: string,
-        containsCreateTableStatement?: boolean,
     ): FileProjectEntry {
         let platformSafeRelativePath = utils.getPlatformSafeFileEntryPath(relativePath);
         return new FileProjectEntry(
@@ -1405,7 +1367,6 @@ export class Project implements ISqlProject {
             utils.convertSlashesForSqlProj(relativePath),
             entryType,
             sqlObjectType,
-            containsCreateTableStatement,
         );
     }
 

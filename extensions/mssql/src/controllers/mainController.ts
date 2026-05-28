@@ -12,6 +12,7 @@ import { DeploymentScenario } from "../enums";
 import { AzureResourceController } from "../azure/azureResourceController";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
+import { CloudDeployService } from "../cloudDeploy/cloudDeployService";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import * as ConnInfo from "../models/connectionInfo";
 import {
@@ -44,7 +45,7 @@ import { IConnectionGroup, IConnectionProfile, ISelectionData } from "../models/
 import ConnectionManager from "./connectionManager";
 import SqlDocumentService, { ConnectionStrategy } from "./sqlDocumentService";
 import VscodeWrapper from "./vscodeWrapper";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { TableDesignerService } from "../services/tableDesignerService";
 import { getPreviewConfigKey, PreviewFeature, previewService } from "../previews/previewService";
@@ -82,6 +83,7 @@ import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
 import { isInlineCompletionFeatureEnabled } from "../copilot/inlineCompletionFeatureGate";
 import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
 import { SqlNotebookController } from "../notebooks/sqlNotebookController";
+import { registerNotebookCopyOutput } from "../notebooks/notebookCopyOutputProvider";
 import { ConnectTool } from "../copilot/tools/connectTool";
 import { ListServersTool } from "../copilot/tools/listServersTool";
 import { DisconnectTool } from "../copilot/tools/disconnectTool";
@@ -183,6 +185,7 @@ export default class MainController implements vscode.Disposable {
     public fileBrowserService: FileBrowserService;
     public profilerController: ProfilerController;
     public sqlNotebookController: SqlNotebookController;
+    public cloudDeployService: CloudDeployService;
     public inlineCompletionSchemaContextService: SqlInlineCompletionSchemaContextService;
     public inlineCompletionDebugController: InlineCompletionDebugController | undefined;
 
@@ -790,6 +793,8 @@ export default class MainController implements vscode.Disposable {
                 void this.sqlNotebookController.changeConnectionInteractive();
             });
 
+            registerNotebookCopyOutput(this._context);
+
             const providerInstance = new this.ExecutionPlanCustomEditorProvider(
                 this._context,
                 this._vscodeWrapper,
@@ -1128,6 +1133,8 @@ export default class MainController implements vscode.Disposable {
         this._outputContentProvider.queryResultWebviewController.sqlDocumentService =
             this._sqlDocumentService;
 
+        await this.migrateTransferActiveEditorConnectionsSetting();
+
         void this.showOnLaunchPrompts();
 
         // Handle case where SQL file is the 1st opened document
@@ -1144,6 +1151,12 @@ export default class MainController implements vscode.Disposable {
             experimentalFeaturesEnabled: previewService.experimentalFeaturesEnabled.toString(),
             cloudType: getCloudId(),
             previewFeatureOverrides: JSON.stringify(previewService.getNonDefaultOverrides()),
+            newEditorConnectionBehavior: vscode.workspace
+                .getConfiguration()
+                .get<string>(
+                    Constants.configNewEditorConnectionBehavior,
+                    Constants.NewEditorConnectionBehavior.TransferActive,
+                ),
         });
 
         // Set context for experimental features (used for conditional menu visibility)
@@ -1156,6 +1169,21 @@ export default class MainController implements vscode.Disposable {
         await this._connectionMgr.initialized;
 
         this._statusview.setConnectionStore(this._connectionMgr.connectionStore);
+
+        // Cloud Deploy: instantiate the service against the first workspace folder
+        // (TODO: multi-root support). Init runs fire-and-forget so a malformed
+        // environments.json can't block extension activation — errors are logged.
+        const cloudDeployFolder = vscode.workspace.workspaceFolders?.[0];
+        this.cloudDeployService = new CloudDeployService(
+            cloudDeployFolder,
+            this._context.workspaceState,
+        );
+        this._context.subscriptions.push(this.cloudDeployService);
+        void this.cloudDeployService.init().catch((err: unknown) => {
+            this._logger.error(
+                `CloudDeployService init failed: ${err instanceof Error ? err.message : String(err)}`,
+            );
+        });
 
         this._initialized = true;
         return true;
@@ -1905,6 +1933,8 @@ export default class MainController implements vscode.Disposable {
                             this.schemaDesignerService,
                             databaseName,
                             node,
+                            undefined, // connectionUri: will be obtained from treeNode
+                            true, // isReadOnly: table-diagram view from Table Explorer
                         );
 
                     schemaDesigner.setInitialFilterTables([filterTable]);
@@ -2519,7 +2549,7 @@ export default class MainController implements vscode.Disposable {
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
                     Constants.cmdStartQueryHistory,
-                    async (node: QueryHistoryNode) => {
+                    async (_node: QueryHistoryNode) => {
                         await this._queryHistoryProvider.startQueryHistoryCapture();
                     },
                 ),
@@ -2529,7 +2559,7 @@ export default class MainController implements vscode.Disposable {
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
                     Constants.cmdPauseQueryHistory,
-                    async (node: QueryHistoryNode) => {
+                    async (_node: QueryHistoryNode) => {
                         await this._queryHistoryProvider.pauseQueryHistoryCapture();
                     },
                 ),
@@ -2835,6 +2865,37 @@ export default class MainController implements vscode.Disposable {
                 return;
             }
 
+            // Do not execute when there are multiple selections in the editor until it can be properly handled.
+            // Otherwise only the first selection will be executed and cause unexpected issues.
+            if (editor.selections?.length > 1) {
+                self._vscodeWrapper.showErrorMessage(
+                    LocalizedConstants.msgMultipleSelectionModeNotSupported,
+                );
+                return;
+            }
+
+            if (!editor.selection.isEmpty) {
+                if (editor.document.getText(editor.selection).trim().length === 0) {
+                    return;
+                }
+
+                let selection = editor.selection;
+                let querySelection: ISelectionData = {
+                    startLine: selection.start.line,
+                    startColumn: selection.start.character,
+                    endLine: selection.end.line,
+                    endColumn: selection.end.character,
+                };
+
+                await self._outputContentProvider.runQuery(
+                    self._statusview,
+                    uri,
+                    querySelection,
+                    title,
+                );
+                return;
+            }
+
             // only the start line and column are used to determine the current statement
             let querySelection: ISelectionData = {
                 startLine: editor.selection.start.line,
@@ -3132,9 +3193,6 @@ export default class MainController implements vscode.Disposable {
      * @param projectFilePath The file path of the database project to publish.
      */
     public async onPublishDatabaseProject(projectFilePath: string): Promise<void> {
-        const deploymentOptionsResult = await this.dacFxService.getDeploymentOptions(
-            DeploymentScenario.Deployment,
-        );
         const publishProjectWebView = new PublishProjectWebViewController(
             this._context,
             this._vscodeWrapper,
@@ -3144,7 +3202,6 @@ export default class MainController implements vscode.Disposable {
             this.sqlProjectsService,
             this.dacFxService,
             this.sqlPackageService,
-            deploymentOptionsResult.defaultDeploymentOptions,
         );
 
         publishProjectWebView.revealToForeground();
@@ -3179,13 +3236,13 @@ export default class MainController implements vscode.Disposable {
             // this will throw if the file does not exist
             fs.statSync(filePath);
             return true;
-        } catch (err) {
+        } catch {
             try {
                 // write out the "first launch" file if it doesn't exist
-                fs.writeFile(filePath, "launched", (err) => {
+                fs.writeFile(filePath, "launched", (_err) => {
                     return;
                 });
-            } catch (err) {
+            } catch {
                 // ignore errors writing first launch file since there isn't really
                 // anything we can do to recover in this situation.
             }
@@ -3431,6 +3488,79 @@ export default class MainController implements vscode.Disposable {
 
     public addAadAccount(): void {
         void this.connectionManager.addAccount();
+    }
+
+    /**
+     * Migrates the deprecated `mssql.transferActiveEditorConnections` boolean setting to
+     * `mssql.newEditorConnectionBehavior` and removes the old setting.
+     * This runs once on activation. If the old setting was never explicitly set, it is a no-op.
+     */
+    private async migrateTransferActiveEditorConnectionsSetting(): Promise<void> {
+        const config = vscode.workspace.getConfiguration();
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const inspected = config.inspect<boolean>(Constants.configTransferActiveEditorConnections);
+
+        const targets: Array<{
+            value: boolean | undefined;
+            scope: vscode.ConfigurationTarget;
+        }> = [
+            {
+                value: inspected?.globalValue,
+                scope: vscode.ConfigurationTarget.Global,
+            },
+            {
+                value: inspected?.workspaceValue,
+                scope: vscode.ConfigurationTarget.Workspace,
+            },
+        ];
+
+        for (const { value, scope: configLocation } of targets) {
+            if (value === undefined) {
+                continue;
+            }
+
+            const newBehavior = value
+                ? Constants.NewEditorConnectionBehavior.TransferActive
+                : Constants.NewEditorConnectionBehavior.None;
+
+            const scopeName =
+                configLocation === vscode.ConfigurationTarget.Global ? "global" : "workspace";
+
+            try {
+                await config.update(
+                    Constants.configNewEditorConnectionBehavior,
+                    newBehavior,
+                    configLocation,
+                );
+
+                // unset old setting
+                await config.update(
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    Constants.configTransferActiveEditorConnections,
+                    undefined, // value
+                    configLocation,
+                );
+
+                sendActionEvent(
+                    TelemetryViews.General,
+                    TelemetryActions.MigrateEditorConnectionBehavior,
+                    { migratedValue: newBehavior, scope: scopeName },
+                );
+            } catch (err) {
+                this._logger.error(
+                    `Failed to migrate transferActiveEditorConnections setting: ${err}`,
+                );
+                sendErrorEvent(
+                    TelemetryViews.General,
+                    TelemetryActions.MigrateEditorConnectionBehavior,
+                    err instanceof Error ? err : new Error(String(err)),
+                    false,
+                    undefined,
+                    undefined,
+                    { scope: scopeName },
+                );
+            }
+        }
     }
 
     private ExecutionPlanCustomEditorProvider = class implements vscode.CustomTextEditorProvider {

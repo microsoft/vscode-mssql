@@ -8,6 +8,8 @@ import { DeploymentType } from "../../../sharedInterfaces/deployment";
 import { locConstants } from "../../common/locConstants";
 import { DockerIcon } from "../../common/icons/docker";
 import { SqlDbInFabricIcon } from "../../common/icons/sqlDbInFabric";
+import { AzureSqlDatabaseIcon } from "../../common/icons/azureSqlDatabase";
+import { KeyCode } from "../../common/keys";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -73,6 +75,10 @@ const useStyles = makeStyles({
         width: "32px",
         height: "32px",
     },
+    azureSqlIcon: {
+        width: "32px",
+        height: "32px",
+    },
     content: {
         display: "flex",
         flexDirection: "column",
@@ -123,7 +129,7 @@ export const ChooseDeploymentTypePage: React.FC<ChooseDeploymentTypePageProps> =
                     )}
                     onClick={() => onDeploymentTypeChange(DeploymentType.LocalContainers)}
                     onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") {
+                        if (event.code === KeyCode.Enter || event.code === KeyCode.Space) {
                             event.preventDefault();
                             onDeploymentTypeChange(DeploymentType.LocalContainers);
                         }
@@ -155,7 +161,7 @@ export const ChooseDeploymentTypePage: React.FC<ChooseDeploymentTypePageProps> =
                     )}
                     onClick={() => onDeploymentTypeChange(DeploymentType.FabricProvisioning)}
                     onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") {
+                        if (event.code === KeyCode.Enter || event.code === KeyCode.Space) {
                             event.preventDefault();
                             onDeploymentTypeChange(DeploymentType.FabricProvisioning);
                         }
@@ -175,6 +181,38 @@ export const ChooseDeploymentTypePage: React.FC<ChooseDeploymentTypePageProps> =
                         </Text>
                         <Text className={classes.cardDescription}>
                             {locConstants.deployment.fabricProvisioningDescription}
+                        </Text>
+                    </div>
+                </Card>
+                <Card
+                    className={mergeClasses(
+                        classes.cardDiv,
+                        selectedDeploymentType === DeploymentType.AzureSqlDatabase
+                            ? classes.selectedCard
+                            : undefined,
+                    )}
+                    onClick={() => onDeploymentTypeChange(DeploymentType.AzureSqlDatabase)}
+                    onKeyDown={(event) => {
+                        if (event.code === KeyCode.Enter || event.code === KeyCode.Space) {
+                            event.preventDefault();
+                            onDeploymentTypeChange(DeploymentType.AzureSqlDatabase);
+                        }
+                    }}
+                    tabIndex={0}
+                    role="button">
+                    <div className={classes.iconBadge}>
+                        <AzureSqlDatabaseIcon
+                            className={classes.azureSqlIcon}
+                            role="img"
+                            aria-label={locConstants.azureSqlDatabase.azureSqlDatabaseHeader}
+                        />
+                    </div>
+                    <div className={classes.content}>
+                        <Text className={classes.cardHeader}>
+                            {locConstants.azureSqlDatabase.azureSqlDatabaseHeader}
+                        </Text>
+                        <Text className={classes.cardDescription}>
+                            {locConstants.azureSqlDatabase.azureSqlDatabaseDescription}
                         </Text>
                     </div>
                 </Card>

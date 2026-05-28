@@ -287,11 +287,23 @@ export async function completeFormComponents(
                 option.infoTooltip = Loc.entraDefaultAuthTooltip;
             } else if (option.value === AuthenticationType.AzureMFA) {
                 option.infoTooltip = Loc.entraMfaAuthTooltip;
+            } else if (option.value === AuthenticationType.ActiveDirectoryServicePrincipal) {
+                option.infoTooltip = Loc.entraServicePrincipalAuthTooltip;
             }
         }
     }
 
     // add missing validation functions for generated components
+    if (components["database"]) {
+        components["database"] = {
+            ...components["database"],
+            type: FormItemType.Combobox,
+            options: [],
+            freeform: true, // allow users to enter a database that isn't populated automatically (e.g. user doesn't have LIST permission)
+            placeholder: Loc.selectDatabase,
+        };
+    }
+
     components["server"].validate = (state: ConnectionDialogWebviewState, value: string) => {
         if (!value) {
             return {
@@ -306,10 +318,19 @@ export async function completeFormComponents(
     };
 
     components["user"].validate = (state: ConnectionDialogWebviewState, value: string) => {
-        if (state.connectionProfile.authenticationType === AuthenticationType.SqlLogin && !value) {
+        if (
+            (state.connectionProfile.authenticationType === AuthenticationType.SqlLogin ||
+                state.connectionProfile.authenticationType ===
+                    AuthenticationType.ActiveDirectoryServicePrincipal) &&
+            !value
+        ) {
             return {
                 isValid: false,
-                validationMessage: Loc.usernameIsRequired,
+                validationMessage:
+                    state.connectionProfile.authenticationType ===
+                    AuthenticationType.ActiveDirectoryServicePrincipal
+                        ? Loc.applicationClientIdIsRequired
+                        : Loc.usernameIsRequired,
             };
         }
         return {
@@ -317,6 +338,26 @@ export async function completeFormComponents(
             validationMessage: "",
         };
     };
+
+    if (components["password"]) {
+        components["password"].validate = (state: ConnectionDialogWebviewState, value: string) => {
+            if (
+                state.connectionProfile.authenticationType ===
+                    AuthenticationType.ActiveDirectoryServicePrincipal &&
+                !value &&
+                !state.connectionProfile.emptyPasswordInput
+            ) {
+                return {
+                    isValid: false,
+                    validationMessage: Loc.clientSecretIsRequired,
+                };
+            }
+            return {
+                isValid: true,
+                validationMessage: "",
+            };
+        };
+    }
 }
 
 export function getGroupIdFormItem(connectionGroupOptions: FormItemOptions[]) {

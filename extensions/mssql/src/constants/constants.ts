@@ -171,6 +171,7 @@ export const cmdFlatFileImport = "mssql.flatFileImport";
 export const cmdNotebooksCreate = "mssql.notebooks.createNotebook";
 export const cmdNotebooksChangeDatabase = "mssql.notebooks.changeDatabase";
 export const cmdNotebooksChangeConnection = "mssql.notebooks.changeConnection";
+export const cmdNotebooksCopyCellMessages = "mssql.notebooks.copyCellMessages";
 
 export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";
@@ -182,6 +183,7 @@ export const defaultCommandTimeout = 30;
 export const stsImmediateActivityTimeout = 5000; // 5 seconds
 export const azureDatabase = "Azure";
 export const azureMfa = "AzureMFA";
+export const azureServicePrincipal = "ActiveDirectoryServicePrincipal";
 export const defaultPortNumber = 1433;
 export const integratedauth = "Integrated";
 export const sqlAuthentication = "SqlLogin";
@@ -280,6 +282,7 @@ export const configMyConnections = "connections";
 export const configSaveAsCsv = "saveAsCsv";
 export const configSaveAsJson = "saveAsJson";
 export const configSaveAsExcel = "saveAsExcel";
+export const configResultsOpenAfterSave = "results.openAfterSave";
 export const configRecentConnections = "recentConnections";
 export const configMaxRecentConnections = "maxRecentConnections";
 export const configCopyRemoveNewLine = "copyRemoveNewLine";
@@ -360,6 +363,7 @@ export const configCopilotSdkProvidersXAiBaseUrl = "mssql.copilot.sdkProviders.x
 export const configCopilotSdkProvidersXAiTimeout = "mssql.copilot.sdkProviders.xai.timeout";
 export const configCopilotSdkProvidersXAiEnv = "mssql.copilot.sdkProviders.xai.env";
 export const configSelectedAzureSubscriptions = "mssql.selectedAzureSubscriptions";
+export const configSelectedFabricWorkspaces = "mssql.selectedFabricWorkspaces";
 export const configShowActiveConnectionAsCodeLensSuggestion =
     "mssql.query.showActiveConnectionAsCodeLensSuggestion";
 export const configStatusBarConnectionInfoMaxLength = "statusBar.connectionInfoMaxLength";
@@ -372,7 +376,22 @@ export const configAutoRevealResultsPanel = "mssql.autoRevealResultsPanel";
 export const configCustomEnvironment = "mssql.customEnvironment";
 export const configShortcuts = "mssql.shortcuts";
 export const configShowChangelogOnUpdate = "mssql.showChangelogOnUpdate";
+/** @deprecated Use configNewEditorConnectionBehavior instead. */
 export const configTransferActiveEditorConnections = "mssql.transferActiveEditorConnections";
+export const configNewEditorConnectionBehavior = "mssql.newEditorConnectionBehavior";
+export const configDefaultConnectionId = "mssql.defaultConnectionId";
+
+/**
+ * Controls how new SQL editor windows and opened SQL files are automatically connected.
+ */
+export enum NewEditorConnectionBehavior {
+    /** Do not auto-connect; the user must connect manually. */
+    None = "none",
+    /** Carry the last active editor's connection to the new document (legacy default). */
+    TransferActive = "transferActive",
+    /** Connect using the profile identified by mssql.defaultConnectionId. */
+    DefaultConnection = "defaultConnection",
+}
 
 // Built into VS Code
 export const sovereignCloudSectionName = "microsoft-sovereign-cloud";
@@ -451,6 +470,8 @@ export const build = "build";
 export const sqlProjBuildTaskType = "sqlproj-build";
 export const msBuildProblemMatcher = "$msCompile";
 export const buildDirectory = "BuildDirectory";
+export const user = "User";
+export const activeDirectory = "ActiveDirectory";
 // Regex pattern to match and replace database names in connection strings. Matches: (Initial Catalog|Database)
 export const catalogPairPattern =
     /(^|;)\s*(Initial\s+Catalog|Database)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^;]*?))\s*(?=;|$)/gi;

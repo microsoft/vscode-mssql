@@ -90,6 +90,7 @@ suite("PublishProjectWebViewController Tests", () => {
 
         // Create mock for interface (IDacFxService) - only stub methods we actually use in tests
         mockDacFxService = {
+            getDeploymentOptions: sandbox.stub().resolves({ defaultDeploymentOptions: undefined }),
             getOptionsFromProfile: sandbox.stub(),
             savePublishProfile: sandbox.stub(),
             deployDacpac: sandbox.stub(),
@@ -104,6 +105,9 @@ suite("PublishProjectWebViewController Tests", () => {
             connectionManager: mockConnectionManager,
             createObjectExplorerSession: sandbox.stub().resolves(),
         } as unknown as sinon.SinonStubbedInstance<MainController>;
+
+        // Stub findAvailablePort — called eagerly in the constructor to pre-fetch the port.
+        sandbox.stub(dockerUtils, "findAvailablePort").resolves(1433);
     });
 
     teardown(() => {
@@ -381,9 +385,10 @@ suite("PublishProjectWebViewController Tests", () => {
 
         const profilePath = "c:/profiles/TestProfile.publish.xml";
 
-        // Mock file system read
+        // Mock file system read - simulate a file saved by Visual Studio with a UTF-8 BOM (\uFEFF).
+        // @xmldom/xmldom 0.9.x throws when the XML declaration is not at position 0, causing SQLCMD variables to silently return empty.
         const fs = await import("fs");
-        sandbox.stub(fs.promises, "readFile").resolves(SAMPLE_PUBLISH_PROFILE_XML);
+        sandbox.stub(fs.promises, "readFile").resolves("\uFEFF" + SAMPLE_PUBLISH_PROFILE_XML);
 
         // Mock file picker
         sandbox.stub(vscode.window, "showOpenDialog").resolves([vscode.Uri.file(profilePath)]);
@@ -1517,7 +1522,7 @@ suite("PublishProjectWebViewController Tests", () => {
         controller.state.formState.containerPort = "1433";
 
         // Simulate port in use: findAvailablePort returns a different port
-        sandbox.stub(dockerUtils, "findAvailablePort").resolves(1434);
+        (dockerUtils.findAvailablePort as sinon.SinonStub).resolves(1434);
 
         // Stub parent validateForm to return no errors
         sandbox
