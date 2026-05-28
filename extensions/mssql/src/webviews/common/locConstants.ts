@@ -1712,6 +1712,13 @@ export class LocConstants {
             addServerConnection: l10n.t("Add Server Connection"),
             noDifferences: l10n.t("No schema differences were found."),
             initializingComparison: l10n.t("Initializing comparison, this might take a while..."),
+            applyingChanges: l10n.t("Applying changes, this might take a while..."),
+            applySucceededRunAgain: l10n.t(
+                "Changes applied successfully. Run Schema Compare again to see updated differences.",
+            ),
+            applyFailedRunAgain: l10n.t(
+                "Apply failed. Fix the error and retry, or run Schema Compare again.",
+            ),
             server: l10n.t("Server"),
             database: l10n.t("Database"),
             defaultUserName: l10n.t("default"),

@@ -19,14 +19,26 @@ const useStyles = makeStyles({
 
 const Message = () => {
     const isComparisonInProgress = useSchemaCompareSelector((s) => s.isComparisonInProgress);
+    const isApplyInProgress = useSchemaCompareSelector((s) => s.isApplyInProgress);
+    const applySucceeded = useSchemaCompareSelector((s) => s.applySucceeded);
+    const applyFailed = useSchemaCompareSelector((s) => s.applyFailed);
     const schemaCompareResult = useSchemaCompareSelector((s) => s.schemaCompareResult);
     const classes = useStyles();
 
     let message = "";
-    if (!isComparisonInProgress && schemaCompareResult && schemaCompareResult.areEqual) {
+    let isSpinner = false;
+    if (isApplyInProgress) {
+        message = loc.schemaCompare.applyingChanges;
+        isSpinner = true;
+    } else if (applySucceeded) {
+        message = loc.schemaCompare.applySucceededRunAgain;
+    } else if (applyFailed) {
+        message = loc.schemaCompare.applyFailedRunAgain;
+    } else if (!isComparisonInProgress && schemaCompareResult && schemaCompareResult.areEqual) {
         message = loc.schemaCompare.noDifferences;
     } else if (isComparisonInProgress) {
         message = loc.schemaCompare.initializingComparison;
+        isSpinner = true;
     } else if (!isComparisonInProgress && !schemaCompareResult) {
         message = loc.schemaCompare.intro;
     }
@@ -37,9 +49,9 @@ const Message = () => {
 
     return (
         <div className={classes.container}>
-            {isComparisonInProgress && <Spinner labelPosition="below" label={message} />}
+            {isSpinner && <Spinner labelPosition="below" label={message} />}
 
-            {!isComparisonInProgress && (
+            {!isSpinner && (
                 <Text size={400} align="center">
                     {message}
                 </Text>

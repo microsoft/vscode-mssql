@@ -23,6 +23,7 @@ import {
 } from "../../src/enums";
 import { SchemaCompareWebViewState } from "../../src/sharedInterfaces/schemaCompare";
 import * as scUtils from "../../src/schemaCompare/schemaCompareUtils";
+import { UserSurvey } from "../../src/nps/userSurvey";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { IconUtils } from "../../src/utils/iconUtils";
 import { IConnectionProfile } from "../../src/models/interfaces";
@@ -184,8 +185,11 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         mockInitialState = {
             isSqlProjectExtensionInstalled: false,
-            isIncludeExcludeAllOperationInProgress: false,
             isComparisonInProgress: false,
+            isApplyInProgress: false,
+            applySucceeded: false,
+            applyFailed: false,
+            isIncludeExcludeAllOperationInProgress: false,
             activeServers: {},
             databases: [],
             defaultDeploymentOptionsResult: deploymentOptionsResultMock,
@@ -1846,5 +1850,96 @@ suite("SchemaCompareWebViewController Tests", () => {
         expect(option.displayName, "Display name should remain unchanged").to.equal(
             originalDisplayName,
         );
+    });
+
+    test("publishChanges reducer - database target - success clears diff result and sets applySucceeded", async () => {
+        const publishDatabaseChangesStub = sandbox
+            .stub(scUtils, "publishDatabaseChanges")
+            .resolves({ success: true, errorMessage: "" });
+
+        const showWarningMessageStub = sandbox
+            .stub(vscode.window, "showWarningMessage")
+            .resolves("Yes" as any);
+
+        const userSurveyStub = sandbox
+            .stub(UserSurvey, "getInstance")
+            .returns({ promptUserForNPSFeedback: sandbox.stub().resolves() } as any);
+
+        const state = { ...mockInitialState, targetEndpointInfo };
+        const payload = { targetServerName: "localhost,1433", targetDatabaseName: "master" };
+
+        const result = await controller["_reducerHandlers"].get("publishChanges")(state, payload);
+
+        expect(publishDatabaseChangesStub, "publishDatabaseChanges should be called once").to.have
+            .been.calledOnce;
+        expect(result.isApplyInProgress, "isApplyInProgress should be false after completion").to.be
+            .false;
+        expect(result.applySucceeded, "applySucceeded should be true on success").to.be.true;
+        expect(result.applyFailed, "applyFailed should be false on success").to.be.false;
+        expect(result.schemaCompareResult, "schemaCompareResult should be cleared on success").to.be
+            .undefined;
+
+        publishDatabaseChangesStub.restore();
+        showWarningMessageStub.restore();
+        userSurveyStub.restore();
+    });
+
+    test("publishChanges reducer - database target - STS failure clears diff result and sets applyFailed", async () => {
+        const publishDatabaseChangesStub = sandbox
+            .stub(scUtils, "publishDatabaseChanges")
+            .resolves({ success: false, errorMessage: "Apply failed" });
+
+        const showWarningMessageStub = sandbox
+            .stub(vscode.window, "showWarningMessage")
+            .resolves("Yes" as any);
+
+        const state = { ...mockInitialState, targetEndpointInfo };
+        const payload = { targetServerName: "localhost,1433", targetDatabaseName: "master" };
+
+        const result = await controller["_reducerHandlers"].get("publishChanges")(state, payload);
+
+        expect(publishDatabaseChangesStub, "publishDatabaseChanges should be called once").to.have
+            .been.calledOnce;
+        expect(result.isApplyInProgress, "isApplyInProgress should be false after failure").to.be
+            .false;
+        expect(result.applySucceeded, "applySucceeded should remain false on failure").to.be.false;
+        expect(result.applyFailed, "applyFailed should be true on failure").to.be.true;
+        expect(
+            result.schemaCompareResult,
+            "schemaCompareResult should be cleared on failure to force re-compare and prevent stale script generation",
+        ).to.be.undefined;
+
+        publishDatabaseChangesStub.restore();
+        showWarningMessageStub.restore();
+    });
+
+    test("publishChanges reducer - user cancels confirmation - STS not called and state unchanged", async () => {
+        const publishDatabaseChangesStub = sandbox.stub(scUtils, "publishDatabaseChanges");
+
+        const showWarningMessageStub = sandbox
+            .stub(vscode.window, "showWarningMessage")
+            .resolves(undefined);
+
+        const state = { ...mockInitialState, targetEndpointInfo };
+        const payload = { targetServerName: "localhost,1433", targetDatabaseName: "master" };
+
+        const result = await controller["_reducerHandlers"].get("publishChanges")(state, payload);
+
+        expect(
+            publishDatabaseChangesStub,
+            "publishDatabaseChanges should NOT be called when user cancels",
+        ).to.not.have.been.called;
+        expect(result.isApplyInProgress, "isApplyInProgress should remain false when cancelled").to
+            .be.false;
+        expect(result.applySucceeded, "applySucceeded should remain false when cancelled").to.be
+            .false;
+        expect(result.applyFailed, "applyFailed should remain false when cancelled").to.be.false;
+        expect(
+            result.schemaCompareResult,
+            "schemaCompareResult should be unchanged when cancelled",
+        ).to.deep.equal(mockInitialState.schemaCompareResult);
+
+        publishDatabaseChangesStub.restore();
+        showWarningMessageStub.restore();
     });
 });

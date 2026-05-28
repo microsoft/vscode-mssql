@@ -94,6 +94,9 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             {
                 isSqlProjectExtensionInstalled: false,
                 isComparisonInProgress: false,
+                isApplyInProgress: false,
+                applySucceeded: false,
+                applyFailed: false,
                 isIncludeExcludeAllOperationInProgress: false,
                 activeServers: {},
                 databases: [],
@@ -1227,6 +1230,11 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 `Starting publish operation to ${getSchemaCompareEndpointTypeString(state.targetEndpointInfo.endpointType)} - OperationId: ${this.operationId}`,
             );
 
+            state.isApplyInProgress = true;
+            state.applySucceeded = false;
+            state.applyFailed = false;
+            this.updateState(state);
+
             let publishResult: mssql.ResultStatus | undefined = undefined;
 
             try {
@@ -1319,10 +1327,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     },
                 );
 
-                vscode.window.showErrorMessage(
-                    locConstants.SchemaCompare.schemaCompareApplyFailed(getErrorMessage(error)),
-                );
-
+                void vscode.window.showErrorMessage(getErrorMessage(error));
+                state.isApplyInProgress = false;
+                state.applyFailed = true;
+                state.schemaCompareResult = undefined;
                 return state;
             }
 
@@ -1338,12 +1346,14 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     ),
                 });
 
-                vscode.window.showErrorMessage(
+                void vscode.window.showErrorMessage(
                     locConstants.SchemaCompare.schemaCompareApplyFailed(
-                        publishResult?.errorMessage,
+                        publishResult?.errorMessage ?? "",
                     ),
                 );
-
+                state.isApplyInProgress = false;
+                state.applyFailed = true;
+                state.schemaCompareResult = undefined;
                 return state;
             }
 
@@ -1357,6 +1367,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 ),
             });
 
+            state.isApplyInProgress = false;
+            state.applySucceeded = true;
+            state.applyFailed = false;
+            state.schemaCompareResult = undefined;
             return state;
         });
 
@@ -2408,6 +2422,8 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         );
 
         state.isComparisonInProgress = true;
+        state.applySucceeded = false;
+        state.applyFailed = false;
         this.updateState(state);
 
         const startTime = Date.now();

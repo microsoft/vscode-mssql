@@ -52,6 +52,7 @@ const CompareActionBar = (props: Props) => {
         (s) => s.defaultDeploymentOptionsResult,
     );
     const isComparisonInProgress = useSchemaCompareSelector((s) => s.isComparisonInProgress);
+    const isApplyInProgress = useSchemaCompareSelector((s) => s.isApplyInProgress);
     const schemaCompareResult = useSchemaCompareSelector((s) => s.schemaCompareResult);
 
     useEffect(() => {
@@ -163,7 +164,8 @@ const CompareActionBar = (props: Props) => {
                 disabled={
                     isEndpointEmpty(sourceEndpointInfo) ||
                     isEndpointEmpty(targetEndpointInfo) ||
-                    isComparisonInProgress
+                    isComparisonInProgress ||
+                    isApplyInProgress
                 }>
                 {loc.schemaCompare.compare}
             </ToolbarButton>
@@ -172,7 +174,7 @@ const CompareActionBar = (props: Props) => {
                 title={loc.schemaCompare.stop}
                 icon={<StopFilled />}
                 onClick={handleStop}
-                disabled={!isComparisonInProgress}>
+                disabled={!isComparisonInProgress || isApplyInProgress}>
                 {loc.schemaCompare.stop}
             </ToolbarButton>
             <ToolbarButton
@@ -180,7 +182,7 @@ const CompareActionBar = (props: Props) => {
                 title={loc.schemaCompare.generateScriptToDeployChangesToTarget}
                 icon={<DocumentChevronDoubleRegular />}
                 onClick={handleGenerateScript}
-                disabled={disableGenerateScriptButton()}>
+                disabled={disableGenerateScriptButton() || isApplyInProgress}>
                 {loc.schemaCompare.generateScript}
             </ToolbarButton>
             <ToolbarButton
@@ -188,7 +190,7 @@ const CompareActionBar = (props: Props) => {
                 title={loc.schemaCompare.applyChangesToTarget}
                 icon={<PlayFilled />}
                 onClick={handlePublishChanges}
-                disabled={isComparisonInProgress || disableApplyButton()}>
+                disabled={isComparisonInProgress || isApplyInProgress || disableApplyButton()}>
                 {loc.schemaCompare.apply}
             </ToolbarButton>
             <ToolbarButton
@@ -198,6 +200,7 @@ const CompareActionBar = (props: Props) => {
                 onClick={handleOptionsClicked}
                 disabled={
                     isComparisonInProgress ||
+                    isApplyInProgress ||
                     isEndpointEmpty(sourceEndpointInfo) ||
                     isEndpointEmpty(targetEndpointInfo)
                 }>
@@ -211,6 +214,7 @@ const CompareActionBar = (props: Props) => {
                 onClick={handleSwitchEndpoints}
                 disabled={
                     isComparisonInProgress ||
+                    isApplyInProgress ||
                     (isEndpointEmpty(sourceEndpointInfo) && isEndpointEmpty(targetEndpointInfo))
                 }>
                 {loc.schemaCompare.switchDirection}
@@ -221,7 +225,7 @@ const CompareActionBar = (props: Props) => {
                 title={loc.schemaCompare.loadSourceTargetAndOptionsSavedInAnScmpFile}
                 icon={<DocumentArrowUpRegular />}
                 onClick={handleOpenScmp}
-                disabled={isComparisonInProgress}>
+                disabled={isComparisonInProgress || isApplyInProgress}>
                 {loc.schemaCompare.openScmpFile}
             </ToolbarButton>
             <ToolbarButton
@@ -231,6 +235,7 @@ const CompareActionBar = (props: Props) => {
                 onClick={handleSaveScmp}
                 disabled={
                     isComparisonInProgress ||
+                    isApplyInProgress ||
                     isEndpointEmpty(sourceEndpointInfo) ||
                     isEndpointEmpty(targetEndpointInfo)
                 }>

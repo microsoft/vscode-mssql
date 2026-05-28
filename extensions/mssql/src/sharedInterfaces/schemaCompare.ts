@@ -34,6 +34,9 @@ export {
 export interface SchemaCompareWebViewState {
     isSqlProjectExtensionInstalled: boolean;
     isComparisonInProgress: boolean;
+    isApplyInProgress: boolean;
+    applySucceeded: boolean;
+    applyFailed: boolean;
     isIncludeExcludeAllOperationInProgress: boolean;
     activeServers: { [connectionUri: string]: { profileName: string; server: string } };
     databases: string[];
