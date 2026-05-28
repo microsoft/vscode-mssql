@@ -273,7 +273,7 @@ export class AzureBrowseProvider extends BrowseProvider {
                 subscriptionCount: subsForTenant.length,
             });
         } catch (error) {
-            state.formMessage = { message: LocalizedConstants.errorLoadingAzureSubscriptions2 };
+            state.formMessage = { message: LocalizedConstants.errorLoadingAzureSubscriptions };
             this.setCollectionsLoadStatus(state, {
                 status: ApiStatus.Error,
                 message: getErrorMessage(error),

@@ -3859,8 +3859,6 @@ export const selectSubscriptions = l10n.t("Select subscriptions");
 
 export const errorLoadingAzureSubscriptions = l10n.t("Error loading Azure subscriptions.");
 
-export const errorLoadingAzureSubscriptions2 = l10n.t("Error loading Azure subscriptions.");
-
 export const azureSubscriptionNotFoundInCache = l10n.t("Azure subscription not found in cache.");
 
 export function invalidConnectionString0(arg0: string | number | boolean) {
