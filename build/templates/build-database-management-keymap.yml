@@ -5,7 +5,7 @@ steps:
       version: 24.x
 
   - pwsh: |
-      npm run package -- --target database-management-keymap
+      npm run package -- --target database-management-keymap --preview
     displayName: Keymap - Package extension
     workingDirectory: "$(Build.SourcesDirectory)"
 

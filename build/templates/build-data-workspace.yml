@@ -33,7 +33,7 @@ steps:
     condition: succeededOrFailed()
 
   - pwsh: |
-      npm run package -- --target data-workspace
+      npm run package -- --target data-workspace --preview
     displayName: DataWorkspace - Package extension
     workingDirectory: "$(Build.SourcesDirectory)"
 

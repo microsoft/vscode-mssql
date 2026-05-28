@@ -68,6 +68,10 @@ jobs:
         run: |
           npm ci
 
+      - name: Stamp build as pull request version
+        run: |
+          node scripts/stamp-prerelease-version.mjs "${{ github.run_id }}" --label pr
+
       - name: MSSQL - Install dependencies and build
         uses: ./.github/actions/build-mssql
 
@@ -86,7 +90,7 @@ jobs:
       # that increase size
       - name: Package extensions
         run: |
-          npm run package
+          npm run package -- --preview
 
       - name: MSSQL - Upload VSIX files
         uses: actions/upload-artifact@v6
