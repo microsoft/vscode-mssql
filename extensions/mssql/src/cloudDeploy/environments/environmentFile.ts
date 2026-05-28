@@ -41,6 +41,11 @@ const ENVIRONMENTS_FILE_NAME = "environments.json";
  * can fix them in one editing pass instead of one-at-a-time.
  */
 export class EnvironmentsFileParseError extends Error {
+    /**
+     * Populated for schema-validation failures (one entry per validator issue).
+     * Left `undefined` for raw JSON-syntax failures, where the only diagnostic
+     * is the underlying parser error captured in `cause` and `message`.
+     */
     public issues?: EnvironmentsFileIssue[];
 
     public constructor(
