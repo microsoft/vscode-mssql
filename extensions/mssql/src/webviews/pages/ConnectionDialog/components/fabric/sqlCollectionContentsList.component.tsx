@@ -219,16 +219,21 @@ export const SqlCollectionContentsList = ({
                                     }}
                                 />
                             ) : (
-                                <img
-                                    src={getItemIcon(item.type, theme)}
-                                    alt={item.typeDisplayName}
-                                    style={{
-                                        width: "20px",
-                                        height: "20px",
-                                        marginRight: "8px",
-                                        flexShrink: 0,
-                                    }}
-                                />
+                                <Tooltip
+                                    content={item.typeDisplayName}
+                                    relationship="label"
+                                    positioning="before">
+                                    <img
+                                        src={getItemIcon(item.type, theme)}
+                                        alt={item.typeDisplayName}
+                                        style={{
+                                            width: "20px",
+                                            height: "20px",
+                                            marginRight: "8px",
+                                            flexShrink: 0,
+                                        }}
+                                    />
+                                </Tooltip>
                             )}
                             <Tooltip
                                 content={item.displayName}
@@ -285,6 +290,11 @@ export const SqlCollectionContentsList = ({
                                                 name="sqlType"
                                                 value={ArtifactTypeFilter.SqlAnalyticsEndpoint}>
                                                 {Loc.connectionDialog.sqlAnalyticsEndpoint}
+                                            </MenuItemRadio>
+                                            <MenuItemRadio
+                                                name="sqlType"
+                                                value={ArtifactTypeFilter.Warehouse}>
+                                                {Loc.connectionDialog.warehouse}
                                             </MenuItemRadio>
                                         </MenuList>
                                     </MenuPopover>
@@ -556,8 +566,14 @@ export const SqlCollectionContentsList = ({
                 return sqlDatabaseIcon(theme);
             case SqlArtifactTypes.SqlAnalyticsEndpoint:
                 return sqlAnalyticsEndpointIcon(theme);
+            case SqlArtifactTypes.Warehouse:
+                return sqlAnalyticsEndpointIcon(theme);
             case "AzureSqlServer":
                 return sqlDatabaseIcon(theme);
+            case "AzureSqlManagedInstance":
+                return sqlManagedInstanceIcon(theme);
+            case "AzureSynapseAnalytics":
+                return sqlAnalyticsEndpointIcon(theme);
             default:
                 console.error(`Unknown artifact type for getItemIcon(): ${artifactType}`);
                 return sqlDatabaseIcon(theme);
@@ -582,6 +598,15 @@ export const SqlCollectionContentsList = ({
         return saveIcon;
     }
 
+    function sqlManagedInstanceIcon(colorTheme: ColorThemeKind) {
+        const theme = themeType(colorTheme);
+        const saveIcon =
+            theme === "dark"
+                ? require("../../../../media/managedInstance-inverse.svg")
+                : require("../../../../media/managedInstance.svg");
+        return saveIcon;
+    }
+
     //#endregion
 
     return <div className={styles.workspaceContentList}>{renderGridContent()}</div>;
@@ -593,8 +618,14 @@ export function getTypeDisplayName(artifactType: string): string {
             return Loc.connectionDialog.sqlDatabase;
         case SqlArtifactTypes.SqlAnalyticsEndpoint:
             return Loc.connectionDialog.sqlAnalyticsEndpoint;
+        case SqlArtifactTypes.Warehouse:
+            return Loc.connectionDialog.warehouse;
         case "AzureSqlServer":
             return Loc.connectionDialog.azureSqlServer;
+        case "AzureSqlManagedInstance":
+            return Loc.connectionDialog.azureSqlManagedInstance;
+        case "AzureSynapseAnalytics":
+            return Loc.connectionDialog.azureSynapseAnalytics;
         default:
             console.error(`Unknown artifact type for getTypeDisplayName(): ${artifactType}`);
             return artifactType;

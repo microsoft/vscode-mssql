@@ -13,6 +13,7 @@ import {
     IOperationStatus,
     ISqlDbArtifact,
     ISqlEndpointArtifact,
+    IWarehouseArtifact,
     IWorkspaceRoleAssignment,
 } from "../sharedInterfaces/fabric";
 import { HttpClient } from "../http/httpClient";
@@ -200,6 +201,54 @@ export class FabricHelper {
             );
         } catch (error) {
             console.error("Error processing Fabric SQL Endpoints:", error);
+            throw error;
+        }
+
+        return result;
+    }
+
+    /**
+     * Retrieves the list of Fabric Warehouses for a given workspace.
+     *
+     * @param workspace The workspace object or workspace ID to fetch warehouses from.
+     * @param tenantId Optional tenant ID for scoping the request.
+     * @returns A promise that resolves to an array of `SqlDbInfo` objects.
+     */
+    public static async getFabricWarehouses(workspace: IWorkspace | string, tenantId?: string) {
+        const workspacePromise =
+            typeof workspace === "string"
+                ? this.getFabricWorkspace(workspace, tenantId)
+                : workspace;
+
+        const workspaceId = typeof workspace === "string" ? workspace : workspace.id;
+
+        const result: SqlDbInfo[] = [];
+
+        try {
+            const response = await this.fetchFromFabric<{ value: IWarehouseArtifact[] }>(
+                `workspaces/${workspaceId}/warehouses`,
+                Loc.listingWarehousesForWorkspace(workspaceId),
+                tenantId,
+            );
+
+            const resolvedWorkspace = await workspacePromise;
+
+            result.push(
+                ...response.value.map((warehouse) => {
+                    return {
+                        id: warehouse.id,
+                        server: warehouse.properties.connectionString,
+                        displayName: warehouse.displayName,
+                        databases: [] as string[],
+                        collectionId: workspaceId,
+                        collectionName: resolvedWorkspace.displayName,
+                        tenantId: tenantId ?? "",
+                        type: warehouse.type,
+                    } as SqlDbInfo;
+                }),
+            );
+        } catch (error) {
+            console.error("Error processing Fabric Warehouses:", error);
             throw error;
         }
 
