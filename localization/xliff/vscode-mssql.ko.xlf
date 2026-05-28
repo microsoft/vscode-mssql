@@ -5595,6 +5595,10 @@ Error:
         <source xml:lang="en">Max row count for filtering/sorting has been exceeded. To update it, navigate to User Settings and change the setting: mssql.resultsGrid.inMemoryDataProcessingThreshold</source>
         <target state="translated">필터링/정렬에 대한 최대 행 수가 초과되었습니다. 업데이트하려면 사용자 설정으로 이동하여 'mssql.resultsGrid.inMemoryDataProcessingThreshold' 설정을 변경할 수 있습니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++e260e08b004d80c5f03f1c487435e7c89ad7277a12212a98f9fd44217e21dd9e">
+        <source xml:lang="en">Max vCores</source>
+        <target state="new">Max vCores</target>
+      </trans-unit>
       <trans-unit id="++CODE++fc899519286f8da6256728b62d14e6ef9042346e7ad4191e21c95efaf1141a42">
         <source xml:lang="en">Max: {0}</source>
         <note>{0} is the max</note>
@@ -7996,6 +8000,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++8c077bff66494e2aeee6280e4f591761cba31b94a22b87e617c3a5d80656ac84">
         <source xml:lang="en">Select Database</source>
         <target state="translated">데이터베이스 선택</target>
+      </trans-unit>
+      <trans-unit id="++CODE++79e5e71c56f13bb3c722fd134f6fb39e747de15dc979295882ecac8d67d45559">
+        <source xml:lang="en">Select Max vCores</source>
+        <target state="new">Select Max vCores</target>
       </trans-unit>
       <trans-unit id="++CODE++a1103f928cc721a44f7c8cdbc11bab66f8a7e44d66485112edccc40525787cfb">
         <source xml:lang="en">Select Profile</source>
