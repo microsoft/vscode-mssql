@@ -6,8 +6,12 @@
 const vscodel10n = require("@vscode/l10n-dev");
 const fs = require("fs").promises;
 const path = require("path");
+const { execFile } = require("child_process");
+const { promisify } = require("util");
 const logger = require("./terminal-logger");
 const { writeJsonAndFormat, writeAndFormat } = require("./file-utils");
+
+const execFileAsync = promisify(execFile);
 
 /**
  * Extension configuration mapping
@@ -89,6 +93,15 @@ function getExtensionPath(extensionDir) {
     return path.resolve("extensions", extensionDir);
 }
 
+async function readSourceFileFromGitIndex(filePath) {
+    const relativePath = path.relative(process.cwd(), filePath).replace(/\\/g, "/");
+    const { stdout } = await execFileAsync("git", ["show", `:${relativePath}`], {
+        encoding: "utf8",
+        maxBuffer: 10 * 1024 * 1024,
+    });
+    return stdout;
+}
+
 async function writeLocalizationOutputs(extensionDir, xliffName, packageJSON, bundleJSON) {
     const map = new Map();
     map.set("package", packageJSON);
@@ -131,15 +144,17 @@ async function writeLocalizationOutputs(extensionDir, xliffName, packageJSON, bu
  * @param {string} extensionDir - Extension directory name
  * @param {string} xliffName - Name for the XLIFF file
  */
-async function extractLocalizationForExtension(extensionDir, xliffName) {
+async function extractLocalizationForExtension(extensionDir, xliffName, options = {}) {
     logger.header(`Processing Extension: ${extensionDir}`);
 
     const extensionPath = getExtensionPath(extensionDir);
+    const readSourceFile = options.staged ? readSourceFileFromGitIndex : fs.readFile;
 
     try {
         const bundleJSON = await getL10nJson(
             extensionPath,
             EXTENSION_CONFIG[extensionDir].sourceFiles,
+            readSourceFile,
         );
 
         logger.step("Loading package localization data...");
@@ -147,7 +162,7 @@ async function extractLocalizationForExtension(extensionDir, xliffName) {
         let packageJSON;
         try {
             const packageNlsPath = path.join(extensionPath, "package.nls.json");
-            const packageNlsContent = await fs.readFile(packageNlsPath, "utf8");
+            const packageNlsContent = await readSourceFile(packageNlsPath, "utf8");
             packageJSON = JSON.parse(packageNlsContent);
             logger.success("Loaded package.nls.json");
         } catch (error) {
@@ -169,7 +184,7 @@ async function extractLocalizationForExtension(extensionDir, xliffName) {
  * Extracts localization strings from all configured extensions
  * Generates English language l10n and XLIFF files for translation in the root localization directory
  */
-async function extractLocalizationStrings() {
+async function extractLocalizationStrings(options = {}) {
     logger.header("Localization String Extraction - All Extensions");
     logger.step("Starting localization string extraction process");
     logger.newline();
@@ -178,7 +193,7 @@ async function extractLocalizationStrings() {
         const extensions = Object.entries(EXTENSION_CONFIG);
 
         for (const [extensionDir, config] of extensions) {
-            await extractLocalizationForExtension(extensionDir, config.xliffName);
+            await extractLocalizationForExtension(extensionDir, config.xliffName, options);
         }
 
         logger.header("All Extensions Processed Successfully");
@@ -200,6 +215,7 @@ module.exports = {
 if (require.main === module) {
     // Check if a specific extension is requested via command line args
     const args = process.argv.slice(2);
+    const staged = args.includes("--staged");
     const specificExtension = args.find((arg) => !arg.startsWith("--"));
 
     if (specificExtension) {
@@ -212,7 +228,7 @@ if (require.main === module) {
             process.exit(1);
         }
 
-        extractLocalizationForExtension(specificExtension, config.xliffName)
+        extractLocalizationForExtension(specificExtension, config.xliffName, { staged })
             .then(() => {
                 logger.success("Script completed successfully!");
                 process.exit(0);
@@ -223,7 +239,7 @@ if (require.main === module) {
             });
     } else {
         // Extract for all extensions
-        extractLocalizationStrings()
+        extractLocalizationStrings({ staged })
             .then(() => {
                 logger.success("Script completed successfully!");
                 process.exit(0);

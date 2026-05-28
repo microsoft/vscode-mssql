@@ -18,7 +18,7 @@ const LF = "\n";
  */
 async function formatContentWithPrettier(filePath, content) {
     const prettier = await import("prettier");
-    const options = await prettier.resolveConfig(filePath);
+    const options = (await prettier.resolveConfig(filePath)) ?? {};
     return await prettier.format(content, {
         ...options,
         filepath: filePath,

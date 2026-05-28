@@ -23,7 +23,7 @@ function isAllowedLocalizationFile(filePath) {
     );
 }
 
-function isDirectL10nCall(node) {
+function isDirectL10nCall(node, l10nIdentifiers, vscodeNamespaceIdentifiers) {
     if (node.type !== "CallExpression" || node.callee.type !== "MemberExpression") {
         return false;
     }
@@ -33,17 +33,35 @@ function isDirectL10nCall(node) {
         return false;
     }
 
-    if (object.type === "Identifier" && object.name === "l10n") {
+    if (object.type === "Identifier" && l10nIdentifiers.has(object.name)) {
         return true;
     }
 
     return (
         object.type === "MemberExpression" &&
         object.object.type === "Identifier" &&
-        object.object.name === "vscode" &&
+        vscodeNamespaceIdentifiers.has(object.object.name) &&
         object.property.type === "Identifier" &&
         object.property.name === "l10n"
     );
+}
+
+function trackVscodeLocalizationImports(node, l10nIdentifiers, vscodeNamespaceIdentifiers) {
+    if (node.source.value !== "vscode") {
+        return;
+    }
+
+    for (const specifier of node.specifiers) {
+        if (specifier.type === "ImportNamespaceSpecifier") {
+            vscodeNamespaceIdentifiers.add(specifier.local.name);
+        } else if (
+            specifier.type === "ImportSpecifier" &&
+            specifier.imported.type === "Identifier" &&
+            specifier.imported.name === "l10n"
+        ) {
+            l10nIdentifiers.add(specifier.local.name);
+        }
+    }
 }
 
 module.exports = {
@@ -66,9 +84,15 @@ module.exports = {
             return {};
         }
 
+        const l10nIdentifiers = new Set(["l10n"]);
+        const vscodeNamespaceIdentifiers = new Set(["vscode"]);
+
         return {
+            ImportDeclaration(node) {
+                trackVscodeLocalizationImports(node, l10nIdentifiers, vscodeNamespaceIdentifiers);
+            },
             CallExpression(node) {
-                if (isDirectL10nCall(node)) {
+                if (isDirectL10nCall(node, l10nIdentifiers, vscodeNamespaceIdentifiers)) {
                     context.report({
                         node,
                         messageId: "noDirectL10n",
