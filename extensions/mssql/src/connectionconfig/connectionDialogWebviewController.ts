@@ -29,9 +29,8 @@ import {
 } from "../sharedInterfaces/connectionDialog";
 import { FormItemActionButton, FormItemOptions } from "../sharedInterfaces/form";
 import { ApiStatus } from "../sharedInterfaces/webview";
-import { AzureController } from "../azure/azureController";
 import { VSCodeAzureSubscriptionProvider } from "@microsoft/vscode-azext-azureauth";
-import { ConnectionDetails, IConnectionInfo, IToken } from "vscode-mssql";
+import { ConnectionDetails, IConnectionInfo } from "vscode-mssql";
 import MainController from "../controllers/mainController";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { UserSurvey } from "../nps/userSurvey";
@@ -41,7 +40,7 @@ import {
     getServerTypes,
     getDefaultConnection,
 } from "../models/connectionInfo";
-import { formatEpochSecondsForDisplay, getErrorMessage, uuid } from "../utils/utils";
+import { getErrorMessage, uuid } from "../utils/utils";
 import {
     CredentialsQuickPickItemType,
     IConnectionGroup,
@@ -2042,7 +2041,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     }
 
     private async getAzureActionButtons(): Promise<FormItemActionButton[]> {
-        const self = this;
         const actionButtons: FormItemActionButton[] = [];
 
         actionButtons.push({
@@ -2107,116 +2105,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             },
         });
 
-        if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
-            return actionButtons;
-        }
-
-        if (
-            this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA &&
-            this.state.connectionProfile.accountId
-        ) {
-            const account = (await this._mainController.azureAccountService.getAccounts()).find(
-                (account) => account.displayInfo.userId === this.state.connectionProfile.accountId,
-            );
-
-            if (account) {
-                let isTokenExpired = false;
-
-                async function refreshToken(): Promise<IToken | undefined> {
-                    const account = (
-                        await self._mainController.azureAccountService.getAccounts()
-                    ).find(
-                        (account) =>
-                            account.displayInfo.userId === self.state.connectionProfile.accountId,
-                    );
-
-                    if (account) {
-                        try {
-                            const token =
-                                await self._mainController.azureAccountService.getAccountSecurityToken(
-                                    account,
-                                    undefined,
-                                );
-
-                            if (AzureController.isTokenValid(token.token, token.expiresOn)) {
-                                self.vscodeWrapper.showInformationMessage(
-                                    LocalizedConstants.ConnectionDialog.tokenRefreshedSuccessfully,
-                                );
-
-                                self.logger.log(
-                                    `Token refreshed.  Next expiration: ${formatEpochSecondsForDisplay(token.expiresOn)}`,
-                                );
-
-                                return token;
-                            } else {
-                                throw new Error(
-                                    LocalizedConstants.ConnectionDialog.unableToAcquireValidToken(
-                                        formatEpochSecondsForDisplay(token.expiresOn),
-                                        formatEpochSecondsForDisplay(Date.now() / 1000),
-                                    ),
-                                );
-                            }
-                        } catch (err) {
-                            self.logger.error(`Error refreshing token: ${getErrorMessage(err)}`);
-                            self.vscodeWrapper.showErrorMessage(
-                                LocalizedConstants.ConnectionDialog.errorRefreshingToken(
-                                    getErrorMessage(err),
-                                ),
-                            );
-                        }
-                    } else {
-                        self.logger.error(
-                            `Account not found when attempting token refresh: ${self.state.connectionProfile.email} (${self.state.connectionProfile.accountId})`,
-                        );
-                    }
-
-                    return undefined;
-                }
-
-                try {
-                    // Check if token is expired or expiring soon...
-                    const session =
-                        await this._mainController.azureAccountService.getAccountSecurityToken(
-                            account,
-                            undefined,
-                        );
-
-                    isTokenExpired = !AzureController.isTokenValid(
-                        session.token,
-                        session.expiresOn,
-                    );
-                } catch (err) {
-                    this.logger.verbose(
-                        `Error getting token or checking validity; prompting for refresh. Error: ${getErrorMessage(err)}`,
-                    );
-
-                    void this.vscodeWrapper
-                        .showErrorMessage(
-                            LocalizedConstants.ConnectionDialog.errorValidatingEntraToken(
-                                getErrorMessage(err),
-                            ),
-                            LocalizedConstants.refreshTokenLabel,
-                        )
-                        .then((result) => {
-                            if (result === LocalizedConstants.refreshTokenLabel) {
-                                void refreshToken();
-                            }
-                        });
-
-                    isTokenExpired = true;
-                }
-
-                if (isTokenExpired) {
-                    actionButtons.push({
-                        label: LocalizedConstants.refreshTokenLabel,
-                        id: "refreshToken",
-                        callback: async () => {
-                            await refreshToken();
-                        },
-                    });
-                }
-            }
-        }
         return actionButtons;
     }
 
