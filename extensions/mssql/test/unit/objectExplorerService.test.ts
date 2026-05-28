@@ -47,7 +47,6 @@ import {
     CreateSessionResponse,
     SessionCreatedParameters,
 } from "../../src/models/contracts/objectExplorer/createSessionRequest";
-import { FirewallService } from "../../src/firewall/firewallService";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
 import {
     GetSessionIdRequest,
@@ -688,7 +687,6 @@ suite("OE Service Tests", () => {
         let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
         let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
         let mockConnectionUI: sinon.SinonStubbedInstance<ConnectionUI>;
-        let mockFirewallService: sinon.SinonStubbedInstance<FirewallService>;
         let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
         let objectExplorerService: ObjectExplorerService;
         let mockActivityObject: ActivityObject;
@@ -704,13 +702,11 @@ suite("OE Service Tests", () => {
             });
             mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
             mockConnectionUI = sandbox.createStubInstance(ConnectionUI);
-            mockFirewallService = sandbox.createStubInstance(FirewallService);
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
             mockAccountStore = sandbox.createStubInstance(AccountStore);
 
             mockConnectionManager.client = mockClient;
             (mockConnectionManager as any)._connectionUI = mockConnectionUI;
-            (mockConnectionManager as any)._firewallService = mockFirewallService;
             (mockConnectionManager as any)._accountStore = mockAccountStore;
             mockActivityObject = {
                 correlationId: "test-correlation-id",
@@ -729,7 +725,6 @@ suite("OE Service Tests", () => {
             objectExplorerService.initialized.resolve();
             (objectExplorerService as any).logger = mockLogger;
             (objectExplorerService as any).connectionUI = mockConnectionUI;
-            (objectExplorerService as any).firewallService = mockFirewallService;
         });
         teardown(() => {
             sandbox.restore();
@@ -2197,7 +2192,6 @@ suite("OE Service Tests", () => {
         let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
         let mockAccountStore: sinon.SinonStubbedInstance<AccountStore>;
         let mockAzureController: sinon.SinonStubbedInstance<AzureController>;
-        let mockFirewallService: sinon.SinonStubbedInstance<FirewallService>;
         let mockWithProgress: sinon.SinonStub;
 
         let mockLogger: sinon.SinonStubbedInstance<Logger>;
@@ -2229,8 +2223,6 @@ suite("OE Service Tests", () => {
             mockAzureController.refreshAccessToken = sandbox.stub();
             mockAzureController.populateAccountProperties = sandbox.stub();
             mockConnectionManager.azureController = mockAzureController;
-            mockFirewallService = sandbox.createStubInstance(FirewallService);
-            (mockConnectionManager as any)._firewallService = mockFirewallService;
 
             mockWithProgress = sandbox.stub(vscode.window, "withProgress");
             mockWithProgress.callsFake((options, task) => {

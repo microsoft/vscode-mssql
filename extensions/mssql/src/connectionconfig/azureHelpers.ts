@@ -490,6 +490,61 @@ export class VsCodeAzureHelper {
     }
 
     /**
+     * Looks up an Azure SQL Server by its fully qualified domain name across all subscriptions
+     * accessible to the given account and tenant.
+     *
+     * @returns The matching subscription, resource group, and short server name.
+     */
+    public static async findAzureSqlServerByFqdn(
+        accountId: string,
+        tenantId: string,
+        serverFqdn: string,
+    ): Promise<{
+        subscription: AzureSubscription;
+        resourceGroupName: string;
+        serverName: string;
+    }> {
+        const normalizedFqdn = normalizeServerName(serverFqdn);
+        const account = await VsCodeAzureHelper.getAccountById(accountId);
+
+        const subscriptions = await VsCodeAzureHelper.getProvider().getSubscriptions({
+            account,
+            tenantId,
+        });
+
+        for (const sub of subscriptions) {
+            const sql = new SqlManagementClient(sub.credential, sub.subscriptionId, {
+                endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+            });
+
+            const servers = await listAllIterator(sql.servers.list());
+
+            for (const server of servers) {
+                if (
+                    server.fullyQualifiedDomainName &&
+                    normalizeServerName(server.fullyQualifiedDomainName) === normalizedFqdn &&
+                    server.name &&
+                    server.id
+                ) {
+                    const resourceGroupName = extractFromResourceId(server.id, "resourceGroups");
+
+                    if (!resourceGroupName) {
+                        continue;
+                    }
+
+                    return {
+                        subscription: sub,
+                        resourceGroupName,
+                        serverName: server.name,
+                    };
+                }
+            }
+        }
+
+        throw new Error(Loc.serverNotFoundInSubscriptions(serverFqdn));
+    }
+
+    /**
      * Creates a firewall rule on an Azure SQL Server using the ARM SDK directly,
      * bypassing the STS server-name lookup that can fail for newly created servers.
      */
@@ -1112,6 +1167,29 @@ export async function constructAzureAccountForTenant(azureAccountInfo: {
 //#endregion
 
 //#region Miscellaneous Azure helpers
+
+/**
+ * Normalizes a SQL server name/FQDN for comparison by stripping common prefixes
+ * (`tcp:`), port suffixes (`,1433`), trailing dots, and lowercasing.
+ */
+export function normalizeServerName(server: string): string {
+    let s = server.trim().toLowerCase();
+
+    if (s.startsWith("tcp:")) {
+        s = s.substring(4);
+    }
+
+    const commaIndex = s.indexOf(",");
+    if (commaIndex !== -1) {
+        s = s.substring(0, commaIndex);
+    }
+
+    if (s.endsWith(".")) {
+        s = s.substring(0, s.length - 1);
+    }
+
+    return s;
+}
 
 export function extractFromResourceId(resourceId: string, property: string): string | undefined {
     if (!property.endsWith("/")) {

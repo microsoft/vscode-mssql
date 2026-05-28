@@ -70,7 +70,6 @@ import { multiple_matching_tokens_error } from "../../src/azure/constants";
 import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
 import { errorPasswordExpired } from "../../src/constants/constants";
 import { FirewallRuleSpec } from "../../src/sharedInterfaces/firewallRule";
-import { FirewallService } from "../../src/firewall/firewallService";
 import { AddFirewallRuleState } from "../../src/sharedInterfaces/addFirewallRule";
 import { deepClone } from "../../src/models/utils";
 import { PreviewFeature } from "../../src/previews/previewService";
@@ -1274,13 +1273,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
             test("displays error upon failure to create firewall rule", async () => {
                 const testFirewallSpec: FirewallRuleSpec = {} as FirewallRuleSpec;
                 const errorMessage = "Test create firewall rule error";
-
-                const mockFirewallService = sandbox.createStubInstance(FirewallService);
-                mockFirewallService.createFirewallRuleWithVscodeAccount.throws(
-                    new Error(errorMessage),
-                );
-
-                sandbox.stub(connectionManager, "firewallService").get(() => mockFirewallService);
 
                 controller.state.dialog = {
                     type: "addFirewallRule",

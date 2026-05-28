@@ -2627,6 +2627,10 @@
         "message": "Failed to get tenant '{0}' for account '{1}'.",
         "comment": ["{0} is the tenant id", "{1} is the account name"]
     },
+    "Azure SQL Server '{0}' was not found in any accessible subscription. Verify your Azure account has access to the server's subscription./{0} is the fully qualified server name": {
+        "message": "Azure SQL Server '{0}' was not found in any accessible subscription. Verify your Azure account has access to the server's subscription.",
+        "comment": ["{0} is the fully qualified server name"]
+    },
     "Azure (Public)": "Azure (Public)",
     "Azure (US Government)": "Azure (US Government)",
     "Azure (China)": "Azure (China)",

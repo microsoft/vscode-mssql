@@ -9,7 +9,6 @@ import { expect } from "chai";
 
 import { AddFirewallRuleWebviewController } from "../../src/controllers/addFirewallRuleWebviewController";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { FirewallService } from "../../src/firewall/firewallService";
 import { AddFirewallRuleState } from "../../src/sharedInterfaces/addFirewallRule";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import * as azureHelperStubs from "./azureHelperStubs";
@@ -20,7 +19,6 @@ suite("AddFirewallRuleWebviewController Tests", () => {
     let controller: AddFirewallRuleWebviewController;
     let mockContext: vscode.ExtensionContext;
     let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
-    let mockFirewallService: sinon.SinonStubbedInstance<FirewallService>;
 
     const serverName = "TestServerName";
     const errorMessage = "Gotta have a firewall rule for 1.2.3.4 in order to access this server!";
@@ -29,17 +27,12 @@ suite("AddFirewallRuleWebviewController Tests", () => {
         sandbox = sinon.createSandbox();
 
         mockVscodeWrapper = stubVscodeWrapper(sandbox);
-        mockFirewallService = sandbox.createStubInstance(FirewallService);
 
         mockContext = {
             extensionUri: vscode.Uri.parse("file://fakePath"),
             extensionPath: "fakePath",
             subscriptions: [],
         } as vscode.ExtensionContext;
-
-        mockFirewallService.handleFirewallRule.returns(
-            Promise.resolve({ ipAddress: "1.2.3.4", result: true }),
-        );
     });
 
     teardown(() => {
@@ -125,15 +118,10 @@ suite("AddFirewallRuleWebviewController Tests", () => {
             azureHelperStubs.stubVscodeAzureSignIn(sandbox);
         }
 
-        controller = new AddFirewallRuleWebviewController(
-            mockContext,
-            mockVscodeWrapper,
-            {
-                serverName: serverName,
-                errorMessage: errorMessage,
-            },
-            mockFirewallService,
-        );
+        controller = new AddFirewallRuleWebviewController(mockContext, mockVscodeWrapper, {
+            serverName: serverName,
+            errorMessage: errorMessage,
+        });
 
         return await controller.initialized;
     }

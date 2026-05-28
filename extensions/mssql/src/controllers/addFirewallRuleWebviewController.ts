@@ -7,11 +7,9 @@ import * as vscode from "vscode";
 import { WebviewPanelController } from "./webviewPanelController";
 import VscodeWrapper from "./vscodeWrapper";
 import { AddFirewallRuleState, AddFirewallRuleReducers } from "../sharedInterfaces/addFirewallRule";
-import { FirewallService } from "../firewall/firewallService";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { getErrorMessage } from "../utils/utils";
-import { errorFirewallRule } from "../constants/constants";
 import { Deferred } from "../protocol";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import * as Loc from "../constants/locConstants";
@@ -35,7 +33,6 @@ export class AddFirewallRuleWebviewController extends WebviewPanelController<
             serverName: string;
             errorMessage: string;
         },
-        private firewallService: FirewallService,
     ) {
         super(
             context,
@@ -92,27 +89,7 @@ export class AddFirewallRuleWebviewController extends WebviewPanelController<
      */
     private async initializeDialog(errorMessage: string): Promise<void> {
         const accountLoadingPromise = this.loadAzureAccounts(); // Load accounts and extract client IP in parallel
-
-        const handleFirewallErrorResult = await this.firewallService.handleFirewallRule(
-            errorFirewallRule,
-            errorMessage,
-        );
-
-        if (!handleFirewallErrorResult.result) {
-            sendErrorEvent(
-                TelemetryViews.ConnectionDialog,
-                TelemetryActions.AddFirewallRule,
-                new Error(errorMessage),
-                true, // includeErrorMessage; parse failed because it couldn't detect an IP address, so that'd be the only PII
-                undefined, // errorCode
-                undefined, // errorType
-            );
-
-            // Proceed with 0.0.0.0 as the client IP, and let user fill it out manually.
-            handleFirewallErrorResult.ipAddress = "0.0.0.0";
-        }
-
-        this.state.clientIp = handleFirewallErrorResult.ipAddress;
+        this.state.clientIp = getIpFromFirewallError(errorMessage);
 
         await accountLoadingPromise;
     }
@@ -145,9 +122,24 @@ export class AddFirewallRuleWebviewController extends WebviewPanelController<
             this.updateState(state);
 
             try {
-                await this.firewallService.createFirewallRuleWithVscodeAccount(
-                    payload.firewallRuleSpec,
+                const serverInfo = await VsCodeAzureHelper.findAzureSqlServerByFqdn(
+                    payload.firewallRuleSpec.azureAccountInfo.accountId,
+                    payload.firewallRuleSpec.azureAccountInfo.tenantId,
                     this.state.serverName,
+                );
+
+                const [startIp, endIp] =
+                    typeof payload.firewallRuleSpec.ip === "string"
+                        ? [payload.firewallRuleSpec.ip, payload.firewallRuleSpec.ip]
+                        : [payload.firewallRuleSpec.ip.startIp, payload.firewallRuleSpec.ip.endIp];
+
+                await VsCodeAzureHelper.createFirewallRule(
+                    serverInfo.subscription,
+                    serverInfo.resourceGroupName,
+                    serverInfo.serverName,
+                    payload.firewallRuleSpec.name,
+                    startIp,
+                    endIp,
                 );
 
                 sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.AddFirewallRule);
@@ -225,4 +217,10 @@ export async function populateAzureAccountInfo(
             state.tenants[t.account.id] = [{ displayName: t.displayName, tenantId: t.tenantId }];
         }
     }
+}
+
+export function getIpFromFirewallError(errorMessage: string): string {
+    const ipRegex = /(\d{1,3}\.){3}\d{1,3}/;
+    const match = errorMessage.match(ipRegex);
+    return match ? match[0] : "";
 }

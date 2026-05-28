@@ -66,7 +66,10 @@ import {
     createConnectionGroup,
     getDefaultConnectionGroupDialogProps,
 } from "../controllers/connectionGroupWebviewController";
-import { populateAzureAccountInfo } from "../controllers/addFirewallRuleWebviewController";
+import {
+    getIpFromFirewallError,
+    populateAzureAccountInfo,
+} from "../controllers/addFirewallRuleWebviewController";
 import { FabricHelper } from "../fabric/fabricHelper";
 import {
     ConnectionInfo,
@@ -407,9 +410,24 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this.updateState(state);
 
             try {
-                await this._mainController.connectionManager.firewallService.createFirewallRuleWithVscodeAccount(
-                    payload.firewallRuleSpec,
+                const serverInfo = await VsCodeAzureHelper.findAzureSqlServerByFqdn(
+                    payload.firewallRuleSpec.azureAccountInfo.accountId,
+                    payload.firewallRuleSpec.azureAccountInfo.tenantId,
                     this.state.connectionProfile.server,
+                );
+
+                const [startIp, endIp] =
+                    typeof payload.firewallRuleSpec.ip === "string"
+                        ? [payload.firewallRuleSpec.ip, payload.firewallRuleSpec.ip]
+                        : [payload.firewallRuleSpec.ip.startIp, payload.firewallRuleSpec.ip.endIp];
+
+                await VsCodeAzureHelper.createFirewallRule(
+                    serverInfo.subscription,
+                    serverInfo.resourceGroupName,
+                    serverInfo.serverName,
+                    payload.firewallRuleSpec.name,
+                    startIp,
+                    endIp,
                 );
                 state.dialog = undefined;
             } catch (err) {
@@ -1759,29 +1777,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         } else if (errorType === SqlConnectionErrorType.FirewallRuleError) {
             this.state.connectionStatus = ApiStatus.Error;
 
-            const handleFirewallErrorResult =
-                await this._mainController.connectionManager.firewallService.handleFirewallRule(
-                    result.errorNumber,
-                    result.errorMessage,
-                );
-
-            if (!handleFirewallErrorResult.result) {
-                sendErrorEvent(
-                    TelemetryViews.ConnectionDialog,
-                    TelemetryActions.AddFirewallRule,
-                    new Error(result.errorMessage),
-                    true, // includeErrorMessage; parse failed because it couldn't detect an IP address, so that'd be the only PII
-                    undefined, // errorCode
-                    "parseIP", // errorType
-                );
-
-                // Proceed with 0.0.0.0 as the client IP, and let user fill it out manually.
-                handleFirewallErrorResult.ipAddress = "0.0.0.0";
-            }
-
             const addFirewallDialogState: AddFirewallRuleState = {
                 message: result.errorMessage,
-                clientIp: handleFirewallErrorResult.ipAddress,
+                clientIp: getIpFromFirewallError(result.errorMessage),
                 accounts: [],
                 tenants: {},
                 isSignedIn: true,

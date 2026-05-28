@@ -1225,6 +1225,15 @@ export class Azure {
         });
     };
 
+    public static serverNotFoundInSubscriptions = (serverFqdn: string) => {
+        return l10n.t({
+            message:
+                "Azure SQL Server '{0}' was not found in any accessible subscription. Verify your Azure account has access to the server's subscription.",
+            args: [serverFqdn],
+            comment: ["{0} is the fully qualified server name"],
+        });
+    };
+
     public static PublicCloud = l10n.t("Azure (Public)");
     public static USGovernmentCloud = l10n.t("Azure (US Government)");
     public static ChinaCloud = l10n.t("Azure (China)");

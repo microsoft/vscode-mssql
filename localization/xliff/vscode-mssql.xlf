@@ -605,6 +605,10 @@
     <trans-unit id="++CODE++2827add936f31415e16e0670d8686084ec2e21fed7686c0aa91fffdfa09e4e38">
       <source xml:lang="en">Azure SQL Server</source>
     </trans-unit>
+    <trans-unit id="++CODE++800b9384336a5575ae36df93ea122ab41d3b64da461af5481abaef5a82c26902">
+      <source xml:lang="en">Azure SQL Server &apos;{0}&apos; was not found in any accessible subscription. Verify your Azure account has access to the server&apos;s subscription.</source>
+      <note>{0} is the fully qualified server name</note>
+    </trans-unit>
     <trans-unit id="++CODE++6d457cc1e5982858c386c637bec86a3c2615e648054d4d5472a261e0b5004b2d">
       <source xml:lang="en">Azure Subscriptions</source>
     </trans-unit>

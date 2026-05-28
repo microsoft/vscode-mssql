@@ -20,7 +20,6 @@ import {
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { CredentialStore } from "../credentialstore/credentialstore";
-import { FirewallService } from "../firewall/firewallService";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { ConnectionProfile } from "../models/connectionProfile";
@@ -128,7 +127,6 @@ export default class ConnectionManager {
     >;
     private _keyVaultTokenCache: Map<string, IToken> = new Map<string, IToken>();
     private _accountService: AccountService;
-    private _firewallService: FirewallService;
     public azureController: AzureController;
     private _changePasswordService: ChangePasswordService;
 
@@ -210,7 +208,6 @@ export default class ConnectionManager {
             this._accountStore,
             this.azureController,
         );
-        this._firewallService = new FirewallService(this._accountService);
 
         this._changePasswordService = new ChangePasswordService(
             this.client,
@@ -344,10 +341,6 @@ export default class ConnectionManager {
 
     public get accountService(): AccountService {
         return this._accountService;
-    }
-
-    public get firewallService(): FirewallService {
-        return this._firewallService;
     }
 
     public get changePasswordService(): ChangePasswordService {
@@ -904,7 +897,6 @@ export default class ConnectionManager {
                 serverName: credentials.server,
                 errorMessage: errorMessage,
             },
-            this.firewallService,
         );
         addFirewallRuleController.panel.reveal();
 

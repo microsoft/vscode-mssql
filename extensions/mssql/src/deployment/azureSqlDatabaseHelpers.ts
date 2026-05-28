@@ -25,17 +25,16 @@ import { IConnectionProfile } from "../models/interfaces";
 import { DEPLOYMENT_VIEW_ID, DeploymentWebviewController } from "./deploymentWebviewController";
 import { UserSurvey } from "../nps/userSurvey";
 import { getCloudProviderSettings } from "../azure/providerSettings";
-import { user } from "../constants/constants";
+import { errorFirewallRule, user } from "../constants/constants";
 import {
     acquireTokenFromVscodeAccountForResource,
     getCloudResourceEndpoint,
 } from "../azure/vscodeEntraMfaUtils";
+import { getIpFromFirewallError } from "../controllers/addFirewallRuleWebviewController";
 
 // Cached logger reference for use in helper functions that don't have
 // direct access to the controller's protected logger.
 let cachedLogger: Logger | undefined;
-
-const FIREWALL_ERROR_CODE = 40615;
 
 function clearCacheDownstream(state: asd.AzureSqlDatabaseState, fromComponent: string): void {
     const order = asd.AZURE_SQL_DB_COMPONENT_ORDER as readonly string[];
@@ -760,7 +759,7 @@ export async function connectToAzureSqlDatabase(
 
             // Check if the failure is firewall-related
             const connInfo = connManager.getConnectionInfo(tempUri);
-            const isFirewallError = connInfo?.errorNumber === FIREWALL_ERROR_CODE;
+            const isFirewallError = connInfo?.errorNumber === errorFirewallRule;
 
             if (!isFirewallError || attempt === maxRetries) {
                 // Non-firewall error or exhausted retries — report failure
@@ -778,29 +777,8 @@ export async function connectToAzureSqlDatabase(
 
             // On the first firewall error, extract the client IP and create a rule
             if (!firewallRuleCreated) {
-                const handleResult = await connManager.firewallService.handleFirewallRule(
-                    connInfo?.errorNumber ?? Number(FIREWALL_ERROR_CODE),
-                    connInfo?.errorMessage ?? "",
-                );
+                state.publicIp = getIpFromFirewallError(connInfo?.errorMessage);
 
-                if (!handleResult.result || !handleResult.ipAddress) {
-                    state.connectionLoadState = ApiStatus.Error;
-                    state.errorMessage = AzureSqlDatabase.clientIpDetectionFailed;
-                    cachedLogger?.error(
-                        "Could not detect client IP from firewall error; manual firewall rule required.",
-                    );
-                    sendErrorEvent(
-                        TelemetryViews.AzureSqlDatabase,
-                        TelemetryActions.ConnectToAzureSqlDatabase,
-                        new Error("Failed to detect client IP for firewall rule"),
-                        false,
-                    );
-                    updateAzureSqlDatabaseState(deploymentController, state);
-                    return;
-                }
-
-                const clientIp = handleResult.ipAddress;
-                state.publicIp = clientIp;
                 updateAzureSqlDatabaseState(deploymentController, state);
 
                 const subscription = getCachedSubscription(state, state.formState.subscriptionId);
@@ -814,8 +792,8 @@ export async function connectToAzureSqlDatabase(
                         state.formState.resourceGroup,
                         state.formState.serverName,
                         `mssql-${state.formState.serverName}-firewall-rule`,
-                        clientIp,
-                        clientIp,
+                        state.publicIp,
+                        state.publicIp,
                     );
                 } catch (firewallError) {
                     const errorMsg =
