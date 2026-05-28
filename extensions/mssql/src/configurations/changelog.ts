@@ -13,8 +13,24 @@ export const changelogConfig: ChangelogWebviewState = {
         title: locConstants.Changelog.mainContentTitle,
         entries: [
             {
-                title: locConstants.Changelog.schemaDesignerCopilotTitle,
+                title: locConstants.Changelog.azureSqlProvisioningTitle,
+                description: locConstants.Changelog.azureSqlProvisioningDescription,
                 isPreview: true,
+                actions: [
+                    {
+                        label: locConstants.Changelog.tryIt,
+                        type: "command",
+                        value: "constants.", // TODO
+                    },
+                    {
+                        label: locConstants.Changelog.learnMore,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-azuresql-docs",
+                    },
+                ],
+            },
+            {
+                title: locConstants.Changelog.schemaDesignerCopilotTitle,
                 description: locConstants.Changelog.schemaDesignerCopilotDescription,
                 actions: [
                     {
@@ -25,9 +41,8 @@ export const changelogConfig: ChangelogWebviewState = {
                 ],
             },
             {
-                title: locConstants.Changelog.dabTitle,
-                isPreview: true,
-                description: locConstants.Changelog.dabDescription,
+                title: locConstants.Changelog.dabWithCopilotTitle,
+                description: locConstants.Changelog.dabWithCopilotDescription,
                 actions: [
                     {
                         label: locConstants.Changelog.learnMore,
@@ -37,20 +52,7 @@ export const changelogConfig: ChangelogWebviewState = {
                 ],
             },
             {
-                title: locConstants.Changelog.dabCopilotTitle,
-                isPreview: true,
-                description: locConstants.Changelog.dabCopilotDescription,
-                actions: [
-                    {
-                        label: locConstants.Changelog.learnMore,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-dab-copilot",
-                    },
-                ],
-            },
-            {
                 title: locConstants.Changelog.sqlNotebooksTitle,
-                isPreview: true,
                 description: locConstants.Changelog.sqlNotebooksDescription,
                 actions: [
                     {
@@ -62,18 +64,6 @@ export const changelogConfig: ChangelogWebviewState = {
                         label: locConstants.Changelog.learnMore,
                         type: "link",
                         value: "https://aka.ms/vscode-mssql-sql-notebooks",
-                    },
-                ],
-            },
-            {
-                title: locConstants.Changelog.fabricQueryProfilerTitle,
-                description: locConstants.Changelog.fabricQueryProfilerDescription,
-                codeSnippets: ["TSQL_Azure"],
-                actions: [
-                    {
-                        label: locConstants.Changelog.learnMore,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-query-profiler-docs#create-a-profiling-session",
                     },
                 ],
             },
@@ -105,6 +95,18 @@ export const changelogConfig: ChangelogWebviewState = {
         title: locConstants.Changelog.secondaryContentTitle,
         description: locConstants.Changelog.secondaryContentDescription,
         entries: [
+            {
+                title: locConstants.Changelog.fabricQueryProfilerTitle,
+                description: locConstants.Changelog.fabricQueryProfilerDescription,
+                codeSnippets: ["TSQL_Azure"],
+                actions: [
+                    {
+                        label: locConstants.Changelog.learnMore,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-query-profiler-docs#create-a-profiling-session",
+                    },
+                ],
+            },
             {
                 title: locConstants.Changelog.editDataTitle,
                 description: locConstants.Changelog.editDataDescription,

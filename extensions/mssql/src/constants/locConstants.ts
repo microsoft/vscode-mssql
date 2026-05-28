@@ -3356,9 +3356,17 @@ export class Changelog {
     public static schemaDesignerCopilotDescription = l10n.t(
         "Use natural language to design database schemas directly within the visual Schema Designer. Create schemas from scratch, evolve existing designs, review changes through a diff view, and import external artifacts - all reflected live in the visual diagram and T-SQL script.",
     );
+    public static azureSqlProvisioningTitle = l10n.t("Azure SQL databases provisioning");
+    public static azureSqlProvisioningDescription = l10n.t(
+        "Easily start with the Azure SQL database free tier to create and connect to a database directly from your editor at no cost.",
+    );
     public static dabTitle = l10n.t("Data API builder");
     public static dabDescription = l10n.t(
         "Create REST, GraphQL, and MCP endpoints for your SQL database tables from a visual interface within Visual Studio Code. Configure entities, permissions, and deployment settings — then deploy locally with Docker.",
+    );
+    public static dabWithCopilotTitle = l10n.t("Data API builder with GitHub Copilot");
+    public static dabWithCopilotDescription = l10n.t(
+        "Generate REST, GraphQL, and MCP endpoints from your SQL database objects (tables). You can modify the configuration manually or through GitHub Copilot to plan and generate updates - then deploy locally with Docker.",
     );
     public static dabCopilotTitle = l10n.t("GitHub Copilot integration in Data API builder");
     public static dabCopilotDescription = l10n.t(

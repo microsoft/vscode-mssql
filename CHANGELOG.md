@@ -7,18 +7,18 @@
 
 ### What's new in 1.43.0
 
-- Released SQL Notebooks and Data API builder as generally available (GA)
-- Introduced Azure SQL Provisioning (Public Preview) for easily creating a new Azure SQL database
-- Added support for including and excluding columns and ORM-based definitions to the Data API builder
+- Released SQL Notebooks, and Data API builder and Schema Designer with GitHub Copilot integration as generally available (GA)
+- Introduced Azure SQL Database provisioning (Public Preview) for easily creating new free tier Azure SQL databases
+- Added support for including and excluding columns to Data API builder, and ORM-based migrations to Schema Designer
 - Added query result export options for SQL Notebooks
 - Fixed SQL notebook keyboard shortcuts, save behavior, and issues related to message output
-- Added support for Microsoft Entra Service Principal authentication
-- Added an option to specify how a newly-opened .SQL file or query editor should connect via `mssql.newEditorConnectionBehavior`.
+- Added support for Microsoft Entra ID Service Principal authentication
+- Added an option to specify how newly-opened .SQL files or query editors should connect via `mssql.newEditorConnectionBehavior`
 - Added query-level filtering for Edit Data so filters apply across the full result set, not only the visible rows
 - Added detailed loading progress for Table Designer and Schema Designer
 - Rebuilt the experience for browsing Azure databases in the Connection Dialog to be more intuitive and familiar
 - Improved Microsoft Entra ID MFA token refresh and reauthentication handling to reduce stale token loops and connection failures
-- Fixed an issues where Execute Current Statement selection behavior and line numbers in query error messages may not align correctly
+- Fixed issues where Execute Current Statement selection behavior and line numbers in query error messages may not be aligned
 
 ## Version 1.42.2
 
