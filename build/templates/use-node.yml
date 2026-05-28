@@ -1,0 +1,11 @@
+parameters:
+  - name: nodeVersion
+    type: string
+    # Keep this in sync with scripts/workspaces.mjs (minSupportedNodeMajor).
+    default: 24.x
+
+steps:
+  - task: UseNode@1
+    displayName: "Use Node ${{ parameters.nodeVersion }}"
+    inputs:
+      version: ${{ parameters.nodeVersion }}
