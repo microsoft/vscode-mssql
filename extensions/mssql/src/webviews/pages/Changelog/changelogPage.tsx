@@ -15,7 +15,7 @@ import {
     shorthands,
     tokens,
 } from "@fluentui/react-components";
-import { ArrowRight12Regular } from "@fluentui/react-icons";
+import { ArrowRight12Regular, Dismiss12Filled } from "@fluentui/react-icons";
 import React, { useCallback, useState } from "react";
 
 import {
@@ -23,6 +23,7 @@ import {
     ChangelogCommandRequest,
     ChangelogCommandRequestParams,
     ChangelogDontShowAgainRequest,
+    ChangelogEvent,
     ChangelogLinkRequest,
     CloseChangelogRequest,
     ContentEntry,
@@ -217,6 +218,62 @@ const useStyles = makeStyles({
         fontSize: "12px",
         lineHeight: "18px",
         color: "var(--vscode-descriptionForeground)",
+    },
+    bannerContainer: {
+        position: "relative",
+        borderRadius: "8px",
+        maxHeight: "200px",
+        overflowY: "auto",
+        overflowX: "hidden",
+        backgroundColor: "transparent",
+        flexShrink: 0,
+        marginBottom: "16px",
+    },
+    banner: {
+        position: "relative",
+        padding: "15px",
+        display: "grid",
+        gridTemplateColumns: "200px 1fr",
+        gap: "24px",
+        width: "100%",
+        boxSizing: "border-box",
+        backgroundColor: "transparent",
+        "@media (max-width: 900px)": {
+            gridTemplateColumns: "1fr",
+        },
+        "::before": {
+            content: '""',
+            position: "absolute",
+            inset: 0,
+            backgroundColor: "var(--vscode-button-background)",
+            opacity: 0.1,
+            zIndex: 0,
+            pointerEvents: "none",
+        },
+    },
+    bannerTitle: {
+        fontSize: "14px",
+        fontWeight: 600,
+        color: "var(--vscode-editor-foreground)",
+        display: "flex",
+        flexDirection: "column",
+        position: "relative",
+        zIndex: 1,
+    },
+    bannerDismiss: {
+        position: "absolute",
+        top: "8px",
+        right: "8px",
+        minWidth: 0,
+        zIndex: 1,
+    },
+    bannerDescription: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "6px",
+        justifyContent: "center",
+        position: "relative",
+        zIndex: 1,
     },
     codeSnippet: {
         display: "inline-flex",
@@ -420,6 +477,7 @@ export const ChangelogPage = () => {
     const secondaryContent = useChangelogSelector((s) => s?.secondaryContent);
     const sidebarContent = useChangelogSelector((s) => s?.sidebarContent) ?? [];
     const version = useChangelogSelector((s) => s?.version) ?? "unknown";
+    const event = useChangelogSelector((s) => s?.event);
 
     const mainEntries = mainContent?.entries ?? [];
     const secondaryEntries = secondaryContent?.entries ?? [];
@@ -428,6 +486,7 @@ export const ChangelogPage = () => {
     const secondaryDescription = secondaryContent?.description;
     const secondaryAccordionValue = "in-case-you-missed-it";
 
+    const [showBanner, setShowBanner] = useState(true);
     const [secondaryOpenItems, setSecondaryOpenItems] = useState<string[]>([]);
     const [secondarySectionElement, setSecondarySectionElement] = useState<HTMLDivElement>();
     const secondarySectionRef = useCallback((element: HTMLDivElement | null) => {
@@ -649,10 +708,143 @@ export const ChangelogPage = () => {
         );
     };
 
+    function eventDate(date: string | undefined, timezone: string | undefined): Date | undefined {
+        if (!date) {
+            return undefined;
+        }
+
+        return new Date(`${date}T00:00:00${timezone ?? "+00:00"}`);
+    }
+
+    function isEventOver(eventData: ChangelogEvent): boolean {
+        if (!eventData) {
+            return false;
+        }
+
+        const expiresAt = new Date(
+            `${eventData.endDate ?? eventData.date}T23:59:00${eventData.location?.timezone ?? "+00:00"}`,
+        );
+
+        if (isNaN(expiresAt.getTime())) {
+            return false;
+        }
+        return new Date() >= expiresAt;
+    }
+
+    const monthFmt = new Intl.DateTimeFormat(undefined, { month: "long", timeZone: "UTC" });
+    const fullFmt = new Intl.DateTimeFormat(undefined, {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+        timeZone: "UTC",
+    });
+
+    function formatEventDateRange(eventData: ChangelogEvent): string {
+        const start = eventDate(eventData.date, eventData.location?.timezone)!;
+        const end = eventDate(eventData.endDate, eventData.location?.timezone);
+
+        if (!end || start.getTime() === end.getTime()) {
+            return fullFmt.format(start);
+        }
+
+        if (
+            start.getUTCFullYear() === end.getUTCFullYear() &&
+            start.getUTCMonth() === end.getUTCMonth()
+        ) {
+            return `${monthFmt.format(start)} ${start.getUTCDate()}-${end.getUTCDate()}, ${end.getUTCFullYear()}`;
+        }
+
+        return `${fullFmt.format(start)} - ${fullFmt.format(end)}`;
+    }
+
+    function renderDescriptionWithSnippets(text: string, snippets: string[]): React.ReactNode[] {
+        // Split on {x} tokens, keeping delimiters as their own parts so we can
+        // replace them with styled <span> elements while leaving plain text intact.
+        const parts = text.split(/(\{\d+\})/g);
+
+        return parts.map((part, idx) => {
+            const match = /^\{(\d+)\}$/.exec(part); // check if the part is a code snippet placeholder
+
+            if (match) {
+                const snippet = snippets[Number(match[1])];
+                // If the index is out of range, fall through and render as plain text.
+                if (snippet !== undefined) {
+                    return (
+                        <span key={idx} className={classes.codeSnippet}>
+                            {snippet}
+                        </span>
+                    );
+                }
+            }
+
+            return <React.Fragment key={idx}>{part}</React.Fragment>;
+        });
+    }
+
+    function renderEventBanner(eventData: ChangelogEvent): React.ReactElement {
+        return (
+            <div className={classes.bannerContainer}>
+                <div className={classes.banner}>
+                    <div className={classes.bannerTitle}>
+                        <Text
+                            size={600}
+                            weight="bold"
+                            style={{
+                                backgroundImage:
+                                    "linear-gradient(to right in oklab, var(--vscode-button-hoverBackground, var(--vscode-contrastBorder)) 0%, var(--vscode-button-background, var(--vscode-editor-background)) 100%)",
+                                backgroundClip: "text",
+                                WebkitBackgroundClip: "text",
+                                color: "transparent",
+                            }}>
+                            {eventData.mainTitle}
+                        </Text>
+                        <Text
+                            size={300}
+                            weight="semibold"
+                            style={{
+                                marginTop: "5px",
+                                whiteSpace: "pre-line",
+                            }}>
+                            {eventData.secondaryTitle}
+                        </Text>
+                        <Text size={200} weight="regular" style={{ marginTop: "5px" }}>
+                            {`${formatEventDateRange(eventData)} | ${eventData.location.name}`}
+                        </Text>
+                        <Button
+                            style={{
+                                marginTop: "10px",
+                                width: "100px",
+                            }}
+                            onClick={() => openLink(eventData.actionButton.url)}
+                            appearance="primary">
+                            {eventData.actionButton.text}
+                        </Button>
+                    </div>
+                    <div className={classes.bannerDescription}>
+                        {eventData.description.map((line, idx) => (
+                            <Text key={idx} style={{ whiteSpace: "pre-line" }}>
+                                {renderDescriptionWithSnippets(line, eventData.codeSnippets)}
+                            </Text>
+                        ))}
+                    </div>
+                    <Button
+                        appearance="transparent"
+                        icon={<Dismiss12Filled />}
+                        className={classes.bannerDismiss}
+                        onClick={() => {
+                            setShowBanner(false);
+                        }}></Button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className={classes.root}>
             <div className={classes.page}>
                 <div className={classes.shell}>
+                    {showBanner && event && !isEventOver(event) && renderEventBanner(event)}
+
                     <div className={classes.headerBar}>
                         <div className={classes.headerMain}>
                             <div className={classes.headerTitleWrap}>

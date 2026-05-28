@@ -249,5 +249,21 @@ export const changelogConfig: ChangelogWebviewState = {
             ],
         },
     ],
+    event: {
+        mainTitle: "SQLCON EU",
+        secondaryTitle: "Microsoft SQL\nCOMMUNITY CONFERENCE",
+        location: { name: "BARCELONA", timezone: "+02:00" }, // keep timezone in UTC offset format "+HH:MM"
+        date: "2026-09-28", // keep YYYY-MM-DD format; front-end will "prettify" it
+        endDate: "2026-10-01",
+        actionButton: {
+            text: "Register",
+            url: "https://aka.ms/sqlconeu?ocid=sqlconeu_vscode_inproduct_azdata",
+        },
+        description: [
+            "Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.",
+            "Use discount code {0} to save €200 on registration.",
+        ],
+        codeSnippets: ["VSCODE200"],
+    },
     version: vscode.extensions.getExtension(constants.extensionId).packageJSON.version || "unknown",
 };
