@@ -28,15 +28,6 @@ import {
     createUriOwnershipCoordinator,
     initializeUriOwnershipCoordinator,
 } from "./uriOwnership/uriOwnershipInitialization";
-import {
-    SqlServerBranchDataProvider,
-    isSqlServerRootModel,
-} from "./azure/sqlServerBranchDataProvider";
-import {
-    AzExtResourceType,
-    AzureResourcesExtensionApi,
-    apiUtils,
-} from "@microsoft/vscode-azureresources-api";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -67,10 +58,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
     await controller.activate();
 
     initializeUriOwnershipCoordinator(uriOwnershipCoordinator, controller.connectionManager);
-
-    // Soft-register with the Azure Resources extension if it is installed.
-    // If it is not installed, mssql continues to work normally with no degradation.
-    void registerAzureResourcesBranchDataProvider(context, controller);
 
     const participant = vscode.chat.createChatParticipant(
         "mssql.agent",
@@ -236,79 +223,6 @@ export async function deactivate(): Promise<void> {
  * Registers the SQL Server branch data provider with the Azure Resources extension, if installed.
  * This is a no-op if the Azure Resources extension is not installed.
  */
-async function registerAzureResourcesBranchDataProvider(
-    context: vscode.ExtensionContext,
-    mainController: MainController,
-): Promise<void> {
-    const outputChannel = mainController.vscodeWrapper.outputChannel;
-
-    try {
-        outputChannel.appendLine("[Azure Resources] Looking for the Azure Resources extension...");
-
-        const apiProvider = await apiUtils.getExtensionExports<apiUtils.AzureExtensionApiProvider>(
-            "ms-azuretools.vscode-azureresourcegroups",
-        );
-
-        if (!apiProvider) {
-            // Azure Resources extension is not installed; skip registration silently.
-            outputChannel.appendLine(
-                "[Azure Resources] Azure Resources extension not found; skipping branch data provider registration.",
-            );
-            return;
-        }
-
-        outputChannel.appendLine(
-            "[Azure Resources] Registering SQL Server branch data provider...",
-        );
-
-        const api = apiProvider.getApi<AzureResourcesExtensionApi>("2", {
-            extensionId: context.extension.id,
-        });
-
-        const provider = new SqlServerBranchDataProvider(
-            mainController.objectExplorerProvider.objectExplorerService,
-            outputChannel,
-        );
-
-        const openInObjectExplorerCommand = vscode.commands.registerCommand(
-            "mssql.openInObjectExplorer",
-            async (node: unknown) => {
-                if (!isSqlServerRootModel(node)) {
-                    return;
-                }
-                if (node.connectionNode) {
-                    mainController.objectExplorerProvider.objectExplorerService.revealInObjectExplorer(
-                        node.connectionNode,
-                    );
-                    await vscode.commands.executeCommand("objectExplorer.focus");
-                } else {
-                    await vscode.window.showWarningMessage(
-                        `Connect to "${node.resource.name}" first by expanding it in the Azure Resources view.`,
-                    );
-                }
-            },
-        );
-
-        context.subscriptions.push(
-            provider,
-            openInObjectExplorerCommand,
-            api.resources.registerAzureResourceBranchDataProvider(
-                AzExtResourceType.SqlServers,
-                provider,
-            ),
-        );
-
-        outputChannel.appendLine(
-            "[Azure Resources] SQL Server branch data provider registered successfully.",
-        );
-    } catch (err) {
-        outputChannel.appendLine(
-            `[Azure Resources] Failed to register branch data provider: ${err instanceof Error ? err.message : String(err)}`,
-        );
-        // Do not rethrow — failure here must not break regular mssql functionality.
-    }
-}
-
 /**
  * Exposed for testing purposes
  */

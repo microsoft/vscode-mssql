@@ -15,6 +15,7 @@ import {
     ScriptingCancelRequest,
 } from "../models/contracts/scripting/scriptingRequest";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
+import { resolveObjectExplorerNode } from "../azure/sqlServerBranchDataProvider";
 import * as vscode from "vscode";
 import { IScriptingObject, IServerInfo } from "vscode-mssql";
 import SqlDocumentService, { ConnectionStrategy } from "../controllers/sqlDocumentService";
@@ -73,6 +74,7 @@ export class ScriptingService {
             vscode.commands.registerCommand(
                 Constants.cmdScriptSelect,
                 async (node: TreeNodeInfo) => {
+                    node = resolveObjectExplorerNode(node) ?? node;
                     await this.runScriptingCommand(ScriptOperation.Select, node);
                 },
             ),
@@ -83,6 +85,7 @@ export class ScriptingService {
             vscode.commands.registerCommand(
                 Constants.cmdScriptCreate,
                 async (node: TreeNodeInfo) => {
+                    node = resolveObjectExplorerNode(node) ?? node;
                     await this.runScriptingCommand(ScriptOperation.Create, node);
                 },
             ),
@@ -93,6 +96,7 @@ export class ScriptingService {
             vscode.commands.registerCommand(
                 Constants.cmdScriptDelete,
                 async (node: TreeNodeInfo) => {
+                    node = resolveObjectExplorerNode(node) ?? node;
                     await this.runScriptingCommand(ScriptOperation.Delete, node);
                 },
             ),
@@ -103,6 +107,7 @@ export class ScriptingService {
             vscode.commands.registerCommand(
                 Constants.cmdScriptExecute,
                 async (node: TreeNodeInfo) => {
+                    node = resolveObjectExplorerNode(node) ?? node;
                     await this.runScriptingCommand(ScriptOperation.Execute, node);
                 },
             ),
@@ -113,6 +118,7 @@ export class ScriptingService {
             vscode.commands.registerCommand(
                 Constants.cmdScriptAlter,
                 async (node: TreeNodeInfo) => {
+                    node = resolveObjectExplorerNode(node) ?? node;
                     await this.runScriptingCommand(ScriptOperation.Alter, node);
                 },
             ),

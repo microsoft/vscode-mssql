@@ -100,15 +100,24 @@ export async function acquireTokenFromVscodeAccountForResource(
     accountId?: string,
     tenantId?: string,
     accountLabel?: string,
+    options?: { promptIfMissing?: boolean },
 ): Promise<VscodeEntraSqlTokenInfo> {
-    const account = await resolveVscodeEntraAccount(accountId, accountLabel);
+    let account = await resolveVscodeEntraAccount(accountId, accountLabel);
     if (!account) {
-        throw new MissingEntraAuthAccountError(
-            locConstants.Accounts.accountNotAvailableThroughVsCode(
-                accountLabel ?? accountId ?? "",
-                tenantId,
-            ),
-        );
+        if (options?.promptIfMissing) {
+            // Prompt the user to sign in, then retry account resolution.
+            await VsCodeAzureHelper.signIn(true /* forceSignInPrompt */);
+            account = await resolveVscodeEntraAccount(accountId, accountLabel);
+        }
+
+        if (!account) {
+            throw new MissingEntraAuthAccountError(
+                locConstants.Accounts.accountNotAvailableThroughVsCode(
+                    accountLabel ?? accountId ?? "",
+                    tenantId,
+                ),
+            );
+        }
     }
 
     const tenants = await VsCodeAzureHelper.getTenantsForAccount(account);

@@ -546,7 +546,7 @@
                 },
                 {
                     "submenu": "sqlDatabaseProjects.objectExplorerSubmenu",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
                     "group": "8_MSSQL_sqlProjectsAndNotebooks@1"
                 },
                 {

@@ -13,6 +13,13 @@ import { ObjectExplorerService } from "../objectExplorer/objectExplorerService";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { IConnectionInfo } from "vscode-mssql";
 import { getErrorMessage } from "../utils/utils";
+import {
+    acquireTokenFromVscodeAccountForResource,
+    getCloudResourceEndpoint,
+} from "./vscodeEntraMfaUtils";
+import { ILogger2, logger2 } from "../models/logger2";
+
+const _azResourcesLogger = logger2.withPrefix("[Azure Resources]");
 
 /**
  * Lightweight placeholder returned synchronously by `getResourceItem`.
@@ -33,6 +40,38 @@ export type SqlBranchModel = SqlServerRootModel | TreeNodeInfo;
 
 export function isSqlServerRootModel(node: unknown): node is SqlServerRootModel {
     return typeof node === "object" && node !== null && "resource" in node && !("nodePath" in node);
+}
+
+/**
+ * Resolves a command argument to a `TreeNodeInfo`, handling both direct OE items and items
+ * wrapped in the Azure Resources `BranchDataItemWrapper` (which has an `unwrap()` method).
+ *
+ * When a context menu command fires from the Azure Resources tree VS Code passes the
+ * `BranchDataItemWrapper`, not the raw model.  This helper unwraps it transparently so
+ * command handlers don't have to know which view they were invoked from.
+ *
+ * If the item cannot be resolved (unknown wrapper type), logs a warning and returns the original.
+ */
+export function resolveObjectExplorerNode(item: TreeNodeInfo): TreeNodeInfo {
+    if (item instanceof TreeNodeInfo) {
+        return item;
+    }
+    // BranchDataItemWrapper from Azure Resources extension exposes unwrap()
+    const maybeWrapper = item as { unwrap?: () => unknown } | null | undefined;
+    if (maybeWrapper && typeof maybeWrapper.unwrap === "function") {
+        const inner = maybeWrapper.unwrap();
+        if (inner instanceof TreeNodeInfo) {
+            return inner;
+        }
+        // SqlServerRootModel — the connection node is populated after first expansion
+        if (isSqlServerRootModel(inner) && inner.connectionNode) {
+            return inner.connectionNode;
+        }
+        _azResourcesLogger.warn(
+            `Could not resolve wrapped node for "${(item as TreeNodeInfo).label ?? String(item)}"`,
+        );
+    }
+    return item;
 }
 
 /**
@@ -60,7 +99,7 @@ export class SqlServerBranchDataProvider
 
     constructor(
         private readonly _objectExplorerService: ObjectExplorerService,
-        private readonly _outputChannel: vscode.OutputChannel,
+        private readonly _logger: ILogger2,
     ) {
         // Mirror OE-service refresh events into our own onDidChangeTreeData so the
         // Azure Resources tree stays in sync when nodes expand, collapse or reconnect.
@@ -74,9 +113,7 @@ export class SqlServerBranchDataProvider
      * No OE session is created here — that happens lazily in getChildren.
      */
     getResourceItem(resource: AzureResource): SqlServerRootModel {
-        this._outputChannel.appendLine(
-            `[Azure Resources] getResourceItem: ${resource.name} (${resource.id})`,
-        );
+        this._logger.info(`getResourceItem: ${resource.name} (${resource.id})`);
         return {
             id: resource.id,
             resource,
@@ -89,9 +126,7 @@ export class SqlServerBranchDataProvider
      */
     getTreeItem(element: SqlBranchModel): vscode.TreeItem {
         if (isSqlServerRootModel(element)) {
-            this._outputChannel.appendLine(
-                `[Azure Resources] getTreeItem (root): ${element.resource.name}`,
-            );
+            this._logger.info(`getTreeItem (root): ${element.resource.name}`);
             const item = new vscode.TreeItem(
                 element.resource.name,
                 vscode.TreeItemCollapsibleState.Collapsed,
@@ -131,28 +166,41 @@ export class SqlServerBranchDataProvider
 
     private async _getServerChildren(element: SqlServerRootModel): Promise<SqlBranchModel[]> {
         const name = element.resource.name;
-        this._outputChannel.appendLine(`[Azure Resources] getChildren (server root): ${name}`);
+        this._logger.info(`getChildren (server root): ${name}`);
 
         try {
             // Lazily create the OE session on first expansion
             if (!element.sessionId || !element.connectionNode) {
-                const session =
+                // Get the accountId/tenantId from the Azure Resources subscription context
+                // so we know which account to use.
+                const azSession =
                     await element.resource.subscription.authentication.getSessionWithScopes([
                         "https://database.windows.net/.default",
                     ]);
 
-                if (!session) {
+                if (!azSession) {
                     throw new Error(
                         `Could not acquire authentication for "${name}". ` +
                             `Ensure you are signed in with an account that has access to this server.`,
                     );
                 }
 
-                const connectionInfo = buildConnectionInfo(element.resource, session.accessToken);
-
-                this._outputChannel.appendLine(
-                    `[Azure Resources] Creating OE session for ${name}...`,
+                // Re-acquire the SQL token through MSSQL's own VS Code auth path.
+                // This ensures MSSQL gets consent to the account and the token
+                // refresh callback (from SQL Tools Service) will work correctly.
+                this._logger.info(
+                    `Creating OE session for ${name} (accountId: ${azSession.account.id}, tenantId: ${element.resource.subscription.tenantId})...`,
                 );
+
+                const tokenInfo = await acquireTokenFromVscodeAccountForResource(
+                    getCloudResourceEndpoint("sqlResource"),
+                    azSession.account.id,
+                    element.resource.subscription.tenantId,
+                    azSession.account.label,
+                    { promptIfMissing: true },
+                );
+
+                const connectionInfo = buildConnectionInfo(element.resource, tokenInfo);
 
                 const sessionResult =
                     await this._objectExplorerService.createSession(connectionInfo);
@@ -167,8 +215,8 @@ export class SqlServerBranchDataProvider
                 element.sessionId = sessionResult.sessionId;
                 element.connectionNode = sessionResult.connectionNode;
 
-                this._outputChannel.appendLine(
-                    `[Azure Resources] OE session ready for ${name} (sessionId: ${sessionResult.sessionId})`,
+                this._logger.info(
+                    `OE session ready for ${name} (sessionId: ${sessionResult.sessionId})`,
                 );
             }
 
@@ -177,27 +225,21 @@ export class SqlServerBranchDataProvider
                 element.sessionId,
             );
 
-            this._outputChannel.appendLine(
-                `[Azure Resources] ${name} expanded: ${children?.length ?? 0} children`,
-            );
+            this._logger.info(`${name} expanded: ${children?.length ?? 0} children`);
             return (children ?? []) as TreeNodeInfo[];
         } catch (err) {
             const msg = getErrorMessage(err);
-            this._outputChannel.appendLine(`[Azure Resources] Error expanding "${name}": ${msg}`);
+            this._logger.error(`Error expanding "${name}": ${msg}`);
             throw err;
         }
     }
 
     private async _getOeChildren(element: TreeNodeInfo): Promise<SqlBranchModel[]> {
         if (!element.sessionId) {
-            this._outputChannel.appendLine(
-                `[Azure Resources] getChildren: no sessionId on "${element.label}" — returning empty`,
-            );
+            this._logger.info(`getChildren: no sessionId on "${element.label}" — returning empty`);
             return [];
         }
-        this._outputChannel.appendLine(
-            `[Azure Resources] Expanding OE node "${element.label}" (nodePath: ${element.nodePath})`,
-        );
+        this._logger.info(`Expanding OE node "${element.label}" (nodePath: ${element.nodePath})`);
         try {
             const children = await this._objectExplorerService.expandNode(
                 element,
@@ -206,9 +248,7 @@ export class SqlServerBranchDataProvider
             return (children ?? []) as TreeNodeInfo[];
         } catch (err) {
             const msg = getErrorMessage(err);
-            this._outputChannel.appendLine(
-                `[Azure Resources] Error expanding "${element.label}": ${msg}`,
-            );
+            this._logger.error(`Error expanding "${element.label}": ${msg}`);
             return [];
         }
     }
@@ -220,21 +260,29 @@ export class SqlServerBranchDataProvider
 }
 
 /**
- * Builds an IConnectionInfo for Azure SQL using a pre-acquired Entra token.
+ * Builds an IConnectionInfo for Azure SQL using a token acquired via MSSQL's
+ * VS Code auth path (`acquireTokenFromVscodeAccountForResource`).
  */
-function buildConnectionInfo(resource: AzureResource, accessToken: string): IConnectionInfo {
+function buildConnectionInfo(
+    resource: AzureResource,
+    tokenInfo: {
+        account: { id: string; label: string };
+        tenantId: string;
+        token: { token: string; expiresOn?: number };
+    },
+): IConnectionInfo {
     return {
         server: `${resource.name}.database.windows.net`,
         database: "",
-        user: "",
+        user: tokenInfo.account.label,
         password: "",
-        email: resource.subscription.account?.label,
-        accountId: resource.subscription.account?.id,
-        tenantId: resource.subscription.tenantId,
+        email: tokenInfo.account.label,
+        accountId: tokenInfo.account.id,
+        tenantId: tokenInfo.tenantId,
         port: 0,
         authenticationType: "AzureMFA",
-        azureAccountToken: accessToken,
-        expiresOn: parseTokenExpiry(accessToken),
+        azureAccountToken: tokenInfo.token.token,
+        expiresOn: tokenInfo.token.expiresOn,
         encrypt: "Mandatory",
         trustServerCertificate: false,
         hostNameInCertificate: undefined,
@@ -265,23 +313,4 @@ function buildConnectionInfo(resource: AzureResource, accessToken: string): ICon
         connectionString: undefined,
         containerName: undefined,
     };
-}
-
-/**
- * Parses the `exp` claim from a JWT access token and returns it as a Unix timestamp (seconds).
- * Returns undefined if the token cannot be parsed.
- */
-function parseTokenExpiry(accessToken: string): number | undefined {
-    try {
-        const parts = accessToken.split(".");
-        if (parts.length < 2) {
-            return undefined;
-        }
-        const padded = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-        const payload = Buffer.from(padded, "base64").toString("utf8");
-        const claims = JSON.parse(payload) as Record<string, unknown>;
-        return typeof claims["exp"] === "number" ? claims["exp"] : undefined;
-    } catch {
-        return undefined;
-    }
 }

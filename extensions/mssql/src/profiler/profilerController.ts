@@ -20,6 +20,7 @@ import { Logger } from "../models/logger";
 import { Profiler as LocProfiler } from "../constants/locConstants";
 import * as Constants from "../constants/constants";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
+import { resolveObjectExplorerNode } from "../azure/sqlServerBranchDataProvider";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { IConnectionProfile } from "../models/interfaces";
 import { getServerTypes, isAzureSqlDbCompatible } from "../models/connectionInfo";
@@ -246,6 +247,7 @@ export class ProfilerController {
             vscode.commands.registerCommand(
                 "mssql.profiler.launchFromObjectExplorer",
                 async (treeNodeInfo: TreeNodeInfo) => {
+                    treeNodeInfo = resolveObjectExplorerNode(treeNodeInfo) ?? treeNodeInfo;
                     try {
                         const connectionProfile = treeNodeInfo.connectionProfile;
                         await this.launchProfilerWithConnection(connectionProfile);
@@ -264,6 +266,7 @@ export class ProfilerController {
             vscode.commands.registerCommand(
                 "mssql.profiler.launchFromDatabase",
                 async (treeNodeInfo: TreeNodeInfo) => {
+                    treeNodeInfo = resolveObjectExplorerNode(treeNodeInfo) ?? treeNodeInfo;
                     try {
                         const connectionProfile = treeNodeInfo.connectionProfile;
                         // Use ObjectExplorerUtils.getDatabaseName to reliably get the database name.

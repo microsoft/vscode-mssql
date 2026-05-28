@@ -108,6 +108,16 @@ import { ProfilerController } from "../profiler/profilerController";
 import { ProfilerService } from "../services/profilerService";
 import { ProfilerSessionManager } from "../profiler/profilerSessionManager";
 import { getCloudId } from "../azure/providerSettings";
+import {
+    resolveObjectExplorerNode,
+    SqlServerBranchDataProvider,
+    isSqlServerRootModel,
+} from "../azure/sqlServerBranchDataProvider";
+import {
+    AzExtResourceType,
+    AzureResourcesExtensionApi,
+    apiUtils,
+} from "@microsoft/vscode-azureresources-api";
 import { openExecutionPlanWebview } from "./sharedExecutionPlanUtils";
 import { ITableExplorerService, TableExplorerService } from "../services/tableExplorerService";
 import { IMetadataService, MetadataService } from "../services/metadataService";
@@ -117,6 +127,7 @@ import { ChangelogWebviewController } from "./changelogWebviewController";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
 import { HttpClient } from "../http/httpClient";
 import { Logger } from "../models/logger";
+import { logger2 } from "../models/logger2";
 import { FileBrowserService } from "../services/fileBrowserService";
 import { BackupDatabaseWebviewController } from "./backupDatabaseWebviewController";
 import { AzureBlobService } from "../services/azureBlobService";
@@ -444,6 +455,7 @@ export default class MainController implements vscode.Disposable {
 
             this.registerCommandWithArgs(Constants.cmdChatWithDatabase);
             this._event.on(Constants.cmdChatWithDatabase, async (treeNodeInfo: TreeNodeInfo) => {
+                treeNodeInfo = resolveObjectExplorerNode(treeNodeInfo);
                 sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.ChatWithDatabase);
 
                 const connectionCredentials = Object.assign({}, treeNodeInfo.connectionProfile);
@@ -518,6 +530,7 @@ export default class MainController implements vscode.Disposable {
             this._event.on(
                 Constants.cmdChatWithDatabaseInAgentMode,
                 async (treeNodeInfo: TreeNodeInfo) => {
+                    treeNodeInfo = resolveObjectExplorerNode(treeNodeInfo);
                     sendActionEvent(
                         TelemetryViews.MssqlCopilot,
                         TelemetryActions.ChatWithDatabaseInAgentMode,
@@ -770,7 +783,92 @@ export default class MainController implements vscode.Disposable {
 
             this.registerLanguageModelTools();
 
+            void this.registerAzureResourcesBranchDataProvider();
+
             return true;
+        }
+    }
+
+    /**
+     * Soft-registers with the Azure Resources extension if it is installed.
+     * If not installed, this is a no-op and mssql continues to work normally.
+     */
+    private async registerAzureResourcesBranchDataProvider(): Promise<void> {
+        const log = logger2.withPrefix("Azure Resources");
+        try {
+            log.info("Looking for the Azure Resources extension...");
+
+            const apiProvider =
+                await apiUtils.getExtensionExports<apiUtils.AzureExtensionApiProvider>(
+                    "ms-azuretools.vscode-azureresourcegroups",
+                );
+
+            if (!apiProvider) {
+                log.info(
+                    "Azure Resources extension not found; skipping branch data provider registration.",
+                );
+                return;
+            }
+
+            log.info("Registering SQL Server branch data provider...");
+
+            const api = apiProvider.getApi<AzureResourcesExtensionApi>("2", {
+                extensionId: this._context.extension.id,
+            });
+
+            const provider = new SqlServerBranchDataProvider(
+                this._objectExplorerProvider.objectExplorerService,
+                log,
+            );
+
+            const self = this;
+            const openInMssqlExtensionCommand = vscode.commands.registerCommand(
+                "mssql.openInMssqlExtension",
+                async (rawNode: unknown) => {
+                    const maybeWrapper = rawNode as { unwrap?: () => unknown } | null | undefined;
+                    const inner =
+                        maybeWrapper && typeof maybeWrapper.unwrap === "function"
+                            ? maybeWrapper.unwrap()
+                            : rawNode;
+
+                    if (!isSqlServerRootModel(inner)) {
+                        return;
+                    }
+
+                    const serverName = `${inner.resource.name}.database.windows.net`;
+                    const profileName = inner.resource.name;
+
+                    const uri = vscode.Uri.parse(
+                        `${vscode.env.uriScheme}://ms-mssql.mssql/connect` +
+                            `?server=${encodeURIComponent(serverName)}` +
+                            `&authenticationType=AzureMFA` +
+                            `&profileName=${encodeURIComponent(profileName)}`,
+                    );
+
+                    const mssqlProtocolHandler = new MssqlProtocolHandler(
+                        self._vscodeWrapper,
+                        self,
+                        self._connectionMgr.client,
+                    );
+                    await mssqlProtocolHandler.handleUri(uri);
+                },
+            );
+
+            this._context.subscriptions.push(
+                provider,
+                openInMssqlExtensionCommand,
+                api.resources.registerAzureResourceBranchDataProvider(
+                    AzExtResourceType.SqlServers,
+                    provider,
+                ),
+            );
+
+            log.info("SQL Server branch data provider registered successfully.");
+        } catch (err) {
+            log.error(
+                `Failed to register branch data provider: ${err instanceof Error ? err.message : String(err)}`,
+            );
+            // Do not rethrow — failure here must not break regular mssql functionality.
         }
     }
 
@@ -1279,6 +1377,7 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdObjectExplorerNewQuery,
                 async (treeNodeInfo: TreeNodeInfo) => {
+                    treeNodeInfo = resolveObjectExplorerNode(treeNodeInfo);
                     const connectionCredentials = treeNodeInfo.connectionProfile;
                     const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
 
@@ -1314,16 +1413,18 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdRefreshObjectExplorerNode,
                 async (treeNodeInfo: TreeNodeInfo) => {
+                    treeNodeInfo = resolveObjectExplorerNode(treeNodeInfo);
                     await this._objectExplorerProvider.refreshNode(treeNodeInfo);
                 },
             ),
         );
 
         const resolveSelectedNode = (node?: TreeNodeInfo): TreeNodeInfo | undefined => {
-            if (!node && this.objectExplorerTree?.selection?.length === 1) {
+            const unwrapped = resolveObjectExplorerNode(node);
+            if (!unwrapped && this.objectExplorerTree?.selection?.length === 1) {
                 return this.objectExplorerTree.selection[0];
             }
-            return node;
+            return unwrapped;
         };
 
         const refreshNodeChildren = async (node?: TreeNodeInfo): Promise<void> => {
@@ -1767,9 +1868,10 @@ export default class MainController implements vscode.Disposable {
         );
 
         this._context.subscriptions.push(
-            vscode.commands.registerCommand(Constants.cmdSearchDatabase, async (node: any) =>
-                this.onSearchDatabase(node),
-            ),
+            vscode.commands.registerCommand(Constants.cmdSearchDatabase, async (node: any) => {
+                node = resolveObjectExplorerNode(node);
+                return this.onSearchDatabase(node);
+            }),
         );
 
         this._context.subscriptions.push(
@@ -1814,6 +1916,7 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdDesignSchema,
                 async (node: TreeNodeInfo) => {
+                    node = resolveObjectExplorerNode(node);
                     const schemaDesigner =
                         await SchemaDesignerWebviewManager.getInstance().getSchemaDesigner(
                             this._context,
@@ -1857,6 +1960,7 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdBuildDataApi,
                 async (node: TreeNodeInfo) => {
+                    node = resolveObjectExplorerNode(node);
                     const schemaDesigner =
                         await SchemaDesignerWebviewManager.getInstance().getSchemaDesigner(
                             this._context,
@@ -1866,7 +1970,6 @@ export default class MainController implements vscode.Disposable {
                             node.metadata.name,
                             node,
                         );
-
                     schemaDesigner.showView(SchemaDesigner.SchemaDesignerActiveView.Dab);
                     schemaDesigner.revealToForeground();
                 },
@@ -1875,6 +1978,7 @@ export default class MainController implements vscode.Disposable {
 
         this._context.subscriptions.push(
             vscode.commands.registerCommand(Constants.cmdNewTable, async (node: TreeNodeInfo) => {
+                node = resolveObjectExplorerNode(node);
                 const reactPanel = new TableDesignerWebviewController(
                     this._context,
                     this._vscodeWrapper,
@@ -1891,6 +1995,7 @@ export default class MainController implements vscode.Disposable {
 
         this._context.subscriptions.push(
             vscode.commands.registerCommand(Constants.cmdEditTable, async (node: TreeNodeInfo) => {
+                node = resolveObjectExplorerNode(node);
                 const reactPanel = new TableDesignerWebviewController(
                     this._context,
                     this._vscodeWrapper,
@@ -1906,6 +2011,7 @@ export default class MainController implements vscode.Disposable {
         );
 
         const filterNode = async (node: TreeNodeInfo) => {
+            node = resolveObjectExplorerNode(node);
             const filters = await ObjectExplorerFilter.getFilters(
                 this._context,
                 this._vscodeWrapper,
@@ -1941,6 +2047,7 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdClearFilters,
                 async (node: TreeNodeInfo) => {
+                    node = resolveObjectExplorerNode(node);
                     node.filters = [];
                     await this._objectExplorerProvider.refreshNode(node);
                     await this.objectExplorerTree.reveal(node, {
@@ -1956,6 +2063,7 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdBackupDatabase,
                 async (node: TreeNodeInfo) => {
+                    node = resolveObjectExplorerNode(node);
                     const databaseName = ObjectExplorerUtils.getDatabaseName(node);
                     const reactPanel = new BackupDatabaseWebviewController(
                         this._context,
@@ -1977,6 +2085,7 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdRestoreDatabase,
                 async (node: TreeNodeInfo) => {
+                    node = resolveObjectExplorerNode(node);
                     const databaseName = ObjectExplorerUtils.getDatabaseName(node);
 
                     const reactPanel = new RestoreDatabaseWebviewController(
@@ -2016,6 +2125,7 @@ export default class MainController implements vscode.Disposable {
         ): void => {
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(commandId, async (node?: TreeNodeInfo) => {
+                    node = resolveObjectExplorerNode(node);
                     const connectionProfile = node?.connectionProfile;
                     const ownerUri = connectionProfile
                         ? this._connectionMgr.getUriForConnection(connectionProfile)
@@ -2060,6 +2170,7 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdCopyObjectName,
                 async (node: TreeNodeInfo) => {
+                    node = resolveObjectExplorerNode(node);
                     if (!node && this.objectExplorerTree?.selection?.length === 1) {
                         node = this.objectExplorerTree.selection[0];
                     }
@@ -2079,6 +2190,7 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdCopyConnectionString,
                 async (node: TreeNodeInfo) => {
+                    node = resolveObjectExplorerNode(node);
                     if (!node && this.objectExplorerTree?.selection?.length === 1) {
                         node = this.objectExplorerTree.selection[0];
                     }
