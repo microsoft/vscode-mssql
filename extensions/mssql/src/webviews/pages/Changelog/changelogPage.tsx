@@ -708,19 +708,12 @@ export const ChangelogPage = () => {
         );
     };
 
-    function eventDate(date: string | undefined, timezone: string | undefined): Date | undefined {
-        if (!date) {
-            return undefined;
-        }
-
-        return new Date(`${date}T00:00:00${timezone ?? "+00:00"}`);
-    }
-
     function isEventOver(eventData: ChangelogEvent): boolean {
         if (!eventData) {
             return false;
         }
 
+        // expires at 11:59PM on the last day of the event
         const expiresAt = new Date(
             `${eventData.endDate ?? eventData.date}T23:59:00${eventData.location?.timezone ?? "+00:00"}`,
         );
@@ -732,6 +725,11 @@ export const ChangelogPage = () => {
     }
 
     const monthFmt = new Intl.DateTimeFormat(undefined, { month: "long", timeZone: "UTC" });
+    const monthDayFmt = new Intl.DateTimeFormat(undefined, {
+        month: "long",
+        day: "numeric",
+        timeZone: "UTC",
+    });
     const fullFmt = new Intl.DateTimeFormat(undefined, {
         month: "long",
         day: "numeric",
@@ -739,22 +737,35 @@ export const ChangelogPage = () => {
         timeZone: "UTC",
     });
 
+    function eventDate(date: string | undefined): Date | undefined {
+        if (!date) {
+            return undefined;
+        }
+
+        return new Date(`${date}T12:00:00Z`);
+    }
+
     function formatEventDateRange(eventData: ChangelogEvent): string {
-        const start = eventDate(eventData.date, eventData.location?.timezone)!;
-        const end = eventDate(eventData.endDate, eventData.location?.timezone);
+        // Parse dates as UTC noon to get the correct calendar date regardless of local timezone.
+        const start = eventDate(eventData.date)!;
+        const end = eventDate(eventData.endDate);
 
         if (!end || start.getTime() === end.getTime()) {
             return fullFmt.format(start);
         }
 
-        if (
-            start.getUTCFullYear() === end.getUTCFullYear() &&
-            start.getUTCMonth() === end.getUTCMonth()
-        ) {
-            return `${monthFmt.format(start)} ${start.getUTCDate()}-${end.getUTCDate()}, ${end.getUTCFullYear()}`;
+        if (start.getUTCFullYear() === end.getUTCFullYear()) {
+            if (start.getUTCMonth() === end.getUTCMonth()) {
+                // Ex: "Sept 27 - 29, 2026"
+                return `${monthFmt.format(start)} ${start.getUTCDate()} - ${end.getUTCDate()}, ${end.getUTCFullYear()}`;
+            } else {
+                // Ex: "Sept 27 - Oct 3, 2026"
+                return `${monthDayFmt.format(start)} - ${fullFmt.format(end)}`;
+            }
+        } else {
+            // Ex: "Sept 27, 2026 - Jan 10, 2027"
+            return `${fullFmt.format(start)} - ${fullFmt.format(end)}`;
         }
-
-        return `${fullFmt.format(start)} - ${fullFmt.format(end)}`;
     }
 
     function renderDescriptionWithSnippets(text: string, snippets: string[]): React.ReactNode[] {
