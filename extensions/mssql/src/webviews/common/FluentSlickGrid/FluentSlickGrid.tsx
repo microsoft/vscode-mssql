@@ -97,6 +97,16 @@ type SlickgridReactPublicProps = React.JSX.LibraryManagedAttributes<
     React.ComponentProps<typeof SlickgridReact>
 >;
 
+class FluentSlickgridReact extends SlickgridReact {
+    public override initialization(...args: Parameters<SlickgridReact["initialization"]>): void {
+        if (this.props.customDataView && !this.dataView) {
+            this.dataView = this.props.customDataView as typeof this.dataView;
+        }
+
+        super.initialization(...args);
+    }
+}
+
 export interface FluentSlickGridProps extends Omit<SlickgridReactPublicProps, "options"> {
     options: GridOption;
 }
@@ -122,5 +132,5 @@ export const FluentSlickGrid: React.FC<FluentSlickGridProps> = ({ options, ...pr
         [options],
     );
 
-    return <SlickgridReact {...props} options={mergedOptions} />;
+    return <FluentSlickgridReact {...props} options={mergedOptions} />;
 };

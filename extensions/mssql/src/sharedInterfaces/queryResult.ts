@@ -82,6 +82,7 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     gridSettings?: GridSettings;
     autoSizeColumnsMode?: ResultsGridAutoSizeStyle;
     inMemoryDataProcessingThreshold?: number;
+    isBetaResultsGridEnabled?: boolean;
     initializationError?: string;
     selectionSummary?: SelectionSummary;
 }

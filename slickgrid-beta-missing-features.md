@@ -1,0 +1,22 @@
+- [x] Keyboard accessibility parity
+- [x] Cell and range selection behavior
+- [x] Copy/export support
+- [x] Sorting
+- [x] Filtering
+- [x] Column menus
+- [x] Context menu
+- [x] Column width persistence
+- [x] Scroll position restore
+- [x] Auto-size column modes
+- [x] Grid state restore
+- [x] Result grid shortcuts
+- [x] Custom shortcuts
+- [x] Selection summary
+- [ ] Maximize/restore polish
+- [ ] Empty-state handling
+- [ ] Full theming parity
+- [ ] Styling parity with current results grid
+- [ ] Custom styling
+- [ ] Large-result performance validation
+- [x] XML/JSON link parity
+- [ ] Screen reader labels/announcements

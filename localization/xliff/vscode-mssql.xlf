@@ -5663,6 +5663,17 @@
       <source xml:lang="en">Results exported successfully to {0}</source>
       <note>{0} is the file path</note>
     </trans-unit>
+    <trans-unit id="++CODE++b86226a1081bb43a72ad0caf492706d690cc7efbd9bc1828e71dc1390f96c94f">
+      <source xml:lang="en">Results-Beta</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5d3c35275b7b17da87445d89b90793efdf23779efecc6268d162577c427918dc">
+      <source xml:lang="en">Results-Beta ({0})</source>
+      <note>{0} is the number of beta results</note>
+    </trans-unit>
+    <trans-unit id="++CODE++8d3aef5b54b3663a6d661bcea9babaa5c7209f6dca4a6f9bb52b9eda837f0601">
+      <source xml:lang="en">Results-Beta ({0})</source>
+      <note>{0} is the keyboard shortcut for the beta results tab</note>
+    </trans-unit>
     <trans-unit id="++CODE++d640c7421da066618a39daf4266da5f61f66a9b1afcd626481b831a17064965d">
       <source xml:lang="en">Resume</source>
     </trans-unit>
@@ -8298,6 +8309,9 @@
     </trans-unit>
     <trans-unit id="mssql.enableExperimentalFeatures.description">
       <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
+    </trans-unit>
+    <trans-unit id="mssql.preview.betaResultsGrid.description">
+      <source xml:lang="en">Enables the beta SlickGrid React query results grid. This preview grid is not production-ready and starts with windowed row loading only.</source>
     </trans-unit>
     <trans-unit id="mssql.showEstimatedPlan">
       <source xml:lang="en">Estimated Plan (MSSQL)</source>

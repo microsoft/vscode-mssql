@@ -68,6 +68,8 @@ export interface QueryResultReactProvider
         x: number,
         y: number,
         onAction: (action: HeaderContextMenuAction) => void | Promise<void>,
+        actions?: HeaderContextMenuAction[],
+        freezeActionLabel?: string,
     ) => void;
     hideHeaderContextMenu: () => void;
     /**
@@ -117,6 +119,8 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
         x: number;
         y: number;
         onAction?: (action: HeaderContextMenuAction) => void | Promise<void>;
+        actions?: HeaderContextMenuAction[];
+        freezeActionLabel?: string;
     }>({ open: false, x: 0, y: 0 });
 
     const [resizeDialogState, setResizeDialogState] = useState<ResizeColumnDialogState>({
@@ -174,10 +178,10 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
             },
             hideColumnMenuPopup: hideFilterPopup,
             // Header context menu API
-            showHeaderContextMenu: (x: number, y: number, onAction) => {
+            showHeaderContextMenu: (x: number, y: number, onAction, actions, freezeActionLabel) => {
                 hideFilterPopup();
                 hideHeaderContextMenu();
-                setHeaderMenuState({ open: true, x, y, onAction });
+                setHeaderMenuState({ open: true, x, y, onAction, actions, freezeActionLabel });
             },
             hideHeaderContextMenu: () => {
                 setHeaderMenuState((s) => ({ ...s, open: false }));
@@ -279,6 +283,8 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
                         setHeaderMenuState((s) => ({ ...s, open: false }));
                     }}
                     onClose={() => setHeaderMenuState((s) => ({ ...s, open: false }))}
+                    actions={headerMenuState.actions}
+                    freezeActionLabel={headerMenuState.freezeActionLabel}
                 />
             )}
             {filterPopupState && (

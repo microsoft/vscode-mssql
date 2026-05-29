@@ -1,0 +1,298 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.query-result-beta-grid {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+
+    --slick-header-background-color: var(--vscode-keybindingTable-headerBackground);
+    --slick-grid-header-background: var(--vscode-keybindingTable-headerBackground);
+    --slick-header-text-color: var(--vscode-foreground);
+    --slick-header-font-size: 12px;
+    --slick-header-font-weight: normal;
+    --slick-header-column-background-hover: var(--vscode-list-hoverBackground);
+    --slick-header-column-background-active: var(--vscode-list-activeSelectionBackground);
+    --slick-header-row-border-color: var(--vscode-panel-border);
+    --slick-cell-even-background-color: var(--vscode-editor-background);
+    --slick-cell-odd-background-color: var(--vscode-editor-background);
+    --slick-cell-text-color: var(--vscode-foreground);
+    --slick-canvas-bg-color: var(--vscode-editor-background);
+    --slick-row-mouse-hover-color: var(--vscode-list-hoverBackground);
+    --slick-row-selected-color: var(--vscode-list-activeSelectionBackground);
+    --slick-cell-selected-color: var(--vscode-list-activeSelectionBackground);
+    --slick-border-color: var(--vscode-editorWidget-border);
+    --slick-grid-border-color: var(--vscode-editorWidget-border);
+    --slick-cell-border-right: 1px solid var(--vscode-editorWidget-border);
+    --slick-cell-border-top: 1px solid var(--vscode-editorWidget-border);
+    --slick-cell-border-bottom: 1px solid var(--vscode-editorWidget-border);
+    --slick-cell-border-left: 0;
+    --slick-cell-box-shadow: none;
+    --slick-container-border-top: 1px solid var(--vscode-editorWidget-border);
+    --slick-container-border-bottom: 1px solid var(--vscode-editorWidget-border);
+    --slick-pane-top-border-top: none;
+    --slick-scrollbar-color: var(--vscode-scrollbarSlider-background)
+        var(--vscode-editor-background);
+}
+
+.query-result-beta-grid > .grid-pane {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
+.query-result-beta-grid .slickgrid-container {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.query-result-beta-grid .slick-header,
+.query-result-beta-grid .slick-header-columns {
+    background-color: var(--vscode-keybindingTable-headerBackground, #3c3c3c);
+    border-left: 0 !important;
+    height: 24px !important;
+    overflow: hidden;
+}
+
+.query-result-beta-grid .slick-header-column,
+.query-result-beta-grid .slickgrid-container .slick-header-column,
+.query-result-beta-grid .slickgrid-container .slick-header-columns .slick-header-column,
+.query-result-beta-grid .slick-header-column.slick-state-default {
+    background-color: var(--vscode-keybindingTable-headerBackground, #3c3c3c) !important;
+    border-left: 0 !important;
+    border-right: 1px solid var(--vscode-panel-border, #454545);
+    border-top: 0 !important;
+    border-bottom: 1px solid var(--vscode-panel-border, #454545);
+    box-sizing: border-box;
+    color: var(--vscode-foreground, #cccccc) !important;
+    float: left;
+    font-size: 12px;
+    font-weight: normal;
+    height: 24px !important;
+    line-height: 16px;
+    margin: 0;
+    overflow: hidden;
+    padding: 3px 4px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.query-result-beta-grid .slick-header-column:hover,
+.query-result-beta-grid .slick-header-column.slick-state-default:hover {
+    background-color: var(--vscode-list-hoverBackground, #2a2d2e);
+}
+
+.query-result-beta-grid .slick-header-column .slick-column-name {
+    color: var(--vscode-foreground, #cccccc) !important;
+    box-sizing: border-box;
+    display: block;
+    flex: 1 1 auto;
+    float: none;
+    height: auto;
+    line-height: 16px;
+    margin-bottom: 0;
+    max-width: 100%;
+    min-width: 0;
+    opacity: 1 !important;
+    overflow: hidden;
+    padding-right: 0;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: auto;
+}
+
+.query-result-beta-grid .slick-header-column.slick-header-with-filter {
+    align-items: center;
+    display: flex;
+    justify-content: flex-start;
+    position: relative;
+    text-align: left;
+}
+
+.query-result-beta-grid .slick-header-column.slick-header-with-filter .slick-column-name {
+    min-width: 0;
+}
+
+.query-result-beta-grid .slick-header-column .slick-header-sortbutton,
+.query-result-beta-grid .slick-header-column .slick-header-filterbutton {
+    align-items: center;
+    box-sizing: border-box;
+    display: inline-flex;
+    flex: 0 0 16px;
+    float: none;
+    height: 16px;
+    justify-content: center;
+    line-height: 16px;
+    margin-bottom: 0;
+    min-width: 16px;
+    position: static;
+    transform: none;
+    vertical-align: middle;
+    width: 16px;
+    z-index: 3;
+}
+
+.query-result-beta-grid .slick-header-column .slick-header-sortbutton {
+    margin: 0 1px 0 2px;
+}
+
+.query-result-beta-grid .slick-header-column .slick-header-filterbutton {
+    margin: 0;
+}
+
+.query-result-beta-grid .slick-header-column .slick-sort-indicator,
+.query-result-beta-grid .slick-header-column .slick-sort-indicator-numbered {
+    display: none !important;
+    height: 0 !important;
+    width: 0 !important;
+}
+
+.query-result-beta-grid .slick-header-column[data-id="_mssqlRowNumberColumn"],
+.query-result-beta-grid .slick-header-column.query-result-beta-row-number-header {
+    padding-left: 1px;
+    padding-right: 2px;
+}
+
+.query-result-beta-grid .slick-cell {
+    display: flex;
+    align-items: center;
+    background-color: var(--vscode-editor-background);
+    box-sizing: border-box;
+    color: var(--vscode-foreground);
+    padding-top: calc(1px + var(--results-row-padding, 0px));
+    padding-bottom: calc(2px + var(--results-row-padding, 0px));
+}
+
+.query-result-beta-grid .slick-cell .grid-cell-value-container {
+    display: block;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.query-result-beta-grid .slick-cell a.grid-cell-value-container {
+    color: var(--vscode-textLink-foreground);
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.query-result-beta-grid .slick-cell a.grid-cell-value-container:hover {
+    color: var(--vscode-textLink-activeForeground);
+}
+
+.query-result-beta-grid .slick-cell .grid-cell-value-container.missing-value,
+.query-result-beta-grid .slick-cell.cell-null .grid-cell-value-container {
+    font-style: italic;
+}
+
+.query-result-beta-grid .slick-cell.cell-null {
+    background-color: var(--vscode-mssql-resultsGridNullBackground);
+    color: var(--vscode-mssql-resultsGridNullForeground);
+}
+
+.query-result-beta-grid .slick-cell .grid-cell-value-container.cell-null,
+.query-result-beta-grid .slick-cell.cell-null .grid-cell-value-container {
+    color: inherit;
+}
+
+.query-result-beta-grid .slick-cell.selected {
+    background-color: var(--vscode-list-activeSelectionBackground);
+    color: var(--vscode-list-activeSelectionForeground);
+}
+
+.query-result-beta-grid .slick-cell.active {
+    background-color: var(--vscode-list-focusBackground);
+    color: var(--vscode-list-focusForeground);
+}
+
+.query-result-beta-grid .slick-cell.selected.active {
+    background-color: var(--vscode-list-activeSelectionBackground);
+    color: var(--vscode-list-activeSelectionForeground);
+    outline: 2px solid var(--vscode-contrastActiveBorder);
+    outline-offset: -1px;
+}
+
+.query-result-beta-grid .slick-row:hover .slick-cell:not(.selected):not(.active):not(.cell-null) {
+    background-color: var(--vscode-list-hoverBackground);
+    color: var(--vscode-list-hoverForeground);
+}
+
+.results-grid--alternating
+    .query-result-beta-grid
+    .slick-row.even
+    .slick-cell:not(.selected):not(.active):not(.cell-null):not(
+        .query-result-beta-row-number-cell
+    ) {
+    background-color: var(--vscode-list-alternatingBackground);
+}
+
+.query-result-beta-grid .slick-row.odd .slick-cell.cell-null:not(.selected):not(.active),
+.query-result-beta-grid .slick-row.even .slick-cell.cell-null:not(.selected):not(.active) {
+    background-color: var(--vscode-mssql-resultsGridNullBackground);
+    color: var(--vscode-mssql-resultsGridNullForeground);
+}
+
+.results-grid--gridlines-horizontal .query-result-beta-grid .slick-cell {
+    border-right-color: transparent;
+    border-bottom-color: var(--vscode-panel-border);
+}
+
+.results-grid--gridlines-vertical .query-result-beta-grid .slick-cell {
+    border-right-color: var(--vscode-panel-border);
+    border-bottom-color: transparent;
+}
+
+.results-grid--gridlines-none .query-result-beta-grid .slick-cell {
+    border-right-color: transparent;
+    border-bottom-color: transparent;
+}
+
+.results-grid--gridlines-both .query-result-beta-grid .slick-cell {
+    border-right-color: var(--vscode-panel-border);
+    border-bottom-color: var(--vscode-panel-border);
+}
+
+.query-result-beta-grid .slick-cell.query-result-beta-row-number-cell {
+    background-color: var(--vscode-keybindingTable-headerBackground);
+    color: var(--vscode-editor-foreground);
+    justify-content: flex-start;
+    min-width: 0;
+    overflow: hidden;
+    padding-left: 4px;
+    padding-right: 0;
+}
+
+.results-grid--alternating
+    .query-result-beta-grid
+    .slick-row.even
+    .slick-cell.query-result-beta-row-number-cell {
+    background-color: var(--vscode-keybindingTable-headerBackground);
+}
+
+.query-result-beta-grid .slick-row:hover .slick-cell.query-result-beta-row-number-cell {
+    background-color: var(--vscode-list-hoverBackground);
+}
+
+.query-result-beta-grid .slick-cell > .row-number.query-result-beta-row-number {
+    color: inherit;
+    display: block;
+    flex: 1 1 auto;
+    font-style: italic;
+    font-weight: lighter;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+}

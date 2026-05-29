@@ -10,7 +10,7 @@ export interface IObservableCollection<T> {
     at(index: number): T;
     getRange(start: number, end: number): T[];
     setCollectionChangedCallback(callback: (startIndex: number, count: number) => void): void;
-    setLength(length: number): void;
+    setLength(length: number, resetWindows?: boolean): void;
 }
 
 export interface ISlickColumn<T extends Slick.SlickData> extends Slick.Column<T> {
@@ -130,9 +130,9 @@ export class VirtualizedCollection<T extends Slick.SlickData> implements IObserv
         return this.length;
     }
 
-    setLength(length: number): void {
+    setLength(length: number, resetWindows = true): void {
         if (this.length !== length) {
-            this._lengthChanged = true;
+            this._lengthChanged = resetWindows || length < this.length;
             this.length = length;
         }
     }

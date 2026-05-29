@@ -445,9 +445,18 @@
         "comment": ["{0} is the keyboard shortcut for the results tab"]
     },
     "Results": "Results",
+    "Results-Beta ({0})/{0} is the keyboard shortcut for the beta results tab": {
+        "message": "Results-Beta ({0})",
+        "comment": ["{0} is the keyboard shortcut for the beta results tab"]
+    },
+    "Results-Beta": "Results-Beta",
     "Results ({0})/{0} is the number of results": {
         "message": "Results ({0})",
         "comment": ["{0} is the number of results"]
+    },
+    "Results-Beta ({0})/{0} is the number of beta results": {
+        "message": "Results-Beta ({0})",
+        "comment": ["{0} is the number of beta results"]
     },
     "Messages ({0})/{0} is the keyboard shortcut for the messages tab": {
         "message": "Messages ({0})",

@@ -4,12 +4,22 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { makeStyles } from "@fluentui/react-components";
-import { createRef, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import {
+    createRef,
+    ForwardRefExoticComponent,
+    RefAttributes,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { useQueryResultSelector } from "./queryResultSelector";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import CommandBar from "./commandBar";
-import ResultGrid, { ResultGridHandle } from "./resultGrid";
+import ResultGrid, { ResultGridHandle, ResultGridProps } from "./resultGrid";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { eventMatchesShortcut } from "../../common/keyboardUtils";
 import { WebviewAction } from "../../../sharedInterfaces/webview";
@@ -39,6 +49,13 @@ const useStyles = makeStyles({
 });
 
 type GridItem = { batchId: number; resultId: number; index: number };
+type ResultGridComponent = ForwardRefExoticComponent<
+    ResultGridProps & RefAttributes<ResultGridHandle>
+>;
+
+export interface QueryResultsGridViewProps {
+    GridComponent?: ResultGridComponent;
+}
 
 const ROW_HEIGHT = 26;
 const HEADER = 30;
@@ -46,7 +63,7 @@ export const MARGIN_BOTTOM = 10;
 const MIN_HORIZONTAL_SCROLLBAR_SPACE = 18; // Reserve space so short grids don't clip the scrollbar over rows
 const DEFAULT_INITIAL_MIN_NUMBER_OF_VISIBLE_ROWS = 8;
 
-export const QueryResultsGridView = () => {
+export const QueryResultsGridView = ({ GridComponent = ResultGrid }: QueryResultsGridViewProps) => {
     const classes = useStyles();
     const context = useContext(QueryResultCommandsContext);
     if (!context) {
@@ -178,7 +195,7 @@ export const QueryResultsGridView = () => {
             }
         }
         return undefined;
-    }, [gridList, gridContainerRefs, gridRefs]);
+    }, [gridList, gridRefs]);
 
     // Keyboard shortcuts
     useEffect(() => {
@@ -285,6 +302,55 @@ export const QueryResultsGridView = () => {
         });
     };
 
+    const handleCommandBarKeyDown = useCallback(
+        (event: React.KeyboardEvent, gridIndex: number) => {
+            if (!event.shiftKey || event.key !== "Tab") {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+            gridRefs.current[gridIndex]?.focusGrid();
+        },
+        [gridRefs],
+    );
+
+    useEffect(() => {
+        const handler = (event: KeyboardEvent) => {
+            if (!event.shiftKey || event.key !== "Tab") {
+                return;
+            }
+
+            const activeElement = document.activeElement as HTMLElement | null;
+            const commandBar = activeElement?.closest<HTMLElement>(
+                '[data-query-result-command-bar="true"]',
+            );
+            if (!commandBar) {
+                return;
+            }
+
+            for (let i = 0; i < gridList.length; i++) {
+                const item = gridList[i];
+                const gridKey = `${item.batchId}_${item.resultId}`;
+                const resultSetContainer = document.getElementById(gridKey);
+                if (!resultSetContainer?.contains(commandBar)) {
+                    continue;
+                }
+
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+                gridRefs.current[i]?.focusGrid();
+                return;
+            }
+        };
+
+        document.addEventListener("keydown", handler, true);
+        return () => {
+            document.removeEventListener("keydown", handler, true);
+        };
+    }, [gridList, gridRefs]);
+
     const persistGridPaneScrollPosition = useMemo(
         () =>
             debounce((scrollTop: number) => {
@@ -384,7 +450,7 @@ export const QueryResultsGridView = () => {
                         <div
                             style={{ flex: 1, minWidth: 0, overflow: "hidden" }}
                             ref={containerRef}>
-                            <ResultGrid
+                            <GridComponent
                                 gridId={gridKey}
                                 key={gridKey}
                                 gridParentRef={containerRef}
@@ -400,6 +466,7 @@ export const QueryResultsGridView = () => {
                             resultSetSummary={resultSetSummaries[item.batchId][item.resultId]}
                             viewMode={viewMode}
                             onToggleMaximize={() => handleToggleMaximize(gridKey)}
+                            onKeyDownCapture={(event) => handleCommandBarKeyDown(event, index)}
                             isMaximized={isMaximized}
                         />
                     </div>

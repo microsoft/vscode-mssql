@@ -7,6 +7,7 @@ import * as qr from "../../../sharedInterfaces/queryResult";
 import { useContext, useEffect } from "react";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { QueryResultsTextView } from "./queryResultsTextView";
+import { QueryResultsBetaGridView } from "./queryResultsBetaGridView";
 import { QueryResultsGridView } from "./queryResultsGridView";
 import { useQueryResultSelector } from "./queryResultSelector";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
@@ -24,6 +25,9 @@ export const QueryResultsTab = () => {
         qr.QueryResultViewMode.Grid;
 
     const tabStates = useQueryResultSelector((state) => state.tabStates);
+    const isBetaResultsGridEnabled = useQueryResultSelector(
+        (state) => state.isBetaResultsGridEnabled,
+    );
     useEffect(() => {
         const handler = (event: KeyboardEvent) => {
             const isResultsTab = tabStates?.resultPaneTab === qr.QueryResultPaneTabs.Results;
@@ -56,6 +60,9 @@ export const QueryResultsTab = () => {
 
     if (viewMode === qr.QueryResultViewMode.Text) {
         return <QueryResultsTextView />;
+    }
+    if (isBetaResultsGridEnabled) {
+        return <QueryResultsBetaGridView />;
     }
     return <QueryResultsGridView />;
 };

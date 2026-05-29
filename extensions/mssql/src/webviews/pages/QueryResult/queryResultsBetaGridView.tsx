@@ -3,11 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export enum HeaderContextMenuAction {
-    ToggleSort = "toggleSort",
-    Filter = "filter",
-    Resize = "resize",
-    CopyColumnName = "copyColumnName",
-    FreezeColumn = "freezeColumn",
-    UnfreezeColumn = "unfreezeColumn",
-}
+import ResultBetaGrid from "./resultBetaGrid";
+import { QueryResultsGridView } from "./queryResultsGridView";
+
+export const QueryResultsBetaGridView = () => {
+    return <QueryResultsGridView GridComponent={ResultBetaGrid} />;
+};

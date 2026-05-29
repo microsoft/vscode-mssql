@@ -638,11 +638,27 @@ export class LocConstants {
                 }
                 return l10n.t("Results");
             },
+            resultBetaTabTooltip: (shortcut?: string) => {
+                if (shortcut) {
+                    return l10n.t({
+                        message: "Results-Beta ({0})",
+                        args: [shortcut],
+                        comment: ["{0} is the keyboard shortcut for the beta results tab"],
+                    });
+                }
+                return l10n.t("Results-Beta");
+            },
             results: (count: number) =>
                 l10n.t({
                     message: "Results ({0})",
                     args: [count],
                     comment: ["{0} is the number of results"],
+                }),
+            resultsBeta: (count: number) =>
+                l10n.t({
+                    message: "Results-Beta ({0})",
+                    args: [count],
+                    comment: ["{0} is the number of beta results"],
                 }),
             messagesTabTooltip: (shortcut?: string) => {
                 if (shortcut) {
