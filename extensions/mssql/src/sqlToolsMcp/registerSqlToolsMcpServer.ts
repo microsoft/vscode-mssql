@@ -7,6 +7,7 @@ import * as vscode from "vscode";
 import ConnectionManager from "../controllers/connectionManager";
 import { QueryNotificationHandler } from "../controllers/queryNotificationHandler";
 import VscodeWrapper from "../controllers/vscodeWrapper";
+import DotnetRuntimeProvider from "../languageservice/dotnetRuntimeProvider";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import { Logger } from "../models/logger";
 import { HeadlessQueryExecutor } from "../queryExecution/headlessQueryExecutor";
@@ -42,9 +43,11 @@ export function registerSqlToolsMcpServer(
         bridgeManager,
         logger,
         () => client.sqlToolsServicePath,
+        new DotnetRuntimeProvider(logger),
     );
 
     context.subscriptions.push(bridgeManager, provider, registerProvider(provider));
+    void provider.initialize();
 }
 
 function getExtensionVersion(context: vscode.ExtensionContext): string | undefined {

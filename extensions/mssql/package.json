@@ -77,6 +77,7 @@
         "smoketest": "npm run instrument && npm run e2eTest",
         "test": "vscode-test --coverage",
         "package": "node scripts/package-extension.js",
+        "install:sqltools-mcp": "node scripts/install-sqltools-mcp.js",
         "instrument": "nyc instrument ./dist/views ./dist/views --in-place",
         "e2eTest": "npx playwright test && npx nyc report --reporter=cobertura --reporter=text-summary --reporter=html --report-dir=\"coverage/coverage-e2e\" --temp-dir=\"coverage/webviews-coverage\" --include=\"src/webviews/pages/**/*.tsx\""
     },
@@ -1698,7 +1699,7 @@
                 },
                 "mssql.copilot.enableSqlToolsMcp": {
                     "type": "boolean",
-                    "default": true,
+                    "default": false,
                     "description": "Testing only: enable the SQL Tools MCP server definition provider contribution.",
                     "scope": "application"
                 },

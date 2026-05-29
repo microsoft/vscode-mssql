@@ -19,6 +19,20 @@ export const config = {
         },
         installDir: "./sqltoolsservice/{#version#}/{#platform#}",
     },
+    sqlToolsMcp: {
+        packageId: "Microsoft.SqlServer.SQLtools.MCPserver",
+        version: "2.0.24",
+        installDir: "./sqltools-mcp/{#version#}/{#platform#}",
+        packageRuntimeIds: {
+            Windows_64: "win-x64",
+            Windows_ARM64: "win-arm64",
+            OSX: "osx-x64",
+            OSX_ARM64: "osx-arm64",
+            Linux: "linux-x64",
+            Linux_ARM64: "linux-arm64",
+            Portable: "any",
+        },
+    },
 };
 
 export type ConfigType = typeof config;

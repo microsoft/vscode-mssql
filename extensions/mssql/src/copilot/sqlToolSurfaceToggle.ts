@@ -14,7 +14,7 @@ export function areNativeToolsEnabled(): boolean {
 }
 
 export function isSqlToolsMcpEnabled(): boolean {
-    return vscode.workspace.getConfiguration().get<boolean>(enableSqlToolsMcpConfigKey, true);
+    return vscode.workspace.getConfiguration().get<boolean>(enableSqlToolsMcpConfigKey, false);
 }
 
 export function registerSqlToolSurfaceToggle(context: vscode.ExtensionContext): void {

@@ -6,11 +6,16 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
+import { isSqlToolsMcpEnabled, enableSqlToolsMcpConfigKey } from "../copilot/sqlToolSurfaceToggle";
+import { config } from "../configurations/config";
+import DotnetRuntimeProvider from "../languageservice/dotnetRuntimeProvider";
+import { getRuntimeConfigPath } from "../languageservice/serviceExecutablePaths";
 import { sqlToolsMcpProviderId, sqlToolsMcpServerLabel } from "./contracts";
 import { SqlToolsMcpBridgeManager } from "./sqlToolsMcpBridgeManager";
 import { Logger } from "../models/logger";
 
 const debugLaunchArg = "--vscode-mssql-debug-launch";
+const sqlToolsMcpOverrideEnvVar = "MSSQL_SQLTOOLS_MCP";
 
 export class SqlToolsMcpServerDefinitionProvider
     implements
@@ -18,6 +23,8 @@ export class SqlToolsMcpServerDefinitionProvider
         vscode.Disposable
 {
     private readonly didChangeEmitter = new vscode.EventEmitter<void>();
+    private readonly configChangeDisposable: vscode.Disposable;
+    private readonly dotnetPathByRuntimeConfig = new Map<string, string>();
 
     readonly onDidChangeMcpServerDefinitions = this.didChangeEmitter.event;
 
@@ -26,34 +33,68 @@ export class SqlToolsMcpServerDefinitionProvider
         private readonly bridgeManager: SqlToolsMcpBridgeManager,
         private readonly logger: Logger,
         private readonly getSqlToolsServicePath: () => string | undefined,
-    ) {}
+        private readonly dotnetRuntimeProvider: DotnetRuntimeProvider,
+    ) {
+        this.configChangeDisposable = vscode.workspace.onDidChangeConfiguration((event) => {
+            if (!event.affectsConfiguration(enableSqlToolsMcpConfigKey)) {
+                return;
+            }
+
+            this.didChangeEmitter.fire();
+            if (isSqlToolsMcpEnabled()) {
+                void this.initialize();
+            }
+        });
+    }
+
+    async initialize(): Promise<void> {
+        if (!isSqlToolsMcpEnabled()) {
+            return;
+        }
+
+        try {
+            await this.resolveBundledLaunchTarget({ acquireDotnetRuntime: true });
+            this.didChangeEmitter.fire();
+        } catch (err) {
+            this.logger.warn(`SQL Tools MCP runtime preparation failed: ${getErrorMessage(err)}`);
+        }
+    }
 
     async provideMcpServerDefinitions(): Promise<vscode.McpStdioServerDefinition[]> {
-        const executable = this.resolveBundledExecutable();
-        if (!executable) {
-            this.logger.warn("Bundled SQL Tools MCP server executable was not found.");
+        if (!isSqlToolsMcpEnabled()) {
             return [];
         }
 
-        return [this.createStdioDefinition(executable, undefined)];
+        const launchTarget = await this.resolveBundledLaunchTarget({ acquireDotnetRuntime: false });
+        if (!launchTarget) {
+            this.logger.warn("Bundled SQL Tools MCP server was not found or is not ready.");
+            return [];
+        }
+
+        return [this.createStdioDefinition(launchTarget, undefined)];
     }
 
     async resolveMcpServerDefinition(): Promise<vscode.McpStdioServerDefinition | undefined> {
-        const executable = this.resolveBundledExecutable();
-        if (!executable) {
-            throw new Error("Bundled SQL Tools MCP server executable was not found.");
+        if (!isSqlToolsMcpEnabled()) {
+            return undefined;
+        }
+
+        const launchTarget = await this.resolveBundledLaunchTarget({ acquireDotnetRuntime: true });
+        if (!launchTarget) {
+            throw new Error("Bundled SQL Tools MCP server was not found or is not ready.");
         }
 
         const launchInfo = await this.bridgeManager.prepareLaunch();
-        return this.createStdioDefinition(executable, launchInfo.endpoint);
+        return this.createStdioDefinition(launchTarget, launchInfo.endpoint);
     }
 
     dispose(): void {
+        this.configChangeDisposable.dispose();
         this.didChangeEmitter.dispose();
     }
 
     private createStdioDefinition(
-        executable: BundledExecutable,
+        launchTarget: McpLaunchTarget,
         bridgeEndpoint: string | undefined,
     ): vscode.McpStdioServerDefinition {
         const env: Record<string, string | number | null> = {
@@ -70,12 +111,12 @@ export class SqlToolsMcpServerDefinitionProvider
 
         const definition = new vscode.McpStdioServerDefinition(
             sqlToolsMcpServerLabel,
-            executable.command,
-            this.getLaunchArgs(),
+            launchTarget.command,
+            [...launchTarget.args, ...this.getLaunchArgs()],
             env,
             this.packageVersion,
         );
-        definition.cwd = vscode.Uri.file(executable.cwd);
+        definition.cwd = vscode.Uri.file(launchTarget.cwd);
         return definition;
     }
 
@@ -87,51 +128,189 @@ export class SqlToolsMcpServerDefinitionProvider
         return [debugLaunchArg];
     }
 
-    private resolveBundledExecutable(): BundledExecutable | undefined {
-        const executableName =
-            process.platform === "win32" ? "SQLtoolsMCPserver.exe" : "SQLtoolsMCPserver";
+    private async resolveBundledLaunchTarget(options: {
+        acquireDotnetRuntime: boolean;
+    }): Promise<McpLaunchTarget | undefined> {
+        if (process.env[sqlToolsMcpOverrideEnvVar]) {
+            return await this.resolveOverrideLaunchTarget(options);
+        }
+
+        const selfContainedExecutable = this.resolveBundledSelfContainedExecutable();
+        if (selfContainedExecutable) {
+            return {
+                command: selfContainedExecutable,
+                args: [],
+                cwd: path.dirname(selfContainedExecutable),
+            };
+        }
+
+        const portableDll = this.resolveBundledPortableDll();
+        if (!portableDll) {
+            return undefined;
+        }
+
+        return await this.createPortableLaunchTarget(portableDll, options);
+    }
+
+    private async resolveOverrideLaunchTarget(options: {
+        acquireDotnetRuntime: boolean;
+    }): Promise<McpLaunchTarget | undefined> {
+        const overrideFolder = process.env[sqlToolsMcpOverrideEnvVar];
+        if (!overrideFolder) {
+            return undefined;
+        }
+
+        const selfContainedExecutable = this.resolveSelfContainedExecutableInFolder(overrideFolder);
+        if (selfContainedExecutable) {
+            return {
+                command: selfContainedExecutable,
+                args: [],
+                cwd: path.dirname(selfContainedExecutable),
+            };
+        }
+
+        const portableDll = this.resolvePortableDllInFolder(overrideFolder);
+        if (portableDll) {
+            return await this.createPortableLaunchTarget(portableDll, options);
+        }
+
+        throw new Error(
+            `SQL Tools MCP override path does not contain SQLtoolsMCPserver or SQLtoolsMCPserver.dll: ${overrideFolder}`,
+        );
+    }
+
+    private async createPortableLaunchTarget(
+        portableDll: string,
+        options: { acquireDotnetRuntime: boolean },
+    ): Promise<McpLaunchTarget | undefined> {
+        const runtimeConfigPath = getRuntimeConfigPath(portableDll);
+        const cachedDotnetPath = this.dotnetPathByRuntimeConfig.get(runtimeConfigPath);
+        if (!options.acquireDotnetRuntime && !cachedDotnetPath) {
+            return undefined;
+        }
+
+        const dotnetPath =
+            cachedDotnetPath ??
+            (await this.dotnetRuntimeProvider.acquireDotnetRuntime(runtimeConfigPath));
+        this.dotnetPathByRuntimeConfig.set(runtimeConfigPath, dotnetPath);
+
+        return {
+            command: dotnetPath,
+            args: [portableDll],
+            cwd: path.dirname(portableDll),
+        };
+    }
+
+    private resolveBundledSelfContainedExecutable(): string | undefined {
         const platformKey = this.getPlatformKey();
         const sqlToolsServicePath = this.getSqlToolsServicePath();
         const legacyCompatibilityCandidates = sqlToolsServicePath
             ? [
-                  path.join(sqlToolsServicePath, "scriptoria-mcp", executableName),
-                  path.join(sqlToolsServicePath, "mcp", "SqlScriptoria", executableName),
+                  path.join(
+                      sqlToolsServicePath,
+                      "scriptoria-mcp",
+                      getSelfContainedExecutableName(),
+                  ),
+                  path.join(
+                      sqlToolsServicePath,
+                      "mcp",
+                      "SqlScriptoria",
+                      getSelfContainedExecutableName(),
+                  ),
               ]
             : [];
         const candidates = [
+            this.context.asAbsolutePath(
+                path.join(
+                    "sqltools-mcp",
+                    config.sqlToolsMcp.version,
+                    platformKey,
+                    getSelfContainedExecutableName(),
+                ),
+            ),
             ...(sqlToolsServicePath
                 ? [
-                      path.join(sqlToolsServicePath, executableName),
-                      path.join(sqlToolsServicePath, "sqltools-mcp", executableName),
-                      path.join(sqlToolsServicePath, "mcp", "SqlToolsMcp", executableName),
+                      path.join(sqlToolsServicePath, getSelfContainedExecutableName()),
+                      path.join(
+                          sqlToolsServicePath,
+                          "sqltools-mcp",
+                          getSelfContainedExecutableName(),
+                      ),
+                      path.join(
+                          sqlToolsServicePath,
+                          "mcp",
+                          "SqlToolsMcp",
+                          getSelfContainedExecutableName(),
+                      ),
                   ]
                 : []),
-            this.context.asAbsolutePath(path.join("sqltools-mcp", platformKey, executableName)),
             this.context.asAbsolutePath(
-                path.join("resources", "sqltools-mcp", platformKey, executableName),
+                path.join("sqltools-mcp", platformKey, getSelfContainedExecutableName()),
             ),
             this.context.asAbsolutePath(
-                path.join("mcp", "SqlToolsMcp", platformKey, executableName),
+                path.join(
+                    "resources",
+                    "sqltools-mcp",
+                    platformKey,
+                    getSelfContainedExecutableName(),
+                ),
+            ),
+            this.context.asAbsolutePath(
+                path.join("mcp", "SqlToolsMcp", platformKey, getSelfContainedExecutableName()),
             ),
             // Temporary compatibility fallbacks for older package layouts.
             ...legacyCompatibilityCandidates,
-            this.context.asAbsolutePath(path.join("scriptoria-mcp", platformKey, executableName)),
             this.context.asAbsolutePath(
-                path.join("resources", "scriptoria-mcp", platformKey, executableName),
+                path.join("scriptoria-mcp", platformKey, getSelfContainedExecutableName()),
             ),
             this.context.asAbsolutePath(
-                path.join("mcp", "SqlScriptoria", platformKey, executableName),
+                path.join(
+                    "resources",
+                    "scriptoria-mcp",
+                    platformKey,
+                    getSelfContainedExecutableName(),
+                ),
             ),
-            path.join(getSqlCopilotDevPublishPath(), executableName),
+            this.context.asAbsolutePath(
+                path.join("mcp", "SqlScriptoria", platformKey, getSelfContainedExecutableName()),
+            ),
         ];
 
-        const command = candidates.find((candidate) => fs.existsSync(candidate));
-        return command
-            ? {
-                  command,
-                  cwd: path.dirname(command),
-              }
-            : undefined;
+        return candidates.find((candidate) => fs.existsSync(candidate));
+    }
+
+    private resolveBundledPortableDll(): string | undefined {
+        const candidates = [
+            this.context.asAbsolutePath(
+                path.join(
+                    "sqltools-mcp",
+                    config.sqlToolsMcp.version,
+                    "Portable",
+                    "SQLtoolsMCPserver.dll",
+                ),
+            ),
+            this.context.asAbsolutePath(
+                path.join("sqltools-mcp", "Portable", "SQLtoolsMCPserver.dll"),
+            ),
+            this.context.asAbsolutePath(
+                path.join("resources", "sqltools-mcp", "Portable", "SQLtoolsMCPserver.dll"),
+            ),
+            this.context.asAbsolutePath(
+                path.join("mcp", "SqlToolsMcp", "Portable", "SQLtoolsMCPserver.dll"),
+            ),
+        ];
+
+        return candidates.find((candidate) => fs.existsSync(candidate));
+    }
+
+    private resolveSelfContainedExecutableInFolder(folder: string): string | undefined {
+        const executablePath = path.join(folder, getSelfContainedExecutableName());
+        return fs.existsSync(executablePath) ? executablePath : undefined;
+    }
+
+    private resolvePortableDllInFolder(folder: string): string | undefined {
+        const portableDllPath = path.join(folder, "SQLtoolsMCPserver.dll");
+        return fs.existsSync(portableDllPath) ? portableDllPath : undefined;
     }
 
     private getPlatformKey(): string {
@@ -155,8 +334,9 @@ export class SqlToolsMcpServerDefinitionProvider
     }
 }
 
-interface BundledExecutable {
+interface McpLaunchTarget {
     command: string;
+    args: string[];
     cwd: string;
 }
 
@@ -171,6 +351,10 @@ export function registerProvider(provider: SqlToolsMcpServerDefinitionProvider):
     return vscode.lm.registerMcpServerDefinitionProvider(sqlToolsMcpProviderId, provider);
 }
 
-function getSqlCopilotDevPublishPath(): string {
-    return path.join("/Users", "hacao", "Repos", "SqlCopilot", "out", "Debug", "net10.0");
+function getSelfContainedExecutableName(): string {
+    return process.platform === "win32" ? "SQLtoolsMCPserver.exe" : "SQLtoolsMCPserver";
+}
+
+function getErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
 }
