@@ -20,7 +20,7 @@ export const changelogConfig: ChangelogWebviewState = {
                     {
                         label: locConstants.Changelog.tryIt,
                         type: "command",
-                        value: "constants.", // TODO
+                        value: constants.cmdDeployNewDatabase,
                     },
                     {
                         label: locConstants.Changelog.learnMore,
