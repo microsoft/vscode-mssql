@@ -36,13 +36,13 @@ The MSSQL extension provides a rich set of capabilities for SQL development. Eac
 | [Query Profiler](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-query-profiler)                                            | Real-time database activity monitoring with Extended Events                                                        |
 | [Table Designer](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#table-designer)               | Create and manage tables with a visual interface                                                                   |
 | [Schema Designer](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-schema-designer)                                          | Visual schema modeling with drag-and-drop, auto-layout, and T-SQL script generation                                |
-| [GitHub Copilot in Schema Designer](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-schema-designer-copilot) | Natural language schema design within the visual Schema Designer       |
+| [GitHub Copilot in Schema Designer](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-schema-designer-copilot)                | Natural language schema design within the visual Schema Designer                                                   |
 | [Schema Compare](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-schema-compare)                                            | Compare and synchronize schemas between databases or DACPACs                                                       |
 | [GitHub Copilot integration](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/github-copilot/overview)                                   | AI-assisted SQL development with natural language chat and agent mode                                              |
 | [Local SQL Server containers](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-local-container)                              | Create and manage SQL Server containers locally                                                                    |
 | [View & Edit Data](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#view--edit-data)            | Browse and modify table data inline without writing T-SQL                                                          |
 | [Database Operations](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-database-operations)                                  | Rename, back up, restore, import data from flat files, and drop databases from Object Explorer                     |
-| [Data-tier Application (DACPAC and BACPAC)](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-data-tier-application)                     | Deploy, extract, import, and export DACPAC and BACPAC files                                                        |
+| [Data-tier Application (DACPAC and BACPAC)](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-data-tier-application)          | Deploy, extract, import, and export DACPAC and BACPAC files                                                        |
 | [Fabric integration](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-fabric-integration)                                    | Browse Fabric workspaces and provision SQL databases                                                               |
 | [SQL Database Projects](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code)                       | Build, publish with the visual Publish Dialog, and analyze SQL projects with Code Analysis                         |
 | [Query Profiler](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-query-profiler)                                            | Real-time database activity monitoring with Extended Events                                                        |
@@ -50,16 +50,15 @@ The MSSQL extension provides a rich set of capabilities for SQL development. Eac
 | [Flat File Import](https://aka.ms/vscode-mssql-import-data)                                                                                                 | Import flat files (CSV, TXT) as new database tables using a guided wizard                                          |
 | [Object Search](https://aka.ms/vscode-mssql-object-search)                                                                                                  | Search for database objects by name across a server or database                                                    |
 | [Database Management](https://aka.ms/vscode-mssql-database-management-ops)                                                                                  | Create, rename, and drop databases                                                                                 |
-| [SQL Notebooks](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-sql-notebooks)                                 | Jupyter-based SQL notebooks with rich results and multi-kernel support |
-| [Data API builder](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-data-api-builder)                           | Create REST, GraphQL, and MCP endpoints for SQL databases              |
-| [GitHub Copilot in Data API builder](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-data-api-builder)         | Generate Data API builder configs using natural language               |
+| [SQL Notebooks](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-sql-notebooks)                                              | Jupyter-based SQL notebooks with rich results and multi-kernel support                                             |
+| [Data API builder](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-data-api-builder)                                        | Create REST, GraphQL, and MCP endpoints for SQL databases                                                          |
+| [GitHub Copilot in Data API builder](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-data-api-builder)                      | Generate Data API builder configs using natural language                                                           |
 
 ### Public Preview
 
-| Capability                                                                                                                                     | Description                                                            |
-| ---------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| [Azure SQL database provisioning](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-azure-integration.md) | Create and connect to free tier Azure SQL database       |
-
+| Capability                                                                                                                              | Description                                        |
+| --------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| [Azure SQL database provisioning](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-azure-integration.md) | Create and connect to free tier Azure SQL database |
 
 ## Using the MSSQL Extension
 
@@ -140,10 +139,9 @@ Configure the MSSQL extension in user preferences (`Cmd+,`) or workspace setting
 // General
 {
   "mssql.enableExperimentalFeatures": false,                // Enable experimental features for early testing
-  "mssql.logDebugInfo": false,                             // Enable debug logging for troubleshooting
-  "mssql.messagesDefaultOpen": true,                       // Show messages panel by default after query execution
+  "mssql.messagesDefaultOpen": true,                        // Show messages panel by default after query execution
   "mssql.autoRevealResultsPanel": false,                    // Auto-reveal results panel when queries execute
-  "mssql.statusBar.connectionInfoMaxLength": -1,           // Max characters to display in status bar (-1 = unlimited)
+  "mssql.statusBar.connectionInfoMaxLength": -1,            // Max characters to display in status bar (-1 = unlimited)
   "mssql.statusBar.enableConnectionColor": true,            // Color-code status bar by connection group
   "mssql.schemaDesigner.enableExpandCollapseButtons": true, // Show expand/collapse buttons in Schema Designer UI for entity relationships
   "mssql.showChangelogOnUpdate": true                       // Show changelog when extension updates
@@ -155,6 +153,9 @@ Configure the MSSQL extension in user preferences (`Cmd+,`) or workspace setting
   "mssql.connectionManagement.rememberPasswordsUntilRestart": true,  // Keep passwords in memory until VS Code restarts
   "mssql.enableConnectionPooling": false,                  // Enable connection pooling for improved performance
   "mssql.azureActiveDirectory": "AuthCodeGrant"            // Azure AD auth method: "AuthCodeGrant" or "DeviceCode"
+  "mssql.preview.useVscodeAccountsForEntraMFA": true,      // Whether to use accounts signed into VS Code for authenticating to databases with Microsoft Entra ID Universal with MFA
+  "mssql.newEditorConnectionBehavior": "transferACtive",   // How to connect a newly-opened .SQL file or query editor: "none" | "transferActive" | "defaultConnection"
+  "mssql.defaultConnectionId": "",                         // Connection ID (GUID) of the connection to auto-connect new editors with. Only applicable when "mssql.newEditorConnectionBehavior" is set to "defaultConnection"
 }
 
 // Query Formatting
@@ -243,6 +244,7 @@ Configure the MSSQL extension in user preferences (`Cmd+,`) or workspace setting
 // Diagnostics & Logging
 {
   "mssql.tracingLevel": "Critical",                        // Logging level: "All" | "Off" | "Critical" | "Error" | "Warning" | "Information" | "Verbose"
+  "mssql.logDebugInfo": false,                             // Enable debug logging for troubleshooting
   "mssql.logRetentionMinutes": 10080,                      // Log retention period in minutes (10080 = 7 days)
   "mssql.logFilesRemovalLimit": 100                        // Maximum number of log files to keep before cleanup
 }
