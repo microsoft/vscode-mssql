@@ -17,7 +17,7 @@ runs:
       if: ${{ inputs.cache != '' }}
       uses: actions/setup-node@v6
       with:
-        node-version: "24"
+        node-version: "24.15.0" # pinning due to https://github.com/nodejs/node/issues/63487
         cache: ${{ inputs.cache }}
         cache-dependency-path: ${{ inputs['cache-dependency-path'] }}
 
@@ -25,4 +25,4 @@ runs:
       if: ${{ inputs.cache == '' }}
       uses: actions/setup-node@v6
       with:
-        node-version: "24"
+        node-version: "24.15.0" # pinning due to https://github.com/nodejs/node/issues/63487
