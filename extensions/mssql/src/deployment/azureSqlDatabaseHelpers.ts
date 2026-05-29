@@ -212,6 +212,7 @@ export async function initializeAzureSqlDatabaseState(
         maintenanceConfig: "",
         dataSource: "",
         enableAlwaysEncrypted: false,
+        maxVcores: "2",
     };
 
     deploymentController.state.deploymentTypeState = state;
@@ -359,6 +360,7 @@ export function registerAzureSqlDatabaseReducers(
                                 : undefined,
                         freeLimitExhaustionBehavior: azureSqlState.formState.freeLimitBehavior,
                         useFreeLimit: true,
+                        maxVcores: azureSqlState.formState.maxVcores,
                     },
                 );
 
@@ -1320,6 +1322,18 @@ function setAzureSqlDatabaseFormComponents(
             type: FormItemType.Checkbox,
             isAdvancedOption: true,
             componentWidth: "350px",
+        }),
+        maxVcores: createFormItem({
+            propertyName: "maxVcores",
+            label: AzureSqlDatabase.maxVcores,
+            type: FormItemType.Dropdown,
+            options: [
+                { displayName: "1", value: "1" },
+                { displayName: "2", value: "2" },
+                { displayName: "4", value: "4" },
+            ],
+            isAdvancedOption: true,
+            placeholder: AzureSqlDatabase.selectMaxVcores,
         }),
     };
 }
