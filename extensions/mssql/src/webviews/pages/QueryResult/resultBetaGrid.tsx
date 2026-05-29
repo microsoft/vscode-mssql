@@ -2271,10 +2271,18 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
         }
         const hasDisplayedRows = displayedRowCount > 0;
 
+        const betaGridClasses = [
+            "query-result-beta-grid",
+            isGridFocused ? "focused" : "",
+            gridSettings?.alternatingRowColors ? "results-grid--alternating" : "",
+        ]
+            .filter(Boolean)
+            .join(" ");
+
         return (
             <div
                 id={`beta-grid-container-${props.gridId}`}
-                className={`query-result-beta-grid ${isGridFocused ? "focused" : ""}`}
+                className={betaGridClasses}
                 tabIndex={0}
                 onFocus={handleGridContainerFocus}
                 onBlur={handleGridContainerBlur}>
