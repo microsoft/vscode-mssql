@@ -78,6 +78,13 @@ export const FabricBrowsePage = () => {
                 setConnectionProperty("authenticationType", AuthenticationType.AzureMFA);
 
                 return;
+            case SqlArtifactTypes.Warehouse:
+                setConnectionProperty("server", database.server);
+                setConnectionProperty("database", database.displayName);
+                setConnectionProperty("profileName", generateProfileName(database));
+                setConnectionProperty("authenticationType", AuthenticationType.AzureMFA);
+
+                return;
             default:
                 context!.log("Unknown server type selected.", "error");
         }
