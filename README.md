@@ -25,8 +25,6 @@ The MSSQL extension provides a rich set of capabilities for SQL development. Eac
 
 ### General Availability
 
-Features that have moved from Public Preview to general availability.
-
 | Capability                                                                                                                                                  | Description                                                                                                        |
 | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | [Connection Dialog](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#connection-dialog)         | Connect using parameters, connection strings, or Azure/Fabric browse. Organize connections with color-coded groups |
@@ -38,24 +36,30 @@ Features that have moved from Public Preview to general availability.
 | [Query Profiler](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-query-profiler)                                            | Real-time database activity monitoring with Extended Events                                                        |
 | [Table Designer](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#table-designer)               | Create and manage tables with a visual interface                                                                   |
 | [Schema Designer](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-schema-designer)                                          | Visual schema modeling with drag-and-drop, auto-layout, and T-SQL script generation                                |
+| [GitHub Copilot in Schema Designer](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-schema-designer-copilot) | Natural language schema design within the visual Schema Designer       |
 | [Schema Compare](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-schema-compare)                                            | Compare and synchronize schemas between databases or DACPACs                                                       |
+| [GitHub Copilot integration](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/github-copilot/overview)                                   | AI-assisted SQL development with natural language chat and agent mode                                              |
+| [Local SQL Server containers](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-local-container)                              | Create and manage SQL Server containers locally                                                                    |
 | [View & Edit Data](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#view--edit-data)            | Browse and modify table data inline without writing T-SQL                                                          |
 | [Database Operations](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-database-operations)                                  | Rename, back up, restore, import data from flat files, and drop databases from Object Explorer                     |
-| [DACPAC/BACPAC Operations](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-data-tier-application)                           | Publish/extract database schema with `.dacpac` files and import/export schema + data with `.bacpac` files          |
+| [Data-tier Application (DACPAC and BACPAC)](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-data-tier-application)                     | Deploy, extract, import, and export DACPAC and BACPAC files                                                        |
+| [Fabric integration](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-fabric-integration)                                    | Browse Fabric workspaces and provision SQL databases                                                               |
 | [SQL Database Projects](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code)                       | Build, publish with the visual Publish Dialog, and analyze SQL projects with Code Analysis                         |
-| [GitHub Copilot integration](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/github-copilot/overview)                                   | AI-assisted SQL development with natural language chat and agent mode                                              |
-| [Local SQL Server container](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-local-container)                               | Create and manage SQL Server containers locally                                                                    |
+| [Query Profiler](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-query-profiler)                                            | Real-time database activity monitoring with Extended Events                                                        |
+| [Backup and Restore](https://aka.ms/vscode-mssql-backup-and-restore)                                                                                        | Back up and restore SQL Server databases                                                                           |
+| [Flat File Import](https://aka.ms/vscode-mssql-import-data)                                                                                                 | Import flat files (CSV, TXT) as new database tables using a guided wizard                                          |
+| [Object Search](https://aka.ms/vscode-mssql-object-search)                                                                                                  | Search for database objects by name across a server or database                                                    |
+| [Database Management](https://aka.ms/vscode-mssql-database-management-ops)                                                                                  | Create, rename, and drop databases                                                                                 |
+| [SQL Notebooks](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-sql-notebooks)                                 | Jupyter-based SQL notebooks with rich results and multi-kernel support |
+| [Data API builder](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-data-api-builder)                           | Create REST, GraphQL, and MCP endpoints for SQL databases              |
+| [GitHub Copilot in Data API builder](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-data-api-builder)         | Generate Data API builder configs using natural language               |
 
 ### Public Preview
 
-Features available for public use while we gather feedback. APIs and UX may change before GA.
-
 | Capability                                                                                                                                     | Description                                                            |
 | ---------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| [Schema Designer with GitHub Copilot](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-schema-designer-copilot) | Natural language schema design within the visual Schema Designer       |
-| [Data API builder](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-data-api-builder)                           | Create REST, GraphQL, and MCP endpoints for SQL databases              |
-| [GitHub Copilot in Data API builder](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-data-api-builder)         | Generate Data API builder configs using natural language               |
-| [SQL Notebooks](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-sql-notebooks)                                 | Jupyter-based SQL notebooks with rich results and multi-kernel support |
+| [Azure SQL database provisioning](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-azure-integration.md) | Create and connect to free tier Azure SQL database       |
+
 
 ## Using the MSSQL Extension
 
@@ -191,8 +195,7 @@ Configure the MSSQL extension in user preferences (`Cmd+,`) or workspace setting
   "mssql.query.statisticsTime": false,                     // Display execution time statistics (SET STATISTICS TIME ON)
   "mssql.query.statisticsIO": false,                       // Display I/O statistics (SET STATISTICS IO ON)
   "mssql.query.xactAbortOn": false,                        // Rollback transaction on error (SET XACT_ABORT ON)
-  // Transaction isolation: "READ COMMITTED" | "READ UNCOMMITTED" | "REPEATABLE READ" | "SERIALIZABLE"
-  "mssql.query.transactionIsolationLevel": "READ COMMITTED",
+  "mssql.query.transactionIsolationLevel": "READ COMMITTED", // Transaction isolation: "READ COMMITTED" | "READ UNCOMMITTED" | "REPEATABLE READ" | "SERIALIZABLE"
   "mssql.query.deadlockPriority": "Normal",                // Deadlock priority: "Normal" | "Low"
   "mssql.query.lockTimeout": -1,                           // Lock timeout in milliseconds (-1 = wait indefinitely)
   "mssql.query.queryGovernorCostLimit": -1,                // Query governor cost limit (-1 = no limit)
@@ -305,7 +308,7 @@ For full details on all extension settings and keyboard shortcuts, see the wiki:
 
 ## Supported Operating Systems
 
-- Windows 11 (x64, arm64) — Windows 10 is supported until its end-of-support date
+- Windows 11 (x64, arm64)
 - macOS (Intel & Apple Silicon)
 - Linux (x64, arm64) — including Ubuntu, Debian, RHEL, Fedora, and other major distributions
 
