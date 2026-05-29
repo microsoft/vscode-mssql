@@ -2756,6 +2756,8 @@
     "This server only supports SQL Authentication.": "This server only supports SQL Authentication.",
     "Use SQL Authentication with a valid username and password.": "Use SQL Authentication with a valid username and password.",
     "Unable to determine the server authentication type.": "Unable to determine the server authentication type.",
+    "Max vCores": "Max vCores",
+    "Select Max vCores": "Select Max vCores",
     "Enter Database Name": "Enter Database Name",
     "Database Description": "Database Description",
     "Enter Database Description": "Enter Database Description",

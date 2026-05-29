@@ -1,0 +1,28 @@
+name: Setup Node.js
+# Keep this in sync with scripts/workspaces.mjs (minSupportedNodeMajor).
+description: "Sets up the repository Node.js version for CI workflows."
+inputs:
+  cache:
+    description: "Optional package manager cache mode to pass to actions/setup-node (for example: npm)."
+    required: false
+    default: ""
+  cache-dependency-path:
+    description: "Optional lockfile path to use when cache is enabled."
+    required: false
+    default: ""
+runs:
+  using: composite
+  steps:
+    - name: Setup Node.js (cached)
+      if: ${{ inputs.cache != '' }}
+      uses: actions/setup-node@v6
+      with:
+        node-version: "24"
+        cache: ${{ inputs.cache }}
+        cache-dependency-path: ${{ inputs['cache-dependency-path'] }}
+
+    - name: Setup Node.js
+      if: ${{ inputs.cache == '' }}
+      uses: actions/setup-node@v6
+      with:
+        node-version: "24"

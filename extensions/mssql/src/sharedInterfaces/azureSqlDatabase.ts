@@ -100,6 +100,7 @@ export interface AzureSqlDatabaseFormState {
     collation: string;
     maintenanceConfig: string;
     enableAlwaysEncrypted: boolean;
+    maxVcores: string;
 }
 
 export interface AzureSqlDatabaseFormItemSpec
