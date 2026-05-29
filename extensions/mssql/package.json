@@ -565,19 +565,19 @@
                 },
                 {
                     "command": "mssql.objectExplorer.enableGroupBySchema",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && !config.mssql.objectExplorer.groupBySchema",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && !config.mssql.objectExplorer.groupBySchema",
                     "title": "%mssql.objectExplorer.enableGroupBySchema%",
                     "group": "navigation"
                 },
                 {
                     "command": "mssql.objectExplorer.disableGroupBySchema",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && config.mssql.objectExplorer.groupBySchema",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && config.mssql.objectExplorer.groupBySchema",
                     "title": "%mssql.objectExplorer.disableGroupBySchema%",
                     "group": "navigation"
                 },
                 {
                     "command": "mssql.deployNewDatabase",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/",
                     "title": "%mssql.newDeployment%",
                     "group": "navigation"
                 }
@@ -606,12 +606,12 @@
                 },
                 {
                     "command": "mssql.objectExplorerNewQuery",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
                     "group": "1_MSSQL_primary@1"
                 },
                 {
                     "command": "mssql.createDatabase",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(Folder)\\b.*\\bsubType=(Databases)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(Folder)\\b.*\\bsubType=(Databases)\\b/",
                     "group": "3_MSSQL_instanceDatabaseActions@1"
                 },
                 {
@@ -631,182 +631,182 @@
                 },
                 {
                     "command": "mssql.profiler.launchFromObjectExplorer",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/ && !(viewItem =~ /\\btype=Database\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/ && !(viewItem =~ /\\btype=Database\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
                     "group": "4_MSSQL_discoverAndProfile@2"
                 },
                 {
                     "command": "mssql.profiler.launchFromDatabase",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
                     "group": "3_MSSQL_databaseDiscover@2"
                 },
                 {
                     "command": "mssql.schemaDesigner",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && (viewItem =~ /\\btype=(Database|Server)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && (viewItem =~ /\\btype=(Database|Server)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
                     "group": "2a_MSSQL_databaseDesign@1"
                 },
                 {
                     "command": "mssql.buildDataApi",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && (viewItem =~ /\\btype=(Database|Server)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && (viewItem =~ /\\btype=(Database|Server)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
                     "group": "2a_MSSQL_databaseDesign@2"
                 },
                 {
                     "command": "mssql.schemaCompare",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
                     "group": "7_MSSQL_compareAndDacpac@1"
                 },
                 {
                     "command": "mssql.searchDatabase",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(Server)\\b/ && !(viewItem =~ /\\btype=Database\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(Server)\\b/ && !(viewItem =~ /\\btype=Database\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
                     "group": "4_MSSQL_discoverAndProfile@1"
                 },
                 {
                     "command": "mssql.searchDatabase",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
                     "group": "3_MSSQL_databaseDiscover@1"
                 },
                 {
                     "command": "mssql.dacpacDialog.launch",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
                     "group": "7_MSSQL_compareAndDacpac@2"
                 },
                 {
                     "command": "mssql.renameDatabase",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(Database)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(Database)\\b/",
                     "group": "4_MSSQL_databaseMaintenance@1"
                 },
                 {
                     "command": "mssql.dropDatabase",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(Database)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(Database)\\b/",
                     "group": "4_MSSQL_databaseMaintenance@5"
                 },
                 {
                     "command": "mssql.backupDatabase",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\b(type|subType)=(Database|DockerContainerDatabase)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\b(type|subType)=(Database|DockerContainerDatabase)\\b/",
                     "group": "4_MSSQL_databaseMaintenance@2"
                 },
                 {
                     "command": "mssql.createDatabase",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(Server)\\b(?!.*\\bsubType=(Database|DockerContainerDatabase)\\b)/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(Server)\\b(?!.*\\bsubType=(Database|DockerContainerDatabase)\\b)/",
                     "group": "3_MSSQL_instanceDatabaseActions@1"
                 },
                 {
                     "command": "mssql.restoreDatabase",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(Server)\\b/ && !(viewItem =~ /\\btype=Database\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(Server)\\b/ && !(viewItem =~ /\\btype=Database\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
                     "group": "3_MSSQL_instanceDatabaseActions@3"
                 },
                 {
                     "command": "mssql.restoreDatabase",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
                     "group": "4_MSSQL_databaseMaintenance@3"
                 },
                 {
                     "command": "mssql.flatFileImport",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=Server\\b/ && !(viewItem =~ /\\btype=Database\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=Server\\b/ && !(viewItem =~ /\\btype=Database\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
                     "group": "3_MSSQL_instanceDatabaseActions@4"
                 },
                 {
                     "command": "mssql.flatFileImport",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
                     "group": "4_MSSQL_databaseMaintenance@4"
                 },
                 {
                     "command": "mssql.notebooks.createNotebook",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
                     "group": "8_MSSQL_sqlProjectsAndNotebooks@2"
                 },
                 {
                     "command": "mssql.objectExplorerNewQuery",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(Table)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(Table)\\b/",
                     "group": "1_MSSQL_primary@1"
                 },
                 {
                     "command": "mssql.scriptSelect",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(Table)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(Table)\\b/",
                     "group": "1_MSSQL_primary@2"
                 },
                 {
                     "command": "mssql.tableExplorer",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(Table)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(Table)\\b/",
                     "group": "2b_MSSQL_tableActions@1"
                 },
                 {
                     "command": "mssql.editTable",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(Table)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(Table)\\b/",
                     "group": "2b_MSSQL_tableActions@2"
                 },
                 {
                     "submenu": "mssql.sqlScriptsSubmenu",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(Table)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(Table)\\b/",
                     "group": "3a_MSSQL_tableScripts@1"
                 },
                 {
                     "command": "mssql.scriptSelect",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~  /\\btype=(View)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~  /\\btype=(View)\\b/",
                     "group": "3_MSSQL_script@1"
                 },
                 {
                     "command": "mssql.scriptCreate",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/",
                     "group": "3_MSSQL_script@2"
                 },
                 {
                     "command": "mssql.scriptDelete",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/",
                     "group": "3_MSSQL_script@3"
                 },
                 {
                     "command": "mssql.scriptAlter",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(AggregateFunction|PartitionFunction|ScalarValuedFunction|StoredProcedure|TableValuedFunction|View)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(AggregateFunction|PartitionFunction|ScalarValuedFunction|StoredProcedure|TableValuedFunction|View)\\b/",
                     "group": "3_MSSQL_script@4"
                 },
                 {
                     "command": "mssql.scriptExecute",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(StoredProcedure)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(StoredProcedure)\\b/",
                     "group": "3_MSSQL_script@5"
                 },
                 {
                     "command": "mssql.newTable",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\bsubType=(Tables)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\bsubType=(Tables)\\b/",
                     "group": "4_MSSQL_object@1"
                 },
                 {
                     "command": "mssql.filterNode",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=false\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=false\\b/",
                     "group": "5_MSSQL_tree@1"
                 },
                 {
                     "command": "mssql.filterNodeWithExistingFilters",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/",
                     "group": "5_MSSQL_tree@2"
                 },
                 {
                     "command": "mssql.clearFilters",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/",
                     "group": "5_MSSQL_tree@3"
                 },
                 {
                     "command": "mssql.copyObjectName",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(?!(Folder|Server|disconnectedServer)\\b)[^,]+/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(?!(Folder|Server|disconnectedServer)\\b)[^,]+/",
                     "group": "1_MSSQL_primary@95"
                 },
                 {
                     "command": "mssql.copyConnectionString",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(Server|disconnectedServer)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(Server|disconnectedServer)\\b/",
                     "group": "2_MSSQL_connection@4"
                 },
                 {
                     "command": "mssql.refreshObjectExplorerNode",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(?!(disconnectedServer|ConnectionGroup)\\b)[^,]+/ ",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(?!(disconnectedServer|ConnectionGroup)\\b)[^,]+/ ",
                     "group": "1_MSSQL_primary@90"
                 },
                 {
                     "command": "mssql.objectExplorerChatWithDatabase",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database|Table)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database|Table)\\b/",
                     "group": "6_MSSQL_copilot@1"
                 },
                 {
                     "command": "mssql.objectExplorerChatWithDatabaseInAgentMode",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database|Table)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database|Table)\\b/",
                     "group": "6_MSSQL_copilot@2"
                 },
                 {
@@ -827,27 +827,27 @@
                 },
                 {
                     "command": "mssql.filterNode",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=false\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=false\\b/",
                     "group": "inline@1"
                 },
                 {
                     "command": "mssql.filterNodeWithExistingFilters",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/",
                     "group": "inline@1"
                 },
                 {
                     "command": "mssql.newTable",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\bsubType=(Tables)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\bsubType=(Tables)\\b/",
                     "group": "inline@1"
                 },
                 {
                     "command": "mssql.createDatabase",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(Folder)\\b.*\\bsubType=(Databases)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(Folder)\\b.*\\bsubType=(Databases)\\b/",
                     "group": "inline@1"
                 },
                 {
                     "command": "mssql.editTable",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(Table)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(Table)\\b/",
                     "group": "inline@1"
                 },
                 {
@@ -862,12 +862,12 @@
                 },
                 {
                     "command": "mssql.clearFilters",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/",
                     "group": "inline@3"
                 },
                 {
                     "command": "mssql.refreshObjectExplorerNode",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(?!(disconnectedServer|ConnectionGroup)\\b)[^,]+/ ",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(?!(disconnectedServer|ConnectionGroup)\\b)[^,]+/ ",
                     "group": "inline@9999"
                 },
                 {
@@ -887,17 +887,17 @@
                 },
                 {
                     "command": "mssql.stopContainer",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\bsubType=(DockerContainer|DockerContainerDatabase)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\bsubType=(DockerContainer|DockerContainerDatabase)\\b/",
                     "group": "9_MSSQL_container@1"
                 },
                 {
                     "command": "mssql.deleteContainer",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\bsubType=(DockerContainer|disconnectedDockerContainer|DockerContainerDatabase)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\bsubType=(DockerContainer|disconnectedDockerContainer|DockerContainerDatabase)\\b/",
                     "group": "9_MSSQL_container@2"
                 },
                 {
                     "command": "mssql.startContainer",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\bsubType=(disconnectedDockerContainer|DockerContainerDatabase)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\bsubType=(disconnectedDockerContainer|DockerContainerDatabase)\\b/",
                     "group": "9_MSSQL_container@3"
                 },
                 {
@@ -950,11 +950,11 @@
                 },
                 {
                     "command": "mssql.objectExplorerNewQuery",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/"
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/"
                 },
                 {
                     "command": "mssql.schemaCompare",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/"
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/"
                 },
                 {
                     "command": "mssql.removeObjectExplorerNode",
@@ -962,27 +962,27 @@
                 },
                 {
                     "command": "mssql.refreshObjectExplorerNode",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(?!(disconnectedServer|ConnectionGroup)\\b)[^,]+/"
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(?!(disconnectedServer|ConnectionGroup)\\b)[^,]+/"
                 },
                 {
                     "command": "mssql.scriptSelect",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~  /\\btype=(Table|View)\\b/"
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~  /\\btype=(Table|View)\\b/"
                 },
                 {
                     "command": "mssql.scriptCreate",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/"
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/"
                 },
                 {
                     "command": "mssql.scriptDelete",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/"
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/"
                 },
                 {
                     "command": "mssql.scriptExecute",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(StoredProcedure)\\b/"
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(StoredProcedure)\\b/"
                 },
                 {
                     "command": "mssql.scriptAlter",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(AggregateFunction|PartitionFunction|ScalarValuedFunction|StoredProcedure|TableValuedFunction|View)\\b/"
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(AggregateFunction|PartitionFunction|ScalarValuedFunction|StoredProcedure|TableValuedFunction|View)\\b/"
                 },
                 {
                     "command": "mssql.disconnectObjectExplorerNode",
@@ -998,11 +998,11 @@
                 },
                 {
                     "command": "mssql.copyObjectName",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(?!(Folder|Server|disconnectedServer)\\b)[^,]+/"
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(?!(Folder|Server|disconnectedServer)\\b)[^,]+/"
                 },
                 {
                     "command": "mssql.copyConnectionString",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(Server|disconnectedServer)\\b/"
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(Server|disconnectedServer)\\b/"
                 },
                 {
                     "command": "mssql.runQueryHistory",
@@ -1010,11 +1010,11 @@
                 },
                 {
                     "command": "mssql.newTable",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\bsubType=(Tables)\\b/"
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\bsubType=(Tables)\\b/"
                 },
                 {
                     "command": "mssql.editTable",
-                    "when": "view =~ /objectExplorer|azureResourceGroups/ && viewItem =~ /\\btype=(Table)\\b/"
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(Table)\\b/"
                 },
                 {
                     "command": "mssql.schemaDesigner",

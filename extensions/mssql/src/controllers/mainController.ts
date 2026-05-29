@@ -113,6 +113,7 @@ import {
     SqlServerBranchDataProvider,
     isSqlServerRootModel,
 } from "../azure/sqlServerBranchDataProvider";
+import { registerFabricIntegration } from "../fabric/fabricIntegration";
 import {
     AzExtResourceType,
     AzureResourcesExtensionApi,
@@ -784,6 +785,12 @@ export default class MainController implements vscode.Disposable {
             this.registerLanguageModelTools();
 
             void this.registerAzureResourcesBranchDataProvider();
+
+            void registerFabricIntegration(
+                this._objectExplorerProvider.objectExplorerService,
+                logger2.withPrefix("Fabric"),
+                this._context,
+            );
 
             return true;
         }

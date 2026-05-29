@@ -67,6 +67,14 @@ export function resolveObjectExplorerNode(item: TreeNodeInfo): TreeNodeInfo {
         if (isSqlServerRootModel(inner) && inner.connectionNode) {
             return inner.connectionNode;
         }
+        // MssqlFabricDatabaseTreeNode.unwrap() returns ConnectionNode | undefined
+        // (ConnectionNode extends TreeNodeInfo so the first check handles the defined case)
+        if (inner === undefined) {
+            _azResourcesLogger.warn(
+                `Could not resolve wrapped node for "${(item as TreeNodeInfo).label ?? String(item)}" — expand it first to establish a connection.`,
+            );
+            return item;
+        }
         _azResourcesLogger.warn(
             `Could not resolve wrapped node for "${(item as TreeNodeInfo).label ?? String(item)}"`,
         );
