@@ -2327,7 +2327,7 @@ Seleccione "{0}" para establecer una conexión.</target>
       </trans-unit>
       <trans-unit id="++CODE++ba9ae98bcb402b5a736ffd9e5da622d3bf7e67b5a7da246d9238029b9d1449ed">
         <source xml:lang="en">Create an Azure SQL Database (Preview)</source>
-        <target state="new">Create an Azure SQL Database (Preview)</target>
+        <target state="translated">Crear Azure SQL Database (versión preliminar)</target>
       </trans-unit>
       <trans-unit id="++CODE++920a110919d9017fb66218139efb71c5907532cbe6292a1db645f05d06a171ae">
         <source xml:lang="en">Create as Script</source>
