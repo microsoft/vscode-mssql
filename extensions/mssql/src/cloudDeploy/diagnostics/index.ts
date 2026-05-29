@@ -15,4 +15,6 @@ export type {
     EnvironmentsFileParseFailedEvent,
     EnvironmentsLoadedEvent,
     ErrorEvent,
+    RunPersistedEvent,
+    RunPersistFailedEvent,
 } from "./types";

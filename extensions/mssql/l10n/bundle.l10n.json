@@ -3895,6 +3895,38 @@
     },
     "View known issues": "View known issues",
     "Service installation failed.": "Service installation failed.",
+    "Run artifact at {0} is not a valid zip archive./{0} is the absolute file path of the run artifact": {
+        "message": "Run artifact at {0} is not a valid zip archive.",
+        "comment": ["{0} is the absolute file path of the run artifact"]
+    },
+    "Run artifact at {0} declares schema version {1}, which this version of the extension does not understand. Update the extension to read it./{0} is the absolute file path of the run artifact{1} is the unsupported schema version number": {
+        "message": "Run artifact at {0} declares schema version {1}, which this version of the extension does not understand. Update the extension to read it.",
+        "comment": [
+            "{0} is the absolute file path of the run artifact",
+            "{1} is the unsupported schema version number"
+        ]
+    },
+    "Run artifact at {0} is missing the required entry '{1}'./{0} is the absolute file path of the run artifact{1} is the name of the missing entry inside the zip": {
+        "message": "Run artifact at {0} is missing the required entry '{1}'.",
+        "comment": [
+            "{0} is the absolute file path of the run artifact",
+            "{1} is the name of the missing entry inside the zip"
+        ]
+    },
+    "Run artifact at {0} failed schema validation with {1} issue(s)./{0} is the absolute file path of the run artifact{1} is the count of validation issues": {
+        "message": "Run artifact at {0} failed schema validation with {1} issue(s).",
+        "comment": [
+            "{0} is the absolute file path of the run artifact",
+            "{1} is the count of validation issues"
+        ]
+    },
+    "Failed to read run artifact at {0}: {1}/{0} is the absolute file path of the run artifact{1} is the underlying I/O error message": {
+        "message": "Failed to read run artifact at {0}: {1}",
+        "comment": [
+            "{0} is the absolute file path of the run artifact",
+            "{1} is the underlying I/O error message"
+        ]
+    },
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

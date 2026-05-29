@@ -1,0 +1,245 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/**
+ * Cloud Deploy — run-record domain types.
+ *
+ * The `RunRecord` is the in-memory shape that round-trips through a
+ * persisted run artifact (`.cdrun.zip`). It captures everything we need to
+ * later render a run in the UI without re-executing validations: which
+ * environment was targeted, who ran what at what time, the aggregate
+ * status, and one `ValidationResult` per executed validation.
+ *
+ * Schema rules:
+ *   * `RUN_RECORD_SCHEMA_VERSION` is bumped only on breaking changes; readers
+ *     reject any forward version they don't understand.
+ *   * `passthrough()` everywhere in the Zod mirror (see `runArtifactSchema.ts`)
+ *     so additive forward-compatible fields don't break older readers.
+ *   * All fields are `readonly`: a `RunRecord` is a snapshot.
+ *
+ * Validation payload shapes live in this file as a discriminated union keyed
+ * on `validationType`, so the writer/reader can rely on Zod to narrow without
+ * any manual instanceof / typeof gymnastics.
+ */
+
+import { Environment, ValidationType } from "../environments/types";
+
+// =============================================================================
+// Constants
+// =============================================================================
+
+/** Bumped on breaking changes to the on-disk run artifact format. */
+export const RUN_RECORD_SCHEMA_VERSION = 1 as const;
+
+// =============================================================================
+// Enums
+// =============================================================================
+
+/**
+ * Overall status of a run, computed by collapsing all per-validation statuses
+ * via `RUN_STATUS_PRIORITY` (worst wins). Listed least- to most-severe.
+ */
+export enum RunStatus {
+    Passed = "passed",
+    Skipped = "skipped",
+    Warning = "warning",
+    Failed = "failed",
+    Errored = "errored",
+}
+
+/**
+ * Per-status severity rank. Higher value = worse outcome. Aggregation picks
+ * the validation with the highest rank as the run-level `RunStatus`.
+ *
+ * `Object.freeze` prevents accidental mutation of shared module-level state
+ * by callers (a real bug class once the store starts copying these constants
+ * into telemetry payloads).
+ */
+export const RUN_STATUS_PRIORITY: Readonly<Record<RunStatus, number>> = Object.freeze({
+    [RunStatus.Passed]: 0,
+    [RunStatus.Skipped]: 1,
+    [RunStatus.Warning]: 2,
+    [RunStatus.Failed]: 3,
+    [RunStatus.Errored]: 4,
+});
+
+/** Status of a single validation execution. Mirrors `RunStatus` semantics. */
+export enum ValidationStatus {
+    Passed = "passed",
+    Skipped = "skipped",
+    Warning = "warning",
+    Failed = "failed",
+    Errored = "errored",
+}
+
+// =============================================================================
+// Runner identity
+// =============================================================================
+
+/**
+ * Identifies who/what initiated a run. `userId` is a stable, non-PII handle
+ * (e.g. the VS Code `machineId` or a hashed account id); `displayName` is
+ * what the UI surfaces. `hostKind` exists so future Codespaces / GitHub
+ * Actions launches can be distinguished from a local VS Code workspace.
+ */
+export interface RunnerIdentity {
+    readonly userId: string;
+    readonly displayName: string;
+    readonly hostKind: "vscode" | "codespaces" | "github-actions";
+}
+
+// =============================================================================
+// Findings
+// =============================================================================
+
+/**
+ * Closed discriminated union of every finding the UI can render. The
+ * discriminator is `kind`, matching the corresponding `ValidationType`.
+ *
+ * Findings are validation-shaped, not test-runner-shaped: a "test failure"
+ * inside a unit-test run is `UnitTestFinding`, not a generic message blob.
+ * That gives the renderer a typed surface without inspecting magic strings.
+ */
+export type Finding = StaticAnalysisFinding | UnitTestFinding | WorkloadRegressionFinding;
+
+export interface StaticAnalysisFinding {
+    readonly kind: "static-analysis";
+    /** Rule identifier (e.g. an SQL linter rule code). */
+    readonly ruleId: string;
+    /** Severity within the rule's vocabulary. */
+    readonly severity: "info" | "warning" | "error";
+    /** Human-readable description; not localized — emitted by the analyzer. */
+    readonly message: string;
+    /** Optional source location for navigation. */
+    readonly location?: {
+        readonly file: string;
+        readonly line?: number;
+        readonly column?: number;
+    };
+}
+
+export interface UnitTestFinding {
+    readonly kind: "unit-tests";
+    /** Fully-qualified test name (suite + test). */
+    readonly testName: string;
+    readonly outcome: "passed" | "failed" | "skipped" | "errored";
+    /** Failure message when `outcome !== "passed"`. */
+    readonly message?: string;
+    /** Wall-clock duration; useful for perf regressions but not authoritative. */
+    readonly durationMs?: number;
+}
+
+export interface WorkloadRegressionFinding {
+    readonly kind: "workload-playback";
+    /** Workload step / query identifier. */
+    readonly stepId: string;
+    /** What changed vs. baseline. */
+    readonly regression: "throughput" | "latency" | "error-rate" | "plan-change";
+    /** Numeric delta (interpretation depends on `regression`). */
+    readonly delta: number;
+    /** Free-form description for the UI; emitted by the workload runner. */
+    readonly message: string;
+}
+
+// =============================================================================
+// Validation payloads
+// =============================================================================
+
+/**
+ * Discriminated union of per-validation payloads. The discriminator is
+ * `validationType`, matching `ValidationType` from the env model. This lets
+ * a single `ValidationResult.payload` be exhaustively narrowed without
+ * runtime type checks.
+ */
+export type ValidationPayload = StaticAnalysisPayload | UnitTestsPayload | WorkloadPlaybackPayload;
+
+export interface StaticAnalysisPayload {
+    readonly validationType: ValidationType.StaticAnalysis;
+    readonly findings: readonly StaticAnalysisFinding[];
+    /** Aggregate counts; pre-computed so the UI doesn't recount. */
+    readonly summary: {
+        readonly info: number;
+        readonly warning: number;
+        readonly error: number;
+    };
+}
+
+export interface UnitTestsPayload {
+    readonly validationType: ValidationType.UnitTests;
+    readonly findings: readonly UnitTestFinding[];
+    readonly summary: {
+        readonly total: number;
+        readonly passed: number;
+        readonly failed: number;
+        readonly skipped: number;
+        readonly errored: number;
+    };
+}
+
+export interface WorkloadPlaybackPayload {
+    readonly validationType: ValidationType.WorkloadPlayback;
+    readonly findings: readonly WorkloadRegressionFinding[];
+    /** Aggregate counts; pre-computed for fast UI rendering. */
+    readonly summary: {
+        readonly steps: number;
+        readonly regressions: number;
+    };
+}
+
+// =============================================================================
+// ValidationResult
+// =============================================================================
+
+/**
+ * One executed validation within a run. Owns its own status, timestamps,
+ * and payload. Persisted as a separate entry inside the run artifact zip
+ * (`validations/{validationId}.json`) so partial reads — e.g. "show me only
+ * the static-analysis result" — are cheap.
+ */
+export interface ValidationResult {
+    /** Stable id within the run (typically the validation's id from the env config). */
+    readonly validationId: string;
+    /** Human-friendly label, copied from the env at run-start time. */
+    readonly displayName: string;
+    readonly status: ValidationStatus;
+    readonly startedAtMs: number;
+    readonly endedAtMs: number;
+    readonly payload: ValidationPayload;
+    /**
+     * Optional terse error message when `status === "errored"`. Distinct from
+     * `payload.findings`: this is "the validation runner itself crashed",
+     * not "the validation found N problems".
+     */
+    readonly errorMessage?: string;
+}
+
+// =============================================================================
+// RunRecord
+// =============================================================================
+
+/**
+ * Top-level run-record shape: one of these per persisted run artifact.
+ *
+ * `environmentSnapshot` is the FULL env value at the moment the run started,
+ * captured by deep-copy. The env may have been edited or deleted since;
+ * the snapshot preserves the historical context the run was executed in.
+ */
+export interface RunRecord {
+    /** Always equals `RUN_RECORD_SCHEMA_VERSION` at write time. */
+    readonly schemaVersion: typeof RUN_RECORD_SCHEMA_VERSION;
+    /** Stable, globally-unique run id (UUID). */
+    readonly runId: string;
+    /** The env id this run targeted. Matches `environmentSnapshot.id`. */
+    readonly environmentId: string;
+    /** Frozen copy of the targeted env at run-start time. */
+    readonly environmentSnapshot: Environment;
+    readonly runner: RunnerIdentity;
+    readonly startedAtMs: number;
+    readonly endedAtMs: number;
+    /** Aggregate status across all `validations`. */
+    readonly status: RunStatus;
+    /** One entry per validation that executed. May be empty for an aborted run. */
+    readonly validations: readonly ValidationResult[];
+}

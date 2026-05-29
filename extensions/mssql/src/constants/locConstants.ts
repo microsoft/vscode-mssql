@@ -3852,3 +3852,58 @@ export class ServiceClient {
 
     public static installFailedStatusText = l10n.t("Service installation failed.");
 }
+
+export class CloudDeployRuns {
+    public static malformedZip(filePath: string): string {
+        return l10n.t({
+            message: "Run artifact at {0} is not a valid zip archive.",
+            args: [filePath],
+            comment: ["{0} is the absolute file path of the run artifact"],
+        });
+    }
+
+    public static unknownSchemaVersion(filePath: string, version: number): string {
+        return l10n.t({
+            message:
+                "Run artifact at {0} declares schema version {1}, which this version of the extension does not understand. Update the extension to read it.",
+            args: [filePath, version],
+            comment: [
+                "{0} is the absolute file path of the run artifact",
+                "{1} is the unsupported schema version number",
+            ],
+        });
+    }
+
+    public static missingEntry(filePath: string, entryName: string): string {
+        return l10n.t({
+            message: "Run artifact at {0} is missing the required entry '{1}'.",
+            args: [filePath, entryName],
+            comment: [
+                "{0} is the absolute file path of the run artifact",
+                "{1} is the name of the missing entry inside the zip",
+            ],
+        });
+    }
+
+    public static schemaValidationFailed(filePath: string, issueCount: number): string {
+        return l10n.t({
+            message: "Run artifact at {0} failed schema validation with {1} issue(s).",
+            args: [filePath, issueCount],
+            comment: [
+                "{0} is the absolute file path of the run artifact",
+                "{1} is the count of validation issues",
+            ],
+        });
+    }
+
+    public static ioError(filePath: string, message: string): string {
+        return l10n.t({
+            message: "Failed to read run artifact at {0}: {1}",
+            args: [filePath, message],
+            comment: [
+                "{0} is the absolute file path of the run artifact",
+                "{1} is the underlying I/O error message",
+            ],
+        });
+    }
+}
