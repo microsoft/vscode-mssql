@@ -137,7 +137,7 @@ async function extractPayload(nupkgPath, sourcePrefix, installDirectory) {
 }
 
 async function makeExecutableIfNeeded(runtime, installDirectory) {
-    if (runtime === "Portable" || process.platform === "win32") {
+    if (runtime === "Portable" || runtime.startsWith("Windows_")) {
         return;
     }
 

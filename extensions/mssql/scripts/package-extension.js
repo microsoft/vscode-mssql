@@ -86,6 +86,7 @@ async function installSqlToolsMcpPayload(platform) {
     logger.step("Installing SQL Tools MCP...");
 
     try {
+        await cleanSqlToolsMcpInstallFolder();
         await installSqlToolsMcp(platform);
         logger.success("SQL Tools MCP installed");
     } catch (error) {
