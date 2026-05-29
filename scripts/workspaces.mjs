@@ -5,6 +5,17 @@ import { supportedActions, workspaceTargets } from "./workspace-targets.mjs";
 
 const npmCommand = "npm";
 const spawnOptions = { shell: process.platform === "win32" };
+const minSupportedNodeMajor = 24;
+
+function ensureSupportedNodeVersion() {
+    const currentNodeMajor = Number.parseInt(process.versions.node.split(".")[0], 10);
+
+    if (!Number.isFinite(currentNodeMajor) || currentNodeMajor < minSupportedNodeMajor) {
+        throw new Error(
+            `Node.js ${minSupportedNodeMajor}+ is required. Current version: ${process.version}.`,
+        );
+    }
+}
 
 function parseTargetValue(flag, value) {
     if (!value || value.trim().length === 0 || value.startsWith("-")) {
@@ -209,6 +220,8 @@ function listTargets() {
 }
 
 function main() {
+    ensureSupportedNodeVersion();
+
     const { action, forwardedArgs, prod, requireTarget, targetValue } = parseArgs(
         process.argv.slice(2),
     );

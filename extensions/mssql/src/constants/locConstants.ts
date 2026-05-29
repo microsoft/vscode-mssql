@@ -1302,6 +1302,14 @@ export class Fabric {
         });
     };
 
+    public static listingWarehousesForWorkspace = (workspaceId: string) => {
+        return l10n.t({
+            message: "Listing Fabric Warehouses for workspace '{0}'",
+            args: [workspaceId],
+            comment: ["{0} is the workspace ID"],
+        });
+    };
+
     public static gettingConnectionStringForSqlEndpoint = (
         sqlEndpointId: string,
         workspaceId: string,
@@ -1507,6 +1515,8 @@ export class AzureSqlDatabase {
     public static serverAuthTypeUnknown = l10n.t(
         "Unable to determine the server authentication type.",
     );
+    public static maxVcores = l10n.t("Max vCores");
+    public static selectMaxVcores = l10n.t("Select Max vCores");
 }
 
 export class FabricProvisioning {

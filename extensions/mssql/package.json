@@ -1,7 +1,7 @@
 {
     "name": "mssql",
     "displayName": "SQL Server (mssql)",
-    "version": "1.43.0",
+    "version": "1.44.0",
     "description": "Design and optimize schemas for SQL Server, Azure SQL, and SQL Database in Fabric using a modern, lightweight extension built for developers",
     "publisher": "ms-mssql",
     "preview": false,
@@ -21,7 +21,7 @@
     },
     "homepage": "https://github.com/Microsoft/vscode-mssql/blob/main/mssql/README.md",
     "engines": {
-        "vscode": "^1.101.0"
+        "vscode": "^1.98.0"
     },
     "categories": [
         "Programming Languages",
@@ -106,7 +106,7 @@
         "@types/sinon-chai": "^4.0.0",
         "@types/tmp": "0.0.28",
         "@types/tunnel": "0.0.1",
-        "@types/vscode": "1.101.0",
+        "@types/vscode": "1.98.0",
         "@types/vscode-webview": "^1.57.5",
         "@types/xmldom": "^0.1.34",
         "@typescript/native-preview": "^7.0.0-dev.20260507.1",
@@ -1637,11 +1637,6 @@
                 "command": "mssql.notebooks.copyCellMessages",
                 "title": "%mssql.notebooks.copyCellMessages%",
                 "category": "MS SQL"
-            },
-            {
-                "command": "mssql.copilot.toggleSqlToolSurface",
-                "title": "MSSQL: Toggle Copilot SQL Tool Surface (Test)",
-                "category": "MS SQL"
             }
         ],
         "keybindings": [
@@ -1689,12 +1684,6 @@
                     "type": "boolean",
                     "default": false,
                     "description": "%mssql.enableExperimentalFeatures.description%",
-                    "scope": "application"
-                },
-                "mssql.copilot.enableNativeTools": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Testing only: enable native mssql language model tool contributions.",
                     "scope": "application"
                 },
                 "mssql.copilot.enableSqlToolsMcp": {
@@ -2758,7 +2747,6 @@
         "languageModelTools": [
             {
                 "name": "mssql_schema_designer",
-                "when": "config.mssql.copilot.enableNativeTools",
                 "modelDescription": "Work with the currently active Schema Designer. Use 'show' to open a designer for a connectionId when needed. Operations: 'get_overview' returns a bounded list of tables (and optionally column names/types; omitted automatically for large schemas); 'get_table' returns bounded details for a single table; 'apply_edits' applies a sequential list of edits and returns only a small receipt plus the post-mutation version. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with currentVersion and a bounded currentOverview.",
                 "tags": [
                     "databases",
@@ -3796,7 +3784,6 @@
             },
             {
                 "name": "mssql_dab",
-                "when": "config.mssql.copilot.enableNativeTools",
                 "modelDescription": "Work with the Data API builder configuration in the currently active schema designer. Use 'get_state' to inspect it and 'apply_changes' to modify it; use 'show' only to open the Data API builder view for a connectionId when needed. Operations: 'get_state' returns the current version, summary, and bounded configuration state (full config may be omitted for large configurations); 'apply_changes' uses payload { expectedVersion, targetHint?, changes } and returns the post-mutation version plus summary, with optional returnState control. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with the current version and latest summary/config according to returnState. Entity refs are either { id }, { schemaName, tableName } for table compatibility, or { schemaName, sourceName, sourceType } where sourceType is table, view, or stored-procedure. Column refs are either { id } or { name }. Change types: { type: 'set_api_types', apiTypes }, { type: 'add_entity', entity }, { type: 'remove_entity', entity }, { type: 'set_entity_enabled', entity, isEnabled }, { type: 'set_entity_actions', entity, enabledActions }, { type: 'set_column_exposed', entity, column, isExposed }, { type: 'patch_entity_settings', entity, set }, { type: 'set_only_enabled_entities', entities }, { type: 'set_all_entities_enabled', isEnabled }. patch_entity_settings.set supports entityName, authorizationRole, customRestPath, restEnabled, customGraphQLType, graphQLEnabled, table-only mcpDmlToolsEnabled, and stored-procedure-only storedProcedureRestMethods, storedProcedureGraphQLOperation, exposeAsMcpCustomTool.",
                 "tags": [
                     "databases",
@@ -4303,7 +4290,6 @@
             },
             {
                 "name": "mssql_connect",
-                "when": "config.mssql.copilot.enableNativeTools",
                 "modelDescription": "Connect to an MSSQL database server using a server name, an optional database name, and an optional profileId. The server name must be retrieved from mssql_list_servers. The profileId should be used ONLY when the user explicitly mentions a profile name, profile ID, or wants to connect 'using profile X'. Returns a connection ID that is used to interact with the database with other mssql tools. If a specific database is given and the connection fails, use mssql_list_databases against a connection to the default database to find the correct database name. The connection ID is a UUID.",
                 "tags": [
                     "databases",
@@ -4356,7 +4342,6 @@
             },
             {
                 "name": "mssql_disconnect",
-                "when": "config.mssql.copilot.enableNativeTools",
                 "modelDescription": "Disconnect from a server or specific database. Returns a success message.",
                 "tags": [
                     "databases",
@@ -4384,7 +4369,6 @@
             },
             {
                 "name": "mssql_list_servers",
-                "when": "config.mssql.copilot.enableNativeTools",
                 "modelDescription": "List all available MSSQL servers. Returns a list of server names.",
                 "tags": [
                     "databases",
@@ -4400,7 +4384,6 @@
             },
             {
                 "name": "mssql_list_databases",
-                "when": "config.mssql.copilot.enableNativeTools",
                 "modelDescription": "List all available databases for a connected MSSQL server. Returns a list of database names.",
                 "tags": [
                     "databases",
@@ -4428,7 +4411,6 @@
             },
             {
                 "name": "mssql_get_connection_details",
-                "when": "config.mssql.copilot.enableNativeTools",
                 "modelDescription": "Get connection details for a specific connection ID. Returns connection information including server, database, authentication type, and user details.",
                 "tags": [
                     "databases",
@@ -4457,7 +4439,6 @@
             },
             {
                 "name": "mssql_change_database",
-                "when": "config.mssql.copilot.enableNativeTools",
                 "modelDescription": "Change the database for an existing MSSQL connection. Before changing, consider using mssql_list_databases to show available database options to the user. Disconnects from current database and reconnects to the specified database using the same connection credentials.",
                 "tags": [
                     "databases",
@@ -4492,7 +4473,6 @@
             },
             {
                 "name": "mssql_list_tables",
-                "when": "config.mssql.copilot.enableNativeTools",
                 "modelDescription": "List all tables in a specific database for a connected MSSQL server. Returns a list of table names with schema information.",
                 "tags": [
                     "databases",
@@ -4520,7 +4500,6 @@
             },
             {
                 "name": "mssql_list_schemas",
-                "when": "config.mssql.copilot.enableNativeTools",
                 "modelDescription": "List all schemas in a specific database for a connected MSSQL server. Returns a list of schema names.",
                 "tags": [
                     "databases",
@@ -4549,7 +4528,6 @@
             },
             {
                 "name": "mssql_list_views",
-                "when": "config.mssql.copilot.enableNativeTools",
                 "modelDescription": "List all views in a specific database for a connected MSSQL server. Returns a list of view names with schema information.",
                 "tags": [
                     "databases",
@@ -4578,7 +4556,6 @@
             },
             {
                 "name": "mssql_list_functions",
-                "when": "config.mssql.copilot.enableNativeTools",
                 "modelDescription": "List all functions in a specific database for a connected MSSQL server. Returns a list of function names with schema information.",
                 "tags": [
                     "databases",
@@ -4607,7 +4584,6 @@
             },
             {
                 "name": "mssql_run_query",
-                "when": "config.mssql.copilot.enableNativeTools",
                 "modelDescription": "Execute a SQL query against a connected MSSQL database. Returns query results including row count, column information, and data rows. Use this tool to run SELECT, INSERT, UPDATE, DELETE, or other SQL statements. IMPORTANT: This tool will execute ANY SQL statement provided - be extremely careful with write operations (INSERT, UPDATE, DELETE, CREATE, ALTER, DROP) as they will modify or destroy data. Always verify the query is safe before execution, especially for operations without WHERE clauses or that affect system objects.",
                 "tags": [
                     "databases",

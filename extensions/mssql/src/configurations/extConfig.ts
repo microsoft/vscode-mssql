@@ -9,7 +9,7 @@ import * as Constants from "../constants/constants";
 import { IConfigUtils } from "../languageservice/interfaces";
 
 /*
- * ExtConfig class handles getting values from workspace config or config.json.
+ * ExtConfig class handles getting values from VS Code configuration or packaged config.
  */
 export default class ExtConfig implements IConfigUtils {
     constructor(
@@ -51,13 +51,7 @@ export default class ExtConfig implements IConfigUtils {
     }
 
     public getSqlToolsConfigValue(configKey: string): any {
-        let configValue: string = <string>(
-            this.getExtensionConfig(`${Constants.sqlToolsServiceConfigKey}.${configKey}`)
-        );
-        if (!configValue) {
-            configValue = this._config.getSqlToolsConfigValue(configKey);
-        }
-        return configValue;
+        return this._config.getSqlToolsConfigValue(configKey);
     }
 
     public getExtensionConfig(key: string, defaultValue?: any): any {

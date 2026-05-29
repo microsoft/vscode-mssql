@@ -246,6 +246,7 @@
     "Show All": "Show All",
     "SQL Analytics Endpoint": "SQL Analytics Endpoint",
     "SQL Database": "SQL Database",
+    "Warehouse": "Warehouse",
     "No workspaces found": "No workspaces found",
     "Name": "Name",
     "Type": "Type",
@@ -376,6 +377,8 @@
     "Error loading subscriptions": "Error loading subscriptions",
     "Error loading servers": "Error loading servers",
     "Azure SQL Server": "Azure SQL Server",
+    "Azure SQL Managed Instance": "Azure SQL Managed Instance",
+    "Azure Synapse Analytics": "Azure Synapse Analytics",
     "Sign into Azure": "Sign into Azure",
     "Not signed in": "Not signed in",
     "Azure Account": "Azure Account",
@@ -2656,6 +2659,10 @@
         "message": "Listing Fabric SQL Endpoints for workspace '{0}'",
         "comment": ["{0} is the workspace ID"]
     },
+    "Listing Fabric Warehouses for workspace '{0}'/{0} is the workspace ID": {
+        "message": "Listing Fabric Warehouses for workspace '{0}'",
+        "comment": ["{0} is the workspace ID"]
+    },
     "Getting connection string for SQL Endpoint '{0}' in workspace '{1}'/{0} is the SQL endpoint ID{1} is the workspace ID": {
         "message": "Getting connection string for SQL Endpoint '{0}' in workspace '{1}'",
         "comment": ["{0} is the SQL endpoint ID", "{1} is the workspace ID"]
@@ -2749,6 +2756,8 @@
     "This server only supports SQL Authentication.": "This server only supports SQL Authentication.",
     "Use SQL Authentication with a valid username and password.": "Use SQL Authentication with a valid username and password.",
     "Unable to determine the server authentication type.": "Unable to determine the server authentication type.",
+    "Max vCores": "Max vCores",
+    "Select Max vCores": "Select Max vCores",
     "Enter Database Name": "Enter Database Name",
     "Database Description": "Database Description",
     "Enter Database Description": "Enter Database Description",

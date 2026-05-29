@@ -336,6 +336,7 @@ export class LocConstants {
             showAll: l10n.t("Show All"),
             sqlAnalyticsEndpoint: l10n.t("SQL Analytics Endpoint"),
             sqlDatabase: l10n.t("SQL Database"),
+            warehouse: l10n.t("Warehouse"),
             noFabricWorkspacesFound: l10n.t("No workspaces found"),
             nameColumnHeader: l10n.t("Name"),
             typeColumnHeader: l10n.t("Type"),
@@ -528,6 +529,8 @@ export class LocConstants {
             errorLoadingServers: l10n.t("Error loading servers"),
             resourceGroupColumnHeader: l10n.t("Resource Group"),
             azureSqlServer: l10n.t("Azure SQL Server"),
+            azureSqlManagedInstance: l10n.t("Azure SQL Managed Instance"),
+            azureSynapseAnalytics: l10n.t("Azure Synapse Analytics"),
         };
     }
 

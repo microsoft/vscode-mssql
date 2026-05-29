@@ -385,11 +385,30 @@
     justify-content: center;
 }
 
-/* Override checkbox icon color to match VS Code theme */
-#tableExplorerGrid .slick-cell-checkboxsel .icon-checkbox-container div.sgi,
-#tableExplorerGrid .slick-column-name .icon-checkbox-container div.sgi,
-#tableExplorerGrid .slick-headerrow-column .icon-checkbox-container div.sgi {
-    color: var(--vscode-foreground);
+/* Checkbox container: use VS Code theme variables for border and background.
+   This overrides slickgrid dark-mode which sets --slick-checkbox-icon-border:none,
+   making the unchecked box invisible in dark theme. */
+#tableExplorerGrid .slick-cell-checkboxsel .icon-checkbox-container,
+#tableExplorerGrid .slick-column-name .icon-checkbox-container,
+#tableExplorerGrid .slick-headerrow-column .icon-checkbox-container {
+    border: 1px solid var(--vscode-checkbox-border, var(--vscode-input-border, currentColor)) !important;
+    background-color: var(--vscode-checkbox-background, transparent);
+}
+
+/* Checked state: filled with VS Code button/primary color */
+#tableExplorerGrid .slick-cell-checkboxsel .icon-checkbox-container.checked,
+#tableExplorerGrid .slick-column-name .icon-checkbox-container.checked,
+#tableExplorerGrid .slick-headerrow-column .icon-checkbox-container.checked {
+    border: none !important;
+    background-color: var(--vscode-button-background, #0f6cbd);
+}
+
+/* Checkmark icon: use VS Code button foreground (typically white) so it is
+   visible on the filled checked-state background in both light and dark themes. */
+#tableExplorerGrid .slick-cell-checkboxsel .icon-checkbox-container.checked div.sgi,
+#tableExplorerGrid .slick-column-name .icon-checkbox-container.checked div.sgi,
+#tableExplorerGrid .slick-headerrow-column .icon-checkbox-container.checked div.sgi {
+    color: var(--vscode-button-foreground, #fff);
 }
 
 /* Show sort indicator on sortable columns */

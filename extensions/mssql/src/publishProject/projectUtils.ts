@@ -9,6 +9,7 @@ import * as constants from "../constants/constants";
 import * as path from "path";
 import { SqlProjectsService } from "../services/sqlProjectsService";
 import { promises as fs } from "fs";
+import * as os from "os";
 import { DOMParser } from "@xmldom/xmldom";
 import { dockerLogger } from "../docker/dockerUtils";
 import { getSqlServerContainerVersions } from "../deployment/sqlServerContainer";
@@ -254,7 +255,14 @@ export function readSqlCmdVariables(profileText: string): { [key: string]: strin
 
     try {
         const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(profileText, "application/xml");
+        // Strip UTF-8 BOM (\uFEFF) if present — xmldom requires the XML declaration to be
+        // at position 0 and throws if a BOM character precedes it.
+        // Also prepend an XML declaration if absent (e.g. hand-authored profiles) to ensure consistent UTF-8 parsing.
+        let normalizedXml = profileText.replace(/^\uFEFF/, "");
+        if (!normalizedXml.trimStart().startsWith("<?xml")) {
+            normalizedXml = '<?xml version="1.0" encoding="utf-8"?>' + os.EOL + normalizedXml;
+        }
+        const xmlDoc = parser.parseFromString(normalizedXml, "application/xml");
 
         // Get all SqlCmdVariable elements
         const sqlCmdVarElements = xmlDoc.documentElement.getElementsByTagName("SqlCmdVariable");
