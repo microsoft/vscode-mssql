@@ -161,6 +161,7 @@
     "mssql.intelliSense.enableErrorChecking": "Should IntelliSense error checking be enabled",
     "mssql.intelliSense.enableSuggestions": "Should IntelliSense suggestions be enabled",
     "mssql.intelliSense.enableQuickInfo": "Should IntelliSense quick info be enabled",
+    "mssql.intelliSense.enableCatalogMetadataProvider": "Controls whether IntelliSense uses the experimental catalog-backed metadata provider instead of the existing SMO provider.",
     "mssql.enableQueryHistoryFeature": "Should Query History feature be enabled",
     "mssql.persistQueryResultTabs": "Should query result selections and scroll positions be saved when switching tabs (may impact performance)",
     "mssql.queryHistoryLimit": "Number of query history entries to show in the Query History view",

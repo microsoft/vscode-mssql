@@ -2256,6 +2256,12 @@
                     "description": "%mssql.intelliSense.enableQuickInfo%",
                     "scope": "window"
                 },
+                "mssql.intelliSense.enableCatalogMetadataProvider": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.intelliSense.enableCatalogMetadataProvider%",
+                    "scope": "window"
+                },
                 "mssql.persistQueryResultTabs": {
                     "type": "boolean",
                     "default": false,
