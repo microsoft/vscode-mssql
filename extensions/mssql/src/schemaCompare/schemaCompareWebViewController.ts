@@ -2239,7 +2239,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
     }
 
     private formatEntryName(nameParts: string[]): string {
-        if (!Array.isArray(nameParts) || nameParts.length === 0) {
+        if (!nameParts || nameParts.length === 0) {
             return "";
         }
         return nameParts.join(".");
