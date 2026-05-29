@@ -66,6 +66,7 @@ import { ResultGridHandle, ResultGridProps } from "./resultGrid";
 import { isJson } from "../../common/jsonUtils";
 import { isXmlCell } from "../../common/xmlUtils";
 import { VirtualizedCollection } from "./table/asyncDataView";
+import { convertDisplayedSelectionRowsToActual } from "./table/utils";
 import { HeaderContextMenuAction } from "./table/plugins/HeaderContextMenu";
 import {
     ColumnMenuPopupAnchorRect,
@@ -219,13 +220,19 @@ function toActualDataSelection(range: ISlickRange): ISlickRange | undefined {
     };
 }
 
-function getSelectionForCopy(grid: SlickGrid, rowCount: number): ISlickRange[] {
-    const selectionModel = grid.getSelectionModel();
-    const selectedRanges = selectionModel?.getSelectedRanges() ?? [];
+function getDataSelectionsFromRanges(selectedRanges: SlickRange[]): ISlickRange[] {
     const dataSelections = selectedRanges
         .map(toSelectionRange)
         .map(toActualDataSelection)
         .filter((selection): selection is ISlickRange => selection !== undefined);
+
+    return dataSelections;
+}
+
+function getDisplayedSelectionForCopy(grid: SlickGrid, rowCount: number): ISlickRange[] {
+    const selectionModel = grid.getSelectionModel();
+    const selectedRanges = selectionModel?.getSelectedRanges() ?? [];
+    const dataSelections = getDataSelectionsFromRanges(selectedRanges);
 
     if (dataSelections.length > 0) {
         return dataSelections;
@@ -757,6 +764,26 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             [dataView, ensureAllRowsLoaded, hasActiveTransforms],
         );
 
+        const convertDisplayedSelectionForCopy = useCallback((selection: ISlickRange[]) => {
+            const transformedRows = transformedRowsRef.current;
+            if (!transformedRows) {
+                return selection;
+            }
+
+            return convertDisplayedSelectionRowsToActual(
+                selection,
+                (displayRow) => transformedRows[displayRow]?.id,
+            );
+        }, []);
+
+        const getActualSelectionForCopy = useCallback(
+            (grid: SlickGrid) =>
+                convertDisplayedSelectionForCopy(
+                    getDisplayedSelectionForCopy(grid, grid.getDataLength()),
+                ),
+            [convertDisplayedSelectionForCopy],
+        );
+
         const autoSizeSignature = useMemo(
             () =>
                 [
@@ -1208,10 +1235,7 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                     return;
                 }
 
-                const selection = ranges
-                    .map(toSelectionRange)
-                    .map(toActualDataSelection)
-                    .filter((range): range is ISlickRange => range !== undefined);
+                const selection = getDataSelectionsFromRanges(ranges);
 
                 void context.extensionRpc.sendNotification(SetSelectionSummaryRequest.type, {
                     selection,
@@ -1343,7 +1367,13 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 }
 
                 const currentRowCount = grid.getDataLength();
-                const selection = getSelectionForCopy(grid, currentRowCount);
+                let selection: ISlickRange[] | undefined;
+                const getSelection = () => {
+                    if (!selection) {
+                        selection = getActualSelectionForCopy(grid);
+                    }
+                    return selection;
+                };
 
                 switch (action) {
                     case GridContextMenuAction.SelectAll: {
@@ -1360,7 +1390,7 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                             uri,
                             batchId: currentResultSetSummary.batchId,
                             resultId: currentResultSetSummary.id,
-                            selection,
+                            selection: getSelection(),
                             includeHeaders: false,
                         });
                         break;
@@ -1369,7 +1399,7 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                             uri,
                             batchId: currentResultSetSummary.batchId,
                             resultId: currentResultSetSummary.id,
-                            selection,
+                            selection: getSelection(),
                             includeHeaders: true,
                         });
                         break;
@@ -1378,7 +1408,7 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                             uri,
                             batchId: currentResultSetSummary.batchId,
                             resultId: currentResultSetSummary.id,
-                            selection,
+                            selection: getDisplayedSelectionForCopy(grid, currentRowCount),
                         });
                         break;
                     case GridContextMenuAction.CopyAsCsv:
@@ -1386,7 +1416,7 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                             uri,
                             batchId: currentResultSetSummary.batchId,
                             resultId: currentResultSetSummary.id,
-                            selection,
+                            selection: getSelection(),
                         });
                         break;
                     case GridContextMenuAction.CopyAsJson:
@@ -1394,7 +1424,7 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                             uri,
                             batchId: currentResultSetSummary.batchId,
                             resultId: currentResultSetSummary.id,
-                            selection,
+                            selection: getSelection(),
                             includeHeaders: true,
                         });
                         break;
@@ -1403,7 +1433,7 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                             uri,
                             batchId: currentResultSetSummary.batchId,
                             resultId: currentResultSetSummary.id,
-                            selection,
+                            selection: getSelection(),
                         });
                         break;
                     case GridContextMenuAction.CopyAsInsertInto:
@@ -1411,14 +1441,14 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                             uri,
                             batchId: currentResultSetSummary.batchId,
                             resultId: currentResultSetSummary.id,
-                            selection,
+                            selection: getSelection(),
                         });
                         break;
                     default:
                         break;
                 }
             },
-            [context.extensionRpc, setSelectedRange, uri],
+            [context.extensionRpc, getActualSelectionForCopy, setSelectedRange, uri],
         );
 
         const handleContextMenu = useCallback(
@@ -1950,7 +1980,7 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                     uri,
                     batchId: currentResultSetSummary.batchId,
                     resultId: currentResultSetSummary.id,
-                    selection: getSelectionForCopy(grid, grid.getDataLength()),
+                    selection: getDisplayedSelectionForCopy(grid, grid.getDataLength()),
                     format,
                     origin: QueryResultSaveAsTrigger.Toolbar,
                 });
