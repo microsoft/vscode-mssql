@@ -18,7 +18,7 @@ runs:
       shell: bash
       run: |
         cd ${{ inputs.source-dir }}
-        npx playwright install --with-deps
+        npx --no-install playwright install-deps chromium
 
     - name: MSSQL - Build extension
       shell: bash
