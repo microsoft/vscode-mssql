@@ -14,13 +14,15 @@ import { ILogger } from "../models/interfaces";
 export default class DecompressProvider implements IDecompressProvider {
     private decompressZip(pkg: IPackage, logger: ILogger): Promise<void> {
         return new Promise<void>((resolve, reject) => {
+            logger.appendLine(`[decompressZip] Opening zip: ${pkg.tmpFile.name}`);
             yauzl.open(pkg.tmpFile.name, { lazyEntries: true }, (err, zipfile) => {
                 if (err) {
-                    logger.appendLine(`[ERROR] ${err}`);
+                    logger.appendLine(`[ERROR] Failed to open zip: ${err}`);
                     reject(err);
                     return;
                 }
 
+                logger.appendLine(`[decompressZip] Zip opened. Entry count: ${zipfile.entryCount}`);
                 zipfile.readEntry();
 
                 zipfile.on("entry", (entry) => {
@@ -105,23 +107,19 @@ export default class DecompressProvider implements IDecompressProvider {
         });
     }
 
-    private decompressTar(pkg: IPackage, logger: ILogger): Promise<void> {
+    private async decompressTar(pkg: IPackage, logger: ILogger): Promise<void> {
         let totalFiles = 0;
-        return DecompressTar.extract(
-            {
-                file: pkg.tmpFile.name,
-                cwd: pkg.installPath,
-                onentry: () => {
-                    totalFiles++;
-                },
-                onwarn: (warn) => {
-                    logger.appendLine(`[ERROR] ${warn}`);
-                },
+        await DecompressTar.extract({
+            file: pkg.tmpFile.name,
+            cwd: pkg.installPath,
+            onentry: () => {
+                totalFiles++;
             },
-            () => {
-                logger.appendLine(`Done! ${totalFiles} files unpacked.\n`);
+            onwarn: (warn) => {
+                logger.appendLine(`[ERROR] ${warn}`);
             },
-        );
+        });
+        logger.appendLine(`Done! ${totalFiles} files unpacked.\n`);
     }
 
     public decompress(pkg: IPackage, logger: ILogger): Promise<void> {

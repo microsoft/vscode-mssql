@@ -15,6 +15,29 @@ const isOffline = args.includes("--offline");
 const skipServiceInstall = args.includes("--skip-service-install");
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 
+// Catch silent failures that would otherwise cause a clean exit with no output.
+// Tracks whether main() finished normally; used to flag premature exits.
+let _packagingComplete = false;
+
+process.on("uncaughtException", (err) => {
+    logger.error(`[packaging] Uncaught exception: ${err?.stack ?? err}`);
+    process.exit(1);
+});
+
+process.on("unhandledRejection", (reason) => {
+    const detail = reason instanceof Error ? reason.stack : String(reason);
+    logger.error(`[packaging] Unhandled promise rejection: ${detail}`);
+    process.exit(1);
+});
+
+process.on("exit", (code) => {
+    if (!_packagingComplete) {
+        logger.error(
+            `[packaging] Process exiting with code ${code} before packaging completed — check logs above for the cause`,
+        );
+    }
+});
+
 // Platform configurations for offline packaging
 const OFFLINE_PLATFORMS = [
     { rid: "win-x64", runtime: "Windows_64" },
@@ -281,6 +304,7 @@ async function main() {
         }
 
         logger.success("Packaging script completed successfully!");
+        _packagingComplete = true;
         process.exit(0);
     } catch (error) {
         logger.error(`Packaging script failed: ${error.message}`);

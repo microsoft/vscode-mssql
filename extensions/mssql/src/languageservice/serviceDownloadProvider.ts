@@ -194,7 +194,18 @@ export default class ServiceDownloadProvider {
     private async decompressAndInstallPackage(pkg: IPackage): Promise<void> {
         this._logger.appendLine("Installing ...");
         this._statusView.installingService();
+        this._logger.appendLine(
+            `[decompressAndInstallPackage] isZipFile=${pkg.isZipFile}, tmpFile=${pkg.tmpFile?.name}, installPath=${pkg.installPath}`,
+        );
+        const tmpStats = await fs.stat(pkg.tmpFile.name).catch((e) => {
+            this._logger.appendLine(`[decompressAndInstallPackage] stat failed: ${e}`);
+            return undefined;
+        });
+        this._logger.appendLine(
+            `[decompressAndInstallPackage] tmpFile size: ${tmpStats ? tmpStats.size + " bytes" : "MISSING"}`,
+        );
         await this._decompressProvider.decompress(pkg, this._logger);
+        this._logger.appendLine(`[decompressAndInstallPackage] decompress complete`);
         this._statusView.serviceInstalled();
     }
 }
