@@ -91,7 +91,13 @@ const ROW_NUMBER_COLUMN_WIDTH = 36;
 const MIN_COLUMN_WIDTH = 50;
 const MAX_COLUMN_WIDTH = 400;
 const AUTO_SIZE_SAMPLE_ROWS = 50;
-const AUTO_SIZE_HEADER_EXTRA_WIDTH = 20;
+const AUTO_SIZE_HEADER_PADDING_WIDTH = 20;
+const HEADER_ACTION_BUTTON_WIDTH = 16;
+const HEADER_SORT_BUTTON_MARGIN_WIDTH = 3;
+const AUTO_SIZE_HEADER_EXTRA_WIDTH =
+    AUTO_SIZE_HEADER_PADDING_WIDTH +
+    HEADER_ACTION_BUTTON_WIDTH * 2 +
+    HEADER_SORT_BUTTON_MARGIN_WIDTH;
 const AUTO_SIZE_CELL_PADDING_WIDTH = 20;
 const SCROLL_POSITION_NOTIFICATION_DEBOUNCE_DELAY_MS = 100;
 const ROW_NUMBER_COLUMN_ID = "_mssqlRowNumberColumn";
@@ -260,6 +266,8 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
         const isColumnWidthStateRestoredRef = useRef(false);
         const isScrollStateRestoredRef = useRef(false);
         const [frozenColumnIndex, setFrozenColumnIndex] = useState(0);
+        const [isGridFocused, setIsGridFocused] = useState(false);
+        const [displayedRowCount, setDisplayedRowCount] = useState(0);
 
         const context = useContext(QueryResultCommandsContext);
         if (!context) {
@@ -370,6 +378,7 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
 
         useEffect(() => {
             dataView.setLength(rowCount);
+            setDisplayedRowCount(rowCount);
         }, [dataView, rowCount]);
 
         useEffect(() => {
@@ -672,13 +681,28 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
         }, []);
 
         const applyGridTransforms = useCallback(
-            async (grid: SlickGrid): Promise<boolean> => {
+            async (
+                grid: SlickGrid,
+                options?: { preserveScrollPosition?: boolean },
+            ): Promise<boolean> => {
+                const preservedTopRow = options?.preserveScrollPosition
+                    ? grid.getViewport().top
+                    : 0;
+
                 if (!hasActiveTransforms()) {
                     transformedRowsRef.current = undefined;
                     dataView.setLength(latestRowCountRef.current);
-                    dataView.refresh(0);
+                    setDisplayedRowCount(latestRowCountRef.current);
+                    const targetRow = Math.min(
+                        preservedTopRow,
+                        Math.max(0, latestRowCountRef.current - 1),
+                    );
+                    dataView.refresh(targetRow);
                     grid.invalidateAllRows();
                     grid.updateRowCount();
+                    if (options?.preserveScrollPosition && latestRowCountRef.current > 0) {
+                        grid.scrollRowToTop(targetRow);
+                    }
                     grid.render();
                     dataView.ensureViewportLoaded();
                     return true;
@@ -715,11 +739,17 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 }
 
                 transformedRowsRef.current = rows;
-                grid.scrollTo(0);
                 dataView.setLength(rows.length);
-                dataView.refresh(0);
+                setDisplayedRowCount(rows.length);
+                const targetRow = Math.min(preservedTopRow, Math.max(0, rows.length - 1));
+                dataView.refresh(targetRow);
                 grid.invalidateAllRows();
                 grid.updateRowCount();
+                if (options?.preserveScrollPosition && rows.length > 0) {
+                    grid.scrollRowToTop(targetRow);
+                } else {
+                    grid.scrollTo(0);
+                }
                 grid.render();
                 dataView.ensureViewportLoaded();
                 return true;
@@ -995,7 +1025,7 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                     };
                 }
 
-                const applied = await applyGridTransforms(grid);
+                const applied = await applyGridTransforms(grid, { preserveScrollPosition: true });
                 if (applied) {
                     updateHeaderButtonStates(grid);
                     await persistFilterState();
@@ -2186,14 +2216,21 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
 
         const handleGridContainerFocus = useCallback(
             (event: ReactFocusEvent<HTMLDivElement>) => {
-                if (event.target !== event.currentTarget) {
-                    return;
-                }
+                setIsGridFocused(true);
 
-                focusGrid();
+                if (event.target === event.currentTarget) {
+                    focusGrid();
+                }
             },
             [focusGrid],
         );
+
+        const handleGridContainerBlur = useCallback((event: ReactFocusEvent<HTMLDivElement>) => {
+            const nextFocusedElement = event.relatedTarget as Node | null;
+            if (!nextFocusedElement || !event.currentTarget.contains(nextFocusedElement)) {
+                setIsGridFocused(false);
+            }
+        }, []);
 
         useImperativeHandle(ref, () => ({
             focusGrid,
@@ -2202,13 +2239,15 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
         if (!resultSetSummary || columns.length === 0) {
             return null;
         }
+        const hasDisplayedRows = displayedRowCount > 0;
 
         return (
             <div
                 id={`beta-grid-container-${props.gridId}`}
-                className="query-result-beta-grid"
+                className={`query-result-beta-grid ${isGridFocused ? "focused" : ""}`}
                 tabIndex={0}
-                onFocus={handleGridContainerFocus}>
+                onFocus={handleGridContainerFocus}
+                onBlur={handleGridContainerBlur}>
                 <FluentSlickGrid
                     gridId={`beta-result-grid-${props.gridId}`}
                     columns={columns}
@@ -2223,6 +2262,11 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                     onHeaderClick={handleHeaderClick}
                     onHeaderContextMenu={handleHeaderContextMenu}
                 />
+                {!hasDisplayedRows && (
+                    <div className="query-result-beta-empty-state" role="status">
+                        {locConstants.queryResult.noResultsToDisplay}
+                    </div>
+                )}
             </div>
         );
     },

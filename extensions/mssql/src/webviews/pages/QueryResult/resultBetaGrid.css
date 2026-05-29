@@ -9,10 +9,38 @@
     min-height: 0;
     display: flex;
     flex-direction: column;
+    position: relative;
 
-    --slick-header-background-color: var(--vscode-keybindingTable-headerBackground);
-    --slick-grid-header-background: var(--vscode-keybindingTable-headerBackground);
-    --slick-header-text-color: var(--vscode-foreground);
+    --query-result-beta-list-focus-background: var(--vscode-list-focusBackground);
+    --query-result-beta-list-focus-foreground: var(--vscode-list-focusForeground);
+    --query-result-beta-list-active-selection-background: var(
+        --vscode-list-activeSelectionBackground
+    );
+    --query-result-beta-list-active-selection-foreground: var(
+        --vscode-list-activeSelectionForeground
+    );
+    --query-result-beta-list-inactive-selection-background: var(
+        --vscode-list-inactiveSelectionBackground,
+        var(--vscode-list-activeSelectionBackground)
+    );
+    --query-result-beta-list-inactive-selection-foreground: var(
+        --vscode-list-inactiveSelectionForeground,
+        var(--vscode-foreground)
+    );
+    --query-result-beta-list-hover-background: var(--vscode-list-hoverBackground);
+    --query-result-beta-list-hover-foreground: var(--vscode-list-hoverForeground);
+    --query-result-beta-list-focus-outline: var(--vscode-contrastActiveBorder);
+    --query-result-beta-list-selection-outline: var(--vscode-contrastActiveBorder);
+    --query-result-beta-list-hover-outline: var(--vscode-contrastActiveBorder);
+    --query-result-beta-list-inactive-focus-outline: var(--vscode-list-inactiveFocusOutline);
+    --query-result-beta-table-header-background: var(--vscode-keybindingTable-headerBackground);
+    --query-result-beta-table-header-foreground: var(--vscode-editor-foreground);
+    --query-result-beta-null-cell-background: var(--vscode-mssql-resultsGridNullBackground);
+    --query-result-beta-null-cell-foreground: var(--vscode-mssql-resultsGridNullForeground);
+
+    --slick-header-background-color: var(--query-result-beta-table-header-background);
+    --slick-grid-header-background: var(--query-result-beta-table-header-background);
+    --slick-header-text-color: var(--query-result-beta-table-header-foreground);
     --slick-header-font-size: 12px;
     --slick-header-font-weight: normal;
     --slick-header-column-background-hover: var(--vscode-list-hoverBackground);
@@ -54,7 +82,7 @@
 
 .query-result-beta-grid .slick-header,
 .query-result-beta-grid .slick-header-columns {
-    background-color: var(--vscode-keybindingTable-headerBackground, #3c3c3c);
+    background-color: var(--query-result-beta-table-header-background, #3c3c3c);
     border-left: 0 !important;
     height: 24px !important;
     overflow: hidden;
@@ -64,13 +92,13 @@
 .query-result-beta-grid .slickgrid-container .slick-header-column,
 .query-result-beta-grid .slickgrid-container .slick-header-columns .slick-header-column,
 .query-result-beta-grid .slick-header-column.slick-state-default {
-    background-color: var(--vscode-keybindingTable-headerBackground, #3c3c3c) !important;
+    background-color: var(--query-result-beta-table-header-background, #3c3c3c) !important;
     border-left: 0 !important;
     border-right: 1px solid var(--vscode-panel-border, #454545);
     border-top: 0 !important;
     border-bottom: 1px solid var(--vscode-panel-border, #454545);
     box-sizing: border-box;
-    color: var(--vscode-foreground, #cccccc) !important;
+    color: var(--query-result-beta-table-header-foreground, #cccccc) !important;
     float: left;
     font-size: 12px;
     font-weight: normal;
@@ -89,7 +117,7 @@
 }
 
 .query-result-beta-grid .slick-header-column .slick-column-name {
-    color: var(--vscode-foreground, #cccccc) !important;
+    color: var(--query-result-beta-table-header-foreground, #cccccc) !important;
     box-sizing: border-box;
     display: block;
     flex: 1 1 auto;
@@ -195,8 +223,8 @@
 }
 
 .query-result-beta-grid .slick-cell.cell-null {
-    background-color: var(--vscode-mssql-resultsGridNullBackground);
-    color: var(--vscode-mssql-resultsGridNullForeground);
+    background-color: var(--query-result-beta-null-cell-background);
+    color: var(--query-result-beta-null-cell-foreground);
 }
 
 .query-result-beta-grid .slick-cell .grid-cell-value-container.cell-null,
@@ -205,25 +233,45 @@
 }
 
 .query-result-beta-grid .slick-cell.selected {
-    background-color: var(--vscode-list-activeSelectionBackground);
-    color: var(--vscode-list-activeSelectionForeground);
+    background-color: var(--query-result-beta-list-inactive-selection-background);
+    color: var(--query-result-beta-list-inactive-selection-foreground);
+}
+
+.query-result-beta-grid.focused .slick-cell.selected {
+    background-color: var(--query-result-beta-list-active-selection-background);
+    color: var(--query-result-beta-list-active-selection-foreground);
 }
 
 .query-result-beta-grid .slick-cell.active {
-    background-color: var(--vscode-list-focusBackground);
-    color: var(--vscode-list-focusForeground);
-}
-
-.query-result-beta-grid .slick-cell.selected.active {
-    background-color: var(--vscode-list-activeSelectionBackground);
-    color: var(--vscode-list-activeSelectionForeground);
-    outline: 2px solid var(--vscode-contrastActiveBorder);
+    outline: 1px dotted var(--query-result-beta-list-inactive-focus-outline);
     outline-offset: -1px;
 }
 
-.query-result-beta-grid .slick-row:hover .slick-cell:not(.selected):not(.active):not(.cell-null) {
-    background-color: var(--vscode-list-hoverBackground);
-    color: var(--vscode-list-hoverForeground);
+.query-result-beta-grid.focused .slick-cell.active {
+    background-color: var(--query-result-beta-list-focus-background);
+    color: var(--query-result-beta-list-focus-foreground);
+}
+
+.query-result-beta-grid .slick-cell.selected.active {
+    outline: 1px dotted var(--query-result-beta-list-selection-outline);
+    outline-offset: -1px;
+}
+
+.query-result-beta-grid.focused .slick-cell.selected.active {
+    background-color: var(--query-result-beta-list-active-selection-background);
+    color: var(--query-result-beta-list-active-selection-foreground);
+    outline: 2px solid var(--query-result-beta-list-focus-outline);
+    outline-offset: -1px;
+}
+
+.query-result-beta-grid .slick-row:hover .slick-cell:not(.selected):not(.active) {
+    background-color: var(--query-result-beta-list-hover-background);
+    color: var(--query-result-beta-list-hover-foreground);
+}
+
+.query-result-beta-grid .slick-row:hover {
+    outline: 1px dashed var(--query-result-beta-list-hover-outline);
+    outline-offset: -1px;
 }
 
 .results-grid--alternating
@@ -237,8 +285,8 @@
 
 .query-result-beta-grid .slick-row.odd .slick-cell.cell-null:not(.selected):not(.active),
 .query-result-beta-grid .slick-row.even .slick-cell.cell-null:not(.selected):not(.active) {
-    background-color: var(--vscode-mssql-resultsGridNullBackground);
-    color: var(--vscode-mssql-resultsGridNullForeground);
+    background-color: var(--query-result-beta-null-cell-background);
+    color: var(--query-result-beta-null-cell-foreground);
 }
 
 .results-grid--gridlines-horizontal .query-result-beta-grid .slick-cell {
@@ -262,8 +310,8 @@
 }
 
 .query-result-beta-grid .slick-cell.query-result-beta-row-number-cell {
-    background-color: var(--vscode-keybindingTable-headerBackground);
-    color: var(--vscode-editor-foreground);
+    background-color: var(--query-result-beta-table-header-background);
+    color: var(--query-result-beta-table-header-foreground);
     justify-content: flex-start;
     min-width: 0;
     overflow: hidden;
@@ -275,11 +323,11 @@
     .query-result-beta-grid
     .slick-row.even
     .slick-cell.query-result-beta-row-number-cell {
-    background-color: var(--vscode-keybindingTable-headerBackground);
+    background-color: var(--query-result-beta-table-header-background);
 }
 
 .query-result-beta-grid .slick-row:hover .slick-cell.query-result-beta-row-number-cell {
-    background-color: var(--vscode-list-hoverBackground);
+    background-color: var(--query-result-beta-list-hover-background);
 }
 
 .query-result-beta-grid .slick-cell > .row-number.query-result-beta-row-number {
@@ -295,4 +343,20 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     width: 100%;
+}
+
+.query-result-beta-empty-state {
+    align-items: center;
+    background-color: var(--vscode-editor-background);
+    color: var(--vscode-descriptionForeground, var(--vscode-foreground));
+    display: flex;
+    font-style: italic;
+    inset: 24px 0 0 0;
+    justify-content: center;
+    min-height: 48px;
+    padding: 8px 12px;
+    pointer-events: none;
+    position: absolute;
+    text-align: center;
+    z-index: 2;
 }
