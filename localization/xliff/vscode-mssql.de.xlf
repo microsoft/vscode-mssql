@@ -801,6 +801,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Azure SQL Server</source>
         <target state="translated">Azure SQL Server</target>
       </trans-unit>
+      <trans-unit id="++CODE++d58bf1f323a38f50b921c7d963ad40d4323ebb5085fc456c8afbcc6542b0eb7a">
+        <source xml:lang="en">Azure SQL databases provisioning</source>
+        <target state="new">Azure SQL databases provisioning</target>
+      </trans-unit>
       <trans-unit id="++CODE++6d457cc1e5982858c386c637bec86a3c2615e648054d4d5472a261e0b5004b2d">
         <source xml:lang="en">Azure Subscriptions</source>
         <target state="translated">Azure-Abonnements</target>
@@ -2496,6 +2500,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
 {2} is the operation name 'apply_changes' and must not be translated</note>
         <target state="translated">Daten-API-Generator wurde geöffnet. Fahren Sie mit {0}-Vorgängen ({1}/{2}) fort.</target>
       </trans-unit>
+      <trans-unit id="++CODE++6ce6c168965317cce6e35f445598a3182e21e937846cf45db34b17dc1c0a0d3b">
+        <source xml:lang="en">Data API builder with GitHub Copilot</source>
+        <target state="new">Data API builder with GitHub Copilot</target>
+      </trans-unit>
       <trans-unit id="++CODE++e136aee7826b55f91d1b030832bc4be35b9ee07563c09627052aeecb9335a039">
         <source xml:lang="en">Data Source</source>
         <target state="translated">Datenquelle</target>
@@ -2858,6 +2866,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
 {1} is the connection ID</note>
         <target state="translated">Verbindung mit „{0}“ (ID: {1}) wird getrennt</target>
       </trans-unit>
+      <trans-unit id="++CODE++57d34ecd6fc9b04ba8ad6450eeb1159b21aa3e6f127082ea6554f826985cdddb">
+        <source xml:lang="en">Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.</source>
+        <target state="new">Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.</target>
+      </trans-unit>
       <trans-unit id="++CODE++48845bff334a50a59aaecf499f28a7a24c3b4b891b8b18a9f1169ad8e8a6b261">
         <source xml:lang="en">Dismiss</source>
         <target state="translated">Verwerfen</target>
@@ -2980,6 +2992,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++8cbb7c26112408cd60a1c8ac0daff1b020815ad01c94df751ab7145dea824881">
         <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
         <target state="translated">Richten Sie ganz einfach einen lokalen SQL Server ein, ohne die VS Code-Erweiterung zu verlassen. Nur wenige Klicks, um Ihren Server mühelos zu installieren, zu konfigurieren und zu verwalten!</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a05ece881012991a79aaf2cbbba9d6e11e35d05ed66f547dfaae931a8d9e50af">
+        <source xml:lang="en">Easily start with the Azure SQL database free tier to create and connect to a database directly from your editor at no cost.</source>
+        <target state="new">Easily start with the Azure SQL database free tier to create and connect to a database directly from your editor at no cost.</target>
       </trans-unit>
       <trans-unit id="++CODE++8b45c43d0d9a0c27cbecb2683ef02b292a7f2626dee0f8443d4e62ac3e0e88c4">
         <source xml:lang="en">Edit Connection Group - {0}</source>
@@ -4532,6 +4548,10 @@ Fehler:
       <trans-unit id="++CODE++752307275e5358665596d28a3080462e4933b77005bbbf2ba1eca87f1dca1fcc">
         <source xml:lang="en">Generate Data API builder configurations using natural language through GitHub Copilot chat and agent tools. Describe your API requirements and let GitHub Copilot scaffold the configuration for you.</source>
         <target state="translated">Generieren Sie Data API Builder-Konfigurationen mit natürlicher Sprache über GitHub Copilot Chat- und Agent-Tools. Beschreiben Sie Ihre API-Anforderungen und lassen Sie GitHub Copilot die Konfiguration für Sie erstellen.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3fe2318b777a1d9c6304a9e2bff0d636f51cfb872de17793c8962acbdc1370cd">
+        <source xml:lang="en">Generate REST, GraphQL, and MCP endpoints from your SQL database objects (tables). You can modify the configuration manually or through GitHub Copilot to plan and generate updates - then deploy locally with Docker.</source>
+        <target state="new">Generate REST, GraphQL, and MCP endpoints from your SQL database objects (tables). You can modify the configuration manually or through GitHub Copilot to plan and generate updates - then deploy locally with Docker.</target>
       </trans-unit>
       <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
         <source xml:lang="en">Generate Script</source>
@@ -7224,6 +7244,10 @@ Fehler:
         <source xml:lang="en">Region</source>
         <target state="translated">Region</target>
       </trans-unit>
+      <trans-unit id="++CODE++bb7234ec12451361e6f35bcbe76de58e4350657fe60d1b96ace0947f59194083">
+        <source xml:lang="en">Register</source>
+        <target state="new">Register</target>
+      </trans-unit>
       <trans-unit id="++CODE++ab604a360777735fe2993aec7d4ffae415f1515b0a4c989269603fd3d5c07b61">
         <source xml:lang="en">Reject</source>
         <target state="translated">Ablehnen</target>
@@ -9585,6 +9609,10 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++eeefe579e45c25e1a551b536d8eecc680562bce4d0aa58ffee1ad7df8cc84e63">
         <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
         <target state="translated">T-SQL-IntelliSense und Syntaxfehlerprüfung im aktuellen Dokument verwenden</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6ef37ea9955ac30c701324290f719cf696d1f34b027640872eb4bba2fcd59c25">
+        <source xml:lang="en">Use discount code {0} to save €200 on registration.</source>
+        <target state="new">Use discount code {0} to save €200 on registration.</target>
       </trans-unit>
       <trans-unit id="++CODE++413d7418205c532ce289074072d8841df2c720313cb19bd9180ad2c4de3383c7">
         <source xml:lang="en">Use encryption for this backup</source>
