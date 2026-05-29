@@ -29,9 +29,8 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: ./.github/actions/setup-node
         with:
-          node-version: "24"
           cache: npm
           cache-dependency-path: package-lock.json
 
@@ -106,9 +105,8 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: ./.github/actions/setup-node
         with:
-          node-version: "24"
           cache: npm
           cache-dependency-path: extensions/mssql/package-lock.json
 
