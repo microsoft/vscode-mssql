@@ -3664,6 +3664,9 @@
     "New to the MSSQL extension? Check out our quick-start guide.": "New to the MSSQL extension? Check out our quick-start guide.",
     "MSSQL - VS Code walkthrough": "MSSQL - VS Code walkthrough",
     "GitHub Copilot - VS Code walkthrough": "GitHub Copilot - VS Code walkthrough",
+    "Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.": "Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.",
+    "Use discount code {0} to save €200 on registration.": "Use discount code {0} to save €200 on registration.",
+    "Register": "Register",
     "Failed to launch profiler: {0}/{0} is the error message": {
         "message": "Failed to launch profiler: {0}",
         "comment": ["{0} is the error message"]

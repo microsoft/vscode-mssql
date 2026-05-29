@@ -20,7 +20,7 @@ The extension will prompt to install the [.NET SDK](https://aka.ms/sqlprojects-d
 2. Add `.sql` files to the project to define database objects. For example, creating a file `Product.sql` in the SQL project folder to add a table named `Product`:
 
 ```sql
-CREATE TABLE [dbo].[Products] (
+CREATE TABLE [dbo].[Product] (
     [ProductID] [int] IDENTITY(1,1) NOT NULL PRIMARY KEY,
     [ProductName] [nvarchar] (200) NOT NULL
 );

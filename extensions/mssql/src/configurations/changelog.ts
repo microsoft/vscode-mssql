@@ -256,12 +256,12 @@ export const changelogConfig: ChangelogWebviewState = {
         date: "2026-09-28", // keep YYYY-MM-DD format; front-end will "prettify" it
         endDate: "2026-10-01",
         actionButton: {
-            text: "Register",
+            text: locConstants.Changelog.sqlconEuRegister,
             url: "https://aka.ms/sqlconeu?ocid=sqlconeu_vscode_inproduct_azdata",
         },
         description: [
-            "Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.",
-            "Use discount code {0} to save €200 on registration.",
+            locConstants.Changelog.sqlconEuDescription1,
+            locConstants.Changelog.sqlconEuDescription2,
         ],
         codeSnippets: ["VSCODE200"],
     },

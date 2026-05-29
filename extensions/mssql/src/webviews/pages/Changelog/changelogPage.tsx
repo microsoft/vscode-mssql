@@ -842,6 +842,7 @@ export const ChangelogPage = () => {
                         appearance="transparent"
                         icon={<Dismiss12Filled />}
                         className={classes.bannerDismiss}
+                        aria-label={locConstants.common.dismiss}
                         onClick={() => {
                             setShowBanner(false);
                         }}></Button>
