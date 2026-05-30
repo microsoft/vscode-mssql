@@ -667,12 +667,12 @@ export class LocConstants {
             resultBetaTabTooltip: (shortcut?: string) => {
                 if (shortcut) {
                     return l10n.t({
-                        message: "Results-Beta ({0})",
+                        message: "Results Preview ({0})",
                         args: [shortcut],
-                        comment: ["{0} is the keyboard shortcut for the beta results tab"],
+                        comment: ["{0} is the keyboard shortcut for the preview results tab"],
                     });
                 }
-                return l10n.t("Results-Beta");
+                return l10n.t("Results Preview");
             },
             results: (count: number) =>
                 l10n.t({
@@ -682,9 +682,9 @@ export class LocConstants {
                 }),
             resultsBeta: (count: number) =>
                 l10n.t({
-                    message: "Results-Beta ({0})",
+                    message: "Results Preview ({0})",
                     args: [count],
-                    comment: ["{0} is the number of beta results"],
+                    comment: ["{0} is the number of preview results"],
                 }),
             messagesTabTooltip: (shortcut?: string) => {
                 if (shortcut) {

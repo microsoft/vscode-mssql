@@ -2586,18 +2586,18 @@
         "message": "Results ({0})",
         "comment": ["{0} is the keyboard shortcut for the results tab"]
     },
-    "Results-Beta ({0})/{0} is the keyboard shortcut for the beta results tab": {
-        "message": "Results-Beta ({0})",
-        "comment": ["{0} is the keyboard shortcut for the beta results tab"]
+    "Results Preview ({0})/{0} is the keyboard shortcut for the preview results tab": {
+        "message": "Results Preview ({0})",
+        "comment": ["{0} is the keyboard shortcut for the preview results tab"]
     },
-    "Results-Beta": "Results-Beta",
+    "Results Preview": "Results Preview",
     "Results ({0})/{0} is the number of results": {
         "message": "Results ({0})",
         "comment": ["{0} is the number of results"]
     },
-    "Results-Beta ({0})/{0} is the number of beta results": {
-        "message": "Results-Beta ({0})",
-        "comment": ["{0} is the number of beta results"]
+    "Results Preview ({0})/{0} is the number of preview results": {
+        "message": "Results Preview ({0})",
+        "comment": ["{0} is the number of preview results"]
     },
     "Messages ({0})/{0} is the keyboard shortcut for the messages tab": {
         "message": "Messages ({0})",
