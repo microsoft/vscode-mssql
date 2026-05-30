@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
-import { createContext, useMemo } from "react";
+import { createContext, useCallback, useMemo } from "react";
 import {
     DeploymentContextProps,
     DeploymentFormState,
@@ -25,6 +25,13 @@ interface DeploymentProviderProps {
 const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }) => {
     const { extensionRpc } = useVscodeWebview<DeploymentWebviewState, DeploymentReducers>();
 
+    const formAction = useCallback(
+        (event: FormEvent<DeploymentFormState>) => {
+            extensionRpc.action("formAction", { event });
+        },
+        [extensionRpc],
+    );
+
     const commands = useMemo<DeploymentContextProps>(
         () => ({
             ...getCoreRPCs(extensionRpc),
@@ -34,11 +41,7 @@ const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }
                     deploymentType: deploymentType,
                 });
             },
-            formAction: function (event): void {
-                extensionRpc.action("formAction", {
-                    event: event as FormEvent<DeploymentFormState>,
-                });
-            },
+            formAction: formAction as DeploymentContextProps["formAction"],
             setConnectionGroupDialogState: function (shouldOpen: boolean): void {
                 extensionRpc.action("setConnectionGroupDialogState", {
                     shouldOpen: shouldOpen,
@@ -87,8 +90,38 @@ const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }
                 extensionRpc.action("resetFormValidationState", {});
             },
             //#endregion
+            //#region Azure SQL Database Reducers
+            loadAzureComponent: function (componentName: string): void {
+                extensionRpc.action("loadAzureComponent", {
+                    componentName: componentName,
+                });
+            },
+            startAzureSqlDatabaseDeployment: function (tags: Record<string, string>): void {
+                extensionRpc.action("startAzureSqlDatabaseDeployment", { tags });
+            },
+            setCreateResourceGroupDrawerState: function (shouldOpen: boolean): void {
+                extensionRpc.action("setCreateResourceGroupDrawerState", {
+                    shouldOpen: shouldOpen,
+                });
+            },
+            submitCreateResourceGroup: function (spec): void {
+                extensionRpc.action("submitCreateResourceGroup", {
+                    spec: spec,
+                });
+            },
+            setCreateServerDrawerState: function (shouldOpen: boolean): void {
+                extensionRpc.action("setCreateServerDrawerState", {
+                    shouldOpen: shouldOpen,
+                });
+            },
+            submitCreateServer: function (spec): void {
+                extensionRpc.action("submitCreateServer", {
+                    spec: spec,
+                });
+            },
+            //#endregion
         }),
-        [extensionRpc],
+        [extensionRpc, formAction],
     );
 
     return <DeploymentContext.Provider value={commands}>{children}</DeploymentContext.Provider>;

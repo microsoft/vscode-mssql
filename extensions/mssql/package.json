@@ -1,7 +1,7 @@
 {
     "name": "mssql",
     "displayName": "SQL Server (mssql)",
-    "version": "1.43.0",
+    "version": "1.44.0",
     "description": "Design and optimize schemas for SQL Server, Azure SQL, and SQL Database in Fabric using a modern, lightweight extension built for developers",
     "publisher": "ms-mssql",
     "preview": false,
@@ -144,8 +144,9 @@
         "yargs": "^17.7.2"
     },
     "dependencies": {
+        "@azure/arm-maintenance": "^1.0.0-beta.2",
         "@azure/arm-resources": "^5.0.0",
-        "@azure/arm-sql": "^10.0.0",
+        "@azure/arm-sql": "^11.0.0-beta.4",
         "@azure/arm-storage": "^19.0.0",
         "@azure/arm-subscriptions": "^5.0.0",
         "@azure/ms-rest-azure-env": "^2.0.0",
@@ -179,7 +180,7 @@
         "vscode-languageclient": "5.2.1",
         "xml-formatter": "^3.6.7",
         "yallist": "^5.0.0",
-        "yauzl": "^3.2.1"
+        "yauzl": "^3.3.1"
     },
     "capabilities": {
         "untrustedWorkspaces": {
@@ -697,12 +698,12 @@
                 },
                 {
                     "command": "mssql.objectExplorerNewQuery",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|HistoryTable)\\b/",
                     "group": "1_MSSQL_primary@1"
                 },
                 {
                     "command": "mssql.scriptSelect",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|HistoryTable)\\b/",
                     "group": "1_MSSQL_primary@2"
                 },
                 {
@@ -717,7 +718,7 @@
                 },
                 {
                     "submenu": "mssql.sqlScriptsSubmenu",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|HistoryTable)\\b/",
                     "group": "3a_MSSQL_tableScripts@1"
                 },
                 {
@@ -782,12 +783,12 @@
                 },
                 {
                     "command": "mssql.objectExplorerChatWithDatabase",
-                    "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database|Table)\\b/",
+                    "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database|Table|HistoryTable)\\b/",
                     "group": "6_MSSQL_copilot@1"
                 },
                 {
                     "command": "mssql.objectExplorerChatWithDatabaseInAgentMode",
-                    "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database|Table)\\b/",
+                    "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database|Table|HistoryTable)\\b/",
                     "group": "6_MSSQL_copilot@2"
                 },
                 {
@@ -947,15 +948,15 @@
                 },
                 {
                     "command": "mssql.scriptSelect",
-                    "when": "view == objectExplorer && viewItem =~  /\\btype=(Table|View)\\b/"
+                    "when": "view == objectExplorer && viewItem =~  /\\btype=(Table|HistoryTable|View)\\b/"
                 },
                 {
                     "command": "mssql.scriptCreate",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/"
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|HistoryTable|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/"
                 },
                 {
                     "command": "mssql.scriptDelete",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/"
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|HistoryTable|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/"
                 },
                 {
                     "command": "mssql.scriptExecute",
@@ -1743,6 +1744,13 @@
                 "mssql.selectedAzureSubscriptions": {
                     "type": "array",
                     "description": "%mssql.selectedAzureSubscriptions%",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "mssql.selectedFabricWorkspaces": {
+                    "type": "array",
+                    "description": "%mssql.selectedFabricWorkspaces%",
                     "items": {
                         "type": "string"
                     }
@@ -4451,7 +4459,7 @@
                                                         "$ref": "#/$defs/entityRef"
                                                     },
                                                     "set": {
-                                                        "description": "Patch advanced settings. Example: { entityName: '41', authorizationRole: 'authenticated', restEnabled: true, customRestPath: 't_41', graphQLEnabled: true, customGraphQLType: null, storedProcedureRestMethods: ['post'], storedProcedureGraphQLOperation: 'mutation', exposeAsMcpCustomTool: true }. Stored procedure settings are only valid for stored procedures.",
+                                                        "description": "Patch advanced settings. Example: { entityName: '41', authorizationRole: 'authenticated', restEnabled: true, customRestPath: 't_41', graphQLEnabled: true, customGraphQLType: null, mcpDmlToolsEnabled: true, storedProcedureRestMethods: ['post'], storedProcedureGraphQLOperation: 'mutation', exposeAsMcpCustomTool: true }. mcpDmlToolsEnabled is table-only. Stored procedure settings are only valid for stored procedures.",
                                                         "$ref": "#/$defs/advancedSettingsPatch"
                                                     }
                                                 },

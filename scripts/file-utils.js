@@ -4,12 +4,26 @@
  *--------------------------------------------------------------------------------------------*/
 
 const fs = require("fs").promises;
-const { execSync } = require("child_process");
 
 // Prettier output respects endOfLine, but enforce CRLF after formatting to guard against
 // contributors with custom setups.
 const CRLF = "\r\n";
 const LF = "\n";
+
+/**
+ * Formats content using Prettier
+ * @param {string} filePath - Path used to resolve Prettier config and infer parser
+ * @param {string} content - File content to format
+ * @returns {Promise<string>} Formatted content
+ */
+async function formatContentWithPrettier(filePath, content) {
+    const prettier = await import("prettier");
+    const options = (await prettier.resolveConfig(filePath)) ?? {};
+    return await prettier.format(content, {
+        ...options,
+        filepath: filePath,
+    });
+}
 
 /**
  * Formats files using Prettier
@@ -18,10 +32,11 @@ const LF = "\n";
  */
 async function formatWithPrettier(filePaths) {
     try {
-        const paths = Array.isArray(filePaths) ? filePaths.join(" ") : filePaths;
-        execSync(`npx prettier --write ${paths}`, {
-            stdio: "inherit",
-        });
+        const paths = Array.isArray(filePaths) ? filePaths : [filePaths];
+        for (const filePath of paths) {
+            const content = await fs.readFile(filePath, "utf8");
+            await fs.writeFile(filePath, await formatContentWithPrettier(filePath, content));
+        }
         return true;
     } catch (error) {
         return false;
@@ -37,21 +52,24 @@ async function formatWithPrettier(filePaths) {
  * @returns {Promise<boolean>} True if formatting succeeded, false otherwise
  */
 async function writeAndFormat(filePath, content, prettier = true, crlf = false) {
-    const finalContent = crlf ? content.replace(/\r?\n/g, CRLF) : content;
-    await fs.writeFile(filePath, finalContent);
+    let finalContent = content;
     if (prettier) {
-        const formatted = await formatWithPrettier(filePath);
-        if (!formatted) {
+        try {
+            finalContent = await formatContentWithPrettier(filePath, finalContent);
+        } catch (error) {
+            await fs.writeFile(
+                filePath,
+                crlf ? finalContent.replace(/\r?\n/g, CRLF) : finalContent,
+            );
             return false;
         }
     }
 
     if (crlf) {
-        const data = await fs.readFile(filePath, "utf8");
-        const crlfData = data.replace(/\r?\n/g, CRLF);
-        await fs.writeFile(filePath, crlfData);
+        finalContent = finalContent.replace(/\r?\n/g, CRLF);
     }
 
+    await fs.writeFile(filePath, finalContent);
     return true;
 }
 
@@ -68,6 +86,7 @@ async function writeJsonAndFormat(filePath, data, indent = 2) {
 }
 
 module.exports = {
+    formatContentWithPrettier,
     formatWithPrettier,
     writeAndFormat,
     writeJsonAndFormat,

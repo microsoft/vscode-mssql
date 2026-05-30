@@ -120,6 +120,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         private treeNode?: TreeNodeInfo,
         private connectionUri?: string,
         isReadOnly: boolean = false,
+        cacheKey?: string,
     ) {
         super(
             context,
@@ -154,7 +155,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             },
         );
 
-        this._key = `${this.connectionString}-${this.databaseName}`;
+        this._key = cacheKey ?? `${this.connectionString}-${this.databaseName}`;
         this._serverName = this.resolveServerName();
         this._sqlServerContainerName = this.resolveSqlServerContainerName();
 

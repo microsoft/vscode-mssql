@@ -246,6 +246,7 @@
     "mssql.defaultQueryResultsViewMode.text.description": "Display results in a formatted text format.",
     "mssql.userFeedback": "Send Feedback",
     "mssql.selectedAzureSubscriptions": "Selected Azure subscriptions for browsing and managing servers and databases",
+    "mssql.selectedFabricWorkspaces": "Selected Microsoft Fabric workspaces for browsing and managing SQL databases",
     "mssql.schemaDesigner": "Visualize and Design Schema...",
     "mssql.buildDataApi": "Build Data API...",
     "mssql.newDeployment": "New Deployment",
