@@ -58,7 +58,7 @@ export async function saveNotebookResults(
         params,
     );
     if (!result.succeeded) {
-        throw new Error(result.messages || vscode.l10n.t("Serialization failed"));
+        throw new Error(result.messages || LocalizedConstants.serializationFailed);
     }
     return targetUri;
 }

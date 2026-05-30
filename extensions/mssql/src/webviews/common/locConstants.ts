@@ -84,6 +84,8 @@ export class LocConstants {
                     comment: ["{0} is the current step number", "{1} is the total number of steps"],
                 }),
             learnMore: l10n.t("Learn more"),
+            moveUp: l10n.t("Move Up"),
+            moveDown: l10n.t("Move Down"),
         };
     }
 
@@ -199,6 +201,30 @@ export class LocConstants {
             backToPreview: l10n.t("Back to preview"),
             copy: l10n.t("Copy"),
             youMustReviewAndAccept: l10n.t("You must review and accept the terms to proceed"),
+            issue: (issueCount: number) =>
+                l10n.t({
+                    message: "{0} issue",
+                    args: [issueCount],
+                    comment: ["{0} is the number of issues"],
+                }),
+            issues: (issueCount: number) =>
+                l10n.t({
+                    message: "{0} issues",
+                    args: [issueCount],
+                    comment: ["{0} is the number of issues"],
+                }),
+            tabIssue: (tabName: string, issueCount: number) =>
+                l10n.t({
+                    message: "{0} {1} issue",
+                    args: [tabName, issueCount],
+                    comment: ["{0} is the tab name", "{1} is the number of issues"],
+                }),
+            tabIssues: (tabName: string, issueCount: number) =>
+                l10n.t({
+                    message: "{0} {1} issues",
+                    args: [tabName, issueCount],
+                    comment: ["{0} is the tab name", "{1} is the number of issues"],
+                }),
         };
     }
 
@@ -752,6 +778,17 @@ export class LocConstants {
             copy: l10n.t("Copy"),
             copyWithHeaders: l10n.t("Copy with Headers"),
             copyHeaders: l10n.t("Copy Headers"),
+            errorFailedToParseQueryResultData: l10n.t("Error: Failed to parse query result data."),
+            errorUnrecognizedQueryResultData: l10n.t("Error: Unrecognized query result data."),
+            saveAsCSV: l10n.t("Save as CSV"),
+            saveAsExcelLabel: l10n.t("Save as Excel"),
+            saveAsJSON: l10n.t("Save as JSON"),
+            exportToolbarForResultSet: (resultSetIndex: number) =>
+                l10n.t({
+                    message: "Export toolbar for result set {0}",
+                    args: [resultSetIndex],
+                    comment: ["{0} is the result set number (1-based index)"],
+                }),
             copyAs: l10n.t("Copy As"),
             copyAsCsv: l10n.t("Copy as CSV"),
             copyAsJson: l10n.t("Copy as JSON"),

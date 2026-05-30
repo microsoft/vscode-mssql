@@ -4,9 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { makeStyles, tokens } from "@fluentui/react-components";
-import { DocsLinkCard } from "./docsLinkCard";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
-import { AzureSqlDatabaseLinks } from "../../../../sharedInterfaces/azureSqlDatabase";
 import { locConstants } from "../../../common/locConstants";
 import { useAzureSqlDatabaseDeploymentSelector } from "../deploymentSelector";
 import { DeploymentStepCard } from "../deploymentStepCard";
@@ -89,28 +87,6 @@ export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
     const serverRegion = useAzureSqlDatabaseDeploymentSelector((s) => s.serverRegion);
 
     if (!provisionLoadState) return undefined;
-
-    const isDeploymentComplete =
-        provisionLoadState === ApiStatus.Loaded && connectionLoadState === ApiStatus.Loaded;
-
-    const whatsNextLinks = [
-        {
-            href: AzureSqlDatabaseLinks.connectQuerySsms,
-            label: locConstants.azureSqlDatabase.connectAndRunQuery,
-        },
-        {
-            href: AzureSqlDatabaseLinks.createQuickstart,
-            label: locConstants.azureSqlDatabase.seedSampleData,
-        },
-        {
-            href: AzureSqlDatabaseLinks.freeOffer,
-            label: locConstants.azureSqlDatabase.monitorUsage,
-        },
-        {
-            href: AzureSqlDatabaseLinks.azureSqlDocs,
-            label: locConstants.azureSqlDatabase.browseTutorials,
-        },
-    ];
 
     const stepStatus =
         provisionLoadState !== ApiStatus.Loaded ? provisionLoadState : connectionLoadState;
@@ -198,12 +174,6 @@ export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
                         )}
                     </div>
                 </DeploymentStepCard>
-                {isDeploymentComplete && (
-                    <DocsLinkCard
-                        title={locConstants.azureSqlDatabase.whatsNext}
-                        links={whatsNextLinks}
-                    />
-                )}
             </div>
         </div>
     );

@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { l10n } from "vscode";
 import {
     AzureSubscription,
     AzureTenant,
@@ -13,8 +12,7 @@ import {
     signInToTenant,
     VSCodeAzureSubscriptionProvider,
 } from "@microsoft/vscode-azext-azureauth";
-
-import { Azure as Loc, Common as LocCommon } from "../constants/locConstants";
+import * as LocalizedConstants from "../constants/locConstants";
 import { getCloudProviderSettings } from "../azure/providerSettings";
 import { IAccount, ITenant } from "../models/contracts/azure";
 import { FormItemOptions } from "../sharedInterfaces/form";
@@ -407,6 +405,7 @@ export class VsCodeAzureHelper {
             };
             freeLimitExhaustionBehavior?: KnownFreeLimitExhaustionBehavior;
             useFreeLimit?: boolean;
+            maxVcores?: string;
         },
     ): Promise<Database> {
         const sql = new SqlManagementClient(subscription.credential, subscription.subscriptionId, {
@@ -415,13 +414,15 @@ export class VsCodeAzureHelper {
 
         const server = await sql.servers.get(resourceGroupName, serverName);
 
+        const skuName = options.maxVcores ? `GP_S_Gen5_${options.maxVcores}` : "GP_S_Gen5";
+
         const freeOfferOptions = options.useFreeLimit
             ? {
                   sku: {
-                      name: "GP_S_Gen5",
+                      name: skuName,
                       tier: "GeneralPurpose",
                       family: "Gen5",
-                      capacity: 2,
+                      capacity: options.maxVcores ? Number(options.maxVcores) : 2,
                   },
                   autoPauseDelay: 60,
                   minCapacity: 0.5,
@@ -775,7 +776,7 @@ export class VsCodeAzureHelper {
                         serverEntry.server?.replace(`${server.name}.`, `${server.name}.public.`) +
                         `,${MANAGED_INSTANCE_PUBLIC_PORT}`;
 
-                    const publicDisplayName = `${serverEntry.displayName} (${LocCommon.publicString})`;
+                    const publicDisplayName = `${serverEntry.displayName} (${LocalizedConstants.Common.publicString})`;
                     const publicServerEntry: AzureSqlServerInfo = {
                         ...serverEntry,
                         id: publicDisplayName,
@@ -785,7 +786,7 @@ export class VsCodeAzureHelper {
                     serverMap.set(publicDisplayName.toLowerCase(), publicServerEntry);
 
                     // Label the existing endpoint as private
-                    const privateDisplayName = `${serverEntry.displayName} (${LocCommon.privateString})`;
+                    const privateDisplayName = `${serverEntry.displayName} (${LocalizedConstants.Common.privateString})`;
                     serverEntry.id = privateDisplayName;
                     serverEntry.displayName = privateDisplayName;
                 }
@@ -870,7 +871,7 @@ export async function promptForAzureSubscriptionFilter(
         const result = await VsCodeAzureHelper.signIn();
 
         if (!result?.auth) {
-            state.formMessage = { message: l10n.t("Azure sign in failed.") };
+            state.formMessage = { message: LocalizedConstants.azureSignInFailed };
             return false;
         }
 
@@ -879,7 +880,7 @@ export async function promptForAzureSubscriptionFilter(
             {
                 canPickMany: true,
                 ignoreFocusOut: true,
-                placeHolder: l10n.t("Select subscriptions"),
+                placeHolder: LocalizedConstants.selectSubscriptions,
             },
         );
 
@@ -895,7 +896,7 @@ export async function promptForAzureSubscriptionFilter(
 
         return true;
     } catch (error) {
-        state.formMessage = { message: l10n.t("Error loading Azure subscriptions.") };
+        state.formMessage = { message: LocalizedConstants.errorLoadingAzureSubscriptions };
         logger.error(state.formMessage.message + "\n" + getErrorMessage(error));
         return false;
     }
@@ -1065,7 +1066,11 @@ export async function constructAzureAccountForTenant(azureAccountInfo: {
     const sub = subs.filter((s) => s.tenantId === azureAccountInfo.tenantId)[0];
 
     if (!sub) {
-        throw new Error(Loc.errorLoadingAzureAccountInfoForTenantId(azureAccountInfo.tenantId));
+        throw new Error(
+            LocalizedConstants.Azure.errorLoadingAzureAccountInfoForTenantId(
+                azureAccountInfo.tenantId,
+            ),
+        );
     }
 
     const token = await sub.credential.getToken(".default");
