@@ -2557,6 +2557,7 @@ export class LocConstants {
             removeSort: l10n.t("Remove sort"),
             save: l10n.t("Save"),
             selectAll: l10n.t("Select all"),
+            showAllColumns: l10n.t("Show all columns"),
             sortAscending: l10n.t("Sort ascending"),
             sortDescending: l10n.t("Sort descending"),
             synchronousResize: l10n.t("Synchronous resize"),

@@ -19,6 +19,8 @@ import debounce from "lodash/debounce";
 import { Column, GridOption, SlickgridReactInstance } from "slickgrid-react";
 import {
     Formatter,
+    type GridMenuCallbackArgs,
+    type GridMenuCommandItemCallbackArgs,
     SlickEventData,
     SlickEventHandler,
     SlickGrid,
@@ -104,6 +106,9 @@ const AUTO_SIZE_CELL_PADDING_WIDTH = 20;
 const SCROLL_POSITION_NOTIFICATION_DEBOUNCE_DELAY_MS = 100;
 const ROW_NUMBER_COLUMN_ID = "_mssqlRowNumberColumn";
 const DEFAULT_IN_MEMORY_DATA_PROCESSING_THRESHOLD = 5000;
+const GRID_MENU_CLEAR_ALL_FILTERS_COMMAND = "mssql-clear-all-filters";
+const GRID_MENU_CLEAR_SORT_COMMAND = "mssql-clear-sort";
+const GRID_MENU_SHOW_ALL_COLUMNS_COMMAND = "mssql-show-all-columns";
 const XML_LANGUAGE_ID = "xml";
 const JSON_LANGUAGE_ID = "json";
 const FIRST_DATA_CELL_INDEX = 1;
@@ -121,6 +126,95 @@ type BetaSortState = {
     columnId: string;
     direction: SortProperties;
 };
+
+type MutableGridMenuCommandItem = {
+    command?: string;
+    disabled?: boolean;
+    commandItems?: Array<MutableGridMenuCommandItem | "divider">;
+};
+
+function isGridMenuDataColumn(column: Column<QueryResultGridRow>): boolean {
+    return column.id !== ROW_NUMBER_COLUMN_ID && !column.excludeFromGridMenu;
+}
+
+function areAllGridMenuColumnsShown(columns: Column<QueryResultGridRow>[]): boolean {
+    const gridMenuColumns = columns.filter(isGridMenuDataColumn);
+    return gridMenuColumns.length === 0 || gridMenuColumns.every((column) => !column.hidden);
+}
+
+function findGridMenuCommandItem(
+    commandItems: Array<MutableGridMenuCommandItem | "divider"> | undefined,
+    command: string,
+): MutableGridMenuCommandItem | undefined {
+    if (!commandItems) {
+        return undefined;
+    }
+
+    for (const item of commandItems) {
+        if (item === "divider") {
+            continue;
+        }
+
+        if (item.command === command) {
+            return item;
+        }
+
+        const childItem = findGridMenuCommandItem(item.commandItems, command);
+        if (childItem) {
+            return childItem;
+        }
+    }
+
+    return undefined;
+}
+
+function getOpenGridMenuElement(): HTMLElement | null {
+    return document.body.querySelector<HTMLElement>(".slick-grid-menu");
+}
+
+function setGridMenuCommandDisabled(grid: SlickGrid, command: string, disabled: boolean): void {
+    const commandItems = grid.getOptions().gridMenu?.commandItems as
+        | Array<MutableGridMenuCommandItem | "divider">
+        | undefined;
+    const commandItem = findGridMenuCommandItem(commandItems, command);
+    if (commandItem) {
+        commandItem.disabled = disabled;
+    }
+}
+
+function updateGridMenuCommandElementDisabled(
+    menuElement: HTMLElement | null,
+    command: string,
+    disabled: boolean,
+): void {
+    const commandElement = menuElement?.querySelector<HTMLElement>(`[data-command="${command}"]`);
+    if (!commandElement) {
+        return;
+    }
+
+    commandElement.classList.toggle("slick-menu-item-disabled", disabled);
+    if (disabled) {
+        commandElement.setAttribute("aria-disabled", "true");
+    } else {
+        commandElement.removeAttribute("aria-disabled");
+    }
+}
+
+function syncShowAllColumnsMenuCommandState(
+    grid: SlickGrid,
+    allColumns: Column<QueryResultGridRow>[],
+    menuElement: HTMLElement | null = getOpenGridMenuElement(),
+): void {
+    const commandDisabled = areAllGridMenuColumnsShown(
+        allColumns.length > 0 ? allColumns : (grid.getColumns() as Column<QueryResultGridRow>[]),
+    );
+    setGridMenuCommandDisabled(grid, GRID_MENU_SHOW_ALL_COLUMNS_COMMAND, commandDisabled);
+    updateGridMenuCommandElementDisabled(
+        menuElement,
+        GRID_MENU_SHOW_ALL_COLUMNS_COMMAND,
+        commandDisabled,
+    );
+}
 
 function normalizeRowPadding(rowPadding: number | null | undefined): number {
     return typeof rowPadding === "number" && Number.isFinite(rowPadding)
@@ -449,46 +543,6 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             ];
         }, [columnSignature]);
 
-        const gridOptions = useMemo<GridOption>(
-            () => ({
-                ...baseFluentReadOnlyGridOption,
-                alwaysShowVerticalScroll: false,
-                autoResize: createFluentAutoResizeOptions(`#beta-grid-container-${props.gridId}`, {
-                    bottomPadding: 0,
-                    minHeight: 50,
-                }),
-                darkMode: themeKind === ColorThemeKind.Dark,
-                datasetIdPropertyName: "id",
-                editable: false,
-                enableAutoSizeColumns: false,
-                enableCellNavigation: true,
-                enableColumnPicker: false,
-                enableColumnReorder: true,
-                enableContextMenu: false,
-                enableEmptyDataWarningMessage: false,
-                enableExcelCopyBuffer: false,
-                enableGridMenu: true,
-                enableSorting: false,
-                enableMouseWheelScrollHandler: true,
-                enableSelection: true,
-                forceFitColumns: false,
-                frozenColumn: frozenColumnIndex,
-                frozenRightViewportMinWidth: 50,
-                gridMenu: {
-                    hideForceFitButton: true,
-                    hideSyncResizeButton: true,
-                },
-                rowHeight,
-                selectionOptions: {
-                    selectActiveCell: true,
-                    selectActiveRow: false,
-                    selectionType: "cell",
-                },
-                skipFreezeColumnValidation: true,
-            }),
-            [frozenColumnIndex, props.gridId, rowHeight, themeKind],
-        );
-
         const refreshFrozenColumnLayout = useCallback((grid: SlickGrid) => {
             grid.resizeCanvas();
             grid.invalidateAllRows();
@@ -701,6 +755,21 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             allRowsCacheRef.current = rows;
             return rows;
         }, [context.extensionRpc, fetchRowsFromServer, inMemoryDataProcessingThreshold]);
+
+        const hasActiveFilters = useCallback(
+            () =>
+                Object.values(filterStateRef.current).some(
+                    (filterState) => (filterState.filterValues?.length ?? 0) > 0,
+                ),
+            [],
+        );
+
+        const hasActiveSort = useCallback(
+            () =>
+                sortStateRef.current !== undefined &&
+                sortStateRef.current.direction !== SortProperties.NONE,
+            [],
+        );
 
         const hasActiveTransforms = useCallback(() => {
             const hasFilters = Object.values(filterStateRef.current).some(
@@ -996,6 +1065,187 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 filters: filterStateRef.current,
             });
         }, [context.extensionRpc, props.gridId, uri]);
+
+        const clearAllFilters = useCallback(
+            async (grid: SlickGrid) => {
+                const clearedFilters: ColumnFilterMap = {};
+                for (const [columnId, filterState] of Object.entries(filterStateRef.current)) {
+                    clearedFilters[columnId] = {
+                        ...filterState,
+                        filterValues: [],
+                    };
+                }
+
+                filterStateRef.current = clearedFilters;
+                const applied = await applyGridTransforms(grid, { preserveScrollPosition: true });
+                if (!applied) {
+                    return;
+                }
+
+                context.hideColumnMenuPopup();
+                updateHeaderButtonStates(grid);
+                await persistFilterState();
+                grid.invalidate();
+                grid.render();
+                grid.focus();
+            },
+            [applyGridTransforms, context, persistFilterState, updateHeaderButtonStates],
+        );
+
+        const clearSort = useCallback(
+            async (grid: SlickGrid) => {
+                const sortedColumnId = sortStateRef.current?.columnId;
+                const clearedSortFilters: ColumnFilterMap = {};
+                for (const [columnId, filterState] of Object.entries(filterStateRef.current)) {
+                    clearedSortFilters[columnId] = {
+                        ...filterState,
+                        sorted: SortProperties.NONE,
+                    };
+                }
+
+                if (sortedColumnId && !clearedSortFilters[sortedColumnId]) {
+                    clearedSortFilters[sortedColumnId] = {
+                        columnDef: sortedColumnId,
+                        filterValues: [],
+                        sorted: SortProperties.NONE,
+                    };
+                }
+
+                sortStateRef.current = undefined;
+                filterStateRef.current = clearedSortFilters;
+                const applied = await applyGridTransforms(grid, { preserveScrollPosition: true });
+                if (!applied) {
+                    return;
+                }
+
+                updateHeaderButtonStates(grid);
+                await persistFilterState();
+                grid.invalidate();
+                grid.render();
+                grid.focus();
+            },
+            [applyGridTransforms, persistFilterState, updateHeaderButtonStates],
+        );
+
+        const showAllColumns = useCallback(
+            (grid: SlickGrid, allColumns: Column<QueryResultGridRow>[]) => {
+                const columnsToShow = allColumns.length > 0 ? allColumns : grid.getColumns();
+                for (const column of columnsToShow) {
+                    if (isGridMenuDataColumn(column)) {
+                        column.hidden = false;
+                    }
+                }
+
+                grid.setColumns(columnsToShow);
+                grid.invalidate();
+                grid.render();
+                updateHeaderButtonStates(grid);
+                grid.focus();
+            },
+            [updateHeaderButtonStates],
+        );
+
+        const gridOptions = useMemo<GridOption>(
+            () => ({
+                ...baseFluentReadOnlyGridOption,
+                alwaysShowVerticalScroll: false,
+                autoResize: createFluentAutoResizeOptions(`#beta-grid-container-${props.gridId}`, {
+                    bottomPadding: 0,
+                    minHeight: 50,
+                }),
+                darkMode: themeKind === ColorThemeKind.Dark,
+                datasetIdPropertyName: "id",
+                editable: false,
+                enableAutoSizeColumns: false,
+                enableCellNavigation: true,
+                enableColumnPicker: false,
+                enableColumnReorder: true,
+                enableContextMenu: false,
+                enableEmptyDataWarningMessage: false,
+                enableExcelCopyBuffer: false,
+                enableGridMenu: true,
+                enableSorting: false,
+                enableMouseWheelScrollHandler: true,
+                enableSelection: true,
+                forceFitColumns: false,
+                frozenColumn: frozenColumnIndex,
+                frozenRightViewportMinWidth: 50,
+                gridMenu: {
+                    commandItems: [
+                        {
+                            command: GRID_MENU_CLEAR_ALL_FILTERS_COMMAND,
+                            iconCssClass: "fi fi-filter-dismiss",
+                            itemVisibilityOverride: () => hasActiveFilters(),
+                            positionOrder: 10,
+                            title: locConstants.slickGrid.clearAllFilters,
+                            action: (_event: Event, args: GridMenuCommandItemCallbackArgs) => {
+                                void clearAllFilters(args.grid);
+                            },
+                        },
+                        {
+                            command: GRID_MENU_CLEAR_SORT_COMMAND,
+                            iconCssClass: "fi fi-arrow-sort",
+                            itemVisibilityOverride: () => hasActiveSort(),
+                            positionOrder: 11,
+                            title: locConstants.queryResult.clearSort,
+                            action: (_event: Event, args: GridMenuCommandItemCallbackArgs) => {
+                                void clearSort(args.grid);
+                            },
+                        },
+                        {
+                            command: GRID_MENU_SHOW_ALL_COLUMNS_COMMAND,
+                            iconCssClass: "fi fi-table",
+                            itemUsabilityOverride: (args: GridMenuCallbackArgs) =>
+                                !areAllGridMenuColumnsShown(
+                                    args.columns as Column<QueryResultGridRow>[],
+                                ),
+                            positionOrder: 12,
+                            title: locConstants.slickGrid.showAllColumns,
+                            action: (_event: Event, args: GridMenuCommandItemCallbackArgs) => {
+                                showAllColumns(
+                                    args.grid,
+                                    args.allColumns as Column<QueryResultGridRow>[],
+                                );
+                            },
+                        },
+                    ],
+                    hideForceFitButton: true,
+                    hideSyncResizeButton: true,
+                    onAfterMenuShow: (_event, args) => {
+                        syncShowAllColumnsMenuCommandState(
+                            args.grid,
+                            args.allColumns as Column<QueryResultGridRow>[],
+                            getOpenGridMenuElement(),
+                        );
+                    },
+                    onColumnsChanged: (_event, args) => {
+                        syncShowAllColumnsMenuCommandState(
+                            args.grid,
+                            args.allColumns as Column<QueryResultGridRow>[],
+                            getOpenGridMenuElement(),
+                        );
+                    },
+                },
+                rowHeight,
+                selectionOptions: {
+                    selectActiveCell: true,
+                    selectActiveRow: false,
+                    selectionType: "cell",
+                },
+                skipFreezeColumnValidation: true,
+            }),
+            [
+                clearAllFilters,
+                clearSort,
+                frozenColumnIndex,
+                hasActiveFilters,
+                hasActiveSort,
+                props.gridId,
+                rowHeight,
+                showAllColumns,
+                themeKind,
+            ],
+        );
 
         const buildFilterItems = useCallback(
             async (column: Column<QueryResultGridRow>): Promise<FilterListItem[] | undefined> => {
