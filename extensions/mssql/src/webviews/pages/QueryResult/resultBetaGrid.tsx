@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
+    type CSSProperties,
     type FocusEvent as ReactFocusEvent,
     forwardRef,
     useCallback,
@@ -120,6 +121,16 @@ type BetaSortState = {
     columnId: string;
     direction: SortProperties;
 };
+
+function normalizeRowPadding(rowPadding: number | null | undefined): number {
+    return typeof rowPadding === "number" && Number.isFinite(rowPadding)
+        ? Math.max(0, rowPadding)
+        : 0;
+}
+
+function getRowHeight(fontSize: number | undefined, rowPadding: number): number {
+    return (fontSize ?? DEFAULT_FONT_SIZE) + BASE_ROW_PADDING + rowPadding * 2;
+}
 
 function getAutoSizeCellText(value: unknown): string {
     if (typeof value === "string") {
@@ -294,6 +305,8 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             useQueryResultSelector<number | undefined>(
                 (state) => state.inMemoryDataProcessingThreshold,
             ) ?? DEFAULT_IN_MEMORY_DATA_PROCESSING_THRESHOLD;
+        const rowPadding = normalizeRowPadding(gridSettings?.rowPadding);
+        const rowHeight = getRowHeight(fontSettings?.fontSize, rowPadding);
         const autoSizeColumnsMode =
             useQueryResultSelector((state) => state.autoSizeColumnsMode) ??
             ResultsGridAutoSizeStyle.HeadersAndData;
@@ -465,10 +478,7 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                     hideForceFitButton: true,
                     hideSyncResizeButton: true,
                 },
-                rowHeight:
-                    (fontSettings?.fontSize ?? DEFAULT_FONT_SIZE) +
-                    BASE_ROW_PADDING +
-                    (gridSettings?.rowPadding ?? 0) * 2,
+                rowHeight,
                 selectionOptions: {
                     selectActiveCell: true,
                     selectActiveRow: false,
@@ -476,13 +486,7 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 },
                 skipFreezeColumnValidation: true,
             }),
-            [
-                fontSettings?.fontSize,
-                frozenColumnIndex,
-                gridSettings?.rowPadding,
-                props.gridId,
-                themeKind,
-            ],
+            [frozenColumnIndex, props.gridId, rowHeight, themeKind],
         );
 
         const refreshFrozenColumnLayout = useCallback((grid: SlickGrid) => {
@@ -591,6 +595,27 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
 
             applyFrozenColumnIndex(grid, frozenColumnIndex);
         }, [applyFrozenColumnIndex, frozenColumnIndex]);
+
+        useEffect(() => {
+            const grid = reactGridRef.current?.slickGrid;
+            if (!grid) {
+                return;
+            }
+
+            const topRow = Math.min(
+                grid.getViewport().top,
+                Math.max(0, latestRowCountRef.current - 1),
+            );
+            grid.setOptions({ rowHeight });
+            grid.resizeCanvas();
+            grid.invalidateAllRows();
+            grid.updateRowCount();
+            if (latestRowCountRef.current > 0) {
+                grid.scrollRowToTop(topRow);
+            }
+            grid.render();
+            dataView.ensureViewportLoaded();
+        }, [dataView, rowHeight]);
 
         const applyAutoSizeColumns = useCallback(async () => {
             const grid = reactGridRef.current?.slickGrid;
@@ -2278,11 +2303,15 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
         ]
             .filter(Boolean)
             .join(" ");
+        const betaGridStyle = {
+            "--results-row-padding": `${rowPadding}px`,
+        } as CSSProperties;
 
         return (
             <div
                 id={`beta-grid-container-${props.gridId}`}
                 className={betaGridClasses}
+                style={betaGridStyle}
                 tabIndex={0}
                 onFocus={handleGridContainerFocus}
                 onBlur={handleGridContainerBlur}>
