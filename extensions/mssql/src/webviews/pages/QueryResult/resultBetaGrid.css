@@ -9,6 +9,8 @@
     min-height: 0;
     display: flex;
     flex-direction: column;
+    font-family: inherit;
+    font-size: inherit;
     position: relative;
 
     --query-result-beta-list-focus-background: var(--vscode-list-focusBackground);
@@ -43,7 +45,8 @@
     --slick-header-background-color: var(--query-result-beta-table-header-background);
     --slick-grid-header-background: var(--query-result-beta-table-header-background);
     --slick-header-text-color: var(--query-result-beta-table-header-foreground);
-    --slick-header-font-size: 12px;
+    --slick-font-size-base: 1em;
+    --slick-header-font-size: 1em;
     --slick-header-font-weight: normal;
     --slick-header-column-background-hover: var(--vscode-list-hoverBackground);
     --slick-header-column-background-active: var(--vscode-list-activeSelectionBackground);
@@ -81,13 +84,23 @@
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
+    font-family: inherit;
+    font-size: inherit;
     height: 100%;
     min-height: 0;
 }
 
 .query-result-beta-grid .slickgrid-container {
     flex: 1 1 auto;
+    font-family: inherit;
+    font-size: inherit;
     min-height: 0;
+}
+
+.query-result-beta-grid .slickgrid-container .slick-row {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: normal;
 }
 
 .query-result-beta-grid .slick-header,
@@ -110,7 +123,8 @@
     box-sizing: border-box !important;
     color: var(--query-result-beta-table-header-foreground, #cccccc) !important;
     float: left;
-    font-size: 12px;
+    font-family: inherit;
+    font-size: inherit;
     font-weight: normal;
     height: 24px !important;
     line-height: normal;
@@ -207,8 +221,17 @@
     background-color: inherit;
     box-sizing: border-box;
     color: var(--vscode-foreground);
+    font-family: inherit;
+    font-size: inherit;
     padding-top: calc(1px + var(--results-row-padding, 0px));
     padding-bottom: calc(2px + var(--results-row-padding, 0px));
+}
+
+.query-result-beta-grid .slickgrid-container .grid-canvas .slick-cell,
+.query-result-beta-grid .slickgrid-container .grid-canvas .slick-cell td {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: normal;
 }
 
 .query-result-beta-grid
@@ -231,6 +254,8 @@
 
 .query-result-beta-grid .slick-cell .grid-cell-value-container {
     display: block;
+    font-family: inherit;
+    font-size: inherit;
     max-width: 100%;
     min-width: 0;
     overflow: hidden;
@@ -332,7 +357,7 @@
 }
 
 .query-result-beta-grid .slick-cell.query-result-beta-row-number-cell {
-    background-color: var(--query-result-beta-table-header-background);
+    background-color: var(--query-result-beta-row-odd-background);
     color: var(--query-result-beta-table-header-foreground);
     justify-content: flex-start;
     min-width: 0;
@@ -341,7 +366,24 @@
     padding-right: 0;
 }
 
-.query-result-beta-grid .slick-row:hover .slick-cell.query-result-beta-row-number-cell {
+.query-result-beta-grid
+    .slickgrid-container
+    .slick-row.even
+    .slick-cell:where(.query-result-beta-row-number-cell) {
+    background-color: var(--query-result-beta-row-even-background);
+}
+
+.query-result-beta-grid
+    .slickgrid-container
+    .slick-row.odd
+    .slick-cell:where(.query-result-beta-row-number-cell) {
+    background-color: var(--query-result-beta-row-odd-background);
+}
+
+.query-result-beta-grid
+    .slickgrid-container
+    .slick-row:hover
+    .slick-cell.query-result-beta-row-number-cell {
     background-color: var(--query-result-beta-list-hover-background);
 }
 
