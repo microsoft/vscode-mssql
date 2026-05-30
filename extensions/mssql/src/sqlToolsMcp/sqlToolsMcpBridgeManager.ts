@@ -26,6 +26,8 @@ import {
 } from "./contracts";
 import { SqlToolsMcpRuntime } from "./sqlToolsMcpRuntime";
 import { Logger } from "../models/logger";
+import { TelemetryActions } from "../sharedInterfaces/telemetry";
+import { sendSqlToolsMcpAction } from "./sqlToolsMcpTelemetry";
 
 export enum BridgeLifecycleState {
     Inactive = "inactive",
@@ -82,6 +84,7 @@ export class SqlToolsMcpBridgeManager implements vscode.Disposable {
 
         this.state = BridgeLifecycleState.Listening;
         this.logger.info("SQL Tools MCP bridge is listening.");
+        this.sendLifecycleTelemetry("listening");
         return {
             endpoint: this.endpoint,
             generation: this.generation,
@@ -104,17 +107,14 @@ export class SqlToolsMcpBridgeManager implements vscode.Disposable {
         );
         this.registerHandlers(this.connection);
         this.connection.onClose(() => {
-            if (this.state !== BridgeLifecycleState.Disposed) {
-                this.state = BridgeLifecycleState.Disconnected;
-            }
+            this.markDisconnected("closed");
         });
         this.connection.onError(() => {
-            if (this.state !== BridgeLifecycleState.Disposed) {
-                this.state = BridgeLifecycleState.Disconnected;
-            }
+            this.markDisconnected("error");
         });
         this.connection.listen();
         this.logger.info("SQL Tools MCP bridge client connected.");
+        this.sendLifecycleTelemetry("connected");
     }
 
     private registerHandlers(connection: MessageConnection): void {
@@ -165,6 +165,7 @@ export class SqlToolsMcpBridgeManager implements vscode.Disposable {
 
         this.state = BridgeLifecycleState.Ready;
         this.logger.info("SQL Tools MCP bridge initialized.");
+        this.sendLifecycleTelemetry("initialized");
         return {
             protocolVersion: sqlToolsMcpBridgeProtocolVersion,
             hostIdentity: {
@@ -243,5 +244,25 @@ export class SqlToolsMcpBridgeManager implements vscode.Disposable {
         } finally {
             this.socketDirectory = undefined;
         }
+    }
+
+    private sendLifecycleTelemetry(eventName: string, reason?: string): void {
+        sendSqlToolsMcpAction(TelemetryActions.SqlToolsMcpBridgeLifecycle, {
+            eventName,
+            state: this.lifecycleState,
+            ...(reason ? { reason } : {}),
+        });
+    }
+
+    private markDisconnected(reason: string): void {
+        if (
+            this.state === BridgeLifecycleState.Disposed ||
+            this.state === BridgeLifecycleState.Disconnected
+        ) {
+            return;
+        }
+
+        this.state = BridgeLifecycleState.Disconnected;
+        this.sendLifecycleTelemetry("disconnected", reason);
     }
 }

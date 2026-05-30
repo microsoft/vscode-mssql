@@ -13,6 +13,8 @@ import { getRuntimeConfigPath } from "../languageservice/serviceExecutablePaths"
 import { sqlToolsMcpProviderId, sqlToolsMcpServerLabel } from "./contracts";
 import { SqlToolsMcpBridgeManager } from "./sqlToolsMcpBridgeManager";
 import { Logger } from "../models/logger";
+import { TelemetryActions } from "../sharedInterfaces/telemetry";
+import { getElapsedMs, sendSqlToolsMcpAction, sendSqlToolsMcpError } from "./sqlToolsMcpTelemetry";
 
 const debugLaunchArg = "--vscode-mssql-debug-launch";
 const sqlToolsMcpOverrideEnvVar = "MSSQL_SQLTOOLS_MCP";
@@ -52,10 +54,35 @@ export class SqlToolsMcpServerDefinitionProvider
             return;
         }
 
+        const startTime = performance.now();
         try {
-            await this.resolveBundledLaunchTarget({ acquireDotnetRuntime: true });
+            const launchTarget = await this.resolveBundledLaunchTarget({
+                acquireDotnetRuntime: true,
+            });
+            sendSqlToolsMcpAction(
+                TelemetryActions.SqlToolsMcpDefinitionResolution,
+                {
+                    phase: "initialize",
+                    success: String(Boolean(launchTarget)),
+                    launchKind: launchTarget?.kind ?? "none",
+                },
+                {
+                    durationMs: getElapsedMs(startTime),
+                },
+            );
             this.didChangeEmitter.fire();
         } catch (err) {
+            sendSqlToolsMcpError(
+                TelemetryActions.SqlToolsMcpDefinitionResolution,
+                err,
+                {
+                    phase: "initialize",
+                    success: "false",
+                },
+                {
+                    durationMs: getElapsedMs(startTime),
+                },
+            );
             this.logger.warn(`SQL Tools MCP runtime preparation failed: ${getErrorMessage(err)}`);
         }
     }
@@ -79,13 +106,42 @@ export class SqlToolsMcpServerDefinitionProvider
             return undefined;
         }
 
-        const launchTarget = await this.resolveBundledLaunchTarget({ acquireDotnetRuntime: true });
-        if (!launchTarget) {
-            throw new Error("Bundled SQL Tools MCP server was not found or is not ready.");
-        }
+        const startTime = performance.now();
+        try {
+            const launchTarget = await this.resolveBundledLaunchTarget({
+                acquireDotnetRuntime: true,
+            });
+            if (!launchTarget) {
+                throw new Error("Bundled SQL Tools MCP server was not found or is not ready.");
+            }
 
-        const launchInfo = await this.bridgeManager.prepareLaunch();
-        return this.createStdioDefinition(launchTarget, launchInfo.endpoint);
+            const launchInfo = await this.bridgeManager.prepareLaunch();
+            sendSqlToolsMcpAction(
+                TelemetryActions.SqlToolsMcpDefinitionResolution,
+                {
+                    phase: "resolve",
+                    success: "true",
+                    launchKind: launchTarget.kind,
+                },
+                {
+                    durationMs: getElapsedMs(startTime),
+                },
+            );
+            return this.createStdioDefinition(launchTarget, launchInfo.endpoint);
+        } catch (err) {
+            sendSqlToolsMcpError(
+                TelemetryActions.SqlToolsMcpDefinitionResolution,
+                err,
+                {
+                    phase: "resolve",
+                    success: "false",
+                },
+                {
+                    durationMs: getElapsedMs(startTime),
+                },
+            );
+            throw err;
+        }
     }
 
     dispose(): void {
@@ -141,6 +197,7 @@ export class SqlToolsMcpServerDefinitionProvider
                 command: selfContainedExecutable,
                 args: [],
                 cwd: path.dirname(selfContainedExecutable),
+                kind: "selfContained",
             };
         }
 
@@ -166,6 +223,7 @@ export class SqlToolsMcpServerDefinitionProvider
                 command: selfContainedExecutable,
                 args: [],
                 cwd: path.dirname(selfContainedExecutable),
+                kind: "selfContained",
             };
         }
 
@@ -198,6 +256,7 @@ export class SqlToolsMcpServerDefinitionProvider
             command: dotnetPath,
             args: [portableDll],
             cwd: path.dirname(portableDll),
+            kind: "portable",
         };
     }
 
@@ -338,6 +397,7 @@ interface McpLaunchTarget {
     command: string;
     args: string[];
     cwd: string;
+    kind: "portable" | "selfContained";
 }
 
 export function canRegisterSqlToolsMcpProvider(): boolean {

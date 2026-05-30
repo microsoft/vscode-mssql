@@ -21,6 +21,7 @@ import {
     SqlToolsMcpServerDefinitionProvider,
 } from "../../../src/sqlToolsMcp/sqlToolsMcpServerDefinitionProvider";
 import { SqlToolsMcpBridgeManager } from "../../../src/sqlToolsMcp/sqlToolsMcpBridgeManager";
+import { stubTelemetry } from "../utils";
 
 chai.use(sinonChai);
 
@@ -53,6 +54,7 @@ suite("SQL Tools MCP server definition provider", () => {
         dotnetRuntimeProvider = sandbox.createStubInstance(DotnetRuntimeProvider);
         dotnetRuntimeProvider.acquireDotnetRuntime.resolves("/dotnet/dotnet");
         getSqlToolsServicePath = sandbox.stub().returns(undefined);
+        stubTelemetry(sandbox);
 
         sandbox
             .stub(fs, "existsSync")

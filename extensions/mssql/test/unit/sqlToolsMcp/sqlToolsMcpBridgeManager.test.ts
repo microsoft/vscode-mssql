@@ -25,6 +25,7 @@ import {
     SqlToolsMcpBridgeManager,
 } from "../../../src/sqlToolsMcp/sqlToolsMcpBridgeManager";
 import { SqlToolsMcpRuntime } from "../../../src/sqlToolsMcp/sqlToolsMcpRuntime";
+import { stubTelemetry } from "../utils";
 
 chai.use(sinonChai);
 
@@ -40,6 +41,7 @@ suite("SQL Tools MCP bridge manager", () => {
         runtime.dispose.resolves();
         runtime.isAvailable.resolves({ isAvailable: true });
         logger = sandbox.createStubInstance(Logger);
+        stubTelemetry(sandbox);
         manager = new SqlToolsMcpBridgeManager(runtime, logger, "1.2.3");
     });
 

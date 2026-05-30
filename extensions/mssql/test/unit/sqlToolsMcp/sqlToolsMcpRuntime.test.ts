@@ -20,6 +20,7 @@ import {
 import { BridgeErrorCode, BridgeRequestError } from "../../../src/sqlToolsMcp/contracts";
 import { SqlToolsMcpRuntime } from "../../../src/sqlToolsMcp/sqlToolsMcpRuntime";
 import { DbCellValue } from "../../../src/models/contracts/queryExecute";
+import { stubTelemetry } from "../utils";
 
 chai.use(sinonChai);
 
@@ -36,6 +37,7 @@ suite("SQL Tools MCP runtime", () => {
         connectionStore = sandbox.createStubInstance(ConnectionStore);
         executor = sandbox.createStubInstance(HeadlessQueryExecutor);
         logger = sandbox.createStubInstance(Logger);
+        stubTelemetry(sandbox);
 
         connectionManager.initialized = {
             promise: Promise.resolve(),

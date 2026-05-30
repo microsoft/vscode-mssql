@@ -28,6 +28,13 @@ import {
 import { normalizeSqlToolsMcpQuery } from "./queryNormalizer";
 import { toSqlToolsMcpQueryResult } from "./sqlToolsMcpResultFormatter";
 import { PlatformContextDetector, toFallbackPlatformContext } from "./platformContextDetector";
+import { TelemetryActions } from "../sharedInterfaces/telemetry";
+import {
+    getElapsedMs,
+    getQueryTelemetryProperties,
+    sendSqlToolsMcpAction,
+    sendSqlToolsMcpError,
+} from "./sqlToolsMcpTelemetry";
 
 interface RegisteredExecutionContext {
     connectionHandle: string;
@@ -56,6 +63,15 @@ export class SqlToolsMcpRuntime {
 
     async getAvailableConnections(): Promise<{ connections: BridgeConnectionInfo[] }> {
         const profiles = await this.getSavedProfiles();
+        sendSqlToolsMcpAction(
+            TelemetryActions.SqlToolsMcpListConnections,
+            {
+                success: "true",
+            },
+            {
+                connectionCount: profiles.length,
+            },
+        );
         return {
             connections: profiles.map((profile) => this.toBridgeConnectionInfo(profile)),
         };
@@ -64,131 +80,242 @@ export class SqlToolsMcpRuntime {
     async connect(params: {
         connectionName?: string;
     }): Promise<{ connection: BridgeConnectionInfo }> {
-        const connectionName = params?.connectionName;
-        if (!connectionName) {
-            throw new BridgeRequestError(
-                BridgeErrorCode.InvalidRequest,
-                "Connection name is required.",
+        const startTime = performance.now();
+        try {
+            const connectionName = params?.connectionName;
+            if (!connectionName) {
+                throw new BridgeRequestError(
+                    BridgeErrorCode.InvalidRequest,
+                    "Connection name is required.",
+                );
+            }
+
+            const profile = await this.findProfileByName(connectionName);
+            if (!profile) {
+                throw new BridgeRequestError(BridgeErrorCode.NotFound, "Connection was not found.");
+            }
+
+            const connection = this.toBridgeConnectionInfo(profile);
+            if (!connection.connectionHandle) {
+                throw new BridgeRequestError(
+                    BridgeErrorCode.Unavailable,
+                    "Connection does not have a usable handle.",
+                );
+            }
+
+            sendSqlToolsMcpAction(
+                TelemetryActions.SqlToolsMcpConnect,
+                {
+                    success: "true",
+                },
+                {
+                    durationMs: getElapsedMs(startTime),
+                },
             );
-        }
-
-        const profile = await this.findProfileByName(connectionName);
-        if (!profile) {
-            throw new BridgeRequestError(BridgeErrorCode.NotFound, "Connection was not found.");
-        }
-
-        const connection = this.toBridgeConnectionInfo(profile);
-        if (!connection.connectionHandle) {
-            throw new BridgeRequestError(
-                BridgeErrorCode.Unavailable,
-                "Connection does not have a usable handle.",
+            return { connection };
+        } catch (error) {
+            sendSqlToolsMcpError(
+                TelemetryActions.SqlToolsMcpConnect,
+                error,
+                {
+                    success: "false",
+                },
+                {
+                    durationMs: getElapsedMs(startTime),
+                },
             );
+            throw error;
         }
-
-        return { connection };
     }
 
     async registerConnection(
         params: RegisterConnectionRequest,
     ): Promise<RegisterConnectionResponse> {
-        if (!params?.connectionName) {
-            throw new BridgeRequestError(
-                BridgeErrorCode.InvalidRequest,
-                "Registered connection name is required.",
+        const startTime = performance.now();
+        try {
+            if (!params?.connectionName) {
+                throw new BridgeRequestError(
+                    BridgeErrorCode.InvalidRequest,
+                    "Registered connection name is required.",
+                );
+            }
+            if (!params.connectionHandle) {
+                throw new BridgeRequestError(
+                    BridgeErrorCode.InvalidRequest,
+                    "Connection handle is required.",
+                );
+            }
+
+            const previous = this.registeredConnections.get(params.connectionName);
+            if (previous) {
+                this.registeredConnections.delete(params.connectionName);
+                previous.disposed = true;
+                await this.cleanupContext(previous);
+            }
+
+            const profile = await this.findProfileByHandle(params.connectionHandle);
+            if (!profile) {
+                throw new BridgeRequestError(BridgeErrorCode.NotFound, "Connection was not found.");
+            }
+
+            const ownerUri = Utils.generateQueryUri("vscode-mssql-sqltools-mcp").toString();
+            const credentials = { ...profile } as IConnectionProfile;
+            const connected = await this.connectionManager.connect(ownerUri, credentials, {
+                shouldHandleErrors: false,
+                connectionSource: "sqlToolsMcp",
+            });
+            if (!connected) {
+                throw new BridgeRequestError(
+                    BridgeErrorCode.AuthenticationFailed,
+                    "Connection could not be established.",
+                    true,
+                );
+            }
+
+            const connectionInfo = this.connectionManager.getConnectionInfo(ownerUri);
+            const connectedCredentials = connectionInfo?.credentials;
+            const platformContext = await this.detectPlatformContext(
+                ownerUri,
+                connectedCredentials,
             );
-        }
-        if (!params.connectionHandle) {
-            throw new BridgeRequestError(
-                BridgeErrorCode.InvalidRequest,
-                "Connection handle is required.",
+
+            this.registeredConnections.set(params.connectionName, {
+                connectionHandle: params.connectionHandle,
+                ownerUri,
+                platformContext,
+                disposed: false,
+                queryTail: Promise.resolve(),
+            });
+
+            sendSqlToolsMcpAction(
+                TelemetryActions.SqlToolsMcpRegisterConnection,
+                {
+                    success: "true",
+                    replacedExistingConnection: String(Boolean(previous)),
+                    hasPlatformContext: String(Object.keys(platformContext).length > 0),
+                },
+                {
+                    durationMs: getElapsedMs(startTime),
+                },
             );
-        }
-
-        const previous = this.registeredConnections.get(params.connectionName);
-        if (previous) {
-            this.registeredConnections.delete(params.connectionName);
-            previous.disposed = true;
-            await this.cleanupContext(previous);
-        }
-
-        const profile = await this.findProfileByHandle(params.connectionHandle);
-        if (!profile) {
-            throw new BridgeRequestError(BridgeErrorCode.NotFound, "Connection was not found.");
-        }
-
-        const ownerUri = Utils.generateQueryUri("vscode-mssql-sqltools-mcp").toString();
-        const credentials = { ...profile } as IConnectionProfile;
-        const connected = await this.connectionManager.connect(ownerUri, credentials, {
-            shouldHandleErrors: false,
-            connectionSource: "sqlToolsMcp",
-        });
-        if (!connected) {
-            throw new BridgeRequestError(
-                BridgeErrorCode.AuthenticationFailed,
-                "Connection could not be established.",
-                true,
+            return { platformContext };
+        } catch (error) {
+            sendSqlToolsMcpError(
+                TelemetryActions.SqlToolsMcpRegisterConnection,
+                error,
+                {
+                    success: "false",
+                },
+                {
+                    durationMs: getElapsedMs(startTime),
+                },
             );
+            throw error;
         }
-
-        const connectionInfo = this.connectionManager.getConnectionInfo(ownerUri);
-        const connectedCredentials = connectionInfo?.credentials;
-        const platformContext = await this.detectPlatformContext(ownerUri, connectedCredentials);
-
-        this.registeredConnections.set(params.connectionName, {
-            connectionHandle: params.connectionHandle,
-            ownerUri,
-            platformContext,
-            disposed: false,
-            queryTail: Promise.resolve(),
-        });
-
-        return { platformContext };
     }
 
     async executeQuery(
         params: ExecuteQueryRequest,
         cancellationToken?: HeadlessQueryCancellationToken,
     ): Promise<ExecuteQueryResponse> {
-        if (!params?.connectionName) {
-            throw new BridgeRequestError(
-                BridgeErrorCode.InvalidRequest,
-                "Registered connection name is required.",
-            );
-        }
+        const startTime = performance.now();
+        const queryProperties = getQueryTelemetryProperties(params?.queryContentDescriptor);
+        try {
+            if (!params?.connectionName) {
+                throw new BridgeRequestError(
+                    BridgeErrorCode.InvalidRequest,
+                    "Registered connection name is required.",
+                );
+            }
 
-        const context = this.registeredConnections.get(params.connectionName);
-        if (!context) {
-            throw new BridgeRequestError(
-                BridgeErrorCode.NotFound,
-                "Registered connection was not found.",
-            );
-        }
+            const context = this.registeredConnections.get(params.connectionName);
+            if (!context) {
+                throw new BridgeRequestError(
+                    BridgeErrorCode.NotFound,
+                    "Registered connection was not found.",
+                );
+            }
 
-        return this.runSerializedQuery(context, cancellationToken, async () => {
-            const query = normalizeSqlToolsMcpQuery(params.queryContentDescriptor);
-            const result = await this.executor.execute(context.ownerUri, query, cancellationToken);
-            return {
-                queryResult: toSqlToolsMcpQueryResult(result),
-            };
-        });
+            const response = await this.runSerializedQuery(context, cancellationToken, async () => {
+                const query = normalizeSqlToolsMcpQuery(params.queryContentDescriptor);
+                const result = await this.executor.execute(
+                    context.ownerUri,
+                    query,
+                    cancellationToken,
+                );
+                return {
+                    queryResult: toSqlToolsMcpQueryResult(result),
+                };
+            });
+            sendSqlToolsMcpAction(
+                TelemetryActions.SqlToolsMcpExecuteQuery,
+                {
+                    ...queryProperties,
+                    success: "true",
+                    resultIsError: String(response.queryResult.isError),
+                },
+                {
+                    durationMs: getElapsedMs(startTime),
+                },
+            );
+            return response;
+        } catch (error) {
+            sendSqlToolsMcpError(
+                TelemetryActions.SqlToolsMcpExecuteQuery,
+                error,
+                {
+                    ...queryProperties,
+                    success: "false",
+                },
+                {
+                    durationMs: getElapsedMs(startTime),
+                },
+            );
+            throw error;
+        }
     }
 
     async removeConnection(params: RemoveConnectionRequest): Promise<RemoveConnectionResponse> {
-        if (!params?.connectionName) {
-            throw new BridgeRequestError(
-                BridgeErrorCode.InvalidRequest,
-                "Registered connection name is required.",
+        const startTime = performance.now();
+        try {
+            if (!params?.connectionName) {
+                throw new BridgeRequestError(
+                    BridgeErrorCode.InvalidRequest,
+                    "Registered connection name is required.",
+                );
+            }
+
+            const context = this.registeredConnections.get(params.connectionName);
+            this.registeredConnections.delete(params.connectionName);
+            if (context) {
+                context.disposed = true;
+                await this.cleanupContext(context);
+            }
+
+            sendSqlToolsMcpAction(
+                TelemetryActions.SqlToolsMcpRemoveConnection,
+                {
+                    success: "true",
+                    removed: String(context !== undefined),
+                },
+                {
+                    durationMs: getElapsedMs(startTime),
+                },
             );
+            return { removed: context !== undefined };
+        } catch (error) {
+            sendSqlToolsMcpError(
+                TelemetryActions.SqlToolsMcpRemoveConnection,
+                error,
+                {
+                    success: "false",
+                },
+                {
+                    durationMs: getElapsedMs(startTime),
+                },
+            );
+            throw error;
         }
-
-        const context = this.registeredConnections.get(params.connectionName);
-        this.registeredConnections.delete(params.connectionName);
-        if (context) {
-            context.disposed = true;
-            await this.cleanupContext(context);
-        }
-
-        return { removed: context !== undefined };
     }
 
     async dispose(): Promise<void> {

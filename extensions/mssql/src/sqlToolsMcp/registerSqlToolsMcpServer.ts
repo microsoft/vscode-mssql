@@ -18,6 +18,8 @@ import {
     registerProvider,
     SqlToolsMcpServerDefinitionProvider,
 } from "./sqlToolsMcpServerDefinitionProvider";
+import { TelemetryActions } from "../sharedInterfaces/telemetry";
+import { sendSqlToolsMcpAction } from "./sqlToolsMcpTelemetry";
 
 export function registerSqlToolsMcpServer(
     context: vscode.ExtensionContext,
@@ -27,6 +29,10 @@ export function registerSqlToolsMcpServer(
 ): void {
     const logger = Logger.create(vscodeWrapper.outputChannel, "SqlToolsMcp");
     if (!canRegisterSqlToolsMcpProvider()) {
+        sendSqlToolsMcpAction(TelemetryActions.SqlToolsMcpProviderRegistration, {
+            success: "false",
+            reason: "mcpApiUnavailable",
+        });
         logger.info("VS Code MCP server definition API is not available.");
         return;
     }
@@ -47,6 +53,9 @@ export function registerSqlToolsMcpServer(
     );
 
     context.subscriptions.push(bridgeManager, provider, registerProvider(provider));
+    sendSqlToolsMcpAction(TelemetryActions.SqlToolsMcpProviderRegistration, {
+        success: "true",
+    });
     void provider.initialize();
 }
 
