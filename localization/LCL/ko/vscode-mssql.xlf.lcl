@@ -5689,6 +5689,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++3fe2318b777a1d9c6304a9e2bff0d636f51cfb872de17793c8962acbdc1370cd" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Generate REST, GraphQL, and MCP endpoints from your SQL database objects (tables). You can modify the configuration manually or through GitHub Copilot to plan and generate updates - then deploy locally with Docker.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SQL 데이터베이스 개체(테이블)에서 REST, GraphQL, MCP 엔드포인트를 생성하세요. 구성을 수동으로 수정하거나 GitHub Copilot을 통해 업데이트를 계획하고 생성한 다음, Docker로 로컬에 배포할 수 있습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++3fee95da5ab69ebfdc16ec892b754105a11c20203054a6c6bcc0a60176891043" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Simple]]></Val>
@@ -7921,6 +7930,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++57d34ecd6fc9b04ba8ad6450eeb1159b21aa3e6f127082ea6554f826985cdddb" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[패브릭의 SQL Database, Azure SQL, SQL Server가 최신 앱 개발을 어떻게 새롭게 바꾸고 있는지 알아보세요. 성능, AI 통합 및 개발자 생산성의 한계를 넓히는 엔지니어와 동료들과 함께하세요.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++57fab0af2acb374655d853bc448fcbfec0a2c47c19d965017e05d2ae07974c99" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[This will deploy a Data API builder container locally using Docker. The container will expose {0} APIs based on your configuration.]]></Val>
@@ -9640,6 +9658,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++6ce6c168965317cce6e35f445598a3182e21e937846cf45db34b17dc1c0a0d3b" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Data API builder with GitHub Copilot]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[GitHub Copilot을 사용한 데이터 API 작성기]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++6d457cc1e5982858c386c637bec86a3c2615e648054d4d5472a261e0b5004b2d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure Subscriptions]]></Val>
@@ -9816,6 +9843,15 @@
           <Val><![CDATA[Next Page]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[다음 페이지]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++6ef37ea9955ac30c701324290f719cf696d1f34b027640872eb4bba2fcd59c25" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Use discount code {0} to save €200 on registration.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[할인 코드 {0}을(를) 사용하면 등록비에서 €200를 절약할 수 있습니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13951,6 +13987,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++a05ece881012991a79aaf2cbbba9d6e11e35d05ed66f547dfaae931a8d9e50af" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Easily start with the Azure SQL database free tier to create and connect to a database directly from your editor at no cost.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure SQL 데이터베이스 무료 계층으로 쉽게 시작해 보세요. 편집기에서 바로 데이터베이스를 만들고 무료로 연결할 수 있습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++a08ed3bdb12bc70103aac4b9c62d71981854c89e6d7a4a0a60ae4b0a16d392af" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Import file is required]]></Val>
@@ -16345,6 +16390,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++bb7234ec12451361e6f35bcbe76de58e4350657fe60d1b96ace0947f59194083" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Register]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[등록]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++bb752783460568a627729df83424ba6dc42ba33b3a2ba1a4573572d03d801b77" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Schema designer opened. For schema mutations, continue with {0} operations ({1}/{2}).]]></Val>
@@ -18465,6 +18519,15 @@
           <Val><![CDATA[Auto Arrange]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[자동 정렬]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++d58bf1f323a38f50b921c7d963ad40d4323ebb5085fc456c8afbcc6542b0eb7a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure SQL databases provisioning]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure SQL 데이터베이스 프로비전]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
