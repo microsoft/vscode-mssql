@@ -795,7 +795,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++0a2105a1fadf7c199d8e23465ad8d288b97a0456a72b51bcf57cba2eb8f9606d">
         <source xml:lang="en">Azure SQL Managed Instance</source>
-        <target state="new">Azure SQL Managed Instance</target>
+        <target state="translated">Azure SQL Managed Instance</target>
       </trans-unit>
       <trans-unit id="++CODE++2827add936f31415e16e0670d8686084ec2e21fed7686c0aa91fffdfa09e4e38">
         <source xml:lang="en">Azure SQL Server</source>
@@ -811,7 +811,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++a2a46725ee7a38c9f7136bbc583fe472b90c5b22586050da352cc033ca18e346">
         <source xml:lang="en">Azure Synapse Analytics</source>
-        <target state="new">Azure Synapse Analytics</target>
+        <target state="translated">Azure Synapse Analytics</target>
       </trans-unit>
       <trans-unit id="++CODE++27dda4355b44df3f400de7845fe1bfc83a880707d4630f52be097d95625f7bfa">
         <source xml:lang="en">Azure account '{0}' was not found. Sign in with the correct account or select a different one.</source>
@@ -5225,7 +5225,7 @@ Erreur :
       <trans-unit id="++CODE++8a4c943120e561689b5545e70b8fa64b48da3eb09a8b14c6d2283f29af79e201">
         <source xml:lang="en">Listing Fabric Warehouses for workspace '{0}'</source>
         <note>{0} is the workspace ID</note>
-        <target state="new">Listing Fabric Warehouses for workspace '{0}'</target>
+        <target state="translated">Liste des entrepôts Fabric pour l’espace de travail « {0} »</target>
       </trans-unit>
       <trans-unit id="++CODE++a5c14e0446ba987ee1804ac7f75c2cf29a526c5b3efc8ec431eeb50d200ad7f0">
         <source xml:lang="en">Listing Fabric capacities for tenant '{0}'</source>
@@ -5617,7 +5617,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++e260e08b004d80c5f03f1c487435e7c89ad7277a12212a98f9fd44217e21dd9e">
         <source xml:lang="en">Max vCores</source>
-        <target state="new">Max vCores</target>
+        <target state="translated">vCores max</target>
       </trans-unit>
       <trans-unit id="++CODE++fc899519286f8da6256728b62d14e6ef9042346e7ad4191e21c95efaf1141a42">
         <source xml:lang="en">Max: {0}</source>
@@ -8027,7 +8027,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++79e5e71c56f13bb3c722fd134f6fb39e747de15dc979295882ecac8d67d45559">
         <source xml:lang="en">Select Max vCores</source>
-        <target state="new">Select Max vCores</target>
+        <target state="translated">Sélectionnez Max vCores</target>
       </trans-unit>
       <trans-unit id="++CODE++a1103f928cc721a44f7c8cdbc11bab66f8a7e44d66485112edccc40525787cfb">
         <source xml:lang="en">Select Profile</source>
@@ -9804,7 +9804,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++2a625c251683ca2ba8a1125319cb76d8f3d448d9e4d5a6c97bd948145217e36f">
         <source xml:lang="en">Warehouse</source>
-        <target state="new">Warehouse</target>
+        <target state="translated">Warehouse</target>
       </trans-unit>
       <trans-unit id="++CODE++e981ddae45d8f4ca53f1ccbe613ad254a041dacf65a06026099a6302d332113b">
         <source xml:lang="en">Warning</source>
