@@ -946,6 +946,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++0a2105a1fadf7c199d8e23465ad8d288b97a0456a72b51bcf57cba2eb8f9606d" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure SQL Managed Instance]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure SQL Managed Instance]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++0a30a815d67d7dd2018fe18f4e995a26f3b753369cd4327e9b6034b50a2cd153" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Page]]></Val>
@@ -3849,6 +3858,15 @@
           <Val><![CDATA[Table updated in schema designer successfully.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[La table a bien été mise à jour dans le concepteur de schémas.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++2a625c251683ca2ba8a1125319cb76d8f3d448d9e4d5a6c97bd948145217e36f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Warehouse]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Warehouse]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10801,6 +10819,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++79e5e71c56f13bb3c722fd134f6fb39e747de15dc979295882ecac8d67d45559" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select Max vCores]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Sélectionnez Max vCores]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++79e6ae7e99e1a20fac22d0e96d3c6655da33fa78e816b9cb389c74e94963eddc" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Import New File]]></Val>
@@ -12093,6 +12120,15 @@
           <Val><![CDATA[Displays the data type name for the column]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Affiche le nom du type de données pour la colonne.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++8a4c943120e561689b5545e70b8fa64b48da3eb09a8b14c6d2283f29af79e201" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Listing Fabric Warehouses for workspace '{0}']]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Liste des entrepôts Fabric pour l’espace de travail « {0} »]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14091,6 +14127,15 @@
           <Val><![CDATA[Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you've created will be lost. Do you want to proceed with auto-arranging your schema diagram?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[La disposition automatique repositionne tous les éléments du diagramme en fonction d’algorithmes de disposition optimaux. Tout positionnement personnalisé créé sera perdu. Voulez-vous procéder à la disposition automatique de votre diagramme de schéma ?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++a2a46725ee7a38c9f7136bbc583fe472b90c5b22586050da352cc033ca18e346" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure Synapse Analytics]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure Synapse Analytics]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19635,6 +19680,15 @@
           <Val><![CDATA[Failed to open XEL file: {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Nous n’avons pas pu ouvrir le fichier XEL : {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++e260e08b004d80c5f03f1c487435e7c89ad7277a12212a98f9fd44217e21dd9e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Max vCores]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[vCores max]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
