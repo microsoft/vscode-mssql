@@ -803,7 +803,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++d58bf1f323a38f50b921c7d963ad40d4323ebb5085fc456c8afbcc6542b0eb7a">
         <source xml:lang="en">Azure SQL databases provisioning</source>
-        <target state="new">Azure SQL databases provisioning</target>
+        <target state="translated">Подготовка баз данных SQL Azure</target>
       </trans-unit>
       <trans-unit id="++CODE++6d457cc1e5982858c386c637bec86a3c2615e648054d4d5472a261e0b5004b2d">
         <source xml:lang="en">Azure Subscriptions</source>
@@ -2502,7 +2502,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++6ce6c168965317cce6e35f445598a3182e21e937846cf45db34b17dc1c0a0d3b">
         <source xml:lang="en">Data API builder with GitHub Copilot</source>
-        <target state="new">Data API builder with GitHub Copilot</target>
+        <target state="translated">Построитель API данных с GitHub Copilot</target>
       </trans-unit>
       <trans-unit id="++CODE++e136aee7826b55f91d1b030832bc4be35b9ee07563c09627052aeecb9335a039">
         <source xml:lang="en">Data Source</source>
@@ -2868,7 +2868,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++57d34ecd6fc9b04ba8ad6450eeb1159b21aa3e6f127082ea6554f826985cdddb">
         <source xml:lang="en">Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.</source>
-        <target state="new">Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.</target>
+        <target state="translated">Узнайте, как база данных SQL в Fabric, Azure SQL и SQL Server переосмысливают современную разработку приложений. Присоединяйтесь к инженерам и коллегам, которые расширяют границы производительности, интеграции ИИ и продуктивности разработчиков.</target>
       </trans-unit>
       <trans-unit id="++CODE++48845bff334a50a59aaecf499f28a7a24c3b4b891b8b18a9f1169ad8e8a6b261">
         <source xml:lang="en">Dismiss</source>
@@ -2995,7 +2995,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++a05ece881012991a79aaf2cbbba9d6e11e35d05ed66f547dfaae931a8d9e50af">
         <source xml:lang="en">Easily start with the Azure SQL database free tier to create and connect to a database directly from your editor at no cost.</source>
-        <target state="new">Easily start with the Azure SQL database free tier to create and connect to a database directly from your editor at no cost.</target>
+        <target state="translated">Легко начните работу с бесплатным уровнем базы данных SQL Azure, чтобы бесплатно создать базу данных и подключиться к ней прямо из редактора.</target>
       </trans-unit>
       <trans-unit id="++CODE++8b45c43d0d9a0c27cbecb2683ef02b292a7f2626dee0f8443d4e62ac3e0e88c4">
         <source xml:lang="en">Edit Connection Group - {0}</source>
@@ -4551,7 +4551,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++3fe2318b777a1d9c6304a9e2bff0d636f51cfb872de17793c8962acbdc1370cd">
         <source xml:lang="en">Generate REST, GraphQL, and MCP endpoints from your SQL database objects (tables). You can modify the configuration manually or through GitHub Copilot to plan and generate updates - then deploy locally with Docker.</source>
-        <target state="new">Generate REST, GraphQL, and MCP endpoints from your SQL database objects (tables). You can modify the configuration manually or through GitHub Copilot to plan and generate updates - then deploy locally with Docker.</target>
+        <target state="translated">Создавайте конечные точки REST, GraphQL и MCP на основе объектов базы данных SQL (таблиц). Конфигурацию можно изменить вручную или с помощью GitHub Copilot, чтобы спланировать и сгенерировать обновления, а затем развернуть их локально с помощью Docker.</target>
       </trans-unit>
       <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
         <source xml:lang="en">Generate Script</source>
@@ -7246,7 +7246,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++bb7234ec12451361e6f35bcbe76de58e4350657fe60d1b96ace0947f59194083">
         <source xml:lang="en">Register</source>
-        <target state="new">Register</target>
+        <target state="translated">Регистрация</target>
       </trans-unit>
       <trans-unit id="++CODE++ab604a360777735fe2993aec7d4ffae415f1515b0a4c989269603fd3d5c07b61">
         <source xml:lang="en">Reject</source>
@@ -9612,7 +9612,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++6ef37ea9955ac30c701324290f719cf696d1f34b027640872eb4bba2fcd59c25">
         <source xml:lang="en">Use discount code {0} to save €200 on registration.</source>
-        <target state="new">Use discount code {0} to save €200 on registration.</target>
+        <target state="translated">Используйте промокод {0}, чтобы сэкономить €200 при регистрации.</target>
       </trans-unit>
       <trans-unit id="++CODE++413d7418205c532ce289074072d8841df2c720313cb19bd9180ad2c4de3383c7">
         <source xml:lang="en">Use encryption for this backup</source>
