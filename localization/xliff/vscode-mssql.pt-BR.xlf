@@ -11531,6 +11531,10 @@ Confira o plano estimado sem executar a consulta ou visualize o plano de consult
         <source xml:lang="en">When enabled, saved query result exports are opened after export. Excel exports open with the system file handler; text exports open in VS Code.</source>
         <target state="translated">Quando habilitado, as exportações de resultados de consulta salvas são abertas após a exportação. As exportações do Excel são abertas com o manipulador de arquivos do sistema; exportações de texto são abertas no VS Code.</target>
       </trans-unit>
+      <trans-unit id="mssql.results.showCopyNotification">
+        <source xml:lang="en">When enabled, show a notification after query results are copied to the clipboard.</source>
+        <target state="new">When enabled, show a notification after query results are copied to the clipboard.</target>
+      </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
         <target state="translated">Quando habilitados, os objetos de banco de dados no Pesquisador de Objetos serão categorizados por esquema.</target>
