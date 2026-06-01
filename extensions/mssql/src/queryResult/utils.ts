@@ -388,11 +388,16 @@ export function recordLength(record: any): number {
     return Object.keys(record).length;
 }
 
-export function messageToString(message: qr.IMessage): string {
-    if (message.link?.text) {
-        return `${message.message}${message.link.text}`;
+export function messageToString(message: qr.IMessage, includeTimestamp: boolean = false): string {
+    const text = message.link?.text ? `${message.message}${message.link.text}` : message.message;
+    if (!includeTimestamp || !message.time) {
+        return text;
     }
-    return message.message;
+
+    return text
+        .split(/\r?\n/)
+        .map((line) => `${message.time}\t${line}`)
+        .join("\n");
 }
 
 /**

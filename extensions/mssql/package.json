@@ -2074,6 +2074,12 @@
                     "default": true,
                     "scope": "resource"
                 },
+                "mssql.messages.copyIncludeTimestamps": {
+                    "type": "boolean",
+                    "description": "%mssql.messages.copyIncludeTimestamps%",
+                    "default": false,
+                    "scope": "resource"
+                },
                 "mssql.resultsFontFamily": {
                     "type": "string",
                     "description": "%mssql.resultsFontFamily%",
