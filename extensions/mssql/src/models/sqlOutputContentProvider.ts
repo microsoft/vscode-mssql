@@ -635,6 +635,7 @@ export class SqlOutputContentProvider {
                 resultWebviewState.messages.push({
                     message: LocalizedConstants.elapsedTimeLabel(totalMilliseconds),
                     isError: false, // Elapsed time messages are never displayed as errors
+                    time: new Date().toLocaleTimeString(),
                 });
                 // if there is an error, show the error message and set the tab to the messages tab
                 let tabState: QueryResultPaneTabs;
