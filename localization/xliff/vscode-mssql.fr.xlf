@@ -11531,6 +11531,10 @@ Consultez le plan estimé sans exécuter la requête, ou consultez le plan de re
         <source xml:lang="en">When enabled, saved query result exports are opened after export. Excel exports open with the system file handler; text exports open in VS Code.</source>
         <target state="translated">Une fois cette option activée, les exportations des résultats des requêtes enregistrées s’ouvrent après l’exportation. Les exportations Excel s’ouvrent avec le gestionnaire de fichiers du système. Les exportations de texte s’ouvrent dans VS Code.</target>
       </trans-unit>
+      <trans-unit id="mssql.results.showCopyNotification">
+        <source xml:lang="en">When enabled, show a notification after query results are copied to the clipboard.</source>
+        <target state="new">When enabled, show a notification after query results are copied to the clipboard.</target>
+      </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
         <target state="translated">Lorsque cette option est activée, les objets de base de données dans l’Explorateur d’objets sont classés par schéma.</target>

@@ -11531,6 +11531,10 @@ Visualizza il piano stimato senza eseguire la query oppure visualizza il piano d
         <source xml:lang="en">When enabled, saved query result exports are opened after export. Excel exports open with the system file handler; text exports open in VS Code.</source>
         <target state="translated">Se abilitato, le esportazioni dei risultati delle query salvate vengono aperte dopo l'esportazione. Le esportazioni di Excel si aprono con il gestore di file di sistema; le esportazioni di testo si aprono in VS Code.</target>
       </trans-unit>
+      <trans-unit id="mssql.results.showCopyNotification">
+        <source xml:lang="en">When enabled, show a notification after query results are copied to the clipboard.</source>
+        <target state="new">When enabled, show a notification after query results are copied to the clipboard.</target>
+      </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
         <target state="translated">Se questa opzione è abilitata, gli oggetti di database in Esplora oggetti verranno categorizzati in base allo schema.</target>
