@@ -74,7 +74,7 @@ export class StubLogger implements ILogger {
     appendLine(message?: string): void {
         this._log(message);
     }
-    info(msg: any, ...vals: any[]): void {
+    info(msg: any, ..._vals: any[]): void {
         this._log(msg);
     }
 }

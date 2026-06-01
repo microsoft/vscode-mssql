@@ -208,48 +208,6 @@ export function getSystemDatabase(name: string): SystemDatabase {
 }
 
 /**
- * Read SQLCMD variables from xmlDoc and return them
- * @param xmlDoc xml doc to read SQLCMD variables from. Format must be the same that sqlproj and publish profiles use
- * @param publishProfile true if reading from publish profile
- */
-export function readSqlCmdVariables(
-    xmlDoc: Document,
-    publishProfile: boolean,
-): Map<string, string> {
-    let sqlCmdVariables: Map<string, string> = new Map();
-    for (
-        let i = 0;
-        i < xmlDoc.documentElement.getElementsByTagName(constants.SqlCmdVariable)?.length;
-        i++
-    ) {
-        const sqlCmdVar = xmlDoc.documentElement.getElementsByTagName(constants.SqlCmdVariable)[i];
-        const varName = sqlCmdVar.getAttribute(constants.Include)!;
-
-        // Publish profiles only support Value, so don't use DefaultValue even if it's there
-        // SSDT uses the Value (like <Value>$(SqlCmdVar__1)</Value>) where there
-        // are local variable values you can set in VS in the properties. Since we don't support that in ADS, only DefaultValue is supported for sqlproj.
-        if (
-            !publishProfile &&
-            sqlCmdVar.getElementsByTagName(constants.DefaultValue)[0] !== undefined
-        ) {
-            // project file path
-            sqlCmdVariables.set(
-                varName,
-                sqlCmdVar.getElementsByTagName(constants.DefaultValue)[0].childNodes[0].nodeValue!,
-            );
-        } else {
-            // profile path
-            sqlCmdVariables.set(
-                varName,
-                sqlCmdVar.getElementsByTagName(constants.Value)[0].childNodes[0].nodeValue!,
-            );
-        }
-    }
-
-    return sqlCmdVariables;
-}
-
-/**
  * 	Removes $() around a sqlcmd variable
  * @param name
  */

@@ -96,7 +96,7 @@ export class SqlOutputContentProvider {
          * Command to enable the actual execution plan for the active query result
          */
         this._context.subscriptions.push(
-            vscode.commands.registerCommand(Constants.cmdEnableActualPlan, async (context) => {
+            vscode.commands.registerCommand(Constants.cmdEnableActualPlan, async (_context) => {
                 this.onToggleActualPlan(true);
             }),
         );
@@ -105,7 +105,7 @@ export class SqlOutputContentProvider {
          * Command to disable the actual execution plan for the active query result
          */
         this._context.subscriptions.push(
-            vscode.commands.registerCommand(Constants.cmdDisableActualPlan, async (context) => {
+            vscode.commands.registerCommand(Constants.cmdDisableActualPlan, async (_context) => {
                 this.onToggleActualPlan(false);
             }),
         );

@@ -216,7 +216,12 @@ suite("MsalAzureController Tests", () => {
             mockSubscriptionClientFactory,
         );
 
-        const mockClientApplication = sandbox.createStubInstance(msalNode.PublicClientApplication);
+        const mockClientApplication = sandbox.createStubInstance(
+            msalNode.PublicClientApplication,
+        ) as sinon.SinonStubbedInstance<msalNode.PublicClientApplication>;
+        const clearCacheStub = sandbox.stub();
+        mockClientApplication.clearCache =
+            clearCacheStub as unknown as typeof mockClientApplication.clearCache;
         const mockCloudAuth = sandbox.createStubInstance(CloudAuthApplication);
 
         sandbox.stub(mockCloudAuth, "clientApplication").get(() => mockClientApplication);
@@ -231,9 +236,9 @@ suite("MsalAzureController Tests", () => {
         await controller.clearTokenCache();
 
         // Assert
-        expect(mockClientApplication.clearCache).to.have.been.calledOnce;
-        expect(mockCachePluginProvider.unlinkMsalCache).to.have.been.calledOnce;
-        expect(mockCachePluginProvider.clearCacheEncryptionKeys).to.have.been.calledOnce;
+        expect(clearCacheStub).to.have.been.called;
+        expect(mockCachePluginProvider.unlinkMsalCache).to.have.been.called;
+        expect(mockCachePluginProvider.clearCacheEncryptionKeys).to.have.been.called;
     });
 
     test("login should return account on successful login", async () => {

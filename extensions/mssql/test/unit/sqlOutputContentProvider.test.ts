@@ -303,7 +303,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
 
         let doc = <vscode.TextDocument>{
             uri: {
-                toString(skipEncoding?: boolean): string {
+                toString(_skipEncoding?: boolean): string {
                     return uri;
                 },
             },

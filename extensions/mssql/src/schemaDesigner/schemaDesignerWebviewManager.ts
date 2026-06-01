@@ -86,9 +86,11 @@ export class SchemaDesignerWebviewManager {
         databaseName: string,
         treeNode?: TreeNodeInfo,
         connectionUri?: string,
+        isReadOnly: boolean = false,
     ): Promise<SchemaDesignerWebviewController> {
         let connectionString: string | undefined;
         let azureAccountToken: string | undefined;
+        const metadataConnectionUri = treeNode?.sessionId ?? connectionUri;
         if (treeNode) {
             let connectionInfo = treeNode.connectionProfile;
             connectionInfo = (await mainController.connectionManager.prepareConnectionInfo(
@@ -108,16 +110,34 @@ export class SchemaDesignerWebviewManager {
             );
             azureAccountToken = connectionInfo.azureAccountToken;
         } else if (connectionUri) {
-            var connInfo = mainController.connectionManager.getConnectionInfo(connectionUri);
-            connectionString = await mainController.connectionManager.getConnectionString(
-                connectionUri,
-                true,
-                true,
-            );
-            azureAccountToken = connInfo.credentials.azureAccountToken;
+            const connInfo = mainController.connectionManager.getConnectionInfo(connectionUri);
+            if (connInfo?.credentials) {
+                const connectionInfo = {
+                    ...connInfo.credentials,
+                    database: databaseName,
+                } as IConnectionProfile;
+                const connectionDetails =
+                    await mainController.connectionManager.createConnectionDetails(connectionInfo);
+
+                connectionString = await mainController.connectionManager.getConnectionString(
+                    connectionDetails,
+                    true,
+                    true,
+                );
+                azureAccountToken = connInfo.credentials.azureAccountToken;
+            } else {
+                connectionString = await mainController.connectionManager.getConnectionString(
+                    connectionUri,
+                    true,
+                    true,
+                );
+            }
         }
 
-        const key = `${connectionString}-${databaseName}`;
+        // Include the mode in the cache key so that opening a read-only and an
+        // editable view for the same database produces two separate panels rather
+        // than reusing one with the wrong toolbar and state.
+        const key = `${connectionString}-${databaseName}-${isReadOnly ? "ro" : "rw"}`;
         if (!this.schemaDesigners.has(key) || this.schemaDesigners.get(key)?.isDisposed) {
             const schemaDesigner = new SchemaDesignerWebviewController(
                 context,
@@ -129,7 +149,9 @@ export class SchemaDesignerWebviewManager {
                 databaseName,
                 this.schemaDesignerCache,
                 treeNode,
-                connectionUri,
+                metadataConnectionUri,
+                isReadOnly,
+                key,
             );
             const viewStateDisposable = schemaDesigner.panel.onDidChangeViewState((event) => {
                 if (event.webviewPanel.visible) {
@@ -172,6 +194,7 @@ export class SchemaDesignerWebviewManager {
                             databaseName,
                             treeNode,
                             connectionUri,
+                            isReadOnly,
                         );
                     }
                 }

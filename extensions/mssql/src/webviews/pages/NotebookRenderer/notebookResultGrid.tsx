@@ -6,6 +6,7 @@
 import { useEffect, useRef } from "react";
 import { TableDataView, defaultFilter } from "../QueryResult/table/tableDataView";
 import { RowNumberColumn } from "../QueryResult/table/plugins/rowNumberColumn.plugin";
+import { AutoColumnSize } from "../QueryResult/table/plugins/autoColumnSize.plugin";
 import { NotebookHeaderMenu, FilterButtonWidth } from "./notebookHeaderMenu.plugin";
 import { CellSelectionModel } from "../QueryResult/table/plugins/cellSelectionModel.plugin";
 import { CellRangeSelector } from "../QueryResult/table/plugins/cellRangeSelector";
@@ -30,6 +31,7 @@ const MAX_COLUMN_WIDTH = 400;
 const MAX_GRID_HEIGHT = 500;
 const HEADER_HEIGHT = 30;
 const HORIZONTAL_SCROLLBAR_HEIGHT = 20;
+const MAX_SAMPLE_ROWS = 50;
 
 /**
  * Measure the pixel width of a string using a canvas context.
@@ -49,8 +51,7 @@ function measureTextWidth(text: string, font: string): number {
  */
 function computeColumnWidths(columns: IDbColumn[], rows: DbCellValue[][], font: string): number[] {
     const padding = 20 + FilterButtonWidth; // cell padding + sort/filter button space
-    const maxSampleRows = 50;
-    const sampleRows = rows.slice(0, maxSampleRows);
+    const sampleRows = rows.slice(0, MAX_SAMPLE_ROWS);
 
     return columns.map((col, colIdx) => {
         let maxWidth = measureTextWidth(col.columnName, font) + padding;
@@ -231,6 +232,15 @@ export function NotebookResultGrid({
         // Register context menu (right-click) with copy operations
         const contextMenu = new NotebookContextMenu<Slick.SlickData>();
         grid.registerPlugin(contextMenu);
+
+        // Reuse Query Result auto-size behavior for double-clicking a resize handle.
+        const autoColumnSize = new AutoColumnSize<Slick.SlickData>({
+            maxWidth: MAX_COLUMN_WIDTH,
+            autoSizeOnRender: false,
+            // Notebook headers already include sort/filter button width in-flow.
+            extraColumnHeaderWidth: 0,
+        });
+        grid.registerPlugin(autoColumnSize);
 
         // Now set columns — this triggers header rendering with plugins active
         grid.setColumns(columns);

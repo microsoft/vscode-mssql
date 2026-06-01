@@ -18,6 +18,7 @@ import {
     IWorkspace,
     ISqlDbArtifact,
     ISqlEndpointArtifact,
+    IWarehouseArtifact,
 } from "../../src/sharedInterfaces/fabric";
 import { getErrorMessage } from "../../src/utils/utils";
 
@@ -235,8 +236,10 @@ suite("FabricHelper", () => {
                     id: "fabric-sqldb-1",
                     server: "testDbName.database.fabric.net",
                     displayName: "Test SQL Db",
-                    database: "testDbName",
-                    workspaceName: "Test Workspace",
+                    databases: ["testDbName"],
+                    collectionId: "test-workspace-id",
+                    collectionName: "Test Workspace",
+                    tenantId: "mock-tenant-id",
                     type: "SQLDatabase",
                 },
             ]);
@@ -277,13 +280,64 @@ suite("FabricHelper", () => {
                     id: "fabric-sqlendpoint-1",
                     server: undefined,
                     displayName: "Test SQL Endpoint",
-                    database: undefined,
-                    workspaceName: "Test Workspace",
+                    databases: [],
+                    collectionId: "test-workspace-id",
+                    collectionName: "Test Workspace",
+                    tenantId: "mock-tenant-id",
                     type: "SQLEndpoint",
                 },
             ]);
             expect(mockHttpHelper.makeGetRequest).to.have.been.calledOnceWith(
                 "https://api.fabric.microsoft.com/v1/workspaces/test-workspace-id/sqlEndpoints",
+                "test-access-token",
+            );
+        });
+
+        test("getFabricWarehouses", async () => {
+            const mockWarehouses: IWarehouseArtifact[] = [
+                {
+                    id: "fabric-warehouse-1",
+                    displayName: "Test Warehouse",
+                    description: "Test warehouse description",
+                    type: "Warehouse",
+                    properties: {
+                        connectionString: "testwarehouse.datawarehouse.fabric.microsoft.com",
+                        createdDate: "2023-09-28T22:52:13.78",
+                        lastUpdatedTime: "2023-10-04T22:56:33.283",
+                        collationType: "Latin1_General_100_CI_AS_KS_WS_SC_UTF8",
+                    },
+                    workspaceId: "test-workspace-id",
+                },
+            ];
+
+            const mockResponse = { value: mockWarehouses };
+            mockHttpHelper.makeGetRequest.resolves({
+                data: mockResponse,
+                status: 200,
+                statusText: "OK",
+                headers: {},
+                config: {} as AxiosResponse<{ value: IWarehouseArtifact[] }>["config"],
+            } as AxiosResponse<{ value: IWarehouseArtifact[] }>);
+
+            const result = await FabricHelper.getFabricWarehouses(
+                { displayName: "Test Workspace", id: "test-workspace-id" } as IWorkspace,
+                "mock-tenant-id",
+            );
+
+            expect(result).to.deep.equal([
+                {
+                    id: "fabric-warehouse-1",
+                    server: "testwarehouse.datawarehouse.fabric.microsoft.com",
+                    displayName: "Test Warehouse",
+                    databases: [],
+                    collectionId: "test-workspace-id",
+                    collectionName: "Test Workspace",
+                    tenantId: "mock-tenant-id",
+                    type: "Warehouse",
+                },
+            ]);
+            expect(mockHttpHelper.makeGetRequest).to.have.been.calledOnceWith(
+                "https://api.fabric.microsoft.com/v1/workspaces/test-workspace-id/warehouses",
                 "test-access-token",
             );
         });

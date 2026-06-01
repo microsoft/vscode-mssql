@@ -151,7 +151,7 @@ suite("Query Runner tests", () => {
             await queryRunner.runQuery(standardSelection);
             // If we reach here, the test should fail because we expected an error
             expect.fail("Expected runQuery to throw an error");
-        } catch (error) {
+        } catch {
             // Then:
             // ... The output channel should still log the failed start
             expect(testVscodeWrapper.logToOutputChannel as sinon.SinonStub).to.have.been.calledOnce;

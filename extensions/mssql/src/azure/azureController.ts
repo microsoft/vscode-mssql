@@ -96,7 +96,7 @@ export abstract class AzureController {
         profile,
         accountStore,
         accountAnswer,
-        settings: IAADResource,
+        _settings: IAADResource,
     ): Promise<ConnectionProfile | undefined> {
         let account = accountStore.getAccount(accountAnswer.key.id);
         if (!account) {
@@ -209,7 +209,8 @@ export abstract class AzureController {
             name: LocalizedConstants.tenant,
             message: LocalizedConstants.azureChooseTenant,
             choices: tenantChoices,
-            shouldPrompt: (answers) => profile.isAzureActiveDirectory() && tenantChoices.length > 1,
+            shouldPrompt: (_answers) =>
+                profile.isAzureActiveDirectory() && tenantChoices.length > 1,
             onAnswered: (value: ITenant) => {
                 profile.tenantId = value.id;
             },

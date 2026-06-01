@@ -9,6 +9,8 @@ import {
     InitializeTableDesignerRequest,
     ProcessTableDesignerEditRequest,
     PublishTableDesignerChangesRequest,
+    TableDesignerMessageNotification,
+    TableDesignerProgressNotification,
     TableDesignerGenerateChangePreviewReportRequest,
     TableDesignerGenerateScriptRequest,
 } from "../models/contracts/tableDesigner";
@@ -16,12 +18,29 @@ import * as designer from "../sharedInterfaces/tableDesigner";
 import * as vscode from "vscode";
 import { getErrorMessage } from "../utils/utils";
 export class TableDesignerService implements designer.ITableDesignerService {
-    constructor(private _sqlToolsClient: SqlToolsServiceClient) {}
-    async initializeTableDesigner(table: designer.TableInfo): Promise<designer.TableDesignerInfo> {
+    private _progressListeners: ((
+        progress: designer.TableDesignerProgressNotificationParams,
+    ) => void)[] = [];
+    private _messageListeners: ((
+        message: designer.TableDesignerMessageNotificationParams,
+    ) => void)[] = [];
+
+    constructor(private _sqlToolsClient: SqlToolsServiceClient) {
+        this._sqlToolsClient.onNotification(TableDesignerProgressNotification.type, (progress) => {
+            this._progressListeners.forEach((listener) => listener(progress));
+        });
+        this._sqlToolsClient.onNotification(TableDesignerMessageNotification.type, (message) => {
+            this._messageListeners.forEach((listener) => listener(message));
+        });
+    }
+
+    async initializeTableDesigner(
+        request: designer.InitializeTableDesignerRequest,
+    ): Promise<designer.TableDesignerInfo> {
         try {
             return await this._sqlToolsClient.sendRequest(
                 InitializeTableDesignerRequest.type,
-                table,
+                request,
             );
         } catch (e) {
             vscode.window.showErrorMessage(getErrorMessage(e));
@@ -85,5 +104,31 @@ export class TableDesignerService implements designer.ITableDesignerService {
             this._sqlToolsClient.logger.error(e);
             throw e;
         }
+    }
+
+    onProgress(
+        listener: (progress: designer.TableDesignerProgressNotificationParams) => void,
+    ): void {
+        this._progressListeners.push(listener);
+    }
+
+    removeProgressListener(
+        listener: (progress: designer.TableDesignerProgressNotificationParams) => void,
+    ): void {
+        this._progressListeners = this._progressListeners.filter(
+            (registeredListener) => registeredListener !== listener,
+        );
+    }
+
+    onMessage(listener: (message: designer.TableDesignerMessageNotificationParams) => void): void {
+        this._messageListeners.push(listener);
+    }
+
+    removeMessageListener(
+        listener: (message: designer.TableDesignerMessageNotificationParams) => void,
+    ): void {
+        this._messageListeners = this._messageListeners.filter(
+            (registeredListener) => registeredListener !== listener,
+        );
     }
 }

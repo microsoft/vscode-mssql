@@ -75,7 +75,7 @@ export function FilterTablesButton() {
     useEffect(() => {
         const nodes = reactFlow.getNodes();
         if (!openItems && nodes.length > 0) {
-            const schemas = Array.from(new Set(nodes.map((node) => `${node.data.schema}`)));
+            const schemas = Array.from(new Set<string>(nodes.map((node) => `${node.data.schema}`)));
             setOpenItems(schemas);
         }
     }, [reactFlow.getNodes()]);
@@ -220,7 +220,7 @@ export function FilterTablesButton() {
     function renderTree(): JSX.Element {
         const nodes = reactFlow.getNodes();
         const lowerFilterText = filterText.toLowerCase();
-        const tablesBySchema = nodes.reduce(
+        const tablesBySchema: Record<string, string[]> = nodes.reduce(
             (acc, node) => {
                 const schema = `${node.data.schema}`;
                 const table = `${node.data.name}`;

@@ -35,7 +35,7 @@ export async function load(dataSourcesFilePath: string): Promise<DataSource[]> {
 
     try {
         fileContents = await fs.readFile(dataSourcesFilePath);
-    } catch (err) {
+    } catch {
         // TODO: differentiate between file not existing and other types of failures; need to know whether to prompt to create new
         throw new NoDataSourcesFileError(constants.noDataSourcesFile);
     }
@@ -64,16 +64,3 @@ export async function load(dataSourcesFilePath: string): Promise<DataSource[]> {
 
     return output;
 }
-
-/**
- * Creates DataSource object from JSON
- */
-// Commenting this out because circular dependency with SqlConnectionDataSource was causing extension to not activate
-// function createDataSource(json: DataSourceJson): DataSource {
-// 	switch (json.type) {
-// 		case SqlConnectionDataSource.type:
-// 			return SqlConnectionDataSource.fromJson(json);
-// 		default:
-// 			throw new Error(constants.unknownDataSourceType + json.type);
-// 	}
-// }

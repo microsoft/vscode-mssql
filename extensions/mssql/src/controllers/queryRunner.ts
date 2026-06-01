@@ -433,7 +433,7 @@ export default class QueryRunner {
         }
     }
 
-    public setupQueryExecution(selection: ISelectionData): void {
+    public setupQueryExecution(_selection: ISelectionData): void {
         this._vscodeWrapper.logToOutputChannel(
             LocalizedConstants.msgStartedExecute(this._ownerUri),
         );
@@ -574,7 +574,7 @@ export default class QueryRunner {
         disposeDetails.ownerUri = this.uri;
         try {
             await this._client.sendRequest(QueryDisposeRequest.type, disposeDetails);
-        } catch (_error) {
+        } catch {
             // Do not show error message if dispose fails as it normally means the query is already disposed
             this._handleQueryCleanup();
             return;

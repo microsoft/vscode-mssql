@@ -178,7 +178,14 @@ suite("PublishChangesDialogButton component", () => {
             return node;
         }
 
-        for (const child of React.Children.toArray(node.props?.children)) {
+        const childNodes = [
+            node.props?.children,
+            (node.props as TestElementProps & { actions?: React.ReactNode }).actions,
+            (node.props as TestElementProps & { content?: React.ReactNode }).content,
+            (node.props as TestElementProps & { trigger?: React.ReactNode }).trigger,
+        ];
+
+        for (const child of React.Children.toArray(childNodes)) {
             const match = findElement(child, predicate);
             if (match) {
                 return match;
@@ -287,7 +294,6 @@ suite("PublishChangesDialogButton component", () => {
         const ghcpFixButton = findElement(
             dialogElement,
             (element) =>
-                element.props?.children === locConstants.schemaDesigner.askGithubCopilotToFix &&
                 element.props?.title === locConstants.schemaDesigner.askGithubCopilotToFixTooltip &&
                 typeof element.props?.onClick === "function",
         );

@@ -17,6 +17,7 @@ import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as Contracts from "../../src/models/contracts";
 import { stubVscodeWrapper } from "./utils";
+import * as LocalizedConstants from "../../src/constants/locConstants";
 
 chai.use(sinonChai);
 
@@ -62,7 +63,7 @@ suite("save results tests", () => {
         (vscodeWrapper.showTextDocument as sinon.SinonStub).resolves(
             undefined as unknown as vscode.TextEditor,
         );
-        (vscodeWrapper.showInformationMessage as sinon.SinonStub).returns(undefined);
+        (vscodeWrapper.showInformationMessage as sinon.SinonStub).resolves(undefined);
         serverClient.sendRequest.resolves({ messages: undefined, ...response });
     }
 
@@ -70,6 +71,10 @@ suite("save results tests", () => {
         (vscodeWrapper.showSaveDialog as sinon.SinonStub).resolves(fileUri);
         (vscodeWrapper.showErrorMessage as sinon.SinonStub).returns(undefined);
         serverClient.sendRequest.resolves({ messages: message });
+    }
+
+    async function waitForPendingPromises(): Promise<void> {
+        await new Promise<void>((resolve) => setImmediate(resolve));
     }
 
     test("check if filepath prompt displays and right value is set", (done) => {
@@ -155,6 +160,48 @@ suite("save results tests", () => {
             expect(vscodeWrapper.showInformationMessage).to.have.been.calledOnce;
             expect(openSavedFileStub).to.not.have.been.called;
         });
+    });
+
+    test("Save as CSV - opens saved file when notification action is selected", async () => {
+        configureSuccess();
+        (vscodeWrapper.getConfiguration as sinon.SinonStub).returns({
+            get: (key: string) => (key === "results.openAfterSave" ? false : undefined),
+        } as unknown as vscode.WorkspaceConfiguration);
+        (vscodeWrapper.showInformationMessage as sinon.SinonStub).resolves(
+            LocalizedConstants.Common.openFile,
+        );
+        const saveResults = createSerializer();
+        const openSavedFileStub = sandbox.stub(saveResults, "openSavedFile");
+
+        await saveResults.onSaveResults(testFile, 0, 0, "csv", undefined);
+        await waitForPendingPromises();
+
+        expect(openSavedFileStub).to.have.been.calledOnceWith(fileUri.fsPath, "csv");
+    });
+
+    test("Save as CSV - reveals saved file when notification action is selected", async () => {
+        configureSuccess();
+        const revealFileAction =
+            os.platform() === "darwin"
+                ? LocalizedConstants.Common.revealInFinder
+                : os.platform() === "win32"
+                  ? LocalizedConstants.Common.revealInExplorer
+                  : LocalizedConstants.Common.openContainingFolder;
+        (vscodeWrapper.getConfiguration as sinon.SinonStub).returns({
+            get: (key: string) => (key === "results.openAfterSave" ? false : undefined),
+        } as unknown as vscode.WorkspaceConfiguration);
+        (vscodeWrapper.showInformationMessage as sinon.SinonStub).resolves(revealFileAction);
+        const saveResults = createSerializer();
+        const openSavedFileStub = sandbox.stub(saveResults, "openSavedFile");
+
+        await saveResults.onSaveResults(testFile, 0, 0, "csv", undefined);
+        await waitForPendingPromises();
+
+        expect(openSavedFileStub).to.not.have.been.called;
+        expect(vscodeWrapper.executeCommand).to.have.been.calledOnceWith(
+            "revealFileInOS",
+            sinon.match.has("fsPath", fileUri.fsPath),
+        );
     });
 
     test("Save as Excel - does not open saved file when openAfterSave is disabled", () => {

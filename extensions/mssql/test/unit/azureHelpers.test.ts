@@ -12,7 +12,6 @@ import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
 import { Logger } from "../../src/models/logger";
 import { IAccount } from "vscode-mssql";
 import * as vscode from "vscode";
-import * as armSql from "@azure/arm-sql";
 import * as armStorage from "@azure/arm-storage";
 import {
     mockAccounts,
@@ -22,7 +21,7 @@ import {
     mockSubscriptions,
     mockTenants,
 } from "./azureHelperStubs";
-import { MssqlVSCodeAzureSubscriptionProvider } from "../../src/azure/MssqlVSCodeAzureSubscriptionProvider";
+import { VSCodeAzureSubscriptionProvider } from "@microsoft/vscode-azext-azureauth";
 import * as utils from "../../src/utils/utils";
 import { BlobServiceClient } from "@azure/storage-blob";
 import { createStubLogger } from "./utils";
@@ -50,14 +49,14 @@ suite("Azure Helpers", () => {
                 .stub(vscode.authentication, "getAccounts")
                 .resolves([mockAccounts.signedInAccount, mockAccounts.notSignedInAccount]);
 
-            sandbox.stub(MssqlVSCodeAzureSubscriptionProvider, "getInstance").returns({
+            sandbox.stub(azureHelpers.VsCodeAzureHelper, "getProvider").returns({
                 getTenants: (account) => {
                     if (account.id === mockAccounts.signedInAccount.id) {
                         return Promise.resolve(mockTenants);
                     }
                     return Promise.reject("Not signed in");
                 },
-            } as MssqlVSCodeAzureSubscriptionProvider);
+            } as unknown as VSCodeAzureSubscriptionProvider);
 
             const accounts = await azureHelpers.VsCodeAzureHelper.getAccounts(
                 true /* onlyAllowedForExtension */,
@@ -72,38 +71,65 @@ suite("Azure Helpers", () => {
             const signInStub = sandbox.stub().resolves(true);
             const isSignedInStub = sandbox.stub();
 
-            sandbox.stub(MssqlVSCodeAzureSubscriptionProvider, "getInstance").returns({
+            const mockAuthProvider = {
                 signIn: signInStub,
                 isSignedIn: isSignedInStub,
-            } as unknown as MssqlVSCodeAzureSubscriptionProvider);
+            };
+            sandbox
+                .stub(azureHelpers.VsCodeAzureHelper, "getProvider")
+                .returns(mockAuthProvider as unknown as VSCodeAzureSubscriptionProvider);
+
+            // Stub getAccounts so signIn can diff before/after to identify the new account
+            const getAccountsStub = sandbox.stub(azureHelpers.VsCodeAzureHelper, "getAccounts");
 
             // Case: user should be prompted to sign in when not already signed in
             isSignedInStub.resolves(false);
+            getAccountsStub.onFirstCall().resolves([]);
+            getAccountsStub.onSecondCall().resolves([mockAccounts.signedInAccount]);
+
             let result = await azureHelpers.VsCodeAzureHelper.signIn(false /* forceSignInPrompt */);
 
             expect(result).to.not.be.undefined;
+            expect(result!.auth).to.equal(mockAuthProvider);
+            expect(result!.newAccountId).to.equal(
+                mockAccounts.signedInAccount.id,
+                "accountId should be the newly added account",
+            );
             expect(signInStub.calledOnce, "signIn should be called once").to.be.true;
             expect(isSignedInStub.calledOnce, "isSignedIn should be called once").to.be.true;
 
             // Case: user should not be prompted to sign in when already signed in
             signInStub.resetHistory();
             isSignedInStub.reset();
+            getAccountsStub.reset();
             isSignedInStub.resolves(true);
+            getAccountsStub.resolves([mockAccounts.signedInAccount]);
 
             result = await azureHelpers.VsCodeAzureHelper.signIn(false /* forceSignInPrompt */);
 
             expect(result).to.not.be.undefined;
+            expect(result!.auth).to.equal(mockAuthProvider);
+            expect(result!.newAccountId).to.equal(
+                mockAccounts.signedInAccount.id,
+                "accountId should be the first existing account",
+            );
             expect(signInStub.notCalled, "signIn should not be called").to.be.true;
             expect(isSignedInStub.calledOnce, "isSignedIn should be called once").to.be.true;
 
             // Case: user should be prompted to sign in when forceSignInPrompt is true
             signInStub.resetHistory();
             isSignedInStub.reset();
-            isSignedInStub.resolves(false);
+            getAccountsStub.reset();
+            getAccountsStub.onFirstCall().resolves([]);
+            getAccountsStub.onSecondCall().resolves([mockAccounts.signedInAccount]);
 
             result = await azureHelpers.VsCodeAzureHelper.signIn(true /* forceSignInPrompt */);
 
             expect(result).to.not.be.undefined;
+            expect(result!.newAccountId).to.equal(
+                mockAccounts.signedInAccount.id,
+                "accountId should be the newly added account",
+            );
             expect(signInStub.calledOnce, "signIn should be called once").to.be.true;
             expect(
                 isSignedInStub.notCalled,
@@ -114,7 +140,7 @@ suite("Azure Helpers", () => {
         test("getTenantsForAccount", async () => {
             const account = mockAccounts.signedInAccount;
 
-            sandbox.stub(MssqlVSCodeAzureSubscriptionProvider, "getInstance").returns({
+            sandbox.stub(azureHelpers.VsCodeAzureHelper, "getProvider").returns({
                 getTenants: (account) => {
                     // only the first account is signed in for this mock
                     if (account.id === mockAccounts.signedInAccount.id) {
@@ -124,7 +150,7 @@ suite("Azure Helpers", () => {
                     }
                     return Promise.reject("Not signed in");
                 },
-            } as MssqlVSCodeAzureSubscriptionProvider);
+            } as unknown as VSCodeAzureSubscriptionProvider);
 
             const tenants = await azureHelpers.VsCodeAzureHelper.getTenantsForAccount(account);
             expect(tenants).to.deep.equal([mockTenants[1], mockTenants[0]]); // Tenants are returned alphabetically
@@ -133,9 +159,9 @@ suite("Azure Helpers", () => {
         test("getSubscriptionsForTenant", async () => {
             const tenant = mockTenants[0];
 
-            sandbox.stub(MssqlVSCodeAzureSubscriptionProvider, "getInstance").returns({
+            sandbox.stub(azureHelpers.VsCodeAzureHelper, "getProvider").returns({
                 getSubscriptions: () => Promise.resolve(mockSubscriptions),
-            } as MssqlVSCodeAzureSubscriptionProvider);
+            } as unknown as VSCodeAzureSubscriptionProvider);
 
             const subscriptions =
                 await azureHelpers.VsCodeAzureHelper.getSubscriptionsForTenant(tenant);
@@ -217,39 +243,38 @@ suite("Azure Helpers", () => {
         );
 
         expect(servers).to.have.lengthOf(4); // 1 SQL DB servers + 1 Synapse + 2 MI servers (public and private endpoints)
-        expect(servers[0].server).to.equal(mockAzureResources.azureSqlDbServer.name);
+        expect(servers[0].displayName).to.equal(mockAzureResources.azureSqlDbServer.name);
         expect(servers[0].databases).to.deep.equal(["master", "testDatabase"]);
-        expect(servers[1].server).to.equal(mockAzureResources.azureSynapseAnalyticsServer.name);
+        expect(servers[1].displayName).to.equal(
+            mockAzureResources.azureSynapseAnalyticsServer.name,
+        );
+        expect(servers[1].type).to.equal("AzureSynapseAnalytics");
+        expect(servers[1].server).to.equal(
+            `${mockAzureResources.azureSynapseAnalyticsServer.name}.sql.azuresynapse.net`,
+        );
         const managedInstances = servers.filter((s) =>
-            s.server.startsWith(mockAzureResources.azureManagedInstance.name),
+            s.displayName.startsWith(mockAzureResources.azureManagedInstance.name),
         );
 
         expect(managedInstances).to.have.lengthOf(2);
-        expect(managedInstances[0].server).to.equal(
+        expect(managedInstances[0].displayName).to.equal(
             `${mockAzureResources.azureManagedInstance.name} (Private)`,
         );
         expect(managedInstances[0].databases).to.deep.equal(["managedInstanceDb"]);
-        expect(managedInstances[0].uri).to.equal(
+        expect(managedInstances[0].server).to.equal(
             `${mockAzureResources.azureManagedInstance.name}.${mockAzureResources.azureManagedInstance.dnsZone}.database.windows.net`,
         );
 
-        expect(managedInstances[1].server).to.equal(
+        expect(managedInstances[1].displayName).to.equal(
             `${mockAzureResources.azureManagedInstance.name} (Public)`,
         );
         expect(managedInstances[1].databases).to.deep.equal(["managedInstanceDb"]);
-        expect(managedInstances[1].uri).to.equal(
+        expect(managedInstances[1].server).to.equal(
             `${mockAzureResources.azureManagedInstance.name}.public.${mockAzureResources.azureManagedInstance.dnsZone}.database.windows.net,${azureHelpers.MANAGED_INSTANCE_PUBLIC_PORT}`,
         );
     });
 
     test("fetchSqlResourcesForSubscription", async () => {
-        sandbox.stub(armSql, "SqlManagementClient").callsFake(
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            (credential: any, subscriptionId: string, options?: any) => {
-                return {} as armSql.SqlManagementClient;
-            },
-        );
-
         const listServersFactory = sandbox.stub().callsFake(
             () =>
                 async function* () {

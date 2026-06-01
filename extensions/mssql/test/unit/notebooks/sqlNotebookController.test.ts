@@ -149,6 +149,10 @@ suite("SqlNotebookController", () => {
         sb.stub(vscode.notebooks, "createNotebookController").returns(
             mockController as unknown as vscode.NotebookController,
         );
+        sb.stub(vscode.notebooks, "createRendererMessaging").returns({
+            onDidReceiveMessage: sb.stub().returns({ dispose: sb.stub() }),
+            postMessage: sb.stub().resolves(true),
+        } as unknown as vscode.NotebookRendererMessaging);
         sb.stub(vscode.window, "createStatusBarItem").returns(
             mockStatusBarItem as unknown as vscode.StatusBarItem,
         );
@@ -876,6 +880,10 @@ suite("SqlNotebookController", () => {
             sandbox
                 .stub(vscode.notebooks, "createNotebookController")
                 .returns(mockController as unknown as vscode.NotebookController);
+            sandbox.stub(vscode.notebooks, "createRendererMessaging").returns({
+                onDidReceiveMessage: sandbox.stub().returns({ dispose: sandbox.stub() }),
+                postMessage: sandbox.stub().resolves(true),
+            } as unknown as vscode.NotebookRendererMessaging);
             sandbox
                 .stub(vscode.window, "createStatusBarItem")
                 .returns(mockStatusBarItem as unknown as vscode.StatusBarItem);

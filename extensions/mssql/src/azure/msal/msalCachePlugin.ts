@@ -141,7 +141,7 @@ export class MsalCachePluginProvider {
                 lockFile.lockSync(lockFilePath);
                 this._lockTaken = true;
                 break;
-            } catch (e) {
+            } catch {
                 if (retryAttempt === retries) {
                     this._logger.error(
                         `MsalCachePlugin: Failed to acquire lock on cache file after ${retries} attempts.`,
