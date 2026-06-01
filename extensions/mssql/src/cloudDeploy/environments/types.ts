@@ -30,6 +30,7 @@
  * surface small without precluding that.
  */
 export enum ValidationType {
+    Connectivity = "connectivity",
     StaticAnalysis = "static-analysis",
     UnitTests = "unit-tests",
     WorkloadPlayback = "workload-playback",
@@ -67,6 +68,10 @@ export type SourceOfTruth =
  * each validation is implemented. Keeping them as named interfaces (rather
  * than `Record<string, unknown>`) gives us type-safety as soon as fields land.
  */
+export interface ConnectivitySettings {
+    // populated when connectivity gains real options (e.g., custom probe query, retry policy)
+}
+
 export interface StaticAnalysisSettings {
     // populated when static analysis is implemented (e.g., enabled rule ids, severity overrides)
 }
@@ -84,6 +89,7 @@ export interface WorkloadPlaybackSettings {
  * validation's `settings` is correctly typed.
  */
 export type ValidationConfig =
+    | { type: ValidationType.Connectivity; enabled: boolean; settings: ConnectivitySettings }
     | { type: ValidationType.StaticAnalysis; enabled: boolean; settings: StaticAnalysisSettings }
     | { type: ValidationType.UnitTests; enabled: boolean; settings: UnitTestsSettings }
     | {

@@ -78,6 +78,13 @@ const SourceOfTruthSchema = z.discriminatedUnion("kind", [
 const ValidationConfigSchema = z.discriminatedUnion("type", [
     z
         .object({
+            type: z.literal(ValidationType.Connectivity),
+            enabled: z.boolean(),
+            settings: SettingsSchema.default({}),
+        })
+        .passthrough(),
+    z
+        .object({
             type: z.literal(ValidationType.StaticAnalysis),
             enabled: z.boolean(),
             settings: SettingsSchema.default({}),

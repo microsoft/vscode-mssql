@@ -17,4 +17,9 @@ export type {
     ErrorEvent,
     RunPersistedEvent,
     RunPersistFailedEvent,
+    ValidationFinishedEvent,
+    ValidationProgressEvent,
+    ValidationRunFinishedEvent,
+    ValidationRunStartedEvent,
+    ValidationStartedEvent,
 } from "./types";

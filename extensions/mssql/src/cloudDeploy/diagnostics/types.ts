@@ -20,12 +20,20 @@
  * pin payload size to the size of in-memory state.
  */
 
+import type { ValidationType } from "../environments/types";
+import type { CancellationReason, RunStatus, ValidationStatus } from "../runs/types";
+
 // =============================================================================
 // Source / severity unions (closed, expand additively)
 // =============================================================================
 
 /** Subsystem that produced an event. Closed; expand as new subsystems land. */
-export type DiagnosticEventSource = "environment-store" | "run-store" | "service";
+export type DiagnosticEventSource =
+    | "environment-store"
+    | "run-store"
+    | "runner"
+    | "service"
+    | "validation";
 
 /**
  * Hint to subscribers, not a gate. The bus delivers all severities; consumers
@@ -72,6 +80,11 @@ export type DiagnosticEvent =
     | DefaultEnvironmentChangedEvent
     | RunPersistedEvent
     | RunPersistFailedEvent
+    | ValidationRunStartedEvent
+    | ValidationStartedEvent
+    | ValidationProgressEvent
+    | ValidationFinishedEvent
+    | ValidationRunFinishedEvent
     | ErrorEvent;
 
 /** Env file was successfully loaded (or determined to be empty/absent). */
@@ -155,6 +168,94 @@ export interface ErrorEvent extends DiagnosticEventEnvelope {
             readonly message: string;
             readonly stack?: string;
         };
+    };
+}
+
+// =============================================================================
+// Validation runner lifecycle (D2)
+// =============================================================================
+
+/**
+ * D2's validation runner emits run- and validation-level lifecycle events so
+ * the output channel, progress UI, and future telemetry can observe a run
+ * without polling. `correlationId` on every arm carries the `runId` so a
+ * subscriber can stitch events from a single run together.
+ *
+ * Severity rule: lifecycle events default to `"info"`; `validation-progress`
+ * defaults to `"debug"` because it can be high-volume. The finish events
+ * (`validation-finished` and `validation-run-finished`) do NOT carry a
+ * literal severity — the runner stamps `"warn"` or `"error"` based on the
+ * resulting status so subscribers can filter at the bus level.
+ */
+
+/** A validation run is starting. Emitted by the runner before any per-validation event. */
+export interface ValidationRunStartedEvent extends DiagnosticEventEnvelope {
+    readonly source: "runner";
+    readonly type: "validation-run-started";
+    readonly payload: {
+        readonly runId: string;
+        readonly environmentId: string;
+        /** The validation types about to be dispatched, in dispatch order. */
+        readonly validationTypes: readonly ValidationType[];
+    };
+}
+
+/** A single validation is starting. Emitted by the validator (or runner on skip) immediately before `run()`. */
+export interface ValidationStartedEvent extends DiagnosticEventEnvelope {
+    readonly source: "validation";
+    readonly type: "validation-started";
+    readonly payload: {
+        readonly runId: string;
+        readonly validationType: ValidationType;
+    };
+}
+
+/**
+ * Optional progress update from inside a long-running validation. High-volume;
+ * defaulted to `"debug"` so the output channel can elide it by default.
+ */
+export interface ValidationProgressEvent extends DiagnosticEventEnvelope {
+    readonly source: "validation";
+    readonly type: "validation-progress";
+    readonly payload: {
+        readonly runId: string;
+        readonly validationType: ValidationType;
+        readonly message: string;
+        /** Optional 0-100 progress percentage. */
+        readonly percent?: number;
+    };
+}
+
+/**
+ * A single validation has finished. Severity tracks `status` so subscribers
+ * can filter without inspecting payload (the runner stamps `"warn"` for
+ * `Warning`, `"error"` for `Failed` / `Errored`, `"info"` otherwise).
+ */
+export interface ValidationFinishedEvent extends DiagnosticEventEnvelope {
+    readonly source: "validation";
+    readonly type: "validation-finished";
+    readonly payload: {
+        readonly runId: string;
+        readonly validationType: ValidationType;
+        readonly status: ValidationStatus;
+        readonly findingsCount: number;
+        readonly durationMs: number;
+        readonly cancellationReason?: CancellationReason;
+    };
+}
+
+/**
+ * The whole validation run has finished. Severity tracks `status` per the
+ * same rule as `ValidationFinishedEvent`.
+ */
+export interface ValidationRunFinishedEvent extends DiagnosticEventEnvelope {
+    readonly source: "runner";
+    readonly type: "validation-run-finished";
+    readonly payload: {
+        readonly runId: string;
+        readonly status: RunStatus;
+        readonly durationMs: number;
+        readonly validationCount: number;
     };
 }
 
