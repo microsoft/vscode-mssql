@@ -83,6 +83,17 @@ export function registerCommonRequestHandlers(
         return result;
     });
 
+    webviewController.onRequest(qr.GetOpenQueryResultsInTabByDefaultRequest.type, async () => {
+        return webviewViewController.getOpenQueryResultsInTabByDefaultRequestHandler();
+    });
+
+    webviewController.onRequest(
+        qr.SetOpenQueryResultsInTabByDefaultRequest.type,
+        async (message) => {
+            await webviewViewController.setOpenQueryResultsInTabByDefaultRequestHandler(message);
+        },
+    );
+
     webviewController.onRequest(qr.SetEditorSelectionRequest.type, async (message) => {
         if (!message.uri || !message.selectionData) {
             console.warn(
@@ -291,6 +302,12 @@ export function registerCommonRequestHandlers(
     });
 
     webviewController.onNotification(qr.SetSelectionSummaryRequest.type, async (message) => {
+        webviewViewController.updateSelectionState(
+            message.uri,
+            message.gridId,
+            message.selection,
+            message.displaySelection,
+        );
         // Fetch all the data needed for the summary
         await webviewViewController
             .getSqlOutputContentProvider()

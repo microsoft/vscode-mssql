@@ -209,69 +209,122 @@ export class SqlOutputContentProvider {
         this.openLink(content, columnName, linkType);
     }
 
-    public copyHeadersRequestHandler(
+    public async copyHeadersRequestHandler(
         uri: string,
         batchId: number,
         resultId: number,
-        selection,
-    ): void {
-        void this._queryResultsMap.get(uri).queryRunner.copyHeaders(batchId, resultId, selection);
+        selection: Interfaces.ISlickRange[],
+    ): Promise<void> {
+        const result = this._queryResultsMap.get(uri);
+        if (!result) {
+            return;
+        }
+
+        const copied = await result.queryRunner.copyHeaders(batchId, resultId, selection);
+
+        if (copied) {
+            await this._queryResultWebviewController.notifyCopySuccess(uri);
+        }
     }
 
-    public copyRequestHandler(
+    public async copyRequestHandler(
         uri: string,
         batchId: number,
         resultId: number,
         selection: Interfaces.ISlickRange[],
         includeHeaders?: boolean,
-    ): void {
-        void this._queryResultsMap
-            .get(uri)
-            .queryRunner.copyResults(selection, batchId, resultId, includeHeaders);
+    ): Promise<void> {
+        const result = this._queryResultsMap.get(uri);
+        if (!result) {
+            return;
+        }
+
+        const copied = await result.queryRunner.copyResults(
+            selection,
+            batchId,
+            resultId,
+            includeHeaders,
+        );
+
+        if (copied) {
+            await this._queryResultWebviewController.notifyCopySuccess(uri);
+        }
     }
 
-    public copyAsCsvRequestHandler(
+    public async copyAsCsvRequestHandler(
         uri: string,
         batchId: number,
         resultId: number,
         selection: Interfaces.ISlickRange[],
-    ): void {
-        void this._queryResultsMap
-            .get(uri)
-            .queryRunner.copyResultsAsCsv(selection, batchId, resultId);
+    ): Promise<void> {
+        const result = this._queryResultsMap.get(uri);
+        if (!result) {
+            return;
+        }
+
+        const copied = await result.queryRunner.copyResultsAsCsv(selection, batchId, resultId);
+
+        if (copied) {
+            await this._queryResultWebviewController.notifyCopySuccess(uri);
+        }
     }
 
-    public copyAsJsonRequestHandler(
+    public async copyAsJsonRequestHandler(
         uri: string,
         batchId: number,
         resultId: number,
         selection: Interfaces.ISlickRange[],
-    ): void {
-        void this._queryResultsMap
-            .get(uri)
-            .queryRunner.copyResultsAsJson(selection, batchId, resultId);
+    ): Promise<void> {
+        const result = this._queryResultsMap.get(uri);
+        if (!result) {
+            return;
+        }
+
+        const copied = await result.queryRunner.copyResultsAsJson(selection, batchId, resultId);
+
+        if (copied) {
+            await this._queryResultWebviewController.notifyCopySuccess(uri);
+        }
     }
 
-    public copyAsInClauseRequestHandler(
+    public async copyAsInClauseRequestHandler(
         uri: string,
         batchId: number,
         resultId: number,
         selection: Interfaces.ISlickRange[],
-    ): void {
-        void this._queryResultsMap
-            .get(uri)
-            .queryRunner.copyResultsAsInClause(selection, batchId, resultId);
+    ): Promise<void> {
+        const result = this._queryResultsMap.get(uri);
+        if (!result) {
+            return;
+        }
+
+        const copied = await result.queryRunner.copyResultsAsInClause(selection, batchId, resultId);
+
+        if (copied) {
+            await this._queryResultWebviewController.notifyCopySuccess(uri);
+        }
     }
 
-    public copyAsInsertIntoRequestHandler(
+    public async copyAsInsertIntoRequestHandler(
         uri: string,
         batchId: number,
         resultId: number,
         selection: Interfaces.ISlickRange[],
-    ): void {
-        void this._queryResultsMap
-            .get(uri)
-            .queryRunner.copyResultsAsInsertInto(selection, batchId, resultId);
+    ): Promise<void> {
+        const result = this._queryResultsMap.get(uri);
+        if (!result) {
+            return;
+        }
+
+        const copied = await result.queryRunner.copyResultsAsInsertInto(
+            selection,
+            batchId,
+            resultId,
+        );
+
+        if (copied) {
+            await this._queryResultWebviewController.notifyCopySuccess(uri);
+        }
     }
 
     public generateSelectionSummaryData(
@@ -507,7 +560,7 @@ export class SqlOutputContentProvider {
         } else {
             // We do not have a query runner for this editor, so create a new one
             // and map it to the results uri
-            queryRunner = new QueryRunner(uri, title, statusView ? statusView : this._statusView);
+            queryRunner = new QueryRunner(uri, title);
 
             const startFailedListener = queryRunner.onStartFailed(async (error) => {
                 this.updateWebviewState(queryRunner.uri, {
@@ -516,6 +569,10 @@ export class SqlOutputContentProvider {
                     executionPlanState: {},
                     messages: [],
                     fontSettings: { fontSize: 0, fontFamily: "" },
+                    isExecuting: false,
+                    executionStartTime: undefined,
+                    executionElapsedMilliseconds: undefined,
+                    rowsAffected: undefined,
                 });
             });
 
@@ -526,6 +583,10 @@ export class SqlOutputContentProvider {
                 resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
                 resultWebviewState.isExecutionPlan = false;
                 resultWebviewState.initializationError = undefined;
+                resultWebviewState.isExecuting = true;
+                resultWebviewState.executionStartTime = Date.now();
+                resultWebviewState.executionElapsedMilliseconds = undefined;
+                resultWebviewState.rowsAffected = undefined;
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
                 this.revealQueryResult(queryRunner.uri, "throw");
                 sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.OpenQueryResult, {
@@ -614,12 +675,15 @@ export class SqlOutputContentProvider {
                 );
 
                 resultWebviewState.messages.push(message);
+                if (typeof message.rowsAffected === "number") {
+                    resultWebviewState.rowsAffected = message.rowsAffected;
+                }
 
                 this.scheduleThrottledUpdate(queryRunner.uri);
             });
 
             const onCompleteListener = queryRunner.onComplete(async (e) => {
-                const { totalMilliseconds, hasError, isRefresh } = e;
+                const { totalMilliseconds, totalElapsedMilliseconds, hasError, isRefresh } = e;
                 if (!isRefresh) {
                     // only update query history with new queries
                     this._vscodeWrapper.executeCommand(
@@ -632,6 +696,9 @@ export class SqlOutputContentProvider {
                 const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
                     queryRunner.uri,
                 );
+                resultWebviewState.isExecuting = false;
+                resultWebviewState.executionStartTime = undefined;
+                resultWebviewState.executionElapsedMilliseconds = totalElapsedMilliseconds;
                 resultWebviewState.messages.push({
                     message: LocalizedConstants.elapsedTimeLabel(totalMilliseconds),
                     isError: false, // Elapsed time messages are never displayed as errors
@@ -692,12 +759,15 @@ export class SqlOutputContentProvider {
                     return;
                 }
                 state.selectionSummary = {
+                    stats: e.stats,
                     text: e.text,
                     command: e.command,
                     tooltip: e.tooltip,
                     continue: e.continue,
+                    batchId: e.batchId,
+                    resultId: e.resultId,
                 };
-                this._queryResultWebviewController.updateSelectionSummary();
+                this.updateWebviewState(e.uri, state);
             });
 
             const queryRunnerState = new QueryRunnerState(queryRunner);
@@ -737,9 +807,6 @@ export class SqlOutputContentProvider {
             self._vscodeWrapper.showInformationMessage(LocalizedConstants.msgCancelQueryNotRunning);
             return;
         }
-
-        // Switch the spinner to canceling, which will be reset when the query execute sends back its completed event
-        this._statusView.cancelingQuery(queryRunner.uri);
 
         // Cancel the query
         try {

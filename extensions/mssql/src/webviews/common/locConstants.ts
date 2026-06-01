@@ -683,7 +683,15 @@ export class LocConstants {
             messages: l10n.t("Messages"),
             timestamp: l10n.t("Timestamp"),
             message: l10n.t("Message"),
+            copied: l10n.t("Copied"),
+            copiedToClipboard: l10n.t("Copied to clipboard"),
             openResultInNewTab: l10n.t("Open in New Tab"),
+            resultsSettings: l10n.t("Results Settings"),
+            showResultsInEditorTab: l10n.t("Open results in new tab"),
+            showResultsInEditorTabDescription: l10n.t(
+                "Show query results in a new editor tab instead of the query pane.",
+            ),
+            closeResultsSettings: l10n.t("Close results settings"),
             showplanXML: l10n.t("Showplan XML"),
             showMenu: (shortcut: string) => {
                 if (shortcut) {
@@ -844,6 +852,91 @@ export class LocConstants {
                         });
                 }
             },
+            rowsReturned: (rowCount: number) => {
+                switch (rowCount) {
+                    case 0:
+                        return l10n.t("0 rows returned");
+                    case 1:
+                        return l10n.t("1 row returned");
+                    default:
+                        return l10n.t({
+                            message: "{0} rows returned",
+                            args: [rowCount],
+                            comment: ["{0} is the number of rows returned"],
+                        });
+                }
+            },
+            rowsCount: (rowCount: number) => {
+                switch (rowCount) {
+                    case 0:
+                        return l10n.t("0 rows");
+                    case 1:
+                        return l10n.t("1 row");
+                    default:
+                        return l10n.t({
+                            message: "{0} rows",
+                            args: [rowCount],
+                            comment: ["{0} is the number of rows"],
+                        });
+                }
+            },
+            noRowsAffected: l10n.t("No rows affected"),
+            selectedItemLabel: l10n.t("Selected"),
+            rowsAffectedLabel: l10n.t("Rows"),
+            timeLabel: l10n.t("Time"),
+            runningLabel: l10n.t("Running"),
+            noSelectionSummary: l10n.t("No selection"),
+            selectionSummaryCountLabel: l10n.t("Count"),
+            selectionSummaryAverageLabel: l10n.t("Avg"),
+            selectionSummarySumLabel: l10n.t("Sum"),
+            selectionSummaryMinLabel: l10n.t("Min"),
+            selectionSummaryMaxLabel: l10n.t("Max"),
+            selectionSummaryDistinctLabel: l10n.t("Distinct"),
+            selectionSummaryNullLabel: l10n.t("Null"),
+            executionCancelled: l10n.t("Execution cancelled"),
+            executionTimeUnavailable: l10n.t("Execution time unavailable"),
+            runningWithDuration: (duration: string) =>
+                l10n.t({
+                    message: "Running: {0}",
+                    args: [duration],
+                    comment: ["{0} is how long the query has been running"],
+                }),
+            compactMilliseconds: (milliseconds: number) =>
+                l10n.t({
+                    message: "{0}ms",
+                    args: [milliseconds],
+                    comment: ["{0} is the number of milliseconds"],
+                }),
+            compactSeconds: (seconds: number | string) =>
+                l10n.t({
+                    message: "{0}s",
+                    args: [seconds],
+                    comment: ["{0} is the number of seconds"],
+                }),
+            compactMinutes: (minutes: number) =>
+                l10n.t({
+                    message: "{0}m",
+                    args: [minutes],
+                    comment: ["{0} is the number of minutes"],
+                }),
+            compactMinutesSeconds: (minutes: number, seconds: number) =>
+                l10n.t({
+                    message: "{0}m {1}s",
+                    args: [minutes, seconds],
+                    comment: ["{0} is the number of minutes", "{1} is the number of seconds"],
+                }),
+            compactHours: (hours: number) =>
+                l10n.t({
+                    message: "{0}h",
+                    args: [hours],
+                    comment: ["{0} is the number of hours"],
+                }),
+            compactHoursMinutes: (hours: number, minutes: number) =>
+                l10n.t({
+                    message: "{0}h {1}m",
+                    args: [hours, minutes],
+                    comment: ["{0} is the number of hours", "{1} is the number of minutes"],
+                }),
             resultSet: (batchNumber: number, queryNumber: number) =>
                 l10n.t({
                     message: "Result Set Batch {0} - Query {1}",

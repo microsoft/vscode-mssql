@@ -1,0 +1,189 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import {
+    Button,
+    Popover,
+    PopoverSurface,
+    PopoverTrigger,
+    Switch,
+    makeStyles,
+} from "@fluentui/react-components";
+import { Dismiss16Regular, Settings16Regular, Settings20Regular } from "@fluentui/react-icons";
+import { useContext, useEffect, useState } from "react";
+import * as qr from "../../../sharedInterfaces/queryResult";
+import { locConstants } from "../../common/locConstants";
+import { QueryResultCommandsContext } from "./queryResultStateProvider";
+
+const useStyles = makeStyles({
+    ribbonIconButton: {
+        width: "28px",
+        height: "28px",
+        minWidth: "28px",
+        padding: 0,
+    },
+    settingsPopoverSurface: {
+        padding: 0,
+        width: "280px",
+        maxWidth: "calc(100vw - 16px)",
+        borderRadius: "6px",
+        border: "1px solid var(--vscode-widget-border)",
+        backgroundColor: "var(--vscode-editorWidget-background)",
+        color: "var(--vscode-foreground)",
+        boxShadow: "0 8px 24px var(--vscode-widget-shadow)",
+    },
+    settingsPopoverHeader: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: "6px 8px",
+        borderBottom: "1px solid var(--vscode-widget-border)",
+    },
+    settingsPopoverTitleGroup: {
+        display: "flex",
+        alignItems: "center",
+        gap: "6px",
+        fontSize: "13px",
+        fontWeight: 600,
+    },
+    settingsPopoverCloseButton: {
+        width: "24px",
+        height: "24px",
+        minWidth: "24px",
+        padding: 0,
+    },
+    settingsPopoverOption: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "8px",
+        padding: "8px",
+    },
+    settingsPopoverOptionText: {
+        minWidth: 0,
+        display: "flex",
+        flexDirection: "column",
+        gap: "4px",
+    },
+    settingsPopoverOptionTitle: {
+        fontSize: "12px",
+        lineHeight: "16px",
+        color: "var(--vscode-foreground)",
+    },
+    settingsPopoverOptionDescription: {
+        fontSize: "12px",
+        lineHeight: "15px",
+        color: "var(--vscode-descriptionForeground)",
+    },
+});
+
+export interface QueryResultSettingsControlProps {
+    uri?: string;
+    webviewLocation: qr.QueryResultWebviewLocation;
+}
+
+export const QueryResultSettingsControl = ({
+    uri,
+    webviewLocation,
+}: QueryResultSettingsControlProps) => {
+    const classes = useStyles();
+    const context = useContext(QueryResultCommandsContext);
+    const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+    const [openResultsInEditorTabByDefault, setOpenResultsInEditorTabByDefault] =
+        useState<boolean>(false);
+
+    useEffect(() => {
+        if (!context) {
+            return;
+        }
+
+        context.extensionRpc
+            .sendRequest(qr.GetOpenQueryResultsInTabByDefaultRequest.type)
+            .then((isEnabled) => {
+                setOpenResultsInEditorTabByDefault(isEnabled);
+            })
+            .catch((e) => {
+                console.error(e);
+            });
+    }, [context]);
+
+    if (!context) {
+        return <></>;
+    }
+
+    const setDefaultResultLocation = async (enabled: boolean): Promise<void> => {
+        const previousValue = openResultsInEditorTabByDefault;
+        setOpenResultsInEditorTabByDefault(enabled);
+
+        try {
+            await context.extensionRpc.sendRequest(
+                qr.SetOpenQueryResultsInTabByDefaultRequest.type,
+                {
+                    enabled,
+                    uri,
+                    webviewLocation,
+                },
+            );
+        } catch (e) {
+            console.error(e);
+            setOpenResultsInEditorTabByDefault(previousValue);
+        }
+    };
+
+    return (
+        <Popover
+            open={isSettingsOpen}
+            withArrow
+            positioning="below-end"
+            onOpenChange={(_event, data) => {
+                setIsSettingsOpen(data.open);
+            }}>
+            <PopoverTrigger disableButtonEnhancement>
+                <Button
+                    appearance="subtle"
+                    icon={<Settings20Regular />}
+                    className={classes.ribbonIconButton}
+                    aria-label={locConstants.queryResult.resultsSettings}
+                    title={locConstants.queryResult.resultsSettings}
+                />
+            </PopoverTrigger>
+            <PopoverSurface className={classes.settingsPopoverSurface}>
+                <div className={classes.settingsPopoverHeader}>
+                    <div className={classes.settingsPopoverTitleGroup}>
+                        <Settings16Regular />
+                        <span>{locConstants.queryResult.resultsSettings}</span>
+                    </div>
+                    <Button
+                        appearance="subtle"
+                        icon={<Dismiss16Regular />}
+                        className={classes.settingsPopoverCloseButton}
+                        aria-label={locConstants.queryResult.closeResultsSettings}
+                        title={locConstants.queryResult.closeResultsSettings}
+                        onClick={() => {
+                            setIsSettingsOpen(false);
+                        }}
+                    />
+                </div>
+                <div className={classes.settingsPopoverOption}>
+                    <div className={classes.settingsPopoverOptionText}>
+                        <span className={classes.settingsPopoverOptionTitle}>
+                            {locConstants.queryResult.showResultsInEditorTab}
+                        </span>
+                        <span className={classes.settingsPopoverOptionDescription}>
+                            {locConstants.queryResult.showResultsInEditorTabDescription}
+                        </span>
+                    </div>
+                    <Switch
+                        aria-label={locConstants.queryResult.showResultsInEditorTab}
+                        checked={openResultsInEditorTabByDefault}
+                        onChange={(_event, data) => {
+                            void setDefaultResultLocation(data.checked);
+                        }}
+                    />
+                </div>
+            </PopoverSurface>
+        </Popover>
+    );
+};

@@ -115,7 +115,6 @@ suite("SqlOutputProvider Tests using mocks", () => {
         });
 
         mockContentProvider.cancelQuery.callsFake(async (uri: string) => {
-            statusView.cancelingQuery(uri);
             const entry = ensureRunnerState(uri);
             entry.queryRunner.isExecutingQuery = false;
         });
@@ -363,9 +362,8 @@ suite("SqlOutputProvider Tests using mocks", () => {
 
         await mockContentProvider.runQuery(statusViewInstance, uri, querySelection, title);
 
-        // Check that the first one was ran and that a canceling dialogue was opened
+        // Check that the first one was ran
         expect(mockContentProvider.isRunningQuery(resultUri)).to.be.true;
-        expect(statusView.cancelingQuery).to.have.been.calledOnceWithExactly(resultUri);
         expect(mockMap.size).to.equal(1);
     });
 
@@ -388,9 +386,8 @@ suite("SqlOutputProvider Tests using mocks", () => {
 
         await mockContentProvider.runQuery(statusViewInstance, uri, querySelection, title);
 
-        // Check that the first one was ran and that a canceling dialogue was opened
+        // Check that the first one was ran
         expect(mockContentProvider.isRunningQuery(uri)).to.be.true;
-        expect(statusView.cancelingQuery).to.have.been.calledOnceWithExactly(uri);
         expect(mockMap.size).to.equal(1);
     });
 
