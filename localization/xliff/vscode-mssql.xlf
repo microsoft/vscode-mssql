@@ -3085,6 +3085,11 @@
     <trans-unit id="++CODE++644046a988c76e759d05ee90c400f545f6fee393f6c75a23495c621fe9e27b5d">
       <source xml:lang="en">Failed to pull SQL Server image. Please check your network connection and try again.</source>
     </trans-unit>
+    <trans-unit id="++CODE++9599ebfe0eee2c9dafdea1bd6d3bd596784d316c0ae71750531bd88ce8d51404">
+      <source xml:lang="en">Failed to read run artifact at {0}: {1}</source>
+      <note>{0} is the absolute file path of the run artifact
+{1} is the underlying I/O error message</note>
+    </trans-unit>
     <trans-unit id="++CODE++496b6f97ebcac961581d18dc0885f8d7a6b2a71fc701642e7a36ea762139e99d">
       <source xml:lang="en">Failed to read saved rule overrides from project</source>
     </trans-unit>
@@ -5740,6 +5745,25 @@
     </trans-unit>
     <trans-unit id="++CODE++ac94961d65d453caddfb9b5cdcf79c96671b85462f0c7b9ff25e2a316c6dfa86">
       <source xml:lang="en">Run a query in the current editor, or switch to an editor that has results.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++713e435be57c0f00fbf66c38ff5c27cb64c06929dcf3edc439270793855a07ee">
+      <source xml:lang="en">Run artifact at {0} declares schema version {1}, which this version of the extension does not understand. Update the extension to read it.</source>
+      <note>{0} is the absolute file path of the run artifact
+{1} is the unsupported schema version number</note>
+    </trans-unit>
+    <trans-unit id="++CODE++0721de38841184ea64cd03b1c715d4a0fad3b61a13fc0a105521f22d2f57bd29">
+      <source xml:lang="en">Run artifact at {0} failed schema validation with {1} issue(s).</source>
+      <note>{0} is the absolute file path of the run artifact
+{1} is the count of validation issues</note>
+    </trans-unit>
+    <trans-unit id="++CODE++9e74f764cac35fb177574af4e80bd423b73026f39aa84f7fb590080ad95412c6">
+      <source xml:lang="en">Run artifact at {0} is missing the required entry &apos;{1}&apos;.</source>
+      <note>{0} is the absolute file path of the run artifact
+{1} is the name of the missing entry inside the zip</note>
+    </trans-unit>
+    <trans-unit id="++CODE++3bf830086726c849b1cd7f85038064ee4076aa4cfe3a676407ffa6c327227215">
+      <source xml:lang="en">Run artifact at {0} is not a valid zip archive.</source>
+      <note>{0} is the absolute file path of the run artifact</note>
     </trans-unit>
     <trans-unit id="++CODE++2c757183a36d594602187e88cad67e8e38ab92dd5c9c01ca69eb4c67f465b8e3">
       <source xml:lang="en">Run query on connection &apos;{0}&apos; (ID: {1})?&#10;&#10;Query: {2}</source>

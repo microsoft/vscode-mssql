@@ -12,18 +12,32 @@
  *
  * `environments` is `undefined` when no workspace folder is open — Cloud
  * Deploy is a folder-scoped feature, so the rest of the extension still works
- * without it. `diagnostics` is always present; subscribers can attach at
- * extension activation regardless of workspace state.
+ * without it. `diagnostics` and `runs` are always present; run artifacts
+ * live at absolute paths, not under `.mssql/`, so they don't depend on a
+ * workspace folder to be readable or writable.
  */
 
 import * as vscode from "vscode";
 
 import { DiagnosticEventBus } from "./diagnostics";
 import { EnvironmentStore } from "./environments/environmentStore";
+import { LocalFileProvider } from "./providers";
+import { RunArtifactReader, RunArtifactWriter } from "./runs";
+
+/**
+ * Run-artifact I/O surface attached to the service. Both members share the
+ * same `FileProvider`; the writer also shares the service's diagnostic bus
+ * so success / failure events reach existing subscribers automatically.
+ */
+export interface CloudDeployRunsApi {
+    readonly writer: RunArtifactWriter;
+    readonly reader: RunArtifactReader;
+}
 
 export class CloudDeployService implements vscode.Disposable {
     public readonly diagnostics: DiagnosticEventBus;
     public readonly environments: EnvironmentStore | undefined;
+    public readonly runs: CloudDeployRunsApi;
 
     public constructor(
         workspaceFolder: vscode.WorkspaceFolder | undefined,
@@ -37,6 +51,11 @@ export class CloudDeployService implements vscode.Disposable {
                 this.diagnostics,
             );
         }
+        const fileProvider = new LocalFileProvider();
+        this.runs = {
+            writer: new RunArtifactWriter(fileProvider, this.diagnostics),
+            reader: new RunArtifactReader(fileProvider),
+        };
     }
 
     /** Loads on-disk state. Safe to call when no folder is open (resolves immediately). */

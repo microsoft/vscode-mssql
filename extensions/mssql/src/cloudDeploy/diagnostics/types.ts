@@ -25,7 +25,7 @@
 // =============================================================================
 
 /** Subsystem that produced an event. Closed; expand as new subsystems land. */
-export type DiagnosticEventSource = "environment-store" | "service";
+export type DiagnosticEventSource = "environment-store" | "run-store" | "service";
 
 /**
  * Hint to subscribers, not a gate. The bus delivers all severities; consumers
@@ -70,6 +70,8 @@ export type DiagnosticEvent =
     | EnvironmentsChangedEvent
     | EnvironmentsFileParseFailedEvent
     | DefaultEnvironmentChangedEvent
+    | RunPersistedEvent
+    | RunPersistFailedEvent
     | ErrorEvent;
 
 /** Env file was successfully loaded (or determined to be empty/absent). */
@@ -109,6 +111,30 @@ export interface DefaultEnvironmentChangedEvent extends DiagnosticEventEnvelope 
     readonly type: "default-environment-changed";
     readonly payload: {
         readonly id: string | undefined;
+    };
+}
+
+/** A run artifact was successfully persisted to its final on-disk location. */
+export interface RunPersistedEvent extends DiagnosticEventEnvelope {
+    readonly source: "run-store";
+    readonly type: "run-persisted";
+    readonly payload: {
+        readonly runId: string;
+        readonly path: string;
+        readonly sizeBytes: number;
+    };
+}
+
+/** Writing a run artifact failed; the writer re-throws after emitting. */
+export interface RunPersistFailedEvent extends DiagnosticEventEnvelope {
+    readonly source: "run-store";
+    readonly severity: "error";
+    readonly type: "run-persist-failed";
+    readonly payload: {
+        readonly runId: string;
+        readonly path: string;
+        /** Stringified error message; the full error object is not retained. */
+        readonly cause: string;
     };
 }
 
