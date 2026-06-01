@@ -5,6 +5,9 @@
 
 import * as vscode from "vscode";
 import { shallowEqualObjects } from "shallow-equal";
+import * as LocalizedConstants from "../constants/locConstants";
+import { getAccounts, getTenants, VsCodeAzureHelper, VsCodeAzureAuth } from "./azureHelpers";
+import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import {
@@ -25,15 +28,6 @@ import {
     ConnectionSubmitAction,
 } from "../sharedInterfaces/connectionDialog";
 import { FormItemActionButton, FormItemOptions } from "../sharedInterfaces/form";
-import {
-    ConnectionDialog as Loc,
-    Common as LocCommon,
-    Azure as LocAzure,
-} from "../constants/locConstants";
-import * as LocAll from "../constants/locConstants";
-import { getAccounts, getTenants, VsCodeAzureHelper, VsCodeAzureAuth } from "./azureHelpers";
-import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
-
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { VSCodeAzureSubscriptionProvider } from "@microsoft/vscode-azext-azureauth";
 import { ConnectionDetails, IConnectionInfo } from "vscode-mssql";
@@ -47,7 +41,6 @@ import {
     getDefaultConnection,
 } from "../models/connectionInfo";
 import { getErrorMessage, uuid } from "../utils/utils";
-import { l10n } from "vscode";
 import {
     CredentialsQuickPickItemType,
     IConnectionGroup,
@@ -175,7 +168,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             CONNECTION_DIALOG_VIEW_ID,
             new ConnectionDialogWebviewState(),
             {
-                title: Loc.connectionDialog,
+                title: LocalizedConstants.ConnectionDialog.connectionDialog,
                 viewColumn: vscode.ViewColumn.Active,
                 iconPath: {
                     dark: vscode.Uri.joinPath(
@@ -488,15 +481,17 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         this.registerReducer("deleteSavedConnection", async (state, payload) => {
             const confirm = await vscode.window.showQuickPick(
-                [LocCommon.delete, LocCommon.cancel],
+                [LocalizedConstants.Common.delete, LocalizedConstants.Common.cancel],
                 {
-                    title: LocCommon.areYouSureYouWantTo(
-                        Loc.deleteTheSavedConnection(getConnectionDisplayName(payload.connection)),
+                    title: LocalizedConstants.Common.areYouSureYouWantTo(
+                        LocalizedConstants.ConnectionDialog.deleteTheSavedConnection(
+                            getConnectionDisplayName(payload.connection),
+                        ),
                     ),
                 },
             );
 
-            if (confirm !== LocCommon.delete) {
+            if (confirm !== LocalizedConstants.Common.delete) {
                 return state;
             }
 
@@ -551,7 +546,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     !supportedAuthenticationTypes.includes(connDetails.options.authenticationType)
                 ) {
                     setConnectionStringError(
-                        Loc.unsupportedAuthType(connDetails.options.authenticationType),
+                        LocalizedConstants.ConnectionDialog.unsupportedAuthType(
+                            connDetails.options.authenticationType,
+                        ),
                     );
 
                     sendActionEvent(
@@ -592,8 +589,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 // If there's an error parsing the connection string, show an error and keep dialog open
                 this.logger.error("Error parsing connection string: " + getErrorMessage(error));
 
-                const errorMessage = l10n.t(
-                    "Invalid connection string: {0}",
+                const errorMessage = LocalizedConstants.invalidConnectionString0(
                     getErrorMessage(error),
                 );
 
@@ -721,7 +717,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             } catch (error) {
                 this.logger.error("Error signing into Azure: " + getErrorMessage(error));
                 state.formMessage = {
-                    message: LocAzure.errorSigningIntoAzure(getErrorMessage(error)),
+                    message: LocalizedConstants.Azure.errorSigningIntoAzure(getErrorMessage(error)),
                 };
 
                 return state;
@@ -919,7 +915,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         this.registerReducer("messageButtonClicked", async (state, payload) => {
             if (payload.buttonId === CLEAR_TOKEN_CACHE) {
                 this._mainController.connectionManager.azureController.clearTokenCache();
-                this.vscodeWrapper.showInformationMessage(LocAll.Accounts.clearedEntraTokenCache);
+                this.vscodeWrapper.showInformationMessage(
+                    LocalizedConstants.Accounts.clearedEntraTokenCache,
+                );
                 this.state.formMessage = undefined;
             } else if (payload.buttonId === SIGN_IN_TO_AZURE) {
                 this.state.formMessage = undefined;
@@ -1106,10 +1104,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 this._originalUserTooltip = userComp.tooltip;
             }
             userComp.label = isServicePrincipal
-                ? LocAll.ConnectionDialog.applicationClientId
+                ? LocalizedConstants.ConnectionDialog.applicationClientId
                 : this._originalUserLabel;
             userComp.tooltip = isServicePrincipal
-                ? LocAll.ConnectionDialog.applicationClientIdTooltip
+                ? LocalizedConstants.ConnectionDialog.applicationClientIdTooltip
                 : this._originalUserTooltip;
         }
         const passwordComp = this.state.formComponents["password"];
@@ -1121,10 +1119,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 this._originalPasswordTooltip = passwordComp.tooltip;
             }
             passwordComp.label = isServicePrincipal
-                ? LocAll.ConnectionDialog.clientSecret
+                ? LocalizedConstants.ConnectionDialog.clientSecret
                 : this._originalPasswordLabel;
             passwordComp.tooltip = isServicePrincipal
-                ? LocAll.ConnectionDialog.clientSecretTooltip
+                ? LocalizedConstants.ConnectionDialog.clientSecretTooltip
                 : this._originalPasswordTooltip;
         }
         const savePasswordComp = this.state.formComponents["savePassword"];
@@ -1133,7 +1131,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 this._originalSavePasswordLabel = savePasswordComp.label;
             }
             savePasswordComp.label = isServicePrincipal
-                ? LocAll.ConnectionDialog.saveSecret
+                ? LocalizedConstants.ConnectionDialog.saveSecret
                 : this._originalSavePasswordLabel;
         }
 
@@ -1481,7 +1479,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             if (getErrorMessage(error).includes(AzureConstants.multiple_matching_tokens_error)) {
                 this.state.formMessage.buttons = [
-                    { id: CLEAR_TOKEN_CACHE, label: Loc.clearTokenCache },
+                    {
+                        id: CLEAR_TOKEN_CACHE,
+                        label: LocalizedConstants.ConnectionDialog.clearTokenCache,
+                    },
                 ];
             }
 
@@ -1546,12 +1547,12 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             ...userDbs.map((db) => ({
                 displayName: db,
                 value: db,
-                groupName: Loc.userDatabasesGroup,
+                groupName: LocalizedConstants.ConnectionDialog.userDatabasesGroup,
             })),
             ...sysDbs.map((db) => ({
                 displayName: db,
                 value: db,
-                groupName: Loc.systemDatabasesGroup,
+                groupName: LocalizedConstants.ConnectionDialog.systemDatabasesGroup,
             })),
         ];
     }
@@ -1617,11 +1618,12 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     : SqlConnectionErrorType.Generic;
                 const errorDetail =
                     errorType === SqlConnectionErrorType.TrustServerCertificateNotEnabled
-                        ? LocAll.Connection.trustServerCertificateMustBeEnabledMessage
+                        ? LocalizedConstants.Connection.trustServerCertificateMustBeEnabledMessage
                         : (connInfo?.errorMessage ?? "");
                 dbComponent.loadStatus = {
                     status: ApiStatus.Error,
-                    message: Loc.unableToLoadDatabaseList(errorDetail),
+                    message:
+                        LocalizedConstants.ConnectionDialog.unableToLoadDatabaseList(errorDetail),
                 };
                 this._activeDbFetchKey = "";
                 this.updateState();
@@ -1649,7 +1651,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             dbComponent.loadStatus = {
                 status: ApiStatus.Error,
-                message: Loc.unableToLoadDatabaseList(getErrorMessage(err)),
+                message: LocalizedConstants.ConnectionDialog.unableToLoadDatabaseList(
+                    getErrorMessage(err),
+                ),
             };
 
             this._activeDbFetchKey = "";
@@ -2040,7 +2044,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         const actionButtons: FormItemActionButton[] = [];
 
         actionButtons.push({
-            label: Loc.signIn,
+            label: LocalizedConstants.ConnectionDialog.signIn,
             id: "azureSignIn",
             callback: async () => {
                 if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
@@ -2163,9 +2167,14 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     this.state.connectionProfile.email = undefined;
 
                     this.state.formMessage = {
-                        message: LocAzure.accountNotFound(accountDisplayString),
+                        message: LocalizedConstants.Azure.accountNotFound(accountDisplayString),
                         intent: "error",
-                        buttons: [{ id: SIGN_IN_TO_AZURE, label: Loc.signIn }],
+                        buttons: [
+                            {
+                                id: SIGN_IN_TO_AZURE,
+                                label: LocalizedConstants.ConnectionDialog.signIn,
+                            },
+                        ],
                     };
                 }
             }

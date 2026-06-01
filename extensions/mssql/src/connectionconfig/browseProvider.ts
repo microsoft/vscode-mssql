@@ -3,24 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as LocalizedConstants from "../constants/locConstants";
 import * as os from "os";
 import * as vscode from "vscode";
-import { l10n } from "vscode";
-
 import {
     AzureSubscription,
     VSCodeAzureSubscriptionProvider,
 } from "@microsoft/vscode-azext-azureauth";
-
 import {
     configSelectedAzureSubscriptions,
     configSelectedFabricWorkspaces,
 } from "../constants/constants";
-import {
-    ConnectionDialog as Loc,
-    Azure as LocAzure,
-    Fabric as LocFabric,
-} from "../constants/locConstants";
 import {
     ConnectionDialogWebviewState,
     ConnectionInputMode,
@@ -38,8 +31,8 @@ import { getErrorMessage } from "../utils/utils";
 
 /** Per-mode limit for auto-loading the contents of every collection on the current tenant. */
 export const AZURE_SUBSCRIPTION_AUTOLOAD_LIMIT = 20;
-/** Fabric REST API rate-limits to 50 requests/user/minute; each workspace takes two requests, so leave some headroom */
-export const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 10;
+/** Fabric REST API rate-limits to 50 requests/user/minute; each workspace takes three requests, so leave some headroom */
+export const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 7;
 
 /**
  * Subset of the controller surface that browse providers need to interact with.
@@ -264,7 +257,10 @@ export class AzureBrowseProvider extends BrowseProvider {
             );
             this.setCollectionsLoadStatus(state, {
                 status: ApiStatus.Loaded,
-                message: subsForTenant.length === 0 ? Loc.noSubscriptionsFound : undefined,
+                message:
+                    subsForTenant.length === 0
+                        ? LocalizedConstants.ConnectionDialog.noSubscriptionsFound
+                        : undefined,
             });
             this.refreshFavoritesIntoState(state);
             this.host.updateState(state);
@@ -277,7 +273,7 @@ export class AzureBrowseProvider extends BrowseProvider {
                 subscriptionCount: subsForTenant.length,
             });
         } catch (error) {
-            state.formMessage = { message: l10n.t("Error loading Azure subscriptions.") };
+            state.formMessage = { message: LocalizedConstants.errorLoadingAzureSubscriptions };
             this.setCollectionsLoadStatus(state, {
                 status: ApiStatus.Error,
                 message: getErrorMessage(error),
@@ -303,7 +299,7 @@ export class AzureBrowseProvider extends BrowseProvider {
         if (!azSub) {
             subscription.loadStatus = {
                 status: ApiStatus.Error,
-                message: l10n.t("Azure subscription not found in cache."),
+                message: LocalizedConstants.azureSubscriptionNotFoundInCache,
             };
             this.host.updateState(state);
             return;
@@ -365,7 +361,7 @@ export class AzureBrowseProvider extends BrowseProvider {
             auth = (await VsCodeAzureHelper.signIn()).auth;
         } catch (error) {
             state.formMessage = {
-                message: LocAzure.errorSigningIntoAzure(getErrorMessage(error)),
+                message: LocalizedConstants.Azure.errorSigningIntoAzure(getErrorMessage(error)),
             };
             return undefined;
         }
@@ -444,7 +440,7 @@ export class FabricBrowseProvider extends BrowseProvider {
 
             if (!tenant) {
                 const message = `Failed to get tenant '${tenantId}' for account '${vscodeAccount.label}'.`;
-                const locMessage = LocAzure.failedToGetTenantForAccount(
+                const locMessage = LocalizedConstants.Azure.failedToGetTenantForAccount(
                     tenantId,
                     vscodeAccount.label,
                 );
@@ -476,7 +472,7 @@ export class FabricBrowseProvider extends BrowseProvider {
                     this._workspaceCache.set(cacheKey, cachedWorkspaces);
                 } catch (err) {
                     const message = `Failed to get Fabric workspaces for tenant '${tenant.displayName} (${tenant.tenantId})': ${getErrorMessage(err)}`;
-                    const locMessage = LocFabric.failedToGetWorkspacesForTenant(
+                    const locMessage = LocalizedConstants.Fabric.failedToGetWorkspacesForTenant(
                         tenant.displayName,
                         tenant.tenantId,
                         getErrorMessage(err),
@@ -515,7 +511,10 @@ export class FabricBrowseProvider extends BrowseProvider {
             );
             this.setCollectionsLoadStatus(state, {
                 status: ApiStatus.Loaded,
-                message: cachedWorkspaces.length === 0 ? Loc.noWorkspacesFound : undefined,
+                message:
+                    cachedWorkspaces.length === 0
+                        ? LocalizedConstants.ConnectionDialog.noWorkspacesFound
+                        : undefined,
             });
             this.refreshFavoritesIntoState(state);
             this.host.updateState(state);
@@ -580,6 +579,21 @@ export class FabricBrowseProvider extends BrowseProvider {
                 errorMessages.push(errorMessage);
             }
 
+            const sqlEndpointCount = databases.length - sqlDbCount;
+            const sqlEndpointErrored = errorMessages.length > (sqlDbErrored ? 1 : 0);
+
+            try {
+                databases.push(
+                    ...(await FabricHelper.getFabricWarehouses(workspace.id, workspace.tenantId)),
+                );
+            } catch (error) {
+                const errorMessage = getErrorMessage(error);
+                this.host.logger.error(
+                    `Error loading Fabric warehouses for workspace ${workspace.id}: ${errorMessage}`,
+                );
+                errorMessages.push(errorMessage);
+            }
+
             workspace.databases = databases.map((db) => ({
                 id: db.id,
                 databases: db.databases,
@@ -599,21 +613,26 @@ export class FabricBrowseProvider extends BrowseProvider {
                     : { status: ApiStatus.Loaded };
 
             const totalCount = workspace.databases.length;
+            const warehouseCount = totalCount - sqlDbCount - sqlEndpointCount;
             this.host.logger.log(
-                `Loaded ${sqlDbCount} Fabric databases and ${totalCount - sqlDbCount} SQL endpoints for workspace ${workspace.id}`,
+                `Loaded ${sqlDbCount} Fabric databases, ${sqlEndpointCount} SQL endpoints, and ${warehouseCount} warehouses for workspace ${workspace.id}`,
             );
 
             telemActivity.end(
                 ActivityStatus.Succeeded,
                 {
                     sqlDbErrored: String(sqlDbErrored),
-                    sqlAnalyticsEndpointErrored: String(
-                        errorMessages.length - (sqlDbErrored ? 1 : 0),
+                    sqlAnalyticsEndpointErrored: String(sqlEndpointErrored),
+                    warehouseErrored: String(
+                        errorMessages.length -
+                            (sqlDbErrored ? 1 : 0) -
+                            (sqlEndpointErrored ? 1 : 0),
                     ),
                 },
                 {
-                    sqlDbCount: sqlDbCount,
-                    sqlAnalyticsEndpointCount: workspace.databases.length - sqlDbCount,
+                    sqlDbCount,
+                    sqlAnalyticsEndpointCount: sqlEndpointCount,
+                    warehouseCount,
                 },
             );
 

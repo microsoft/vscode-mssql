@@ -378,6 +378,15 @@ suite("BrowseProvider", () => {
                         type: "SqlEndpoint",
                     } as SqlDbInfo,
                 ]);
+                sandbox.stub(FabricHelper, "getFabricWarehouses").resolves([
+                    {
+                        id: "wh-1",
+                        displayName: "Warehouse One",
+                        databases: [],
+                        server: "server-3",
+                        type: "Warehouse",
+                    } as SqlDbInfo,
+                ]);
 
                 const state = createState();
                 const { host } = createHost(state);
@@ -394,7 +403,11 @@ suite("BrowseProvider", () => {
                 await provider.loadCollectionContents(state, workspace);
 
                 expect(workspace.loadStatus.status).to.equal(ApiStatus.Loaded);
-                expect(workspace.databases.map((d) => d.id).sort()).to.deep.equal(["db-1", "ep-1"]);
+                expect(workspace.databases.map((d) => d.id).sort()).to.deep.equal([
+                    "db-1",
+                    "ep-1",
+                    "wh-1",
+                ]);
             });
 
             test("reports Error when both APIs fail", async () => {
@@ -402,6 +415,9 @@ suite("BrowseProvider", () => {
                 sandbox
                     .stub(FabricHelper, "getFabricSqlEndpoints")
                     .rejects(new Error("endpoints boom"));
+                sandbox
+                    .stub(FabricHelper, "getFabricWarehouses")
+                    .rejects(new Error("warehouses boom"));
 
                 const state = createState();
                 const { host } = createHost(state);

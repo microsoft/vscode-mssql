@@ -155,6 +155,20 @@ suite("SchemaDesignerWebviewManager tests", () => {
                 .calledOnce;
         });
 
+        test("should give controller the mode-qualified cache key", async () => {
+            const designer = await manager.getSchemaDesigner(
+                mockContext,
+                mockVscodeWrapper,
+                mockMainController,
+                mockSchemaDesignerService,
+                databaseName,
+                treeNode,
+                undefined,
+            );
+
+            expect(designer.designerKey).to.equal(`${connectionString}-${databaseName}-rw`);
+        });
+
         test("should update connection profile with database name", async () => {
             await manager.getSchemaDesigner(
                 mockContext,

@@ -605,11 +605,20 @@
     <trans-unit id="++CODE++bc2a386616d4df1bf0313bdc4a7161a6c66b93554d20c9ad2dd3bc8ffe04e4ad">
       <source xml:lang="en">Azure SQL Database is not supported for restore.</source>
     </trans-unit>
+    <trans-unit id="++CODE++0a2105a1fadf7c199d8e23465ad8d288b97a0456a72b51bcf57cba2eb8f9606d">
+      <source xml:lang="en">Azure SQL Managed Instance</source>
+    </trans-unit>
     <trans-unit id="++CODE++2827add936f31415e16e0670d8686084ec2e21fed7686c0aa91fffdfa09e4e38">
       <source xml:lang="en">Azure SQL Server</source>
     </trans-unit>
+    <trans-unit id="++CODE++d58bf1f323a38f50b921c7d963ad40d4323ebb5085fc456c8afbcc6542b0eb7a">
+      <source xml:lang="en">Azure SQL databases provisioning</source>
+    </trans-unit>
     <trans-unit id="++CODE++6d457cc1e5982858c386c637bec86a3c2615e648054d4d5472a261e0b5004b2d">
       <source xml:lang="en">Azure Subscriptions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a2a46725ee7a38c9f7136bbc583fe472b90c5b22586050da352cc033ca18e346">
+      <source xml:lang="en">Azure Synapse Analytics</source>
     </trans-unit>
     <trans-unit id="++CODE++27dda4355b44df3f400de7845fe1bfc83a880707d4630f52be097d95625f7bfa">
       <source xml:lang="en">Azure account &apos;{0}&apos; was not found. Sign in with the correct account or select a different one.</source>
@@ -1427,13 +1436,13 @@
     <trans-unit id="++CODE++03cdf40907b9e95ff338fe3d4fd451910410c1dbddd93e543b590a40755e6744">
       <source xml:lang="en">Connecting to your SQL Server Docker container</source>
     </trans-unit>
-    <trans-unit id="++CODE++9b8df2904fd9e25473fed50a3df04dc0629dec82daa72d6085cab8d1c63e4f65">
-      <source xml:lang="en">Connecting to {0}...</source>
-      <note>{0} is the connection display name</note>
-    </trans-unit>
     <trans-unit id="++CODE++fff46800eb59ecbf7114c9c219c3ab0ec39731c5cdf8012a4afbdd334e965254">
       <source xml:lang="en">Connecting to {0}...</source>
       <note>{0} is the server name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++9b8df2904fd9e25473fed50a3df04dc0629dec82daa72d6085cab8d1c63e4f65">
+      <source xml:lang="en">Connecting to {0}...</source>
+      <note>{0} is the connection display name</note>
     </trans-unit>
     <trans-unit id="++CODE++031d95e24e24622c128716284eb67a80331c825272813bf720f2c35a0b18f96c">
       <source xml:lang="en">Connecting to: </source>
@@ -1903,6 +1912,9 @@
 {1} is the operation name &apos;get_state&apos; and must not be translated
 {2} is the operation name &apos;apply_changes&apos; and must not be translated</note>
     </trans-unit>
+    <trans-unit id="++CODE++6ce6c168965317cce6e35f445598a3182e21e937846cf45db34b17dc1c0a0d3b">
+      <source xml:lang="en">Data API builder with GitHub Copilot</source>
+    </trans-unit>
     <trans-unit id="++CODE++e136aee7826b55f91d1b030832bc4be35b9ee07563c09627052aeecb9335a039">
       <source xml:lang="en">Data Source</source>
     </trans-unit>
@@ -2178,6 +2190,9 @@
       <note>{0} is the connection display name
 {1} is the connection ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++57d34ecd6fc9b04ba8ad6450eeb1159b21aa3e6f127082ea6554f826985cdddb">
+      <source xml:lang="en">Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.</source>
+    </trans-unit>
     <trans-unit id="++CODE++48845bff334a50a59aaecf499f28a7a24c3b4b891b8b18a9f1169ad8e8a6b261">
       <source xml:lang="en">Dismiss</source>
     </trans-unit>
@@ -2270,6 +2285,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8cbb7c26112408cd60a1c8ac0daff1b020815ad01c94df751ab7145dea824881">
       <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a05ece881012991a79aaf2cbbba9d6e11e35d05ed66f547dfaae931a8d9e50af">
+      <source xml:lang="en">Easily start with the Azure SQL database free tier to create and connect to a database directly from your editor at no cost.</source>
     </trans-unit>
     <trans-unit id="++CODE++8b45c43d0d9a0c27cbecb2683ef02b292a7f2626dee0f8443d4e62ac3e0e88c4">
       <source xml:lang="en">Edit Connection Group - {0}</source>
@@ -3463,6 +3481,9 @@
     <trans-unit id="++CODE++752307275e5358665596d28a3080462e4933b77005bbbf2ba1eca87f1dca1fcc">
       <source xml:lang="en">Generate Data API builder configurations using natural language through GitHub Copilot chat and agent tools. Describe your API requirements and let GitHub Copilot scaffold the configuration for you.</source>
     </trans-unit>
+    <trans-unit id="++CODE++3fe2318b777a1d9c6304a9e2bff0d636f51cfb872de17793c8962acbdc1370cd">
+      <source xml:lang="en">Generate REST, GraphQL, and MCP endpoints from your SQL database objects (tables). You can modify the configuration manually or through GitHub Copilot to plan and generate updates - then deploy locally with Docker.</source>
+    </trans-unit>
     <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
       <source xml:lang="en">Generate Script</source>
     </trans-unit>
@@ -3973,6 +3994,10 @@
       <source xml:lang="en">Listing Fabric SQL Endpoints for workspace &apos;{0}&apos;</source>
       <note>{0} is the workspace ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++8a4c943120e561689b5545e70b8fa64b48da3eb09a8b14c6d2283f29af79e201">
+      <source xml:lang="en">Listing Fabric Warehouses for workspace &apos;{0}&apos;</source>
+      <note>{0} is the workspace ID</note>
+    </trans-unit>
     <trans-unit id="++CODE++a5c14e0446ba987ee1804ac7f75c2cf29a526c5b3efc8ec431eeb50d200ad7f0">
       <source xml:lang="en">Listing Fabric capacities for tenant &apos;{0}&apos;</source>
       <note>{0} is the tenant ID</note>
@@ -4268,6 +4293,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3cb29430462001e8edb74afebb929c2e967e7eac89679c4d549a8305ec4a2fe7">
       <source xml:lang="en">Max row count for filtering/sorting has been exceeded. To update it, navigate to User Settings and change the setting: mssql.resultsGrid.inMemoryDataProcessingThreshold</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e260e08b004d80c5f03f1c487435e7c89ad7277a12212a98f9fd44217e21dd9e">
+      <source xml:lang="en">Max vCores</source>
     </trans-unit>
     <trans-unit id="++CODE++fc899519286f8da6256728b62d14e6ef9042346e7ad4191e21c95efaf1141a42">
       <source xml:lang="en">Max: {0}</source>
@@ -5502,6 +5530,9 @@
     <trans-unit id="++CODE++d3a008ef1335692d9d045175ba9ea1dcd39ae48da9e2043a9baabad6c3818c28">
       <source xml:lang="en">Region</source>
     </trans-unit>
+    <trans-unit id="++CODE++bb7234ec12451361e6f35bcbe76de58e4350657fe60d1b96ace0947f59194083">
+      <source xml:lang="en">Register</source>
+    </trans-unit>
     <trans-unit id="++CODE++ab604a360777735fe2993aec7d4ffae415f1515b0a4c989269603fd3d5c07b61">
       <source xml:lang="en">Reject</source>
     </trans-unit>
@@ -6090,6 +6121,9 @@
     <trans-unit id="++CODE++8c077bff66494e2aeee6280e4f591761cba31b94a22b87e617c3a5d80656ac84">
       <source xml:lang="en">Select Database</source>
     </trans-unit>
+    <trans-unit id="++CODE++79e5e71c56f13bb3c722fd134f6fb39e747de15dc979295882ecac8d67d45559">
+      <source xml:lang="en">Select Max vCores</source>
+    </trans-unit>
     <trans-unit id="++CODE++a1103f928cc721a44f7c8cdbc11bab66f8a7e44d66485112edccc40525787cfb">
       <source xml:lang="en">Select Profile</source>
     </trans-unit>
@@ -6548,13 +6582,13 @@
     <trans-unit id="++CODE++7363f4432b648a803e2bf468798cf69a7be5bab4b8055e35f6a038afb54be9d7">
       <source xml:lang="en">Source Name</source>
     </trans-unit>
-    <trans-unit id="++CODE++30ecb608c5cff9e821a41d28312d0070cbeb3901bc8e32ecefd17171f87dc53a">
-      <source xml:lang="en">Source: {0}</source>
-      <note>{0} is the task source</note>
-    </trans-unit>
     <trans-unit id="++CODE++7d1b71b2bde7aa8e3125b606f3738980a13371ad3458ddd00b1193d72aad45dd">
       <source xml:lang="en">Source: {0}</source>
       <note>{0} is the fully qualified DAB source object name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++30ecb608c5cff9e821a41d28312d0070cbeb3901bc8e32ecefd17171f87dc53a">
+      <source xml:lang="en">Source: {0}</source>
+      <note>{0} is the task source</note>
     </trans-unit>
     <trans-unit id="++CODE++1e49ea47266ab1130ffc9be417fa6eb62da7299641f30a76e728fe983c25f29d">
       <source xml:lang="en">Specifies whether the column is included in the primary key for the table.</source>
@@ -7292,6 +7326,9 @@
     <trans-unit id="++CODE++eeefe579e45c25e1a551b536d8eecc680562bce4d0aa58ffee1ad7df8cc84e63">
       <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
     </trans-unit>
+    <trans-unit id="++CODE++6ef37ea9955ac30c701324290f719cf696d1f34b027640872eb4bba2fcd59c25">
+      <source xml:lang="en">Use discount code {0} to save €200 on registration.</source>
+    </trans-unit>
     <trans-unit id="++CODE++413d7418205c532ce289074072d8841df2c720313cb19bd9180ad2c4de3383c7">
       <source xml:lang="en">Use encryption for this backup</source>
     </trans-unit>
@@ -7433,6 +7470,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b6af395c5020f3f19337172a94b2607d19ef6f8fed2424cf788b0d00b0572264">
       <source xml:lang="en">WHERE</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2a625c251683ca2ba8a1125319cb76d8f3d448d9e4d5a6c97bd948145217e36f">
+      <source xml:lang="en">Warehouse</source>
     </trans-unit>
     <trans-unit id="++CODE++e981ddae45d8f4ca53f1ccbe613ad254a041dacf65a06026099a6302d332113b">
       <source xml:lang="en">Warning</source>
@@ -7929,16 +7969,6 @@
       <source xml:lang="en">{0}/{1} events</source>
       <note>{0} is the filtered count, {1} is the total count</note>
     </trans-unit>
-    <trans-unit id="++CODE++2b85e133b4abad5a9f5b85b3dd903a3f1f84db64680beb66977f6e44743f2434">
-      <source xml:lang="en">{0}: {1}</source>
-      <note>{0} is the task name
-{1} is the status</note>
-    </trans-unit>
-    <trans-unit id="++CODE++be5a4e5aa348f87ea026acec0d4a2d3181a504dad2d924e8a3cb0e229cbdae30">
-      <source xml:lang="en">{0}: {1}</source>
-      <note>{0} is the task status
-{1} is the task message</note>
-    </trans-unit>
     <trans-unit id="++CODE++a2d133c4fbcb2f605ecd460e6639e824d6bc388d75b5df672fd4cbf95d1e71f9">
       <source xml:lang="en">{0}: {1}</source>
       <note>{0} is the column name
@@ -7948,6 +7978,16 @@
       <source xml:lang="en">{0}: {1}</source>
       <note>{0} is the qualified table name
 {1} is the change description</note>
+    </trans-unit>
+    <trans-unit id="++CODE++2b85e133b4abad5a9f5b85b3dd903a3f1f84db64680beb66977f6e44743f2434">
+      <source xml:lang="en">{0}: {1}</source>
+      <note>{0} is the task name
+{1} is the status</note>
+    </trans-unit>
+    <trans-unit id="++CODE++be5a4e5aa348f87ea026acec0d4a2d3181a504dad2d924e8a3cb0e229cbdae30">
+      <source xml:lang="en">{0}: {1}</source>
+      <note>{0} is the task status
+{1} is the task message</note>
     </trans-unit>
     <trans-unit id="++CODE++657a1d2beff87023ec2d92b03f58feb984cb2ea13dc6e7269ed84f0b64158591">
       <source xml:lang="en">{0}: {1}. {2}</source>
