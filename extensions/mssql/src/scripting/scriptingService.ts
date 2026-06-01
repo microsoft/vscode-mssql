@@ -56,7 +56,7 @@ export class ScriptingService {
         private _objectExplorerTree: vscode.TreeView<TreeNodeInfo>,
     ) {
         this._client = this._connectionManager.client;
-        this._logger = logger.withPrefix("ObjectExplorerService");
+        this._logger = logger.withPrefix("ScriptingService");
 
         this.initialize();
     }

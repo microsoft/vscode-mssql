@@ -65,7 +65,9 @@ export class MsalAzureDeviceCode extends MsalAzureAuth {
             [],
             [],
         );
-        this.closeOnceComplete(authCompletePromise).catch(this.logger.error);
+        this.closeOnceComplete(authCompletePromise).catch((error) =>
+            this.logger.error("Error waiting for device code auth completion", error),
+        );
 
         return {
             response: authResult!,
@@ -90,9 +92,7 @@ export class MsalAzureDeviceCode extends MsalAzureAuth {
         if (selection === LocalizedConstants.msgCopyAndOpenWebpage) {
             this.vscodeWrapper.clipboardWriteText(userCode);
             await vscode.env.openExternal(vscode.Uri.parse(verificationUrl));
-            console.trace(msg);
-            console.trace(userCode);
-            console.trace(verificationUrl);
+            this.logger.debug("Opened device code verification URL.");
         }
         return;
     }

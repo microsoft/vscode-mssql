@@ -20,6 +20,7 @@ import {
     LoadStatsNotification,
     LogEvent,
     LogNotification,
+    LoggerLevel,
     ReducerRequest,
     SendActionEventNotification,
     SendErrorEventNotification,
@@ -55,6 +56,22 @@ import * as LocalizedConstants from "../constants/locConstants";
 import { getLocalizationFileContentsCached } from "./localizationCache";
 
 export const WEBVIEW_INIT_TIMEOUT_MS = 5_000;
+
+type LoggerMethod = "trace" | "debug" | "info" | "warn" | "error";
+
+function mapWebviewLoggerLevel(level?: LoggerLevel): LoggerMethod {
+    switch (level) {
+        case "critical":
+            return "error";
+        case "verbose":
+            return "debug";
+        case "log":
+        case undefined:
+            return "trace";
+        default:
+            return level;
+    }
+}
 
 class WebviewControllerMessageReader extends AbstractMessageReader implements MessageReader {
     private _onData: Emitter<Message>;
@@ -296,7 +313,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         );
 
         this.onNotification(LogNotification.type, async (message: LogEvent) => {
-            this.logger[message.level ?? "log"](message.message);
+            this.logger[mapWebviewLoggerLevel(message.level)](message.message);
         });
 
         this.onNotification(LoadStatsNotification.type, (message) => {
@@ -314,7 +331,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
                 }
                 this._webviewReady.resolve();
 
-                console.trace(
+                this.logger.trace(
                     `Load stats for ${this._sourceFile}` + "\n" + `Total time: ${timeToLoad} ms`,
                 );
                 this._endLoadActivity.end(ActivityStatus.Succeeded, {
