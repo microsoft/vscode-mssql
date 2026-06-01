@@ -151,6 +151,7 @@ export class SchemaDesignerWebviewManager {
                 treeNode,
                 metadataConnectionUri,
                 isReadOnly,
+                key,
             );
             const viewStateDisposable = schemaDesigner.panel.onDidChangeViewState((event) => {
                 if (event.webviewPanel.visible) {

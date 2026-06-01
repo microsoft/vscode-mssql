@@ -164,6 +164,7 @@ export default [
         rules: {
             ...sharedRules,
             "custom-eslint-rules/banned-imports": "error",
+            "custom-eslint-rules/no-direct-l10n": "error",
         },
     },
 
@@ -191,6 +192,7 @@ export default [
         rules: {
             ...sharedRules,
             "custom-eslint-rules/banned-imports": "error",
+            "custom-eslint-rules/no-direct-l10n": "error",
         },
     },
 
@@ -221,6 +223,7 @@ export default [
         rules: {
             ...sharedRules,
             "custom-eslint-rules/banned-imports": "error",
+            "custom-eslint-rules/no-direct-l10n": "error",
         },
     },
 ];
