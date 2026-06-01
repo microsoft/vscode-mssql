@@ -4113,9 +4113,10 @@ Fehler:
         <source xml:lang="en">Failed to save publish profile</source>
         <target state="translated">Fehler beim Speichern des Veröffentlichungsprofils</target>
       </trans-unit>
-      <trans-unit id="++CODE++283dc9bd4f27ff0efed1b3ac27910746f64f860e2e0c2240f9723ff02c1dc29c">
-        <source xml:lang="en">Failed to save results. </source>
-        <target state="translated">Fehler beim Speichern der Ergebnisse. </target>
+      <trans-unit id="++CODE++11167e57bf77932c07f42c4b2a08ba8428726757beb2f754ece1786e81ed0447">
+        <source xml:lang="en">Failed to save results. {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Failed to save results. {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++295dc600027d16c46d0596df1afe12f2c8db841203c77f15207d06851c0d50ec">
         <source xml:lang="en">Failed to save results: {0}</source>
@@ -8693,9 +8694,10 @@ Abfrage: {2}</target>
         <note>{0} is the document name</note>
         <target state="translated">Die Abfrageausführung für Dokument "{0}" wurde gestartet.</target>
       </trans-unit>
-      <trans-unit id="++CODE++47d62b3ce92021fa331252ba82176c2a4ccb592c2264bd58ec74e5d1b722c98e">
-        <source xml:lang="en">Started saving results to </source>
-        <target state="translated">Ergebnisse werden gespeichert in </target>
+      <trans-unit id="++CODE++b10574f779b09047bedf3228566923bf6ba89edd4f6f08ff15e9a9c0314cfbdb">
+        <source xml:lang="en">Started saving results to {0}</source>
+        <note>{0} is the file path</note>
+        <target state="new">Started saving results to {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++7db6cebea8c95ec1db665d9ce39b1798388767fb2481b3f02548f4f008012631">
         <source xml:lang="en">Starting '{0}'...</source>
@@ -8839,9 +8841,10 @@ Abfrage: {2}</target>
 {2} is the message</note>
         <target state="translated">Token für Verbindung {0} mit URI {1}, {2} wurde erfolgreich aktualisiert</target>
       </trans-unit>
-      <trans-unit id="++CODE++9c85106af25fd7656e977d5453607973955ae5d79fce0a78264cd714a628e981">
-        <source xml:lang="en">Successfully saved results to </source>
-        <target state="translated">Ergebnisse erfolgreich gespeichert in: </target>
+      <trans-unit id="++CODE++c36cade68fea2c699e5795c527fd1daf085d0b76a5a5bc35526765a1b5d5b974">
+        <source xml:lang="en">Successfully saved results to {0}</source>
+        <note>{0} is the file path</note>
+        <target state="new">Successfully saved results to {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++da099a63ce9b5fe688c4f5219cdd8614a27faa324bdd5c612dfab086630b346c">
         <source xml:lang="en">Sum: {0}</source>
