@@ -209,6 +209,37 @@ export default class ResultsSerializer {
         return config.get<boolean>(Constants.configResultsOpenAfterSave, true);
     }
 
+    private getRevealFileActionLabel(): string {
+        if (process.platform === "darwin") {
+            return LocalizedConstants.DacpacDialog.RevealInFinder;
+        }
+        if (process.platform === "win32") {
+            return LocalizedConstants.DacpacDialog.RevealInExplorer;
+        }
+        return LocalizedConstants.DacpacDialog.OpenContainingFolder;
+    }
+
+    private showSaveSucceededNotification(filePath: string, format: string): void {
+        const openFileAction = LocalizedConstants.Profiler.openFile;
+        const revealFileAction = this.getRevealFileActionLabel();
+        void this._vscodeWrapper
+            .showInformationMessage(
+                LocalizedConstants.msgSaveSucceeded + filePath,
+                openFileAction,
+                revealFileAction,
+            )
+            .then((action) => {
+                if (action === openFileAction) {
+                    this.openSavedFile(filePath, format);
+                } else if (action === revealFileAction) {
+                    void this._vscodeWrapper.executeCommand(
+                        "revealFileInOS",
+                        vscode.Uri.file(filePath),
+                    );
+                }
+            });
+    }
+
     /**
      * Send request to sql tools service to save a result set
      */
@@ -256,9 +287,7 @@ export default class ResultsSerializer {
                         LocalizedConstants.msgSaveFailed + result.messages,
                     );
                 } else {
-                    self._vscodeWrapper.showInformationMessage(
-                        LocalizedConstants.msgSaveSucceeded + this._filePath,
-                    );
+                    self.showSaveSucceededNotification(this._filePath, format);
                     self._vscodeWrapper.logToOutputChannel(
                         LocalizedConstants.msgSaveSucceeded + filePath,
                     );

@@ -2074,6 +2074,12 @@
                     "default": true,
                     "scope": "resource"
                 },
+                "mssql.messages.copyIncludeTimestamps": {
+                    "type": "boolean",
+                    "description": "%mssql.messages.copyIncludeTimestamps%",
+                    "default": false,
+                    "scope": "resource"
+                },
                 "mssql.resultsFontFamily": {
                     "type": "string",
                     "description": "%mssql.resultsFontFamily%",
@@ -2093,6 +2099,12 @@
                 "mssql.results.openAfterSave": {
                     "type": "boolean",
                     "description": "%mssql.results.openAfterSave%",
+                    "default": true,
+                    "scope": "resource"
+                },
+                "mssql.results.showCopyNotification": {
+                    "type": "boolean",
+                    "description": "%mssql.results.showCopyNotification%",
                     "default": true,
                     "scope": "resource"
                 },

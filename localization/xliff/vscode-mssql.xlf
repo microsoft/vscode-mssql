@@ -8758,6 +8758,9 @@
     <trans-unit id="mssql.schemaDesigner">
       <source xml:lang="en">Visualize and Design Schema...</source>
     </trans-unit>
+    <trans-unit id="mssql.messages.copyIncludeTimestamps">
+      <source xml:lang="en">When enabled, Copy All in the query result Messages pane includes message timestamps.</source>
+    </trans-unit>
     <trans-unit id="mssql.transferActiveEditorConnections.description">
       <source xml:lang="en">When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.</source>
     </trans-unit>
@@ -8769,6 +8772,9 @@
     </trans-unit>
     <trans-unit id="mssql.results.openAfterSave">
       <source xml:lang="en">When enabled, saved query result exports are opened after export. Excel exports open with the system file handler; text exports open in VS Code.</source>
+    </trans-unit>
+    <trans-unit id="mssql.results.showCopyNotification">
+      <source xml:lang="en">When enabled, show a notification after query results are copied to the clipboard.</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.groupBySchema">
       <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
