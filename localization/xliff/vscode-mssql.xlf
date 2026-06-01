@@ -8770,6 +8770,9 @@
     <trans-unit id="mssql.results.openAfterSave">
       <source xml:lang="en">When enabled, saved query result exports are opened after export. Excel exports open with the system file handler; text exports open in VS Code.</source>
     </trans-unit>
+    <trans-unit id="mssql.results.showCopyNotification">
+      <source xml:lang="en">When enabled, show a notification after query results are copied to the clipboard.</source>
+    </trans-unit>
     <trans-unit id="mssql.objectExplorer.groupBySchema">
       <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
     </trans-unit>

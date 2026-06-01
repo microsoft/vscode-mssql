@@ -2096,6 +2096,12 @@
                     "default": true,
                     "scope": "resource"
                 },
+                "mssql.results.showCopyNotification": {
+                    "type": "boolean",
+                    "description": "%mssql.results.showCopyNotification%",
+                    "default": true,
+                    "scope": "resource"
+                },
                 "mssql.saveAsCsv.includeHeaders": {
                     "type": "boolean",
                     "description": "%mssql.saveAsCsv.includeHeaders%",
