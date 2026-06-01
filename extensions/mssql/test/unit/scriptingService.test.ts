@@ -29,7 +29,7 @@ import * as telemetry from "../../src/telemetry/telemetry";
 import * as Constants from "../../src/constants/constants";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import { ActivityObject, ActivityStatus } from "../../src/sharedInterfaces/telemetry";
-import { Logger } from "../../src/models/logger";
+import { ILogger2 } from "../../src/models/logger2";
 import {
     stubLogger,
     stubExtensionContext,
@@ -66,7 +66,7 @@ suite("Scripting Service", () => {
     let configurationGetStub: sinon.SinonStub;
     let registerCommandStub: sinon.SinonStub;
     let sendRequestStub: sinon.SinonStub;
-    let loggerStub: sinon.SinonStubbedInstance<Logger>;
+    let loggerStub: sinon.SinonStubbedInstance<ILogger2>;
     let objectExplorerTree: { selection: TreeNodeInfo[] };
     let scriptingProgressHandler: ProgressHandler | undefined;
     let scriptingCompleteHandler: ProgressHandler | undefined;

@@ -15,14 +15,14 @@ import { createStubLogger, stubTelemetry } from "./utils";
 import { FormItemOptions, FormItemType } from "../../src/sharedInterfaces/form";
 import * as fp from "../../src/sharedInterfaces/fabricProvisioning";
 import { Fabric } from "../../src/constants/locConstants";
-import { Logger } from "../../src/models/logger";
+import { ILogger2 } from "../../src/models/logger2";
 
 chai.use(sinonChai);
 
 suite("Fabric Provisioning logic", () => {
     let sandbox: sinon.SinonSandbox;
     let deploymentController: any;
-    let logger: sinon.SinonStubbedInstance<Logger>;
+    let logger: sinon.SinonStubbedInstance<ILogger2>;
     let sendActionEvent: sinon.SinonStub;
     let accountOptions = [{ label: "acct1", id: "account1" }];
     let tenantOptions = [{ displayName: "tenant1", tenantId: "tenant1" }];

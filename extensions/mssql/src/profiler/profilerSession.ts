@@ -8,7 +8,7 @@ import { FilteredBuffer } from "./filteredBuffer";
 import { EventRow, SessionType, SessionState, ViewTemplate } from "./profilerTypes";
 import { ProfilerService } from "../services/profilerService";
 import { ProfilingSessionType } from "../models/contracts/profiler";
-import { Logger } from "../models/logger";
+import { ILogger2 } from "../models/logger2";
 import { uuid } from "../utils/utils";
 
 /**
@@ -134,8 +134,8 @@ export class ProfilerSession {
     /** Counter for generating sequential event numbers when service doesn't provide them */
     private _eventNumberCounter: number = 0;
 
-    /** Logger for diagnostic output */
-    private readonly _logger: Logger | undefined;
+    /** ILogger2 for diagnostic output */
+    private readonly _logger: ILogger2 | undefined;
     /**
      * Creates a new ProfilerSession.
      * @param options - Session configuration options
@@ -145,7 +145,7 @@ export class ProfilerSession {
     constructor(
         options: ProfilerSessionOptions,
         profilerService: ProfilerService,
-        logger?: Logger,
+        logger?: ILogger2,
     ) {
         this._logger = logger;
         this.id = options.id;

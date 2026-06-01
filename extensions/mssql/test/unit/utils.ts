@@ -16,8 +16,7 @@ import { IPrompter } from "../../src/prompts/question";
 import CodeAdapter from "../../src/prompts/adapter";
 import { buildCapabilitiesResult } from "./mocks";
 import { GetCapabilitiesRequest } from "../../src/models/contracts/connection";
-import { ILogger } from "../../src/models/interfaces";
-import { Logger } from "../../src/models/logger";
+import { ILogger2, logger2 } from "../../src/models/logger2";
 import { PreviewFeature, previewService } from "../../src/previews/previewService";
 
 // Stubs the telemetry code
@@ -161,40 +160,46 @@ export function stubExtensionContext(
     return context;
 }
 
-export function createStubLogger(sandbox?: sinon.SinonSandbox): sinon.SinonStubbedInstance<Logger> {
+export function createStubLogger(
+    sandbox?: sinon.SinonSandbox,
+): sinon.SinonStubbedInstance<ILogger2> {
     const stubber = sandbox || sinon;
-    return stubber.createStubInstance(Logger);
-}
-
-export function stubLogger(sandbox?: sinon.SinonSandbox): sinon.SinonStubbedInstance<Logger> {
-    const stubber = sandbox || sinon;
-    const logger = createStubLogger(sandbox);
-    stubber.stub(Logger, "create").returns(logger);
-    return logger;
-}
-
-export function stubILogger(sandbox?: sinon.SinonSandbox): sinon.SinonStubbedInstance<ILogger> {
-    const stubber = sandbox || sinon;
-
-    return {
-        logDebug: stubber.stub(),
-        verbose: stubber.stub(),
+    const logger = {
+        trace: stubber.stub(),
+        debug: stubber.stub(),
+        info: stubber.stub(),
         warn: stubber.stub(),
         error: stubber.stub(),
         piiSanitized: stubber.stub(),
-        increaseIndent: stubber.stub(),
-        decreaseIndent: stubber.stub(),
-        append: stubber.stub(),
-        appendLine: stubber.stub(),
-        info: stubber.stub(),
-    } as sinon.SinonStubbedInstance<ILogger>;
+        show: stubber.stub(),
+        withPrefix: stubber.stub(),
+        dispose: stubber.stub(),
+    } as sinon.SinonStubbedInstance<ILogger2>;
+    logger.withPrefix.returns(logger);
+    return logger;
 }
 
-export function stubLoggerGetter<T extends { logger: Logger }>(
+export function stubLogger(sandbox?: sinon.SinonSandbox): sinon.SinonStubbedInstance<ILogger2> {
+    const stubber = sandbox || sinon;
+    const logger = createStubLogger(sandbox);
+    const withPrefix = logger2.withPrefix as unknown as sinon.SinonStub;
+    if (typeof withPrefix.restore === "function") {
+        withPrefix.returns(logger);
+    } else {
+        stubber.stub(logger2, "withPrefix").returns(logger);
+    }
+    return logger;
+}
+
+export function stubILogger(sandbox?: sinon.SinonSandbox): sinon.SinonStubbedInstance<ILogger2> {
+    return createStubLogger(sandbox);
+}
+
+export function stubLoggerGetter<T extends { logger: ILogger2 }>(
     sandbox: sinon.SinonSandbox,
     target: T,
-    logger: sinon.SinonStubbedInstance<Logger> = createStubLogger(sandbox),
-): sinon.SinonStubbedInstance<Logger> {
+    logger: sinon.SinonStubbedInstance<ILogger2> = createStubLogger(sandbox),
+): sinon.SinonStubbedInstance<ILogger2> {
     sandbox.stub(target, "logger").get(() => logger);
     return logger;
 }

@@ -117,7 +117,7 @@ import { SearchDatabaseWebViewController } from "../searchDatabase/searchDatabas
 import { ChangelogWebviewController } from "./changelogWebviewController";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
 import { HttpClient } from "../http/httpClient";
-import { Logger } from "../models/logger";
+import { ILogger2, logger2 } from "../models/logger2";
 import { FileBrowserService } from "../services/fileBrowserService";
 import { BackupDatabaseWebviewController } from "./backupDatabaseWebviewController";
 import { AzureBlobService } from "../services/azureBlobService";
@@ -149,7 +149,7 @@ export default class MainController implements vscode.Disposable {
     private _scriptingService: ScriptingService;
     private _queryHistoryRegistered: boolean = false;
     private _availableCommands: string[] | undefined;
-    private _logger: Logger;
+    private _logger: ILogger2;
     private _lastBackgroundTaskClickTime = 0;
     private _lastBackgroundTaskId: string | undefined;
 
@@ -191,7 +191,7 @@ export default class MainController implements vscode.Disposable {
             this._connectionMgr = connectionManager;
         }
         this._vscodeWrapper = vscodeWrapper ?? new VscodeWrapper();
-        this._logger = Logger.create(this._vscodeWrapper.outputChannel, "MainController");
+        this._logger = logger2.withPrefix("MainController");
         this.configuration = vscode.workspace.getConfiguration();
 
         UserSurvey.createInstance(this._context, this._vscodeWrapper);
@@ -3360,13 +3360,10 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
-     * Updates Pii Logging configuration for Logger.
+     * PII logging is read from configuration at log time by ILogger2.
      */
     private updatePiiLoggingLevel(): void {
-        const piiLogging: boolean = vscode.workspace
-            .getConfiguration(Constants.extensionName)
-            .get(Constants.piiLogging, false);
-        SqlToolsServerClient.instance.logger.piiLogging = piiLogging;
+        // no-op
     }
 
     /**

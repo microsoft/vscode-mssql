@@ -27,7 +27,7 @@ import {
     TableMetadataResult,
     ViewMetadataResult,
 } from "../../src/sharedInterfaces/metadata";
-import { Logger } from "../../src/models/logger";
+import { ILogger2 } from "../../src/models/logger2";
 import { stubLoggerGetter } from "./utils";
 
 chai.use(sinonChai);
@@ -35,7 +35,7 @@ chai.use(sinonChai);
 suite("Metadata Service Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
-    let mockLogger: sinon.SinonStubbedInstance<Logger>;
+    let mockLogger: sinon.SinonStubbedInstance<ILogger2>;
     let metadataService: MetadataService;
 
     setup(() => {

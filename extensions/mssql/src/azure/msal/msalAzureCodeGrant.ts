@@ -13,7 +13,7 @@ import {
 } from "@azure/msal-node";
 import { ITenant, AzureAuthType, IProviderSettings } from "../../models/contracts/azure";
 import { IDeferred } from "../../models/interfaces";
-import { Logger } from "../../models/logger";
+import { ILogger2 } from "../../models/logger2";
 import { MsalAzureAuth } from "./msalAzureAuth";
 import { SimpleWebServer } from "../simpleWebServer";
 import { AzureAuthError } from "../azureAuthError";
@@ -40,7 +40,7 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
         protected readonly context: vscode.ExtensionContext,
         protected clientApplication: PublicClientApplication,
         protected readonly vscodeWrapper: VscodeWrapper,
-        protected readonly logger: Logger,
+        protected readonly logger: ILogger2,
     ) {
         super(
             providerSettings,

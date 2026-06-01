@@ -15,7 +15,7 @@ import {
 } from "./interfaces";
 import * as Constants from "../constants/constants";
 import * as fs from "fs/promises";
-import { ILogger } from "../models/interfaces";
+import { ILogger2 } from "../models/logger2";
 import DownloadHelper from "./downloadHelper";
 import { getServiceExecutablePath, ServiceExecutable } from "./serviceExecutablePaths";
 
@@ -25,7 +25,7 @@ import { getServiceExecutablePath, ServiceExecutable } from "./serviceExecutable
 export default class ServiceDownloadProvider {
     constructor(
         private _config: IConfigUtils,
-        private _logger: ILogger,
+        private _logger: ILogger2,
         private _statusView: IStatusView,
         private _downloadHelper: DownloadHelper,
         private _decompressProvider: IDecompressProvider,
@@ -104,7 +104,7 @@ export default class ServiceDownloadProvider {
         if (await this.tryGetInstallDirectory(platform)) {
             return basePath;
         }
-        this._logger.verbose(
+        this._logger.debug(
             `Creating install directory for platform ${platform} at path ${basePath}`,
         );
         try {
@@ -139,12 +139,12 @@ export default class ServiceDownloadProvider {
         const fileName = this.getRuntimeDownloadPackageFileName(platform);
         const installDirectory = await this.getOrCreateInstallDirectory(platform);
 
-        this._logger.appendLine(`${Constants.serviceInstallingTo} ${installDirectory}.`);
+        this._logger.info(`${Constants.serviceInstallingTo} ${installDirectory}.`);
         const urlString = this.buildDownloadUrl(fileName);
 
         const isZipFile: boolean = path.extname(fileName) === ".zip";
 
-        this._logger.appendLine(`${Constants.serviceDownloading} ${urlString}`);
+        this._logger.info(`${Constants.serviceDownloading} ${urlString}`);
         let pkg: IPackage = {
             installPath: installDirectory,
             url: urlString,
@@ -156,11 +156,11 @@ export default class ServiceDownloadProvider {
 
         try {
             await this._downloadHelper.downloadFile(pkg.url, pkg, this._logger, this._statusView);
-            this._logger.logDebug(`Downloaded to ${pkg.tmpFile.name}...`);
-            this._logger.appendLine(" Done!");
+            this._logger.debug(`Downloaded to ${pkg.tmpFile.name}...`);
+            this._logger.info(" Done!");
             await this.decompressAndInstallPackage(pkg);
         } catch (err) {
-            this._logger.appendLine(`[ERROR] ${err}`);
+            this._logger.info(`[ERROR] ${err}`);
             throw err;
         }
         return true;
@@ -192,7 +192,7 @@ export default class ServiceDownloadProvider {
     }
 
     private async decompressAndInstallPackage(pkg: IPackage): Promise<void> {
-        this._logger.appendLine("Installing ...");
+        this._logger.info("Installing ...");
         this._statusView.installingService();
         await this._decompressProvider.decompress(pkg, this._logger);
         this._statusView.serviceInstalled();

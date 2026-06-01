@@ -10,7 +10,7 @@ import DecompressProvider from "./decompressProvider";
 import DownloadHelper from "./downloadHelper";
 import ServerProvider from "./server";
 import { IStatusView } from "./interfaces";
-import { ILogger } from "../models/interfaces";
+import { ILogger2 } from "../models/logger2";
 import * as fs from "fs";
 
 export class StubStatusView implements IStatusView {
@@ -32,50 +32,43 @@ export class StubStatusView implements IStatusView {
     }
 }
 
-export class StubLogger implements ILogger {
+export class StubLogger implements ILogger2 {
     constructor(private _log: (msg: string) => void) {}
 
-    logDebug(message: string): void {
+    trace(message: string): void {
         this._log(message);
     }
 
-    verbose(msg: any, ..._vals: any[]): void {
-        this._log(msg);
-    }
-
-    warn(msg: any, ..._vals: any[]): void {
-        this._log(msg);
-    }
-
-    error(msg: any, ..._vals: any[]): void {
-        this._log(msg);
-    }
-
-    piiSanitized(
-        _msg: any,
-        _objsToSanitize: { name: string; objOrArray: any | any[] }[],
-        _stringsToShorten: { name: string; value: string }[],
-        ..._vals: any[]
-    ): void {
-        // no-op
-    }
-
-    increaseIndent(): void {
-        // no-op
-    }
-
-    decreaseIndent(): void {
-        // no-op
-    }
-
-    append(message?: string): void {
+    debug(message: string): void {
         this._log(message);
     }
-    appendLine(message?: string): void {
+
+    info(message: string): void {
         this._log(message);
     }
-    info(msg: any, ..._vals: any[]): void {
-        this._log(msg);
+
+    warn(message: string): void {
+        this._log(message);
+    }
+
+    error(message: string): void {
+        this._log(message);
+    }
+
+    piiSanitized(): void {
+        // no-op
+    }
+
+    show(): void {
+        // no-op
+    }
+
+    withPrefix(): ILogger2 {
+        return this;
+    }
+
+    dispose(): void {
+        // no-op
     }
 }
 
@@ -97,11 +90,11 @@ let serverProvider = new ServerProvider(downloadProvider, statusView);
  * Cleans existing service install and reinstalls the service for the runtime.
  */
 export async function cleanAndInstallService(runtime: Runtime): Promise<void> {
-    logger.verbose(`Cleaning and installing service for runtime: ${runtime}`);
+    logger.debug(`Cleaning and installing service for runtime: ${runtime}`);
     const serviceInstallDirectoryRoot = getServiceInstallDirectoryRoot();
     try {
         await fs.promises.rm(serviceInstallDirectoryRoot, { recursive: true, force: true });
-        logger.verbose(`Deleted service install directory: ${serviceInstallDirectoryRoot}`);
+        logger.debug(`Deleted service install directory: ${serviceInstallDirectoryRoot}`);
     } catch (error) {
         logger.error(`Error deleting service install directory: ${error.message}`);
         throw error;
@@ -113,7 +106,7 @@ export async function cleanAndInstallService(runtime: Runtime): Promise<void> {
         logger.error(`Error installing service for runtime ${runtime}: ${error.message}`);
         throw error;
     }
-    logger.verbose(`Service installation complete for runtime: ${runtime}, path: ${path}`);
+    logger.debug(`Service installation complete for runtime: ${runtime}, path: ${path}`);
 }
 
 /*

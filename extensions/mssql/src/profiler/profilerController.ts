@@ -16,7 +16,7 @@ import { SESSION_NAME_MAX_LENGTH } from "../sharedInterfaces/profiler";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { getProfilerConfigService } from "./profilerConfigService";
 import { ProfilerSessionTemplate } from "../models/contracts/profiler";
-import { Logger } from "../models/logger";
+import { ILogger2, logger2 } from "../models/logger2";
 import { Profiler as LocProfiler } from "../constants/locConstants";
 import * as Constants from "../constants/constants";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
@@ -33,7 +33,7 @@ import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry"
  * Handles command registration, connection management, and launching the profiler UI.
  */
 export class ProfilerController {
-    private _logger: Logger;
+    private _logger: ILogger2;
     private _webviewControllers: Map<string, ProfilerWebviewController> = new Map();
     private _xelWebviewControllers: Map<string, ProfilerWebviewController> = new Map();
     private _profilerUri: string | undefined;
@@ -46,7 +46,7 @@ export class ProfilerController {
         private _vscodeWrapper: VscodeWrapper,
         private _sessionManager: ProfilerSessionManager,
     ) {
-        this._logger = Logger.create(this._vscodeWrapper.outputChannel, "Profiler");
+        this._logger = logger2.withPrefix("Profiler");
         this.registerCommands();
     }
 
@@ -64,9 +64,7 @@ export class ProfilerController {
         connectionProfile: IConnectionProfile,
         databaseScopeFilter?: string,
     ): Promise<void> {
-        this._logger.verbose(
-            `Launching profiler with connection to ${connectionProfile.server}...`,
-        );
+        this._logger.debug(`Launching profiler with connection to ${connectionProfile.server}...`);
 
         try {
             // Determine if this is an Azure/Fabric server.
@@ -75,7 +73,7 @@ export class ProfilerController {
             const isAzureOrFabric = serverInfo
                 ? serverInfo.isCloud
                 : isAzureSqlDbCompatible(getServerTypes(connectionProfile));
-            this._logger.verbose(
+            this._logger.debug(
                 serverInfo
                     ? `Server info: engineEditionId=${serverInfo.engineEditionId}, isCloud=${serverInfo.isCloud}`
                     : `Server types detected: ${getServerTypes(connectionProfile).join(", ")}`,
@@ -86,7 +84,7 @@ export class ProfilerController {
             this._currentEngineType = isAzureOrFabric
                 ? EngineType.AzureSQLDB
                 : EngineType.Standalone;
-            this._logger.verbose(`Engine type set to: ${this._currentEngineType}`);
+            this._logger.debug(`Engine type set to: ${this._currentEngineType}`);
 
             // For Azure SQL and Fabric, we need to ensure a user database is selected
             let profileToUse = connectionProfile;
@@ -100,7 +98,7 @@ export class ProfilerController {
                 const updatedProfile = await this.ensureAzureDatabaseSelected(profileToUse);
                 if (!updatedProfile) {
                     // User cancelled database selection
-                    this._logger.verbose("User cancelled database selection");
+                    this._logger.debug("User cancelled database selection");
                     return;
                 }
                 profileToUse = updatedProfile;
@@ -119,7 +117,7 @@ export class ProfilerController {
                         databaseScopeFilter = profileToUse.database;
                     }
                     profileToUse = { ...profileToUse, database: "" };
-                    this._logger.verbose(
+                    this._logger.debug(
                         `Cleared database from on-prem profile to ensure server-scoped session (filter: ${databaseScopeFilter})`,
                     );
                 }
@@ -127,18 +125,18 @@ export class ProfilerController {
 
             // Generate a unique URI for this profiler connection
             const profilerUri = `profiler://${uuid()}`;
-            this._logger.verbose(`Connecting to ${profileToUse.server} with URI: ${profilerUri}`);
+            this._logger.debug(`Connecting to ${profileToUse.server} with URI: ${profilerUri}`);
 
             // Connect using the connection manager with the provided profile
             const connected = await this._connectionManager.connect(profilerUri, profileToUse);
 
             if (!connected) {
-                this._logger.verbose("Connection failed");
+                this._logger.debug("Connection failed");
                 vscode.window.showErrorMessage(LocProfiler.failedToConnect);
                 return;
             }
 
-            this._logger.verbose(`Successfully connected to ${profileToUse.server}`);
+            this._logger.debug(`Successfully connected to ${profileToUse.server}`);
 
             // Store the engine type for this profiler URI
             this._profilerEngineTypes.set(profilerUri, this._currentEngineType);
@@ -182,11 +180,11 @@ export class ProfilerController {
     ): Promise<IConnectionProfile | undefined> {
         // Check if a user database is already selected
         if (!isSystemDatabase(connectionProfile.database)) {
-            this._logger.verbose(`User database already selected: ${connectionProfile.database}`);
+            this._logger.debug(`User database already selected: ${connectionProfile.database}`);
             return connectionProfile;
         }
 
-        this._logger.verbose(
+        this._logger.debug(
             "No user database selected for Azure SQL, prompting for database selection",
         );
 
@@ -195,7 +193,7 @@ export class ProfilerController {
         try {
             const connected = await this._connectionManager.connect(tempUri, connectionProfile);
             if (!connected) {
-                this._logger.verbose("Failed to connect to get database list");
+                this._logger.debug("Failed to connect to get database list");
                 vscode.window.showErrorMessage(LocProfiler.failedToConnect);
                 return undefined;
             }
@@ -207,7 +205,7 @@ export class ProfilerController {
             const userDatabases = databases.filter((db) => !isSystemDatabase(db));
 
             if (userDatabases.length === 0) {
-                this._logger.verbose("No user databases found");
+                this._logger.debug("No user databases found");
                 vscode.window.showWarningMessage(LocProfiler.noDatabasesFound);
                 return undefined;
             }
@@ -219,11 +217,11 @@ export class ProfilerController {
             });
 
             if (!selectedDatabase) {
-                this._logger.verbose("User cancelled database selection");
+                this._logger.debug("User cancelled database selection");
                 return undefined;
             }
 
-            this._logger.verbose(`User selected database: ${selectedDatabase}`);
+            this._logger.debug(`User selected database: ${selectedDatabase}`);
 
             // Create a new connection profile with the selected database
             const updatedProfile: IConnectionProfile = {
@@ -235,7 +233,7 @@ export class ProfilerController {
         } finally {
             // Clean up the temporary connection
             await this._connectionManager.disconnect(tempUri).catch((err) => {
-                this._logger.verbose(`Error disconnecting temp connection: ${err}`);
+                this._logger.debug(`Error disconnecting temp connection: ${err}`);
             });
         }
     }
@@ -270,7 +268,7 @@ export class ProfilerController {
                         // connectionProfile.database is often empty for Database nodes because they
                         // inherit the parent Server node's connection profile unchanged.
                         const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
-                        this._logger.verbose(
+                        this._logger.debug(
                             `Launching profiler from database node: ${databaseName}`,
                         );
                         await this.launchProfilerWithConnection(connectionProfile, databaseName);
@@ -298,7 +296,7 @@ export class ProfilerController {
             }),
         );
 
-        this._logger.verbose("Profiler commands registered");
+        this._logger.debug("Profiler commands registered");
     }
 
     /**
@@ -310,11 +308,11 @@ export class ProfilerController {
         sessionName: string,
         webviewController: ProfilerWebviewController,
     ): Promise<void> {
-        this._logger.verbose(`Starting profiler session: ${sessionName}`);
+        this._logger.debug(`Starting profiler session: ${sessionName}`);
         const sessionId = uuid();
         try {
             if (!this._profilerUri) {
-                this._logger.verbose("No profiler connection available");
+                this._logger.debug("No profiler connection available");
                 vscode.window.showErrorMessage(LocProfiler.noConnectionAvailable);
                 return;
             }
@@ -322,7 +320,7 @@ export class ProfilerController {
             // Clear existing session and captured events from previous sessions
             webviewController.setCurrentSession(undefined); // Clear old session first
             webviewController.clearRows();
-            this._logger.verbose("Cleared existing events from grid");
+            this._logger.debug("Cleared existing events from grid");
 
             // Create a ProfilerSession for the selected session
             const bufferCapacity = vscode.workspace
@@ -337,7 +335,7 @@ export class ProfilerController {
                 bufferCapacity: bufferCapacity,
                 engineType: this._profilerEngineTypes.get(this._profilerUri!) ?? "SQLServer",
             });
-            this._logger.verbose(
+            this._logger.debug(
                 `Created ProfilerSession: id=${sessionId}, ownerUri=${this._profilerUri}`,
             );
 
@@ -346,7 +344,7 @@ export class ProfilerController {
 
             // Set up event handlers on the session
             session.onEventsReceived((events) => {
-                this._logger.verbose(
+                this._logger.debug(
                     `Events received: ${events.length} events for session ${sessionId}`,
                 );
                 webviewController.notifyNewEvents(events.length);
@@ -354,7 +352,7 @@ export class ProfilerController {
 
             session.onEventsRemoved((events) => {
                 const sequenceNumbers = events.map((e) => e.eventNumber).join(", ");
-                this._logger.verbose(
+                this._logger.debug(
                     `Events removed from ring buffer: ${events.length} events (sequence #s: ${sequenceNumbers}) for session ${sessionId}`,
                 );
                 webviewController.notifyRowsRemoved(events);
@@ -372,7 +370,7 @@ export class ProfilerController {
             });
 
             session.onSessionStopped((errorMessage) => {
-                this._logger.verbose(`Session ${sessionId} stopped notification received`);
+                this._logger.debug(`Session ${sessionId} stopped notification received`);
                 if (errorMessage) {
                     this._logger.error(`Session stopped with error: ${errorMessage}`);
                 }
@@ -393,7 +391,7 @@ export class ProfilerController {
             // Session is now running - update the webview state
             webviewController.setSessionState(SessionState.Running);
             webviewController.setSessionName(sessionName);
-            this._logger.verbose("Profiling session started");
+            this._logger.debug("Profiling session started");
         } catch (e) {
             this._logger.error(`Error starting profiler session: ${e}`);
             const errMsg = getErrorMessage(e);
@@ -417,7 +415,7 @@ export class ProfilerController {
      */
     private async handleCreateSession(webviewController: ProfilerWebviewController): Promise<void> {
         if (!this._profilerUri) {
-            this._logger.verbose("No profiler connection available");
+            this._logger.debug("No profiler connection available");
             vscode.window.showErrorMessage(LocProfiler.noConnectionAvailable);
             return;
         }
@@ -429,7 +427,7 @@ export class ProfilerController {
             const engineType =
                 this._profilerEngineTypes.get(this._profilerUri) ?? EngineType.Standalone;
             const templates = configService.getTemplatesForEngine(engineType);
-            this._logger.verbose(
+            this._logger.debug(
                 `Filtered templates for engine ${engineType}: ${templates.length} available`,
             );
 
@@ -452,11 +450,11 @@ export class ProfilerController {
             });
 
             if (!selectedTemplate) {
-                this._logger.verbose("User cancelled template selection");
+                this._logger.debug("User cancelled template selection");
                 return;
             }
 
-            this._logger.verbose(`Selected template: ${selectedTemplate.template.name}`);
+            this._logger.debug(`Selected template: ${selectedTemplate.template.name}`);
 
             // Step 2: Show session name input
             const sessionName = await vscode.window.showInputBox({
@@ -481,11 +479,11 @@ export class ProfilerController {
             });
 
             if (!sessionName) {
-                this._logger.verbose("User cancelled session name input");
+                this._logger.debug("User cancelled session name input");
                 return;
             }
 
-            this._logger.verbose(`Session name: ${sessionName}`);
+            this._logger.debug(`Session name: ${sessionName}`);
 
             // Step 3: Show spinner (set creating state)
             webviewController.setCreatingSession(true);
@@ -497,7 +495,7 @@ export class ProfilerController {
                 createStatement: selectedTemplate.template.createStatement,
             };
 
-            this._logger.verbose(
+            this._logger.debug(
                 `Creating XEvent session: ${sessionName} with template: ${template.name}`,
             );
 
@@ -513,7 +511,7 @@ export class ProfilerController {
                     (params) => {
                         clearTimeout(timeout);
                         disposable.dispose();
-                        this._logger.verbose(
+                        this._logger.debug(
                             `Session created notification received: ${params.sessionName}`,
                         );
                         resolve();
@@ -546,7 +544,7 @@ export class ProfilerController {
             vscode.window.showInformationMessage(
                 LocProfiler.sessionCreatedSuccessfully(sessionName),
             );
-            this._logger.verbose(`Session '${sessionName}' created successfully`);
+            this._logger.debug(`Session '${sessionName}' created successfully`);
 
             // Step 7: Auto-start the session
             await this.startSession(sessionName, webviewController);
@@ -575,7 +573,7 @@ export class ProfilerController {
         // Step 1: Show template selection quick pick (filtered by engine type)
         const configService = getProfilerConfigService();
         const templates = configService.getTemplatesForEngine(engineType);
-        this._logger.verbose(
+        this._logger.debug(
             `Filtered templates for engine ${engineType}: ${templates.length} available`,
         );
 
@@ -600,13 +598,13 @@ export class ProfilerController {
         });
 
         if (!selectedTemplate) {
-            this._logger.verbose("User cancelled template selection");
+            this._logger.debug("User cancelled template selection");
             // Disconnect since user cancelled
             await this._connectionManager.disconnect(profilerUri);
             return;
         }
 
-        this._logger.verbose(`Selected template: ${selectedTemplate.template.name}`);
+        this._logger.debug(`Selected template: ${selectedTemplate.template.name}`);
 
         // Step 2: Show session name input (default to template name)
         const sessionName = await vscode.window.showInputBox({
@@ -631,18 +629,18 @@ export class ProfilerController {
         });
 
         if (!sessionName) {
-            this._logger.verbose("User cancelled session name input");
+            this._logger.debug("User cancelled session name input");
             // Disconnect since user cancelled
             await this._connectionManager.disconnect(profilerUri);
             return;
         }
 
-        this._logger.verbose(`Session name: ${sessionName}`);
+        this._logger.debug(`Session name: ${sessionName}`);
 
         // Fetch available XEvent sessions from the server
-        this._logger.verbose("Fetching available XEvent sessions...");
+        this._logger.debug("Fetching available XEvent sessions...");
         const xeventSessions = await this._sessionManager.getXEventSessions(profilerUri);
-        this._logger.verbose(`Found ${xeventSessions.length} available XEvent sessions`);
+        this._logger.debug(`Found ${xeventSessions.length} available XEvent sessions`);
 
         // Convert to session objects for the webview
         const availableSessions = xeventSessions.map((name) => ({
@@ -679,7 +677,7 @@ export class ProfilerController {
             this._profilerEngineTypes.delete(webviewProfilerUri);
 
             // Disconnect the profiler connection to avoid lingering connections
-            this._logger.verbose(`Cleaning up profiler connection: ${webviewProfilerUri}`);
+            this._logger.debug(`Cleaning up profiler connection: ${webviewProfilerUri}`);
             this._connectionManager.disconnect(webviewProfilerUri).catch((err) => {
                 this._logger.error(`Error disconnecting profiler connection: ${err}`);
             });
@@ -701,25 +699,25 @@ export class ProfilerController {
                 const session = webviewController.currentSession;
 
                 if (!session) {
-                    this._logger.verbose("No active session to pause/resume for this webview");
+                    this._logger.debug("No active session to pause/resume for this webview");
                     return;
                 }
                 try {
-                    this._logger.verbose(
+                    this._logger.debug(
                         `Current session state: ${session.state}, session.id: ${session.id}`,
                     );
                     if (session.state === SessionState.Running) {
-                        this._logger.verbose(`Pausing profiler session ${session.id}...`);
+                        this._logger.debug(`Pausing profiler session ${session.id}...`);
                         await this._sessionManager.pauseProfilingSession(session.id);
                         webviewController.setSessionState(SessionState.Paused);
-                        this._logger.verbose("Session paused");
+                        this._logger.debug("Session paused");
                     } else if (session.state === SessionState.Paused) {
-                        this._logger.verbose(`Resuming profiler session ${session.id}...`);
+                        this._logger.debug(`Resuming profiler session ${session.id}...`);
                         await this._sessionManager.togglePauseProfilingSession(session.id);
                         webviewController.setSessionState(SessionState.Running);
-                        this._logger.verbose("Session resumed");
+                        this._logger.debug("Session resumed");
                     } else {
-                        this._logger.verbose(
+                        this._logger.debug(
                             `Session in unexpected state: ${session.state}, cannot pause/resume`,
                         );
                     }
@@ -732,14 +730,14 @@ export class ProfilerController {
                 const session = webviewController.currentSession;
 
                 if (!session) {
-                    this._logger.verbose("No active session to stop for this webview");
+                    this._logger.debug("No active session to stop for this webview");
                     return;
                 }
                 try {
-                    this._logger.verbose(`Stopping profiler session ${session.id}...`);
+                    this._logger.debug(`Stopping profiler session ${session.id}...`);
                     await this._sessionManager.stopProfilingSession(session.id);
                     webviewController.setSessionState(SessionState.Stopped);
-                    this._logger.verbose("Session stopped");
+                    this._logger.debug("Session stopped");
 
                     // Telemetry: session stopped by user
                     const durationMs = session.startedAt > 0 ? Date.now() - session.startedAt : 0;
@@ -763,7 +761,7 @@ export class ProfilerController {
                 }
             },
             onViewChange: (viewId: string) => {
-                this._logger.verbose(`View changed to: ${viewId}`);
+                this._logger.debug(`View changed to: ${viewId}`);
             },
             onExportToCsv: async (suggestedFileName: string): Promise<Writable | undefined> => {
                 return await this.getStreamForWriting(webviewController, suggestedFileName);
@@ -777,7 +775,7 @@ export class ProfilerController {
 
             if (sessionExists) {
                 // Session already exists - just start it
-                this._logger.verbose(
+                this._logger.debug(
                     `Session '${sessionName}' already exists, starting without creating`,
                 );
                 webviewController.setSelectedSession(sessionName);
@@ -797,7 +795,7 @@ export class ProfilerController {
                     createStatement: selectedTemplate.template.createStatement,
                 };
 
-                this._logger.verbose(
+                this._logger.debug(
                     `Creating XEvent session: ${sessionName} with template: ${template.name}`,
                 );
 
@@ -813,7 +811,7 @@ export class ProfilerController {
                         (params) => {
                             clearTimeout(timeout);
                             disposable.dispose();
-                            this._logger.verbose(
+                            this._logger.debug(
                                 `Session created notification received: ${params.sessionName}`,
                             );
                             resolve();
@@ -839,7 +837,7 @@ export class ProfilerController {
                 webviewController.setSelectedSession(sessionName);
                 webviewController.setCreatingSession(false);
 
-                this._logger.verbose(`Session '${sessionName}' created successfully`);
+                this._logger.debug(`Session '${sessionName}' created successfully`);
 
                 // Auto-start the session
                 await this.startSession(sessionName, webviewController);
@@ -860,7 +858,7 @@ export class ProfilerController {
      * Launches the profiler UI in read-only mode for the selected file.
      */
     private async openXelFileCommand(): Promise<void> {
-        this._logger.verbose("Opening XEL file picker...");
+        this._logger.debug("Opening XEL file picker...");
 
         const fileUri = await vscode.window.showOpenDialog({
             canSelectFiles: true,
@@ -873,7 +871,7 @@ export class ProfilerController {
         });
 
         if (!fileUri || fileUri.length === 0) {
-            this._logger.verbose("User cancelled XEL file selection");
+            this._logger.debug("User cancelled XEL file selection");
             return;
         }
 
@@ -888,7 +886,7 @@ export class ProfilerController {
      * @param filePath - Full path to the XEL file
      */
     public async openXelFile(filePath: string): Promise<void> {
-        this._logger.verbose(`Opening XEL file: ${filePath}`);
+        this._logger.debug(`Opening XEL file: ${filePath}`);
 
         // Validate file exists and is accessible
         const fileInfo = await this.validateXelFile(filePath);
@@ -898,7 +896,7 @@ export class ProfilerController {
 
         // Check if we already have a webview for this file
         if (this._xelWebviewControllers.has(filePath)) {
-            this._logger.verbose(`Webview already exists for ${filePath}, focusing it`);
+            this._logger.debug(`Webview already exists for ${filePath}, focusing it`);
             const existingController = this._xelWebviewControllers.get(filePath)!;
             existingController.revealToForeground();
             return;
@@ -906,7 +904,7 @@ export class ProfilerController {
 
         // XEL file sessions do not require a database connection
         // The file is parsed locally and displayed in read-only mode
-        this._logger.verbose("Opening XEL file in read-only disconnected mode...");
+        this._logger.debug("Opening XEL file in read-only disconnected mode...");
 
         try {
             // Create the webview controller in read-only disconnected mode
@@ -946,7 +944,7 @@ export class ProfilerController {
                 LocProfiler.xelFileReadOnlyDisconnectedNotification(fileInfo.fileName),
             );
 
-            this._logger.verbose(
+            this._logger.debug(
                 `XEL file ${fileInfo.fileName} opened successfully in read-only mode`,
             );
         } catch (e) {
@@ -1019,29 +1017,29 @@ export class ProfilerController {
             // New Session - disabled in read-only disconnected mode
             onCreateSession: async () => {
                 // No-op for read-only disconnected sessions
-                this._logger.verbose(
+                this._logger.debug(
                     "Create session ignored for read-only disconnected XEL file session",
                 );
             },
             // Start Session - disabled in read-only disconnected mode
             onStartSession: async () => {
                 // No-op for read-only disconnected sessions
-                this._logger.verbose(
+                this._logger.debug(
                     "Start session ignored for read-only disconnected XEL file session",
                 );
             },
             // Pause/Resume - disabled for read-only file sessions
             onPauseResume: async () => {
                 // No-op for read-only sessions
-                this._logger.verbose("Pause/Resume ignored for read-only XEL file session");
+                this._logger.debug("Pause/Resume ignored for read-only XEL file session");
             },
             // Stop - disabled for read-only file sessions
             onStop: async () => {
                 // No-op for read-only sessions
-                this._logger.verbose("Stop ignored for read-only XEL file session");
+                this._logger.debug("Stop ignored for read-only XEL file session");
             },
             onViewChange: (viewId: string) => {
-                this._logger.verbose(`View changed to: ${viewId}`);
+                this._logger.debug(`View changed to: ${viewId}`);
             },
         });
     }
@@ -1054,11 +1052,11 @@ export class ProfilerController {
         webviewController: ProfilerWebviewController,
         fileInfo: XelFileInfo,
     ): Promise<void> {
-        this._logger.verbose(`Loading XEL file events for: ${fileInfo.filePath}`);
+        this._logger.debug(`Loading XEL file events for: ${fileInfo.filePath}`);
 
         // Generate a unique URI for this file-based session (not a real connection)
         const fileSessionUri = `profiler://xelfile/${uuid()}`;
-        this._logger.verbose(`Created file session URI: ${fileSessionUri}`);
+        this._logger.debug(`Created file session URI: ${fileSessionUri}`);
 
         // Create a ProfilerSession for the file
         const sessionId = uuid();
@@ -1071,7 +1069,7 @@ export class ProfilerController {
             readOnly: true,
             engineType: "SQLServer",
         });
-        this._logger.verbose(`Created ProfilerSession: id=${sessionId}, type=File`);
+        this._logger.debug(`Created ProfilerSession: id=${sessionId}, type=File`);
 
         // Set up the webview controller with the session reference
         webviewController.setCurrentSession(session);
@@ -1082,7 +1080,7 @@ export class ProfilerController {
 
         // Set up event handlers on the session
         session.onEventsReceived((events) => {
-            this._logger.verbose(
+            this._logger.debug(
                 `Events received: ${events.length} events for XEL file session ${sessionId}`,
             );
             webviewController.notifyNewEvents(events.length);
@@ -1090,14 +1088,14 @@ export class ProfilerController {
 
         session.onEventsRemoved((events) => {
             const sequenceNumbers = events.map((e) => e.eventNumber).join(", ");
-            this._logger.verbose(
+            this._logger.debug(
                 `Events removed from ring buffer: ${events.length} events (sequence #s: ${sequenceNumbers}) for XEL file session ${sessionId}`,
             );
             webviewController.notifyRowsRemoved(events);
         });
 
         session.onSessionStopped((errorMessage) => {
-            this._logger.verbose(`XEL file session ${sessionId} stopped notification received`);
+            this._logger.debug(`XEL file session ${sessionId} stopped notification received`);
             if (errorMessage) {
                 this._logger.error(`XEL file session stopped with error: ${errorMessage}`);
             }
@@ -1114,7 +1112,7 @@ export class ProfilerController {
             // since there's no live data to stream
             webviewController.setSessionState(SessionState.Stopped);
 
-            this._logger.verbose(
+            this._logger.debug(
                 `XEL file ${fileInfo.fileName} loaded successfully in read-only mode`,
             );
         } catch (e) {
@@ -1171,7 +1169,7 @@ export class ProfilerController {
 
             if (!saveUri) {
                 // User cancelled
-                this._logger.verbose("Export to CSV cancelled by user");
+                this._logger.debug("Export to CSV cancelled by user");
                 return undefined;
             }
 
@@ -1201,7 +1199,7 @@ export class ProfilerController {
                         }
                     });
 
-                this._logger.verbose(`Profiler events exported to ${filePath}`);
+                this._logger.debug(`Profiler events exported to ${filePath}`);
             });
 
             // Handle stream errors

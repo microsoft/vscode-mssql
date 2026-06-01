@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ILogger } from "../models/interfaces";
+import { ILogger2 } from "../models/logger2";
 import { HttpDownloadError, HttpClientCore, IDownloadFileResult } from "../http/httpClientCore";
 import { IPackage, IStatusView, PackageError } from "./interfaces";
 
@@ -17,7 +17,7 @@ export default class DownloadHelper {
     public downloadFile(
         urlString: string,
         pkg: IPackage,
-        logger: ILogger,
+        logger: ILogger2,
         statusView: IStatusView,
     ): Promise<void> {
         return this.downloadFileWithProgress(urlString, pkg, logger, statusView);
@@ -26,7 +26,7 @@ export default class DownloadHelper {
     private async downloadFileWithProgress(
         urlString: string,
         pkg: IPackage,
-        logger: ILogger,
+        logger: ILogger2,
         statusView: IStatusView,
     ): Promise<void> {
         if (!pkg.tmpFile || pkg.tmpFile.fd === 0) {
@@ -50,7 +50,7 @@ export default class DownloadHelper {
                     onHeaders: (headers) => {
                         progress.packageSize = this.getPackageSize(headers["content-length"]);
                         if (progress.packageSize > 0) {
-                            logger.verbose(
+                            logger.debug(
                                 `Package size: ${this.formatBytes(progress.packageSize)} (${Math.ceil(progress.packageSize / 1024)} KB)`,
                             );
                         }
@@ -90,7 +90,7 @@ export default class DownloadHelper {
     public handleDataReceivedEvent(
         progress: IDownloadProgress,
         data: Buffer,
-        logger: ILogger,
+        logger: ILogger2,
         statusView: IStatusView,
     ): void {
         progress.downloadedBytes += data.length;

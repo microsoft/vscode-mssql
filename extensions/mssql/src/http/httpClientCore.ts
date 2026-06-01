@@ -9,7 +9,7 @@ import * as https from "https";
 import * as fs from "fs";
 import axios, { AxiosRequestConfig, AxiosResponse, RawAxiosResponseHeaders } from "axios";
 import { Readable } from "stream";
-import { ILogger } from "../models/interfaces";
+import { ILogger2 } from "../models/logger2";
 
 const UnableToGetProxyAgentOptionsMessage = "Unable to read proxy agent options to get tenants.";
 const HTTPS_PORT = 443;
@@ -36,7 +36,7 @@ export interface IHttpClientDependencies {
  */
 export class HttpClientCore {
     constructor(
-        protected readonly logger?: ILogger,
+        protected readonly logger?: ILogger2,
         private readonly dependencies: IHttpClientDependencies = {},
     ) {}
 
@@ -245,7 +245,7 @@ export class HttpClientCore {
         const proxy = this.loadProxyConfig();
 
         if (proxy) {
-            this.logger?.verbose(
+            this.logger?.debug(
                 "Proxy endpoint found in environment variables or workspace configuration.",
             );
 
@@ -277,7 +277,7 @@ export class HttpClientCore {
         let proxy: string | undefined = this.dependencies.getProxyConfig?.();
 
         if (!proxy) {
-            this.logger?.verbose(
+            this.logger?.debug(
                 "Workspace HTTP config didn't contain a proxy endpoint. Checking environment variables.",
             );
             proxy = this.loadEnvironmentProxyValue();
@@ -317,23 +317,23 @@ export class HttpClientCore {
         const HTTPS_PROXY = "HTTPS_PROXY";
 
         if (!process) {
-            this.logger?.verbose(
+            this.logger?.debug(
                 "No process object found, unable to read environment variables for proxy.",
             );
             return undefined;
         }
 
         if (process.env[HTTP_PROXY] || process.env[HTTP_PROXY.toLowerCase()]) {
-            this.logger?.verbose("Loading proxy value from HTTP_PROXY environment variable.");
+            this.logger?.debug("Loading proxy value from HTTP_PROXY environment variable.");
 
             return process.env[HTTP_PROXY] || process.env[HTTP_PROXY.toLowerCase()];
         } else if (process.env[HTTPS_PROXY] || process.env[HTTPS_PROXY.toLowerCase()]) {
-            this.logger?.verbose("Loading proxy value from HTTPS_PROXY environment variable.");
+            this.logger?.debug("Loading proxy value from HTTPS_PROXY environment variable.");
 
             return process.env[HTTPS_PROXY] || process.env[HTTPS_PROXY.toLowerCase()];
         }
 
-        this.logger?.verbose(
+        this.logger?.debug(
             "No proxy value found in either HTTPS_PROXY or HTTP_PROXY environment variables.",
         );
 
@@ -386,16 +386,16 @@ export class HttpClientCore {
         tunnelOptions: tunnel.HttpsOverHttpsOptions,
     ): http.Agent | https.Agent {
         if (isHttpsRequest && isHttpsProxy) {
-            this.logger?.verbose("Creating https request over https proxy tunneling agent");
+            this.logger?.debug("Creating https request over https proxy tunneling agent");
             return tunnel.httpsOverHttps(tunnelOptions);
         } else if (isHttpsRequest && !isHttpsProxy) {
-            this.logger?.verbose("Creating https request over http proxy tunneling agent");
+            this.logger?.debug("Creating https request over http proxy tunneling agent");
             return tunnel.httpsOverHttp(tunnelOptions);
         } else if (!isHttpsRequest && isHttpsProxy) {
-            this.logger?.verbose("Creating http request over https proxy tunneling agent");
+            this.logger?.debug("Creating http request over https proxy tunneling agent");
             return tunnel.httpOverHttps(tunnelOptions);
         } else {
-            this.logger?.verbose("Creating http request over http proxy tunneling agent");
+            this.logger?.debug("Creating http request over http proxy tunneling agent");
             return tunnel.httpOverHttp(tunnelOptions);
         }
     }

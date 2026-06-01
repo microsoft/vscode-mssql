@@ -10,7 +10,7 @@ import SqlToolsServiceClient from "./languageservice/serviceclient";
 import { CapabilitiesResult, GetCapabilitiesRequest } from "./models/contracts/connection";
 import { IConnectionProfile } from "./models/interfaces";
 import { AuthenticationType } from "./sharedInterfaces/connectionDialog";
-import { Logger } from "./models/logger";
+import { ILogger2, logger2 } from "./models/logger2";
 import VscodeWrapper from "./controllers/vscodeWrapper";
 import MainController from "./controllers/mainController";
 import { cmdAddObjectExplorer } from "./constants/constants";
@@ -31,14 +31,14 @@ interface ConnectionOptionProperty {
  * Handles MSSQL protocol URIs.
  */
 export class MssqlProtocolHandler {
-    private _logger: Logger;
+    private _logger: ILogger2;
 
     constructor(
         vscodeWrapper: VscodeWrapper,
         private mainController: MainController,
         private client: SqlToolsServiceClient,
     ) {
-        this._logger = Logger.create(vscodeWrapper.outputChannel, "MssqlProtocolHandler");
+        this._logger = logger2.withPrefix("MssqlProtocolHandler");
     }
 
     /**

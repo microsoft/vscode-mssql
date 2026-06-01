@@ -11,7 +11,7 @@ import * as vscode from "vscode";
 import * as fs from "fs/promises";
 import DotnetRuntimeProvider from "../../src/languageservice/dotnetRuntimeProvider";
 import * as Constants from "../../src/constants/constants";
-import { ILogger } from "../../src/models/interfaces";
+import { ILogger2 } from "../../src/models/logger2";
 import { ServiceClient } from "../../src/constants/locConstants";
 import { stubILogger } from "./utils";
 
@@ -19,7 +19,7 @@ chai.use(sinonChai);
 
 suite("DotnetRuntimeProvider tests", () => {
     let sandbox: sinon.SinonSandbox;
-    let logger: sinon.SinonStubbedInstance<ILogger>;
+    let logger: sinon.SinonStubbedInstance<ILogger2>;
     let executeCommandStub: sinon.SinonStub;
     let getExtensionStub: sinon.SinonStub;
     let activateExtensionStub: sinon.SinonStub;
@@ -86,7 +86,7 @@ suite("DotnetRuntimeProvider tests", () => {
             expect(fsAccessStub).to.have.been.calledWith("/extension/dotnet");
             expect(getExtensionStub).to.have.been.calledWith(Constants.dotnetRuntimeExtensionId);
             expect(activateExtensionStub).to.have.been.called;
-            expect(logger.verbose).to.have.been.calledWithMatch("Acquired .NET runtime via");
+            expect(logger.debug).to.have.been.calledWithMatch("Acquired .NET runtime via");
         });
 
         test("should request the runtime version from the provided runtimeconfig", async () => {

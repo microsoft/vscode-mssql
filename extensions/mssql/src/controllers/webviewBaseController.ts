@@ -31,7 +31,7 @@ import {
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 
 import { getEditorEOL, getErrorMessage, getNonce } from "../utils/utils";
-import { Logger } from "../models/logger";
+import { ILogger2, logger2 } from "../models/logger2";
 import VscodeWrapper from "./vscodeWrapper";
 import {
     AbstractMessageReader,
@@ -87,7 +87,7 @@ class WebviewControllerMessageReader extends AbstractMessageReader implements Me
 
 class WebviewControllerMessageWriter extends AbstractMessageWriter implements MessageWriter {
     private _webview: vscode.Webview;
-    constructor(private logger: Logger) {
+    constructor(private logger: ILogger2) {
         super();
     }
     updateWebview(webview: vscode.Webview) {
@@ -140,7 +140,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         (state: State, payload: Reducers[keyof Reducers]) => ReducerResponse<State>
     >();
 
-    protected logger: Logger;
+    protected logger: ILogger2;
 
     /**
      * Creates a new WebviewPanelController
@@ -159,7 +159,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             vscodeWrapper = new VscodeWrapper();
         }
 
-        this.logger = Logger.create(vscodeWrapper.outputChannel, viewId);
+        this.logger = logger2.withPrefix(viewId ?? "WebviewBaseController");
 
         this._connectionReader = new WebviewControllerMessageReader();
         this._connectionWriter = new WebviewControllerMessageWriter(this.logger);
@@ -314,7 +314,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
                 }
                 this._webviewReady.resolve();
 
-                console.log(
+                console.trace(
                     `Load stats for ${this._sourceFile}` + "\n" + `Total time: ${timeToLoad} ms`,
                 );
                 this._endLoadActivity.end(ActivityStatus.Succeeded, {
@@ -350,7 +350,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
 
         this.onRequest(ExecuteCommandRequest.type, async (params: ExecuteCommandParams) => {
             if (!params?.command) {
-                this.logger.log("No command provided to execute");
+                this.logger.trace("No command provided to execute");
                 return;
             }
             const args = params?.args ?? [];
@@ -362,7 +362,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         });
 
         this.onRequest(ReducerRequest.type<Reducers>(), async (action) => {
-            this.logger.verbose(`Reducer action received from webview: ${action.type as string}`);
+            this.logger.debug(`Reducer action received from webview: ${action.type as string}`);
             const reducerActivity = startActivity(
                 TelemetryViews.WebviewController,
                 TelemetryActions.Reducer,
@@ -380,7 +380,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             if (reducer) {
                 try {
                     this.state = await reducer(this.state, action.payload);
-                    this.logger.verbose(`Reducer action succeeded: ${action.type as string}`);
+                    this.logger.debug(`Reducer action succeeded: ${action.type as string}`);
                     reducerActivity.end(ActivityStatus.Succeeded);
                 } catch (error) {
                     this.logger.error(
@@ -438,7 +438,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             params: TParam,
             token: CancellationToken,
         ) => {
-            this.logger.verbose(`Request received from webview: ${type.method}`);
+            this.logger.debug(`Request received from webview: ${type.method}`);
             const handlerActivity = startActivity(
                 TelemetryViews.WebviewController,
                 TelemetryActions.OnRequest,
@@ -457,7 +457,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
                 if (result instanceof Promise) {
                     return result.then(
                         (res) => {
-                            this.logger.verbose(`Request succeeded: ${type.method}`);
+                            this.logger.debug(`Request succeeded: ${type.method}`);
                             handlerActivity.end(ActivityStatus.Succeeded);
                             return res;
                         },
@@ -470,7 +470,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
                         },
                     );
                 } else {
-                    this.logger.verbose(`Request succeeded: ${type.method}`);
+                    this.logger.debug(`Request succeeded: ${type.method}`);
                     handlerActivity.end(ActivityStatus.Succeeded);
                     return result;
                 }

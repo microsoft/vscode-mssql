@@ -24,7 +24,7 @@ import {
 import { getErrorMessage, uuid } from "../utils/utils";
 import { MssqlChatAgent as loc } from "../constants/locConstants";
 import MainController from "../controllers/mainController";
-import { Logger } from "../models/logger";
+import { ILogger2, logger2 } from "../models/logger2";
 import {
     handleChatCommand,
     commandSkipsConnectionLabels,
@@ -58,7 +58,7 @@ export const createSqlAgentRequestHandler = (
     })();
 
     const getLogger = (() => {
-        const logger = Logger.create(vscodeWrapper.outputChannel, "MssqlCopilot");
+        const logger = logger2.withPrefix("MssqlCopilot");
 
         return () => logger;
     })();
@@ -73,8 +73,8 @@ export const createSqlAgentRequestHandler = (
         const logger = getLogger();
         let conversationUri = getNextConversationUri();
         let connectionUri = vscodeWrapper.activeTextEditorUri;
-        logger.verbose("In handler");
-        logger.logDebug(
+        logger.debug("In handler");
+        logger.debug(
             `Starting new chat conversation: conversion '${conversationUri}' with connection '${connectionUri}'`,
         );
 
@@ -89,29 +89,29 @@ export const createSqlAgentRequestHandler = (
 
         let referenceTexts: string[] = [];
         const activeEditor = vscode.window.activeTextEditor;
-        logger.logDebug(activeEditor ? "Active editor found." : "No active editor found.");
+        logger.debug(activeEditor ? "Active editor found." : "No active editor found.");
 
         async function findEditorFromReferences(
             references: readonly vscode.ChatPromptReference[],
         ): Promise<vscode.TextEditor | undefined> {
-            logger.verbose("in findEditorFromReferences");
+            logger.debug("in findEditorFromReferences");
             const tabGroups = vscode.window.tabGroups.all;
 
             // Function to check if document is SQL
             function isSqlDocument(document: vscode.TextDocument): boolean {
-                logger.verbose("in isSqlDocument");
-                logger.logDebug(`Checking if document is SQL: ${document.languageId}`);
+                logger.debug("in isSqlDocument");
+                logger.debug(`Checking if document is SQL: ${document.languageId}`);
                 // Check if the document is an SQL file
                 // You can add more language IDs as needed
                 // For example, you might want to include "sql" or "mssql" for SQL files
                 const sqlLanguageIds = ["sql", "mssql"];
                 const isSql = sqlLanguageIds.includes(document.languageId);
-                logger.logDebug(`Is SQL document: ${isSql ? "Yes" : "No"}`);
-                logger.verbose("Exiting isSqlDocument");
+                logger.debug(`Is SQL document: ${isSql ? "Yes" : "No"}`);
+                logger.debug("Exiting isSqlDocument");
                 return isSql;
             }
 
-            logger.info("Checking references...");
+            logger.debug("Checking references...");
             for (const reference of references) {
                 const value = reference.value;
                 let referenceUri: vscode.Uri | undefined;
@@ -122,12 +122,10 @@ export const createSqlAgentRequestHandler = (
                     referenceUri = value;
                 }
 
-                logger.logDebug(
-                    referenceUri ? "Found a reference URI." : "No reference URI found.",
-                );
+                logger.debug(referenceUri ? "Found a reference URI." : "No reference URI found.");
 
                 if (referenceUri) {
-                    logger.info("Looking for matching visible editor...");
+                    logger.debug("Looking for matching visible editor...");
 
                     // Try to find this URI in the visible editors, but only if it's an SQL file
                     const matchingEditor = vscode.window.visibleTextEditors.find(
@@ -137,11 +135,11 @@ export const createSqlAgentRequestHandler = (
                     );
 
                     if (matchingEditor) {
-                        logger.info("Returning matching visible editor.");
+                        logger.debug("Returning matching visible editor.");
                         return matchingEditor;
                     }
 
-                    logger.info("No matching visible editor found. Checking tab groups...");
+                    logger.debug("No matching visible editor found. Checking tab groups...");
                     // Try to find this URI in tab groups
                     for (const group of tabGroups) {
                         const activeTab = group.activeTab;
@@ -154,13 +152,13 @@ export const createSqlAgentRequestHandler = (
                                 /* eslint-enable @typescript-eslint/no-explicit-any */
 
                                 if (tabUri && tabUri.toString() === referenceUri.toString()) {
-                                    logger.info("Found tab URI that matches reference URI.");
+                                    logger.debug("Found tab URI that matches reference URI.");
                                     const editor = vscode.window.visibleTextEditors.find(
                                         (ed) => ed.document.uri.toString() === tabUri.toString(),
                                     );
                                     // Only return the editor if it's an SQL document
                                     if (editor && isSqlDocument(editor.document)) {
-                                        logger.info("Returning matching SQL editor.");
+                                        logger.debug("Returning matching SQL editor.");
                                         return editor;
                                     }
                                 }
@@ -172,7 +170,7 @@ export const createSqlAgentRequestHandler = (
                 }
             }
 
-            logger.info("No matching editor found in references. Checking tab groups...");
+            logger.debug("No matching editor found in references. Checking tab groups...");
             // If no match found, try to get any active SQL tab from tab groups
             for (const group of tabGroups) {
                 const activeTab = group.activeTab;
@@ -191,7 +189,7 @@ export const createSqlAgentRequestHandler = (
                             );
                             // Only return the editor if it's an SQL document
                             if (editor && isSqlDocument(editor.document)) {
-                                logger.info("Returning active SQL editor from tab group.");
+                                logger.debug("Returning active SQL editor from tab group.");
                                 return editor;
                             }
                         }
@@ -201,22 +199,22 @@ export const createSqlAgentRequestHandler = (
                 }
             }
 
-            logger.verbose("Exiting findEditorFromReferences");
-            logger.logDebug("No matching editor found in tab groups. Returning undefined.");
+            logger.debug("Exiting findEditorFromReferences");
+            logger.debug("No matching editor found in tab groups. Returning undefined.");
             return undefined;
         }
 
         // Process references using the appropriate editor
-        logger.info("Process references using the appropriate editor...");
+        logger.debug("Process references using the appropriate editor...");
         if (request.references) {
             // Use activeEditor if available, otherwise try to find one from references
             const editorToUse =
                 activeEditor || (await findEditorFromReferences(request.references));
-            logger.info(editorToUse ? "Using editor found." : "No editor found.");
+            logger.debug(editorToUse ? "Using editor found." : "No editor found.");
 
             // Use the preferred editor's URI if available
             connectionUri = editorToUse?.document.uri.toString() ?? connectionUri;
-            logger.info(
+            logger.debug(
                 connectionUri
                     ? "Using the preferred editor's connection URI."
                     : "No connection URI found.",
@@ -226,7 +224,7 @@ export const createSqlAgentRequestHandler = (
                 const value = reference.value;
                 if (value instanceof vscode.Location) {
                     // Could be a document / selection in the current editor
-                    logger.info("value is a Location");
+                    logger.trace("value is a Location");
                     if (
                         editorToUse &&
                         value.uri.toString() === editorToUse.document.uri.toString()
@@ -235,22 +233,22 @@ export const createSqlAgentRequestHandler = (
                             `${reference.modelDescription ?? "ChatResponseReference"}: ${editorToUse.document.getText(value.range)}`,
                         );
                     } else {
-                        logger.info("Opening text document");
+                        logger.trace("Opening text document");
                         const doc = await vscode.workspace.openTextDocument(value.uri);
                         referenceTexts.push(
                             `${reference.modelDescription ?? "ChatResponseReference"}: ${doc.getText(value.range)}`,
                         );
                     }
                 } else if (value instanceof vscode.Uri) {
-                    logger.info("Value is a URI");
+                    logger.trace("Value is a URI");
                     // Could be a file/document
-                    logger.info("Opening text document");
+                    logger.trace("Opening text document");
                     const doc = await vscode.workspace.openTextDocument(value);
                     referenceTexts.push(
                         `${reference.modelDescription ?? "ChatResponseReference"}: ${doc.getText()}`,
                     );
                 } else if (typeof reference.value === "string") {
-                    logger.info("reference value is a string)");
+                    logger.trace("reference value is a string)");
                     // Could be a string
                     referenceTexts.push(
                         `${reference.modelDescription ?? "ChatResponseReference"}: ${reference.value}`,
@@ -281,7 +279,9 @@ export const createSqlAgentRequestHandler = (
             const copilotDebugLogging = vscodeWrapper
                 .getConfiguration()
                 .get(Constants.copilotDebugLogging, false);
-            logger.info(copilotDebugLogging ? "Debug logging enabled." : "Debug logging disabled.");
+            logger.debug(
+                copilotDebugLogging ? "Debug logging enabled." : "Debug logging disabled.",
+            );
             if (copilotDebugLogging) {
                 stream.progress(
                     loc.usingModel(
@@ -293,7 +293,7 @@ export const createSqlAgentRequestHandler = (
 
             const connection = controller.connectionManager.getConnectionInfo(connectionUri);
             if (!connectionUri || !connection) {
-                logger.info(
+                logger.debug(
                     "No connection URI/connection was found. Sending prompt to default language model.",
                 );
 
@@ -397,7 +397,7 @@ export const createSqlAgentRequestHandler = (
                 prompt,
             );
             if (!success) {
-                logger.info(
+                logger.warn(
                     "Failed to start conversation. Sending prompt to default language model.",
                 );
                 activity.update({
@@ -425,7 +425,7 @@ export const createSqlAgentRequestHandler = (
             let printTextout = false;
 
             while (continuePollingMessages) {
-                logger.logDebug(`Continue polling messages for '${conversationUri}'`);
+                logger.debug(`Continue polling messages for '${conversationUri}'`);
 
                 // Default continuePollingMessages to true at the start of each loop
                 continuePollingMessages = true;
@@ -436,7 +436,7 @@ export const createSqlAgentRequestHandler = (
                 }
 
                 // Process tool calls and get the result
-                logger.info("Processing tool calls and awaiting for the result...");
+                logger.debug("Processing tool calls and awaiting for the result...");
                 const result = await processToolCalls(
                     stream,
                     sqlTools,
@@ -455,7 +455,7 @@ export const createSqlAgentRequestHandler = (
                 // Handle different message types
                 switch (result.messageType) {
                     case MessageType.Complete:
-                        logger.info("Processing complete message...");
+                        logger.debug("Processing complete message...");
                         activity.end(ActivityStatus.Succeeded, {
                             correlationId: correlationId,
                         });
@@ -469,7 +469,7 @@ export const createSqlAgentRequestHandler = (
 
                     case MessageType.RequestLLM:
                     case MessageType.RequestDirectLLM:
-                        logger.info("Processing LLM message...");
+                        logger.debug("Processing LLM message...");
                         const { text, tools, print } = await handleRequestLLMMessage(
                             conversationUri,
                             result,
@@ -506,7 +506,7 @@ export const createSqlAgentRequestHandler = (
                         break;
                 }
 
-                logger.logDebug(`Done processing message for '${conversationUri}'`);
+                logger.debug(`Done processing message for '${conversationUri}'`);
                 // Output reply text if needed
                 if (printTextout) {
                     UserSurvey.getInstance().promptUserForNPSFeedback("copilot_askMode");
@@ -541,9 +541,9 @@ export const createSqlAgentRequestHandler = (
         replyText: string,
         copilotService: CopilotService,
         correlationId: string,
-        logger: Logger,
+        logger: ILogger2,
     ): Promise<GetNextMessageResponse> {
-        logger.verbose("in processToolCalls");
+        logger.debug("in processToolCalls");
 
         if (sqlTools.length === 0) {
             sendErrorEvent(
@@ -563,7 +563,7 @@ export const createSqlAgentRequestHandler = (
         let result: GetNextMessageResponse;
         for (const toolCall of sqlTools) {
             try {
-                logger.logDebug(`Getting next message for conversationUri: ${conversationUri}`);
+                logger.debug(`Getting next message for conversationUri: ${conversationUri}`);
 
                 result = await withTimeout(
                     copilotService.getNextMessage(
@@ -576,7 +576,7 @@ export const createSqlAgentRequestHandler = (
                 );
 
                 if (result.messageType === MessageType.Complete) {
-                    logger.logDebug(
+                    logger.debug(
                         `Message type is complete for conversationUri: ${conversationUri}`,
                     );
                     break;
@@ -612,7 +612,7 @@ export const createSqlAgentRequestHandler = (
             throw new Error("All tool calls failed or timed out.");
         }
 
-        logger.logDebug(`Finished processing tool calls for conversationUri: ${conversationUri}`);
+        logger.debug(`Finished processing tool calls for conversationUri: ${conversationUri}`);
         return result;
     }
 
@@ -620,9 +620,9 @@ export const createSqlAgentRequestHandler = (
         result: GetNextMessageResponse,
         context: vscode.ChatContext,
         referenceTexts: string[],
-        logger: Logger,
+        logger: ILogger2,
     ): vscode.LanguageModelChatMessage[] {
-        logger.verbose("in prepareRequestMessages");
+        logger.debug("in prepareRequestMessages");
 
         // Get all messages from requestMessages
         const requestMessages = result.requestMessages;
@@ -632,7 +632,7 @@ export const createSqlAgentRequestHandler = (
             (message: LanguageModelRequestMessage) => message.role !== MessageRole.System,
         );
 
-        logger.info("Getting initial system messages");
+        logger.trace("Getting initial system messages");
 
         // Extract initial system messages (ones that appear before any user message)
         const initialSystemMessages = requestMessages
@@ -641,7 +641,7 @@ export const createSqlAgentRequestHandler = (
                 vscode.LanguageModelChatMessage.Assistant(message.text),
             );
 
-        logger.info("Getting history messages");
+        logger.trace("Getting history messages");
 
         // Convert history messages with optional prefix marker
         const historyPrefix = "[HISTORY] "; // Can be empty string if no marker is desired
@@ -702,7 +702,7 @@ export const createSqlAgentRequestHandler = (
             })
             .filter((msg): msg is vscode.LanguageModelChatMessage => msg !== undefined);
 
-        logger.info("Getting reference messages");
+        logger.trace("Getting reference messages");
         // Include reference messages with optional marker
         const referencePrefix = "[REFERENCE] "; // Can be empty string if no marker is desired
         const referenceMessages = referenceTexts
@@ -716,7 +716,7 @@ export const createSqlAgentRequestHandler = (
             return [...initialSystemMessages, ...historyMessages, ...referenceMessages];
         }
 
-        logger.info("Getting remaining messages...");
+        logger.trace("Getting remaining messages...");
         // Process the remaining messages, preserving their original order
         const remainingMessages = requestMessages
             .slice(firstNonSystemIndex)
@@ -728,7 +728,7 @@ export const createSqlAgentRequestHandler = (
                 }
             });
 
-        logger.info("Returning combined messages...");
+        logger.trace("Returning combined messages...");
         // Combine messages in the desired order
         return [
             ...initialSystemMessages,
@@ -740,9 +740,9 @@ export const createSqlAgentRequestHandler = (
 
     function mapRequestTools(
         tools: LanguageModelChatTool[],
-        logger: Logger,
+        logger: ILogger2,
     ): vscode.LanguageModelChatTool[] {
-        logger.verbose("in mapRequestTools...");
+        logger.debug("in mapRequestTools...");
 
         return tools.map((tool, index): vscode.LanguageModelChatTool => {
             try {
@@ -783,13 +783,13 @@ export const createSqlAgentRequestHandler = (
         chatResponse: vscode.LanguageModelChatResponse,
         tools: LanguageModelChatTool[],
         correlationId: string,
-        logger: Logger,
+        logger: ILogger2,
     ): Promise<{
         replyText: string;
         toolsCalled: { tool: LanguageModelChatTool; parameters: string }[];
         printTextout: boolean;
     }> {
-        logger.verbose("in processResponseParts...");
+        logger.debug("in processResponseParts...");
         const toolsCalled: {
             tool: LanguageModelChatTool;
             parameters: string;
@@ -799,11 +799,11 @@ export const createSqlAgentRequestHandler = (
 
         for await (const part of chatResponse.stream) {
             if (part instanceof vscode.LanguageModelTextPart) {
-                logger.info("Part is a language model text part.");
+                logger.trace("Part is a language model text part.");
                 replyText += part.value;
                 printTextout = true;
             } else if (part instanceof vscode.LanguageModelToolCallPart) {
-                logger.info("Part is a language model tool call part.");
+                logger.trace("Part is a language model tool call part.");
                 const { sqlTool: tool, sqlToolParameters: parameters } = await processToolCall(
                     tools,
                     part,
@@ -812,13 +812,13 @@ export const createSqlAgentRequestHandler = (
                     logger,
                 );
                 if (tool) {
-                    logger.logDebug(`Pushing ${tool.functionName} to toolsCalled`);
+                    logger.debug(`Pushing ${tool.functionName} to toolsCalled`);
                     toolsCalled.push({ tool, parameters });
                 }
             }
         }
 
-        logger.info("Finished processing response parts.");
+        logger.debug("Finished processing response parts.");
         return { replyText, toolsCalled, printTextout };
     }
 
@@ -831,13 +831,13 @@ export const createSqlAgentRequestHandler = (
         context: vscode.ChatContext, // pass this context from above
         referenceTexts: string[],
         correlationId: string,
-        logger: Logger,
+        logger: ILogger2,
     ): Promise<{
         text: string;
         tools: { tool: LanguageModelChatTool; parameters: string }[];
         print: boolean;
     }> {
-        logger.verbose("in handleRequestLLMMessage");
+        logger.debug("in handleRequestLLMMessage");
         const requestTools = mapRequestTools(result.tools, logger);
         const options: vscode.LanguageModelChatRequestOptions = {
             justification: "Azure SQL Copilot agent requires access to language model.",
@@ -845,7 +845,7 @@ export const createSqlAgentRequestHandler = (
         };
 
         if (result.messageType === MessageType.RequestLLM) {
-            logger.info("result.messageType is RequestLLM");
+            logger.debug("result.messageType is RequestLLM");
             options.tools = requestTools;
         }
 
@@ -860,7 +860,7 @@ export const createSqlAgentRequestHandler = (
             logger,
         );
 
-        logger.info("Finished handling request LLM message.");
+        logger.debug("Finished handling request LLM message.");
         return {
             text: replyText,
             tools: toolsCalled,
@@ -874,12 +874,12 @@ export const createSqlAgentRequestHandler = (
         part: vscode.LanguageModelToolCallPart,
         stream: vscode.ChatResponseStream,
         correlationId: string,
-        logger: Logger,
+        logger: ILogger2,
     ): Promise<{
         sqlTool: LanguageModelChatTool | undefined;
         sqlToolParameters: string | undefined;
     }> {
-        logger.verbose("in processToolCall");
+        logger.debug("in processToolCall");
         // Initialize variables to return
         let sqlTool: LanguageModelChatTool | undefined;
         let sqlToolParameters: string | undefined;
@@ -889,10 +889,10 @@ export const createSqlAgentRequestHandler = (
             .getConfiguration()
             .get(Constants.copilotDebugLogging, false);
 
-        logger.info("Looking up tool");
+        logger.trace("Looking up tool");
         const tool = resultTools.find((tool) => tool.functionName === part.name);
         if (!tool) {
-            logger.logDebug(`No tool was found for: ${part.name} - ${JSON.stringify(part.input)}}`);
+            logger.debug(`No tool was found for: ${part.name} - ${JSON.stringify(part.input)}}`);
             if (copilotDebugLogging) {
                 stream.markdown(loc.toolLookupFor(part.name, JSON.stringify(part.input)));
             }
@@ -928,7 +928,7 @@ export const createSqlAgentRequestHandler = (
         }
 
         // Log tool call
-        logger.logDebug(`Calling tool: ${tool.functionName} with ${sqlToolParameters}`);
+        logger.debug(`Calling tool: ${tool.functionName} with ${sqlToolParameters}`);
         if (copilotDebugLogging) {
             stream.progress(loc.callingTool(tool.functionName, sqlToolParameters));
         }
@@ -939,7 +939,7 @@ export const createSqlAgentRequestHandler = (
             correlationId: correlationId,
         });
 
-        logger.info("Finished processing tool call.");
+        logger.debug("Finished processing tool call.");
 
         return { sqlTool, sqlToolParameters };
     }
@@ -948,9 +948,9 @@ export const createSqlAgentRequestHandler = (
         err: vscode.LanguageModelError,
         stream: vscode.ChatResponseStream,
         correlationId: string,
-        logger: Logger,
+        logger: ILogger2,
     ): void {
-        logger.verbose("in handleLanguageModelError");
+        logger.debug("in handleLanguageModelError");
         logger.error("Language Model Error:", getErrorMessage(err), "Code:", err.code);
 
         const errorMessages: Record<string, string> = {
@@ -984,9 +984,9 @@ export const createSqlAgentRequestHandler = (
         token: vscode.CancellationToken,
         activity: ActivityObject,
         correlationId: string,
-        logger: Logger,
+        logger: ILogger2,
     ): Promise<void> {
-        logger.verbose("in sendToDefaultLanguageModel");
+        logger.debug("in sendToDefaultLanguageModel");
         try {
             logger.info(`Using ${model.name} to process your request...`);
             stream.progress(loc.usingModelToProcessRequest(model.name));
@@ -997,7 +997,7 @@ export const createSqlAgentRequestHandler = (
                 tools: [], // No tools involved for this fallback
             };
 
-            logger.info("Sending request to default language model.");
+            logger.debug("Sending request to default language model.");
             const chatResponse = await model.sendRequest(messages, options, token);
 
             let replyText = "";
@@ -1008,14 +1008,14 @@ export const createSqlAgentRequestHandler = (
             }
 
             if (replyText) {
-                logger.info("Received response from default language model.");
+                logger.debug("Received response from default language model.");
                 activity.end(ActivityStatus.Succeeded, {
                     correlationId: correlationId,
                     message: "The default language model succeeded.",
                 });
                 stream.markdown(replyText);
             } else {
-                logger.info("No output from the default language model.");
+                logger.warn("No output from the default language model.");
                 activity.end(ActivityStatus.Succeeded, {
                     correlationId: correlationId,
                     message: "The default language model did not return any output.",
@@ -1030,16 +1030,16 @@ export const createSqlAgentRequestHandler = (
             logger.error("Error in fallback language model call:", getErrorMessage(err));
             stream.markdown(loc.errorOccurredWhileProcessingRequest);
         }
-        logger.info("Finished sending request to default language model.");
+        logger.debug("Finished sending request to default language model.");
     }
 
     function handleError(
         err: unknown,
         stream: vscode.ChatResponseStream,
         correlationId: string,
-        logger: Logger,
+        logger: ILogger2,
     ): void {
-        logger.verbose("in handleError");
+        logger.debug("in handleError");
 
         if (err instanceof vscode.LanguageModelError) {
             handleLanguageModelError(err, stream, correlationId, logger);
