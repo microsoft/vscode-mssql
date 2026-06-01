@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 import * as fs from "fs/promises";
-import { ILogger2 } from "../models/logger2";
+import { ILogger } from "../models/logger";
 import * as Constants from "../constants/constants";
 import { ServiceClient } from "../constants/locConstants";
 import { getErrorMessage } from "../utils/utils";
@@ -18,7 +18,7 @@ import { getErrorMessage } from "../utils/utils";
  * 2. Error with guidance to install the offline VSIX
  */
 export default class DotnetRuntimeProvider {
-    constructor(private _logger: ILogger2) {}
+    constructor(private _logger: ILogger) {}
 
     /**
      * Acquires a path to a `dotnet` executable suitable for running service assemblies.

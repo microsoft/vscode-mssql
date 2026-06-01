@@ -9,11 +9,11 @@ import * as chai from "chai";
 import * as vscode from "vscode";
 import { expect } from "chai";
 import {
-    Logger2,
-    logger2,
-    logger2OutputChannelName,
-    resetLogger2DefaultChannelForTest,
-} from "../../src/models/logger2";
+    Logger,
+    logger,
+    loggerOutputChannelName,
+    resetLoggerDefaultChannelForTest,
+} from "../../src/models/logger";
 import * as Utils from "../../src/models/utils";
 
 chai.use(sinonChai);
@@ -48,17 +48,17 @@ function createChannelStub(): TestLogOutputChannel {
     } as unknown as TestLogOutputChannel;
 }
 
-suite("Logger2 tests", () => {
+suite("Logger tests", () => {
     let sandbox: sinon.SinonSandbox;
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        resetLogger2DefaultChannelForTest();
+        resetLoggerDefaultChannelForTest();
     });
 
     teardown(() => {
         sandbox.restore();
-        resetLogger2DefaultChannelForTest();
+        resetLoggerDefaultChannelForTest();
     });
 
     test("global logger lazily creates and reuses the MSSQL log channel", () => {
@@ -67,10 +67,10 @@ suite("Logger2 tests", () => {
             .stub(vscode.window, "createOutputChannel")
             .returns(channel);
 
-        logger2.info("first message");
-        logger2.warn("second message");
+        logger.info("first message");
+        logger.warn("second message");
 
-        expect(createOutputChannelStub).to.have.been.calledWithExactly(logger2OutputChannelName, {
+        expect(createOutputChannelStub).to.have.been.calledWithExactly(loggerOutputChannelName, {
             log: true,
         });
         expect(channel.info).to.have.been.calledWithExactly("first message");
@@ -79,7 +79,7 @@ suite("Logger2 tests", () => {
 
     test("withPrefix prepends the prefix to all messages", () => {
         const channel = createChannelStub();
-        const prefixedLogger = Logger2.forChannel(channel).withPrefix("SchemaCompare");
+        const prefixedLogger = Logger.forChannel(channel).withPrefix("SchemaCompare");
 
         prefixedLogger.debug("operation started", { id: 42 });
 
@@ -91,7 +91,7 @@ suite("Logger2 tests", () => {
     test("forChannel uses the provided channel without creating a new one", () => {
         const channel = createChannelStub();
         const createOutputChannelStub = sandbox.stub(vscode.window, "createOutputChannel");
-        const alternateLogger = Logger2.forChannel(channel, "Profiler");
+        const alternateLogger = Logger.forChannel(channel, "Profiler");
 
         alternateLogger.error("failed", new Error("boom"));
 
@@ -108,7 +108,7 @@ suite("Logger2 tests", () => {
         const createOutputChannelStub = sandbox
             .stub(vscode.window, "createOutputChannel")
             .returns(channel);
-        const alternateLogger = Logger2.forChannelName("Custom Channel", "Custom");
+        const alternateLogger = Logger.forChannelName("Custom Channel", "Custom");
 
         alternateLogger.trace("hello");
         alternateLogger.dispose();
@@ -122,7 +122,7 @@ suite("Logger2 tests", () => {
 
     test("show delegates to the underlying channel", () => {
         const channel = createChannelStub();
-        const logger = Logger2.forChannel(channel);
+        const logger = Logger.forChannel(channel);
 
         logger.show(true);
 
@@ -131,7 +131,7 @@ suite("Logger2 tests", () => {
 
     test("piiSanitized logs sanitized values when pii logging is enabled", () => {
         const channel = createChannelStub();
-        const logger = Logger2.forChannel(channel, "Auth");
+        const logger = Logger.forChannel(channel, "Auth");
         sandbox.stub(Utils, "getConfigPiiLogging").returns(true);
 
         logger.piiSanitized(
@@ -157,7 +157,7 @@ suite("Logger2 tests", () => {
 
     test("piiSanitized does not log when pii logging is disabled", () => {
         const channel = createChannelStub();
-        const logger = Logger2.forChannel(channel);
+        const logger = Logger.forChannel(channel);
         sandbox.stub(Utils, "getConfigPiiLogging").returns(false);
 
         logger.piiSanitized("secret", [], []);

@@ -13,7 +13,7 @@ import {
     DidChangeEncryptionIVKeyParams,
     EncryptionKeysChangedNotification,
 } from "../models/contracts/connection";
-import { ILogger2 } from "../models/logger2";
+import { ILogger } from "../models/logger";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import { azureAccountProviderCredentials } from "./constants";
 
@@ -21,7 +21,7 @@ export class FileEncryptionHelper {
     constructor(
         private readonly _credentialStore: ICredentialStore,
         private readonly _vscodeWrapper: VscodeWrapper,
-        protected readonly _logger: ILogger2,
+        protected readonly _logger: ILogger,
         protected readonly _fileName: string,
     ) {
         this._algorithm = "aes-256-cbc";

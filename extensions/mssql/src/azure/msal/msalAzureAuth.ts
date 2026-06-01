@@ -26,7 +26,7 @@ import {
     LoginResult,
 } from "../../models/contracts/azure";
 import { IDeferred } from "../../models/interfaces";
-import { ILogger2 } from "../../models/logger2";
+import { ILogger } from "../../models/logger";
 import { AzureAuthError } from "../azureAuthError";
 import * as Constants from "../constants";
 import { ErrorResponseBody } from "@azure/arm-subscriptions";
@@ -53,7 +53,7 @@ export abstract class MsalAzureAuth {
         protected clientApplication: PublicClientApplication,
         protected readonly authType: AzureAuthType,
         protected readonly vscodeWrapper: VscodeWrapper,
-        protected readonly logger: ILogger2,
+        protected readonly logger: ILogger,
     ) {
         this.loginEndpointUrl =
             this.providerSettings.loginEndpoint ?? "https://login.microsoftonline.com/";

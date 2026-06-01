@@ -11,7 +11,7 @@ import * as vscode from "vscode";
 import * as fs from "fs/promises";
 import DotnetRuntimeProvider from "../../src/languageservice/dotnetRuntimeProvider";
 import * as Constants from "../../src/constants/constants";
-import { ILogger2 } from "../../src/models/logger2";
+import { ILogger } from "../../src/models/logger";
 import { ServiceClient } from "../../src/constants/locConstants";
 import { stubILogger } from "./utils";
 
@@ -19,7 +19,7 @@ chai.use(sinonChai);
 
 suite("DotnetRuntimeProvider tests", () => {
     let sandbox: sinon.SinonSandbox;
-    let logger: sinon.SinonStubbedInstance<ILogger2>;
+    let logger: sinon.SinonStubbedInstance<ILogger>;
     let executeCommandStub: sinon.SinonStub;
     let getExtensionStub: sinon.SinonStub;
     let activateExtensionStub: sinon.SinonStub;

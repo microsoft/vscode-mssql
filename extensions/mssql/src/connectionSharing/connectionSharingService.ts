@@ -11,7 +11,7 @@ import { IConnectionProfile } from "../models/interfaces";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import { RequestType } from "vscode-languageclient";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import { ILogger2, logger2 } from "../models/logger2";
+import { ILogger, logger } from "../models/logger";
 import * as Constants from "../constants/constants";
 import { ScriptingService } from "../scripting/scriptingService";
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
@@ -48,7 +48,7 @@ export class ConnectionSharingError extends Error {
 }
 
 export class ConnectionSharingService implements mssql.IConnectionSharingService {
-    private _logger: ILogger2;
+    private _logger: ILogger;
     constructor(
         private readonly _context: vscode.ExtensionContext,
         private readonly _client: SqlToolsServiceClient,
@@ -56,7 +56,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         _vscodeWrapper: VscodeWrapper,
         private readonly _scriptingService: ScriptingService,
     ) {
-        this._logger = logger2.withPrefix("ConnectionSharingService");
+        this._logger = logger.withPrefix("ConnectionSharingService");
         this.registerCommands();
     }
 

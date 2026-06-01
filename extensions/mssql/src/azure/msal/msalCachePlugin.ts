@@ -10,7 +10,7 @@ import * as lockFile from "lockfile";
 import * as path from "path";
 import VscodeWrapper from "../../controllers/vscodeWrapper";
 import { ICredentialStore } from "../../credentialstore/icredentialstore";
-import { ILogger2 } from "../../models/logger2";
+import { ILogger } from "../../models/logger";
 import { FileEncryptionHelper } from "../fileEncryptionHelper";
 
 export class MsalCachePluginProvider {
@@ -18,7 +18,7 @@ export class MsalCachePluginProvider {
         private readonly _serviceName: string,
         private readonly _msalFilePath: string,
         private readonly _vscodeWrapper: VscodeWrapper,
-        private readonly _logger: ILogger2,
+        private readonly _logger: ILogger,
         private readonly _credentialStore: ICredentialStore,
     ) {
         this._msalFilePath = path.join(this._msalFilePath, this._serviceName);

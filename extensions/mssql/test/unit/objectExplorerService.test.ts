@@ -15,7 +15,7 @@ import { expect } from "chai";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import ConnectionManager, { SqlConnectionErrorType } from "../../src/controllers/connectionManager";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
-import { ILogger2 } from "../../src/models/logger2";
+import { ILogger } from "../../src/models/logger";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import {
     IConnectionProfile,
@@ -205,7 +205,7 @@ suite("OE Service Tests", () => {
         let endStub: sinon.SinonStub;
         let endFailedStub: sinon.SinonStub;
         let startActivityStub: sinon.SinonStub;
-        let mockLogger: sinon.SinonStubbedInstance<ILogger2>;
+        let mockLogger: sinon.SinonStubbedInstance<ILogger>;
 
         setup(() => {
             sandbox = sinon.createSandbox();
@@ -320,7 +320,7 @@ suite("OE Service Tests", () => {
             );
 
             // Verify logging
-            expect(mockLogger.debug.called, "ILogger2 should be called once for debug").to.be.true;
+            expect(mockLogger.debug.called, "ILogger should be called once for debug").to.be.true;
 
             // Verify the request was sent correctly
             expect(mockClient.sendRequest.calledOnce, "Send request should be called once").to.be
@@ -681,7 +681,7 @@ suite("OE Service Tests", () => {
 
     suite("handleSessionCreationFailure", () => {
         let sandbox: sinon.SinonSandbox;
-        let mockLogger: sinon.SinonStubbedInstance<ILogger2>;
+        let mockLogger: sinon.SinonStubbedInstance<ILogger>;
         let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
         let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
         let mockConnectionUI: sinon.SinonStubbedInstance<ConnectionUI>;
@@ -915,7 +915,7 @@ suite("OE Service Tests", () => {
 
     suite("handleSessionCreationSuccess", () => {
         let sandbox: sinon.SinonSandbox;
-        let mockLogger: sinon.SinonStubbedInstance<ILogger2>;
+        let mockLogger: sinon.SinonStubbedInstance<ILogger>;
         let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
         let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
         let mockConnectionUI: sinon.SinonStubbedInstance<ConnectionUI>;
@@ -1186,7 +1186,7 @@ suite("OE Service Tests", () => {
         let mockActivity: ActivityObject;
         let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
         let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
-        let mockLogger: sinon.SinonStubbedInstance<ILogger2>;
+        let mockLogger: sinon.SinonStubbedInstance<ILogger>;
 
         setup(() => {
             sandbox = sinon.createSandbox();
@@ -2197,7 +2197,7 @@ suite("OE Service Tests", () => {
         let mockFirewallService: sinon.SinonStubbedInstance<FirewallService>;
         let mockWithProgress: sinon.SinonStub;
 
-        let mockLogger: sinon.SinonStubbedInstance<ILogger2>;
+        let mockLogger: sinon.SinonStubbedInstance<ILogger>;
         let startActivityStub: sinon.SinonStub;
         let mockRefreshCallback: sinon.SinonStub;
         let endStub: sinon.SinonStub;

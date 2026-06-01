@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as tmp from "tmp";
-import { ILogger2 } from "../models/logger2";
+import { ILogger } from "../models/logger";
 import * as vscodeMssql from "vscode-mssql";
 
 export interface IStatusView {
@@ -52,5 +52,5 @@ export class PackageError extends Error {
 }
 
 export interface IDecompressProvider {
-    decompress(pkg: IPackage, logger: ILogger2): Promise<void>;
+    decompress(pkg: IPackage, logger: ILogger): Promise<void>;
 }

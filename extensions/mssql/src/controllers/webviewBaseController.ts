@@ -31,7 +31,7 @@ import {
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 
 import { getEditorEOL, getErrorMessage, getNonce } from "../utils/utils";
-import { ILogger2, logger2 } from "../models/logger2";
+import { ILogger, logger } from "../models/logger";
 import VscodeWrapper from "./vscodeWrapper";
 import {
     AbstractMessageReader,
@@ -87,7 +87,7 @@ class WebviewControllerMessageReader extends AbstractMessageReader implements Me
 
 class WebviewControllerMessageWriter extends AbstractMessageWriter implements MessageWriter {
     private _webview: vscode.Webview;
-    constructor(private logger: ILogger2) {
+    constructor(private logger: ILogger) {
         super();
     }
     updateWebview(webview: vscode.Webview) {
@@ -140,7 +140,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         (state: State, payload: Reducers[keyof Reducers]) => ReducerResponse<State>
     >();
 
-    protected logger: ILogger2;
+    protected logger: ILogger;
 
     /**
      * Creates a new WebviewPanelController
@@ -159,7 +159,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             vscodeWrapper = new VscodeWrapper();
         }
 
-        this.logger = logger2.withPrefix(viewId ?? "WebviewBaseController");
+        this.logger = logger.withPrefix(viewId ?? "WebviewBaseController");
 
         this._connectionReader = new WebviewControllerMessageReader();
         this._connectionWriter = new WebviewControllerMessageWriter(this.logger);

@@ -14,7 +14,7 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ConnectionProfile } from "../models/connectionProfile";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 import { Deferred } from "../protocol";
-import { ILogger2, logger2 } from "../models/logger2";
+import { ILogger, logger } from "../models/logger";
 import { ConfigurationTarget } from "vscode";
 
 export type ConfigTarget = ConfigurationTarget.Global | ConfigurationTarget.Workspace;
@@ -23,7 +23,7 @@ export type ConfigTarget = ConfigurationTarget.Global | ConfigurationTarget.Work
  * Implements connection profile file storage.
  */
 export class ConnectionConfig implements IConnectionConfig {
-    protected _logger: ILogger2;
+    protected _logger: ILogger;
     public initialized: Deferred<void> = new Deferred<void>();
 
     /** Root group ID and name */
@@ -40,7 +40,7 @@ export class ConnectionConfig implements IConnectionConfig {
             this._vscodeWrapper = new VscodeWrapper();
         }
 
-        this._logger = logger2.withPrefix("ConnectionConfig");
+        this._logger = logger.withPrefix("ConnectionConfig");
         void this.initialize();
     }
 

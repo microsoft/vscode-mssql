@@ -13,7 +13,7 @@ import DecompressProvider from "../../src/languageservice/decompressProvider";
 import ConfigUtils from "../../src/configurations/configUtils";
 import { Runtime } from "../../src/models/platform";
 import * as path from "path";
-import { ILogger2 } from "../../src/models/logger2";
+import { ILogger } from "../../src/models/logger";
 import * as fs from "fs/promises";
 import { expect } from "chai";
 import { ServerStatusView } from "../../src/languageservice/serverStatus";
@@ -55,7 +55,7 @@ suite("ServiceDownloadProvider Tests", () => {
     let statusView: sinon.SinonStubbedInstance<IStatusView>;
     let testDownloadHelper: sinon.SinonStubbedInstance<DownloadHelper>;
     let testDecompressProvider: sinon.SinonStubbedInstance<DecompressProvider>;
-    let testLogger: sinon.SinonStubbedInstance<ILogger2>;
+    let testLogger: sinon.SinonStubbedInstance<ILogger>;
 
     setup(() => {
         sandbox = sinon.createSandbox();

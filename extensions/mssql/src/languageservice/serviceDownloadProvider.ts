@@ -15,7 +15,7 @@ import {
 } from "./interfaces";
 import * as Constants from "../constants/constants";
 import * as fs from "fs/promises";
-import { ILogger2 } from "../models/logger2";
+import { ILogger } from "../models/logger";
 import DownloadHelper from "./downloadHelper";
 import { getServiceExecutablePath, ServiceExecutable } from "./serviceExecutablePaths";
 
@@ -25,7 +25,7 @@ import { getServiceExecutablePath, ServiceExecutable } from "./serviceExecutable
 export default class ServiceDownloadProvider {
     constructor(
         private _config: IConfigUtils,
-        private _logger: ILogger2,
+        private _logger: ILogger,
         private _statusView: IStatusView,
         private _downloadHelper: DownloadHelper,
         private _decompressProvider: IDecompressProvider,

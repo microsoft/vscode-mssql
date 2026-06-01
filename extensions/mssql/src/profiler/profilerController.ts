@@ -16,7 +16,7 @@ import { SESSION_NAME_MAX_LENGTH } from "../sharedInterfaces/profiler";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { getProfilerConfigService } from "./profilerConfigService";
 import { ProfilerSessionTemplate } from "../models/contracts/profiler";
-import { ILogger2, logger2 } from "../models/logger2";
+import { ILogger, logger } from "../models/logger";
 import { Profiler as LocProfiler } from "../constants/locConstants";
 import * as Constants from "../constants/constants";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
@@ -33,7 +33,7 @@ import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry"
  * Handles command registration, connection management, and launching the profiler UI.
  */
 export class ProfilerController {
-    private _logger: ILogger2;
+    private _logger: ILogger;
     private _webviewControllers: Map<string, ProfilerWebviewController> = new Map();
     private _xelWebviewControllers: Map<string, ProfilerWebviewController> = new Map();
     private _profilerUri: string | undefined;
@@ -46,7 +46,7 @@ export class ProfilerController {
         private _vscodeWrapper: VscodeWrapper,
         private _sessionManager: ProfilerSessionManager,
     ) {
-        this._logger = logger2.withPrefix("Profiler");
+        this._logger = logger.withPrefix("Profiler");
         this.registerCommands();
     }
 

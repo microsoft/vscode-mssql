@@ -22,7 +22,7 @@ import { ICredentialStore, Credential } from "../credentialstore/icredentialstor
 import { ConnectionConfig } from "../connectionconfig/connectionconfig";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { IConnectionInfo } from "vscode-mssql";
-import { ILogger2, logger2 } from "./logger2";
+import { ILogger, logger } from "./logger";
 import { Deferred } from "../protocol";
 import { ConnectionMatcher, MatchScore } from "./utils";
 import { sendActionEvent } from "../telemetry/telemetry";
@@ -44,7 +44,7 @@ export class ConnectionStore {
     constructor(
         private _context: vscode.ExtensionContext,
         private _credentialStore: ICredentialStore,
-        private _logger?: ILogger2,
+        private _logger?: ILogger,
         private _connectionConfig?: ConnectionConfig,
         private _vscodeWrapper?: VscodeWrapper,
     ) {
@@ -53,7 +53,7 @@ export class ConnectionStore {
         }
 
         if (!this._logger) {
-            this._logger = logger2.withPrefix("ConnectionStore");
+            this._logger = logger.withPrefix("ConnectionStore");
         }
 
         if (!this._connectionConfig) {

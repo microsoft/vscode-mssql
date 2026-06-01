@@ -9,7 +9,7 @@ import { TreeNodeInfo } from "./nodes/treeNodeInfo";
 import { ObjectExplorerUtils } from "./objectExplorerUtils";
 import { ConnectionNode } from "./nodes/connectionNode";
 import { ConnectionGroupNode } from "./nodes/connectionGroupNode";
-import { ILogger2, logger2 } from "../models/logger2";
+import { ILogger, logger } from "../models/logger";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { getErrorMessage } from "../utils/utils";
 import { ConnectionStore } from "../models/connectionStore";
@@ -33,13 +33,13 @@ export class ObjectExplorerDragAndDropController
     readonly dragMimeTypes = [OE_MIME_TYPE, TEXT_MIME_TYPE];
     readonly dropMimeTypes = [OE_MIME_TYPE];
 
-    private readonly _logger: ILogger2;
+    private readonly _logger: ILogger;
 
     constructor(
         vscodeWrapper: VscodeWrapper,
         private connectionStore: ConnectionStore,
     ) {
-        this._logger = logger2.withPrefix("DragAndDrop");
+        this._logger = logger.withPrefix("DragAndDrop");
     }
 
     public handleDrag(

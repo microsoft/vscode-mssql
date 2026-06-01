@@ -46,7 +46,7 @@ import {
     GetSessionIdRequest,
     GetSessionIdResponse,
 } from "../models/contracts/objectExplorer/getSessionIdRequest";
-import { ILogger2, logger2 } from "../models/logger2";
+import { ILogger, logger } from "../models/logger";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { restartSqlServerContainer } from "../deployment/sqlServerContainer";
 import { ExpandErrorNode } from "./nodes/expandErrorNode";
@@ -69,7 +69,7 @@ export interface CreateSessionResult {
 
 export class ObjectExplorerService {
     private _client: SqlToolsServiceClient;
-    private _logger: ILogger2;
+    private _logger: ILogger;
     public initialized: Deferred<void> = new Deferred<void>();
 
     /**
@@ -125,7 +125,7 @@ export class ObjectExplorerService {
 
         this._client = this._connectionManager.client;
 
-        this._logger = logger2.withPrefix("ObjectExplorerService");
+        this._logger = logger.withPrefix("ObjectExplorerService");
 
         this._treeNodeToChildrenMap = new Map<vscode.TreeItem, vscode.TreeItem[]>();
 

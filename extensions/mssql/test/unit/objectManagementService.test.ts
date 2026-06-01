@@ -19,13 +19,13 @@ import {
     BackupConfigInfoRequest,
 } from "../../src/models/contracts/objectManagement";
 import { RestoreParams } from "../../src/sharedInterfaces/restore";
-import { ILogger2 } from "../../src/models/logger2";
+import { ILogger } from "../../src/models/logger";
 
 suite("ObjectManagementService Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let objectManagementService: ObjectManagementService;
     let sqlToolsClientStub: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
-    let loggerStub: sinon.SinonStubbedInstance<ILogger2>; // Add this
+    let loggerStub: sinon.SinonStubbedInstance<ILogger>; // Add this
 
     setup(() => {
         sandbox = sinon.createSandbox();

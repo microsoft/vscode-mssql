@@ -9,7 +9,7 @@ import * as LocalizedConstants from "../../constants/locConstants";
 import VscodeWrapper from "../../controllers/vscodeWrapper";
 import { AzureAuthType, IProviderSettings, ITenant } from "../../models/contracts/azure";
 import { IDeferred } from "../../models/interfaces";
-import { ILogger2 } from "../../models/logger2";
+import { ILogger } from "../../models/logger";
 import { MsalAzureAuth } from "./msalAzureAuth";
 
 export class MsalAzureDeviceCode extends MsalAzureAuth {
@@ -18,7 +18,7 @@ export class MsalAzureDeviceCode extends MsalAzureAuth {
         protected readonly context: vscode.ExtensionContext,
         protected clientApplication: PublicClientApplication,
         protected readonly vscodeWrapper: VscodeWrapper,
-        protected readonly logger: ILogger2,
+        protected readonly logger: ILogger,
     ) {
         super(
             providerSettings,

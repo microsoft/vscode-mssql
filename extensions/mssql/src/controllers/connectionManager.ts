@@ -53,7 +53,7 @@ import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { changeLanguageServiceForFile } from "../languageservice/utils";
 import { AddFirewallRuleWebviewController } from "./addFirewallRuleWebviewController";
 import { getErrorMessage, uuid } from "../utils/utils";
-import { ILogger2, logger2 } from "../models/logger2";
+import { ILogger, logger } from "../models/logger";
 import { getServerTypes } from "../models/connectionInfo";
 import * as AzureConstants from "../azure/constants";
 import { ChangePasswordService } from "../services/changePasswordService";
@@ -148,7 +148,7 @@ export default class ConnectionManager {
         private context: vscode.ExtensionContext,
         statusView: StatusView,
         prompter: IPrompter,
-        private _logger?: ILogger2,
+        private _logger?: ILogger,
         private _client?: SqlToolsServerClient,
         private _vscodeWrapper?: VscodeWrapper,
         private _connectionStore?: ConnectionStore,
@@ -172,7 +172,7 @@ export default class ConnectionManager {
         }
 
         if (!this._logger) {
-            this._logger = logger2.withPrefix("ConnectionManager");
+            this._logger = logger.withPrefix("ConnectionManager");
         }
 
         if (!this._credentialStore) {

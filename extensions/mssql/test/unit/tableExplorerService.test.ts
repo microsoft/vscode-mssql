@@ -33,13 +33,13 @@ import {
     EditSubsetResult,
     EditUpdateCellResult,
 } from "../../src/sharedInterfaces/tableExplorer";
-import { ILogger2 } from "../../src/models/logger2";
+import { ILogger } from "../../src/models/logger";
 import { stubLoggerGetter } from "./utils";
 
 suite("TableExplorerService Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
-    let mockLogger: sinon.SinonStubbedInstance<ILogger2>;
+    let mockLogger: sinon.SinonStubbedInstance<ILogger>;
     let tableExplorerService: TableExplorerService;
 
     setup(() => {

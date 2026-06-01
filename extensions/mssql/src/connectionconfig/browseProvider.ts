@@ -24,7 +24,7 @@ import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInter
 
 import { FabricHelper } from "../fabric/fabricHelper";
 import { VsCodeAzureHelper } from "./azureHelpers";
-import { ILogger2 } from "../models/logger2";
+import { ILogger } from "../models/logger";
 import { getCloudId } from "../azure/providerSettings";
 import { startActivity } from "../telemetry/telemetry";
 import { getErrorMessage } from "../utils/utils";
@@ -40,7 +40,7 @@ export const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 7;
 export interface BrowseProviderHost {
     /** Live state object owned by the controller; used by providers for stale-result guards. */
     readonly state: ConnectionDialogWebviewState;
-    readonly logger: ILogger2;
+    readonly logger: ILogger;
     /** Push a state update to the webview. */
     updateState(state?: ConnectionDialogWebviewState): void;
     /** Refresh tenant-sign-in status data; called as part of the Azure cache priming flow. */

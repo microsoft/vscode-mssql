@@ -7,12 +7,12 @@ import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
 import * as Utils from "./utils";
 
-export const logger2OutputChannelName = Constants.outputChannelName;
+export const loggerOutputChannelName = Constants.outputChannelName;
 
 /**
  * VS Code log-channel-style logger with support for MSSQL tracing and PII settings.
  */
-export interface ILogger2 {
+export interface ILogger {
     /**
      * Logs a message at the most verbose level.
      * Visibility of the message is controlled by the VS Code log channel's configured log level.
@@ -52,7 +52,7 @@ export interface ILogger2 {
     /** Reveals the underlying log channel in VS Code. */
     show(preserveFocus?: boolean): void;
     /** Creates a lightweight logger view that prepends the given prefix to messages. */
-    withPrefix(prefix: string): ILogger2;
+    withPrefix(prefix: string): ILogger;
     /** Disposes the owned channel, if this logger created one. */
     dispose(): void;
 }
@@ -60,14 +60,14 @@ export interface ILogger2 {
 type LogMethod = "trace" | "debug" | "info" | "warn" | "error";
 type ChannelFactory = () => vscode.LogOutputChannel;
 
-interface Logger2ChannelState {
+interface LoggerChannelState {
     ownsChannel: boolean;
     cachedChannel?: vscode.LogOutputChannel;
     createChannel: ChannelFactory;
 }
 
 let defaultChannel: vscode.LogOutputChannel | undefined;
-const defaultChannelState: Logger2ChannelState = {
+const defaultChannelState: LoggerChannelState = {
     createChannel: getDefaultChannel,
     ownsChannel: false,
 };
@@ -76,7 +76,7 @@ const defaultChannelState: Logger2ChannelState = {
  * Returns the shared MSSQL log channel, creating it on first use.
  */
 function getDefaultChannel(): vscode.LogOutputChannel {
-    defaultChannel ??= vscode.window.createOutputChannel(logger2OutputChannelName, {
+    defaultChannel ??= vscode.window.createOutputChannel(loggerOutputChannelName, {
         log: true,
     });
     return defaultChannel;
@@ -112,24 +112,24 @@ function formatLogPart(value: unknown): string {
 /**
  * Logger implementation backed by a VS Code `LogOutputChannel`.
  */
-export class Logger2 implements ILogger2 {
+export class Logger implements ILogger {
     private constructor(
-        private readonly _channelState: Logger2ChannelState,
+        private readonly _channelState: LoggerChannelState,
         private readonly _prefix?: string,
     ) {}
 
     /**
      * Creates a logger backed by the shared MSSQL output channel.
      */
-    public static global(prefix?: string): Logger2 {
-        return new Logger2(defaultChannelState, prefix);
+    public static global(prefix?: string): Logger {
+        return new Logger(defaultChannelState, prefix);
     }
 
     /**
      * Creates a logger backed by an existing log channel.
      */
-    public static forChannel(channel: vscode.LogOutputChannel, prefix?: string): Logger2 {
-        return new Logger2(
+    public static forChannel(channel: vscode.LogOutputChannel, prefix?: string): Logger {
+        return new Logger(
             {
                 createChannel: () => channel,
                 ownsChannel: false,
@@ -141,8 +141,8 @@ export class Logger2 implements ILogger2 {
     /**
      * Creates a logger that owns a dedicated log channel with the given name.
      */
-    public static forChannelName(channelName: string, prefix?: string): Logger2 {
-        return new Logger2(
+    public static forChannelName(channelName: string, prefix?: string): Logger {
+        return new Logger(
             {
                 createChannel: () => vscode.window.createOutputChannel(channelName, { log: true }),
                 ownsChannel: true,
@@ -204,8 +204,8 @@ export class Logger2 implements ILogger2 {
     }
 
     /** @inheritdoc */
-    public withPrefix(prefix: string): Logger2 {
-        return new Logger2(this._channelState, prefix);
+    public withPrefix(prefix: string): Logger {
+        return new Logger(this._channelState, prefix);
     }
 
     /** @inheritdoc */
@@ -263,14 +263,14 @@ export class Logger2 implements ILogger2 {
 /**
  * Shared MSSQL logger instance for callers that do not need a custom channel or prefix.
  */
-export const logger2: ILogger2 = Logger2.global();
+export const logger: ILogger = Logger.global();
 
-export default logger2;
+export default logger;
 
 /**
  * Exported for unit tests to isolate the cached default channel.
  */
-export function resetLogger2DefaultChannelForTest(): void {
+export function resetLoggerDefaultChannelForTest(): void {
     defaultChannel?.dispose();
     defaultChannel = undefined;
     defaultChannelState.cachedChannel = undefined;

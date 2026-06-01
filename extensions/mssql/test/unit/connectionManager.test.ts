@@ -10,7 +10,7 @@ import * as chai from "chai";
 import { expect } from "chai";
 import { ConnectionDetails, IToken, IConnectionInfo } from "vscode-mssql";
 import { ConnectionStore } from "../../src/models/connectionStore";
-import { ILogger2 } from "../../src/models/logger2";
+import { ILogger } from "../../src/models/logger";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
@@ -49,7 +49,7 @@ suite("ConnectionManager Tests", () => {
     let connectionManager: ConnectionManager;
 
     let mockContext: vscode.ExtensionContext;
-    let mockLogger: sinon.SinonStubbedInstance<ILogger2>;
+    let mockLogger: sinon.SinonStubbedInstance<ILogger>;
     let mockCredentialStore: sinon.SinonStubbedInstance<CredentialStore>;
     let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;

@@ -24,7 +24,7 @@ import {
 import { getErrorMessage, uuid } from "../utils/utils";
 import { MssqlChatAgent as loc } from "../constants/locConstants";
 import MainController from "../controllers/mainController";
-import { ILogger2, logger2 } from "../models/logger2";
+import { ILogger } from "../models/logger";
 import {
     handleChatCommand,
     commandSkipsConnectionLabels,
@@ -58,7 +58,7 @@ export const createSqlAgentRequestHandler = (
     })();
 
     const getLogger = (() => {
-        const logger = logger2.withPrefix("MssqlCopilot");
+        const logger = logger.withPrefix("MssqlCopilot");
 
         return () => logger;
     })();
@@ -541,7 +541,7 @@ export const createSqlAgentRequestHandler = (
         replyText: string,
         copilotService: CopilotService,
         correlationId: string,
-        logger: ILogger2,
+        logger: ILogger,
     ): Promise<GetNextMessageResponse> {
         logger.debug("in processToolCalls");
 
@@ -620,7 +620,7 @@ export const createSqlAgentRequestHandler = (
         result: GetNextMessageResponse,
         context: vscode.ChatContext,
         referenceTexts: string[],
-        logger: ILogger2,
+        logger: ILogger,
     ): vscode.LanguageModelChatMessage[] {
         logger.debug("in prepareRequestMessages");
 
@@ -740,7 +740,7 @@ export const createSqlAgentRequestHandler = (
 
     function mapRequestTools(
         tools: LanguageModelChatTool[],
-        logger: ILogger2,
+        logger: ILogger,
     ): vscode.LanguageModelChatTool[] {
         logger.debug("in mapRequestTools...");
 
@@ -783,7 +783,7 @@ export const createSqlAgentRequestHandler = (
         chatResponse: vscode.LanguageModelChatResponse,
         tools: LanguageModelChatTool[],
         correlationId: string,
-        logger: ILogger2,
+        logger: ILogger,
     ): Promise<{
         replyText: string;
         toolsCalled: { tool: LanguageModelChatTool; parameters: string }[];
@@ -831,7 +831,7 @@ export const createSqlAgentRequestHandler = (
         context: vscode.ChatContext, // pass this context from above
         referenceTexts: string[],
         correlationId: string,
-        logger: ILogger2,
+        logger: ILogger,
     ): Promise<{
         text: string;
         tools: { tool: LanguageModelChatTool; parameters: string }[];
@@ -874,7 +874,7 @@ export const createSqlAgentRequestHandler = (
         part: vscode.LanguageModelToolCallPart,
         stream: vscode.ChatResponseStream,
         correlationId: string,
-        logger: ILogger2,
+        logger: ILogger,
     ): Promise<{
         sqlTool: LanguageModelChatTool | undefined;
         sqlToolParameters: string | undefined;
@@ -948,7 +948,7 @@ export const createSqlAgentRequestHandler = (
         err: vscode.LanguageModelError,
         stream: vscode.ChatResponseStream,
         correlationId: string,
-        logger: ILogger2,
+        logger: ILogger,
     ): void {
         logger.debug("in handleLanguageModelError");
         logger.error("Language Model Error:", getErrorMessage(err), "Code:", err.code);
@@ -984,7 +984,7 @@ export const createSqlAgentRequestHandler = (
         token: vscode.CancellationToken,
         activity: ActivityObject,
         correlationId: string,
-        logger: ILogger2,
+        logger: ILogger,
     ): Promise<void> {
         logger.debug("in sendToDefaultLanguageModel");
         try {
@@ -1037,7 +1037,7 @@ export const createSqlAgentRequestHandler = (
         err: unknown,
         stream: vscode.ChatResponseStream,
         correlationId: string,
-        logger: ILogger2,
+        logger: ILogger,
     ): void {
         logger.debug("in handleError");
 

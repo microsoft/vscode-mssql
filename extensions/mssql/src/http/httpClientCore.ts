@@ -9,7 +9,7 @@ import * as https from "https";
 import * as fs from "fs";
 import axios, { AxiosRequestConfig, AxiosResponse, RawAxiosResponseHeaders } from "axios";
 import { Readable } from "stream";
-import { ILogger2 } from "../models/logger2";
+import { ILogger } from "../models/logger";
 
 const UnableToGetProxyAgentOptionsMessage = "Unable to read proxy agent options to get tenants.";
 const HTTPS_PORT = 443;
@@ -36,7 +36,7 @@ export interface IHttpClientDependencies {
  */
 export class HttpClientCore {
     constructor(
-        protected readonly logger?: ILogger2,
+        protected readonly logger?: ILogger,
         private readonly dependencies: IHttpClientDependencies = {},
     ) {}
 

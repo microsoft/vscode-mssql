@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 import * as localizedConstants from "../constants/locConstants";
-import logger2 from "../models/logger2";
+import logger from "../models/logger";
 import { uuid } from "../utils/utils";
 
 export enum BackgroundTaskState {
@@ -108,7 +108,7 @@ export class BackgroundTasksService {
     private _tasks = new Map<string, BackgroundTaskEntry>();
     private _taskLogs = new Map<string, BackgroundTaskLog>();
     private readonly _onDidChangeTaskLog = new vscode.EventEmitter<string>();
-    private readonly _logger = logger2.withPrefix("BackgroundTasksService");
+    private readonly _logger = logger.withPrefix("BackgroundTasksService");
     private _nextSequence = 0;
 
     constructor(

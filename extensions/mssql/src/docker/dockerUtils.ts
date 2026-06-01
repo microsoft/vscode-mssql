@@ -24,7 +24,7 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { FormItemValidationState } from "../sharedInterfaces/form";
 import { getErrorMessage } from "../utils/utils";
-import { Logger2 } from "../models/logger2";
+import { Logger } from "../models/logger";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { ObjectExplorerService } from "../objectExplorer/objectExplorerService";
 import type Dockerode from "dockerode";
@@ -39,7 +39,7 @@ export const invalidPortNumberValidationResult: FormItemValidationState = {
     validationMessage: LocalContainers.pleaseChooseUnusedPort,
 };
 
-export const dockerLogger = Logger2.forChannelName(dockerDeploymentLoggerChannelName, "Docker");
+export const dockerLogger = Logger.forChannelName(dockerDeploymentLoggerChannelName, "Docker");
 
 export const dockerInstallErrorLink = "https://www.docker.com/products/docker-desktop/";
 // Exported for testing purposes

@@ -32,7 +32,7 @@ import { IPrompter } from "../../prompts/question";
 import { ICredentialStore } from "../../credentialstore/icredentialstore";
 import * as azureUtils from "../utils";
 import VscodeWrapper from "../../controllers/vscodeWrapper";
-import { ILogger2 } from "../../models/logger2";
+import { ILogger } from "../../models/logger";
 import { sendActionEvent } from "../../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../../sharedInterfaces/telemetry";
 
@@ -404,7 +404,7 @@ export class CloudAuthApplication {
         private loggerCallback: ILoggerCallback,
         private readonly context: vscode.ExtensionContext,
         private readonly vscodeWrapper: VscodeWrapper,
-        private readonly logger: ILogger2,
+        private readonly logger: ILogger,
     ) {
         this._authMappings = new Map<AzureAuthType, MsalAzureAuth>();
         this.createClientApplication();

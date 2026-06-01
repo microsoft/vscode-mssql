@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 import * as LocalizedConstants from "../constants/locConstants";
-import { ILogger2 } from "../models/logger2";
+import { ILogger } from "../models/logger";
 import { getErrorMessage } from "../utils/utils";
 import {
     HttpClientCore,
@@ -16,7 +16,7 @@ import {
 } from "./httpClientCore";
 
 export class HttpClient extends HttpClientCore {
-    constructor(logger?: ILogger2) {
+    constructor(logger?: ILogger) {
         const dependencies: IHttpClientDependencies = {
             getProxyConfig: () =>
                 vscode.workspace.getConfiguration("http")["proxy"] as string | undefined,

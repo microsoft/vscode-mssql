@@ -21,7 +21,7 @@ import { AxiosResponse } from "axios";
 import { getErrorMessage } from "../utils/utils";
 import { Fabric as Loc } from "../constants/locConstants";
 import { getCloudProviderSettings } from "../azure/providerSettings";
-import { ILogger2, logger2 } from "../models/logger2";
+import { ILogger, logger } from "../models/logger";
 
 export class FabricHelper {
     static getFabricApiUriBase(): vscode.Uri {
@@ -59,8 +59,8 @@ export class FabricHelper {
     static readonly defaultScope = ".default";
     constructor() {}
 
-    static getFabricLogger(): ILogger2 {
-        return logger2.withPrefix("Fabric Requests");
+    static getFabricLogger(): ILogger {
+        return logger.withPrefix("Fabric Requests");
     }
 
     public static async getFabricCapacities(tenantId: string): Promise<ICapacity[]> {
@@ -422,7 +422,7 @@ export class FabricHelper {
         retryAfter: string,
         location: string,
         httpHelper: HttpClient,
-        fabricLogger: ILogger2,
+        fabricLogger: ILogger,
         token?: string,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ): Promise<AxiosResponse<TResponse, any>> {

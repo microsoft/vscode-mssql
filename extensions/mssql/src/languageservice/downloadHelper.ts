@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ILogger2 } from "../models/logger2";
+import { ILogger } from "../models/logger";
 import { HttpDownloadError, HttpClientCore, IDownloadFileResult } from "../http/httpClientCore";
 import { IPackage, IStatusView, PackageError } from "./interfaces";
 
@@ -17,7 +17,7 @@ export default class DownloadHelper {
     public downloadFile(
         urlString: string,
         pkg: IPackage,
-        logger: ILogger2,
+        logger: ILogger,
         statusView: IStatusView,
     ): Promise<void> {
         return this.downloadFileWithProgress(urlString, pkg, logger, statusView);
@@ -26,7 +26,7 @@ export default class DownloadHelper {
     private async downloadFileWithProgress(
         urlString: string,
         pkg: IPackage,
-        logger: ILogger2,
+        logger: ILogger,
         statusView: IStatusView,
     ): Promise<void> {
         if (!pkg.tmpFile || pkg.tmpFile.fd === 0) {
@@ -90,7 +90,7 @@ export default class DownloadHelper {
     public handleDataReceivedEvent(
         progress: IDownloadProgress,
         data: Buffer,
-        logger: ILogger2,
+        logger: ILogger,
         statusView: IStatusView,
     ): void {
         progress.downloadedBytes += data.length;

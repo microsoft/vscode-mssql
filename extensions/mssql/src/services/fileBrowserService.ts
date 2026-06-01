@@ -12,13 +12,13 @@ import {
     FileBrowserOpenNotification,
     FileBrowserOpenRequest,
 } from "../models/contracts/fileBrowser";
-import { ILogger2, logger2 } from "../models/logger2";
+import { ILogger, logger } from "../models/logger";
 import { Deferred } from "../protocol";
 import * as fb from "../sharedInterfaces/fileBrowser";
 
 export class FileBrowserService {
     private _client: SqlToolsServiceClient;
-    private _logger: ILogger2;
+    private _logger: ILogger;
     fileBrowserState: fb.FileBrowserState;
 
     /**
@@ -36,7 +36,7 @@ export class FileBrowserService {
 
     constructor(_vscodeWrapper: VscodeWrapper, _client: SqlToolsServiceClient) {
         this._client = _client;
-        this._logger = logger2.withPrefix("FileBrowserService");
+        this._logger = logger.withPrefix("FileBrowserService");
 
         this._client.onNotification(FileBrowserOpenNotification.type, (e) =>
             this.handleFileBrowserOpenNotification(e),

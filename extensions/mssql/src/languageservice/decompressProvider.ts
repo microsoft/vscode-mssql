@@ -9,10 +9,10 @@ import * as fs from "fs";
 import * as path from "path";
 import { IDecompressProvider, IPackage } from "./interfaces";
 
-import { ILogger2 } from "../models/logger2";
+import { ILogger } from "../models/logger";
 
 export default class DecompressProvider implements IDecompressProvider {
-    private decompressZip(pkg: IPackage, logger: ILogger2): Promise<void> {
+    private decompressZip(pkg: IPackage, logger: ILogger): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             yauzl.open(pkg.tmpFile.name, { lazyEntries: true }, (err, zipfile) => {
                 if (err) {
@@ -101,7 +101,7 @@ export default class DecompressProvider implements IDecompressProvider {
         });
     }
 
-    private decompressTar(pkg: IPackage, logger: ILogger2): Promise<void> {
+    private decompressTar(pkg: IPackage, logger: ILogger): Promise<void> {
         let totalFiles = 0;
         return DecompressTar.extract(
             {
@@ -120,7 +120,7 @@ export default class DecompressProvider implements IDecompressProvider {
         );
     }
 
-    public decompress(pkg: IPackage, logger: ILogger2): Promise<void> {
+    public decompress(pkg: IPackage, logger: ILogger): Promise<void> {
         if (pkg.isZipFile) {
             return this.decompressZip(pkg, logger);
         } else {

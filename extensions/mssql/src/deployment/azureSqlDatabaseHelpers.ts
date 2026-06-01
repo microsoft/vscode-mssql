@@ -13,7 +13,7 @@ import {
 import { getDefaultTenantId, VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
 import { AzureSqlDatabase, ConnectionDialog } from "../constants/locConstants";
-import { ILogger2 } from "../models/logger2";
+import { ILogger } from "../models/logger";
 import * as asd from "../sharedInterfaces/azureSqlDatabase";
 import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { FormItemActionButton, FormItemOptions, FormItemType } from "../sharedInterfaces/form";
@@ -33,7 +33,7 @@ import {
 
 // Cached logger reference for use in helper functions that don't have
 // direct access to the controller's protected logger.
-let cachedLogger: ILogger2 | undefined;
+let cachedLogger: ILogger | undefined;
 
 const FIREWALL_ERROR_CODE = 40615;
 
@@ -187,7 +187,7 @@ export function applyServerAuthSettings(
 export async function initializeAzureSqlDatabaseState(
     deploymentController: DeploymentWebviewController,
     groupOptions: FormItemOptions[],
-    logger: ILogger2,
+    logger: ILogger,
     selectedGroupId: string | undefined,
 ): Promise<asd.AzureSqlDatabaseState> {
     cachedLogger = logger;

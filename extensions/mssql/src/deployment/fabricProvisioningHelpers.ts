@@ -7,7 +7,7 @@ import { getDefaultTenantId, VsCodeAzureHelper } from "../connectionconfig/azure
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
 import { ConnectionDialog, Fabric, FabricProvisioning } from "../constants/locConstants";
 import { FabricHelper } from "../fabric/fabricHelper";
-import { ILogger2 } from "../models/logger2";
+import { ILogger } from "../models/logger";
 import {
     hasWorkspacePermission,
     IWorkspace,
@@ -37,7 +37,7 @@ export const WORKSPACE_ROLE_REQUEST_LIMIT = 20;
 export async function initializeFabricProvisioningState(
     deploymentController: DeploymentWebviewController,
     groupOptions: FormItemOptions[],
-    logger: ILogger2,
+    logger: ILogger,
     selectedGroupId: string | undefined,
 ): Promise<fp.FabricProvisioningState> {
     const startTime = Date.now();
@@ -294,7 +294,7 @@ export function setFabricProvisioningFormComponents(
 
 export async function getAzureActionButton(
     deploymentController: DeploymentWebviewController,
-    logger: ILogger2,
+    logger: ILogger,
 ): Promise<FormItemActionButton[]> {
     const accountFormComponentId = "accountId";
     const state = deploymentController.state.deploymentTypeState as fp.FabricProvisioningState;
@@ -341,7 +341,7 @@ export async function getAzureActionButton(
 
 export async function loadComponentsAfterSignIn(
     deploymentController: DeploymentWebviewController,
-    logger: ILogger2,
+    logger: ILogger,
 ) {
     const state = deploymentController.state.deploymentTypeState as fp.FabricProvisioningState;
 

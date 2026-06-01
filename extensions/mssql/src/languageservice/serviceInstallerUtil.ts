@@ -10,7 +10,7 @@ import DecompressProvider from "./decompressProvider";
 import DownloadHelper from "./downloadHelper";
 import ServerProvider from "./server";
 import { IStatusView } from "./interfaces";
-import { ILogger2 } from "../models/logger2";
+import { ILogger } from "../models/logger";
 import * as fs from "fs";
 
 export class StubStatusView implements IStatusView {
@@ -32,7 +32,7 @@ export class StubStatusView implements IStatusView {
     }
 }
 
-export class StubLogger implements ILogger2 {
+export class StubLogger implements ILogger {
     constructor(private _log: (msg: string) => void) {}
 
     trace(message: string): void {
@@ -63,7 +63,7 @@ export class StubLogger implements ILogger2 {
         // no-op
     }
 
-    withPrefix(): ILogger2 {
+    withPrefix(): ILogger {
         return this;
     }
 

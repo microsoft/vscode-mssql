@@ -16,7 +16,7 @@ import { getCloudProviderSettings } from "./providerSettings";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ConnectionProfile } from "../models/connectionProfile";
 import { AzureAuthType, IAADResource, IAccount, ITenant, IToken } from "../models/contracts/azure";
-import { ILogger2, logger2 } from "../models/logger2";
+import { ILogger, logger } from "../models/logger";
 import { INameValueChoice, IPrompter, IQuestion, QuestionTypes } from "../prompts/question";
 import { AccountStore } from "./accountStore";
 import { ICredentialStore } from "../credentialstore/icredentialstore";
@@ -24,7 +24,7 @@ import { ICredentialStore } from "../credentialstore/icredentialstore";
 export abstract class AzureController {
     protected _vscodeWrapper: VscodeWrapper;
     protected _credentialStoreInitialized = false;
-    protected logger: ILogger2;
+    protected logger: ILogger;
 
     constructor(
         protected context: vscode.ExtensionContext,
@@ -37,7 +37,7 @@ export abstract class AzureController {
         }
 
         this._vscodeWrapper.createOutputChannel(LocalizedConstants.azureLogChannelName);
-        this.logger = logger2.withPrefix("AzureController");
+        this.logger = logger.withPrefix("AzureController");
 
         vscode.workspace.onDidChangeConfiguration((changeEvent) => {
             const impactsProvider = changeEvent.affectsConfiguration(

@@ -13,7 +13,7 @@ import { PassThrough, Writable } from "stream";
 import axios, { AxiosResponse } from "axios";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import { HttpClient, HttpDownloadError } from "../../src/http/httpClient";
-import { ILogger2 } from "../../src/models/logger2";
+import { ILogger } from "../../src/models/logger";
 import { createStubLogger } from "./utils";
 
 chai.use(sinonChai);
@@ -21,7 +21,7 @@ chai.use(sinonChai);
 suite("HttpClient tests", () => {
     let sandbox: sinon.SinonSandbox;
     let httpClient: HttpClient;
-    let logger: sinon.SinonStubbedInstance<ILogger2>;
+    let logger: sinon.SinonStubbedInstance<ILogger>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
