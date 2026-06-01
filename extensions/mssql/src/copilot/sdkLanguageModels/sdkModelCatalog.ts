@@ -14,15 +14,8 @@ export type SdkModelCatalogEntry = ProviderModelEntry;
 
 export const defaultAnthropicSdkModels: SdkModelCatalogEntry[] = [
     {
-        id: "claude-opus-4-7",
-        displayName: "Claude Opus 4.7",
-        family: "claude-opus",
-        maxInputTokens: 1000000,
-        maxOutputTokens: 128000,
-    },
-    {
-        id: "claude-opus-4-6",
-        displayName: "Claude Opus 4.6",
+        id: "claude-opus-4-8",
+        displayName: "Claude Opus 4.8",
         family: "claude-opus",
         maxInputTokens: 1000000,
         maxOutputTokens: 128000,
@@ -32,13 +25,6 @@ export const defaultAnthropicSdkModels: SdkModelCatalogEntry[] = [
         displayName: "Claude Sonnet 4.6",
         family: "claude-sonnet",
         maxInputTokens: 1000000,
-        maxOutputTokens: 64000,
-    },
-    {
-        id: "claude-sonnet-4-5-20250929",
-        displayName: "Claude Sonnet 4.5",
-        family: "claude-sonnet",
-        maxInputTokens: 200000,
         maxOutputTokens: 64000,
     },
     {
@@ -72,25 +58,32 @@ export const defaultOpenAiSdkModels: SdkModelCatalogEntry[] = [
         maxInputTokens: 400000,
         maxOutputTokens: 128000,
     },
+    {
+        id: "gpt-5.4-nano",
+        displayName: "GPT-5.4 Nano",
+        family: "gpt-5.4-nano",
+        maxInputTokens: 400000,
+        maxOutputTokens: 128000,
+    },
 ];
 
 export const defaultXAiSdkModels: SdkModelCatalogEntry[] = [
     {
-        id: "grok-4-1-fast-non-reasoning",
-        displayName: "Grok 4.1 Fast Non-Reasoning",
-        family: "grok-4.1-fast",
-        maxInputTokens: 2000000,
-        maxOutputTokens: 30000,
+        id: "grok-4.3",
+        displayName: "Grok 4.3",
+        family: "grok-4.3",
+        maxInputTokens: 1000000,
+        maxOutputTokens: 65536,
     },
     {
-        id: "grok-4.20",
-        displayName: "Grok 4.20",
+        id: "grok-4.20-0309-non-reasoning",
+        displayName: "Grok 4.20 Non-Reasoning",
         family: "grok-4.20",
         maxInputTokens: 2000000,
         maxOutputTokens: 65536,
     },
     {
-        id: "grok-4.20-reasoning",
+        id: "grok-4.20-0309-reasoning",
         displayName: "Grok 4.20 Reasoning",
         family: "grok-4.20",
         maxInputTokens: 2000000,

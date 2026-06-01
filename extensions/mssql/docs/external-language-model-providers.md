@@ -4,6 +4,7 @@ The MSSQL extension can register external `vscode.lm` providers for SQL inline c
 
 - `anthropic-api`: streams directly from the Anthropic Messages API.
 - `openai-api`: streams directly from the OpenAI Chat Completions API.
+- `xai-api`: streams directly from the xAI OpenAI-compatible Chat Completions API.
 
 The SDK providers support native cancellation, return API usage when available, and are the path expected to make automatic inline completion responsive. Typical first-token latency is 300-800ms for Anthropic and 200-600ms for OpenAI; full continuation completions are usually 1-3s, while larger intent-mode completions are usually 2-6s.
 
@@ -13,11 +14,12 @@ Set API keys with the command palette:
 
 - **Set Anthropic API Key**
 - **Set OpenAI API Key**
+- **Set xAI API Key**
 
 Keys are stored in VS Code SecretStorage, backed by the OS keychain, and are not written to `settings.json`. The providers resolve keys in this order:
 
 1. SecretStorage.
-2. `mssql.copilot.sdkProviders.<vendor>.env` fallback value for `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`.
+2. `mssql.copilot.sdkProviders.<vendor>.env` fallback value for `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, or `XAI_API_KEY`.
 3. The process environment variable.
 
 SDK settings:
@@ -32,6 +34,11 @@ SDK settings:
 - `mssql.copilot.sdkProviders.openai.baseUrl`
 - `mssql.copilot.sdkProviders.openai.timeout`
 - `mssql.copilot.sdkProviders.openai.env`
+- `mssql.copilot.sdkProviders.xai.enabled`
+- `mssql.copilot.sdkProviders.xai.additionalModels`
+- `mssql.copilot.sdkProviders.xai.baseUrl`
+- `mssql.copilot.sdkProviders.xai.timeout`
+- `mssql.copilot.sdkProviders.xai.env`
 
 Use `baseUrl` for corporate gateways, proxies, LiteLLM, or Azure OpenAI-compatible routing. Add preview or organization-specific models with `additionalModels`.
 
@@ -40,7 +47,7 @@ Use `baseUrl` for corporate gateways, proxies, LiteLLM, or Azure OpenAI-compatib
 Inline completion queries vendors from `mssql.copilot.inlineCompletions.modelVendors`, which defaults to:
 
 ```jsonc
-["copilot", "anthropic-api", "openai-api"]
+["copilot", "anthropic-api", "openai-api", "xai-api"]
 ```
 
 `mssql.copilot.inlineCompletions.modelFamily` applies when the inline completion profile is `default`. Preset profiles use their own model preference, category, and debounce defaults.

@@ -57,6 +57,12 @@ suite("XAiSdkLanguageModelProvider", () => {
         expect(models.map((model) => model.id)).to.deep.equal(
             defaultXAiSdkModels.map((model) => model.id),
         );
+        expect(models.map((model) => model.id)).to.include.members([
+            "grok-4.3",
+            "grok-4.20-0309-non-reasoning",
+            "grok-4.20-0309-reasoning",
+        ]);
+        expect(models.map((model) => model.id)).not.to.include("grok-4-1-fast-non-reasoning");
     });
 
     test("user-defined additional models appear in the catalog", async () => {
@@ -101,7 +107,7 @@ suite("XAiSdkLanguageModelProvider", () => {
 
         expect(textOf(progressParts)).to.equal("SELECT 1");
         const params = create.firstCall.args[0] as ChatCompletionCreateParamsStreaming;
-        expect(params.model).to.equal("grok-4-1-fast-non-reasoning");
+        expect(params.model).to.equal("grok-4.3");
         expect(params.max_tokens).to.equal(240);
         expect(params).not.to.have.property("max_completion_tokens");
         expect(params.stream_options).to.deep.equal({ include_usage: true });
@@ -216,12 +222,12 @@ function createContextWithKey(): vscode.ExtensionContext {
 
 function defaultModel() {
     return {
-        id: "grok-4-1-fast-non-reasoning",
-        name: "Grok 4.1 Fast Non-Reasoning",
-        family: "grok-4.1-fast",
-        version: "grok-4-1-fast-non-reasoning",
-        maxInputTokens: 2000000,
-        maxOutputTokens: 30000,
+        id: "grok-4.3",
+        name: "Grok 4.3",
+        family: "grok-4.3",
+        version: "grok-4.3",
+        maxInputTokens: 1000000,
+        maxOutputTokens: 65536,
         capabilities: { toolCalling: false, imageInput: false },
     };
 }
@@ -230,7 +236,7 @@ function textChunk(content?: string): ChatCompletionChunk {
     return {
         id: "chunk",
         created: 0,
-        model: "grok-4-1-fast-non-reasoning",
+        model: "grok-4.3",
         object: "chat.completion.chunk",
         choices: [{ index: 0, delta: { content }, finish_reason: null }],
     } as ChatCompletionChunk;

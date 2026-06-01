@@ -60,6 +60,13 @@ suite("OpenAiSdkLanguageModelProvider", () => {
         expect(models.map((model) => model.id)).to.deep.equal(
             defaultOpenAiSdkModels.map((model) => model.id),
         );
+        expect(models.map((model) => model.id)).to.include.members([
+            "gpt-5.5",
+            "gpt-5.4",
+            "gpt-5.4-mini",
+            "gpt-5.4-nano",
+        ]);
+        expect(models.map((model) => model.id)).not.to.include("gpt-5.5-pro");
     });
 
     test("prepareLanguageModelChat returns [] when API key is missing", async () => {

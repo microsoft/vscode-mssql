@@ -39,11 +39,11 @@ suite("Inline completion model display helpers", () => {
     });
 
     test("formatModelSelector + parseModelSelector round-trip", () => {
-        const selector = formatModelSelector({ vendor: "anthropic-api", id: "claude-opus-4-7" });
-        expect(selector).to.equal("anthropic-api/claude-opus-4-7");
+        const selector = formatModelSelector({ vendor: "anthropic-api", id: "claude-opus-4-8" });
+        expect(selector).to.equal("anthropic-api/claude-opus-4-8");
 
         const parsed = parseModelSelector(selector);
-        expect(parsed).to.deep.equal({ vendor: "anthropic-api", id: "claude-opus-4-7" });
+        expect(parsed).to.deep.equal({ vendor: "anthropic-api", id: "claude-opus-4-8" });
     });
 
     test("parseModelSelector rejects malformed input", () => {
@@ -62,16 +62,16 @@ suite("Inline completion model display helpers", () => {
     test("formatModelDisplayName puts the provider label in front of the model name", () => {
         const label = formatModelDisplayName({
             vendor: "anthropic-api",
-            id: "claude-opus-4-7",
-            name: "Claude Opus 4.7",
+            id: "claude-opus-4-8",
+            name: "Claude Opus 4.8",
         });
-        expect(label).to.equal("Anthropic API — Claude Opus 4.7");
+        expect(label).to.equal("Anthropic API — Claude Opus 4.8");
     });
 });
 
 suite("matchLanguageModelChatToSelector", () => {
     const models = [
-        fakeModel({ vendor: "anthropic-api", id: "claude-opus-4-7", family: "claude-opus" }),
+        fakeModel({ vendor: "anthropic-api", id: "claude-opus-4-8", family: "claude-opus" }),
         fakeModel({ vendor: "anthropic-api", id: "claude-opus-4-6", family: "claude-opus" }),
         fakeModel({ vendor: "copilot", id: "claude-sonnet-4-5", family: "claude-sonnet-4-5" }),
     ];
@@ -112,8 +112,8 @@ suite("selectPreferredModel", () => {
         ];
 
         const matched = selectPreferredModel(models);
-        expect(matched?.vendor).to.equal("copilot");
-        expect(matched?.name).to.equal("Claude Sonnet 4.5");
+        expect(matched?.vendor).to.equal("anthropic-api");
+        expect(matched?.name).to.equal("Claude Sonnet 4.6");
     });
 
     test("chooses the best available version inside a preferred provider", () => {
@@ -154,6 +154,26 @@ suite("selectPreferredModel", () => {
 
         const matched = selectPreferredModel(models);
         expect(matched?.name).to.equal("Claude Sonnet 4.6");
+    });
+
+    test("does not rank GPT nano models as full frontier models", () => {
+        const models = [
+            fakeModel({
+                vendor: "openai-api",
+                id: "gpt-5.4-nano",
+                name: "GPT-5.4 Nano",
+                family: "gpt-5.4-nano",
+            }),
+            fakeModel({
+                vendor: "openai-api",
+                id: "gpt-5.4",
+                name: "GPT-5.4",
+                family: "gpt-5.4",
+            }),
+        ];
+
+        const matched = selectPreferredModel(models);
+        expect(matched?.id).to.equal("gpt-5.4");
     });
 
     test("focused profile prefers the intent model preference", () => {

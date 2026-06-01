@@ -62,6 +62,16 @@ suite("AnthropicSdkLanguageModelProvider", () => {
         expect(models.map((model) => model.id)).to.deep.equal(
             defaultAnthropicSdkModels.map((model) => model.id),
         );
+        expect(models.map((model) => model.id)).to.include.members([
+            "claude-opus-4-8",
+            "claude-sonnet-4-6",
+            "claude-haiku-4-5-20251001",
+        ]);
+        expect(models.map((model) => model.id)).not.to.include.members([
+            "claude-opus-4-7",
+            "claude-opus-4-6",
+            "claude-sonnet-4-5-20250929",
+        ]);
     });
 
     test("prepareLanguageModelChat returns [] when API key is missing", async () => {
