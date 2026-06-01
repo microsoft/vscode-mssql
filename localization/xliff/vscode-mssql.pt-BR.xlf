@@ -795,11 +795,15 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       </trans-unit>
       <trans-unit id="++CODE++0a2105a1fadf7c199d8e23465ad8d288b97a0456a72b51bcf57cba2eb8f9606d">
         <source xml:lang="en">Azure SQL Managed Instance</source>
-        <target state="new">Azure SQL Managed Instance</target>
+        <target state="translated">Instância Gerenciada de SQL do Azure</target>
       </trans-unit>
       <trans-unit id="++CODE++2827add936f31415e16e0670d8686084ec2e21fed7686c0aa91fffdfa09e4e38">
         <source xml:lang="en">Azure SQL Server</source>
         <target state="translated">SQL Server do Azure</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d58bf1f323a38f50b921c7d963ad40d4323ebb5085fc456c8afbcc6542b0eb7a">
+        <source xml:lang="en">Azure SQL databases provisioning</source>
+        <target state="translated">Provisionamento dos bancos de dados SQL do Azure</target>
       </trans-unit>
       <trans-unit id="++CODE++6d457cc1e5982858c386c637bec86a3c2615e648054d4d5472a261e0b5004b2d">
         <source xml:lang="en">Azure Subscriptions</source>
@@ -807,7 +811,7 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       </trans-unit>
       <trans-unit id="++CODE++a2a46725ee7a38c9f7136bbc583fe472b90c5b22586050da352cc033ca18e346">
         <source xml:lang="en">Azure Synapse Analytics</source>
-        <target state="new">Azure Synapse Analytics</target>
+        <target state="translated">Azure Synapse Analytics</target>
       </trans-unit>
       <trans-unit id="++CODE++27dda4355b44df3f400de7845fe1bfc83a880707d4630f52be097d95625f7bfa">
         <source xml:lang="en">Azure account '{0}' was not found. Sign in with the correct account or select a different one.</source>
@@ -1873,14 +1877,14 @@ Selecione "{0}" para estabelecer uma conexão.</target>
         <source xml:lang="en">Connecting to your SQL Server Docker container</source>
         <target state="translated">Conectando-se ao seu contêiner Docker do SQL Server</target>
       </trans-unit>
-      <trans-unit id="++CODE++9b8df2904fd9e25473fed50a3df04dc0629dec82daa72d6085cab8d1c63e4f65">
-        <source xml:lang="en">Connecting to {0}...</source>
-        <note>{0} is the connection display name</note>
-        <target state="translated">Conectando a {0}...</target>
-      </trans-unit>
       <trans-unit id="++CODE++fff46800eb59ecbf7114c9c219c3ab0ec39731c5cdf8012a4afbdd334e965254">
         <source xml:lang="en">Connecting to {0}...</source>
         <note>{0} is the server name</note>
+        <target state="translated">Conectando a {0}...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9b8df2904fd9e25473fed50a3df04dc0629dec82daa72d6085cab8d1c63e4f65">
+        <source xml:lang="en">Connecting to {0}...</source>
+        <note>{0} is the connection display name</note>
         <target state="translated">Conectando a {0}...</target>
       </trans-unit>
       <trans-unit id="++CODE++031d95e24e24622c128716284eb67a80331c825272813bf720f2c35a0b18f96c">
@@ -2496,6 +2500,10 @@ Selecione "{0}" para estabelecer uma conexão.</target>
 {2} is the operation name 'apply_changes' and must not be translated</note>
         <target state="translated">Construtor de API de dados aberto. Continuar com {0} operações ({1}/{2}).</target>
       </trans-unit>
+      <trans-unit id="++CODE++6ce6c168965317cce6e35f445598a3182e21e937846cf45db34b17dc1c0a0d3b">
+        <source xml:lang="en">Data API builder with GitHub Copilot</source>
+        <target state="translated">Construtor de API de dados com GitHub Copilot</target>
+      </trans-unit>
       <trans-unit id="++CODE++e136aee7826b55f91d1b030832bc4be35b9ee07563c09627052aeecb9335a039">
         <source xml:lang="en">Data Source</source>
         <target state="translated">Fonte de Dados</target>
@@ -2858,6 +2866,10 @@ Selecione "{0}" para estabelecer uma conexão.</target>
 {1} is the connection ID</note>
         <target state="translated">Desconectando da conexão '{0}' (ID: {1})</target>
       </trans-unit>
+      <trans-unit id="++CODE++57d34ecd6fc9b04ba8ad6450eeb1159b21aa3e6f127082ea6554f826985cdddb">
+        <source xml:lang="en">Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.</source>
+        <target state="translated">Descubra como o Banco de Dados SQL no Fabric, SQL do Azure e SQL Server estão redefinindo o desenvolvimento de aplicativos modernos. Junte-se a engenheiros e colegas que estão ampliando os limites de desempenho, integração com IA e produtividade do desenvolvedor.</target>
+      </trans-unit>
       <trans-unit id="++CODE++48845bff334a50a59aaecf499f28a7a24c3b4b891b8b18a9f1169ad8e8a6b261">
         <source xml:lang="en">Dismiss</source>
         <target state="translated">Ignorar</target>
@@ -2980,6 +2992,10 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       <trans-unit id="++CODE++8cbb7c26112408cd60a1c8ac0daff1b020815ad01c94df751ab7145dea824881">
         <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
         <target state="translated">Configure facilmente um SQL Server local sem sair da extensão do VS Code. Apenas alguns cliques para instalar, configurar e gerenciar seu servidor sem esforço!</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a05ece881012991a79aaf2cbbba9d6e11e35d05ed66f547dfaae931a8d9e50af">
+        <source xml:lang="en">Easily start with the Azure SQL database free tier to create and connect to a database directly from your editor at no cost.</source>
+        <target state="translated">Comece facilmente com a camada gratuita do banco de dados SQL do Azure para criar e se conectar a um banco de dados diretamente do seu editor, sem custos.</target>
       </trans-unit>
       <trans-unit id="++CODE++8b45c43d0d9a0c27cbecb2683ef02b292a7f2626dee0f8443d4e62ac3e0e88c4">
         <source xml:lang="en">Edit Connection Group - {0}</source>
@@ -4097,9 +4113,10 @@ Erro:
         <source xml:lang="en">Failed to save publish profile</source>
         <target state="translated">Falha ao salvar o perfil de publicação</target>
       </trans-unit>
-      <trans-unit id="++CODE++283dc9bd4f27ff0efed1b3ac27910746f64f860e2e0c2240f9723ff02c1dc29c">
-        <source xml:lang="en">Failed to save results. </source>
-        <target state="translated">Falha ao salvar os resultados. </target>
+      <trans-unit id="++CODE++11167e57bf77932c07f42c4b2a08ba8428726757beb2f754ece1786e81ed0447">
+        <source xml:lang="en">Failed to save results. {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Failed to save results. {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++295dc600027d16c46d0596df1afe12f2c8db841203c77f15207d06851c0d50ec">
         <source xml:lang="en">Failed to save results: {0}</source>
@@ -4532,6 +4549,10 @@ Erro:
       <trans-unit id="++CODE++752307275e5358665596d28a3080462e4933b77005bbbf2ba1eca87f1dca1fcc">
         <source xml:lang="en">Generate Data API builder configurations using natural language through GitHub Copilot chat and agent tools. Describe your API requirements and let GitHub Copilot scaffold the configuration for you.</source>
         <target state="translated">Gere configurações do Construtor de API de dados usando linguagem natural por meio do chat e das ferramentas de agente do GitHub Copilot. Descreva suas necessidades de API e deixe o GitHub Copilot criar a configuração para você.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3fe2318b777a1d9c6304a9e2bff0d636f51cfb872de17793c8962acbdc1370cd">
+        <source xml:lang="en">Generate REST, GraphQL, and MCP endpoints from your SQL database objects (tables). You can modify the configuration manually or through GitHub Copilot to plan and generate updates - then deploy locally with Docker.</source>
+        <target state="translated">Gere pontos de extremidade REST, GraphQL e MCP usando os objetos do seu banco de dados SQL (tabelas). Você pode modificar a configuração manualmente ou com o GitHub Copilot para planejar e gerar atualizações - depois implantá-las localmente com o Docker.</target>
       </trans-unit>
       <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
         <source xml:lang="en">Generate Script</source>
@@ -5205,7 +5226,7 @@ Erro:
       <trans-unit id="++CODE++8a4c943120e561689b5545e70b8fa64b48da3eb09a8b14c6d2283f29af79e201">
         <source xml:lang="en">Listing Fabric Warehouses for workspace '{0}'</source>
         <note>{0} is the workspace ID</note>
-        <target state="new">Listing Fabric Warehouses for workspace '{0}'</target>
+        <target state="translated">Listando warehouses do Fabric para o espaço de trabalho '{0}'</target>
       </trans-unit>
       <trans-unit id="++CODE++a5c14e0446ba987ee1804ac7f75c2cf29a526c5b3efc8ec431eeb50d200ad7f0">
         <source xml:lang="en">Listing Fabric capacities for tenant '{0}'</source>
@@ -5597,7 +5618,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++e260e08b004d80c5f03f1c487435e7c89ad7277a12212a98f9fd44217e21dd9e">
         <source xml:lang="en">Max vCores</source>
-        <target state="new">Max vCores</target>
+        <target state="translated">Máximo de vCores</target>
       </trans-unit>
       <trans-unit id="++CODE++fc899519286f8da6256728b62d14e6ef9042346e7ad4191e21c95efaf1141a42">
         <source xml:lang="en">Max: {0}</source>
@@ -7224,6 +7245,10 @@ Erro:
         <source xml:lang="en">Region</source>
         <target state="translated">Região</target>
       </trans-unit>
+      <trans-unit id="++CODE++bb7234ec12451361e6f35bcbe76de58e4350657fe60d1b96ace0947f59194083">
+        <source xml:lang="en">Register</source>
+        <target state="translated">Registrar</target>
+      </trans-unit>
       <trans-unit id="++CODE++ab604a360777735fe2993aec7d4ffae415f1515b0a4c989269603fd3d5c07b61">
         <source xml:lang="en">Reject</source>
         <target state="translated">Rejeitar</target>
@@ -8003,7 +8028,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++79e5e71c56f13bb3c722fd134f6fb39e747de15dc979295882ecac8d67d45559">
         <source xml:lang="en">Select Max vCores</source>
-        <target state="new">Select Max vCores</target>
+        <target state="translated">Selecione o Máximo de vCores</target>
       </trans-unit>
       <trans-unit id="++CODE++a1103f928cc721a44f7c8cdbc11bab66f8a7e44d66485112edccc40525787cfb">
         <source xml:lang="en">Select Profile</source>
@@ -8610,14 +8635,14 @@ Consulta: {2}</target>
         <source xml:lang="en">Source Name</source>
         <target state="translated">Nome da Origem</target>
       </trans-unit>
-      <trans-unit id="++CODE++30ecb608c5cff9e821a41d28312d0070cbeb3901bc8e32ecefd17171f87dc53a">
-        <source xml:lang="en">Source: {0}</source>
-        <note>{0} is the task source</note>
-        <target state="translated">Fonte: {0}</target>
-      </trans-unit>
       <trans-unit id="++CODE++7d1b71b2bde7aa8e3125b606f3738980a13371ad3458ddd00b1193d72aad45dd">
         <source xml:lang="en">Source: {0}</source>
         <note>{0} is the fully qualified DAB source object name</note>
+        <target state="translated">Fonte: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++30ecb608c5cff9e821a41d28312d0070cbeb3901bc8e32ecefd17171f87dc53a">
+        <source xml:lang="en">Source: {0}</source>
+        <note>{0} is the task source</note>
         <target state="translated">Fonte: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++1e49ea47266ab1130ffc9be417fa6eb62da7299641f30a76e728fe983c25f29d">
@@ -8669,9 +8694,10 @@ Consulta: {2}</target>
         <note>{0} is the document name</note>
         <target state="translated">Execução da consulta iniciada para o documento "{0}"</target>
       </trans-unit>
-      <trans-unit id="++CODE++47d62b3ce92021fa331252ba82176c2a4ccb592c2264bd58ec74e5d1b722c98e">
-        <source xml:lang="en">Started saving results to </source>
-        <target state="translated">Salvamento de resultados iniciado em </target>
+      <trans-unit id="++CODE++b10574f779b09047bedf3228566923bf6ba89edd4f6f08ff15e9a9c0314cfbdb">
+        <source xml:lang="en">Started saving results to {0}</source>
+        <note>{0} is the file path</note>
+        <target state="new">Started saving results to {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++7db6cebea8c95ec1db665d9ce39b1798388767fb2481b3f02548f4f008012631">
         <source xml:lang="en">Starting '{0}'...</source>
@@ -8815,9 +8841,10 @@ Consulta: {2}</target>
 {2} is the message</note>
         <target state="translated">Token atualizado com sucesso para a conexão {0} com o URI {1}, {2}</target>
       </trans-unit>
-      <trans-unit id="++CODE++9c85106af25fd7656e977d5453607973955ae5d79fce0a78264cd714a628e981">
-        <source xml:lang="en">Successfully saved results to </source>
-        <target state="translated">Os resultados foram salvos com sucesso em </target>
+      <trans-unit id="++CODE++c36cade68fea2c699e5795c527fd1daf085d0b76a5a5bc35526765a1b5d5b974">
+        <source xml:lang="en">Successfully saved results to {0}</source>
+        <note>{0} is the file path</note>
+        <target state="new">Successfully saved results to {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++da099a63ce9b5fe688c4f5219cdd8614a27faa324bdd5c612dfab086630b346c">
         <source xml:lang="en">Sum: {0}</source>
@@ -9586,6 +9613,10 @@ Consulta: {2}</target>
         <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
         <target state="translated">Usar o T-SQL IntelliSense e a verificação de erros de sintaxe no documento atual</target>
       </trans-unit>
+      <trans-unit id="++CODE++6ef37ea9955ac30c701324290f719cf696d1f34b027640872eb4bba2fcd59c25">
+        <source xml:lang="en">Use discount code {0} to save €200 on registration.</source>
+        <target state="translated">Use o código de desconto {0} para economizar €200 na inscrição.</target>
+      </trans-unit>
       <trans-unit id="++CODE++413d7418205c532ce289074072d8841df2c720313cb19bd9180ad2c4de3383c7">
         <source xml:lang="en">Use encryption for this backup</source>
         <target state="translated">Usar criptografia para este backup</target>
@@ -9776,7 +9807,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++2a625c251683ca2ba8a1125319cb76d8f3d448d9e4d5a6c97bd948145217e36f">
         <source xml:lang="en">Warehouse</source>
-        <target state="new">Warehouse</target>
+        <target state="translated">Warehouse</target>
       </trans-unit>
       <trans-unit id="++CODE++e981ddae45d8f4ca53f1ccbe613ad254a041dacf65a06026099a6302d332113b">
         <source xml:lang="en">Warning</source>
@@ -10411,18 +10442,6 @@ Consulta: {2}</target>
         <note>{0} is the filtered count, {1} is the total count</note>
         <target state="translated">{0}/{1} eventos</target>
       </trans-unit>
-      <trans-unit id="++CODE++2b85e133b4abad5a9f5b85b3dd903a3f1f84db64680beb66977f6e44743f2434">
-        <source xml:lang="en">{0}: {1}</source>
-        <note>{0} is the task name
-{1} is the status</note>
-        <target state="translated">{0}: {1}</target>
-      </trans-unit>
-      <trans-unit id="++CODE++be5a4e5aa348f87ea026acec0d4a2d3181a504dad2d924e8a3cb0e229cbdae30">
-        <source xml:lang="en">{0}: {1}</source>
-        <note>{0} is the task status
-{1} is the task message</note>
-        <target state="translated">{0}: {1}</target>
-      </trans-unit>
       <trans-unit id="++CODE++a2d133c4fbcb2f605ecd460e6639e824d6bc388d75b5df672fd4cbf95d1e71f9">
         <source xml:lang="en">{0}: {1}</source>
         <note>{0} is the column name
@@ -10433,6 +10452,18 @@ Consulta: {2}</target>
         <source xml:lang="en">{0}: {1}</source>
         <note>{0} is the qualified table name
 {1} is the change description</note>
+        <target state="translated">{0}: {1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2b85e133b4abad5a9f5b85b3dd903a3f1f84db64680beb66977f6e44743f2434">
+        <source xml:lang="en">{0}: {1}</source>
+        <note>{0} is the task name
+{1} is the status</note>
+        <target state="translated">{0}: {1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++be5a4e5aa348f87ea026acec0d4a2d3181a504dad2d924e8a3cb0e229cbdae30">
+        <source xml:lang="en">{0}: {1}</source>
+        <note>{0} is the task status
+{1} is the task message</note>
         <target state="translated">{0}: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++657a1d2beff87023ec2d92b03f58feb984cb2ea13dc6e7269ed84f0b64158591">
@@ -11479,6 +11510,10 @@ Confira o plano estimado sem executar a consulta ou visualize o plano de consult
       <trans-unit id="mssql.schemaDesigner">
         <source xml:lang="en">Visualize and Design Schema...</source>
         <target state="translated">Visualizar e Projetar Esquema...</target>
+      </trans-unit>
+      <trans-unit id="mssql.messages.copyIncludeTimestamps">
+        <source xml:lang="en">When enabled, Copy All in the query result Messages pane includes message timestamps.</source>
+        <target state="new">When enabled, Copy All in the query result Messages pane includes message timestamps.</target>
       </trans-unit>
       <trans-unit id="mssql.transferActiveEditorConnections.description">
         <source xml:lang="en">When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.</source>

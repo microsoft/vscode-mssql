@@ -11,6 +11,10 @@ export class Common {
     public static remindMeLater = l10n.t("Remind Me Later");
     public static dontShowAgain = l10n.t("Don't Show Again");
     public static learnMore = l10n.t("Learn More");
+    public static openFile = l10n.t("Open File");
+    public static revealInExplorer = l10n.t("Reveal in Explorer");
+    public static revealInFinder = l10n.t("Reveal in Finder");
+    public static openContainingFolder = l10n.t("Open Containing Folder");
     public static delete = l10n.t("Delete");
     public static cancel = l10n.t("Cancel");
     public static areYouSure = l10n.t("Are you sure?");
@@ -262,9 +266,27 @@ export let msgSavePassword = l10n.t(
 );
 export let profileNamePrompt = l10n.t("Profile Name");
 export let msgCannotOpenContent = l10n.t("Error occurred opening content in editor.");
-export let msgSaveStarted = l10n.t("Started saving results to ");
-export let msgSaveFailed = l10n.t("Failed to save results. ");
-export let msgSaveSucceeded = l10n.t("Successfully saved results to ");
+export function msgSaveStarted(filePath: string) {
+    return l10n.t({
+        message: "Started saving results to {0}",
+        args: [filePath],
+        comment: ["{0} is the file path"],
+    });
+}
+export function msgSaveFailed(error: string) {
+    return l10n.t({
+        message: "Failed to save results. {0}",
+        args: [error],
+        comment: ["{0} is the error message"],
+    });
+}
+export function msgSaveSucceeded(filePath: string) {
+    return l10n.t({
+        message: "Successfully saved results to {0}",
+        args: [filePath],
+        comment: ["{0} is the file path"],
+    });
+}
 export let msgSelectProfileToRemove = l10n.t("Select profile to remove");
 export let msgSelectProfileToEdit = l10n.t("Select profile to edit");
 export let confirmRemoveProfilePrompt = l10n.t("Confirm to remove this profile.");
@@ -3069,9 +3091,9 @@ export class DacpacDialog {
     public static InvalidApplicationVersion = l10n.t(
         "Application version must be in format n.n.n.n where n is a number (e.g., 1.0.0.0)",
     );
-    public static RevealInExplorer = l10n.t("Reveal in Explorer");
-    public static RevealInFinder = l10n.t("Reveal in Finder");
-    public static OpenContainingFolder = l10n.t("Open Containing Folder");
+    public static RevealInExplorer = Common.revealInExplorer;
+    public static RevealInFinder = Common.revealInFinder;
+    public static OpenContainingFolder = Common.openContainingFolder;
     public static FailedToListDatabases = l10n.t(
         "Unable to retrieve the list of databases. You may not have permission to list databases on this server.",
     );
@@ -3612,7 +3634,7 @@ export class Profiler {
             args: [filePath],
             comment: ["{0} is the file path"],
         });
-    public static openFile = l10n.t("Open File");
+    public static openFile = Common.openFile;
     public static exportFailed = (error: string) =>
         l10n.t({
             message: "Failed to export profiler events: {0}",
