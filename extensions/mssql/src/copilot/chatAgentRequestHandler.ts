@@ -24,7 +24,7 @@ import {
 import { getErrorMessage, uuid } from "../utils/utils";
 import { MssqlChatAgent as loc } from "../constants/locConstants";
 import MainController from "../controllers/mainController";
-import { ILogger } from "../models/logger";
+import { ILogger, logger as baseLogger } from "../models/logger";
 import {
     handleChatCommand,
     commandSkipsConnectionLabels,
@@ -58,7 +58,7 @@ export const createSqlAgentRequestHandler = (
     })();
 
     const getLogger = (() => {
-        const logger = logger.withPrefix("MssqlCopilot");
+        const logger = baseLogger.withPrefix("MssqlCopilot");
 
         return () => logger;
     })();

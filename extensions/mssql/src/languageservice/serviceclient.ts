@@ -17,7 +17,7 @@ import {
 } from "vscode-languageclient";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as Utils from "../models/utils";
-import { ILogger } from "../models/logger";
+import { ILogger, logger as baseLogger } from "../models/logger";
 import * as Constants from "../constants/constants";
 import ServerProvider from "./server";
 import ServiceDownloadProvider from "./serviceDownloadProvider";
@@ -170,7 +170,7 @@ export default class SqlToolsServiceClient {
             let config = new ExtConfig();
             let vscodeWrapper = new VscodeWrapper();
 
-            let logger = logger.withPrefix("SQL Tools Service");
+            let logger = baseLogger.withPrefix("SQL Tools Service");
 
             let serverStatusView = new ServerStatusView();
             let downloadHelper = new DownloadHelper();

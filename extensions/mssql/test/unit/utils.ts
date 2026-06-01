@@ -16,7 +16,7 @@ import { IPrompter } from "../../src/prompts/question";
 import CodeAdapter from "../../src/prompts/adapter";
 import { buildCapabilitiesResult } from "./mocks";
 import { GetCapabilitiesRequest } from "../../src/models/contracts/connection";
-import { ILogger } from "../../src/models/logger";
+import { ILogger, logger as baseLogger } from "../../src/models/logger";
 import { PreviewFeature, previewService } from "../../src/previews/previewService";
 
 // Stubs the telemetry code
@@ -182,11 +182,11 @@ export function createStubLogger(
 export function stubLogger(sandbox?: sinon.SinonSandbox): sinon.SinonStubbedInstance<ILogger> {
     const stubber = sandbox || sinon;
     const logger = createStubLogger(sandbox);
-    const withPrefix = logger.withPrefix as unknown as sinon.SinonStub;
+    const withPrefix = baseLogger.withPrefix as unknown as sinon.SinonStub;
     if (typeof withPrefix.restore === "function") {
         withPrefix.returns(logger);
     } else {
-        stubber.stub(logger, "withPrefix").returns(logger);
+        stubber.stub(baseLogger, "withPrefix").returns(logger);
     }
     return logger;
 }
