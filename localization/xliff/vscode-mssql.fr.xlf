@@ -795,7 +795,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++0a2105a1fadf7c199d8e23465ad8d288b97a0456a72b51bcf57cba2eb8f9606d">
         <source xml:lang="en">Azure SQL Managed Instance</source>
-        <target state="new">Azure SQL Managed Instance</target>
+        <target state="translated">Azure SQL Managed Instance</target>
       </trans-unit>
       <trans-unit id="++CODE++2827add936f31415e16e0670d8686084ec2e21fed7686c0aa91fffdfa09e4e38">
         <source xml:lang="en">Azure SQL Server</source>
@@ -803,7 +803,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++d58bf1f323a38f50b921c7d963ad40d4323ebb5085fc456c8afbcc6542b0eb7a">
         <source xml:lang="en">Azure SQL databases provisioning</source>
-        <target state="new">Azure SQL databases provisioning</target>
+        <target state="translated">Approvisionnement des bases de données Azure SQL</target>
       </trans-unit>
       <trans-unit id="++CODE++6d457cc1e5982858c386c637bec86a3c2615e648054d4d5472a261e0b5004b2d">
         <source xml:lang="en">Azure Subscriptions</source>
@@ -811,7 +811,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++a2a46725ee7a38c9f7136bbc583fe472b90c5b22586050da352cc033ca18e346">
         <source xml:lang="en">Azure Synapse Analytics</source>
-        <target state="new">Azure Synapse Analytics</target>
+        <target state="translated">Azure Synapse Analytics</target>
       </trans-unit>
       <trans-unit id="++CODE++27dda4355b44df3f400de7845fe1bfc83a880707d4630f52be097d95625f7bfa">
         <source xml:lang="en">Azure account '{0}' was not found. Sign in with the correct account or select a different one.</source>
@@ -2502,7 +2502,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++6ce6c168965317cce6e35f445598a3182e21e937846cf45db34b17dc1c0a0d3b">
         <source xml:lang="en">Data API builder with GitHub Copilot</source>
-        <target state="new">Data API builder with GitHub Copilot</target>
+        <target state="translated">Générateur d’API de données avec GitHub Copilot</target>
       </trans-unit>
       <trans-unit id="++CODE++e136aee7826b55f91d1b030832bc4be35b9ee07563c09627052aeecb9335a039">
         <source xml:lang="en">Data Source</source>
@@ -2868,7 +2868,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++57d34ecd6fc9b04ba8ad6450eeb1159b21aa3e6f127082ea6554f826985cdddb">
         <source xml:lang="en">Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.</source>
-        <target state="new">Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.</target>
+        <target state="translated">Découvrez comment SQL Database dans Fabric, Azure SQL et SQL Server redéfinissent le développement d’applications modernes. Rejoignez des ingénieurs et des collègues qui repoussent les limites des performances, de l’intégration de l’IA et de la productivité des développeurs.</target>
       </trans-unit>
       <trans-unit id="++CODE++48845bff334a50a59aaecf499f28a7a24c3b4b891b8b18a9f1169ad8e8a6b261">
         <source xml:lang="en">Dismiss</source>
@@ -2995,7 +2995,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++a05ece881012991a79aaf2cbbba9d6e11e35d05ed66f547dfaae931a8d9e50af">
         <source xml:lang="en">Easily start with the Azure SQL database free tier to create and connect to a database directly from your editor at no cost.</source>
-        <target state="new">Easily start with the Azure SQL database free tier to create and connect to a database directly from your editor at no cost.</target>
+        <target state="translated">Commencez facilement avec le niveau gratuit de la base de données Azure SQL pour créer une base de données et vous y connecter directement à partir de votre éditeur, sans frais.</target>
       </trans-unit>
       <trans-unit id="++CODE++8b45c43d0d9a0c27cbecb2683ef02b292a7f2626dee0f8443d4e62ac3e0e88c4">
         <source xml:lang="en">Edit Connection Group - {0}</source>
@@ -4113,9 +4113,10 @@ Erreur :
         <source xml:lang="en">Failed to save publish profile</source>
         <target state="translated">Nous n’avons pas pu enregistrer le profil de publication</target>
       </trans-unit>
-      <trans-unit id="++CODE++283dc9bd4f27ff0efed1b3ac27910746f64f860e2e0c2240f9723ff02c1dc29c">
-        <source xml:lang="en">Failed to save results. </source>
-        <target state="translated">L’enregistrement des résultats a échoué. </target>
+      <trans-unit id="++CODE++11167e57bf77932c07f42c4b2a08ba8428726757beb2f754ece1786e81ed0447">
+        <source xml:lang="en">Failed to save results. {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Failed to save results. {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++295dc600027d16c46d0596df1afe12f2c8db841203c77f15207d06851c0d50ec">
         <source xml:lang="en">Failed to save results: {0}</source>
@@ -4551,7 +4552,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++3fe2318b777a1d9c6304a9e2bff0d636f51cfb872de17793c8962acbdc1370cd">
         <source xml:lang="en">Generate REST, GraphQL, and MCP endpoints from your SQL database objects (tables). You can modify the configuration manually or through GitHub Copilot to plan and generate updates - then deploy locally with Docker.</source>
-        <target state="new">Generate REST, GraphQL, and MCP endpoints from your SQL database objects (tables). You can modify the configuration manually or through GitHub Copilot to plan and generate updates - then deploy locally with Docker.</target>
+        <target state="translated">Générez des points de terminaison REST, GraphQL et MCP à partir des objets de votre base de données SQL (tables). Vous pouvez modifier la configuration manuellement ou via GitHub Copilot pour planifier puis générer des mises à jour, puis les déployer localement avec Docker.</target>
       </trans-unit>
       <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
         <source xml:lang="en">Generate Script</source>
@@ -5225,7 +5226,7 @@ Erreur :
       <trans-unit id="++CODE++8a4c943120e561689b5545e70b8fa64b48da3eb09a8b14c6d2283f29af79e201">
         <source xml:lang="en">Listing Fabric Warehouses for workspace '{0}'</source>
         <note>{0} is the workspace ID</note>
-        <target state="new">Listing Fabric Warehouses for workspace '{0}'</target>
+        <target state="translated">Liste des entrepôts Fabric pour l’espace de travail « {0} »</target>
       </trans-unit>
       <trans-unit id="++CODE++a5c14e0446ba987ee1804ac7f75c2cf29a526c5b3efc8ec431eeb50d200ad7f0">
         <source xml:lang="en">Listing Fabric capacities for tenant '{0}'</source>
@@ -5617,7 +5618,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++e260e08b004d80c5f03f1c487435e7c89ad7277a12212a98f9fd44217e21dd9e">
         <source xml:lang="en">Max vCores</source>
-        <target state="new">Max vCores</target>
+        <target state="translated">vCores max</target>
       </trans-unit>
       <trans-unit id="++CODE++fc899519286f8da6256728b62d14e6ef9042346e7ad4191e21c95efaf1141a42">
         <source xml:lang="en">Max: {0}</source>
@@ -7246,7 +7247,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++bb7234ec12451361e6f35bcbe76de58e4350657fe60d1b96ace0947f59194083">
         <source xml:lang="en">Register</source>
-        <target state="new">Register</target>
+        <target state="translated">S’inscrire</target>
       </trans-unit>
       <trans-unit id="++CODE++ab604a360777735fe2993aec7d4ffae415f1515b0a4c989269603fd3d5c07b61">
         <source xml:lang="en">Reject</source>
@@ -8027,7 +8028,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++79e5e71c56f13bb3c722fd134f6fb39e747de15dc979295882ecac8d67d45559">
         <source xml:lang="en">Select Max vCores</source>
-        <target state="new">Select Max vCores</target>
+        <target state="translated">Sélectionnez Max vCores</target>
       </trans-unit>
       <trans-unit id="++CODE++a1103f928cc721a44f7c8cdbc11bab66f8a7e44d66485112edccc40525787cfb">
         <source xml:lang="en">Select Profile</source>
@@ -8693,9 +8694,10 @@ Requête : {2}</target>
         <note>{0} is the document name</note>
         <target state="translated">Exécution de la requête démarrée pour le document « {0} »</target>
       </trans-unit>
-      <trans-unit id="++CODE++47d62b3ce92021fa331252ba82176c2a4ccb592c2264bd58ec74e5d1b722c98e">
-        <source xml:lang="en">Started saving results to </source>
-        <target state="translated">Enregistrement des résultats démarré dans </target>
+      <trans-unit id="++CODE++b10574f779b09047bedf3228566923bf6ba89edd4f6f08ff15e9a9c0314cfbdb">
+        <source xml:lang="en">Started saving results to {0}</source>
+        <note>{0} is the file path</note>
+        <target state="new">Started saving results to {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++7db6cebea8c95ec1db665d9ce39b1798388767fb2481b3f02548f4f008012631">
         <source xml:lang="en">Starting '{0}'...</source>
@@ -8839,9 +8841,10 @@ Requête : {2}</target>
 {2} is the message</note>
         <target state="translated">Jeton actualisé pour la connexion {0} avec l’URI {1}, {2}</target>
       </trans-unit>
-      <trans-unit id="++CODE++9c85106af25fd7656e977d5453607973955ae5d79fce0a78264cd714a628e981">
-        <source xml:lang="en">Successfully saved results to </source>
-        <target state="translated">Résultats enregistrés dans </target>
+      <trans-unit id="++CODE++c36cade68fea2c699e5795c527fd1daf085d0b76a5a5bc35526765a1b5d5b974">
+        <source xml:lang="en">Successfully saved results to {0}</source>
+        <note>{0} is the file path</note>
+        <target state="new">Successfully saved results to {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++da099a63ce9b5fe688c4f5219cdd8614a27faa324bdd5c612dfab086630b346c">
         <source xml:lang="en">Sum: {0}</source>
@@ -9612,7 +9615,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++6ef37ea9955ac30c701324290f719cf696d1f34b027640872eb4bba2fcd59c25">
         <source xml:lang="en">Use discount code {0} to save €200 on registration.</source>
-        <target state="new">Use discount code {0} to save €200 on registration.</target>
+        <target state="translated">Utilisez le code de réduction {0} pour économiser 200 € lors de l’inscription.</target>
       </trans-unit>
       <trans-unit id="++CODE++413d7418205c532ce289074072d8841df2c720313cb19bd9180ad2c4de3383c7">
         <source xml:lang="en">Use encryption for this backup</source>
@@ -9804,7 +9807,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++2a625c251683ca2ba8a1125319cb76d8f3d448d9e4d5a6c97bd948145217e36f">
         <source xml:lang="en">Warehouse</source>
-        <target state="new">Warehouse</target>
+        <target state="translated">Warehouse</target>
       </trans-unit>
       <trans-unit id="++CODE++e981ddae45d8f4ca53f1ccbe613ad254a041dacf65a06026099a6302d332113b">
         <source xml:lang="en">Warning</source>
