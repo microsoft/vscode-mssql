@@ -125,6 +125,7 @@
     "mssql.statusBar.enableConnectionColor": "When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.",
     "mssql.shortcuts": "Shortcuts related to the results window",
     "mssql.messagesDefaultOpen": "True for the messages pane to be open by default; false for closed",
+    "mssql.messages.copyIncludeTimestamps": "When enabled, Copy All in the query result Messages pane includes message timestamps.",
     "mssql.resultsFontFamily": "Set the font family for the results grid; set to blank to use the editor font",
     "mssql.resultsFontSize": "Set the font size for the results grid; set to blank to use the editor size",
     "mssql.results.openAfterSave": "When enabled, saved query result exports are opened after export. Excel exports open with the system file handler; text exports open in VS Code.",
