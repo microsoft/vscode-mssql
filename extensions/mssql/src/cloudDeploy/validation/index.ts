@@ -29,3 +29,12 @@ export type {
     LiveConnectionStrategy,
 } from "./providers/connectionProvider";
 export { ConnectivityValidator } from "./validators/connectivityValidator";
+export { FakeProcessProvider, LiveProcessProvider } from "./providers/processProvider";
+export type {
+    FakeProcessResponse,
+    FakeSpawnInvocation,
+    ProcessProvider,
+    ProcessResult,
+    ProcessSpawnOptions,
+} from "./providers/processProvider";
+export { StaticAnalysisValidator } from "./validators/staticAnalysisValidator";

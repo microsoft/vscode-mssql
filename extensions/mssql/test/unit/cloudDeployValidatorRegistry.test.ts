@@ -19,11 +19,11 @@ import { expect } from "chai";
 import { ValidationType } from "../../src/cloudDeploy/environments/types";
 import { createDefaultRegistry, defineRegistry, Validator } from "../../src/cloudDeploy/validation";
 import { FakeConnectionProvider } from "../../src/cloudDeploy/validation/providers/connectionProvider";
+import { FakeProcessProvider } from "../../src/cloudDeploy/validation/providers/processProvider";
 
 import { FakeValidator, makeFakeRegistry } from "./cloudDeployValidationTestHelpers";
 
 const PLACEHOLDER_TYPES: readonly ValidationType[] = [
-    ValidationType.StaticAnalysis,
     ValidationType.UnitTests,
     ValidationType.WorkloadPlayback,
 ];
@@ -76,7 +76,10 @@ suite("CloudDeploy Validator Registry", () => {
     });
 
     suite("createDefaultRegistry", () => {
-        const providers = { connection: new FakeConnectionProvider() };
+        const providers = {
+            connection: new FakeConnectionProvider(),
+            process: new FakeProcessProvider(),
+        };
 
         test("returns a frozen registry", () => {
             const registry = createDefaultRegistry(providers);
@@ -95,6 +98,13 @@ suite("CloudDeploy Validator Registry", () => {
             const registry = createDefaultRegistry(providers);
             expect(registry[ValidationType.Connectivity].constructor.name).to.equal(
                 "ConnectivityValidator",
+            );
+        });
+
+        test("static-analysis arm is wired to the real StaticAnalysisValidator (not a placeholder)", () => {
+            const registry = createDefaultRegistry(providers);
+            expect(registry[ValidationType.StaticAnalysis].constructor.name).to.equal(
+                "StaticAnalysisValidator",
             );
         });
 

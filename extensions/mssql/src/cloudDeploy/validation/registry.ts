@@ -21,8 +21,10 @@
 
 import { ValidationType } from "../environments/types";
 import type { ConnectionProvider } from "./providers/connectionProvider";
+import type { ProcessProvider } from "./providers/processProvider";
 import { defineRegistry, Validator, ValidatorRegistry } from "./types";
 import { ConnectivityValidator } from "./validators/connectivityValidator";
+import { StaticAnalysisValidator } from "./validators/staticAnalysisValidator";
 
 /**
  * Provider bundle injected into `createDefaultRegistry`. Each subsequent
@@ -32,6 +34,7 @@ import { ConnectivityValidator } from "./validators/connectivityValidator";
  */
 export interface RegistryProviders {
     readonly connection: ConnectionProvider;
+    readonly process: ProcessProvider;
 }
 
 /**
@@ -64,7 +67,7 @@ class NotYetWiredValidator<T extends ValidationType> implements Validator<T> {
 export function createDefaultRegistry(providers: RegistryProviders): ValidatorRegistry {
     return defineRegistry({
         [ValidationType.Connectivity]: new ConnectivityValidator(providers.connection),
-        [ValidationType.StaticAnalysis]: new NotYetWiredValidator(ValidationType.StaticAnalysis),
+        [ValidationType.StaticAnalysis]: new StaticAnalysisValidator(providers.process),
         [ValidationType.UnitTests]: new NotYetWiredValidator(ValidationType.UnitTests),
         [ValidationType.WorkloadPlayback]: new NotYetWiredValidator(
             ValidationType.WorkloadPlayback,
