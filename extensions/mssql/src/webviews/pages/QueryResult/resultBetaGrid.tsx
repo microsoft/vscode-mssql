@@ -42,9 +42,11 @@ import {
     GetColumnWidthsRequest,
     GetFiltersRequest,
     GetGridScrollPositionRequest,
+    GetGridViewStateRequest,
     CopySelectionRequest,
     GetRowsRequest,
     GridContextMenuAction,
+    GridViewState,
     ISlickRange,
     QueryResultSaveAsTrigger,
     ResultSetSummary,
@@ -57,6 +59,7 @@ import {
     ShowFilterDisabledMessageRequest,
     SortProperties,
     ColumnFilterMap,
+    SetGridViewStateRequest,
 } from "../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../common/locConstants";
 import { KeyCode } from "../../common/keys";
@@ -131,6 +134,16 @@ type MutableGridMenuCommandItem = {
     command?: string;
     disabled?: boolean;
     commandItems?: Array<MutableGridMenuCommandItem | "divider">;
+};
+
+type BetaGridSharedService = {
+    allColumns?: Column<QueryResultGridRow>[];
+    gridOptions?: GridOption;
+    frozenVisibleColumnId?: string | number | null;
+};
+
+type BetaGridReactInstance = SlickgridReactInstance & {
+    sharedService?: BetaGridSharedService;
 };
 
 function isGridMenuDataColumn(column: Column<QueryResultGridRow>): boolean {
@@ -334,6 +347,67 @@ function getDataSelectionsFromRanges(selectedRanges: SlickRange[]): ISlickRange[
     return dataSelections;
 }
 
+function normalizeFrozenColumnIndex(value: number | undefined, columnCount: number): number {
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+        return 0;
+    }
+
+    return Math.min(Math.max(0, Math.trunc(value)), Math.max(0, columnCount - 1));
+}
+
+function getSlickRangesFromDataSelections(
+    selections: ISlickRange[] | undefined,
+    rowCount: number,
+    columnCount: number,
+): SlickRange[] {
+    if (!selections?.length || rowCount <= 0 || columnCount <= FIRST_DATA_CELL_INDEX) {
+        return [];
+    }
+
+    const lastRow = rowCount - 1;
+    const lastCell = columnCount - 1;
+    return selections
+        .map((selection) => {
+            const fromRow = Math.min(Math.max(selection.fromRow, 0), lastRow);
+            const toRow = Math.min(Math.max(selection.toRow, 0), lastRow);
+            const fromCell = Math.min(
+                Math.max(selection.fromCell + FIRST_DATA_CELL_INDEX, FIRST_DATA_CELL_INDEX),
+                lastCell,
+            );
+            const toCell = Math.min(
+                Math.max(selection.toCell + FIRST_DATA_CELL_INDEX, FIRST_DATA_CELL_INDEX),
+                lastCell,
+            );
+
+            if (toRow < fromRow || toCell < fromCell) {
+                return undefined;
+            }
+
+            return new SlickRange(fromRow, fromCell, toRow, toCell);
+        })
+        .filter((range): range is SlickRange => range !== undefined);
+}
+
+function getFirstVisibleCellInRange(
+    grid: SlickGrid,
+    range: SlickRange,
+): { row: number; cell: number } | undefined {
+    const columns = grid.getColumns() as Column<QueryResultGridRow>[];
+    for (let cell = range.fromCell; cell <= range.toCell; cell++) {
+        const column = columns[cell];
+        if (column && !column.hidden && cell >= FIRST_DATA_CELL_INDEX) {
+            return { row: range.fromRow, cell };
+        }
+    }
+
+    const fallbackCell = columns.findIndex(
+        (column, index) => index >= FIRST_DATA_CELL_INDEX && !column.hidden,
+    );
+    return fallbackCell >= FIRST_DATA_CELL_INDEX
+        ? { row: range.fromRow, cell: fallbackCell }
+        : undefined;
+}
+
 function getDisplayedSelectionForCopy(grid: SlickGrid, rowCount: number): ISlickRange[] {
     const selectionModel = grid.getSelectionModel();
     const selectedRanges = selectionModel?.getSelectedRanges() ?? [];
@@ -377,6 +451,7 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
         const activeFilterColumnRef = useRef<string | undefined>(undefined);
         const isColumnWidthStateRestoredRef = useRef(false);
         const isScrollStateRestoredRef = useRef(false);
+        const isGridViewStateRestoredRef = useRef(false);
         const [frozenColumnIndex, setFrozenColumnIndex] = useState(0);
         const [isGridFocused, setIsGridFocused] = useState(false);
         const [displayedRowCount, setDisplayedRowCount] = useState(0);
@@ -552,14 +627,7 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
         }, []);
 
         const syncFrozenColumnState = useCallback((grid: SlickGrid, columnIndex: number) => {
-            const reactGrid = reactGridRef.current as
-                | (SlickgridReactInstance & {
-                      sharedService?: {
-                          gridOptions?: GridOption;
-                          frozenVisibleColumnId?: string | number | null;
-                      };
-                  })
-                | undefined;
+            const reactGrid = reactGridRef.current as BetaGridReactInstance | undefined;
 
             if (reactGrid?.sharedService?.gridOptions) {
                 reactGrid.sharedService.gridOptions.frozenColumn = columnIndex;
@@ -1030,6 +1098,62 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             [columnCount, context.extensionRpc, props.gridId, uri],
         );
 
+        const getAllGridColumns = useCallback(
+            (
+                grid: SlickGrid,
+                columnsOverride?: Column<QueryResultGridRow>[],
+            ): Column<QueryResultGridRow>[] => {
+                if (columnsOverride?.length) {
+                    return columnsOverride;
+                }
+
+                return grid.getColumns() as Column<QueryResultGridRow>[];
+            },
+            [],
+        );
+
+        const syncAllColumnsState = useCallback((columnsToSync: Column<QueryResultGridRow>[]) => {
+            const reactGrid = reactGridRef.current as BetaGridReactInstance | undefined;
+            if (reactGrid?.sharedService) {
+                reactGrid.sharedService.allColumns = columnsToSync;
+            }
+        }, []);
+
+        const getCurrentGridViewState = useCallback(
+            (grid: SlickGrid, allColumns?: Column<QueryResultGridRow>[]): GridViewState => {
+                const columnsForState = getAllGridColumns(grid, allColumns);
+                const selectedRanges = grid.getSelectionModel()?.getSelectedRanges() ?? [];
+
+                return {
+                    hiddenColumnIds: columnsForState
+                        .filter(isGridMenuDataColumn)
+                        .filter((column) => !!column.hidden)
+                        .map((column) => column.id.toString()),
+                    frozenColumnIndex: normalizeFrozenColumnIndex(
+                        grid.getOptions().frozenColumn ?? frozenColumnIndex,
+                        columnsForState.length,
+                    ),
+                    selection: getDataSelectionsFromRanges(selectedRanges),
+                };
+            },
+            [frozenColumnIndex, getAllGridColumns],
+        );
+
+        const persistGridViewState = useCallback(
+            async (grid: SlickGrid, allColumns?: Column<QueryResultGridRow>[]) => {
+                if (!isGridViewStateRestoredRef.current) {
+                    return;
+                }
+
+                await context.extensionRpc.sendRequest(SetGridViewStateRequest.type, {
+                    uri,
+                    gridId: props.gridId,
+                    gridViewState: getCurrentGridViewState(grid, allColumns),
+                });
+            },
+            [context.extensionRpc, getCurrentGridViewState, props.gridId, uri],
+        );
+
         const updateHeaderButtonStates = useCallback((grid: SlickGrid) => {
             for (const column of grid.getColumns()) {
                 const columnId = column.id?.toString();
@@ -1057,6 +1181,80 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 }
             }
         }, []);
+
+        const restoreGridViewState = useCallback(
+            async (grid: SlickGrid) => {
+                isGridViewStateRestoredRef.current = false;
+
+                try {
+                    const gridViewState = await context.extensionRpc.sendRequest(
+                        GetGridViewStateRequest.type,
+                        {
+                            uri,
+                            gridId: props.gridId,
+                        },
+                    );
+
+                    if (!gridViewState) {
+                        return;
+                    }
+
+                    let restoredColumns = getAllGridColumns(grid);
+                    if (Array.isArray(gridViewState.hiddenColumnIds)) {
+                        const hiddenColumnIds = new Set(gridViewState.hiddenColumnIds);
+                        restoredColumns = restoredColumns.map((column) =>
+                            isGridMenuDataColumn(column)
+                                ? {
+                                      ...column,
+                                      hidden: hiddenColumnIds.has(column.id.toString()),
+                                  }
+                                : column,
+                        );
+                        syncAllColumnsState(restoredColumns);
+                        grid.setColumns(restoredColumns);
+                    }
+
+                    const restoredFrozenColumnIndex = normalizeFrozenColumnIndex(
+                        gridViewState.frozenColumnIndex,
+                        restoredColumns.length,
+                    );
+                    setFrozenColumnIndex(restoredFrozenColumnIndex);
+                    applyFrozenColumnIndex(grid, restoredFrozenColumnIndex);
+
+                    if (Array.isArray(gridViewState.selection)) {
+                        const ranges = getSlickRangesFromDataSelections(
+                            gridViewState.selection,
+                            grid.getDataLength(),
+                            restoredColumns.length,
+                        );
+                        grid.getSelectionModel()?.setSelectedRanges(ranges);
+
+                        const activeCell = ranges[0]
+                            ? getFirstVisibleCellInRange(grid, ranges[0])
+                            : undefined;
+                        if (activeCell) {
+                            grid.setActiveCell(activeCell.row, activeCell.cell);
+                        }
+                    }
+
+                    syncShowAllColumnsMenuCommandState(grid, restoredColumns);
+                    updateHeaderButtonStates(grid);
+                    grid.invalidate();
+                    grid.render();
+                } finally {
+                    isGridViewStateRestoredRef.current = true;
+                }
+            },
+            [
+                applyFrozenColumnIndex,
+                context.extensionRpc,
+                getAllGridColumns,
+                props.gridId,
+                syncAllColumnsState,
+                updateHeaderButtonStates,
+                uri,
+            ],
+        );
 
         const persistFilterState = useCallback(async () => {
             await context.extensionRpc.sendRequest(SetFiltersRequest.type, {
@@ -1137,12 +1335,14 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 }
 
                 grid.setColumns(columnsToShow);
+                syncAllColumnsState(columnsToShow as Column<QueryResultGridRow>[]);
                 grid.invalidate();
                 grid.render();
                 updateHeaderButtonStates(grid);
+                void persistGridViewState(grid, columnsToShow as Column<QueryResultGridRow>[]);
                 grid.focus();
             },
-            [updateHeaderButtonStates],
+            [persistGridViewState, syncAllColumnsState, updateHeaderButtonStates],
         );
 
         const gridOptions = useMemo<GridOption>(
@@ -1224,6 +1424,10 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                             args.allColumns as Column<QueryResultGridRow>[],
                             getOpenGridMenuElement(),
                         );
+                        void persistGridViewState(
+                            args.grid,
+                            args.allColumns as Column<QueryResultGridRow>[],
+                        );
                     },
                 },
                 rowHeight,
@@ -1240,6 +1444,7 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 frozenColumnIndex,
                 hasActiveFilters,
                 hasActiveSort,
+                persistGridViewState,
                 props.gridId,
                 rowHeight,
                 showAllColumns,
@@ -1542,11 +1747,17 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 if (selectionModel?.onSelectedRangesChanged) {
                     selectionEventHandlerRef.current.subscribe(
                         selectionModel.onSelectedRangesChanged,
-                        (_event, ranges) => updateSelectionSummary(ranges),
+                        (_event, ranges) => {
+                            updateSelectionSummary(ranges);
+                            void persistGridViewState(grid);
+                        },
                     );
                 }
                 gridStateEventHandlerRef.current.subscribe(grid.onColumnsResized, () => {
                     void persistColumnWidths(grid);
+                });
+                gridStateEventHandlerRef.current.subscribe(grid.onColumnsReordered, () => {
+                    void persistGridViewState(grid);
                 });
                 gridStateEventHandlerRef.current.subscribe(grid.onScroll, () => {
                     persistScrollPosition(grid);
@@ -1555,17 +1766,22 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 requestAnimationFrame(() => removeGridMenuFromTabOrder(grid));
                 grid.updateRowCount();
                 grid.render();
-                void applyAutoSizeColumns();
-                void restoreColumnWidths(grid);
-                void restoreScrollPosition(grid);
-                void restoreFilterAndSortState(grid);
+                void (async () => {
+                    await applyAutoSizeColumns();
+                    await restoreColumnWidths(grid);
+                    await restoreFilterAndSortState(grid);
+                    await restoreGridViewState(grid);
+                    await restoreScrollPosition(grid);
+                })();
             },
             [
                 applyAutoSizeColumns,
+                persistGridViewState,
                 persistColumnWidths,
                 persistScrollPosition,
                 restoreColumnWidths,
                 restoreFilterAndSortState,
+                restoreGridViewState,
                 restoreScrollPosition,
                 attachFrozenPaneWheelHandler,
                 removeGridMenuFromTabOrder,
@@ -1812,6 +2028,7 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                         const columnIndex = grid.getColumnIndex(column.id);
                         setFrozenColumnIndex(columnIndex);
                         applyFrozenColumnIndex(grid, columnIndex);
+                        void persistGridViewState(grid);
                         break;
                     }
                     case HeaderContextMenuAction.UnfreezeColumn:
@@ -1819,6 +2036,7 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                         const nextFrozenColumnIndex = Math.max(0, columnIndex - 1);
                         setFrozenColumnIndex(nextFrozenColumnIndex);
                         applyFrozenColumnIndex(grid, nextFrozenColumnIndex);
+                        void persistGridViewState(grid);
                         break;
                     default:
                         break;
@@ -1828,6 +2046,7 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 applyFrozenColumnIndex,
                 context,
                 openFilterMenuForColumn,
+                persistGridViewState,
                 props.gridId,
                 resizeColumn,
                 setFrozenColumnIndex,

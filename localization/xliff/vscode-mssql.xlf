@@ -8344,7 +8344,7 @@
       <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
     </trans-unit>
     <trans-unit id="mssql.preview.betaResultsGrid.description">
-      <source xml:lang="en">Enables the beta SlickGrid React query results grid. This preview grid is not production-ready and starts with windowed row loading only.</source>
+      <source xml:lang="en">Enables the preview query results grid experience with faster rendering, better state management, and more column customization options, including showing, hiding, and freezing columns.</source>
     </trans-unit>
     <trans-unit id="mssql.showEstimatedPlan">
       <source xml:lang="en">Estimated Plan (MSSQL)</source>
