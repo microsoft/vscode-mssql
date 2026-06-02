@@ -74,6 +74,7 @@ export class ContextMenu<T extends Slick.SlickData> {
     }
 
     private async handleMenuAction(action: GridContextMenuAction): Promise<void> {
+        const log = this.queryResultContext.log;
         let selectedRanges = this.grid.getSelectionModel().getSelectedRanges();
         let selection = tryCombineSelectionsForResults(selectedRanges);
 
@@ -86,7 +87,7 @@ export class ContextMenu<T extends Slick.SlickData> {
 
         switch (action) {
             case GridContextMenuAction.SelectAll:
-                this.queryResultContext.log("Select All action triggered");
+                log.trace("Select All action triggered");
                 const data = this.grid.getData() as HybridDataProvider<T>;
                 let selectionModel = this.grid.getSelectionModel();
                 selectionModel.setSelectedRanges([
@@ -94,7 +95,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                 ]);
                 break;
             case GridContextMenuAction.CopySelection:
-                this.queryResultContext.log("Copy action triggered");
+                log.trace("Copy action triggered");
                 await this.queryResultContext.extensionRpc.sendRequest(CopySelectionRequest.type, {
                     uri: this.uri,
                     batchId: this.resultSetSummary.batchId,
@@ -104,7 +105,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                 });
                 break;
             case GridContextMenuAction.CopyWithHeaders:
-                this.queryResultContext.log("Copy with headers action triggered");
+                log.trace("Copy with headers action triggered");
                 await this.queryResultContext.extensionRpc.sendRequest(CopySelectionRequest.type, {
                     uri: this.uri,
                     batchId: this.resultSetSummary.batchId,
@@ -114,7 +115,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                 });
                 break;
             case GridContextMenuAction.CopyHeaders:
-                this.queryResultContext.log("Copy Headers action triggered");
+                log.trace("Copy Headers action triggered");
                 await this.queryResultContext.extensionRpc.sendRequest(CopyHeadersRequest.type, {
                     uri: this.uri,
                     batchId: this.resultSetSummary.batchId,
@@ -123,7 +124,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                 });
                 break;
             case GridContextMenuAction.CopyAsCsv:
-                this.queryResultContext.log("Copy as CSV action triggered");
+                log.trace("Copy as CSV action triggered");
                 await this.queryResultContext.extensionRpc.sendRequest(CopyAsCsvRequest.type, {
                     uri: this.uri,
                     batchId: this.resultSetSummary.batchId,
@@ -132,7 +133,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                 });
                 break;
             case GridContextMenuAction.CopyAsJson:
-                this.queryResultContext.log("Copy as JSON action triggered");
+                log.trace("Copy as JSON action triggered");
                 await this.queryResultContext.extensionRpc.sendRequest(CopyAsJsonRequest.type, {
                     uri: this.uri,
                     batchId: this.resultSetSummary.batchId,
@@ -142,7 +143,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                 });
                 break;
             case GridContextMenuAction.CopyAsInClause:
-                this.queryResultContext.log("Copy as IN clause action triggered");
+                log.trace("Copy as IN clause action triggered");
                 await this.queryResultContext.extensionRpc.sendRequest(CopyAsInClauseRequest.type, {
                     uri: this.uri,
                     batchId: this.resultSetSummary.batchId,
@@ -151,7 +152,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                 });
                 break;
             case GridContextMenuAction.CopyAsInsertInto:
-                this.queryResultContext.log("Copy as INSERT INTO action triggered");
+                log.trace("Copy as INSERT INTO action triggered");
                 await this.queryResultContext.extensionRpc.sendRequest(
                     CopyAsInsertIntoRequest.type,
                     {

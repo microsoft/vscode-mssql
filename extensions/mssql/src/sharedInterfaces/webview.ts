@@ -7,6 +7,10 @@ import * as vscode from "vscode";
 
 import { TelemetryActions, TelemetryViews } from "./telemetry";
 import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
+import { ILogger, LogEvent } from "./logger";
+
+export { LoggerMethod } from "./logger";
+export type { ILogger, LogEvent, LoggerMessageMethod } from "./logger";
 
 /**
  * Enum to represent the status of an asynchronous call or operation.
@@ -153,16 +157,6 @@ export interface MssqlWebviewPanelOptions {
     showRestorePromptAfterClose?: boolean;
 }
 
-export interface LogEvent {
-    message: string;
-    level: LoggerLevel;
-}
-
-export type LogCallback = (message: string, level?: LoggerLevel) => void;
-
-// Names of the logging level methods (not the enums) in the Logger class
-export type LoggerLevel = "critical" | "error" | "warn" | "info" | "verbose" | "log";
-
 export enum ColorThemeKind {
     Light = 1,
     Dark = 2,
@@ -187,7 +181,7 @@ export interface WebviewContextProps<TState> {
      * Key bindings for the webview.
      */
     keyBindings: WebviewKeyBindings;
-    log(message: string, level?: LoggerLevel): void;
+    log: ILogger;
     sendActionEvent(event: WebviewTelemetryActionEvent): void;
     sendErrorEvent(event: WebviewTelemetryErrorEvent): void;
 }
@@ -339,7 +333,7 @@ export namespace GetEOLRequest {
 }
 
 export interface CoreRPCs {
-    log(message: string, level?: LoggerLevel): void;
+    log: ILogger;
     sendActionEvent(event: WebviewTelemetryActionEvent): void;
     sendErrorEvent(event: WebviewTelemetryErrorEvent): void;
 }

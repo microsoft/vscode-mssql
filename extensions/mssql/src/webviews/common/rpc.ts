@@ -5,8 +5,11 @@
 
 import { WebviewApi } from "vscode-webview";
 import {
-    LoggerLevel,
+    ILogger,
+    LogEvent,
     LogNotification,
+    LoggerMethod,
+    LoggerMessageMethod,
     ReducerRequest,
     SendActionEventNotification,
     SendErrorEventNotification,
@@ -108,12 +111,75 @@ class WebviewRpcMessageWriter extends AbstractMessageWriter implements MessageWr
     end(): void {}
 }
 
+class WebviewLogger implements ILogger {
+    constructor(
+        private readonly _sendLogEvent: (event: LogEvent) => void,
+        private readonly _prefix?: string,
+    ) {}
+
+    public trace(message: string, ...args: unknown[]): void {
+        this.log(LoggerMethod.Trace, message, ...args);
+    }
+
+    public debug(message: string, ...args: unknown[]): void {
+        this.log(LoggerMethod.Debug, message, ...args);
+    }
+
+    public info(message: string, ...args: unknown[]): void {
+        this.log(LoggerMethod.Info, message, ...args);
+    }
+
+    public warn(message: string, ...args: unknown[]): void {
+        this.log(LoggerMethod.Warn, message, ...args);
+    }
+
+    public error(message: string, ...args: unknown[]): void {
+        this.log(LoggerMethod.Error, message, ...args);
+    }
+
+    public piiSanitized(
+        msg: unknown,
+        objsToSanitize: { name: string; objOrArray: unknown | unknown[] }[],
+        stringsToShorten: { name: string; value: string }[],
+        ...vals: unknown[]
+    ): void {
+        this._sendLogEvent({
+            method: LoggerMethod.PiiSanitized,
+            msg,
+            objsToSanitize,
+            stringsToShorten,
+            vals,
+            prefix: this._prefix,
+        });
+    }
+
+    public show(preserveFocus?: boolean): void {
+        this._sendLogEvent({ method: LoggerMethod.Show, preserveFocus, prefix: this._prefix });
+    }
+
+    public withPrefix(prefix: string): ILogger {
+        return new WebviewLogger(
+            this._sendLogEvent,
+            this._prefix ? `${this._prefix}.${prefix}` : prefix,
+        );
+    }
+
+    public dispose(): void {
+        this._sendLogEvent({ method: LoggerMethod.Dispose, prefix: this._prefix });
+    }
+
+    private log(method: LoggerMessageMethod, message: string, ...args: unknown[]): void {
+        this._sendLogEvent({ method, message, args, prefix: this._prefix });
+    }
+}
+
 /**
  * RPC to communicate with the extension.
  * @template Reducers interface that contains definitions for all reducers and their payloads.
  */
 export class WebviewRpc<Reducers> {
     public connection: MessageConnection;
+    private readonly _logger: ILogger;
 
     /**
      * Singleton instance of the WebviewRpc class.
@@ -141,6 +207,10 @@ export class WebviewRpc<Reducers> {
             new WebviewRpcMessageReader(),
             new WebviewRpcMessageWriter(_vscodeApi),
         );
+
+        this._logger = new WebviewLogger((event) => {
+            void this.sendNotification(LogNotification.type, event);
+        });
 
         this.connection.onError((error) => {
             console.error("WebviewRpc connection error:", error);
@@ -177,8 +247,45 @@ export class WebviewRpc<Reducers> {
         void this.sendNotification(SendErrorEventNotification.type, event);
     }
 
-    public log(message: string, level?: LoggerLevel) {
-        void this.sendNotification(LogNotification.type, { message, level });
+    public trace(message: string, ...args: unknown[]): void {
+        this._logger.trace(message, ...args);
+    }
+
+    public debug(message: string, ...args: unknown[]): void {
+        this._logger.debug(message, ...args);
+    }
+
+    public info(message: string, ...args: unknown[]): void {
+        this._logger.info(message, ...args);
+    }
+
+    public warn(message: string, ...args: unknown[]): void {
+        this._logger.warn(message, ...args);
+    }
+
+    public error(message: string, ...args: unknown[]): void {
+        this._logger.error(message, ...args);
+    }
+
+    public piiSanitized(
+        msg: unknown,
+        objsToSanitize: { name: string; objOrArray: unknown | unknown[] }[],
+        stringsToShorten: { name: string; value: string }[],
+        ...vals: unknown[]
+    ): void {
+        this._logger.piiSanitized(msg, objsToSanitize, stringsToShorten, ...vals);
+    }
+
+    public show(preserveFocus?: boolean): void {
+        this._logger.show(preserveFocus);
+    }
+
+    public withPrefix(prefix: string): ILogger {
+        return this._logger.withPrefix(prefix);
+    }
+
+    public dispose(): void {
+        this._logger.dispose();
     }
 
     public onRequest<P, R, E>(type: RequestType<P, R, E>, handler: RequestHandler<P, R, E>): void {
