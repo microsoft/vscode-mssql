@@ -16,8 +16,9 @@ import { SaveResultsAsCsvRequestParams } from "../../src/models/contracts";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as Contracts from "../../src/models/contracts";
-import { stubVscodeWrapper } from "./utils";
+import { stubLogger, stubVscodeWrapper } from "./utils";
 import * as LocalizedConstants from "../../src/constants/locConstants";
+import { ILogger } from "../../src/models/logger";
 
 chai.use(sinonChai);
 
@@ -27,11 +28,13 @@ suite("save results tests", () => {
     let fileUri: vscode.Uri;
     let serverClient: sinon.SinonStubbedInstance<SqlToolsServerClient>;
     let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let testLogger: sinon.SinonStubbedInstance<ILogger>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
         serverClient = sandbox.createStubInstance(SqlToolsServerClient);
         vscodeWrapper = stubVscodeWrapper(sandbox);
+        testLogger = stubLogger(sandbox);
         (vscodeWrapper.getConfiguration as sinon.SinonStub).callsFake(
             (extensionName: string, resource?: vscode.ConfigurationScope) => {
                 return vscode.workspace.getConfiguration(extensionName, resource);
@@ -101,6 +104,12 @@ suite("save results tests", () => {
         return saveResults.onSaveResults(testFile, 0, 0, format, undefined).then(() => {
             expect(vscodeWrapper.showInformationMessage).to.have.been.calledOnce;
             expect(openSavedFileStub).to.have.been.calledOnceWith(fileUri.fsPath, format);
+            expect(testLogger.info).to.have.been.calledWith(
+                LocalizedConstants.msgSaveStarted(fileUri.fsPath),
+            );
+            expect(testLogger.info).to.have.been.calledWith(
+                LocalizedConstants.msgSaveSucceeded(fileUri.fsPath),
+            );
         });
     }
 
@@ -111,6 +120,12 @@ suite("save results tests", () => {
         return saveResults.onSaveResults(testFile, 0, 0, format, undefined).then(() => {
             expect(vscodeWrapper.showErrorMessage).to.have.been.calledOnce;
             expect(openSavedFileStub).to.not.have.been.called;
+            expect(testLogger.info).to.have.been.calledWith(
+                LocalizedConstants.msgSaveStarted(fileUri.fsPath),
+            );
+            expect(testLogger.error).to.have.been.calledWith(
+                LocalizedConstants.msgSaveFailed("failure"),
+            );
         });
     }
 

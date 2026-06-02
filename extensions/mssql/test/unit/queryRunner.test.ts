@@ -29,7 +29,8 @@ import * as QueryDisposeContracts from "../../src/models/contracts/queryDispose"
 import { ISelectionData } from "../../src/models/interfaces";
 import * as stubs from "./stubs";
 import * as vscode from "vscode";
-import { stubVscodeWrapper } from "./utils";
+import { stubLogger, stubVscodeWrapper } from "./utils";
+import { ILogger } from "../../src/models/logger";
 
 chai.use(sinonChai);
 const { expect } = chai;
@@ -51,6 +52,7 @@ suite("Query Runner tests", () => {
     let testQueryNotificationHandler: sinon.SinonStubbedInstance<QueryNotificationHandler>;
     let testVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let testStatusView: sinon.SinonStubbedInstance<StatusView>;
+    let testLogger: sinon.SinonStubbedInstance<ILogger>;
 
     function createQueryRunner(
         uri: string = standardUri,
@@ -72,6 +74,7 @@ suite("Query Runner tests", () => {
         testQueryNotificationHandler = sandbox.createStubInstance(QueryNotificationHandler);
         testVscodeWrapper = stubVscodeWrapper(sandbox);
         testStatusView = sandbox.createStubInstance(StatusView);
+        testLogger = stubLogger(sandbox);
         QueryRunner["_runningQueries"] = [];
 
         (testVscodeWrapper.parseUri as sinon.SinonStub).callsFake((value: string) =>
@@ -79,7 +82,6 @@ suite("Query Runner tests", () => {
         );
         (testVscodeWrapper.showErrorMessage as sinon.SinonStub).returns(undefined);
         (testVscodeWrapper.showInformationMessage as sinon.SinonStub).returns(undefined);
-        (testVscodeWrapper.logToOutputChannel as sinon.SinonStub).returns(undefined);
         (testVscodeWrapper.openTextDocument as sinon.SinonStub).resolves({} as vscode.TextDocument);
         (testVscodeWrapper.showTextDocument as sinon.SinonStub).resolves({} as vscode.TextEditor);
         (testVscodeWrapper.getConfiguration as sinon.SinonStub).returns(
@@ -127,7 +129,9 @@ suite("Query Runner tests", () => {
 
         // ... The VS Code status should be updated
         expect(testStatusView.executingQuery).to.have.been.calledOnceWithExactly(standardUri);
-        expect(testVscodeWrapper.logToOutputChannel as sinon.SinonStub).to.have.been.calledOnce;
+        expect(testLogger.info).to.have.been.calledWith(
+            LocalizedConstants.msgStartedExecute(standardUri),
+        );
 
         // ... The query runner should indicate that it is running a query and elapsed time should be set to 0
         expect(queryRunner.isExecutingQuery).to.equal(true);
@@ -167,7 +171,9 @@ suite("Query Runner tests", () => {
         } catch {
             // Then:
             // ... The view status should have started and stopped
-            expect(testVscodeWrapper.logToOutputChannel as sinon.SinonStub).to.have.been.calledOnce;
+            expect(testLogger.info).to.have.been.calledWith(
+                LocalizedConstants.msgStartedExecute(standardUri),
+            );
             expect(testStatusView.executingQuery).to.have.been.calledOnceWithExactly(standardUri);
             expect(testStatusView.executedQuery).to.have.been.called;
             // ... The query runner should not be running a query
