@@ -248,6 +248,8 @@ async function packageOffline() {
             await cleanServiceInstallFolder();
             await cleanMcpInstallFolder();
 
+            const failures = [];
+
             // Package for each platform sequentially with native (self-contained) service
             for (let i = 0; i < OFFLINE_PLATFORMS.length; i++) {
                 const platformConfig = OFFLINE_PLATFORMS[i];
@@ -258,10 +260,15 @@ async function packageOffline() {
                 try {
                     await packageOfflinePlatform(platformConfig, packageName);
                 } catch (error) {
-                    logger.warning(`Skipping ${platformConfig.rid}: ${error.message}`);
+                    failures.push(`${platformConfig.rid}: ${error.message}`);
+                    logger.error(`Failed ${platformConfig.rid}: ${error.message}`);
                 }
 
                 logger.newline();
+            }
+
+            if (failures.length > 0) {
+                throw new Error(`Offline packaging failed for ${failures.join("; ")}`);
             }
         });
 

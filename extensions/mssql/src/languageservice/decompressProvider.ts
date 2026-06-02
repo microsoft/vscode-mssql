@@ -21,8 +21,6 @@ export default class DecompressProvider implements IDecompressProvider {
                     return;
                 }
 
-                zipfile.readEntry();
-
                 zipfile.on("entry", (entry) => {
                     if (/\/$/.test(entry.fileName)) {
                         // Directory file names end with '/'
@@ -97,6 +95,8 @@ export default class DecompressProvider implements IDecompressProvider {
                     logger.info(`[ERROR] Zipfile error: ${err}`);
                     reject(err);
                 });
+
+                zipfile.readEntry();
             });
         });
     }
