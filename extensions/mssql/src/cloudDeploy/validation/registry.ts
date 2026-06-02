@@ -25,6 +25,7 @@ import type { ProcessProvider } from "./providers/processProvider";
 import { defineRegistry, Validator, ValidatorRegistry } from "./types";
 import { ConnectivityValidator } from "./validators/connectivityValidator";
 import { StaticAnalysisValidator } from "./validators/staticAnalysisValidator";
+import { UnitTestsValidator } from "./validators/unitTestsValidator";
 
 /**
  * Provider bundle injected into `createDefaultRegistry`. Each subsequent
@@ -68,7 +69,7 @@ export function createDefaultRegistry(providers: RegistryProviders): ValidatorRe
     return defineRegistry({
         [ValidationType.Connectivity]: new ConnectivityValidator(providers.connection),
         [ValidationType.StaticAnalysis]: new StaticAnalysisValidator(providers.process),
-        [ValidationType.UnitTests]: new NotYetWiredValidator(ValidationType.UnitTests),
+        [ValidationType.UnitTests]: new UnitTestsValidator(providers.connection),
         [ValidationType.WorkloadPlayback]: new NotYetWiredValidator(
             ValidationType.WorkloadPlayback,
         ),

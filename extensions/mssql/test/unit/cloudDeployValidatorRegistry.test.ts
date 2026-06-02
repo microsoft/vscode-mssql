@@ -23,10 +23,7 @@ import { FakeProcessProvider } from "../../src/cloudDeploy/validation/providers/
 
 import { FakeValidator, makeFakeRegistry } from "./cloudDeployValidationTestHelpers";
 
-const PLACEHOLDER_TYPES: readonly ValidationType[] = [
-    ValidationType.UnitTests,
-    ValidationType.WorkloadPlayback,
-];
+const PLACEHOLDER_TYPES: readonly ValidationType[] = [ValidationType.WorkloadPlayback];
 
 const ALL_TYPES: readonly ValidationType[] = [
     ValidationType.Connectivity,
@@ -105,6 +102,13 @@ suite("CloudDeploy Validator Registry", () => {
             const registry = createDefaultRegistry(providers);
             expect(registry[ValidationType.StaticAnalysis].constructor.name).to.equal(
                 "StaticAnalysisValidator",
+            );
+        });
+
+        test("unit-tests arm is wired to the real UnitTestsValidator (not a placeholder)", () => {
+            const registry = createDefaultRegistry(providers);
+            expect(registry[ValidationType.UnitTests].constructor.name).to.equal(
+                "UnitTestsValidator",
             );
         });
 

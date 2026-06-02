@@ -38,3 +38,4 @@ export type {
     ProcessSpawnOptions,
 } from "./providers/processProvider";
 export { StaticAnalysisValidator } from "./validators/staticAnalysisValidator";
+export { UnitTestsValidator } from "./validators/unitTestsValidator";
