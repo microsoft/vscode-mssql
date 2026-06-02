@@ -27,10 +27,6 @@ import {
     getSchemaDesignerDefinitionOutput,
     SchemaDesignerDefinitionOutput,
 } from "../sharedInterfaces/schemaDesignerDefinitionOutput";
-import logger2 from "../models/logger2";
-
-const logger = logger2.withPrefix("SchemaDesignerWebviewController");
-
 function isExpandCollapseButtonsEnabled(): boolean {
     return vscode.workspace
         .getConfiguration()
@@ -114,6 +110,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         private treeNode?: TreeNodeInfo,
         private connectionUri?: string,
         isReadOnly: boolean = false,
+        cacheKey?: string,
     ) {
         super(
             context,
@@ -148,7 +145,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             },
         );
 
-        this._key = `${this.connectionString}-${this.databaseName}`;
+        this._key = cacheKey ?? `${this.connectionString}-${this.databaseName}`;
         this._serverName = this.resolveServerName();
         this._sqlServerContainerName = this.resolveSqlServerContainerName();
 
@@ -692,7 +689,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 return;
             }
 
-            logger.info("Progress", progress);
+            this.logger.info("Progress", progress);
 
             try {
                 void this.sendNotification(
@@ -709,7 +706,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 return;
             }
 
-            logger.info("Message", message);
+            this.logger.info("Message", message);
 
             try {
                 void this.sendNotification(

@@ -605,6 +605,9 @@
     <trans-unit id="++CODE++2827add936f31415e16e0670d8686084ec2e21fed7686c0aa91fffdfa09e4e38">
       <source xml:lang="en">Azure SQL Server</source>
     </trans-unit>
+    <trans-unit id="++CODE++d58bf1f323a38f50b921c7d963ad40d4323ebb5085fc456c8afbcc6542b0eb7a">
+      <source xml:lang="en">Azure SQL databases provisioning</source>
+    </trans-unit>
     <trans-unit id="++CODE++6d457cc1e5982858c386c637bec86a3c2615e648054d4d5472a261e0b5004b2d">
       <source xml:lang="en">Azure Subscriptions</source>
     </trans-unit>
@@ -1424,13 +1427,13 @@
     <trans-unit id="++CODE++03cdf40907b9e95ff338fe3d4fd451910410c1dbddd93e543b590a40755e6744">
       <source xml:lang="en">Connecting to your SQL Server Docker container</source>
     </trans-unit>
-    <trans-unit id="++CODE++9b8df2904fd9e25473fed50a3df04dc0629dec82daa72d6085cab8d1c63e4f65">
-      <source xml:lang="en">Connecting to {0}...</source>
-      <note>{0} is the connection display name</note>
-    </trans-unit>
     <trans-unit id="++CODE++fff46800eb59ecbf7114c9c219c3ab0ec39731c5cdf8012a4afbdd334e965254">
       <source xml:lang="en">Connecting to {0}...</source>
       <note>{0} is the server name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++9b8df2904fd9e25473fed50a3df04dc0629dec82daa72d6085cab8d1c63e4f65">
+      <source xml:lang="en">Connecting to {0}...</source>
+      <note>{0} is the connection display name</note>
     </trans-unit>
     <trans-unit id="++CODE++031d95e24e24622c128716284eb67a80331c825272813bf720f2c35a0b18f96c">
       <source xml:lang="en">Connecting to: </source>
@@ -1900,6 +1903,9 @@
 {1} is the operation name &apos;get_state&apos; and must not be translated
 {2} is the operation name &apos;apply_changes&apos; and must not be translated</note>
     </trans-unit>
+    <trans-unit id="++CODE++6ce6c168965317cce6e35f445598a3182e21e937846cf45db34b17dc1c0a0d3b">
+      <source xml:lang="en">Data API builder with GitHub Copilot</source>
+    </trans-unit>
     <trans-unit id="++CODE++e136aee7826b55f91d1b030832bc4be35b9ee07563c09627052aeecb9335a039">
       <source xml:lang="en">Data Source</source>
     </trans-unit>
@@ -2175,6 +2181,9 @@
       <note>{0} is the connection display name
 {1} is the connection ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++57d34ecd6fc9b04ba8ad6450eeb1159b21aa3e6f127082ea6554f826985cdddb">
+      <source xml:lang="en">Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.</source>
+    </trans-unit>
     <trans-unit id="++CODE++48845bff334a50a59aaecf499f28a7a24c3b4b891b8b18a9f1169ad8e8a6b261">
       <source xml:lang="en">Dismiss</source>
     </trans-unit>
@@ -2267,6 +2276,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8cbb7c26112408cd60a1c8ac0daff1b020815ad01c94df751ab7145dea824881">
       <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a05ece881012991a79aaf2cbbba9d6e11e35d05ed66f547dfaae931a8d9e50af">
+      <source xml:lang="en">Easily start with the Azure SQL database free tier to create and connect to a database directly from your editor at no cost.</source>
     </trans-unit>
     <trans-unit id="++CODE++8b45c43d0d9a0c27cbecb2683ef02b292a7f2626dee0f8443d4e62ac3e0e88c4">
       <source xml:lang="en">Edit Connection Group - {0}</source>
@@ -3128,8 +3140,9 @@
     <trans-unit id="++CODE++656e30cd5a427ecbf935f88a531699c67f2edc2f0cfa7ef8cbec340a88c0c423">
       <source xml:lang="en">Failed to save publish profile</source>
     </trans-unit>
-    <trans-unit id="++CODE++283dc9bd4f27ff0efed1b3ac27910746f64f860e2e0c2240f9723ff02c1dc29c">
-      <source xml:lang="en">Failed to save results. </source>
+    <trans-unit id="++CODE++11167e57bf77932c07f42c4b2a08ba8428726757beb2f754ece1786e81ed0447">
+      <source xml:lang="en">Failed to save results. {0}</source>
+      <note>{0} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++295dc600027d16c46d0596df1afe12f2c8db841203c77f15207d06851c0d50ec">
       <source xml:lang="en">Failed to save results: {0}</source>
@@ -3459,6 +3472,9 @@
     </trans-unit>
     <trans-unit id="++CODE++752307275e5358665596d28a3080462e4933b77005bbbf2ba1eca87f1dca1fcc">
       <source xml:lang="en">Generate Data API builder configurations using natural language through GitHub Copilot chat and agent tools. Describe your API requirements and let GitHub Copilot scaffold the configuration for you.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3fe2318b777a1d9c6304a9e2bff0d636f51cfb872de17793c8962acbdc1370cd">
+      <source xml:lang="en">Generate REST, GraphQL, and MCP endpoints from your SQL database objects (tables). You can modify the configuration manually or through GitHub Copilot to plan and generate updates - then deploy locally with Docker.</source>
     </trans-unit>
     <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
       <source xml:lang="en">Generate Script</source>
@@ -5506,6 +5522,9 @@
     <trans-unit id="++CODE++d3a008ef1335692d9d045175ba9ea1dcd39ae48da9e2043a9baabad6c3818c28">
       <source xml:lang="en">Region</source>
     </trans-unit>
+    <trans-unit id="++CODE++bb7234ec12451361e6f35bcbe76de58e4350657fe60d1b96ace0947f59194083">
+      <source xml:lang="en">Register</source>
+    </trans-unit>
     <trans-unit id="++CODE++ab604a360777735fe2993aec7d4ffae415f1515b0a4c989269603fd3d5c07b61">
       <source xml:lang="en">Reject</source>
     </trans-unit>
@@ -6555,13 +6574,13 @@
     <trans-unit id="++CODE++7363f4432b648a803e2bf468798cf69a7be5bab4b8055e35f6a038afb54be9d7">
       <source xml:lang="en">Source Name</source>
     </trans-unit>
-    <trans-unit id="++CODE++30ecb608c5cff9e821a41d28312d0070cbeb3901bc8e32ecefd17171f87dc53a">
-      <source xml:lang="en">Source: {0}</source>
-      <note>{0} is the task source</note>
-    </trans-unit>
     <trans-unit id="++CODE++7d1b71b2bde7aa8e3125b606f3738980a13371ad3458ddd00b1193d72aad45dd">
       <source xml:lang="en">Source: {0}</source>
       <note>{0} is the fully qualified DAB source object name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++30ecb608c5cff9e821a41d28312d0070cbeb3901bc8e32ecefd17171f87dc53a">
+      <source xml:lang="en">Source: {0}</source>
+      <note>{0} is the task source</note>
     </trans-unit>
     <trans-unit id="++CODE++1e49ea47266ab1130ffc9be417fa6eb62da7299641f30a76e728fe983c25f29d">
       <source xml:lang="en">Specifies whether the column is included in the primary key for the table.</source>
@@ -6600,8 +6619,9 @@
       <source xml:lang="en">Started query execution for document &quot;{0}&quot;</source>
       <note>{0} is the document name</note>
     </trans-unit>
-    <trans-unit id="++CODE++47d62b3ce92021fa331252ba82176c2a4ccb592c2264bd58ec74e5d1b722c98e">
-      <source xml:lang="en">Started saving results to </source>
+    <trans-unit id="++CODE++b10574f779b09047bedf3228566923bf6ba89edd4f6f08ff15e9a9c0314cfbdb">
+      <source xml:lang="en">Started saving results to {0}</source>
+      <note>{0} is the file path</note>
     </trans-unit>
     <trans-unit id="++CODE++7db6cebea8c95ec1db665d9ce39b1798388767fb2481b3f02548f4f008012631">
       <source xml:lang="en">Starting &apos;{0}&apos;...</source>
@@ -6712,8 +6732,9 @@
 {1} is the uri
 {2} is the message</note>
     </trans-unit>
-    <trans-unit id="++CODE++9c85106af25fd7656e977d5453607973955ae5d79fce0a78264cd714a628e981">
-      <source xml:lang="en">Successfully saved results to </source>
+    <trans-unit id="++CODE++c36cade68fea2c699e5795c527fd1daf085d0b76a5a5bc35526765a1b5d5b974">
+      <source xml:lang="en">Successfully saved results to {0}</source>
+      <note>{0} is the file path</note>
     </trans-unit>
     <trans-unit id="++CODE++da099a63ce9b5fe688c4f5219cdd8614a27faa324bdd5c612dfab086630b346c">
       <source xml:lang="en">Sum: {0}</source>
@@ -7298,6 +7319,9 @@
     </trans-unit>
     <trans-unit id="++CODE++eeefe579e45c25e1a551b536d8eecc680562bce4d0aa58ffee1ad7df8cc84e63">
       <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6ef37ea9955ac30c701324290f719cf696d1f34b027640872eb4bba2fcd59c25">
+      <source xml:lang="en">Use discount code {0} to save €200 on registration.</source>
     </trans-unit>
     <trans-unit id="++CODE++413d7418205c532ce289074072d8841df2c720313cb19bd9180ad2c4de3383c7">
       <source xml:lang="en">Use encryption for this backup</source>
@@ -7939,16 +7963,6 @@
       <source xml:lang="en">{0}/{1} events</source>
       <note>{0} is the filtered count, {1} is the total count</note>
     </trans-unit>
-    <trans-unit id="++CODE++2b85e133b4abad5a9f5b85b3dd903a3f1f84db64680beb66977f6e44743f2434">
-      <source xml:lang="en">{0}: {1}</source>
-      <note>{0} is the task name
-{1} is the status</note>
-    </trans-unit>
-    <trans-unit id="++CODE++be5a4e5aa348f87ea026acec0d4a2d3181a504dad2d924e8a3cb0e229cbdae30">
-      <source xml:lang="en">{0}: {1}</source>
-      <note>{0} is the task status
-{1} is the task message</note>
-    </trans-unit>
     <trans-unit id="++CODE++a2d133c4fbcb2f605ecd460e6639e824d6bc388d75b5df672fd4cbf95d1e71f9">
       <source xml:lang="en">{0}: {1}</source>
       <note>{0} is the column name
@@ -7958,6 +7972,16 @@
       <source xml:lang="en">{0}: {1}</source>
       <note>{0} is the qualified table name
 {1} is the change description</note>
+    </trans-unit>
+    <trans-unit id="++CODE++2b85e133b4abad5a9f5b85b3dd903a3f1f84db64680beb66977f6e44743f2434">
+      <source xml:lang="en">{0}: {1}</source>
+      <note>{0} is the task name
+{1} is the status</note>
+    </trans-unit>
+    <trans-unit id="++CODE++be5a4e5aa348f87ea026acec0d4a2d3181a504dad2d924e8a3cb0e229cbdae30">
+      <source xml:lang="en">{0}: {1}</source>
+      <note>{0} is the task status
+{1} is the task message</note>
     </trans-unit>
     <trans-unit id="++CODE++657a1d2beff87023ec2d92b03f58feb984cb2ea13dc6e7269ed84f0b64158591">
       <source xml:lang="en">{0}: {1}. {2}</source>
@@ -8737,6 +8761,9 @@
     <trans-unit id="mssql.schemaDesigner">
       <source xml:lang="en">Visualize and Design Schema...</source>
     </trans-unit>
+    <trans-unit id="mssql.messages.copyIncludeTimestamps">
+      <source xml:lang="en">When enabled, Copy All in the query result Messages pane includes message timestamps.</source>
+    </trans-unit>
     <trans-unit id="mssql.transferActiveEditorConnections.description">
       <source xml:lang="en">When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.</source>
     </trans-unit>
@@ -8748,6 +8775,9 @@
     </trans-unit>
     <trans-unit id="mssql.results.openAfterSave">
       <source xml:lang="en">When enabled, saved query result exports are opened after export. Excel exports open with the system file handler; text exports open in VS Code.</source>
+    </trans-unit>
+    <trans-unit id="mssql.results.showCopyNotification">
+      <source xml:lang="en">When enabled, show a notification after query results are copied to the clipboard.</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.groupBySchema">
       <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>

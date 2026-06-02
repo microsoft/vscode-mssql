@@ -26,7 +26,7 @@ import { QueryDisposeRequest, QueryDisposeParams } from "../models/contracts/que
 import { QueryCancelRequest, QueryCancelParams } from "../models/contracts/queryCancel";
 import { IDbColumn, IResultMessage } from "../models/interfaces";
 import { Deferred } from "../protocol";
-import { ILogger2 } from "../models/logger2";
+import { ILogger } from "../models/logger";
 
 export interface HeadlessQueryCancellationToken {
     readonly isCancellationRequested: boolean;
@@ -67,7 +67,7 @@ export class HeadlessQueryExecutor {
     constructor(
         private readonly client: SqlToolsServiceClient,
         private readonly notificationHandler: QueryNotificationHandler,
-        private readonly log?: ILogger2,
+        private readonly log?: ILogger,
     ) {}
 
     async execute(

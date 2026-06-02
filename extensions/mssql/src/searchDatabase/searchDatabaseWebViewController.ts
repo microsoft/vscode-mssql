@@ -171,7 +171,7 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
     }
 
     private logVerbose(message: string): void {
-        this.logger.verbose(`[${this._operationId}] ${message}`);
+        this.logger.debug(`[${this._operationId}] ${message}`);
     }
 
     /**

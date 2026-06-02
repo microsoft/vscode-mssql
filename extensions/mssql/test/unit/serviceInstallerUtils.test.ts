@@ -66,28 +66,18 @@ suite("Stub Logger tests", function (): void {
         sinon.restore();
     });
 
-    test("Test logdebug method", () => {
-        stubLogger.logDebug("test");
+    test("Test debug method", () => {
+        stubLogger.debug("test");
         expect(logStub, "Should print expected output to console").to.have.been.calledWith("test");
     });
 
-    test("Test increaseIndent method", () => {
-        stubLogger.increaseIndent();
-        expect(logStub.notCalled, "Should not have printed anything to console").to.be.true;
-    });
-
-    test("Test decreaseIndent method", () => {
-        stubLogger.decreaseIndent();
-        expect(logStub.notCalled, "Should not have printed anything to console").to.be.true;
-    });
-
-    test("Test append method", () => {
-        stubLogger.append("test");
+    test("Test trace method", () => {
+        stubLogger.trace("test");
         expect(logStub, "Should print expected output to console").to.have.been.calledWith("test");
     });
 
-    test("Test appendLine method", () => {
-        stubLogger.appendLine("test");
+    test("Test info method", () => {
+        stubLogger.info("test");
         expect(logStub, "Should print expected output to console").to.have.been.calledWith("test");
     });
 });

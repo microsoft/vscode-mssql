@@ -157,7 +157,7 @@
         "@microsoft/ads-extension-telemetry": "^3.0.2",
         "@microsoft/vscode-azext-azureauth": "^5.1.1",
         "@xmldom/xmldom": "^0.9.10",
-        "axios": "^1.15.2",
+        "axios": "^1.16.0",
         "dockerode": "^4.0.9",
         "dotenv": "^16.4.5",
         "error-ex": "^1.3.0",
@@ -175,13 +175,13 @@
         "shallow-equal": "^3.1.0",
         "strip-json-comments": "^5.0.1",
         "tar": "^7.5.11",
-        "tmp": "^0.2.4",
+        "tmp": "^0.2.7",
         "tunnel": "0.0.6",
         "vscode-jsonrpc": "^8.2.1",
         "vscode-languageclient": "5.2.1",
         "xml-formatter": "^3.6.7",
         "yallist": "^5.0.0",
-        "yauzl": "^3.2.1"
+        "yauzl": "^3.3.1"
     },
     "capabilities": {
         "untrustedWorkspaces": {
@@ -2088,6 +2088,12 @@
                     "default": true,
                     "scope": "resource"
                 },
+                "mssql.messages.copyIncludeTimestamps": {
+                    "type": "boolean",
+                    "description": "%mssql.messages.copyIncludeTimestamps%",
+                    "default": false,
+                    "scope": "resource"
+                },
                 "mssql.resultsFontFamily": {
                     "type": "string",
                     "description": "%mssql.resultsFontFamily%",
@@ -2107,6 +2113,12 @@
                 "mssql.results.openAfterSave": {
                     "type": "boolean",
                     "description": "%mssql.results.openAfterSave%",
+                    "default": true,
+                    "scope": "resource"
+                },
+                "mssql.results.showCopyNotification": {
+                    "type": "boolean",
+                    "description": "%mssql.results.showCopyNotification%",
                     "default": true,
                     "scope": "resource"
                 },

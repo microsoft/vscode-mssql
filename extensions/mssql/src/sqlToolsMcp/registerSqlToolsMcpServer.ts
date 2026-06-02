@@ -25,9 +25,9 @@ export function registerSqlToolsMcpServer(
     context: vscode.ExtensionContext,
     connectionManager: ConnectionManager,
     client: SqlToolsServiceClient,
-    vscodeWrapper: VscodeWrapper,
+    _vscodeWrapper: VscodeWrapper,
 ): void {
-    const logger = Logger.create(vscodeWrapper.outputChannel, "SqlToolsMcp");
+    const logger = Logger.global("SqlToolsMcp");
     if (!canRegisterSqlToolsMcpProvider()) {
         sendSqlToolsMcpAction(TelemetryActions.SqlToolsMcpProviderRegistration, {
             success: "false",

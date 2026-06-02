@@ -15,6 +15,7 @@ import { disconnectedDockerContainer, dockerContainer } from "../../constants/co
 import { IConnectionProfile } from "../../models/interfaces";
 import * as Constants from "../../constants/constants";
 import { getDefaultConnection } from "../../models/connectionInfo";
+import * as LocalizedConstants from "../../constants/locConstants";
 
 // Constants for node types and icon names
 export const SERVER_NODE_DISCONNECTED = "disconnectedServer";
@@ -195,13 +196,13 @@ export class ConnectionNode extends TreeNodeInfo {
                     // Show authentication type as "Azure MFA" or "Windows Authentication"
                     const authTypeValueLabel =
                         connectionProfile.authenticationType === Constants.azureMfa
-                            ? vscode.l10n.t("Azure MFA")
-                            : vscode.l10n.t("Windows Authentication");
+                            ? LocalizedConstants.azureMFA
+                            : LocalizedConstants.windowsAuthentication;
                     p.value = authTypeValueLabel;
                 } else if (value === true) {
-                    p.value = vscode.l10n.t("Enabled");
+                    p.value = LocalizedConstants.enabled;
                 } else if (value === false) {
-                    p.value = vscode.l10n.t("Disabled");
+                    p.value = LocalizedConstants.disabled;
                 } else {
                     p.value = value;
                 }
@@ -216,29 +217,29 @@ export class ConnectionNode extends TreeNodeInfo {
                     const localizedLabel = (() => {
                         switch (p.key) {
                             case "server":
-                                return vscode.l10n.t("Server");
+                                return LocalizedConstants.server;
                             case "database":
-                                return vscode.l10n.t("Database");
+                                return LocalizedConstants.database;
                             case "authenticationType":
-                                return vscode.l10n.t("Authentication Type");
+                                return LocalizedConstants.authenticationType;
                             case "user":
-                                return vscode.l10n.t("User");
+                                return LocalizedConstants.user;
                             case "port":
-                                return vscode.l10n.t("Port");
+                                return LocalizedConstants.port;
                             case "containerName":
-                                return vscode.l10n.t("SQL Container Name");
+                                return LocalizedConstants.sqlContainerName;
                             case "version":
-                                return vscode.l10n.t("SQL Container Version");
+                                return LocalizedConstants.sqlContainerVersion;
                             case "applicationIntent":
-                                return vscode.l10n.t("Application Intent");
+                                return LocalizedConstants.applicationIntent;
                             case "connectTimeout":
-                                return vscode.l10n.t("Connection Timeout");
+                                return LocalizedConstants.connectionTimeout;
                             case "commandTimeout":
-                                return vscode.l10n.t("Command Timeout");
+                                return LocalizedConstants.commandTimeout;
                             case "alwaysEncrypted":
-                                return vscode.l10n.t("Always Encrypted");
+                                return LocalizedConstants.alwaysEncrypted;
                             case "replication":
-                                return vscode.l10n.t("Replication");
+                                return LocalizedConstants.replication;
                             default:
                                 return p.key;
                         }
