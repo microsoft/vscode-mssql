@@ -6,7 +6,6 @@
 import * as vscode from "vscode";
 import ConnectionManager from "../controllers/connectionManager";
 import { QueryNotificationHandler } from "../controllers/queryNotificationHandler";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import DotnetRuntimeProvider from "../languageservice/dotnetRuntimeProvider";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import { Logger } from "../models/logger";
@@ -25,7 +24,6 @@ export function registerSqlToolsMcpServer(
     context: vscode.ExtensionContext,
     connectionManager: ConnectionManager,
     client: SqlToolsServiceClient,
-    _vscodeWrapper: VscodeWrapper,
 ): void {
     const logger = Logger.global("SqlToolsMcp");
     if (!canRegisterSqlToolsMcpProvider()) {

@@ -61,12 +61,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
     await controller.activate();
 
     initializeUriOwnershipCoordinator(uriOwnershipCoordinator, controller.connectionManager);
-    registerSqlToolsMcpServer(
-        context,
-        controller.connectionManager,
-        SqlToolsServerClient.instance,
-        vscodeWrapper,
-    );
+    registerSqlToolsMcpServer(context, controller.connectionManager, SqlToolsServerClient.instance);
 
     const participant = vscode.chat.createChatParticipant(
         "mssql.agent",
