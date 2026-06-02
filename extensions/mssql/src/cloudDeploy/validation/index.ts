@@ -39,3 +39,10 @@ export type {
 } from "./providers/processProvider";
 export { StaticAnalysisValidator } from "./validators/staticAnalysisValidator";
 export { UnitTestsValidator } from "./validators/unitTestsValidator";
+export { WorkloadPlaybackValidator } from "./validators/workloadPlaybackValidator";
+export {
+    ArtifactNotFoundError,
+    FakeArtifactProvider,
+    LiveArtifactProvider,
+} from "./providers/artifactProvider";
+export type { ArtifactProvider, FakeArtifactRead } from "./providers/artifactProvider";

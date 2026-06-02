@@ -81,7 +81,42 @@ export interface UnitTestsSettings {
 }
 
 export interface WorkloadPlaybackSettings {
-    // populated when workload playback is implemented (e.g., baseline artifact ref, regression threshold)
+    /**
+     * Captured-workload artifact location consumed by the replay tool.
+     * In Scope 1 this is an absolute or workspace-relative local file path
+     * (resolved by the host); a future `GitHubArtifactProvider` reuses the
+     * same field with a `gh://` URI.
+     */
+    workloadUri?: string;
+    /**
+     * Baseline-metrics artifact the replay's observed metrics are compared
+     * against. Same uri semantics as `workloadUri`.
+     */
+    baselineUri?: string;
+    /**
+     * Replay tool command. Defaults to `"sql-workload-replay"` when omitted;
+     * the service layer may pin an absolute path the same way it does for
+     * `sqlpackage`.
+     */
+    replayCommand?: string;
+    /**
+     * Latency-regression threshold expressed as a fraction of the baseline
+     * (e.g. `0.25` flags any step whose observed latency is more than 25 %
+     * higher than baseline). Defaults applied by the validator.
+     */
+    latencyRegressionThreshold?: number;
+    /**
+     * Throughput-regression threshold expressed as a fraction of the baseline
+     * (e.g. `0.25` flags any step whose observed throughput drops by more
+     * than 25 %).
+     */
+    throughputRegressionThreshold?: number;
+    /**
+     * Error-rate-increase threshold expressed as an absolute delta (e.g.
+     * `0.05` flags any step whose observed error rate is more than five
+     * percentage points above baseline).
+     */
+    errorRateThreshold?: number;
 }
 
 /**

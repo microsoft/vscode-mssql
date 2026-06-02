@@ -7,10 +7,8 @@
  * Tests for the Cloud Deploy validator registry surface:
  *   * `defineRegistry` freezes the result and preserves entries by type.
  *   * `createDefaultRegistry` returns a frozen registry with every
- *     `ValidationType` arm wired. Connectivity uses the real
- *     `ConnectivityValidator` from commit 2; the remaining three arms
- *     (static analysis, unit tests, workload playback) are placeholders
- *     until commits 3-5 land.
+ *     `ValidationType` arm wired to its real validator. As of commit 5,
+ *     no arm is a placeholder.
  *   * Lookup-by-`ValidationType` returns the validator that declared that type.
  */
 
@@ -18,12 +16,11 @@ import { expect } from "chai";
 
 import { ValidationType } from "../../src/cloudDeploy/environments/types";
 import { createDefaultRegistry, defineRegistry, Validator } from "../../src/cloudDeploy/validation";
+import { FakeArtifactProvider } from "../../src/cloudDeploy/validation/providers/artifactProvider";
 import { FakeConnectionProvider } from "../../src/cloudDeploy/validation/providers/connectionProvider";
 import { FakeProcessProvider } from "../../src/cloudDeploy/validation/providers/processProvider";
 
 import { FakeValidator, makeFakeRegistry } from "./cloudDeployValidationTestHelpers";
-
-const PLACEHOLDER_TYPES: readonly ValidationType[] = [ValidationType.WorkloadPlayback];
 
 const ALL_TYPES: readonly ValidationType[] = [
     ValidationType.Connectivity,
@@ -76,6 +73,7 @@ suite("CloudDeploy Validator Registry", () => {
         const providers = {
             connection: new FakeConnectionProvider(),
             process: new FakeProcessProvider(),
+            artifact: new FakeArtifactProvider(),
         };
 
         test("returns a frozen registry", () => {
@@ -112,19 +110,17 @@ suite("CloudDeploy Validator Registry", () => {
             );
         });
 
-        test("placeholder arms still throw on run() so accidental invocation is loud", () => {
+        test("workload-playback arm is wired to the real WorkloadPlaybackValidator (not a placeholder)", () => {
             const registry = createDefaultRegistry(providers);
-            for (const type of PLACEHOLDER_TYPES) {
-                expect(() =>
-                    (
-                        registry[type] as unknown as {
-                            run: () => unknown;
-                        }
-                    ).run(),
-                )
-                    .to.throw(Error)
-                    .with.property("message")
-                    .that.matches(/not wired yet/);
+            expect(registry[ValidationType.WorkloadPlayback].constructor.name).to.equal(
+                "WorkloadPlaybackValidator",
+            );
+        });
+
+        test("every arm exposes a callable run() (no placeholders remain)", () => {
+            const registry = createDefaultRegistry(providers);
+            for (const type of ALL_TYPES) {
+                expect(typeof registry[type].run).to.equal("function");
             }
         });
     });

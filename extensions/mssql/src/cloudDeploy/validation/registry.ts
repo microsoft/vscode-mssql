@@ -20,47 +20,31 @@
  */
 
 import { ValidationType } from "../environments/types";
+import type { ArtifactProvider } from "./providers/artifactProvider";
 import type { ConnectionProvider } from "./providers/connectionProvider";
 import type { ProcessProvider } from "./providers/processProvider";
-import { defineRegistry, Validator, ValidatorRegistry } from "./types";
+import { defineRegistry, ValidatorRegistry } from "./types";
 import { ConnectivityValidator } from "./validators/connectivityValidator";
 import { StaticAnalysisValidator } from "./validators/staticAnalysisValidator";
 import { UnitTestsValidator } from "./validators/unitTestsValidator";
+import { WorkloadPlaybackValidator } from "./validators/workloadPlaybackValidator";
 
 /**
- * Provider bundle injected into `createDefaultRegistry`. Each subsequent
- * commit adds one field as its provider lands (commit 3: `process`, commit
- * 5: `artifact`). Service layer (commit 6) constructs the bundle once and
- * hands it to `createDefaultRegistry` to build the registry.
+ * Provider bundle injected into `createDefaultRegistry`. Commit 5 added
+ * `artifact` (the workload-playback validator's artifact seam); the bundle
+ * is now complete for Scope 1. The service layer (commit 6) constructs the
+ * bundle once and hands it to `createDefaultRegistry` to build the registry.
  */
 export interface RegistryProviders {
     readonly connection: ConnectionProvider;
     readonly process: ProcessProvider;
+    readonly artifact: ArtifactProvider;
 }
 
 /**
- * Placeholder validator used by `createDefaultRegistry` until each real
- * validator lands in its own commit. Throws on `run()` so an accidental
- * invocation surfaces immediately rather than silently producing a
- * "passed" result.
- *
- * Not exported: tests should build their own registries via
- * `defineRegistry({ ... fakes })`, not reach for the placeholder.
- */
-class NotYetWiredValidator<T extends ValidationType> implements Validator<T> {
-    public constructor(public readonly type: T) {}
-
-    public run(): never {
-        throw new Error(
-            `Validator for "${this.type}" is not wired yet (added in a later D2 commit).`,
-        );
-    }
-}
-
-/**
- * Builds the default production registry. Wires each `ValidationType` arm
- * to its concrete validator; entries that haven't landed yet point at
- * `NotYetWiredValidator` so calling `run()` is loud instead of silent.
+ * Builds the default production registry. Every `ValidationType` arm is
+ * wired to its concrete validator as of commit 5; there is no longer a
+ * placeholder slot.
  *
  * Service layer constructs this once per `CloudDeployService` and hands
  * the result to the runner.
@@ -70,8 +54,9 @@ export function createDefaultRegistry(providers: RegistryProviders): ValidatorRe
         [ValidationType.Connectivity]: new ConnectivityValidator(providers.connection),
         [ValidationType.StaticAnalysis]: new StaticAnalysisValidator(providers.process),
         [ValidationType.UnitTests]: new UnitTestsValidator(providers.connection),
-        [ValidationType.WorkloadPlayback]: new NotYetWiredValidator(
-            ValidationType.WorkloadPlayback,
+        [ValidationType.WorkloadPlayback]: new WorkloadPlaybackValidator(
+            providers.artifact,
+            providers.process,
         ),
     });
 }
