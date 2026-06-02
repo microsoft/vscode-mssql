@@ -295,6 +295,10 @@ export default class MainController implements vscode.Disposable {
                 }
                 this.onDeployNewDatabase(initialConnectionGroup);
             });
+            this.registerCommand(Constants.cmdCloudDeployValidate);
+            this._event.on(Constants.cmdCloudDeployValidate, () => {
+                void this.onCloudDeployValidate();
+            });
             this.registerCommand(Constants.cmdRunCurrentStatement);
             this._event.on(Constants.cmdRunCurrentStatement, () => {
                 void this.onRunCurrentStatement();
@@ -2700,6 +2704,130 @@ export default class MainController implements vscode.Disposable {
             initialConnectionGroup,
         );
         reactPanel.revealToForeground();
+    }
+
+    /**
+     * Cloud Deploy: prompt the user to pick a declared environment, dispatch
+     * the validation pipeline against it, and surface a result toast. The
+     * detailed event log lands in the "Cloud Deploy" output channel via the
+     * service's bus subscription.
+     */
+    public async onCloudDeployValidate(): Promise<void> {
+        const environments = this.cloudDeployService.environments;
+        if (environments === undefined) {
+            this._vscodeWrapper.showInformationMessage(
+                LocalizedConstants.CloudDeployValidation.noWorkspaceFolder,
+            );
+            return;
+        }
+
+        const envs = environments.list();
+        if (envs.length === 0) {
+            this._vscodeWrapper.showInformationMessage(
+                LocalizedConstants.CloudDeployValidation.noEnvironmentsDeclared,
+            );
+            return;
+        }
+
+        const items = envs.map((env) => ({
+            label: env.name,
+            description: env.id,
+            detail: env.description,
+            envId: env.id,
+        }));
+        const picked = await vscode.window.showQuickPick(items, {
+            placeHolder: LocalizedConstants.CloudDeployValidation.pickEnvironmentPlaceholder,
+            ignoreFocusOut: true,
+        });
+        if (picked === undefined) {
+            return;
+        }
+
+        const envName = picked.label;
+        const result = await vscode.window.withProgress(
+            {
+                location: vscode.ProgressLocation.Notification,
+                title: LocalizedConstants.CloudDeployValidation.progressTitle(envName),
+                cancellable: true,
+            },
+            async (_progress, token) => {
+                const controller = new AbortController();
+                const tokenSubscription = token.onCancellationRequested(() => controller.abort());
+                try {
+                    return await this.cloudDeployService.validation.run(picked.envId, {
+                        signal: controller.signal,
+                    });
+                } finally {
+                    tokenSubscription.dispose();
+                }
+            },
+        );
+
+        await this.showCloudDeployValidateResult(envName, result);
+    }
+
+    private async showCloudDeployValidateResult(
+        envName: string,
+        result: {
+            record: { status: string; validations: ReadonlyArray<{ errorMessage?: string }> };
+            persistError?: string;
+        },
+    ): Promise<void> {
+        const showOutput = LocalizedConstants.CloudDeployValidation.showOutputChannelAction;
+        const status = result.record.status;
+        let toast: Thenable<string | undefined>;
+        switch (status) {
+            case "passed":
+                toast = vscode.window.showInformationMessage(
+                    LocalizedConstants.CloudDeployValidation.runPassed(envName),
+                    showOutput,
+                );
+                break;
+            case "warning":
+                toast = vscode.window.showWarningMessage(
+                    LocalizedConstants.CloudDeployValidation.runWarning(envName),
+                    showOutput,
+                );
+                break;
+            case "cancelled":
+                toast = vscode.window.showInformationMessage(
+                    LocalizedConstants.CloudDeployValidation.runCancelled(envName),
+                    showOutput,
+                );
+                break;
+            case "skipped":
+                toast = vscode.window.showInformationMessage(
+                    LocalizedConstants.CloudDeployValidation.runSkipped(envName),
+                    showOutput,
+                );
+                break;
+            case "errored": {
+                const message = result.record.validations[0]?.errorMessage ?? "";
+                toast = vscode.window.showErrorMessage(
+                    LocalizedConstants.CloudDeployValidation.runErrored(envName, message),
+                    showOutput,
+                );
+                break;
+            }
+            case "failed":
+            default:
+                toast = vscode.window.showErrorMessage(
+                    LocalizedConstants.CloudDeployValidation.runFailed(envName),
+                    showOutput,
+                );
+                break;
+        }
+
+        if (result.persistError !== undefined) {
+            void this._vscodeWrapper.showWarningMessage(
+                LocalizedConstants.CloudDeployValidation.persistFailed(result.persistError),
+            );
+        }
+
+        const action = await toast;
+        if (action === showOutput) {
+            this.cloudDeployService.outputChannel.show(true);
+        }
     }
 
     /**

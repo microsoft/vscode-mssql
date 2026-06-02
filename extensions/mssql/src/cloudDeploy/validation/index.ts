@@ -46,3 +46,11 @@ export {
     LiveArtifactProvider,
 } from "./providers/artifactProvider";
 export type { ArtifactProvider, FakeArtifactRead } from "./providers/artifactProvider";
+export { ValidationService } from "./validationApi";
+export type {
+    CloudDeployValidationApi,
+    CloudDeployValidationRunOptions,
+    CloudDeployValidationRunResult,
+} from "./validationApi";
+export { OutputChannelSubscriber, formatEvent } from "./outputChannelSubscriber";
+export type { OutputChannelLike } from "./outputChannelSubscriber";

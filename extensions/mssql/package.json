@@ -1565,6 +1565,11 @@
                 }
             },
             {
+                "command": "mssql.cloudDeploy.validateEnvironment",
+                "title": "%mssql.cloudDeploy.validateEnvironment%",
+                "category": "MS SQL"
+            },
+            {
                 "command": "mssql.stopContainer",
                 "title": "%mssql.stopContainer%",
                 "category": "MS SQL"

@@ -1159,6 +1159,12 @@
     <trans-unit id="++CODE++b977b950c1ae31e5aeb9ef778cc20a66fc034eb81e738e0206104b677962c465">
       <source xml:lang="en">Cloud</source>
     </trans-unit>
+    <trans-unit id="++CODE++d382470c6b4261e4ea031cac9be9a74628d898bffabc0927354e0819dddfa9d9">
+      <source xml:lang="en">Cloud Deploy validation requires an open workspace folder.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f37f6991dc9211725f0ea880623ec796f773ddfe12bd9674aeee2732c1b84803">
+      <source xml:lang="en">Cloud Deploy: Validate environment</source>
+    </trans-unit>
     <trans-unit id="++CODE++3c7b470089d5686bf5295ce8455026208381441672b649aebdc03663e68b6975">
       <source xml:lang="en">Code Analysis</source>
     </trans-unit>
@@ -4560,6 +4566,9 @@
     <trans-unit id="++CODE++6d7af8a57c85229b9b08306d93d38a7f0f2d369dc90a339ea4708ca45a92252b">
       <source xml:lang="en">No Azure accounts found</source>
     </trans-unit>
+    <trans-unit id="++CODE++2c5ca5eb3cecc14d02190a0af2f2b96f80df2c617aec0f30b76cac8038b318a2">
+      <source xml:lang="en">No Cloud Deploy environments are declared in this workspace. Add one to .mssql/environments.json before running validation.</source>
+    </trans-unit>
     <trans-unit id="++CODE++dd1e244b4e319bb25477890a9327b3a2419908e042cd4063f9235a0afed6e908">
       <source xml:lang="en">No Microsoft Entra account can be found for removal.</source>
     </trans-unit>
@@ -4812,6 +4821,10 @@
     </trans-unit>
     <trans-unit id="++CODE++1714986c355ccdf8acce319f8df2b13f9ccae0f5ee87915f3fa4bbc917b155a7">
       <source xml:lang="en">No tools to process.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8b4564fde7c27738de579297fbb9ccf584147ddef5d0b9344593a1769f2c6fb5">
+      <source xml:lang="en">No validations were declared on &apos;{0}&apos;.</source>
+      <note>{0} is the user-facing environment name</note>
     </trans-unit>
     <trans-unit id="++CODE++751ae077912b834895870d0d5210c09ca02659375aab7843a26689a7aa50a0fc">
       <source xml:lang="en">No workspace folder is open. Open a folder to add the MCP server configuration.</source>
@@ -6238,6 +6251,9 @@
     <trans-unit id="++CODE++3e75bab98257a9ea127e284caff7f62dff2d154f115bb79a6a087b51fd54936d">
       <source xml:lang="en">Select an account for authentication</source>
     </trans-unit>
+    <trans-unit id="++CODE++3287ffb87674eac3d99a1d87b20897547085bf20e81e0a69d882118a48008999">
+      <source xml:lang="en">Select an environment to validate</source>
+    </trans-unit>
     <trans-unit id="++CODE++1032e1d25c0d5131be3195e1e53197385eb21d860f4f14f7bbc4cfcce4bfd109">
       <source xml:lang="en">Select an extension to manage connection sharing permissions</source>
     </trans-unit>
@@ -6457,6 +6473,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8a4cdc1c1353b76118cc7e7eb513c9d9cb49db4012aec7b94b52971b4518edf4">
       <source xml:lang="en">Show masked command (hides sensitive information)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9dbbb249c2a73b47d012a1400a3c4691302b025b42cc80ad58f62a7d37b83786">
+      <source xml:lang="en">Show output</source>
     </trans-unit>
     <trans-unit id="++CODE++6aeaa6a53d09dcad071fdda6280b1e7c42aa164cd0514304ff162e7da440ffaa">
       <source xml:lang="en">Show password</source>
@@ -7384,11 +7403,40 @@
       <source xml:lang="en">Using {0} to process your request...</source>
       <note>{0} is the model name that will be processing the request</note>
     </trans-unit>
+    <trans-unit id="++CODE++a73a6576ca228a2f04383ae754a60e2e43ab9d6e55e03e3b1db5db0bef2fcf18">
+      <source xml:lang="en">Validating environment &apos;{0}&apos;</source>
+      <note>{0} is the user-facing environment name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++0f238dd5246e2e2e8f28a226a63d775e507a2ecac6258e32779fd9d72d8dfc37">
+      <source xml:lang="en">Validation cancelled for &apos;{0}&apos;.</source>
+      <note>{0} is the user-facing environment name</note>
+    </trans-unit>
     <trans-unit id="++CODE++23a86f5a2daebf62665f27e6c911523cf8c7fa74b48dd330ca058d0285defb0c">
       <source xml:lang="en">Validation failed</source>
     </trans-unit>
+    <trans-unit id="++CODE++0178f1f64766c9f8d1cb1ca88062dd61bdc86a32eaf4142bd2478f82ca49324d">
+      <source xml:lang="en">Validation failed for &apos;{0}&apos;.</source>
+      <note>{0} is the user-facing environment name</note>
+    </trans-unit>
     <trans-unit id="++CODE++acae50e95fddfac1fc564a334d7ccdd9442623a3e6fb58c935c2c6a2b98ee87b">
       <source xml:lang="en">Validation failed. Please check your inputs</source>
+    </trans-unit>
+    <trans-unit id="++CODE++99195bf0750b8cb30b432e3b96dd2e71d5e534660e2affa6d5630c247a57d759">
+      <source xml:lang="en">Validation finished but the run artifact could not be saved: {0}</source>
+      <note>{0} is the underlying I/O error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++0c62b7331803f7012e2ce32cae4d435ce961176099460dac9e1330524934b6eb">
+      <source xml:lang="en">Validation finished with warnings for &apos;{0}&apos;.</source>
+      <note>{0} is the user-facing environment name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++19442d669566e053a2d982fd9dc1f4d1073e298c83a2db11d4c564f5e6ddd777">
+      <source xml:lang="en">Validation passed for &apos;{0}&apos;.</source>
+      <note>{0} is the user-facing environment name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++cbb1b9bac41685d294c9e6c7a3a56ebf7e8188cdcac7fae422df7fb8a856996c">
+      <source xml:lang="en">Validation runner crashed for &apos;{0}&apos;: {1}</source>
+      <note>{0} is the user-facing environment name
+{1} is the underlying error message</note>
     </trans-unit>
     <trans-unit id="++CODE++8e37953d23daca5ff01b8282c33f4e0a2152f1d1885f94c06418617e3ee1d24e">
       <source xml:lang="en">Value</source>
@@ -8121,6 +8169,9 @@
     </trans-unit>
     <trans-unit id="mssql.clearPooledConnections">
       <source xml:lang="en">Clear Pooled Connections</source>
+    </trans-unit>
+    <trans-unit id="mssql.cloudDeploy.validateEnvironment">
+      <source xml:lang="en">Cloud Deploy: Validate environment</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.commandTimeoutLabel">
       <source xml:lang="en">Command Timeout</source>

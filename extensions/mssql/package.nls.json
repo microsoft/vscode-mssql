@@ -250,6 +250,7 @@
     "mssql.schemaDesigner": "Visualize and Design Schema...",
     "mssql.buildDataApi": "Build Data API...",
     "mssql.newDeployment": "New Deployment",
+    "mssql.cloudDeploy.validateEnvironment": "Cloud Deploy: Validate environment",
     "mssql.stopContainer": "Stop SQL Container",
     "mssql.deleteContainer": "Delete SQL Container",
     "mssql.startContainer": "Start SQL Container",
