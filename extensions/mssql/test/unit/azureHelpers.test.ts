@@ -437,6 +437,268 @@ suite("Azure Helpers", () => {
         }
     });
 
+    suite("getDefaultTenantId", () => {
+        test("should return empty string when accountId is empty", () => {
+            const result = azureHelpers.getDefaultTenantId("", mockTenants);
+            expect(result).to.equal("");
+        });
+
+        test("should return empty string when tenants array is empty", () => {
+            const result = azureHelpers.getDefaultTenantId("some-account.some-tenant", []);
+            expect(result).to.equal("");
+        });
+
+        test("should return home tenant ID when it matches a tenant in the list", () => {
+            const accountId = `someAccountPart.${mockTenants[0].tenantId}`;
+            const result = azureHelpers.getDefaultTenantId(accountId, mockTenants);
+            expect(result).to.equal(mockTenants[0].tenantId);
+        });
+
+        test("should return first tenant ID when home tenant is not in the list", () => {
+            const accountId = "someAccountPart.non-existent-tenant-id";
+            const result = azureHelpers.getDefaultTenantId(accountId, mockTenants);
+            expect(result).to.equal(mockTenants[0].tenantId);
+        });
+
+        test("should return first tenant ID when accountId has no dot separator", () => {
+            const accountId = "no-dot-account";
+            const result = azureHelpers.getDefaultTenantId(accountId, mockTenants);
+            expect(result).to.equal(mockTenants[0].tenantId);
+        });
+    });
+
+    suite("getHomeTenantIdForAccount", () => {
+        test("should extract tenant ID from account ID string with dot separator", () => {
+            const result =
+                azureHelpers.VsCodeAzureHelper.getHomeTenantIdForAccount("accountPart.tenantPart");
+            expect(result).to.equal("tenantPart");
+        });
+
+        test("should extract tenant ID from AuthenticationSessionAccountInformation", () => {
+            const result = azureHelpers.VsCodeAzureHelper.getHomeTenantIdForAccount(
+                mockAccounts.signedInAccount,
+            );
+            expect(result).to.equal("11111111-1111-1111-1111-111111111111");
+        });
+
+        test("should return undefined when account ID has no dot separator", () => {
+            const result =
+                azureHelpers.VsCodeAzureHelper.getHomeTenantIdForAccount("no-dot-account");
+            expect(result).to.be.undefined;
+        });
+
+        test("should return undefined when account ID is empty", () => {
+            const result = azureHelpers.VsCodeAzureHelper.getHomeTenantIdForAccount("");
+            expect(result).to.be.undefined;
+        });
+    });
+
+    suite("getAccountObjectId", () => {
+        test("should extract OID from a valid JWT access token", async () => {
+            const tokenPayload = { oid: "test-object-id-123", sub: "subject" };
+            const encodedPayload = Buffer.from(JSON.stringify(tokenPayload)).toString("base64");
+            const mockToken = `header.${encodedPayload}.signature`;
+
+            const mockSubscription = {
+                ...mockSubscriptions[0],
+                authentication: {
+                    getSession: sandbox.stub().resolves({ accessToken: mockToken }),
+                },
+            } as unknown as import("@microsoft/vscode-azext-azureauth").AzureSubscription;
+
+            const result = await azureHelpers.VsCodeAzureHelper.getAccountObjectId(
+                mockSubscription,
+                { id: "fallback-id.tenant" },
+            );
+            expect(result).to.equal("test-object-id-123");
+        });
+
+        test("should handle base64url-encoded token payload", async () => {
+            const tokenPayload = { oid: "url-safe-oid" };
+            const encodedPayload = Buffer.from(JSON.stringify(tokenPayload))
+                .toString("base64")
+                .replace(/\+/g, "-")
+                .replace(/\//g, "_");
+            const mockToken = `header.${encodedPayload}.signature`;
+
+            const mockSubscription = {
+                ...mockSubscriptions[0],
+                authentication: {
+                    getSession: sandbox.stub().resolves({ accessToken: mockToken }),
+                },
+            } as unknown as import("@microsoft/vscode-azext-azureauth").AzureSubscription;
+
+            const result = await azureHelpers.VsCodeAzureHelper.getAccountObjectId(
+                mockSubscription,
+                { id: "fallback.tenant" },
+            );
+            expect(result).to.equal("url-safe-oid");
+        });
+
+        test("should fall back to account ID first segment when token decode fails", async () => {
+            const mockSubscription = {
+                ...mockSubscriptions[0],
+                authentication: {
+                    getSession: sandbox.stub().rejects(new Error("session error")),
+                },
+            } as unknown as import("@microsoft/vscode-azext-azureauth").AzureSubscription;
+
+            const result = await azureHelpers.VsCodeAzureHelper.getAccountObjectId(
+                mockSubscription,
+                { id: "fallback-oid.tenant-id" },
+            );
+            expect(result).to.equal("fallback-oid");
+        });
+
+        test("should fall back when access token has no OID claim", async () => {
+            const tokenPayload = { sub: "subject-only" };
+            const encodedPayload = Buffer.from(JSON.stringify(tokenPayload)).toString("base64");
+            const mockToken = `header.${encodedPayload}.signature`;
+
+            const mockSubscription = {
+                ...mockSubscriptions[0],
+                authentication: {
+                    getSession: sandbox.stub().resolves({ accessToken: mockToken }),
+                },
+            } as unknown as import("@microsoft/vscode-azext-azureauth").AzureSubscription;
+
+            const result = await azureHelpers.VsCodeAzureHelper.getAccountObjectId(
+                mockSubscription,
+                { id: "fallback-oid.tenant-id" },
+            );
+            expect(result).to.equal("fallback-oid");
+        });
+
+        test("should return undefined when no account is provided and token fails", async () => {
+            const mockSubscription = {
+                ...mockSubscriptions[0],
+                authentication: {
+                    getSession: sandbox.stub().rejects(new Error("fail")),
+                },
+            } as unknown as import("@microsoft/vscode-azext-azureauth").AzureSubscription;
+
+            const result =
+                await azureHelpers.VsCodeAzureHelper.getAccountObjectId(mockSubscription);
+            expect(result).to.be.undefined;
+        });
+
+        test("should fall back when session returns null access token", async () => {
+            const mockSubscription = {
+                ...mockSubscriptions[0],
+                authentication: {
+                    getSession: sandbox.stub().resolves({ accessToken: null }),
+                },
+            } as unknown as import("@microsoft/vscode-azext-azureauth").AzureSubscription;
+
+            const result = await azureHelpers.VsCodeAzureHelper.getAccountObjectId(
+                mockSubscription,
+                { id: "fallback-oid.tenant" },
+            );
+            expect(result).to.equal("fallback-oid");
+        });
+    });
+
+    suite("getAccounts (standalone)", () => {
+        test("should return mapped account options on success", async () => {
+            const mockAccountService = sandbox.createStubInstance(AzureAccountService);
+            (mockAccountService.getAccounts as sinon.SinonStub).resolves([
+                {
+                    displayInfo: { displayName: "Account 1" },
+                    key: { id: "acct-1" },
+                },
+                {
+                    displayInfo: { displayName: "Account 2" },
+                    key: { id: "acct-2" },
+                },
+            ]);
+
+            const result = await azureHelpers.getAccounts(mockAccountService, mockLogger);
+
+            expect(result).to.have.lengthOf(2);
+            expect(result[0]).to.deep.equal({ displayName: "Account 1", value: "acct-1" });
+            expect(result[1]).to.deep.equal({ displayName: "Account 2", value: "acct-2" });
+        });
+
+        test("should return empty array and log error on failure", async () => {
+            sandbox.stub(require("../../src/telemetry/telemetry"), "sendErrorEvent");
+            const mockAccountService = sandbox.createStubInstance(AzureAccountService);
+            (mockAccountService.getAccounts as sinon.SinonStub).rejects(
+                new Error("Service unavailable"),
+            );
+
+            const result = await azureHelpers.getAccounts(mockAccountService, mockLogger);
+
+            expect(result).to.be.an("array").that.is.empty;
+            expect(mockLogger.error).to.have.been.calledWithMatch("Error loading Azure accounts");
+        });
+    });
+
+    suite("getTenants", () => {
+        test("should return empty array when accountId is empty", async () => {
+            const result = await azureHelpers.getTenants(mockAzureAccountService, "", mockLogger);
+            expect(result).to.be.an("array").that.is.empty;
+            expect(mockLogger.error).to.have.been.calledWithMatch("undefined accountId");
+        });
+
+        test("should return mapped tenant options on success", async () => {
+            (mockAzureAccountService.getAccount as sinon.SinonStub).resolves({
+                displayInfo: { userId: "test-user" },
+                properties: {
+                    tenants: [
+                        { displayName: "Tenant A", id: "tid-a" },
+                        { displayName: "Tenant B", id: "tid-b" },
+                    ],
+                },
+            });
+
+            const result = await azureHelpers.getTenants(
+                mockAzureAccountService,
+                "test-user",
+                mockLogger,
+            );
+
+            expect(result).to.have.lengthOf(2);
+            expect(result[0]).to.deep.equal({
+                displayName: "Tenant A (tid-a)",
+                value: "tid-a",
+            });
+            expect(result[1]).to.deep.equal({
+                displayName: "Tenant B (tid-b)",
+                value: "tid-b",
+            });
+        });
+
+        test("should return empty array when getAccount throws", async () => {
+            sandbox.stub(require("../../src/telemetry/telemetry"), "sendErrorEvent");
+            (mockAzureAccountService.getAccount as sinon.SinonStub).rejects(
+                new Error("Network error"),
+            );
+
+            const result = await azureHelpers.getTenants(
+                mockAzureAccountService,
+                "test-user",
+                mockLogger,
+            );
+
+            expect(result).to.be.an("array").that.is.empty;
+            expect(mockLogger.error).to.have.been.calledWithMatch("Error loading Azure tenants");
+        });
+
+        test("should return empty array when account is undefined", async () => {
+            sandbox.stub(require("../../src/telemetry/telemetry"), "sendErrorEvent");
+            (mockAzureAccountService.getAccount as sinon.SinonStub).resolves(undefined);
+
+            const result = await azureHelpers.getTenants(
+                mockAzureAccountService,
+                "test-user",
+                mockLogger,
+            );
+
+            expect(result).to.be.an("array").that.is.empty;
+            expect(mockLogger.error).to.have.been.calledWithMatch("undefined account");
+        });
+    });
+
     test("fetchBlobsForContainer", async () => {
         const mockBlobs = [mockAzureResources.blob];
 
