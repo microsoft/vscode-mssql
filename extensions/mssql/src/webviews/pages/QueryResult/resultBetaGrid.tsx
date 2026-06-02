@@ -64,7 +64,7 @@ import {
 import { locConstants } from "../../common/locConstants";
 import { KeyCode } from "../../common/keys";
 import { eventMatchesShortcut } from "../../common/keyboardUtils";
-import { isMetaOrCtrlKeyPressed } from "../../common/utils";
+import { getPreviousFocusableElement, isMetaOrCtrlKeyPressed } from "../../common/utils";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { useQueryResultSelector } from "./queryResultSelector";
@@ -2245,16 +2245,48 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             return { active, column };
         }, []);
 
-        const moveFocusToCommandBar = useCallback(() => {
-            const resultGridContainer = document.getElementById(props.gridId);
-            const commandBar = resultGridContainer?.querySelector<HTMLElement>(
-                '[data-query-result-command-bar="true"]',
-            );
-            const commandBarTarget = commandBar?.querySelector<HTMLElement>(
-                'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-            );
-            commandBarTarget?.focus();
-        }, [props.gridId]);
+        const moveFocusOutsideGrid = useCallback(
+            (forward: boolean) => {
+                const gridContainer = document.getElementById(
+                    `beta-grid-container-${props.gridId}`,
+                );
+                if (!gridContainer) {
+                    return;
+                }
+
+                if (forward) {
+                    const resultGridContainer = document.getElementById(props.gridId);
+                    const commandBar = resultGridContainer?.querySelector<HTMLElement>(
+                        '[data-query-result-command-bar="true"]',
+                    );
+                    const commandBarTarget = commandBar?.querySelector<HTMLElement>(
+                        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+                    );
+                    commandBarTarget?.focus();
+                    return;
+                }
+
+                const focusableGridElements = [
+                    gridContainer,
+                    ...Array.from(
+                        gridContainer.querySelectorAll<HTMLElement>(
+                            'a[href], button, textarea, input:not([type="hidden"]), select, [tabindex]:not([tabindex="-1"]), [contenteditable="true"]',
+                        ),
+                    ),
+                ].filter(
+                    (element) =>
+                        !element.hasAttribute("disabled") && element.getClientRects().length > 0,
+                );
+                const boundaryElement = focusableGridElements[0];
+                if (!boundaryElement) {
+                    return;
+                }
+
+                const nextFocusTarget = getPreviousFocusableElement(boundaryElement);
+                nextFocusTarget?.focus();
+            },
+            [props.gridId],
+        );
 
         const selectAllCells = useCallback(
             (grid: SlickGrid) => {
@@ -2694,9 +2726,9 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 ) {
                     void resizeActiveColumn(grid);
                 } else if (keyboardEvent.shiftKey && keyboardEvent.code === KeyCode.Tab) {
-                    moveFocusToCommandBar();
+                    moveFocusOutsideGrid(false);
                 } else if (!keyboardEvent.shiftKey && keyboardEvent.code === KeyCode.Tab) {
-                    moveFocusToCommandBar();
+                    moveFocusOutsideGrid(true);
                 } else {
                     handled = false;
                 }
@@ -2712,7 +2744,7 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 handleContextMenuAction,
                 keyBindings,
                 moveActiveCellToRowEdge,
-                moveFocusToCommandBar,
+                moveFocusOutsideGrid,
                 openFilterMenuForColumn,
                 openHeaderContextMenuForActiveColumn,
                 resizeActiveColumn,
