@@ -20,7 +20,19 @@
  */
 
 import { ValidationType } from "../environments/types";
+import type { ConnectionProvider } from "./providers/connectionProvider";
 import { defineRegistry, Validator, ValidatorRegistry } from "./types";
+import { ConnectivityValidator } from "./validators/connectivityValidator";
+
+/**
+ * Provider bundle injected into `createDefaultRegistry`. Each subsequent
+ * commit adds one field as its provider lands (commit 3: `process`, commit
+ * 5: `artifact`). Service layer (commit 6) constructs the bundle once and
+ * hands it to `createDefaultRegistry` to build the registry.
+ */
+export interface RegistryProviders {
+    readonly connection: ConnectionProvider;
+}
 
 /**
  * Placeholder validator used by `createDefaultRegistry` until each real
@@ -49,9 +61,9 @@ class NotYetWiredValidator<T extends ValidationType> implements Validator<T> {
  * Service layer constructs this once per `CloudDeployService` and hands
  * the result to the runner.
  */
-export function createDefaultRegistry(): ValidatorRegistry {
+export function createDefaultRegistry(providers: RegistryProviders): ValidatorRegistry {
     return defineRegistry({
-        [ValidationType.Connectivity]: new NotYetWiredValidator(ValidationType.Connectivity),
+        [ValidationType.Connectivity]: new ConnectivityValidator(providers.connection),
         [ValidationType.StaticAnalysis]: new NotYetWiredValidator(ValidationType.StaticAnalysis),
         [ValidationType.UnitTests]: new NotYetWiredValidator(ValidationType.UnitTests),
         [ValidationType.WorkloadPlayback]: new NotYetWiredValidator(

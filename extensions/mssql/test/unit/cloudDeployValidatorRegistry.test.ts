@@ -7,8 +7,10 @@
  * Tests for the Cloud Deploy validator registry surface:
  *   * `defineRegistry` freezes the result and preserves entries by type.
  *   * `createDefaultRegistry` returns a frozen registry with every
- *     `ValidationType` arm wired (placeholder validators in commit 1; real
- *     ones in commits 2-5).
+ *     `ValidationType` arm wired. Connectivity uses the real
+ *     `ConnectivityValidator` from commit 2; the remaining three arms
+ *     (static analysis, unit tests, workload playback) are placeholders
+ *     until commits 3-5 land.
  *   * Lookup-by-`ValidationType` returns the validator that declared that type.
  */
 
@@ -16,8 +18,15 @@ import { expect } from "chai";
 
 import { ValidationType } from "../../src/cloudDeploy/environments/types";
 import { createDefaultRegistry, defineRegistry, Validator } from "../../src/cloudDeploy/validation";
+import { FakeConnectionProvider } from "../../src/cloudDeploy/validation/providers/connectionProvider";
 
 import { FakeValidator, makeFakeRegistry } from "./cloudDeployValidationTestHelpers";
+
+const PLACEHOLDER_TYPES: readonly ValidationType[] = [
+    ValidationType.StaticAnalysis,
+    ValidationType.UnitTests,
+    ValidationType.WorkloadPlayback,
+];
 
 const ALL_TYPES: readonly ValidationType[] = [
     ValidationType.Connectivity,
@@ -67,22 +76,31 @@ suite("CloudDeploy Validator Registry", () => {
     });
 
     suite("createDefaultRegistry", () => {
+        const providers = { connection: new FakeConnectionProvider() };
+
         test("returns a frozen registry", () => {
-            const registry = createDefaultRegistry();
+            const registry = createDefaultRegistry(providers);
             expect(Object.isFrozen(registry)).to.equal(true);
         });
 
         test("populates every ValidationType arm with a validator whose type matches", () => {
-            const registry = createDefaultRegistry();
+            const registry = createDefaultRegistry(providers);
             for (const type of ALL_TYPES) {
                 expect(registry[type]).to.not.equal(undefined);
                 expect(registry[type].type).to.equal(type);
             }
         });
 
-        test("placeholder validators throw on run() so accidental invocation is loud", () => {
-            const registry = createDefaultRegistry();
-            for (const type of ALL_TYPES) {
+        test("connectivity arm is wired to the real ConnectivityValidator (not a placeholder)", () => {
+            const registry = createDefaultRegistry(providers);
+            expect(registry[ValidationType.Connectivity].constructor.name).to.equal(
+                "ConnectivityValidator",
+            );
+        });
+
+        test("placeholder arms still throw on run() so accidental invocation is loud", () => {
+            const registry = createDefaultRegistry(providers);
+            for (const type of PLACEHOLDER_TYPES) {
                 expect(() =>
                     (
                         registry[type] as unknown as {

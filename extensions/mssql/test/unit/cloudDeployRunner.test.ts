@@ -24,7 +24,12 @@ import {
     RunStatus,
     ValidationStatus,
 } from "../../src/cloudDeploy/runs/types";
-import { Runner } from "../../src/cloudDeploy/validation";
+import {
+    ConnectivityValidator,
+    defineRegistry,
+    FakeConnectionProvider,
+    Runner,
+} from "../../src/cloudDeploy/validation";
 
 import {
     makeEnvironmentWithValidations,
@@ -412,6 +417,125 @@ suite("CloudDeploy Validation Runner", () => {
 
             expect(record.runId).to.equal("my-run-id");
             expect(record.runner).to.deep.equal(runner);
+        });
+    });
+
+    // -------------------------------------------------------------------------
+    // Real ConnectivityValidator integration (commit 2)
+    //
+    // Exercises the runner with the real `ConnectivityValidator` wired in
+    // place of the fake-connectivity arm. Proves the end-to-end path —
+    // provider → validator → runner — produces the expected RunRecord
+    // shape and that gating fires off a real Failed result, not just a
+    // fake-configured one.
+    // -------------------------------------------------------------------------
+
+    suite("real ConnectivityValidator integration", () => {
+        function buildRegistryWithRealConnectivity(provider: FakeConnectionProvider) {
+            const fakes = makeFakeRegistry();
+            return defineRegistry({
+                [ValidationType.Connectivity]: new ConnectivityValidator(provider),
+                [ValidationType.StaticAnalysis]: fakes.staticAnalysis,
+                [ValidationType.UnitTests]: fakes.unitTests,
+                [ValidationType.WorkloadPlayback]: fakes.workloadPlayback,
+            });
+        }
+
+        test("real connectivity Pass → run rolls up to Passed; rest of validators run", async () => {
+            const provider = new FakeConnectionProvider();
+            const env = makeEnvironmentWithValidations([
+                makeValidationConfig(ValidationType.Connectivity),
+                makeValidationConfig(ValidationType.StaticAnalysis),
+            ]);
+            provider.configure(env.id, {
+                mode: "success",
+                handle: { executeResponses: { "SELECT @@VERSION": [["SQL Server 2022"]] } },
+            });
+            const registry = buildRegistryWithRealConnectivity(provider);
+
+            const record = await new Runner(registry, bus).run(env);
+
+            expect(record.status).to.equal(RunStatus.Passed);
+            const byType = new Map(record.validations.map((r) => [r.payload.validationType, r]));
+            const connRes = byType.get(ValidationType.Connectivity);
+            expect(connRes?.status).to.equal(ValidationStatus.Passed);
+            const summary = (connRes?.payload as { summary: { serverVersion?: string } }).summary;
+            expect(summary.serverVersion).to.equal("SQL Server 2022");
+            expect(byType.get(ValidationType.StaticAnalysis)?.status).to.equal(
+                ValidationStatus.Passed,
+            );
+        });
+
+        test("real connectivity Fail (auth-failed) → run rolls up to Failed; rest are Skipped", async () => {
+            const provider = new FakeConnectionProvider();
+            const env = makeEnvironmentWithValidations([
+                makeValidationConfig(ValidationType.Connectivity),
+                makeValidationConfig(ValidationType.StaticAnalysis),
+                makeValidationConfig(ValidationType.UnitTests),
+            ]);
+            provider.configure(env.id, { mode: "failure", kind: "auth-failed" });
+            const registry = buildRegistryWithRealConnectivity(provider);
+
+            const record = await new Runner(registry, bus).run(env);
+
+            expect(record.status).to.equal(RunStatus.Failed);
+            const byType = new Map(record.validations.map((r) => [r.payload.validationType, r]));
+            expect(byType.get(ValidationType.Connectivity)?.status).to.equal(
+                ValidationStatus.Failed,
+            );
+            expect(byType.get(ValidationType.StaticAnalysis)?.status).to.equal(
+                ValidationStatus.Skipped,
+            );
+            expect(byType.get(ValidationType.UnitTests)?.status).to.equal(ValidationStatus.Skipped);
+        });
+
+        test("connectivity always dispatches first even when declared last", async () => {
+            const provider = new FakeConnectionProvider();
+            const env = makeEnvironmentWithValidations([
+                makeValidationConfig(ValidationType.StaticAnalysis),
+                makeValidationConfig(ValidationType.UnitTests),
+                makeValidationConfig(ValidationType.Connectivity),
+            ]);
+            provider.configure(env.id, { mode: "failure", kind: "connection-refused" });
+            const registry = buildRegistryWithRealConnectivity(provider);
+
+            const record = await new Runner(registry, bus).run(env);
+
+            // The runner reorders connectivity to run first regardless of declaration order.
+            // We assert via the persisted result list (validators don't emit per-arm events
+            // themselves yet; only the runner-synthesized Skipped/Cancelled paths do).
+            expect(record.validations[0].payload.validationType).to.equal(
+                ValidationType.Connectivity,
+            );
+            expect(record.validations[0].status).to.equal(ValidationStatus.Failed);
+        });
+
+        test("provider sees the same env id the runner is processing", async () => {
+            const provider = new FakeConnectionProvider();
+            const env = makeEnvironmentWithValidations(
+                [makeValidationConfig(ValidationType.Connectivity)],
+                { id: "env-real-conn" },
+            );
+            const registry = buildRegistryWithRealConnectivity(provider);
+
+            await new Runner(registry, bus).run(env);
+
+            expect(provider.invocations.map((i) => i.envId)).to.deep.equal(["env-real-conn"]);
+        });
+
+        test("timeoutMs cancels real connectivity; runner stamps reason 'timeout'", async () => {
+            const provider = new FakeConnectionProvider();
+            const env = makeEnvironmentWithValidations([
+                makeValidationConfig(ValidationType.Connectivity),
+            ]);
+            provider.configure(env.id, { mode: "timeout" });
+            const registry = buildRegistryWithRealConnectivity(provider);
+
+            const record = await new Runner(registry, bus).run(env, { timeoutMs: 10 });
+
+            const conn = record.validations[0];
+            expect(conn.status).to.equal(ValidationStatus.Cancelled);
+            expect(conn.cancellationReason).to.equal("timeout");
         });
     });
 });

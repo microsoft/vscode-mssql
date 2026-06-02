@@ -6,6 +6,7 @@
 export { Runner } from "./runner";
 export type { RunnerRunOptions } from "./runner";
 export { createDefaultRegistry } from "./registry";
+export type { RegistryProviders } from "./registry";
 export {
     CancellationError,
     assertNeverValidationType,
@@ -13,3 +14,18 @@ export {
     throwIfCancelled,
 } from "./types";
 export type { SettingsFor, Validator, ValidatorRegistry, ValidatorRunOptions } from "./types";
+export {
+    ConnectionError,
+    FakeConnectionHandle,
+    FakeConnectionProvider,
+    LiveConnectionProvider,
+} from "./providers/connectionProvider";
+export type {
+    ConnectionFailureKind,
+    ConnectionHandle,
+    ConnectionProvider,
+    FakeConnectionBehavior,
+    FakeConnectionHandleConfig,
+    LiveConnectionStrategy,
+} from "./providers/connectionProvider";
+export { ConnectivityValidator } from "./validators/connectivityValidator";
