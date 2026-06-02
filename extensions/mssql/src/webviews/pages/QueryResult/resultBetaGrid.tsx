@@ -718,6 +718,21 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             applyFrozenColumnIndex(grid, frozenColumnIndex);
         }, [applyFrozenColumnIndex, frozenColumnIndex]);
 
+        const restoreHorizontalScrollPosition = useCallback(
+            (grid: SlickGrid, scrollLeft: number) => {
+                const containerNode = grid.getContainerNode();
+                const horizontalViewport =
+                    containerNode?.querySelector<HTMLElement>(
+                        ".slick-viewport-top.slick-viewport-right",
+                    ) ?? containerNode?.querySelector<HTMLElement>(".slick-viewport");
+
+                if (horizontalViewport) {
+                    horizontalViewport.scrollLeft = scrollLeft;
+                }
+            },
+            [],
+        );
+
         useEffect(() => {
             const grid = reactGridRef.current?.slickGrid;
             if (!grid) {
@@ -728,6 +743,7 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 grid.getViewport().top,
                 Math.max(0, latestRowCountRef.current - 1),
             );
+            const scrollLeft = grid.getViewport().leftPx;
             grid.setOptions({ rowHeight });
             grid.resizeCanvas();
             grid.invalidateAllRows();
@@ -736,8 +752,9 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 grid.scrollRowToTop(topRow);
             }
             grid.render();
+            restoreHorizontalScrollPosition(grid, scrollLeft);
             dataView.ensureViewportLoaded();
-        }, [dataView, rowHeight]);
+        }, [dataView, restoreHorizontalScrollPosition, rowHeight]);
 
         const applyAutoSizeColumns = useCallback(async () => {
             const grid = reactGridRef.current?.slickGrid;
@@ -857,6 +874,9 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 const preservedTopRow = options?.preserveScrollPosition
                     ? grid.getViewport().top
                     : 0;
+                const preservedScrollLeft = options?.preserveScrollPosition
+                    ? grid.getViewport().leftPx
+                    : 0;
 
                 if (!hasActiveTransforms()) {
                     transformedRowsRef.current = undefined;
@@ -873,6 +893,9 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                         grid.scrollRowToTop(targetRow);
                     }
                     grid.render();
+                    if (options?.preserveScrollPosition) {
+                        restoreHorizontalScrollPosition(grid, preservedScrollLeft);
+                    }
                     dataView.ensureViewportLoaded();
                     return true;
                 }
@@ -920,10 +943,13 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                     grid.scrollTo(0);
                 }
                 grid.render();
+                if (options?.preserveScrollPosition) {
+                    restoreHorizontalScrollPosition(grid, preservedScrollLeft);
+                }
                 dataView.ensureViewportLoaded();
                 return true;
             },
-            [dataView, ensureAllRowsLoaded, hasActiveTransforms],
+            [dataView, ensureAllRowsLoaded, hasActiveTransforms, restoreHorizontalScrollPosition],
         );
 
         const convertDisplayedSelectionForCopy = useCallback((selection: ISlickRange[]) => {
@@ -1029,19 +1055,13 @@ const ResultBetaGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 requestAnimationFrame(() => {
                     if (scrollPosition) {
                         grid.scrollRowToTop(scrollPosition.scrollTop);
-                        const containerNode = grid.getContainerNode();
-                        const viewport = containerNode
-                            ? (containerNode.querySelector(".slick-viewport") as HTMLElement)
-                            : undefined;
-                        if (viewport) {
-                            viewport.scrollLeft = scrollPosition.scrollLeft;
-                        }
+                        restoreHorizontalScrollPosition(grid, scrollPosition.scrollLeft);
                     }
 
                     isScrollStateRestoredRef.current = true;
                 });
             },
-            [context.extensionRpc, props.gridId, uri],
+            [context.extensionRpc, props.gridId, restoreHorizontalScrollPosition, uri],
         );
 
         const persistScrollPosition = useMemo(
