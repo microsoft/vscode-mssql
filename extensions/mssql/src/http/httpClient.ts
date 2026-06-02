@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 import * as LocalizedConstants from "../constants/locConstants";
-import { ILogger } from "../models/interfaces";
+import { ILogger } from "../models/logger";
 import { getErrorMessage } from "../utils/utils";
 import {
     HttpClientCore,

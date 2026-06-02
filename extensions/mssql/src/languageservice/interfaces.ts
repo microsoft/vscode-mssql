@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as tmp from "tmp";
-import { ILogger } from "../models/interfaces";
+import { ILogger } from "../models/logger";
 import * as vscodeMssql from "vscode-mssql";
 
 export interface IStatusView {

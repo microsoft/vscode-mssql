@@ -204,7 +204,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         runComparison: boolean,
         comparisonResult: mssql.SchemaCompareResult = undefined,
     ): Promise<void> {
-        this.logger.info(
+        this.logger.debug(
             `Starting schema comparison with sourceContext type: ${sourceContext ? typeof sourceContext : "undefined"} - OperationId: ${this.operationId}`,
         );
 
@@ -228,7 +228,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         if (this.isTreeNodeInfoType(context)) {
             const node = context as TreeNodeInfo;
             if (node?.connectionProfile) {
-                this.logger.verbose(
+                this.logger.debug(
                     `Using connection profile: ${node.connectionProfile.server} - OperationId: ${this.operationId}`,
                 );
                 return await this.getEndpointInfoFromConnectionProfile(
@@ -237,15 +237,15 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 );
             }
         } else if (context && typeof context === "string" && context.endsWith(".dacpac")) {
-            this.logger.verbose(`Using dacpac: ${context} - OperationId: ${this.operationId}`);
+            this.logger.debug(`Using dacpac: ${context} - OperationId: ${this.operationId}`);
             return this.getEndpointInfoFromDacpac(context as string);
         } else if (context && typeof context === "string" && context.endsWith(".sqlproj")) {
-            this.logger.verbose(`Using project: ${context} - OperationId: ${this.operationId}`);
+            this.logger.debug(`Using project: ${context} - OperationId: ${this.operationId}`);
             return await this.getEndpointInfoFromProject(context as string);
         } else if (context && typeof context === "object") {
             return context as mssql.SchemaCompareEndpointInfo;
         } else {
-            this.logger.verbose(`No context provided - OperationId: ${this.operationId}`);
+            this.logger.debug(`No context provided - OperationId: ${this.operationId}`);
             return undefined;
         }
     }
@@ -263,7 +263,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         runComparison: boolean = false,
         comparisonResult: mssql.SchemaCompareResult | undefined,
     ): Promise<void> {
-        this.logger.info(
+        this.logger.debug(
             `Launching schema comparison with runComparison=${runComparison}, has source=${!!source}, has target=${!!target}, has comparisonResult=${!!comparisonResult} - OperationId: ${this.operationId}`,
         );
 
@@ -279,7 +279,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
         // Trigger automatic comparison if requested
         if (runComparison && source && target) {
-            this.logger.info(
+            this.logger.debug(
                 `Auto-starting schema comparison as runComparison=true - OperationId: ${this.operationId}`,
             );
 
@@ -363,7 +363,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
     }
 
     private async getProjectScriptFiles(projectFilePath: string): Promise<string[]> {
-        this.logger.verbose(
+        this.logger.debug(
             `Getting project script files for: ${projectFilePath} - OperationId: ${this.operationId}`,
         );
         let scriptFiles: string[] = [];
@@ -373,14 +373,14 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 SchemaCompareWebViewController.SQL_DATABASE_PROJECTS_EXTENSION_ID,
             );
             if (databaseProjectsExtension) {
-                this.logger.verbose(
+                this.logger.debug(
                     `SQL Database Projects extension found, activating... - OperationId: ${this.operationId}`,
                 );
                 scriptFiles = await (
                     await databaseProjectsExtension.activate()
                 ).getProjectScriptFiles(projectFilePath);
 
-                this.logger.verbose(
+                this.logger.debug(
                     `Retrieved ${scriptFiles.length} script files from project - OperationId: ${this.operationId}`,
                 );
             } else {
@@ -409,7 +409,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
     }
 
     private async getDatabaseSchemaProvider(projectFilePath: string): Promise<string> {
-        this.logger.verbose(
+        this.logger.debug(
             `Getting database schema provider for project: ${projectFilePath} - OperationId: ${this.operationId}`,
         );
         let provider = "";
@@ -420,13 +420,13 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             );
 
             if (databaseProjectsExtension) {
-                this.logger.verbose(
+                this.logger.debug(
                     `SQL Database Projects extension found, activating... - OperationId: ${this.operationId}`,
                 );
                 provider = await (
                     await databaseProjectsExtension.activate()
                 ).getProjectDatabaseSchemaProvider(projectFilePath);
-                this.logger.verbose(
+                this.logger.debug(
                     `Retrieved database schema provider: ${provider || "empty"} - OperationId: ${this.operationId}`,
                 );
             } else {
@@ -464,7 +464,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
     private registerRpcHandlers(): void {
         this.registerReducer("isSqlProjectExtensionInstalled", async (state) => {
-            this.logger.verbose(
+            this.logger.debug(
                 `Checking if SQL Database Projects extension is installed - OperationId: ${this.operationId}`,
             );
 
@@ -483,7 +483,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
             if (extension) {
                 if (!extension.isActive) {
-                    this.logger.verbose(
+                    this.logger.debug(
                         `SQL Database Projects extension found but not activated, activating... - OperationId: ${this.operationId}`,
                     );
                     await extension.activate();
@@ -498,12 +498,12 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     isSqlProjectExtensionInstalled: "true",
                 });
 
-                this.logger.info(
+                this.logger.debug(
                     `SQL Database Projects extension is installed and activated - OperationId: ${this.operationId}`,
                 );
                 state.isSqlProjectExtensionInstalled = true;
             } else {
-                this.logger.info(
+                this.logger.debug(
                     `SQL Database Projects extension is not installed - OperationId: ${this.operationId}`,
                 );
 
@@ -521,11 +521,11 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("listActiveServers", (state) => {
-            this.logger.verbose(`Listing active SQL servers - OperationId: ${this.operationId}`);
+            this.logger.debug(`Listing active SQL servers - OperationId: ${this.operationId}`);
             const activeServers = this.getActiveServersList();
 
             const serverCount = Object.keys(activeServers).length;
-            this.logger.info(
+            this.logger.debug(
                 `Found ${serverCount} active SQL server connection(s) - OperationId: ${this.operationId}`,
             );
             sendActionEvent(TelemetryViews.SchemaCompare, TelemetryActions.ListingActiveServers, {
@@ -540,7 +540,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("listDatabasesForActiveServer", async (state, payload) => {
-            this.logger.info(
+            this.logger.debug(
                 `Listing databases for server connection: ${payload.connectionUri} - OperationId: ${this.operationId}`,
             );
 
@@ -556,7 +556,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             let databases: string[] = [];
             try {
                 databases = await this.connectionMgr.listDatabases(payload.connectionUri);
-                this.logger.info(
+                this.logger.debug(
                     `Found ${databases.length} database(s) on server - OperationId: ${this.operationId}`,
                 );
 
@@ -590,7 +590,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("openAddNewConnectionDialog", (state, payload) => {
-            this.logger.info(
+            this.logger.debug(
                 `Opening new connection dialog for ${payload.endpointType} endpoint - OperationId: ${this.operationId}`,
             );
 
@@ -605,7 +605,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             state.waitingForNewConnection = true;
             state.pendingConnectionEndpointType = payload.endpointType;
 
-            this.logger.verbose(
+            this.logger.debug(
                 `Executing command: ${cmdAddObjectExplorer} - OperationId: ${this.operationId}`,
             );
 
@@ -615,7 +615,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("selectFile", async (state, payload) => {
-            this.logger.info(
+            this.logger.debug(
                 `Selecting ${payload.fileType} file for ${payload.endpointType} endpoint - OperationId: ${this.operationId}`,
             );
 
@@ -623,7 +623,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             if (payload.endpoint) {
                 endpointFilePath =
                     payload.endpoint.packageFilePath || payload.endpoint.projectFilePath;
-                this.logger.verbose(
+                this.logger.debug(
                     `Using existing file path as starting point: ${endpointFilePath} - OperationId: ${this.operationId}`,
                 );
             }
@@ -632,13 +632,13 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 Files: [payload.fileType],
             };
 
-            this.logger.verbose(
+            this.logger.debug(
                 `Opening file dialog with filters: ${JSON.stringify(filters)} - OperationId: ${this.operationId}`,
             );
             const filePath = await showOpenDialogForDacpacOrSqlProj(endpointFilePath, filters);
 
             if (filePath) {
-                this.logger.info(`Selected file: ${filePath} - OperationId: ${this.operationId}`);
+                this.logger.debug(`Selected file: ${filePath} - OperationId: ${this.operationId}`);
 
                 const updatedEndpointInfo =
                     payload.fileType === "dacpac"
@@ -649,7 +649,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
                 if (payload.fileType === "sqlproj") {
                     if (payload.endpointType === "target") {
-                        this.logger.verbose(
+                        this.logger.debug(
                             `Setting extract target to schemaObjectType for target project - OperationId: ${this.operationId}`,
                         );
                         state.auxiliaryEndpointInfo.extractTarget = ExtractTarget.schemaObjectType;
@@ -658,7 +658,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
                 this.updateState(state);
             } else {
-                this.logger.info(
+                this.logger.debug(
                     `File selection canceled by user - OperationId: ${this.operationId}`,
                 );
             }
@@ -667,25 +667,25 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("confirmSelectedSchema", async (state, payload) => {
-            this.logger.info(
+            this.logger.debug(
                 `Confirming selected schema for ${payload.endpointType} endpoint - OperationId: ${this.operationId}`,
             );
 
             if (payload.endpointType === "source") {
-                this.logger.info(
+                this.logger.debug(
                     `Setting source endpoint info from auxiliary endpoint info - OperationId: ${this.operationId}`,
                 );
                 state.sourceEndpointInfo = state.auxiliaryEndpointInfo;
             } else {
                 if (state.auxiliaryEndpointInfo) {
-                    this.logger.info(
+                    this.logger.debug(
                         `Setting target endpoint info from auxiliary endpoint info - OperationId: ${this.operationId}`,
                     );
                     state.targetEndpointInfo = state.auxiliaryEndpointInfo;
                 }
 
                 if (state.targetEndpointInfo?.endpointType === SchemaCompareEndpointType.Project) {
-                    this.logger.info(
+                    this.logger.debug(
                         `Setting target extract target to ${payload.folderStructure} - OperationId: ${this.operationId}`,
                     );
                     state.targetEndpointInfo.extractTarget = this.mapExtractTargetEnum(
@@ -694,7 +694,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 }
             }
 
-            this.logger.verbose(
+            this.logger.debug(
                 `Clearing auxiliary endpoint info - OperationId: ${this.operationId}`,
             );
             state.auxiliaryEndpointInfo = undefined;
@@ -704,12 +704,12 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("confirmSelectedDatabase", (state, payload) => {
-            this.logger.info(
+            this.logger.debug(
                 `Confirming selected database for ${payload.endpointType} endpoint: ${payload.databaseName} - OperationId: ${this.operationId}`,
             );
 
             const connection = this.connectionMgr.activeConnections[payload.serverConnectionUri];
-            this.logger.verbose(
+            this.logger.debug(
                 `Using connection: ${payload.serverConnectionUri} - OperationId: ${this.operationId}`,
             );
 
@@ -718,7 +718,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             let user = connectionProfile.user;
             if (!user) {
                 user = locConstants.SchemaCompare.defaultUserName;
-                this.logger.verbose(
+                this.logger.debug(
                     `Using default user name: ${user} - OperationId: ${this.operationId}`,
                 );
             }
@@ -739,10 +739,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             };
 
             if (payload.endpointType === "source") {
-                this.logger.info(`Setting as source endpoint - OperationId: ${this.operationId}`);
+                this.logger.debug(`Setting as source endpoint - OperationId: ${this.operationId}`);
                 state.sourceEndpointInfo = endpointInfo;
             } else {
-                this.logger.info(`Setting as target endpoint - OperationId: ${this.operationId}`);
+                this.logger.debug(`Setting as target endpoint - OperationId: ${this.operationId}`);
                 state.targetEndpointInfo = endpointInfo;
             }
 
@@ -752,11 +752,11 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("setIntermediarySchemaOptions", async (state) => {
-            this.logger.verbose(
+            this.logger.debug(
                 `Setting intermediary schema options - OperationId: ${this.operationId}`,
             );
             state.intermediaryOptionsResult = structuredClone(state.defaultDeploymentOptionsResult);
-            this.logger.info(
+            this.logger.debug(
                 `Cloned deployment options for editing - OperationId: ${this.operationId}`,
             );
 
@@ -766,7 +766,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("intermediaryIncludeObjectTypesOptionsChanged", (state, payload) => {
-            this.logger.verbose(
+            this.logger.debug(
                 `Updating object type inclusion option: ${payload.key} - OperationId: ${this.operationId}`,
             );
 
@@ -779,12 +779,12 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
             const isFound = optionIndex !== -1;
             if (isFound) {
-                this.logger.info(
+                this.logger.debug(
                     `Removing object type from exclusion list: ${payload.key} - OperationId: ${this.operationId}`,
                 );
                 excludeObjectTypeOptions.splice(optionIndex, 1);
             } else {
-                this.logger.info(
+                this.logger.debug(
                     `Adding object type to exclusion list: ${payload.key} - OperationId: ${this.operationId}`,
                 );
                 excludeObjectTypeOptions.push(payload.key);
@@ -796,7 +796,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("intermediaryIncludeObjectTypesBulkChanged", (state, payload) => {
-            this.logger.verbose(
+            this.logger.debug(
                 `Bulk updating object type inclusion options: ${payload.keys.join(", ")} - OperationId: ${this.operationId}`,
             );
 
@@ -822,7 +822,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 }
             });
 
-            this.logger.info(
+            this.logger.debug(
                 `Bulk changed ${payload.keys.length} object types to ${payload.checked ? "included" : "excluded"} - OperationId: ${this.operationId}`,
             );
 
@@ -832,14 +832,14 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("confirmSchemaOptions", async (state, payload) => {
-            this.logger.info(
+            this.logger.debug(
                 `Confirming schema comparison options - OperationId: ${this.operationId}`,
             );
 
             state.defaultDeploymentOptionsResult.defaultDeploymentOptions = structuredClone(
                 state.intermediaryOptionsResult.defaultDeploymentOptions,
             );
-            this.logger.verbose(
+            this.logger.debug(
                 `Applied intermediary options to default deployment options - OperationId: ${this.operationId}`,
             );
             state.intermediaryOptionsResult = undefined;
@@ -864,12 +864,12 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 },
             );
 
-            this.logger.verbose(
+            this.logger.debug(
                 `Sent telemetry event for options changed - OperationId: ${this.operationId}`,
             );
 
             if (payload.optionsChanged) {
-                this.logger.info(
+                this.logger.debug(
                     `Options were changed, prompting user to run comparison again - OperationId: ${this.operationId}`,
                 );
                 vscode.window
@@ -881,7 +881,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     )
                     .then(async (result) => {
                         if (result.title === locConstants.SchemaCompare.Yes) {
-                            this.logger.info(
+                            this.logger.debug(
                                 `User chose to run comparison with new options - OperationId: ${this.operationId}`,
                             );
 
@@ -903,7 +903,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                                 message: "Comparison run with new options",
                             });
                         } else {
-                            this.logger.info(
+                            this.logger.debug(
                                 `User chose not to run comparison with new options - OperationId: ${this.operationId}`,
                             );
 
@@ -914,7 +914,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                         }
                     });
             } else {
-                this.logger.info(`No options were changed - OperationId: ${this.operationId}`);
+                this.logger.debug(`No options were changed - OperationId: ${this.operationId}`);
 
                 endActivity.end(ActivityStatus.Succeeded, {
                     operationId: this.operationId,
@@ -926,7 +926,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("intermediaryGeneralOptionsChanged", (state, payload) => {
-            this.logger.verbose(
+            this.logger.debug(
                 `Changing general option: ${payload.key} - OperationId: ${this.operationId}`,
             );
 
@@ -935,7 +935,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const oldValue = generalOptionsDictionary[payload.key].value;
             generalOptionsDictionary[payload.key].value = !oldValue;
 
-            this.logger.info(
+            this.logger.debug(
                 `Changed option ${payload.key} from ${oldValue} to ${!oldValue} - OperationId: ${this.operationId}`,
             );
 
@@ -944,7 +944,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("intermediaryGeneralOptionsBulkChanged", (state, payload) => {
-            this.logger.verbose(
+            this.logger.debug(
                 `Bulk changing general options: ${payload.keys.join(", ")} - OperationId: ${this.operationId}`,
             );
 
@@ -957,7 +957,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 }
             });
 
-            this.logger.info(
+            this.logger.debug(
                 `Bulk changed ${payload.keys.length} options to ${payload.checked} - OperationId: ${this.operationId}`,
             );
 
@@ -966,7 +966,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("switchEndpoints", async (state, payload) => {
-            this.logger.info(
+            this.logger.debug(
                 `Switching source and target endpoints - OperationId: ${this.operationId}`,
             );
 
@@ -997,10 +997,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const targetType = payload.newTargetEndpointInfo
                 ? getSchemaCompareEndpointTypeString(payload.newTargetEndpointInfo.endpointType)
                 : "None";
-            this.logger.verbose(
+            this.logger.debug(
                 `New source endpoint type: ${sourceType} - OperationId: ${this.operationId}`,
             );
-            this.logger.verbose(
+            this.logger.debug(
                 `New target endpoint type: ${targetType} - OperationId: ${this.operationId}`,
             );
 
@@ -1010,7 +1010,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
             this.updateState(state);
 
-            this.logger.info(`Successfully switched endpoints - OperationId: ${this.operationId}`);
+            this.logger.debug(`Successfully switched endpoints - OperationId: ${this.operationId}`);
             endActivity.end(ActivityStatus.Succeeded, {
                 elapsedTime: (Date.now() - startTime).toString(),
                 operationId: this.operationId,
@@ -1035,15 +1035,15 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             this.logger.info(
                 `Generating script for schema changes with operation ID: ${this.operationId}`,
             );
-            this.logger.info(
+            this.logger.debug(
                 `Generate script reducer invoked with payload - hasTargetServerName: ${!!payload?.targetServerName}, hasTargetDatabaseName: ${!!payload?.targetDatabaseName} - OperationId: ${this.operationId}`,
             );
-            this.logger.info(
+            this.logger.debug(
                 `Current state - sourceEndpoint: ${state.sourceEndpointInfo?.endpointType || "undefined"}, targetEndpoint: ${state.targetEndpointInfo?.endpointType || "undefined"}, hasCompareResult: ${!!state.schemaCompareResult} - OperationId: ${this.operationId}`,
             );
 
             if (state.schemaCompareResult) {
-                this.logger.info(
+                this.logger.debug(
                     `Schema compare result has ${state.schemaCompareResult.differences?.length || 0} differences - OperationId: ${this.operationId}`,
                 );
             }
@@ -1067,8 +1067,8 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 },
             );
 
-            this.logger.verbose(`Starting script generation - OperationId: ${this.operationId}`);
-            this.logger.verbose(
+            this.logger.debug(`Starting script generation - OperationId: ${this.operationId}`);
+            this.logger.debug(
                 `Calling generateScript with TaskExecutionMode.script - OperationId: ${this.operationId}`,
             );
 
@@ -1080,15 +1080,15 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 this.logger,
             );
 
-            this.logger.info(
+            this.logger.debug(
                 `Generate script service call completed - success: ${result?.success}, hasErrorMessage: ${!!result?.errorMessage} - OperationId: ${this.operationId}`,
             );
 
             if (result) {
-                this.logger.info(
+                this.logger.debug(
                     `Generate script result object keys: ${Object.keys(result).join(", ")} - OperationId: ${this.operationId}`,
                 );
-                this.logger.info(
+                this.logger.debug(
                     `Generate script result details: ${JSON.stringify(result)} - OperationId: ${this.operationId}`,
                 );
             } else {
@@ -1127,7 +1127,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 this.logger.info(
                     `Successfully generated script - OperationId: ${this.operationId}`,
                 );
-                this.logger.info(
+                this.logger.debug(
                     `Script generation completed, updating state with result - OperationId: ${this.operationId}`,
                 );
             }
@@ -1137,12 +1137,12 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 operationId: this.operationId,
             });
 
-            this.logger.verbose(
+            this.logger.debug(
                 `Setting state.generateScriptResultStatus with result - OperationId: ${this.operationId}`,
             );
             state.generateScriptResultStatus = result;
 
-            this.logger.info(
+            this.logger.debug(
                 `Generate script reducer completed, returning updated state - OperationId: ${this.operationId}`,
             );
             return state;
@@ -1150,7 +1150,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
         this.registerReducer("publishChanges", async (state, payload) => {
             this.logger.info(`Publishing changes requested with operation ID: ${this.operationId}`);
-            this.logger.verbose(
+            this.logger.debug(
                 `Target endpoint type: ${getSchemaCompareEndpointTypeString(state.targetEndpointInfo.endpointType)} - OperationId: ${this.operationId}`,
             );
 
@@ -1179,7 +1179,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             );
 
             if (result !== yes) {
-                this.logger.info(
+                this.logger.debug(
                     `User canceled publishing changes - OperationId: ${this.operationId}`,
                 );
 
@@ -1222,7 +1222,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 });
             }
 
-            this.logger.info(
+            this.logger.debug(
                 `Starting publish operation to ${getSchemaCompareEndpointTypeString(state.targetEndpointInfo.endpointType)} - OperationId: ${this.operationId}`,
             );
 
@@ -1231,7 +1231,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             try {
                 switch (state.targetEndpointInfo.endpointType) {
                     case SchemaCompareEndpointType.Database:
-                        this.logger.info(
+                        this.logger.debug(
                             `Publishing changes to database ${state.targetEndpointInfo.databaseName} - OperationId: ${this.operationId}`,
                         );
 
@@ -1257,7 +1257,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                         break;
 
                     case SchemaCompareEndpointType.Project:
-                        this.logger.info(
+                        this.logger.debug(
                             `Publishing changes to project ${state.targetEndpointInfo.projectFilePath} - OperationId: ${this.operationId}`,
                         );
                         endActivity.update({
@@ -1432,7 +1432,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
         this.registerReducer("publishProjectChanges", async (state, payload) => {
             this.logger.info(`Publishing project changes with operation ID: ${this.operationId}`);
-            this.logger.verbose(
+            this.logger.debug(
                 `Target project path: ${payload.targetProjectPath} - OperationId: ${this.operationId}`,
             );
 
@@ -1455,7 +1455,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 );
 
                 if (result.success) {
-                    this.logger.info(
+                    this.logger.debug(
                         `Successfully published project changes - OperationId: ${this.operationId}`,
                     );
 
@@ -1504,7 +1504,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("resetOptions", async (state) => {
-            this.logger.info(
+            this.logger.debug(
                 `Resetting schema compare options to defaults - OperationId: ${this.operationId}`,
             );
 
@@ -1520,7 +1520,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             );
 
             state.intermediaryOptionsResult = structuredClone(state.defaultDeploymentOptionsResult);
-            this.logger.info(`Reset options to defaults - OperationId: ${this.operationId}`);
+            this.logger.debug(`Reset options to defaults - OperationId: ${this.operationId}`);
 
             endActivity.end(ActivityStatus.Succeeded, {
                 elapsedTime: (Date.now() - startTime).toString(),
@@ -1536,15 +1536,15 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 diffEntry.sourceValue ? diffEntry.sourceValue : diffEntry.targetValue,
             );
 
-            this.logger.info(
+            this.logger.debug(
                 `${payload.includeRequest ? "Including" : "Excluding"} node: ${diffEntryName} (ID: ${payload.id}) - OperationId: ${this.operationId}`,
             );
-            this.logger.info(
+            this.logger.debug(
                 `Diff entry type: ${payload.diffEntry.name}, update action: ${this.getSchemaUpdateActionString(payload.diffEntry.updateAction)} - OperationId: ${this.operationId}`,
             );
 
             if (state.schemaCompareResult) {
-                this.logger.info(
+                this.logger.debug(
                     `Total differences in state: ${state.schemaCompareResult.differences?.length || 0} - OperationId: ${this.operationId}`,
                 );
             } else {
@@ -1569,7 +1569,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 },
             );
 
-            this.logger.verbose(
+            this.logger.debug(
                 `Calling includeExcludeNode service - OperationId: ${this.operationId}`,
             );
             const result = await includeExcludeNode(
@@ -1580,17 +1580,17 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 this.logger,
             );
 
-            this.logger.info(
+            this.logger.debug(
                 `includeExcludeNode service returned - success: ${result?.success}, elapsed: ${Date.now() - startTime}ms - OperationId: ${this.operationId}`,
             );
 
             if (result.success) {
-                this.logger.info(
+                this.logger.debug(
                     `Successfully ${payload.includeRequest ? "included" : "excluded"} node with ${result.affectedDependencies?.length || 0} affected dependencies - OperationId: ${this.operationId}`,
                 );
 
                 if (result.affectedDependencies && result.affectedDependencies.length > 0) {
-                    this.logger.info(
+                    this.logger.debug(
                         `Affected dependencies count: ${result.affectedDependencies.length} - OperationId: ${this.operationId}`,
                     );
                 }
@@ -1606,13 +1606,13 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 state.schemaCompareIncludeExcludeResult = result;
 
                 if (state.schemaCompareResult) {
-                    this.logger.verbose(
+                    this.logger.debug(
                         `Updating node at index ${payload.id} - OperationId: ${this.operationId}`,
                     );
                     state.schemaCompareResult.differences[payload.id].included =
                         payload.includeRequest;
 
-                    this.logger.verbose(
+                    this.logger.debug(
                         `Updating ${result.affectedDependencies?.length || 0} affected dependencies in the UI state - OperationId: ${this.operationId}`,
                     );
 
@@ -1633,7 +1633,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                             foundCount++;
                             if (depIndex < 5) {
                                 // Log first 5 dependencies only
-                                this.logger.verbose(
+                                this.logger.debug(
                                     `Updated dependency ${depIndex + 1}/${result.affectedDependencies.length} at index ${index} to included=${payload.includeRequest} - OperationId: ${this.operationId}`,
                                 );
                             }
@@ -1651,16 +1651,16 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     });
 
                     const updateElapsed = Date.now() - updateStartTime;
-                    this.logger.info(
+                    this.logger.debug(
                         `Updated ${foundCount} dependencies, ${notFoundCount} not found, took ${updateElapsed}ms - OperationId: ${this.operationId}`,
                     );
                 }
 
-                this.logger.verbose(
+                this.logger.debug(
                     `Calling updateState to refresh UI - OperationId: ${this.operationId}`,
                 );
                 this.updateState(state);
-                this.logger.info(
+                this.logger.debug(
                     `includeExcludeNode completed successfully - OperationId: ${this.operationId}`,
                 );
             } else {
@@ -1746,7 +1746,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("includeExcludeAllNodes", async (state, payload) => {
-            this.logger.info(
+            this.logger.debug(
                 `${payload.includeRequest ? "Including" : "Excluding"} all nodes - OperationId: ${this.operationId}`,
             );
 
@@ -1754,7 +1754,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 const totalDiffs = state.schemaCompareResult.differences?.length || 0;
                 const includedCount =
                     state.schemaCompareResult.differences?.filter((d) => d.included).length || 0;
-                this.logger.info(
+                this.logger.debug(
                     `Current state - Total differences: ${totalDiffs}, Currently included: ${includedCount} - OperationId: ${this.operationId}`,
                 );
             } else {
@@ -1764,7 +1764,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             }
 
             state.isIncludeExcludeAllOperationInProgress = true;
-            this.logger.verbose(
+            this.logger.debug(
                 `Set operation in progress flag, updating UI - OperationId: ${this.operationId}`,
             );
             this.updateState(state);
@@ -1785,7 +1785,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             );
 
             try {
-                this.logger.info(
+                this.logger.debug(
                     `Calling includeExcludeAllNodes service - OperationId: ${this.operationId}`,
                 );
                 const result = await includeExcludeAllNodes(
@@ -1797,7 +1797,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 );
 
                 const serviceElapsed = Date.now() - startTime;
-                this.logger.info(
+                this.logger.debug(
                     `includeExcludeAllNodes service returned after ${serviceElapsed}ms - success: ${result?.success} - OperationId: ${this.operationId}`,
                 );
 
@@ -1805,7 +1805,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
                 if (result.success) {
                     const count = result.allIncludedOrExcludedDifferences?.length || 0;
-                    this.logger.info(
+                    this.logger.debug(
                         `Successfully ${payload.includeRequest ? "included" : "excluded"} all nodes (${count} differences) - OperationId: ${this.operationId}`,
                     );
 
@@ -1813,12 +1813,12 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                         const includedAfter = result.allIncludedOrExcludedDifferences.filter(
                             (d) => d.included,
                         ).length;
-                        this.logger.info(
+                        this.logger.debug(
                             `Result includes ${includedAfter} included differences out of ${count} total - OperationId: ${this.operationId}`,
                         );
                     }
 
-                    this.logger.verbose(
+                    this.logger.debug(
                         `Replacing state differences with result - OperationId: ${this.operationId}`,
                     );
                     state.schemaCompareResult.differences = result.allIncludedOrExcludedDifferences;
@@ -1836,7 +1836,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                         excludedCount: excludedCount.toString(),
                     });
 
-                    this.logger.info(
+                    this.logger.debug(
                         `includeExcludeAllNodes completed successfully - OperationId: ${this.operationId}`,
                     );
                 } else {
@@ -1890,7 +1890,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 this.state.isIncludeExcludeAllOperationInProgress = false;
             }
 
-            this.logger.verbose(
+            this.logger.debug(
                 `Updating state after includeExcludeAllNodes operation - OperationId: ${this.operationId}`,
             );
             this.updateState(state);
@@ -1898,23 +1898,23 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("openScmp", async (state) => {
-            this.logger.info(
+            this.logger.debug(
                 `Opening schema comparison (.scmp) file - OperationId: ${this.operationId}`,
             );
 
             const selectedFilePath = await showOpenDialogForScmp();
 
             if (!selectedFilePath) {
-                this.logger.info(
+                this.logger.debug(
                     `File selection canceled by user - OperationId: ${this.operationId}`,
                 );
                 return state;
             }
 
-            this.logger.info(
+            this.logger.debug(
                 `Selected file path length: ${selectedFilePath?.length || 0} characters - OperationId: ${this.operationId}`,
             );
-            this.logger.info(
+            this.logger.debug(
                 `File extension: ${selectedFilePath?.split(".").pop() || "unknown"} - OperationId: ${this.operationId}`,
             );
 
@@ -1929,31 +1929,31 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 },
             );
 
-            this.logger.verbose(
+            this.logger.debug(
                 `Calling openScmp service to open schema comparison file - OperationId: ${this.operationId}`,
             );
             const result = await openScmp(selectedFilePath, this.schemaCompareService, this.logger);
 
-            this.logger.info(
+            this.logger.debug(
                 `openScmp service call completed - success: ${result?.success}, hasErrorMessage: ${!!result?.errorMessage} - OperationId: ${this.operationId}`,
             );
 
             if (result) {
-                this.logger.info(
+                this.logger.debug(
                     `Result object keys: ${Object.keys(result).join(", ")} - OperationId: ${this.operationId}`,
                 );
-                this.logger.info(
+                this.logger.debug(
                     `Has sourceEndpointInfo: ${!!result.sourceEndpointInfo}, Has targetEndpointInfo: ${!!result.targetEndpointInfo} - OperationId: ${this.operationId}`,
                 );
 
                 if (result.sourceEndpointInfo) {
-                    this.logger.info(
+                    this.logger.debug(
                         `Source endpoint type: ${getSchemaCompareEndpointTypeString(result.sourceEndpointInfo.endpointType)} - OperationId: ${this.operationId}`,
                     );
                 }
 
                 if (result.targetEndpointInfo) {
-                    this.logger.info(
+                    this.logger.debug(
                         `Target endpoint type: ${getSchemaCompareEndpointTypeString(result.targetEndpointInfo.endpointType)} - OperationId: ${this.operationId}`,
                     );
                 }
@@ -1985,12 +1985,12 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 return state;
             }
 
-            this.logger.info(
+            this.logger.debug(
                 `Successfully opened schema comparison file, constructing endpoint info - OperationId: ${this.operationId}`,
             );
 
             // construct source endpoint info
-            this.logger.verbose(
+            this.logger.debug(
                 `Constructing source endpoint info - OperationId: ${this.operationId}`,
             );
             state.sourceEndpointInfo = await this.constructEndpointInfo(
@@ -1998,12 +1998,12 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 "source",
             );
 
-            this.logger.info(
+            this.logger.debug(
                 `Source endpoint constructed - type: ${getSchemaCompareEndpointTypeString(state.sourceEndpointInfo?.endpointType)} - OperationId: ${this.operationId}`,
             );
 
             // construct target endpoint info
-            this.logger.verbose(
+            this.logger.debug(
                 `Constructing target endpoint info - OperationId: ${this.operationId}`,
             );
             state.targetEndpointInfo = await this.constructEndpointInfo(
@@ -2011,11 +2011,11 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 "target",
             );
 
-            this.logger.info(
+            this.logger.debug(
                 `Target endpoint constructed - type: ${getSchemaCompareEndpointTypeString(state.targetEndpointInfo?.endpointType)} - OperationId: ${this.operationId}`,
             );
 
-            this.logger.verbose(
+            this.logger.debug(
                 `Setting deployment options from loaded file - OperationId: ${this.operationId}`,
             );
             state.defaultDeploymentOptionsResult.defaultDeploymentOptions =
@@ -2024,7 +2024,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             // Update intermediaryOptionsResult to ensure UI reflects loaded options
             state.intermediaryOptionsResult = structuredClone(state.defaultDeploymentOptionsResult);
 
-            this.logger.info(
+            this.logger.debug(
                 `Loading excluded elements - source: ${result.excludedSourceElements?.length || 0}, target: ${result.excludedTargetElements?.length || 0} - OperationId: ${this.operationId}`,
             );
             state.scmpSourceExcludes = result.excludedSourceElements;
@@ -2032,14 +2032,14 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             state.sourceTargetSwitched =
                 result.originalTargetName !== state.targetEndpointInfo.databaseName;
 
-            this.logger.verbose(
+            this.logger.debug(
                 `Source/Target switched: ${state.sourceTargetSwitched} - OperationId: ${this.operationId}`,
             );
 
             // Reset the schema comparison result similarly to what happens in Azure Data Studio.
             state.schemaCompareResult = undefined;
 
-            this.logger.info(
+            this.logger.debug(
                 `Successfully completed loading .scmp file - OperationId: ${this.operationId}`,
             );
 
@@ -2057,7 +2057,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             state.schemaCompareOpenScmpResult = result;
             this.updateState(state);
 
-            this.logger.info(
+            this.logger.debug(
                 `openScmp reducer completed, state updated - OperationId: ${this.operationId}`,
             );
 
@@ -2072,13 +2072,13 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const saveFilePath = await showSaveDialogForScmp();
 
             if (!saveFilePath) {
-                this.logger.info(
+                this.logger.debug(
                     `Save file operation canceled by user - OperationId: ${this.operationId}`,
                 );
                 return state;
             }
 
-            this.logger.info(
+            this.logger.debug(
                 `Saving schema comparison to: ${saveFilePath} - OperationId: ${this.operationId}`,
             );
 
@@ -2089,7 +2089,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 state.originalTargetExcludes,
             );
 
-            this.logger.verbose(
+            this.logger.debug(
                 `Prepared ${sourceExcludes.length} source excludes and ${targetExcludes.length} target excludes - OperationId: ${this.operationId}`,
             );
 
@@ -2110,7 +2110,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 },
             );
 
-            this.logger.verbose(`Calling saveScmp service - OperationId: ${this.operationId}`);
+            this.logger.debug(`Calling saveScmp service - OperationId: ${this.operationId}`);
             const result = await saveScmp(
                 state.sourceEndpointInfo,
                 state.targetEndpointInfo,
@@ -2206,7 +2206,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     return state;
                 }
 
-                this.logger.info(
+                this.logger.debug(
                     `Successfully cancelled schema comparison operation - OperationId: ${this.operationId}`,
                 );
                 endActivity.end(ActivityStatus.Succeeded, {
@@ -2280,24 +2280,24 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         connectionUri: string,
         endpointType: "source" | "target",
     ): Promise<void> {
-        this.logger.info(
+        this.logger.debug(
             `Auto-selecting new connection for ${endpointType} endpoint: ${connectionUri} - OperationId: ${this.operationId}`,
         );
 
         try {
             // Get the list of databases for the new connection
-            this.logger.verbose(
+            this.logger.debug(
                 `Retrieving databases for connection: ${connectionUri} - OperationId: ${this.operationId}`,
             );
             const databases = await this.connectionMgr.listDatabases(connectionUri);
-            this.logger.verbose(
+            this.logger.debug(
                 `Found ${databases.length} databases on server - OperationId: ${this.operationId}`,
             );
 
             // If there are databases, select the first one
             if (databases.length > 0) {
                 const databaseName = databases[0];
-                this.logger.info(
+                this.logger.debug(
                     `Auto-selecting database: ${databaseName} - OperationId: ${this.operationId}`,
                 );
 
@@ -2306,13 +2306,13 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 const connectionProfile = connection?.credentials as IConnectionProfile;
 
                 if (connectionProfile) {
-                    this.logger.verbose(
+                    this.logger.debug(
                         `Creating endpoint info from connection profile: ${connectionProfile.server} - OperationId: ${this.operationId}`,
                     );
                     let user = connectionProfile.user;
                     if (!user) {
                         user = locConstants.SchemaCompare.defaultUserName;
-                        this.logger.verbose(
+                        this.logger.debug(
                             `Using default user name: ${user} - OperationId: ${this.operationId}`,
                         );
                     }
@@ -2335,12 +2335,12 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     };
 
                     if (endpointType === "source") {
-                        this.logger.info(
+                        this.logger.debug(
                             `Setting connection as source endpoint - OperationId: ${this.operationId}`,
                         );
                         this.state.sourceEndpointInfo = endpointInfo;
                     } else {
-                        this.logger.info(
+                        this.logger.debug(
                             `Setting connection as target endpoint - OperationId: ${this.operationId}`,
                         );
                         this.state.targetEndpointInfo = endpointInfo;
@@ -2364,7 +2364,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             );
         } finally {
             // Reset the waiting state
-            this.logger.verbose(`Resetting waiting state - OperationId: ${this.operationId}`);
+            this.logger.debug(`Resetting waiting state - OperationId: ${this.operationId}`);
             this.state.waitingForNewConnection = false;
             this.state.pendingConnectionEndpointType = null;
         }
@@ -2399,10 +2399,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         triggerSource?: string,
     ) {
         this.logger.info(`Starting schema comparison with operation ID: ${this.operationId}`);
-        this.logger.verbose(
+        this.logger.debug(
             `Source endpoint type: ${getSchemaCompareEndpointTypeString(payload.sourceEndpointInfo.endpointType)} - OperationId: ${this.operationId}`,
         );
-        this.logger.verbose(
+        this.logger.debug(
             `Target endpoint type: ${getSchemaCompareEndpointTypeString(payload.targetEndpointInfo.endpointType)} - OperationId: ${this.operationId}`,
         );
 
@@ -2428,7 +2428,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         );
 
         if (payload.sourceEndpointInfo.endpointType === SchemaCompareEndpointType.Project) {
-            this.logger.logDebug(
+            this.logger.debug(
                 `Getting project script files for source: ${payload.sourceEndpointInfo.projectFilePath} - OperationId: ${this.operationId}`,
             );
             payload.sourceEndpointInfo.targetScripts = await this.getProjectScriptFiles(
@@ -2436,7 +2436,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             );
         }
         if (payload.targetEndpointInfo.endpointType === SchemaCompareEndpointType.Project) {
-            this.logger.logDebug(
+            this.logger.debug(
                 `Getting project script files for target: ${payload.targetEndpointInfo.projectFilePath} - OperationId: ${this.operationId}`,
             );
             payload.targetEndpointInfo.targetScripts = await this.getProjectScriptFiles(
@@ -2542,7 +2542,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         });
 
         const finalDifferences = this.getAllObjectTypeDifferences(result);
-        this.logger.verbose(
+        this.logger.debug(
             `Filtered to ${finalDifferences.length} object type differences - OperationId: ${this.operationId}`,
         );
         result.differences = finalDifferences;
@@ -2557,7 +2557,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         endpoint: mssql.SchemaCompareEndpointInfo,
         caller: string,
     ): Promise<mssql.SchemaCompareEndpointInfo> {
-        this.logger.info(
+        this.logger.debug(
             `constructEndpointInfo called for ${caller} endpoint - OperationId: ${this.operationId}`,
         );
 
@@ -2566,7 +2566,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 `Endpoint is null or undefined for ${caller} - OperationId: ${this.operationId}`,
             );
         } else {
-            this.logger.info(
+            this.logger.debug(
                 `Endpoint type: ${getSchemaCompareEndpointTypeString(endpoint.endpointType)} (${endpoint.endpointType}) - OperationId: ${this.operationId}`,
             );
         }
@@ -2574,25 +2574,25 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         let ownerUri;
         let endpointInfo;
         if (endpoint && endpoint.endpointType === SchemaCompareEndpointType.Database) {
-            this.logger.info(
+            this.logger.debug(
                 `Processing Database endpoint for ${caller} - OperationId: ${this.operationId}`,
             );
 
             const connInfo = endpoint.connectionDetails.options as mssql.IConnectionInfo;
 
-            this.logger.verbose(
+            this.logger.debug(
                 `Has connectionDetails: ${!!endpoint.connectionDetails}, Has options: ${!!endpoint.connectionDetails?.options} - OperationId: ${this.operationId}`,
             );
 
             ownerUri = this.connectionMgr.getUriForScmpConnection(connInfo);
 
-            this.logger.verbose(
+            this.logger.debug(
                 `Got owner URI from existing connection: ${!!ownerUri} - OperationId: ${this.operationId}`,
             );
 
             let isConnected = ownerUri ? true : false;
             if (!ownerUri) {
-                this.logger.info(
+                this.logger.debug(
                     `No existing connection found, creating new connection for ${caller} - OperationId: ${this.operationId}`,
                 );
                 ownerUri = utils.generateQueryUri().toString();
@@ -2633,7 +2633,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     );
                 }
 
-                this.logger.info(
+                this.logger.debug(
                     `Connection attempt result for ${caller}: ${isConnected} - OperationId: ${this.operationId}`,
                 );
 
@@ -2645,7 +2645,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     delete this.connectionMgr.activeConnections[ownerUri];
                 }
             } else {
-                this.logger.info(
+                this.logger.debug(
                     `Using existing connection for ${caller} - OperationId: ${this.operationId}`,
                 );
             }
@@ -2653,12 +2653,12 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const connection = this.connectionMgr.activeConnections[ownerUri];
             const connectionProfile = connection?.credentials as IConnectionProfile;
 
-            this.logger.verbose(
+            this.logger.debug(
                 `Has connection: ${!!connection}, Has connectionProfile: ${!!connectionProfile} - OperationId: ${this.operationId}`,
             );
 
             if (isConnected && ownerUri && connectionProfile) {
-                this.logger.info(
+                this.logger.debug(
                     `Successfully created Database endpoint info for ${caller} - OperationId: ${this.operationId}`,
                 );
                 endpointInfo = {
@@ -2697,10 +2697,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 };
             }
         } else if (endpoint.endpointType === SchemaCompareEndpointType.Project) {
-            this.logger.info(
+            this.logger.debug(
                 `Processing Project endpoint for ${caller} - OperationId: ${this.operationId}`,
             );
-            this.logger.verbose(
+            this.logger.debug(
                 `Project file path length: ${endpoint.projectFilePath?.length || 0} - OperationId: ${this.operationId}`,
             );
             endpointInfo = {
@@ -2716,14 +2716,14 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 dataSchemaProvider: endpoint.dataSchemaProvider,
                 extractTarget: endpoint.extractTarget,
             };
-            this.logger.info(
+            this.logger.debug(
                 `Successfully created Project endpoint info for ${caller} - OperationId: ${this.operationId}`,
             );
         } else {
-            this.logger.info(
+            this.logger.debug(
                 `Processing Dacpac/other endpoint type for ${caller} - detected type: ${getSchemaCompareEndpointTypeString(endpoint.endpointType)} - OperationId: ${this.operationId}`,
             );
-            this.logger.verbose(
+            this.logger.debug(
                 `Package file path length: ${endpoint.packageFilePath?.length || 0} - OperationId: ${this.operationId}`,
             );
             endpointInfo = {
@@ -2738,19 +2738,19 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 packageFilePath: endpoint.packageFilePath,
                 connectionDetails: undefined,
             };
-            this.logger.info(
+            this.logger.debug(
                 `Successfully created Dacpac endpoint info for ${caller} - OperationId: ${this.operationId}`,
             );
         }
 
-        this.logger.info(
+        this.logger.debug(
             `constructEndpointInfo completed for ${caller} - final type: ${getSchemaCompareEndpointTypeString(endpointInfo.endpointType)} - OperationId: ${this.operationId}`,
         );
         return endpointInfo;
     }
 
     private getAllObjectTypeDifferences(result: mssql.SchemaCompareResult): DiffEntry[] {
-        this.logger.verbose(
+        this.logger.debug(
             `Filtering differences from schema comparison result - OperationId: ${this.operationId}`,
         );
 
@@ -2764,7 +2764,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             return finalDifferences;
         }
 
-        this.logger.verbose(
+        this.logger.debug(
             `Processing ${differences.length} total differences - OperationId: ${this.operationId}`,
         );
 
@@ -2775,14 +2775,14 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     (difference.targetValue !== null && difference.targetValue.length > 0)
                 ) {
                     finalDifferences.push(difference);
-                    this.logger.logDebug(
+                    this.logger.debug(
                         `Including difference: ${difference.name} with update action ${difference.updateAction} - OperationId: ${this.operationId}`,
                     );
                 }
             }
         });
 
-        this.logger.info(
+        this.logger.debug(
             `Found ${finalDifferences.length} object type differences out of ${differences.length} total differences - OperationId: ${this.operationId}`,
         );
         return finalDifferences;
