@@ -139,11 +139,8 @@ export class NetCoreTool extends ShellExecutionHelper {
     }
 
     private get isNetCoreInstallationPresent(): boolean {
-        const netcoreInstallLocation = this.netcoreInstallLocation;
         const netCoreInstallationPresent =
-            netcoreInstallLocation !== undefined &&
-            netcoreInstallLocation !== null &&
-            fs.existsSync(netcoreInstallLocation);
+            !!this.netcoreInstallLocation && fs.existsSync(this.netcoreInstallLocation);
         if (!netCoreInstallationPresent) {
             this.netCoreInstallState = netCoreInstallState.netCoreNotPresent;
         }
@@ -196,11 +193,7 @@ export class NetCoreTool extends ShellExecutionHelper {
     }
 
     private getDotnetPathIfPresent(folderPath: string | undefined): string | undefined {
-        if (
-            folderPath !== undefined &&
-            folderPath !== null &&
-            fs.existsSync(path.join(folderPath, "dotnet"))
-        ) {
+        if (folderPath && fs.existsSync(path.join(folderPath, "dotnet"))) {
             return path.join(folderPath, "dotnet");
         }
         return undefined;
