@@ -123,6 +123,22 @@ export namespace Dab {
         Authenticated = "authenticated",
     }
 
+    export const supportedAuthorizationRoles = [
+        AuthorizationRole.Anonymous,
+        AuthorizationRole.Authenticated,
+    ] as const;
+
+    export interface EntityPermissionFieldAccess {
+        action: EntityAction;
+        fields: string[];
+    }
+
+    export interface EntityPermissionConfig {
+        role: AuthorizationRole;
+        actions: EntityAction[];
+        fieldAccess?: EntityPermissionFieldAccess[];
+    }
+
     /**
      * Advanced configuration options for an entity
      */
@@ -132,9 +148,18 @@ export namespace Dab {
          */
         entityName: string;
         /**
-         * Authorization role for the entity
+         * Optional description for the entity. Written to both entity.description and
+         * source.description in generated DAB config.
+         */
+        description?: string;
+        /**
+         * Legacy single authorization role for older cached configs.
          */
         authorizationRole: AuthorizationRole;
+        /**
+         * Role-specific permission actions.
+         */
+        permissions?: EntityPermissionConfig[];
         /**
          * Custom REST path (overrides default /api/entityName)
          */
@@ -163,8 +188,13 @@ export namespace Dab {
          */
         graphQLEnabled?: boolean;
         /**
-         * Whether this table entity should be exposed through MCP DML tools.
-         * Defaults to true in DAB when omitted.
+         * Whether this entity should be exposed through MCP when MCP is globally enabled.
+         * Defaults to true.
+         */
+        mcpEnabled?: boolean;
+        /**
+         * Whether MCP DML tools should be enabled for this entity.
+         * Defaults to true when MCP is enabled.
          */
         mcpDmlToolsEnabled?: boolean;
         /**
@@ -177,9 +207,14 @@ export namespace Dab {
         storedProcedureGraphQLOperation?: GraphQLOperation;
         /**
          * Whether a stored procedure entity should be exposed as a dedicated MCP custom tool.
-         * Defaults to true for stored procedures.
+         * Defaults to false for stored procedures.
          */
         exposeAsMcpCustomTool?: boolean;
+        /**
+         * Preferred MCP custom-tool setting. Kept separate from exposeAsMcpCustomTool
+         * so older cached configs continue to load.
+         */
+        mcpCustomToolEnabled?: boolean;
     }
 
     /**
@@ -266,13 +301,13 @@ export namespace Dab {
          */
         isEnabled: boolean;
         /**
-         * Whether this table is supported by DAB.
-         * Tables without primary keys or with unsupported data types are not supported.
+         * Whether this entity is supported by DAB.
+         * Unsupported data types are blocking; missing keys are fixable warnings.
          */
         isSupported: boolean;
         /**
-         * Structured reasons why the table is not supported.
-         * Only set when isSupported is false. Converted to localized
+         * Structured reasons why the entity is unsupported or needs user input.
+         * Converted to localized
          * strings in the UI layer.
          */
         unsupportedReasons?: DabUnsupportedReason[];
@@ -421,6 +456,16 @@ export namespace Dab {
         );
     }
 
+    export interface GetDatabaseObjectsResponse {
+        sourceObjects: DabSourceObject[];
+    }
+
+    export namespace GetDatabaseObjectsRequest {
+        export const type = new RequestType<void, GetDatabaseObjectsResponse, void>(
+            "dab/getDatabaseObjects",
+        );
+    }
+
     /**
      * Entity reference for DAB tool operations.
      * Exactly one form is supported: id OR schemaName+tableName OR schemaName+sourceName+sourceType.
@@ -454,12 +499,47 @@ export namespace Dab {
         | { type: "add_entity"; entity: DabEntityRef }
         | { type: "remove_entity"; entity: DabEntityRef }
         | { type: "set_entity_enabled"; entity: DabEntityRef; isEnabled: boolean }
+        | {
+              type: "set_entity_surface";
+              entity: DabEntityRef;
+              apiType: ApiType;
+              isEnabled: boolean;
+          }
         | { type: "set_entity_actions"; entity: DabEntityRef; enabledActions: EntityAction[] }
+        | {
+              type: "set_entity_permissions";
+              entity: DabEntityRef;
+              permissions: EntityPermissionConfig[];
+          }
         | {
               type: "set_column_exposed";
               entity: DabEntityRef;
               column: DabColumnRef;
               isExposed: boolean;
+          }
+        | {
+              type: "set_field_metadata";
+              entity: DabEntityRef;
+              field: DabColumnRef;
+              alias?: string | null;
+              description?: string | null;
+              isPrimaryKey?: boolean;
+          }
+        | {
+              type: "set_parameter_metadata";
+              entity: DabEntityRef;
+              parameter: { name: string };
+              isRequired?: boolean;
+              defaultValue?: string | number | boolean | null;
+              clearDefault?: boolean;
+              description?: string | null;
+          }
+        | {
+              type: "set_entity_mcp";
+              entity: DabEntityRef;
+              enabled?: boolean;
+              dmlToolsEnabled?: boolean;
+              customToolEnabled?: boolean;
           }
         | { type: "patch_entity_settings"; entity: DabEntityRef; set: DabEntitySettingsPatch }
         | { type: "set_only_enabled_entities"; entities: DabEntityRef[] }
@@ -1108,8 +1188,8 @@ export namespace Dab {
 
     /**
      * Validates whether a schema table is supported by DAB.
-     * Runs all checks and collects all reasons for unsupported tables.
-     * @returns An object with isSupported and an optional reason string.
+     * Runs all checks and collects blocking issues plus fixable key warnings.
+     * @returns An object with isSupported and optional structured reasons.
      */
     export function validateTableForDab(table: SchemaDesigner.Table): {
         isSupported: boolean;
@@ -1129,7 +1209,10 @@ export namespace Dab {
             reasons.push({ type: "unsupportedDataTypes", columns: details });
         }
 
-        return reasons.length > 0 ? { isSupported: false, reasons } : { isSupported: true };
+        const hasBlockingReason = reasons.some((reason) => reason.type === "unsupportedDataTypes");
+        return reasons.length > 0
+            ? { isSupported: !hasBlockingReason, reasons }
+            : { isSupported: true };
     }
 
     export function validateSourceObjectForDab(sourceObject: DabSourceObject): {
@@ -1137,10 +1220,14 @@ export namespace Dab {
         reasons?: DabUnsupportedReason[];
     } {
         const reasons: DabUnsupportedReason[] = [];
+        const inferredKeyNames = inferLogicalKeyColumnNames(
+            sourceObject.columns,
+            sourceObject.sourceName,
+        );
         const hasPrimaryKey =
-            sourceObject.sourceType === EntitySourceType.Table
-                ? sourceObject.columns.some((c) => c.isPrimaryKey)
-                : (sourceObject.fields ?? []).some((field) => field.isPrimaryKey);
+            sourceObject.sourceType !== EntitySourceType.StoredProcedure &&
+            ((sourceObject.fields ?? []).some((field) => field.isPrimaryKey) ||
+                inferredKeyNames.size > 0);
         if (sourceObject.sourceType !== EntitySourceType.StoredProcedure && !hasPrimaryKey) {
             reasons.push({ type: "noPrimaryKey" });
         }
@@ -1165,7 +1252,10 @@ export namespace Dab {
             reasons.push({ type: "unsupportedDataTypes", columns: details });
         }
 
-        return reasons.length > 0 ? { isSupported: false, reasons } : { isSupported: true };
+        const hasBlockingReason = reasons.some((reason) => reason.type === "unsupportedDataTypes");
+        return reasons.length > 0
+            ? { isSupported: !hasBlockingReason, reasons }
+            : { isSupported: true };
     }
 
     /**
@@ -1189,13 +1279,262 @@ export namespace Dab {
         };
     }
 
+    export const defaultApiTypes: ApiType[] = [ApiType.Rest, ApiType.GraphQL, ApiType.Mcp];
+
+    function normalizeKeyCandidateName(value?: string): string {
+        return (value ?? "").replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+    }
+
+    function isIdSuffixCandidate(columnName: string): boolean {
+        return (
+            /^id$/i.test(columnName) ||
+            /(^|[_\-\s])id$/i.test(columnName) ||
+            /[A-Z0-9]ID$/.test(columnName) ||
+            /[a-z0-9]Id$/.test(columnName)
+        );
+    }
+
+    function inferLogicalKeyColumnNames(
+        columns: DabColumnConfig[],
+        sourceName?: string,
+    ): Set<string> {
+        const physicalKeys = columns.filter((column) => column.isPrimaryKey);
+        if (physicalKeys.length > 0) {
+            return new Set(physicalKeys.map((column) => normalizeDabIdentifier(column.name)));
+        }
+
+        const supportedColumns = columns.filter((column) => column.isSupported);
+        const normalizedSourceName = normalizeKeyCandidateName(sourceName);
+        const exactIdColumns = supportedColumns.filter(
+            (column) => normalizeKeyCandidateName(column.name) === "id",
+        );
+        if (exactIdColumns.length === 1) {
+            return new Set([normalizeDabIdentifier(exactIdColumns[0].name)]);
+        }
+
+        const sourceIdColumns =
+            normalizedSourceName.length > 0
+                ? supportedColumns.filter(
+                      (column) =>
+                          normalizeKeyCandidateName(column.name) === `${normalizedSourceName}id`,
+                  )
+                : [];
+        if (sourceIdColumns.length === 1) {
+            return new Set([normalizeDabIdentifier(sourceIdColumns[0].name)]);
+        }
+
+        const idSuffixColumns = supportedColumns.filter((column) =>
+            isIdSuffixCandidate(column.name),
+        );
+        if (idSuffixColumns.length > 0 && idSuffixColumns.length <= 2) {
+            return new Set(idSuffixColumns.map((column) => normalizeDabIdentifier(column.name)));
+        }
+
+        return new Set();
+    }
+
+    const crudActions = [
+        EntityAction.Create,
+        EntityAction.Read,
+        EntityAction.Update,
+        EntityAction.Delete,
+    ];
+
+    export function getDefaultPermissionsForSource(
+        sourceType?: EntitySourceType,
+    ): EntityPermissionConfig[] {
+        if (sourceType === EntitySourceType.StoredProcedure) {
+            return [
+                { role: AuthorizationRole.Anonymous, actions: [] },
+                { role: AuthorizationRole.Authenticated, actions: [EntityAction.Execute] },
+            ];
+        }
+
+        return [
+            { role: AuthorizationRole.Anonymous, actions: [EntityAction.Read] },
+            { role: AuthorizationRole.Authenticated, actions: [...crudActions] },
+        ];
+    }
+
+    function normalizePermissionActions(
+        actions: EntityAction[] | undefined,
+        sourceType?: EntitySourceType,
+    ): EntityAction[] {
+        const allowedActions =
+            sourceType === EntitySourceType.StoredProcedure
+                ? new Set<EntityAction>([EntityAction.Execute])
+                : new Set<EntityAction>(crudActions);
+        return [...new Set(actions ?? [])].filter((action) => allowedActions.has(action));
+    }
+
+    function normalizePermissionFieldAccess(
+        fieldAccess: EntityPermissionFieldAccess[] | undefined,
+        actions: EntityAction[],
+        sourceType?: EntitySourceType,
+    ): EntityPermissionFieldAccess[] | undefined {
+        if (!fieldAccess?.length || sourceType === EntitySourceType.StoredProcedure) {
+            return undefined;
+        }
+
+        const actionSet = new Set(actions);
+        const normalized = fieldAccess
+            .filter((access) => actionSet.has(access.action))
+            .map((access) => ({
+                action: access.action,
+                fields: [...new Set(access.fields)],
+            }));
+        return normalized.length > 0 ? normalized : undefined;
+    }
+
+    export function getEntityPermissions(entity: DabEntityConfig): EntityPermissionConfig[] {
+        if (entity.advancedSettings.permissions?.length) {
+            const byRole = new Map<AuthorizationRole, EntityAction[]>();
+            const fieldAccessByRole = new Map<
+                AuthorizationRole,
+                EntityPermissionFieldAccess[] | undefined
+            >();
+            for (const role of supportedAuthorizationRoles) {
+                byRole.set(role, []);
+            }
+            for (const permission of entity.advancedSettings.permissions) {
+                if (!supportedAuthorizationRoles.includes(permission.role)) {
+                    continue;
+                }
+                byRole.set(
+                    permission.role,
+                    normalizePermissionActions(permission.actions, entity.sourceType),
+                );
+                fieldAccessByRole.set(permission.role, permission.fieldAccess);
+            }
+            return supportedAuthorizationRoles.map((role) => ({
+                role,
+                actions: byRole.get(role) ?? [],
+                fieldAccess: normalizePermissionFieldAccess(
+                    fieldAccessByRole.get(role),
+                    byRole.get(role) ?? [],
+                    entity.sourceType,
+                ),
+            }));
+        }
+
+        const legacyRole = entity.advancedSettings.authorizationRole ?? AuthorizationRole.Anonymous;
+        const legacyActions = normalizePermissionActions(entity.enabledActions, entity.sourceType);
+        return supportedAuthorizationRoles.map((role) => ({
+            role,
+            actions: role === legacyRole ? legacyActions : [],
+        }));
+    }
+
+    export function getPermissionActionsForRole(
+        entity: DabEntityConfig,
+        role: AuthorizationRole,
+    ): EntityAction[] {
+        return (
+            getEntityPermissions(entity).find((permission) => permission.role === role)?.actions ??
+            []
+        );
+    }
+
+    export function hasEntityPermission(entity: DabEntityConfig, role: AuthorizationRole): boolean {
+        return getPermissionActionsForRole(entity, role).length > 0;
+    }
+
+    export function isEntityRestEnabled(entity: DabEntityConfig): boolean {
+        return entity.advancedSettings.restEnabled !== false;
+    }
+
+    export function isEntityGraphQLEnabled(entity: DabEntityConfig): boolean {
+        return entity.advancedSettings.graphQLEnabled !== false;
+    }
+
+    export function isEntityMcpEnabled(entity: DabEntityConfig): boolean {
+        if (entity.advancedSettings.mcpEnabled === false) {
+            return false;
+        }
+
+        const dmlToolsEnabled = isEntityMcpDmlToolsEnabled(entity);
+        if (entity.sourceType === EntitySourceType.StoredProcedure) {
+            return dmlToolsEnabled || isEntityMcpCustomToolEnabled(entity);
+        }
+
+        return dmlToolsEnabled;
+    }
+
+    export function isEntityMcpDmlToolsEnabled(entity: DabEntityConfig): boolean {
+        return entity.advancedSettings.mcpDmlToolsEnabled !== false;
+    }
+
+    export function isEntityMcpCustomToolEnabled(entity: DabEntityConfig): boolean {
+        return (
+            entity.advancedSettings.mcpCustomToolEnabled ??
+            entity.advancedSettings.exposeAsMcpCustomTool ??
+            false
+        );
+    }
+
+    export function isEntityExposed(entity: DabEntityConfig): boolean {
+        return (
+            isEntityRestEnabled(entity) ||
+            isEntityGraphQLEnabled(entity) ||
+            isEntityMcpEnabled(entity)
+        );
+    }
+
+    export function hasLogicalKey(entity: DabEntityConfig): boolean {
+        if (entity.sourceType === EntitySourceType.StoredProcedure) {
+            return true;
+        }
+
+        if (entity.fields !== undefined) {
+            return entity.fields.some((field) => field.isPrimaryKey);
+        }
+
+        return entity.columns.some((column) => column.isPrimaryKey);
+    }
+
+    export function getFieldForColumn(
+        entity: DabEntityConfig,
+        columnName: string,
+    ): DabFieldConfig | undefined {
+        return entity.fields?.find(
+            (field) => normalizeDabIdentifier(field.name) === normalizeDabIdentifier(columnName),
+        );
+    }
+
+    export function isLogicalKeyColumn(entity: DabEntityConfig, column: DabColumnConfig): boolean {
+        const field = getFieldForColumn(entity, column.name);
+        return field !== undefined ? field.isPrimaryKey === true : column.isPrimaryKey;
+    }
+
+    export function hasBlockingUnsupportedReason(entity: DabEntityConfig): boolean {
+        return (entity.unsupportedReasons ?? []).some(
+            (reason) => reason.type === "unsupportedDataTypes",
+        );
+    }
+
+    export function hasFixableKeyWarning(entity: DabEntityConfig): boolean {
+        return (
+            entity.sourceType !== EntitySourceType.StoredProcedure &&
+            !hasLogicalKey(entity) &&
+            (entity.unsupportedReasons ?? []).some((reason) => reason.type === "noPrimaryKey")
+        );
+    }
+
     export function createSourceObjectFromTable(table: SchemaDesigner.Table): DabSourceObject {
+        const columns = table.columns.map((column) => createDefaultColumnConfig(column));
+        const inferredKeyNames = inferLogicalKeyColumnNames(columns, table.name);
         return {
             id: table.id,
             sourceType: EntitySourceType.Table,
             schemaName: table.schema,
             sourceName: table.name,
-            columns: table.columns.map((column) => createDefaultColumnConfig(column)),
+            columns,
+            fields: columns.map((column) => ({
+                name: column.name,
+                ...(inferredKeyNames.has(normalizeDabIdentifier(column.name))
+                    ? { isPrimaryKey: true }
+                    : {}),
+            })),
         };
     }
 
@@ -1243,13 +1582,17 @@ export namespace Dab {
     ): DabEntityConfig {
         const { isSupported, reasons } = validateSourceObjectForDab(sourceObject);
         const isStoredProcedure = sourceObject.sourceType === EntitySourceType.StoredProcedure;
+        const hasMissingKeyWarning =
+            sourceObject.sourceType !== EntitySourceType.StoredProcedure &&
+            reasons?.some((reason) => reason.type === "noPrimaryKey") === true;
+        const isIncludedByDefault = isSupported && !hasMissingKeyWarning;
         return {
             id: sourceObject.id,
             sourceType: sourceObject.sourceType,
             sourceName: sourceObject.sourceName,
             tableName: sourceObject.sourceName,
             schemaName: sourceObject.schemaName,
-            isEnabled: isSupported,
+            isEnabled: isIncludedByDefault,
             isSupported,
             unsupportedReasons: reasons,
             enabledActions: isStoredProcedure
@@ -1261,12 +1604,28 @@ export namespace Dab {
                       EntityAction.Delete,
                   ],
             columns: sourceObject.columns.map((column) => ({ ...column })),
-            fields: sourceObject.fields?.map((field) => ({ ...field })),
-            parameters: sourceObject.parameters?.map((parameter) => ({ ...parameter })),
+            fields:
+                sourceObject.sourceType === EntitySourceType.StoredProcedure
+                    ? undefined
+                    : syncFieldsWithSource(sourceObject.fields, sourceObject),
+            parameters: sourceObject.parameters?.map((parameter) => ({
+                ...parameter,
+                isRequired: parameter.isRequired ?? true,
+            })),
             advancedSettings: {
                 entityName: sourceObject.sourceName,
                 authorizationRole: AuthorizationRole.Anonymous,
-                ...(isStoredProcedure ? { exposeAsMcpCustomTool: true } : {}),
+                permissions: getDefaultPermissionsForSource(sourceObject.sourceType),
+                restEnabled: isIncludedByDefault,
+                graphQLEnabled: isIncludedByDefault,
+                mcpEnabled: isIncludedByDefault,
+                mcpDmlToolsEnabled: isIncludedByDefault,
+                ...(isStoredProcedure
+                    ? {
+                          exposeAsMcpCustomTool: false,
+                          mcpCustomToolEnabled: false,
+                      }
+                    : {}),
             },
         };
     }
@@ -1291,6 +1650,118 @@ export namespace Dab {
         return parameters?.map((parameter) => ({ ...parameter }));
     }
 
+    function createDefaultFieldsFromColumns(
+        columns: DabColumnConfig[],
+        sourceName?: string,
+    ): DabFieldConfig[] {
+        const inferredKeyNames = inferLogicalKeyColumnNames(columns, sourceName);
+        return columns.map((column) => ({
+            name: column.name,
+            ...(inferredKeyNames.has(normalizeDabIdentifier(column.name))
+                ? { isPrimaryKey: true }
+                : {}),
+        }));
+    }
+
+    function syncFieldsWithSource(
+        existingFields: DabFieldConfig[] | undefined,
+        sourceObject: DabSourceObject,
+    ): DabFieldConfig[] | undefined {
+        if (sourceObject.sourceType === EntitySourceType.StoredProcedure) {
+            return undefined;
+        }
+
+        const sourceFields = sourceObject.fields?.length
+            ? sourceObject.fields
+            : createDefaultFieldsFromColumns(sourceObject.columns, sourceObject.sourceName);
+        const inferredKeyNames = inferLogicalKeyColumnNames(
+            sourceObject.columns,
+            sourceObject.sourceName,
+        );
+        const existingByName = new Map(
+            (existingFields ?? []).map((field) => [normalizeDabIdentifier(field.name), field]),
+        );
+
+        return sourceFields.map((sourceField) => {
+            const normalizedName = normalizeDabIdentifier(sourceField.name);
+            const existingField = existingByName.get(normalizedName);
+            return {
+                name: sourceField.name,
+                ...(existingField?.alias ? { alias: existingField.alias } : {}),
+                ...(existingField?.description ? { description: existingField.description } : {}),
+                ...((existingField?.isPrimaryKey ??
+                sourceField.isPrimaryKey ??
+                inferredKeyNames.has(normalizedName))
+                    ? { isPrimaryKey: true }
+                    : {}),
+            };
+        });
+    }
+
+    function syncParametersWithSource(
+        existingParameters: DabParameterConfig[] | undefined,
+        sourceParameters: DabParameterConfig[] | undefined,
+    ): DabParameterConfig[] | undefined {
+        if (!sourceParameters?.length) {
+            return undefined;
+        }
+
+        const existingByName = new Map(
+            (existingParameters ?? []).map((parameter) => [
+                normalizeDabIdentifier(parameter.name.replace(/^@/, "")),
+                parameter,
+            ]),
+        );
+
+        return sourceParameters.map((sourceParameter) => {
+            const normalizedName = sourceParameter.name.replace(/^@/, "");
+            const existingParameter = existingByName.get(normalizeDabIdentifier(normalizedName));
+            return {
+                name: normalizedName,
+                dataType: sourceParameter.dataType,
+                isRequired: existingParameter?.isRequired ?? sourceParameter.isRequired ?? true,
+                ...(existingParameter?.defaultValue !== undefined
+                    ? { defaultValue: existingParameter.defaultValue }
+                    : sourceParameter.defaultValue !== undefined
+                      ? { defaultValue: sourceParameter.defaultValue }
+                      : {}),
+                ...(existingParameter?.description
+                    ? { description: existingParameter.description }
+                    : sourceParameter.description
+                      ? { description: sourceParameter.description }
+                      : {}),
+            };
+        });
+    }
+
+    function normalizeAdvancedSettings(entity: DabEntityConfig): EntityAdvancedSettings {
+        const isStoredProcedure = entity.sourceType === EntitySourceType.StoredProcedure;
+        const legacyCustomTool = entity.advancedSettings.exposeAsMcpCustomTool;
+        const customToolEnabled =
+            entity.advancedSettings.mcpCustomToolEnabled ??
+            (legacyCustomTool !== undefined ? legacyCustomTool : false);
+        const hasExplicitSurfaceSettings =
+            entity.advancedSettings.restEnabled !== undefined ||
+            entity.advancedSettings.graphQLEnabled !== undefined ||
+            entity.advancedSettings.mcpEnabled !== undefined;
+        const defaultSurfaceEnabled = hasExplicitSurfaceSettings ? true : entity.isEnabled;
+
+        return {
+            ...entity.advancedSettings,
+            permissions: getEntityPermissions(entity),
+            restEnabled: entity.advancedSettings.restEnabled ?? defaultSurfaceEnabled,
+            graphQLEnabled: entity.advancedSettings.graphQLEnabled ?? defaultSurfaceEnabled,
+            mcpEnabled: entity.advancedSettings.mcpEnabled ?? defaultSurfaceEnabled,
+            mcpDmlToolsEnabled: entity.advancedSettings.mcpDmlToolsEnabled ?? true,
+            ...(isStoredProcedure
+                ? {
+                      exposeAsMcpCustomTool: customToolEnabled,
+                      mcpCustomToolEnabled: customToolEnabled,
+                  }
+                : {}),
+        };
+    }
+
     function cloneConfig(config: DabConfig): DabConfig {
         return {
             apiTypes: [...config.apiTypes],
@@ -1301,7 +1772,7 @@ export namespace Dab {
                 fields: cloneFields(entity.fields),
                 parameters: cloneParameters(entity.parameters),
                 unsupportedReasons: cloneUnsupportedReasons(entity.unsupportedReasons),
-                advancedSettings: { ...entity.advancedSettings },
+                advancedSettings: normalizeAdvancedSettings(entity),
             })),
         };
     }
@@ -1387,9 +1858,13 @@ export namespace Dab {
             isSupported,
             unsupportedReasons: reasons,
             columns: syncedColumns.columns,
-            fields: cloneFields(sourceObject.fields),
-            parameters: cloneParameters(sourceObject.parameters),
-            // Unsupported entities must remain disabled until the schema is fixed.
+            fields: syncFieldsWithSource(entity.fields, {
+                ...sourceObject,
+                columns: syncedColumns.columns,
+            }),
+            parameters: syncParametersWithSource(entity.parameters, sourceObject.parameters),
+            advancedSettings: normalizeAdvancedSettings(entity),
+            // Entities with blocking unsupported types must remain disabled until the schema is fixed.
             isEnabled: !isSupported ? false : entity.isEnabled,
         };
     }
@@ -1482,7 +1957,7 @@ export namespace Dab {
 
     export function createDefaultConfigFromSources(sourceObjects: DabSourceObject[]): DabConfig {
         return {
-            apiTypes: [ApiType.Rest, ApiType.GraphQL, ApiType.Mcp],
+            apiTypes: [...defaultApiTypes],
             entities: sourceObjects.map((sourceObject) =>
                 createDefaultEntityConfigFromSource(sourceObject),
             ),

@@ -143,7 +143,16 @@ suite("DAB shared interface helpers", () => {
             isSupported: true,
         });
         expect(config.entities[0].enabledActions).to.deep.equal([Dab.EntityAction.Execute]);
-        expect(config.entities[0].advancedSettings.exposeAsMcpCustomTool).to.equal(true);
+        expect(config.apiTypes).to.deep.equal([
+            Dab.ApiType.Rest,
+            Dab.ApiType.GraphQL,
+            Dab.ApiType.Mcp,
+        ]);
+        expect(config.entities[0].advancedSettings.permissions).to.deep.equal([
+            { role: Dab.AuthorizationRole.Anonymous, actions: [] },
+            { role: Dab.AuthorizationRole.Authenticated, actions: [Dab.EntityAction.Execute] },
+        ]);
+        expect(config.entities[0].advancedSettings.exposeAsMcpCustomTool).to.equal(false);
         expect(config.entities[0].parameters).to.deep.equal([
             {
                 name: "userId",

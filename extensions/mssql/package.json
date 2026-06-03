@@ -3782,7 +3782,7 @@
             },
             {
                 "name": "mssql_dab",
-                "modelDescription": "Work with the Data API builder configuration in the currently active schema designer. Use 'get_state' to inspect it and 'apply_changes' to modify it; use 'show' only to open the Data API builder view for a connectionId when needed. Operations: 'get_state' returns the current version, summary, and bounded configuration state (full config may be omitted for large configurations); 'apply_changes' uses payload { expectedVersion, targetHint?, changes } and returns the post-mutation version plus summary, with optional returnState control. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with the current version and latest summary/config according to returnState. Entity refs are either { id }, { schemaName, tableName } for table compatibility, or { schemaName, sourceName, sourceType } where sourceType is table, view, or stored-procedure. Column refs are either { id } or { name }. Change types: { type: 'set_api_types', apiTypes }, { type: 'add_entity', entity }, { type: 'remove_entity', entity }, { type: 'set_entity_enabled', entity, isEnabled }, { type: 'set_entity_actions', entity, enabledActions }, { type: 'set_column_exposed', entity, column, isExposed }, { type: 'patch_entity_settings', entity, set }, { type: 'set_only_enabled_entities', entities }, { type: 'set_all_entities_enabled', isEnabled }. patch_entity_settings.set supports entityName, authorizationRole, customRestPath, restEnabled, customGraphQLType, graphQLEnabled, table-only mcpDmlToolsEnabled, and stored-procedure-only storedProcedureRestMethods, storedProcedureGraphQLOperation, exposeAsMcpCustomTool.",
+                "modelDescription": "Work with the Data API builder configuration in the currently active schema designer. Use 'get_state' to inspect it and 'apply_changes' to modify it; use 'show' only to open the Data API builder view for a connectionId when needed. Operations: 'get_state' returns the current version, summary, and bounded configuration state (full config may be omitted for large configurations); 'apply_changes' uses payload { expectedVersion, targetHint?, changes } and returns the post-mutation version plus summary, with optional returnState control. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with the current version and latest summary/config according to returnState. Entity refs are either { id }, { schemaName, tableName } for table compatibility, or { schemaName, sourceName, sourceType } where sourceType is table, view, or stored-procedure. Column refs are either { id } or { name }. Change types: { type: 'set_api_types', apiTypes }, { type: 'add_entity', entity }, { type: 'remove_entity', entity }, { type: 'set_entity_enabled', entity, isEnabled } for legacy all-surface compatibility, { type: 'set_entity_surface', entity, apiType, isEnabled }, { type: 'set_entity_actions', entity, enabledActions } for legacy selected-role compatibility, { type: 'set_entity_permissions', entity, permissions }, { type: 'set_column_exposed', entity, column, isExposed }, { type: 'set_field_metadata', entity, field, alias?, description?, isPrimaryKey? }, { type: 'set_parameter_metadata', entity, parameter, isRequired?, defaultValue?, clearDefault?, description? }, { type: 'set_entity_mcp', entity, enabled?, dmlToolsEnabled?, customToolEnabled? }, { type: 'patch_entity_settings', entity, set }, { type: 'set_only_enabled_entities', entities }, { type: 'set_all_entities_enabled', isEnabled }. patch_entity_settings.set supports entityName, description, authorizationRole, customRestPath, restEnabled, customGraphQLType, customGraphQLSingularType, customGraphQLPluralType, graphQLEnabled, mcpEnabled, mcpDmlToolsEnabled, and stored-procedure-only storedProcedureRestMethods, storedProcedureGraphQLOperation, exposeAsMcpCustomTool, mcpCustomToolEnabled.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -3888,12 +3888,68 @@
                                 }
                             ]
                         },
+                        "parameterRef": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "minLength": 1
+                                }
+                            },
+                            "required": [
+                                "name"
+                            ],
+                            "additionalProperties": false
+                        },
+                        "entityPermission": {
+                            "type": "object",
+                            "properties": {
+                                "role": {
+                                    "type": "string",
+                                    "enum": [
+                                        "anonymous",
+                                        "authenticated"
+                                    ]
+                                },
+                                "actions": {
+                                    "type": "array",
+                                    "uniqueItems": true,
+                                    "items": {
+                                        "type": "string",
+                                        "enum": [
+                                            "create",
+                                            "read",
+                                            "update",
+                                            "delete",
+                                            "execute"
+                                        ]
+                                    }
+                                }
+                            },
+                            "required": [
+                                "role",
+                                "actions"
+                            ],
+                            "additionalProperties": false
+                        },
                         "advancedSettingsPatch": {
                             "type": "object",
                             "properties": {
                                 "entityName": {
                                     "type": "string",
                                     "minLength": 1
+                                },
+                                "description": {
+                                    "description": "Optional entity description. Use null to clear.",
+                                    "oneOf": [
+                                        {
+                                            "type": "string",
+                                            "minLength": 1
+                                        },
+                                        {
+                                            "type": "null"
+                                        }
+                                    ]
                                 },
                                 "authorizationRole": {
                                     "type": "string",
@@ -3930,12 +3986,40 @@
                                         }
                                     ]
                                 },
+                                "customGraphQLSingularType": {
+                                    "description": "Entity GraphQL singular type override. Use null to clear.",
+                                    "oneOf": [
+                                        {
+                                            "type": "string",
+                                            "minLength": 1
+                                        },
+                                        {
+                                            "type": "null"
+                                        }
+                                    ]
+                                },
+                                "customGraphQLPluralType": {
+                                    "description": "Entity GraphQL plural type override. Requires customGraphQLSingularType. Use null to clear.",
+                                    "oneOf": [
+                                        {
+                                            "type": "string",
+                                            "minLength": 1
+                                        },
+                                        {
+                                            "type": "null"
+                                        }
+                                    ]
+                                },
                                 "graphQLEnabled": {
                                     "description": "When true, exposes the entity through GraphQL if GraphQL is globally enabled.",
                                     "type": "boolean"
                                 },
+                                "mcpEnabled": {
+                                    "description": "When true, exposes the entity through MCP if MCP is globally enabled.",
+                                    "type": "boolean"
+                                },
                                 "mcpDmlToolsEnabled": {
-                                    "description": "Table only. When true, exposes the table through generic MCP DML tools (create/read/update/delete) if MCP is globally enabled. When false, emits mcp { dml-tools: false } for the table.",
+                                    "description": "When true, enables generic MCP DML tools for this entity.",
                                     "type": "boolean"
                                 },
                                 "storedProcedureRestMethods": {
@@ -3949,10 +4033,7 @@
                                                 "type": "string",
                                                 "enum": [
                                                     "get",
-                                                    "post",
-                                                    "put",
-                                                    "patch",
-                                                    "delete"
+                                                    "post"
                                                 ]
                                             }
                                         },
@@ -3971,6 +4052,10 @@
                                 },
                                 "exposeAsMcpCustomTool": {
                                     "description": "Stored procedure only. When true, exposes the stored procedure as a dedicated MCP custom tool and hides it from generic MCP DML tools.",
+                                    "type": "boolean"
+                                },
+                                "mcpCustomToolEnabled": {
+                                    "description": "Stored procedure only. When true, exposes the stored procedure as a dedicated MCP custom tool.",
                                     "type": "boolean"
                                 }
                             },
@@ -3996,7 +4081,7 @@
                             "minLength": 1
                         },
                         "payload": {
-                            "description": "Operation-specific payload. apply_changes: { expectedVersion, targetHint?, changes }. Change types: set_api_types { apiTypes }, add_entity { entity }, remove_entity { entity }, set_entity_enabled { entity, isEnabled }, set_entity_actions { entity, enabledActions }, set_column_exposed { entity, column, isExposed }, patch_entity_settings { entity, set }, set_only_enabled_entities { entities }, set_all_entities_enabled { isEnabled }.",
+                            "description": "Operation-specific payload. apply_changes: { expectedVersion, targetHint?, changes }. Change types: set_api_types { apiTypes }, add_entity { entity }, remove_entity { entity }, set_entity_enabled { entity, isEnabled }, set_entity_surface { entity, apiType, isEnabled }, set_entity_actions { entity, enabledActions }, set_entity_permissions { entity, permissions }, set_column_exposed { entity, column, isExposed }, set_field_metadata { entity, field, alias?, description?, isPrimaryKey? }, set_parameter_metadata { entity, parameter, isRequired?, defaultValue?, clearDefault?, description? }, set_entity_mcp { entity, enabled?, dmlToolsEnabled?, customToolEnabled? }, patch_entity_settings { entity, set }, set_only_enabled_entities { entities }, set_all_entities_enabled { isEnabled }.",
                             "title": "Payload",
                             "type": "object",
                             "properties": {
@@ -4065,6 +4150,170 @@
                                                     "type": {
                                                         "type": "string",
                                                         "enum": [
+                                                            "set_field_metadata"
+                                                        ]
+                                                    },
+                                                    "entity": {
+                                                        "$ref": "#/$defs/entityRef"
+                                                    },
+                                                    "field": {
+                                                        "$ref": "#/$defs/columnRef"
+                                                    },
+                                                    "alias": {
+                                                        "oneOf": [
+                                                            {
+                                                                "type": "string",
+                                                                "minLength": 1
+                                                            },
+                                                            {
+                                                                "type": "null"
+                                                            }
+                                                        ]
+                                                    },
+                                                    "description": {
+                                                        "oneOf": [
+                                                            {
+                                                                "type": "string",
+                                                                "minLength": 1
+                                                            },
+                                                            {
+                                                                "type": "null"
+                                                            }
+                                                        ]
+                                                    },
+                                                    "isPrimaryKey": {
+                                                        "type": "boolean"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "type",
+                                                    "entity",
+                                                    "field"
+                                                ],
+                                                "additionalProperties": false
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "type": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "set_parameter_metadata"
+                                                        ]
+                                                    },
+                                                    "entity": {
+                                                        "$ref": "#/$defs/entityRef"
+                                                    },
+                                                    "parameter": {
+                                                        "$ref": "#/$defs/parameterRef"
+                                                    },
+                                                    "isRequired": {
+                                                        "type": "boolean"
+                                                    },
+                                                    "defaultValue": {
+                                                        "oneOf": [
+                                                            {
+                                                                "type": "string"
+                                                            },
+                                                            {
+                                                                "type": "number"
+                                                            },
+                                                            {
+                                                                "type": "boolean"
+                                                            },
+                                                            {
+                                                                "type": "null"
+                                                            }
+                                                        ]
+                                                    },
+                                                    "clearDefault": {
+                                                        "type": "boolean"
+                                                    },
+                                                    "description": {
+                                                        "oneOf": [
+                                                            {
+                                                                "type": "string",
+                                                                "minLength": 1
+                                                            },
+                                                            {
+                                                                "type": "null"
+                                                            }
+                                                        ]
+                                                    }
+                                                },
+                                                "required": [
+                                                    "type",
+                                                    "entity",
+                                                    "parameter"
+                                                ],
+                                                "additionalProperties": false
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "type": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "set_entity_mcp"
+                                                        ]
+                                                    },
+                                                    "entity": {
+                                                        "$ref": "#/$defs/entityRef"
+                                                    },
+                                                    "enabled": {
+                                                        "type": "boolean"
+                                                    },
+                                                    "dmlToolsEnabled": {
+                                                        "type": "boolean"
+                                                    },
+                                                    "customToolEnabled": {
+                                                        "type": "boolean"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "type",
+                                                    "entity"
+                                                ],
+                                                "additionalProperties": false
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "type": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "set_entity_surface"
+                                                        ]
+                                                    },
+                                                    "entity": {
+                                                        "$ref": "#/$defs/entityRef"
+                                                    },
+                                                    "apiType": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "rest",
+                                                            "graphql",
+                                                            "mcp"
+                                                        ]
+                                                    },
+                                                    "isEnabled": {
+                                                        "type": "boolean"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "type",
+                                                    "entity",
+                                                    "apiType",
+                                                    "isEnabled"
+                                                ],
+                                                "additionalProperties": false
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "type": {
+                                                        "type": "string",
+                                                        "enum": [
                                                             "add_entity"
                                                         ]
                                                     },
@@ -4075,6 +4324,33 @@
                                                 "required": [
                                                     "type",
                                                     "entity"
+                                                ],
+                                                "additionalProperties": false
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "type": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "set_entity_permissions"
+                                                        ]
+                                                    },
+                                                    "entity": {
+                                                        "$ref": "#/$defs/entityRef"
+                                                    },
+                                                    "permissions": {
+                                                        "type": "array",
+                                                        "minItems": 1,
+                                                        "items": {
+                                                            "$ref": "#/$defs/entityPermission"
+                                                        }
+                                                    }
+                                                },
+                                                "required": [
+                                                    "type",
+                                                    "entity",
+                                                    "permissions"
                                                 ],
                                                 "additionalProperties": false
                                             },

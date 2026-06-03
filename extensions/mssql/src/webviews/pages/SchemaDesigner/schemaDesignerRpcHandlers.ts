@@ -1033,7 +1033,7 @@ function normalizeIdentifier(value: string | undefined): string {
 function buildDabSummary(config: Dab.DabConfig): Dab.DabToolSummary {
     return {
         entityCount: config.entities.length,
-        enabledEntityCount: config.entities.filter((entity) => entity.isEnabled).length,
+        enabledEntityCount: config.entities.filter((entity) => Dab.isEntityExposed(entity)).length,
         apiTypes: [...config.apiTypes],
     };
 }
@@ -1123,6 +1123,7 @@ function normalizeDabConfigForVersion(config: Dab.DabConfig) {
                         dataType: normalizeIdentifier(column.dataType),
                         isSupported: column.isSupported,
                         isExposed: column.isExposed,
+                        isPrimaryKey: column.isPrimaryKey,
                     }))
                     .sort((a, b) => {
                         const byName = a.name.localeCompare(b.name);
@@ -1152,9 +1153,16 @@ function normalizeDabConfigForVersion(config: Dab.DabConfig) {
                     .sort((a, b) => a.name.localeCompare(b.name)),
                 advancedSettings: {
                     entityName: normalizeIdentifier(entity.advancedSettings.entityName),
+                    description: entity.advancedSettings.description,
                     authorizationRole: normalizeIdentifier(
                         entity.advancedSettings.authorizationRole,
                     ),
+                    permissions: Dab.getEntityPermissions(entity).map((permission) => ({
+                        role: normalizeIdentifier(permission.role),
+                        actions: [...permission.actions]
+                            .map(normalizeIdentifier)
+                            .sort((a, b) => a.localeCompare(b)),
+                    })),
                     customRestPath:
                         entity.advancedSettings.customRestPath !== undefined
                             ? entity.advancedSettings.customRestPath
@@ -1173,6 +1181,7 @@ function normalizeDabConfigForVersion(config: Dab.DabConfig) {
                             ? entity.advancedSettings.customGraphQLPluralType
                             : undefined,
                     graphQLEnabled: entity.advancedSettings.graphQLEnabled,
+                    mcpEnabled: entity.advancedSettings.mcpEnabled,
                     mcpDmlToolsEnabled: entity.advancedSettings.mcpDmlToolsEnabled,
                     storedProcedureRestMethods:
                         entity.advancedSettings.storedProcedureRestMethods !== undefined
@@ -1183,6 +1192,7 @@ function normalizeDabConfigForVersion(config: Dab.DabConfig) {
                     storedProcedureGraphQLOperation:
                         entity.advancedSettings.storedProcedureGraphQLOperation,
                     exposeAsMcpCustomTool: entity.advancedSettings.exposeAsMcpCustomTool,
+                    mcpCustomToolEnabled: entity.advancedSettings.mcpCustomToolEnabled,
                 },
             }))
             .sort((a, b) => {
@@ -1436,10 +1446,91 @@ function createEntityWithEnabledActions(
     entity: Dab.DabEntityConfig,
     enabledActions: Dab.EntityAction[],
 ): Dab.DabEntityConfig {
+    const role = entity.advancedSettings.authorizationRole;
+    const permissions = Dab.getEntityPermissions(entity).map((permission) =>
+        permission.role === role ? { ...permission, actions: [...enabledActions] } : permission,
+    );
     return {
         ...entity,
         enabledActions: [...enabledActions],
+        advancedSettings: {
+            ...entity.advancedSettings,
+            permissions,
+        },
     };
+}
+
+function createEntityWithSurfaceEnabled(
+    entity: Dab.DabEntityConfig,
+    apiType: Dab.ApiType,
+    isEnabled: boolean,
+): Dab.DabEntityConfig {
+    const advancedSettings: Dab.EntityAdvancedSettings = { ...entity.advancedSettings };
+    switch (apiType) {
+        case Dab.ApiType.Rest:
+            advancedSettings.restEnabled = isEnabled;
+            break;
+        case Dab.ApiType.GraphQL:
+            advancedSettings.graphQLEnabled = isEnabled;
+            break;
+        case Dab.ApiType.Mcp:
+            advancedSettings.mcpEnabled = isEnabled;
+            advancedSettings.mcpDmlToolsEnabled = isEnabled;
+            if (entity.sourceType === Dab.EntitySourceType.StoredProcedure) {
+                advancedSettings.mcpCustomToolEnabled = false;
+                advancedSettings.exposeAsMcpCustomTool = false;
+            }
+            break;
+    }
+
+    return {
+        ...entity,
+        isEnabled: Dab.isEntityExposed({ ...entity, advancedSettings }),
+        advancedSettings,
+    };
+}
+
+function validatePermissionConfig(
+    permissions: Dab.EntityPermissionConfig[],
+    sourceType?: Dab.EntitySourceType,
+): { success: true } | { success: false; reason: DabApplyFailureReason; message: string } {
+    if (!Array.isArray(permissions)) {
+        return createDabValidationError("permissions must be an array.");
+    }
+
+    const allowedEntityActions =
+        sourceType === Dab.EntitySourceType.StoredProcedure
+            ? new Set<Dab.EntityAction>([Dab.EntityAction.Execute])
+            : new Set<Dab.EntityAction>([
+                  Dab.EntityAction.Create,
+                  Dab.EntityAction.Read,
+                  Dab.EntityAction.Update,
+                  Dab.EntityAction.Delete,
+              ]);
+
+    const seenRoles = new Set<Dab.AuthorizationRole>();
+    for (const permission of permissions) {
+        if (!Dab.supportedAuthorizationRoles.includes(permission.role)) {
+            return createDabValidationError(
+                "permission role must be 'anonymous' or 'authenticated'.",
+            );
+        }
+        if (seenRoles.has(permission.role)) {
+            return createDabValidationError("permission roles must be unique.");
+        }
+        seenRoles.add(permission.role);
+        if (!Array.isArray(permission.actions)) {
+            return createDabValidationError("permission actions must be an array.");
+        }
+        if (new Set(permission.actions).size !== permission.actions.length) {
+            return createDabValidationError("permission actions must be unique.");
+        }
+        if (permission.actions.some((action) => !allowedEntityActions.has(action))) {
+            return createDabValidationError("permission actions contains unsupported values.");
+        }
+    }
+
+    return { success: true };
 }
 
 function applyDabToolChange(
@@ -1498,6 +1589,12 @@ function applyDabToolChange(
             config.entities[resolvedEntity.index] = {
                 ...resolvedEntity.entity,
                 isEnabled,
+                advancedSettings: {
+                    ...resolvedEntity.entity.advancedSettings,
+                    restEnabled: isEnabled,
+                    graphQLEnabled: isEnabled,
+                    mcpEnabled: isEnabled,
+                },
             };
             return { success: true };
         }
@@ -1516,7 +1613,36 @@ function applyDabToolChange(
             config.entities[resolvedEntity.index] = {
                 ...resolvedEntity.entity,
                 isEnabled: change.isEnabled,
+                advancedSettings: {
+                    ...resolvedEntity.entity.advancedSettings,
+                    restEnabled: change.isEnabled,
+                    graphQLEnabled: change.isEnabled,
+                    mcpEnabled: change.isEnabled,
+                },
             };
+            return { success: true };
+        }
+
+        case "set_entity_surface": {
+            const resolvedEntity = resolveEntityRef(config, change.entity);
+            if (resolvedEntity.success === false) {
+                return resolvedEntity;
+            }
+            if (!allowedApiTypes.has(change.apiType)) {
+                return createDabValidationError("apiType contains unsupported values.");
+            }
+            if (change.isEnabled) {
+                const supportValidation = validateSupportedEntityForMutation(resolvedEntity.entity);
+                if (supportValidation.success === false) {
+                    return supportValidation;
+                }
+            }
+
+            config.entities[resolvedEntity.index] = createEntityWithSurfaceEnabled(
+                resolvedEntity.entity,
+                change.apiType,
+                change.isEnabled,
+            );
             return { success: true };
         }
 
@@ -1552,6 +1678,38 @@ function applyDabToolChange(
             return { success: true };
         }
 
+        case "set_entity_permissions": {
+            const resolvedEntity = resolveEntityRef(config, change.entity);
+            if (resolvedEntity.success === false) {
+                return resolvedEntity;
+            }
+            const supportValidation = validateSupportedEntityForMutation(resolvedEntity.entity);
+            if (supportValidation.success === false) {
+                return supportValidation;
+            }
+
+            const permissionValidation = validatePermissionConfig(
+                change.permissions,
+                resolvedEntity.entity.sourceType,
+            );
+            if (permissionValidation.success === false) {
+                return permissionValidation;
+            }
+
+            config.entities[resolvedEntity.index] = {
+                ...resolvedEntity.entity,
+                enabledActions: change.permissions[0]?.actions ?? [],
+                advancedSettings: {
+                    ...resolvedEntity.entity.advancedSettings,
+                    permissions: change.permissions.map((permission) => ({
+                        role: permission.role,
+                        actions: [...permission.actions],
+                    })),
+                },
+            };
+            return { success: true };
+        }
+
         case "set_column_exposed": {
             const resolvedEntity = resolveEntityRef(config, change.entity);
             if (resolvedEntity.success === false) {
@@ -1568,7 +1726,10 @@ function applyDabToolChange(
                 return resolvedColumn;
             }
 
-            if (resolvedColumn.column.isPrimaryKey && !change.isExposed) {
+            if (
+                Dab.isLogicalKeyColumn(resolvedEntity.entity, resolvedColumn.column) &&
+                !change.isExposed
+            ) {
                 return createDabValidationError("Primary key columns must remain exposed.");
             }
 
@@ -1579,6 +1740,203 @@ function applyDabToolChange(
                         ? { ...column, isExposed: change.isExposed }
                         : column,
                 ),
+            };
+            return { success: true };
+        }
+
+        case "set_field_metadata": {
+            const resolvedEntity = resolveEntityRef(config, change.entity);
+            if (resolvedEntity.success === false) {
+                return resolvedEntity;
+            }
+            const supportValidation = validateSupportedEntityForMutation(resolvedEntity.entity);
+            if (supportValidation.success === false) {
+                return supportValidation;
+            }
+            if (resolvedEntity.entity.sourceType === Dab.EntitySourceType.StoredProcedure) {
+                return createDabValidationError(
+                    "set_field_metadata cannot be used for stored procedures.",
+                );
+            }
+
+            const resolvedColumn = resolveColumnRef(resolvedEntity.entity, change.field);
+            if (resolvedColumn.success === false) {
+                return resolvedColumn;
+            }
+
+            const fieldSeed: Dab.DabFieldConfig[] =
+                resolvedEntity.entity.fields ??
+                resolvedEntity.entity.columns.map((column) => ({
+                    name: column.name,
+                    isPrimaryKey: column.isPrimaryKey,
+                }));
+            const existingFields = new Map<string, Dab.DabFieldConfig>(
+                fieldSeed.map((field) => [normalizeIdentifier(field.name), field]),
+            );
+            const currentField = existingFields.get(
+                normalizeIdentifier(resolvedColumn.column.name),
+            ) ?? {
+                name: resolvedColumn.column.name,
+            };
+            const updatedField: Dab.DabFieldConfig = {
+                ...currentField,
+                name: resolvedColumn.column.name,
+            };
+            if (change.alias !== undefined) {
+                if (change.alias === null || change.alias.trim().length === 0) {
+                    delete updatedField.alias;
+                } else {
+                    updatedField.alias = change.alias.trim();
+                }
+            }
+            if (change.description !== undefined) {
+                if (change.description === null || change.description.trim().length === 0) {
+                    delete updatedField.description;
+                } else {
+                    updatedField.description = change.description.trim();
+                }
+            }
+            if (change.isPrimaryKey !== undefined) {
+                updatedField.isPrimaryKey = change.isPrimaryKey;
+            }
+
+            const fields = resolvedEntity.entity.columns.map((column) => {
+                if (column.id === resolvedColumn.column.id) {
+                    return updatedField;
+                }
+                return (
+                    existingFields.get(normalizeIdentifier(column.name)) ?? {
+                        name: column.name,
+                        isPrimaryKey: column.isPrimaryKey,
+                    }
+                );
+            });
+
+            config.entities[resolvedEntity.index] = {
+                ...resolvedEntity.entity,
+                fields,
+                columns: resolvedEntity.entity.columns.map((column) =>
+                    column.id === resolvedColumn.column.id && updatedField.isPrimaryKey
+                        ? { ...column, isExposed: true }
+                        : column,
+                ),
+            };
+            return { success: true };
+        }
+
+        case "set_parameter_metadata": {
+            const resolvedEntity = resolveEntityRef(config, change.entity);
+            if (resolvedEntity.success === false) {
+                return resolvedEntity;
+            }
+            const supportValidation = validateSupportedEntityForMutation(resolvedEntity.entity);
+            if (supportValidation.success === false) {
+                return supportValidation;
+            }
+            if (resolvedEntity.entity.sourceType !== Dab.EntitySourceType.StoredProcedure) {
+                return createDabValidationError(
+                    "set_parameter_metadata can only be used for stored procedures.",
+                );
+            }
+
+            const parameterName = normalizeIdentifier(change.parameter?.name?.replace(/^@/, ""));
+            const parameterIndex =
+                resolvedEntity.entity.parameters?.findIndex(
+                    (parameter) => normalizeIdentifier(parameter.name) === parameterName,
+                ) ?? -1;
+            if (parameterIndex < 0 || !resolvedEntity.entity.parameters) {
+                return createDabValidationError("Parameter not found.");
+            }
+
+            const parameters = resolvedEntity.entity.parameters.map((parameter, index) => {
+                if (index !== parameterIndex) {
+                    return parameter;
+                }
+
+                const updatedParameter: Dab.DabParameterConfig = { ...parameter };
+                if (change.isRequired !== undefined) {
+                    updatedParameter.isRequired = change.isRequired;
+                }
+                if (change.clearDefault) {
+                    delete updatedParameter.defaultValue;
+                } else if (change.defaultValue !== undefined) {
+                    updatedParameter.defaultValue =
+                        change.defaultValue === null ? undefined : String(change.defaultValue);
+                }
+                if (change.description !== undefined) {
+                    if (change.description === null || change.description.trim().length === 0) {
+                        delete updatedParameter.description;
+                    } else {
+                        updatedParameter.description = change.description.trim();
+                    }
+                }
+                return updatedParameter;
+            });
+
+            config.entities[resolvedEntity.index] = {
+                ...resolvedEntity.entity,
+                parameters,
+            };
+            return { success: true };
+        }
+
+        case "set_entity_mcp": {
+            const resolvedEntity = resolveEntityRef(config, change.entity);
+            if (resolvedEntity.success === false) {
+                return resolvedEntity;
+            }
+            const supportValidation = validateSupportedEntityForMutation(resolvedEntity.entity);
+            if (supportValidation.success === false) {
+                return supportValidation;
+            }
+            if (
+                change.customToolEnabled !== undefined &&
+                resolvedEntity.entity.sourceType !== Dab.EntitySourceType.StoredProcedure
+            ) {
+                return createDabValidationError(
+                    "customToolEnabled can only be set for stored procedures.",
+                );
+            }
+
+            const advancedSettings = {
+                ...resolvedEntity.entity.advancedSettings,
+                ...(change.enabled !== undefined ? { mcpEnabled: change.enabled } : {}),
+                ...(change.dmlToolsEnabled !== undefined
+                    ? { mcpDmlToolsEnabled: change.dmlToolsEnabled }
+                    : {}),
+                ...(change.customToolEnabled !== undefined
+                    ? {
+                          mcpCustomToolEnabled: change.customToolEnabled,
+                          exposeAsMcpCustomTool: change.customToolEnabled,
+                      }
+                    : {}),
+            };
+            const isStoredProcedure =
+                resolvedEntity.entity.sourceType === Dab.EntitySourceType.StoredProcedure;
+            if (change.enabled === true && change.dmlToolsEnabled === undefined) {
+                advancedSettings.mcpDmlToolsEnabled = true;
+            }
+            if (change.enabled === false) {
+                advancedSettings.mcpEnabled = false;
+                advancedSettings.mcpDmlToolsEnabled = false;
+                if (isStoredProcedure) {
+                    advancedSettings.mcpCustomToolEnabled = false;
+                    advancedSettings.exposeAsMcpCustomTool = false;
+                }
+            } else if (!isStoredProcedure) {
+                advancedSettings.mcpEnabled = advancedSettings.mcpDmlToolsEnabled !== false;
+            } else {
+                const hasMcpTool =
+                    advancedSettings.mcpDmlToolsEnabled !== false ||
+                    (advancedSettings.mcpCustomToolEnabled ??
+                        advancedSettings.exposeAsMcpCustomTool) === true;
+                advancedSettings.mcpEnabled = hasMcpTool;
+            }
+
+            config.entities[resolvedEntity.index] = {
+                ...resolvedEntity.entity,
+                isEnabled: Dab.isEntityExposed({ ...resolvedEntity.entity, advancedSettings }),
+                advancedSettings,
             };
             return { success: true };
         }
@@ -1644,6 +2002,24 @@ function applyDabToolChange(
                             };
                         }
                         updatedSettings.authorizationRole = value;
+                        break;
+                    case "description":
+                        if (value === null || typeof value === "undefined") {
+                            delete updatedSettings.description;
+                            break;
+                        }
+                        if (typeof value !== "string") {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message: "description must be a string or null.",
+                            };
+                        }
+                        if (value.trim().length === 0) {
+                            delete updatedSettings.description;
+                        } else {
+                            updatedSettings.description = value.trim();
+                        }
                         break;
                     case "customRestPath":
                         if (value === null || typeof value === "undefined") {
@@ -1842,22 +2218,22 @@ function applyDabToolChange(
                         }
                         updatedSettings.graphQLEnabled = value;
                         break;
+                    case "mcpEnabled":
+                        if (typeof value !== "boolean") {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message: "mcpEnabled must be a boolean.",
+                            };
+                        }
+                        updatedSettings.mcpEnabled = value;
+                        break;
                     case "mcpDmlToolsEnabled":
                         if (typeof value !== "boolean") {
                             return {
                                 success: false,
                                 reason: "invalid_request",
                                 message: "mcpDmlToolsEnabled must be a boolean.",
-                            };
-                        }
-                        if (
-                            (resolvedEntity.entity.sourceType ?? Dab.EntitySourceType.Table) !==
-                            Dab.EntitySourceType.Table
-                        ) {
-                            return {
-                                success: false,
-                                reason: "invalid_request",
-                                message: "mcpDmlToolsEnabled can only be set for table entities.",
                             };
                         }
                         updatedSettings.mcpDmlToolsEnabled = value;
@@ -1947,6 +2323,29 @@ function applyDabToolChange(
                             };
                         }
                         updatedSettings.exposeAsMcpCustomTool = value;
+                        updatedSettings.mcpCustomToolEnabled = value;
+                        break;
+                    case "mcpCustomToolEnabled":
+                        if (typeof value !== "boolean") {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message: "mcpCustomToolEnabled must be a boolean.",
+                            };
+                        }
+                        if (
+                            resolvedEntity.entity.sourceType !==
+                            Dab.EntitySourceType.StoredProcedure
+                        ) {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message:
+                                    "mcpCustomToolEnabled can only be set for stored procedure entities.",
+                            };
+                        }
+                        updatedSettings.mcpCustomToolEnabled = value;
+                        updatedSettings.exposeAsMcpCustomTool = value;
                         break;
                     default:
                         return {
@@ -1970,8 +2369,40 @@ function applyDabToolChange(
                 };
             }
 
+            const patchedMcpParent = patchKeys.includes("mcpEnabled");
+            const patchedMcpDmlTools = patchKeys.includes("mcpDmlToolsEnabled");
+            const patchedMcpCustomTool =
+                patchKeys.includes("mcpCustomToolEnabled") ||
+                patchKeys.includes("exposeAsMcpCustomTool");
+            const isStoredProcedure =
+                resolvedEntity.entity.sourceType === Dab.EntitySourceType.StoredProcedure;
+            if (patchedMcpParent && updatedSettings.mcpEnabled === false) {
+                updatedSettings.mcpDmlToolsEnabled = false;
+                if (isStoredProcedure) {
+                    updatedSettings.mcpCustomToolEnabled = false;
+                    updatedSettings.exposeAsMcpCustomTool = false;
+                }
+            } else if (patchedMcpParent && updatedSettings.mcpEnabled === true) {
+                updatedSettings.mcpDmlToolsEnabled = true;
+                if (isStoredProcedure && !patchedMcpCustomTool) {
+                    updatedSettings.mcpCustomToolEnabled = false;
+                    updatedSettings.exposeAsMcpCustomTool = false;
+                }
+            } else if (!isStoredProcedure && patchedMcpDmlTools) {
+                updatedSettings.mcpEnabled = updatedSettings.mcpDmlToolsEnabled !== false;
+            } else if (isStoredProcedure && (patchedMcpDmlTools || patchedMcpCustomTool)) {
+                updatedSettings.mcpEnabled =
+                    updatedSettings.mcpDmlToolsEnabled !== false ||
+                    (updatedSettings.mcpCustomToolEnabled ??
+                        updatedSettings.exposeAsMcpCustomTool) === true;
+            }
+
             config.entities[resolvedEntity.index] = {
                 ...resolvedEntity.entity,
+                isEnabled: Dab.isEntityExposed({
+                    ...resolvedEntity.entity,
+                    advancedSettings: updatedSettings,
+                }),
                 advancedSettings: updatedSettings,
             };
 
@@ -2012,6 +2443,12 @@ function applyDabToolChange(
             config.entities = config.entities.map((entity) => ({
                 ...entity,
                 isEnabled: selectedEntityIds.has(entity.id),
+                advancedSettings: {
+                    ...entity.advancedSettings,
+                    restEnabled: selectedEntityIds.has(entity.id),
+                    graphQLEnabled: selectedEntityIds.has(entity.id),
+                    mcpEnabled: selectedEntityIds.has(entity.id),
+                },
             }));
             return { success: true };
         }
@@ -2020,6 +2457,12 @@ function applyDabToolChange(
             config.entities = config.entities.map((entity) => ({
                 ...entity,
                 isEnabled: change.isEnabled ? entity.isSupported : false,
+                advancedSettings: {
+                    ...entity.advancedSettings,
+                    restEnabled: change.isEnabled ? entity.isSupported : false,
+                    graphQLEnabled: change.isEnabled ? entity.isSupported : false,
+                    mcpEnabled: change.isEnabled ? entity.isSupported : false,
+                },
             }));
             return { success: true };
         }
