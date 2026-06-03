@@ -239,6 +239,11 @@
                     "id": "backgroundTasks",
                     "name": "%extension.backgroundTasks%",
                     "icon": "media/objectTypes/Queue.svg"
+                },
+                {
+                    "id": "mssqlCloudDeploy",
+                    "name": "%extension.cloudDeploy%",
+                    "icon": "media/objectTypes/Queue.svg"
                 }
             ]
         },
@@ -552,6 +557,12 @@
                     "command": "mssql.clearFinishedBackgroundTasks",
                     "when": "view == backgroundTasks",
                     "title": "%mssql.clearFinishedBackgroundTasks%",
+                    "group": "navigation"
+                },
+                {
+                    "command": "mssql.cloudDeploy.refreshDashboard",
+                    "when": "view == mssqlCloudDeploy",
+                    "title": "%mssql.cloudDeploy.refreshDashboard%",
                     "group": "navigation"
                 },
                 {
@@ -1567,6 +1578,17 @@
             {
                 "command": "mssql.cloudDeploy.validateEnvironment",
                 "title": "%mssql.cloudDeploy.validateEnvironment%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.cloudDeploy.refreshDashboard",
+                "title": "%mssql.cloudDeploy.refreshDashboard%",
+                "category": "MS SQL",
+                "icon": "$(refresh)"
+            },
+            {
+                "command": "mssql.cloudDeploy.revealRunArtifact",
+                "title": "%mssql.cloudDeploy.revealRunArtifact%",
                 "category": "MS SQL"
             },
             {
