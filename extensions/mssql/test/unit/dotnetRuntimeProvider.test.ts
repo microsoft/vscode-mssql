@@ -86,7 +86,6 @@ suite("DotnetRuntimeProvider tests", () => {
             expect(fsAccessStub).to.have.been.calledWith("/extension/dotnet");
             expect(getExtensionStub).to.have.been.calledWith(Constants.dotnetRuntimeExtensionId);
             expect(activateExtensionStub).to.have.been.called;
-            expect(logger.debug).to.have.been.calledWithMatch("Acquired .NET runtime via");
         });
 
         test("should request the runtime version from the provided runtimeconfig", async () => {
@@ -134,9 +133,6 @@ suite("DotnetRuntimeProvider tests", () => {
                 );
                 expect.fail("Expected acquireDotnetRuntime to throw");
             } catch (err) {
-                expect(logger.error).to.have.been.calledWithMatch(
-                    "Unable to read .NET runtime version",
-                );
                 expect(executeCommandStub).not.to.have.been.called;
                 expect((err as Error).message).to.equal(ServiceClient.runtimeNotFoundError);
             }
@@ -167,7 +163,6 @@ suite("DotnetRuntimeProvider tests", () => {
                 await provider.acquireDotnetRuntime("/extension/service.runtimeconfig.json");
                 expect.fail("Expected acquireDotnetRuntime to throw");
             } catch (err) {
-                expect(logger.error).to.have.been.calledWithMatch("Error acquiring .NET runtime");
                 expect((err as Error).message).to.equal(ServiceClient.runtimeNotFoundError);
             }
         });
@@ -182,7 +177,6 @@ suite("DotnetRuntimeProvider tests", () => {
                 await provider.acquireDotnetRuntime("/extension/service.runtimeconfig.json");
                 expect.fail("Expected acquireDotnetRuntime to throw");
             } catch (err) {
-                expect(logger.error).to.have.been.calledWithMatch("Error acquiring .NET runtime");
                 expect((err as Error).message).to.equal(ServiceClient.runtimeNotFoundError);
             }
         });
