@@ -13,6 +13,10 @@ import * as LocConstants from "../constants/locConstants";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { IConnectionProfile } from "../models/interfaces";
+import { getLogger } from "../models/logger";
+import { getErrorMessage } from "../utils/utils";
+
+const logger = getLogger("SchemaDesigner");
 
 export class SchemaDesignerWebviewManager {
     private static instance: SchemaDesignerWebviewManager;
@@ -206,7 +210,9 @@ export class SchemaDesignerWebviewManager {
                         });
                     }
                 } catch (error) {
-                    console.error(`Error disposing schema designer session: ${error}`);
+                    logger.error(
+                        `Error disposing schema designer session: ${getErrorMessage(error)}`,
+                    );
                 }
                 this.schemaDesignerCache.delete(key);
             });

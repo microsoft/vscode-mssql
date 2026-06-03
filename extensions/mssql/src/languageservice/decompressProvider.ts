@@ -9,7 +9,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { IDecompressProvider, IPackage } from "./interfaces";
 
-import { ILogger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
 
 export default class DecompressProvider implements IDecompressProvider {
     private decompressZip(pkg: IPackage, logger: ILogger): Promise<void> {

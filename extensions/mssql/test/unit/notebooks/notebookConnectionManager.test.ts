@@ -12,7 +12,7 @@ import type { IConnectionInfo, ConnectionDetails } from "vscode-mssql";
 chai.use(sinonChai);
 
 import { NotebookConnectionManager } from "../../../src/notebooks/notebookConnectionManager";
-import { ILogger } from "../../../src/models/logger";
+import { ILogger } from "../../../src/sharedInterfaces/logger";
 import ConnectionManager from "../../../src/controllers/connectionManager";
 import { ConnectionSharingService } from "../../../src/connectionSharing/connectionSharingService";
 import { ConnectionStore } from "../../../src/models/connectionStore";

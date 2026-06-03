@@ -568,7 +568,6 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 this.logger.error(
                     `Error listing databases: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
                 );
-                console.error("Error listing databases:", error);
 
                 endActivity.endFailed(
                     new Error(

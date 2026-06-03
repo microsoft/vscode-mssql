@@ -12,7 +12,8 @@ import {
     FileBrowserOpenNotification,
     FileBrowserOpenRequest,
 } from "../models/contracts/fileBrowser";
-import { ILogger, logger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger } from "../models/logger";
 import { Deferred } from "../protocol";
 import * as fb from "../sharedInterfaces/fileBrowser";
 
@@ -207,7 +208,7 @@ export class FileBrowserService {
             this.fileBrowserState = undefined;
             return result;
         } catch (e) {
-            this._client.logger.error(e);
+            this._logger.error("Failed to close file browser", e);
             throw e;
         }
     }

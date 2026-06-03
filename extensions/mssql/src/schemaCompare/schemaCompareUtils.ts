@@ -15,7 +15,7 @@ import {
     TaskExecutionMode,
 } from "../sharedInterfaces/schemaCompare";
 import * as locConstants from "../constants/locConstants";
-import { ILogger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
 /**
  * A constant string representing the command to publish schema compare changes
  * for SQL database projects.

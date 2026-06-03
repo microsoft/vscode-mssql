@@ -17,7 +17,7 @@ import {
 } from "vscode-languageclient";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as Utils from "../models/utils";
-import { ILogger, logger as baseLogger } from "../models/logger";
+import { getLogger } from "../models/logger";
 import * as Constants from "../constants/constants";
 import ServerProvider from "./server";
 import ServiceDownloadProvider from "./serviceDownloadProvider";
@@ -40,6 +40,7 @@ import { getRuntimeConfigPath, ServiceExecutable } from "./serviceExecutablePath
 
 const STS_OVERRIDE_ENV_VAR = "MSSQL_SQLTOOLSSERVICE";
 const SERVICE_LAUNCH_TELEMETRY_VIEW = TelemetryViews.ServiceClient;
+const logger = getLogger("SqlToolsServiceClient");
 
 type ServiceLaunchType =
     | "override"
@@ -152,13 +153,8 @@ export default class SqlToolsServiceClient {
         return this._client.diagnostics;
     }
 
-    public get logger(): ILogger {
-        return this._logger;
-    }
-
     constructor(
         private _server: ServerProvider,
-        private _logger: ILogger,
         private _statusView: StatusView,
         private _vscodeWrapper: VscodeWrapper,
         private _dotnetRuntimeProvider: DotnetRuntimeProvider,
@@ -170,24 +166,23 @@ export default class SqlToolsServiceClient {
             let config = new ExtConfig();
             let vscodeWrapper = new VscodeWrapper();
 
-            let logger = baseLogger.withPrefix("SQL Tools Service");
+            let serviceLogger = getLogger("SQL Tools Service");
 
             let serverStatusView = new ServerStatusView();
             let downloadHelper = new DownloadHelper();
             let decompressProvider = new DecompressProvider();
             let downloadProvider = new ServiceDownloadProvider(
                 config,
-                logger,
+                serviceLogger,
                 serverStatusView,
                 downloadHelper,
                 decompressProvider,
             );
             let serviceProvider = new ServerProvider(downloadProvider, serverStatusView);
             let statusView = new StatusView(vscodeWrapper);
-            let dotnetRuntimeProvider = new DotnetRuntimeProvider(logger);
+            let dotnetRuntimeProvider = new DotnetRuntimeProvider(serviceLogger);
             SqlToolsServiceClient._instance = new SqlToolsServiceClient(
                 serviceProvider,
-                logger,
                 statusView,
                 vscodeWrapper,
                 dotnetRuntimeProvider,
@@ -199,7 +194,7 @@ export default class SqlToolsServiceClient {
     // initialize the SQL Tools Service Client instance by launching
     // out-of-proc server through the LanguageClient
     public async initialize(context: vscode.ExtensionContext): Promise<void> {
-        this._logger.debug("Initializing SQL Tools Service Client for mssql extension");
+        logger.debug("Initializing SQL Tools Service Client for mssql extension");
         this._logPath = context.logUri.fsPath;
         const platformInfo = await PlatformInformation.getCurrent();
         return this.initializeForPlatform(platformInfo, context);
@@ -211,13 +206,11 @@ export default class SqlToolsServiceClient {
     ): Promise<void> {
         if (!platformInfo.isValidRuntime) {
             const unsupportedPlatformMessage = `Unsupported platform: ${platformInfo.platform} and architecture: ${platformInfo.architecture}`;
-            this._logger.error(unsupportedPlatformMessage);
+            logger.error(unsupportedPlatformMessage);
             throw new Error(unsupportedPlatformMessage);
         }
 
-        this._logger.debug(
-            `Detected runtime: ${platformInfo.platform} ${platformInfo.architecture}`,
-        );
+        logger.debug(`Detected runtime: ${platformInfo.platform} ${platformInfo.architecture}`);
 
         const launchServer = async (serverInstallFolder: string, runtime: Runtime) => {
             this._sqlToolsServicePath = serverInstallFolder;
@@ -241,7 +234,7 @@ export default class SqlToolsServiceClient {
                 return;
             } catch (err) {
                 const errorMessage = `Failed to launch SQL Tools Service with overridden path: ${stsFolderOverride} ${getErrorMessage(err)}`;
-                this._logger.error(errorMessage);
+                logger.error(errorMessage);
                 vscode.window.showErrorMessage(errorMessage);
                 /**
                  * We shouldn't fall back to other launch attempts if the override env variable is set,
@@ -260,7 +253,7 @@ export default class SqlToolsServiceClient {
                 platformInfo.runtimeId,
             );
             if (osSpecificServerPath) {
-                this._logger.debug(
+                logger.debug(
                     `Found OS-specific SQL Tools Service install folder: ${osSpecificServerPath}`,
                 );
                 await launchServer(osSpecificServerPath, platformInfo.runtimeId);
@@ -272,7 +265,7 @@ export default class SqlToolsServiceClient {
                 return;
             }
         } catch (err) {
-            this._logger.error(
+            logger.error(
                 `Failed to launch SQL Tools Service with OS-specific runtime: ${getErrorMessage(err)}`,
             );
         }
@@ -287,19 +280,17 @@ export default class SqlToolsServiceClient {
                 : "portableDownloaded";
             if (!portableServerPath) {
                 this.showOutputChannelPreservingFocus();
-                this._logger.debug(`Could not find portable SQL Tools Service executable.`);
+                logger.debug(`Could not find portable SQL Tools Service executable.`);
                 portableServerPath = await this._server.downloadAndGetServerInstallFolder(
                     Runtime.Portable,
                 );
             }
-            this._logger.debug(
-                `Found portable SQL Tools Service install folder: ${portableServerPath}`,
-            );
+            logger.debug(`Found portable SQL Tools Service install folder: ${portableServerPath}`);
             await launchServer(portableServerPath, Runtime.Portable);
             this.sendServiceLaunchTelemetry(launchType, Runtime.Portable, platformInfo);
             return;
         } catch (err) {
-            this._logger.error(
+            logger.error(
                 `Failed to launch SQL Tools Service with portable runtime: ${getErrorMessage(err)}`,
             );
         }
@@ -321,7 +312,7 @@ export default class SqlToolsServiceClient {
             );
             return;
         } catch (err) {
-            this.logger.error(
+            logger.error(
                 `Failed to download and launch SQL Tools Service: ${getErrorMessage(err)}`,
             );
             sendErrorEvent(
@@ -366,11 +357,11 @@ export default class SqlToolsServiceClient {
         context: vscode.ExtensionContext,
     ): Promise<void> {
         if (serverFolder === undefined) {
-            this.logger.error("Service folder path is undefined.");
+            logger.error("Service folder path is undefined.");
             throw new Error("Service path is undefined.");
         }
 
-        this._logger.debug(
+        logger.debug(
             `Attempting to launch SQL Tools Service from install folder: ${serverFolder} for runtime: ${runtime}`,
         );
 
@@ -380,7 +371,7 @@ export default class SqlToolsServiceClient {
             ServiceExecutable.MicrosoftSqlToolsServiceLayer,
         );
         if (!sqlToolsServicePath) {
-            this.logger.debug("Sql Tools Service executable was not found in expected location.");
+            logger.debug("Sql Tools Service executable was not found in expected location.");
             throw new Error("Sql Tools Service executable was not found in expected location.");
         }
         this.client = await this.createLanguageClient(sqlToolsServicePath);
@@ -391,7 +382,7 @@ export default class SqlToolsServiceClient {
             ServiceExecutable.SqlToolsResourceProviderService,
         );
         if (!resourceProviderServicePath) {
-            this.logger.debug(
+            logger.debug(
                 "Resource Provider Service executable was not found in expected location.",
             );
             throw new Error(
@@ -440,7 +431,7 @@ export default class SqlToolsServiceClient {
                     // volume manageable while preserving the diagnostic signal
                     // for the notebook IntelliSense issue.
                     if (count === 0 || scheme === "vscode-notebook-cell") {
-                        this._logger.debug(
+                        logger.debug(
                             `Completion count=${count} scheme=${scheme} triggerKind=${context.triggerKind} uri=${document.uri.toString()}`,
                         );
                     }
@@ -492,7 +483,7 @@ export default class SqlToolsServiceClient {
                 }
             })();
             if (scheme === "vscode-notebook-cell" || scheme === "unknown") {
-                this._logger.debug(
+                logger.debug(
                     `LanguageServiceStatus scheme=${scheme} status=${event.status} ownerUri=${event.ownerUri}`,
                 );
             }
@@ -505,7 +496,7 @@ export default class SqlToolsServiceClient {
         serviceRuntime: Runtime,
         platformInfo: PlatformInformation,
     ): void {
-        this._logger.debug(
+        logger.debug(
             `Sending service launch telemetry: launchType=${launchType}, serviceRuntime=${serviceRuntime}, detectedRuntime=${platformInfo?.runtimeId}, platform=${platformInfo?.platform}, architecture=${platformInfo?.architecture}`,
         );
         sendActionEvent(SERVICE_LAUNCH_TELEMETRY_VIEW, TelemetryActions.ServiceStarted, {
@@ -544,7 +535,7 @@ export default class SqlToolsServiceClient {
                     undefined,
                     undefined,
                 );
-                this._logger.error(
+                logger.error(
                     `Failed to acquire .NET runtime for launching service: ${getErrorMessage(runtimeError)}`,
                 );
                 throw runtimeError;
@@ -574,6 +565,7 @@ export default class SqlToolsServiceClient {
                 servicePath,
                 this._logPath,
                 "sqltools.log",
+                logger,
             ),
         );
 
@@ -638,6 +630,7 @@ export default class SqlToolsServiceClient {
                 executablePath,
                 this._logPath,
                 "resourceprovider.log",
+                logger,
             ),
         ];
         return {

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ILogger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
 import { HttpDownloadError, HttpClientCore, IDownloadFileResult } from "../http/httpClientCore";
 import { IPackage, IStatusView, PackageError } from "./interfaces";
 
