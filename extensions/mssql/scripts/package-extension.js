@@ -14,7 +14,7 @@ const args = process.argv.slice(2);
 let isOnline = args.includes("--online");
 const isOffline = args.includes("--offline");
 const skipServiceInstall = args.includes("--skip-service-install");
-const skipMcpInstall = args.includes("--skip-mcp-install");
+const packageMcp = args.includes("--package-mcp");
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 
 // Platform configurations for offline packaging
@@ -160,38 +160,34 @@ function packageExtension(packageName = null) {
  * Package extension for online distribution
  */
 async function packageOnline(options = {}) {
-    const { skipServiceInstall = false, skipMcpInstall = false } = options;
+    const { skipServiceInstall = false, packageMcp = false } = options;
 
     logger.header("Package extension (Online Mode)");
-    logger.info("Creating extension package with portable SQL Tools Service and SQL Tools MCP");
+    logger.info(
+        `Creating extension package with portable SQL Tools Service${
+            packageMcp ? " and SQL Tools MCP" : ""
+        }`,
+    );
     try {
         const platform = require("../out/src/models/platform");
-        if (skipServiceInstall && skipMcpInstall) {
+
+        if (skipServiceInstall) {
             logger.info(
-                "Skipping SQL Tools Service and SQL Tools MCP installs and using existing files in the install folders",
+                "Skipping SQL Tools Service install and using existing service files in the install folder",
             );
-        } else {
-            if (skipServiceInstall) {
-                logger.info(
-                    "Skipping SQL Tools Service install and using existing service files in the install folder",
-                );
-            }
-
-            if (skipMcpInstall) {
-                logger.info(
-                    "Skipping SQL Tools MCP install and using existing MCP files in the install folder",
-                );
-            }
-
-            // Download portable (framework-dependent) SQL Tools Service
-            if (!skipServiceInstall) {
-                await installSqlToolsService(platform.Runtime.Portable);
-            }
-
-            if (!skipMcpInstall) {
-                await installSqlToolsMcpPayload(platform.Runtime.Portable);
-            }
         }
+
+        // Download portable (framework-dependent) SQL Tools Service
+        if (!skipServiceInstall) {
+            await installSqlToolsService(platform.Runtime.Portable);
+        }
+
+        if (packageMcp) {
+            await installSqlToolsMcpPayload(platform.Runtime.Portable);
+        } else {
+            await cleanMcpInstallFolder();
+        }
+
         // Package the extension
         packageExtension();
         logger.success("Online packaging completed successfully!");
@@ -204,8 +200,9 @@ async function packageOnline(options = {}) {
 /**
  * Package extension for a specific platform (offline)
  */
-async function packageOfflinePlatform(platformConfig, packageName) {
+async function packageOfflinePlatform(platformConfig, packageName, options = {}) {
     const { rid, runtime } = platformConfig;
+    const { packageMcp = false } = options;
 
     logger.step(`Packaging for ${rid}...`);
 
@@ -218,7 +215,9 @@ async function packageOfflinePlatform(platformConfig, packageName) {
         }
         // Install native (self-contained) service for this platform
         await installSqlToolsService(runtimeValue);
-        await installSqlToolsMcpPayload(runtimeValue);
+        if (packageMcp) {
+            await installSqlToolsMcpPayload(runtimeValue);
+        }
         // Package with platform-specific name
         const platformPackageName = `${packageName}-${rid}.vsix`;
         packageExtension(platformPackageName);
@@ -232,7 +231,9 @@ async function packageOfflinePlatform(platformConfig, packageName) {
 /**
  * Package extension for offline distribution (all platforms)
  */
-async function packageOffline() {
+async function packageOffline(options = {}) {
+    const { packageMcp = false } = options;
+
     logger.header("Package extension (Offline Mode)");
 
     try {
@@ -256,7 +257,7 @@ async function packageOffline() {
                 );
 
                 try {
-                    await packageOfflinePlatform(platformConfig, packageName);
+                    await packageOfflinePlatform(platformConfig, packageName, { packageMcp });
                 } catch (error) {
                     logger.warning(`Skipping ${platformConfig.rid}: ${error.message}`);
                 }
@@ -286,20 +287,21 @@ Modes:
   --online     Package with portable SQL Tools Service (requires dotnet runtime at runtime). Default if not specified.
   --offline    Package with native self-contained SQL Tools Service for each platform (no dotnet needed).
   --skip-service-install  Online mode only. Reuse existing SQL Tools Service files and skip service install.
-  --skip-mcp-install      Online mode only. Reuse existing SQL Tools MCP files and skip MCP install.
+  --package-mcp           Install and include SQL Tools MCP payloads. Without this flag, MCP payloads are removed before packaging.
   --help       Show this help message
 
 Examples:
   node package-extension.js [--online]  # Create online package. Default behavior if none specified
   node package-extension.js --online    # Create online package
+  node package-extension.js --online --package-mcp  # Create online package with portable SQL Tools MCP
   node package-extension.js --online --skip-service-install  # Package online using existing service files
-  node package-extension.js --online --skip-mcp-install      # Package online using existing MCP files
   node package-extension.js --offline   # Create offline packages for all platforms
+  node package-extension.js --offline --package-mcp  # Create offline packages with platform SQL Tools MCP payloads
 
 Requirements:
     - Install workspace dependencies from the repository root: npm ci
     - Extension must be built first: npm run build -- --target mssql
-    - SQLTOOLS_MCP_NUPKG_DIR must point to downloaded SQL Tools MCP nupkgs unless using --skip-mcp-install
+    - SQLTOOLS_MCP_NUPKG_DIR must point to downloaded SQL Tools MCP nupkgs when using --package-mcp
 `);
 }
 
@@ -324,18 +326,16 @@ async function main() {
         process.exit(1);
     }
 
-    if ((skipServiceInstall || skipMcpInstall) && isOffline) {
-        logger.error(
-            "--skip-service-install and --skip-mcp-install can only be used with --online mode",
-        );
+    if (skipServiceInstall && isOffline) {
+        logger.error("--skip-service-install can only be used with --online mode");
         process.exit(1);
     }
 
     try {
         if (isOnline) {
-            await packageOnline({ skipServiceInstall, skipMcpInstall });
+            await packageOnline({ skipServiceInstall, packageMcp });
         } else if (isOffline) {
-            await packageOffline();
+            await packageOffline({ packageMcp });
         }
 
         logger.success("Packaging script completed successfully!");
