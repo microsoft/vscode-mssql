@@ -23,6 +23,8 @@ export interface CloudDeployHubContextProps {
     refresh: () => void;
     revealArtifact: (runId: string) => void;
     deleteRun: (runId: string) => void;
+    compareRuns: (runIdA: string, runIdB: string) => void;
+    setDefaultEnvironment: (envId: string | undefined) => void;
 }
 
 const CloudDeployHubContext = createContext<CloudDeployHubContextProps | undefined>(undefined);
@@ -52,6 +54,12 @@ export const CloudDeployHubStateProvider: React.FC<ProviderProps> = ({ children 
             },
             deleteRun: (runId) => {
                 void extensionRpc.action("deleteRun", { runId });
+            },
+            compareRuns: (runIdA, runIdB) => {
+                void extensionRpc.action("compareRuns", { runIdA, runIdB });
+            },
+            setDefaultEnvironment: (envId) => {
+                void extensionRpc.action("setDefaultEnvironment", { envId });
             },
         }),
         [extensionRpc],

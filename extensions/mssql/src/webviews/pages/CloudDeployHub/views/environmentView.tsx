@@ -3,9 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, Link, makeStyles, Text, tokens } from "@fluentui/react-components";
-import { ArrowLeftRegular } from "@fluentui/react-icons";
+import { Badge, Button, Link, makeStyles, Text, tokens } from "@fluentui/react-components";
+import { ArrowLeftRegular, StarFilled, StarRegular } from "@fluentui/react-icons";
 import * as React from "react";
+import { RunStatus } from "../../../../cloudDeploy/runs/types";
 import { locConstants } from "../../../common/locConstants";
 import { useCloudDeployHubContext } from "../cloudDeployHubStateProvider";
 import { useCloudDeployHubSelector } from "../cloudDeployHubSelector";
@@ -20,6 +21,39 @@ const useStyles = makeStyles({
         fontSize: "18px",
         fontWeight: 600,
         marginBottom: "4px",
+    },
+    titleRow: {
+        display: "flex",
+        alignItems: "center",
+        gap: "10px",
+        marginBottom: "4px",
+    },
+    statRow: {
+        display: "flex",
+        gap: "12px",
+        marginBottom: "20px",
+        flexWrap: "wrap",
+    },
+    statCard: {
+        flex: "1 1 140px",
+        minWidth: "140px",
+        padding: "10px 12px",
+        borderRadius: "4px",
+        backgroundColor: tokens.colorNeutralBackground2,
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
+    },
+    statLabel: {
+        display: "block",
+        fontSize: "11px",
+        textTransform: "uppercase",
+        letterSpacing: "0.04em",
+        color: tokens.colorNeutralForeground3,
+        marginBottom: "6px",
+    },
+    statValue: {
+        display: "block",
+        fontSize: "16px",
+        fontWeight: 600,
     },
     description: {
         display: "block",
@@ -75,10 +109,12 @@ const useStyles = makeStyles({
 
 export const EnvironmentView: React.FC = () => {
     const classes = useStyles();
-    const { navigate } = useCloudDeployHubContext();
+    const { navigate, setDefaultEnvironment } = useCloudDeployHubContext();
     const env = useCloudDeployHubSelector((s) => s.selectedEnvironment);
     const selectedEnvId = useCloudDeployHubSelector((s) => s.selectedEnvId);
     const allRuns = useCloudDeployHubSelector((s) => s.runs);
+    const liveRuns = useCloudDeployHubSelector((s) => s.liveRuns);
+    const defaultEnvId = useCloudDeployHubSelector((s) => s.defaultEnvId);
     const strings = locConstants.cloudDeployHub;
 
     if (!env) {
@@ -93,6 +129,12 @@ export const EnvironmentView: React.FC = () => {
     }
 
     const envRuns = allRuns.filter((r) => r.envId === env.id);
+    const isDefault = defaultEnvId === env.id;
+    const pendingCount = liveRuns.filter((r) => r.environmentId === env.id).length;
+    const latestStatus = envRuns.length > 0 ? envRuns[0].status : undefined;
+    const passedCount = envRuns.filter((r) => r.status === RunStatus.Passed).length;
+    const passRate =
+        envRuns.length > 0 ? Math.round((passedCount / envRuns.length) * 100) : undefined;
 
     return (
         <div>
@@ -105,12 +147,53 @@ export const EnvironmentView: React.FC = () => {
                     {strings.backToList}
                 </Button>
             </div>
-            <Text as="h2" className={classes.heading}>
-                {env.name}
-            </Text>
+            <div className={classes.titleRow}>
+                <Text as="h2" className={classes.heading}>
+                    {env.name}
+                </Text>
+                {isDefault ? (
+                    <Badge appearance="filled" color="brand" icon={<StarFilled />}>
+                        {strings.defaultBadge}
+                    </Badge>
+                ) : null}
+                <Button
+                    appearance="subtle"
+                    size="small"
+                    icon={isDefault ? <StarFilled /> : <StarRegular />}
+                    onClick={() => setDefaultEnvironment(isDefault ? undefined : env.id)}>
+                    {isDefault ? strings.clearDefault : strings.setAsDefault}
+                </Button>
+            </div>
             {env.description ? (
                 <Text className={classes.description}>{env.description}</Text>
             ) : null}
+
+            <div className={classes.statRow}>
+                <div className={classes.statCard}>
+                    <span className={classes.statLabel}>{strings.statCardCurrent}</span>
+                    <span className={classes.statValue}>
+                        {latestStatus !== undefined ? (
+                            <StatusBadge status={latestStatus} />
+                        ) : (
+                            strings.statCardNoRuns
+                        )}
+                    </span>
+                </div>
+                <div className={classes.statCard}>
+                    <span className={classes.statLabel}>{strings.statCardPending}</span>
+                    <span className={classes.statValue}>
+                        {strings.statCardPendingCount(pendingCount)}
+                    </span>
+                </div>
+                <div className={classes.statCard}>
+                    <span className={classes.statLabel}>{strings.statCardHealth}</span>
+                    <span className={classes.statValue}>
+                        {passRate !== undefined
+                            ? strings.statCardHealthValue(passRate, envRuns.length)
+                            : strings.statCardNoRuns}
+                    </span>
+                </div>
+            </div>
 
             <div className={classes.metaGrid}>
                 <span className={classes.metaLabel}>{strings.environmentSourceLabel}</span>

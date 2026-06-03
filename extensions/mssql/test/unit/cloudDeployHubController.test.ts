@@ -47,19 +47,30 @@ class FakeEnvironmentStore {
         updated: readonly Environment[];
         removed: readonly string[];
     }>();
+    private readonly _defaultEmitter = new vscode.EventEmitter<string | undefined>();
     public readonly onDidChangeEnvironments = this._emitter.event;
+    public readonly onDidChangeDefaultEnvironment = this._defaultEmitter.event;
     public envs: Environment[] = [];
+    private _defaultEnvId: string | undefined;
     public list(): readonly Environment[] {
         return this.envs.slice();
     }
     public get(id: string): Environment | undefined {
         return this.envs.find((e) => e.id === id);
     }
+    public getDefaultEnvironmentId(): string | undefined {
+        return this._defaultEnvId;
+    }
+    public async setDefaultEnvironmentId(id: string | undefined): Promise<void> {
+        this._defaultEnvId = id;
+        this._defaultEmitter.fire(id);
+    }
     public fire(): void {
         this._emitter.fire({ added: [], updated: [], removed: [] });
     }
     public dispose(): void {
         this._emitter.dispose();
+        this._defaultEmitter.dispose();
     }
 }
 
@@ -357,6 +368,72 @@ suite("CloudDeploy CloudDeployHubController", () => {
             },
         });
         expect(c.state.liveRuns).to.have.lengthOf(0);
+    });
+
+    test("compareRuns reducer hydrates a comparison and navigates to the compare page", async () => {
+        await seedRun("cmp-a", "dev", "Dev", 1_000);
+        await seedRun("cmp-b", "dev", "Dev", 2_000);
+        await runStore.scan();
+        const c = createController({ kind: "runList" });
+        const reducer = getReducer(c, "compareRuns");
+        const next = await reducer(c.state, { runIdA: "cmp-a", runIdB: "cmp-b" });
+        expect(next.currentPage).to.equal("compare");
+        expect(next.comparison?.runIdA).to.equal("cmp-a");
+        expect(next.comparison?.runIdB).to.equal("cmp-b");
+        expect(next.errorMessage).to.equal(undefined);
+    });
+
+    test("compareRuns reducer surfaces an error when a run cannot be loaded", async () => {
+        await seedRun("cmp-only", "dev", "Dev", 1_000);
+        await runStore.scan();
+        const c = createController({ kind: "runList" });
+        const reducer = getReducer(c, "compareRuns");
+        const next = await reducer(c.state, { runIdA: "cmp-only", runIdB: "ghost" });
+        expect(next.comparison).to.equal(undefined);
+        expect(next.errorMessage).to.be.a("string").and.not.empty;
+    });
+
+    test("setDefaultEnvironment reducer persists and reflects the default env id", async () => {
+        envStore.envs = [makeEnvironment({ id: "dev", name: "Dev" })];
+        const c = createController({ kind: "runList" });
+        const reducer = getReducer(c, "setDefaultEnvironment");
+        const next = await reducer(c.state, { envId: "dev" });
+        expect(next.defaultEnvId).to.equal("dev");
+        expect(envStore.getDefaultEnvironmentId()).to.equal("dev");
+    });
+
+    test("setDefaultEnvironment reducer clears the default when given undefined", async () => {
+        envStore.envs = [makeEnvironment({ id: "dev", name: "Dev" })];
+        await envStore.setDefaultEnvironmentId("dev");
+        const c = createController({ kind: "runList" });
+        const reducer = getReducer(c, "setDefaultEnvironment");
+        const next = await reducer(c.state, { envId: undefined });
+        expect(next.defaultEnvId).to.equal(undefined);
+        expect(envStore.getDefaultEnvironmentId()).to.equal(undefined);
+    });
+
+    test("initial state carries the persisted default env id", async () => {
+        envStore.envs = [makeEnvironment({ id: "dev", name: "Dev" })];
+        await envStore.setDefaultEnvironmentId("dev");
+        const c = createController({ kind: "runList" });
+        expect(c.state.defaultEnvId).to.equal("dev");
+    });
+
+    test("default environment change re-pulls the default into state", async () => {
+        envStore.envs = [makeEnvironment({ id: "dev", name: "Dev" })];
+        const c = createController({ kind: "runList" });
+        expect(c.state.defaultEnvId).to.equal(undefined);
+        await envStore.setDefaultEnvironmentId("dev");
+        expect(c.state.defaultEnvId).to.equal("dev");
+    });
+
+    test("navigate to run hydrates selectedRunEvents as an array", async () => {
+        await seedRun("run-ev", "dev", "Dev", 1_000);
+        await runStore.scan();
+        const c = createController({ kind: "runList" });
+        const reducer = getReducer(c, "navigate");
+        const next = await reducer(c.state, { page: "run", runId: "run-ev" });
+        expect(next.selectedRunEvents).to.be.an("array");
     });
 
     test("dispose clears the singleton so the next getOrCreate constructs a new instance", () => {

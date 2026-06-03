@@ -3109,6 +3109,70 @@ export class LocConstants {
                     args: [seconds],
                     comment: ["{0} is a duration in whole seconds"],
                 }),
+            // Run detail tabs (D3-Part-2 feature C).
+            tabSummary: l10n.t("Summary"),
+            tabLogs: l10n.t("Logs"),
+            // Event timeline (D3-Part-2 feature B).
+            timelineHeading: l10n.t("Event timeline"),
+            timelineEmpty: l10n.t("This run captured no diagnostic events."),
+            timelineColTime: l10n.t("Time"),
+            timelineColCategory: l10n.t("Category"),
+            timelineColType: l10n.t("Type"),
+            timelineColDetails: l10n.t("Details"),
+            timelineRelativeMs: (ms: number) =>
+                l10n.t({
+                    message: "+{0}ms",
+                    args: [ms],
+                    comment: ["{0} is milliseconds elapsed since the first event"],
+                }),
+            // Environment stat cards (D3-Part-2 feature D).
+            statCardCurrent: l10n.t("Latest run"),
+            statCardPending: l10n.t("In progress"),
+            statCardHealth: l10n.t("Pass rate"),
+            statCardNoRuns: l10n.t("No runs"),
+            statCardPendingCount: (count: number) =>
+                l10n.t({
+                    message: "{0} running",
+                    args: [count],
+                    comment: ["{0} is the number of in-flight runs"],
+                }),
+            statCardHealthValue: (percent: number, total: number) =>
+                l10n.t({
+                    message: "{0}% of {1}",
+                    args: [percent, total],
+                    comment: [
+                        "{0} is the pass-rate percentage",
+                        "{1} is the number of runs the rate is computed over",
+                    ],
+                }),
+            // Default environment (D3-Part-2 feature E).
+            setAsDefault: l10n.t("Set as default"),
+            clearDefault: l10n.t("Clear default"),
+            defaultBadge: l10n.t("Default"),
+            // Run comparison (D3-Part-2 feature A).
+            compareHeading: l10n.t("Compare runs"),
+            compareSelectHint: l10n.t("Select two runs to compare."),
+            compareSelectedCount: (count: number) =>
+                l10n.t({
+                    message: "Compare selected ({0})",
+                    args: [count],
+                    comment: ["{0} is the number of currently selected runs (0, 1 or 2)"],
+                }),
+            compareColValidation: l10n.t("Validation"),
+            compareColRunA: l10n.t("Run A"),
+            compareColRunB: l10n.t("Run B"),
+            compareColFindings: l10n.t("Findings"),
+            compareColDuration: l10n.t("Duration"),
+            compareOnlyA: l10n.t("Only in A"),
+            compareOnlyB: l10n.t("Only in B"),
+            compareChanged: l10n.t("Changed"),
+            compareUnchanged: l10n.t("Unchanged"),
+            compareDeltaMs: (delta: number) =>
+                l10n.t({
+                    message: "{0}ms",
+                    args: [delta],
+                    comment: ["{0} is a signed duration delta in milliseconds"],
+                }),
         };
     }
 }

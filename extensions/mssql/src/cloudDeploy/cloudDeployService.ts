@@ -74,6 +74,13 @@ export interface CloudDeployServiceOptions {
 
 const OUTPUT_CHANNEL_NAME = "Cloud Deploy";
 
+/**
+ * Maximum number of run artifacts retained in `.mssql/runs/`. Older runs are
+ * pruned by the `RunStore` on each scan so the directory does not grow without
+ * bound. Resolves D3-Part-2 TBD-3 (run retention).
+ */
+const DEFAULT_RUN_RETENTION = 50;
+
 export class CloudDeployService implements vscode.Disposable {
     public readonly diagnostics: DiagnosticEventBus;
     public readonly environments: EnvironmentStore | undefined;
@@ -106,7 +113,9 @@ export class CloudDeployService implements vscode.Disposable {
         let runsDirectory: string | undefined;
         if (workspaceFolder !== undefined) {
             runsDirectory = path.join(workspaceFolder.uri.fsPath, ".mssql", "runs");
-            this._runStore = new RunStore(new LocalRunsDirectoryReader(runsDirectory), reader);
+            this._runStore = new RunStore(new LocalRunsDirectoryReader(runsDirectory), reader, {
+                maxRuns: DEFAULT_RUN_RETENTION,
+            });
             const pattern = new vscode.RelativePattern(workspaceFolder, ".mssql/runs/*.cdrun.zip");
             this._runsWatcher = vscode.workspace.createFileSystemWatcher(pattern);
             this._runsWatcher.onDidCreate(() => this._scheduleScan());

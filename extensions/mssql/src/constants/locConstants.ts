@@ -4083,6 +4083,8 @@ export class CloudDeployDashboard {
             args: [reason],
             comment: ["{0} is the underlying error message"],
         });
+
+    public static compareLoadFailed = l10n.t("Failed to load one or both runs for comparison.");
 }
 
 function statusLabel(status: RunStatus): string {

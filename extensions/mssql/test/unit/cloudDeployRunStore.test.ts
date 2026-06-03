@@ -201,6 +201,164 @@ suite("CloudDeploy RunStore", () => {
     });
 });
 
+suite("CloudDeploy RunStore retention", () => {
+    let root: string;
+    let provider: LocalFileProvider;
+    let writer: RunArtifactWriter;
+    let reader: RunArtifactReader;
+    let dirReader: LocalRunsDirectoryReader;
+
+    setup(async () => {
+        root = await fs.mkdtemp(path.join(os.tmpdir(), "mssql-runstore-retention-"));
+        provider = new LocalFileProvider();
+        writer = new RunArtifactWriter(provider);
+        reader = new RunArtifactReader(provider);
+        dirReader = new LocalRunsDirectoryReader(root);
+    });
+
+    teardown(async () => {
+        await fs.rm(root, { recursive: true, force: true });
+    });
+
+    async function seedRun(fileName: string, startedAtMs: number): Promise<string> {
+        const record = makeValidRunRecord({
+            runId: `run-${startedAtMs}`,
+            startedAtMs,
+            endedAtMs: startedAtMs + 1_000,
+        });
+        await writer.write(record, undefined, path.join(root, fileName));
+        return record.runId;
+    }
+
+    test("keeps every run when maxRuns is not set", async () => {
+        const store = new RunStore(dirReader, reader);
+        try {
+            await seedRun("a.cdrun.zip", 1_000);
+            await seedRun("b.cdrun.zip", 2_000);
+            await seedRun("c.cdrun.zip", 3_000);
+            await store.scan();
+            expect(store.list().length).to.equal(3);
+        } finally {
+            store.dispose();
+        }
+    });
+
+    test("keeps every run when maxRuns is zero (disabled)", async () => {
+        const store = new RunStore(dirReader, reader, { maxRuns: 0 });
+        try {
+            await seedRun("a.cdrun.zip", 1_000);
+            await seedRun("b.cdrun.zip", 2_000);
+            await store.scan();
+            expect(store.list().length).to.equal(2);
+        } finally {
+            store.dispose();
+        }
+    });
+
+    test("prunes the oldest runs beyond maxRuns, keeping the newest", async () => {
+        const store = new RunStore(dirReader, reader, { maxRuns: 2 });
+        try {
+            await seedRun("a.cdrun.zip", 1_000);
+            await seedRun("b.cdrun.zip", 2_000);
+            await seedRun("c.cdrun.zip", 3_000);
+            await store.scan();
+            const ids = store.list().map((e) => e.runId);
+            expect(ids).to.have.length(2);
+            expect(ids).to.deep.equal(["run-3000", "run-2000"]);
+        } finally {
+            store.dispose();
+        }
+    });
+
+    test("unlinks pruned artifact files from disk", async () => {
+        const store = new RunStore(dirReader, reader, { maxRuns: 1 });
+        try {
+            await seedRun("a.cdrun.zip", 1_000);
+            await seedRun("b.cdrun.zip", 2_000);
+            await store.scan();
+            const remaining = await dirReader.list();
+            expect(remaining.length).to.equal(1);
+            expect(remaining[0].endsWith("b.cdrun.zip")).to.be.true;
+        } finally {
+            store.dispose();
+        }
+    });
+});
+
+suite("CloudDeploy RunStore readEvents", () => {
+    let provider: FakeFileProvider;
+    let writer: RunArtifactWriter;
+    let reader: RunArtifactReader;
+    let dirReader: FakeDirectoryReader;
+    let store: RunStore;
+
+    setup(() => {
+        provider = new FakeFileProvider();
+        writer = new RunArtifactWriter(provider);
+        reader = new RunArtifactReader(provider);
+        dirReader = new FakeDirectoryReader();
+        store = new RunStore(dirReader, reader);
+    });
+
+    teardown(() => {
+        store.dispose();
+    });
+
+    async function* eventStream(events: readonly unknown[]): AsyncIterable<never> {
+        for (const event of events) {
+            yield event as never;
+        }
+    }
+
+    async function seedRunWithEvents(
+        artifactPath: string,
+        runId: string,
+        events: readonly unknown[],
+    ): Promise<void> {
+        const record = makeValidRunRecord({ runId });
+        await writer.write(record, eventStream(events), artifactPath);
+        dirReader.paths.push(artifactPath);
+    }
+
+    test("returns an empty array for an unknown run id", async () => {
+        expect(await store.readEvents("nope")).to.deep.equal([]);
+    });
+
+    test("returns an empty array when the run captured no events", async () => {
+        await seedRunWithEvents("/runs/a.cdrun.zip", "run-a", []);
+        await store.scan();
+        expect(await store.readEvents("run-a")).to.deep.equal([]);
+    });
+
+    test("reads back the events captured in the artifact in order", async () => {
+        const events = [
+            {
+                id: "e1",
+                timestampMs: 1_000,
+                source: "service",
+                severity: "info",
+                type: "validation-run-started",
+                payload: { runId: "run-a", environmentId: "env-1" },
+            },
+            {
+                id: "e2",
+                timestampMs: 1_500,
+                source: "service",
+                severity: "info",
+                type: "validation-run-finished",
+                payload: { runId: "run-a" },
+            },
+        ];
+        await seedRunWithEvents("/runs/a.cdrun.zip", "run-a", events);
+        await store.scan();
+        const read = await store.readEvents("run-a");
+        expect(read.map((e) => e.type)).to.deep.equal([
+            "validation-run-started",
+            "validation-run-finished",
+        ]);
+    });
+});
+
 suite("CloudDeploy LocalRunsDirectoryReader", () => {
     let root: string;
 
