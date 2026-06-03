@@ -244,7 +244,9 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
                             res,
                             path.join(mediaPath, "landing.html"),
                             "text/html; charset=utf-8",
-                        ).catch(console.error);
+                        ).catch((error) =>
+                            this.logger.error("Failed to send auth landing page", error),
+                        );
                     },
                     (ex: Error) => {
                         res.writeHead(400, { "content-type": "text/html" });
