@@ -22,6 +22,7 @@ export interface CloudDeployHubContextProps {
     navigate: (page: HubPage, opts?: { envId?: string; runId?: string }) => void;
     refresh: () => void;
     revealArtifact: (runId: string) => void;
+    deleteRun: (runId: string) => void;
 }
 
 const CloudDeployHubContext = createContext<CloudDeployHubContextProps | undefined>(undefined);
@@ -48,6 +49,9 @@ export const CloudDeployHubStateProvider: React.FC<ProviderProps> = ({ children 
             },
             revealArtifact: (runId) => {
                 void extensionRpc.action("revealArtifact", { runId });
+            },
+            deleteRun: (runId) => {
+                void extensionRpc.action("deleteRun", { runId });
             },
         }),
         [extensionRpc],

@@ -16,11 +16,13 @@ const useStyles = makeStyles({
         marginBottom: "12px",
     },
     heading: {
+        display: "block",
         fontSize: "18px",
         fontWeight: 600,
         marginBottom: "4px",
     },
     description: {
+        display: "block",
         color: tokens.colorNeutralForeground3,
         marginBottom: "16px",
     },

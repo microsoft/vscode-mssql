@@ -165,6 +165,7 @@ export const cmdCloudDeployRefreshDashboard = "mssql.cloudDeploy.refreshDashboar
 export const cmdCloudDeployOpenHub = "mssql.cloudDeploy.openHub";
 export const cmdCloudDeployOpenEnvironment = "mssql.cloudDeploy.openEnvironment";
 export const cmdCloudDeployOpenRun = "mssql.cloudDeploy.openRun";
+export const cmdCloudDeploySeedSampleRun = "mssql.cloudDeploy.seedSampleRun";
 
 export const cloudDeployView = "mssqlCloudDeploy";
 

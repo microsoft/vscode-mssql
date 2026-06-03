@@ -47,6 +47,19 @@ export interface EnvironmentSummary {
     readonly validationCount: number;
 }
 
+/**
+ * Compact summary for an in-flight validation run. Pushed into state by the
+ * controller's diagnostic-bus subscription on `validation-run-started` and
+ * removed on `validation-run-finished` / `run-persisted`. The webview uses
+ * this to render a "Currently running" banner above the run list.
+ */
+export interface LiveRunSummary {
+    readonly runId: string;
+    readonly environmentId: string;
+    readonly environmentName?: string;
+    readonly startedAtMs: number;
+}
+
 // =============================================================================
 // State
 // =============================================================================
@@ -59,6 +72,8 @@ export interface CloudDeployHubState {
     readonly environments: readonly EnvironmentSummary[];
     /** All runs in the workspace, newest-first. */
     readonly runs: readonly RunListEntry[];
+    /** Runs currently in flight (driven by the diagnostic bus). */
+    readonly liveRuns: readonly LiveRunSummary[];
     /** Set when `currentPage === "environment"`. */
     readonly selectedEnvId?: string;
     /** Set when `currentPage === "run"`. */
@@ -93,4 +108,6 @@ export interface CloudDeployHubReducers {
     refresh: Record<string, never>;
     /** Open the artifact zip for the given run in the OS file explorer. */
     revealArtifact: { readonly runId: string };
+    /** Delete a run's `.cdrun.zip` after user confirmation. */
+    deleteRun: { readonly runId: string };
 }

@@ -1928,11 +1928,42 @@
     "Runner": "Runner",
     "This run executed no validations.": "This run executed no validations.",
     "Artifact": "Artifact",
+    "Delete run": "Delete run",
+    "Delete run {0}? This permanently removes the .cdrun.zip artifact from disk./{0} is a short run id (first 8 chars)": {
+        "message": "Delete run {0}? This permanently removes the .cdrun.zip artifact from disk.",
+        "comment": ["{0} is a short run id (first 8 chars)"]
+    },
+    "Failed to delete run: {0}/{0} is the underlying error message": {
+        "message": "Failed to delete run: {0}",
+        "comment": ["{0} is the underlying error message"]
+    },
+    "Currently running": "Currently running",
+    "Validating {0}.../{0} is an environment display name": {
+        "message": "Validating {0}...",
+        "comment": ["{0} is an environment display name"]
+    },
+    "No findings.": "No findings.",
+    "No connection findings.": "No connection findings.",
+    "No static-analysis findings.": "No static-analysis findings.",
+    "No tests executed.": "No tests executed.",
+    "No workload regressions.": "No workload regressions.",
+    "Outcome": "Outcome",
+    "Rule": "Rule",
+    "Test": "Test",
+    "Step": "Step",
+    "Regression": "Regression",
+    "Delta": "Delta",
+    "Reachable": "Reachable",
+    "Errors": "Errors",
+    "Info": "Info",
     "Passed": "Passed",
-    "Skipped": "Skipped",
-    "Cancelled": "Cancelled",
     "Failed": "Failed",
+    "Skipped": "Skipped",
     "Errored": "Errored",
+    "Total": "Total",
+    "Steps": "Steps",
+    "Regressions": "Regressions",
+    "Cancelled": "Cancelled",
     "{0}s/{0} is a duration in whole seconds": {
         "message": "{0}s",
         "comment": ["{0} is a duration in whole seconds"]
@@ -4028,6 +4059,15 @@
     "Open Cloud Deploy hub": "Open Cloud Deploy hub",
     "Open environment in Cloud Deploy hub": "Open environment in Cloud Deploy hub",
     "Open run in Cloud Deploy hub": "Open run in Cloud Deploy hub",
+    "Open a workspace folder before seeding a sample Cloud Deploy run.": "Open a workspace folder before seeding a sample Cloud Deploy run.",
+    "Seeded sample run at {0}/{0} is the absolute path of the seeded .cdrun.zip": {
+        "message": "Seeded sample run at {0}",
+        "comment": ["{0} is the absolute path of the seeded .cdrun.zip"]
+    },
+    "Failed to seed sample run: {0}/{0} is the underlying error message": {
+        "message": "Failed to seed sample run: {0}",
+        "comment": ["{0} is the underlying error message"]
+    },
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

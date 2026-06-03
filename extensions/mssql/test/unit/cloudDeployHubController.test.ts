@@ -8,6 +8,7 @@ import * as sinon from "sinon";
 import * as vscode from "vscode";
 
 import { CloudDeployHubController } from "../../src/cloudDeploy/dashboard/cloudDeployHubController";
+import { DiagnosticEventBus } from "../../src/cloudDeploy/diagnostics/eventBus";
 import {
     CloudDeployHubReducers,
     CloudDeployHubState,
@@ -90,7 +91,9 @@ suite("CloudDeploy CloudDeployHubController", () => {
     let reader: RunArtifactReader;
     let dirReader: FakeDirectoryReader;
     let runStore: RunStore;
+    let diagnostics: DiagnosticEventBus;
     let executeCommandStub: sinon.SinonStub;
+    let showWarningStub: sinon.SinonStub;
     let controller: CloudDeployHubController | undefined;
 
     setup(() => {
@@ -108,8 +111,10 @@ suite("CloudDeploy CloudDeployHubController", () => {
         reader = new RunArtifactReader(fileProvider);
         dirReader = new FakeDirectoryReader();
         runStore = new RunStore(dirReader, reader);
+        diagnostics = new DiagnosticEventBus();
 
         executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
+        showWarningStub = sandbox.stub(vscode.window, "showWarningMessage").resolves(undefined);
 
         CloudDeployHubController.resetSingletonForTests();
     });
@@ -125,6 +130,7 @@ suite("CloudDeploy CloudDeployHubController", () => {
         }
         runStore.dispose();
         envStore.dispose();
+        diagnostics.dispose();
         sandbox.restore();
         CloudDeployHubController.resetSingletonForTests();
     });
@@ -152,7 +158,7 @@ suite("CloudDeploy CloudDeployHubController", () => {
     }
 
     function createController(
-        initialView: Parameters<typeof CloudDeployHubController.getOrCreate>[4] = {
+        initialView: Parameters<typeof CloudDeployHubController.getOrCreate>[5] = {
             kind: "runList",
         },
     ): CloudDeployHubController {
@@ -161,6 +167,7 @@ suite("CloudDeploy CloudDeployHubController", () => {
             mockVscodeWrapper,
             asEnvStore(envStore),
             runStore,
+            diagnostics,
             initialView,
         );
         return controller;
@@ -190,6 +197,7 @@ suite("CloudDeploy CloudDeployHubController", () => {
             mockVscodeWrapper,
             asEnvStore(envStore),
             runStore,
+            diagnostics,
             { kind: "runList" },
         );
         expect(second).to.equal(first);
@@ -284,6 +292,73 @@ suite("CloudDeploy CloudDeployHubController", () => {
         expect(c.state.runs[0].runId).to.equal("run-4");
     });
 
+    test("deleteRun reducer asks for confirmation and deletes when confirmed", async () => {
+        await seedRun("run-d1", "dev", "Dev", 5_000);
+        await runStore.scan();
+        showWarningStub.resolves("Delete");
+        const c = createController({ kind: "run", runId: "run-d1" });
+        const reducer = getReducer(c, "deleteRun");
+        const next = await reducer(c.state, { runId: "run-d1" });
+        expect(showWarningStub.calledOnce, "expected confirm dialog").to.equal(true);
+        expect(next.currentPage).to.equal("runList");
+        expect(next.selectedRunId).to.equal(undefined);
+        expect(next.runs).to.have.lengthOf(0);
+    });
+
+    test("deleteRun reducer is a no-op when user cancels the confirmation", async () => {
+        await seedRun("run-d2", "dev", "Dev", 6_000);
+        await runStore.scan();
+        showWarningStub.resolves(undefined);
+        const c = createController({ kind: "run", runId: "run-d2" });
+        const reducer = getReducer(c, "deleteRun");
+        const next = await reducer(c.state, { runId: "run-d2" });
+        expect(next).to.equal(c.state);
+        expect(c.state.runs.map((r) => r.runId)).to.include("run-d2");
+    });
+
+    test("validation-run-started event adds a row to liveRuns", () => {
+        envStore.envs = [makeEnvironment({ id: "dev", name: "Dev" })];
+        const c = createController({ kind: "runList" });
+        expect(c.state.liveRuns).to.have.lengthOf(0);
+        diagnostics.emit({
+            source: "runner",
+            type: "validation-run-started",
+            payload: {
+                runId: "live-1",
+                environmentId: "dev",
+                validationTypes: [],
+            },
+        });
+        expect(c.state.liveRuns).to.have.lengthOf(1);
+        expect(c.state.liveRuns[0].runId).to.equal("live-1");
+        expect(c.state.liveRuns[0].environmentName).to.equal("Dev");
+    });
+
+    test("validation-run-finished event removes the matching liveRuns row", () => {
+        const c = createController({ kind: "runList" });
+        diagnostics.emit({
+            source: "runner",
+            type: "validation-run-started",
+            payload: {
+                runId: "live-2",
+                environmentId: "dev",
+                validationTypes: [],
+            },
+        });
+        expect(c.state.liveRuns).to.have.lengthOf(1);
+        diagnostics.emit({
+            source: "runner",
+            type: "validation-run-finished",
+            payload: {
+                runId: "live-2",
+                status: RunStatus.Passed,
+                durationMs: 1_000,
+                validationCount: 0,
+            },
+        });
+        expect(c.state.liveRuns).to.have.lengthOf(0);
+    });
+
     test("dispose clears the singleton so the next getOrCreate constructs a new instance", () => {
         const first = createController({ kind: "runList" });
         first.dispose();
@@ -293,6 +368,7 @@ suite("CloudDeploy CloudDeployHubController", () => {
             mockVscodeWrapper,
             asEnvStore(envStore),
             runStore,
+            diagnostics,
             { kind: "runList" },
         );
         controller = second;
