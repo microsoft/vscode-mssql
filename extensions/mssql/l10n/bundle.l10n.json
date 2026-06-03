@@ -1906,6 +1906,37 @@
     "Could not load restore plan": "Could not load restore plan",
     "Please choose a backup file to load restore plan": "Please choose a backup file to load restore plan",
     "Please choose a blob to load restore plan": "Please choose a blob to load restore plan",
+    "Cloud Deploy": "Cloud Deploy",
+    "Back to runs": "Back to runs",
+    "Reveal artifact": "Reveal artifact",
+    "All runs": "All runs",
+    "No runs yet. Run a validation against an environment to see it here.": "No runs yet. Run a validation against an environment to see it here.",
+    "Run id": "Run id",
+    "Environment": "Environment",
+    "Started": "Started",
+    "Duration": "Duration",
+    "Environment '{0}' was not found in this workspace./{0} is the environment id": {
+        "message": "Environment '{0}' was not found in this workspace.",
+        "comment": ["{0} is the environment id"]
+    },
+    "Source of truth": "Source of truth",
+    "Validations": "Validations",
+    "Recent runs": "Recent runs",
+    "This environment has no validations declared. Runs against it will be marked Skipped.": "This environment has no validations declared. Runs against it will be marked Skipped.",
+    "No runs against this environment yet.": "No runs against this environment yet.",
+    "Loading run details...": "Loading run details...",
+    "Runner": "Runner",
+    "This run executed no validations.": "This run executed no validations.",
+    "Artifact": "Artifact",
+    "Passed": "Passed",
+    "Skipped": "Skipped",
+    "Cancelled": "Cancelled",
+    "Failed": "Failed",
+    "Errored": "Errored",
+    "{0}s/{0} is a duration in whole seconds": {
+        "message": "{0}s",
+        "comment": ["{0} is a duration in whole seconds"]
+    },
     "Description for the table.": "Description for the table.",
     "The name of the column object.": "The name of the column object.",
     "Displays the description of the column": "Displays the description of the column",
@@ -2358,7 +2389,6 @@
         "message": "{0}: {1}. {2}",
         "comment": ["{0} is the task name", "{1} is the status", "{2} is the message"]
     },
-    "Failed": "Failed",
     "Succeeded": "Succeeded",
     "Succeeded with warning": "Succeeded with warning",
     "Canceled": "Canceled",
@@ -3967,7 +3997,6 @@
         "message": "Validation finished but the run artifact could not be saved: {0}",
         "comment": ["{0} is the underlying I/O error message"]
     },
-    "Cloud Deploy": "Cloud Deploy",
     "Environments": "Environments",
     "Recent Runs": "Recent Runs",
     "No environments declared. Add one to .mssql/environments.json.": "No environments declared. Add one to .mssql/environments.json.",
@@ -3992,10 +4021,13 @@
             "{1} is the run duration in whole seconds"
         ]
     },
-    "Passed": "Passed",
-    "Errored": "Errored",
-    "Cancelled": "Cancelled",
-    "Skipped": "Skipped",
+    "Failed to load run {0}: {1}/{0} is the run id (uuid){1} is the failure reason": {
+        "message": "Failed to load run {0}: {1}",
+        "comment": ["{0} is the run id (uuid)", "{1} is the failure reason"]
+    },
+    "Open Cloud Deploy hub": "Open Cloud Deploy hub",
+    "Open environment in Cloud Deploy hub": "Open environment in Cloud Deploy hub",
+    "Open run in Cloud Deploy hub": "Open run in Cloud Deploy hub",
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

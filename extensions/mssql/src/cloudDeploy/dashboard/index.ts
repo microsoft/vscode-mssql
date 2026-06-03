@@ -5,3 +5,4 @@
 
 export * from "./runDashboardRpc";
 export { CLOUD_DEPLOY_VIEW_ID, CloudDeployTreeProvider } from "./cloudDeployTreeProvider";
+export { CloudDeployHubController } from "./cloudDeployHubController";

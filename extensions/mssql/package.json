@@ -1592,6 +1592,21 @@
                 "category": "MS SQL"
             },
             {
+                "command": "mssql.cloudDeploy.openHub",
+                "title": "%mssql.cloudDeploy.openHub%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.cloudDeploy.openEnvironment",
+                "title": "%mssql.cloudDeploy.openEnvironment%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.cloudDeploy.openRun",
+                "title": "%mssql.cloudDeploy.openRun%",
+                "category": "MS SQL"
+            },
+            {
                 "command": "mssql.stopContainer",
                 "title": "%mssql.stopContainer%",
                 "category": "MS SQL"

@@ -40,27 +40,16 @@ import * as path from "path";
 import * as vscode from "vscode";
 
 import { RunArtifactReader } from "./runArtifactReader";
-import { RunRecord, RunStatus } from "./types";
+import { RunListEntry, RunRecord } from "./types";
+
+// Re-exported so existing callers that imported `RunListEntry` from this
+// module keep working. The canonical home is `runs/types.ts` (pure types,
+// safe to include in the webview build).
+export type { RunListEntry } from "./types";
 
 // =============================================================================
 // Types
 // =============================================================================
-
-/**
- * Lightweight summary of a run as cached by the store. Carries just enough
- * for the tree provider and the hub's run-list page to render without
- * re-reading the artifact. Full payloads / events are reached via
- * `RunStore.get(runId)`.
- */
-export interface RunListEntry {
-    readonly runId: string;
-    readonly envId: string;
-    readonly envDisplayName: string;
-    readonly status: RunStatus;
-    readonly startedAtMs: number;
-    readonly endedAtMs: number;
-    readonly artifactPath: string;
-}
 
 /**
  * Directory enumerator abstraction. `LocalRunsDirectoryReader` is the

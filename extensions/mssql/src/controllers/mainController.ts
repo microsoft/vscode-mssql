@@ -14,6 +14,7 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { CloudDeployService } from "../cloudDeploy/cloudDeployService";
 import { CLOUD_DEPLOY_VIEW_ID, CloudDeployTreeProvider } from "../cloudDeploy/dashboard";
+import { CloudDeployHubController } from "../cloudDeploy/dashboard/cloudDeployHubController";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import * as ConnInfo from "../models/connectionInfo";
 import {
@@ -1159,6 +1160,49 @@ export default class MainController implements vscode.Disposable {
                     );
                 },
             ),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(Constants.cmdCloudDeployOpenHub, () => {
+                CloudDeployHubController.getOrCreate(
+                    this._context,
+                    this._vscodeWrapper,
+                    this.cloudDeployService.environments,
+                    this.cloudDeployService.runs.store,
+                    { kind: "runList" },
+                );
+            }),
+        );
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdCloudDeployOpenEnvironment,
+                (envId: string) => {
+                    if (typeof envId !== "string" || envId.length === 0) {
+                        return;
+                    }
+                    CloudDeployHubController.getOrCreate(
+                        this._context,
+                        this._vscodeWrapper,
+                        this.cloudDeployService.environments,
+                        this.cloudDeployService.runs.store,
+                        { kind: "environment", envId },
+                    );
+                },
+            ),
+        );
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(Constants.cmdCloudDeployOpenRun, (runId: string) => {
+                if (typeof runId !== "string" || runId.length === 0) {
+                    return;
+                }
+                CloudDeployHubController.getOrCreate(
+                    this._context,
+                    this._vscodeWrapper,
+                    this.cloudDeployService.environments,
+                    this.cloudDeployService.runs.store,
+                    { kind: "run", runId },
+                );
+            }),
         );
 
         this._initialized = true;

@@ -309,6 +309,9 @@
     <trans-unit id="++CODE++08d0861fba87c9910b6c76342c1783be7d5504ff5248fbacd869963a7322992d">
       <source xml:lang="en">All permissions for extensions to access your connections have been cleared.</source>
     </trans-unit>
+    <trans-unit id="++CODE++33866ac35e69f8f5e193eb772e5abfccee2a5ff1b1914174be0597140e0877f1">
+      <source xml:lang="en">All runs</source>
+    </trans-unit>
     <trans-unit id="++CODE++b339f58d00ef993ac62d6cdf1341fd6dd3351e51031e9e04da27b34d4bb793ce">
       <source xml:lang="en">All selected</source>
     </trans-unit>
@@ -471,6 +474,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f0762c4f3bfcd695e32e7fcd087dc2a60bc26cda108b4fc0a643445b397168c7">
       <source xml:lang="en">Are you sure?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e06171a1c467f2d4d883a386b5323dbd1a493627030e4bc6210d6c87c49f359e">
+      <source xml:lang="en">Artifact</source>
     </trans-unit>
     <trans-unit id="++CODE++0dfc3f06b7fb664c12d91fc6a7ec665c092f9e79fb8da300d344fc0250348b5d">
       <source xml:lang="en">Ask GitHub Copilot to Fix</source>
@@ -652,6 +658,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e6885d7f1ab90cd7529fb7e3690957e6324d73e7a2dc017014bb9667d7524a76">
       <source xml:lang="en">Back to preview</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5f3641135a1e889bec7fcf5af8b75f63fa18102e899c3f5bee27d11773273387">
+      <source xml:lang="en">Back to runs</source>
     </trans-unit>
     <trans-unit id="++CODE++838557924a5cdfb2f10f233635223e79be8443aef62f9d176cfe18787a2e8b03">
       <source xml:lang="en">Backup</source>
@@ -2274,6 +2283,9 @@
     <trans-unit id="++CODE++b5fb1a311c627a052d69179f4fb37cc4d9b0d9aa8b4db5a16458c97563420413">
       <source xml:lang="en">Dropping database</source>
     </trans-unit>
+    <trans-unit id="++CODE++4fc52a3c4c558b517c463b22d86d0e3b9cfd4255c98fe3510f9075b37ab419c9">
+      <source xml:lang="en">Duration</source>
+    </trans-unit>
     <trans-unit id="++CODE++4a87bc4a6f84b6911fabebc702ad8d32dbb799d7bec2abf53a05c86d91b456bf">
       <source xml:lang="en">EF Core</source>
     </trans-unit>
@@ -2517,6 +2529,13 @@
     </trans-unit>
     <trans-unit id="++CODE++d59e5e8f8a4bb3b14eb8af194553158e5dffd648ad462eeafb2f03589da5a8eb">
       <source xml:lang="en">Entra token cache cleared successfully.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9e471951a1b4106e54be128a21112b02914fe98cc79b2c92b49ee80c5464487c">
+      <source xml:lang="en">Environment</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6484b6218e1a8c136027c5e952e57c89381ee61c903b0cae6bef5bc0d45f66de">
+      <source xml:lang="en">Environment &apos;{0}&apos; was not found in this workspace.</source>
+      <note>{0} is the environment id</note>
     </trans-unit>
     <trans-unit id="++CODE++7e987dd90116fd71be859aabc0abdd364705af1b4279a99b9ab45f2e65b69902">
       <source xml:lang="en">Environment id: {0}</source>
@@ -3057,6 +3076,11 @@
     </trans-unit>
     <trans-unit id="++CODE++3124ddbedded23af64f8d5506005863517b446c2767c1d81660d1074b969e089">
       <source xml:lang="en">Failed to load publish profile</source>
+    </trans-unit>
+    <trans-unit id="++CODE++91078fe13edd750dffd9072ad932771bee4e1546d9863cc82c5a290b6c6e72e5">
+      <source xml:lang="en">Failed to load run {0}: {1}</source>
+      <note>{0} is the run id (uuid)
+{1} is the failure reason</note>
     </trans-unit>
     <trans-unit id="++CODE++14efaa6a7c132b195742fbff720af5eae802f47b83f7e56896d431c86cb0a172">
       <source xml:lang="en">Failed to obtain token for resource &apos;{1}&apos;.  Error: {0}</source>
@@ -4136,6 +4160,9 @@
     <trans-unit id="++CODE++b00da16333ce9b6f0088556c62cd8766f0a1f02a823e3dca0cd8fd040136e297">
       <source xml:lang="en">Loading results...</source>
     </trans-unit>
+    <trans-unit id="++CODE++e4e812576987d5735ef8c007413b3e61cb078c7af1b447e5315fd2f4318b9065">
+      <source xml:lang="en">Loading run details...</source>
+    </trans-unit>
     <trans-unit id="++CODE++11915518f7318632b91b797ca08f2be829f1364847dda216d397370f2287a83a">
       <source xml:lang="en">Loading schemas...</source>
     </trans-unit>
@@ -4786,6 +4813,12 @@
     <trans-unit id="++CODE++ab427ee55d6f25a2cb551176082f90bee142723295f3e1d591bdc28ab636547f">
       <source xml:lang="en">No rules match the current filter.</source>
     </trans-unit>
+    <trans-unit id="++CODE++cfe172461963af4b1b33a4c79659b0950a135f1924b7e332f822e16c981e1c02">
+      <source xml:lang="en">No runs against this environment yet.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4963e9a013775fb19d28d4d4a49d2988c50b03c119900bb73c5b764ea611d419">
+      <source xml:lang="en">No runs yet. Run a validation against an environment to see it here.</source>
+    </trans-unit>
     <trans-unit id="++CODE++71e7aa9b09ac9b7a4f6d8e89bdeac1ab7a8b96424d63e5e44bb6421dc250097d">
       <source xml:lang="en">No runs yet. Run validation to produce one.</source>
     </trans-unit>
@@ -4978,6 +5011,9 @@
     <trans-unit id="++CODE++afe20ac8b79880f255ada45b4113ce2356e2e96da5a833a6262b495ef67c7c33">
       <source xml:lang="en">Open .scmp file</source>
     </trans-unit>
+    <trans-unit id="++CODE++2daaa9f66107b36ec81c311a8784d6c096b447f1163a8d38ca1938325524e806">
+      <source xml:lang="en">Open Cloud Deploy hub</source>
+    </trans-unit>
     <trans-unit id="++CODE++2f51d650687c9201f9367014fa093415a3b9612e4ae2738e50210ef39ed0253e">
       <source xml:lang="en">Open Containing Folder</source>
     </trans-unit>
@@ -5008,6 +5044,9 @@
     <trans-unit id="++CODE++36eaf70bf802c56bb84c14fb713ba56b41a28ba07a5a6cdab3fedd21146ff274">
       <source xml:lang="en">Open a new bug</source>
     </trans-unit>
+    <trans-unit id="++CODE++199cc955f67404f14759bfc4a53fe234001ecf9f95dd6d660f2eff074e6e726c">
+      <source xml:lang="en">Open environment in Cloud Deploy hub</source>
+    </trans-unit>
     <trans-unit id="++CODE++f395ae5e32b4cc24f8030096918e6a2318d4be5fb9274dbeedc0002ce9840bb7">
       <source xml:lang="en">Open in Editor</source>
     </trans-unit>
@@ -5022,6 +5061,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ea1d0f038bbdb9e9aa6649671dcbff49e1f63b700b27d60890da5c60fb4e89af">
       <source xml:lang="en">Open in editor</source>
+    </trans-unit>
+    <trans-unit id="++CODE++79e85a06badd1afca10ded78062675367475786a088e680f586368d77d03a140">
+      <source xml:lang="en">Open run in Cloud Deploy hub</source>
     </trans-unit>
     <trans-unit id="++CODE++d5b15bfc605139b20cbb77db812b2496d375680f31d266bccd9767a0c63f0092">
       <source xml:lang="en">Open text data in a new editor</source>
@@ -5511,6 +5553,9 @@
     <trans-unit id="++CODE++703f1ae8b7cdb3525cdab9ea694ab27b1b9e4337f0b2ca32f152f7f9a6e2f9d5">
       <source xml:lang="en">Recent connections list cleared</source>
     </trans-unit>
+    <trans-unit id="++CODE++237112b89b77be8e2772378d1a09a3bc2dcb7d907698757cc2170107ee3026eb">
+      <source xml:lang="en">Recent runs</source>
+    </trans-unit>
     <trans-unit id="++CODE++85a3403bf7f8754b479e80917b7d779d63640b98e77450fe47ae7303ca7e9d03">
       <source xml:lang="en">Recovery Model</source>
     </trans-unit>
@@ -5718,6 +5763,9 @@
     <trans-unit id="++CODE++36b830bdb447f8c758a9b58f190eed468c4bd53e9c7662ee19bca9c53d3a3e3d">
       <source xml:lang="en">Reveal</source>
     </trans-unit>
+    <trans-unit id="++CODE++6667bcf22a346b73af23cc95590f59dc67fc6985f7451d5796574cace190a299">
+      <source xml:lang="en">Reveal artifact</source>
+    </trans-unit>
     <trans-unit id="++CODE++b1d3c17e8d131616e4c9d243a6536aa7c23973e93908621d94b6b7ebf6486863">
       <source xml:lang="en">Reveal in Explorer</source>
     </trans-unit>
@@ -5809,6 +5857,9 @@
       <source xml:lang="en">Run artifact at {0} is not a valid zip archive.</source>
       <note>{0} is the absolute file path of the run artifact</note>
     </trans-unit>
+    <trans-unit id="++CODE++d7c9ae603e3bdb97d99feb92bcf883c53ec87c2ef28d523860eefa84728eb0e2">
+      <source xml:lang="en">Run id</source>
+    </trans-unit>
     <trans-unit id="++CODE++2c757183a36d594602187e88cad67e8e38ab92dd5c9c01ca69eb4c67f465b8e3">
       <source xml:lang="en">Run query on connection &apos;{0}&apos; (ID: {1})?&#10;&#10;Query: {2}</source>
       <note>{0} is the connection display name
@@ -5822,6 +5873,9 @@
       <source xml:lang="en">Run {0}&#10;Artifact: {1}</source>
       <note>{0} is the run id (uuid)
 {1} is the absolute path to the .cdrun.zip artifact</note>
+    </trans-unit>
+    <trans-unit id="++CODE++2184a4e3f4ce0f213448243fb42d24df4b7763ce99f5fedd2e73b45194774678">
+      <source xml:lang="en">Runner</source>
     </trans-unit>
     <trans-unit id="++CODE++f4ccae29e1bb0c20a124570a1b43f4347ea94bba9f84ffdfddd9c7445b126128">
       <source xml:lang="en">Running</source>
@@ -6634,6 +6688,9 @@
     <trans-unit id="++CODE++7363f4432b648a803e2bf468798cf69a7be5bab4b8055e35f6a038afb54be9d7">
       <source xml:lang="en">Source Name</source>
     </trans-unit>
+    <trans-unit id="++CODE++7e28e1d334b1039ec7c365d65e5aa000ebd7d41676a6481187c609b8866cd104">
+      <source xml:lang="en">Source of truth</source>
+    </trans-unit>
     <trans-unit id="++CODE++30ecb608c5cff9e821a41d28312d0070cbeb3901bc8e32ecefd17171f87dc53a">
       <source xml:lang="en">Source: {0}</source>
       <note>{0} is the task source</note>
@@ -6671,6 +6728,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bdc02a6178825493234ef2190acba2fe15e3fb76a37fb9a740ea4e5b7b843961">
       <source xml:lang="en">Start, stop, and remove containers directly from the extension.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ecbc89cd37a037342e740f9e0e0633a70180a2279b0157c9a823fce729f4bd77">
+      <source xml:lang="en">Started</source>
     </trans-unit>
     <trans-unit id="++CODE++26254424b6f10bfd397e77bc2c93c10fc436795145ee5f2a09b27d54518ec9d6">
       <source xml:lang="en">Started executing query at </source>
@@ -7122,11 +7182,17 @@
     <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
       <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
     </trans-unit>
+    <trans-unit id="++CODE++3f7f56a0416a966528f30d00db508feb7e248947c3f54184d2b9d322139b3f5b">
+      <source xml:lang="en">This environment has no validations declared. Runs against it will be marked Skipped.</source>
+    </trans-unit>
     <trans-unit id="++CODE++28e2aa59c50b2de24bda79539297a180c3ea379c3aa11b5af049a2cf66375999">
       <source xml:lang="en">This message couldn&apos;t be processed. If this issue persists, please check the logs and open an issue on GitHub.</source>
     </trans-unit>
     <trans-unit id="++CODE++461401ab1ef5eb94c409a7d6de3ad223b3733f4a8823944fc070fcfdf5ebed6b">
       <source xml:lang="en">This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++caa12615596c4b71c327d2e79764571976a83c51990f57f8a5d1cd8d76ce3f9a">
+      <source xml:lang="en">This run executed no validations.</source>
     </trans-unit>
     <trans-unit id="++CODE++cbc6ae36d1aec69e8b4ab32b18eac65c87ac1ded2fe8e3c342df068fb83be36d">
       <source xml:lang="en">This server only supports Microsoft Entra ID authentication.</source>
@@ -7479,6 +7545,9 @@
       <source xml:lang="en">Validation runner crashed for &apos;{0}&apos;: {1}</source>
       <note>{0} is the user-facing environment name
 {1} is the underlying error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++9bab08a288aaeca6d6c9404beaa0b1a19cf0beee117244d0ebbd72920170e92f">
+      <source xml:lang="en">Validations</source>
     </trans-unit>
     <trans-unit id="++CODE++8e37953d23daca5ff01b8282c33f4e0a2152f1d1885f94c06418617e3ee1d24e">
       <source xml:lang="en">Value</source>
@@ -8101,6 +8170,10 @@
       <source xml:lang="en">{0}s</source>
       <note>{0} is the elapsed time in seconds</note>
     </trans-unit>
+    <trans-unit id="++CODE++e1e36ccd8724d1c5c7c4ecaac0739f8fd8cafbecbf7938513517d0261020ce6c">
+      <source xml:lang="en">{0}s</source>
+      <note>{0} is a duration in whole seconds</note>
+    </trans-unit>
     <trans-unit id="++CODE++c7c45c2f2ad470c2dc1a35bf3320d977e49bd4f4c804d9bf347d009669e5ebae">
       <source xml:lang="en">{{put-server-name-here}}</source>
     </trans-unit>
@@ -8219,6 +8292,15 @@
     </trans-unit>
     <trans-unit id="extension.cloudDeploy">
       <source xml:lang="en">Cloud Deploy</source>
+    </trans-unit>
+    <trans-unit id="mssql.cloudDeploy.openEnvironment">
+      <source xml:lang="en">Cloud Deploy: Open environment in hub</source>
+    </trans-unit>
+    <trans-unit id="mssql.cloudDeploy.openHub">
+      <source xml:lang="en">Cloud Deploy: Open hub</source>
+    </trans-unit>
+    <trans-unit id="mssql.cloudDeploy.openRun">
+      <source xml:lang="en">Cloud Deploy: Open run in hub</source>
     </trans-unit>
     <trans-unit id="mssql.cloudDeploy.refreshDashboard">
       <source xml:lang="en">Cloud Deploy: Refresh dashboard</source>

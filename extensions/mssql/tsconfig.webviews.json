@@ -20,5 +20,13 @@
         "composite": false,
         "allowSyntheticDefaultImports": true
     },
-    "include": ["src/webviews", "typings", "src/sharedInterfaces", "media"]
+    "include": [
+        "src/webviews",
+        "typings",
+        "src/sharedInterfaces",
+        "media",
+        "src/cloudDeploy/environments/types.ts",
+        "src/cloudDeploy/runs/types.ts",
+        "src/cloudDeploy/diagnostics/types.ts"
+    ]
 }

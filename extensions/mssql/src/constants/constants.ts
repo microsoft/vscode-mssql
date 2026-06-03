@@ -162,6 +162,9 @@ export const cmdNotebooksCopyCellMessages = "mssql.notebooks.copyCellMessages";
 export const cmdCloudDeployValidate = "mssql.cloudDeploy.validateEnvironment";
 export const cmdCloudDeployRevealRunArtifact = "mssql.cloudDeploy.revealRunArtifact";
 export const cmdCloudDeployRefreshDashboard = "mssql.cloudDeploy.refreshDashboard";
+export const cmdCloudDeployOpenHub = "mssql.cloudDeploy.openHub";
+export const cmdCloudDeployOpenEnvironment = "mssql.cloudDeploy.openEnvironment";
+export const cmdCloudDeployOpenRun = "mssql.cloudDeploy.openRun";
 
 export const cloudDeployView = "mssqlCloudDeploy";
 

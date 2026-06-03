@@ -307,3 +307,27 @@ export interface RunRecord {
     /** One entry per validation that executed. May be empty for an aborted run. */
     readonly validations: readonly ValidationResult[];
 }
+
+// =============================================================================
+// Listing summary
+// =============================================================================
+
+/**
+ * Lightweight projection of a `RunRecord` cached by `RunStore` and pushed
+ * across the webview boundary. Carries just enough for the dashboard tree
+ * and the hub's run-list page to render without re-reading the artifact.
+ * The full `RunRecord` (events, validations, payloads) is fetched on
+ * demand via `RunStore.get(runId)`.
+ *
+ * Lives in this pure-types file (no Node imports) so it can be referenced
+ * from both the extension host and the webview build.
+ */
+export interface RunListEntry {
+    readonly runId: string;
+    readonly envId: string;
+    readonly envDisplayName: string;
+    readonly status: RunStatus;
+    readonly startedAtMs: number;
+    readonly endedAtMs: number;
+    readonly artifactPath: string;
+}

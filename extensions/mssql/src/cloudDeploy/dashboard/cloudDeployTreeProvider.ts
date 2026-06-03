@@ -201,8 +201,8 @@ function makeEnvironmentItem(node: EnvironmentNode): vscode.TreeItem {
     item.contextValue = "cloudDeploy.environment";
     item.iconPath = iconForStatus(node.latestStatus);
     item.command = {
-        command: "mssql.cloudDeploy.validateEnvironment",
-        title: CloudDeployDashboard.validateCommand,
+        command: "mssql.cloudDeploy.openEnvironment",
+        title: CloudDeployDashboard.openEnvironmentCommand,
         arguments: [node.env.id],
     };
     return item;
@@ -216,9 +216,9 @@ function makeRunItem(node: RunNode): vscode.TreeItem {
     item.contextValue = "cloudDeploy.run";
     item.iconPath = iconForStatus(entry.status);
     item.command = {
-        command: "mssql.cloudDeploy.revealRunArtifact",
-        title: CloudDeployDashboard.revealArtifactCommand,
-        arguments: [entry.artifactPath],
+        command: "mssql.cloudDeploy.openRun",
+        title: CloudDeployDashboard.openRunCommand,
+        arguments: [entry.runId],
     };
     return item;
 }
