@@ -10,24 +10,27 @@
  * inside `dist/views/cloudDeployHub.js`, plus the reducer envelope dispatched
  * by user actions in the webview.
  *
- * The hub is a single-panel view that navigates between three pages:
+ * The hub is a single-panel view that navigates between several pages:
  *   * `runList`     — every run in the workspace (default landing).
  *   * `environment` — one environment + its recent runs.
  *   * `run`         — full detail for one run (status, validations, artifact).
+ *   * `compare`     — two runs diffed side by side.
  *
  * `pipeline` is reserved for a future page (cross-env deploy timeline) and
  * is not rendered in this commit.
  */
 
+import type { DiagnosticEvent } from "../cloudDeploy/diagnostics/types";
 import type { Environment } from "../cloudDeploy/environments/types";
+import type { RunComparison } from "../cloudDeploy/runs/runComparison";
 import type { RunListEntry, RunRecord } from "../cloudDeploy/runs/types";
 
 // =============================================================================
 // Pages
 // =============================================================================
 
-/** The four top-level pages the hub navigates between. */
-export type HubPage = "pipeline" | "environment" | "run" | "runList";
+/** The top-level pages the hub navigates between. */
+export type HubPage = "pipeline" | "environment" | "run" | "runList" | "compare";
 
 // =============================================================================
 // Wire-friendly summaries
@@ -84,6 +87,16 @@ export interface CloudDeployHubState {
     readonly selectedRun?: RunRecord;
     /** Absolute path to the `.cdrun.zip` for `selectedRun`, when known. */
     readonly selectedRunArtifactPath?: string;
+    /**
+     * Diagnostic events captured in `selectedRun`'s artifact, in emission
+     * order. Hydrated alongside the run record so the run page's Logs tab
+     * can render the timeline. Empty when the artifact carries no events.
+     */
+    readonly selectedRunEvents?: readonly DiagnosticEvent[];
+    /** Id of the user's default environment, when one is set. */
+    readonly defaultEnvId?: string;
+    /** Comparison of two runs, hydrated when `currentPage === "compare"`. */
+    readonly comparison?: RunComparison;
     /** Last error surfaced to the user (e.g. failed run hydration). */
     readonly errorMessage?: string;
 }
@@ -110,4 +123,11 @@ export interface CloudDeployHubReducers {
     revealArtifact: { readonly runId: string };
     /** Delete a run's `.cdrun.zip` after user confirmation. */
     deleteRun: { readonly runId: string };
+    /** Compare two runs side by side. Navigates to the compare page. */
+    compareRuns: { readonly runIdA: string; readonly runIdB: string };
+    /**
+     * Set (or clear, with `undefined`) the user's default environment.
+     * Persisted by the `EnvironmentStore` in workspace state.
+     */
+    setDefaultEnvironment: { readonly envId: string | undefined };
 }

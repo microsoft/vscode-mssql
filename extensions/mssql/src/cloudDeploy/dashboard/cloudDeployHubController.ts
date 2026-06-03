@@ -31,9 +31,11 @@ import {
     LiveRunSummary,
 } from "../../sharedInterfaces/cloudDeployHub";
 import { DiagnosticEventBus } from "../diagnostics/eventBus";
+import { DiagnosticEvent } from "../diagnostics/types";
 import { Environment } from "../environments/types";
 import { EnvironmentStore } from "../environments/environmentStore";
 import { RunListEntry, RunRecord } from "../runs/types";
+import { compareRuns } from "../runs/runComparison";
 import { RunStore } from "../runs/runStore";
 import { WebviewPanelController } from "../../controllers/webviewPanelController";
 import VscodeWrapper from "../../controllers/vscodeWrapper";
@@ -227,7 +229,26 @@ export class CloudDeployHubController extends WebviewPanelController<
                 selectedEnvironment: undefined,
                 selectedRun: undefined,
                 selectedRunArtifactPath: undefined,
+                selectedRunEvents: undefined,
+                comparison: undefined,
                 errorMessage: undefined,
+            };
+        });
+
+        this.registerReducer("compareRuns", async (state, payload) => {
+            return await this._computeComparisonState(state, payload.runIdA, payload.runIdB);
+        });
+
+        this.registerReducer("setDefaultEnvironment", async (state, payload) => {
+            try {
+                await this._environments?.setDefaultEnvironmentId(payload.envId);
+            } catch {
+                // Persisting the default is best-effort; the store logs its own
+                // failures. Fall through and re-pull the (unchanged) default.
+            }
+            return {
+                ...this._withFreshSnapshots(state),
+                defaultEnvId: this._environments?.getDefaultEnvironmentId(),
             };
         });
     }
@@ -240,6 +261,11 @@ export class CloudDeployHubController extends WebviewPanelController<
         if (this._environments !== undefined) {
             this._storeSubscriptions.push(
                 this._environments.onDidChangeEnvironments(() => {
+                    this.state = this._withFreshSnapshots(this.state);
+                }),
+            );
+            this._storeSubscriptions.push(
+                this._environments.onDidChangeDefaultEnvironment(() => {
                     this.state = this._withFreshSnapshots(this.state);
                 }),
             );
@@ -312,6 +338,7 @@ export class CloudDeployHubController extends WebviewPanelController<
             environments,
             runs,
             selectedEnvironment,
+            defaultEnvId: this._environments?.getDefaultEnvironmentId(),
         };
     }
 
@@ -337,12 +364,15 @@ export class CloudDeployHubController extends WebviewPanelController<
                 selectedEnvironment,
                 selectedRun: undefined,
                 selectedRunArtifactPath: undefined,
+                selectedRunEvents: undefined,
+                comparison: undefined,
                 errorMessage: undefined,
             };
         }
 
         if (payload.page === "run" && payload.runId !== undefined) {
             const { run, artifactPath, error } = await this._loadRun(payload.runId);
+            const events = run !== undefined ? await this._loadRunEvents(payload.runId) : undefined;
             return {
                 ...base,
                 currentPage: "run",
@@ -351,6 +381,8 @@ export class CloudDeployHubController extends WebviewPanelController<
                 selectedEnvironment: undefined,
                 selectedRun: run,
                 selectedRunArtifactPath: artifactPath,
+                selectedRunEvents: events,
+                comparison: undefined,
                 errorMessage: error,
             };
         }
@@ -364,6 +396,8 @@ export class CloudDeployHubController extends WebviewPanelController<
             selectedEnvironment: undefined,
             selectedRun: undefined,
             selectedRunArtifactPath: undefined,
+            selectedRunEvents: undefined,
+            comparison: undefined,
             errorMessage: undefined,
         };
     }
@@ -409,6 +443,54 @@ export class CloudDeployHubController extends WebviewPanelController<
         }
     }
 
+    /**
+     * Reads the diagnostic event log for a run, swallowing any failure into an
+     * empty array. Events are supplementary to the run record — a missing or
+     * unreadable `events.jsonl` must not blank out the run page.
+     */
+    private async _loadRunEvents(runId: string): Promise<readonly DiagnosticEvent[]> {
+        if (this._runStore === undefined) {
+            return [];
+        }
+        try {
+            return await this._runStore.readEvents(runId);
+        } catch {
+            return [];
+        }
+    }
+
+    /**
+     * Computes the state for the compare page. Hydrates both run records and
+     * diffs them with `compareRuns`. If either side fails to load, stays on the
+     * current page and surfaces an error rather than rendering a half comparison.
+     */
+    private async _computeComparisonState(
+        state: CloudDeployHubState,
+        runIdA: string,
+        runIdB: string,
+    ): Promise<CloudDeployHubState> {
+        const base = this._withFreshSnapshots(state);
+        const [a, b] = await Promise.all([this._loadRun(runIdA), this._loadRun(runIdB)]);
+        if (a.run === undefined || b.run === undefined) {
+            return {
+                ...base,
+                errorMessage: a.error ?? b.error ?? CloudDeployDashboard.compareLoadFailed,
+            };
+        }
+        return {
+            ...base,
+            currentPage: "compare",
+            selectedEnvId: undefined,
+            selectedRunId: undefined,
+            selectedEnvironment: undefined,
+            selectedRun: undefined,
+            selectedRunArtifactPath: undefined,
+            selectedRunEvents: undefined,
+            comparison: compareRuns(a.run, b.run),
+            errorMessage: undefined,
+        };
+    }
+
     // -------------------------------------------------------------------------
     // Disposal
     // -------------------------------------------------------------------------
@@ -444,6 +526,7 @@ function buildInitialState(
 ): CloudDeployHubState {
     const envs = listEnvironmentSummaries(environments);
     const runs = runStore?.list() ?? [];
+    const defaultEnvId = environments?.getDefaultEnvironmentId();
 
     if (initialView.kind === "environment") {
         return {
@@ -451,6 +534,7 @@ function buildInitialState(
             environments: envs,
             runs,
             liveRuns: [],
+            defaultEnvId,
             selectedEnvId: initialView.envId,
             selectedEnvironment: tryGetEnvironment(environments, initialView.envId),
         };
@@ -462,6 +546,7 @@ function buildInitialState(
             environments: envs,
             runs,
             liveRuns: [],
+            defaultEnvId,
             selectedRunId: initialView.runId,
             selectedRunArtifactPath: entry?.artifactPath,
             // selectedRun is hydrated lazily by the navigate reducer on first
@@ -474,6 +559,7 @@ function buildInitialState(
         environments: envs,
         runs,
         liveRuns: [],
+        defaultEnvId,
     };
 }
 

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, Link, makeStyles, Text, tokens } from "@fluentui/react-components";
+import { Button, Link, makeStyles, Tab, TabList, Text, tokens } from "@fluentui/react-components";
 import { ArrowLeftRegular, DeleteRegular, FolderOpenRegular } from "@fluentui/react-icons";
 import * as React from "react";
 import { locConstants } from "../../../common/locConstants";
@@ -11,6 +11,7 @@ import { useCloudDeployHubContext } from "../cloudDeployHubStateProvider";
 import { useCloudDeployHubSelector } from "../cloudDeployHubSelector";
 import { StatusBadge } from "../components/statusBadge";
 import { ValidationCard } from "../components/validationCard";
+import { EventTimeline } from "../components/eventTimeline";
 
 const useStyles = makeStyles({
     backRow: {
@@ -80,6 +81,9 @@ const useStyles = makeStyles({
         textAlign: "center",
         color: tokens.colorNeutralForeground3,
     },
+    tabPanel: {
+        marginTop: "12px",
+    },
 });
 
 function formatDuration(startedAtMs: number, endedAtMs: number): string {
@@ -92,7 +96,9 @@ export const RunView: React.FC = () => {
     const { navigate, revealArtifact, deleteRun } = useCloudDeployHubContext();
     const run = useCloudDeployHubSelector((s) => s.selectedRun);
     const artifactPath = useCloudDeployHubSelector((s) => s.selectedRunArtifactPath);
+    const events = useCloudDeployHubSelector((s) => s.selectedRunEvents);
     const strings = locConstants.cloudDeployHub;
+    const [selectedTab, setSelectedTab] = React.useState<"summary" | "logs">("summary");
 
     if (!run) {
         return (
@@ -163,14 +169,30 @@ export const RunView: React.FC = () => {
                 ) : null}
             </div>
 
-            <div className={classes.sectionHeading}>{strings.runValidationsLabel}</div>
-            {run.validations.length === 0 ? (
-                <Text className={classes.empty}>{strings.runNoValidations}</Text>
+            <TabList
+                selectedValue={selectedTab}
+                onTabSelect={(_e, data) => setSelectedTab(data.value as "summary" | "logs")}>
+                <Tab value="summary">{strings.tabSummary}</Tab>
+                <Tab value="logs">{strings.tabLogs}</Tab>
+            </TabList>
+
+            {selectedTab === "summary" ? (
+                <div className={classes.tabPanel}>
+                    <div className={classes.sectionHeading}>{strings.runValidationsLabel}</div>
+                    {run.validations.length === 0 ? (
+                        <Text className={classes.empty}>{strings.runNoValidations}</Text>
+                    ) : (
+                        <div>
+                            {run.validations.map((v) => (
+                                <ValidationCard key={v.validationId} validation={v} />
+                            ))}
+                        </div>
+                    )}
+                </div>
             ) : (
-                <div>
-                    {run.validations.map((v) => (
-                        <ValidationCard key={v.validationId} validation={v} />
-                    ))}
+                <div className={classes.tabPanel}>
+                    <div className={classes.sectionHeading}>{strings.timelineHeading}</div>
+                    <EventTimeline events={events ?? []} />
                 </div>
             )}
         </div>

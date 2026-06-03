@@ -39,6 +39,7 @@ import * as path from "path";
 
 import * as vscode from "vscode";
 
+import { DiagnosticEvent } from "../diagnostics/types";
 import { RunArtifactReader } from "./runArtifactReader";
 import { RunListEntry, RunRecord } from "./types";
 
@@ -87,10 +88,21 @@ export class LocalRunsDirectoryReader implements RunsDirectoryReader {
 // RunStore
 // =============================================================================
 
+/**
+ * Retention policy for the runs directory. When `maxRuns` is a positive
+ * integer, `scan()` prunes the oldest artifacts (by `startedAtMs`) so at most
+ * `maxRuns` survive. A value of `0` or `undefined` disables pruning — every
+ * artifact is retained. Resolves D3-Part-2 TBD-3.
+ */
+export interface RunRetentionPolicy {
+    readonly maxRuns?: number;
+}
+
 export class RunStore implements vscode.Disposable {
     private _cache: ReadonlyMap<string, RunListEntry> = new Map();
     private _scanInFlight: Promise<void> | undefined;
     private readonly _onDidChange = new vscode.EventEmitter<void>();
+    private readonly _maxRuns: number;
 
     /** Fires after every successful `scan()` (whether or not the cache changed). */
     public readonly onDidChange: vscode.Event<void> = this._onDidChange.event;
@@ -98,7 +110,12 @@ export class RunStore implements vscode.Disposable {
     public constructor(
         private readonly _dirReader: RunsDirectoryReader,
         private readonly _artifactReader: RunArtifactReader,
-    ) {}
+        retention?: RunRetentionPolicy,
+    ) {
+        const max = retention?.maxRuns;
+        this._maxRuns =
+            typeof max === "number" && Number.isFinite(max) && max > 0 ? Math.floor(max) : 0;
+    }
 
     /**
      * Re-enumerates the runs directory and rebuilds the cache. Concurrent
@@ -129,8 +146,34 @@ export class RunStore implements vscode.Disposable {
                 continue;
             }
         }
+        await this._enforceRetention(next);
         this._cache = next;
         this._onDidChange.fire();
+    }
+
+    /**
+     * Prunes the oldest artifacts so at most `_maxRuns` survive. Mutates
+     * `entries` in place (deletes pruned runs from the map) and unlinks the
+     * artifact files on disk. No-op when retention is disabled (`_maxRuns`
+     * is `0`) or the cache is already within budget. Unlink failures are
+     * swallowed: a file we could not delete simply stays listed next scan.
+     */
+    private async _enforceRetention(entries: Map<string, RunListEntry>): Promise<void> {
+        if (this._maxRuns === 0 || entries.size <= this._maxRuns) {
+            return;
+        }
+        const newestFirst = Array.from(entries.values()).sort(
+            (a, b) => b.startedAtMs - a.startedAtMs,
+        );
+        const toPrune = newestFirst.slice(this._maxRuns);
+        for (const entry of toPrune) {
+            entries.delete(entry.runId);
+            try {
+                await fs.unlink(entry.artifactPath);
+            } catch {
+                // Best-effort: leave it for the next scan to reconsider.
+            }
+        }
     }
 
     /**
@@ -171,6 +214,29 @@ export class RunStore implements vscode.Disposable {
         } catch {
             return undefined;
         }
+    }
+
+    /**
+     * Reads the diagnostic event log captured inside a run's artifact, in
+     * emission order. Returns an empty array when the run is not cached, has
+     * no `events.jsonl`, or the artifact is no longer readable. Materializes
+     * the lazy reader stream into an array so the result can cross the
+     * webview RPC boundary as plain data.
+     */
+    public async readEvents(runId: string): Promise<readonly DiagnosticEvent[]> {
+        const entry = this._cache.get(runId);
+        if (entry === undefined) {
+            return [];
+        }
+        const events: DiagnosticEvent[] = [];
+        try {
+            for await (const event of this._artifactReader.readEvents(entry.artifactPath)) {
+                events.push(event);
+            }
+        } catch {
+            return [];
+        }
+        return events;
     }
 
     /**

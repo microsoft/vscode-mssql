@@ -12,6 +12,12 @@ export {
 } from "./runArtifactWriter";
 export { RunArtifactReader } from "./runArtifactReader";
 export {
+    compareRuns,
+    type RunComparison,
+    type ValidationDelta,
+    type ValidationPresence,
+} from "./runComparison";
+export {
     RunArtifactParseError,
     type RunArtifactIssue,
     type RunArtifactParseErrorKind,
@@ -22,5 +28,6 @@ export {
     LocalRunsDirectoryReader,
     RunStore,
     type RunListEntry,
+    type RunRetentionPolicy,
     type RunsDirectoryReader,
 } from "./runStore";

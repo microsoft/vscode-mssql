@@ -1968,6 +1968,49 @@
         "message": "{0}s",
         "comment": ["{0} is a duration in whole seconds"]
     },
+    "Logs": "Logs",
+    "Event timeline": "Event timeline",
+    "This run captured no diagnostic events.": "This run captured no diagnostic events.",
+    "Time": "Time",
+    "+{0}ms/{0} is milliseconds elapsed since the first event": {
+        "message": "+{0}ms",
+        "comment": ["{0} is milliseconds elapsed since the first event"]
+    },
+    "Latest run": "Latest run",
+    "In progress": "In progress",
+    "Pass rate": "Pass rate",
+    "No runs": "No runs",
+    "{0} running/{0} is the number of in-flight runs": {
+        "message": "{0} running",
+        "comment": ["{0} is the number of in-flight runs"]
+    },
+    "{0}% of {1}/{0} is the pass-rate percentage{1} is the number of runs the rate is computed over": {
+        "message": "{0}% of {1}",
+        "comment": [
+            "{0} is the pass-rate percentage",
+            "{1} is the number of runs the rate is computed over"
+        ]
+    },
+    "Set as default": "Set as default",
+    "Clear default": "Clear default",
+    "Compare runs": "Compare runs",
+    "Select two runs to compare.": "Select two runs to compare.",
+    "Compare selected ({0})/{0} is the number of currently selected runs (0, 1 or 2)": {
+        "message": "Compare selected ({0})",
+        "comment": ["{0} is the number of currently selected runs (0, 1 or 2)"]
+    },
+    "Validation": "Validation",
+    "Run A": "Run A",
+    "Run B": "Run B",
+    "Findings": "Findings",
+    "Only in A": "Only in A",
+    "Only in B": "Only in B",
+    "Changed": "Changed",
+    "Unchanged": "Unchanged",
+    "{0}ms/{0} is a signed duration delta in milliseconds": {
+        "message": "{0}ms",
+        "comment": ["{0} is a signed duration delta in milliseconds"]
+    },
     "Description for the table.": "Description for the table.",
     "The name of the column object.": "The name of the column object.",
     "Displays the description of the column": "Displays the description of the column",
@@ -2357,7 +2400,6 @@
         "message": "Elapsed time: {0}",
         "comment": ["{0} is the task elapsed time"]
     },
-    "Logs": "Logs",
     "No log entries yet.": "No log entries yet.",
     "Task log is unavailable.": "Task log is unavailable.",
     "Are you sure you want to cancel this background task?": "Are you sure you want to cancel this background task?",
@@ -2423,7 +2465,6 @@
     "Succeeded": "Succeeded",
     "Succeeded with warning": "Succeeded with warning",
     "Canceled": "Canceled",
-    "In progress": "In progress",
     "Canceling": "Canceling",
     "Not started": "Not started",
     "Parent node was not TreeNodeInfo.": "Parent node was not TreeNodeInfo.",
@@ -4068,6 +4109,7 @@
         "message": "Failed to seed sample run: {0}",
         "comment": ["{0} is the underlying error message"]
     },
+    "Failed to load one or both runs for comparison.": "Failed to load one or both runs for comparison.",
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

@@ -11,6 +11,7 @@ import { useCloudDeployHubSelector } from "./cloudDeployHubSelector";
 import { RunListView } from "./views/runListView";
 import { EnvironmentView } from "./views/environmentView";
 import { RunView } from "./views/runView";
+import { CompareView } from "./views/compareView";
 
 const useStyles = makeStyles({
     root: {
@@ -68,6 +69,7 @@ export const CloudDeployHubPage: React.FC = () => {
                 {currentPage === "runList" && <RunListView />}
                 {currentPage === "environment" && <EnvironmentView />}
                 {currentPage === "run" && <RunView />}
+                {currentPage === "compare" && <CompareView />}
                 {currentPage === "pipeline" && <RunListView />}
             </div>
         </div>

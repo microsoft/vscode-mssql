@@ -81,6 +81,10 @@
     <trans-unit id="++CODE++dbfb6fb3f275d24e8e32113cbbabeffe9d78165e6bdaf5b82c0fede5881451b5">
       <source xml:lang="en">+ Create Connection Group</source>
     </trans-unit>
+    <trans-unit id="++CODE++681944823a093068bf1ae379b8a0610338c03247fd31d6f4752c765fe55b5efa">
+      <source xml:lang="en">+{0}ms</source>
+      <note>{0} is milliseconds elapsed since the first event</note>
+    </trans-unit>
     <trans-unit id="++CODE++3973e022e93220f9212c18d0d0c543ae7c309e46640da93a4a0314de999f5112">
       <source xml:lang="en">-</source>
     </trans-unit>
@@ -911,6 +915,9 @@
       <note>{0} is the current change number
 {1} is the total number of changes</note>
     </trans-unit>
+    <trans-unit id="++CODE++2a6141e43be0c2125e3b5d9f74b4ff1261a0b320ff927c83d4d9b1b65585bad7">
+      <source xml:lang="en">Changed</source>
+    </trans-unit>
     <trans-unit id="++CODE++aa115b472e9ca1287d8404ed9c69fb8612db771dfcb9ec5f560662fd0a7d653b">
       <source xml:lang="en">Changed Tables</source>
     </trans-unit>
@@ -1101,6 +1108,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bb7638a0d8b3b374d81381caaf50ea1e5639135dd6ec1df7bc2dae0f344b72ec">
       <source xml:lang="en">Clear cache and refresh token</source>
+    </trans-unit>
+    <trans-unit id="++CODE++80631e116ccadb669cf8d764969359dcc493944c32b54a8bbb67a0281ab3f002">
+      <source xml:lang="en">Clear default</source>
     </trans-unit>
     <trans-unit id="++CODE++7179ea0035fca783ec62b7185659b68c75f2a7c12b909306a57183dc9b3fa44b">
       <source xml:lang="en">Clear filters</source>
@@ -1295,6 +1305,13 @@
     </trans-unit>
     <trans-unit id="++CODE++c76e4efa9bdedc294be4e0c0a7e42040e5c921d0b30a36e1c6249893b941b662">
       <source xml:lang="en">Compare SQL Server editions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d96c34e8f9cb6edb45cfb1981b189ba6e068e9a04afb46ee558135c20e925319">
+      <source xml:lang="en">Compare runs</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c250b85e2fc98d494c80e1d91993e8941cb59cc2c4286b9de7441796bce62926">
+      <source xml:lang="en">Compare selected ({0})</source>
+      <note>{0} is the number of currently selected runs (0, 1 or 2)</note>
     </trans-unit>
     <trans-unit id="++CODE++5b79ce1b6eead3275d92572d5997ed876b99fe9d47141f8b785abf94a4ff52c0">
       <source xml:lang="en">Comparison Details</source>
@@ -2721,6 +2738,9 @@
     <trans-unit id="++CODE++122d6fc2cd5624c4bc039226bae2926e08baf779f5cb4e424e1210a4d8ea54a7">
       <source xml:lang="en">Event properties list</source>
     </trans-unit>
+    <trans-unit id="++CODE++0bc6293cc69bcb4f53afb8f396bc284cd2468d75f0678c8cfc88cc2c02ccb847">
+      <source xml:lang="en">Event timeline</source>
+    </trans-unit>
     <trans-unit id="++CODE++ef0cb162a837dc75d0bc705304a331f2f1bbc2a81e7611348518734ef5e5dc5b">
       <source xml:lang="en">Example: Find queries with {0} &gt; 100</source>
       <note>{0} is the column name</note>
@@ -3094,6 +3114,9 @@
     <trans-unit id="++CODE++10b8baec7e7c3be69a945e7d6efbe3672d2a7a1b19642cd0867e8ea353335579">
       <source xml:lang="en">Failed to load databases</source>
     </trans-unit>
+    <trans-unit id="++CODE++3ebb275c21a2ddcde23782ce4246eba1ba3ecba738d69fc715b4cf8cadab373e">
+      <source xml:lang="en">Failed to load one or both runs for comparison.</source>
+    </trans-unit>
     <trans-unit id="++CODE++3124ddbedded23af64f8d5506005863517b446c2767c1d81660d1074b969e089">
       <source xml:lang="en">Failed to load publish profile</source>
     </trans-unit>
@@ -3404,6 +3427,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bf0e5179cb962af6329b97f24951139ae47f60ff00cdcd1ccbacd816608b6866">
       <source xml:lang="en">Find Previous</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e171c2ff25b55e5a2d63d081ec3a65e272d11afec9169a03822c970aac37e79e">
+      <source xml:lang="en">Findings</source>
     </trans-unit>
     <trans-unit id="++CODE++a6c7a84baa6750fce33f7512acd6793e53def1d228b5f2efb8074b42648424fc">
       <source xml:lang="en">Finish</source>
@@ -3949,6 +3975,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c7d299ed6b2896187b535a86fd6b04f01669a9b72528a8f2021fff2f42d9f6e3">
       <source xml:lang="en">Last Page</source>
+    </trans-unit>
+    <trans-unit id="++CODE++36adcd07b9bda0b9f1549c552e2fc660ab3781202fcee02e0aa2c1829e566e76">
+      <source xml:lang="en">Latest run</source>
     </trans-unit>
     <trans-unit id="++CODE++8d8cd546b58d91c300d3149ef40b8d98d3061dc38f15ea937d2ed785a3f25771">
       <source xml:lang="en">Learn More</source>
@@ -4846,6 +4875,9 @@
     <trans-unit id="++CODE++ab427ee55d6f25a2cb551176082f90bee142723295f3e1d591bdc28ab636547f">
       <source xml:lang="en">No rules match the current filter.</source>
     </trans-unit>
+    <trans-unit id="++CODE++26735edf00f9443f857865ab444bc18e7c4c00f3ca82797eff12076f6c406002">
+      <source xml:lang="en">No runs</source>
+    </trans-unit>
     <trans-unit id="++CODE++cfe172461963af4b1b33a4c79659b0950a135f1924b7e332f822e16c981e1c02">
       <source xml:lang="en">No runs against this environment yet.</source>
     </trans-unit>
@@ -5047,6 +5079,12 @@
     <trans-unit id="++CODE++5c96a0d717cf95bc5e8a44accd180436a5606ded18cb29001f3e9df57614ed31">
       <source xml:lang="en">One or more of your entities contain column types that are not currently supported by Data API builder. These entities cannot be selected for deployment.</source>
     </trans-unit>
+    <trans-unit id="++CODE++c1bfac6be75d5211606e4d0f560c20167ddf075a8abec06cc1a474089c234a83">
+      <source xml:lang="en">Only in A</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ce3eafceed73336730ca48a287629a06fad7a0e00bdfabf84aa59b0ca085f460">
+      <source xml:lang="en">Only in B</source>
+    </trans-unit>
     <trans-unit id="++CODE++ed077f3d8125d60dca1979c7133601bd187d47c73ed9975028f677e49e709942">
       <source xml:lang="en">Open</source>
     </trans-unit>
@@ -5191,6 +5229,9 @@
     </trans-unit>
     <trans-unit id="++CODE++5cafcd08f15a2a6ce49d703f1da5861c94ec134cc92984cc6b2f67965c31b5ee">
       <source xml:lang="en">Parent node was not TreeNodeInfo.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++dec029129bfc9f4110ba1a2898fc93700b7a66252951afb8b5a441bf9879fbed">
+      <source xml:lang="en">Pass rate</source>
     </trans-unit>
     <trans-unit id="++CODE++436fe71bb9561f0596161c4d50c7b23327b4189acaf63dc89f4f9205b67a7528">
       <source xml:lang="en">Passed</source>
@@ -5889,6 +5930,12 @@
     <trans-unit id="++CODE++4228aeb07c410ffc9d15b458bf7c2bf8d9dfa7af632f2c339e69f8cb54654da3">
       <source xml:lang="en">Rules</source>
     </trans-unit>
+    <trans-unit id="++CODE++7e5901904eba74a5a2be613f387934c52068abef9583f0ec74d3e872a0cecd2e">
+      <source xml:lang="en">Run A</source>
+    </trans-unit>
+    <trans-unit id="++CODE++480d4c2a08fcbca232fc9f13e985a9464a915a201e75747dd09ba068e7c7c095">
+      <source xml:lang="en">Run B</source>
+    </trans-unit>
     <trans-unit id="++CODE++826cea94aca7f2bce9e97c214c1df682ea9fa53a85d642e06993064d077eda60">
       <source xml:lang="en">Run Query</source>
     </trans-unit>
@@ -6460,6 +6507,9 @@
     <trans-unit id="++CODE++5c61a29b1d409ff2b70f6fbd1032d7250ac322407dc4b8bbff19eb20af562291">
       <source xml:lang="en">Select the SQL Server Container Image</source>
     </trans-unit>
+    <trans-unit id="++CODE++e499486f50d37e5210b5751f21062c34a4cac3f2eb82d4cd1cf41613719bea61">
+      <source xml:lang="en">Select two runs to compare.</source>
+    </trans-unit>
     <trans-unit id="++CODE++5354479c5248dd63b7110fca45437164866ebbdc35bd5d19a5b814535534024e">
       <source xml:lang="en">Selected Microsoft Entra account removed successfully.</source>
     </trans-unit>
@@ -6549,6 +6599,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7dcc1c2a0bebbc604d5c15ae5e2a764048d5936bda66f0137af772be71d7a145">
       <source xml:lang="en">Set Null</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d09b4dd6265a220211fc2e0fc1fbe77a19e78a124bf6e916541a06712221381a">
+      <source xml:lang="en">Set as default</source>
     </trans-unit>
     <trans-unit id="++CODE++0099e307c30bf6206a012fd8c962c7b7f6b10004d1ba789042ff0e5ff5841424">
       <source xml:lang="en">Set backup Compression</source>
@@ -7264,6 +7317,9 @@
     <trans-unit id="++CODE++461401ab1ef5eb94c409a7d6de3ad223b3733f4a8823944fc070fcfdf5ebed6b">
       <source xml:lang="en">This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.</source>
     </trans-unit>
+    <trans-unit id="++CODE++bbdf4eaf86f8b5d6f013fdc20e1245806e574b85ac309fbdeb4e42830c0c4fd6">
+      <source xml:lang="en">This run captured no diagnostic events.</source>
+    </trans-unit>
     <trans-unit id="++CODE++caa12615596c4b71c327d2e79764571976a83c51990f57f8a5d1cd8d76ce3f9a">
       <source xml:lang="en">This run executed no validations.</source>
     </trans-unit>
@@ -7285,6 +7341,9 @@
     </trans-unit>
     <trans-unit id="++CODE++03126be5685aeff8f0cfd24c8347e944469c6d847936baf9d95cde004b33d295">
       <source xml:lang="en">This will reset all rules to their default severity and disable &apos;Enable Code Analysis on Build&apos;. This cannot be undone. Would you like to continue?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++33b93476cf597a3330653b66a658983d892ac264b5d6029a2dc642b9b1f30870">
+      <source xml:lang="en">Time</source>
     </trans-unit>
     <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
       <source xml:lang="en">Timestamp</source>
@@ -7420,6 +7479,9 @@
     </trans-unit>
     <trans-unit id="++CODE++6be6bf4fae4897b542e648716d3e0fb9d67e3f4457c7b37afd4b217ca93e2914">
       <source xml:lang="en">Unavailable for backups to existing files</source>
+    </trans-unit>
+    <trans-unit id="++CODE++88b6f7429ce74e858aaf5913d19440c3cc49af1ef44e53ac6dccaf30c01f4fd0">
+      <source xml:lang="en">Unchanged</source>
     </trans-unit>
     <trans-unit id="++CODE++d7d09d502d5422aa5c2aaffacea9601c1011d9035e27986c8b243078a745b061">
       <source xml:lang="en">Understand and document business logic embedded in stored procedures, views, and functions</source>
@@ -7594,6 +7656,9 @@
     <trans-unit id="++CODE++28b0b223106355b888c92fa5dec8ad2c57a145272c84dd4bb5581d7ccd68076e">
       <source xml:lang="en">Validating {0}...</source>
       <note>{0} is an environment display name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++68e1ca575295bb5604fea711b5d2eff44006ce4bd985481083a76b71fce0daef">
+      <source xml:lang="en">Validation</source>
     </trans-unit>
     <trans-unit id="++CODE++0f238dd5246e2e2e8f28a226a63d775e507a2ecac6258e32779fd9d72d8dfc37">
       <source xml:lang="en">Validation cancelled for &apos;{0}&apos;.</source>
@@ -8139,6 +8204,10 @@
       <source xml:lang="en">{0} rules</source>
       <note>{0} is the number of code analysis rules</note>
     </trans-unit>
+    <trans-unit id="++CODE++db0c60b8c0c9ffbf76dc47ecb98d24cfbddc12432114c7a5022686d290b20e5a">
+      <source xml:lang="en">{0} running</source>
+      <note>{0} is the number of in-flight runs</note>
+    </trans-unit>
     <trans-unit id="++CODE++0d43a65b231aab5ce9c1a1fcaa614526a6c2cefb7137de400a2a1feae95e1156">
       <source xml:lang="en">{0} selected</source>
       <note>{0} is the number of selected filter values</note>
@@ -8181,6 +8250,11 @@
       <source xml:lang="en">{0} • {1}s</source>
       <note>{0} is the run status label (Passed/Failed/etc.)
 {1} is the run duration in whole seconds</note>
+    </trans-unit>
+    <trans-unit id="++CODE++468dd3e1dc064167e284ce598c4cf3e77d5b5974a3fe8855b3fc04728fb47a45">
+      <source xml:lang="en">{0}% of {1}</source>
+      <note>{0} is the pass-rate percentage
+{1} is the number of runs the rate is computed over</note>
     </trans-unit>
     <trans-unit id="++CODE++b0020ab38fda5f63913e80f99f68a50881b2b83866c16fcd3abb83ce43c4aea3">
       <source xml:lang="en">{0}, +{1} more</source>
@@ -8245,6 +8319,10 @@
     <trans-unit id="++CODE++7225167ed5e4103e8208032eadc0cd8c8a50960a1d64a94da29046dc04100582">
       <source xml:lang="en">{0}ms</source>
       <note>{0} is the elapsed time in milliseconds</note>
+    </trans-unit>
+    <trans-unit id="++CODE++009b0838ef032396da91cc1a12abb34d2917581e0f35add299d28808978ffc47">
+      <source xml:lang="en">{0}ms</source>
+      <note>{0} is a signed duration delta in milliseconds</note>
     </trans-unit>
     <trans-unit id="++CODE++6798a9a353a86e591c7e67d0de13cc1b13216c95a1d38821b319d1f21823e3b1">
       <source xml:lang="en">{0}s</source>

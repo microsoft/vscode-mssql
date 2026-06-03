@@ -3,7 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Link, makeStyles, Spinner, Text, tokens } from "@fluentui/react-components";
+import {
+    Button,
+    Checkbox,
+    Link,
+    makeStyles,
+    Spinner,
+    Text,
+    tokens,
+} from "@fluentui/react-components";
 import * as React from "react";
 import { locConstants } from "../../../common/locConstants";
 import { useCloudDeployHubContext } from "../cloudDeployHubStateProvider";
@@ -66,8 +74,18 @@ const useStyles = makeStyles({
         textAlign: "center",
         color: tokens.colorNeutralForeground3,
     },
+    headingRow: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginBottom: "12px",
+        gap: "12px",
+    },
+    compareHint: {
+        fontSize: "12px",
+        color: tokens.colorNeutralForeground3,
+    },
 });
-
 function formatDuration(startedAtMs: number, endedAtMs?: number): string {
     if (!endedAtMs || endedAtMs < startedAtMs) {
         return "—";
@@ -82,10 +100,36 @@ function formatStarted(ms: number): string {
 
 export const RunListView: React.FC = () => {
     const classes = useStyles();
-    const { navigate } = useCloudDeployHubContext();
+    const { navigate, compareRuns } = useCloudDeployHubContext();
     const runs = useCloudDeployHubSelector((s) => s.runs);
     const liveRuns = useCloudDeployHubSelector((s) => s.liveRuns);
     const strings = locConstants.cloudDeployHub;
+    const [selectedForCompare, setSelectedForCompare] = React.useState<readonly string[]>([]);
+
+    // Drop selections that no longer exist (e.g. a run was deleted) so the
+    // compare action never sends a stale run id.
+    React.useEffect(() => {
+        setSelectedForCompare((prev) => prev.filter((id) => runs.some((r) => r.runId === id)));
+    }, [runs]);
+
+    const toggleCompare = (runId: string, checked: boolean): void => {
+        setSelectedForCompare((prev) => {
+            if (checked) {
+                if (prev.includes(runId)) {
+                    return prev;
+                }
+                // Keep at most two; dropping the oldest keeps the most recent picks.
+                return [...prev, runId].slice(-2);
+            }
+            return prev.filter((id) => id !== runId);
+        });
+    };
+
+    const onCompare = (): void => {
+        if (selectedForCompare.length === 2) {
+            compareRuns(selectedForCompare[0], selectedForCompare[1]);
+        }
+    };
 
     const liveBanner =
         liveRuns.length > 0 ? (
@@ -119,12 +163,25 @@ export const RunListView: React.FC = () => {
     return (
         <div>
             {liveBanner}
-            <Text as="h2" className={classes.heading}>
-                {strings.runListHeading}
-            </Text>
+            <div className={classes.headingRow}>
+                <Text as="h2" className={classes.heading}>
+                    {strings.runListHeading}
+                </Text>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <span className={classes.compareHint}>{strings.compareSelectHint}</span>
+                    <Button
+                        size="small"
+                        appearance="primary"
+                        disabled={selectedForCompare.length !== 2}
+                        onClick={onCompare}>
+                        {strings.compareSelectedCount(selectedForCompare.length)}
+                    </Button>
+                </div>
+            </div>
             <table className={classes.table}>
                 <thead>
                     <tr>
+                        <th className={classes.th}></th>
                         <th className={classes.th}>{strings.columnRunId}</th>
                         <th className={classes.th}>{strings.columnEnvironment}</th>
                         <th className={classes.th}>{strings.columnStatus}</th>
@@ -133,27 +190,42 @@ export const RunListView: React.FC = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {runs.map((run) => (
-                        <tr key={run.runId}>
-                            <td className={`${classes.td} ${classes.runIdCell}`}>
-                                <Link onClick={() => navigate("run", { runId: run.runId })}>
-                                    {run.runId.slice(0, 8)}
-                                </Link>
-                            </td>
-                            <td className={classes.td}>
-                                <Link onClick={() => navigate("environment", { envId: run.envId })}>
-                                    {run.envDisplayName}
-                                </Link>
-                            </td>
-                            <td className={classes.td}>
-                                <StatusBadge status={run.status} />
-                            </td>
-                            <td className={classes.td}>{formatStarted(run.startedAtMs)}</td>
-                            <td className={classes.td}>
-                                {formatDuration(run.startedAtMs, run.endedAtMs)}
-                            </td>
-                        </tr>
-                    ))}
+                    {runs.map((run) => {
+                        const checked = selectedForCompare.includes(run.runId);
+                        return (
+                            <tr key={run.runId}>
+                                <td className={classes.td}>
+                                    <Checkbox
+                                        checked={checked}
+                                        disabled={!checked && selectedForCompare.length >= 2}
+                                        onChange={(_e, data) =>
+                                            toggleCompare(run.runId, data.checked === true)
+                                        }
+                                    />
+                                </td>
+                                <td className={`${classes.td} ${classes.runIdCell}`}>
+                                    <Link onClick={() => navigate("run", { runId: run.runId })}>
+                                        {run.runId.slice(0, 8)}
+                                    </Link>
+                                </td>
+                                <td className={classes.td}>
+                                    <Link
+                                        onClick={() =>
+                                            navigate("environment", { envId: run.envId })
+                                        }>
+                                        {run.envDisplayName}
+                                    </Link>
+                                </td>
+                                <td className={classes.td}>
+                                    <StatusBadge status={run.status} />
+                                </td>
+                                <td className={classes.td}>{formatStarted(run.startedAtMs)}</td>
+                                <td className={classes.td}>
+                                    {formatDuration(run.startedAtMs, run.endedAtMs)}
+                                </td>
+                            </tr>
+                        );
+                    })}
                 </tbody>
             </table>
         </div>
