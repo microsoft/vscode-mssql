@@ -13,6 +13,7 @@ import { AzureResourceController } from "../azure/azureResourceController";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { CloudDeployService } from "../cloudDeploy/cloudDeployService";
+import { CLOUD_DEPLOY_VIEW_ID, CloudDeployTreeProvider } from "../cloudDeploy/dashboard";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import * as ConnInfo from "../models/connectionInfo";
 import {
@@ -1109,11 +1110,56 @@ export default class MainController implements vscode.Disposable {
             this._context.workspaceState,
         );
         this._context.subscriptions.push(this.cloudDeployService);
-        void this.cloudDeployService.init().catch((err: unknown) => {
+        const cloudDeployInit = this.cloudDeployService.init();
+        void cloudDeployInit.catch((err: unknown) => {
             this._logger.error(
                 `CloudDeployService init failed: ${err instanceof Error ? err.message : String(err)}`,
             );
         });
+
+        // Cloud Deploy: activity-bar tree view (D3-Part-2 commit 2). The
+        // provider holds direct refs to the env store and run store so it
+        // can refresh in response to either source's change events. View
+        // registration happens unconditionally — when no workspace folder
+        // is open the provider renders empty placeholder rows.
+        const cloudDeployTreeProvider = new CloudDeployTreeProvider(
+            this.cloudDeployService.environments,
+            this.cloudDeployService.runs.store,
+        );
+        // Once init() resolves, repaint the tree so the env section
+        // populates. The env store does not fire onDidChangeEnvironments
+        // for the initial load, only for upsert/delete/reload.
+        void cloudDeployInit.then(
+            () => cloudDeployTreeProvider.refresh(),
+            () => {
+                /* logged above */
+            },
+        );
+        const cloudDeployTreeView = vscode.window.createTreeView(CLOUD_DEPLOY_VIEW_ID, {
+            treeDataProvider: cloudDeployTreeProvider,
+        });
+        this._context.subscriptions.push(cloudDeployTreeProvider);
+        this._context.subscriptions.push(cloudDeployTreeView);
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(Constants.cmdCloudDeployRefreshDashboard, () => {
+                cloudDeployTreeProvider.refresh();
+                void this.cloudDeployService.runs.store?.scan();
+            }),
+        );
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdCloudDeployRevealRunArtifact,
+                async (artifactPath: string) => {
+                    if (typeof artifactPath !== "string" || artifactPath.length === 0) {
+                        return;
+                    }
+                    await vscode.commands.executeCommand(
+                        "revealFileInOS",
+                        vscode.Uri.file(artifactPath),
+                    );
+                },
+            ),
+        );
 
         this._initialized = true;
         return true;
@@ -2756,6 +2802,10 @@ export default class MainController implements vscode.Disposable {
                 try {
                     return await this.cloudDeployService.validation.run(picked.envId, {
                         signal: controller.signal,
+                        // Persist a .cdrun.zip under .mssql/runs/ so the Cloud
+                        // Deploy tree view picks it up via the FileSystemWatcher.
+                        persist: this.cloudDeployService.runs.runsDirectory !== undefined,
+                        artifactDir: this.cloudDeployService.runs.runsDirectory,
                     });
                 } finally {
                     tokenSubscription.dispose();

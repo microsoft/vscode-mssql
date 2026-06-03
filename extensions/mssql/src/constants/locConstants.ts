@@ -6,6 +6,8 @@
 import { l10n } from "vscode";
 import * as os from "os";
 
+import { RunStatus } from "../cloudDeploy/runs/types";
+
 // Warning: Only update these strings if you are sure you want to affect _all_ locations they're shared between.
 export class Common {
     public static remindMeLater = l10n.t("Remind Me Later");
@@ -3981,4 +3983,72 @@ export class CloudDeployValidation {
             args: [message],
             comment: ["{0} is the underlying I/O error message"],
         });
+}
+
+/**
+ * Strings for the Cloud Deploy activity-bar tree view (D3-Part-2 commit 2).
+ * Hub-webview strings will join this class in a later commit.
+ */
+export class CloudDeployDashboard {
+    public static viewTitle = l10n.t("Cloud Deploy");
+
+    public static environmentsSection = l10n.t("Environments");
+
+    public static recentRunsSection = l10n.t("Recent Runs");
+
+    public static noEnvironmentsPlaceholder = l10n.t(
+        "No environments declared. Add one to .mssql/environments.json.",
+    );
+
+    public static noRunsPlaceholder = l10n.t("No runs yet. Run validation to produce one.");
+
+    public static validateCommand = l10n.t("Run validation");
+
+    public static revealArtifactCommand = l10n.t("Reveal run artifact");
+
+    public static refreshCommand = l10n.t("Refresh");
+
+    public static environmentTooltip = (id: string): string =>
+        l10n.t({
+            message: "Environment id: {0}",
+            args: [id],
+            comment: ["{0} is the environment id from environments.json"],
+        });
+
+    public static runTooltip = (runId: string, artifactPath: string): string =>
+        l10n.t({
+            message: "Run {0}\nArtifact: {1}",
+            args: [runId, artifactPath],
+            comment: [
+                "{0} is the run id (uuid)",
+                "{1} is the absolute path to the .cdrun.zip artifact",
+            ],
+        });
+
+    public static runDescription = (status: RunStatus, durationSeconds: number): string =>
+        l10n.t({
+            message: "{0} • {1}s",
+            args: [statusLabel(status), durationSeconds],
+            comment: [
+                "{0} is the run status label (Passed/Failed/etc.)",
+                "{1} is the run duration in whole seconds",
+            ],
+        });
+}
+
+function statusLabel(status: RunStatus): string {
+    switch (status) {
+        case RunStatus.Passed:
+            return l10n.t("Passed");
+        case RunStatus.Warning:
+            return l10n.t("Warning");
+        case RunStatus.Failed:
+            return l10n.t("Failed");
+        case RunStatus.Errored:
+            return l10n.t("Errored");
+        case RunStatus.Cancelled:
+            return l10n.t("Cancelled");
+        case RunStatus.Skipped:
+            return l10n.t("Skipped");
+    }
 }

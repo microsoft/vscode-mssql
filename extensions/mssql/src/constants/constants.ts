@@ -160,6 +160,10 @@ export const cmdNotebooksChangeDatabase = "mssql.notebooks.changeDatabase";
 export const cmdNotebooksChangeConnection = "mssql.notebooks.changeConnection";
 export const cmdNotebooksCopyCellMessages = "mssql.notebooks.copyCellMessages";
 export const cmdCloudDeployValidate = "mssql.cloudDeploy.validateEnvironment";
+export const cmdCloudDeployRevealRunArtifact = "mssql.cloudDeploy.revealRunArtifact";
+export const cmdCloudDeployRefreshDashboard = "mssql.cloudDeploy.refreshDashboard";
+
+export const cloudDeployView = "mssqlCloudDeploy";
 
 export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";
