@@ -1963,6 +1963,10 @@
     "Serialization failed": "Serialization failed",
     "Remind Me Later": "Remind Me Later",
     "Don't Show Again": "Don't Show Again",
+    "Open File": "Open File",
+    "Reveal in Explorer": "Reveal in Explorer",
+    "Reveal in Finder": "Reveal in Finder",
+    "Open Containing Folder": "Open Containing Folder",
     "Public": "Public",
     "Private": "Private",
     "Remove": "Remove",
@@ -2101,9 +2105,18 @@
     "Save Password? If 'No', password will be required each time you connect": "Save Password? If 'No', password will be required each time you connect",
     "Profile Name": "Profile Name",
     "Error occurred opening content in editor.": "Error occurred opening content in editor.",
-    "Started saving results to ": "Started saving results to ",
-    "Failed to save results. ": "Failed to save results. ",
-    "Successfully saved results to ": "Successfully saved results to ",
+    "Started saving results to {0}/{0} is the file path": {
+        "message": "Started saving results to {0}",
+        "comment": ["{0} is the file path"]
+    },
+    "Failed to save results. {0}/{0} is the error message": {
+        "message": "Failed to save results. {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Successfully saved results to {0}/{0} is the file path": {
+        "message": "Successfully saved results to {0}",
+        "comment": ["{0} is the file path"]
+    },
     "Select profile to remove": "Select profile to remove",
     "Select profile to edit": "Select profile to edit",
     "Confirm to remove this profile.": "Confirm to remove this profile.",
@@ -3487,9 +3500,6 @@
     "Database not found on the server": "Database not found on the server",
     "Validation failed. Please check your inputs": "Validation failed. Please check your inputs",
     "Application version must be in format n.n.n.n where n is a number (e.g., 1.0.0.0)": "Application version must be in format n.n.n.n where n is a number (e.g., 1.0.0.0)",
-    "Reveal in Explorer": "Reveal in Explorer",
-    "Reveal in Finder": "Reveal in Finder",
-    "Open Containing Folder": "Open Containing Folder",
     "Unable to retrieve the list of databases. You may not have permission to list databases on this server.": "Unable to retrieve the list of databases. You may not have permission to list databases on this server.",
     "DACPAC deployed successfully to database '{0}'/{0} is the database name": {
         "message": "DACPAC deployed successfully to database '{0}'",
@@ -3635,7 +3645,11 @@
     "Customize keyboard shortcuts": "Customize keyboard shortcuts",
     "Schema Designer with GitHub Copilot": "Schema Designer with GitHub Copilot",
     "Use natural language to design database schemas directly within the visual Schema Designer. Create schemas from scratch, evolve existing designs, review changes through a diff view, and import external artifacts - all reflected live in the visual diagram and T-SQL script.": "Use natural language to design database schemas directly within the visual Schema Designer. Create schemas from scratch, evolve existing designs, review changes through a diff view, and import external artifacts - all reflected live in the visual diagram and T-SQL script.",
+    "Azure SQL databases provisioning": "Azure SQL databases provisioning",
+    "Easily start with the Azure SQL database free tier to create and connect to a database directly from your editor at no cost.": "Easily start with the Azure SQL database free tier to create and connect to a database directly from your editor at no cost.",
     "Create REST, GraphQL, and MCP endpoints for your SQL database tables from a visual interface within Visual Studio Code. Configure entities, permissions, and deployment settings — then deploy locally with Docker.": "Create REST, GraphQL, and MCP endpoints for your SQL database tables from a visual interface within Visual Studio Code. Configure entities, permissions, and deployment settings — then deploy locally with Docker.",
+    "Data API builder with GitHub Copilot": "Data API builder with GitHub Copilot",
+    "Generate REST, GraphQL, and MCP endpoints from your SQL database objects (tables). You can modify the configuration manually or through GitHub Copilot to plan and generate updates - then deploy locally with Docker.": "Generate REST, GraphQL, and MCP endpoints from your SQL database objects (tables). You can modify the configuration manually or through GitHub Copilot to plan and generate updates - then deploy locally with Docker.",
     "GitHub Copilot integration in Data API builder": "GitHub Copilot integration in Data API builder",
     "Generate Data API builder configurations using natural language through GitHub Copilot chat and agent tools. Describe your API requirements and let GitHub Copilot scaffold the configuration for you.": "Generate Data API builder configurations using natural language through GitHub Copilot chat and agent tools. Describe your API requirements and let GitHub Copilot scaffold the configuration for you.",
     "SQL Notebooks": "SQL Notebooks",
@@ -3662,6 +3676,9 @@
     "New to the MSSQL extension? Check out our quick-start guide.": "New to the MSSQL extension? Check out our quick-start guide.",
     "MSSQL - VS Code walkthrough": "MSSQL - VS Code walkthrough",
     "GitHub Copilot - VS Code walkthrough": "GitHub Copilot - VS Code walkthrough",
+    "Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.": "Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.",
+    "Use discount code {0} to save €200 on registration.": "Use discount code {0} to save €200 on registration.",
+    "Register": "Register",
     "Failed to launch profiler: {0}/{0} is the error message": {
         "message": "Failed to launch profiler: {0}",
         "comment": ["{0} is the error message"]
@@ -3749,7 +3766,6 @@
         "message": "Profiler events exported successfully to {0}",
         "comment": ["{0} is the file path"]
     },
-    "Open File": "Open File",
     "Failed to export profiler events: {0}/{0} is the error message": {
         "message": "Failed to export profiler events: {0}",
         "comment": ["{0} is the error message"]
