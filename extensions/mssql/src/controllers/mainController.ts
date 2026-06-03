@@ -16,6 +16,7 @@ import { CloudDeployService } from "../cloudDeploy/cloudDeployService";
 import { CLOUD_DEPLOY_VIEW_ID, CloudDeployTreeProvider } from "../cloudDeploy/dashboard";
 import { CloudDeployHubController } from "../cloudDeploy/dashboard/cloudDeployHubController";
 import { seedSampleRun } from "../cloudDeploy/dev/seedSampleRun";
+import { VsCodeMssqlConnectionStrategy } from "../cloudDeploy/host/vscodeMssqlConnectionStrategy";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import * as ConnInfo from "../models/connectionInfo";
 import {
@@ -1099,6 +1100,16 @@ export default class MainController implements vscode.Disposable {
             previewService.experimentalFeaturesEnabled,
         );
 
+        // Cloud Deploy: gate the dev-only `Seed sample run` command so it
+        // only appears in the command palette when running inside the
+        // Extension Development Host. End users never see it; reviewers
+        // and the dev loop still get the synthetic-fixture affordance.
+        await vscode.commands.executeCommand(
+            "setContext",
+            "mssql.cloudDeploy.developerMode",
+            this._context.extensionMode === vscode.ExtensionMode.Development,
+        );
+
         await this._connectionMgr.initialized;
 
         this._statusview.setConnectionStore(this._connectionMgr.connectionStore);
@@ -1106,10 +1117,14 @@ export default class MainController implements vscode.Disposable {
         // Cloud Deploy: instantiate the service against the first workspace folder
         // (TODO: multi-root support). Init runs fire-and-forget so a malformed
         // environments.json can't block extension activation — errors are logged.
+        // The live `connectionStrategy` bridges to vscode-mssql's ConnectionManager
+        // so connectivity / unit-tests / etc. validators can open real sessions
+        // against any saved connection profile referenced by an environment.
         const cloudDeployFolder = vscode.workspace.workspaceFolders?.[0];
         this.cloudDeployService = new CloudDeployService(
             cloudDeployFolder,
             this._context.workspaceState,
+            { connectionStrategy: new VsCodeMssqlConnectionStrategy(this._connectionMgr) },
         );
         this._context.subscriptions.push(this.cloudDeployService);
         const cloudDeployInit = this.cloudDeployService.init();

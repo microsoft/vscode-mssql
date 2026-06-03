@@ -930,6 +930,10 @@
             ],
             "commandPalette": [
                 {
+                    "command": "mssql.cloudDeploy.seedSampleRun",
+                    "when": "mssql.cloudDeploy.developerMode"
+                },
+                {
                     "command": "mssql.viewBackgroundTaskLogs",
                     "when": "false"
                 },
