@@ -216,7 +216,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 undefined,
             );
 
-            this.logger.info(
+            this.logger.debug(
                 `Table explorer initialized successfully - OperationId: ${this.operationId}`,
             );
             endActivity.end(ActivityStatus.Succeeded, {
@@ -317,7 +317,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             const combinedScript = scriptResult.scripts?.join(os.EOL) || "";
             state.updateScript = combinedScript;
             this.updateState();
-            this.logger.info("Script regenerated successfully in real-time");
+            this.logger.debug("Script regenerated successfully in real-time");
         } catch (error) {
             this.logger.error(`Error regenerating script: ${error}`);
         }
@@ -407,7 +407,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 objectType,
                 undefined,
             );
-            this.logger.info("Restored original session after custom query failure");
+            this.logger.debug("Restored original session after custom query failure");
             return true;
         } catch (restoreError) {
             this.logger.error(
@@ -449,7 +449,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 state.originalCellValues?.clear(); // Clear cached original values since they're now outdated
                 this.showRestorePromptAfterClose = false;
 
-                this.logger.info(
+                this.logger.debug(
                     `Cleared new rows, deleted rows, failed cells, and original cell values cache after successful commit - OperationId: ${this.operationId}`,
                 );
 
@@ -482,7 +482,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("loadSubset", async (state, payload) => {
-            this.logger.info(
+            this.logger.debug(
                 `Loading subset with rowCount: ${payload.rowCount} - OperationId: ${this.operationId}`,
             );
 
@@ -521,7 +521,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     rowCount: backendRowsOnly.length + state.newRows.length,
                 };
 
-                this.logger.info(
+                this.logger.debug(
                     `Loaded ${backendRowsOnly.length} committed rows from database, appended ${state.newRows.length} new uncommitted rows - OperationId: ${this.operationId}`,
                 );
 
@@ -587,7 +587,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 vscode.window.showInformationMessage(
                     LocConstants.TableExplorer.rowCreatedSuccessfully,
                 );
-                this.logger.info(
+                this.logger.debug(
                     `Created row with ID: ${result.newRowId} - OperationId: ${this.operationId}`,
                 );
 
@@ -604,7 +604,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                         rowCount: state.resultSet.rowCount + 1,
                     };
 
-                    this.logger.info(
+                    this.logger.debug(
                         `Added new row to result set, now has ${state.resultSet.rowCount} rows (${state.newRows.length} new)`,
                     );
 
@@ -644,7 +644,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("deleteRow", async (state, payload) => {
-            this.logger.info(`Deleting row: ${payload.rowId} - OperationId: ${this.operationId}`);
+            this.logger.debug(`Deleting row: ${payload.rowId} - OperationId: ${this.operationId}`);
 
             const startTime = Date.now();
             const endActivity = startActivity(
@@ -681,7 +681,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                         }
                     });
                     keysToDelete.forEach((key) => state.originalCellValues?.delete(key));
-                    this.logger.info(
+                    this.logger.debug(
                         `Cleared ${keysToDelete.length} cached values for deleted row ${payload.rowId}`,
                     );
                 }
@@ -705,7 +705,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                         LocConstants.TableExplorer.rowDeletedSuccessfully,
                     );
 
-                    this.logger.info(
+                    this.logger.debug(
                         `Removed newly created row ${payload.rowId} from UI (${state.newRows.length} new rows remaining)`,
                     );
 
@@ -725,7 +725,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
                     this.showRestorePromptAfterClose = true;
 
-                    this.logger.info(
+                    this.logger.debug(
                         `Marked row ${payload.rowId} for deletion (${state.deletedRows.length} total deleted)`,
                     );
                 }
@@ -764,7 +764,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("updateCell", async (state, payload) => {
-            this.logger.info(
+            this.logger.debug(
                 `Updating cell: row ${payload.rowId}, column ${payload.columnId} - OperationId: ${this.operationId}`,
             );
 
@@ -797,9 +797,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                         isNull: originalCell.isNull,
                         invariantCultureDisplayValue: originalCell.invariantCultureDisplayValue,
                     });
-                    this.logger.verbose(
-                        `Cached original value for cell ${cacheKey}: ${originalCell.displayValue}`,
-                    );
+                    this.logger.trace(`Cached original value for cell ${cacheKey}`);
                 }
             }
 
@@ -835,13 +833,13 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
                         this.updateState();
 
-                        this.logger.info(
+                        this.logger.debug(
                             `Updated cell in result set at row ${rowIndex}, column ${payload.columnId}`,
                         );
                     }
                 }
 
-                this.logger.info(`Cell updated successfully - OperationId: ${this.operationId}`);
+                this.logger.debug(`Cell updated successfully - OperationId: ${this.operationId}`);
 
                 await this.regenerateScriptIfVisible(state);
 
@@ -880,7 +878,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
                         state.resultSet.subset[rowIndex].cells[payload.columnId] = failedCell;
 
-                        this.logger.info(
+                        this.logger.debug(
                             `Updated cell in result set to show failed edit at row ${rowIndex}, column ${payload.columnId}`,
                         );
                     }
@@ -908,7 +906,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("revertCell", async (state, payload) => {
-            this.logger.info(
+            this.logger.debug(
                 `Reverting cell: row ${payload.rowId}, column ${payload.columnId} - OperationId: ${this.operationId}`,
             );
 
@@ -927,7 +925,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
             try {
                 // Always call the service to revert to ensure backend state is properly cleaned up
-                this.logger.info(`Calling service to revert cell ${cacheKey}`);
+                this.logger.trace(`Calling service to revert cell ${cacheKey}`);
                 const revertCellResult = await this._tableExplorerService.revertCell(
                     state.ownerUri,
                     payload.rowId,
@@ -950,15 +948,13 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                       };
 
                 if (cachedOriginalValue) {
-                    this.logger.info(
-                        `Using cached original value for display: ${cachedOriginalValue.displayValue}`,
-                    );
+                    this.logger.trace(`Using cached original value for cell ${cacheKey}`);
                 }
 
                 // Remove from cache after successful revert
                 if (state.originalCellValues?.has(cacheKey)) {
                     state.originalCellValues.delete(cacheKey);
-                    this.logger.info(
+                    this.logger.trace(
                         `Removed cached value for cell ${cacheKey} after successful revert`,
                     );
                 }
@@ -997,14 +993,14 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                             subset: newSubset,
                         };
 
-                        this.logger.info(
+                        this.logger.debug(
                             `Reverted cell in result set at row ${rowIndex}, column ${payload.columnId}`,
                         );
 
                         this.updateState();
                     }
                 }
-                this.logger.info(`Cell reverted successfully - OperationId: ${this.operationId}`);
+                this.logger.debug(`Cell reverted successfully - OperationId: ${this.operationId}`);
 
                 await this.regenerateScriptIfVisible(state);
 
@@ -1037,7 +1033,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("revertRow", async (state, payload) => {
-            this.logger.info(`Reverting row: ${payload.rowId} - OperationId: ${this.operationId}`);
+            this.logger.debug(`Reverting row: ${payload.rowId} - OperationId: ${this.operationId}`);
 
             const startTime = Date.now();
             const endActivity = startActivity(
@@ -1075,7 +1071,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                         }
                     });
                     keysToDelete.forEach((key) => state.originalCellValues?.delete(key));
-                    this.logger.info(
+                    this.logger.debug(
                         `Cleared ${keysToDelete.length} cached values for row ${payload.rowId}`,
                     );
                 }
@@ -1104,7 +1100,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
                             this.updateState();
 
-                            this.logger.info(
+                            this.logger.debug(
                                 `Reverted row at index ${rowIndex} with ${revertRowResult.row.cells.length} cells`,
                             );
                         }
@@ -1125,7 +1121,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
                     this.updateState();
 
-                    this.logger.info(
+                    this.logger.debug(
                         `Removed newly created row ${payload.rowId} from UI after revert`,
                     );
 
@@ -1135,7 +1131,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     }
                 }
 
-                this.logger.info(`Row reverted successfully - OperationId: ${this.operationId}`);
+                this.logger.debug(`Row reverted successfully - OperationId: ${this.operationId}`);
 
                 await this.regenerateScriptIfVisible(state);
 
@@ -1190,7 +1186,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
                 // Combine script array into single string
                 const combinedScript = scriptResult.scripts?.join(os.EOL) || "";
-                this.logger.info(
+                this.logger.debug(
                     `Script result received: ${scriptResult.scripts?.length} script(s), combined length: ${combinedScript.length} - OperationId: ${this.operationId}`,
                 );
 
@@ -1199,11 +1195,11 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 state.showScriptPane = true;
                 state.sqlPaneMode = SqlPaneMode.ScriptChanges;
 
-                this.logger.info(
+                this.logger.trace(
                     `State before updateState - updateScript length: ${state.updateScript?.length}, showScriptPane: ${state.showScriptPane}`,
                 );
                 this.updateState();
-                this.logger.info(
+                this.logger.trace(
                     `State after updateState - this.state.updateScript length: ${this.state.updateScript?.length} - OperationId: ${this.operationId}`,
                 );
 
@@ -1310,7 +1306,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         this.registerReducer("toggleScriptPane", async (state) => {
             state.showScriptPane = !state.showScriptPane;
 
-            this.logger.info(
+            this.logger.debug(
                 `Script pane toggled to: ${state.showScriptPane} - OperationId: ${this.operationId}`,
             );
 
@@ -1327,7 +1323,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         this.registerReducer("setCurrentPage", async (state, payload) => {
             state.currentPage = payload.pageNumber;
 
-            this.logger.info(`Current page set to: ${payload.pageNumber}`);
+            this.logger.trace(`Current page set to: ${payload.pageNumber}`);
 
             return state;
         });
@@ -1405,7 +1401,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                         throw new Error(result.messages || "Serialization failed");
                     }
                 } else {
-                    this.logger.info("Save dialog cancelled by user");
+                    this.logger.debug("Save dialog cancelled by user");
                 }
             } catch (error) {
                 this.logger.error(
@@ -1432,7 +1428,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("showTableQuery", async (state) => {
-            this.logger.info(`Showing table query pane - OperationId: ${this.operationId}`);
+            this.logger.debug(`Showing table query pane - OperationId: ${this.operationId}`);
 
             sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.ShowTableQuery, {
                 operationId: this.operationId,
@@ -1469,7 +1465,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
             // Validate input before tearing down the session
             if (!payload.queryString || !payload.queryString.trim()) {
-                this.logger.info("Empty query string provided, skipping custom query");
+                this.logger.debug("Empty query string provided, skipping custom query");
                 endActivity.end(ActivityStatus.Succeeded, {
                     elapsedTime: (Date.now() - startTime).toString(),
                     operationId: this.operationId,
@@ -1498,7 +1494,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             }
 
             if (this.hasPendingChanges(state) && !(await this.promptDiscardPendingChanges())) {
-                this.logger.info("User cancelled custom query due to pending changes");
+                this.logger.debug("User cancelled custom query due to pending changes");
                 endActivity.end(ActivityStatus.Succeeded, {
                     elapsedTime: (Date.now() - startTime).toString(),
                     operationId: this.operationId,
@@ -1538,7 +1534,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     state.currentRowCount = payload.rowCount;
                 }
 
-                this.logger.info(
+                this.logger.debug(
                     `Custom query session re-initialized successfully - OperationId: ${this.operationId}`,
                 );
 

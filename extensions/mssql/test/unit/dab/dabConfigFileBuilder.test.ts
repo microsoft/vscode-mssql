@@ -427,7 +427,7 @@ suite("DabConfigFileBuilder Tests", () => {
                 expect(entity.permissions).to.deep.equal([
                     { role: "anonymous", actions: ["execute"] },
                 ]);
-                expect(entity.rest).to.be.undefined;
+                expect(entity.rest).to.deep.equal({ methods: ["post"] });
                 expect(entity.graphql).to.be.undefined;
                 expect(entity.mcp).to.deep.equal({
                     "custom-tool": true,
@@ -484,6 +484,70 @@ suite("DabConfigFileBuilder Tests", () => {
                 const parsed = JSON.parse(result);
 
                 expect(parsed.entities["GetUsers"].mcp).to.be.undefined;
+            });
+
+            test("should emit table MCP DML tools setting when enabled explicitly", () => {
+                const config = createTestConfig({
+                    apiTypes: [Dab.ApiType.Rest, Dab.ApiType.Mcp],
+                    entities: [
+                        createTestEntity({
+                            advancedSettings: {
+                                entityName: "Users",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                                mcpDmlToolsEnabled: true,
+                            },
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+
+                expect(parsed.entities["Users"].mcp).to.deep.equal({
+                    "dml-tools": true,
+                });
+            });
+
+            test("should emit table MCP DML tools setting when disabled explicitly", () => {
+                const config = createTestConfig({
+                    apiTypes: [Dab.ApiType.Rest, Dab.ApiType.Mcp],
+                    entities: [
+                        createTestEntity({
+                            advancedSettings: {
+                                entityName: "Users",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                                mcpDmlToolsEnabled: false,
+                            },
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+
+                expect(parsed.entities["Users"].mcp).to.deep.equal({
+                    "dml-tools": false,
+                });
+            });
+
+            test("should not emit table MCP DML tools setting when MCP is disabled", () => {
+                const config = createTestConfig({
+                    apiTypes: [Dab.ApiType.Rest],
+                    entities: [
+                        createTestEntity({
+                            advancedSettings: {
+                                entityName: "Users",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                                mcpDmlToolsEnabled: false,
+                            },
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+
+                expect(parsed.entities["Users"].mcp).to.be.undefined;
             });
         });
 
@@ -579,7 +643,6 @@ suite("DabConfigFileBuilder Tests", () => {
                                 entityName: "GetUsers",
                                 authorizationRole: Dab.AuthorizationRole.Anonymous,
                                 storedProcedureRestMethods: [
-                                    Dab.RestMethod.Post,
                                     Dab.RestMethod.Get,
                                     Dab.RestMethod.Post,
                                 ],
@@ -590,7 +653,7 @@ suite("DabConfigFileBuilder Tests", () => {
                 const result = builder.build(config, defaultConnectionInfo);
                 const parsed = JSON.parse(result);
                 expect(parsed.entities["GetUsers"].rest).to.deep.equal({
-                    methods: ["get", "post"],
+                    methods: ["get"],
                 });
             });
         });

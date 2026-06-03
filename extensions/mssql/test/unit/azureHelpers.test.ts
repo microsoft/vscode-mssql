@@ -9,10 +9,9 @@ import sinonChai from "sinon-chai";
 import { AzureAccountService } from "../../src/services/azureAccountService";
 import * as sinon from "sinon";
 import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
-import { Logger } from "../../src/models/logger";
+import { ILogger } from "../../src/models/logger";
 import { IAccount } from "vscode-mssql";
 import * as vscode from "vscode";
-import * as armSql from "@azure/arm-sql";
 import * as armStorage from "@azure/arm-storage";
 import {
     mockAccounts,
@@ -32,7 +31,7 @@ chai.use(sinonChai);
 suite("Azure Helpers", () => {
     let sandbox: sinon.SinonSandbox;
     let mockAzureAccountService: AzureAccountService;
-    let mockLogger: sinon.SinonStubbedInstance<Logger>;
+    let mockLogger: sinon.SinonStubbedInstance<ILogger>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
@@ -249,6 +248,10 @@ suite("Azure Helpers", () => {
         expect(servers[1].displayName).to.equal(
             mockAzureResources.azureSynapseAnalyticsServer.name,
         );
+        expect(servers[1].type).to.equal("AzureSynapseAnalytics");
+        expect(servers[1].server).to.equal(
+            `${mockAzureResources.azureSynapseAnalyticsServer.name}.sql.azuresynapse.net`,
+        );
         const managedInstances = servers.filter((s) =>
             s.displayName.startsWith(mockAzureResources.azureManagedInstance.name),
         );
@@ -272,13 +275,6 @@ suite("Azure Helpers", () => {
     });
 
     test("fetchSqlResourcesForSubscription", async () => {
-        sandbox.stub(armSql, "SqlManagementClient").callsFake(
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            (credential: any, subscriptionId: string, options?: any) => {
-                return {} as armSql.SqlManagementClient;
-            },
-        );
-
         const listServersFactory = sandbox.stub().callsFake(
             () =>
                 async function* () {

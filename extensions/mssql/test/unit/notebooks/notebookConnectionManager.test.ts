@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from "vscode";
 import * as sinon from "sinon";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";
@@ -13,6 +12,7 @@ import type { IConnectionInfo, ConnectionDetails } from "vscode-mssql";
 chai.use(sinonChai);
 
 import { NotebookConnectionManager } from "../../../src/notebooks/notebookConnectionManager";
+import { ILogger } from "../../../src/models/logger";
 import ConnectionManager from "../../../src/controllers/connectionManager";
 import { ConnectionSharingService } from "../../../src/connectionSharing/connectionSharingService";
 import { ConnectionStore } from "../../../src/models/connectionStore";
@@ -71,29 +71,21 @@ function makeConnectionInfo(overrides?: Partial<IConnectionInfo>): IConnectionIn
 }
 
 /**
- * Build a stub vscode.LogOutputChannel with all required interface
+ * Build a stub ILogger with all required interface
  * members so the type checker is satisfied without `as any`.
  */
-function makeLogStub(
-    sandbox: sinon.SinonSandbox,
-): sinon.SinonStubbedInstance<vscode.LogOutputChannel> {
+function makeLogStub(sandbox: sinon.SinonSandbox): sinon.SinonStubbedInstance<ILogger> {
     return {
-        logLevel: vscode.LogLevel.Info,
-        onDidChangeLogLevel: sandbox.stub(),
         trace: sandbox.stub(),
         debug: sandbox.stub(),
         info: sandbox.stub(),
         warn: sandbox.stub(),
         error: sandbox.stub(),
-        name: "test-log",
-        append: sandbox.stub(),
-        appendLine: sandbox.stub(),
-        clear: sandbox.stub(),
+        piiSanitized: sandbox.stub(),
         show: sandbox.stub(),
-        hide: sandbox.stub(),
-        replace: sandbox.stub(),
+        withPrefix: sandbox.stub(),
         dispose: sandbox.stub(),
-    } as sinon.SinonStubbedInstance<vscode.LogOutputChannel>;
+    } as sinon.SinonStubbedInstance<ILogger>;
 }
 
 suite("NotebookConnectionManager", () => {
@@ -102,7 +94,7 @@ suite("NotebookConnectionManager", () => {
     let sharingService: sinon.SinonStubbedInstance<ConnectionSharingService>;
     let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
     let mockNotificationHandler: sinon.SinonStubbedInstance<QueryNotificationHandler>;
-    let log: sinon.SinonStubbedInstance<vscode.LogOutputChannel>;
+    let log: sinon.SinonStubbedInstance<ILogger>;
     let stubStore: sinon.SinonStubbedInstance<ConnectionStore>;
     let stubUI: sinon.SinonStubbedInstance<ConnectionUI>;
     let mgr: NotebookConnectionManager;
@@ -612,6 +604,197 @@ suite("NotebookConnectionManager", () => {
 
             await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
             expect(log.warn).to.have.been.called;
+        });
+
+        test("memoizes per cell URI — repeat calls do not re-send", async () => {
+            await mgr.connectWith(makeConnectionInfo());
+            connectionMgr.sendRequest.resetHistory();
+
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+            expect(connectionMgr.sendRequest).to.have.been.calledWith(
+                sinon.match.any,
+                sinon.match({ ownerUri: "vscode-notebook-cell://cell1" }),
+            );
+
+            connectionMgr.sendRequest.resetHistory();
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+            expect(connectionMgr.sendRequest).to.not.have.been.called;
+        });
+
+        test("sends one request per distinct cell URI", async () => {
+            await mgr.connectWith(makeConnectionInfo());
+            connectionMgr.sendRequest.resetHistory();
+
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+            expect(connectionMgr.sendRequest).to.have.been.calledWith(
+                sinon.match.any,
+                sinon.match({ ownerUri: "vscode-notebook-cell://cell1" }),
+            );
+
+            connectionMgr.sendRequest.resetHistory();
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell2");
+            expect(connectionMgr.sendRequest).to.have.been.calledWith(
+                sinon.match.any,
+                sinon.match({ ownerUri: "vscode-notebook-cell://cell2" }),
+            );
+
+            connectionMgr.sendRequest.resetHistory();
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+            expect(connectionMgr.sendRequest).to.not.have.been.called;
+        });
+
+        test("re-sends after sendRequest failure (no false memoization)", async () => {
+            await mgr.connectWith(makeConnectionInfo());
+            connectionMgr.sendRequest.rejects(new Error("transient failure"));
+
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+            expect(connectionMgr.sendRequest).to.have.been.calledWith(
+                sinon.match.any,
+                sinon.match({ ownerUri: "vscode-notebook-cell://cell1" }),
+            );
+
+            // Recover and retry — should fire again, not be silently memoized
+            connectionMgr.sendRequest.resetHistory();
+            connectionMgr.sendRequest.resolves(true);
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+            expect(connectionMgr.sendRequest).to.have.been.calledWith(
+                sinon.match.any,
+                sinon.match({ ownerUri: "vscode-notebook-cell://cell1" }),
+            );
+        });
+
+        test("re-sends when STS resolves false (no false memoization)", async () => {
+            // STS signals "failed to initiate" by resolving false instead of
+            // rejecting. The cell must not stay memoized or retries break.
+            await mgr.connectWith(makeConnectionInfo());
+            connectionMgr.sendRequest.resolves(false);
+
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+            expect(connectionMgr.sendRequest).to.have.been.calledWith(
+                sinon.match.any,
+                sinon.match({ ownerUri: "vscode-notebook-cell://cell1" }),
+            );
+
+            connectionMgr.sendRequest.resetHistory();
+            connectionMgr.sendRequest.resolves(true);
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+            expect(connectionMgr.sendRequest).to.have.been.calledWith(
+                sinon.match.any,
+                sinon.match({ ownerUri: "vscode-notebook-cell://cell1" }),
+            );
+        });
+
+        test("concurrent fire-and-forget calls for same URI dedupe to one request", async () => {
+            await mgr.connectWith(makeConnectionInfo());
+            connectionMgr.sendRequest.resetHistory();
+
+            // Make sendRequest pend so all three calls launch before any resolve.
+            // Without marking the URI registered before the await, all three would
+            // pass the has() check and queue duplicate connect RPCs.
+            let resolveSend: (value: unknown) => void = () => {};
+            const pending = new Promise((resolve) => {
+                resolveSend = resolve;
+            });
+            connectionMgr.sendRequest.returns(pending);
+
+            const p1 = mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+            const p2 = mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+            const p3 = mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+
+            resolveSend(true);
+            await Promise.all([p1, p2, p3]);
+
+            // Exactly one connect RPC must have been sent — three would mean the
+            // dedup race was not closed.
+            expect(connectionMgr.sendRequest).to.have.been.calledOnce;
+            expect(connectionMgr.sendRequest).to.have.been.calledWith(
+                sinon.match.any,
+                sinon.match({ ownerUri: "vscode-notebook-cell://cell1" }),
+            );
+
+            // Verify subsequent call is memoized (no new request)
+            connectionMgr.sendRequest.resetHistory();
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+            expect(connectionMgr.sendRequest).to.not.have.been.called;
+        });
+
+        test("disconnect clears memoization", async () => {
+            await mgr.connectWith(makeConnectionInfo());
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+
+            mgr.disconnect();
+
+            await mgr.connectWith(makeConnectionInfo());
+            connectionMgr.sendRequest.resetHistory();
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+
+            expect(connectionMgr.sendRequest).to.have.been.calledWith(
+                sinon.match.any,
+                sinon.match({ ownerUri: "vscode-notebook-cell://cell1" }),
+            );
+        });
+
+        test("connectWith clears memoization (re-establishing connection)", async () => {
+            await mgr.connectWith(makeConnectionInfo());
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+
+            // Switching connection profile must force cells to be re-registered
+            // because the underlying STS connection is new.
+            await mgr.connectWith(makeConnectionInfo({ database: "OtherDB" }));
+            connectionMgr.sendRequest.resetHistory();
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+
+            expect(connectionMgr.sendRequest).to.have.been.calledWith(
+                sinon.match.any,
+                sinon.match({ ownerUri: "vscode-notebook-cell://cell1" }),
+            );
+        });
+
+        test("changeDatabase clears memoization", async () => {
+            await mgr.connectWith(makeConnectionInfo());
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+
+            await mgr.changeDatabase("OtherDB");
+            connectionMgr.sendRequest.resetHistory();
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+
+            expect(connectionMgr.sendRequest).to.have.been.calledWith(
+                sinon.match.any,
+                sinon.match({ ownerUri: "vscode-notebook-cell://cell1" }),
+            );
+        });
+
+        test("stale in-flight failure does not delete new-generation registration", async () => {
+            await mgr.connectWith(makeConnectionInfo());
+
+            // First sendRequest pends so we can swap the connection mid-flight.
+            // Second call (after changeDatabase) resolves immediately.
+            let rejectSend1: (err: Error) => void = () => {};
+            const pending1 = new Promise((_resolve, reject) => {
+                rejectSend1 = reject;
+            });
+            connectionMgr.sendRequest.onFirstCall().returns(pending1);
+            connectionMgr.sendRequest.onSecondCall().resolves(true);
+
+            // Stale-generation registration starts but hangs in await.
+            const stalePromise = mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+
+            // Bump generation. The in-flight stale request is now from a prior gen.
+            await mgr.changeDatabase("OtherDB");
+
+            // Register under new generation — succeeds, cell1 is now memoized.
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+
+            // Stale request fails. Pre-guard, this would delete cell1 from the set
+            // even though it belongs to the new generation.
+            rejectSend1(new Error("stale connection error"));
+            await stalePromise;
+
+            // Subsequent call under current gen must remain memoized.
+            connectionMgr.sendRequest.resetHistory();
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+            expect(connectionMgr.sendRequest).to.not.have.been.called;
         });
     });
 

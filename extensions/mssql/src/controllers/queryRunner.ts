@@ -844,9 +844,11 @@ export default class QueryRunner {
                         await this.writeStringToClipboard(result.content);
                     }
 
-                    vscode.window.showInformationMessage(
-                        LocalizedConstants.resultsCopiedToClipboard,
-                    );
+                    if (this.shouldShowCopyNotification()) {
+                        vscode.window.showInformationMessage(
+                            LocalizedConstants.resultsCopiedToClipboard,
+                        );
+                    }
                     resolve();
                 } catch (error) {
                     // Don't show error if cancelled
@@ -992,6 +994,15 @@ export default class QueryRunner {
 
     private _requestID: string;
     private _cancelConfirmation: Deferred<void>;
+
+    private shouldShowCopyNotification(): boolean {
+        const config = this._vscodeWrapper.getConfiguration(
+            Constants.extensionConfigSectionName,
+            this.uri,
+        );
+        return config.get<boolean>(Constants.configResultsShowCopyNotification, true);
+    }
+
     public async generateSelectionSummaryData(
         selections: ISlickRange[],
         batchId: number,

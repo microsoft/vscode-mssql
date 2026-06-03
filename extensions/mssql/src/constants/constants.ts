@@ -269,11 +269,13 @@ export const configSaveAsCsv = "saveAsCsv";
 export const configSaveAsJson = "saveAsJson";
 export const configSaveAsExcel = "saveAsExcel";
 export const configResultsOpenAfterSave = "results.openAfterSave";
+export const configResultsShowCopyNotification = "results.showCopyNotification";
 export const configRecentConnections = "recentConnections";
 export const configMaxRecentConnections = "maxRecentConnections";
 export const configCopyRemoveNewLine = "copyRemoveNewLine";
 export const configSplitPaneSelection = "splitPaneSelection";
 export const configShowBatchTime = "showBatchTime";
+export const configMessagesCopyIncludeTimestamps = "messages.copyIncludeTimestamps";
 export const configPreventAutoExecuteScript = "mssql.query.preventAutoExecuteScript";
 export enum extConfigResultKeys {
     Shortcuts = "shortcuts",
@@ -410,6 +412,8 @@ export const build = "build";
 export const sqlProjBuildTaskType = "sqlproj-build";
 export const msBuildProblemMatcher = "$msCompile";
 export const buildDirectory = "BuildDirectory";
+export const user = "User";
+export const activeDirectory = "ActiveDirectory";
 // Regex pattern to match and replace database names in connection strings. Matches: (Initial Catalog|Database)
 export const catalogPairPattern =
     /(^|;)\s*(Initial\s+Catalog|Database)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^;]*?))\s*(?=;|$)/gi;

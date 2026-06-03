@@ -9,14 +9,14 @@ import * as fs from "fs";
 import * as path from "path";
 import { IDecompressProvider, IPackage } from "./interfaces";
 
-import { ILogger } from "../models/interfaces";
+import { ILogger } from "../models/logger";
 
 export default class DecompressProvider implements IDecompressProvider {
     private decompressZip(pkg: IPackage, logger: ILogger): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             yauzl.open(pkg.tmpFile.name, { lazyEntries: true }, (err, zipfile) => {
                 if (err) {
-                    logger.appendLine(`[ERROR] ${err}`);
+                    logger.info(`[ERROR] ${err}`);
                     reject(err);
                     return;
                 }
@@ -31,7 +31,7 @@ export default class DecompressProvider implements IDecompressProvider {
                         // Create directory
                         fs.mkdir(dirPath, { recursive: true }, (err) => {
                             if (err) {
-                                logger.appendLine(
+                                logger.info(
                                     `[ERROR] Failed to create directory ${dirPath}: ${err}`,
                                 );
                                 reject(err);
@@ -47,7 +47,7 @@ export default class DecompressProvider implements IDecompressProvider {
                         // Ensure parent directory exists first
                         fs.mkdir(dirPath, { recursive: true }, (err) => {
                             if (err) {
-                                logger.appendLine(
+                                logger.info(
                                     `[ERROR] Failed to create directory ${dirPath}: ${err}`,
                                 );
                                 reject(err);
@@ -57,7 +57,7 @@ export default class DecompressProvider implements IDecompressProvider {
                             // Now extract the file
                             zipfile.openReadStream(entry, (err, readStream) => {
                                 if (err) {
-                                    logger.appendLine(`[ERROR] ${err}`);
+                                    logger.info(`[ERROR] ${err}`);
                                     reject(err);
                                     return;
                                 }
@@ -66,23 +66,19 @@ export default class DecompressProvider implements IDecompressProvider {
 
                                 // Handle write stream errors
                                 writeStream.on("error", (err) => {
-                                    logger.appendLine(
-                                        `[ERROR] Failed to write ${filePath}: ${err}`,
-                                    );
+                                    logger.info(`[ERROR] Failed to write ${filePath}: ${err}`);
                                     reject(err);
                                 });
 
                                 // Wait for write stream to finish, not just read stream
                                 writeStream.on("close", () => {
-                                    logger.appendLine(`Extracted: ${entry.fileName}`);
+                                    logger.info(`Extracted: ${entry.fileName}`);
                                     zipfile.readEntry();
                                 });
 
                                 // Handle read stream errors
                                 readStream.on("error", (err) => {
-                                    logger.appendLine(
-                                        `[ERROR] Read error for ${entry.fileName}: ${err}`,
-                                    );
+                                    logger.info(`[ERROR] Read error for ${entry.fileName}: ${err}`);
                                     reject(err);
                                 });
 
@@ -93,12 +89,12 @@ export default class DecompressProvider implements IDecompressProvider {
                 });
 
                 zipfile.on("end", () => {
-                    logger.appendLine(`Done! Files unpacked.\n`);
+                    logger.info(`Done! Files unpacked.\n`);
                     resolve();
                 });
 
                 zipfile.on("error", (err) => {
-                    logger.appendLine(`[ERROR] Zipfile error: ${err}`);
+                    logger.info(`[ERROR] Zipfile error: ${err}`);
                     reject(err);
                 });
             });
@@ -115,11 +111,11 @@ export default class DecompressProvider implements IDecompressProvider {
                     totalFiles++;
                 },
                 onwarn: (warn) => {
-                    logger.appendLine(`[ERROR] ${warn}`);
+                    logger.info(`[ERROR] ${warn}`);
                 },
             },
             () => {
-                logger.appendLine(`Done! ${totalFiles} files unpacked.\n`);
+                logger.info(`Done! ${totalFiles} files unpacked.\n`);
             },
         );
     }

@@ -3,9 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { TableDesigner } from "../constants/locConstants";
+import * as LocalizedConstants from "../constants/locConstants";
 import * as designer from "../sharedInterfaces/tableDesigner";
-import * as vscode from "vscode";
 
 export function getAdvancedOptionsComponents(
     viewDefinition: designer.TableDesignerView | undefined,
@@ -17,9 +16,9 @@ export function getAdvancedOptionsComponents(
         {
             componentType: "textarea",
             propertyName: designer.TableProperty.Description,
-            description: vscode.l10n.t("Description for the table."),
+            description: LocalizedConstants.descriptionForTheTable,
             componentProperties: {
-                title: vscode.l10n.t("Description"),
+                title: LocalizedConstants.description,
                 width: 350,
             },
         },
@@ -45,29 +44,27 @@ export function getColumnsTabComponents(
         {
             componentType: "input",
             propertyName: designer.TableColumnProperty.Name,
-            description: vscode.l10n.t("The name of the column object."),
+            description: LocalizedConstants.theNameOfTheColumnObject,
             componentProperties: {
-                title: vscode.l10n.t("Name"),
+                title: LocalizedConstants.name,
                 width: 150,
             },
         },
         {
             componentType: "input",
             propertyName: designer.TableColumnProperty.Description,
-            description: vscode.l10n.t("Displays the description of the column"),
+            description: LocalizedConstants.displaysTheDescriptionOfTheColumn,
             componentProperties: {
-                title: vscode.l10n.t("Description"),
+                title: LocalizedConstants.description,
                 width: 400,
             },
         },
         {
             componentType: "dropdown",
             propertyName: designer.TableColumnProperty.AdvancedType,
-            description: vscode.l10n.t(
-                "Displays the unified data type (including length, scale and precision) for the column",
-            ),
+            description: LocalizedConstants.displaysTheUnifiedDataTypeIncludingLength,
             componentProperties: {
-                title: vscode.l10n.t("Data Type"),
+                title: LocalizedConstants.dataType,
                 width: 120,
                 isEditable: true,
             },
@@ -76,60 +73,52 @@ export function getColumnsTabComponents(
             componentType: "dropdown",
             propertyName: designer.TableColumnProperty.Type,
             showInPropertiesView: false,
-            description: vscode.l10n.t("Displays the data type name for the column"),
+            description: LocalizedConstants.displaysTheDataTypeNameForThe,
             componentProperties: {
-                title: vscode.l10n.t("Type"),
+                title: LocalizedConstants.typeLabel,
                 width: 100,
             },
         },
         {
             componentType: "input",
             propertyName: designer.TableColumnProperty.Length,
-            description: vscode.l10n.t(
-                "The maximum length (in characters) that can be stored in this database object.",
-            ),
+            description: LocalizedConstants.theMaximumLengthInCharactersThatCan,
             componentProperties: {
-                title: vscode.l10n.t("Length"),
+                title: LocalizedConstants.length,
                 width: 60,
             },
         },
         {
             componentType: "input",
             propertyName: designer.TableColumnProperty.DefaultValue,
-            description: vscode.l10n.t(
-                "A predefined global default value for the column or binding.",
-            ),
+            description: LocalizedConstants.aPredefinedGlobalDefaultValueForThe,
             componentProperties: {
-                title: vscode.l10n.t("Default Value"),
+                title: LocalizedConstants.defaultValue,
                 width: 150,
             },
         },
         {
             componentType: "checkbox",
             propertyName: designer.TableColumnProperty.AllowNulls,
-            description: vscode.l10n.t("Specifies whether the column may have a NULL value."),
+            description: LocalizedConstants.specifiesWhetherTheColumnMayHaveA,
             componentProperties: {
-                title: vscode.l10n.t("Allow Nulls"),
+                title: LocalizedConstants.allowNulls,
             },
         },
         {
             componentType: "checkbox",
             propertyName: designer.TableColumnProperty.IsPrimaryKey,
-            description: vscode.l10n.t(
-                "Specifies whether the column is included in the primary key for the table.",
-            ),
+            description: LocalizedConstants.specifiesWhetherTheColumnIsIncludedIn,
             componentProperties: {
-                title: vscode.l10n.t("Primary Key"),
+                title: LocalizedConstants.primaryKey,
             },
         },
         {
             componentType: "input",
             propertyName: designer.TableColumnProperty.Precision,
-            description: vscode.l10n.t(
-                "For numeric data, the maximum number of decimal digits that can be stored in this database object.",
-            ),
+            description: LocalizedConstants.forNumericDataTheMaximumNumberOf,
             componentProperties: {
-                title: vscode.l10n.t("Precision"),
+                title: LocalizedConstants.precision,
                 width: 60,
                 inputType: designer.InputType.Number,
             },
@@ -137,11 +126,9 @@ export function getColumnsTabComponents(
         {
             componentType: "input",
             propertyName: designer.TableColumnProperty.Scale,
-            description: vscode.l10n.t(
-                "For numeric data, the maximum number of decimal digits that can be stored in this database object to the right of decimal point.",
-            ),
+            description: LocalizedConstants.forNumericDataTheMaximumNumberOf2,
             componentProperties: {
-                title: vscode.l10n.t("Scale"),
+                title: LocalizedConstants.scale,
                 width: 60,
                 inputType: designer.InputType.Number,
             },
@@ -163,13 +150,13 @@ export function getColumnsTabComponents(
             propertyName: designer.TableProperty.Columns,
             showInPropertiesView: false,
             componentProperties: {
-                ariaLabel: vscode.l10n.t("Columns"),
+                ariaLabel: LocalizedConstants.columns,
                 columns: displayProperties,
                 itemProperties: addAdditionalTableProperties(
                     columnTableOptions,
                     columnTableColumnDefinitions,
                 ),
-                objectTypeDisplayName: vscode.l10n.t("Column"),
+                objectTypeDisplayName: LocalizedConstants.column,
                 canAddRows: columnTableOptions.canAddRows,
                 canInsertRows: columnTableOptions.canInsertRows,
                 canMoveRows: columnTableOptions.canMoveRows,
@@ -177,8 +164,8 @@ export function getColumnsTabComponents(
                 removeRowConfirmationMessage: columnTableOptions.removeRowConfirmationMessage,
                 showRemoveRowConfirmation: columnTableOptions.showRemoveRowConfirmation,
                 labelForAddNewButton:
-                    columnTableOptions.labelForAddNewButton ?? vscode.l10n.t("New Column"),
-                expandedGroups: [TableDesigner.General],
+                    columnTableOptions.labelForAddNewButton ?? LocalizedConstants.newColumn,
+                expandedGroups: [LocalizedConstants.TableDesigner.General],
             } as designer.DesignerTableProperties,
         },
     ];
@@ -203,9 +190,9 @@ export function getPrimaryKeyTabComponents(
         {
             componentType: "dropdown",
             propertyName: designer.TableIndexColumnSpecificationProperty.Column,
-            description: vscode.l10n.t("The name of the column."),
+            description: LocalizedConstants.theNameOfTheColumn,
             componentProperties: {
-                title: vscode.l10n.t("Column"),
+                title: LocalizedConstants.column,
                 width: 150,
             },
         },
@@ -216,9 +203,9 @@ export function getPrimaryKeyTabComponents(
             componentType: "input",
             propertyName: designer.TableProperty.PrimaryKeyName,
             showInPropertiesView: false,
-            description: vscode.l10n.t("Name of the primary key."),
+            description: LocalizedConstants.nameOfThePrimaryKey,
             componentProperties: {
-                title: vscode.l10n.t("Name"),
+                title: LocalizedConstants.name,
                 width: 250,
             },
         },
@@ -226,9 +213,9 @@ export function getPrimaryKeyTabComponents(
             componentType: "textarea",
             propertyName: designer.TableProperty.PrimaryKeyDescription,
             showInPropertiesView: false,
-            description: vscode.l10n.t("The description of the primary key."),
+            description: LocalizedConstants.theDescriptionOfThePrimaryKey,
             componentProperties: {
-                title: vscode.l10n.t("Description"),
+                title: LocalizedConstants.description,
                 width: 250,
             },
         },
@@ -248,10 +235,10 @@ export function getPrimaryKeyTabComponents(
             componentType: "table",
             propertyName: designer.TableProperty.PrimaryKeyColumns,
             showInPropertiesView: false,
-            description: vscode.l10n.t("Columns in the primary key."),
+            description: LocalizedConstants.columnsInThePrimaryKey,
             componentProperties: {
-                title: vscode.l10n.t("Primary Key Columns"),
-                ariaLabel: vscode.l10n.t("Primary Key Columns"),
+                title: LocalizedConstants.primaryKeyColumns,
+                ariaLabel: LocalizedConstants.primaryKeyColumns,
                 columns: getTableDisplayProperties(primaryKeyTableOptions, [
                     designer.TableIndexColumnSpecificationProperty.Column,
                 ]),
@@ -266,7 +253,7 @@ export function getPrimaryKeyTabComponents(
                 showRemoveRowConfirmation: primaryKeyTableOptions.showRemoveRowConfirmation,
                 showItemDetailInPropertiesView: false,
                 labelForAddNewButton:
-                    primaryKeyTableOptions.labelForAddNewButton ?? vscode.l10n.t("Add Column"),
+                    primaryKeyTableOptions.labelForAddNewButton ?? LocalizedConstants.addColumn,
                 canMoveRows: primaryKeyTableOptions.canMoveRows,
             } as designer.DesignerTableProperties,
         });
@@ -294,9 +281,9 @@ export function getIndexesTabComponents(
         {
             componentType: "dropdown",
             propertyName: designer.TableIndexColumnSpecificationProperty.Column,
-            description: vscode.l10n.t("The name of the column."),
+            description: LocalizedConstants.theNameOfTheColumn,
             componentProperties: {
-                title: vscode.l10n.t("Column"),
+                title: LocalizedConstants.column,
                 width: 100,
             },
         },
@@ -305,20 +292,20 @@ export function getIndexesTabComponents(
         {
             componentType: "input",
             propertyName: designer.TableIndexProperty.Name,
-            description: vscode.l10n.t("The name of the index."),
-            group: TableDesigner.AdvancedOptions,
+            description: LocalizedConstants.theNameOfTheIndex,
+            group: LocalizedConstants.TableDesigner.AdvancedOptions,
             componentProperties: {
-                title: vscode.l10n.t("Name"),
+                title: LocalizedConstants.name,
                 width: 200,
             },
         },
         {
             componentType: "input",
             propertyName: designer.TableIndexProperty.Description,
-            description: vscode.l10n.t("The description of the index."),
-            group: TableDesigner.AdvancedOptions,
+            description: LocalizedConstants.theDescriptionOfTheIndex,
+            group: LocalizedConstants.TableDesigner.AdvancedOptions,
             componentProperties: {
-                title: vscode.l10n.t("Description"),
+                title: LocalizedConstants.description,
                 width: 200,
             },
         },
@@ -328,10 +315,10 @@ export function getIndexesTabComponents(
         indexProperties.push({
             componentType: "table",
             propertyName: designer.TableIndexProperty.Columns,
-            description: vscode.l10n.t("The columns of the index."),
-            group: TableDesigner.Columns,
+            description: LocalizedConstants.theColumnsOfTheIndex,
+            group: LocalizedConstants.TableDesigner.Columns,
             componentProperties: {
-                ariaLabel: vscode.l10n.t("Columns"),
+                ariaLabel: LocalizedConstants.columns,
                 columns: getTableDisplayProperties(columnSpecTableOptions, [
                     designer.TableIndexColumnSpecificationProperty.Column,
                 ]),
@@ -345,7 +332,7 @@ export function getIndexesTabComponents(
                 removeRowConfirmationMessage: columnSpecTableOptions.removeRowConfirmationMessage,
                 showRemoveRowConfirmation: columnSpecTableOptions.showRemoveRowConfirmation,
                 labelForAddNewButton:
-                    columnSpecTableOptions.labelForAddNewButton ?? vscode.l10n.t("Add Column"),
+                    columnSpecTableOptions.labelForAddNewButton ?? LocalizedConstants.addColumn,
             } as designer.DesignerTableProperties,
         });
     }
@@ -360,7 +347,7 @@ export function getIndexesTabComponents(
         // Making all other properties as advanced options
         indexTableOptions.additionalProperties.forEach((property) => {
             if (!property.group) {
-                property.group = TableDesigner.AdvancedOptions;
+                property.group = LocalizedConstants.TableDesigner.AdvancedOptions;
             }
         });
         tabComponents.push({
@@ -368,19 +355,22 @@ export function getIndexesTabComponents(
             propertyName: designer.TableProperty.Indexes,
             showInPropertiesView: false,
             componentProperties: {
-                ariaLabel: vscode.l10n.t("Indexes"),
+                ariaLabel: LocalizedConstants.indexes,
                 columns: getTableDisplayProperties(indexTableOptions, [
                     designer.TableIndexProperty.Name,
                 ]),
                 itemProperties: addAdditionalTableProperties(indexTableOptions, indexProperties),
-                objectTypeDisplayName: vscode.l10n.t("Index"),
+                objectTypeDisplayName: LocalizedConstants.index,
                 canAddRows: indexTableOptions.canAddRows,
                 canRemoveRows: indexTableOptions.canRemoveRows,
                 removeRowConfirmationMessage: indexTableOptions.removeRowConfirmationMessage,
                 showRemoveRowConfirmation: indexTableOptions.showRemoveRowConfirmation,
                 labelForAddNewButton:
-                    indexTableOptions.labelForAddNewButton ?? vscode.l10n.t("New Index"),
-                expandedGroups: [TableDesigner.Columns, includedColumnsGroupName],
+                    indexTableOptions.labelForAddNewButton ?? LocalizedConstants.newIndex,
+                expandedGroups: [
+                    LocalizedConstants.TableDesigner.Columns,
+                    includedColumnsGroupName,
+                ],
             } as designer.DesignerTableProperties,
         });
     }
@@ -396,10 +386,10 @@ export function getIndexesTabComponents(
                 // Making all ungrouped properties of column store index as advanced options
                 const properties =
                     component.componentProperties as designer.DesignerTableProperties;
-                properties.expandedGroups = [TableDesigner.Columns];
+                properties.expandedGroups = [LocalizedConstants.TableDesigner.Columns];
                 properties.itemProperties.forEach((property) => {
                     if (!property.group) {
-                        property.group = TableDesigner.AdvancedOptions;
+                        property.group = LocalizedConstants.TableDesigner.AdvancedOptions;
                     }
                 });
             }
@@ -422,7 +412,7 @@ export function getForeignKeysTabComponents(
             componentType: "dropdown",
             propertyName: designer.ForeignKeyColumnMappingProperty.ForeignColumn,
             componentProperties: {
-                title: vscode.l10n.t("Foreign Column"),
+                title: LocalizedConstants.foreignColumn,
                 width: 150,
             },
         },
@@ -430,7 +420,7 @@ export function getForeignKeysTabComponents(
             componentType: "dropdown",
             propertyName: designer.ForeignKeyColumnMappingProperty.Column,
             componentProperties: {
-                title: vscode.l10n.t("Column"),
+                title: LocalizedConstants.column,
                 width: 150,
             },
         },
@@ -440,51 +430,45 @@ export function getForeignKeysTabComponents(
         {
             componentType: "input",
             propertyName: designer.TableForeignKeyProperty.Name,
-            description: vscode.l10n.t("The name of the foreign key."),
+            description: LocalizedConstants.theNameOfTheForeignKey,
             componentProperties: {
-                title: vscode.l10n.t("Name"),
+                title: LocalizedConstants.name,
                 width: 300,
             },
         },
         {
             componentType: "input",
             propertyName: designer.TableForeignKeyProperty.Description,
-            description: vscode.l10n.t("The description of the foreign key."),
+            description: LocalizedConstants.theDescriptionOfTheForeignKey,
             componentProperties: {
-                title: vscode.l10n.t("Description"),
+                title: LocalizedConstants.description,
             },
         },
         {
             componentType: "dropdown",
             propertyName: designer.TableForeignKeyProperty.ForeignTable,
-            description: vscode.l10n.t(
-                "The table which contains the primary or unique key column.",
-            ),
+            description: LocalizedConstants.theTableWhichContainsThePrimaryOr,
             showInPropertiesView: false,
             componentProperties: {
-                title: vscode.l10n.t("Foreign Table"),
+                title: LocalizedConstants.foreignTable,
                 width: 200,
             },
         },
         {
             componentType: "dropdown",
             propertyName: designer.TableForeignKeyProperty.OnUpdateAction,
-            description: vscode.l10n.t(
-                "The behavior when a user tries to update a row with data that is involved in a foreign key relationship.",
-            ),
+            description: LocalizedConstants.theBehaviorWhenAUserTriesTo,
             componentProperties: {
-                title: vscode.l10n.t("On Update Action"),
+                title: LocalizedConstants.onUpdateAction,
                 width: 100,
             },
         },
         {
             componentType: "dropdown",
             propertyName: designer.TableForeignKeyProperty.OnDeleteAction,
-            description: vscode.l10n.t(
-                "The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.",
-            ),
+            description: LocalizedConstants.theBehaviorWhenAUserTriesTo2,
             componentProperties: {
-                title: vscode.l10n.t("On Delete Action"),
+                title: LocalizedConstants.onDeleteAction,
                 width: 100,
             },
         },
@@ -494,12 +478,10 @@ export function getForeignKeysTabComponents(
         foreignKeyProperties.push({
             componentType: "table",
             propertyName: designer.TableForeignKeyProperty.Columns,
-            description: vscode.l10n.t(
-                "The mapping between foreign key columns and primary key columns.",
-            ),
-            group: vscode.l10n.t("Columns"),
+            description: LocalizedConstants.theMappingBetweenForeignKeyColumnsAnd,
+            group: LocalizedConstants.columns,
             componentProperties: {
-                ariaLabel: vscode.l10n.t("Columns"),
+                ariaLabel: LocalizedConstants.columns,
                 columns: getTableDisplayProperties(columnMappingTableOptions, [
                     designer.ForeignKeyColumnMappingProperty.Column,
                     designer.ForeignKeyColumnMappingProperty.ForeignColumn,
@@ -514,7 +496,7 @@ export function getForeignKeysTabComponents(
                     columnMappingTableOptions.removeRowConfirmationMessage,
                 labelForAddNewButton:
                     columnMappingTableOptions.labelForAddNewButton ??
-                    vscode.l10n.t("New Column Mapping"),
+                    LocalizedConstants.newColumnMapping,
             } as designer.DesignerTableProperties,
         });
     }
@@ -525,12 +507,12 @@ export function getForeignKeysTabComponents(
         // Making all ungrouped properties of foreign key as advanced options
         foreignKeyProperties.forEach((property) => {
             if (!property.group) {
-                property.group = TableDesigner.AdvancedOptions;
+                property.group = LocalizedConstants.TableDesigner.AdvancedOptions;
             }
         });
         foreignKeyTableOptions.additionalProperties.forEach((property) => {
             if (!property.group) {
-                property.group = TableDesigner.AdvancedOptions;
+                property.group = LocalizedConstants.TableDesigner.AdvancedOptions;
             }
         });
         tabComponents.push({
@@ -538,7 +520,7 @@ export function getForeignKeysTabComponents(
             propertyName: designer.TableProperty.ForeignKeys,
             showInPropertiesView: false,
             componentProperties: {
-                ariaLabel: vscode.l10n.t("Foreign Keys"),
+                ariaLabel: LocalizedConstants.foreignKeys,
                 columns: getTableDisplayProperties(foreignKeyTableOptions, [
                     designer.TableForeignKeyProperty.Name,
                     designer.TableForeignKeyProperty.ForeignTable,
@@ -547,14 +529,14 @@ export function getForeignKeysTabComponents(
                     foreignKeyTableOptions,
                     foreignKeyProperties,
                 ),
-                objectTypeDisplayName: vscode.l10n.t("Foreign Key"),
+                objectTypeDisplayName: LocalizedConstants.foreignKey,
                 canAddRows: foreignKeyTableOptions.canAddRows,
                 canRemoveRows: foreignKeyTableOptions.canRemoveRows,
                 removeRowConfirmationMessage: foreignKeyTableOptions.removeRowConfirmationMessage,
                 showRemoveRowConfirmation: foreignKeyTableOptions.showRemoveRowConfirmation,
                 labelForAddNewButton:
-                    foreignKeyTableOptions.labelForAddNewButton ?? vscode.l10n.t("New Foreign Key"),
-                expandedGroups: [TableDesigner.Columns],
+                    foreignKeyTableOptions.labelForAddNewButton ?? LocalizedConstants.newForeignKey,
+                expandedGroups: [LocalizedConstants.TableDesigner.Columns],
             } as designer.DesignerTableProperties,
         });
     }
@@ -581,26 +563,26 @@ export function getCheckConstraintsTabComponents(
         {
             componentType: "input",
             propertyName: designer.TableCheckConstraintProperty.Name,
-            description: vscode.l10n.t("The name of the check constraint."),
+            description: LocalizedConstants.theNameOfTheCheckConstraint,
             componentProperties: {
-                title: vscode.l10n.t("Name"),
+                title: LocalizedConstants.name,
                 width: 200,
             },
         },
         {
             componentType: "input",
             propertyName: designer.TableCheckConstraintProperty.Description,
-            description: vscode.l10n.t("The description of the check constraint."),
+            description: LocalizedConstants.theDescriptionOfTheCheckConstraint,
             componentProperties: {
-                title: vscode.l10n.t("Description"),
+                title: LocalizedConstants.description,
             },
         },
         {
             componentType: "input",
             propertyName: designer.TableCheckConstraintProperty.Expression,
-            description: vscode.l10n.t("The expression defining the check constraint."),
+            description: LocalizedConstants.theExpressionDefiningTheCheckConstraint,
             componentProperties: {
-                title: vscode.l10n.t("Expression"),
+                title: LocalizedConstants.expression,
                 width: 300,
             },
         },
@@ -614,7 +596,7 @@ export function getCheckConstraintsTabComponents(
             propertyName: designer.TableProperty.CheckConstraints,
             showInPropertiesView: false,
             componentProperties: {
-                ariaLabel: vscode.l10n.t("Check Constraints"),
+                ariaLabel: LocalizedConstants.checkConstraints,
                 columns: getTableDisplayProperties(checkConstraintTableOptions, [
                     designer.TableCheckConstraintProperty.Name,
                     designer.TableCheckConstraintProperty.Expression,
@@ -623,7 +605,7 @@ export function getCheckConstraintsTabComponents(
                     checkConstraintTableOptions,
                     checkConstraintProperties,
                 ),
-                objectTypeDisplayName: vscode.l10n.t("Check Constraint"),
+                objectTypeDisplayName: LocalizedConstants.checkConstraint,
                 canAddRows: checkConstraintTableOptions.canAddRows,
                 canRemoveRows: checkConstraintTableOptions.canRemoveRows,
                 removeRowConfirmationMessage:
@@ -631,8 +613,8 @@ export function getCheckConstraintsTabComponents(
                 showRemoveRowConfirmation: checkConstraintTableOptions.showRemoveRowConfirmation,
                 labelForAddNewButton:
                     checkConstraintTableOptions.labelForAddNewButton ??
-                    vscode.l10n.t("New Check Constraint"),
-                expandedGroups: [TableDesigner.General],
+                    LocalizedConstants.newCheckConstraint,
+                expandedGroups: [LocalizedConstants.TableDesigner.General],
             } as designer.DesignerTableProperties,
         });
     }
@@ -653,27 +635,27 @@ export function getDesignerView(
     const viewDefinition = {
         tabs: [
             {
-                title: vscode.l10n.t("Columns"),
+                title: LocalizedConstants.columns,
                 id: designer.DesignerMainPaneTabs.Columns,
                 components: getColumnsTabComponents(view),
             },
             {
-                title: vscode.l10n.t("Primary Key"),
+                title: LocalizedConstants.primaryKey,
                 id: designer.DesignerMainPaneTabs.PrimaryKey,
                 components: getPrimaryKeyTabComponents(view),
             },
             {
-                title: vscode.l10n.t("Indexes"),
+                title: LocalizedConstants.indexes,
                 id: designer.DesignerMainPaneTabs.Indexes,
                 components: getIndexesTabComponents(view),
             },
             {
-                title: vscode.l10n.t("Foreign Keys"),
+                title: LocalizedConstants.foreignKeys,
                 id: designer.DesignerMainPaneTabs.ForeignKeys,
                 components: getForeignKeysTabComponents(view),
             },
             {
-                title: vscode.l10n.t("Check Constraints"),
+                title: LocalizedConstants.checkConstraints,
                 id: designer.DesignerMainPaneTabs.CheckConstraints,
                 components: getCheckConstraintsTabComponents(view),
             },
@@ -689,7 +671,7 @@ export function getDesignerView(
     }
 
     viewDefinition.tabs.push({
-        title: vscode.l10n.t("Advanced Options"),
+        title: LocalizedConstants.advancedOptions,
         id: designer.DesignerMainPaneTabs.AboutTable,
         components: getAdvancedOptionsComponents(view),
     });

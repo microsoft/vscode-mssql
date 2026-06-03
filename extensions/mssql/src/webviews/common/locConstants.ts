@@ -84,6 +84,8 @@ export class LocConstants {
                     comment: ["{0} is the current step number", "{1} is the total number of steps"],
                 }),
             learnMore: l10n.t("Learn more"),
+            moveUp: l10n.t("Move Up"),
+            moveDown: l10n.t("Move Down"),
         };
     }
 
@@ -199,6 +201,30 @@ export class LocConstants {
             backToPreview: l10n.t("Back to preview"),
             copy: l10n.t("Copy"),
             youMustReviewAndAccept: l10n.t("You must review and accept the terms to proceed"),
+            issue: (issueCount: number) =>
+                l10n.t({
+                    message: "{0} issue",
+                    args: [issueCount],
+                    comment: ["{0} is the number of issues"],
+                }),
+            issues: (issueCount: number) =>
+                l10n.t({
+                    message: "{0} issues",
+                    args: [issueCount],
+                    comment: ["{0} is the number of issues"],
+                }),
+            tabIssue: (tabName: string, issueCount: number) =>
+                l10n.t({
+                    message: "{0} {1} issue",
+                    args: [tabName, issueCount],
+                    comment: ["{0} is the tab name", "{1} is the number of issues"],
+                }),
+            tabIssues: (tabName: string, issueCount: number) =>
+                l10n.t({
+                    message: "{0} {1} issues",
+                    args: [tabName, issueCount],
+                    comment: ["{0} is the tab name", "{1} is the number of issues"],
+                }),
         };
     }
 
@@ -336,6 +362,7 @@ export class LocConstants {
             showAll: l10n.t("Show All"),
             sqlAnalyticsEndpoint: l10n.t("SQL Analytics Endpoint"),
             sqlDatabase: l10n.t("SQL Database"),
+            warehouse: l10n.t("Warehouse"),
             noFabricWorkspacesFound: l10n.t("No workspaces found"),
             nameColumnHeader: l10n.t("Name"),
             typeColumnHeader: l10n.t("Type"),
@@ -528,6 +555,8 @@ export class LocConstants {
             errorLoadingServers: l10n.t("Error loading servers"),
             resourceGroupColumnHeader: l10n.t("Resource Group"),
             azureSqlServer: l10n.t("Azure SQL Server"),
+            azureSqlManagedInstance: l10n.t("Azure SQL Managed Instance"),
+            azureSynapseAnalytics: l10n.t("Azure Synapse Analytics"),
         };
     }
 
@@ -733,6 +762,17 @@ export class LocConstants {
             copy: l10n.t("Copy"),
             copyWithHeaders: l10n.t("Copy with Headers"),
             copyHeaders: l10n.t("Copy Headers"),
+            errorFailedToParseQueryResultData: l10n.t("Error: Failed to parse query result data."),
+            errorUnrecognizedQueryResultData: l10n.t("Error: Unrecognized query result data."),
+            saveAsCSV: l10n.t("Save as CSV"),
+            saveAsExcelLabel: l10n.t("Save as Excel"),
+            saveAsJSON: l10n.t("Save as JSON"),
+            exportToolbarForResultSet: (resultSetIndex: number) =>
+                l10n.t({
+                    message: "Export toolbar for result set {0}",
+                    args: [resultSetIndex],
+                    comment: ["{0} is the result set number (1-based index)"],
+                }),
             copyAs: l10n.t("Copy As"),
             copyAsCsv: l10n.t("Copy as CSV"),
             copyAsJson: l10n.t("Copy as JSON"),
@@ -1398,7 +1438,7 @@ export class LocConstants {
             ),
             storedProcedureRestMethods: l10n.t("Stored procedure REST methods"),
             storedProcedureRestMethodsHelp: l10n.t(
-                "Select the HTTP methods that can execute this stored procedure. DAB defaults to POST.",
+                "Select the HTTP method that can execute this stored procedure. DAB defaults to POST.",
             ),
             storedProcedureGraphQLOperation: l10n.t("Stored procedure GraphQL operation"),
             storedProcedureGraphQLOperationHelp: l10n.t(
@@ -1410,6 +1450,13 @@ export class LocConstants {
             exposeAsMcpCustomTool: l10n.t("Expose as MCP custom tool"),
             exposeAsMcpCustomToolHelp: l10n.t(
                 "Creates a dedicated MCP tool for this stored procedure. When disabled, the procedure can still be available through generic MCP execute tools if MCP is enabled.",
+            ),
+            exposeAsMcpDmlTools: l10n.t("Expose as MCP DML tools"),
+            exposeAsMcpDmlToolsHelp: l10n.t(
+                "Allows MCP clients to use generic create, read, update, and delete tools for this table.",
+            ),
+            enableMcpForDmlToolsHelp: l10n.t(
+                "Enable MCP in API Type to use this DML tools setting.",
             ),
             enableMcpForCustomToolHelp: l10n.t(
                 "Enable MCP in API Type to use this custom tool setting.",
@@ -1534,8 +1581,11 @@ export class LocConstants {
             rest: l10n.t("REST"),
             entityName: l10n.t("Entity Name"),
             entityNameHelp: l10n.t("Used in API routes and responses"),
-            authorizationRole: l10n.t("Authorization Role"),
+            authorizationRole: l10n.t("Permissions"),
             authorizationRoleHelp: l10n.t("Define who can access this endpoint"),
+            authorizationRoleStoredProcedureHelp: l10n.t(
+                "Define who can execute this stored procedure",
+            ),
             disabledGlobally: l10n.t("Disabled globally"),
             anonymous: l10n.t("Anonymous"),
             anonymousDescription: l10n.t("No authentication required"),
@@ -1544,7 +1594,14 @@ export class LocConstants {
             customRestPath: l10n.t("Custom REST Path"),
             customRestPathHelp: l10n.t("Optional - Override default api/entityName path"),
             customGraphQLType: l10n.t("Custom GraphQL Type"),
-            customGraphQLTypeHelp: l10n.t("Optional - Override default GraphQL type name"),
+            customGraphQLSingularType: l10n.t("Custom GraphQL Singular Type"),
+            customGraphQLSingularTypeHelp: l10n.t(
+                "Optional - Override default GraphQL singular type name",
+            ),
+            customGraphQLPluralType: l10n.t("Custom GraphQL Plural Type"),
+            customGraphQLPluralTypeHelp: l10n.t(
+                "Optional - Override default GraphQL plural type name",
+            ),
             applyChanges: l10n.t("Apply Changes"),
             source: l10n.t("Source"),
             sourceWithName: (sourceName: string) =>
@@ -1556,6 +1613,7 @@ export class LocConstants {
             loading: l10n.t("Loading..."),
             initializingDabConfig: l10n.t("Initializing DAB configuration..."),
             noEntitiesFound: l10n.t("No entities found"),
+            selectAllEntities: l10n.t("Select all entities"),
             toggleAllEntitiesInSchema: (schemaName: string) =>
                 l10n.t({
                     message: "Toggle all entities in {0}",
@@ -1959,6 +2017,144 @@ export class LocConstants {
             smartPerformanceDescription: l10n.t(
                 "Automatic tuning features like automatic index creation enabled by default.",
             ),
+        };
+    }
+
+    public get azureSqlDatabase() {
+        return {
+            loadingAzureSqlDatabase: l10n.t("Loading Azure SQL Database..."),
+            azureSqlDatabaseHeader: l10n.t("Create an Azure SQL Database (Preview)"),
+            azureSqlDatabaseDescription: l10n.t(
+                "Try Azure SQL Database at no cost with our free tier offer! Provision a fully managed cloud database directly from VS Code.",
+            ),
+            oltpAzureSql: l10n.t("OLTP, built on Azure SQL"),
+            oltpAzureSqlDescription: l10n.t(
+                "Developer-friendly transactional database using the Azure SQL Database Engine — at no cost for prototyping and learning.",
+            ),
+            freeComputeAndScaling: l10n.t("Free compute & storage"),
+            freeComputeAndScalingDescription: l10n.t(
+                "Up to 10 databases with 100K vCore seconds, 32 GB storage, and backups renewed monthly.",
+            ),
+            integratedAndSecure: l10n.t("Integrated & secure"),
+            integratedAndSecureDescription: l10n.t(
+                "Built-in encryption, firewall rules, and Microsoft Entra ID integration to protect your data.",
+            ),
+            learnMore: l10n.t("Learn more"),
+            learnMoreAboutFreeTier: l10n.t("Learn more about Azure SQL Database free tier"),
+            compareTiers: l10n.t("Compare Azure SQL Database service tiers"),
+            configureAndCustomize: l10n.t("Configure and customize Azure SQL Databases"),
+            createDatabase: l10n.t("Create Database"),
+            provisioning: l10n.t("Provisioning"),
+            deploymentInProgress: l10n.t("Deployment in progress"),
+            finishedDeployment: l10n.t("Deployment finished"),
+            deploymentFailed: l10n.t("Deployment failed"),
+            deploymentName: l10n.t("Database"),
+            startTime: l10n.t("Start Time"),
+            subscription: l10n.t("Subscription"),
+            resourceGroup: l10n.t("Resource Group"),
+            server: l10n.t("Server"),
+            region: l10n.t("Region"),
+            loadingSubscriptions: l10n.t("Loading subscriptions"),
+            loadingResourceGroups: l10n.t("Loading resource groups"),
+            loadingAzureAccounts: l10n.t("Loading Azure accounts"),
+            loadingTenants: l10n.t("Loading tenants"),
+            loadingServers: l10n.t("Loading servers"),
+            connectingToDatabase: l10n.t("Connecting to database"),
+            connectionFailed: l10n.t("Connection failed"),
+            createNewResourceGroup: l10n.t("Create New Resource Group"),
+            resourceGroupName: l10n.t("Resource Group Name"),
+            location: l10n.t("Location"),
+            enterResourceGroupName: l10n.t("Enter resource group name"),
+            selectLocation: l10n.t("Select location"),
+            loadingLocations: l10n.t("Loading locations"),
+            creatingResourceGroup: l10n.t("Creating resource group..."),
+            create: l10n.t("Create"),
+            createNewServer: l10n.t("Create New Server"),
+            serverName: l10n.t("Server Name"),
+            enterServerName: l10n.t("Enter server name"),
+            creatingServer: l10n.t("Creating server..."),
+            createNew: l10n.t("Create new"),
+            authenticationType: l10n.t("Authentication Type"),
+            sqlLogin: l10n.t("SQL Authentication"),
+            azureMFA: l10n.t("Microsoft Entra ID"),
+            azureMFAAndUser: l10n.t("Both"),
+            userName: l10n.t("User Name"),
+            enterUserName: l10n.t("Enter user name"),
+            password: l10n.t("Password"),
+            enterPassword: l10n.t("Enter password"),
+            savePassword: l10n.t("Save password"),
+            userNameIsRequired: l10n.t("User name is required"),
+            passwordIsRequired: l10n.t("Password is required"),
+            freeLimitBehavior: l10n.t("Behavior when free offer limit is reached"),
+            autoPauseOption: l10n.t("Auto-pause the database until next month"),
+            autoPauseDescription: l10n.t(
+                "Database pauses until the next billing cycle when free amount is renewed.",
+            ),
+            continueChargesOption: l10n.t("Continue using for additional charges"),
+            continueChargesDescription: l10n.t(
+                "Additional usage beyond the free amount will be charged at serverless rates.",
+            ),
+            continueChargesWarning: l10n.t(
+                "Your database will continue running after the free offer limit and you will be charged for overages.",
+            ),
+            freeOfferApplied: l10n.t("Free offer applied"),
+            monthlyLimits: l10n.t("Monthly limits"),
+            freeVCoreLimit: l10n.t("100K vCore seconds"),
+            freeStorageLimit: l10n.t("32 GB storage + 32 GB backup"),
+            freeDatabaseLimit: l10n.t("Max 10 databases / subscription"),
+            freeBackupType: l10n.t("LRS backup (locally redundant)"),
+            freeSettingsFixed: l10n.t("Settings are fixed for free tier."),
+            computeAndStorage: l10n.t("Compute + Storage"),
+            serviceTier: l10n.t("Service tier"),
+            compute: l10n.t("Compute"),
+            storage: l10n.t("Storage"),
+            backup: l10n.t("Backup"),
+            autoPause: l10n.t("Auto-pause"),
+            advanced: l10n.t("Advanced"),
+            backupRedundancy: l10n.t("Backup Storage Redundancy"),
+            locallyRedundant: l10n.t("Locally-redundant backup storage"),
+            zoneRedundant: l10n.t("Zone-redundant backup storage"),
+            geoRedundant: l10n.t("Geo-redundant backup storage"),
+            collation: l10n.t("Collation"),
+            connectionTimeout: l10n.t("Connection Timeout (seconds)"),
+            adminLogin: l10n.t("Admin Username"),
+            enterAdminLogin: l10n.t("Enter admin username"),
+            adminPassword: l10n.t("Admin Password"),
+            enterAdminPassword: l10n.t("Enter admin password"),
+            confirmPassword: l10n.t("Confirm Password"),
+            enterConfirmPassword: l10n.t("Confirm admin password"),
+            passwordsDoNotMatch: l10n.t("Passwords do not match"),
+            enableAlwaysEncrypted: l10n.t("Always Encrypted"),
+            dataSource: l10n.t("Data Source"),
+            selectDataSource: l10n.t("Select a data source"),
+            loadingMaintenanceConfigs: l10n.t("Loading maintenance windows..."),
+            loadingCollations: l10n.t("Loading collations..."),
+            tags: l10n.t("Tags"),
+            addTag: l10n.t("Add tag"),
+            removeTag: l10n.t("Remove tag"),
+            tagKeyPlaceholder: l10n.t("Key"),
+            tagValuePlaceholder: l10n.t("Value"),
+            duplicateTagKeys: l10n.t("Tag keys must be unique."),
+            firewall: l10n.t("Firewall"),
+            generalPurpose: l10n.t("General Purpose"),
+            serverless: l10n.t("Serverless"),
+            vCores: l10n.t("vCores"),
+            defaultVCores: l10n.t("1"),
+            defaultStorage: l10n.t("32 GB"),
+            defaultBackup: l10n.t("LRS"),
+            defaultAutoPause: l10n.t("60 min"),
+            firewallDescription: (ip: string) =>
+                l10n.t({
+                    message: "Your current IP {0} will be added automatically.",
+                    args: [ip],
+                    comment: ["{0} is the current IP address"],
+                }),
+
+            whatsNext: l10n.t("What's next?"),
+            connectAndRunQuery: l10n.t("Connect with SQL tools and run your first query"),
+            seedSampleData: l10n.t("Seed sample data or import an existing schema"),
+            monitorUsage: l10n.t("Monitor usage and manage your free tier limits"),
+            browseTutorials: l10n.t("Browse Azure SQL Database tutorials and docs"),
         };
     }
 

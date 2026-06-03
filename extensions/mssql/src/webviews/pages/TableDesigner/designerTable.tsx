@@ -5,7 +5,7 @@
 
 import * as designer from "../../../sharedInterfaces/tableDesigner";
 import * as fluentui from "@fluentui/react-components";
-import * as l10n from "@vscode/l10n";
+import { locConstants } from "../../common/locConstants";
 
 import {
     AddFilled,
@@ -22,7 +22,6 @@ import { DesignerDropdown } from "./designerDropdown";
 import { DesignerInputBox } from "./designerInputBox";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { useTableDesignerSelector } from "./tableDesignerSelector";
-import { locConstants } from "../../common/locConstants";
 
 export type DesignerTableProps = {
     component: designer.DesignerDataPropertyInfo;
@@ -117,8 +116,8 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
     }
     const classes = useStyles();
 
-    const MOVE_UP = l10n.t("Move Up");
-    const MOVE_DOWN = l10n.t("Move Down");
+    const MOVE_UP = locConstants.common.moveUp;
+    const MOVE_DOWN = locConstants.common.moveDown;
 
     const columnsDef: fluentui.TableColumnDefinition<designer.DesignerTableComponentDataItem>[] =
         tableProps.columns!.map((column) => {
@@ -156,7 +155,7 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
             fluentui.createTableColumn({
                 columnId: "remove",
                 renderHeaderCell: () => {
-                    const DELETE = l10n.t("Delete");
+                    const DELETE = locConstants.common.delete;
                     return <>{DELETE}</>;
                 },
             }),

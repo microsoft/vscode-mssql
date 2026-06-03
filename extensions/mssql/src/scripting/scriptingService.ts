@@ -29,7 +29,7 @@ import { Deferred } from "../protocol";
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import { IConnectionProfile } from "../models/interfaces";
 import StatusView from "../views/statusView";
-import { Logger } from "../models/logger";
+import { ILogger, logger } from "../models/logger";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { UserSurvey } from "../nps/userSurvey";
 
@@ -45,11 +45,11 @@ export class ScriptingService {
             errorDetails: string;
         }>
     > = new Map();
-    private _logger: Logger;
+    private _logger: ILogger;
 
     constructor(
         private _context: vscode.ExtensionContext,
-        private _vscodeWrapper: VscodeWrapper,
+        _vscodeWrapper: VscodeWrapper,
         private _connectionManager: ConnectionManager,
         private _sqlDocumentService: SqlDocumentService,
         private _sqlOutputContentProvider: SqlOutputContentProvider,
@@ -57,7 +57,7 @@ export class ScriptingService {
         private _objectExplorerTree: vscode.TreeView<TreeNodeInfo>,
     ) {
         this._client = this._connectionManager.client;
-        this._logger = Logger.create(this._vscodeWrapper.outputChannel, "ObjectExplorerService");
+        this._logger = logger.withPrefix("ScriptingService");
 
         this.initialize();
     }

@@ -1,7 +1,7 @@
 {
     "name": "mssql",
     "displayName": "SQL Server (mssql)",
-    "version": "1.43.0",
+    "version": "1.44.0",
     "description": "Design and optimize schemas for SQL Server, Azure SQL, and SQL Database in Fabric using a modern, lightweight extension built for developers",
     "publisher": "ms-mssql",
     "preview": false,
@@ -144,8 +144,9 @@
         "yargs": "^17.7.2"
     },
     "dependencies": {
+        "@azure/arm-maintenance": "^1.0.0-beta.2",
         "@azure/arm-resources": "^5.0.0",
-        "@azure/arm-sql": "^10.0.0",
+        "@azure/arm-sql": "^11.0.0-beta.4",
         "@azure/arm-storage": "^19.0.0",
         "@azure/arm-subscriptions": "^5.0.0",
         "@azure/ms-rest-azure-env": "^2.0.0",
@@ -156,7 +157,7 @@
         "@microsoft/vscode-azext-azureauth": "^5.1.1",
         "@microsoft/vscode-azureresources-api": "^3.1.0",
         "@xmldom/xmldom": "^0.9.10",
-        "axios": "^1.15.2",
+        "axios": "^1.16.0",
         "dockerode": "^4.0.9",
         "dotenv": "^16.4.5",
         "error-ex": "^1.3.0",
@@ -174,13 +175,13 @@
         "shallow-equal": "^3.1.0",
         "strip-json-comments": "^5.0.1",
         "tar": "^7.5.11",
-        "tmp": "^0.2.4",
+        "tmp": "^0.2.7",
         "tunnel": "0.0.6",
         "vscode-jsonrpc": "^8.2.1",
         "vscode-languageclient": "5.2.1",
         "xml-formatter": "^3.6.7",
         "yallist": "^5.0.0",
-        "yauzl": "^3.2.1"
+        "yauzl": "^3.3.1"
     },
     "capabilities": {
         "untrustedWorkspaces": {
@@ -716,12 +717,12 @@
                 },
                 {
                     "command": "mssql.objectExplorerNewQuery",
-                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(Table)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(Table|HistoryTable)\\b/",
                     "group": "1_MSSQL_primary@1"
                 },
                 {
                     "command": "mssql.scriptSelect",
-                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(Table)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(Table|HistoryTable)\\b/",
                     "group": "1_MSSQL_primary@2"
                 },
                 {
@@ -736,7 +737,7 @@
                 },
                 {
                     "submenu": "mssql.sqlScriptsSubmenu",
-                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(Table)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(Table|HistoryTable)\\b/",
                     "group": "3a_MSSQL_tableScripts@1"
                 },
                 {
@@ -801,12 +802,12 @@
                 },
                 {
                     "command": "mssql.objectExplorerChatWithDatabase",
-                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database|Table)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database|Table|HistoryTable)\\b/",
                     "group": "6_MSSQL_copilot@1"
                 },
                 {
                     "command": "mssql.objectExplorerChatWithDatabaseInAgentMode",
-                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database|Table)\\b/",
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database|Table|HistoryTable)\\b/",
                     "group": "6_MSSQL_copilot@2"
                 },
                 {
@@ -966,15 +967,15 @@
                 },
                 {
                     "command": "mssql.scriptSelect",
-                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~  /\\btype=(Table|View)\\b/"
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~  /\\btype=(Table|HistoryTable|View)\\b/"
                 },
                 {
                     "command": "mssql.scriptCreate",
-                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/"
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(Table|HistoryTable|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/"
                 },
                 {
                     "command": "mssql.scriptDelete",
-                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/"
+                    "when": "view =~ /objectExplorer|azureResourceGroups|vscode-fabric.view.workspace/ && viewItem =~ /\\btype=(Table|HistoryTable|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/"
                 },
                 {
                     "command": "mssql.scriptExecute",
@@ -2097,6 +2098,12 @@
                     "default": true,
                     "scope": "resource"
                 },
+                "mssql.messages.copyIncludeTimestamps": {
+                    "type": "boolean",
+                    "description": "%mssql.messages.copyIncludeTimestamps%",
+                    "default": false,
+                    "scope": "resource"
+                },
                 "mssql.resultsFontFamily": {
                     "type": "string",
                     "description": "%mssql.resultsFontFamily%",
@@ -2116,6 +2123,12 @@
                 "mssql.results.openAfterSave": {
                     "type": "boolean",
                     "description": "%mssql.results.openAfterSave%",
+                    "default": true,
+                    "scope": "resource"
+                },
+                "mssql.results.showCopyNotification": {
+                    "type": "boolean",
+                    "description": "%mssql.results.showCopyNotification%",
                     "default": true,
                     "scope": "resource"
                 },
@@ -3793,7 +3806,7 @@
             },
             {
                 "name": "mssql_dab",
-                "modelDescription": "Work with the Data API builder configuration in the currently active schema designer. Use 'get_state' to inspect it and 'apply_changes' to modify it; use 'show' only to open the Data API builder view for a connectionId when needed. Operations: 'get_state' returns the current version, summary, and bounded configuration state (full config may be omitted for large configurations); 'apply_changes' uses payload { expectedVersion, targetHint?, changes } and returns the post-mutation version plus summary, with optional returnState control. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with the current version and latest summary/config according to returnState. Entity refs are either { id }, { schemaName, tableName } for table compatibility, or { schemaName, sourceName, sourceType } where sourceType is table, view, or stored-procedure. Column refs are either { id } or { name }. Change types: { type: 'set_api_types', apiTypes }, { type: 'add_entity', entity }, { type: 'remove_entity', entity }, { type: 'set_entity_enabled', entity, isEnabled }, { type: 'set_entity_actions', entity, enabledActions }, { type: 'set_column_exposed', entity, column, isExposed }, { type: 'patch_entity_settings', entity, set }, { type: 'set_only_enabled_entities', entities }, { type: 'set_all_entities_enabled', isEnabled }. patch_entity_settings.set supports entityName, authorizationRole, customRestPath, restEnabled, customGraphQLType, graphQLEnabled, and stored-procedure-only storedProcedureRestMethods, storedProcedureGraphQLOperation, exposeAsMcpCustomTool.",
+                "modelDescription": "Work with the Data API builder configuration in the currently active schema designer. Use 'get_state' to inspect it and 'apply_changes' to modify it; use 'show' only to open the Data API builder view for a connectionId when needed. Operations: 'get_state' returns the current version, summary, and bounded configuration state (full config may be omitted for large configurations); 'apply_changes' uses payload { expectedVersion, targetHint?, changes } and returns the post-mutation version plus summary, with optional returnState control. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with the current version and latest summary/config according to returnState. Entity refs are either { id }, { schemaName, tableName } for table compatibility, or { schemaName, sourceName, sourceType } where sourceType is table, view, or stored-procedure. Column refs are either { id } or { name }. Change types: { type: 'set_api_types', apiTypes }, { type: 'add_entity', entity }, { type: 'remove_entity', entity }, { type: 'set_entity_enabled', entity, isEnabled }, { type: 'set_entity_actions', entity, enabledActions }, { type: 'set_column_exposed', entity, column, isExposed }, { type: 'patch_entity_settings', entity, set }, { type: 'set_only_enabled_entities', entities }, { type: 'set_all_entities_enabled', isEnabled }. patch_entity_settings.set supports entityName, authorizationRole, customRestPath, restEnabled, customGraphQLType, graphQLEnabled, table-only mcpDmlToolsEnabled, and stored-procedure-only storedProcedureRestMethods, storedProcedureGraphQLOperation, exposeAsMcpCustomTool.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -3943,6 +3956,10 @@
                                 },
                                 "graphQLEnabled": {
                                     "description": "When true, exposes the entity through GraphQL if GraphQL is globally enabled.",
+                                    "type": "boolean"
+                                },
+                                "mcpDmlToolsEnabled": {
+                                    "description": "Table only. When true, exposes the table through generic MCP DML tools (create/read/update/delete) if MCP is globally enabled. When false, emits mcp { dml-tools: false } for the table.",
                                     "type": "boolean"
                                 },
                                 "storedProcedureRestMethods": {
@@ -4202,7 +4219,7 @@
                                                         "$ref": "#/$defs/entityRef"
                                                     },
                                                     "set": {
-                                                        "description": "Patch advanced settings. Example: { entityName: '41', authorizationRole: 'authenticated', restEnabled: true, customRestPath: 't_41', graphQLEnabled: true, customGraphQLType: null, storedProcedureRestMethods: ['post'], storedProcedureGraphQLOperation: 'mutation', exposeAsMcpCustomTool: true }. Stored procedure settings are only valid for stored procedures.",
+                                                        "description": "Patch advanced settings. Example: { entityName: '41', authorizationRole: 'authenticated', restEnabled: true, customRestPath: 't_41', graphQLEnabled: true, customGraphQLType: null, mcpDmlToolsEnabled: true, storedProcedureRestMethods: ['post'], storedProcedureGraphQLOperation: 'mutation', exposeAsMcpCustomTool: true }. mcpDmlToolsEnabled is table-only. Stored procedure settings are only valid for stored procedures.",
                                                         "$ref": "#/$defs/advancedSettingsPatch"
                                                     }
                                                 },

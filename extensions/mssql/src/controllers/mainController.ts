@@ -12,6 +12,7 @@ import { DeploymentScenario } from "../enums";
 import { AzureResourceController } from "../azure/azureResourceController";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
+import { CloudDeployService } from "../cloudDeploy/cloudDeployService";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import * as ConnInfo from "../models/connectionInfo";
 import {
@@ -127,8 +128,7 @@ import { SearchDatabaseWebViewController } from "../searchDatabase/searchDatabas
 import { ChangelogWebviewController } from "./changelogWebviewController";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
 import { HttpClient } from "../http/httpClient";
-import { Logger } from "../models/logger";
-import { logger2 } from "../models/logger2";
+import { ILogger, logger } from "../models/logger";
 import { FileBrowserService } from "../services/fileBrowserService";
 import { BackupDatabaseWebviewController } from "./backupDatabaseWebviewController";
 import { AzureBlobService } from "../services/azureBlobService";
@@ -160,7 +160,7 @@ export default class MainController implements vscode.Disposable {
     private _scriptingService: ScriptingService;
     private _queryHistoryRegistered: boolean = false;
     private _availableCommands: string[] | undefined;
-    private _logger: Logger;
+    private _logger: ILogger;
     private _lastBackgroundTaskClickTime = 0;
     private _lastBackgroundTaskId: string | undefined;
 
@@ -186,6 +186,7 @@ export default class MainController implements vscode.Disposable {
     public fileBrowserService: FileBrowserService;
     public profilerController: ProfilerController;
     public sqlNotebookController: SqlNotebookController;
+    public cloudDeployService: CloudDeployService;
 
     /**
      * The main controller constructor
@@ -201,7 +202,7 @@ export default class MainController implements vscode.Disposable {
             this._connectionMgr = connectionManager;
         }
         this._vscodeWrapper = vscodeWrapper ?? new VscodeWrapper();
-        this._logger = Logger.create(this._vscodeWrapper.outputChannel, "MainController");
+        this._logger = logger.withPrefix("MainController");
         this.configuration = vscode.workspace.getConfiguration();
 
         UserSurvey.createInstance(this._context, this._vscodeWrapper);
@@ -788,7 +789,7 @@ export default class MainController implements vscode.Disposable {
 
             void registerFabricIntegration(
                 this._objectExplorerProvider.objectExplorerService,
-                logger2.withPrefix("Fabric"),
+                logger.withPrefix("Fabric"),
                 this._context,
             );
 
@@ -801,7 +802,7 @@ export default class MainController implements vscode.Disposable {
      * If not installed, this is a no-op and mssql continues to work normally.
      */
     private async registerAzureResourcesBranchDataProvider(): Promise<void> {
-        const log = logger2.withPrefix("Azure Resources");
+        const log = logger.withPrefix("Azure Resources");
         try {
             log.info("Looking for the Azure Resources extension...");
 
@@ -1198,6 +1199,21 @@ export default class MainController implements vscode.Disposable {
         await this._connectionMgr.initialized;
 
         this._statusview.setConnectionStore(this._connectionMgr.connectionStore);
+
+        // Cloud Deploy: instantiate the service against the first workspace folder
+        // (TODO: multi-root support). Init runs fire-and-forget so a malformed
+        // environments.json can't block extension activation — errors are logged.
+        const cloudDeployFolder = vscode.workspace.workspaceFolders?.[0];
+        this.cloudDeployService = new CloudDeployService(
+            cloudDeployFolder,
+            this._context.workspaceState,
+        );
+        this._context.subscriptions.push(this.cloudDeployService);
+        void this.cloudDeployService.init().catch((err: unknown) => {
+            this._logger.error(
+                `CloudDeployService init failed: ${err instanceof Error ? err.message : String(err)}`,
+            );
+        });
 
         this._initialized = true;
         return true;
@@ -3470,13 +3486,10 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
-     * Updates Pii Logging configuration for Logger.
+     * PII logging is read from configuration at log time by ILogger.
      */
     private updatePiiLoggingLevel(): void {
-        const piiLogging: boolean = vscode.workspace
-            .getConfiguration(Constants.extensionName)
-            .get(Constants.piiLogging, false);
-        SqlToolsServerClient.instance.logger.piiLogging = piiLogging;
+        // no-op
     }
 
     /**
