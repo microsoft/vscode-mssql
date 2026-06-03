@@ -8,23 +8,23 @@ import * as chai from "chai";
 import sinonChai from "sinon-chai";
 import { expect } from "chai";
 import { Server } from "@azure/arm-sql";
-import { AzureSqlDatabase } from "../../../src/constants/locConstants";
-import * as telemetry from "../../../src/telemetry/telemetry";
-import { TelemetryActions, TelemetryViews } from "../../../src/sharedInterfaces/telemetry";
-import { ApiStatus } from "../../../src/sharedInterfaces/webview";
-import { AuthenticationType } from "../../../src/sharedInterfaces/connectionDialog";
+import { AzureSqlDatabase } from "../../src/constants/locConstants";
+import * as telemetry from "../../src/telemetry/telemetry";
+import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
+import { ApiStatus } from "../../src/sharedInterfaces/webview";
+import { AuthenticationType } from "../../src/sharedInterfaces/connectionDialog";
 import {
     AzureSqlDatabaseState,
     AzureSqlDatabaseFormItemSpec,
     AzureSqlDatabaseFormState,
     AZURE_SQL_DB_COMPONENT_ORDER,
-} from "../../../src/sharedInterfaces/azureSqlDatabase";
+} from "../../src/sharedInterfaces/azureSqlDatabase";
 import {
     applyServerAuthSettings,
     reloadAzureComponentsDownstream,
     sendAzureSqlDatabaseCloseEventTelemetry,
-} from "../../../src/deployment/azureSqlDatabaseHelpers";
-import { FormItemType } from "../../../src/sharedInterfaces/form";
+} from "../../src/deployment/azureSqlDatabaseHelpers";
+import { FormItemType } from "../../src/sharedInterfaces/form";
 
 chai.use(sinonChai);
 
