@@ -1326,7 +1326,9 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     },
                 );
 
-                void vscode.window.showErrorMessage(getErrorMessage(error));
+                void vscode.window.showErrorMessage(
+                    locConstants.SchemaCompare.schemaCompareApplyFailed(getErrorMessage(error)),
+                );
                 state.isApplyInProgress = false;
                 state.applyFailed = true;
                 state.schemaCompareResult = undefined;

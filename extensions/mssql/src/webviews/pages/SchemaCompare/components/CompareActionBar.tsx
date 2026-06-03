@@ -170,7 +170,7 @@ const CompareActionBar = (props: Props) => {
                 {loc.schemaCompare.compare}
             </ToolbarButton>
             <ToolbarButton
-                area-label={loc.schemaCompare.stop}
+                aria-label={loc.schemaCompare.stop}
                 title={loc.schemaCompare.stop}
                 icon={<StopFilled />}
                 onClick={handleStop}
