@@ -22,7 +22,7 @@ import { ICredentialStore, Credential } from "../credentialstore/icredentialstor
 import { ConnectionConfig } from "../connectionconfig/connectionconfig";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { IConnectionInfo } from "vscode-mssql";
-import { Logger } from "./logger";
+import { ILogger, logger } from "./logger";
 import { Deferred } from "../protocol";
 import { ConnectionMatcher, MatchScore } from "./utils";
 import { sendActionEvent } from "../telemetry/telemetry";
@@ -44,7 +44,7 @@ export class ConnectionStore {
     constructor(
         private _context: vscode.ExtensionContext,
         private _credentialStore: ICredentialStore,
-        private _logger?: Logger,
+        private _logger?: ILogger,
         private _connectionConfig?: ConnectionConfig,
         private _vscodeWrapper?: VscodeWrapper,
     ) {
@@ -53,7 +53,7 @@ export class ConnectionStore {
         }
 
         if (!this._logger) {
-            this._logger = Logger.create(this.vscodeWrapper.outputChannel, "ConnectionStore");
+            this._logger = logger.withPrefix("ConnectionStore");
         }
 
         if (!this._connectionConfig) {
@@ -477,7 +477,9 @@ export class ConnectionStore {
                 await this._credentialStore.deleteCredential(credentialId);
             } catch (err) {
                 deleteCredentialSuccess = false;
-                this._logger.log(LocalizedConstants.deleteCredentialError, credentialId, err);
+                this._logger.trace(
+                    LocalizedConstants.deleteCredentialError(credentialId, String(err)),
+                );
             }
         }
         // Update the MRU list to be empty
@@ -718,7 +720,7 @@ export class ConnectionStore {
                 uniqueConnections.push(conn);
             } else {
                 dupeCount++;
-                this._logger.verbose(
+                this._logger.debug(
                     `Duplicate connection ID found: ${conn.id}. Ignoring duplicate connection.`,
                 );
             }
@@ -742,7 +744,7 @@ export class ConnectionStore {
             logMessage += `; ${dupeCount} duplicate connections ignored`;
         }
 
-        this._logger.logDebug(logMessage);
+        this._logger.debug(logMessage);
 
         return connResults;
     }

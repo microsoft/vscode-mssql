@@ -12,7 +12,7 @@ import * as LocalizedConstants from "../constants/locConstants";
 import ConnectionManager from "../controllers/connectionManager";
 import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
 import * as Utils from "../models/utils";
-import { ILogger2, Logger2 } from "../models/logger2";
+import { ILogger, Logger } from "../models/logger";
 import { NotebookConnectionManager } from "./notebookConnectionManager";
 import { NotebookCodeLensProvider } from "./notebookCodeLensProvider";
 import { NotebookBatchResult } from "./notebookQueryExecutor";
@@ -68,7 +68,7 @@ export class SqlNotebookController implements vscode.Disposable {
     readonly connections = new Map<string, NotebookConnectionManager>();
     private readonly codeLensProvider: NotebookCodeLensProvider;
     private readonly statusBarItem: vscode.StatusBarItem;
-    private readonly log: ILogger2;
+    private readonly log: ILogger;
     private readonly disposables: vscode.Disposable[] = [];
     private executionOrder = 0;
     // Track notebooks by their document object to handle URI changes on save
@@ -85,10 +85,10 @@ export class SqlNotebookController implements vscode.Disposable {
         private readonly _connectionManagerFactory?: (
             connectionMgr: ConnectionManager,
             connectionSharingService: ConnectionSharingService,
-            log: ILogger2,
+            log: ILogger,
         ) => NotebookConnectionManager,
     ) {
-        this.log = Logger2.forChannelName("MSSQL - Notebooks", "SqlNotebookController");
+        this.log = Logger.forChannelName("MSSQL - Notebooks", "SqlNotebookController");
 
         this.controller = vscode.notebooks.createNotebookController(
             "ms-mssql.sql-notebook-controller",

@@ -3,6 +3,10 @@
     "Remind Me Later": "Remind Me Later",
     "Don't Show Again": "Don't Show Again",
     "Learn More": "Learn More",
+    "Open File": "Open File",
+    "Reveal in Explorer": "Reveal in Explorer",
+    "Reveal in Finder": "Reveal in Finder",
+    "Open Containing Folder": "Open Containing Folder",
     "Delete": "Delete",
     "Cancel": "Cancel",
     "Are you sure?": "Are you sure?",
@@ -157,9 +161,18 @@
     "Save Password? If 'No', password will be required each time you connect": "Save Password? If 'No', password will be required each time you connect",
     "Profile Name": "Profile Name",
     "Error occurred opening content in editor.": "Error occurred opening content in editor.",
-    "Started saving results to ": "Started saving results to ",
-    "Failed to save results. ": "Failed to save results. ",
-    "Successfully saved results to ": "Successfully saved results to ",
+    "Started saving results to {0}/{0} is the file path": {
+        "message": "Started saving results to {0}",
+        "comment": ["{0} is the file path"]
+    },
+    "Failed to save results. {0}/{0} is the error message": {
+        "message": "Failed to save results. {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Successfully saved results to {0}/{0} is the file path": {
+        "message": "Successfully saved results to {0}",
+        "comment": ["{0} is the file path"]
+    },
     "Select profile to remove": "Select profile to remove",
     "Select profile to edit": "Select profile to edit",
     "Confirm to remove this profile.": "Confirm to remove this profile.",
@@ -1669,9 +1682,6 @@
     "Deploy": "Deploy",
     "Files": "Files",
     "Application version must be in format n.n.n.n where n is a number (e.g., 1.0.0.0)": "Application version must be in format n.n.n.n where n is a number (e.g., 1.0.0.0)",
-    "Reveal in Explorer": "Reveal in Explorer",
-    "Reveal in Finder": "Reveal in Finder",
-    "Open Containing Folder": "Open Containing Folder",
     "Unable to retrieve the list of databases. You may not have permission to list databases on this server.": "Unable to retrieve the list of databases. You may not have permission to list databases on this server.",
     "DACPAC deployed successfully to database '{0}'/{0} is the database name": {
         "message": "DACPAC deployed successfully to database '{0}'",
@@ -1963,7 +1973,6 @@
         "message": "Profiler events exported successfully to {0}",
         "comment": ["{0} is the file path"]
     },
-    "Open File": "Open File",
     "Failed to export profiler events: {0}/{0} is the error message": {
         "message": "Failed to export profiler events: {0}",
         "comment": ["{0} is the error message"]

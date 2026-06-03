@@ -174,24 +174,6 @@ export interface IResultsConfig {
     resultsFontFamily: string;
 }
 
-export interface ILogger {
-    logDebug(message: string): void;
-    verbose(msg: any, ...vals: any[]): void;
-    warn(msg: any, ...vals: any[]): void;
-    error(msg: any, ...vals: any[]): void;
-    piiSanitized(
-        msg: any,
-        objsToSanitize: { name: string; objOrArray: any | any[] }[],
-        stringsToShorten: { name: string; value: string }[],
-        ...vals: any[]
-    ): void;
-    increaseIndent(): void;
-    decreaseIndent(): void;
-    append(message?: string): void;
-    appendLine(message?: string): void;
-    info(msg: any, ...vals: any[]): void;
-}
-
 export interface IAzureSignInQuickPickItem extends vscode.QuickPickItem {
     command: string;
 }

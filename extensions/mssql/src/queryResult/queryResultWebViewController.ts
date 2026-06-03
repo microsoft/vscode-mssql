@@ -552,10 +552,19 @@ export class QueryResultWebviewController extends WebviewViewController<
         return this._sqlDocumentService;
     }
 
+    private shouldCopyMessageTimestamps(uri?: string): boolean {
+        return this.vscodeWrapper
+            .getConfiguration(Constants.extensionConfigSectionName, uri)
+            .get<boolean>(Constants.configMessagesCopyIncludeTimestamps, false);
+    }
+
     public async copyAllMessagesToClipboard(uri: string): Promise<void> {
+        const includeTimestamps = this.shouldCopyMessageTimestamps(uri ?? this.state?.uri);
         const messages = uri
-            ? this.getQueryResultState(uri)?.messages?.map((message) => messageToString(message))
-            : this.state?.messages?.map((message) => messageToString(message));
+            ? this.getQueryResultState(uri)?.messages?.map((message) =>
+                  messageToString(message, includeTimestamps),
+              )
+            : this.state?.messages?.map((message) => messageToString(message, includeTimestamps));
 
         if (!messages) {
             return;

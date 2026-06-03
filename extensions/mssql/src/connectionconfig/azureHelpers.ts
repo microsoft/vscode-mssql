@@ -31,7 +31,7 @@ import {
     https,
     user,
 } from "../constants/constants";
-import { Logger } from "../models/logger";
+import { ILogger } from "../models/logger";
 import { groupQuickPickItems, MssqlQuickPickItem } from "../utils/quickpickHelpers";
 import {
     AlwaysEncryptedEnclaveType,
@@ -865,7 +865,7 @@ export const VsCodeAzureAuth = {
  */
 export async function promptForAzureSubscriptionFilter(
     state: ConnectionDialogWebviewState,
-    logger: Logger,
+    logger: ILogger,
 ): Promise<boolean> {
     try {
         const result = await VsCodeAzureHelper.signIn();
@@ -948,7 +948,7 @@ export enum MaintenanceSchedule {
 
 export async function getAccounts(
     azureAccountService: AzureAccountService,
-    logger: Logger,
+    logger: ILogger,
 ): Promise<FormItemOptions[]> {
     let accounts: IAccount[] = [];
     try {
@@ -990,7 +990,7 @@ export async function getAccounts(
 export async function getTenants(
     azureAccountService: AzureAccountService,
     accountId: string,
-    logger: Logger,
+    logger: ILogger,
 ): Promise<FormItemOptions[]> {
     let tenants: ITenant[] = [];
 

@@ -172,6 +172,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             }
             const cellIdx = getFirstDataCellIndex();
             grid.setActiveCell(0, cellIdx);
+            grid.focus();
             firstCellSelectedRef.current = true;
         }
 
@@ -769,6 +770,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         }
                         grid.setActiveCell(visibleRow, cellIdx);
                         grid.scrollCellIntoView(visibleRow, cellIdx, false);
+                        grid.focus();
                     };
                     if (advanceToNextPage && paginationService) {
                         lastPageRef.current = targetPage;
