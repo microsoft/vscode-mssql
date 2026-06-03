@@ -10,7 +10,7 @@ import * as lockFile from "lockfile";
 import * as path from "path";
 import VscodeWrapper from "../../controllers/vscodeWrapper";
 import { ICredentialStore } from "../../credentialstore/icredentialstore";
-import { ILogger } from "../../models/logger";
+import { ILogger } from "../../sharedInterfaces/logger";
 import { FileEncryptionHelper } from "../fileEncryptionHelper";
 
 export class MsalCachePluginProvider {

@@ -11,7 +11,7 @@ import * as vscode from "vscode";
 import * as fs from "fs/promises";
 import DotnetRuntimeProvider from "../../src/languageservice/dotnetRuntimeProvider";
 import * as Constants from "../../src/constants/constants";
-import { ILogger } from "../../src/models/logger";
+import { ILogger } from "../../src/sharedInterfaces/logger";
 import { ServiceClient } from "../../src/constants/locConstants";
 import { stubILogger } from "./utils";
 

@@ -9,9 +9,6 @@ import { TelemetryActions, TelemetryViews } from "./telemetry";
 import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
 import { ILogger, LogEvent } from "./logger";
 
-export { LoggerMethod } from "./logger";
-export type { ILogger, LogEvent, LoggerMessageMethod } from "./logger";
-
 /**
  * Enum to represent the status of an asynchronous call or operation.
  * Use directly (plus an errorMessage property on the state) if the error message

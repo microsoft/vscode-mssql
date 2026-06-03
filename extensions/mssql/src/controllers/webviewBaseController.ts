@@ -18,9 +18,7 @@ import {
     GetThemeRequest,
     KeyBindingsChangeNotification,
     LoadStatsNotification,
-    LogEvent,
     LogNotification,
-    LoggerMethod,
     ReducerRequest,
     SendActionEventNotification,
     SendErrorEventNotification,
@@ -32,7 +30,8 @@ import {
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 
 import { getEditorEOL, getErrorMessage, getNonce } from "../utils/utils";
-import { ILogger, logger } from "../models/logger";
+import { LoggerMethod, ILogger, LogEvent } from "../sharedInterfaces/logger";
+import { logger } from "../models/logger";
 import VscodeWrapper from "./vscodeWrapper";
 import {
     AbstractMessageReader,

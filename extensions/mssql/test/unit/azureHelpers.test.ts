@@ -9,7 +9,7 @@ import sinonChai from "sinon-chai";
 import { AzureAccountService } from "../../src/services/azureAccountService";
 import * as sinon from "sinon";
 import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
-import { ILogger } from "../../src/models/logger";
+import { ILogger } from "../../src/sharedInterfaces/logger";
 import { IAccount } from "vscode-mssql";
 import * as vscode from "vscode";
 import * as armStorage from "@azure/arm-storage";

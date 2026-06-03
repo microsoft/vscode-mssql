@@ -16,7 +16,8 @@ import { IPrompter } from "../../src/prompts/question";
 import CodeAdapter from "../../src/prompts/adapter";
 import { buildCapabilitiesResult } from "./mocks";
 import { GetCapabilitiesRequest } from "../../src/models/contracts/connection";
-import { ILogger, logger as baseLogger } from "../../src/models/logger";
+import { ILogger } from "../../src/sharedInterfaces/logger";
+import { logger as baseLogger } from "../../src/models/logger";
 import { PreviewFeature, previewService } from "../../src/previews/previewService";
 
 // Stubs the telemetry code

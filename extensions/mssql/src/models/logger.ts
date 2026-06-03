@@ -8,8 +8,6 @@ import * as Constants from "../constants/constants";
 import * as Utils from "./utils";
 import { ILogger } from "../sharedInterfaces/logger";
 
-export type { ILogger } from "../sharedInterfaces/logger";
-
 export const loggerOutputChannelName = Constants.outputChannelName;
 
 type LogMethod = "trace" | "debug" | "info" | "warn" | "error";

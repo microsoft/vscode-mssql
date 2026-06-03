@@ -17,7 +17,8 @@ import {
     BackgroundTasksService,
     BackgroundTaskState,
 } from "../backgroundTasks/backgroundTasksService";
-import { logger, type ILogger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger } from "../models/logger";
 
 export enum TaskStatus {
     NotStarted = 0,

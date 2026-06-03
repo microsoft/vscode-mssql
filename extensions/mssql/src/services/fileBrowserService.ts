@@ -12,7 +12,8 @@ import {
     FileBrowserOpenNotification,
     FileBrowserOpenRequest,
 } from "../models/contracts/fileBrowser";
-import { ILogger, logger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger } from "../models/logger";
 import { Deferred } from "../protocol";
 import * as fb from "../sharedInterfaces/fileBrowser";
 

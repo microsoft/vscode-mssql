@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 import * as fs from "fs/promises";
-import { ILogger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
 import * as Constants from "../constants/constants";
 import { ServiceClient } from "../constants/locConstants";
 import { getErrorMessage } from "../utils/utils";

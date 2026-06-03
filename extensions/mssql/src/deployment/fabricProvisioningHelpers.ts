@@ -7,7 +7,7 @@ import { getDefaultTenantId, VsCodeAzureHelper } from "../connectionconfig/azure
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
 import { ConnectionDialog, Fabric, FabricProvisioning } from "../constants/locConstants";
 import { FabricHelper } from "../fabric/fabricHelper";
-import { ILogger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
 import {
     hasWorkspacePermission,
     IWorkspace,

@@ -13,7 +13,7 @@ import {
 import { getDefaultTenantId, VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
 import { AzureSqlDatabase, ConnectionDialog } from "../constants/locConstants";
-import { ILogger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
 import * as asd from "../sharedInterfaces/azureSqlDatabase";
 import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { FormItemActionButton, FormItemOptions, FormItemType } from "../sharedInterfaces/form";

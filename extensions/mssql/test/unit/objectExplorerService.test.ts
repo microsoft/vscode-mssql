@@ -15,7 +15,7 @@ import { expect } from "chai";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import ConnectionManager, { SqlConnectionErrorType } from "../../src/controllers/connectionManager";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
-import { ILogger } from "../../src/models/logger";
+import { ILogger } from "../../src/sharedInterfaces/logger";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import {
     IConnectionProfile,

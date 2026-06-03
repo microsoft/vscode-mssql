@@ -13,7 +13,7 @@ import {
 } from "@azure/msal-node";
 import { ITenant, AzureAuthType, IProviderSettings } from "../../models/contracts/azure";
 import { IDeferred } from "../../models/interfaces";
-import { ILogger } from "../../models/logger";
+import { ILogger } from "../../sharedInterfaces/logger";
 import { MsalAzureAuth } from "./msalAzureAuth";
 import { SimpleWebServer } from "../simpleWebServer";
 import { AzureAuthError } from "../azureAuthError";

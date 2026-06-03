@@ -13,7 +13,7 @@ import * as LocalizedConstants from "../constants/locConstants";
 import * as fs from "fs";
 import { AzureAuthType } from "./contracts/azure";
 import { IConnectionInfo } from "vscode-mssql";
-import type { ILogger } from "./logger";
+import { ILogger } from "../sharedInterfaces/logger";
 
 // CONSTANTS //////////////////////////////////////////////////////////////////////////////////////
 const msInH = 3.6e6;

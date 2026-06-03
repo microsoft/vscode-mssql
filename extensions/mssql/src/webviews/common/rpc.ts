@@ -5,11 +5,13 @@
 
 import { WebviewApi } from "vscode-webview";
 import {
+    LoggerMethod,
     ILogger,
     LogEvent,
-    LogNotification,
-    LoggerMethod,
     LoggerMessageMethod,
+} from "../../sharedInterfaces/logger";
+import {
+    LogNotification,
     ReducerRequest,
     SendActionEventNotification,
     SendErrorEventNotification,

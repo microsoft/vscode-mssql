@@ -13,7 +13,7 @@ import { PassThrough, Writable } from "stream";
 import axios, { AxiosResponse } from "axios";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import { HttpClient, HttpDownloadError } from "../../src/http/httpClient";
-import { ILogger } from "../../src/models/logger";
+import { ILogger } from "../../src/sharedInterfaces/logger";
 import { createStubLogger } from "./utils";
 
 chai.use(sinonChai);

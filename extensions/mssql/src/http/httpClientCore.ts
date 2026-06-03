@@ -9,7 +9,7 @@ import * as https from "https";
 import * as fs from "fs";
 import axios, { AxiosRequestConfig, AxiosResponse, RawAxiosResponseHeaders } from "axios";
 import { Readable } from "stream";
-import { ILogger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
 
 const UnableToGetProxyAgentOptionsMessage = "Unable to read proxy agent options to get tenants.";
 const HTTPS_PORT = 443;

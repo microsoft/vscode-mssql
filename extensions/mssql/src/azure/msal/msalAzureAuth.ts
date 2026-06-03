@@ -26,7 +26,7 @@ import {
     LoginResult,
 } from "../../models/contracts/azure";
 import { IDeferred } from "../../models/interfaces";
-import { ILogger } from "../../models/logger";
+import { ILogger } from "../../sharedInterfaces/logger";
 import { AzureAuthError } from "../azureAuthError";
 import * as Constants from "../constants";
 import { ErrorResponseBody } from "@azure/arm-subscriptions";

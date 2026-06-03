@@ -24,7 +24,8 @@ import {
 import { getErrorMessage, uuid } from "../utils/utils";
 import { MssqlChatAgent as loc } from "../constants/locConstants";
 import MainController from "../controllers/mainController";
-import { ILogger, logger as baseLogger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger as baseLogger } from "../models/logger";
 import {
     handleChatCommand,
     commandSkipsConnectionLabels,

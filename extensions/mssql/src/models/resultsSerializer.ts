@@ -14,7 +14,8 @@ import SqlToolsServerClient from "../languageservice/serviceclient";
 import * as Contracts from "./contracts";
 import * as Utils from "./utils";
 import opener from "opener";
-import { ILogger, logger } from "./logger";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger } from "./logger";
 
 export type SaveAsRequestParams =
     | Contracts.SaveResultsAsCsvRequestParams

@@ -31,7 +31,8 @@ import {
     https,
     user,
 } from "../constants/constants";
-import { ILogger, logger as baseLogger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger as baseLogger } from "../models/logger";
 import { groupQuickPickItems, MssqlQuickPickItem } from "../utils/quickpickHelpers";
 import {
     AlwaysEncryptedEnclaveType,
