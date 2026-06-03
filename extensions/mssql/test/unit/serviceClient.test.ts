@@ -13,7 +13,7 @@ import { ServiceClient as ServiceClientLoc } from "../../src/constants/locConsta
 import ServerProvider from "../../src/languageservice/server";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import DotnetRuntimeProvider from "../../src/languageservice/dotnetRuntimeProvider";
-import { Logger } from "../../src/models/logger";
+import { ILogger } from "../../src/models/logger";
 import { PlatformInformation, Runtime } from "../../src/models/platform";
 import StatusView from "../../src/views/statusView";
 import * as LanguageServiceContracts from "../../src/models/contracts/languageService";
@@ -39,7 +39,7 @@ interface ILaunchAttempt {
 suite("Service Client tests", () => {
     let sandbox: sinon.SinonSandbox;
     let testServiceProvider: sinon.SinonStubbedInstance<ServerProvider>;
-    let logger: sinon.SinonStubbedInstance<Logger>;
+    let logger: sinon.SinonStubbedInstance<ILogger>;
     let testStatusView: sinon.SinonStubbedInstance<StatusView>;
     let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let dotnetRuntimeProvider: sinon.SinonStubbedInstance<DotnetRuntimeProvider>;

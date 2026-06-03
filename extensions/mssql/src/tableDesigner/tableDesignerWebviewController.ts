@@ -20,10 +20,8 @@ import { UserSurvey } from "../nps/userSurvey";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { getErrorMessage } from "../utils/utils";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import logger2 from "../models/logger2";
 
 const TABLE_DESIGNER_VIEW_ID = "tableDesigner";
-const logger = logger2.withPrefix("TableDesignerWebviewController");
 
 export class TableDesignerWebviewController extends WebviewPanelController<
     designer.TableDesignerWebviewState,
@@ -640,7 +638,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                 return;
             }
 
-            logger.info("Progress", progress);
+            this.logger.info("Progress", progress);
             this.appendOperationProgress(progress.operation, progress.message, progress.status);
 
             try {
@@ -658,7 +656,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                 return;
             }
 
-            logger.info("Message", message);
+            this.logger.info("Message", message);
             this.appendOperationProgress(message.operation, message.message, message.messageType);
 
             try {

@@ -4116,7 +4116,7 @@ Erreur :
       <trans-unit id="++CODE++11167e57bf77932c07f42c4b2a08ba8428726757beb2f754ece1786e81ed0447">
         <source xml:lang="en">Failed to save results. {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to save results. {0}</target>
+        <target state="translated">Nous n’avons pas pu enregistrer les résultats. {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++295dc600027d16c46d0596df1afe12f2c8db841203c77f15207d06851c0d50ec">
         <source xml:lang="en">Failed to save results: {0}</source>
@@ -8697,7 +8697,7 @@ Requête : {2}</target>
       <trans-unit id="++CODE++b10574f779b09047bedf3228566923bf6ba89edd4f6f08ff15e9a9c0314cfbdb">
         <source xml:lang="en">Started saving results to {0}</source>
         <note>{0} is the file path</note>
-        <target state="new">Started saving results to {0}</target>
+        <target state="translated">Enregistrement des résultats démarré dans {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++7db6cebea8c95ec1db665d9ce39b1798388767fb2481b3f02548f4f008012631">
         <source xml:lang="en">Starting '{0}'...</source>
@@ -8844,7 +8844,7 @@ Requête : {2}</target>
       <trans-unit id="++CODE++c36cade68fea2c699e5795c527fd1daf085d0b76a5a5bc35526765a1b5d5b974">
         <source xml:lang="en">Successfully saved results to {0}</source>
         <note>{0} is the file path</note>
-        <target state="new">Successfully saved results to {0}</target>
+        <target state="translated">Résultats enregistrés dans {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++da099a63ce9b5fe688c4f5219cdd8614a27faa324bdd5c612dfab086630b346c">
         <source xml:lang="en">Sum: {0}</source>
@@ -11513,7 +11513,7 @@ Consultez le plan estimé sans exécuter la requête, ou consultez le plan de re
       </trans-unit>
       <trans-unit id="mssql.messages.copyIncludeTimestamps">
         <source xml:lang="en">When enabled, Copy All in the query result Messages pane includes message timestamps.</source>
-        <target state="new">When enabled, Copy All in the query result Messages pane includes message timestamps.</target>
+        <target state="translated">Lorsque cette option est activée, Copier tout dans le volet Messages des résultats de la requête inclut les horodatages des messages.</target>
       </trans-unit>
       <trans-unit id="mssql.transferActiveEditorConnections.description">
         <source xml:lang="en">When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.</source>
@@ -11530,6 +11530,10 @@ Consultez le plan estimé sans exécuter la requête, ou consultez le plan de re
       <trans-unit id="mssql.results.openAfterSave">
         <source xml:lang="en">When enabled, saved query result exports are opened after export. Excel exports open with the system file handler; text exports open in VS Code.</source>
         <target state="translated">Une fois cette option activée, les exportations des résultats des requêtes enregistrées s’ouvrent après l’exportation. Les exportations Excel s’ouvrent avec le gestionnaire de fichiers du système. Les exportations de texte s’ouvrent dans VS Code.</target>
+      </trans-unit>
+      <trans-unit id="mssql.results.showCopyNotification">
+        <source xml:lang="en">When enabled, show a notification after query results are copied to the clipboard.</source>
+        <target state="translated">Lorsque cette option est activée, une notification s’affiche une fois les résultats de la requête copiés dans le presse-papiers.</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>

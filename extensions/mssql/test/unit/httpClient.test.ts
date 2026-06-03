@@ -13,7 +13,7 @@ import { PassThrough, Writable } from "stream";
 import axios, { AxiosResponse } from "axios";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import { HttpClient, HttpDownloadError } from "../../src/http/httpClient";
-import { Logger } from "../../src/models/logger";
+import { ILogger } from "../../src/models/logger";
 import { createStubLogger } from "./utils";
 
 chai.use(sinonChai);
@@ -21,7 +21,7 @@ chai.use(sinonChai);
 suite("HttpClient tests", () => {
     let sandbox: sinon.SinonSandbox;
     let httpClient: HttpClient;
-    let logger: sinon.SinonStubbedInstance<Logger>;
+    let logger: sinon.SinonStubbedInstance<ILogger>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
@@ -532,7 +532,7 @@ suite("HttpClient tests", () => {
 
             httpClient["setupConfigAndProxyForRequest"](requestUrl, token);
 
-            expect(logger.verbose).to.have.been.calledWith(
+            expect(logger.debug).to.have.been.calledWith(
                 "Proxy endpoint found in environment variables or workspace configuration.",
             );
         });
