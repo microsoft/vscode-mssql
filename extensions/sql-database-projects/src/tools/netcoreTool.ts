@@ -8,7 +8,6 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import * as semver from "semver";
-import { isNullOrUndefined } from "util";
 import * as vscode from "vscode";
 import {
     DoNotAskAgain,
@@ -140,9 +139,11 @@ export class NetCoreTool extends ShellExecutionHelper {
     }
 
     private get isNetCoreInstallationPresent(): boolean {
+        const netcoreInstallLocation = this.netcoreInstallLocation;
         const netCoreInstallationPresent =
-            !isNullOrUndefined(this.netcoreInstallLocation) &&
-            fs.existsSync(this.netcoreInstallLocation);
+            netcoreInstallLocation !== undefined &&
+            netcoreInstallLocation !== null &&
+            fs.existsSync(netcoreInstallLocation);
         if (!netCoreInstallationPresent) {
             this.netCoreInstallState = netCoreInstallState.netCoreNotPresent;
         }
@@ -195,7 +196,11 @@ export class NetCoreTool extends ShellExecutionHelper {
     }
 
     private getDotnetPathIfPresent(folderPath: string | undefined): string | undefined {
-        if (!isNullOrUndefined(folderPath) && fs.existsSync(path.join(folderPath, "dotnet"))) {
+        if (
+            folderPath !== undefined &&
+            folderPath !== null &&
+            fs.existsSync(path.join(folderPath, "dotnet"))
+        ) {
             return path.join(folderPath, "dotnet");
         }
         return undefined;
