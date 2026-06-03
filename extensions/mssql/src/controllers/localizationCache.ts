@@ -5,6 +5,9 @@
 
 import * as vscode from "vscode";
 import { getErrorMessage } from "../utils/utils";
+import { logger as baseLogger } from "../models/logger";
+
+const logger = baseLogger.withPrefix("LocalizationCache");
 
 let localizationFileCache: string | undefined;
 let localizationFileReadPromise: Promise<string | undefined> | undefined;
@@ -34,7 +37,7 @@ export async function getLocalizationFileContentsCached(): Promise<string | unde
             localizationFileCache = fileContents;
             return fileContents;
         } catch (err) {
-            console.error("Error reading localization file:", getErrorMessage(err));
+            logger.error(`Error reading localization file: ${getErrorMessage(err)}`);
             throw err;
         } finally {
             localizationFileReadPromise = undefined;

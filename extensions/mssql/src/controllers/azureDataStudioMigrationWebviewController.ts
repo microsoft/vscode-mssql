@@ -170,13 +170,13 @@ export class AzureDataStudioMigrationWebviewController extends WebviewPanelContr
             );
 
             if (!connection) {
-                console.error("Cannot open Entra sign-in dialog for undefined connection");
+                this.logger.error("Cannot open Entra sign-in dialog for undefined connection");
                 state.dialog = undefined;
                 return state;
             }
 
             if (connection.profile.authenticationType !== AuthenticationType.AzureMFA) {
-                console.error(
+                this.logger.error(
                     `Cannot open Entra sign-in dialog for connection with authentication type: ${connection?.profile.authenticationType}`,
                 );
                 state.dialog = undefined;

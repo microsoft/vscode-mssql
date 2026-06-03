@@ -17,6 +17,9 @@ import { FormItemOptions } from "../sharedInterfaces/form";
 import { getErrorMessage } from "../utils/utils";
 import { ProjectPropertiesResult } from "../sharedInterfaces/publishDialog";
 import { CodeAnalysisRuleSeverity } from "../enums";
+import { logger as baseLogger } from "../models/logger";
+
+const logger = baseLogger.withPrefix("PublishProject");
 
 /**
  * Checks if preview features are enabled in VS Code settings for SQL Database Projects.
@@ -287,7 +290,7 @@ export function readSqlCmdVariables(profileText: string): { [key: string]: strin
             }
         }
     } catch (error) {
-        console.warn("Failed to parse SQLCMD variables from XML:", error);
+        logger.warn(`Failed to parse SQLCMD variables from XML: ${getErrorMessage(error)}`);
     }
 
     return sqlCmdVariables;
@@ -375,7 +378,9 @@ export async function parsePublishProfileXml(
                     deploymentOptions = optionsResult.deploymentOptions;
                 }
             } catch (error) {
-                console.warn("Failed to load deployment options from profile:", error);
+                logger.warn(
+                    `Failed to load deployment options from profile: ${getErrorMessage(error)}`,
+                );
             }
         }
 

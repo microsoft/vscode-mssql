@@ -574,6 +574,7 @@ export default class SqlToolsServiceClient {
                 servicePath,
                 this._logPath,
                 "sqltools.log",
+                this._logger,
             ),
         );
 
@@ -638,6 +639,7 @@ export default class SqlToolsServiceClient {
                 executablePath,
                 this._logPath,
                 "resourceprovider.log",
+                this._logger,
             ),
         ];
         return {

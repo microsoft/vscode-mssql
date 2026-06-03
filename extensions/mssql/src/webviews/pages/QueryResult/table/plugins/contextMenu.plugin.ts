@@ -164,7 +164,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                 );
                 break;
             default:
-                console.warn("Unknown action:", action);
+                log.warn(`Unknown action: ${action}`);
         }
     }
 }

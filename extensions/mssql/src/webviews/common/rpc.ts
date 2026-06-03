@@ -213,11 +213,11 @@ export class WebviewRpc<Reducers> {
         });
 
         this.connection.onError((error) => {
-            console.error("WebviewRpc connection error:", error);
+            this._logger.error("WebviewRpc connection error", error);
         });
 
         this.connection.onClose(() => {
-            console.warn("WebviewRpc connection closed");
+            this._logger.warn("WebviewRpc connection closed");
         });
 
         this.connection.listen();

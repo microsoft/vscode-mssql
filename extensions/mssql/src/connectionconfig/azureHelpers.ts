@@ -31,7 +31,7 @@ import {
     https,
     user,
 } from "../constants/constants";
-import { ILogger } from "../models/logger";
+import { ILogger, logger as baseLogger } from "../models/logger";
 import { groupQuickPickItems, MssqlQuickPickItem } from "../utils/quickpickHelpers";
 import {
     AlwaysEncryptedEnclaveType,
@@ -69,6 +69,7 @@ import {
 
 export const azureSubscriptionFilterConfigKey = "mssql.selectedAzureSubscriptions";
 export const MANAGED_INSTANCE_PUBLIC_PORT = 3342;
+const azureHelperLogger = baseLogger.withPrefix("AzureHelpers");
 
 //#region VS Code integration
 
@@ -96,7 +97,7 @@ export class VsCodeAzureHelper {
                 await vscode.authentication.getAccounts(getConfiguredAuthProviderId()),
             ).sort((a, b) => a.label.localeCompare(b.label));
         } catch (error) {
-            console.error(`Error fetching VS Code accounts: ${getErrorMessage(error)}`);
+            azureHelperLogger.error(`Error fetching VS Code accounts: ${getErrorMessage(error)}`);
         }
 
         if (onlyAllowedForExtension) {
@@ -108,14 +109,14 @@ export class VsCodeAzureHelper {
                     if (tenants.length > 0) {
                         filteredAccounts.push(account);
                     } else {
-                        console.warn(
+                        azureHelperLogger.warn(
                             `No tenants found for account ${account.label}; this may indicate that the MSSQL extension does not have permission to use this account.`,
                         );
                     }
                 } catch (error) {
                     // no-op; failure to get tenants means that the account is not accessible by this extension
-                    console.warn(
-                        `Error fetching tenants for ${account.label}; this may indicate that the MSSQL extension does not have permission to use this account.  Error: ${getErrorMessage(error)}`,
+                    azureHelperLogger.warn(
+                        `Error fetching tenants for ${account.label}; this may indicate that the MSSQL extension does not have permission to use this account. Error: ${getErrorMessage(error)}`,
                     );
                 }
             }
@@ -238,7 +239,7 @@ export class VsCodeAzureHelper {
 
             return tenants.sort((a, b) => a.displayName.localeCompare(b.displayName));
         } catch (error) {
-            console.error("Error fetching tenants for account:", error);
+            azureHelperLogger.error("Error fetching tenants for account", getErrorMessage(error));
             return [];
         }
     }
@@ -287,7 +288,10 @@ export class VsCodeAzureHelper {
                 .filter((name) => name !== "")
                 .sort((a, b) => a.localeCompare(b));
         } catch (error) {
-            console.error("Error fetching resource groups for subscription:", error);
+            azureHelperLogger.error(
+                "Error fetching resource groups for subscription",
+                getErrorMessage(error),
+            );
             return [];
         }
     }
@@ -307,7 +311,10 @@ export class VsCodeAzureHelper {
             const rg = await client.resourceGroups.get(resourceGroupName);
             return rg.location;
         } catch (error) {
-            console.error("Error fetching default location for resource group:", error);
+            azureHelperLogger.error(
+                "Error fetching default location for resource group",
+                getErrorMessage(error),
+            );
             return "";
         }
     }
@@ -333,7 +340,10 @@ export class VsCodeAzureHelper {
                 .filter((loc) => loc.name !== "")
                 .sort((a, b) => a.displayName.localeCompare(b.displayName));
         } catch (error) {
-            console.error("Error fetching locations for subscription:", error);
+            azureHelperLogger.error(
+                "Error fetching locations for subscription",
+                getErrorMessage(error),
+            );
             return [];
         }
     }
@@ -381,7 +391,10 @@ export class VsCodeAzureHelper {
 
             return servers.sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
         } catch (error) {
-            console.error("Error fetching logical servers for resource group:", error);
+            azureHelperLogger.error(
+                "Error fetching logical servers for resource group",
+                getErrorMessage(error),
+            );
             return [];
         }
     }
@@ -611,8 +624,11 @@ export class VsCodeAzureHelper {
 
             return listAllIterator(storage.storageAccounts.list());
         } catch (error) {
-            console.error("Error fetching storage accounts for subscription:", error);
-            throw new Error(error.message);
+            azureHelperLogger.error(
+                "Error fetching storage accounts for subscription",
+                getErrorMessage(error),
+            );
+            throw new Error(getErrorMessage(error));
         }
     }
 
@@ -645,7 +661,10 @@ export class VsCodeAzureHelper {
                 storage.blobContainers.list(storageAccountResourceGroup, storageAccount.name),
             );
         } catch (error) {
-            console.error("Error fetching blob containers for storage account:", error);
+            azureHelperLogger.error(
+                "Error fetching blob containers for storage account",
+                getErrorMessage(error),
+            );
             throw error;
         }
     }
@@ -699,7 +718,7 @@ export class VsCodeAzureHelper {
 
             return blobs;
         } catch (error) {
-            console.error("Error fetching blobs for container:", error);
+            azureHelperLogger.error("Error fetching blobs for container", getErrorMessage(error));
             throw error;
         }
     }
@@ -746,7 +765,7 @@ export class VsCodeAzureHelper {
                 storageAccount.name,
             );
         } catch (error) {
-            console.error("Error fetching storage account keys:", error);
+            azureHelperLogger.error("Error fetching storage account keys", getErrorMessage(error));
             throw error;
         }
     }

@@ -680,7 +680,9 @@ export const createSqlAgentRequestHandler = (
                                     }
                                     return typeof fnResult === "string" ? fnResult : "";
                                 } catch (e) {
-                                    console.error("Error accessing response value:", e);
+                                    logger.error(
+                                        `Error accessing response value: ${getErrorMessage(e)}`,
+                                    );
                                     return "";
                                 }
                             }
@@ -1061,10 +1063,7 @@ export const createSqlAgentRequestHandler = (
                 },
             );
 
-            console.error("Unhandled Error:", {
-                message: err.message,
-                stack: err.stack,
-            });
+            logger.error(`Unhandled Error: ${getErrorMessage(err)}`);
 
             stream.markdown(loc.errorOccurredWith(err.message));
         } else {

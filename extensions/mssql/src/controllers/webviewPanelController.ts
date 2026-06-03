@@ -76,7 +76,7 @@ export class WebviewPanelController<State, Reducers, Result = void> extends Webv
                     try {
                         prompt = await this.showRestorePrompt();
                     } catch (e) {
-                        console.error("Error showing restore prompt:", e);
+                        this.logger.error(`Error showing restore prompt: ${e}`);
                     }
                 }
                 if (prompt) {

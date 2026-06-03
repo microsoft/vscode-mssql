@@ -11,6 +11,9 @@ import * as Interfaces from "./interfaces";
 import { getCloudProviderSettings } from "../azure/providerSettings";
 import { getErrorMessage } from "../utils/utils";
 import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
+import { logger as baseLogger } from "./logger";
+
+const logger = baseLogger.withPrefix("ConnectionInfo");
 
 /**
  * Sets sensible defaults for key connection properties, especially
@@ -345,7 +348,7 @@ export function getServerTypes(connection: IConnectionInfo, account?: IAccount):
             }
         }
     } catch (error) {
-        console.error("Error checking server types:", getErrorMessage(error));
+        logger.error(`Error checking server types: ${getErrorMessage(error)}`);
     }
 
     // check if it's a local connection

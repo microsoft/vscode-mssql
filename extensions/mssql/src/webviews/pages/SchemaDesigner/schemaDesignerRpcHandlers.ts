@@ -42,6 +42,7 @@ export function createSchemaDesignerApplyEditsHandler(
 ) {
     const {
         isInitialized,
+        extensionRpc,
         schemaNames,
         datatypes,
         waitForNextFrame,
@@ -955,7 +956,7 @@ export function createSchemaDesignerApplyEditsHandler(
                     postForeignKeyCount,
                 );
             } catch (error) {
-                console.warn("Schema Designer tool auto-arrange failed", error);
+                extensionRpc.warn("Schema Designer tool auto-arrange failed", error);
             }
 
             return {

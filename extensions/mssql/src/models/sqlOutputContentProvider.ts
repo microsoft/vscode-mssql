@@ -23,12 +23,14 @@ import { ExecutionPlanService } from "../services/executionPlanService";
 import { countResultSets, isOpenQueryResultsInTabByDefaultEnabled } from "../queryResult/utils";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { getErrorMessage } from "../utils/utils";
+import { logger as baseLogger } from "./logger";
 // Use CommonJS import here because lodash/throttle is CJS; default ESM-style import
 // can transpile to throttle_1.default and fail at runtime in unit tests.
 import throttle = require("lodash/throttle");
 import store from "../queryResult/singletonStore";
 // tslint:disable-next-line:no-require-imports
 const pd = require("pretty-data").pd;
+const logger = baseLogger.withPrefix("SqlOutputContentProvider");
 
 // holds information about the state of a query runner
 export class QueryRunnerState {
@@ -367,7 +369,7 @@ export class SqlOutputContentProvider {
             if (promise) {
                 promise.reject(false);
             }
-            console.log(`Error running query for ${uri}: ${getErrorMessage(error)}`);
+            logger.error(`Error running query for ${uri}: ${getErrorMessage(error)}`);
         }
     }
 

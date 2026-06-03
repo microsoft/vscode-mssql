@@ -142,14 +142,14 @@ export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebvi
                     );
                     setKeyBindings(parseWebviewKeyboardShortcutConfig(keyboardShortcuts));
                 } catch (error) {
-                    console.error("KeyBindings bootstrap failed:", error);
+                    extensionRpc.error("KeyBindings bootstrap failed", error);
                 }
 
                 try {
                     const eol = await extensionRpc.sendRequest(GetEOLRequest.type);
                     setEOL(eol);
                 } catch (error) {
-                    console.error("EOL bootstrap failed:", error);
+                    extensionRpc.error("EOL bootstrap failed", error);
                 }
 
                 setIsBootstrapComplete(true);
@@ -161,7 +161,7 @@ export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebvi
                         const theme = await extensionRpc.sendRequest(GetThemeRequest.type);
                         setTheme(theme);
                     } catch (error) {
-                        console.error("Theme bootstrap failed:", error);
+                        extensionRpc.error("Theme bootstrap failed", error);
                     }
                 })();
 
@@ -179,7 +179,7 @@ export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebvi
                             LocConstants.createInstance();
                         }
                     } catch (error) {
-                        console.error("Localization bootstrap failed:", error);
+                        extensionRpc.error("Localization bootstrap failed", error);
                     } finally {
                         setLocalization(true);
                     }
@@ -190,10 +190,10 @@ export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebvi
                         loadCompleteTimeStamp: Date.now(),
                     })
                     .catch((error) => {
-                        console.error("Load stats notification failed:", error);
+                        extensionRpc.error("Load stats notification failed", error);
                     });
             } catch (error) {
-                console.error("Bootstrap failed:", error);
+                extensionRpc.error("Bootstrap failed", error);
                 // Prevent indefinite blank screen when initial state fetch fails.
                 if (stateRef.current === undefined) {
                     stateRef.current = {} as State;

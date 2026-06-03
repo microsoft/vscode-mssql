@@ -560,11 +560,13 @@ export const DacpacDialogForm = () => {
                 setIsOperationInProgress(false);
                 clearForm();
             } else {
-                console.error(result?.errorMessage || locConstants.dacpacDialog.operationFailed);
+                context?.extensionRpc.error(
+                    result?.errorMessage || locConstants.dacpacDialog.operationFailed,
+                );
                 setIsOperationInProgress(false);
             }
         } catch (error) {
-            console.error(
+            context?.extensionRpc.error(
                 error instanceof Error ? error.message : locConstants.dacpacDialog.unexpectedError,
             );
             setIsOperationInProgress(false);
@@ -655,7 +657,7 @@ export const DacpacDialogForm = () => {
         // Only check for errors, not warnings
         const hasErrors = Object.values(validationMessages).some((msg) => msg.severity === "error");
         Object.values(validationMessages).forEach((msg) => {
-            console.log(msg.message);
+            context?.extensionRpc.debug(msg.message);
         });
         return !hasErrors;
     };

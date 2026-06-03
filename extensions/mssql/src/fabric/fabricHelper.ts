@@ -150,7 +150,10 @@ export class FabricHelper {
                 }),
             );
         } catch (error) {
-            console.error("Error processing Fabric databases:", error);
+            this.getFabricLogger().error(
+                "Error processing Fabric databases",
+                getErrorMessage(error),
+            );
             throw error;
         }
 
@@ -198,7 +201,10 @@ export class FabricHelper {
                 }),
             );
         } catch (error) {
-            console.error("Error processing Fabric SQL Endpoints:", error);
+            this.getFabricLogger().error(
+                "Error processing Fabric SQL Endpoints",
+                getErrorMessage(error),
+            );
             throw error;
         }
 
@@ -246,7 +252,10 @@ export class FabricHelper {
                 }),
             );
         } catch (error) {
-            console.error("Error processing Fabric Warehouses:", error);
+            this.getFabricLogger().error(
+                "Error processing Fabric Warehouses",
+                getErrorMessage(error),
+            );
             throw error;
         }
 
@@ -270,7 +279,9 @@ export class FabricHelper {
             // Server URL is returned as the connectionString field.
             return connectionStringResponse.connectionString;
         } catch (error) {
-            console.error(`Error fetching server URL for SQL Endpoints: ${getErrorMessage(error)}`);
+            this.getFabricLogger().error(
+                `Error fetching server URL for SQL Endpoints: ${getErrorMessage(error)}`,
+            );
             throw error;
         }
     }
@@ -287,7 +298,10 @@ export class FabricHelper {
             );
             return response.value;
         } catch (err) {
-            console.error(err);
+            this.getFabricLogger().error(
+                "Error fetching roles for Fabric workspace",
+                getErrorMessage(err),
+            );
         }
     }
 

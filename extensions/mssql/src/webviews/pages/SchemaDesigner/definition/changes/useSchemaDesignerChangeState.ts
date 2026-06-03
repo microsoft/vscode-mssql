@@ -395,7 +395,7 @@ export const useSchemaDesignerChangeState = (
             const result = computeRevertedSchema(change, baselineSchema, currentSchema);
 
             if (!result.success) {
-                console.error("Failed to revert change:", result.error);
+                context.extensionRpc.error("Failed to revert change", result.error);
                 return;
             }
 
