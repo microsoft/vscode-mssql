@@ -207,7 +207,7 @@ export class FileBrowserService {
             this.fileBrowserState = undefined;
             return result;
         } catch (e) {
-            this._client.logger.error(e);
+            this._logger.error("Failed to close file browser", e);
             throw e;
         }
     }

@@ -160,11 +160,9 @@ export abstract class AzureController {
                 getCloudProviderSettings(session.account.key.providerId).settings.armResource,
             );
             session.token = token!;
-            this.logger.debug(`Access Token refreshed for account: ${session?.account?.key.id}`);
+            this.logger.debug("Access token refreshed for Azure account.");
         } else {
-            this.logger.debug(
-                `Access Token not refreshed for account: ${session?.account?.key.id}`,
-            );
+            this.logger.debug("Access token not refreshed for Azure account.");
         }
     }
 

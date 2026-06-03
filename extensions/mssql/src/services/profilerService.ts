@@ -33,6 +33,10 @@ import {
     StopProfilingRequest,
     StopProfilingResult,
 } from "../models/contracts/profiler";
+import { logger as baseLogger } from "../models/logger";
+import { getErrorMessage } from "../utils/utils";
+
+const logger = baseLogger.withPrefix("ProfilerService");
 
 /**
  * Handler function type for profiler events available notification
@@ -121,7 +125,7 @@ export class ProfilerService {
         try {
             return await this._client.sendRequest(CreateXEventSessionRequest.type, params);
         } catch (e) {
-            this._client.logger.error(`Failed to create XEvent session: ${e}`);
+            logger.error(`Failed to create XEvent session: ${getErrorMessage(e)}`);
             throw e;
         }
     }
@@ -147,7 +151,7 @@ export class ProfilerService {
         try {
             return await this._client.sendRequest(StartProfilingRequest.type, params);
         } catch (e) {
-            this._client.logger.error(`Failed to start profiling: ${e}`);
+            logger.error(`Failed to start profiling: ${getErrorMessage(e)}`);
             throw e;
         }
     }
@@ -165,7 +169,7 @@ export class ProfilerService {
         try {
             return await this._client.sendRequest(StopProfilingRequest.type, params);
         } catch (e) {
-            this._client.logger.error(`Failed to stop profiling: ${e}`);
+            logger.error(`Failed to stop profiling: ${getErrorMessage(e)}`);
             throw e;
         }
     }
@@ -185,7 +189,7 @@ export class ProfilerService {
         try {
             return await this._client.sendRequest(PauseProfilingRequest.type, params);
         } catch (e) {
-            this._client.logger.error(`Failed to pause profiling: ${e}`);
+            logger.error(`Failed to pause profiling: ${getErrorMessage(e)}`);
             throw e;
         }
     }
@@ -203,7 +207,7 @@ export class ProfilerService {
         try {
             return await this._client.sendRequest(GetXEventSessionsRequest.type, params);
         } catch (e) {
-            this._client.logger.error(`Failed to get XEvent sessions: ${e}`);
+            logger.error(`Failed to get XEvent sessions: ${getErrorMessage(e)}`);
             throw e;
         }
     }
@@ -221,7 +225,7 @@ export class ProfilerService {
         try {
             return await this._client.sendRequest(DisconnectSessionRequest.type, params);
         } catch (e) {
-            this._client.logger.error(`Failed to disconnect session: ${e}`);
+            logger.error(`Failed to disconnect session: ${getErrorMessage(e)}`);
             throw e;
         }
     }

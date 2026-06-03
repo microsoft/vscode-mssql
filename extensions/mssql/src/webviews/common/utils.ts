@@ -96,7 +96,7 @@ export function deepClone<T>(obj: T): T {
 
 export function getCoreRPCs<TReducers>(extensionRpc: WebviewRpc<TReducers>): CoreRPCs {
     return {
-        log: extensionRpc,
+        log: extensionRpc.log,
         sendActionEvent(event: WebviewTelemetryActionEvent) {
             extensionRpc.sendActionEvent(event);
         },

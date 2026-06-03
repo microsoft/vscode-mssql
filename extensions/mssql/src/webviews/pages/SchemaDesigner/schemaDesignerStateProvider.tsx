@@ -477,7 +477,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         });
 
         if (!addTableResult.success) {
-            extensionRpc.error("Node with position not found for table");
+            extensionRpc.log.error("Node with position not found for table");
             return false;
         }
 

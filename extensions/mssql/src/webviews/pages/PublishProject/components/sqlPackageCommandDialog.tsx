@@ -24,6 +24,7 @@ export const SqlPackageCommandDialog: React.FC<SqlPackageCommandDialogProps> = (
 }) => {
     const loc = LocConstants.getInstance().publishProject;
     const commonLoc = LocConstants.getInstance().common;
+    const log = publishContext.extensionRpc.log;
 
     const [maskedCommand, setMaskedCommand] = useState<string>("");
     const [unmaskedCommand, setUnmaskedCommand] = useState<string>("");
@@ -55,7 +56,7 @@ export const SqlPackageCommandDialog: React.FC<SqlPackageCommandDialogProps> = (
                     }
                 })
                 .catch((err) => {
-                    publishContext.extensionRpc.error("Error fetching masked command", err);
+                    log.error("Error fetching masked command", err);
                     setErrorMessage(getErrorMessage(err));
                 });
         }
@@ -66,7 +67,7 @@ export const SqlPackageCommandDialog: React.FC<SqlPackageCommandDialogProps> = (
         try {
             await navigator.clipboard.writeText(command);
         } catch (error) {
-            publishContext.extensionRpc.error("Failed to copy SqlPackage command", error);
+            log.error("Failed to copy SqlPackage command", error);
         }
     };
 
@@ -89,7 +90,7 @@ export const SqlPackageCommandDialog: React.FC<SqlPackageCommandDialogProps> = (
                     }
                 })
                 .catch((err) => {
-                    publishContext.extensionRpc.error("Error fetching unmasked command", err);
+                    log.error("Error fetching unmasked command", err);
                     setErrorMessage(getErrorMessage(err));
                 });
         }

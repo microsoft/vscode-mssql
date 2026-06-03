@@ -956,7 +956,7 @@ export function createSchemaDesignerApplyEditsHandler(
                     postForeignKeyCount,
                 );
             } catch (error) {
-                extensionRpc.warn("Schema Designer tool auto-arrange failed", error);
+                extensionRpc.log.warn("Schema Designer tool auto-arrange failed", error);
             }
 
             return {

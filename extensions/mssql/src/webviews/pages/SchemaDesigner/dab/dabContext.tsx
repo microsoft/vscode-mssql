@@ -108,7 +108,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 setDabConfig(synced.config);
             })
             .catch((error) => {
-                extensionRpc.error("Failed to initialize DAB config from cache", error);
+                extensionRpc.log.error("Failed to initialize DAB config from cache", error);
                 const schema = extractSchema();
                 setDabConfig(Dab.createDefaultConfig(schema.tables));
             });
@@ -260,11 +260,11 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 if (response.success) {
                     setDabConfigTextFileContent(response.configContent);
                 } else {
-                    extensionRpc.error("Failed to generate DAB config", response.error);
+                    extensionRpc.log.error("Failed to generate DAB config", response.error);
                 }
             })
             .catch((error) => {
-                extensionRpc.error("Failed to generate DAB config", error);
+                extensionRpc.log.error("Failed to generate DAB config", error);
             });
     }, [dabConfig, extensionRpc]);
 
@@ -455,7 +455,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 containerName: dabDeploymentState.params.containerName,
             });
         } catch (error) {
-            extensionRpc.error("Failed to clean up DAB container before retry", error);
+            extensionRpc.log.error("Failed to clean up DAB container before retry", error);
         }
 
         setDabDeploymentState((prev) => ({

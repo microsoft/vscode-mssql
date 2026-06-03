@@ -203,7 +203,7 @@ export class SqlTasksService {
                 event: "CompletionHandlerOverwritten",
                 operationName: handler.operationName,
             });
-            this._client.logger.error(
+            this._logger.error(
                 `There is an existing completion handler for operation ${handler.operationName} cannot be overwritten.`,
             );
         } else {
@@ -265,10 +265,7 @@ export class SqlTasksService {
             this._logger.warn("Status update for unknown task");
             return;
         }
-        const taskStatusString = toTaskStatusDisplayString(
-            taskProgressInfo.status,
-            this._client.logger,
-        );
+        const taskStatusString = toTaskStatusDisplayString(taskProgressInfo.status, this._logger);
         if (
             taskProgressInfo.message &&
             taskProgressInfo.message.toLowerCase() !== taskStatusString.toLowerCase()

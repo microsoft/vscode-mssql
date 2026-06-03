@@ -2628,7 +2628,7 @@ export default class MainController implements vscode.Disposable {
                 try {
                     await this.createObjectExplorerSession(credentials);
                 } catch (error) {
-                    this._connectionMgr.client.logger.error(error);
+                    this._logger.error("Failed to create Object Explorer session", error);
                 }
                 return true;
             }

@@ -179,7 +179,7 @@ class WebviewLogger implements ILogger {
  */
 export class WebviewRpc<Reducers> {
     public connection: MessageConnection;
-    private readonly _logger: ILogger;
+    public readonly log: ILogger;
 
     /**
      * Singleton instance of the WebviewRpc class.
@@ -208,16 +208,16 @@ export class WebviewRpc<Reducers> {
             new WebviewRpcMessageWriter(_vscodeApi),
         );
 
-        this._logger = new WebviewLogger((event) => {
+        this.log = new WebviewLogger((event) => {
             void this.sendNotification(LogNotification.type, event);
         });
 
         this.connection.onError((error) => {
-            this._logger.error("WebviewRpc connection error", error);
+            this.log.error("WebviewRpc connection error", error);
         });
 
         this.connection.onClose(() => {
-            this._logger.warn("WebviewRpc connection closed");
+            this.log.warn("WebviewRpc connection closed");
         });
 
         this.connection.listen();
@@ -245,47 +245,6 @@ export class WebviewRpc<Reducers> {
 
     public sendErrorEvent(event: WebviewTelemetryErrorEvent) {
         void this.sendNotification(SendErrorEventNotification.type, event);
-    }
-
-    public trace(message: string, ...args: unknown[]): void {
-        this._logger.trace(message, ...args);
-    }
-
-    public debug(message: string, ...args: unknown[]): void {
-        this._logger.debug(message, ...args);
-    }
-
-    public info(message: string, ...args: unknown[]): void {
-        this._logger.info(message, ...args);
-    }
-
-    public warn(message: string, ...args: unknown[]): void {
-        this._logger.warn(message, ...args);
-    }
-
-    public error(message: string, ...args: unknown[]): void {
-        this._logger.error(message, ...args);
-    }
-
-    public piiSanitized(
-        msg: unknown,
-        objsToSanitize: { name: string; objOrArray: unknown | unknown[] }[],
-        stringsToShorten: { name: string; value: string }[],
-        ...vals: unknown[]
-    ): void {
-        this._logger.piiSanitized(msg, objsToSanitize, stringsToShorten, ...vals);
-    }
-
-    public show(preserveFocus?: boolean): void {
-        this._logger.show(preserveFocus);
-    }
-
-    public withPrefix(prefix: string): ILogger {
-        return this._logger.withPrefix(prefix);
-    }
-
-    public dispose(): void {
-        this._logger.dispose();
     }
 
     public onRequest<P, R, E>(type: RequestType<P, R, E>, handler: RequestHandler<P, R, E>): void {

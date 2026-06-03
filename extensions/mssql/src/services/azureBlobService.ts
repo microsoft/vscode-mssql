@@ -9,6 +9,9 @@ import {
     CreateSasRequest,
     CreateSasResponse,
 } from "../models/contracts/azureBlob";
+import { logger as baseLogger } from "../models/logger";
+
+const logger = baseLogger.withPrefix("AzureBlobService");
 
 export class AzureBlobService {
     constructor(private _sqlToolsClient: SqlToolsServiceClient) {}
@@ -39,7 +42,7 @@ export class AzureBlobService {
             };
             return await this._sqlToolsClient.sendRequest(CreateSasRequest.type, params);
         } catch (e) {
-            this._sqlToolsClient.logger.error(e);
+            logger.error("Failed to create SAS", e);
             throw e;
         }
     }

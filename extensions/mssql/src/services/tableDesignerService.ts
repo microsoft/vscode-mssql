@@ -17,6 +17,10 @@ import {
 import * as designer from "../sharedInterfaces/tableDesigner";
 import * as vscode from "vscode";
 import { getErrorMessage } from "../utils/utils";
+import { logger as baseLogger } from "../models/logger";
+
+const logger = baseLogger.withPrefix("TableDesignerService");
+
 export class TableDesignerService implements designer.ITableDesignerService {
     private _progressListeners: ((
         progress: designer.TableDesignerProgressNotificationParams,
@@ -44,7 +48,7 @@ export class TableDesignerService implements designer.ITableDesignerService {
             );
         } catch (e) {
             vscode.window.showErrorMessage(getErrorMessage(e));
-            this._sqlToolsClient.logger.error(e);
+            logger.error("Failed to initialize table designer", e);
             throw e;
         }
     }
@@ -58,7 +62,7 @@ export class TableDesignerService implements designer.ITableDesignerService {
                 tableChangeInfo: tableChangeInfo,
             });
         } catch (e) {
-            this._sqlToolsClient.logger.error(e);
+            logger.error("Failed to process table designer edit", e);
             throw e;
         }
     }
@@ -69,7 +73,7 @@ export class TableDesignerService implements designer.ITableDesignerService {
                 table,
             );
         } catch (e) {
-            this._sqlToolsClient.logger.error(e);
+            logger.error("Failed to publish table designer changes", e);
             throw e;
         }
     }
@@ -80,7 +84,7 @@ export class TableDesignerService implements designer.ITableDesignerService {
                 table,
             );
         } catch (e) {
-            this._sqlToolsClient.logger.error(e);
+            logger.error("Failed to generate table designer script", e);
             throw e;
         }
     }
@@ -93,7 +97,7 @@ export class TableDesignerService implements designer.ITableDesignerService {
                 table,
             );
         } catch (e) {
-            this._sqlToolsClient.logger.error(e);
+            logger.error("Failed to generate table designer preview report", e);
             throw e;
         }
     }
@@ -101,7 +105,7 @@ export class TableDesignerService implements designer.ITableDesignerService {
         try {
             return await this._sqlToolsClient.sendRequest(DisposeTableDesignerRequest.type, table);
         } catch (e) {
-            this._sqlToolsClient.logger.error(e);
+            logger.error("Failed to dispose table designer", e);
             throw e;
         }
     }

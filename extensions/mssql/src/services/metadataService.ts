@@ -24,7 +24,10 @@ import {
     TableMetadataParams,
     TableMetadataResult,
 } from "../sharedInterfaces/metadata";
+import { logger as baseLogger } from "../models/logger";
 import { getErrorMessage } from "../utils/utils";
+
+const logger = baseLogger.withPrefix("MetadataService");
 
 /**
  * Interface for the Metadata Service that handles database metadata operations.
@@ -113,7 +116,7 @@ export class MetadataService implements IMetadataService {
 
             return result?.metadata ?? [];
         } catch (error) {
-            this._client.logger.error(getErrorMessage(error));
+            logger.error(`Failed to get metadata: ${getErrorMessage(error)}`);
             throw error;
         }
     }
@@ -182,7 +185,7 @@ export class MetadataService implements IMetadataService {
 
             return result?.columns ?? [];
         } catch (error) {
-            this._client.logger.error(getErrorMessage(error));
+            logger.error(`Failed to get ${objectType} column metadata: ${getErrorMessage(error)}`);
             throw error;
         }
     }
@@ -216,7 +219,7 @@ export class MetadataService implements IMetadataService {
 
             return result.databaseNames || [];
         } catch (error) {
-            this._client.logger.error(getErrorMessage(error));
+            logger.error(`Failed to list databases: ${getErrorMessage(error)}`);
             throw error;
         }
     }
@@ -243,7 +246,7 @@ export class MetadataService implements IMetadataService {
 
             return result.context;
         } catch (error) {
-            this._client.logger.error(getErrorMessage(error));
+            logger.error(`Failed to get server context: ${getErrorMessage(error)}`);
             throw error;
         }
     }

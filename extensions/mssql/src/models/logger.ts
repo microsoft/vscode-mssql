@@ -191,11 +191,9 @@ export class Logger implements ILogger {
                 break;
             case "warn":
                 this.channel.warn(formatted);
-                console.warn(formatted);
                 break;
             case "error":
                 this.channel.error(formatted);
-                console.error(formatted);
                 break;
         }
     }
