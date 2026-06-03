@@ -1882,6 +1882,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         connectionDraft.id = undefined;
         connectionDraft.profileName = undefined;
         delete (connectionDraft as IConnectionProfileWithSource).configSource;
+        // Clear the user-managed sort order; copies start un-ordered (alphabetical).
+        delete (connectionDraft as IConnectionProfile).order;
 
         this._connectionBeingEdited = undefined;
         this.state.connectionProfile = connectionDraft;
