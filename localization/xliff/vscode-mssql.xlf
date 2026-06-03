@@ -822,6 +822,9 @@
       <source xml:lang="en">Canceling the query failed: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++d353a99eb4556847ceeb3c306ac886cf6b4fa13043eb1864b9aeb0607fd5f2cc">
+      <source xml:lang="en">Cancelled</source>
+    </trans-unit>
     <trans-unit id="++CODE++6a091418a02336bbb67e1aefe9453dc51828139a059a7f3cae6044273c277a54">
       <source xml:lang="en">Cannot cancel query as no query is running.</source>
     </trans-unit>
@@ -1158,6 +1161,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b977b950c1ae31e5aeb9ef778cc20a66fc034eb81e738e0206104b677962c465">
       <source xml:lang="en">Cloud</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d704e4ab6fbb0c39ae5fb631ddf2ca9857305b56c8d7b8facb493d820b39ad97">
+      <source xml:lang="en">Cloud Deploy</source>
     </trans-unit>
     <trans-unit id="++CODE++d382470c6b4261e4ea031cac9be9a74628d898bffabc0927354e0819dddfa9d9">
       <source xml:lang="en">Cloud Deploy validation requires an open workspace folder.</source>
@@ -2512,6 +2518,13 @@
     <trans-unit id="++CODE++d59e5e8f8a4bb3b14eb8af194553158e5dffd648ad462eeafb2f03589da5a8eb">
       <source xml:lang="en">Entra token cache cleared successfully.</source>
     </trans-unit>
+    <trans-unit id="++CODE++7e987dd90116fd71be859aabc0abdd364705af1b4279a99b9ab45f2e65b69902">
+      <source xml:lang="en">Environment id: {0}</source>
+      <note>{0} is the environment id from environments.json</note>
+    </trans-unit>
+    <trans-unit id="++CODE++07437cd651bed86ed83d954361d8e85f2de81677e267224bd85ec2c83349bf96">
+      <source xml:lang="en">Environments</source>
+    </trans-unit>
     <trans-unit id="++CODE++6a26ff8ea94b68652cba40696c6b1f68207e110027a0862a3a5e030c2d103eb1">
       <source xml:lang="en">Equal to</source>
     </trans-unit>
@@ -2656,6 +2669,9 @@
     <trans-unit id="++CODE++beab8d6b59ef40883dd9887fd21f67e4716b5d4581461c3eae2825e09b698ad0">
       <source xml:lang="en">Error: {0}</source>
       <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++d23d6aeb8ba32567472bcfee8b009bfe688f25dcff93a7fe82d933badb13e894">
+      <source xml:lang="en">Errored</source>
     </trans-unit>
     <trans-unit id="++CODE++a8b7377a6bf2ffa25b15e9b8a56623d97657aadcf02e7a1946c0e892978628d3">
       <source xml:lang="en">Estimated Operator Cost</source>
@@ -4703,6 +4719,9 @@
     <trans-unit id="++CODE++8074b19c0365b61c3a88fe5cbd2d5c6193b9a601b425c22c0acea8273b880251">
       <source xml:lang="en">No entities found</source>
     </trans-unit>
+    <trans-unit id="++CODE++95a333dcdeb09cbb00e6da2caf33739a71ba379cc810c0d2a9a74daaced80bdf">
+      <source xml:lang="en">No environments declared. Add one to .mssql/environments.json.</source>
+    </trans-unit>
     <trans-unit id="++CODE++8b16bd9dad67de61232d9a5b357dccd2799ad7405dc0f9626bf5937686e59061">
       <source xml:lang="en">No event selected</source>
     </trans-unit>
@@ -4766,6 +4785,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ab427ee55d6f25a2cb551176082f90bee142723295f3e1d591bdc28ab636547f">
       <source xml:lang="en">No rules match the current filter.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++71e7aa9b09ac9b7a4f6d8e89bdeac1ab7a8b96424d63e5e44bb6421dc250097d">
+      <source xml:lang="en">No runs yet. Run validation to produce one.</source>
     </trans-unit>
     <trans-unit id="++CODE++e32e1aa390f5243f880caab46155befbe51dd11233564502e4699d1cd79e56ab">
       <source xml:lang="en">No saved connection profiles found.</source>
@@ -5079,6 +5101,9 @@
     </trans-unit>
     <trans-unit id="++CODE++5cafcd08f15a2a6ce49d703f1da5861c94ec134cc92984cc6b2f67965c31b5ee">
       <source xml:lang="en">Parent node was not TreeNodeInfo.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++436fe71bb9561f0596161c4d50c7b23327b4189acaf63dc89f4f9205b67a7528">
+      <source xml:lang="en">Passed</source>
     </trans-unit>
     <trans-unit id="++CODE++e7cf3ef4f17c3999a94f2c6f612e8a888e5b1026878e4e19398b23bd38ec221a">
       <source xml:lang="en">Password</source>
@@ -5480,6 +5505,9 @@
     <trans-unit id="++CODE++705aa26f40f31a71c622836f9a913bf837817f54e45133215a5d222489e6a7c8">
       <source xml:lang="en">Recent Connections</source>
     </trans-unit>
+    <trans-unit id="++CODE++53972e864229c7cc77a4d8fa1a7127fcf98c7dbc383fc9482b4a5afe10dfcfcb">
+      <source xml:lang="en">Recent Runs</source>
+    </trans-unit>
     <trans-unit id="++CODE++703f1ae8b7cdb3525cdab9ea694ab27b1b9e4337f0b2ca32f152f7f9a6e2f9d5">
       <source xml:lang="en">Recent connections list cleared</source>
     </trans-unit>
@@ -5696,6 +5724,9 @@
     <trans-unit id="++CODE++cc849385646ba0d67a8687fb561eec23fadf51b144242cf6a41dd5b594bb4180">
       <source xml:lang="en">Reveal in Finder</source>
     </trans-unit>
+    <trans-unit id="++CODE++5a4a97f0646cc8e8c9d22f7b54e6c07af7a919c9979606c901276a9f560bc612">
+      <source xml:lang="en">Reveal run artifact</source>
+    </trans-unit>
     <trans-unit id="++CODE++ed5c65311daf9e46eb0f5ac74221d4405dabfe18cca554232363495a3a268ca5">
       <source xml:lang="en">Reverse Alphabetical</source>
     </trans-unit>
@@ -5783,6 +5814,14 @@
       <note>{0} is the connection display name
 {1} is the connection ID
 {2} is the SQL query</note>
+    </trans-unit>
+    <trans-unit id="++CODE++130a7bb7480903aa657d66811314bfa32a017dbf544e878a32ef5dc0c3b4657e">
+      <source xml:lang="en">Run validation</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ea72417dc139b4f8e8d0d79b3dd8c7bae50b21bbbfddd68c874d5dbe0c76e747">
+      <source xml:lang="en">Run {0}&#10;Artifact: {1}</source>
+      <note>{0} is the run id (uuid)
+{1} is the absolute path to the .cdrun.zip artifact</note>
     </trans-unit>
     <trans-unit id="++CODE++f4ccae29e1bb0c20a124570a1b43f4347ea94bba9f84ffdfddd9c7445b126128">
       <source xml:lang="en">Running</source>
@@ -6555,6 +6594,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f6dd83003322db3c5d5ef293a8dc73363ae462529918cc8d17cc94f9988c0d45">
       <source xml:lang="en">Simple Container Management</source>
+    </trans-unit>
+    <trans-unit id="++CODE++12698ce1ea5cd4ab13ff4b7e6b1239908c41a4b2dfa0c2661cfb53fc2aa71bd0">
+      <source xml:lang="en">Skipped</source>
     </trans-unit>
     <trans-unit id="++CODE++ab3134048412e796a4a423dc1963ca8ff12b535d546d314470407639777e0ac5">
       <source xml:lang="en">Smart performance</source>
@@ -7986,6 +8028,11 @@
       <note>{0} is the tab name
 {1} is the number of issues</note>
     </trans-unit>
+    <trans-unit id="++CODE++0b773e8ad8d2d71f46bde981f368a7d2219b139c5ce229a46616bd8b7a22fd77">
+      <source xml:lang="en">{0} • {1}s</source>
+      <note>{0} is the run status label (Passed/Failed/etc.)
+{1} is the run duration in whole seconds</note>
+    </trans-unit>
     <trans-unit id="++CODE++b0020ab38fda5f63913e80f99f68a50881b2b83866c16fcd3abb83ce43c4aea3">
       <source xml:lang="en">{0}, +{1} more</source>
       <note>{0} is the first changed property label
@@ -8169,6 +8216,15 @@
     </trans-unit>
     <trans-unit id="mssql.clearPooledConnections">
       <source xml:lang="en">Clear Pooled Connections</source>
+    </trans-unit>
+    <trans-unit id="extension.cloudDeploy">
+      <source xml:lang="en">Cloud Deploy</source>
+    </trans-unit>
+    <trans-unit id="mssql.cloudDeploy.refreshDashboard">
+      <source xml:lang="en">Cloud Deploy: Refresh dashboard</source>
+    </trans-unit>
+    <trans-unit id="mssql.cloudDeploy.revealRunArtifact">
+      <source xml:lang="en">Cloud Deploy: Reveal run artifact in OS</source>
     </trans-unit>
     <trans-unit id="mssql.cloudDeploy.validateEnvironment">
       <source xml:lang="en">Cloud Deploy: Validate environment</source>

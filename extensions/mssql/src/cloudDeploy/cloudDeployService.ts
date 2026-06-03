@@ -25,10 +25,12 @@
 
 import * as vscode from "vscode";
 
+import * as path from "path";
+
 import { DiagnosticEventBus } from "./diagnostics";
 import { EnvironmentStore } from "./environments/environmentStore";
 import { LocalFileProvider } from "./providers";
-import { RunArtifactReader, RunArtifactWriter } from "./runs";
+import { LocalRunsDirectoryReader, RunArtifactReader, RunArtifactWriter, RunStore } from "./runs";
 import {
     CloudDeployValidationApi,
     ConnectionError,
@@ -43,13 +45,18 @@ import {
 } from "./validation";
 
 /**
- * Run-artifact I/O surface attached to the service. Both members share the
- * same `FileProvider`; the writer also shares the service's diagnostic bus
- * so success / failure events reach existing subscribers automatically.
+ * Run-artifact I/O surface attached to the service. The `writer` and
+ * `reader` share the same `FileProvider`; the writer also shares the
+ * service's diagnostic bus so success / failure events reach existing
+ * subscribers automatically. `store` (D3-Part-2) is the cached projection
+ * the dashboard tree provider and hub webview consume; it is `undefined`
+ * when no workspace folder is open (the runs directory is workspace-scoped).
  */
 export interface CloudDeployRunsApi {
     readonly writer: RunArtifactWriter;
     readonly reader: RunArtifactReader;
+    readonly store: RunStore | undefined;
+    readonly runsDirectory: string | undefined;
 }
 
 /**
@@ -75,6 +82,9 @@ export class CloudDeployService implements vscode.Disposable {
     public readonly outputChannel: vscode.OutputChannel;
 
     private readonly _outputSubscriber: OutputChannelSubscriber;
+    private readonly _runStore: RunStore | undefined;
+    private readonly _runsWatcher: vscode.FileSystemWatcher | undefined;
+    private _runsScanDebounce: NodeJS.Timeout | undefined;
 
     public constructor(
         workspaceFolder: vscode.WorkspaceFolder | undefined,
@@ -91,9 +101,23 @@ export class CloudDeployService implements vscode.Disposable {
         }
         const fileProvider = new LocalFileProvider();
         const writer = new RunArtifactWriter(fileProvider, this.diagnostics);
+        const reader = new RunArtifactReader(fileProvider);
+
+        let runsDirectory: string | undefined;
+        if (workspaceFolder !== undefined) {
+            runsDirectory = path.join(workspaceFolder.uri.fsPath, ".mssql", "runs");
+            this._runStore = new RunStore(new LocalRunsDirectoryReader(runsDirectory), reader);
+            const pattern = new vscode.RelativePattern(workspaceFolder, ".mssql/runs/*.cdrun.zip");
+            this._runsWatcher = vscode.workspace.createFileSystemWatcher(pattern);
+            this._runsWatcher.onDidCreate(() => this._scheduleScan());
+            this._runsWatcher.onDidChange(() => this._scheduleScan());
+            this._runsWatcher.onDidDelete(() => this._scheduleScan());
+        }
         this.runs = {
             writer,
-            reader: new RunArtifactReader(fileProvider),
+            reader,
+            store: this._runStore,
+            runsDirectory,
         };
 
         const registry = createDefaultRegistry({
@@ -119,10 +143,46 @@ export class CloudDeployService implements vscode.Disposable {
         if (this.environments !== undefined) {
             await this.environments.init();
         }
+        if (this._runStore !== undefined) {
+            // Best-effort: a corrupt artifact must never block extension
+            // activation. The store already swallows per-file errors; the
+            // catch here is defense in depth against an unexpected
+            // directory-level failure.
+            try {
+                await this._runStore.scan();
+            } catch {
+                // intentionally ignored
+            }
+        }
+    }
+
+    /**
+     * Debounced rescan triggered by the `.mssql/runs/*.cdrun.zip` watcher.
+     * Coalesces bursty writer events (writer emits during validation; the
+     * watcher fires twice for a temp+rename atomic write) into a single
+     * scan so the tree provider doesn't repaint mid-write.
+     */
+    private _scheduleScan(): void {
+        if (this._runStore === undefined) {
+            return;
+        }
+        if (this._runsScanDebounce !== undefined) {
+            clearTimeout(this._runsScanDebounce);
+        }
+        this._runsScanDebounce = setTimeout(() => {
+            this._runsScanDebounce = undefined;
+            void this._runStore?.scan();
+        }, 300);
     }
 
     public dispose(): void {
         // Dispose subsystems first so any final emissions still reach subscribers.
+        if (this._runsScanDebounce !== undefined) {
+            clearTimeout(this._runsScanDebounce);
+            this._runsScanDebounce = undefined;
+        }
+        this._runsWatcher?.dispose();
+        this._runStore?.dispose();
         this.environments?.dispose();
         this._outputSubscriber.dispose();
         this.outputChannel.dispose();

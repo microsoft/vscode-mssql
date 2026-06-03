@@ -3967,6 +3967,35 @@
         "message": "Validation finished but the run artifact could not be saved: {0}",
         "comment": ["{0} is the underlying I/O error message"]
     },
+    "Cloud Deploy": "Cloud Deploy",
+    "Environments": "Environments",
+    "Recent Runs": "Recent Runs",
+    "No environments declared. Add one to .mssql/environments.json.": "No environments declared. Add one to .mssql/environments.json.",
+    "No runs yet. Run validation to produce one.": "No runs yet. Run validation to produce one.",
+    "Run validation": "Run validation",
+    "Reveal run artifact": "Reveal run artifact",
+    "Environment id: {0}/{0} is the environment id from environments.json": {
+        "message": "Environment id: {0}",
+        "comment": ["{0} is the environment id from environments.json"]
+    },
+    "Run {0}\nArtifact: {1}/{0} is the run id (uuid){1} is the absolute path to the .cdrun.zip artifact": {
+        "message": "Run {0}\nArtifact: {1}",
+        "comment": [
+            "{0} is the run id (uuid)",
+            "{1} is the absolute path to the .cdrun.zip artifact"
+        ]
+    },
+    "{0} • {1}s/{0} is the run status label (Passed/Failed/etc.){1} is the run duration in whole seconds": {
+        "message": "{0} • {1}s",
+        "comment": [
+            "{0} is the run status label (Passed/Failed/etc.)",
+            "{1} is the run duration in whole seconds"
+        ]
+    },
+    "Passed": "Passed",
+    "Errored": "Errored",
+    "Cancelled": "Cancelled",
+    "Skipped": "Skipped",
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
