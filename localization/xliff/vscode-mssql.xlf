@@ -1856,6 +1856,9 @@
       <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate. Error: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++38b6dbf1b157d693af0054aae24b17ee547de3c425711ed7a0ba108bb2d7d8e0">
+      <source xml:lang="en">Currently running</source>
+    </trans-unit>
     <trans-unit id="++CODE++87a66e3c88ffbca47508d5dcd250ebaa992c772a4b9d260c36216d4695e05475">
       <source xml:lang="en">Currently signed in as:</source>
     </trans-unit>
@@ -2049,6 +2052,13 @@
     <trans-unit id="++CODE++3e12474b79fc61d3695fc46a2588df801c380eccc6edc9cb20dd223f4e9ed76e">
       <source xml:lang="en">Delete backup and restore history</source>
     </trans-unit>
+    <trans-unit id="++CODE++70aeaeeb13befdc5a767bbba284d13b4b1867f245651ee7777f9d10737eead31">
+      <source xml:lang="en">Delete run</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e57a422c92043ae3ac6e551f745f280380d5c84fb81d001d6c2efb95ae30c864">
+      <source xml:lang="en">Delete run {0}? This permanently removes the .cdrun.zip artifact from disk.</source>
+      <note>{0} is a short run id (first 8 chars)</note>
+    </trans-unit>
     <trans-unit id="++CODE++ce719226a83119822d8c5e6c1981ecfe801b8324890fce617664184849c24491">
       <source xml:lang="en">Delete saved connection</source>
     </trans-unit>
@@ -2072,6 +2082,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a58008628a726d4f8798f9f92347d47f8f5c1c1aece67f8128600de9311a65e1">
       <source xml:lang="en">Deleting Container...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++18833da39fb9b7f8c917fe0220daf9cf12e6524df8fb16e39f04dbe827e2d200">
+      <source xml:lang="en">Delta</source>
     </trans-unit>
     <trans-unit id="++CODE++05a2d7332eb9d8bf164487c743a2e93c21b16bb2061a93e3ee2ceb508eadb753">
       <source xml:lang="en">Deny</source>
@@ -2692,6 +2705,9 @@
     <trans-unit id="++CODE++d23d6aeb8ba32567472bcfee8b009bfe688f25dcff93a7fe82d933badb13e894">
       <source xml:lang="en">Errored</source>
     </trans-unit>
+    <trans-unit id="++CODE++cb702378f31507efa79a2a2c6046050bc9f578f149c88e3c0a3d9532ab4b5300">
+      <source xml:lang="en">Errors</source>
+    </trans-unit>
     <trans-unit id="++CODE++a8b7377a6bf2ffa25b15e9b8a56623d97657aadcf02e7a1946c0e892978628d3">
       <source xml:lang="en">Estimated Operator Cost</source>
     </trans-unit>
@@ -2978,6 +2994,10 @@
       <note>{0} is the id
 {1} is the error</note>
     </trans-unit>
+    <trans-unit id="++CODE++dd4418e0f7a6cce67d99796d4e084e43d93f9a22411072255576687092201500">
+      <source xml:lang="en">Failed to delete run: {0}</source>
+      <note>{0} is the underlying error message</note>
+    </trans-unit>
     <trans-unit id="++CODE++2e31c592bfe2100cad5d507bb6dafa31670ef44185a28a9cfbf04a4894890edd">
       <source xml:lang="en">Failed to delete table from schema designer.</source>
     </trans-unit>
@@ -3193,6 +3213,10 @@
     <trans-unit id="++CODE++2309e149b41332c6c6b1dbd7f42722f08fc63b0ac9a12cf7b6b3d94ce5d6d252">
       <source xml:lang="en">Failed to script object: {0}</source>
       <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++d8ceaf594953fdbc822b65f3ff092de9d4b98565a3463486aa2f4fc059c9c43b">
+      <source xml:lang="en">Failed to seed sample run: {0}</source>
+      <note>{0} is the underlying error message</note>
     </trans-unit>
     <trans-unit id="++CODE++b83535802d81722fc60f64ecac36906e07c0df4bb61e9b41182702d25a26d3d2">
       <source xml:lang="en">Failed to start &apos;{0}&apos;: {1}</source>
@@ -3800,6 +3824,9 @@
     </trans-unit>
     <trans-unit id="++CODE++90b901a30c3f089e10d82e1b842bbdc736a36b536a19d207b36a8e7be1904dcb">
       <source xml:lang="en">Indexes</source>
+    </trans-unit>
+    <trans-unit id="++CODE++170322a32f3c35b2c61576a5553d352d7b3c8ae7086dab78f15fc891a28c067c">
+      <source xml:lang="en">Info</source>
     </trans-unit>
     <trans-unit id="++CODE++7d5a4174a3753666f30d8be2beadced4087df37a4af22a189e7b5abc55e1c382">
       <source xml:lang="en">Initializing DAB configuration...</source>
@@ -4678,6 +4705,9 @@
     <trans-unit id="++CODE++d359844ae129bd7d51eda9e3c61dcf5c4036be148cdf783fc11d6454e8ca372b">
       <source xml:lang="en">No connection credentials found</source>
     </trans-unit>
+    <trans-unit id="++CODE++4a3096c71e43fc8a9c3c388ea0d59b023afd9f3478f606640bc8988f6f814706">
+      <source xml:lang="en">No connection findings.</source>
+    </trans-unit>
     <trans-unit id="++CODE++bb6f0c310647145d31546d24967be9eb8ebae90f640642e9fbb5d7713e6e8550">
       <source xml:lang="en">No connection found for connectionId: {0}</source>
       <note>{0} is the connection ID</note>
@@ -4757,6 +4787,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0b6ccfdcffbebddf187dbda4178da2bd0a4889bdb715df0d62ea75774aebfad4">
       <source xml:lang="en">No filter is currently active</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2557f6e38ead83874f9694ea4332f459014b6921de5a7e153be890185da08ef5">
+      <source xml:lang="en">No findings.</source>
     </trans-unit>
     <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
       <source xml:lang="en">No items</source>
@@ -4850,6 +4883,9 @@
     <trans-unit id="++CODE++42f23e5323393c23245d6bbe61f912df022f3f9e6df0eb0b21e66939a788b773">
       <source xml:lang="en">No servers found in the selected subscription.</source>
     </trans-unit>
+    <trans-unit id="++CODE++5df1233a51b1451536862d73ab1ea878a4961d384e49be2c85d5e4a0a37aabbd">
+      <source xml:lang="en">No static-analysis findings.</source>
+    </trans-unit>
     <trans-unit id="++CODE++ca74b0c5b8a73c286ae5bc0d7802f72e6e591364956dd16f3a5210582b6f4212">
       <source xml:lang="en">No storage accounts found</source>
     </trans-unit>
@@ -4871,6 +4907,9 @@
     <trans-unit id="++CODE++51714413577c82c973b8393c564c859a63c4597383b9d1b6fee9b9cf54ba273e">
       <source xml:lang="en">No tenants found</source>
     </trans-unit>
+    <trans-unit id="++CODE++3fff1b19ddd39db0be8da4e789fbafcb10ac97fb2df90830b7c90ecca848b8c2">
+      <source xml:lang="en">No tests executed.</source>
+    </trans-unit>
     <trans-unit id="++CODE++b5c2455f3e05fab4c5019daf09573a5885446d59adc75e85406fb1e9336eb48d">
       <source xml:lang="en">No text data available</source>
     </trans-unit>
@@ -4880,6 +4919,9 @@
     <trans-unit id="++CODE++8b4564fde7c27738de579297fbb9ccf584147ddef5d0b9344593a1769f2c6fb5">
       <source xml:lang="en">No validations were declared on &apos;{0}&apos;.</source>
       <note>{0} is the user-facing environment name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++b9245a1671a6315ceab2dec2ff8f695d4f69b8ad969f113de643279cbb388f08">
+      <source xml:lang="en">No workload regressions.</source>
     </trans-unit>
     <trans-unit id="++CODE++751ae077912b834895870d0d5210c09ca02659375aab7843a26689a7aa50a0fc">
       <source xml:lang="en">No workspace folder is open. Open a folder to add the MCP server configuration.</source>
@@ -5044,6 +5086,9 @@
     <trans-unit id="++CODE++36eaf70bf802c56bb84c14fb713ba56b41a28ba07a5a6cdab3fedd21146ff274">
       <source xml:lang="en">Open a new bug</source>
     </trans-unit>
+    <trans-unit id="++CODE++7103ca52c83415a3a417fe6e5ad1623582a8c5c1a7a9708a2f98b0e559d815fe">
+      <source xml:lang="en">Open a workspace folder before seeding a sample Cloud Deploy run.</source>
+    </trans-unit>
     <trans-unit id="++CODE++199cc955f67404f14759bfc4a53fe234001ecf9f95dd6d660f2eff074e6e726c">
       <source xml:lang="en">Open environment in Cloud Deploy hub</source>
     </trans-unit>
@@ -5109,6 +5154,9 @@
     </trans-unit>
     <trans-unit id="++CODE++110b7288ee54432862487c6ca5ea2579493dc3b078d51218ff4e2bfdcac4986c">
       <source xml:lang="en">Original file name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4e80abb5b14656d4eed8fd93705fd4c774d7653b05162763770bd23f1755db1a">
+      <source xml:lang="en">Outcome</source>
     </trans-unit>
     <trans-unit id="++CODE++2de12c616c9f918c2f9b8736ac202dcfef66460ded9a0292131caaf08466ff3f">
       <source xml:lang="en">Output file</source>
@@ -5513,6 +5561,9 @@
     <trans-unit id="++CODE++581627cba40f213340516f0d39805addaf361c69917155ec912ee6ec7b272a18">
       <source xml:lang="en">RESTORE WITH STANDBY</source>
     </trans-unit>
+    <trans-unit id="++CODE++f94b5f3d38405630f6f454e19f4bf325bc6db314351cf9f3298a7d211a97df03">
+      <source xml:lang="en">Reachable</source>
+    </trans-unit>
     <trans-unit id="++CODE++9b9a8d05a7ec353bda84f9c1bb3178c299de3001b5e970508ddc889c487f92ca">
       <source xml:lang="en">Read</source>
     </trans-unit>
@@ -5593,6 +5644,12 @@
     </trans-unit>
     <trans-unit id="++CODE++d3a008ef1335692d9d045175ba9ea1dcd39ae48da9e2043a9baabad6c3818c28">
       <source xml:lang="en">Region</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f9f0955ea4a62478023055e8ef7ad1dde05e6742688eb5e5bc8990a2f4295815">
+      <source xml:lang="en">Regression</source>
+    </trans-unit>
+    <trans-unit id="++CODE++64d8564eb78b77d7a7a66e11a0ee4969dff8d87b126c0ec3af73c3a68b1d5f80">
+      <source xml:lang="en">Regressions</source>
     </trans-unit>
     <trans-unit id="++CODE++ab604a360777735fe2993aec7d4ffae415f1515b0a4c989269603fd3d5c07b61">
       <source xml:lang="en">Reject</source>
@@ -5816,6 +5873,9 @@
     </trans-unit>
     <trans-unit id="++CODE++141b69f95916694982e525599db8205af7ecd6ced92d36c8aec6c5a9daa1e90e">
       <source xml:lang="en">Rows per page</source>
+    </trans-unit>
+    <trans-unit id="++CODE++62845f31a2fe00be3ebaaeb93f5b27af82ab81dfcbaa1871c76f596cd98cf3c9">
+      <source xml:lang="en">Rule</source>
     </trans-unit>
     <trans-unit id="++CODE++24601cef1cab3c7af34a853118337c5ac35833d0713571295bdfc7b9b37b994c">
       <source xml:lang="en">Rule disabled</source>
@@ -6205,6 +6265,10 @@
     </trans-unit>
     <trans-unit id="++CODE++c4038f47497f61adc776523835e82f3bab98d497b1978fced8d46e61e6f435a4">
       <source xml:lang="en">Seed sample data or import an existing schema</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d063d40275e97e3a9e4193aefc30b9c8da5619ab8cea825ec2b92d47e7eabb28">
+      <source xml:lang="en">Seeded sample run at {0}</source>
+      <note>{0} is the absolute path of the seeded .cdrun.zip</note>
     </trans-unit>
     <trans-unit id="++CODE++2a78025de6aae5e7ff88e5a951bb3a78ddd67388913529cf9e2dd9653e62b02d">
       <source xml:lang="en">Select</source>
@@ -6775,10 +6839,16 @@
       <source xml:lang="en">Status: {0}</source>
       <note>{0} is the task status</note>
     </trans-unit>
+    <trans-unit id="++CODE++8e6a6cca7aae1d1e781d3ee04849d6b00f7aaf48f7c642f35105e4bf990a8cb4">
+      <source xml:lang="en">Step</source>
+    </trans-unit>
     <trans-unit id="++CODE++fcd9e926d4fdee12468ed2bada9c9a3836ffa503e8dd105ce430cb9dc77450df">
       <source xml:lang="en">Step {0} of {1}</source>
       <note>{0} is the current step number
 {1} is the total number of steps</note>
+    </trans-unit>
+    <trans-unit id="++CODE++1de3df70ddf4faab9d799e3c45ea53c465aae9fccacd7ac77d8e85435828e6dc">
+      <source xml:lang="en">Steps</source>
     </trans-unit>
     <trans-unit id="++CODE++cae7d57bc067a514b8e34c9589631a95c7dc051638ddd2a190773269279a99df">
       <source xml:lang="en">Stop</source>
@@ -7012,6 +7082,9 @@
     </trans-unit>
     <trans-unit id="++CODE++2af9bc0ac247853b98b854b657784c881cc649d3f1a660aafecd1b8b1a26d535">
       <source xml:lang="en">Terms &amp; Conditions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++532eaabd9574880dbf76b9b8cc00832c20a6ec113d682299550d7a6e0f345e25">
+      <source xml:lang="en">Test</source>
     </trans-unit>
     <trans-unit id="++CODE++799f6f8acde01a01209703f348f68f7802b5c8623007342d362bed19959e7ed5">
       <source xml:lang="en">Test connecting with the current settings</source>
@@ -7268,6 +7341,9 @@
       <note>{0} is the part name
 {1} is the part input</note>
     </trans-unit>
+    <trans-unit id="++CODE++c9b3c38247f744e17dd26fda097d6a9ba9332586b6bdaa038bf8f313a863f2b8">
+      <source xml:lang="en">Total</source>
+    </trans-unit>
     <trans-unit id="++CODE++048652e110f74b298095b5a7123e8878dfbd665a9fa34991b269dd31ab9442d0">
       <source xml:lang="en">Total execution time: {0}</source>
       <note>{0} is the elapsed time</note>
@@ -7514,6 +7590,10 @@
     <trans-unit id="++CODE++a73a6576ca228a2f04383ae754a60e2e43ab9d6e55e03e3b1db5db0bef2fcf18">
       <source xml:lang="en">Validating environment &apos;{0}&apos;</source>
       <note>{0} is the user-facing environment name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++28b0b223106355b888c92fa5dec8ad2c57a145272c84dd4bb5581d7ccd68076e">
+      <source xml:lang="en">Validating {0}...</source>
+      <note>{0} is an environment display name</note>
     </trans-unit>
     <trans-unit id="++CODE++0f238dd5246e2e2e8f28a226a63d775e507a2ecac6258e32779fd9d72d8dfc37">
       <source xml:lang="en">Validation cancelled for &apos;{0}&apos;.</source>
@@ -8307,6 +8387,9 @@
     </trans-unit>
     <trans-unit id="mssql.cloudDeploy.revealRunArtifact">
       <source xml:lang="en">Cloud Deploy: Reveal run artifact in OS</source>
+    </trans-unit>
+    <trans-unit id="mssql.cloudDeploy.seedSampleRun">
+      <source xml:lang="en">Cloud Deploy: Seed sample run (dev)</source>
     </trans-unit>
     <trans-unit id="mssql.cloudDeploy.validateEnvironment">
       <source xml:lang="en">Cloud Deploy: Validate environment</source>

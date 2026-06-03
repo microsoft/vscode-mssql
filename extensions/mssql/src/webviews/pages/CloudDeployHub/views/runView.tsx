@@ -4,15 +4,19 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Button, Link, makeStyles, Text, tokens } from "@fluentui/react-components";
-import { ArrowLeftRegular, FolderOpenRegular } from "@fluentui/react-icons";
+import { ArrowLeftRegular, DeleteRegular, FolderOpenRegular } from "@fluentui/react-icons";
 import * as React from "react";
 import { locConstants } from "../../../common/locConstants";
 import { useCloudDeployHubContext } from "../cloudDeployHubStateProvider";
 import { useCloudDeployHubSelector } from "../cloudDeployHubSelector";
 import { StatusBadge } from "../components/statusBadge";
+import { ValidationCard } from "../components/validationCard";
 
 const useStyles = makeStyles({
     backRow: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
         marginBottom: "12px",
     },
     headerRow: {
@@ -85,7 +89,7 @@ function formatDuration(startedAtMs: number, endedAtMs: number): string {
 
 export const RunView: React.FC = () => {
     const classes = useStyles();
-    const { navigate, revealArtifact } = useCloudDeployHubContext();
+    const { navigate, revealArtifact, deleteRun } = useCloudDeployHubContext();
     const run = useCloudDeployHubSelector((s) => s.selectedRun);
     const artifactPath = useCloudDeployHubSelector((s) => s.selectedRunArtifactPath);
     const strings = locConstants.cloudDeployHub;
@@ -110,6 +114,13 @@ export const RunView: React.FC = () => {
                     size="small"
                     onClick={() => navigate("runList")}>
                     {strings.backToList}
+                </Button>
+                <Button
+                    appearance="subtle"
+                    icon={<DeleteRegular />}
+                    size="small"
+                    onClick={() => deleteRun(run.runId)}>
+                    {strings.deleteRun}
                 </Button>
             </div>
             <div className={classes.headerRow}>
@@ -158,10 +169,7 @@ export const RunView: React.FC = () => {
             ) : (
                 <div>
                     {run.validations.map((v) => (
-                        <div key={v.validationId} className={classes.validationRow}>
-                            <span className={classes.validationName}>{v.displayName}</span>
-                            <span className={classes.validationStatus}>{v.status}</span>
-                        </div>
+                        <ValidationCard key={v.validationId} validation={v} />
                     ))}
                 </div>
             )}

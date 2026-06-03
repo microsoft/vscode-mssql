@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Link, makeStyles, Text, tokens } from "@fluentui/react-components";
+import { Link, makeStyles, Spinner, Text, tokens } from "@fluentui/react-components";
 import * as React from "react";
 import { locConstants } from "../../../common/locConstants";
 import { useCloudDeployHubContext } from "../cloudDeployHubStateProvider";
@@ -15,6 +15,29 @@ const useStyles = makeStyles({
         fontSize: "16px",
         fontWeight: 600,
         marginBottom: "12px",
+    },
+    liveSection: {
+        marginBottom: "16px",
+        padding: "10px 12px",
+        borderRadius: "4px",
+        backgroundColor: tokens.colorNeutralBackground2,
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
+    },
+    liveHeading: {
+        display: "block",
+        fontSize: "11px",
+        fontWeight: 600,
+        textTransform: "uppercase",
+        letterSpacing: "0.04em",
+        color: tokens.colorNeutralForeground3,
+        marginBottom: "6px",
+    },
+    liveRow: {
+        display: "flex",
+        alignItems: "center",
+        gap: "10px",
+        padding: "4px 0",
+        fontSize: "13px",
     },
     table: {
         width: "100%",
@@ -61,18 +84,41 @@ export const RunListView: React.FC = () => {
     const classes = useStyles();
     const { navigate } = useCloudDeployHubContext();
     const runs = useCloudDeployHubSelector((s) => s.runs);
+    const liveRuns = useCloudDeployHubSelector((s) => s.liveRuns);
     const strings = locConstants.cloudDeployHub;
+
+    const liveBanner =
+        liveRuns.length > 0 ? (
+            <div className={classes.liveSection}>
+                <span className={classes.liveHeading}>{strings.liveRunsHeading}</span>
+                {liveRuns.map((live) => (
+                    <div key={live.runId} className={classes.liveRow}>
+                        <Spinner size="tiny" />
+                        <span>
+                            {strings.liveRunRow(live.environmentName ?? live.environmentId)}
+                        </span>
+                        <span style={{ color: tokens.colorNeutralForeground3 }}>
+                            {formatStarted(live.startedAtMs)}
+                        </span>
+                    </div>
+                ))}
+            </div>
+        ) : null;
 
     if (runs.length === 0) {
         return (
-            <div className={classes.empty}>
-                <Text>{strings.runListEmpty}</Text>
+            <div>
+                {liveBanner}
+                <div className={classes.empty}>
+                    <Text>{strings.runListEmpty}</Text>
+                </div>
             </div>
         );
     }
 
     return (
         <div>
+            {liveBanner}
             <Text as="h2" className={classes.heading}>
                 {strings.runListHeading}
             </Text>

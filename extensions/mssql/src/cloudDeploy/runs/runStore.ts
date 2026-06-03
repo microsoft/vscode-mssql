@@ -173,6 +173,30 @@ export class RunStore implements vscode.Disposable {
         }
     }
 
+    /**
+     * Deletes the on-disk artifact for `runId` and removes the entry from
+     * the cache. Fires `onDidChange`. Best-effort: ENOENT is treated as
+     * already-deleted; any other failure is rethrown so the caller can
+     * surface it to the user.
+     */
+    public async delete(runId: string): Promise<void> {
+        const entry = this._cache.get(runId);
+        if (entry === undefined) {
+            return;
+        }
+        try {
+            await fs.unlink(entry.artifactPath);
+        } catch (err) {
+            if ((err as NodeJS.ErrnoException)?.code !== "ENOENT") {
+                throw err;
+            }
+        }
+        const next = new Map(this._cache);
+        next.delete(runId);
+        this._cache = next;
+        this._onDidChange.fire();
+    }
+
     public dispose(): void {
         this._onDidChange.dispose();
     }

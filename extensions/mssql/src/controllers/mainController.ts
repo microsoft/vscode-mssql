@@ -15,6 +15,7 @@ import * as LocalizedConstants from "../constants/locConstants";
 import { CloudDeployService } from "../cloudDeploy/cloudDeployService";
 import { CLOUD_DEPLOY_VIEW_ID, CloudDeployTreeProvider } from "../cloudDeploy/dashboard";
 import { CloudDeployHubController } from "../cloudDeploy/dashboard/cloudDeployHubController";
+import { seedSampleRun } from "../cloudDeploy/dev/seedSampleRun";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import * as ConnInfo from "../models/connectionInfo";
 import {
@@ -1169,6 +1170,7 @@ export default class MainController implements vscode.Disposable {
                     this._vscodeWrapper,
                     this.cloudDeployService.environments,
                     this.cloudDeployService.runs.store,
+                    this.cloudDeployService.diagnostics,
                     { kind: "runList" },
                 );
             }),
@@ -1185,6 +1187,7 @@ export default class MainController implements vscode.Disposable {
                         this._vscodeWrapper,
                         this.cloudDeployService.environments,
                         this.cloudDeployService.runs.store,
+                        this.cloudDeployService.diagnostics,
                         { kind: "environment", envId },
                     );
                 },
@@ -1200,8 +1203,33 @@ export default class MainController implements vscode.Disposable {
                     this._vscodeWrapper,
                     this.cloudDeployService.environments,
                     this.cloudDeployService.runs.store,
+                    this.cloudDeployService.diagnostics,
                     { kind: "run", runId },
                 );
+            }),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(Constants.cmdCloudDeploySeedSampleRun, async () => {
+                const runsDir = this.cloudDeployService.runs.runsDirectory;
+                const writer = this.cloudDeployService.runs.writer;
+                if (runsDir === undefined) {
+                    void vscode.window.showWarningMessage(
+                        LocalizedConstants.CloudDeployDashboard.seedSampleRunNoWorkspace,
+                    );
+                    return;
+                }
+                try {
+                    const result = await seedSampleRun(writer, runsDir);
+                    void vscode.window.showInformationMessage(
+                        LocalizedConstants.CloudDeployDashboard.seedSampleRunSuccess(result.path),
+                    );
+                } catch (err) {
+                    const reason = err instanceof Error ? err.message : String(err);
+                    void vscode.window.showErrorMessage(
+                        LocalizedConstants.CloudDeployDashboard.seedSampleRunFailed(reason),
+                    );
+                }
             }),
         );
 

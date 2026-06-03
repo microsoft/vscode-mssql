@@ -1607,6 +1607,11 @@
                 "category": "MS SQL"
             },
             {
+                "command": "mssql.cloudDeploy.seedSampleRun",
+                "title": "%mssql.cloudDeploy.seedSampleRun%",
+                "category": "MS SQL"
+            },
+            {
                 "command": "mssql.stopContainer",
                 "title": "%mssql.stopContainer%",
                 "category": "MS SQL"

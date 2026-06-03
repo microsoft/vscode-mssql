@@ -28,7 +28,9 @@ import {
     CloudDeployHubState,
     EnvironmentSummary,
     HubPage,
+    LiveRunSummary,
 } from "../../sharedInterfaces/cloudDeployHub";
+import { DiagnosticEventBus } from "../diagnostics/eventBus";
 import { Environment } from "../environments/types";
 import { EnvironmentStore } from "../environments/environmentStore";
 import { RunListEntry, RunRecord } from "../runs/types";
@@ -74,6 +76,7 @@ export class CloudDeployHubController extends WebviewPanelController<
         vscodeWrapper: VscodeWrapper,
         private readonly _environments: EnvironmentStore | undefined,
         private readonly _runStore: RunStore | undefined,
+        private readonly _diagnostics: DiagnosticEventBus | undefined,
         initialView: HubInitialView,
     ) {
         super(
@@ -130,6 +133,7 @@ export class CloudDeployHubController extends WebviewPanelController<
         vscodeWrapper: VscodeWrapper,
         environments: EnvironmentStore | undefined,
         runStore: RunStore | undefined,
+        diagnostics: DiagnosticEventBus | undefined,
         initialView: HubInitialView,
     ): CloudDeployHubController {
         if (CloudDeployHubController._current !== undefined) {
@@ -143,9 +147,16 @@ export class CloudDeployHubController extends WebviewPanelController<
             vscodeWrapper,
             environments,
             runStore,
+            diagnostics,
             initialView,
         );
         CloudDeployHubController._current = created;
+        // The run page needs the full RunRecord, which buildInitialState
+        // cannot hydrate synchronously. Kick off the navigate flow so
+        // `selectedRun` is populated before the React side mounts.
+        if (initialView.kind === "run") {
+            void created._navigateInternal(initialViewToReducerPayload(initialView));
+        }
         return created;
     }
 
@@ -183,6 +194,42 @@ export class CloudDeployHubController extends WebviewPanelController<
             }
             return state;
         });
+
+        this.registerReducer("deleteRun", async (state, payload) => {
+            const runId = payload.runId;
+            if (runId === undefined || runId.length === 0 || this._runStore === undefined) {
+                return state;
+            }
+            const confirm = await vscode.window.showWarningMessage(
+                CloudDeployDashboard.deleteRunConfirmPrompt(runId.slice(0, 8)),
+                { modal: true },
+                CloudDeployDashboard.deleteRunConfirmAction,
+            );
+            if (confirm !== CloudDeployDashboard.deleteRunConfirmAction) {
+                return state;
+            }
+            try {
+                await this._runStore.delete(runId);
+            } catch (err) {
+                const reason = err instanceof Error ? err.message : String(err);
+                return {
+                    ...this._withFreshSnapshots(state),
+                    errorMessage: CloudDeployDashboard.deleteRunFailed(reason),
+                };
+            }
+            // Navigate back to the runList; the store fired onDidChange so
+            // _withFreshSnapshots already pulls the new run list.
+            return {
+                ...this._withFreshSnapshots(state),
+                currentPage: "runList",
+                selectedEnvId: undefined,
+                selectedRunId: undefined,
+                selectedEnvironment: undefined,
+                selectedRun: undefined,
+                selectedRunArtifactPath: undefined,
+                errorMessage: undefined,
+            };
+        });
     }
 
     // -------------------------------------------------------------------------
@@ -201,6 +248,44 @@ export class CloudDeployHubController extends WebviewPanelController<
             this._storeSubscriptions.push(
                 this._runStore.onDidChange(() => {
                     this.state = this._withFreshSnapshots(this.state);
+                }),
+            );
+        }
+        if (this._diagnostics !== undefined) {
+            this._storeSubscriptions.push(
+                this._diagnostics.on("validation-run-started", (event) => {
+                    const envId = event.payload.environmentId;
+                    const envName = this._environments?.get(envId)?.name;
+                    const liveRun: LiveRunSummary = {
+                        runId: event.payload.runId,
+                        environmentId: envId,
+                        environmentName: envName,
+                        startedAtMs: event.timestampMs,
+                    };
+                    this.state = {
+                        ...this.state,
+                        liveRuns: dedupeLiveRuns([...this.state.liveRuns, liveRun]),
+                    };
+                }),
+            );
+            this._storeSubscriptions.push(
+                this._diagnostics.on("validation-run-finished", (event) => {
+                    this.state = {
+                        ...this.state,
+                        liveRuns: this.state.liveRuns.filter(
+                            (r) => r.runId !== event.payload.runId,
+                        ),
+                    };
+                }),
+            );
+            this._storeSubscriptions.push(
+                this._diagnostics.on("run-persisted", (event) => {
+                    this.state = {
+                        ...this.state,
+                        liveRuns: this.state.liveRuns.filter(
+                            (r) => r.runId !== event.payload.runId,
+                        ),
+                    };
                 }),
             );
         }
@@ -365,6 +450,7 @@ function buildInitialState(
             currentPage: "environment",
             environments: envs,
             runs,
+            liveRuns: [],
             selectedEnvId: initialView.envId,
             selectedEnvironment: tryGetEnvironment(environments, initialView.envId),
         };
@@ -375,6 +461,7 @@ function buildInitialState(
             currentPage: "run",
             environments: envs,
             runs,
+            liveRuns: [],
             selectedRunId: initialView.runId,
             selectedRunArtifactPath: entry?.artifactPath,
             // selectedRun is hydrated lazily by the navigate reducer on first
@@ -386,6 +473,7 @@ function buildInitialState(
         currentPage: "runList",
         environments: envs,
         runs,
+        liveRuns: [],
     };
 }
 
@@ -421,6 +509,19 @@ function tryGetEnvironment(
 
 function findRunEntry(runs: readonly RunListEntry[], runId: string): RunListEntry | undefined {
     return runs.find((r) => r.runId === runId);
+}
+
+function dedupeLiveRuns(liveRuns: readonly LiveRunSummary[]): readonly LiveRunSummary[] {
+    const seen = new Set<string>();
+    const out: LiveRunSummary[] = [];
+    for (const r of liveRuns) {
+        if (seen.has(r.runId)) {
+            continue;
+        }
+        seen.add(r.runId);
+        out.push(r);
+    }
+    return out;
 }
 
 function toSummary(env: Environment): EnvironmentSummary {

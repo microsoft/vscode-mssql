@@ -4047,6 +4047,42 @@ export class CloudDeployDashboard {
     public static openEnvironmentCommand = l10n.t("Open environment in Cloud Deploy hub");
 
     public static openRunCommand = l10n.t("Open run in Cloud Deploy hub");
+
+    public static deleteRunCommand = l10n.t("Delete run");
+
+    public static deleteRunConfirmPrompt = (runId: string): string =>
+        l10n.t({
+            message: "Delete run {0}? This permanently removes the .cdrun.zip artifact from disk.",
+            args: [runId],
+            comment: ["{0} is a short run id (first 8 chars)"],
+        });
+
+    public static deleteRunConfirmAction = l10n.t("Delete");
+
+    public static deleteRunFailed = (reason: string): string =>
+        l10n.t({
+            message: "Failed to delete run: {0}",
+            args: [reason],
+            comment: ["{0} is the underlying error message"],
+        });
+
+    public static seedSampleRunNoWorkspace = l10n.t(
+        "Open a workspace folder before seeding a sample Cloud Deploy run.",
+    );
+
+    public static seedSampleRunSuccess = (path: string): string =>
+        l10n.t({
+            message: "Seeded sample run at {0}",
+            args: [path],
+            comment: ["{0} is the absolute path of the seeded .cdrun.zip"],
+        });
+
+    public static seedSampleRunFailed = (reason: string): string =>
+        l10n.t({
+            message: "Failed to seed sample run: {0}",
+            args: [reason],
+            comment: ["{0} is the underlying error message"],
+        });
 }
 
 function statusLabel(status: RunStatus): string {

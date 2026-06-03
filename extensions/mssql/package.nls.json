@@ -257,6 +257,7 @@
     "mssql.cloudDeploy.openHub": "Cloud Deploy: Open hub",
     "mssql.cloudDeploy.openEnvironment": "Cloud Deploy: Open environment in hub",
     "mssql.cloudDeploy.openRun": "Cloud Deploy: Open run in hub",
+    "mssql.cloudDeploy.seedSampleRun": "Cloud Deploy: Seed sample run (dev)",
     "mssql.stopContainer": "Stop SQL Container",
     "mssql.deleteContainer": "Delete SQL Container",
     "mssql.startContainer": "Start SQL Container",
