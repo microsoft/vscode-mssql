@@ -17,9 +17,9 @@ import {
     acquireTokenFromVscodeAccountForResource,
     getCloudResourceEndpoint,
 } from "./vscodeEntraMfaUtils";
-import { ILogger2, logger2 } from "../models/logger2";
+import { ILogger, logger } from "../models/logger";
 
-const _azResourcesLogger = logger2.withPrefix("[Azure Resources]");
+const _azResourcesLogger = logger.withPrefix("Azure Resources");
 
 /**
  * Lightweight placeholder returned synchronously by `getResourceItem`.
@@ -107,7 +107,7 @@ export class SqlServerBranchDataProvider
 
     constructor(
         private readonly _objectExplorerService: ObjectExplorerService,
-        private readonly _logger: ILogger2,
+        private readonly _logger: ILogger,
     ) {
         // Mirror OE-service refresh events into our own onDidChangeTreeData so the
         // Azure Resources tree stays in sync when nodes expand, collapse or reconnect.

@@ -8,7 +8,7 @@ import { ObjectExplorerService } from "../objectExplorer/objectExplorerService";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { IConnectionInfo } from "vscode-mssql";
-import { ILogger2, logger2 } from "../models/logger2";
+import { ILogger, logger } from "../models/logger";
 import { getErrorMessage } from "../utils/utils";
 import {
     acquireTokenFromVscodeAccountForResource,
@@ -21,7 +21,7 @@ const MSSQL_EXTENSION_ID = "ms-mssql.mssql";
 /** API version string must match the major.minor of the Fabric extension's vscode-fabric-api package. */
 const FABRIC_API_VERSION = "0.7";
 
-const _fabricLogger = logger2.withPrefix("[Fabric]");
+const _fabricLogger = logger.withPrefix("[Fabric]");
 
 // ---------------------------------------------------------------------------
 // Minimal structural types for @microsoft/vscode-fabric-api
@@ -180,7 +180,7 @@ class MssqlFabricTreeNodeProvider implements IFabricTreeNodeProvider {
     constructor(
         public readonly artifactType: string,
         private readonly _oeService: ObjectExplorerService,
-        private readonly _logger: ILogger2,
+        private readonly _logger: ILogger,
         private readonly _resolveConnection: ConnectionResolver,
     ) {}
 
@@ -206,7 +206,7 @@ class MssqlFabricTreeNodeProvider implements IFabricTreeNodeProvider {
 
 async function _createOeChildren(
     oeService: ObjectExplorerService,
-    logger: ILogger2,
+    logger: ILogger,
     server: string,
     database: string | undefined,
     displayName: string,
@@ -305,7 +305,7 @@ async function _createOeChildren(
  */
 export async function registerFabricIntegration(
     oeService: ObjectExplorerService,
-    logger: ILogger2,
+    logger: ILogger,
     _ctx: vscode.ExtensionContext,
 ): Promise<void> {
     const fabricExt = vscode.extensions.getExtension<IFabricExtensionManager>(FABRIC_EXTENSION_ID);
