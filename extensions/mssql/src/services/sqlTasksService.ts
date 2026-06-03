@@ -263,7 +263,7 @@ export class SqlTasksService {
     private async handleTaskChangedNotification(taskProgressInfo: TaskProgressInfo): Promise<void> {
         const taskInfo = this._activeTasks.get(taskProgressInfo.taskId);
         if (!taskInfo) {
-            this._logger.warn("Status update for unknown task");
+            this._logger.warn(`Status update for unknown task ${taskProgressInfo.taskId}`);
             return;
         }
         const taskStatusString = toTaskStatusDisplayString(taskProgressInfo.status, this._logger);

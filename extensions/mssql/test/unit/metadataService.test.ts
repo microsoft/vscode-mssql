@@ -514,8 +514,8 @@ suite("Metadata Service Tests", () => {
             try {
                 await metadataService.getMetadata("uri");
                 expect.fail("Should have thrown an error");
-            } catch {
-                expect(errorMessage).to.equal("Connection timeout");
+            } catch (err) {
+                expect(err).to.equal(error);
             }
         });
 
@@ -526,8 +526,8 @@ suite("Metadata Service Tests", () => {
             try {
                 await metadataService.getDatabases("uri");
                 expect.fail("Should have thrown an error");
-            } catch {
-                expect(errorString).to.equal("String error");
+            } catch (err) {
+                expect(err).to.equal(errorString);
             }
         });
     });

@@ -665,7 +665,7 @@ export function getCommonLaunchArgsAndCleanupOldLogFiles(
     let deletedLogFiles = removeOldLogFiles(logPath, fileName);
     logger?.debug(`Old log files deletion report: ${JSON.stringify(deletedLogFiles)}`);
     logger?.debug(
-        `This process (ui Extenstion Host) for ${path.basename(executablePath)} is pid: ${process.pid}`,
+        `This process (ui Extension Host) for ${path.basename(executablePath)} is pid: ${process.pid}`,
     );
     launchArgs.push("--tracing-level");
     launchArgs.push(getConfigTracingLevel());

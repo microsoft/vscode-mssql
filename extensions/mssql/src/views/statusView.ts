@@ -446,7 +446,7 @@ export default class StatusView implements vscode.Disposable {
                 updateMessage("");
                 break;
             default:
-                logger.debug(`Language service status changed. ${newStatus}`, logger);
+                logger.debug(`Language service status changed. ${newStatus}`);
                 break;
         }
     }
