@@ -3011,6 +3011,58 @@ export class LocConstants {
             chooseBlob: l10n.t("Please choose a blob to load restore plan"),
         };
     }
+
+    public get cloudDeployHub() {
+        return {
+            title: l10n.t("Cloud Deploy"),
+            backToList: l10n.t("Back to runs"),
+            refresh: l10n.t("Refresh"),
+            revealArtifact: l10n.t("Reveal artifact"),
+            runListHeading: l10n.t("All runs"),
+            runListEmpty: l10n.t(
+                "No runs yet. Run a validation against an environment to see it here.",
+            ),
+            columnRunId: l10n.t("Run id"),
+            columnEnvironment: l10n.t("Environment"),
+            columnStatus: l10n.t("Status"),
+            columnStarted: l10n.t("Started"),
+            columnDuration: l10n.t("Duration"),
+            environmentNotFound: (envId: string) =>
+                l10n.t({
+                    message: "Environment '{0}' was not found in this workspace.",
+                    args: [envId],
+                    comment: ["{0} is the environment id"],
+                }),
+            environmentSourceLabel: l10n.t("Source of truth"),
+            environmentValidationsLabel: l10n.t("Validations"),
+            environmentRecentRunsLabel: l10n.t("Recent runs"),
+            environmentNoValidations: l10n.t(
+                "This environment has no validations declared. Runs against it will be marked Skipped.",
+            ),
+            environmentNoRuns: l10n.t("No runs against this environment yet."),
+            runNotLoaded: l10n.t("Loading run details..."),
+            runIdLabel: l10n.t("Run id"),
+            runStatusLabel: l10n.t("Status"),
+            runStartedLabel: l10n.t("Started"),
+            runDurationLabel: l10n.t("Duration"),
+            runRunnerLabel: l10n.t("Runner"),
+            runValidationsLabel: l10n.t("Validations"),
+            runNoValidations: l10n.t("This run executed no validations."),
+            runArtifactLabel: l10n.t("Artifact"),
+            statusPassed: l10n.t("Passed"),
+            statusSkipped: l10n.t("Skipped"),
+            statusCancelled: l10n.t("Cancelled"),
+            statusWarning: l10n.t("Warning"),
+            statusFailed: l10n.t("Failed"),
+            statusErrored: l10n.t("Errored"),
+            durationSeconds: (seconds: number) =>
+                l10n.t({
+                    message: "{0}s",
+                    args: [seconds],
+                    comment: ["{0} is a duration in whole seconds"],
+                }),
+        };
+    }
 }
 
 export let locConstants = LocConstants.getInstance();

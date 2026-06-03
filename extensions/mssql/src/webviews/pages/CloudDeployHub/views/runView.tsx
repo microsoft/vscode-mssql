@@ -1,0 +1,170 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import { Button, Link, makeStyles, Text, tokens } from "@fluentui/react-components";
+import { ArrowLeftRegular, FolderOpenRegular } from "@fluentui/react-icons";
+import * as React from "react";
+import { locConstants } from "../../../common/locConstants";
+import { useCloudDeployHubContext } from "../cloudDeployHubStateProvider";
+import { useCloudDeployHubSelector } from "../cloudDeployHubSelector";
+import { StatusBadge } from "../components/statusBadge";
+
+const useStyles = makeStyles({
+    backRow: {
+        marginBottom: "12px",
+    },
+    headerRow: {
+        display: "flex",
+        alignItems: "center",
+        gap: "12px",
+        marginBottom: "16px",
+    },
+    runId: {
+        fontFamily: "var(--vscode-editor-font-family), monospace",
+        fontSize: "16px",
+        fontWeight: 600,
+    },
+    metaGrid: {
+        display: "grid",
+        gridTemplateColumns: "auto 1fr",
+        columnGap: "16px",
+        rowGap: "6px",
+        marginBottom: "20px",
+        fontSize: "13px",
+    },
+    metaLabel: {
+        color: tokens.colorNeutralForeground3,
+    },
+    sectionHeading: {
+        fontSize: "13px",
+        fontWeight: 600,
+        textTransform: "uppercase",
+        letterSpacing: "0.04em",
+        color: tokens.colorNeutralForeground3,
+        marginTop: "20px",
+        marginBottom: "8px",
+    },
+    validationRow: {
+        display: "flex",
+        alignItems: "center",
+        gap: "10px",
+        padding: "6px 0",
+        borderBottom: `1px solid ${tokens.colorNeutralStroke3}`,
+        fontSize: "13px",
+    },
+    validationName: {
+        flex: 1,
+    },
+    validationStatus: {
+        color: tokens.colorNeutralForeground3,
+        fontFamily: "var(--vscode-editor-font-family), monospace",
+        fontSize: "12px",
+    },
+    empty: {
+        color: tokens.colorNeutralForeground3,
+        fontSize: "13px",
+    },
+    artifactPath: {
+        fontFamily: "var(--vscode-editor-font-family), monospace",
+        fontSize: "12px",
+        wordBreak: "break-all",
+    },
+    loading: {
+        padding: "24px",
+        textAlign: "center",
+        color: tokens.colorNeutralForeground3,
+    },
+});
+
+function formatDuration(startedAtMs: number, endedAtMs: number): string {
+    const seconds = Math.max(0, Math.round((endedAtMs - startedAtMs) / 1000));
+    return locConstants.cloudDeployHub.durationSeconds(seconds);
+}
+
+export const RunView: React.FC = () => {
+    const classes = useStyles();
+    const { navigate, revealArtifact } = useCloudDeployHubContext();
+    const run = useCloudDeployHubSelector((s) => s.selectedRun);
+    const artifactPath = useCloudDeployHubSelector((s) => s.selectedRunArtifactPath);
+    const strings = locConstants.cloudDeployHub;
+
+    if (!run) {
+        return (
+            <div className={classes.loading}>
+                <Text>{strings.runNotLoaded}</Text>
+                <div style={{ marginTop: "12px" }}>
+                    <Link onClick={() => navigate("runList")}>{strings.backToList}</Link>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div>
+            <div className={classes.backRow}>
+                <Button
+                    appearance="subtle"
+                    icon={<ArrowLeftRegular />}
+                    size="small"
+                    onClick={() => navigate("runList")}>
+                    {strings.backToList}
+                </Button>
+            </div>
+            <div className={classes.headerRow}>
+                <Text className={classes.runId}>{run.runId.slice(0, 8)}</Text>
+                <StatusBadge status={run.status} />
+            </div>
+
+            <div className={classes.metaGrid}>
+                <span className={classes.metaLabel}>{strings.runIdLabel}</span>
+                <span className={classes.artifactPath}>{run.runId}</span>
+                <span className={classes.metaLabel}>{strings.environmentValidationsLabel}</span>
+                <Link
+                    onClick={() => navigate("environment", { envId: run.environmentSnapshot.id })}>
+                    {run.environmentSnapshot.name}
+                </Link>
+                <span className={classes.metaLabel}>{strings.runStartedLabel}</span>
+                <span>{new Date(run.startedAtMs).toLocaleString()}</span>
+                <span className={classes.metaLabel}>{strings.runDurationLabel}</span>
+                <span>{formatDuration(run.startedAtMs, run.endedAtMs)}</span>
+                <span className={classes.metaLabel}>{strings.runRunnerLabel}</span>
+                <span>
+                    {run.runner.displayName} ({run.runner.hostKind})
+                </span>
+                {artifactPath ? (
+                    <>
+                        <span className={classes.metaLabel}>{strings.runArtifactLabel}</span>
+                        <span>
+                            <Button
+                                appearance="subtle"
+                                icon={<FolderOpenRegular />}
+                                size="small"
+                                onClick={() => revealArtifact(run.runId)}>
+                                {strings.revealArtifact}
+                            </Button>
+                            <span className={classes.artifactPath} style={{ marginLeft: "8px" }}>
+                                {artifactPath}
+                            </span>
+                        </span>
+                    </>
+                ) : null}
+            </div>
+
+            <div className={classes.sectionHeading}>{strings.runValidationsLabel}</div>
+            {run.validations.length === 0 ? (
+                <Text className={classes.empty}>{strings.runNoValidations}</Text>
+            ) : (
+                <div>
+                    {run.validations.map((v) => (
+                        <div key={v.validationId} className={classes.validationRow}>
+                            <span className={classes.validationName}>{v.displayName}</span>
+                            <span className={classes.validationStatus}>{v.status}</span>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};

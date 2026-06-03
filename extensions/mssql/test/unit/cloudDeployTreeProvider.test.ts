@@ -198,24 +198,24 @@ suite("CloudDeploy CloudDeployTreeProvider", () => {
         expect(node.latestStatus).to.equal(undefined);
     });
 
-    test("getTreeItem on an environment node binds the validate command", () => {
+    test("getTreeItem on an environment node binds the open-environment command", () => {
         envStore.envs = [makeEnvironment({ id: "dev", name: "Dev" })];
         const envSection = provider.getChildren()[0];
         const node = provider.getChildren(envSection)[0];
         const item = provider.getTreeItem(node);
-        expect(item.command?.command).to.equal("mssql.cloudDeploy.validateEnvironment");
+        expect(item.command?.command).to.equal("mssql.cloudDeploy.openEnvironment");
         expect(item.command?.arguments).to.deep.equal(["dev"]);
         expect(item.contextValue).to.equal("cloudDeploy.environment");
     });
 
-    test("getTreeItem on a run node binds the reveal-artifact command", async () => {
+    test("getTreeItem on a run node binds the open-run command", async () => {
         await seedRun("r-1", "dev", "Dev", 1_000);
         await runStore.scan();
         const runSection = provider.getChildren()[1];
         const node = provider.getChildren(runSection)[0];
         const item = provider.getTreeItem(node);
-        expect(item.command?.command).to.equal("mssql.cloudDeploy.revealRunArtifact");
-        expect(item.command?.arguments?.[0]).to.equal(`${ARTIFACT_DIR}/r-1.cdrun.zip`);
+        expect(item.command?.command).to.equal("mssql.cloudDeploy.openRun");
+        expect(item.command?.arguments?.[0]).to.equal("r-1");
         expect(item.contextValue).to.equal("cloudDeploy.run");
     });
 

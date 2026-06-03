@@ -4034,6 +4034,19 @@ export class CloudDeployDashboard {
                 "{1} is the run duration in whole seconds",
             ],
         });
+
+    public static runLoadFailed = (runId: string, reason: string): string =>
+        l10n.t({
+            message: "Failed to load run {0}: {1}",
+            args: [runId, reason],
+            comment: ["{0} is the run id (uuid)", "{1} is the failure reason"],
+        });
+
+    public static openHubCommand = l10n.t("Open Cloud Deploy hub");
+
+    public static openEnvironmentCommand = l10n.t("Open environment in Cloud Deploy hub");
+
+    public static openRunCommand = l10n.t("Open run in Cloud Deploy hub");
 }
 
 function statusLabel(status: RunStatus): string {

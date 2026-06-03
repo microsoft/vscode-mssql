@@ -25,33 +25,21 @@
 
 import { DiagnosticEvent } from "../diagnostics/types";
 import { Environment } from "../environments/types";
-import { RunListEntry } from "../runs/runStore";
-import { RunRecord } from "../runs/types";
+import { RunListEntry, RunRecord } from "../runs/types";
+import { EnvironmentSummary, HubPage } from "../../sharedInterfaces/cloudDeployHub";
+
+// Re-exported for callers that already import these from this module
+// (the canonical home is `sharedInterfaces/cloudDeployHub.ts` so the React
+// webview build can see them without pulling in cloud-deploy runtime code).
+export type { EnvironmentSummary, HubPage } from "../../sharedInterfaces/cloudDeployHub";
 
 // =============================================================================
 // Pages
 // =============================================================================
 
-/** The four top-level pages the hub navigates between. */
-export type HubPage = "pipeline" | "environment" | "run" | "runList";
-
 // =============================================================================
 // Outbound — host → webview
 // =============================================================================
-
-/**
- * Compact env summary the webview needs for the pipeline + tree views.
- * Carries less than the full D1 `Environment` so the wire payload stays
- * small when the env list is large; the full env is sent on environment
- * page navigation.
- */
-export interface EnvironmentSummary {
-    readonly id: string;
-    readonly name: string;
-    readonly description?: string;
-    readonly sourceOfTruthKind: string;
-    readonly validationCount: number;
-}
 
 /**
  * Initial state pushed to the webview right after `ready`. Carries enough
