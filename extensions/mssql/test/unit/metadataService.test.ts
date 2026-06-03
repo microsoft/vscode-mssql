@@ -521,7 +521,9 @@ suite("Metadata Service Tests", () => {
 
         test("should handle non-Error objects thrown", async () => {
             const errorString = "String error";
-            mockClient.sendRequest.rejects(errorString);
+            mockClient.sendRequest.callsFake(async () => {
+                throw errorString;
+            });
 
             try {
                 await metadataService.getDatabases("uri");
