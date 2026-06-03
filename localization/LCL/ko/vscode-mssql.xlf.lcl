@@ -946,6 +946,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++0a2105a1fadf7c199d8e23465ad8d288b97a0456a72b51bcf57cba2eb8f9606d" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure SQL Managed Instance]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure SQL Managed Instance]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++0a30a815d67d7dd2018fe18f4e995a26f3b753369cd4327e9b6034b50a2cd153" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Page]]></Val>
@@ -1626,6 +1635,15 @@
           <Val><![CDATA[Original file name]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[원본 파일 이름]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++11167e57bf77932c07f42c4b2a08ba8428726757beb2f754ece1786e81ed0447" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to save results. {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[결과를 저장하지 못했습니다. {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3610,15 +3628,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++283dc9bd4f27ff0efed1b3ac27910746f64f860e2e0c2240f9723ff02c1dc29c" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to save results. ]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[결과를 저장하지 못했습니다. ]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++28512f31201abdd26ae93d0caaba3b8a3c77113b9665059a9e1d2ba4e47de64d" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connection not found for uri "{0}".]]></Val>
@@ -3849,6 +3858,15 @@
           <Val><![CDATA[Table updated in schema designer successfully.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[스키마 디자이너에서 테이블을 성공적으로 업데이트했습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++2a625c251683ca2ba8a1125319cb76d8f3d448d9e4d5a6c97bd948145217e36f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Warehouse]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[웨어하우스]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4155,15 +4173,6 @@
           <Val><![CDATA[Loading flat file import...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[플랫 파일 가져오기 로드 중...]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++2dda2d5e705c870b4711000d9e6e1a1552a6426ff2835af34a45eb0ea5f3182b" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Create an Azure SQL Database]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Azure SQL Database 만들기]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5680,6 +5689,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++3fe2318b777a1d9c6304a9e2bff0d636f51cfb872de17793c8962acbdc1370cd" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Generate REST, GraphQL, and MCP endpoints from your SQL database objects (tables). You can modify the configuration manually or through GitHub Copilot to plan and generate updates - then deploy locally with Docker.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SQL 데이터베이스 개체(테이블)에서 REST, GraphQL, MCP 엔드포인트를 생성하세요. 구성을 수동으로 수정하거나 GitHub Copilot을 통해 업데이트를 계획하고 생성한 다음, Docker로 로컬에 배포할 수 있습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++3fee95da5ab69ebfdc16ec892b754105a11c20203054a6c6bcc0a60176891043" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Simple]]></Val>
@@ -6441,15 +6459,6 @@
           <Val><![CDATA[Loading...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[로드 중...]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++47d62b3ce92021fa331252ba82176c2a4ccb592c2264bd58ec74e5d1b722c98e" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Started saving results to ]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[다음 위치에 결과 저장 시작: ]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7908,6 +7917,15 @@
           <Val><![CDATA[Rule enabled]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[규칙 사용]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++57d34ecd6fc9b04ba8ad6450eeb1159b21aa3e6f127082ea6554f826985cdddb" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[패브릭의 SQL Database, Azure SQL, SQL Server가 최신 앱 개발을 어떻게 새롭게 바꾸고 있는지 알아보세요. 성능, AI 통합 및 개발자 생산성의 한계를 넓히는 엔지니어와 동료들과 함께하세요.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9631,6 +9649,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++6ce6c168965317cce6e35f445598a3182e21e937846cf45db34b17dc1c0a0d3b" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Data API builder with GitHub Copilot]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[GitHub Copilot을 사용한 데이터 API 작성기]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++6d457cc1e5982858c386c637bec86a3c2615e648054d4d5472a261e0b5004b2d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure Subscriptions]]></Val>
@@ -9807,6 +9834,15 @@
           <Val><![CDATA[Next Page]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[다음 페이지]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++6ef37ea9955ac30c701324290f719cf696d1f34b027640872eb4bba2fcd59c25" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Use discount code {0} to save €200 on registration.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[할인 코드 {0}을(를) 사용하면 등록비에서 €200를 절약할 수 있습니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10806,6 +10842,15 @@
           <Val><![CDATA[Sequelize]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Sequelize]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++79e5e71c56f13bb3c722fd134f6fb39e747de15dc979295882ecac8d67d45559" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select Max vCores]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[최대 vCore 선택]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12102,6 +12147,15 @@
           <Val><![CDATA[Displays the data type name for the column]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[열의 데이터 형식 이름을 표시합니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++8a4c943120e561689b5545e70b8fa64b48da3eb09a8b14c6d2283f29af79e201" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Listing Fabric Warehouses for workspace '{0}']]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[작업 영역 '{0}'의 Fabric Warehouse를 나열하는 중]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13609,15 +13663,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++9c85106af25fd7656e977d5453607973955ae5d79fce0a78264cd714a628e981" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Successfully saved results to ]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[다음 위치에 결과 저장 완료: ]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++9c9335630fa6b9edd2fa273ee1c7bbf05139a475c4491339a5a5b0579d5c4961" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Search rules...]]></Val>
@@ -13924,6 +13969,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++a05ece881012991a79aaf2cbbba9d6e11e35d05ed66f547dfaae931a8d9e50af" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Easily start with the Azure SQL database free tier to create and connect to a database directly from your editor at no cost.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure SQL 데이터베이스 무료 계층으로 쉽게 시작해 보세요. 편집기에서 바로 데이터베이스를 만들고 무료로 연결할 수 있습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++a08ed3bdb12bc70103aac4b9c62d71981854c89e6d7a4a0a60ae4b0a16d392af" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Import file is required]]></Val>
@@ -14100,6 +14154,15 @@
           <Val><![CDATA[Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you've created will be lost. Do you want to proceed with auto-arranging your schema diagram?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[자동 정렬은 최적의 레이아웃 알고리즘에 따라 모든 다이어그램 요소의 위치를 자동으로 재배치합니다. 여러분이 만든 사용자 지정 위치는 손실됩니다. 스키마 다이어그램을 자동 정렬하시겠습니까?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++a2a46725ee7a38c9f7136bbc583fe472b90c5b22586050da352cc033ca18e346" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure Synapse Analytics]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure Synapse Analytics]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15355,6 +15418,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++b10574f779b09047bedf3228566923bf6ba89edd4f6f08ff15e9a9c0314cfbdb" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Started saving results to {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[결과를 {0}에 저장하기 시작했습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++b1307da140c4be5df01b2bdc2bf078e18eb719d00068b0eb22132d47dbfa869d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Error loading servers]]></Val>
@@ -16183,6 +16255,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++ba9ae98bcb402b5a736ffd9e5da622d3bf7e67b5a7da246d9238029b9d1449ed" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Create an Azure SQL Database (Preview)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure SQL 데이터베이스 만들기(미리 보기)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++baaddf70fb5d432b8bd948ef91d6f910124a6d138edae4d5f000c4610ddc8eae" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Type]]></Val>
@@ -16296,6 +16377,15 @@
           <Val><![CDATA[No connection found for connectionId: {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[connectionId {0}에 대한 연결을 찾을 수 없습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++bb7234ec12451361e6f35bcbe76de58e4350657fe60d1b96ace0947f59194083" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Register]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[등록]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16917,6 +17007,15 @@
           <Val><![CDATA[The name of the check constraint.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[CHECK 제약 조건의 이름입니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++c36cade68fea2c699e5795c527fd1daf085d0b76a5a5bc35526765a1b5d5b974" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Successfully saved results to {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0}에 결과를 저장함]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18424,6 +18523,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++d58bf1f323a38f50b921c7d963ad40d4323ebb5085fc456c8afbcc6542b0eb7a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure SQL databases provisioning]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure SQL 데이터베이스 프로비전]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++d59e5e8f8a4bb3b14eb8af194553158e5dffd648ad462eeafb2f03589da5a8eb" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Entra token cache cleared successfully.]]></Val>
@@ -19635,6 +19743,15 @@
           <Val><![CDATA[Failed to open XEL file: {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[XEL 파일을 열지 못했습니다. {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++e260e08b004d80c5f03f1c487435e7c89ad7277a12212a98f9fd44217e21dd9e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Max vCores]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[최대 vCore]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -23539,6 +23656,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";package.mssql.messages.copyIncludeTimestamps" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[When enabled, Copy All in the query result Messages pane includes message timestamps.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[사용하도록 설정하면 쿼리 결과 메시지 창에서 [모두 복사]5D;를 사용할 때 메시지 타임스탬프도 포함됩니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";package.mssql.messagesDefaultOpen" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[True for the messages pane to be open by default; false for closed]]></Val>
@@ -24345,6 +24471,15 @@
           <Val><![CDATA[When enabled, saved query result exports are opened after export. Excel exports open with the system file handler; text exports open in VS Code.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[사용하도록 설정하면 저장된 쿼리 결과 내보내기가 내보내기 후 열립니다. Excel로 내보낸 파일은 시스템 파일 처리기로 열리고, 텍스트로 내보낸 파일은 VS Code에서 열립니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.results.showCopyNotification" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[When enabled, show a notification after query results are copied to the clipboard.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[사용하도록 설정하면 쿼리 결과를 클립보드에 복사한 후 알림이 표시됩니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

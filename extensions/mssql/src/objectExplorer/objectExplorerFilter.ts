@@ -3,15 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as LocalizedConstants from "../constants/locConstants";
 import * as vscode from "vscode";
 import * as vscodeMssql from "vscode-mssql";
-
 import {
     ObjectExplorerFilterState,
     ObjectExplorerReducers,
 } from "../sharedInterfaces/objectExplorerFilter";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-
 import { WebviewPanelController } from "../controllers/webviewPanelController";
 import { TreeNodeInfo } from "./nodes/treeNodeInfo";
 import { randomUUID } from "crypto";
@@ -46,7 +45,7 @@ export class ObjectExplorerFilterWebviewController extends WebviewPanelControlle
                 nodePath: "",
             },
             {
-                title: vscode.l10n.t("Object Explorer Filter"),
+                title: LocalizedConstants.objectExplorerFilter,
                 viewColumn: vscode.ViewColumn.One,
                 iconPath: {
                     dark: vscode.Uri.joinPath(context.extensionUri, "media", "filter_dark.svg"),

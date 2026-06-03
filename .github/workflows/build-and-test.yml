@@ -54,9 +54,7 @@ jobs:
           if_no_artifact_found: warn
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: "24"
+        uses: ./.github/actions/setup-node
 
       - name: Setup .NET Core # Required to execute ReportGenerator
         uses: actions/setup-dotnet@v5

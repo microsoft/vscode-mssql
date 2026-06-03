@@ -20,7 +20,7 @@ import { sendActionEvent } from "../telemetry/telemetry";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { IConnectionProfile } from "../models/interfaces";
-import { logger2 } from "../models/logger2";
+import { logger } from "../models/logger";
 
 /**
  * Time to wait after opening a document to check if it's the
@@ -44,7 +44,7 @@ function getDocumentSignature(document: vscode.TextDocument): string {
  * Service for creating untitled documents for SQL query
  */
 export default class SqlDocumentService implements vscode.Disposable {
-    private readonly _logger = logger2.withPrefix("SqlDocumentService");
+    private readonly _logger = logger.withPrefix("SqlDocumentService");
     private _disposables: vscode.Disposable[] = [];
     // Track documents created by this service to avoid auto-connecting them on open.
     // WeakSet ensures entries are garbage collected with the documents.

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as LocalizedConstants from "../../constants/locConstants";
 import * as vscode from "vscode";
 import * as vscodeMssql from "vscode-mssql";
 import { NodeInfo } from "../../models/contracts/objectExplorer/nodeInfo";
@@ -232,7 +233,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
         this._updateContextValue();
         this.label =
             value.length > 0
-                ? vscode.l10n.t("{0} (filtered)", this._originalLabel)
+                ? LocalizedConstants.loc0Filtered(this._originalLabel)
                 : this._originalLabel;
     }
 

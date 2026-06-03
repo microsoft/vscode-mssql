@@ -9,7 +9,7 @@ import sinonChai from "sinon-chai";
 import { AzureAccountService } from "../../src/services/azureAccountService";
 import * as sinon from "sinon";
 import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
-import { Logger } from "../../src/models/logger";
+import { ILogger } from "../../src/models/logger";
 import { IAccount } from "vscode-mssql";
 import * as vscode from "vscode";
 import * as armStorage from "@azure/arm-storage";
@@ -31,7 +31,7 @@ chai.use(sinonChai);
 suite("Azure Helpers", () => {
     let sandbox: sinon.SinonSandbox;
     let mockAzureAccountService: AzureAccountService;
-    let mockLogger: sinon.SinonStubbedInstance<Logger>;
+    let mockLogger: sinon.SinonStubbedInstance<ILogger>;
 
     setup(() => {
         sandbox = sinon.createSandbox();

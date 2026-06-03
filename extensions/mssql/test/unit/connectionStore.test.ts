@@ -9,7 +9,7 @@ import * as vscode from "vscode";
 import * as Constants from "../../src/constants/constants";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { CredentialStore } from "../../src/credentialstore/credentialstore";
-import { Logger } from "../../src/models/logger";
+import { ILogger } from "../../src/models/logger";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import {
@@ -27,7 +27,7 @@ suite("ConnectionStore Tests", () => {
     let connectionStore: ConnectionStore;
 
     let mockContext: vscode.ExtensionContext;
-    let mockLogger: sinon.SinonStubbedInstance<Logger>;
+    let mockLogger: sinon.SinonStubbedInstance<ILogger>;
     let mockCredentialStore: sinon.SinonStubbedInstance<CredentialStore>;
     let mockConnectionConfig: sinon.SinonStubbedInstance<ConnectionConfig>;
     let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;

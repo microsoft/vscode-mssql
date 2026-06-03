@@ -53,7 +53,7 @@ import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { changeLanguageServiceForFile } from "../languageservice/utils";
 import { AddFirewallRuleWebviewController } from "./addFirewallRuleWebviewController";
 import { getErrorMessage, uuid } from "../utils/utils";
-import { Logger } from "../models/logger";
+import { ILogger, logger } from "../models/logger";
 import { getServerTypes } from "../models/connectionInfo";
 import * as AzureConstants from "../azure/constants";
 import { ChangePasswordService } from "../services/changePasswordService";
@@ -148,7 +148,7 @@ export default class ConnectionManager {
         private context: vscode.ExtensionContext,
         statusView: StatusView,
         prompter: IPrompter,
-        private _logger?: Logger,
+        private _logger?: ILogger,
         private _client?: SqlToolsServerClient,
         private _vscodeWrapper?: VscodeWrapper,
         private _connectionStore?: ConnectionStore,
@@ -172,7 +172,7 @@ export default class ConnectionManager {
         }
 
         if (!this._logger) {
-            this._logger = Logger.create(this._vscodeWrapper.outputChannel, "ConnectionManager");
+            this._logger = logger.withPrefix("ConnectionManager");
         }
 
         if (!this._credentialStore) {
@@ -653,7 +653,7 @@ export default class ConnectionManager {
                         expiresOn = tokenInfo.token.expiresOn;
                     } else {
                         if (!params.accountId) {
-                            self._logger?.verbose(
+                            self._logger?.debug(
                                 `Cannot refresh token: no accountId provided in refresh request for URI ${params.uri}`,
                             );
                             sendErrorEvent(
@@ -680,7 +680,7 @@ export default class ConnectionManager {
 
                         const account = await self.accountStore.getAccount(params.accountId);
                         if (!account) {
-                            self._logger?.verbose(
+                            self._logger?.debug(
                                 `Cannot refresh token: account ${params.accountId} not found in account store`,
                             );
                             sendErrorEvent(
@@ -792,7 +792,7 @@ export default class ConnectionManager {
                         },
                     );
                 } catch (error) {
-                    self._logger?.verbose(
+                    self._logger?.debug(
                         `Failed to refresh token for URI ${params.uri}: ${getErrorMessage(error)}`,
                     );
 
@@ -1257,7 +1257,7 @@ export default class ConnectionManager {
                     connectionInfo.expiresOn,
                 )
             ) {
-                this._logger?.verbose(
+                this._logger?.debug(
                     `Entra token for account ${connectionInfo.user} (${connectionInfo.email}) is still valid until ${connectionInfo.expiresOn}. No refresh needed.`,
                 );
                 return;
@@ -1298,7 +1298,7 @@ export default class ConnectionManager {
         }
 
         if (!account) {
-            this._logger?.verbose(
+            this._logger?.debug(
                 `No account found in account store for accountId ${connectionInfo.accountId}. Cannot refresh Entra token.`,
             );
 
@@ -1331,7 +1331,7 @@ export default class ConnectionManager {
         connectionInfo.azureAccountToken = undefined;
         connectionInfo.expiresOn = undefined;
 
-        this._logger?.verbose(
+        this._logger?.debug(
             `Using SQL Authentication Provider for MSAL Entra account ${connectionInfo.user} and tenant ${connectionInfo.tenantId}.`,
         );
     }
@@ -2120,7 +2120,7 @@ export default class ConnectionManager {
     }
 
     private async migrateLegacyConnectionProfiles(): Promise<void> {
-        this._logger.logDebug("Beginning migration of legacy connections");
+        this._logger.debug("Beginning migration of legacy connections");
 
         const connections: IConnectionProfile[] =
             await this.connectionStore.readAllConnections(false);
@@ -2137,11 +2137,11 @@ export default class ConnectionManager {
         }
 
         if (tally.migrated > 0) {
-            this._logger.verbose(
+            this._logger.debug(
                 `Completed migration of legacy Connection String connections. (${tally.migrated} migrated, ${tally.notNeeded} not needed, ${tally.error} errored)`,
             );
         } else {
-            this._logger.verbose(
+            this._logger.debug(
                 `No legacy Connection String connections found to migrate. (${tally.notNeeded} not needed, ${tally.error} errored)`,
             );
         }
@@ -2259,14 +2259,14 @@ export default class ConnectionManager {
         params: RequestSecurityTokenParams,
     ): Promise<RequestSecurityTokenResponse> {
         if (params.accountId) {
-            this._logger.verbose("VS Code accounts token request received");
+            this._logger.debug("VS Code accounts token request received");
             try {
                 const tokenInfo = await acquireTokenFromVscodeAccountForResource(
                     getCloudResourceEndpoint("sqlResource"),
                     params.accountId,
                     params.tenantId,
                 );
-                this._logger.verbose("VS Code accounts token acquired successfully");
+                this._logger.debug("VS Code accounts token acquired successfully");
                 return {
                     accountKey: params.accountId,
                     token: tokenInfo.token.token,
@@ -2318,7 +2318,7 @@ export default class ConnectionManager {
             let onSignIn: () => Promise<string | undefined>;
 
             if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
-                this._logger.verbose("AKV token request received (VS Code accounts path)");
+                this._logger.debug("AKV token request received (VS Code accounts path)");
                 getAccounts = async () => {
                     const accounts = await VsCodeAzureHelper.getAccounts();
                     return accounts.map((a) => ({

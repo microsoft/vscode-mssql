@@ -1427,13 +1427,13 @@
     <trans-unit id="++CODE++03cdf40907b9e95ff338fe3d4fd451910410c1dbddd93e543b590a40755e6744">
       <source xml:lang="en">Connecting to your SQL Server Docker container</source>
     </trans-unit>
-    <trans-unit id="++CODE++9b8df2904fd9e25473fed50a3df04dc0629dec82daa72d6085cab8d1c63e4f65">
-      <source xml:lang="en">Connecting to {0}...</source>
-      <note>{0} is the connection display name</note>
-    </trans-unit>
     <trans-unit id="++CODE++fff46800eb59ecbf7114c9c219c3ab0ec39731c5cdf8012a4afbdd334e965254">
       <source xml:lang="en">Connecting to {0}...</source>
       <note>{0} is the server name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++9b8df2904fd9e25473fed50a3df04dc0629dec82daa72d6085cab8d1c63e4f65">
+      <source xml:lang="en">Connecting to {0}...</source>
+      <note>{0} is the connection display name</note>
     </trans-unit>
     <trans-unit id="++CODE++031d95e24e24622c128716284eb67a80331c825272813bf720f2c35a0b18f96c">
       <source xml:lang="en">Connecting to: </source>
@@ -6574,13 +6574,13 @@
     <trans-unit id="++CODE++7363f4432b648a803e2bf468798cf69a7be5bab4b8055e35f6a038afb54be9d7">
       <source xml:lang="en">Source Name</source>
     </trans-unit>
-    <trans-unit id="++CODE++30ecb608c5cff9e821a41d28312d0070cbeb3901bc8e32ecefd17171f87dc53a">
-      <source xml:lang="en">Source: {0}</source>
-      <note>{0} is the task source</note>
-    </trans-unit>
     <trans-unit id="++CODE++7d1b71b2bde7aa8e3125b606f3738980a13371ad3458ddd00b1193d72aad45dd">
       <source xml:lang="en">Source: {0}</source>
       <note>{0} is the fully qualified DAB source object name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++30ecb608c5cff9e821a41d28312d0070cbeb3901bc8e32ecefd17171f87dc53a">
+      <source xml:lang="en">Source: {0}</source>
+      <note>{0} is the task source</note>
     </trans-unit>
     <trans-unit id="++CODE++1e49ea47266ab1130ffc9be417fa6eb62da7299641f30a76e728fe983c25f29d">
       <source xml:lang="en">Specifies whether the column is included in the primary key for the table.</source>
@@ -7963,16 +7963,6 @@
       <source xml:lang="en">{0}/{1} events</source>
       <note>{0} is the filtered count, {1} is the total count</note>
     </trans-unit>
-    <trans-unit id="++CODE++2b85e133b4abad5a9f5b85b3dd903a3f1f84db64680beb66977f6e44743f2434">
-      <source xml:lang="en">{0}: {1}</source>
-      <note>{0} is the task name
-{1} is the status</note>
-    </trans-unit>
-    <trans-unit id="++CODE++be5a4e5aa348f87ea026acec0d4a2d3181a504dad2d924e8a3cb0e229cbdae30">
-      <source xml:lang="en">{0}: {1}</source>
-      <note>{0} is the task status
-{1} is the task message</note>
-    </trans-unit>
     <trans-unit id="++CODE++a2d133c4fbcb2f605ecd460e6639e824d6bc388d75b5df672fd4cbf95d1e71f9">
       <source xml:lang="en">{0}: {1}</source>
       <note>{0} is the column name
@@ -7982,6 +7972,16 @@
       <source xml:lang="en">{0}: {1}</source>
       <note>{0} is the qualified table name
 {1} is the change description</note>
+    </trans-unit>
+    <trans-unit id="++CODE++2b85e133b4abad5a9f5b85b3dd903a3f1f84db64680beb66977f6e44743f2434">
+      <source xml:lang="en">{0}: {1}</source>
+      <note>{0} is the task name
+{1} is the status</note>
+    </trans-unit>
+    <trans-unit id="++CODE++be5a4e5aa348f87ea026acec0d4a2d3181a504dad2d924e8a3cb0e229cbdae30">
+      <source xml:lang="en">{0}: {1}</source>
+      <note>{0} is the task status
+{1} is the task message</note>
     </trans-unit>
     <trans-unit id="++CODE++657a1d2beff87023ec2d92b03f58feb984cb2ea13dc6e7269ed84f0b64158591">
       <source xml:lang="en">{0}: {1}. {2}</source>
@@ -8761,6 +8761,9 @@
     <trans-unit id="mssql.schemaDesigner">
       <source xml:lang="en">Visualize and Design Schema...</source>
     </trans-unit>
+    <trans-unit id="mssql.messages.copyIncludeTimestamps">
+      <source xml:lang="en">When enabled, Copy All in the query result Messages pane includes message timestamps.</source>
+    </trans-unit>
     <trans-unit id="mssql.transferActiveEditorConnections.description">
       <source xml:lang="en">When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.</source>
     </trans-unit>
@@ -8772,6 +8775,9 @@
     </trans-unit>
     <trans-unit id="mssql.results.openAfterSave">
       <source xml:lang="en">When enabled, saved query result exports are opened after export. Excel exports open with the system file handler; text exports open in VS Code.</source>
+    </trans-unit>
+    <trans-unit id="mssql.results.showCopyNotification">
+      <source xml:lang="en">When enabled, show a notification after query results are copied to the clipboard.</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.groupBySchema">
       <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
