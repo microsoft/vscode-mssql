@@ -13,10 +13,10 @@ import * as LocConstants from "../constants/locConstants";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { IConnectionProfile } from "../models/interfaces";
-import { logger as baseLogger } from "../models/logger";
+import { getLogger } from "../models/logger";
 import { getErrorMessage } from "../utils/utils";
 
-const logger = baseLogger.withPrefix("SchemaDesigner");
+const logger = getLogger("SchemaDesigner");
 
 export class SchemaDesignerWebviewManager {
     private static instance: SchemaDesignerWebviewManager;

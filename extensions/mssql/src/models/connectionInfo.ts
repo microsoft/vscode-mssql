@@ -11,9 +11,9 @@ import * as Interfaces from "./interfaces";
 import { getCloudProviderSettings } from "../azure/providerSettings";
 import { getErrorMessage } from "../utils/utils";
 import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
-import { logger as baseLogger } from "./logger";
+import { getLogger } from "./logger";
 
-const logger = baseLogger.withPrefix("ConnectionInfo");
+const logger = getLogger("ConnectionInfo");
 
 /**
  * Sets sensible defaults for key connection properties, especially

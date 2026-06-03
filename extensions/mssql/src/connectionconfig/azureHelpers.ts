@@ -32,7 +32,7 @@ import {
     user,
 } from "../constants/constants";
 import { ILogger } from "../sharedInterfaces/logger";
-import { logger as baseLogger } from "../models/logger";
+import { getLogger } from "../models/logger";
 import { groupQuickPickItems, MssqlQuickPickItem } from "../utils/quickpickHelpers";
 import {
     AlwaysEncryptedEnclaveType,
@@ -70,7 +70,7 @@ import {
 
 export const azureSubscriptionFilterConfigKey = "mssql.selectedAzureSubscriptions";
 export const MANAGED_INSTANCE_PUBLIC_PORT = 3342;
-const azureHelperLogger = baseLogger.withPrefix("AzureHelpers");
+const azureHelperLogger = getLogger("AzureHelpers");
 
 //#region VS Code integration
 

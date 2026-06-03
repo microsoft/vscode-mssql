@@ -5,9 +5,9 @@
 
 import * as vscode from "vscode";
 import { getErrorMessage } from "../utils/utils";
-import { logger as baseLogger } from "../models/logger";
+import { getLogger } from "../models/logger";
 
-const logger = baseLogger.withPrefix("LocalizationCache");
+const logger = getLogger("LocalizationCache");
 
 let localizationFileCache: string | undefined;
 let localizationFileReadPromise: Promise<string | undefined> | undefined;

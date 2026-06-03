@@ -17,9 +17,9 @@ import { FormItemOptions } from "../sharedInterfaces/form";
 import { getErrorMessage } from "../utils/utils";
 import { ProjectPropertiesResult } from "../sharedInterfaces/publishDialog";
 import { CodeAnalysisRuleSeverity } from "../enums";
-import { logger as baseLogger } from "../models/logger";
+import { getLogger } from "../models/logger";
 
-const logger = baseLogger.withPrefix("PublishProject");
+const logger = getLogger("PublishProject");
 
 /**
  * Checks if preview features are enabled in VS Code settings for SQL Database Projects.

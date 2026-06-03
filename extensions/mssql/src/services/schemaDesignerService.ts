@@ -6,9 +6,9 @@
 import { SchemaDesigner } from "../sharedInterfaces/schemaDesigner";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import { SchemaDesignerRequests } from "../models/contracts/schemaDesigner";
-import { logger as baseLogger } from "../models/logger";
+import { getLogger } from "../models/logger";
 
-const logger = baseLogger.withPrefix("SchemaDesignerService");
+const logger = getLogger("SchemaDesignerService");
 
 export class SchemaDesignerService implements SchemaDesigner.ISchemaDesignerService {
     private _modelReadyListeners: ((modelReady: SchemaDesigner.SchemaDesignerSession) => void)[] =

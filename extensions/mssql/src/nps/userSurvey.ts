@@ -15,10 +15,10 @@ import { WebviewPanelController } from "../controllers/webviewPanelController";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { previewService } from "../previews/previewService";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import { logger as baseLogger } from "../models/logger";
+import { getLogger } from "../models/logger";
 import { getErrorMessage } from "../utils/utils";
 
-const logger = baseLogger.withPrefix("UserSurvey");
+const logger = getLogger("UserSurvey");
 
 /** Likelihood that a user is prompted to take the survey, after they've already passed all other checks */
 export const SELECTION_PROBABILITY = 0.15;

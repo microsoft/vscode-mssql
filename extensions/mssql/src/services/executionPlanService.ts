@@ -5,10 +5,10 @@
 
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import { GetExecutionPlanRequest, GetExecutionPlanParams } from "../models/contracts/executionPlan";
-import { logger as baseLogger } from "../models/logger";
+import { getLogger } from "../models/logger";
 import * as ep from "../sharedInterfaces/executionPlan";
 
-const logger = baseLogger.withPrefix("ExecutionPlanService");
+const logger = getLogger("ExecutionPlanService");
 
 export class ExecutionPlanService implements ep.ExecutionPlanService {
     constructor(private _sqlToolsClient: SqlToolsServiceClient) {}

@@ -4,13 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { logger as baseLogger } from "../models/logger";
+import { getLogger } from "../models/logger";
 import { getErrorMessage } from "../utils/utils";
 
 // TODO: Move URI ownership core/coordinator logic to a shared package.
 const PACKAGE_JSON_COMMON_FEATURES_KEY = "vscode-sql-common-features";
 const SET_CONTEXT_COMMAND = "setContext";
-const logger = baseLogger.withPrefix("UriOwnership");
+const logger = getLogger("UriOwnership");
 
 interface UriOwnershipApi {
     ownsUri(uri: vscode.Uri): boolean;

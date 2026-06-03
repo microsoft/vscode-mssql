@@ -17,9 +17,9 @@ import { ApiStatus } from "../sharedInterfaces/webview";
 import * as Loc from "../constants/locConstants";
 import { VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { VSCodeAzureSubscriptionProvider } from "@microsoft/vscode-azext-azureauth";
-import { logger as baseLogger } from "../models/logger";
+import { getLogger } from "../models/logger";
 
-const logger = baseLogger.withPrefix("AddFirewallRule");
+const logger = getLogger("AddFirewallRule");
 
 /**
  * Controller for the Add Firewall Rule dialog

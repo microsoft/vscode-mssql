@@ -25,9 +25,9 @@ import { CapabilitiesResult, GetCapabilitiesRequest } from "../models/contracts/
 import { getErrorMessage } from "../utils/utils";
 import ConnectionManager from "../controllers/connectionManager";
 import { ConnectionDialogWebviewController } from "./connectionDialogWebviewController";
-import { logger as baseLogger } from "../models/logger";
+import { getLogger } from "../models/logger";
 
-const logger = baseLogger.withPrefix("ConnectionComponents");
+const logger = getLogger("ConnectionComponents");
 
 export async function generateConnectionComponents(
     connectionManager: ConnectionManager,

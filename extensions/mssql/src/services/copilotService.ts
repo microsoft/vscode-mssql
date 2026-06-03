@@ -13,9 +13,9 @@ import {
     StartConversationParams,
     LanguageModelChatTool,
 } from "../models/contracts/copilot"; // SQL Copilot
-import { logger as baseLogger } from "../models/logger";
+import { getLogger } from "../models/logger";
 
-const logger = baseLogger.withPrefix("CopilotService");
+const logger = getLogger("CopilotService");
 
 export class CopilotService {
     constructor(private sqlToolsClient: SqlToolsServiceClient) {}

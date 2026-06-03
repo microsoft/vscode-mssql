@@ -9,9 +9,9 @@ import {
     CreateSasRequest,
     CreateSasResponse,
 } from "../models/contracts/azureBlob";
-import { logger as baseLogger } from "../models/logger";
+import { getLogger } from "../models/logger";
 
-const logger = baseLogger.withPrefix("AzureBlobService");
+const logger = getLogger("AzureBlobService");
 
 export class AzureBlobService {
     constructor(private _sqlToolsClient: SqlToolsServiceClient) {}

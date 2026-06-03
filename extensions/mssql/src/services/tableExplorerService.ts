@@ -46,10 +46,10 @@ import {
     EditUpdateCellParams,
     EditUpdateCellResult,
 } from "../sharedInterfaces/tableExplorer";
-import { logger as baseLogger } from "../models/logger";
+import { getLogger } from "../models/logger";
 import { getErrorMessage } from "../utils/utils";
 
-const logger = baseLogger.withPrefix("TableExplorerService");
+const logger = getLogger("TableExplorerService");
 
 /**
  * Interface for the Table Explorer Service that handles table editing operations.

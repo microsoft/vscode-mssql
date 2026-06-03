@@ -212,9 +212,21 @@ export class Logger implements ILogger {
 }
 
 /**
+ * Root shared MSSQL logger instance used to create prefixed loggers.
+ */
+const rootLogger: ILogger = Logger.global();
+
+/**
+ * Gets the shared MSSQL logger, optionally with a prefix.
+ */
+export function getLogger(prefix?: string): ILogger {
+    return prefix ? rootLogger.withPrefix(prefix) : rootLogger;
+}
+
+/**
  * Shared MSSQL logger instance for callers that do not need a custom channel or prefix.
  */
-export const logger: ILogger = Logger.global();
+export const logger: ILogger = getLogger();
 
 export default logger;
 

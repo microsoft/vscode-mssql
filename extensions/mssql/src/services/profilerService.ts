@@ -33,10 +33,10 @@ import {
     StopProfilingRequest,
     StopProfilingResult,
 } from "../models/contracts/profiler";
-import { logger as baseLogger } from "../models/logger";
+import { getLogger } from "../models/logger";
 import { getErrorMessage } from "../utils/utils";
 
-const logger = baseLogger.withPrefix("ProfilerService");
+const logger = getLogger("ProfilerService");
 
 /**
  * Handler function type for profiler events available notification

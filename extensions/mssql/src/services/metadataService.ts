@@ -24,10 +24,10 @@ import {
     TableMetadataParams,
     TableMetadataResult,
 } from "../sharedInterfaces/metadata";
-import { logger as baseLogger } from "../models/logger";
+import { getLogger } from "../models/logger";
 import { getErrorMessage } from "../utils/utils";
 
-const logger = baseLogger.withPrefix("MetadataService");
+const logger = getLogger("MetadataService");
 
 /**
  * Interface for the Metadata Service that handles database metadata operations.

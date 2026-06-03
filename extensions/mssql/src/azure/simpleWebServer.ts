@@ -6,10 +6,10 @@
 import * as http from "http";
 import * as url from "url";
 import { AddressInfo } from "net";
-import { logger as baseLogger } from "../models/logger";
+import { getLogger } from "../models/logger";
 import { getErrorMessage } from "../utils/utils";
 
-const logger = baseLogger.withPrefix("SimpleWebServer");
+const logger = getLogger("SimpleWebServer");
 
 export type WebHandler = (
     req: http.IncomingMessage,

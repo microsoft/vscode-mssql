@@ -14,11 +14,11 @@ import { AzureAuthType, IToken, UserGroup } from "../models/contracts/azure";
 import * as Constants from "./constants";
 import { TokenCredentialWrapper } from "./credentialWrapper";
 import { HttpClient } from "../http/httpClient";
-import { logger as baseLogger } from "../models/logger";
+import { getLogger } from "../models/logger";
 import { getErrorMessage } from "../utils/utils";
 
 const configAzureAD = "azureActiveDirectory";
-const logger = baseLogger.withPrefix("AzureUtils");
+const logger = getLogger("AzureUtils");
 
 /**
  * Helper method to convert azure results that comes as pages to an array

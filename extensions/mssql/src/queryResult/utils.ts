@@ -21,10 +21,10 @@ import { QueryResultWebviewController } from "./queryResultWebViewController";
 import store, { QueryResultSingletonStore } from "./singletonStore";
 import * as LocalizedConstants from "../constants/locConstants";
 import { formatXml } from "../utils/utils";
-import { logger as baseLogger } from "../models/logger";
+import { getLogger } from "../models/logger";
 
 export const MAX_VIEW_COLUMN = 9;
-const logger = baseLogger.withPrefix("QueryResult");
+const logger = getLogger("QueryResult");
 
 export function getNewResultPaneViewColumn(
     uri: string,

@@ -25,7 +25,7 @@ import { getErrorMessage, uuid } from "../utils/utils";
 import { MssqlChatAgent as loc } from "../constants/locConstants";
 import MainController from "../controllers/mainController";
 import { ILogger } from "../sharedInterfaces/logger";
-import { logger as baseLogger } from "../models/logger";
+import { getLogger } from "../models/logger";
 import {
     handleChatCommand,
     commandSkipsConnectionLabels,
@@ -58,8 +58,8 @@ export const createSqlAgentRequestHandler = (
         return () => `conversationUri${idCounter++}`;
     })();
 
-    const getLogger = (() => {
-        const logger = baseLogger.withPrefix("MssqlCopilot");
+    const getRequestLogger = (() => {
+        const logger = getLogger("MssqlCopilot");
 
         return () => logger;
     })();
@@ -71,7 +71,7 @@ export const createSqlAgentRequestHandler = (
         token: vscode.CancellationToken,
     ): Promise<ISqlChatResult> => {
         const correlationId = uuid();
-        const logger = getLogger();
+        const logger = getRequestLogger();
         let conversationUri = getNextConversationUri();
         let connectionUri = vscodeWrapper.activeTextEditorUri;
         logger.debug("In handler");

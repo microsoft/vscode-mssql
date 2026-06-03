@@ -17,9 +17,9 @@ import {
 import * as designer from "../sharedInterfaces/tableDesigner";
 import * as vscode from "vscode";
 import { getErrorMessage } from "../utils/utils";
-import { logger as baseLogger } from "../models/logger";
+import { getLogger } from "../models/logger";
 
-const logger = baseLogger.withPrefix("TableDesignerService");
+const logger = getLogger("TableDesignerService");
 
 export class TableDesignerService implements designer.ITableDesignerService {
     private _progressListeners: ((

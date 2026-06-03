@@ -39,9 +39,9 @@ import {
     RestoreResponse,
 } from "../sharedInterfaces/restore";
 import { TaskExecutionMode } from "../enums";
-import { logger as baseLogger } from "../models/logger";
+import { getLogger } from "../models/logger";
 
-const logger = baseLogger.withPrefix("ObjectManagementService");
+const logger = getLogger("ObjectManagementService");
 
 export class ObjectManagementService {
     constructor(private _client: SqlToolsServiceClient) {}

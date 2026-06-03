@@ -15,9 +15,9 @@ import { IConnectionProfile } from "../models/interfaces";
 import { getUriKey } from "../utils/utils";
 import { ConnectionInfo } from "../controllers/connectionManager";
 import { uriOwnershipCoordinator } from "../extension";
-import { logger as baseLogger } from "../models/logger";
+import { getLogger } from "../models/logger";
 
-const logger = baseLogger.withPrefix("StatusView");
+const logger = getLogger("StatusView");
 
 // Status bar element for each file in the editor
 class FileStatusBar {
