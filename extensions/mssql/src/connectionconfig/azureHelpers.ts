@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { l10n } from "vscode";
 import {
     AzureSubscription,
     AzureTenant,
@@ -13,8 +12,7 @@ import {
     signInToTenant,
     VSCodeAzureSubscriptionProvider,
 } from "@microsoft/vscode-azext-azureauth";
-
-import { Azure as Loc, Common as LocCommon } from "../constants/locConstants";
+import * as LocalizedConstants from "../constants/locConstants";
 import { getCloudProviderSettings } from "../azure/providerSettings";
 import { IAccount, ITenant } from "../models/contracts/azure";
 import { FormItemOptions } from "../sharedInterfaces/form";
@@ -33,7 +31,8 @@ import {
     https,
     user,
 } from "../constants/constants";
-import { Logger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
+import { getLogger } from "../models/logger";
 import { groupQuickPickItems, MssqlQuickPickItem } from "../utils/quickpickHelpers";
 import {
     AlwaysEncryptedEnclaveType,
@@ -71,6 +70,7 @@ import {
 
 export const azureSubscriptionFilterConfigKey = "mssql.selectedAzureSubscriptions";
 export const MANAGED_INSTANCE_PUBLIC_PORT = 3342;
+const azureHelperLogger = getLogger("AzureHelpers");
 
 //#region VS Code integration
 
@@ -98,7 +98,7 @@ export class VsCodeAzureHelper {
                 await vscode.authentication.getAccounts(getConfiguredAuthProviderId()),
             ).sort((a, b) => a.label.localeCompare(b.label));
         } catch (error) {
-            console.error(`Error fetching VS Code accounts: ${getErrorMessage(error)}`);
+            azureHelperLogger.error(`Error fetching VS Code accounts: ${getErrorMessage(error)}`);
         }
 
         if (onlyAllowedForExtension) {
@@ -110,14 +110,14 @@ export class VsCodeAzureHelper {
                     if (tenants.length > 0) {
                         filteredAccounts.push(account);
                     } else {
-                        console.warn(
+                        azureHelperLogger.warn(
                             `No tenants found for account ${account.label}; this may indicate that the MSSQL extension does not have permission to use this account.`,
                         );
                     }
                 } catch (error) {
                     // no-op; failure to get tenants means that the account is not accessible by this extension
-                    console.warn(
-                        `Error fetching tenants for ${account.label}; this may indicate that the MSSQL extension does not have permission to use this account.  Error: ${getErrorMessage(error)}`,
+                    azureHelperLogger.warn(
+                        `Error fetching tenants for ${account.label}; this may indicate that the MSSQL extension does not have permission to use this account. Error: ${getErrorMessage(error)}`,
                     );
                 }
             }
@@ -240,7 +240,7 @@ export class VsCodeAzureHelper {
 
             return tenants.sort((a, b) => a.displayName.localeCompare(b.displayName));
         } catch (error) {
-            console.error("Error fetching tenants for account:", error);
+            azureHelperLogger.error("Error fetching tenants for account", getErrorMessage(error));
             return [];
         }
     }
@@ -289,7 +289,10 @@ export class VsCodeAzureHelper {
                 .filter((name) => name !== "")
                 .sort((a, b) => a.localeCompare(b));
         } catch (error) {
-            console.error("Error fetching resource groups for subscription:", error);
+            azureHelperLogger.error(
+                "Error fetching resource groups for subscription",
+                getErrorMessage(error),
+            );
             return [];
         }
     }
@@ -309,7 +312,10 @@ export class VsCodeAzureHelper {
             const rg = await client.resourceGroups.get(resourceGroupName);
             return rg.location;
         } catch (error) {
-            console.error("Error fetching default location for resource group:", error);
+            azureHelperLogger.error(
+                "Error fetching default location for resource group",
+                getErrorMessage(error),
+            );
             return "";
         }
     }
@@ -335,7 +341,10 @@ export class VsCodeAzureHelper {
                 .filter((loc) => loc.name !== "")
                 .sort((a, b) => a.displayName.localeCompare(b.displayName));
         } catch (error) {
-            console.error("Error fetching locations for subscription:", error);
+            azureHelperLogger.error(
+                "Error fetching locations for subscription",
+                getErrorMessage(error),
+            );
             return [];
         }
     }
@@ -383,7 +392,10 @@ export class VsCodeAzureHelper {
 
             return servers.sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
         } catch (error) {
-            console.error("Error fetching logical servers for resource group:", error);
+            azureHelperLogger.error(
+                "Error fetching logical servers for resource group",
+                getErrorMessage(error),
+            );
             return [];
         }
     }
@@ -407,6 +419,7 @@ export class VsCodeAzureHelper {
             };
             freeLimitExhaustionBehavior?: KnownFreeLimitExhaustionBehavior;
             useFreeLimit?: boolean;
+            maxVcores?: string;
         },
     ): Promise<Database> {
         const sql = new SqlManagementClient(subscription.credential, subscription.subscriptionId, {
@@ -415,13 +428,15 @@ export class VsCodeAzureHelper {
 
         const server = await sql.servers.get(resourceGroupName, serverName);
 
+        const skuName = options.maxVcores ? `GP_S_Gen5_${options.maxVcores}` : "GP_S_Gen5";
+
         const freeOfferOptions = options.useFreeLimit
             ? {
                   sku: {
-                      name: "GP_S_Gen5",
+                      name: skuName,
                       tier: "GeneralPurpose",
                       family: "Gen5",
-                      capacity: 2,
+                      capacity: options.maxVcores ? Number(options.maxVcores) : 2,
                   },
                   autoPauseDelay: 60,
                   minCapacity: 0.5,
@@ -610,8 +625,11 @@ export class VsCodeAzureHelper {
 
             return listAllIterator(storage.storageAccounts.list());
         } catch (error) {
-            console.error("Error fetching storage accounts for subscription:", error);
-            throw new Error(error.message);
+            azureHelperLogger.error(
+                "Error fetching storage accounts for subscription",
+                getErrorMessage(error),
+            );
+            throw new Error(getErrorMessage(error));
         }
     }
 
@@ -644,7 +662,10 @@ export class VsCodeAzureHelper {
                 storage.blobContainers.list(storageAccountResourceGroup, storageAccount.name),
             );
         } catch (error) {
-            console.error("Error fetching blob containers for storage account:", error);
+            azureHelperLogger.error(
+                "Error fetching blob containers for storage account",
+                getErrorMessage(error),
+            );
             throw error;
         }
     }
@@ -698,7 +719,7 @@ export class VsCodeAzureHelper {
 
             return blobs;
         } catch (error) {
-            console.error("Error fetching blobs for container:", error);
+            azureHelperLogger.error("Error fetching blobs for container", getErrorMessage(error));
             throw error;
         }
     }
@@ -745,7 +766,7 @@ export class VsCodeAzureHelper {
                 storageAccount.name,
             );
         } catch (error) {
-            console.error("Error fetching storage account keys:", error);
+            azureHelperLogger.error("Error fetching storage account keys", getErrorMessage(error));
             throw error;
         }
     }
@@ -775,7 +796,7 @@ export class VsCodeAzureHelper {
                         serverEntry.server?.replace(`${server.name}.`, `${server.name}.public.`) +
                         `,${MANAGED_INSTANCE_PUBLIC_PORT}`;
 
-                    const publicDisplayName = `${serverEntry.displayName} (${LocCommon.publicString})`;
+                    const publicDisplayName = `${serverEntry.displayName} (${LocalizedConstants.Common.publicString})`;
                     const publicServerEntry: AzureSqlServerInfo = {
                         ...serverEntry,
                         id: publicDisplayName,
@@ -785,7 +806,7 @@ export class VsCodeAzureHelper {
                     serverMap.set(publicDisplayName.toLowerCase(), publicServerEntry);
 
                     // Label the existing endpoint as private
-                    const privateDisplayName = `${serverEntry.displayName} (${LocCommon.privateString})`;
+                    const privateDisplayName = `${serverEntry.displayName} (${LocalizedConstants.Common.privateString})`;
                     serverEntry.id = privateDisplayName;
                     serverEntry.displayName = privateDisplayName;
                 }
@@ -864,13 +885,13 @@ export const VsCodeAzureAuth = {
  */
 export async function promptForAzureSubscriptionFilter(
     state: ConnectionDialogWebviewState,
-    logger: Logger,
+    logger: ILogger,
 ): Promise<boolean> {
     try {
         const result = await VsCodeAzureHelper.signIn();
 
         if (!result?.auth) {
-            state.formMessage = { message: l10n.t("Azure sign in failed.") };
+            state.formMessage = { message: LocalizedConstants.azureSignInFailed };
             return false;
         }
 
@@ -879,7 +900,7 @@ export async function promptForAzureSubscriptionFilter(
             {
                 canPickMany: true,
                 ignoreFocusOut: true,
-                placeHolder: l10n.t("Select subscriptions"),
+                placeHolder: LocalizedConstants.selectSubscriptions,
             },
         );
 
@@ -895,7 +916,7 @@ export async function promptForAzureSubscriptionFilter(
 
         return true;
     } catch (error) {
-        state.formMessage = { message: l10n.t("Error loading Azure subscriptions.") };
+        state.formMessage = { message: LocalizedConstants.errorLoadingAzureSubscriptions };
         logger.error(state.formMessage.message + "\n" + getErrorMessage(error));
         return false;
     }
@@ -947,7 +968,7 @@ export enum MaintenanceSchedule {
 
 export async function getAccounts(
     azureAccountService: AzureAccountService,
-    logger: Logger,
+    logger: ILogger,
 ): Promise<FormItemOptions[]> {
     let accounts: IAccount[] = [];
     try {
@@ -989,7 +1010,7 @@ export async function getAccounts(
 export async function getTenants(
     azureAccountService: AzureAccountService,
     accountId: string,
-    logger: Logger,
+    logger: ILogger,
 ): Promise<FormItemOptions[]> {
     let tenants: ITenant[] = [];
 
@@ -1065,7 +1086,11 @@ export async function constructAzureAccountForTenant(azureAccountInfo: {
     const sub = subs.filter((s) => s.tenantId === azureAccountInfo.tenantId)[0];
 
     if (!sub) {
-        throw new Error(Loc.errorLoadingAzureAccountInfoForTenantId(azureAccountInfo.tenantId));
+        throw new Error(
+            LocalizedConstants.Azure.errorLoadingAzureAccountInfoForTenantId(
+                azureAccountInfo.tenantId,
+            ),
+        );
     }
 
     const token = await sub.credential.getToken(".default");

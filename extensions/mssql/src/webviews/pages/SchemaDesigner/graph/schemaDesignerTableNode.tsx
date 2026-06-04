@@ -40,7 +40,6 @@ import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import eventBus from "../schemaDesignerEvents";
 import { NODE_WIDTH } from "../model";
-import * as l10n from "@vscode/l10n";
 import { ForeignKeyIcon } from "../../../common/icons/foreignKey";
 import { PrimaryKeyIcon } from "../../../common/icons/primaryKey";
 import { mergeColumnsWithDeleted } from "../diff/deletedVisualUtils";
@@ -732,8 +731,8 @@ const TableColumns = ({
     const hiddenColumns = isCollapsedView ? mergedColumns.slice(10) : [];
     const hiddenHandleColumns = hiddenColumns;
 
-    const EXPAND = l10n.t("Expand");
-    const COLLAPSE = l10n.t("Collapse");
+    const EXPAND = locConstants.common.expand;
+    const COLLAPSE = locConstants.common.collapse;
 
     return (
         <div style={{ position: "relative" }}>

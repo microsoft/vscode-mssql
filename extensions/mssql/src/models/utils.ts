@@ -13,6 +13,7 @@ import * as LocalizedConstants from "../constants/locConstants";
 import * as fs from "fs";
 import { AzureAuthType } from "./contracts/azure";
 import { IConnectionInfo } from "vscode-mssql";
+import { ILogger } from "../sharedInterfaces/logger";
 
 // CONSTANTS //////////////////////////////////////////////////////////////////////////////////////
 const msInH = 3.6e6;
@@ -65,17 +66,6 @@ export function getActiveTextEditorUri(): string {
         return vscode.window.activeTextEditor.document.uri.toString();
     }
     return "";
-}
-
-// Helper to log debug messages
-export function logDebug(msg: any): void {
-    let config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
-    let logDebugInfo = config.get(Constants.configLogDebugInfo);
-    if (logDebugInfo === true) {
-        let currentTime = new Date().toLocaleTimeString();
-        let outputMsg = "[" + currentTime + "]: " + msg ? msg.toString() : "";
-        console.log(outputMsg);
-    }
 }
 
 // Helper to show an info message
@@ -663,18 +653,19 @@ export function getCommonLaunchArgsAndCleanupOldLogFiles(
     executablePath: string,
     logPath: string,
     fileName: string,
+    logger?: ILogger,
 ): string[] {
     let launchArgs = [];
     launchArgs.push("--log-file");
     let logFile = path.join(logPath, fileName);
     launchArgs.push(logFile);
 
-    console.log(`logFile for ${path.basename(executablePath)} is ${logFile}`);
+    logger?.debug(`logFile for ${path.basename(executablePath)} is ${logFile}`);
     // Delete old log files
     let deletedLogFiles = removeOldLogFiles(logPath, fileName);
-    console.log(`Old log files deletion report: ${JSON.stringify(deletedLogFiles)}`);
-    console.log(
-        `This process (ui Extenstion Host) for ${path.basename(executablePath)} is pid: ${process.pid}`,
+    logger?.debug(`Old log files deletion report: ${JSON.stringify(deletedLogFiles)}`);
+    logger?.debug(
+        `This process (ui Extension Host) for ${path.basename(executablePath)} is pid: ${process.pid}`,
     );
     launchArgs.push("--tracing-level");
     launchArgs.push(getConfigTracingLevel());

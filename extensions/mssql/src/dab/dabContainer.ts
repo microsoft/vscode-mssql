@@ -145,7 +145,7 @@ export async function startDabDockerContainer(
     configFilePath: string,
 ): Promise<DockerCommandParams> {
     try {
-        dockerLogger.appendLine(
+        dockerLogger.info(
             `Starting DAB container: ${containerName} on port ${port} with config ${configFilePath}`,
         );
 
@@ -190,13 +190,13 @@ export async function startDabDockerContainer(
 
         await container.start();
 
-        dockerLogger.appendLine(`DAB container ${containerName} started successfully.`);
+        dockerLogger.info(`DAB container ${containerName} started successfully.`);
         return {
             success: true,
             port,
         };
     } catch (e) {
-        dockerLogger.appendLine(`Failed to start DAB container: ${getErrorMessage(e)}`);
+        dockerLogger.info(`Failed to start DAB container: ${getErrorMessage(e)}`);
         return {
             success: false,
             error: LocalContainers.dabStartContainerError,
@@ -220,9 +220,7 @@ export async function checkIfDabContainerIsReady(
     const intervalMs = 1000;
     const start = Date.now();
 
-    dockerLogger.appendLine(
-        `Checking if DAB container ${containerName} is ready on port ${port}...`,
-    );
+    dockerLogger.info(`Checking if DAB container ${containerName} is ready on port ${port}...`);
 
     const logStream = await startContainerLogStream(containerName).catch(() => undefined);
 
@@ -231,7 +229,7 @@ export async function checkIfDabContainerIsReady(
         const filteredLogs = filterDabContainerLogsForDisplay(logs);
 
         if (logStream?.hasLaunchFailure()) {
-            dockerLogger.appendLine(`DAB container logs:\n${logs}`);
+            dockerLogger.info(`DAB container logs:\n${logs}`);
             return {
                 success: false,
                 error: dabLaunchFailureText,
@@ -243,7 +241,7 @@ export async function checkIfDabContainerIsReady(
         // Check timeout before polling
         if (Date.now() - start > timeoutMs) {
             if (logs) {
-                dockerLogger.appendLine(`DAB container logs:\n${logs}`);
+                dockerLogger.info(`DAB container logs:\n${logs}`);
             }
             return {
                 success: false,
@@ -262,7 +260,7 @@ export async function checkIfDabContainerIsReady(
 
             // DAB returns various status codes, but any response means it's running
             if (response.status >= 200 && response.status < 500) {
-                dockerLogger.appendLine(
+                dockerLogger.info(
                     `DAB container ${containerName} is ready! (HTTP ${response.status})`,
                 );
                 return { success: true, port };
@@ -293,24 +291,24 @@ export async function stopAndRemoveDabContainer(
     try {
         const container = await getContainerByName(containerName);
         if (!container) {
-            dockerLogger.appendLine(`DAB container ${containerName} does not exist.`);
+            dockerLogger.info(`DAB container ${containerName} does not exist.`);
             return { success: true }; // Container doesn't exist, consider it removed
         }
 
-        dockerLogger.appendLine(`Stopping DAB container: ${containerName}`);
+        dockerLogger.info(`Stopping DAB container: ${containerName}`);
         try {
             await container.stop();
         } catch {
             // Container might already be stopped
         }
 
-        dockerLogger.appendLine(`Removing DAB container: ${containerName}`);
+        dockerLogger.info(`Removing DAB container: ${containerName}`);
         await container.remove();
 
-        dockerLogger.appendLine(`DAB container ${containerName} stopped and removed.`);
+        dockerLogger.info(`DAB container ${containerName} stopped and removed.`);
         return { success: true };
     } catch (e) {
-        dockerLogger.appendLine(`Failed to stop/remove DAB container: ${getErrorMessage(e)}`);
+        dockerLogger.info(`Failed to stop/remove DAB container: ${getErrorMessage(e)}`);
         return {
             success: false,
             error: LocalContainers.dabStopContainerError,

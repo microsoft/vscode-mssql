@@ -13,7 +13,7 @@ import {
 import { getDefaultTenantId, VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
 import { AzureSqlDatabase, ConnectionDialog } from "../constants/locConstants";
-import { Logger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
 import * as asd from "../sharedInterfaces/azureSqlDatabase";
 import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { FormItemActionButton, FormItemOptions, FormItemType } from "../sharedInterfaces/form";
@@ -33,7 +33,7 @@ import {
 
 // Cached logger reference for use in helper functions that don't have
 // direct access to the controller's protected logger.
-let cachedLogger: Logger | undefined;
+let cachedLogger: ILogger | undefined;
 
 const FIREWALL_ERROR_CODE = 40615;
 
@@ -187,7 +187,7 @@ export function applyServerAuthSettings(
 export async function initializeAzureSqlDatabaseState(
     deploymentController: DeploymentWebviewController,
     groupOptions: FormItemOptions[],
-    logger: Logger,
+    logger: ILogger,
     selectedGroupId: string | undefined,
 ): Promise<asd.AzureSqlDatabaseState> {
     cachedLogger = logger;
@@ -212,6 +212,7 @@ export async function initializeAzureSqlDatabaseState(
         maintenanceConfig: "",
         dataSource: "",
         enableAlwaysEncrypted: false,
+        maxVcores: "2",
     };
 
     deploymentController.state.deploymentTypeState = state;
@@ -359,6 +360,7 @@ export function registerAzureSqlDatabaseReducers(
                                 : undefined,
                         freeLimitExhaustionBehavior: azureSqlState.formState.freeLimitBehavior,
                         useFreeLimit: true,
+                        maxVcores: azureSqlState.formState.maxVcores,
                     },
                 );
 
@@ -837,7 +839,7 @@ export async function connectToAzureSqlDatabase(
                 firewallRuleCreated = true;
             }
 
-            cachedLogger?.log(
+            cachedLogger?.trace(
                 `Connection attempt ${attempt}/${maxRetries} failed (firewall not yet propagated), retrying in ${retryDelayMs / 1000}s...`,
             );
             await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
@@ -1320,6 +1322,18 @@ function setAzureSqlDatabaseFormComponents(
             type: FormItemType.Checkbox,
             isAdvancedOption: true,
             componentWidth: "350px",
+        }),
+        maxVcores: createFormItem({
+            propertyName: "maxVcores",
+            label: AzureSqlDatabase.maxVcores,
+            type: FormItemType.Dropdown,
+            options: [
+                { displayName: "1", value: "1" },
+                { displayName: "2", value: "2" },
+                { displayName: "4", value: "4" },
+            ],
+            isAdvancedOption: true,
+            placeholder: AzureSqlDatabase.selectMaxVcores,
         }),
     };
 }

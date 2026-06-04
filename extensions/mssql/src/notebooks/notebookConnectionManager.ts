@@ -14,7 +14,7 @@ import { generateQueryUri } from "../models/utils";
 import * as LocalizedConstants from "../constants/locConstants";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions, ActivityStatus } from "../sharedInterfaces/telemetry";
-import { ILogger2 } from "../models/logger2";
+import { ILogger } from "../sharedInterfaces/logger";
 import { NotebookQueryExecutor, NotebookQueryResult } from "./notebookQueryExecutor";
 
 /**
@@ -38,7 +38,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
     private connectionUri: string | undefined;
     private connectionInfo: IConnectionInfo | undefined;
     private connectionLabel: string = "";
-    private log: ILogger2;
+    private log: ILogger;
     private readonly queryExecutor: NotebookQueryExecutor;
 
     /**
@@ -65,7 +65,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
     constructor(
         private connectionMgr: ConnectionManager,
         private connectionSharingService: ConnectionSharingService,
-        log: ILogger2,
+        log: ILogger,
         client?: SqlToolsServiceClient,
         notificationHandler?: QueryNotificationHandler,
     ) {

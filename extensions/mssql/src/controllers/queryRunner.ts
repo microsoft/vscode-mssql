@@ -59,6 +59,8 @@ import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { SelectionSummary } from "../sharedInterfaces/queryResult";
 import { bucketizeRowCount, getInMemoryGridDataProcessingThreshold } from "../queryResult/utils";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger } from "../models/logger";
 
 export interface IResultSet {
     columns: string[];
@@ -147,6 +149,7 @@ export default class QueryRunner {
     private _onSummaryChangedEmitter: vscode.EventEmitter<SummaryChanged> =
         new vscode.EventEmitter<SummaryChanged>();
     public onSummaryChanged: vscode.Event<SummaryChanged> = this._onSummaryChangedEmitter.event;
+    private _logger: ILogger = logger.withPrefix("QueryRunner");
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
 
@@ -425,9 +428,7 @@ export default class QueryRunner {
     }
 
     public setupQueryExecution(_selection: ISelectionData): void {
-        this._vscodeWrapper.logToOutputChannel(
-            LocalizedConstants.msgStartedExecute(this._ownerUri),
-        );
+        this._logger.info(LocalizedConstants.msgStartedExecute(this._ownerUri));
         this._isExecuting = true;
         this._totalElapsedMilliseconds = 0;
         // Update the status view to show that we're executing
@@ -440,9 +441,7 @@ export default class QueryRunner {
 
     // handle the result of the notification
     public handleQueryComplete(result: QueryExecuteCompleteNotificationResult): void {
-        this._vscodeWrapper.logToOutputChannel(
-            LocalizedConstants.msgFinishedExecute(this._ownerUri),
-        );
+        this._logger.info(LocalizedConstants.msgFinishedExecute(this._ownerUri));
 
         // Store the batch sets we got back as a source of "truth"
         this._isExecuting = false;
@@ -844,9 +843,11 @@ export default class QueryRunner {
                         await this.writeStringToClipboard(result.content);
                     }
 
-                    vscode.window.showInformationMessage(
-                        LocalizedConstants.resultsCopiedToClipboard,
-                    );
+                    if (this.shouldShowCopyNotification()) {
+                        vscode.window.showInformationMessage(
+                            LocalizedConstants.resultsCopiedToClipboard,
+                        );
+                    }
                     resolve();
                 } catch (error) {
                     // Don't show error if cancelled
@@ -992,6 +993,15 @@ export default class QueryRunner {
 
     private _requestID: string;
     private _cancelConfirmation: Deferred<void>;
+
+    private shouldShowCopyNotification(): boolean {
+        const config = this._vscodeWrapper.getConfiguration(
+            Constants.extensionConfigSectionName,
+            this.uri,
+        );
+        return config.get<boolean>(Constants.configResultsShowCopyNotification, true);
+    }
+
     public async generateSelectionSummaryData(
         selections: ISlickRange[],
         batchId: number,

@@ -39,6 +39,7 @@ export const FabricBrowsePage = () => {
         return undefined;
     }
 
+    const log = context.log;
     const styles = useStyles();
 
     function setConnectionProperty(propertyName: keyof IConnectionDialogProfile, value: string) {
@@ -78,8 +79,15 @@ export const FabricBrowsePage = () => {
                 setConnectionProperty("authenticationType", AuthenticationType.AzureMFA);
 
                 return;
+            case SqlArtifactTypes.Warehouse:
+                setConnectionProperty("server", database.server);
+                setConnectionProperty("database", database.displayName);
+                setConnectionProperty("profileName", generateProfileName(database));
+                setConnectionProperty("authenticationType", AuthenticationType.AzureMFA);
+
+                return;
             default:
-                context!.log("Unknown server type selected.", "error");
+                log.error("Unknown server type selected.");
         }
     }
 

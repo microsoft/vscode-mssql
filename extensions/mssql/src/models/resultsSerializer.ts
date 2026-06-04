@@ -14,6 +14,8 @@ import SqlToolsServerClient from "../languageservice/serviceclient";
 import * as Contracts from "./contracts";
 import * as Utils from "./utils";
 import opener from "opener";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger } from "./logger";
 
 export type SaveAsRequestParams =
     | Contracts.SaveResultsAsCsvRequestParams
@@ -29,6 +31,7 @@ export default class ResultsSerializer {
     private _vscodeWrapper: VscodeWrapper;
     private _uri: string;
     private _filePath: string;
+    private _logger: ILogger = logger.withPrefix("ResultsSerializer");
 
     constructor(client?: SqlToolsServerClient, vscodeWrapper?: VscodeWrapper) {
         if (client) {
@@ -209,6 +212,37 @@ export default class ResultsSerializer {
         return config.get<boolean>(Constants.configResultsOpenAfterSave, true);
     }
 
+    private getRevealFileActionLabel(): string {
+        if (process.platform === "darwin") {
+            return LocalizedConstants.Common.revealInFinder;
+        }
+        if (process.platform === "win32") {
+            return LocalizedConstants.Common.revealInExplorer;
+        }
+        return LocalizedConstants.Common.openContainingFolder;
+    }
+
+    private showSaveSucceededNotification(filePath: string, format: string): void {
+        const openFileAction = LocalizedConstants.Common.openFile;
+        const revealFileAction = this.getRevealFileActionLabel();
+        void this._vscodeWrapper
+            .showInformationMessage(
+                LocalizedConstants.msgSaveSucceeded(filePath),
+                openFileAction,
+                revealFileAction,
+            )
+            .then((action) => {
+                if (action === openFileAction) {
+                    this.openSavedFile(filePath, format);
+                } else if (action === revealFileAction) {
+                    void this._vscodeWrapper.executeCommand(
+                        "revealFileInOS",
+                        vscode.Uri.file(filePath),
+                    );
+                }
+            });
+    }
+
     /**
      * Send request to sql tools service to save a result set
      */
@@ -242,25 +276,19 @@ export default class ResultsSerializer {
             type = Contracts.SaveResultsAsInsertRequest.type;
         }
 
-        self._vscodeWrapper.logToOutputChannel(LocalizedConstants.msgSaveStarted + this._filePath);
+        self._logger.info(LocalizedConstants.msgSaveStarted(this._filePath));
 
         // send message to the sqlserverclient for converting results to the requested format and saving to filepath
         return self._client.sendRequest(type, saveResultsParams).then(
             (result) => {
                 if (result.messages) {
                     self._vscodeWrapper.showErrorMessage(
-                        LocalizedConstants.msgSaveFailed + result.messages,
+                        LocalizedConstants.msgSaveFailed(result.messages),
                     );
-                    self._vscodeWrapper.logToOutputChannel(
-                        LocalizedConstants.msgSaveFailed + result.messages,
-                    );
+                    self._logger.error(LocalizedConstants.msgSaveFailed(result.messages));
                 } else {
-                    self._vscodeWrapper.showInformationMessage(
-                        LocalizedConstants.msgSaveSucceeded + this._filePath,
-                    );
-                    self._vscodeWrapper.logToOutputChannel(
-                        LocalizedConstants.msgSaveSucceeded + filePath,
-                    );
+                    self.showSaveSucceededNotification(this._filePath, format);
+                    self._logger.info(LocalizedConstants.msgSaveSucceeded(filePath));
                     if (self.shouldOpenSavedFile()) {
                         self.openSavedFile(self._filePath, format);
                     }
@@ -268,11 +296,9 @@ export default class ResultsSerializer {
             },
             (error) => {
                 self._vscodeWrapper.showErrorMessage(
-                    LocalizedConstants.msgSaveFailed + error.message,
+                    LocalizedConstants.msgSaveFailed(error.message),
                 );
-                self._vscodeWrapper.logToOutputChannel(
-                    LocalizedConstants.msgSaveFailed + error.message,
-                );
+                self._logger.error(LocalizedConstants.msgSaveFailed(error.message));
             },
         );
     }
@@ -305,7 +331,7 @@ export default class ResultsSerializer {
             },
             (error) => {
                 self._vscodeWrapper.showErrorMessage(error.message);
-                self._vscodeWrapper.logToOutputChannel(error.message);
+                self._logger.error(error.message);
             },
         );
     }

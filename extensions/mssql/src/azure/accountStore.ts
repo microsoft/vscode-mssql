@@ -8,20 +8,21 @@ import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
 import * as Loc from "../constants/locConstants";
 import { IAccount } from "../models/contracts/azure";
-import { Logger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger } from "../models/logger";
 import { Deferred } from "../protocol";
 import { getErrorMessage } from "../utils/utils";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 
 export class AccountStore {
     public readonly initialized: Deferred<void> = new Deferred<void>();
-    private readonly _logger: Logger;
+    private readonly _logger: ILogger;
 
     constructor(
         private _context: vscode.ExtensionContext,
         private _vscodeWrapper: VscodeWrapper,
     ) {
-        this._logger = Logger.create(this._vscodeWrapper.outputChannel, "AccountStore");
+        this._logger = logger.withPrefix("AccountStore");
 
         void this.initialize().then(() => {
             this.initialized.resolve();

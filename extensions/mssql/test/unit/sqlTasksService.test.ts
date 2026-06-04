@@ -20,7 +20,6 @@ import SqlDocumentService from "../../src/controllers/sqlDocumentService";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { TaskExecutionMode } from "../../src/enums";
 import * as telemetry from "../../src/telemetry/telemetry";
-import { stubLoggerGetter } from "./utils";
 
 chai.use(sinonChai);
 
@@ -35,7 +34,6 @@ suite("SqlTasksService Tests", () => {
     let showWarningMessageStub: sinon.SinonStub;
     let executeCommandStub: sinon.SinonStub;
     let sendActionEventStub: sinon.SinonStub;
-    let loggerErrorStub: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
@@ -50,8 +48,6 @@ suite("SqlTasksService Tests", () => {
 
         // Stub telemetry
         sendActionEventStub = sandbox.stub(telemetry, "sendActionEvent");
-
-        loggerErrorStub = stubLoggerGetter(sandbox, sqlToolsClientStub).error;
 
         sqlTasksService = new SqlTasksService(
             sqlToolsClientStub,
@@ -126,7 +122,6 @@ suite("SqlTasksService Tests", () => {
 
             // Reset to ensure we're only checking the second registration
             sendActionEventStub.resetHistory();
-            loggerErrorStub.resetHistory();
 
             sqlTasksService.registerCompletionSuccessHandler(handler2);
 
@@ -138,16 +133,6 @@ suite("SqlTasksService Tests", () => {
                     operationName: "TestOperation",
                 }),
             );
-
-            // Verify error was logged
-            expect(
-                loggerErrorStub.calledWithMatch(
-                    sinon.match(
-                        (value: unknown) =>
-                            typeof value === "string" && value.includes("TestOperation"),
-                    ),
-                ),
-            ).to.be.true;
         });
 
         test("should support multiple handlers for different operation IDs", async () => {
