@@ -19,6 +19,7 @@
     "Public": "Public",
     "Private": "Private",
     "Remove": "Remove",
+    "SQL Tools (MSSQL)": "SQL Tools (MSSQL)",
     "Create Database": "Create Database",
     "Drop Database": "Drop Database",
     "Rename Database": "Rename Database",

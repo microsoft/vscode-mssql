@@ -27,7 +27,7 @@ export default class DotnetRuntimeProvider {
      */
     public async acquireDotnetRuntime(runtimeConfigPath: string): Promise<string> {
         try {
-            const runtimeVersion = await this.getRuntimeVersion(runtimeConfigPath);
+            const runtimeRequirement = await this.getRuntimeRequirement(runtimeConfigPath);
             const extension = vscode.extensions.getExtension(Constants.dotnetRuntimeExtensionId);
             if (!extension) {
                 this._logger.error("The .NET runtime extension is not installed");
@@ -37,9 +37,9 @@ export default class DotnetRuntimeProvider {
             const result = await vscode.commands.executeCommand<{ dotnetPath: string }>(
                 Constants.dotnetAcquireCommand,
                 {
-                    version: runtimeVersion,
+                    version: runtimeRequirement.version,
                     requestingExtensionId: Constants.extensionId,
-                    mode: "runtime",
+                    mode: runtimeRequirement.mode,
                     forceUpdate: true,
                 },
             );
@@ -55,19 +55,41 @@ export default class DotnetRuntimeProvider {
         throw new Error(ServiceClient.runtimeNotFoundError);
     }
 
-    private async getRuntimeVersion(runtimeConfigPath: string): Promise<string> {
+    private async getRuntimeRequirement(
+        runtimeConfigPath: string,
+    ): Promise<DotnetRuntimeRequirement> {
         try {
             const runtimeConfig = JSON.parse(await fs.readFile(runtimeConfigPath, "utf-8")) as {
                 runtimeOptions?: {
-                    framework?: {
-                        name?: string;
-                        version?: string;
-                    };
+                    framework?: DotnetFrameworkRequirement;
+                    frameworks?: DotnetFrameworkRequirement[];
                 };
             };
-            const framework = runtimeConfig.runtimeOptions?.framework;
-            if (framework?.name === "Microsoft.NETCore.App" && framework.version) {
-                return framework.version;
+
+            const frameworks = [
+                ...(runtimeConfig.runtimeOptions?.framework
+                    ? [runtimeConfig.runtimeOptions.framework]
+                    : []),
+                ...(runtimeConfig.runtimeOptions?.frameworks ?? []),
+            ];
+            const aspNetCoreFramework = frameworks.find(
+                (framework) => framework.name === "Microsoft.AspNetCore.App" && framework.version,
+            );
+            if (aspNetCoreFramework?.version) {
+                return {
+                    mode: "aspnetcore",
+                    version: aspNetCoreFramework.version,
+                };
+            }
+
+            const netCoreFramework = frameworks.find(
+                (framework) => framework.name === "Microsoft.NETCore.App" && framework.version,
+            );
+            if (netCoreFramework?.version) {
+                return {
+                    mode: "runtime",
+                    version: netCoreFramework.version,
+                };
             }
         } catch (err) {
             this._logger.error(
@@ -78,7 +100,17 @@ export default class DotnetRuntimeProvider {
         }
 
         throw new Error(
-            `Unable to find Microsoft.NETCore.App version in runtime config: ${runtimeConfigPath}`,
+            `Unable to find supported .NET runtime framework in runtime config: ${runtimeConfigPath}`,
         );
     }
+}
+
+interface DotnetFrameworkRequirement {
+    name?: string;
+    version?: string;
+}
+
+interface DotnetRuntimeRequirement {
+    mode: "runtime" | "aspnetcore";
+    version: string;
 }

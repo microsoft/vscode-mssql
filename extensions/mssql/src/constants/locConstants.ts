@@ -31,6 +31,10 @@ export class Common {
     public static remove = l10n.t("Remove");
 }
 
+export class SqlToolsMcp {
+    public static serverLabel = l10n.t("SQL Tools (MSSQL)");
+}
+
 export let createDatabaseDialogTitle = l10n.t("Create Database");
 export let dropDatabaseDialogTitle = l10n.t("Drop Database");
 export let renameDatabaseDialogTitle = l10n.t("Rename Database");
