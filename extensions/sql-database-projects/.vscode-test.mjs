@@ -8,6 +8,10 @@ const mocha = createMochaConfig({
     timeout: 30_000,
 });
 
+// TODO: Workaround for macOS CI EINVAL error — revert once the upstream VS Code issue is fixed.
+// A recent VS Code build changed the socket filename format (e.g. "1.12-main.sock"), pushing the
+// default .vscode-test/user-data/ path over macOS's hard 103-char Unix socket path limit.
+// Tracked in: https://github.com/microsoft/vscode/issues/319752
 // Use a short temp user-data-dir to avoid macOS's 103-char Unix socket path limit.
 // The "sql-database-projects" directory name makes the default path too long on CI.
 const tmpBaseDir = process.platform === "darwin" ? "/tmp" : os.tmpdir();
