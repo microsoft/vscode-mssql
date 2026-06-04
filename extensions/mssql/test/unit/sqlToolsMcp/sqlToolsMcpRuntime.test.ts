@@ -321,7 +321,7 @@ suite("SQL Tools MCP runtime", () => {
         expect(connectionManager.connect).to.have.been.calledTwice;
     });
 
-    test("registerConnection falls back when platform detection fails", async () => {
+    test("registerConnection fails when platform detection fails", async () => {
         const savedProfile = profile("profile-1", "Shop", "localhost", "Sales");
         const runtime = createRuntime(
             [savedProfile],
@@ -339,28 +339,55 @@ suite("SQL Tools MCP runtime", () => {
         } as ReturnType<ConnectionManager["getServerInfo"]>);
         executor.execute.rejects(new Error("detection failed"));
 
-        const registration = await runtime.registerConnection({
-            connectionName: "registered-shop",
-            connectionHandle: "profile-1",
+        try {
+            await runtime.registerConnection({
+                connectionName: "registered-shop",
+                connectionHandle: "profile-1",
+            });
+        } catch (error) {
+            expect(error).to.be.instanceOf(Error);
+            expect((error as Error).message).to.equal("detection failed");
+            expect(logger.warn).not.to.have.been.calledWith(
+                "SQL Tools MCP platform detection failed; using minimal context.",
+            );
+            return;
+        }
+
+        throw new Error("Expected platform detection failure.");
+    });
+
+    test("registerConnection returns detection execution failures", async () => {
+        const savedProfile = profile("profile-1", "Shop", "localhost", "Sales");
+        const runtime = createRuntime(
+            [savedProfile],
+            connectionManager,
+            connectionStore,
+            executor,
+            logger,
+        );
+        connectionManager.getConnectionInfo.returns({
+            credentials: savedProfile,
+        } as unknown as ReturnType<ConnectionManager["getConnectionInfo"]>);
+        executor.execute.resolves({
+            batches: [],
+            canceled: true,
         });
 
-        expect(registration.platformContext).to.deep.equal({
-            databaseName: "Sales",
-            serverName: "localhost",
-            engineEdition: "SQL Server Enterprise",
-            version: "17.0",
-            contextSettings: {
-                DatabaseName: "Sales",
-                ServerName: "localhost",
-                Edition: "SQL Server Enterprise",
-                EngineEdition: "SQL Server Enterprise",
-                ProductVersion: "17.0",
-                Version: "17.0",
-            },
-        });
-        expect(logger.warn).to.have.been.calledWith(
-            "SQL Tools MCP platform detection failed; using minimal context.",
-        );
+        try {
+            await runtime.registerConnection({
+                connectionName: "registered-shop",
+                connectionHandle: "profile-1",
+            });
+        } catch (error) {
+            expect(error).to.be.instanceOf(BridgeRequestError);
+            expect((error as BridgeRequestError).bridgeErrorCode).to.equal(
+                BridgeErrorCode.ExecutionFailed,
+            );
+            expect((error as BridgeRequestError).retryable).to.equal(true);
+            return;
+        }
+
+        throw new Error("Expected BridgeRequestError.");
     });
 
     test("registerConnection tolerates missing connected credentials during platform detection", async () => {

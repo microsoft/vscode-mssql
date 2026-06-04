@@ -34,7 +34,6 @@ suite("SQL Tools MCP server definition provider", () => {
     let bridgeManager: sinon.SinonStubbedInstance<SqlToolsMcpBridgeManager>;
     let logger: sinon.SinonStubbedInstance<Logger>;
     let dotnetRuntimeProvider: sinon.SinonStubbedInstance<DotnetRuntimeProvider>;
-    let getSqlToolsServicePath: sinon.SinonStub;
     let configListener: ((event: vscode.ConfigurationChangeEvent) => void) | undefined;
     let originalOverride: string | undefined;
 
@@ -53,7 +52,6 @@ suite("SQL Tools MCP server definition provider", () => {
         logger = sandbox.createStubInstance(Logger);
         dotnetRuntimeProvider = sandbox.createStubInstance(DotnetRuntimeProvider);
         dotnetRuntimeProvider.acquireDotnetRuntime.resolves("/dotnet/dotnet");
-        getSqlToolsServicePath = sandbox.stub().returns(undefined);
         stubTelemetry(sandbox);
 
         sandbox
@@ -274,7 +272,6 @@ suite("SQL Tools MCP server definition provider", () => {
             } as unknown as vscode.ExtensionContext,
             bridgeManager,
             logger,
-            getSqlToolsServicePath,
             dotnetRuntimeProvider,
         );
     }

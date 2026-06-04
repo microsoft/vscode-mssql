@@ -34,7 +34,6 @@ export class SqlToolsMcpServerDefinitionProvider
         private readonly context: vscode.ExtensionContext,
         private readonly bridgeManager: SqlToolsMcpBridgeManager,
         private readonly logger: Logger,
-        private readonly getSqlToolsServicePath: () => string | undefined,
         private readonly dotnetRuntimeProvider: DotnetRuntimeProvider,
     ) {
         this.configChangeDisposable = vscode.workspace.onDidChangeConfiguration((event) => {
@@ -262,104 +261,29 @@ export class SqlToolsMcpServerDefinitionProvider
 
     private resolveBundledSelfContainedExecutable(): string | undefined {
         const platformKey = this.getPlatformKey();
-        const sqlToolsServicePath = this.getSqlToolsServicePath();
-        const legacyCompatibilityCandidates = sqlToolsServicePath
-            ? [
-                  path.join(
-                      sqlToolsServicePath,
-                      "scriptoria-mcp",
-                      getSelfContainedExecutableName(),
-                  ),
-                  path.join(
-                      sqlToolsServicePath,
-                      "mcp",
-                      "SqlScriptoria",
-                      getSelfContainedExecutableName(),
-                  ),
-              ]
-            : [];
-        const candidates = [
-            this.context.asAbsolutePath(
-                path.join(
-                    "sqltools-mcp",
-                    config.sqlToolsMcp.version,
-                    platformKey,
-                    getSelfContainedExecutableName(),
-                ),
+        const executablePath = this.context.asAbsolutePath(
+            path.join(
+                "sqltools-mcp",
+                config.sqlToolsMcp.version,
+                platformKey,
+                getSelfContainedExecutableName(),
             ),
-            ...(sqlToolsServicePath
-                ? [
-                      path.join(sqlToolsServicePath, getSelfContainedExecutableName()),
-                      path.join(
-                          sqlToolsServicePath,
-                          "sqltools-mcp",
-                          getSelfContainedExecutableName(),
-                      ),
-                      path.join(
-                          sqlToolsServicePath,
-                          "mcp",
-                          "SqlToolsMcp",
-                          getSelfContainedExecutableName(),
-                      ),
-                  ]
-                : []),
-            this.context.asAbsolutePath(
-                path.join("sqltools-mcp", platformKey, getSelfContainedExecutableName()),
-            ),
-            this.context.asAbsolutePath(
-                path.join(
-                    "resources",
-                    "sqltools-mcp",
-                    platformKey,
-                    getSelfContainedExecutableName(),
-                ),
-            ),
-            this.context.asAbsolutePath(
-                path.join("mcp", "SqlToolsMcp", platformKey, getSelfContainedExecutableName()),
-            ),
-            // Temporary compatibility fallbacks for older package layouts.
-            ...legacyCompatibilityCandidates,
-            this.context.asAbsolutePath(
-                path.join("scriptoria-mcp", platformKey, getSelfContainedExecutableName()),
-            ),
-            this.context.asAbsolutePath(
-                path.join(
-                    "resources",
-                    "scriptoria-mcp",
-                    platformKey,
-                    getSelfContainedExecutableName(),
-                ),
-            ),
-            this.context.asAbsolutePath(
-                path.join("mcp", "SqlScriptoria", platformKey, getSelfContainedExecutableName()),
-            ),
-        ];
+        );
 
-        return candidates.find((candidate) => fs.existsSync(candidate));
+        return fs.existsSync(executablePath) ? executablePath : undefined;
     }
 
     private resolveBundledPortableDll(): string | undefined {
-        const candidates = [
-            this.context.asAbsolutePath(
-                path.join(
-                    "sqltools-mcp",
-                    config.sqlToolsMcp.version,
-                    "Portable",
-                    "SQLtoolsMCPserver.dll",
-                ),
+        const portableDllPath = this.context.asAbsolutePath(
+            path.join(
+                "sqltools-mcp",
+                config.sqlToolsMcp.version,
+                "Portable",
+                "SQLtoolsMCPserver.dll",
             ),
-            this.context.asAbsolutePath(
-                path.join("sqltools-mcp", "Portable", "SQLtoolsMCPserver.dll"),
-            ),
-            this.context.asAbsolutePath(
-                path.join("resources", "sqltools-mcp", "Portable", "SQLtoolsMCPserver.dll"),
-            ),
-            this.context.asAbsolutePath(
-                path.join("mcp", "SqlToolsMcp", "Portable", "SQLtoolsMCPserver.dll"),
-            ),
-        ];
+        );
 
-        return candidates.find((candidate) => fs.existsSync(candidate));
+        return fs.existsSync(portableDllPath) ? portableDllPath : undefined;
     }
 
     private resolveSelfContainedExecutableInFolder(folder: string): string | undefined {

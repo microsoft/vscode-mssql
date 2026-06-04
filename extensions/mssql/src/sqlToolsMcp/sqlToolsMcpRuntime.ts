@@ -27,7 +27,7 @@ import {
 } from "./contracts";
 import { normalizeSqlToolsMcpQuery } from "./queryNormalizer";
 import { toSqlToolsMcpQueryResult } from "./sqlToolsMcpResultFormatter";
-import { PlatformContextDetector, toFallbackPlatformContext } from "./platformContextDetector";
+import { PlatformContextDetector } from "./platformContextDetector";
 import { TelemetryActions } from "../sharedInterfaces/telemetry";
 import {
     getElapsedMs,
@@ -369,12 +369,7 @@ export class SqlToolsMcpRuntime {
         const serverInfo = connectionInfo
             ? this.connectionManager.getServerInfo(connectionInfo)
             : undefined;
-        try {
-            return await this.platformContextDetector.detect(ownerUri, connectionInfo, serverInfo);
-        } catch {
-            this.logger.warn("SQL Tools MCP platform detection failed; using minimal context.");
-            return toFallbackPlatformContext(connectionInfo, serverInfo);
-        }
+        return await this.platformContextDetector.detect(ownerUri, connectionInfo, serverInfo);
     }
 
     private async cleanupContext(context: RegisteredExecutionContext): Promise<void> {

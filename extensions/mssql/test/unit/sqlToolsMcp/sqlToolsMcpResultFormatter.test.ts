@@ -17,7 +17,7 @@ import { DbCellValue } from "../../../src/models/contracts/queryExecute";
 import { IDbColumn, IResultMessage } from "../../../src/models/interfaces";
 
 suite("SQL Tools MCP result formatter", () => {
-    test("formats field headers, values, and nulls in Scriptoria shape", () => {
+    test("formats field headers, values, and nulls in SQL Tools MCP shape", () => {
         const result = queryResult([
             batch([
                 resultSet(

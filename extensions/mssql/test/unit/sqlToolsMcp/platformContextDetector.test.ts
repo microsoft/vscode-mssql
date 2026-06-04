@@ -14,10 +14,7 @@ import {
     HeadlessQueryResult,
     HeadlessResultSetData,
 } from "../../../src/queryExecution/headlessQueryExecutor";
-import {
-    PlatformContextDetector,
-    toFallbackPlatformContext,
-} from "../../../src/sqlToolsMcp/platformContextDetector";
+import { PlatformContextDetector } from "../../../src/sqlToolsMcp/platformContextDetector";
 import { BridgeErrorCode, BridgeRequestError } from "../../../src/sqlToolsMcp/contracts";
 import { DbCellValue } from "../../../src/models/contracts/queryExecute";
 import { IDbColumn, IResultMessage } from "../../../src/models/interfaces";
@@ -66,8 +63,8 @@ suite("SQL Tools MCP platform context detector", () => {
         const detector = new PlatformContextDetector(executor);
         const context = await detector.detect(
             "owner",
-            connectionInfo("FallbackDb", "fallback-server"),
-            serverInfo("Fallback edition", "16.0"),
+            connectionInfo("ProfileDb", "profile-server"),
+            serverInfo("Profile edition", "16.0"),
         );
 
         expect(executor.execute).to.have.been.calledWith("owner", sinon.match.string);
@@ -86,7 +83,7 @@ suite("SQL Tools MCP platform context detector", () => {
         });
     });
 
-    test("uses connection and server fallbacks for missing detection fields", async () => {
+    test("uses connection and server metadata for missing detection fields", async () => {
         executor.execute.resolves(
             queryResult([batch([resultSet(["DatabaseName"], [[cell("")]])])]),
         );
@@ -94,13 +91,13 @@ suite("SQL Tools MCP platform context detector", () => {
         const detector = new PlatformContextDetector(executor);
         const context = await detector.detect(
             "owner",
-            connectionInfo("FallbackDb", "fallback-server"),
-            serverInfo("Fallback edition", "16.0"),
+            connectionInfo("ProfileDb", "profile-server"),
+            serverInfo("Profile edition", "16.0"),
         );
 
-        expect(context.databaseName).to.equal("FallbackDb");
-        expect(context.serverName).to.equal("fallback-server");
-        expect(context.engineEdition).to.equal("Fallback edition");
+        expect(context.databaseName).to.equal("ProfileDb");
+        expect(context.serverName).to.equal("profile-server");
+        expect(context.engineEdition).to.equal("Profile edition");
         expect(context.version).to.equal("16.0");
     });
 
@@ -120,11 +117,11 @@ suite("SQL Tools MCP platform context detector", () => {
         const detector = new PlatformContextDetector(executor);
         const context = await detector.detect(
             "owner",
-            connectionInfo("FallbackDb", "fallback-server"),
+            connectionInfo("ProfileDb", "profile-server"),
             undefined,
         );
 
-        expect(context.databaseName).to.equal("FallbackDb");
+        expect(context.databaseName).to.equal("ProfileDb");
         expect(context.contextSettings).to.deep.equal({
             DatabaseName: "",
         });
@@ -213,28 +210,6 @@ suite("SQL Tools MCP platform context detector", () => {
         }
 
         throw new Error("Expected BridgeRequestError.");
-    });
-
-    test("builds fallback platform context from available connection metadata", () => {
-        const context = toFallbackPlatformContext(
-            connectionInfo("Shop", "localhost"),
-            serverInfo("Azure SQL DB", "12.0"),
-        );
-
-        expect(context).to.deep.equal({
-            databaseName: "Shop",
-            serverName: "localhost",
-            engineEdition: "Azure SQL DB",
-            version: "12.0",
-            contextSettings: {
-                DatabaseName: "Shop",
-                ServerName: "localhost",
-                Edition: "Azure SQL DB",
-                EngineEdition: "Azure SQL DB",
-                ProductVersion: "12.0",
-                Version: "12.0",
-            },
-        });
     });
 });
 

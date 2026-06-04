@@ -53,32 +53,6 @@ export class PlatformContextDetector {
     }
 }
 
-export function toFallbackPlatformContext(
-    connectionInfo: IConnectionInfo | undefined,
-    serverInfo: IServerInfo | undefined,
-): BridgePlatformContext {
-    const databaseName = connectionInfo?.database;
-    const serverName = connectionInfo?.server;
-    const engineEdition = serverInfo?.serverEdition;
-    const version = serverInfo?.serverVersion;
-    const contextSettings: Record<string, string> = {};
-
-    addSetting(contextSettings, contextKeys.databaseName, databaseName);
-    addSetting(contextSettings, contextKeys.serverName, serverName);
-    addSetting(contextSettings, contextKeys.edition, serverInfo?.serverEdition);
-    addSetting(contextSettings, contextKeys.engineEdition, engineEdition);
-    addSetting(contextSettings, contextKeys.productVersion, serverInfo?.serverVersion);
-    addSetting(contextSettings, contextKeys.version, version);
-
-    return {
-        databaseName,
-        serverName,
-        engineEdition,
-        version,
-        contextSettings,
-    };
-}
-
 function toPlatformContext(
     result: HeadlessQueryResult,
     connectionInfo: IConnectionInfo | undefined,
@@ -112,12 +86,6 @@ function toPlatformContext(
             serverInfo?.serverVersion,
         contextSettings,
     };
-}
-
-function addSetting(settings: Record<string, string>, key: string, value: unknown): void {
-    if (value !== undefined && value !== null && value !== "") {
-        settings[key] = String(value);
-    }
 }
 
 function buildPlatformDetectionQuery(): string {

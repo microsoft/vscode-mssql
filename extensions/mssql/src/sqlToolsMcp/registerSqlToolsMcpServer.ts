@@ -46,7 +46,6 @@ export function registerSqlToolsMcpServer(
         context,
         bridgeManager,
         logger,
-        () => client.sqlToolsServicePath,
         new DotnetRuntimeProvider(logger),
     );
 

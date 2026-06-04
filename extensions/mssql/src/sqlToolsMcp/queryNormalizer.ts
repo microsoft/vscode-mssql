@@ -43,7 +43,7 @@ export function normalizeSqlToolsMcpQuery(descriptor: QueryContentDescriptor): s
         )}`;
     }
 
-    // Keep Scriptoria-authored SQL text compatible with queries that reference
+    // Keep SQL Tools MCP-authored SQL text compatible with queries that reference
     // @returnAsMarkdown. Stored procedures only receive explicit queryParameters.
     if (!hasParameter(queryParameters, returnAsMarkdownParameterName)) {
         queryParameters.push({
