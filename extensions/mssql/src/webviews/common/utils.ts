@@ -7,7 +7,6 @@ import React from "react";
 import {
     ColorThemeKind,
     CoreRPCs,
-    LoggerLevel,
     WebviewTelemetryActionEvent,
     WebviewTelemetryErrorEvent,
 } from "../../sharedInterfaces/webview";
@@ -97,9 +96,7 @@ export function deepClone<T>(obj: T): T {
 
 export function getCoreRPCs<TReducers>(extensionRpc: WebviewRpc<TReducers>): CoreRPCs {
     return {
-        log(message: string, level?: LoggerLevel) {
-            extensionRpc.log(message, level);
-        },
+        log: extensionRpc.log,
         sendActionEvent(event: WebviewTelemetryActionEvent) {
             extensionRpc.sendActionEvent(event);
         },

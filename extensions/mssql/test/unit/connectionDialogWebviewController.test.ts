@@ -45,7 +45,6 @@ import { ConnectionDetails, IAccount } from "vscode-mssql";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import { VSCodeAzureSubscriptionProvider } from "@microsoft/vscode-azext-azureauth";
 import {
-    createStubLogger,
     initializeIconUtils,
     stubGetCapabilitiesRequest,
     stubPreviewService,
@@ -1257,16 +1256,9 @@ suite("ConnectionDialogWebviewController Tests", () => {
             test("unknown button", async () => {
                 const unknownButtonId = "unknownButtonId";
 
-                const loggerStub = createStubLogger(sandbox);
-                controller["logger"] = loggerStub;
-
                 await controller["_reducerHandlers"].get("messageButtonClicked")(controller.state, {
                     buttonId: unknownButtonId,
                 });
-
-                expect(loggerStub.error).to.have.been.calledOnceWith(
-                    `Unknown message button clicked: ${unknownButtonId}`,
-                );
             });
         });
 

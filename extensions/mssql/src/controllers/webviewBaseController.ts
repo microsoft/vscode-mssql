@@ -18,9 +18,7 @@ import {
     GetThemeRequest,
     KeyBindingsChangeNotification,
     LoadStatsNotification,
-    LogEvent,
     LogNotification,
-    LoggerLevel,
     ReducerRequest,
     SendActionEventNotification,
     SendErrorEventNotification,
@@ -32,7 +30,8 @@ import {
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 
 import { getEditorEOL, getErrorMessage, getNonce } from "../utils/utils";
-import { ILogger, logger } from "../models/logger";
+import { LoggerMethod, ILogger, LogEvent } from "../sharedInterfaces/logger";
+import { logger } from "../models/logger";
 import VscodeWrapper from "./vscodeWrapper";
 import {
     AbstractMessageReader,
@@ -56,22 +55,6 @@ import * as LocalizedConstants from "../constants/locConstants";
 import { getLocalizationFileContentsCached } from "./localizationCache";
 
 export const WEBVIEW_INIT_TIMEOUT_MS = 5_000;
-
-type LoggerMethod = "trace" | "debug" | "info" | "warn" | "error";
-
-function mapWebviewLoggerLevel(level?: LoggerLevel): LoggerMethod {
-    switch (level) {
-        case "critical":
-            return "error";
-        case "verbose":
-            return "debug";
-        case "log":
-        case undefined:
-            return "trace";
-        default:
-            return level;
-    }
-}
 
 class WebviewControllerMessageReader extends AbstractMessageReader implements MessageReader {
     private _onData: Emitter<Message>;
@@ -313,7 +296,28 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         );
 
         this.onNotification(LogNotification.type, async (message: LogEvent) => {
-            this.logger[mapWebviewLoggerLevel(message.level)](message.message);
+            const targetLogger = message.prefix
+                ? this.logger.withPrefix(message.prefix)
+                : this.logger;
+            switch (message.method) {
+                case LoggerMethod.PiiSanitized:
+                    targetLogger.piiSanitized(
+                        message.msg,
+                        message.objsToSanitize,
+                        message.stringsToShorten,
+                        ...(message.vals ?? []),
+                    );
+                    break;
+                case LoggerMethod.Show:
+                    targetLogger.show(message.preserveFocus);
+                    break;
+                case LoggerMethod.Dispose:
+                    targetLogger.dispose();
+                    break;
+                default:
+                    targetLogger[message.method](message.message, ...(message.args ?? []));
+                    break;
+            }
         });
 
         this.onNotification(LoadStatsNotification.type, (message) => {

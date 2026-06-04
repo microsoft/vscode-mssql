@@ -16,7 +16,8 @@ import { getCloudProviderSettings } from "./providerSettings";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ConnectionProfile } from "../models/connectionProfile";
 import { AzureAuthType, IAADResource, IAccount, ITenant, IToken } from "../models/contracts/azure";
-import { ILogger, Logger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
+import { Logger } from "../models/logger";
 import { INameValueChoice, IPrompter, IQuestion, QuestionTypes } from "../prompts/question";
 import { AccountStore } from "./accountStore";
 import { ICredentialStore } from "../credentialstore/icredentialstore";
@@ -160,11 +161,9 @@ export abstract class AzureController {
                 getCloudProviderSettings(session.account.key.providerId).settings.armResource,
             );
             session.token = token!;
-            this.logger.debug(`Access Token refreshed for account: ${session?.account?.key.id}`);
+            this.logger.debug("Access token refreshed for Azure account.");
         } else {
-            this.logger.debug(
-                `Access Token not refreshed for account: ${session?.account?.key.id}`,
-            );
+            this.logger.debug("Access token not refreshed for Azure account.");
         }
     }
 

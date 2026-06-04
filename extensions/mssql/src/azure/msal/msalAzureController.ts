@@ -32,7 +32,7 @@ import { IPrompter } from "../../prompts/question";
 import { ICredentialStore } from "../../credentialstore/icredentialstore";
 import * as azureUtils from "../utils";
 import VscodeWrapper from "../../controllers/vscodeWrapper";
-import { ILogger } from "../../models/logger";
+import { ILogger } from "../../sharedInterfaces/logger";
 import { sendActionEvent } from "../../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../../sharedInterfaces/telemetry";
 

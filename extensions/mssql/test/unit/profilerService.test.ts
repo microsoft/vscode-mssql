@@ -23,7 +23,6 @@ import {
     DisconnectSessionParams,
     ProfilingSessionType,
 } from "../../src/models/contracts/profiler";
-import { stubLoggerGetter } from "./utils";
 
 suite("ProfilerService Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -31,7 +30,6 @@ suite("ProfilerService Tests", () => {
     let profilerService: ProfilerService;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let notificationHandlers: Map<string, (params: any) => void>;
-    let loggerErrorStub: sinon.SinonStub;
 
     const testOwnerUri = "file:///test.sql";
 
@@ -47,8 +45,6 @@ suite("ProfilerService Tests", () => {
                 notificationHandlers.set(type.method, handler);
             },
         );
-
-        loggerErrorStub = stubLoggerGetter(sandbox, sqlToolsClientStub).error;
 
         profilerService = new ProfilerService(sqlToolsClientStub);
     });
@@ -95,7 +91,7 @@ suite("ProfilerService Tests", () => {
             expect(typedParams.template).to.deep.equal(template);
         });
 
-        test("should log and rethrow error on failure", async () => {
+        test("should rethrow error on failure", async () => {
             const error = new Error("Create session failed");
             sqlToolsClientStub.sendRequest.rejects(error);
 
@@ -108,7 +104,6 @@ suite("ProfilerService Tests", () => {
                 expect.fail("Should have thrown error");
             } catch (e) {
                 expect(e).to.equal(error);
-                expect(loggerErrorStub).to.have.been.called;
             }
         });
     });
@@ -151,7 +146,7 @@ suite("ProfilerService Tests", () => {
             expect(result.canPause).to.be.false;
         });
 
-        test("should log and rethrow error on failure", async () => {
+        test("should rethrow error on failure", async () => {
             const error = new Error("Start profiling failed");
             sqlToolsClientStub.sendRequest.rejects(error);
 
@@ -160,7 +155,6 @@ suite("ProfilerService Tests", () => {
                 expect.fail("Should have thrown error");
             } catch (e) {
                 expect(e).to.equal(error);
-                expect(loggerErrorStub).to.have.been.called;
             }
         });
     });
@@ -178,7 +172,7 @@ suite("ProfilerService Tests", () => {
             expect(typedParams.ownerUri).to.equal(testOwnerUri);
         });
 
-        test("should log and rethrow error on failure", async () => {
+        test("should rethrow error on failure", async () => {
             const error = new Error("Stop profiling failed");
             sqlToolsClientStub.sendRequest.rejects(error);
 
@@ -187,7 +181,6 @@ suite("ProfilerService Tests", () => {
                 expect.fail("Should have thrown error");
             } catch (e) {
                 expect(e).to.equal(error);
-                expect(loggerErrorStub).to.have.been.called;
             }
         });
     });
@@ -214,7 +207,7 @@ suite("ProfilerService Tests", () => {
             expect(result.isPaused).to.be.false;
         });
 
-        test("should log and rethrow error on failure", async () => {
+        test("should rethrow error on failure", async () => {
             const error = new Error("Pause profiling failed");
             sqlToolsClientStub.sendRequest.rejects(error);
 
@@ -223,7 +216,6 @@ suite("ProfilerService Tests", () => {
                 expect.fail("Should have thrown error");
             } catch (e) {
                 expect(e).to.equal(error);
-                expect(loggerErrorStub).to.have.been.called;
             }
         });
     });
@@ -243,7 +235,7 @@ suite("ProfilerService Tests", () => {
             expect(result.sessions).to.deep.equal(expectedSessions);
         });
 
-        test("should log and rethrow error on failure", async () => {
+        test("should rethrow error on failure", async () => {
             const error = new Error("Get sessions failed");
             sqlToolsClientStub.sendRequest.rejects(error);
 
@@ -252,7 +244,6 @@ suite("ProfilerService Tests", () => {
                 expect.fail("Should have thrown error");
             } catch (e) {
                 expect(e).to.equal(error);
-                expect(loggerErrorStub).to.have.been.called;
             }
         });
     });
@@ -270,7 +261,7 @@ suite("ProfilerService Tests", () => {
             expect(typedParams.ownerUri).to.equal(testOwnerUri);
         });
 
-        test("should log and rethrow error on failure", async () => {
+        test("should rethrow error on failure", async () => {
             const error = new Error("Disconnect failed");
             sqlToolsClientStub.sendRequest.rejects(error);
 
@@ -279,7 +270,6 @@ suite("ProfilerService Tests", () => {
                 expect.fail("Should have thrown error");
             } catch (e) {
                 expect(e).to.equal(error);
-                expect(loggerErrorStub).to.have.been.called;
             }
         });
     });

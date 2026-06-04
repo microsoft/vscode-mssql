@@ -13,7 +13,7 @@ import {
     DidChangeEncryptionIVKeyParams,
     EncryptionKeysChangedNotification,
 } from "../models/contracts/connection";
-import { ILogger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import { azureAccountProviderCredentials } from "./constants";
 

@@ -14,7 +14,7 @@ import { generateQueryUri } from "../models/utils";
 import * as LocalizedConstants from "../constants/locConstants";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions, ActivityStatus } from "../sharedInterfaces/telemetry";
-import { ILogger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
 import { NotebookQueryExecutor, NotebookQueryResult } from "./notebookQueryExecutor";
 
 /**

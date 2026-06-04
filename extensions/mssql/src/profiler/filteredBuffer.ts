@@ -437,7 +437,7 @@ export class FilteredBuffer<T extends IndexedRow> extends RingBuffer<T> {
         value: string | number | boolean | undefined,
         typeHint?: FilterTypeHint,
     ): unknown {
-        if (this.isNullOrUndefined(value)) {
+        if (this.isMissingValue(value)) {
             return value;
         }
 
@@ -474,10 +474,10 @@ export class FilteredBuffer<T extends IndexedRow> extends RingBuffer<T> {
 
         switch (clause.operator) {
             case FilterOperator.IsNull:
-                return this.isNullOrUndefined(fieldValue);
+                return this.isMissingValue(fieldValue);
 
             case FilterOperator.IsNotNull:
-                return !this.isNullOrUndefined(fieldValue);
+                return !this.isMissingValue(fieldValue);
 
             case FilterOperator.Equals:
                 return this.evaluateEquals(fieldValue, filterValue, clause.typeHint);
@@ -502,7 +502,7 @@ export class FilteredBuffer<T extends IndexedRow> extends RingBuffer<T> {
 
             case FilterOperator.NotContains:
                 // If field is null/missing, treat as "does not contain" => returns true
-                if (this.isNullOrUndefined(fieldValue)) {
+                if (this.isMissingValue(fieldValue)) {
                     return true;
                 }
                 return !this.evaluateContains(fieldValue, filterValue);
@@ -512,7 +512,7 @@ export class FilteredBuffer<T extends IndexedRow> extends RingBuffer<T> {
 
             case FilterOperator.NotStartsWith:
                 // If field is null/missing, treat as "does not start with" => returns true
-                if (this.isNullOrUndefined(fieldValue)) {
+                if (this.isMissingValue(fieldValue)) {
                     return true;
                 }
                 return !this.evaluateStartsWith(fieldValue, filterValue);
@@ -522,7 +522,7 @@ export class FilteredBuffer<T extends IndexedRow> extends RingBuffer<T> {
 
             case FilterOperator.NotEndsWith:
                 // If field is null/missing, treat as "does not end with" => returns true
-                if (this.isNullOrUndefined(fieldValue)) {
+                if (this.isMissingValue(fieldValue)) {
                     return true;
                 }
                 return !this.evaluateEndsWith(fieldValue, filterValue);
@@ -559,9 +559,8 @@ export class FilteredBuffer<T extends IndexedRow> extends RingBuffer<T> {
      * @param value - The value to check
      * @returns true if value is null or undefined
      */
-    private isNullOrUndefined(value: unknown): boolean {
-        // eslint-disable-next-line eqeqeq
-        return value == undefined;
+    private isMissingValue(value: unknown): boolean {
+        return value === undefined || (typeof value === "object" && !value);
     }
 
     /**
@@ -577,10 +576,10 @@ export class FilteredBuffer<T extends IndexedRow> extends RingBuffer<T> {
         filterValue: unknown,
         typeHint?: FilterTypeHint,
     ): boolean {
-        if (this.isNullOrUndefined(fieldValue) && this.isNullOrUndefined(filterValue)) {
+        if (this.isMissingValue(fieldValue) && this.isMissingValue(filterValue)) {
             return true;
         }
-        if (this.isNullOrUndefined(fieldValue) || this.isNullOrUndefined(filterValue)) {
+        if (this.isMissingValue(fieldValue) || this.isMissingValue(filterValue)) {
             return false;
         }
 
@@ -667,7 +666,7 @@ export class FilteredBuffer<T extends IndexedRow> extends RingBuffer<T> {
         filterValue: unknown,
         typeHint?: FilterTypeHint,
     ): number {
-        if (this.isNullOrUndefined(fieldValue) || this.isNullOrUndefined(filterValue)) {
+        if (this.isMissingValue(fieldValue) || this.isMissingValue(filterValue)) {
             return NaN;
         }
 
@@ -731,7 +730,7 @@ export class FilteredBuffer<T extends IndexedRow> extends RingBuffer<T> {
      * Evaluates contains (substring) check - case-insensitive.
      */
     private evaluateContains(fieldValue: unknown, filterValue: unknown): boolean {
-        if (this.isNullOrUndefined(fieldValue) || this.isNullOrUndefined(filterValue)) {
+        if (this.isMissingValue(fieldValue) || this.isMissingValue(filterValue)) {
             return false;
         }
         const strFieldValue = String(fieldValue).toLowerCase();
@@ -745,7 +744,7 @@ export class FilteredBuffer<T extends IndexedRow> extends RingBuffer<T> {
      * "  SELECT ..." match a filter of "SELECT".
      */
     private evaluateStartsWith(fieldValue: unknown, filterValue: unknown): boolean {
-        if (this.isNullOrUndefined(fieldValue) || this.isNullOrUndefined(filterValue)) {
+        if (this.isMissingValue(fieldValue) || this.isMissingValue(filterValue)) {
             return false;
         }
         const strFieldValue = String(fieldValue).trimStart().toLowerCase();
@@ -759,7 +758,7 @@ export class FilteredBuffer<T extends IndexedRow> extends RingBuffer<T> {
      * "SELECT ... \n" match a filter of "Orders".
      */
     private evaluateEndsWith(fieldValue: unknown, filterValue: unknown): boolean {
-        if (this.isNullOrUndefined(fieldValue) || this.isNullOrUndefined(filterValue)) {
+        if (this.isMissingValue(fieldValue) || this.isMissingValue(filterValue)) {
             return false;
         }
         const strFieldValue = String(fieldValue).trimEnd().toLowerCase();
@@ -772,7 +771,7 @@ export class FilteredBuffer<T extends IndexedRow> extends RingBuffer<T> {
      * Returns true if the field value matches any of the provided values.
      */
     private evaluateIn(fieldValue: unknown, values: string[] | undefined): boolean {
-        if (this.isNullOrUndefined(fieldValue) || !values || values.length === 0) {
+        if (this.isMissingValue(fieldValue) || !values || values.length === 0) {
             return false;
         }
         const strFieldValue = String(fieldValue).toLowerCase();

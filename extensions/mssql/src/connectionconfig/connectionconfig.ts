@@ -14,7 +14,8 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ConnectionProfile } from "../models/connectionProfile";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 import { Deferred } from "../protocol";
-import { ILogger, logger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger } from "../models/logger";
 import { ConfigurationTarget } from "vscode";
 
 export type ConfigTarget = ConfigurationTarget.Global | ConfigurationTarget.Workspace;

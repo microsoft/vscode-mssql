@@ -28,7 +28,8 @@ import { Deferred } from "../protocol";
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import { IConnectionProfile } from "../models/interfaces";
 import StatusView from "../views/statusView";
-import { ILogger, logger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger } from "../models/logger";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { UserSurvey } from "../nps/userSurvey";
 

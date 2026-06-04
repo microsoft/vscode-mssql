@@ -560,7 +560,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         // Handle theme changes - just update state to trigger re-render
         useEffect(() => {
             if (themeKind !== currentTheme) {
-                console.log("Theme changed - triggering re-render");
                 setCurrentTheme(themeKind);
             }
         }, [themeKind, currentTheme]);
@@ -587,14 +586,8 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 previousResultSet?.columnInfo?.length !== resultSet.columnInfo.length;
             const rowCountChanged = previousResultSet?.subset?.length !== resultSet.subset.length;
 
-            console.log(
-                `ResultSet update - Initial: ${isInitialLoad}, Columns changed: ${columnCountChanged}, Rows changed: ${rowCountChanged}`,
-            );
-
             // Scenario 1: Initial load or structural changes - full recreation
             if (isInitialLoad || columnCountChanged) {
-                console.log("Full grid initialization");
-
                 const dataColumns = createColumns(resultSet.columnInfo, currentTheme);
                 const newColumns = [createUndoColumn(), ...dataColumns];
                 setColumns(newColumns);
@@ -703,15 +696,12 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 reactGridRef.current?.dataView &&
                 reactGridRef.current?.gridService
             ) {
-                console.log("Row count changed - applying incremental updates");
-
                 // Use ID-based comparison instead of position-based
                 const previousIds = new Set(previousResultSet?.subset?.map((r: any) => r.id) || []);
                 const currentIds = new Set(resultSet.subset.map((r: any) => r.id));
 
                 // Add new rows (rows in current but not in previous)
                 const rowsToAdd = resultSet.subset.filter((row: any) => !previousIds.has(row.id));
-                console.log(`Adding ${rowsToAdd.length} new row(s) by ID`);
                 const dataView = reactGridRef.current.dataView;
                 const paginationService = reactGridRef.current.paginationService;
                 const currentLength = dataView.getLength();
@@ -747,11 +737,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     const dataRow = convertRowToDataRow(newRow, resultSet.columnInfo, insertAt);
                     dataView.insertItem(insertAt, dataRow);
                     insertAt += 1;
-                    console.log(
-                        `Inserted row ${dataRow.id} at index ${insertAt - 1} (below active row${
-                            advanceToNextPage ? ", advancing page" : ""
-                        })`,
-                    );
                 }
                 if (rowsToAdd.length > 0 && slickGrid) {
                     slickGrid.invalidate();
@@ -784,14 +769,12 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 const rowsToRemove = (previousResultSet?.subset || []).filter(
                     (row: any) => !currentIds.has(row.id),
                 );
-                console.log(`Removing ${rowsToRemove.length} deleted row(s) by ID`);
                 for (const removedRow of rowsToRemove) {
                     reactGridRef.current.gridService.deleteItemById(removedRow.id);
                 }
             }
             // Scenario 3: Row count same - incremental updates only
             else if (reactGridRef.current?.dataView) {
-                console.log("Incremental update - checking for changed rows");
                 let hasChanges = false;
 
                 // Check each row for changes
@@ -806,7 +789,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
                         if (existingItem) {
                             // Update existing row incrementally
-                            console.log(`Updating row ${dataRow.id} incrementally`);
                             reactGridRef.current.dataView.updateItem(dataRow.id, dataRow);
                             hasChanges = true;
                         }
@@ -838,12 +820,10 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             const currentItemsPerPage = reactGridRef.current.paginationService.itemsPerPage;
 
             if (currentItemsPerPage !== targetItemsPerPage) {
-                console.log(`Restoring items per page to: ${targetItemsPerPage}`);
                 void reactGridRef.current.paginationService.changeItemPerPage(targetItemsPerPage);
             }
 
             if (targetPage > 1 && currentPage !== targetPage) {
-                console.log(`Restoring page to: ${targetPage}`);
                 void reactGridRef.current.paginationService.goToPageNumber(targetPage);
             }
         }, [dataset]);
@@ -863,10 +843,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             const dataColumnIndex = (column as any)?.originalIndex ?? cellIndex;
             const rowId = args.item.id;
 
-            console.log(
-                `Cell Changed - Row ID: ${rowId}, Data Column Index: ${dataColumnIndex}, Cell Index: ${cellIndex}, Column ID: ${column?.id}`,
-            );
-
             // Track the change using original data column index (not visible cell index)
             const changeKey = `${rowId}-${dataColumnIndex}`;
             cellChangesRef.current.set(changeKey, {
@@ -876,8 +852,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 field: column?.field,
                 newValue: args.item[column?.field],
             });
-
-            console.log(`Total changes tracked: ${cellChangesRef.current.size}`);
 
             // Notify parent of change count update
             if (onCellChangeCountChanged) {
@@ -1035,7 +1009,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
                     cellChangesRef.current.delete(changeKey);
                     failedCellsRef.current.delete(changeKey);
-                    console.log(`Reverted cell for row ID ${rowId}, column ${dataColumnIndex}`);
 
                     // Notify parent of change count update
                     if (onCellChangeCountChanged) {

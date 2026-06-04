@@ -46,7 +46,10 @@ import {
     EditUpdateCellParams,
     EditUpdateCellResult,
 } from "../sharedInterfaces/tableExplorer";
+import { getLogger } from "../models/logger";
 import { getErrorMessage } from "../utils/utils";
+
+const logger = getLogger("TableExplorerService");
 
 /**
  * Interface for the Table Explorer Service that handles table editing operations.
@@ -230,7 +233,7 @@ export class TableExplorerService implements ITableExplorerService {
 
             return result;
         } catch (error) {
-            this._client.logger.error(getErrorMessage(error));
+            logger.error(`Failed to initialize table explorer: ${getErrorMessage(error)}`);
             throw error;
         }
     }
@@ -260,7 +263,7 @@ export class TableExplorerService implements ITableExplorerService {
 
             return result;
         } catch (error) {
-            this._client.logger.error(getErrorMessage(error));
+            logger.error(`Failed to get table explorer subset: ${getErrorMessage(error)}`);
             throw error;
         }
     }
@@ -282,7 +285,7 @@ export class TableExplorerService implements ITableExplorerService {
 
             return result;
         } catch (error) {
-            this._client.logger.error(getErrorMessage(error));
+            logger.error(`Failed to commit table explorer changes: ${getErrorMessage(error)}`);
             throw error;
         }
     }
@@ -304,7 +307,7 @@ export class TableExplorerService implements ITableExplorerService {
 
             return result;
         } catch (error) {
-            this._client.logger.error(getErrorMessage(error));
+            logger.error(`Failed to create table explorer row: ${getErrorMessage(error)}`);
             throw error;
         }
     }
@@ -328,7 +331,7 @@ export class TableExplorerService implements ITableExplorerService {
 
             return result;
         } catch (error) {
-            this._client.logger.error(getErrorMessage(error));
+            logger.error(`Failed to delete table explorer row: ${getErrorMessage(error)}`);
             throw error;
         }
     }
@@ -352,7 +355,7 @@ export class TableExplorerService implements ITableExplorerService {
 
             return result;
         } catch (error) {
-            this._client.logger.error(getErrorMessage(error));
+            logger.error(`Failed to revert table explorer row: ${getErrorMessage(error)}`);
             throw error;
         }
     }
@@ -385,7 +388,7 @@ export class TableExplorerService implements ITableExplorerService {
 
             return result;
         } catch (error) {
-            this._client.logger.error(getErrorMessage(error));
+            logger.error(`Failed to update table explorer cell: ${getErrorMessage(error)}`);
             throw error;
         }
     }
@@ -415,7 +418,7 @@ export class TableExplorerService implements ITableExplorerService {
 
             return result;
         } catch (error) {
-            this._client.logger.error(getErrorMessage(error));
+            logger.error(`Failed to revert table explorer cell: ${getErrorMessage(error)}`);
             throw error;
         }
     }
@@ -437,7 +440,7 @@ export class TableExplorerService implements ITableExplorerService {
 
             return result;
         } catch (error) {
-            this._client.logger.error(getErrorMessage(error));
+            logger.error(`Failed to dispose table explorer: ${getErrorMessage(error)}`);
             throw error;
         }
     }
@@ -460,7 +463,7 @@ export class TableExplorerService implements ITableExplorerService {
 
             return result;
         } catch (error) {
-            this._client.logger.error(getErrorMessage(error));
+            logger.error(`Failed to generate table explorer scripts: ${getErrorMessage(error)}`);
             throw error;
         }
     }
@@ -509,7 +512,7 @@ export class TableExplorerService implements ITableExplorerService {
 
             return result;
         } catch (error) {
-            this._client.logger.error(getErrorMessage(error));
+            logger.error(`Failed to serialize table explorer data: ${getErrorMessage(error)}`);
             throw error;
         }
     }

@@ -17,6 +17,8 @@ import {
     BackgroundTasksService,
     BackgroundTaskState,
 } from "../backgroundTasks/backgroundTasksService";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger } from "../models/logger";
 
 export enum TaskStatus {
     NotStarted = 0,
@@ -172,6 +174,7 @@ export const onTaskCompleted = taskCompletedEmitter.event;
 export class SqlTasksService {
     private _activeTasks = new Map<string, ActiveTaskInfo>();
     private _completionHandlers = new Map<string, TaskCompletionHandler>();
+    private _logger: ILogger;
 
     constructor(
         private _client: SqlToolsServiceClient,
@@ -179,6 +182,7 @@ export class SqlTasksService {
         private _vscodeWrapper: VscodeWrapper,
         private _backgroundTasksService?: BackgroundTasksService,
     ) {
+        this._logger = logger.withPrefix("SqlTasksService");
         this._client.onNotification(TaskCreatedNotification.type, (taskInfo) =>
             this.handleTaskCreatedNotification(taskInfo),
         );
@@ -200,7 +204,7 @@ export class SqlTasksService {
                 event: "CompletionHandlerOverwritten",
                 operationName: handler.operationName,
             });
-            this._client.logger.error(
+            this._logger.error(
                 `There is an existing completion handler for operation ${handler.operationName} cannot be overwritten.`,
             );
         } else {
@@ -259,10 +263,10 @@ export class SqlTasksService {
     private async handleTaskChangedNotification(taskProgressInfo: TaskProgressInfo): Promise<void> {
         const taskInfo = this._activeTasks.get(taskProgressInfo.taskId);
         if (!taskInfo) {
-            console.warn(`Status update for unknown task ${taskProgressInfo.taskId}`!);
+            this._logger.warn(`Status update for unknown task ${taskProgressInfo.taskId}`);
             return;
         }
-        const taskStatusString = toTaskStatusDisplayString(taskProgressInfo.status);
+        const taskStatusString = toTaskStatusDisplayString(taskProgressInfo.status, this._logger);
         if (
             taskProgressInfo.message &&
             taskProgressInfo.message.toLowerCase() !== taskStatusString.toLowerCase()
@@ -519,7 +523,7 @@ function isTaskCompleted(taskStatus: TaskStatus): boolean {
  * @param taskStatus The task status to get the display string for
  * @returns The display string for the task status, or the task status directly as a string if we don't have a mapping
  */
-function toTaskStatusDisplayString(taskStatus: TaskStatus): string {
+function toTaskStatusDisplayString(taskStatus: TaskStatus, logger?: ILogger): string {
     switch (taskStatus) {
         case TaskStatus.Canceled:
             return localizedConstants.canceled;
@@ -536,7 +540,7 @@ function toTaskStatusDisplayString(taskStatus: TaskStatus): string {
         case TaskStatus.NotStarted:
             return localizedConstants.notStarted;
         default:
-            console.warn(`Don't have display string for task status ${taskStatus}`);
+            logger?.warn(`Don't have display string for task status ${taskStatus}`);
             return (<any>taskStatus).toString(); // Typescript warns that we can never get here because we've used all the enum values so cast to any
     }
 }

@@ -15,7 +15,7 @@ import {
 } from "./interfaces";
 import * as Constants from "../constants/constants";
 import * as fs from "fs/promises";
-import { ILogger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
 import DownloadHelper from "./downloadHelper";
 import { getServiceExecutablePath, ServiceExecutable } from "./serviceExecutablePaths";
 

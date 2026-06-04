@@ -26,7 +26,7 @@ import { QueryDisposeRequest, QueryDisposeParams } from "../models/contracts/que
 import { QueryCancelRequest, QueryCancelParams } from "../models/contracts/queryCancel";
 import { IDbColumn, IResultMessage } from "../models/interfaces";
 import { Deferred } from "../protocol";
-import { ILogger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
 
 export interface HeadlessQueryCancellationToken {
     readonly isCancellationRequested: boolean;
