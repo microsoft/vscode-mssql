@@ -54,7 +54,6 @@ export class ListFunctionsTool extends ToolBase<ListFunctionsToolParams> {
                 new RequestType<
                     { ownerUri: string; queryString: string },
                     SimpleExecuteResult,
-                    void,
                     void
                 >("query/simpleexecute"),
                 {

@@ -486,10 +486,7 @@ export default class ConnectionManager {
      * @param params The params to pass with the request
      * @returns A promise object for when the request receives a response
      */
-    public async sendRequest<P, R, E, R0>(
-        requestType: RequestType<P, R, E, R0>,
-        params?: P,
-    ): Promise<R> {
+    public async sendRequest<P, R, E>(requestType: RequestType<P, R, E>, params?: P): Promise<R> {
         return await this.client.sendRequest(requestType, params);
     }
 

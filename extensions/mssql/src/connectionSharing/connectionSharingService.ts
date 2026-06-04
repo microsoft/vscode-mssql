@@ -484,7 +484,6 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             new RequestType<
                 { ownerUri: string; queryString: string },
                 mssql.SimpleExecuteResult,
-                void,
                 void
             >("query/simpleexecute"),
             {

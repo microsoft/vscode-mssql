@@ -63,11 +63,11 @@ export interface TaskInfo {
 }
 
 namespace TaskStatusChangedNotification {
-    export const type = new NotificationType<TaskProgressInfo, void>("tasks/statuschanged");
+    export const type = new NotificationType<TaskProgressInfo>("tasks/statuschanged");
 }
 
 namespace TaskCreatedNotification {
-    export const type = new NotificationType<TaskInfo, void>("tasks/newtaskcreated");
+    export const type = new NotificationType<TaskInfo>("tasks/newtaskcreated");
 }
 
 interface CancelTaskParams {
@@ -75,7 +75,7 @@ interface CancelTaskParams {
 }
 
 namespace CancelTaskRequest {
-    export const type = new RequestType<CancelTaskParams, boolean, void, void>("tasks/canceltask");
+    export const type = new RequestType<CancelTaskParams, boolean, void>("tasks/canceltask");
 }
 
 type ActiveTaskInfo = {
@@ -144,7 +144,7 @@ export interface TaskCompletionHandler {
      */
     getActionCommandArgs?: (taskInfo: TaskInfo, targetLocation: string) => ActionCommandArgs;
 
-    sendNotification?(NotificationType: NotificationType<any, void>, params: any): void;
+    sendNotification?(NotificationType: NotificationType<any>, params: any): void;
 }
 
 /**

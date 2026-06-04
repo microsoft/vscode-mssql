@@ -230,7 +230,6 @@ export default class ResultsSerializer {
         let type: RequestType<
             Contracts.SaveResultsRequestParams,
             Contracts.SaveResultRequestResult,
-            void,
             void
         >;
         if (format === "csv") {

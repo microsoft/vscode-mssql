@@ -14,6 +14,7 @@ import {
     WebviewTelemetryErrorEvent,
 } from "../../sharedInterfaces/webview";
 import {
+    AbstractMessageBuffer,
     AbstractMessageReader,
     AbstractMessageWriter,
     CancellationToken,
@@ -27,9 +28,101 @@ import {
     MessageWriter,
     NotificationType,
     RAL,
+    type RequestParam,
     RequestHandler,
     RequestType,
-} from "vscode-jsonrpc/browser";
+} from "vscode-jsonrpc";
+
+class WebviewMessageBuffer extends AbstractMessageBuffer {
+    private static readonly _emptyBuffer = new Uint8Array(0);
+    private readonly _asciiDecoder = new TextDecoder("ascii");
+    private readonly _textEncoder = new TextEncoder();
+
+    protected emptyBuffer(): Uint8Array {
+        return WebviewMessageBuffer._emptyBuffer;
+    }
+
+    protected fromString(value: string, _encoding: RAL.MessageBufferEncoding): Uint8Array {
+        return this._textEncoder.encode(value);
+    }
+
+    protected toString(value: Uint8Array, encoding: RAL.MessageBufferEncoding): string {
+        return encoding === "ascii"
+            ? this._asciiDecoder.decode(value)
+            : new TextDecoder().decode(value);
+    }
+
+    protected asNative(buffer: Uint8Array, length?: number): Uint8Array {
+        return length === undefined ? buffer : buffer.slice(0, length);
+    }
+
+    protected allocNative(length: number): Uint8Array {
+        return new Uint8Array(length);
+    }
+}
+
+const installWebviewRuntime = (() => {
+    let installed = false;
+    return () => {
+        if (installed) {
+            return;
+        }
+
+        try {
+            RAL();
+            installed = true;
+            return;
+        } catch {
+            // Install a runtime abstraction below.
+        }
+
+        const textEncoder = new TextEncoder();
+        RAL.install({
+            messageBuffer: {
+                create: (encoding) => new WebviewMessageBuffer(encoding),
+            },
+            applicationJson: {
+                encoder: {
+                    name: "application/json",
+                    encode: (msg) =>
+                        Promise.resolve(textEncoder.encode(JSON.stringify(msg, undefined, 0))),
+                },
+                decoder: {
+                    name: "application/json",
+                    decode: (buffer, options) =>
+                        Promise.resolve(
+                            JSON.parse(new TextDecoder(options.charset).decode(buffer)),
+                        ),
+                },
+            },
+            console,
+            timer: {
+                setTimeout(callback, ms, ...args) {
+                    const handle = setTimeout(callback, ms, ...args);
+                    return { dispose: () => clearTimeout(handle) };
+                },
+                setImmediate(callback, ...args) {
+                    if (typeof queueMicrotask === "function") {
+                        let disposed = false;
+                        queueMicrotask(() => {
+                            if (!disposed) {
+                                callback(...args);
+                            }
+                        });
+                        return { dispose: () => (disposed = true) };
+                    }
+                    const handle = setTimeout(callback, 0, ...args);
+                    return { dispose: () => clearTimeout(handle) };
+                },
+                setInterval(callback, ms, ...args) {
+                    const handle = setInterval(callback, ms, ...args);
+                    return { dispose: () => clearInterval(handle) };
+                },
+            },
+        });
+        installed = true;
+    };
+})();
 
 /**
  * Chromium throttles setTimeout(0) when a webview is hidden which in turn stalls
@@ -81,6 +174,7 @@ const fixSetImmediate = (() => {
     };
 })();
 
+installWebviewRuntime();
 fixSetImmediate();
 
 class WebviewRpcMessageReader extends AbstractMessageReader implements MessageReader {
@@ -190,11 +284,11 @@ export class WebviewRpc<Reducers> {
         params?: P,
         token?: CancellationToken,
     ): Promise<R> {
-        return this.connection.sendRequest(type, params, token);
+        return this.connection.sendRequest(type, params as RequestParam<P>, token);
     }
 
     public async sendNotification<P>(type: NotificationType<P>, params?: P): Promise<void> {
-        return this.connection.sendNotification(type, params);
+        return this.connection.sendNotification(type, params as RequestParam<P>);
     }
 
     public onNotification<P>(type: NotificationType<P>, handler: (params: P) => void): void {
