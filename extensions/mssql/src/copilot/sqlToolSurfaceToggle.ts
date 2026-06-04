@@ -5,13 +5,8 @@
 
 import * as vscode from "vscode";
 
-export const enableNativeToolsConfigKey = "mssql.copilot.enableNativeTools";
 export const enableSqlToolsMcpConfigKey = "mssql.copilot.enableSqlToolsMcp";
 export const toggleSqlToolSurfaceCommand = "mssql.copilot.toggleSqlToolSurface";
-
-export function areNativeToolsEnabled(): boolean {
-    return vscode.workspace.getConfiguration().get<boolean>(enableNativeToolsConfigKey, false);
-}
 
 export function isSqlToolsMcpEnabled(): boolean {
     return vscode.workspace.getConfiguration().get<boolean>(enableSqlToolsMcpConfigKey, false);
@@ -20,16 +15,7 @@ export function isSqlToolsMcpEnabled(): boolean {
 export function registerSqlToolSurfaceToggle(context: vscode.ExtensionContext): void {
     context.subscriptions.push(
         vscode.commands.registerCommand(toggleSqlToolSurfaceCommand, async () => {
-            const nextNativeEnabled = !areNativeToolsEnabled();
-            const nextMcpEnabled = !nextNativeEnabled;
-
-            await vscode.workspace
-                .getConfiguration()
-                .update(
-                    enableNativeToolsConfigKey,
-                    nextNativeEnabled,
-                    vscode.ConfigurationTarget.Global,
-                );
+            const nextMcpEnabled = !isSqlToolsMcpEnabled();
             await vscode.workspace
                 .getConfiguration()
                 .update(
@@ -38,9 +24,7 @@ export function registerSqlToolSurfaceToggle(context: vscode.ExtensionContext): 
                     vscode.ConfigurationTarget.Global,
                 );
 
-            const surface = nextNativeEnabled
-                ? "native mssql language model tools"
-                : "SQL Tools MCP";
+            const surface = nextMcpEnabled ? "SQL Tools MCP" : "native mssql language model tools";
             void vscode.window
                 .showInformationMessage(
                     `MSSQL Copilot test tool surface set to ${surface}. Reload the window before measuring.`,

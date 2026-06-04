@@ -1686,12 +1686,6 @@
                     "description": "%mssql.enableExperimentalFeatures.description%",
                     "scope": "application"
                 },
-                "mssql.copilot.enableSqlToolsMcp": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Testing only: enable the SQL Tools MCP server definition provider contribution.",
-                    "scope": "application"
-                },
                 "mssql.preview.useVscodeAccountsForEntraMFA": {
                     "type": [
                         "boolean",
