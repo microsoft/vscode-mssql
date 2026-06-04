@@ -10,7 +10,11 @@ const mocha = createMochaConfig({
 
 // Use a short temp user-data-dir to avoid macOS's 103-char Unix socket path limit.
 // The "sql-database-projects" directory name makes the default path too long on CI.
-const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "vsc-sqlproj-"));
+const tmpBaseDir = process.platform === "darwin" ? "/tmp" : os.tmpdir();
+const userDataDir = fs.mkdtempSync(path.join(tmpBaseDir, "vsc-sqlproj-"));
+process.on("exit", () => {
+    fs.rmSync(userDataDir, { recursive: true, force: true });
+});
 
 export default defineConfig({
     tests: [
