@@ -318,7 +318,15 @@ suite("SQL Tools MCP runtime", () => {
         });
 
         expect(connectionManager.disconnect).to.have.been.calledWith(firstOwnerUri);
-        expect(connectionManager.connect).to.have.been.calledTwice;
+        expect(connectionManager.connect).to.have.been.calledWith(
+            firstOwnerUri,
+            sinon.match(savedProfile),
+            sinon.match({
+                shouldHandleErrors: false,
+                connectionSource: "sqlToolsMcp",
+            }),
+        );
+        expect(connectionManager.connect.secondCall.args[0]).not.to.equal(firstOwnerUri);
     });
 
     test("registerConnection fails when platform detection fails", async () => {
@@ -639,7 +647,12 @@ suite("SQL Tools MCP runtime", () => {
         });
         await runtime.dispose();
 
-        expect(connectionManager.disconnect).to.have.been.calledTwice;
+        expect(connectionManager.disconnect).to.have.been.calledWith(
+            connectionManager.connect.firstCall.args[0],
+        );
+        expect(connectionManager.disconnect).to.have.been.calledWith(
+            connectionManager.connect.secondCall.args[0],
+        );
     });
 });
 

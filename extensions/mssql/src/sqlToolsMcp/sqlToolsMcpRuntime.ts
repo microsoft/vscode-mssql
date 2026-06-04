@@ -192,7 +192,9 @@ export class SqlToolsMcpRuntime {
                 {
                     success: "true",
                     replacedExistingConnection: String(Boolean(previous)),
-                    hasPlatformContext: String(Object.keys(platformContext).length > 0),
+                    hasPlatformContext: String(
+                        Object.keys(platformContext.contextSettings).length > 0,
+                    ),
                 },
                 {
                     durationMs: getElapsedMs(startTime),
