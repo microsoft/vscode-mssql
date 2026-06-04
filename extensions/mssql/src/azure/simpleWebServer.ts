@@ -6,6 +6,10 @@
 import * as http from "http";
 import * as url from "url";
 import { AddressInfo } from "net";
+import { getLogger } from "../models/logger";
+import { getErrorMessage } from "../utils/utils";
+
+const logger = getLogger("SimpleWebServer");
 
 export type WebHandler = (
     req: http.IncomingMessage,
@@ -107,8 +111,10 @@ export class SimpleWebServer {
             const time = Date.now();
 
             if (time - this.lastUsed > this.autoShutoffTimer) {
-                console.log("Shutting off webserver...");
-                this.shutdown().catch(console.error);
+                logger.debug("Shutting off webserver...");
+                this.shutdown().catch((error) =>
+                    logger.error(`Error shutting off webserver: ${getErrorMessage(error)}`),
+                );
             }
         }, 1000);
     }

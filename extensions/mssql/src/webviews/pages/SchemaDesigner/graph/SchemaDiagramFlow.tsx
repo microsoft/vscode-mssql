@@ -95,6 +95,7 @@ export const SchemaDesignerFlow = ({ activeView }: SchemaDesignerFlowProps) => {
 
     // Context for schema data
     const context = useContext(SchemaDesignerContext);
+    const log = context.log;
     const changeContext = useSchemaDesignerChangeContext();
     const isReadOnly = useSchemaDesignerSelector((s) => s?.isReadOnly) ?? false;
 
@@ -291,13 +292,13 @@ export const SchemaDesignerFlow = ({ activeView }: SchemaDesignerFlowProps) => {
                     context.notifySchemaChanged();
                 });
             } catch (error) {
-                context.log?.(`Failed to initialize schema designer: ${String(error)}`);
+                log.error("Failed to initialize schema designer", error);
                 setSchemaNodes([]);
                 setRelationshipEdges([]);
             }
         };
         void intialize();
-    }, [context.initializationRequestId, fitViewWhenVisible]);
+    }, [context.initializationRequestId, fitViewWhenVisible, log]);
 
     useEffect(() => {
         if (isSchemaDesignerActive && !didFitViewForCurrentInitialization.current) {

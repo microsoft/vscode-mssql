@@ -21,8 +21,10 @@ import { QueryResultWebviewController } from "./queryResultWebViewController";
 import store, { QueryResultSingletonStore } from "./singletonStore";
 import * as LocalizedConstants from "../constants/locConstants";
 import { formatXml } from "../utils/utils";
+import { getLogger } from "../models/logger";
 
 export const MAX_VIEW_COLUMN = 9;
+const logger = getLogger("QueryResult");
 
 export function getNewResultPaneViewColumn(
     uri: string,
@@ -85,8 +87,8 @@ export function registerCommonRequestHandlers(
 
     webviewController.onRequest(qr.SetEditorSelectionRequest.type, async (message) => {
         if (!message.uri || !message.selectionData) {
-            console.warn(
-                `Invalid setEditorSelection request.  Uri: ${message.uri}; selectionData: ${JSON.stringify(message.selectionData)}`,
+            logger.warn(
+                `Invalid setEditorSelection request. Uri: ${message.uri}; selectionData: ${JSON.stringify(message.selectionData)}`,
             );
             return;
         }

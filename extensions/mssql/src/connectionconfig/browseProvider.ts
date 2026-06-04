@@ -24,7 +24,7 @@ import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInter
 
 import { FabricHelper } from "../fabric/fabricHelper";
 import { VsCodeAzureHelper } from "./azureHelpers";
-import { ILogger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
 import { getCloudId } from "../azure/providerSettings";
 import { startActivity } from "../telemetry/telemetry";
 import { getErrorMessage } from "../utils/utils";

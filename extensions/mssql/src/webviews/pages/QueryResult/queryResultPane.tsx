@@ -114,6 +114,7 @@ export const QueryResultPane = () => {
     if (!context) {
         return;
     }
+    const log = context.log;
 
     // Use selectors to get specific state pieces
     const resultSetSummaries = useQueryResultSelector<
@@ -191,7 +192,7 @@ export const QueryResultPane = () => {
     const [webviewLocation, setWebviewLocation] = useState("");
     useEffect(() => {
         getWebviewLocation().catch((e) => {
-            console.error(e);
+            log.error("Failed to get webview location", e);
             setWebviewLocation("panel");
         });
     }, []);

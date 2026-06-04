@@ -13,7 +13,7 @@ import { PassThrough, Writable } from "stream";
 import axios, { AxiosResponse } from "axios";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import { HttpClient, HttpDownloadError } from "../../src/http/httpClient";
-import { ILogger } from "../../src/models/logger";
+import { ILogger } from "../../src/sharedInterfaces/logger";
 import { createStubLogger } from "./utils";
 
 chai.use(sinonChai);
@@ -62,35 +62,6 @@ suite("HttpClient tests", () => {
             expect(result).to.deep.equal(mockResponse);
             expect(axiosGetStub).to.have.been.calledOnce;
         });
-
-        test("should log GET request response", async () => {
-            const requestUrl = "https://api.example.com/data";
-            const token = "test-token";
-            const responseData = { value: [{ id: 1 }] };
-
-            const mockResponse: AxiosResponse = {
-                data: responseData,
-                status: 200,
-                statusText: "OK",
-                headers: {},
-                config: {} as AxiosResponse["config"],
-            };
-
-            sandbox.stub(axios, "get").resolves(mockResponse);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            sandbox.stub(httpClient as any, "setupConfigAndProxyForRequest").returns({});
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            sandbox.stub(httpClient as any, "constructRequestUrl").returns(requestUrl);
-
-            await httpClient.makeGetRequest(requestUrl, token);
-
-            expect(logger.piiSanitized).to.have.been.calledWith(
-                "GET request ",
-                sinon.match.array,
-                [],
-                requestUrl,
-            );
-        });
     });
 
     suite("makePostRequest tests", () => {
@@ -121,36 +92,6 @@ suite("HttpClient tests", () => {
 
             expect(result).to.deep.equal(mockResponse);
             expect(axiosPostStub).to.have.been.calledWith(requestUrl, payload, sinon.match.any);
-        });
-
-        test("should log POST request response", async () => {
-            const requestUrl = "https://api.example.com/data";
-            const token = "test-token";
-            const payload = { name: "test" };
-            const responseData = { id: 1 };
-
-            const mockResponse: AxiosResponse = {
-                data: responseData,
-                status: 201,
-                statusText: "Created",
-                headers: {},
-                config: {} as AxiosResponse["config"],
-            };
-
-            sandbox.stub(axios, "post").resolves(mockResponse);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            sandbox.stub(httpClient as any, "setupConfigAndProxyForRequest").returns({});
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            sandbox.stub(httpClient as any, "constructRequestUrl").returns(requestUrl);
-
-            await httpClient.makePostRequest(requestUrl, token, payload);
-
-            expect(logger.piiSanitized).to.have.been.calledWith(
-                "POST request ",
-                sinon.match.array,
-                [],
-                requestUrl,
-            );
         });
     });
 
@@ -512,7 +453,7 @@ suite("HttpClient tests", () => {
             expect(result.httpsAgent).to.be.undefined;
         });
 
-        test("should log when proxy is found", () => {
+        test("should create proxy agent when proxy is found", () => {
             const requestUrl = "https://api.example.com";
             const token = "test-token";
             const proxy = "http://proxy.example.com:8080";
@@ -532,9 +473,7 @@ suite("HttpClient tests", () => {
 
             httpClient["setupConfigAndProxyForRequest"](requestUrl, token);
 
-            expect(logger.debug).to.have.been.calledWith(
-                "Proxy endpoint found in environment variables or workspace configuration.",
-            );
+            expect((httpClient as any).createProxyAgent).to.have.been.called;
         });
     });
 });

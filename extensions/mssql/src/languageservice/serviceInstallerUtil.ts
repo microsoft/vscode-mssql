@@ -10,7 +10,7 @@ import DecompressProvider from "./decompressProvider";
 import DownloadHelper from "./downloadHelper";
 import ServerProvider from "./server";
 import { IStatusView } from "./interfaces";
-import { ILogger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
 import * as fs from "fs";
 
 export class StubStatusView implements IStatusView {

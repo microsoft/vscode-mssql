@@ -15,7 +15,7 @@ import { createStubLogger, stubTelemetry } from "./utils";
 import { FormItemOptions, FormItemType } from "../../src/sharedInterfaces/form";
 import * as fp from "../../src/sharedInterfaces/fabricProvisioning";
 import { Fabric } from "../../src/constants/locConstants";
-import { ILogger } from "../../src/models/logger";
+import { ILogger } from "../../src/sharedInterfaces/logger";
 
 chai.use(sinonChai);
 

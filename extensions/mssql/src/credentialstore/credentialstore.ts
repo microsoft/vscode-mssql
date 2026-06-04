@@ -5,7 +5,8 @@
 
 import * as vscode from "vscode";
 import { ICredentialStore, Credential } from "./icredentialstore";
-import { ILogger, logger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger } from "../models/logger";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 
 /**

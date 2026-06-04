@@ -39,6 +39,7 @@ export const FabricBrowsePage = () => {
         return undefined;
     }
 
+    const log = context.log;
     const styles = useStyles();
 
     function setConnectionProperty(propertyName: keyof IConnectionDialogProfile, value: string) {
@@ -86,7 +87,7 @@ export const FabricBrowsePage = () => {
 
                 return;
             default:
-                context!.log("Unknown server type selected.", "error");
+                log.error("Unknown server type selected.");
         }
     }
 

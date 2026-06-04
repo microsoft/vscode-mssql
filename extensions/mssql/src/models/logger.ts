@@ -6,56 +6,9 @@
 import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
 import * as Utils from "./utils";
+import { ILogger } from "../sharedInterfaces/logger";
 
 export const loggerOutputChannelName = Constants.outputChannelName;
-
-/**
- * VS Code log-channel-style logger with support for MSSQL tracing and PII settings.
- */
-export interface ILogger {
-    /**
-     * Logs a message at the most verbose level.
-     * Visibility of the message is controlled by the VS Code log channel's configured log level.
-     */
-    trace(message: string, ...args: unknown[]): void;
-    /**
-     * Logs a message at the debug level to the underlying VS Code log channel.
-     * Visibility of the message is controlled by the channel's configured log level.
-     */
-    debug(message: string, ...args: unknown[]): void;
-    /**
-     * Logs a message at the information level to the underlying VS Code log channel.
-     * Visibility of the message is controlled by the channel's configured log level.
-     */
-    info(message: string, ...args: unknown[]): void;
-    /**
-     * Logs a message at the warning level to the underlying VS Code log channel.
-     * Visibility of the message is controlled by the channel's configured log level.
-     */
-    warn(message: string, ...args: unknown[]): void;
-    /**
-     * Logs a message at the error level to the underlying VS Code log channel.
-     * Visibility of the message is controlled by the channel's configured log level.
-     */
-    error(message: string, ...args: unknown[]): void;
-    /**
-     * Logs a message containing sensitive values after applying the legacy MSSQL sanitization rules.
-     * Emission is gated by `mssql.piiLogging`, while visibility is controlled by the VS Code
-     * log channel's configured log level.
-     */
-    piiSanitized(
-        msg: unknown,
-        objsToSanitize: { name: string; objOrArray: unknown | unknown[] }[],
-        stringsToShorten: { name: string; value: string }[],
-        ...vals: unknown[]
-    ): void;
-    /** Reveals the underlying log channel in VS Code. */
-    show(preserveFocus?: boolean): void;
-    /** Creates a lightweight logger view that prepends the given prefix to messages. */
-    withPrefix(prefix: string): ILogger;
-    /** Disposes the owned channel, if this logger created one. */
-    dispose(): void;
-}
 
 type LogMethod = "trace" | "debug" | "info" | "warn" | "error";
 type ChannelFactory = () => vscode.LogOutputChannel;
@@ -236,11 +189,9 @@ export class Logger implements ILogger {
                 break;
             case "warn":
                 this.channel.warn(formatted);
-                console.warn(formatted);
                 break;
             case "error":
                 this.channel.error(formatted);
-                console.error(formatted);
                 break;
         }
     }
@@ -261,9 +212,21 @@ export class Logger implements ILogger {
 }
 
 /**
+ * Root shared MSSQL logger instance used to create prefixed loggers.
+ */
+const rootLogger: ILogger = Logger.global();
+
+/**
+ * Gets the shared MSSQL logger, optionally with a prefix.
+ */
+export function getLogger(prefix?: string): ILogger {
+    return prefix ? rootLogger.withPrefix(prefix) : rootLogger;
+}
+
+/**
  * Shared MSSQL logger instance for callers that do not need a custom channel or prefix.
  */
-export const logger: ILogger = Logger.global();
+export const logger: ILogger = getLogger();
 
 export default logger;
 
