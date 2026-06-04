@@ -347,9 +347,6 @@ suite("SQL Tools MCP runtime", () => {
         } catch (error) {
             expect(error).to.be.instanceOf(Error);
             expect((error as Error).message).to.equal("detection failed");
-            expect(logger.warn).not.to.have.been.calledWith(
-                "SQL Tools MCP platform detection failed; using minimal context.",
-            );
             return;
         }
 

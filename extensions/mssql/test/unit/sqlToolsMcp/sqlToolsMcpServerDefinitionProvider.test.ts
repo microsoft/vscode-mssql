@@ -11,12 +11,12 @@ import { expect } from "chai";
 import sinonChai from "sinon-chai";
 import * as vscode from "vscode";
 import { config } from "../../../src/configurations/config";
-import { enableSqlToolsMcpConfigKey } from "../../../src/copilot/sqlToolSurfaceToggle";
 import DotnetRuntimeProvider from "../../../src/languageservice/dotnetRuntimeProvider";
 import { Logger } from "../../../src/models/logger";
 import { sqlToolsMcpProviderId, sqlToolsMcpServerLabel } from "../../../src/sqlToolsMcp/contracts";
 import {
     canRegisterSqlToolsMcpProvider,
+    enableSqlToolsMcpConfigKey,
     registerProvider,
     SqlToolsMcpServerDefinitionProvider,
 } from "../../../src/sqlToolsMcp/sqlToolsMcpServerDefinitionProvider";

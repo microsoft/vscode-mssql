@@ -34,7 +34,7 @@
                 // Uncomment this to use a local SQL Tools MCP publish folder.
                 // Requires mssql.copilot.enableSqlToolsMcp to be enabled in the launched Extension Host.
                 // The folder can contain either SQLtoolsMCPserver or SQLtoolsMCPserver.dll.
-                // "MSSQL_SQLTOOLS_MCP": "<Path to SQLtoolsMCPserver>"
+                // "MSSQL_SQLTOOLS_MCP": "<Path to SQL Tools MCP publish folder>"
             }
         }
     ]

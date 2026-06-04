@@ -6,7 +6,6 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import { isSqlToolsMcpEnabled, enableSqlToolsMcpConfigKey } from "../copilot/sqlToolSurfaceToggle";
 import { config } from "../configurations/config";
 import DotnetRuntimeProvider from "../languageservice/dotnetRuntimeProvider";
 import { getRuntimeConfigPath } from "../languageservice/serviceExecutablePaths";
@@ -18,6 +17,11 @@ import { getElapsedMs, sendSqlToolsMcpAction, sendSqlToolsMcpError } from "./sql
 
 const debugLaunchArg = "--vscode-mssql-debug-launch";
 const sqlToolsMcpOverrideEnvVar = "MSSQL_SQLTOOLS_MCP";
+export const enableSqlToolsMcpConfigKey = "mssql.copilot.enableSqlToolsMcp";
+
+export function isSqlToolsMcpEnabled(): boolean {
+    return vscode.workspace.getConfiguration().get<boolean>(enableSqlToolsMcpConfigKey, false);
+}
 
 export class SqlToolsMcpServerDefinitionProvider
     implements
