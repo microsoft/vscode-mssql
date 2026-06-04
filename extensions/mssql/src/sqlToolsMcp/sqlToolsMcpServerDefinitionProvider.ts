@@ -7,9 +7,10 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import { config } from "../configurations/config";
+import { SqlToolsMcp } from "../constants/locConstants";
 import DotnetRuntimeProvider from "../languageservice/dotnetRuntimeProvider";
 import { getRuntimeConfigPath } from "../languageservice/serviceExecutablePaths";
-import { sqlToolsMcpProviderId, sqlToolsMcpServerLabel } from "./contracts";
+import { sqlToolsMcpProviderId } from "./contracts";
 import { SqlToolsMcpBridgeManager } from "./sqlToolsMcpBridgeManager";
 import { Logger } from "../models/logger";
 import { TelemetryActions } from "../sharedInterfaces/telemetry";
@@ -17,6 +18,7 @@ import { getElapsedMs, sendSqlToolsMcpAction, sendSqlToolsMcpError } from "./sql
 
 const debugLaunchArg = "--vscode-mssql-debug-launch";
 const sqlToolsMcpOverrideEnvVar = "MSSQL_SQLTOOLS_MCP";
+export const sqlToolsMcpServerLabel = SqlToolsMcp.serverLabel;
 export const enableSqlToolsMcpConfigKey = "mssql.copilot.enableSqlToolsMcp";
 
 export function isSqlToolsMcpEnabled(): boolean {

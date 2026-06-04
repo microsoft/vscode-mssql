@@ -199,7 +199,7 @@
             {
                 "id": "mssql-sqltools-mcp",
                 "when": "config.mssql.copilot.enableSqlToolsMcp",
-                "label": "SQL Tools (mssql)"
+                "label": "%mssql.sqlToolsMcp.serverLabel%"
             }
         ],
         "viewsContainers": {

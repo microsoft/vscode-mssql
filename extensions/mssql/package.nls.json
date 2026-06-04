@@ -61,6 +61,7 @@
     "mssql.copilot.analyzeQueryPerformance": "Analyze Query Performance",
     "mssql.copilot.rewriteQuery": "Rewrite Query",
     "mssql.copilot.newQueryWithConnection": "Open New Query and Connect",
+    "mssql.sqlToolsMcp.serverLabel": "SQL Tools (MSSQL)",
     "mssql.schemaCompare": "Compare Schemas...",
     "mssql.tableExplorer": "Edit Table Data...",
     "mssql.searchDatabase": "Search Database Objects...",

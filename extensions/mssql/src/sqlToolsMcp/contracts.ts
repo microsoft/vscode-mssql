@@ -6,7 +6,6 @@
 import { ErrorCodes, ResponseError } from "vscode-jsonrpc/node";
 
 export const sqlToolsMcpProviderId = "mssql-sqltools-mcp";
-export const sqlToolsMcpServerLabel = "SQL Tools (mssql)";
 export const sqlToolsMcpBridgeProtocolVersion = "1.0";
 
 export interface BridgeInitializeRequest {

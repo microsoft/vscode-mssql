@@ -57,7 +57,20 @@ export function normalizeSqlToolsMcpQuery(descriptor: QueryContentDescriptor): s
 }
 
 function parseQueryParameters(parameters: string[]): QueryParameter[] {
-    return parameters.map(parseQueryParameter);
+    const parsedParameters = parameters.map(parseQueryParameter);
+    const seenParameterNames = new Set<string>();
+    for (const parameter of parsedParameters) {
+        const parameterName = parameter.name.toLowerCase();
+        if (seenParameterNames.has(parameterName)) {
+            throw new BridgeRequestError(
+                BridgeErrorCode.InvalidRequest,
+                "Query parameter names must be unique.",
+            );
+        }
+        seenParameterNames.add(parameterName);
+    }
+
+    return parsedParameters;
 }
 
 function parseQueryParameter(parameter: string): QueryParameter {

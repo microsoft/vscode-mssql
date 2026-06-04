@@ -13,11 +13,12 @@ import * as vscode from "vscode";
 import { config } from "../../../src/configurations/config";
 import DotnetRuntimeProvider from "../../../src/languageservice/dotnetRuntimeProvider";
 import { Logger } from "../../../src/models/logger";
-import { sqlToolsMcpProviderId, sqlToolsMcpServerLabel } from "../../../src/sqlToolsMcp/contracts";
+import { sqlToolsMcpProviderId } from "../../../src/sqlToolsMcp/contracts";
 import {
     canRegisterSqlToolsMcpProvider,
     enableSqlToolsMcpConfigKey,
     registerProvider,
+    sqlToolsMcpServerLabel,
     SqlToolsMcpServerDefinitionProvider,
 } from "../../../src/sqlToolsMcp/sqlToolsMcpServerDefinitionProvider";
 import { SqlToolsMcpBridgeManager } from "../../../src/sqlToolsMcp/sqlToolsMcpBridgeManager";

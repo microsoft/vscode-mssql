@@ -43,6 +43,18 @@ suite("SQL Tools MCP query normalizer", () => {
         expect(query).to.equal("DECLARE @returnAsMarkdown bit = 1;\nSELECT @returnAsMarkdown;");
     });
 
+    test("rejects duplicate query parameter names", () => {
+        expectBridgeError(
+            () =>
+                normalizeSqlToolsMcpQuery({
+                    query: "SELECT @name;",
+                    queryParameters: ["name=first", "@Name=second"],
+                }),
+            BridgeErrorCode.InvalidRequest,
+            "Query parameter names must be unique.",
+        );
+    });
+
     test("builds conservative stored procedure execution without returnAsMarkdown injection", () => {
         const query = normalizeSqlToolsMcpQuery({
             query: "dbo.sp_help",

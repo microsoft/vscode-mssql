@@ -89,6 +89,8 @@ function toPlatformContext(
 }
 
 function buildPlatformDetectionQuery(): string {
+    // Keep this query aligned with the SQL Tools MCP platform detector. If platform
+    // support or version parsing changes, update the source detector first and mirror it here.
     return `
 DECLARE @IsFabricSQLDW bit;
 SET @IsFabricSQLDW = CASE
