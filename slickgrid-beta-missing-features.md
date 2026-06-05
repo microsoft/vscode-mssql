@@ -12,10 +12,10 @@
 - [x] Result grid shortcuts
 - [x] Custom shortcuts
 - [x] Selection summary
-- [ ] Maximize/restore polish
-- [ ] Empty-state handling
-- [ ] Full theming parity
-- [ ] Styling parity with current results grid
+- [x] Maximize/restore polish
+- [x] Empty-state handling
+- [x] Full theming parity
+- [x] Styling parity with current results grid
 - [ ] Custom styling
 - [ ] Large-result performance validation
 - [x] XML/JSON link parity
