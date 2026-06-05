@@ -152,3 +152,34 @@ export namespace CompletionExtLoadRequest {
         "completion/extLoad",
     );
 }
+
+// ------------------------------- < SQL Symbol Rename > ------------------------------------
+
+export interface SqlSymbolRenameParams {
+    textDocument: { uri: string };
+    position: { line: number; character: number };
+    newName: string;
+}
+
+export interface SqlSymbolRenameTextEdit {
+    range: {
+        start: { line: number; character: number };
+        end: { line: number; character: number };
+    };
+    newText: string;
+}
+
+export interface SqlSymbolRenameResponse {
+    changes: { [uri: string]: SqlSymbolRenameTextEdit[] } | null;
+    /** Original unqualified element name (brackets stripped), for .refactorlog. */
+    elementName: string | null;
+    newName: string;
+}
+
+export namespace SqlSymbolRenameRequest {
+    export const type = new RequestType<SqlSymbolRenameParams, SqlSymbolRenameResponse, void, void>(
+        "sql/rename",
+    );
+}
+
+// ------------------------------- </ SQL Symbol Rename > ----------------------------------

@@ -113,6 +113,7 @@ import { openExecutionPlanWebview } from "./sharedExecutionPlanUtils";
 import { ITableExplorerService, TableExplorerService } from "../services/tableExplorerService";
 import { IMetadataService, MetadataService } from "../services/metadataService";
 import { TableExplorerWebViewController } from "../tableExplorer/tableExplorerWebViewController";
+import { SqlSymbolRenameProvider } from "../languageservice/sqlSymbolRenameProvider";
 import { SearchDatabaseWebViewController } from "../searchDatabase/searchDatabaseWebViewController";
 import { ChangelogWebviewController } from "./changelogWebviewController";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
@@ -358,6 +359,15 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdClearAzureTokenCache, () =>
                 this.connectionManager.onClearAzureTokenCache(),
             );
+            // Register the RenameProvider so F2 / "Rename Symbol" uses our STS backend.
+            // This gives the native inline rename textbox + VS Code's preview panel.
+            this._context.subscriptions.push(
+                vscode.languages.registerRenameProvider(
+                    { language: "sql" },
+                    new SqlSymbolRenameProvider(),
+                ),
+            );
+
             this.registerCommand(Constants.cmdShowEstimatedPlan);
             this._event.on(Constants.cmdShowEstimatedPlan, () => {
                 void this.onRunQuery({
