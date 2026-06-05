@@ -437,6 +437,37 @@ suite("ConnectionManager Tests", () => {
             );
         });
 
+        test("Should acquire token for the resource specified by STS when one is supplied (e.g. Dynamics/Dataverse)", async () => {
+            // STS in --request-mfa-token-from-client mode forwards SqlAuthenticationParameters.Resource
+            // via RequestSecurityTokenParams.resource. For Dataverse TDS endpoints this is the org URL,
+            // not https://database.windows.net/, so we must honor what STS asked for instead of
+            // hardcoding sqlResource (which causes login failures against *.crm.dynamics.com).
+            const expiresOn = Math.floor(Date.now() / 1000) + 3600;
+            acquireTokenStub.resolves({ token: { token: "dataverse-token", expiresOn } });
+
+            const params: RequestSecurityTokenParams = {
+                accountId: "account-id",
+                tenantId: "tenant-id",
+                resource: "https://org6603e467.crm.dynamics.com/",
+                provider: "",
+                authority: "",
+                scopes: [],
+            };
+
+            const result = await connectionManager["handleSecurityTokenRequest"](params);
+
+            expect(result).to.deep.equal({
+                accountKey: "account-id",
+                token: "dataverse-token",
+                expiresOn,
+            });
+            expect(acquireTokenStub).to.have.been.calledWithMatch(
+                "https://org6603e467.crm.dynamics.com/",
+                "account-id",
+                "tenant-id",
+            );
+        });
+
         test("should return empty token on failure", async () => {
             acquireTokenStub.rejects(new Error("auth failed"));
 

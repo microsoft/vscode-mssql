@@ -114,6 +114,16 @@ export class ObjectExplorerService {
         Deferred<ExpandResponse>
     >();
 
+    /**
+     * Per-node in-flight expand promises, used to dedupe concurrent calls into
+     * {@link getOrCreateNodeChildrenWithSession} for the same node. Without this,
+     * a refresh on a slow connection (e.g. Dataverse) can spawn dozens of duplicate
+     * RefreshRequests to STS because every {@link setLoadingUiForNode} call re-fires
+     * `onDidChangeTreeData`, which causes VS Code to re-enter {@link getNodeChildren}
+     * before the first expand has resolved.
+     */
+    private _inFlightChildrenFetches: Map<TreeNodeInfo, Promise<void>> = new Map();
+
     constructor(
         private _vscodeWrapper: VscodeWrapper,
         private _connectionManager: ConnectionManager,
@@ -201,25 +211,37 @@ export class ObjectExplorerService {
                 isRefresh: node.shouldRefresh.toString(),
             },
         );
-        this._logger.debug(`Expanding node ${node.label} with session ID ${sessionId}`);
+        this._logger.info(
+            `[refresh-diag] expandNode start: ${this.describeNode(node)}, sessionId=${sessionId}, asRefresh=${node.shouldRefresh}`,
+        );
         try {
             const expandParams: ExpandParams = {
                 sessionId: sessionId,
                 nodePath: node.nodePath,
                 filters: node.filters,
             };
+            const pendingKey = `${sessionId}${node.nodePath}`;
+            if (this._pendingExpands.has(pendingKey)) {
+                this._logger.info(
+                    `[refresh-diag] expandNode WARNING: a previous pending expand for key '${pendingKey}' is being OVERWRITTEN — the previous awaiter will hang because ExpandComplete will only resolve the latest registration.`,
+                );
+            }
             const expandResponse = new Deferred<ExpandResponse>();
-            this._pendingExpands.set(`${sessionId}${node.nodePath}`, expandResponse);
+            this._pendingExpands.set(pendingKey, expandResponse);
 
             let response: boolean;
             if (node.shouldRefresh) {
-                this._logger.debug(`Refreshing node ${node.label} with session ID ${sessionId}`);
+                this._logger.info(
+                    `[refresh-diag] expandNode: sending RefreshRequest for ${this.describeNode(node)} (sessionId=${sessionId})`,
+                );
                 response = await this._connectionManager.client.sendRequest(
                     RefreshRequest.type,
                     expandParams,
                 );
             } else {
-                this._logger.debug(`Expanding node ${node.label} with session ID ${sessionId}`);
+                this._logger.info(
+                    `[refresh-diag] expandNode: sending ExpandRequest for ${this.describeNode(node)} (sessionId=${sessionId})`,
+                );
                 response = await this._connectionManager.client.sendRequest(
                     ExpandRequest.type,
                     expandParams,
@@ -274,6 +296,9 @@ export class ObjectExplorerService {
                 return undefined;
             }
         } finally {
+            this._logger.info(
+                `[refresh-diag] expandNode finally: ${this.describeNode(node)} — clearing shouldRefresh`,
+            );
             node.shouldRefresh = false;
         }
     }
@@ -283,17 +308,42 @@ export class ObjectExplorerService {
      * @param node Node to cleanup
      */
     public cleanNodeChildren(node: vscode.TreeItem): void {
+        this._logger.info(
+            `[refresh-diag] cleanNodeChildren start: ${this.describeNode(node)}, mapHas=${this._treeNodeToChildrenMap.has(node)}`,
+        );
         if (this._treeNodeToChildrenMap.has(node)) {
             let stack = this._treeNodeToChildrenMap.get(node);
+            let removedCount = 0;
             while (stack.length > 0) {
                 let child = stack.pop();
                 if (this._treeNodeToChildrenMap.has(child)) {
                     stack.push(...this._treeNodeToChildrenMap.get(child));
                 }
                 this._treeNodeToChildrenMap.delete(child);
+                removedCount++;
             }
             this._treeNodeToChildrenMap.delete(node);
+            this._logger.info(
+                `[refresh-diag] cleanNodeChildren removed ${removedCount + 1} entries from map for ${this.describeNode(node)}`,
+            );
         }
+    }
+
+    /**
+     * Builds a short, log-friendly description of a tree node for the refresh-diagnostics logs.
+     */
+    private describeNode(node?: vscode.TreeItem): string {
+        if (!node) {
+            return "<root>";
+        }
+        if (node instanceof TreeNodeInfo) {
+            return `'${node.label}' (type=${node.nodeType}, nodePath=${node.nodePath}, sessionId=${node.sessionId}, shouldRefresh=${node.shouldRefresh})`;
+        }
+        const label =
+            typeof node.label === "string"
+                ? node.label
+                : (node.label?.label ?? node.constructor?.name ?? "unknown");
+        return `'${label}' (non-TreeNodeInfo: ${node.constructor?.name})`;
     }
 
     /**
@@ -334,6 +384,7 @@ export class ObjectExplorerService {
 
     // Main method that routes to the appropriate handler
     public async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
+        this._logger.info(`[refresh-diag] getChildren called for ${this.describeNode(element)}`);
         await this.initialized;
         if (!element) {
             return this.getRootNodes();
@@ -488,10 +539,30 @@ export class ObjectExplorerService {
      * @returns The children of the node
      */
     private async getNodeChildren(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
-        if (element.shouldRefresh) {
+        const wasRefresh = element.shouldRefresh;
+        const hadCache = this._treeNodeToChildrenMap.has(element);
+        const hasInFlight = this._inFlightChildrenFetches.has(element);
+        this._logger.info(
+            `[refresh-diag] getNodeChildren start: ${this.describeNode(element)}, hadCache=${hadCache}, hasInFlight=${hasInFlight}`,
+        );
+
+        if (wasRefresh) {
+            // Clear the flag SYNCHRONOUSLY before any await/event-fire so that re-entrant
+            // getNodeChildren calls (triggered by setLoadingUiForNode → _refreshCallback →
+            // onDidChangeTreeData → VS Code → getChildren) don't see shouldRefresh=true and
+            // spawn a duplicate refresh. Previously the flag was only cleared inside the
+            // async chain at line 540, which could take several seconds on slow connections
+            // (e.g. Dataverse), letting dozens of duplicate RefreshRequests pile up.
+            element.shouldRefresh = false;
+            this._logger.info(
+                `[refresh-diag] getNodeChildren: consumed shouldRefresh for ${this.describeNode(element)}, cleaning cached children`,
+            );
             this.cleanNodeChildren(element);
         } else {
             if (this._treeNodeToChildrenMap.has(element)) {
+                this._logger.info(
+                    `[refresh-diag] getNodeChildren: returning cached children for ${this.describeNode(element)} (${this._treeNodeToChildrenMap.get(element).length} items)`,
+                );
                 return this._treeNodeToChildrenMap.get(element);
             }
         }
@@ -514,6 +585,9 @@ export class ObjectExplorerService {
      * @returns A loading node that will be displayed in the tree
      */
     public async setLoadingUiForNode(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
+        this._logger.info(
+            `[refresh-diag] setLoadingUiForNode: ${this.describeNode(element)} — will fire onDidChangeTreeData`,
+        );
         const loadingNode = new vscode.TreeItem(
             element.loadingLabel ?? LocalizedConstants.ObjectExplorer.LoadingNodeLabel,
             vscode.TreeItemCollapsibleState.None,
@@ -528,17 +602,45 @@ export class ObjectExplorerService {
     /**
      * Get or create the children of a node. If the node has a session ID, expand it.
      * If it doesn't, create a new session and expand it.
+     *
+     * Concurrent callers for the same node share a single in-flight promise via
+     * {@link _inFlightChildrenFetches}. This prevents duplicate STS expand/refresh
+     * requests when the UI re-enters {@link getNodeChildren} before the first
+     * expand has completed (e.g. on slow Dataverse connections).
      * @param element The node to get or create children for
-     * @returns The children of the node
      */
     private async getOrCreateNodeChildrenWithSession(element: TreeNodeInfo): Promise<void> {
-        if (element.sessionId) {
-            await this.expandExistingNode(element);
-        } else {
-            await this.createSessionAndExpandNode(element);
+        const existing = this._inFlightChildrenFetches.get(element);
+        if (existing) {
+            this._logger.info(
+                `[refresh-diag] getOrCreateNodeChildrenWithSession: re-entered with in-flight fetch for ${this.describeNode(element)} — reusing existing promise (NO new STS request will be sent)`,
+            );
+            return existing;
         }
-        element.shouldRefresh = false;
-        this._refreshCallback(element);
+
+        this._logger.info(
+            `[refresh-diag] getOrCreateNodeChildrenWithSession start: ${this.describeNode(element)}`,
+        );
+
+        const fetchPromise = (async () => {
+            try {
+                if (element.sessionId) {
+                    await this.expandExistingNode(element);
+                } else {
+                    await this.createSessionAndExpandNode(element);
+                }
+            } finally {
+                element.shouldRefresh = false;
+                this._inFlightChildrenFetches.delete(element);
+                this._logger.info(
+                    `[refresh-diag] getOrCreateNodeChildrenWithSession end: ${this.describeNode(element)} — refresh callback follows`,
+                );
+                this._refreshCallback(element);
+            }
+        })();
+
+        this._inFlightChildrenFetches.set(element, fetchPromise);
+        return fetchPromise;
     }
 
     /**
