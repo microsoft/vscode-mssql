@@ -10,8 +10,8 @@
  * lifecycle, signal cancellation, error mapping, and idempotent dispose.
  *
  * The `ConnectionManager` itself is stubbed via `FakeConnectionManager`:
- * the strategy only touches a tiny public surface (`connectionStore.connectionConfig.getConnectionById`,
- * `connect`, `disconnect`, `client.sendRequest`), so a typed shim suffices.
+ * the strategy only touches a tiny public surface (`connectionStore.connectionConfig.getConnectionById`
+ * and `getConnections`, `connect`, `disconnect`, `client.sendRequest`), so a typed shim suffices.
  */
 
 import { expect } from "chai";
@@ -23,6 +23,7 @@ import { VsCodeMssqlConnectionStrategy } from "../../src/cloudDeploy/host/vscode
 interface ProfileRecord {
     readonly id: string;
     readonly server: string;
+    readonly profileName?: string;
 }
 
 interface ConnectCall {
@@ -55,6 +56,7 @@ class FakeConnectionManager {
             connectionConfig: {
                 getConnectionById: async (id: string): Promise<ProfileRecord | undefined> =>
                     this._profiles[id],
+                getConnections: async (): Promise<ProfileRecord[]> => Object.values(this._profiles),
             },
         };
     }
@@ -119,6 +121,28 @@ suite("CloudDeploy VsCodeMssqlConnectionStrategy", () => {
             expect((err as ConnectionError).message).to.contain("missing");
         }
         expect(fake.connectCalls).to.have.length(0);
+    });
+
+    test("falls back to a profileName match when the id lookup misses", async () => {
+        // environments.json references the connection by its user-facing name;
+        // getConnectionById misses (the key is a GUID), so the strategy must
+        // fall back to scanning getConnections() for a matching profileName.
+        const named: ProfileRecord = {
+            id: "guid-123",
+            server: "localhost,1433",
+            profileName: "smoke-local-container",
+        };
+        const fake = new FakeConnectionManager({ [named.id]: named });
+        const strategy = new VsCodeMssqlConnectionStrategy(asConnectionManager(fake));
+
+        const handle = await strategy.connectByProfileId(
+            "smoke-local-container",
+            new AbortController().signal,
+        );
+
+        expect(handle).to.not.be.undefined;
+        expect(fake.connectCalls).to.have.length(1);
+        expect(fake.connectCalls[0].profileId).to.equal(named.id);
     });
 
     test("throws ConnectionError(timeout) when signal is pre-aborted; never looks up profile", async () => {
