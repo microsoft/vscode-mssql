@@ -4799,6 +4799,9 @@
     <trans-unit id="++CODE++c5dc54683e13edaa795870a0a2523c2c23ee2a6595b5ceb984a7d2639237a77e">
       <source xml:lang="en">No databases with backups found</source>
     </trans-unit>
+    <trans-unit id="++CODE++04c96a1c2ddfe954935382f08c6937e3fa53eec2da24dd547caae1f096028c2d">
+      <source xml:lang="en">No default Cloud Deploy environment is set. Set one from the Cloud Deploy view (star icon) before running this command.</source>
+    </trans-unit>
     <trans-unit id="++CODE++9a5ffa9a03deee764163c794a73832d859a2df314715bb7c281f4eaac7919f3f">
       <source xml:lang="en">No elements found</source>
     </trans-unit>
@@ -7691,6 +7694,10 @@
       <note>{0} is the user-facing environment name
 {1} is the underlying error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++0d3b2e7d10fd12f08291ecb2041fe006e78fe1280b0b56ae4421507edb327e55">
+      <source xml:lang="en">Validation skipped for &apos;{0}&apos;.</source>
+      <note>{0} is the user-facing environment name</note>
+    </trans-unit>
     <trans-unit id="++CODE++9bab08a288aaeca6d6c9404beaa0b1a19cf0beee117244d0ebbd72920170e92f">
       <source xml:lang="en">Validations</source>
     </trans-unit>
@@ -8335,6 +8342,10 @@
     <trans-unit id="++CODE++c7c45c2f2ad470c2dc1a35bf3320d977e49bd4f4c804d9bf347d009669e5ebae">
       <source xml:lang="en">{{put-server-name-here}}</source>
     </trans-unit>
+    <trans-unit id="++CODE++7021c06cded7adfdcf2414ff7bae8f6bdb1f8da5ee606402efd2f7e35ab2bb3f">
+      <source xml:lang="en">★ Default • {0}</source>
+      <note>{0} is the environment&apos;s own description or source-of-truth kind. The leading star marks the default environment.</note>
+    </trans-unit>
     <trans-unit id="++CODE++097beaf7cff8a2792062a02ba2078dcf76e2166c13dd935fbffcd530d655cdf6">
       <source xml:lang="en">✅ Grant Access</source>
     </trans-unit>
@@ -8468,6 +8479,9 @@
     </trans-unit>
     <trans-unit id="mssql.cloudDeploy.seedSampleRun">
       <source xml:lang="en">Cloud Deploy: Seed sample run (dev)</source>
+    </trans-unit>
+    <trans-unit id="mssql.cloudDeploy.validateDefaultEnvironment">
+      <source xml:lang="en">Cloud Deploy: Validate default environment</source>
     </trans-unit>
     <trans-unit id="mssql.cloudDeploy.validateEnvironment">
       <source xml:lang="en">Cloud Deploy: Validate environment</source>

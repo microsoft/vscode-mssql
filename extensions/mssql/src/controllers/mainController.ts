@@ -13,7 +13,12 @@ import { AzureResourceController } from "../azure/azureResourceController";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { CloudDeployService } from "../cloudDeploy/cloudDeployService";
-import { CLOUD_DEPLOY_VIEW_ID, CloudDeployTreeProvider } from "../cloudDeploy/dashboard";
+import {
+    CLOUD_DEPLOY_VIEW_ID,
+    CloudDeployTreeProvider,
+    isEnvironmentNode,
+    resolveRunArtifactPath,
+} from "../cloudDeploy/dashboard";
 import { CloudDeployHubController } from "../cloudDeploy/dashboard/cloudDeployHubController";
 import { seedSampleRun } from "../cloudDeploy/dev/seedSampleRun";
 import { VsCodeMssqlConnectionStrategy } from "../cloudDeploy/host/vscodeMssqlConnectionStrategy";
@@ -299,9 +304,13 @@ export default class MainController implements vscode.Disposable {
                 }
                 this.onDeployNewDatabase(initialConnectionGroup);
             });
-            this.registerCommand(Constants.cmdCloudDeployValidate);
-            this._event.on(Constants.cmdCloudDeployValidate, () => {
-                void this.onCloudDeployValidate();
+            this.registerCommandWithArgs(Constants.cmdCloudDeployValidate);
+            this._event.on(Constants.cmdCloudDeployValidate, (args?: unknown) => {
+                void this.onCloudDeployValidate(args);
+            });
+            this.registerCommand(Constants.cmdCloudDeployValidateDefault);
+            this._event.on(Constants.cmdCloudDeployValidateDefault, () => {
+                void this.onCloudDeployValidateDefault();
             });
             this.registerCommand(Constants.cmdRunCurrentStatement);
             this._event.on(Constants.cmdRunCurrentStatement, () => {
@@ -1166,8 +1175,9 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdCloudDeployRevealRunArtifact,
-                async (artifactPath: string) => {
-                    if (typeof artifactPath !== "string" || artifactPath.length === 0) {
+                async (arg: unknown) => {
+                    const artifactPath = resolveRunArtifactPath(arg);
+                    if (artifactPath === undefined) {
                         return;
                     }
                     await vscode.commands.executeCommand(
@@ -2845,7 +2855,7 @@ export default class MainController implements vscode.Disposable {
      * detailed event log lands in the "Cloud Deploy" output channel via the
      * service's bus subscription.
      */
-    public async onCloudDeployValidate(): Promise<void> {
+    public async onCloudDeployValidate(node?: unknown): Promise<void> {
         const environments = this.cloudDeployService.environments;
         if (environments === undefined) {
             this._vscodeWrapper.showInformationMessage(
@@ -2862,21 +2872,75 @@ export default class MainController implements vscode.Disposable {
             return;
         }
 
-        const items = envs.map((env) => ({
-            label: env.name,
-            description: env.id,
-            detail: env.description,
-            envId: env.id,
-        }));
-        const picked = await vscode.window.showQuickPick(items, {
-            placeHolder: LocalizedConstants.CloudDeployValidation.pickEnvironmentPlaceholder,
-            ignoreFocusOut: true,
-        });
-        if (picked === undefined) {
+        // Invoked from the tree view "Validate environment" context menu: validate
+        // the clicked environment directly. Otherwise (Command Palette) prompt for it.
+        let envId: string;
+        let envName: string;
+        if (isEnvironmentNode(node)) {
+            envId = node.env.id;
+            envName = node.env.name;
+        } else {
+            const items = envs.map((env) => ({
+                label: env.name,
+                description: env.id,
+                detail: env.description,
+                envId: env.id,
+            }));
+            const picked = await vscode.window.showQuickPick(items, {
+                placeHolder: LocalizedConstants.CloudDeployValidation.pickEnvironmentPlaceholder,
+                ignoreFocusOut: true,
+            });
+            if (picked === undefined) {
+                return;
+            }
+            envId = picked.envId;
+            envName = picked.label;
+        }
+
+        await this.runCloudDeployValidation(envId, envName);
+    }
+
+    /**
+     * Cloud Deploy: validate the user's default environment without prompting.
+     * If no default is set, surfaces an info toast pointing the user at the
+     * Cloud Deploy view's star action so they can pick one.
+     */
+    public async onCloudDeployValidateDefault(): Promise<void> {
+        const environments = this.cloudDeployService.environments;
+        if (environments === undefined) {
+            this._vscodeWrapper.showInformationMessage(
+                LocalizedConstants.CloudDeployValidation.noWorkspaceFolder,
+            );
             return;
         }
 
-        const envName = picked.label;
+        const envs = environments.list();
+        if (envs.length === 0) {
+            this._vscodeWrapper.showInformationMessage(
+                LocalizedConstants.CloudDeployValidation.noEnvironmentsDeclared,
+            );
+            return;
+        }
+
+        const defaultEnvId = environments.getDefaultEnvironmentId();
+        const defaultEnv =
+            defaultEnvId !== undefined ? envs.find((env) => env.id === defaultEnvId) : undefined;
+        if (defaultEnv === undefined) {
+            this._vscodeWrapper.showInformationMessage(
+                LocalizedConstants.CloudDeployValidation.noDefaultEnvironment,
+            );
+            return;
+        }
+
+        await this.runCloudDeployValidation(defaultEnv.id, defaultEnv.name);
+    }
+
+    /**
+     * Runs the validation pipeline against a resolved environment, showing a
+     * cancellable progress notification and a result toast. Shared by the
+     * pick-an-environment and validate-default command entry points.
+     */
+    private async runCloudDeployValidation(envId: string, envName: string): Promise<void> {
         const result = await vscode.window.withProgress(
             {
                 location: vscode.ProgressLocation.Notification,
@@ -2887,7 +2951,7 @@ export default class MainController implements vscode.Disposable {
                 const controller = new AbortController();
                 const tokenSubscription = token.onCancellationRequested(() => controller.abort());
                 try {
-                    return await this.cloudDeployService.validation.run(picked.envId, {
+                    return await this.cloudDeployService.validation.run(envId, {
                         signal: controller.signal,
                         // Persist a .cdrun.zip under .mssql/runs/ so the Cloud
                         // Deploy tree view picks it up via the FileSystemWatcher.
@@ -2933,8 +2997,14 @@ export default class MainController implements vscode.Disposable {
                 );
                 break;
             case "skipped":
+                // Distinguish a run that genuinely had nothing to do (no
+                // validations declared) from one whose declared validations
+                // ran but rolled up to Skipped (e.g. one validator skipped a
+                // missing artifact). Both surface as a "skipped" run status.
                 toast = vscode.window.showInformationMessage(
-                    LocalizedConstants.CloudDeployValidation.runSkipped(envName),
+                    result.record.validations.length === 0
+                        ? LocalizedConstants.CloudDeployValidation.runNoValidations(envName)
+                        : LocalizedConstants.CloudDeployValidation.runSkipped(envName),
                     showOutput,
                 );
                 break;

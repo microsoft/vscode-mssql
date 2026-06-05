@@ -3923,6 +3923,10 @@ export class CloudDeployValidation {
 
     public static pickEnvironmentPlaceholder = l10n.t("Select an environment to validate");
 
+    public static noDefaultEnvironment = l10n.t(
+        "No default Cloud Deploy environment is set. Set one from the Cloud Deploy view (star icon) before running this command.",
+    );
+
     public static progressTitle = (envName: string): string =>
         l10n.t({
             message: "Validating environment '{0}'",
@@ -3970,6 +3974,13 @@ export class CloudDeployValidation {
 
     public static runSkipped = (envName: string): string =>
         l10n.t({
+            message: "Validation skipped for '{0}'.",
+            args: [envName],
+            comment: ["{0} is the user-facing environment name"],
+        });
+
+    public static runNoValidations = (envName: string): string =>
+        l10n.t({
             message: "No validations were declared on '{0}'.",
             args: [envName],
             comment: ["{0} is the user-facing environment name"],
@@ -4013,6 +4024,15 @@ export class CloudDeployDashboard {
             message: "Environment id: {0}",
             args: [id],
             comment: ["{0} is the environment id from environments.json"],
+        });
+
+    public static defaultEnvironmentDescription = (baseDescription: string): string =>
+        l10n.t({
+            message: "★ Default • {0}",
+            args: [baseDescription],
+            comment: [
+                "{0} is the environment's own description or source-of-truth kind. The leading star marks the default environment.",
+            ],
         });
 
     public static runTooltip = (runId: string, artifactPath: string): string =>
