@@ -13,10 +13,13 @@
  * stays host-agnostic and unit-testable in isolation.
  *
  * Resolution flow for `connectByProfileId(profileId, signal)`:
- *   1. Look up the profile by id via
- *      `connectionStore.connectionConfig.getConnectionById`. If absent,
- *      throw `ConnectionError("unknown", ...)` — connectivity validators
- *      surface this as a `Failed` result with a deterministic message.
+ *   1. Look up the profile by stable id via
+ *      `connectionStore.connectionConfig.getConnectionById`, then fall back
+ *      to a `profileName` match so hand-authored `environments.json` files
+ *      can reference a connection by its user-facing name. If neither
+ *      matches, throw `ConnectionError("unknown", ...)` — connectivity
+ *      validators surface this as a `Failed` result with a deterministic
+ *      message.
  *   2. Mint a per-attempt owner URI (a uuid) and call
  *      `ConnectionManager.connect(ownerUri, profile, { shouldHandleErrors: false })`.
  *      `shouldHandleErrors: false` keeps the call non-interactive: failures
@@ -69,10 +72,14 @@ export class VsCodeMssqlConnectionStrategy implements LiveConnectionStrategy {
             throw new ConnectionError("timeout", "Connection attempt cancelled before opening.");
         }
 
-        const profile =
-            await this._connectionManager.connectionStore.connectionConfig.getConnectionById(
-                profileId,
-            );
+        const connectionConfig = this._connectionManager.connectionStore.connectionConfig;
+        let profile = await connectionConfig.getConnectionById(profileId);
+        if (profile === undefined) {
+            // Fall back to a user-facing name match so environments.json can
+            // reference a connection by its profile name rather than its GUID.
+            const all = await connectionConfig.getConnections();
+            profile = all.find((candidate) => candidate.profileName === profileId);
+        }
         if (profile === undefined) {
             throw new ConnectionError(
                 "unknown",
