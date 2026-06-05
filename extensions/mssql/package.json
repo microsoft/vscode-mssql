@@ -586,6 +586,16 @@
             ],
             "view/item/context": [
                 {
+                    "command": "mssql.cloudDeploy.validateEnvironment",
+                    "when": "view == mssqlCloudDeploy && viewItem == cloudDeploy.environment",
+                    "group": "1_cloudDeploy@1"
+                },
+                {
+                    "command": "mssql.cloudDeploy.revealRunArtifact",
+                    "when": "view == mssqlCloudDeploy && viewItem == cloudDeploy.run",
+                    "group": "1_cloudDeploy@1"
+                },
+                {
                     "command": "mssql.addObjectExplorer",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(ConnectionGroup)\\b/",
                     "title": "%mssql.addObjectExplorer%",
@@ -1582,6 +1592,11 @@
             {
                 "command": "mssql.cloudDeploy.validateEnvironment",
                 "title": "%mssql.cloudDeploy.validateEnvironment%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.cloudDeploy.validateDefaultEnvironment",
+                "title": "%mssql.cloudDeploy.validateDefaultEnvironment%",
                 "category": "MS SQL"
             },
             {

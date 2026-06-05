@@ -61,10 +61,11 @@ interface SectionNode {
     readonly label: string;
 }
 
-interface EnvironmentNode {
+export interface EnvironmentNode {
     readonly kind: "environment";
     readonly env: Environment;
     readonly latestStatus: RunStatus | undefined;
+    readonly isDefault: boolean;
 }
 
 interface RunNode {
@@ -75,6 +76,19 @@ interface RunNode {
 interface EmptyNode {
     readonly kind: "empty";
     readonly parentSection: "environments" | "runs";
+}
+
+/**
+ * Type guard for the environment leaf node. The "Validate environment" context
+ * menu passes this node as the command argument, so command handlers use it to
+ * skip the environment picker and validate the clicked environment directly.
+ */
+export function isEnvironmentNode(node: unknown): node is EnvironmentNode {
+    return (
+        typeof node === "object" &&
+        node !== null &&
+        (node as EnvironmentNode).kind === "environment"
+    );
 }
 
 // =============================================================================
@@ -97,6 +111,12 @@ export class CloudDeployTreeProvider
         if (this._environments !== undefined) {
             this._disposables.push(
                 this._environments.onDidChangeEnvironments(() => this.refresh()),
+            );
+            // Re-render when the default environment changes so the starred env
+            // re-sorts to the top (or loses its marker) immediately, without
+            // waiting for an unrelated env-list or run-store change.
+            this._disposables.push(
+                this._environments.onDidChangeDefaultEnvironment(() => this.refresh()),
             );
         }
         if (this._runStore !== undefined) {
@@ -146,18 +166,32 @@ export class CloudDeployTreeProvider
         // pre-init error and render the empty placeholder. mainController
         // calls refresh() once init resolves.
         let envs: readonly Environment[] = [];
+        let defaultEnvId: string | undefined;
         try {
             envs = this._environments?.list() ?? [];
+            defaultEnvId = this._environments?.getDefaultEnvironmentId();
         } catch {
             envs = [];
         }
         if (envs.length === 0) {
             return [{ kind: "empty", parentSection: "environments" }];
         }
-        return envs.map<EnvironmentNode>((env) => ({
+        // Pin the default environment to the top so the user's primary target
+        // is always the first leaf, preserving declaration order for the rest.
+        const ordered =
+            defaultEnvId === undefined
+                ? envs
+                : [...envs].sort((a, b) => {
+                      if (a.id === defaultEnvId) {
+                          return b.id === defaultEnvId ? 0 : -1;
+                      }
+                      return b.id === defaultEnvId ? 1 : 0;
+                  });
+        return ordered.map<EnvironmentNode>((env) => ({
             kind: "environment",
             env,
             latestStatus: this._latestStatusFor(env.id),
+            isDefault: env.id === defaultEnvId,
         }));
     }
 
@@ -196,7 +230,10 @@ function makeSectionItem(node: SectionNode): vscode.TreeItem {
 
 function makeEnvironmentItem(node: EnvironmentNode): vscode.TreeItem {
     const item = new vscode.TreeItem(node.env.name, vscode.TreeItemCollapsibleState.None);
-    item.description = node.env.description ?? node.env.sourceOfTruth.kind;
+    const baseDescription = node.env.description ?? node.env.sourceOfTruth.kind;
+    item.description = node.isDefault
+        ? CloudDeployDashboard.defaultEnvironmentDescription(baseDescription)
+        : baseDescription;
     item.tooltip = CloudDeployDashboard.environmentTooltip(node.env.id);
     item.contextValue = "cloudDeploy.environment";
     item.iconPath = iconForStatus(node.latestStatus);
@@ -221,6 +258,27 @@ function makeRunItem(node: RunNode): vscode.TreeItem {
         arguments: [entry.runId],
     };
     return item;
+}
+
+/**
+ * Resolves the run-artifact path from a `revealRunArtifact` command argument.
+ * The command is invoked from the tree context menu (VS Code passes the
+ * `RunNode` element) and, for back-compat, can be called with a bare
+ * artifact-path string. Returns `undefined` when no usable path is present.
+ */
+export function resolveRunArtifactPath(arg: unknown): string | undefined {
+    if (typeof arg === "string") {
+        return arg.length > 0 ? arg : undefined;
+    }
+    if (isRunNode(arg)) {
+        const { artifactPath } = arg.entry;
+        return artifactPath.length > 0 ? artifactPath : undefined;
+    }
+    return undefined;
+}
+
+function isRunNode(arg: unknown): arg is RunNode {
+    return typeof arg === "object" && arg !== null && (arg as { kind?: unknown }).kind === "run";
 }
 
 function makeEmptyItem(node: EmptyNode): vscode.TreeItem {

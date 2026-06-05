@@ -41,15 +41,26 @@ class FakeEnvironmentStore {
         removed: readonly string[];
     }>();
     public readonly onDidChangeEnvironments = this._emitter.event;
+    private readonly _defaultEmitter = new vscode.EventEmitter<string | undefined>();
+    public readonly onDidChangeDefaultEnvironment = this._defaultEmitter.event;
     public envs: Environment[] = [];
+    public defaultEnvId: string | undefined = undefined;
     public list(): readonly Environment[] {
         return this.envs.slice();
+    }
+    public getDefaultEnvironmentId(): string | undefined {
+        return this.defaultEnvId;
     }
     public fire(): void {
         this._emitter.fire({ added: [], updated: [], removed: [] });
     }
+    public fireDefaultChanged(id: string | undefined): void {
+        this.defaultEnvId = id;
+        this._defaultEmitter.fire(id);
+    }
     public dispose(): void {
         this._emitter.dispose();
+        this._defaultEmitter.dispose();
     }
 }
 
@@ -134,6 +145,51 @@ suite("CloudDeploy CloudDeployTreeProvider", () => {
         expect(children).to.have.lengthOf(2);
         const names = children.map((c) => (c.kind === "environment" ? c.env.name : "?"));
         expect(names).to.deep.equal(["Dev", "Prod"]);
+    });
+
+    test("default environment is pinned to the top of the environments section", () => {
+        envStore.envs = [
+            makeEnvironment({ id: "dev", name: "Dev" }),
+            makeEnvironment({ id: "staging", name: "Staging" }),
+            makeEnvironment({ id: "prod", name: "Prod" }),
+        ];
+        envStore.defaultEnvId = "prod";
+        const roots = provider.getChildren();
+        const envSection = roots.find((n) => n.kind === "section" && n.id === "environments");
+        const children = provider.getChildren(envSection);
+        const names = children.map((c) => (c.kind === "environment" ? c.env.name : "?"));
+        expect(names).to.deep.equal(["Prod", "Dev", "Staging"]);
+    });
+
+    test("env order is unchanged when no default is set", () => {
+        envStore.envs = [
+            makeEnvironment({ id: "dev", name: "Dev" }),
+            makeEnvironment({ id: "prod", name: "Prod" }),
+        ];
+        envStore.defaultEnvId = undefined;
+        const roots = provider.getChildren();
+        const envSection = roots.find((n) => n.kind === "section" && n.id === "environments");
+        const children = provider.getChildren(envSection);
+        const names = children.map((c) => (c.kind === "environment" ? c.env.name : "?"));
+        expect(names).to.deep.equal(["Dev", "Prod"]);
+    });
+
+    test("only the default environment leaf is flagged isDefault", () => {
+        envStore.envs = [
+            makeEnvironment({ id: "dev", name: "Dev" }),
+            makeEnvironment({ id: "prod", name: "Prod" }),
+        ];
+        envStore.defaultEnvId = "prod";
+        const roots = provider.getChildren();
+        const envSection = roots.find((n) => n.kind === "section" && n.id === "environments");
+        const children = provider.getChildren(envSection);
+        const flags = children.map((c) =>
+            c.kind === "environment" ? { name: c.env.name, isDefault: c.isDefault } : undefined,
+        );
+        expect(flags).to.deep.equal([
+            { name: "Prod", isDefault: true },
+            { name: "Dev", isDefault: false },
+        ]);
     });
 
     test("runs section is empty before any scan", () => {
@@ -230,6 +286,13 @@ suite("CloudDeploy CloudDeployTreeProvider", () => {
         let fired = 0;
         provider.onDidChangeTreeData(() => fired++);
         await runStore.scan();
+        expect(fired).to.equal(1);
+    });
+
+    test("onDidChangeTreeData fires when the default environment changes", () => {
+        let fired = 0;
+        provider.onDidChangeTreeData(() => fired++);
+        envStore.fireDefaultChanged("prod");
         expect(fired).to.equal(1);
     });
 

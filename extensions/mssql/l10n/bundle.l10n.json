@@ -4033,6 +4033,7 @@
     "No Cloud Deploy environments are declared in this workspace. Add one to .mssql/environments.json before running validation.": "No Cloud Deploy environments are declared in this workspace. Add one to .mssql/environments.json before running validation.",
     "Cloud Deploy validation requires an open workspace folder.": "Cloud Deploy validation requires an open workspace folder.",
     "Select an environment to validate": "Select an environment to validate",
+    "No default Cloud Deploy environment is set. Set one from the Cloud Deploy view (star icon) before running this command.": "No default Cloud Deploy environment is set. Set one from the Cloud Deploy view (star icon) before running this command.",
     "Validating environment '{0}'/{0} is the user-facing environment name": {
         "message": "Validating environment '{0}'",
         "comment": ["{0} is the user-facing environment name"]
@@ -4060,6 +4061,10 @@
         "message": "Validation cancelled for '{0}'.",
         "comment": ["{0} is the user-facing environment name"]
     },
+    "Validation skipped for '{0}'./{0} is the user-facing environment name": {
+        "message": "Validation skipped for '{0}'.",
+        "comment": ["{0} is the user-facing environment name"]
+    },
     "No validations were declared on '{0}'./{0} is the user-facing environment name": {
         "message": "No validations were declared on '{0}'.",
         "comment": ["{0} is the user-facing environment name"]
@@ -4078,6 +4083,12 @@
     "Environment id: {0}/{0} is the environment id from environments.json": {
         "message": "Environment id: {0}",
         "comment": ["{0} is the environment id from environments.json"]
+    },
+    "★ Default • {0}/{0} is the environment's own description or source-of-truth kind. The leading star marks the default environment.": {
+        "message": "★ Default • {0}",
+        "comment": [
+            "{0} is the environment's own description or source-of-truth kind. The leading star marks the default environment."
+        ]
     },
     "Run {0}\nArtifact: {1}/{0} is the run id (uuid){1} is the absolute path to the .cdrun.zip artifact": {
         "message": "Run {0}\nArtifact: {1}",
