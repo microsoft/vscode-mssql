@@ -32,7 +32,7 @@
 
 import * as path from "path";
 
-import type { DiagnosticEventBus } from "../diagnostics";
+import type { DiagnosticEvent, DiagnosticEventBus } from "../diagnostics";
 import type { EnvironmentStore } from "../environments/environmentStore";
 import { Environment, SourceOfTruthKind, ValidationType } from "../environments/types";
 import type { RunArtifactWriter } from "../runs";
@@ -159,7 +159,26 @@ export class ValidationService implements CloudDeployValidationApi {
             runner: opts.runner,
         };
 
-        const record = await this._runner.run(env, runnerOpts);
+        // When the caller wants the run persisted, buffer the lifecycle events
+        // the runner emits on the bus so they can be written into the artifact's
+        // `events.jsonl` and replayed later on the run's Logs tab. Each runner
+        // event stamps `correlationId` with the run id, so the buffer is filtered
+        // to this run after it completes (guards against interleaved runs sharing
+        // the bus). The subscription is scoped to the run window and always
+        // disposed.
+        const collectedEvents: DiagnosticEvent[] = [];
+        const eventSubscription = opts.persist
+            ? this._bus.onDidEmit((event) => {
+                  collectedEvents.push(event);
+              })
+            : undefined;
+
+        let record: RunRecord;
+        try {
+            record = await this._runner.run(env, runnerOpts);
+        } finally {
+            eventSubscription?.dispose();
+        }
 
         if (!opts.persist) {
             return { record };
@@ -171,7 +190,14 @@ export class ValidationService implements CloudDeployValidationApi {
 
         const destPath = path.join(opts.artifactDir, RUN_ARTIFACT_FILENAME(record.runId));
         try {
-            const result = await this._writer.write(record, undefined, destPath);
+            const runEvents = collectedEvents.filter(
+                (event) => event.correlationId === record.runId,
+            );
+            const result = await this._writer.write(
+                record,
+                runEvents.length > 0 ? toAsyncEvents(runEvents) : undefined,
+                destPath,
+            );
             return { record, runArtifactPath: result.path };
         } catch (err) {
             return {
@@ -185,6 +211,17 @@ export class ValidationService implements CloudDeployValidationApi {
 // =============================================================================
 // Internals
 // =============================================================================
+
+/**
+ * Adapts a buffered array of diagnostic events into the `AsyncIterable` the
+ * run-artifact writer drains. The events are already in memory; this only
+ * bridges the sync buffer to the writer's async-iterable contract.
+ */
+async function* toAsyncEvents(events: readonly DiagnosticEvent[]): AsyncIterable<DiagnosticEvent> {
+    for (const event of events) {
+        yield event;
+    }
+}
 
 /**
  * Builds an `Errored` `RunRecord` for the "env not found" path. Allows

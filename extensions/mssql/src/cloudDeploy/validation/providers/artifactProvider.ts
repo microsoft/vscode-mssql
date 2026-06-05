@@ -33,6 +33,7 @@
  */
 
 import type { FileProvider } from "../../providers";
+import * as path from "path";
 
 // =============================================================================
 // Public types
@@ -79,23 +80,44 @@ export class ArtifactNotFoundError extends Error {
  * local file path and delegates I/O to the injected `FileProvider`. The
  * `FileProvider` is the same interface D3's run-artifact writer/reader uses,
  * so the production stack has a single fs seam.
+ *
+ * Relative `uri`s are resolved against `_baseDir` (the workspace-folder
+ * fsPath, when one is open) so a checked-in `environments.json` can declare
+ * paths relative to the workspace root rather than the extension-host process
+ * cwd. Absolute `uri`s are passed through untouched. When no base dir is
+ * supplied the `uri` is forwarded as-is.
  */
 export class LiveArtifactProvider implements ArtifactProvider {
-    public constructor(private readonly _files: FileProvider) {}
+    public constructor(
+        private readonly _files: FileProvider,
+        private readonly _baseDir?: string,
+    ) {}
 
     public async read(uri: string): Promise<Buffer> {
+        const resolved = this._resolve(uri);
         try {
-            return await this._files.readFileBuffer(uri);
+            return await this._files.readFileBuffer(resolved);
         } catch (err) {
             if (isEnoent(err)) {
-                throw new ArtifactNotFoundError(uri);
+                throw new ArtifactNotFoundError(resolved);
             }
             throw err;
         }
     }
 
     public exists(uri: string): Promise<boolean> {
-        return this._files.fileExists(uri);
+        return this._files.fileExists(this._resolve(uri));
+    }
+
+    /**
+     * Resolves `uri` against `_baseDir` when it is relative. Absolute paths
+     * and the no-base-dir case are returned unchanged.
+     */
+    private _resolve(uri: string): string {
+        if (this._baseDir === undefined || path.isAbsolute(uri)) {
+            return uri;
+        }
+        return path.resolve(this._baseDir, uri);
     }
 }
 

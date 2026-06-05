@@ -27,6 +27,7 @@ import * as vscode from "vscode";
 
 import * as path from "path";
 
+import * as Constants from "../constants/constants";
 import { DiagnosticEventBus } from "./diagnostics";
 import { EnvironmentStore } from "./environments/environmentStore";
 import { LocalFileProvider } from "./providers";
@@ -73,6 +74,23 @@ export interface CloudDeployServiceOptions {
 }
 
 const OUTPUT_CHANNEL_NAME = "Cloud Deploy";
+
+/**
+ * Resolves the sql-database-projects `BuildDirectory` so the static-analysis
+ * build can locate the bundled system dacpacs (`master`, `msdb`) that projects
+ * with system-database references need. Best-effort: returns `undefined` when
+ * the projects extension is not installed, in which case the build runs
+ * without a `SystemDacpacsLocation` (projects without system references still
+ * build and analyze cleanly).
+ */
+function resolveSystemDacpacsLocation(): string | undefined {
+    const extensionPath = vscode.extensions.getExtension(
+        Constants.sqlDatabaseProjectsExtensionId,
+    )?.extensionPath;
+    return extensionPath === undefined
+        ? undefined
+        : path.join(extensionPath, Constants.buildDirectory);
+}
 
 /**
  * Maximum number of run artifacts retained in `.mssql/runs/`. Older runs are
@@ -133,8 +151,9 @@ export class CloudDeployService implements vscode.Disposable {
             connection: new LiveConnectionProvider(
                 options.connectionStrategy ?? new UnconfiguredConnectionStrategy(),
             ),
-            process: new LiveProcessProvider(),
-            artifact: new LiveArtifactProvider(fileProvider),
+            process: new LiveProcessProvider(workspaceFolder?.uri.fsPath),
+            artifact: new LiveArtifactProvider(fileProvider, workspaceFolder?.uri.fsPath),
+            staticAnalysis: { systemDacpacsLocation: resolveSystemDacpacsLocation() },
         });
         this.validation = new ValidationService(
             registry,

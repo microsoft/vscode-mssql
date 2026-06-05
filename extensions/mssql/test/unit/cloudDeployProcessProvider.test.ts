@@ -16,6 +16,9 @@
  */
 
 import { expect } from "chai";
+import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
 
 import {
     FakeProcessProvider,
@@ -208,6 +211,81 @@ suite("CloudDeploy ProcessProvider", () => {
                 expect(String((err as NodeJS.ErrnoException).code ?? "")).to.match(
                     /ENOENT|EACCES|UNKNOWN/,
                 );
+            }
+        });
+
+        test("spawn() defaults cwd to the configured default when opts.cwd is omitted", async () => {
+            const dir = fs.realpathSync(os.tmpdir());
+            const provider = new LiveProcessProvider(dir);
+
+            const result = await provider.spawn(
+                process.execPath,
+                ["-e", "process.stdout.write(require('fs').realpathSync(process.cwd()))"],
+                { signal: new AbortController().signal },
+            );
+
+            expect(result.exitCode).to.equal(0);
+            expect(result.stdout).to.equal(dir);
+        });
+
+        test("spawn() honors an explicit opts.cwd over the configured default", async () => {
+            const real = fs.realpathSync(os.tmpdir());
+            const provider = new LiveProcessProvider("/no/such/default/dir/cd-d2");
+
+            const result = await provider.spawn(
+                process.execPath,
+                ["-e", "process.stdout.write(require('fs').realpathSync(process.cwd()))"],
+                { signal: new AbortController().signal, cwd: real },
+            );
+
+            expect(result.stdout).to.equal(real);
+        });
+
+        test("spawn() runs a Windows .cmd script through the shell without EINVAL", async function () {
+            if (process.platform !== "win32") {
+                this.skip();
+                return;
+            }
+            // Prefix contains a space so the quoting path is exercised too.
+            const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cd proc "));
+            const script = path.join(dir, "echo.cmd");
+            fs.writeFileSync(script, "@echo off\r\necho hello-cmd\r\n");
+            const provider = new LiveProcessProvider();
+
+            try {
+                const result = await provider.spawn(script, [], {
+                    signal: new AbortController().signal,
+                });
+
+                expect(result.exitCode).to.equal(0);
+                expect(result.stdout).to.contain("hello-cmd");
+            } finally {
+                fs.rmSync(dir, { recursive: true, force: true });
+            }
+        });
+
+        test("spawn() resolves a relative forward-slash .cmd command against the default cwd", async function () {
+            if (process.platform !== "win32") {
+                this.skip();
+                return;
+            }
+            // A relative command with forward slashes is exactly what cmd.exe
+            // mis-parses (treats "sub" as the command, "/echo.cmd" as a switch).
+            // The provider must resolve it to an absolute native-separator path.
+            const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cd proc "));
+            fs.mkdirSync(path.join(dir, "sub"));
+            fs.writeFileSync(path.join(dir, "sub", "echo.cmd"), "@echo off\r\necho hello-rel\r\n");
+            const provider = new LiveProcessProvider(dir);
+
+            try {
+                const result = await provider.spawn("sub/echo.cmd", [], {
+                    signal: new AbortController().signal,
+                });
+
+                expect(result.exitCode).to.equal(0);
+                expect(result.stdout).to.contain("hello-rel");
+            } finally {
+                fs.rmSync(dir, { recursive: true, force: true });
             }
         });
     });

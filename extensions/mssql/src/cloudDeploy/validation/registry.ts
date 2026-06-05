@@ -39,6 +39,16 @@ export interface RegistryProviders {
     readonly connection: ConnectionProvider;
     readonly process: ProcessProvider;
     readonly artifact: ArtifactProvider;
+    /**
+     * Optional overrides for the build-based static-analysis validator: an
+     * absolute `dotnet` path and the sql-database-projects `BuildDirectory`
+     * (`systemDacpacsLocation`, needed only by projects with system-database
+     * references). Omitted in tests; the service layer supplies them.
+     */
+    readonly staticAnalysis?: {
+        readonly dotnetCommand?: string;
+        readonly systemDacpacsLocation?: string;
+    };
 }
 
 /**
@@ -52,7 +62,10 @@ export interface RegistryProviders {
 export function createDefaultRegistry(providers: RegistryProviders): ValidatorRegistry {
     return defineRegistry({
         [ValidationType.Connectivity]: new ConnectivityValidator(providers.connection),
-        [ValidationType.StaticAnalysis]: new StaticAnalysisValidator(providers.process),
+        [ValidationType.StaticAnalysis]: new StaticAnalysisValidator(
+            providers.process,
+            providers.staticAnalysis ?? {},
+        ),
         [ValidationType.UnitTests]: new UnitTestsValidator(providers.connection),
         [ValidationType.WorkloadPlayback]: new WorkloadPlaybackValidator(
             providers.artifact,

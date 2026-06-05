@@ -192,15 +192,18 @@ export class Runner {
         const opts: ValidatorRunOptions = { runId, signal, bus: this._bus };
         const startedAtMs = Date.now();
 
-        // Per-validator start/finish events are emitted by the validator itself
-        // when a bus is wired. The runner only emits run-level events here so
-        // we don't double-fire the per-validation arm.
+        // Emit the per-validation lifecycle here so every dispatched validation
+        // contributes a start/finish pair to the run's event timeline, on the
+        // happy path as well as the cancel/error paths below. Validators do not
+        // emit these themselves, so the runner owns the per-validation arm.
+        this._emitValidationStarted(runId, config.type);
         try {
             const result = await (validator as { run: typeof validator.run }).run(
                 env,
                 config.settings as never,
                 opts,
             );
+            this._emitValidationFinished(runId, result);
             return result;
         } catch (err) {
             const endedAtMs = Date.now();
@@ -216,12 +219,10 @@ export class Runner {
                     endedAtMs,
                     reason,
                 );
-                this._emitValidationStarted(runId, config.type);
                 this._emitValidationFinished(runId, cancelled);
                 return cancelled;
             }
             const errored = buildErroredResultFromException(config, startedAtMs, endedAtMs, err);
-            this._emitValidationStarted(runId, config.type);
             this._emitValidationFinished(runId, errored);
             return errored;
         }
