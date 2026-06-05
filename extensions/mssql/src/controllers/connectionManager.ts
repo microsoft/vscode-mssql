@@ -1258,8 +1258,9 @@ export default class ConnectionManager {
                     connectionInfo.expiresOn,
                 )
             ) {
+                const expiry = Utils.epochToDisplay(connectionInfo.expiresOn * 1000);
                 this._logger?.debug(
-                    `Entra token for account ${connectionInfo.user} (${connectionInfo.email}) is still valid until ${connectionInfo.expiresOn}. No refresh needed.`,
+                    `Entra token for account ${connectionInfo.user} (${connectionInfo.email}) is still valid until ${connectionInfo.expiresOn} (${expiry.iso}, ${expiry.relative}). No refresh needed.`,
                 );
                 return;
             }
@@ -2272,8 +2273,11 @@ export default class ConnectionManager {
                     params.tenantId,
                 );
 
+                const expiry = Utils.epochToDisplay(
+                    tokenInfo.token.expiresOn ? tokenInfo.token.expiresOn * 1000 : undefined,
+                );
                 this._logger.info(
-                    `VS Code accounts token acquired successfully for ${resourceEndpoint} with accountId '${params.accountId}' and tenantId '${params.tenantId}'; expires on ${tokenInfo.token.expiresOn}`,
+                    `VS Code accounts token acquired successfully for ${resourceEndpoint} with accountId '${params.accountId}' and tenantId '${params.tenantId}'; expires on ${tokenInfo.token.expiresOn} (${expiry.iso}, ${expiry.relative})`,
                 );
 
                 return {
