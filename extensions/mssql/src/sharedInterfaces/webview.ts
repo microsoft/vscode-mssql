@@ -6,7 +6,7 @@
 import * as vscode from "vscode";
 
 import { TelemetryActions, TelemetryViews } from "./telemetry";
-import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
+import { NotificationType, RequestType } from "vscode-jsonrpc";
 import { ILogger, LogEvent } from "./logger";
 
 /**

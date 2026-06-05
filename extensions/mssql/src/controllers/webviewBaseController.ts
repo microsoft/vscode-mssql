@@ -166,7 +166,6 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         this._connectionWriter = new WebviewControllerMessageWriter(this.logger);
         this.connection = createMessageConnection(this._connectionReader, this._connectionWriter);
         this.connection.listen();
-        void this._webviewReady.promise.catch(() => undefined);
 
         // Add connection to disposables for cleanup
         this._disposables.push({

@@ -19,7 +19,6 @@ import {
     WebviewTelemetryErrorEvent,
 } from "../../sharedInterfaces/webview";
 import {
-    AbstractMessageBuffer,
     AbstractMessageReader,
     AbstractMessageWriter,
     CancellationToken,
@@ -32,155 +31,10 @@ import {
     MessageReader,
     MessageWriter,
     NotificationType,
-    RAL,
     type RequestParam,
     RequestHandler,
     RequestType,
-} from "vscode-jsonrpc";
-
-class WebviewMessageBuffer extends AbstractMessageBuffer {
-    private static readonly _emptyBuffer = new Uint8Array(0);
-    private readonly _asciiDecoder = new TextDecoder("ascii");
-    private readonly _textEncoder = new TextEncoder();
-
-    protected emptyBuffer(): Uint8Array {
-        return WebviewMessageBuffer._emptyBuffer;
-    }
-
-    protected fromString(value: string, _encoding: RAL.MessageBufferEncoding): Uint8Array {
-        return this._textEncoder.encode(value);
-    }
-
-    protected toString(value: Uint8Array, encoding: RAL.MessageBufferEncoding): string {
-        return encoding === "ascii"
-            ? this._asciiDecoder.decode(value)
-            : new TextDecoder().decode(value);
-    }
-
-    protected asNative(buffer: Uint8Array, length?: number): Uint8Array {
-        return length === undefined ? buffer : buffer.slice(0, length);
-    }
-
-    protected allocNative(length: number): Uint8Array {
-        return new Uint8Array(length);
-    }
-}
-
-const installWebviewRuntime = (() => {
-    let installed = false;
-    return () => {
-        if (installed) {
-            return;
-        }
-
-        try {
-            RAL();
-            installed = true;
-            return;
-        } catch {
-            // Install a runtime abstraction below.
-        }
-
-        const textEncoder = new TextEncoder();
-        RAL.install({
-            messageBuffer: {
-                create: (encoding) => new WebviewMessageBuffer(encoding),
-            },
-            applicationJson: {
-                encoder: {
-                    name: "application/json",
-                    encode: (msg) =>
-                        Promise.resolve(textEncoder.encode(JSON.stringify(msg, undefined, 0))),
-                },
-                decoder: {
-                    name: "application/json",
-                    decode: (buffer, options) =>
-                        Promise.resolve(
-                            JSON.parse(new TextDecoder(options.charset).decode(buffer)),
-                        ),
-                },
-            },
-            console,
-            timer: {
-                setTimeout(callback, ms, ...args) {
-                    const handle = setTimeout(callback, ms, ...args);
-                    return { dispose: () => clearTimeout(handle) };
-                },
-                setImmediate(callback, ...args) {
-                    if (typeof queueMicrotask === "function") {
-                        let disposed = false;
-                        queueMicrotask(() => {
-                            if (!disposed) {
-                                callback(...args);
-                            }
-                        });
-                        return { dispose: () => (disposed = true) };
-                    }
-                    const handle = setTimeout(callback, 0, ...args);
-                    return { dispose: () => clearTimeout(handle) };
-                },
-                setInterval(callback, ms, ...args) {
-                    const handle = setInterval(callback, ms, ...args);
-                    return { dispose: () => clearInterval(handle) };
-                },
-            },
-        });
-        installed = true;
-    };
-})();
-
-/**
- * Chromium throttles setTimeout(0) when a webview is hidden which in turn stalls
- * vscode-jsonrpc's internal queue. Replace the runtime's setImmediate shim with
- * a MessageChannel based microtask so responses resolve immediately regardless
- * of visibility.
- * Upstream vscode-jsonrpc issue: https://github.com/microsoft/vscode-languageserver-node/issues/1692
- */
-const fixSetImmediate = (() => {
-    let patched = false;
-    return () => {
-        if (patched) {
-            return;
-        }
-        const ral = RAL();
-
-        const callbacks = new Map<number, () => void>();
-        const runCallback = (id: number) => {
-            const callback = callbacks.get(id);
-            callbacks.delete(id);
-            callback?.();
-        };
-        const schedule = (() => {
-            if (typeof queueMicrotask === "function") {
-                return (id: number) => queueMicrotask(() => runCallback(id));
-            }
-            return undefined;
-        })();
-        if (!schedule) {
-            return;
-        }
-        let handleId = 0;
-        const patchedTimer = {
-            ...ral.timer, // Keep existing timer methods.
-            setImmediate: (callback: (...args: unknown[]) => void, ...args: unknown[]) => {
-                const id = ++handleId;
-                callbacks.set(id, () => callback(...args));
-                schedule(id);
-                return {
-                    dispose: () => callbacks.delete(id),
-                };
-            },
-        };
-        RAL.install({
-            ...ral,
-            timer: patchedTimer,
-        });
-        patched = true;
-    };
-})();
-
-installWebviewRuntime();
-fixSetImmediate();
+} from "vscode-jsonrpc/browser";
 
 class WebviewRpcMessageReader extends AbstractMessageReader implements MessageReader {
     private _onData: Emitter<Message>;
