@@ -398,10 +398,14 @@ export default class SqlToolsServiceClient {
             // Push the disposable to the context's subscriptions so that the
             // client can be deactivated on extension deactivation
             context.subscriptions.push({
-                dispose: () => this.client.stop(),
+                dispose: () => {
+                    void this.client.stop();
+                },
             });
             context.subscriptions.push({
-                dispose: () => this._resourceClient.stop(),
+                dispose: () => {
+                    void this._resourceClient.stop();
+                },
             });
         }
     }
@@ -649,6 +653,9 @@ export default class SqlToolsServiceClient {
         if (this.client !== undefined) {
             return this.client.sendRequest(type, params as RequestParam<P>);
         }
+        return Promise.reject(
+            new Error("Cannot send request before the language client is initialized"),
+        );
     }
 
     /**
@@ -661,6 +668,9 @@ export default class SqlToolsServiceClient {
         if (this._resourceClient !== undefined) {
             return this._resourceClient.sendRequest(type, params as RequestParam<P>);
         }
+        return Promise.reject(
+            new Error("Cannot send resource request before the resource client is initialized"),
+        );
     }
 
     /**
@@ -672,6 +682,9 @@ export default class SqlToolsServiceClient {
         if (this.client !== undefined) {
             return this.client.sendNotification(type, params as RequestParam<P>);
         }
+        return Promise.reject(
+            new Error("Cannot send notification before the language client is initialized"),
+        );
     }
 
     /**
@@ -686,6 +699,7 @@ export default class SqlToolsServiceClient {
         if (this._client !== undefined) {
             return this.client.onNotification(type, handler);
         }
+        return { dispose: () => {} };
     }
 
     /**
@@ -701,5 +715,6 @@ export default class SqlToolsServiceClient {
         if (this._client !== undefined) {
             return this.client.onRequest(type, handler as RequestHandler<P, R, E>);
         }
+        return { dispose: () => {} };
     }
 }
