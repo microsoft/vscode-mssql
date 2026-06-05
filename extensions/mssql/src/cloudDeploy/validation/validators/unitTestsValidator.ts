@@ -25,7 +25,10 @@
  *     is a transient retry candidate, not a unit-test failure.
  *   * `EXEC tSQLt.RunAll` followed by
  *     `SELECT Class, TestCase, Result, Msg FROM tSQLt.TestResult` parses
- *     each row into a `UnitTestFinding`. tSQLt's `Result` column values
+ *     each row into a `UnitTestFinding`. `RunAll` itself raises a Msg 50000
+ *     error whenever any test fails; that is expected test output, so it is
+ *     captured and the authoritative results are read from `tSQLt.TestResult`
+ *     instead. tSQLt's `Result` column values
  *     are `"Success" | "Failure" | "Error"`; we map to
  *     `"passed" | "failed" | "errored"` (skipped is not a tSQLt concept,
  *     so the count stays 0 unless future tooling surfaces it).
@@ -108,11 +111,29 @@ export class UnitTestsValidator implements Validator<ValidationType.UnitTests> {
                 return buildSkippedTsqltMissing(startedAtMs, Date.now());
             }
 
-            // Run all tests + collect results.
-            await handle.execute(TSQLT_RUN_ALL_SQL, opts.signal);
+            // Run all tests, then collect results. tSQLt.RunAll deliberately
+            // raises an error (Msg 50000) whenever any test fails — that is
+            // expected test output, not a connection fault — so capture it and
+            // fall through to read the authoritative per-test rows from
+            // tSQLt.TestResult. The captured error is only surfaced if no
+            // results were recorded (a genuine RunAll failure).
+            let runAllError: unknown;
+            try {
+                await handle.execute(TSQLT_RUN_ALL_SQL, opts.signal);
+            } catch (err) {
+                if (err instanceof CancellationError) {
+                    throw err;
+                }
+                throwIfCancelled(opts.signal);
+                runAllError = err;
+            }
             throwIfCancelled(opts.signal);
+
             const resultRows = await handle.execute(TSQLT_RESULTS_SQL, opts.signal);
             throwIfCancelled(opts.signal);
+            if (resultRows.length === 0 && runAllError !== undefined) {
+                throw runAllError;
+            }
 
             const findings = parseResultRows(resultRows);
             return buildResultFromFindings(startedAtMs, Date.now(), findings);

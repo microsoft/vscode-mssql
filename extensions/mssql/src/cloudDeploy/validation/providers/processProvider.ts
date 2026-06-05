@@ -26,6 +26,7 @@
  */
 
 import { ChildProcess, spawn as nodeSpawn, type SpawnOptionsWithoutStdio } from "child_process";
+import * as path from "path";
 
 // =============================================================================
 // Public types
@@ -97,13 +98,32 @@ const DEFAULT_MAX_OUTPUT_BYTES = 5 * 1024 * 1024; // 5 MiB per stream
 const SIGKILL_GRACE_MS = 250; // SIGTERM → SIGKILL grace window after abort
 
 /**
- * Real implementation backed by Node's `child_process.spawn`. `shell: false`
- * — `command` is resolved exactly as given, no shell quoting, no PATHEXT
- * magic. Callers are responsible for resolving the binary path (the service
- * layer wires up `sqlpackage` discovery; this provider doesn't try to be
- * clever).
+ * Real implementation backed by Node's `child_process.spawn`. Binaries
+ * (`.exe` and bare PATH names) are spawned with `shell: false` — `command`
+ * is resolved exactly as given, no shell quoting, no PATHEXT magic. Callers
+ * are responsible for resolving the binary path (the service layer wires up
+ * `sqlpackage` discovery; this provider doesn't try to be clever).
+ *
+ * The one exception is Windows batch scripts (`.bat` / `.cmd`): Node ≥20
+ * refuses to spawn them with `shell: false` (`spawn EINVAL`, the
+ * CVE-2024-27980 hardening), so for those — and only those — this provider
+ * spawns through the shell with the command path quoted. Everything else
+ * stays `shell: false`.
+ *
+ * When `opts.cwd` is omitted, spawns default to `_defaultCwd` (the workspace
+ * root, when one is open) so relative commands and relative artifact paths in
+ * `environments.json` resolve against the workspace rather than the
+ * extension-host process cwd.
+ * A `command` that looks like a relative path (contains a separator) is
+ * resolved to an absolute, native-separator path against that same base
+ * before spawning. Node does not resolve a relative executable against
+ * `opts.cwd`, and `cmd.exe` would parse the forward slashes in a path like
+ * `samples/foo/replay.cmd` as switches; resolving up front fixes both. Bare
+ * PATH names (`sqlpackage`, `node`) contain no separator and are left alone.
  */
 export class LiveProcessProvider implements ProcessProvider {
+    public constructor(private readonly _defaultCwd?: string) {}
+
     public spawn(
         command: string,
         args: readonly string[],
@@ -116,16 +136,19 @@ export class LiveProcessProvider implements ProcessProvider {
             let aborted = false;
             let killTimer: NodeJS.Timeout | undefined;
 
+            const cwd = opts.cwd ?? this._defaultCwd;
+            const resolvedCommand = resolveCommandPath(command, cwd);
+            const useShell = needsShell(resolvedCommand);
             const spawnOpts: SpawnOptionsWithoutStdio = {
-                cwd: opts.cwd,
+                cwd,
                 env: opts.env,
-                shell: false,
+                shell: useShell,
                 windowsHide: true,
             };
 
             let child: ChildProcess;
             try {
-                child = nodeSpawn(command, [...args], spawnOpts);
+                child = nodeSpawn(quoteForShell(resolvedCommand, useShell), [...args], spawnOpts);
             } catch (err) {
                 reject(err);
                 return;
@@ -235,6 +258,45 @@ function terminate(child: ChildProcess): void {
     } catch {
         // Process may already have exited between the check and the kill.
     }
+}
+
+/**
+ * Whether `command` must be spawned through the shell. Only Windows batch
+ * scripts (`.bat` / `.cmd`) qualify: Node ≥20 throws `spawn EINVAL` when
+ * asked to run them with `shell: false` (CVE-2024-27980 hardening). Real
+ * executables and bare PATH names stay `shell: false`.
+ */
+function needsShell(command: string): boolean {
+    return process.platform === "win32" && /\.(bat|cmd)$/i.test(command);
+}
+
+/**
+ * Resolves a relative path-like `command` to an absolute, native-separator
+ * path against `base` (the spawn cwd, falling back to the process cwd). Only
+ * commands that contain a path separator are touched; bare PATH names such as
+ * `sqlpackage` or `node` are returned unchanged so the OS PATH lookup still
+ * works. Absolute commands are returned unchanged.
+ */
+function resolveCommandPath(command: string, base: string | undefined): string {
+    if (!/[\\/]/.test(command) || path.isAbsolute(command)) {
+        return command;
+    }
+    return path.resolve(base ?? process.cwd(), command);
+}
+
+/**
+ * Quotes `command` for shell execution. When spawning through the shell the
+ * command line is parsed by `cmd.exe`, so a path containing spaces must be
+ * wrapped in double quotes to be treated as a single token. No-op when the
+ * shell isn't used or the command is already quoted. The workload-playback
+ * contract spawns the replay tool with zero args, so there is nothing else
+ * to quote here.
+ */
+function quoteForShell(command: string, useShell: boolean): string {
+    if (!useShell || !/\s/.test(command) || command.startsWith('"')) {
+        return command;
+    }
+    return `"${command}"`;
 }
 
 // =============================================================================

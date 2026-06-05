@@ -356,6 +356,29 @@ suite("CloudDeploy Validation Runner", () => {
             expect(finished[0].payload.status).to.equal(ValidationStatus.Cancelled);
             expect(finished[0].payload.cancellationReason).to.equal("user");
         });
+
+        test("emits a paired validation-started/validation-finished for each validation on the happy path", async () => {
+            const { registry } = makeFakeRegistry();
+            const env = makeEnvironmentWithValidations([
+                makeValidationConfig(ValidationType.Connectivity),
+                makeValidationConfig(ValidationType.StaticAnalysis),
+            ]);
+
+            await new Runner(registry, bus).run(env);
+
+            const started = collector.eventsOfType("validation-started");
+            const finished = collector.eventsOfType("validation-finished");
+            expect(started).to.have.length(2);
+            expect(finished).to.have.length(2);
+            expect(started.map((event) => event.payload.validationType)).to.deep.equal([
+                ValidationType.Connectivity,
+                ValidationType.StaticAnalysis,
+            ]);
+            expect(finished.map((event) => event.payload.status)).to.deep.equal([
+                ValidationStatus.Passed,
+                ValidationStatus.Passed,
+            ]);
+        });
     });
 
     // -------------------------------------------------------------------------

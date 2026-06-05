@@ -14,6 +14,7 @@
  */
 
 import { expect } from "chai";
+import * as path from "path";
 
 import {
     ArtifactNotFoundError,
@@ -146,6 +147,61 @@ suite("CloudDeploy ArtifactProvider", () => {
 
             expect(await live.exists("/yes")).to.equal(true);
             expect(await live.exists("/no")).to.equal(false);
+        });
+
+        test("resolves a relative uri against the base dir before reading", async () => {
+            let seen: string | undefined;
+            const live = new LiveArtifactProvider(
+                new StubFileProvider({
+                    readFileBuffer: (p) => {
+                        seen = p;
+                        return Promise.resolve(Buffer.from("ok", "utf-8"));
+                    },
+                }),
+                "/workspace/root",
+            );
+
+            await live.read("sub/dir/workload.json");
+
+            expect(seen).to.equal(path.resolve("/workspace/root", "sub/dir/workload.json"));
+        });
+
+        test("passes an absolute uri through unchanged even with a base dir", async () => {
+            let seen: string | undefined;
+            const live = new LiveArtifactProvider(
+                new StubFileProvider({
+                    readFileBuffer: (p) => {
+                        seen = p;
+                        return Promise.resolve(Buffer.from("ok", "utf-8"));
+                    },
+                }),
+                "/workspace/root",
+            );
+
+            const absolute = path.resolve("/elsewhere/workload.json");
+            await live.read(absolute);
+
+            expect(seen).to.equal(absolute);
+        });
+
+        test("ArtifactNotFoundError carries the resolved path, not the raw uri", async () => {
+            const enoent = Object.assign(new Error("ENOENT"), { code: "ENOENT" });
+            const live = new LiveArtifactProvider(
+                new StubFileProvider({
+                    readFileBuffer: () => Promise.reject(enoent),
+                }),
+                "/workspace/root",
+            );
+
+            try {
+                await live.read("missing.json");
+                expect.fail("expected ArtifactNotFoundError");
+            } catch (err) {
+                expect(err).to.be.instanceOf(ArtifactNotFoundError);
+                expect((err as ArtifactNotFoundError).uri).to.equal(
+                    path.resolve("/workspace/root", "missing.json"),
+                );
+            }
         });
     });
 });

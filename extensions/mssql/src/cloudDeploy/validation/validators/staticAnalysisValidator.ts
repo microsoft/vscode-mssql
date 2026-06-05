@@ -6,35 +6,49 @@
 /**
  * Cloud Deploy — `StaticAnalysisValidator`.
  *
- * Shells out to `sqlpackage /Action:DeployReport` via the injected
- * `ProcessProvider`, parses the diagnostics it prints to stderr, and
- * produces a `ValidationResult` whose `payload` is a `StaticAnalysisPayload`.
+ * Runs build-time DacFx static analysis on a `.sqlproj` by shelling out to
+ * `dotnet build` (with `/p:RunSqlCodeAnalysis=true`) via the injected
+ * `ProcessProvider`, parses the MSBuild diagnostics it prints, and produces a
+ * `ValidationResult` whose `payload` is a `StaticAnalysisPayload`.
+ *
+ * Why build-time analysis: DacFx model validation (the `SQL715xx` family of
+ * unresolved-reference diagnostics) and the `SR`-prefixed code-analysis rules
+ * are produced by the SQL build itself — there is no standalone "analyze this
+ * model" CLI in this toolchain. The build is the analyzer, which makes the
+ * `.sqlproj` the only source of truth we can actually analyze.
  *
  * Source-of-truth requirements:
- *   * `SqlProj` and `Dacpac` envs run analysis against `sourceOfTruth.path`.
+ *   * `SqlProj` envs run the real analysis: `dotnet build <project>
+ *     /p:RunSqlCodeAnalysis=true`. Diagnostics are parsed from MSBuild output.
+ *   * `Dacpac` envs are `Skipped`. A `.dacpac` is a compiled artifact — DacFx
+ *     analysis already ran when the project was built into it, so there is no
+ *     build left to run here. (A `sqlpackage` deploy-report is a deployment
+ *     diff, not static analysis, so it is intentionally not used.)
  *   * `Container` envs have no project file — analysis is `Skipped` with a
- *     single `info` finding directing the user to attach a sqlproj/dacpac.
+ *     single `info` finding directing the user to attach a sqlproj.
  *
  * Outcome mapping:
- *   * sqlpackage exits 0 with no warnings/errors → `Passed`, zero findings.
- *   * sqlpackage exits 0 with warnings only → `Passed` (no `failOn`
- *     promotion in this PR; `failOn: "warning"` is TBD-7, deferred).
- *     Warning findings still appear in the payload so the UI can render them.
- *   * sqlpackage exits non-zero → `Failed`. Findings are populated from
- *     parsed diagnostics; if no diagnostics could be parsed, a single
- *     synthesized `error` finding carries a stderr excerpt.
+ *   * Build emits zero DacFx diagnostics and exits 0 → `Passed`, zero
+ *     findings.
+ *   * Build emits one or more DacFx diagnostics (warning or error) → `Failed`.
+ *     Static analysis is a gate: a clean build is required to pass. Per-rule
+ *     `failOn` tuning (relaxing warnings to non-blocking) is future work.
+ *   * Build exits non-zero with no parseable DacFx diagnostics → `Failed`
+ *     with a single synthesized `error` finding carrying a build-output
+ *     excerpt.
  *   * `CancellationError` (or `signal.aborted` observed at a checkpoint, or
  *     `ProcessResult.aborted === true`) → re-thrown as `CancellationError`
  *     so the runner reconciles `"user"` vs `"timeout"`.
  *   * `Error` from `processProvider.spawn()` itself (binary not found, OS
  *     refused to spawn) → re-thrown so the runner maps it to `Errored`.
  *
- * Diagnostic parsing is line-based. sqlpackage prints lines of the form
- * `Warning SQL71558: ...` and `Error SQL70001: ...` to stderr; we extract
- * `(severity, ruleId, message)` per match. Anything we can't parse is
- * preserved in the payload only when sqlpackage failed (so the UI surfaces
- * the raw output instead of an empty Failed result). Successful runs with
- * un-parseable stderr lines produce zero findings.
+ * Diagnostic parsing is line-based. MSBuild prints lines of the form
+ * `path\file.sql(9,10,9,10): warning SQL71502: ... [project.sqlproj]`; we
+ * extract `(file, line, severity, ruleId, message)` per match, keeping only
+ * `SQL`/`SR`-prefixed rule ids so generic MSBuild noise (`MSBnnnn`,
+ * `NETSDKnnnn`) never counts as a static-analysis finding. MSBuild repeats
+ * each diagnostic (inline, then in its summary), so matches are deduped by
+ * rule id + cleaned message.
  */
 
 import { type Environment, SourceOfTruthKind, ValidationType } from "../../environments/types";
@@ -57,40 +71,70 @@ import { type ProcessProvider, type ProcessResult } from "../providers/processPr
 // Defaults & constants
 // =============================================================================
 
-/** Command name. The service layer is responsible for resolving an absolute
- * path before commit 6 wires up production. Defaulting to the bare name lets
- * unit tests (which inject `FakeProcessProvider`) ignore path resolution. */
-const DEFAULT_SQLPACKAGE_COMMAND = "sqlpackage";
+/** Build driver. Defaults to the bare `dotnet` name (resolved off PATH); the
+ * service layer may inject an absolute path. Unit tests inject a
+ * `FakeProcessProvider` and ignore path resolution. */
+const DEFAULT_DOTNET_COMMAND = "dotnet";
 
-/** sqlpackage's diagnostic line shape. Captures severity ("Warning" or
- * "Error"), the rule id ("SQL71558"), and the trailing message. */
-const DIAGNOSTIC_LINE = /^\s*(Warning|Error)\s+([A-Z]+\d+):\s*(.+?)\s*$/;
+/**
+ * MSBuild diagnostic line shape. Captures an optional source location (`file`,
+ * `line`, `column`), the severity (`warning` / `error`), the rule id
+ * (`SQL71502`, `SR0001`), and the trailing message. The same DacFx diagnostic
+ * is emitted under several MSBuild subcategories (`Build`, `StaticCodeAnalysis`,
+ * a raw `{guid}`, or none); `(?:[^:]*?\s+)?` tolerates any of them so model
+ * validation *and* code-analysis (SR) findings are both captured. The
+ * `(?:,\d+,\d+)?` tolerates the four-number `(line,col,line,col)` span MSBuild
+ * emits for T-SQL diagnostics.
+ */
+const MSBUILD_DIAGNOSTIC_LINE =
+    /^(?:(.+?)\((\d+),(\d+)(?:,\d+,\d+)?\)\s*:\s*)?(?:[^:]*?\s+)?(warning|error)\s+((?:SQL|SR)\d+)\s*:\s*(.+)$/i;
 
-/** When sqlpackage fails but emits no parseable diagnostics, surface this
- * many leading bytes of stderr in the synthesized finding so the user has
+/** Strips the trailing ` [C:\...\Project.sqlproj]` annotation MSBuild appends
+ * to every diagnostic line, without touching `[schema].[object]` tokens that
+ * legitimately appear inside a message. */
+const MSBUILD_PROJECT_ANNOTATION = /\s*\[[^\]]*\.sqlproj\]\s*$/i;
+
+/** When the build fails but emits no parseable DacFx diagnostics, surface this
+ * many leading bytes of output in the synthesized finding so the user has
  * something to act on. */
-const STDERR_EXCERPT_BYTES = 1024;
+const OUTPUT_EXCERPT_BYTES = 1024;
 
 const SKIPPED_NEEDS_PROJECT_MESSAGE =
-    "Static analysis requires a sqlproj or dacpac source of truth.";
+    "Static analysis requires a .sqlproj source of truth (build-time DacFx analysis).";
 
-const PARSE_FAILURE_RULE_ID = "SQLPACKAGE_FAILED";
+/**
+ * Shown for `Dacpac` source-of-truth envs. A `.dacpac` is a compiled artifact:
+ * DacFx static analysis already ran when the project was built into it, so
+ * there is no build to re-run here. The check is an honest `Skipped` rather
+ * than a fabricated pass.
+ */
+const SKIPPED_DACPAC_PREBUILT_MESSAGE =
+    "Static analysis runs at build time. A .dacpac is a pre-built artifact, so analysis already ran when it was produced; point the environment at a .sqlproj to analyze the source.";
+
+const RULE_ID_SOURCE_UNSUPPORTED = "SOURCE_OF_TRUTH_UNSUPPORTED";
+const RULE_ID_DACPAC_PREBUILT = "DACPAC_PREBUILT";
+
+const BUILD_FAILURE_RULE_ID = "BUILD_FAILED";
 
 // =============================================================================
 // Validator
 // =============================================================================
 
 /**
- * Static-analysis validator. Constructor takes a `ProcessProvider` and an
- * optional command override (lets tests pass `"sqlpackage-test"` and lets
- * the service layer supply an absolute path).
+ * Static-analysis validator. Constructor takes a `ProcessProvider` and
+ * optional overrides: `dotnetCommand` (an absolute path to `dotnet`) and
+ * `systemDacpacsLocation` (the sql-database-projects `BuildDirectory`, needed
+ * only by projects with system-database references).
  */
 export class StaticAnalysisValidator implements Validator<ValidationType.StaticAnalysis> {
     public readonly type = ValidationType.StaticAnalysis;
 
     public constructor(
         private readonly _processes: ProcessProvider,
-        private readonly _opts: { readonly sqlpackageCommand?: string } = {},
+        private readonly _opts: {
+            readonly dotnetCommand?: string;
+            readonly systemDacpacsLocation?: string;
+        } = {},
     ) {}
 
     public async run(
@@ -101,13 +145,27 @@ export class StaticAnalysisValidator implements Validator<ValidationType.StaticA
         const startedAtMs = Date.now();
         throwIfCancelled(opts.signal);
 
-        const projectPath = projectPathFor(env);
-        if (projectPath === undefined) {
-            return buildSkippedResult(startedAtMs);
+        const sot = env.sourceOfTruth;
+        // A `.dacpac` is already built — DacFx static analysis ran at build
+        // time, so there is nothing to analyze here. Honest Skip, not a pass.
+        if (sot.kind === SourceOfTruthKind.Dacpac) {
+            return buildSkippedResult(
+                startedAtMs,
+                RULE_ID_DACPAC_PREBUILT,
+                SKIPPED_DACPAC_PREBUILT_MESSAGE,
+            );
         }
+        if (sot.kind !== SourceOfTruthKind.SqlProj) {
+            return buildSkippedResult(
+                startedAtMs,
+                RULE_ID_SOURCE_UNSUPPORTED,
+                SKIPPED_NEEDS_PROJECT_MESSAGE,
+            );
+        }
+        const projectPath = sot.path;
 
-        const command = this._opts.sqlpackageCommand ?? DEFAULT_SQLPACKAGE_COMMAND;
-        const args = buildSqlpackageArgs(projectPath);
+        const command = this._opts.dotnetCommand ?? DEFAULT_DOTNET_COMMAND;
+        const args = buildDotnetArgs(projectPath, this._opts.systemDacpacsLocation);
 
         let result: ProcessResult;
         try {
@@ -132,18 +190,19 @@ export class StaticAnalysisValidator implements Validator<ValidationType.StaticA
         }
 
         const findings = parseDiagnostics(result.stdout, result.stderr);
-        const succeeded = result.exitCode === 0;
 
-        if (succeeded) {
-            return buildPassedResult(findings, startedAtMs);
+        // Static analysis is a gate: any DacFx diagnostic fails the check.
+        if (findings.length > 0) {
+            return buildFailedResult(findings, startedAtMs);
         }
 
-        // sqlpackage exited non-zero. If we parsed real diagnostics, use
-        // them; otherwise synthesize a single error from the stderr excerpt
-        // so the UI has something concrete.
-        const failureFindings: readonly StaticAnalysisFinding[] =
-            findings.length > 0 ? findings : [synthesizeFailureFinding(result)];
-        return buildFailedResult(failureFindings, startedAtMs);
+        // No diagnostics: a clean build passes. A non-zero exit with no
+        // parseable diagnostics is a build break we surface as a single
+        // synthesized error so the UI has something concrete.
+        if (result.exitCode === 0) {
+            return buildPassedResult(findings, startedAtMs);
+        }
+        return buildFailedResult([synthesizeFailureFinding(result)], startedAtMs);
     }
 }
 
@@ -151,63 +210,78 @@ export class StaticAnalysisValidator implements Validator<ValidationType.StaticA
 // Helpers
 // =============================================================================
 
-function projectPathFor(env: Environment): string | undefined {
-    const sot = env.sourceOfTruth;
-    if (sot.kind === SourceOfTruthKind.SqlProj || sot.kind === SourceOfTruthKind.Dacpac) {
-        return sot.path;
-    }
-    return undefined;
-}
-
 /**
- * Builds the sqlpackage CLI args for a deploy-report run against `path`.
- * Kept narrow: no profile, no target, no variables. Future settings (e.g.
- * `StaticAnalysisSettings.ruleSet`) extend this once they land.
+ * Builds the `dotnet build` args for a static-analysis run of `projectPath`.
+ * `/p:RunSqlCodeAnalysis=true` turns on the `SR`-prefixed code-analysis rules
+ * on top of the always-on model-validation diagnostics. `systemDacpacsLocation`,
+ * when provided, points the build at the sql-database-projects `BuildDirectory`
+ * so projects with system-database references resolve. Paths are passed as
+ * discrete argv entries (no shell), so they are not quoted here.
  */
-function buildSqlpackageArgs(path: string): readonly string[] {
-    return ["/Action:DeployReport", `/SourceFile:${path}`];
+function buildDotnetArgs(
+    projectPath: string,
+    systemDacpacsLocation: string | undefined,
+): readonly string[] {
+    const args: string[] = [
+        "build",
+        projectPath,
+        "/nologo",
+        "/p:NetCoreBuild=true",
+        "/p:RunSqlCodeAnalysis=true",
+    ];
+    if (systemDacpacsLocation !== undefined && systemDacpacsLocation.length > 0) {
+        args.push(`/p:SystemDacpacsLocation=${systemDacpacsLocation}`);
+    }
+    return args;
 }
 
 /**
- * Walks stdout + stderr for `Warning SQLnnnnn: ...` / `Error SQLnnnnn: ...`
- * lines and emits one `StaticAnalysisFinding` per match. sqlpackage prints
- * to both streams depending on subcommand; we scan both and dedupe by the
- * literal line. Order is preserved (stdout first, then stderr).
+ * Walks stdout + stderr for MSBuild DacFx diagnostic lines and emits one
+ * `StaticAnalysisFinding` per distinct `(ruleId, message)`. MSBuild repeats
+ * each diagnostic (inline during the build, then in the trailing summary), so
+ * matches are deduped by rule id + cleaned message. Only `SQL`/`SR` rule ids
+ * are kept; generic MSBuild codes are ignored.
  */
 function parseDiagnostics(stdout: string, stderr: string): readonly StaticAnalysisFinding[] {
     const seen = new Set<string>();
     const findings: StaticAnalysisFinding[] = [];
     for (const stream of [stdout, stderr]) {
         for (const rawLine of stream.split(/\r?\n/)) {
-            if (seen.has(rawLine)) {
-                continue;
-            }
-            const match = DIAGNOSTIC_LINE.exec(rawLine);
+            const match = MSBUILD_DIAGNOSTIC_LINE.exec(rawLine);
             if (match === null) {
                 continue;
             }
-            seen.add(rawLine);
-            const [, severityWord, ruleId, message] = match;
-            findings.push({
+            const [, file, line, column, severityWord, ruleId, rawMessage] = match;
+            const message = rawMessage.replace(MSBUILD_PROJECT_ANNOTATION, "").trim();
+            const dedupeKey = `${ruleId}\u0000${message}`;
+            if (seen.has(dedupeKey)) {
+                continue;
+            }
+            seen.add(dedupeKey);
+            const finding: StaticAnalysisFinding = {
                 kind: "static-analysis",
                 ruleId,
-                severity: severityWord === "Error" ? "error" : "warning",
+                severity: severityWord.toLowerCase() === "error" ? "error" : "warning",
                 message,
-            });
+                ...(file !== undefined
+                    ? { location: { file, line: Number(line), column: Number(column) } }
+                    : {}),
+            };
+            findings.push(finding);
         }
     }
     return findings;
 }
 
 function synthesizeFailureFinding(result: ProcessResult): StaticAnalysisFinding {
-    const excerpt = (result.stderr || result.stdout).slice(0, STDERR_EXCERPT_BYTES).trim();
+    const excerpt = (result.stderr || result.stdout).slice(0, OUTPUT_EXCERPT_BYTES).trim();
     const message =
         excerpt.length > 0
-            ? `sqlpackage exited with code ${result.exitCode}: ${excerpt}`
-            : `sqlpackage exited with code ${result.exitCode} (no diagnostics on stderr).`;
+            ? `dotnet build exited with code ${result.exitCode}: ${excerpt}`
+            : `dotnet build exited with code ${result.exitCode} (no diagnostics in output).`;
     return {
         kind: "static-analysis",
-        ruleId: PARSE_FAILURE_RULE_ID,
+        ruleId: BUILD_FAILURE_RULE_ID,
         severity: "error",
         message,
     };
@@ -271,12 +345,16 @@ function buildFailedResult(
     };
 }
 
-function buildSkippedResult(startedAtMs: number): ValidationResult {
+function buildSkippedResult(
+    startedAtMs: number,
+    ruleId: string,
+    message: string,
+): ValidationResult {
     const finding: StaticAnalysisFinding = {
         kind: "static-analysis",
-        ruleId: "SOURCE_OF_TRUTH_UNSUPPORTED",
+        ruleId,
         severity: "info",
-        message: SKIPPED_NEEDS_PROJECT_MESSAGE,
+        message,
     };
     const payload: StaticAnalysisPayload = {
         validationType: ValidationType.StaticAnalysis,
