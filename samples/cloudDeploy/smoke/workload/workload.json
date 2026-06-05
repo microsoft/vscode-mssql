@@ -1,0 +1,9 @@
+{
+    "schemaVersion": 1,
+    "description": "Synthetic captured workload for the Cloud Deploy smoke harness. Piped to the replay tool via stdin; the tool emits observed metrics that the WorkloadPlaybackValidator diffs against baseline.json.",
+    "steps": [
+        { "id": "step-1-customer-search", "latencyMs": 100, "throughputQps": 1200 },
+        { "id": "step-2-regression", "latencyMs": 200, "throughputQps": 800 },
+        { "id": "step-3-order-insert", "latencyMs": 50, "throughputQps": 1500 }
+    ]
+}

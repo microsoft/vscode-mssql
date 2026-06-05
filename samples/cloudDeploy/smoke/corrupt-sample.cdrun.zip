@@ -1,0 +1,4 @@
+NOT-A-ZIP. This file is a deliberately corrupt .cdrun.zip used by Part 25 to
+verify RunArtifactReader fails gracefully (a clear error, not a crash) when a
+run artifact is unreadable. Copy it into <workspace>/.mssql/runs/ and refresh
+the Cloud Deploy tree / open it. Delete it afterwards.

@@ -1,0 +1,13 @@
+{
+    "//": "Part 17 baseline. The replay drops observed throughput to 50% of these values and raises errorRate to 0.10, so every step trips a throughput regression (>25% drop) and an error-rate regression (>0.05 delta vs these 0.0 baselines). Latency stays within tolerance.",
+    "steps": [
+        {
+            "id": "step-1-customer-search",
+            "latencyMs": 100,
+            "throughputQps": 1200,
+            "errorRate": 0.0
+        },
+        { "id": "step-2-regression", "latencyMs": 200, "throughputQps": 800, "errorRate": 0.0 },
+        { "id": "step-3-order-insert", "latencyMs": 50, "throughputQps": 1500, "errorRate": 0.0 }
+    ]
+}

@@ -1,0 +1,11 @@
+{
+    "_comment": "Shape of the saved vscode-mssql connection profile the smoke harness expects. This is a TEMPLATE — do NOT commit real secrets. Create the actual profile through the vscode-mssql UI (Command Palette → 'MS SQL: Add Connection' / 'Manage Connection Profiles'), not by hand-editing settings, so the password is stored securely. The profileName/id must match connectionProfileId in environments.json ('smoke-local-container').",
+    "server": "localhost,1433",
+    "database": "SmokeDb",
+    "authenticationType": "SqlLogin",
+    "user": "sa",
+    "password": "<entered through the UI — never stored here>",
+    "savePassword": true,
+    "profileName": "smoke-local-container",
+    "trustServerCertificate": true
+}

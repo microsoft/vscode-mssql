@@ -1,0 +1,13 @@
+{
+    "//": "Part 17 workload input (fed to the replay via stdin). Steps carry latency + throughput + errorRate so the throughput/error-rate comparison has values to diff. Paired with throughput-baseline.json.",
+    "steps": [
+        {
+            "id": "step-1-customer-search",
+            "latencyMs": 100,
+            "throughputQps": 1200,
+            "errorRate": 0.0
+        },
+        { "id": "step-2-regression", "latencyMs": 200, "throughputQps": 800, "errorRate": 0.0 },
+        { "id": "step-3-order-insert", "latencyMs": 50, "throughputQps": 1500, "errorRate": 0.0 }
+    ]
+}

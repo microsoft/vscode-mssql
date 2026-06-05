@@ -1,0 +1,231 @@
+{
+    "//": "Smoke environments — the full set used by the smoke harness. The first three (smoke-container / smoke-sqlproj / smoke-workload) are the base end-to-end checks; the rest extend coverage to every validator outcome (Parts 16-40 in planning/testing/steps.md). Copy this to <workspace>/.mssql/environments.json. Each env maps to a Part; see README.md for the per-env mapping and the manual prep (connection profiles, SQL, dacpacs) some of them need.",
+    "schemaVersion": 1,
+    "environments": [
+        {
+            "id": "smoke-container",
+            "name": "Smoke — Container (Connectivity + UnitTests)",
+            "description": "Base env. tSQLt-loaded container; Connectivity + UnitTests end-to-end. Parts 6, 10, 11, 23, 28.",
+            "sourceOfTruth": {
+                "kind": "container",
+                "connectionProfileId": "smoke-local-container"
+            },
+            "validations": [
+                { "type": "connectivity", "enabled": true, "settings": {} },
+                { "type": "static-analysis", "enabled": true, "settings": {} },
+                { "type": "unit-tests", "enabled": true, "settings": {} },
+                { "type": "workload-playback", "enabled": true, "settings": {} }
+            ]
+        },
+        {
+            "id": "smoke-sqlproj",
+            "name": "Smoke — SqlProj (StaticAnalysis FAIL, unresolved ref)",
+            "description": "Base env. Raw .sqlproj → real build-time DacFx static analysis. GetCustomers references dbo.NonExistentTable → Static Analysis Failed with SQL71502. Parts 7, 20.",
+            "sourceOfTruth": {
+                "kind": "sqlproj",
+                "path": "samples/cloudDeploy/smoke/sqlproj/SmokeProject.sqlproj"
+            },
+            "validations": [{ "type": "static-analysis", "enabled": true, "settings": {} }]
+        },
+        {
+            "id": "smoke-sqlproj-clean",
+            "name": "Smoke — SqlProj clean (StaticAnalysis PASS)",
+            "description": "Clean .sqlproj → real build-time DacFx static analysis with every reference resolving → Static Analysis Passed, zero findings. Counterpart to smoke-sqlproj.",
+            "sourceOfTruth": {
+                "kind": "sqlproj",
+                "path": "samples/cloudDeploy/smoke/sqlproj-clean/SmokeProjectClean.sqlproj"
+            },
+            "validations": [{ "type": "static-analysis", "enabled": true, "settings": {} }]
+        },
+        {
+            "id": "smoke-workload",
+            "name": "Smoke — Workload (latency regression)",
+            "description": "Base env. Replay trips step-2 latency. Part 8.",
+            "sourceOfTruth": {
+                "kind": "container",
+                "connectionProfileId": "smoke-local-container"
+            },
+            "validations": [
+                { "type": "connectivity", "enabled": true, "settings": {} },
+                {
+                    "type": "workload-playback",
+                    "enabled": true,
+                    "settings": {
+                        "workloadUri": "samples/cloudDeploy/smoke/workload/workload.json",
+                        "baselineUri": "samples/cloudDeploy/smoke/workload/baseline.json",
+                        "replayCommand": "samples/cloudDeploy/smoke/workload/fake-replay.cmd",
+                        "latencyRegressionThreshold": 0.25
+                    }
+                }
+            ]
+        },
+        {
+            "id": "smoke-workload-pass",
+            "name": "Smoke — Workload PASS (no regression)",
+            "description": "Part 16. Replay stays within tolerance on every step → WorkloadPlayback PASSED, zero regressions.",
+            "sourceOfTruth": {
+                "kind": "container",
+                "connectionProfileId": "smoke-local-container"
+            },
+            "validations": [
+                { "type": "connectivity", "enabled": true, "settings": {} },
+                {
+                    "type": "workload-playback",
+                    "enabled": true,
+                    "settings": {
+                        "workloadUri": "samples/cloudDeploy/smoke/workload/workload.json",
+                        "baselineUri": "samples/cloudDeploy/smoke/workload/baseline.json",
+                        "replayCommand": "samples/cloudDeploy/smoke/workload/replay-pass.cmd",
+                        "latencyRegressionThreshold": 0.25
+                    }
+                }
+            ]
+        },
+        {
+            "id": "smoke-workload-throughput",
+            "name": "Smoke — Workload throughput + error-rate regression",
+            "description": "Part 17. Replay drops throughput 50% and raises error rate → throughput + error-rate findings (not just latency).",
+            "sourceOfTruth": {
+                "kind": "container",
+                "connectionProfileId": "smoke-local-container"
+            },
+            "validations": [
+                { "type": "connectivity", "enabled": true, "settings": {} },
+                {
+                    "type": "workload-playback",
+                    "enabled": true,
+                    "settings": {
+                        "workloadUri": "samples/cloudDeploy/smoke/workload/throughput-workload.json",
+                        "baselineUri": "samples/cloudDeploy/smoke/workload/throughput-baseline.json",
+                        "replayCommand": "samples/cloudDeploy/smoke/workload/replay-throughput.cmd",
+                        "latencyRegressionThreshold": 0.25,
+                        "throughputRegressionThreshold": 0.25,
+                        "errorRateThreshold": 0.05
+                    }
+                }
+            ]
+        },
+        {
+            "id": "smoke-bad-conn",
+            "name": "Smoke — Bad connection (Connectivity FAILS, gates rest)",
+            "description": "Part 18. References a connection profile that does not exist → Connectivity Failed, remaining validations Gated/Skipped.",
+            "sourceOfTruth": {
+                "kind": "container",
+                "connectionProfileId": "smoke-unreachable-profile"
+            },
+            "validations": [
+                { "type": "connectivity", "enabled": true, "settings": {} },
+                { "type": "static-analysis", "enabled": true, "settings": {} },
+                { "type": "unit-tests", "enabled": true, "settings": {} },
+                { "type": "workload-playback", "enabled": true, "settings": {} }
+            ]
+        },
+        {
+            "id": "smoke-dacpac",
+            "name": "Smoke — Dacpac (StaticAnalysis Skip, pre-built)",
+            "description": "Part 19. SmokeProject.dacpac is a pre-built artifact → Static Analysis Skipped (DACPAC_PREBUILT): DacFx analysis runs at build time, so there is no build to analyze here. Point at a .sqlproj (smoke-sqlproj) to see a real Failed.",
+            "sourceOfTruth": {
+                "kind": "dacpac",
+                "path": "samples/cloudDeploy/smoke/dacpac/SmokeProject.dacpac"
+            },
+            "validations": [{ "type": "static-analysis", "enabled": true, "settings": {} }]
+        },
+        {
+            "id": "smoke-dacpac-clean",
+            "name": "Smoke — Dacpac clean (StaticAnalysis Skip, pre-built)",
+            "description": "Part 40. SmokeProjectClean.dacpac is a pre-built artifact → Static Analysis Skipped (DACPAC_PREBUILT): analysis ran at build time. Point at a clean .sqlproj (smoke-sqlproj-clean) to see a real Passed.",
+            "sourceOfTruth": {
+                "kind": "dacpac",
+                "path": "samples/cloudDeploy/smoke/dacpac/SmokeProjectClean.dacpac"
+            },
+            "validations": [{ "type": "static-analysis", "enabled": true, "settings": {} }]
+        },
+        {
+            "id": "smoke-workload-slow",
+            "name": "Smoke — Workload slow replay",
+            "description": "Part 22 (approx). Replay sleeps ~20s. NOTE: the run timeout (timeoutMs) is a runner option with no UI knob, so this mainly lets you observe a long-running validation + manual Cancel; true timeout firing is covered by unit tests.",
+            "sourceOfTruth": {
+                "kind": "container",
+                "connectionProfileId": "smoke-local-container"
+            },
+            "validations": [
+                { "type": "connectivity", "enabled": true, "settings": {} },
+                {
+                    "type": "workload-playback",
+                    "enabled": true,
+                    "settings": {
+                        "workloadUri": "samples/cloudDeploy/smoke/workload/workload.json",
+                        "baselineUri": "samples/cloudDeploy/smoke/workload/baseline.json",
+                        "replayCommand": "samples/cloudDeploy/smoke/workload/replay-slow.cmd",
+                        "latencyRegressionThreshold": 0.25
+                    }
+                }
+            ]
+        },
+        {
+            "id": "smoke-notsqlt",
+            "name": "Smoke — No tSQLt target (UnitTests Skipped)",
+            "description": "Part 34. References the 'smoke-local-master' profile (DB = master, no tSQLt) → Connectivity Passed, UnitTests Skipped ('tSQLt not installed'). Requires saving the master profile (see README.md).",
+            "sourceOfTruth": { "kind": "container", "connectionProfileId": "smoke-local-master" },
+            "validations": [
+                { "type": "connectivity", "enabled": true, "settings": {} },
+                { "type": "unit-tests", "enabled": true, "settings": {} }
+            ]
+        },
+        {
+            "id": "smoke-workload-errored",
+            "name": "Smoke — Workload ERRORED (replay binary not found)",
+            "description": "Part 35. replayCommand is a bare name that does not exist → spawn ENOENT → WorkloadPlayback ERRORED (distinct from Failed). Artifacts exist so the validator reaches the spawn.",
+            "sourceOfTruth": {
+                "kind": "container",
+                "connectionProfileId": "smoke-local-container"
+            },
+            "validations": [
+                { "type": "connectivity", "enabled": true, "settings": {} },
+                {
+                    "type": "workload-playback",
+                    "enabled": true,
+                    "settings": {
+                        "workloadUri": "samples/cloudDeploy/smoke/workload/workload.json",
+                        "baselineUri": "samples/cloudDeploy/smoke/workload/baseline.json",
+                        "replayCommand": "cloud-deploy-nonexistent-replay-binary"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "smoke-disabled",
+            "name": "Smoke — Disabled validation (UnitTests not run)",
+            "description": "Part 36. UnitTests is enabled:false → it does not run and produces no result row; Connectivity runs normally.",
+            "sourceOfTruth": {
+                "kind": "container",
+                "connectionProfileId": "smoke-local-container"
+            },
+            "validations": [
+                { "type": "connectivity", "enabled": true, "settings": {} },
+                { "type": "unit-tests", "enabled": false, "settings": {} }
+            ]
+        },
+        {
+            "id": "smoke-workload-missing",
+            "name": "Smoke — Workload artifact missing (Skipped)",
+            "description": "Part 37. workloadUri points at a file that does not exist → WorkloadPlayback Skipped ('artifact not found'), graceful (positive test of the fixed #5 path).",
+            "sourceOfTruth": {
+                "kind": "container",
+                "connectionProfileId": "smoke-local-container"
+            },
+            "validations": [
+                { "type": "connectivity", "enabled": true, "settings": {} },
+                {
+                    "type": "workload-playback",
+                    "enabled": true,
+                    "settings": {
+                        "workloadUri": "samples/cloudDeploy/smoke/workload/does-not-exist.json",
+                        "baselineUri": "samples/cloudDeploy/smoke/workload/baseline.json",
+                        "replayCommand": "samples/cloudDeploy/smoke/workload/replay-pass.cmd"
+                    }
+                }
+            ]
+        }
+    ]
+}

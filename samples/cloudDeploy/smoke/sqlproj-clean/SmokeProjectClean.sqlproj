@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.Build.Sql/0.1.19-preview">
+  <PropertyGroup>
+    <Name>SmokeProjectClean</Name>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql160DatabaseSchemaProvider</DSP>
+    <ModelCollation>1033, CI</ModelCollation>
+    <ProjectGuid>{11111111-1111-1111-1111-111111111111}</ProjectGuid>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,9 @@
+{
+    "schemaVersion": 1,
+    "description": "Baseline metrics for the Cloud Deploy smoke harness. The WorkloadPlaybackValidator matches each observed step (from the replay tool's stdout) to the baseline step of the same id and flags a latency regression when the observed value exceeds baseline by more than latencyRegressionThreshold (default 0.25).",
+    "steps": [
+        { "id": "step-1-customer-search", "latencyMs": 100, "throughputQps": 1200 },
+        { "id": "step-2-regression", "latencyMs": 200, "throughputQps": 800 },
+        { "id": "step-3-order-insert", "latencyMs": 50, "throughputQps": 1500 }
+    ]
+}

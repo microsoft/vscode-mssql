@@ -1,0 +1,15 @@
+services:
+  mssql-smoke:
+    build:
+      context: .
+    image: cloud-deploy-smoke-mssql:latest
+    container_name: cloud-deploy-smoke-mssql
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      # Override with your own strong password:
+      #   $env:MSSQL_SA_PASSWORD = "..."; docker compose up --build
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:-Smoke_Pass_w0rd!}"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1433:1433"
