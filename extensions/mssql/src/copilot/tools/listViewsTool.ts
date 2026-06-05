@@ -54,7 +54,6 @@ export class ListViewsTool extends ToolBase<ListViewsToolParams> {
                 new RequestType<
                     { ownerUri: string; queryString: string },
                     SimpleExecuteResult,
-                    void,
                     void
                 >("query/simpleexecute"),
                 {
