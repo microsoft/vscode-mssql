@@ -1052,6 +1052,10 @@
                 {
                     "command": "mssql.toggleActualPlan",
                     "when": "false"
+                },
+                {
+                    "command": "mssql.openRpcInspector",
+                    "when": "config.mssql.preview.rpcInspector"
                 }
             ],
             "webview/context": [
@@ -1589,6 +1593,11 @@
                 "category": "MS SQL"
             },
             {
+                "command": "mssql.openRpcInspector",
+                "title": "%mssql.openRpcInspector%",
+                "category": "MS SQL"
+            },
+            {
                 "command": "mssql.profiler.launchFromObjectExplorer",
                 "title": "%mssql.profiler.launchFromObjectExplorer%",
                 "category": "MS SQL"
@@ -1684,6 +1693,12 @@
                     "type": "boolean",
                     "default": false,
                     "description": "%mssql.enableExperimentalFeatures.description%",
+                    "scope": "application"
+                },
+                "mssql.preview.rpcInspector": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.preview.rpcInspector.description%",
                     "scope": "application"
                 },
                 "mssql.preview.useVscodeAccountsForEntraMFA": {

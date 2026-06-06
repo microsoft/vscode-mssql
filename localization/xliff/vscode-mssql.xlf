@@ -8332,6 +8332,9 @@
     <trans-unit id="mssql.enableExperimentalFeatures.description">
       <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
     </trans-unit>
+    <trans-unit id="mssql.preview.rpcInspector.description">
+      <source xml:lang="en">Enables the internal MSSQL RPC Inspector for live SQL Tools Service traffic capture and scrubbed export.</source>
+    </trans-unit>
     <trans-unit id="mssql.showEstimatedPlan">
       <source xml:lang="en">Estimated Plan (MSSQL)</source>
     </trans-unit>
@@ -8457,6 +8460,9 @@
     </trans-unit>
     <trans-unit id="mssql.openExecutionPlanFile">
       <source xml:lang="en">Open Execution Plan File</source>
+    </trans-unit>
+    <trans-unit id="mssql.openRpcInspector">
+      <source xml:lang="en">Open MSSQL RPC Inspector</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.newQueryWithConnection">
       <source xml:lang="en">Open New Query and Connect</source>

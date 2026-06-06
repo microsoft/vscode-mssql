@@ -11,6 +11,7 @@ import * as vscode from "vscode";
  * allowing per-feature overrides of the global `mssql.enableExperimentalFeatures` flag.
  */
 export enum PreviewFeature {
+    RpcInspector = "rpcInspector",
     UseVscodeAccountsForEntraMFA = "useVscodeAccountsForEntraMFA",
 }
 

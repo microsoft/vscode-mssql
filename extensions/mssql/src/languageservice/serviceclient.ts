@@ -40,6 +40,7 @@ import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { PreviewFeature, previewService } from "../previews/previewService";
 import { getRuntimeConfigPath, ServiceExecutable } from "./serviceExecutablePaths";
+import { RecordingLanguageClient } from "./rpcCapture/recordingLanguageClient";
 
 const STS_OVERRIDE_ENV_VAR = "MSSQL_SQLTOOLSSERVICE";
 const SERVICE_LAUNCH_TELEMETRY_VIEW = TelemetryViews.ServiceClient;
@@ -446,10 +447,11 @@ export default class SqlToolsServiceClient {
         };
 
         // cache the client instance for later use
-        let client = new LanguageClient(
+        let client = new RecordingLanguageClient(
             Constants.sqlToolsServiceName,
             serverOptions,
             clientOptions,
+            "sqlToolsService",
         );
         client.onNotification(
             LanguageServiceContracts.StatusChangedNotification.type,
@@ -465,10 +467,11 @@ export default class SqlToolsServiceClient {
         const clientOptions: LanguageClientOptions = {
             errorHandler: new LanguageClientErrorHandler(Constants.resourceServiceName),
         };
-        let client = new LanguageClient(
+        let client = new RecordingLanguageClient(
             Constants.resourceServiceName,
             serverOptions,
             clientOptions,
+            "resourceProvider",
         );
         return client;
     }

@@ -116,6 +116,7 @@ import { TableExplorerWebViewController } from "../tableExplorer/tableExplorerWe
 import { SearchDatabaseWebViewController } from "../searchDatabase/searchDatabaseWebViewController";
 import { ChangelogWebviewController } from "./changelogWebviewController";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
+import { RpcInspectorWebviewController } from "./rpcInspectorWebviewController";
 import { HttpClient } from "../http/httpClient";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
@@ -371,6 +372,21 @@ export default class MainController implements vscode.Disposable {
                     this._vscodeWrapper,
                 );
                 await changelogController.revealToForeground();
+            });
+            this.registerCommand(Constants.cmdOpenRpcInspector);
+            this._event.on(Constants.cmdOpenRpcInspector, async () => {
+                if (!previewService.isFeatureEnabled(PreviewFeature.RpcInspector)) {
+                    await vscode.window.showInformationMessage(
+                        "Enable mssql.preview.rpcInspector to open the MSSQL RPC Inspector.",
+                    );
+                    return;
+                }
+
+                const rpcInspectorController = new RpcInspectorWebviewController(
+                    this._context,
+                    this._vscodeWrapper,
+                );
+                await rpcInspectorController.revealToForeground();
             });
             this.registerCommand(Constants.cmdOpenAzureDataStudioMigration);
             this._event.on(Constants.cmdOpenAzureDataStudioMigration, async () => {
