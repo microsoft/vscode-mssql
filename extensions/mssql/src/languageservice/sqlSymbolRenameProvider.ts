@@ -33,10 +33,12 @@ export class SqlSymbolRenameProvider implements vscode.RenameProvider {
      */
     private static async isInSqlProject(filePath: string): Promise<boolean> {
         const sqlprojFiles = await vscode.workspace.findFiles("**/*.sqlproj");
-        const normalizedFile = filePath.replace(/\\/g, "/").toLowerCase();
+        const normalizedFile = path.normalize(filePath);
         return sqlprojFiles.some((projUri) => {
-            const projDir = path.dirname(projUri.fsPath).replace(/\\/g, "/").toLowerCase();
-            return normalizedFile.startsWith(projDir + "/");
+            const projDir = path.normalize(path.dirname(projUri.fsPath));
+            const rel = path.relative(projDir, normalizedFile);
+            // File is inside projDir when the relative path doesn't escape upward
+            return !rel.startsWith("..") && !path.isAbsolute(rel);
         });
     }
 
