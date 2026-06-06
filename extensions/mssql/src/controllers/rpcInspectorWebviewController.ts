@@ -5,6 +5,7 @@
 
 import * as vscode from "vscode";
 import {
+    RpcCaptureEvent,
     RpcCaptureExport,
     RpcInspectorApplyFilterRequest,
     RpcInspectorApplyFilterParams,
@@ -202,7 +203,57 @@ export class RpcInspectorWebviewController extends WebviewPanelController<
         return {
             ...candidate,
             source: "import",
-            events: candidate.events,
+            events: this.normalizeImportedEvents(candidate.events),
         };
+    }
+
+    private normalizeImportedEvents(events: unknown[]): RpcCaptureEvent[] {
+        const usedEventIds = new Set<string>();
+        const importedEventIdMap = new Map<string, string>();
+
+        const normalizedEvents = events.map((value, index) => {
+            const event =
+                value && typeof value === "object"
+                    ? ({ ...(value as Partial<RpcCaptureEvent>) } as RpcCaptureEvent)
+                    : ({} as RpcCaptureEvent);
+            const originalEventId =
+                typeof event.eventId === "string" && event.eventId.length > 0
+                    ? event.eventId
+                    : undefined;
+
+            if (!originalEventId || usedEventIds.has(originalEventId)) {
+                event.eventId = this.createImportedEventId(index, usedEventIds);
+            } else {
+                event.eventId = originalEventId;
+            }
+
+            usedEventIds.add(event.eventId);
+            if (originalEventId && !importedEventIdMap.has(originalEventId)) {
+                importedEventIdMap.set(originalEventId, event.eventId);
+            }
+
+            return event;
+        });
+
+        return normalizedEvents.map((event) => {
+            if (event.relatedEventId) {
+                event.relatedEventId =
+                    importedEventIdMap.get(event.relatedEventId) ?? event.relatedEventId;
+            }
+
+            return event;
+        });
+    }
+
+    private createImportedEventId(index: number, usedEventIds: Set<string>): string {
+        const baseEventId = `import-event-${index + 1}`;
+        let eventId = baseEventId;
+        let suffix = 1;
+        while (usedEventIds.has(eventId)) {
+            eventId = `${baseEventId}-${suffix}`;
+            suffix++;
+        }
+
+        return eventId;
     }
 }

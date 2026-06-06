@@ -3,13 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom/client";
 import {
     Badge,
     Button,
     Checkbox,
-    createTableColumn,
     Input,
     makeStyles,
     mergeClasses,
@@ -23,37 +22,38 @@ import {
     SelectTabEvent,
     shorthands,
     Tab,
-    Table,
-    TableBody,
-    TableCell,
-    TableColumnDefinition,
-    TableColumnSizingOptions,
-    TableHeader,
-    TableHeaderCell,
-    TableRow,
     TabList,
     Text,
-    Toolbar,
     Tooltip,
-    useArrowNavigationGroup,
-    useTableColumnSizing_unstable,
-    useTableFeatures,
 } from "@fluentui/react-components";
 import {
     Add16Regular,
-    ArrowDownload16Regular,
     ChevronDown16Regular,
     ChevronRight16Regular,
     Copy16Regular,
     Dismiss16Regular,
+    FilterDismiss16Regular,
     Filter16Regular,
     FolderOpen16Regular,
     Play16Regular,
+    Save16Regular,
     Search16Regular,
+    SlideEraser16Regular,
 } from "@fluentui/react-icons";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import { Column, Formatter, GridOption, SlickgridReactInstance } from "slickgrid-react";
 import "../../index.css";
+import { CellRangeSelector } from "../QueryResult/table/plugins/cellRangeSelector";
+import { CellSelectionModel } from "../QueryResult/table/plugins/cellSelectionModel.plugin";
+import {
+    baseFluentReadOnlyGridOption,
+    createFluentAutoResizeOptions,
+    createFluentSlickGridCopyMenu,
+    FLUENT_SLICK_GRID_COPY_COMMAND,
+    FluentSlickGrid,
+    getFluentSlickGridSelectionText,
+} from "../../common/FluentSlickGrid/FluentSlickGrid";
 import {
     SearchableDropdown,
     SearchableDropdownOptions,
@@ -93,6 +93,18 @@ interface RpcDisplayEvent extends RpcCaptureEvent {
     responseEvent?: RpcCaptureEvent;
 }
 
+interface RpcGridRow extends RpcDisplayEvent {
+    id: string;
+    expandLabel: string;
+    displayTime: string;
+    displayChannel: string;
+    displayMethod: string;
+    displayMessage: string;
+    displayStatus: string;
+    displayDuration: string;
+    displaySource: string;
+}
+
 type DetailsTab = "all" | "params" | "result" | "raw";
 
 interface MethodDomainGroup {
@@ -106,8 +118,8 @@ type MethodTreeRow =
 
 const LIVE_TAB_ID = "live";
 const FILTER_ALL_VALUE = "__all__";
+const EXPAND_COLUMN_ID = "expand";
 const RPC_GRID_ROW_HEIGHT = 32;
-const RPC_GRID_OVERSCAN = 12;
 const RPC_GRID_FOLLOW_BOTTOM_THRESHOLD_PX = 64;
 const METHOD_TREE_ROW_HEIGHT = 26;
 const METHOD_TREE_OVERSCAN = 8;
@@ -453,83 +465,122 @@ const useStyles = makeStyles({
     },
     gridWrapper: {
         flex: "1 1 auto",
+        height: "100%",
         minHeight: 0,
         minWidth: 0,
         display: "flex",
         flexDirection: "column",
+        position: "relative",
         border: "1px solid var(--vscode-editorWidget-border)",
         borderRadius: "4px",
         overflow: "hidden",
         backgroundColor: "var(--vscode-editor-background)",
-    },
-    gridScrollContainer: {
-        flex: "1 1 auto",
-        minHeight: 0,
-        minWidth: 0,
-        overflow: "auto",
-    },
-    gridTable: {
-        minWidth: "1368px",
-        width: "max-content",
-    },
-    gridHeader: {
-        position: "sticky",
-        top: 0,
-        zIndex: 4,
-        isolation: "isolate",
-        backgroundColor: "var(--vscode-editor-background)",
-        boxShadow: "0 1px 0 var(--vscode-editorWidget-border)",
-    },
-    gridHeaderCell: {
-        position: "relative",
-        zIndex: 5,
-        minWidth: 0,
-        overflow: "hidden",
-        fontSize: "11px",
-        fontWeight: 700,
-        color: "var(--vscode-descriptionForeground)",
-        backgroundColor: "var(--vscode-editor-background)",
-        borderBottom: "1px solid var(--vscode-editorWidget-border)",
-    },
-    gridBody: {
-        position: "relative",
-    },
-    gridRow: {
-        borderBottom:
-            "1px solid color-mix(in srgb, var(--vscode-editorWidget-border) 62%, transparent)",
-        outline: "none",
-        backgroundColor: "var(--vscode-editor-background)",
-        cursor: "pointer",
-        "&:hover": {
-            backgroundColor: "var(--vscode-list-hoverBackground)",
+        "--slick-grid-header-background": "var(--vscode-editor-background)",
+        "--slick-header-background-color": "var(--vscode-editor-background)",
+        "--slick-header-text-color": "var(--vscode-descriptionForeground)",
+        "--slick-header-font-size": "11px",
+        "--slick-header-font-weight": "700",
+        "--slick-cell-font-family": "var(--vscode-editor-font-family), monospace",
+        "--slick-cell-font-size": "12px",
+        "--slick-cell-text-color": "var(--vscode-foreground)",
+        "--slick-canvas-bg-color": "var(--vscode-editor-background)",
+        "--slick-cell-even-background-color": "var(--vscode-editor-background)",
+        "--slick-cell-odd-background-color":
+            "var(--vscode-list-alternatingBackground, color-mix(in srgb, var(--vscode-editor-foreground) 4%, var(--vscode-editor-background)))",
+        "--slick-cell-border-bottom": "1px solid var(--vscode-editorWidget-border)",
+        "--slick-cell-border-right": "1px solid var(--vscode-editorWidget-border)",
+        "--slick-row-mouse-hover-color": "var(--vscode-list-hoverBackground)",
+        "--slick-cell-selected-color": "var(--vscode-list-activeSelectionBackground)",
+        "--slick-row-selected-color": "var(--vscode-list-activeSelectionBackground)",
+        "& .slickgrid-react, & .slickgrid-container": {
+            width: "100%",
+            height: "100%",
+            minWidth: 0,
+            minHeight: 0,
+            flex: "1 1 auto",
         },
-        "&:focus-visible": {
-            outline: "1px solid var(--vscode-focusBorder)",
-            outlineOffset: "-1px",
+        "& .slickgrid-react": {
+            display: "flex",
+            flexDirection: "column",
         },
-    },
-    virtualRow: {
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        width: "100%",
-    },
-    gridCell: {
-        height: `${RPC_GRID_ROW_HEIGHT}px`,
-        maxHeight: `${RPC_GRID_ROW_HEIGHT}px`,
-        minWidth: 0,
-        overflow: "hidden",
-        fontSize: "12px",
-        paddingTop: 0,
-        paddingBottom: 0,
-    },
-    selectedRow: {
-        backgroundColor: "var(--vscode-list-activeSelectionBackground)",
-        color: "var(--vscode-list-activeSelectionForeground)",
-        "& div, & span": {
+        "& .slick-pane, & .slick-viewport": {
+            backgroundColor: "var(--vscode-editor-background)",
+        },
+        "& .slick-header-columns": {
+            backgroundColor: "var(--vscode-editor-background)",
+        },
+        "& .slick-header-column": {
+            backgroundColor: "var(--vscode-editor-background) !important",
+            borderRight: "1px solid var(--vscode-editorWidget-border) !important",
+            borderBottom: "1px solid var(--vscode-editorWidget-border) !important",
+            fontWeight: 700,
+        },
+        "& .slick-row": {
+            cursor: "pointer",
+            backgroundColor: "var(--slick-cell-even-background-color)",
+            color: "var(--vscode-foreground)",
+        },
+        "& .slick-row.odd": {
+            backgroundColor: "var(--slick-cell-odd-background-color)",
+        },
+        "& .slick-row .slick-cell, & .slick-row .slick-cell.even": {
+            backgroundColor: "inherit",
+            color: "inherit",
+        },
+        "& .slick-row.selected .slick-cell, & .slick-row.active .slick-cell": {
             backgroundColor: "var(--vscode-list-activeSelectionBackground)",
             color: "var(--vscode-list-activeSelectionForeground)",
+        },
+        "& .slick-cell": {
+            borderRight: "1px solid var(--vscode-editorWidget-border)",
+            borderBottom: "1px solid var(--vscode-editorWidget-border)",
+            fontSize: "12px",
+            lineHeight: "22px",
+            paddingTop: "1px",
+            paddingBottom: "1px",
+        },
+        "& .rpc-grid-cell": {
+            display: "block",
+            minWidth: 0,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            fontFamily: "var(--vscode-editor-font-family), monospace",
+            fontSize: "12px",
+        },
+        "& .rpc-grid-request": {
+            color: "var(--vscode-charts-purple)",
+            fontWeight: 600,
+        },
+        "& .rpc-grid-notification": {
+            color: "var(--vscode-charts-orange)",
+            fontWeight: 600,
+        },
+        "& .rpc-grid-response, & .rpc-grid-muted": {
+            color: "var(--vscode-descriptionForeground)",
+            fontWeight: 600,
+        },
+        "& .rpc-grid-status-succeeded": {
+            color: "var(--vscode-testing-iconPassed)",
+            fontWeight: 600,
+        },
+        "& .rpc-grid-status-failed": {
+            color: "var(--vscode-testing-iconFailed)",
+            fontWeight: 600,
+        },
+        "& .rpc-grid-status-pending": {
+            color: "var(--vscode-editorWarning-foreground)",
+            fontWeight: 600,
+        },
+        "& .rpc-grid-expand-action": {
+            color: "var(--vscode-textLink-foreground)",
+            cursor: "pointer",
+            fontFamily: "var(--vscode-font-family)",
+            fontWeight: 600,
+            textAlign: "center",
+        },
+        "& .slick-cell.rpc-grid-expand-cell": {
+            textAlign: "center",
         },
     },
     methodCell: {
@@ -539,34 +590,6 @@ const useStyles = makeStyles({
         alignItems: "center",
         gap: "6px",
         overflow: "hidden",
-    },
-    requestText: {
-        color: "var(--vscode-charts-purple)",
-        fontWeight: 600,
-    },
-    notificationText: {
-        color: "var(--vscode-charts-orange)",
-        fontWeight: 600,
-    },
-    responseText: {
-        color: "var(--vscode-descriptionForeground)",
-        fontWeight: 600,
-    },
-    statusSucceededText: {
-        color: "var(--vscode-testing-iconPassed)",
-        fontWeight: 600,
-    },
-    statusFailedText: {
-        color: "var(--vscode-testing-iconFailed)",
-        fontWeight: 600,
-    },
-    statusPendingText: {
-        color: "var(--vscode-editorWarning-foreground)",
-        fontWeight: 600,
-    },
-    statusMutedText: {
-        color: "var(--vscode-descriptionForeground)",
-        fontWeight: 600,
     },
     mono: {
         minWidth: 0,
@@ -611,6 +634,12 @@ const useStyles = makeStyles({
         whiteSpace: "nowrap",
         fontSize: "12px",
         color: "var(--vscode-descriptionForeground)",
+    },
+    detailsActions: {
+        display: "flex",
+        alignItems: "center",
+        gap: "4px",
+        flexShrink: 0,
     },
     detailsContent: {
         minHeight: 0,
@@ -1224,7 +1253,7 @@ const RpcInspectorPage = () => {
                     <MenuTrigger disableButtonEnhancement>
                         <Button
                             size="small"
-                            appearance={methodFilterCount > 0 ? "primary" : "secondary"}
+                            appearance="subtle"
                             icon={<Filter16Regular />}
                             aria-label={
                                 methodFilterCount > 0
@@ -1235,8 +1264,9 @@ const RpcInspectorPage = () => {
                                 methodFilterCount > 0
                                     ? `Method filters (${methodFilterCount})`
                                     : "Method filters"
-                            }
-                        />
+                            }>
+                            Methods
+                        </Button>
                     </MenuTrigger>
                     <MenuPopover className={classes.filterMenuPopover}>
                         <div className={classes.methodMenuContent}>
@@ -1258,7 +1288,7 @@ const RpcInspectorPage = () => {
                     <MenuTrigger disableButtonEnhancement>
                         <Button
                             size="small"
-                            appearance={otherFilterCount > 0 ? "primary" : "secondary"}
+                            appearance="subtle"
                             icon={<Filter16Regular />}
                             aria-label={
                                 otherFilterCount > 0
@@ -1334,11 +1364,23 @@ const RpcInspectorPage = () => {
                     </MenuPopover>
                 </Menu>
 
+                {hasAnyFilter && (
+                    <Tooltip content="Clear filters" relationship="label">
+                        <Button
+                            size="small"
+                            appearance="subtle"
+                            icon={<FilterDismiss16Regular />}
+                            aria-label="Clear filters"
+                            onClick={clearActiveFilters}
+                        />
+                    </Tooltip>
+                )}
+
                 <Tooltip content="Export visible" relationship="label">
                     <Button
                         size="small"
-                        appearance="secondary"
-                        icon={<ArrowDownload16Regular />}
+                        appearance="subtle"
+                        icon={<Save16Regular />}
                         aria-label="Export visible"
                         onClick={exportVisible}
                     />
@@ -1349,7 +1391,7 @@ const RpcInspectorPage = () => {
                         {activeSession?.isActive ? (
                             <Button
                                 size="small"
-                                appearance="secondary"
+                                appearance="subtle"
                                 icon={<Dismiss16Regular />}
                                 onClick={() => void stopSession(activeTab.sessionId!)}>
                                 Stop
@@ -1358,8 +1400,8 @@ const RpcInspectorPage = () => {
                             <Tooltip content="Export session" relationship="label">
                                 <Button
                                     size="small"
-                                    appearance="secondary"
-                                    icon={<ArrowDownload16Regular />}
+                                    appearance="subtle"
+                                    icon={<Save16Regular />}
                                     aria-label="Export session"
                                     onClick={exportSession}
                                 />
@@ -1372,22 +1414,10 @@ const RpcInspectorPage = () => {
                     <Tooltip content="Clear live" relationship="label">
                         <Button
                             size="small"
-                            appearance="secondary"
-                            icon={<Dismiss16Regular />}
+                            appearance="subtle"
+                            icon={<SlideEraser16Regular />}
                             aria-label="Clear live"
                             onClick={clearLiveEvents}
-                        />
-                    </Tooltip>
-                )}
-
-                {hasAnyFilter && (
-                    <Tooltip content="Clear filters" relationship="label">
-                        <Button
-                            size="small"
-                            appearance="subtle"
-                            icon={<Dismiss16Regular />}
-                            aria-label="Clear filters"
-                            onClick={clearActiveFilters}
                         />
                     </Tooltip>
                 )}
@@ -1403,11 +1433,7 @@ const RpcInspectorPage = () => {
                     defaultSize={selectedEvent ? 68 : 100}
                     minSize={30}>
                     <section className={classes.eventsPanel}>
-                        <EventGrid
-                            events={filteredEvents}
-                            selectedEventId={selectedEvent?.eventId}
-                            onSelect={selectEvent}
-                        />
+                        <EventGrid events={filteredEvents} onSelect={selectEvent} />
                     </section>
                 </Panel>
                 {selectedEvent && (
@@ -1692,6 +1718,7 @@ const FilterMethodRow = ({
                     className={classes.methodFilterAction}
                     appearance="transparent"
                     size="small"
+                    icon={<SlideEraser16Regular />}
                     disabled={methods.length === 0}
                     onClick={() => onChange([])}>
                     Clear
@@ -1832,36 +1859,6 @@ function formatMessageKind(event: RpcDisplayEvent): string {
     return event.kind;
 }
 
-function getMessageClass(classes: ReturnType<typeof useStyles>, event: RpcDisplayEvent): string {
-    switch (event.kind) {
-        case "request":
-            return classes.requestText;
-        case "notification":
-            return classes.notificationText;
-        case "response":
-            return classes.responseText;
-        default:
-            return classes.muted;
-    }
-}
-
-function getStatusClass(
-    classes: ReturnType<typeof useStyles>,
-    status: RpcCaptureEvent["status"],
-): string {
-    switch (status) {
-        case "succeeded":
-            return classes.statusSucceededText;
-        case "failed":
-            return classes.statusFailedText;
-        case "pending":
-        case "notification":
-            return classes.statusPendingText;
-        default:
-            return classes.statusMutedText;
-    }
-}
-
 function formatStatus(status: RpcCaptureEvent["status"]): string {
     switch (status) {
         case "pending":
@@ -1874,143 +1871,293 @@ function formatStatus(status: RpcCaptureEvent["status"]): string {
     }
 }
 
+function escapeHtml(value: string): string {
+    return value.replace(/[&<>"']/g, (char) => {
+        switch (char) {
+            case "&":
+                return "&amp;";
+            case "<":
+                return "&lt;";
+            case ">":
+                return "&gt;";
+            case '"':
+                return "&quot;";
+            case "'":
+                return "&#39;";
+            default:
+                return char;
+        }
+    });
+}
+
+function formatSlickGridCell(value: string, className = "", title?: string): string {
+    const titleAttribute = title === undefined ? "" : ` title="${escapeHtml(title)}"`;
+    return `<span class="rpc-grid-cell ${className}"${titleAttribute}>${escapeHtml(value)}</span>`;
+}
+
+function getMessageGridClass(event: RpcDisplayEvent): string {
+    switch (event.kind) {
+        case "request":
+            return "rpc-grid-request";
+        case "notification":
+            return "rpc-grid-notification";
+        case "response":
+            return "rpc-grid-response";
+        default:
+            return "rpc-grid-muted";
+    }
+}
+
+function getStatusGridClass(status: RpcCaptureEvent["status"]): string {
+    switch (status) {
+        case "succeeded":
+            return "rpc-grid-status-succeeded";
+        case "failed":
+            return "rpc-grid-status-failed";
+        case "pending":
+        case "notification":
+            return "rpc-grid-status-pending";
+        default:
+            return "rpc-grid-muted";
+    }
+}
+
+const textGridFormatter: Formatter<RpcGridRow> = (_row, _cell, value) =>
+    formatSlickGridCell(value === undefined || value === null ? "" : String(value));
+
+function createRpcGridColumns(): Column<RpcGridRow>[] {
+    return [
+        {
+            id: EXPAND_COLUMN_ID,
+            field: "expandLabel",
+            name: "Expand",
+            width: 72,
+            minWidth: 64,
+            maxWidth: 84,
+            cssClass: "rpc-grid-expand-cell",
+            excludeFromColumnPicker: true,
+            excludeFromExport: true,
+            selectable: false,
+            formatter: () =>
+                formatSlickGridCell("Expand", "rpc-grid-expand-action", "Open details"),
+        },
+        {
+            id: "timestamp",
+            field: "displayTime",
+            name: "Time",
+            width: 138,
+            minWidth: 120,
+            formatter: textGridFormatter,
+        },
+        {
+            id: "channel",
+            field: "displayChannel",
+            name: "Channel",
+            width: 112,
+            minWidth: 96,
+            formatter: textGridFormatter,
+        },
+        {
+            id: "method",
+            field: "displayMethod",
+            name: "Method",
+            width: 430,
+            minWidth: 260,
+            formatter: (_row, _cell, _value, _column, event) => {
+                const method = event.displayMethod;
+                return formatSlickGridCell(method, "", method);
+            },
+        },
+        {
+            id: "kind",
+            field: "displayMessage",
+            name: "Message",
+            width: 144,
+            minWidth: 118,
+            formatter: (_row, _cell, value, _column, event) =>
+                formatSlickGridCell(String(value ?? ""), getMessageGridClass(event)),
+        },
+        {
+            id: "status",
+            field: "displayStatus",
+            name: "Status",
+            width: 122,
+            minWidth: 104,
+            formatter: (_row, _cell, value, _column, event) =>
+                formatSlickGridCell(String(value ?? ""), getStatusGridClass(event.status)),
+        },
+        {
+            id: "duration",
+            field: "displayDuration",
+            name: "Duration",
+            width: 92,
+            minWidth: 82,
+            formatter: textGridFormatter,
+        },
+        {
+            id: "source",
+            field: "displaySource",
+            name: "Source",
+            width: 104,
+            minWidth: 84,
+            formatter: textGridFormatter,
+        },
+        {
+            id: "jsonRpcId",
+            field: "jsonRpcId",
+            name: "RPC Id",
+            width: 110,
+            minWidth: 88,
+            formatter: textGridFormatter,
+        },
+    ];
+}
+
 const EventGrid = ({
     events,
-    selectedEventId,
     onSelect,
 }: {
     events: RpcDisplayEvent[];
-    selectedEventId: string | undefined;
     onSelect: (event: RpcDisplayEvent) => void;
 }) => {
     const classes = useStyles();
-    const keyboardNavAttr = useArrowNavigationGroup({ axis: "grid" });
-    const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+    const reactGridRef = useRef<SlickgridReactInstance | undefined>(undefined);
+    const gridWrapperRef = useRef<HTMLDivElement | null>(null);
+    const resizeRafRef = useRef<number | null>(null);
     const shouldFollowLatestRef = useRef(true);
-
-    const columns = useMemo<TableColumnDefinition<RpcDisplayEvent>[]>(
-        () => [
-            createTableColumn<RpcDisplayEvent>({
-                columnId: "timestamp",
-                renderHeaderCell: () => "Time",
-                renderCell: (event) => (
-                    <span className={classes.mono}>{formatTime(event.timestamp)}</span>
-                ),
-            }),
-            createTableColumn<RpcDisplayEvent>({
-                columnId: "channel",
-                renderHeaderCell: () => "Channel",
-                renderCell: (event) => (
-                    <span className={classes.mono}>{formatChannel(event.channel)}</span>
-                ),
-            }),
-            createTableColumn<RpcDisplayEvent>({
-                columnId: "method",
-                renderHeaderCell: () => "Method",
-                renderCell: (event) => {
-                    const method = event.method ?? "";
-                    return (
-                        <div className={classes.methodCell}>
-                            <Tooltip content={method} relationship="description">
-                                <span className={classes.mono}>{method}</span>
-                            </Tooltip>
-                        </div>
-                    );
-                },
-            }),
-            createTableColumn<RpcDisplayEvent>({
-                columnId: "kind",
-                renderHeaderCell: () => "Message",
-                renderCell: (event) => (
-                    <span className={mergeClasses(classes.mono, getMessageClass(classes, event))}>
-                        {formatMessageKind(event)}
-                    </span>
-                ),
-            }),
-            createTableColumn<RpcDisplayEvent>({
-                columnId: "status",
-                renderHeaderCell: () => "Status",
-                renderCell: (event) => (
-                    <span
-                        className={mergeClasses(
-                            classes.mono,
-                            getStatusClass(classes, event.status),
-                        )}>
-                        {formatStatus(event.status)}
-                    </span>
-                ),
-            }),
-            createTableColumn<RpcDisplayEvent>({
-                columnId: "duration",
-                renderHeaderCell: () => "Duration",
-                renderCell: (event) => (
-                    <span className={classes.mono}>{formatDuration(event.durationMs)}</span>
-                ),
-            }),
-            createTableColumn<RpcDisplayEvent>({
-                columnId: "source",
-                renderHeaderCell: () => "Source",
-                renderCell: (event) => (
-                    <span className={classes.mono}>{formatSource(event.direction)}</span>
-                ),
-            }),
-            createTableColumn<RpcDisplayEvent>({
-                columnId: "jsonRpcId",
-                renderHeaderCell: () => "RPC Id",
-                renderCell: (event) => (
-                    <span className={classes.mono}>{event.jsonRpcId ?? ""}</span>
-                ),
-            }),
-        ],
-        [
-            classes.methodCell,
-            classes.mono,
-            classes.notificationText,
-            classes.requestText,
-            classes.responseText,
-            classes.statusFailedText,
-            classes.statusMutedText,
-            classes.statusPendingText,
-            classes.statusSucceededText,
-        ],
+    const dataset = useMemo<RpcGridRow[]>(
+        () =>
+            events.map((event) => ({
+                ...event,
+                id: event.eventId,
+                expandLabel: "Expand",
+                displayTime: formatTime(event.timestamp),
+                displayChannel: formatChannel(event.channel),
+                displayMethod: event.method ?? "",
+                displayMessage: formatMessageKind(event),
+                displayStatus: formatStatus(event.status),
+                displayDuration: formatDuration(event.durationMs),
+                displaySource: formatSource(event.direction),
+            })),
+        [events],
     );
 
-    const columnSizingOptions = useMemo<TableColumnSizingOptions>(
+    const isEmpty = events.length === 0;
+    const columns = useMemo<Column<RpcGridRow>[]>(
+        // slickgrid-react mutates the column array during some clear/remount paths.
+        // Recreate descriptors around the empty/nonempty transition so new rows do not render blank.
+        () => createRpcGridColumns(),
+        [isEmpty],
+    );
+
+    const gridOptions = useMemo<GridOption>(
         () => ({
-            timestamp: { defaultWidth: 138, minWidth: 120, idealWidth: 138 },
-            channel: { defaultWidth: 112, minWidth: 96, idealWidth: 112 },
-            source: { defaultWidth: 104, minWidth: 84, idealWidth: 104 },
-            kind: { defaultWidth: 144, minWidth: 118, idealWidth: 144 },
-            status: { defaultWidth: 122, minWidth: 104, idealWidth: 122 },
-            duration: { defaultWidth: 92, minWidth: 82, idealWidth: 92 },
-            method: { defaultWidth: 430, minWidth: 260, idealWidth: 430 },
-            jsonRpcId: { defaultWidth: 110, minWidth: 88, idealWidth: 110 },
+            ...baseFluentReadOnlyGridOption,
+            autoResize: createFluentAutoResizeOptions("#rpcInspectorGridContainer", {
+                autoHeight: false,
+                bottomPadding: 0,
+                minHeight: 50,
+            }),
+            enableAutoSizeColumns: false,
+            enableCellNavigation: true,
+            enableContextMenu: true,
+            contextMenu: {
+                ...createFluentSlickGridCopyMenu("Copy"),
+                onCommand: (_event, args) => {
+                    if (args?.command !== FLUENT_SLICK_GRID_COPY_COMMAND) {
+                        return;
+                    }
+
+                    const text = getFluentSlickGridSelectionText(reactGridRef.current);
+                    if (text) {
+                        void navigator.clipboard.writeText(text);
+                    }
+                },
+            },
+            rowHeight: RPC_GRID_ROW_HEIGHT,
+            emptyDataWarning: {
+                message: "No RPC events",
+            },
         }),
         [],
     );
+    const latestEventId = dataset[dataset.length - 1]?.eventId;
 
-    const { getRows, columnSizing_unstable, tableRef } = useTableFeatures(
-        {
-            columns,
-            items: events,
-        },
-        [
-            useTableColumnSizing_unstable({
-                columnSizingOptions,
-                autoFitColumns: false,
-                containerWidthOffset: 0,
+    const scheduleGridResize = useCallback(() => {
+        if (resizeRafRef.current !== null) {
+            cancelAnimationFrame(resizeRafRef.current);
+        }
+
+        resizeRafRef.current = requestAnimationFrame(() => {
+            resizeRafRef.current = null;
+            const reactGrid = reactGridRef.current;
+            if (!reactGrid) {
+                return;
+            }
+
+            void reactGrid.resizerService?.resizeGrid();
+            reactGrid.slickGrid?.resizeCanvas();
+            reactGrid.slickGrid?.invalidate();
+            reactGrid.slickGrid?.render();
+        });
+    }, []);
+
+    const getGridRow = (rowIndex: number): RpcGridRow | undefined =>
+        dataset[rowIndex] ??
+        (reactGridRef.current?.dataView?.getItem(rowIndex) as RpcGridRow | undefined);
+
+    const selectGridRow = (rowIndex: number) => {
+        const event = getGridRow(rowIndex);
+        if (!event) {
+            return;
+        }
+
+        onSelect(event);
+    };
+
+    const handleReactGridCreated = (event: CustomEvent<SlickgridReactInstance>) => {
+        reactGridRef.current = event.detail;
+        const selectionModel = new CellSelectionModel<RpcGridRow>({
+            hasRowSelector: true,
+            cellRangeSelector: new CellRangeSelector<RpcGridRow>({
+                selectionCss: {
+                    border: "2px dashed var(--vscode-focusBorder)",
+                },
             }),
-        ],
-    );
-    const rows = getRows();
-    const rowVirtualizer = useVirtualizer({
-        count: rows.length,
-        getScrollElement: () => scrollContainerRef.current,
-        estimateSize: () => RPC_GRID_ROW_HEIGHT,
-        overscan: RPC_GRID_OVERSCAN,
-    });
-    const virtualRows = rowVirtualizer.getVirtualItems();
-    const latestEventId = rows[rows.length - 1]?.item.eventId;
+        });
+        event.detail.slickGrid.setSelectionModel(
+            selectionModel as unknown as Parameters<
+                typeof event.detail.slickGrid.setSelectionModel
+            >[0],
+        );
+        event.detail.dataView?.setItems(dataset);
+        event.detail.slickGrid.updateRowCount();
+        event.detail.slickGrid.invalidate();
+        event.detail.slickGrid.render();
+        scheduleGridResize();
+    };
+
+    const handleGridClick = (event: CustomEvent) => {
+        const args = event.detail?.args;
+        const rowIndex = args?.row;
+        const cellIndex = args?.cell;
+        const column = reactGridRef.current?.slickGrid?.getColumns()?.[cellIndex];
+        if (typeof rowIndex === "number" && column?.id === EXPAND_COLUMN_ID) {
+            selectGridRow(rowIndex);
+        }
+    };
+
+    const handleGridScroll = (event: CustomEvent) => {
+        const args = event.detail?.args;
+        const viewportElement = args?.grid?.getViewportNode?.();
+        if (!args || !viewportElement) {
+            return;
+        }
+
+        const distanceFromBottom =
+            args.scrollHeight - args.scrollTop - viewportElement.offsetHeight;
+        shouldFollowLatestRef.current = distanceFromBottom <= RPC_GRID_FOLLOW_BOTTOM_THRESHOLD_PX;
+    };
 
     useEffect(() => {
         if (!latestEventId || !shouldFollowLatestRef.current) {
@@ -2018,111 +2165,61 @@ const EventGrid = ({
         }
 
         requestAnimationFrame(() => {
-            rowVirtualizer.scrollToIndex(rows.length - 1, { align: "end" });
+            reactGridRef.current?.slickGrid?.scrollRowIntoView(dataset.length - 1, false);
         });
-    }, [latestEventId, rows.length, rowVirtualizer]);
+    }, [dataset.length, latestEventId]);
 
-    const selectEvent = (event: RpcDisplayEvent) => {
-        onSelect(event);
-    };
+    useEffect(() => {
+        scheduleGridResize();
+    }, [columns, dataset.length, scheduleGridResize]);
 
-    const updateShouldFollowLatest = () => {
-        const scrollContainer = scrollContainerRef.current;
-        if (!scrollContainer) {
-            shouldFollowLatestRef.current = true;
+    useEffect(() => {
+        const reactGrid = reactGridRef.current;
+        if (!reactGrid?.dataView || !reactGrid.slickGrid) {
             return;
         }
 
-        const distanceFromBottom =
-            scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight;
-        shouldFollowLatestRef.current = distanceFromBottom <= RPC_GRID_FOLLOW_BOTTOM_THRESHOLD_PX;
-    };
+        reactGrid.dataView.setItems(dataset);
+        reactGrid.slickGrid.updateRowCount();
+        reactGrid.slickGrid.invalidate();
+        reactGrid.slickGrid.render();
+        scheduleGridResize();
+    }, [dataset, scheduleGridResize]);
 
-    if (events.length === 0) {
-        return <div className={classes.emptyState}>No RPC events</div>;
-    }
+    useEffect(() => {
+        const gridWrapper = gridWrapperRef.current;
+        if (!gridWrapper) {
+            return undefined;
+        }
+
+        const resizeObserver = new ResizeObserver(() => scheduleGridResize());
+        resizeObserver.observe(gridWrapper);
+        scheduleGridResize();
+
+        return () => {
+            resizeObserver.disconnect();
+            if (resizeRafRef.current !== null) {
+                cancelAnimationFrame(resizeRafRef.current);
+                resizeRafRef.current = null;
+            }
+        };
+    }, [scheduleGridResize]);
 
     return (
         <div className={classes.gridContainer}>
-            <div className={classes.gridWrapper}>
-                <div
-                    className={classes.gridScrollContainer}
-                    ref={scrollContainerRef}
-                    onScroll={updateShouldFollowLatest}>
-                    <Table
-                        noNativeElements
-                        {...keyboardNavAttr}
-                        size="extra-small"
-                        {...columnSizing_unstable.getTableProps()}
-                        ref={tableRef}
-                        className={classes.gridTable}
-                        role="grid"
-                        aria-rowcount={rows.length + 1}
-                        aria-label="RPC events">
-                        <TableHeader className={classes.gridHeader}>
-                            <TableRow aria-rowindex={1}>
-                                {columns.map((column) => (
-                                    <TableHeaderCell
-                                        {...columnSizing_unstable.getTableHeaderCellProps(
-                                            column.columnId,
-                                        )}
-                                        className={classes.gridHeaderCell}
-                                        key={String(column.columnId)}>
-                                        {column.renderHeaderCell()}
-                                    </TableHeaderCell>
-                                ))}
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody
-                            className={classes.gridBody}
-                            style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
-                            {virtualRows.map((virtualRow) => {
-                                const row = rows[virtualRow.index];
-                                if (!row) {
-                                    return undefined;
-                                }
-
-                                const selected = row.item.eventId === selectedEventId;
-                                const rowClass = mergeClasses(
-                                    classes.gridRow,
-                                    classes.virtualRow,
-                                    selected && classes.selectedRow,
-                                );
-
-                                return (
-                                    <TableRow
-                                        key={row.item.eventId}
-                                        aria-rowindex={virtualRow.index + 2}
-                                        aria-selected={selected}
-                                        className={rowClass}
-                                        style={{
-                                            transform: `translateY(${virtualRow.start}px)`,
-                                        }}
-                                        onClick={() => selectEvent(row.item)}
-                                        onKeyDown={(event) => {
-                                            if (event.key === "Enter" || event.key === " ") {
-                                                event.preventDefault();
-                                                selectEvent(row.item);
-                                            }
-                                        }}>
-                                        {columns.map((column) => (
-                                            <TableCell
-                                                {...columnSizing_unstable.getTableCellProps(
-                                                    column.columnId,
-                                                )}
-                                                className={classes.gridCell}
-                                                key={`${row.item.eventId}-${String(
-                                                    column.columnId,
-                                                )}`}>
-                                                {column.renderCell?.(row.item)}
-                                            </TableCell>
-                                        ))}
-                                    </TableRow>
-                                );
-                            })}
-                        </TableBody>
-                    </Table>
-                </div>
+            <div
+                id="rpcInspectorGridContainer"
+                className={classes.gridWrapper}
+                ref={gridWrapperRef}>
+                <FluentSlickGrid
+                    gridId="rpcInspectorGrid"
+                    columns={columns}
+                    options={gridOptions}
+                    dataset={dataset}
+                    onReactGridCreated={handleReactGridCreated}
+                    onClick={handleGridClick}
+                    onScroll={handleGridScroll}
+                />
             </div>
         </div>
     );
@@ -2203,7 +2300,7 @@ const RpcEventDetailsPane = ({
                 <span className={classes.detailsTitle}>
                     {`${formatMessageKind(event)}: ${event.method ?? event.jsonRpcId ?? event.eventId}`}
                 </span>
-                <Toolbar>
+                <div className={classes.detailsActions}>
                     <Button
                         size="small"
                         appearance="subtle"
@@ -2218,7 +2315,7 @@ const RpcEventDetailsPane = ({
                         onClick={onClose}
                         aria-label="Close event details"
                     />
-                </Toolbar>
+                </div>
             </div>
             <div className={classes.detailsContent}>
                 {activeTab === "all" ? (
