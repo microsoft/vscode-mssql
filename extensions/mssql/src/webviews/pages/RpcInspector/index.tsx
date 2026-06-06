@@ -42,6 +42,8 @@ import {
 import {
     Add16Regular,
     ArrowDownload16Regular,
+    ChevronDown16Regular,
+    ChevronRight16Regular,
     Copy16Regular,
     Dismiss16Regular,
     Filter16Regular,
@@ -93,10 +95,22 @@ interface RpcDisplayEvent extends RpcCaptureEvent {
 
 type DetailsTab = "all" | "params" | "result" | "raw";
 
+interface MethodDomainGroup {
+    domain: string;
+    methods: string[];
+}
+
+type MethodTreeRow =
+    | { type: "domain"; domain: string; methods: string[] }
+    | { type: "method"; domain: string; method: string };
+
 const LIVE_TAB_ID = "live";
 const FILTER_ALL_VALUE = "__all__";
 const RPC_GRID_ROW_HEIGHT = 32;
 const RPC_GRID_OVERSCAN = 12;
+const RPC_GRID_FOLLOW_BOTTOM_THRESHOLD_PX = 64;
+const METHOD_TREE_ROW_HEIGHT = 26;
+const METHOD_TREE_OVERSCAN = 8;
 
 const useStyles = makeStyles({
     root: {
@@ -274,10 +288,12 @@ const useStyles = makeStyles({
         minWidth: 0,
         display: "flex",
         flexDirection: "column",
-        gap: "6px",
         overflow: "hidden",
     },
     methodFilterHeader: {
+        position: "sticky",
+        top: 0,
+        zIndex: 2,
         width: "100%",
         maxWidth: "100%",
         minWidth: 0,
@@ -285,7 +301,9 @@ const useStyles = makeStyles({
         gridTemplateColumns: "minmax(0, 1fr) auto auto",
         gap: "6px",
         alignItems: "center",
+        ...shorthands.padding("0", "0", "8px", "0"),
         overflow: "hidden",
+        backgroundColor: "var(--vscode-menu-background, var(--vscode-editorWidget-background))",
     },
     methodFilterSearch: {
         width: "100%",
@@ -301,6 +319,9 @@ const useStyles = makeStyles({
         overflow: "hidden",
         whiteSpace: "nowrap",
     },
+    methodFilterSummary: {
+        ...shorthands.padding("0", "0", "6px", "0"),
+    },
     methodFilterList: {
         width: "100%",
         maxWidth: "100%",
@@ -311,6 +332,71 @@ const useStyles = makeStyles({
         border: "1px solid var(--vscode-editorWidget-border)",
         borderRadius: "2px",
         backgroundColor: "var(--vscode-input-background)",
+    },
+    methodTreeContent: {
+        position: "relative",
+        width: "100%",
+    },
+    methodTreeRow: {
+        position: "absolute",
+        left: 0,
+        width: "100%",
+        maxWidth: "100%",
+        boxSizing: "border-box",
+        minWidth: 0,
+        height: "26px",
+        display: "flex",
+        alignItems: "center",
+        gap: "4px",
+        overflow: "hidden",
+        ...shorthands.padding("0", "6px"),
+        "&:hover": {
+            backgroundColor: "var(--vscode-list-hoverBackground)",
+        },
+        "& .fui-Checkbox": {
+            minWidth: 0,
+        },
+        "& .fui-Checkbox__indicator": {
+            flexShrink: 0,
+        },
+        "& .fui-Checkbox__label": {
+            minWidth: 0,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+        },
+    },
+    methodTreeDomainRow: {
+        fontWeight: 600,
+        backgroundColor: "color-mix(in srgb, var(--vscode-list-hoverBackground) 45%, transparent)",
+    },
+    methodTreeMethodRow: {
+        cursor: "pointer",
+        "& .fui-Checkbox": {
+            pointerEvents: "none",
+            width: "100%",
+            maxWidth: "100%",
+        },
+    },
+    methodTreeToggle: {
+        minWidth: 0,
+        width: "20px",
+        height: "20px",
+        flexShrink: 0,
+    },
+    methodTreeCheckbox: {
+        minWidth: 0,
+        flex: "1 1 auto",
+        overflow: "hidden",
+    },
+    methodTreeCount: {
+        flexShrink: 0,
+        color: "var(--vscode-descriptionForeground)",
+        fontSize: "11px",
+    },
+    methodTreeIndent: {
+        width: "22px",
+        flexShrink: 0,
     },
     methodFilterOption: {
         width: "100%",
@@ -615,6 +701,20 @@ function methodDomain(method: string | undefined): string | undefined {
     }
 
     return method;
+}
+
+function methodTreeDomain(method: string): string {
+    const slashIndex = method.indexOf("/");
+    if (slashIndex > 0) {
+        return method.substring(0, slashIndex);
+    }
+
+    const dotIndex = method.indexOf(".");
+    if (dotIndex > 0) {
+        return method.substring(0, dotIndex);
+    }
+
+    return "No domain";
 }
 
 function formatJson(value: unknown): string {
@@ -1125,9 +1225,18 @@ const RpcInspectorPage = () => {
                         <Button
                             size="small"
                             appearance={methodFilterCount > 0 ? "primary" : "secondary"}
-                            icon={<Filter16Regular />}>
-                            Methods
-                        </Button>
+                            icon={<Filter16Regular />}
+                            aria-label={
+                                methodFilterCount > 0
+                                    ? `Method filters, ${methodFilterCount} active`
+                                    : "Method filters"
+                            }
+                            title={
+                                methodFilterCount > 0
+                                    ? `Method filters (${methodFilterCount})`
+                                    : "Method filters"
+                            }
+                        />
                     </MenuTrigger>
                     <MenuPopover className={classes.filterMenuPopover}>
                         <div className={classes.methodMenuContent}>
@@ -1150,9 +1259,16 @@ const RpcInspectorPage = () => {
                         <Button
                             size="small"
                             appearance={otherFilterCount > 0 ? "primary" : "secondary"}
-                            icon={<Filter16Regular />}>
-                            {otherFilterCount > 0 ? `Filters ${otherFilterCount}` : "Filters"}
-                        </Button>
+                            icon={<Filter16Regular />}
+                            aria-label={
+                                otherFilterCount > 0
+                                    ? `Filters, ${otherFilterCount} active`
+                                    : "Filters"
+                            }
+                            title={
+                                otherFilterCount > 0 ? `Filters (${otherFilterCount})` : "Filters"
+                            }
+                        />
                     </MenuTrigger>
                     <MenuPopover className={classes.filterMenuPopover}>
                         <div className={classes.filterMenuContent}>
@@ -1218,13 +1334,15 @@ const RpcInspectorPage = () => {
                     </MenuPopover>
                 </Menu>
 
-                <Button
-                    size="small"
-                    appearance="secondary"
-                    icon={<ArrowDownload16Regular />}
-                    onClick={exportVisible}>
-                    Export visible
-                </Button>
+                <Tooltip content="Export visible" relationship="label">
+                    <Button
+                        size="small"
+                        appearance="secondary"
+                        icon={<ArrowDownload16Regular />}
+                        aria-label="Export visible"
+                        onClick={exportVisible}
+                    />
+                </Tooltip>
 
                 {activeTab.kind === "session" && (
                     <>
@@ -1237,27 +1355,41 @@ const RpcInspectorPage = () => {
                                 Stop
                             </Button>
                         ) : (
-                            <Button
-                                size="small"
-                                appearance="secondary"
-                                icon={<ArrowDownload16Regular />}
-                                onClick={exportSession}>
-                                Export session
-                            </Button>
+                            <Tooltip content="Export session" relationship="label">
+                                <Button
+                                    size="small"
+                                    appearance="secondary"
+                                    icon={<ArrowDownload16Regular />}
+                                    aria-label="Export session"
+                                    onClick={exportSession}
+                                />
+                            </Tooltip>
                         )}
                     </>
                 )}
 
                 {activeTab.kind === "live" && (
-                    <Button size="small" appearance="secondary" onClick={clearLiveEvents}>
-                        Clear live
-                    </Button>
+                    <Tooltip content="Clear live" relationship="label">
+                        <Button
+                            size="small"
+                            appearance="secondary"
+                            icon={<Dismiss16Regular />}
+                            aria-label="Clear live"
+                            onClick={clearLiveEvents}
+                        />
+                    </Tooltip>
                 )}
 
                 {hasAnyFilter && (
-                    <Button size="small" appearance="subtle" onClick={clearActiveFilters}>
-                        Clear filters
-                    </Button>
+                    <Tooltip content="Clear filters" relationship="label">
+                        <Button
+                            size="small"
+                            appearance="subtle"
+                            icon={<Dismiss16Regular />}
+                            aria-label="Clear filters"
+                            onClick={clearActiveFilters}
+                        />
+                    </Tooltip>
                 )}
 
                 <Text size={200} className={classes.muted}>
@@ -1377,18 +1509,83 @@ const FilterMethodRow = ({
 }) => {
     const classes = useStyles();
     const [searchText, setSearchText] = useState("");
+    const [expandedDomains, setExpandedDomains] = useState<Set<string>>(() => new Set());
+    const listRef = useRef<HTMLDivElement | null>(null);
+    const knownDomainsRef = useRef<Set<string>>(new Set());
     const selectedSet = useMemo(
         () => new Set(selectedMethods ?? methods),
         [methods, selectedMethods],
     );
-    const filteredMethods = useMemo(() => {
-        const search = searchText.trim().toLowerCase();
-        if (!search) {
-            return methods;
+    const domainGroups = useMemo<MethodDomainGroup[]>(() => {
+        const groupMap = new Map<string, string[]>();
+        for (const method of methods) {
+            const domain = methodTreeDomain(method);
+            const domainMethods = groupMap.get(domain) ?? [];
+            domainMethods.push(method);
+            groupMap.set(domain, domainMethods);
         }
 
-        return methods.filter((method) => method.toLowerCase().includes(search));
-    }, [methods, searchText]);
+        return [...groupMap.entries()]
+            .map(([domain, domainMethods]) => ({
+                domain,
+                methods: domainMethods.sort((left, right) => left.localeCompare(right)),
+            }))
+            .sort((left, right) => left.domain.localeCompare(right.domain));
+    }, [methods]);
+    const domainKey = useMemo(
+        () => domainGroups.map((group) => group.domain).join("\u0000"),
+        [domainGroups],
+    );
+    const filteredGroups = useMemo<MethodDomainGroup[]>(() => {
+        const search = searchText.trim().toLowerCase();
+        if (!search) {
+            return domainGroups;
+        }
+
+        return domainGroups
+            .map((group) => {
+                const domainMatches = group.domain.toLowerCase().includes(search);
+                const matchingMethods = domainMatches
+                    ? group.methods
+                    : group.methods.filter((method) => method.toLowerCase().includes(search));
+
+                return {
+                    domain: group.domain,
+                    methods: matchingMethods,
+                };
+            })
+            .filter((group) => group.methods.length > 0);
+    }, [domainGroups, searchText]);
+    const isSearching = searchText.trim().length > 0;
+    const treeRows = useMemo<MethodTreeRow[]>(() => {
+        const rows: MethodTreeRow[] = [];
+        for (const group of filteredGroups) {
+            rows.push({
+                type: "domain",
+                domain: group.domain,
+                methods: group.methods,
+            });
+
+            if (isSearching || expandedDomains.has(group.domain)) {
+                for (const method of group.methods) {
+                    rows.push({
+                        type: "method",
+                        domain: group.domain,
+                        method,
+                    });
+                }
+            }
+        }
+
+        return rows;
+    }, [expandedDomains, filteredGroups, isSearching]);
+    const rowVirtualizer = useVirtualizer({
+        count: treeRows.length,
+        getScrollElement: () => listRef.current,
+        estimateSize: () => METHOD_TREE_ROW_HEIGHT,
+        overscan: METHOD_TREE_OVERSCAN,
+    });
+    const virtualRows = rowVirtualizer.getVirtualItems();
 
     const commitSelection = (nextSelected: Set<string>) => {
         if (
@@ -1403,6 +1600,22 @@ const FilterMethodRow = ({
         onChange(methods.filter((method) => nextSelected.has(method)));
     };
 
+    useEffect(() => {
+        const domains = new Set(domainGroups.map((group) => group.domain));
+        setExpandedDomains((previous) => {
+            const next = new Set<string>();
+            const knownDomains = knownDomainsRef.current;
+            for (const domain of domains) {
+                if (previous.has(domain) || !knownDomains.has(domain)) {
+                    next.add(domain);
+                }
+            }
+
+            return next;
+        });
+        knownDomainsRef.current = domains;
+    }, [domainGroups, domainKey]);
+
     const toggleMethod = (method: string) => {
         const nextSelected = new Set(selectedSet);
         if (nextSelected.has(method)) {
@@ -1413,23 +1626,49 @@ const FilterMethodRow = ({
         commitSelection(nextSelected);
     };
 
-    const selectAllVisible = () => {
+    const toggleDomain = (group: MethodDomainGroup) => {
         const nextSelected = new Set(selectedSet);
-        for (const method of filteredMethods) {
-            nextSelected.add(method);
+        const isDomainSelected = group.methods.every((method) => selectedSet.has(method));
+        for (const method of group.methods) {
+            if (isDomainSelected) {
+                nextSelected.delete(method);
+            } else {
+                nextSelected.add(method);
+            }
         }
         commitSelection(nextSelected);
     };
 
-    const clearVisible = () => {
-        const nextSelected = new Set(selectedSet);
-        for (const method of filteredMethods) {
-            nextSelected.delete(method);
-        }
-        commitSelection(nextSelected);
+    const toggleExpandedDomain = (domain: string) => {
+        setExpandedDomains((previous) => {
+            const next = new Set(previous);
+            if (next.has(domain)) {
+                next.delete(domain);
+            } else {
+                next.add(domain);
+            }
+
+            return next;
+        });
     };
 
-    const selectedCount = selectedMethods === undefined ? methods.length : selectedMethods.length;
+    const setAllMethodsSelected = (selected: boolean | "mixed") => {
+        onChange(selected ? undefined : []);
+    };
+
+    const selectedCount = methods.filter((method) => selectedSet.has(method)).length;
+    const allMethodsChecked =
+        methods.length === 0
+            ? false
+            : selectedCount === methods.length
+              ? true
+              : selectedCount > 0
+                ? "mixed"
+                : false;
+    const domainGroupByName = useMemo(
+        () => new Map(filteredGroups.map((group) => [group.domain, group])),
+        [filteredGroups],
+    );
 
     return (
         <div className={classes.methodFilter}>
@@ -1442,45 +1681,135 @@ const FilterMethodRow = ({
                     contentBefore={<Search16Regular />}
                     onChange={(_, data) => setSearchText(data.value)}
                 />
+                <Checkbox
+                    className={classes.methodTreeCheckbox}
+                    checked={allMethodsChecked}
+                    label="Select all"
+                    disabled={methods.length === 0}
+                    onChange={(_, data) => setAllMethodsSelected(data.checked)}
+                />
                 <Button
                     className={classes.methodFilterAction}
                     appearance="transparent"
                     size="small"
-                    onClick={selectAllVisible}>
-                    Select all
-                </Button>
-                <Button
-                    className={classes.methodFilterAction}
-                    appearance="transparent"
-                    size="small"
-                    onClick={clearVisible}>
+                    disabled={methods.length === 0}
+                    onClick={() => onChange([])}>
                     Clear
                 </Button>
             </div>
-            <Text size={100} className={classes.muted}>
-                {`${selectedCount}/${methods.length} selected`}
+            <Text size={100} className={mergeClasses(classes.muted, classes.methodFilterSummary)}>
+                {`${selectedCount}/${methods.length} methods selected`}
             </Text>
-            <div className={classes.methodFilterList} role="listbox" aria-label="Methods">
-                {filteredMethods.length === 0 ? (
+            <div
+                ref={listRef}
+                className={classes.methodFilterList}
+                role="tree"
+                aria-label="Methods">
+                {treeRows.length === 0 ? (
                     <div className={classes.methodFilterOption}>
                         <Text size={100} className={classes.muted}>
                             No methods
                         </Text>
                     </div>
                 ) : (
-                    filteredMethods.map((method) => (
-                        <div
-                            key={method}
-                            className={classes.methodFilterOption}
-                            title={method}
-                            onClick={() => toggleMethod(method)}>
-                            <Checkbox
-                                checked={selectedSet.has(method)}
-                                label={method}
-                                tabIndex={-1}
-                            />
-                        </div>
-                    ))
+                    <div
+                        className={classes.methodTreeContent}
+                        style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
+                        {virtualRows.map((virtualRow) => {
+                            const row = treeRows[virtualRow.index];
+                            if (!row) {
+                                return undefined;
+                            }
+
+                            const rowStyle = {
+                                transform: `translateY(${virtualRow.start}px)`,
+                            };
+
+                            if (row.type === "domain") {
+                                const group = domainGroupByName.get(row.domain);
+                                const rowMethods = group?.methods ?? row.methods;
+                                const checkedCount = rowMethods.filter((method) =>
+                                    selectedSet.has(method),
+                                ).length;
+                                const checked =
+                                    checkedCount === 0
+                                        ? false
+                                        : checkedCount === rowMethods.length
+                                          ? true
+                                          : "mixed";
+                                const isExpanded = isSearching || expandedDomains.has(row.domain);
+
+                                return (
+                                    <div
+                                        key={`domain-${row.domain}`}
+                                        className={mergeClasses(
+                                            classes.methodTreeRow,
+                                            classes.methodTreeDomainRow,
+                                        )}
+                                        role="treeitem"
+                                        aria-level={1}
+                                        aria-expanded={isExpanded}
+                                        title={row.domain}
+                                        style={rowStyle}>
+                                        <Button
+                                            className={classes.methodTreeToggle}
+                                            appearance="transparent"
+                                            size="small"
+                                            icon={
+                                                isExpanded ? (
+                                                    <ChevronDown16Regular />
+                                                ) : (
+                                                    <ChevronRight16Regular />
+                                                )
+                                            }
+                                            disabled={isSearching}
+                                            aria-label={
+                                                isExpanded
+                                                    ? `Collapse ${row.domain}`
+                                                    : `Expand ${row.domain}`
+                                            }
+                                            onClick={() => toggleExpandedDomain(row.domain)}
+                                        />
+                                        <Checkbox
+                                            className={classes.methodTreeCheckbox}
+                                            checked={checked}
+                                            label={row.domain}
+                                            onChange={() =>
+                                                toggleDomain({
+                                                    domain: row.domain,
+                                                    methods: rowMethods,
+                                                })
+                                            }
+                                        />
+                                        <span className={classes.methodTreeCount}>
+                                            {`${checkedCount}/${rowMethods.length}`}
+                                        </span>
+                                    </div>
+                                );
+                            }
+
+                            return (
+                                <div
+                                    key={`method-${row.domain}-${row.method}`}
+                                    className={mergeClasses(
+                                        classes.methodTreeRow,
+                                        classes.methodTreeMethodRow,
+                                    )}
+                                    role="treeitem"
+                                    aria-level={2}
+                                    title={row.method}
+                                    style={rowStyle}
+                                    onClick={() => toggleMethod(row.method)}>
+                                    <span className={classes.methodTreeIndent} />
+                                    <Checkbox
+                                        checked={selectedSet.has(row.method)}
+                                        label={row.method}
+                                        tabIndex={-1}
+                                    />
+                                </div>
+                            );
+                        })}
+                    </div>
                 )}
             </div>
         </div>
@@ -1557,6 +1886,7 @@ const EventGrid = ({
     const classes = useStyles();
     const keyboardNavAttr = useArrowNavigationGroup({ axis: "grid" });
     const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+    const shouldFollowLatestRef = useRef(true);
 
     const columns = useMemo<TableColumnDefinition<RpcDisplayEvent>[]>(
         () => [
@@ -1680,9 +2010,32 @@ const EventGrid = ({
         overscan: RPC_GRID_OVERSCAN,
     });
     const virtualRows = rowVirtualizer.getVirtualItems();
+    const latestEventId = rows[rows.length - 1]?.item.eventId;
+
+    useEffect(() => {
+        if (!latestEventId || !shouldFollowLatestRef.current) {
+            return;
+        }
+
+        requestAnimationFrame(() => {
+            rowVirtualizer.scrollToIndex(rows.length - 1, { align: "end" });
+        });
+    }, [latestEventId, rows.length, rowVirtualizer]);
 
     const selectEvent = (event: RpcDisplayEvent) => {
         onSelect(event);
+    };
+
+    const updateShouldFollowLatest = () => {
+        const scrollContainer = scrollContainerRef.current;
+        if (!scrollContainer) {
+            shouldFollowLatestRef.current = true;
+            return;
+        }
+
+        const distanceFromBottom =
+            scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight;
+        shouldFollowLatestRef.current = distanceFromBottom <= RPC_GRID_FOLLOW_BOTTOM_THRESHOLD_PX;
     };
 
     if (events.length === 0) {
@@ -1692,7 +2045,10 @@ const EventGrid = ({
     return (
         <div className={classes.gridContainer}>
             <div className={classes.gridWrapper}>
-                <div className={classes.gridScrollContainer} ref={scrollContainerRef}>
+                <div
+                    className={classes.gridScrollContainer}
+                    ref={scrollContainerRef}
+                    onScroll={updateShouldFollowLatest}>
                     <Table
                         noNativeElements
                         {...keyboardNavAttr}
