@@ -10,7 +10,7 @@ import * as chai from "chai";
 import { expect } from "chai";
 import { ConnectionDetails, IToken, IConnectionInfo } from "vscode-mssql";
 import { ConnectionStore } from "../../src/models/connectionStore";
-import { Logger } from "../../src/models/logger";
+import { ILogger } from "../../src/sharedInterfaces/logger";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
@@ -36,7 +36,6 @@ import {
 } from "./utils";
 import { Deferred } from "../../src/protocol";
 import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
-import * as LocalizedConstants from "../../src/constants/locConstants";
 import { PreviewFeature } from "../../src/previews/previewService";
 import * as vscodeEntraMfaUtils from "../../src/azure/vscodeEntraMfaUtils";
 import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
@@ -50,7 +49,7 @@ suite("ConnectionManager Tests", () => {
     let connectionManager: ConnectionManager;
 
     let mockContext: vscode.ExtensionContext;
-    let mockLogger: sinon.SinonStubbedInstance<Logger>;
+    let mockLogger: sinon.SinonStubbedInstance<ILogger>;
     let mockCredentialStore: sinon.SinonStubbedInstance<CredentialStore>;
     let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
@@ -823,95 +822,21 @@ suite("ConnectionManager Tests", () => {
             );
         });
 
-        test("uses cached shared token when valid", async () => {
-            const cachedToken: IToken = {
-                key: "account-1",
-                token: "shared-valid-token",
-                tokenType: "Bearer",
-                expiresOn: Math.floor(Date.now() / 1000) + 3600,
-            };
-
-            connectionManager["_entraSqlTokenCache"].set("account-1|tenant-1", cachedToken);
+        test("refreshes MSAL account cache and clears outbound SQL token fields", async () => {
             const connectionInfo = createAzureMfaConnectionInfo();
-
             await connectionManager.refreshEntraTokenIfNeeded(connectionInfo);
 
-            expect(mockAzureController.refreshAccessToken).to.not.have.been.called;
+            expect(mockAzureController.refreshAccessToken).to.have.been.calledOnce;
+            expect(mockAzureController.refreshAccessToken.firstCall.args[0]).to.equal(account);
+            expect(mockAzureController.refreshAccessToken.firstCall.args[1]).to.equal(
+                mockAccountStore,
+            );
+            expect(mockAzureController.refreshAccessToken.firstCall.args[2]).to.equal("tenant-1");
             expect(withProgressStub).to.not.have.been.called;
-            expect(connectionInfo.azureAccountToken).to.equal("shared-valid-token");
-            expect(connectionInfo.expiresOn).to.equal(cachedToken.expiresOn);
-        });
-
-        test("shows user-friendly error when refreshAccessToken returns undefined", async () => {
-            mockAzureController.refreshAccessToken.resolves(undefined);
-            mockVscodeWrapper.showErrorMessage.resolves(undefined);
-
-            const connectionInfo = createAzureMfaConnectionInfo();
-
-            try {
-                await connectionManager.refreshEntraTokenIfNeeded(connectionInfo);
-                expect.fail("Should have thrown an error");
-            } catch (error) {
-                expect(error.message).to.include(LocalizedConstants.msgAccountRefreshFailed());
-            }
-
-            expect(mockAzureController.refreshAccessToken).to.have.been.called;
-            expect(mockVscodeWrapper.showErrorMessage).to.have.been.called;
-        });
-
-        test("refreshes token and writes it to shared cache", async () => {
-            const refreshedToken: IToken = {
-                key: "account-1",
-                token: "fresh-token",
-                tokenType: "Bearer",
-                expiresOn: Math.floor(Date.now() / 1000) + 7200,
-            };
-            mockAzureController.refreshAccessToken.resolves(refreshedToken);
-
-            const connectionInfo = createAzureMfaConnectionInfo();
-            await connectionManager.refreshEntraTokenIfNeeded(connectionInfo);
-
-            expect(withProgressStub).to.have.been.calledOnce;
-            expect(mockAzureController.refreshAccessToken).to.have.been.calledOnce;
-            expect(connectionInfo.azureAccountToken).to.equal("fresh-token");
-            expect(connectionInfo.expiresOn).to.equal(refreshedToken.expiresOn);
-            expect(
-                connectionManager["_entraSqlTokenCache"].get("account-1|tenant-1"),
-            ).to.deep.equal(refreshedToken);
-        });
-
-        test("coalesces parallel refreshes for the same cache key", async () => {
-            let resolveRefresh: (token: IToken) => void;
-            const refreshPromise = new Promise<IToken>((resolve) => {
-                resolveRefresh = resolve;
-            });
-            mockAzureController.refreshAccessToken.returns(refreshPromise);
-
-            const conn1 = createAzureMfaConnectionInfo();
-            const conn2 = createAzureMfaConnectionInfo();
-
-            const promise1 = connectionManager.refreshEntraTokenIfNeeded(conn1);
-            const promise2 = connectionManager.refreshEntraTokenIfNeeded(conn2);
-
-            await Promise.resolve();
-            expect(withProgressStub).to.have.been.calledOnce;
-            expect(mockAzureController.refreshAccessToken).to.have.been.calledOnce;
-
-            const sharedToken: IToken = {
-                key: "account-1",
-                token: "shared-refreshed-token",
-                tokenType: "Bearer",
-                expiresOn: Math.floor(Date.now() / 1000) + 3600,
-            };
-            resolveRefresh!(sharedToken);
-
-            await Promise.all([promise1, promise2]);
-
-            expect(conn1.azureAccountToken).to.equal("shared-refreshed-token");
-            expect(conn2.azureAccountToken).to.equal("shared-refreshed-token");
-            expect(
-                connectionManager["_entraSqlTokenCache"].get("account-1|tenant-1"),
-            ).to.deep.equal(sharedToken);
+            expect(connectionInfo.user).to.equal("user@example.com");
+            expect(connectionInfo.email).to.equal("user@example.com");
+            expect(connectionInfo.azureAccountToken).to.be.undefined;
+            expect(connectionInfo.expiresOn).to.be.undefined;
         });
 
         test("is a no-op for non-Azure MFA auth", async () => {
@@ -926,28 +851,10 @@ suite("ConnectionManager Tests", () => {
             expect(withProgressStub).to.not.have.been.called;
         });
 
-        test("onClearAzureTokenCache clears shared cache and in-flight refresh map", async () => {
-            connectionManager["_entraSqlTokenCache"].set("account-1|tenant-1", {
-                key: "account-1",
-                token: "cached",
-                tokenType: "Bearer",
-                expiresOn: Math.floor(Date.now() / 1000) + 3600,
-            });
-            connectionManager["_entraSqlTokenRefreshInFlight"].set(
-                "account-1|tenant-1",
-                Promise.resolve({
-                    key: "account-1",
-                    token: "cached",
-                    tokenType: "Bearer",
-                    expiresOn: Math.floor(Date.now() / 1000) + 3600,
-                }),
-            );
-
+        test("onClearAzureTokenCache clears the MSAL token cache", async () => {
             connectionManager.onClearAzureTokenCache();
 
             expect(mockAzureController.clearTokenCache).to.have.been.calledOnce;
-            expect(connectionManager["_entraSqlTokenCache"].size).to.equal(0);
-            expect(connectionManager["_entraSqlTokenRefreshInFlight"].size).to.equal(0);
         });
     });
 

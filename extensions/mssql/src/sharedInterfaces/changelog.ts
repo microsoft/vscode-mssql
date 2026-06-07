@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { RequestType } from "vscode-jsonrpc/browser";
+import { RequestType } from "vscode-jsonrpc";
 import { Icons } from "./icons";
 
 export interface ChangelogWebviewState {
@@ -11,6 +11,31 @@ export interface ChangelogWebviewState {
     secondaryContent: ContentGroup;
     sidebarContent: ContentEntry[];
     version: string;
+    event?: ChangelogEvent;
+}
+
+export interface ChangelogEvent {
+    mainTitle: string;
+    secondaryTitle: string;
+    location: ChangelogEventLocation;
+    /** Event date (or start date for multi-day events) in YYYY-MM-DD format. */
+    date: string;
+    /** End date for multi-day events in YYYY-MM-DD format. */
+    endDate?: string;
+    actionButton: ChangelogEventActionButton;
+    description: string[];
+    codeSnippets: string[];
+}
+
+export interface ChangelogEventLocation {
+    name: string;
+    /** UTC offset in ±HH:MM form (e.g. "-05:00"). Defaults to "+00:00". */
+    timezone?: string;
+}
+
+export interface ChangelogEventActionButton {
+    text: string;
+    url: string;
 }
 
 export interface ContentGroup {

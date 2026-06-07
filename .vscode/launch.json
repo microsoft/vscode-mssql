@@ -31,6 +31,10 @@
                 // https://github.com/microsoft/vscode-mssql/blob/main/DEVELOPMENT.md#using-mssql_sqltoolsservice-environment-variable
                 // for more details
                 // "MSSQL_SQLTOOLSSERVICE": "<Path to STS>"
+                // Uncomment this to use a local SQL Tools MCP publish folder.
+                // Requires mssql.copilot.enableSqlToolsMcp to be enabled in the launched Extension Host.
+                // The folder can contain either SQLtoolsMCPserver or SQLtoolsMCPserver.dll.
+                // "MSSQL_SQLTOOLS_MCP": "<Path to SQL Tools MCP publish folder>"
             }
         }
     ]

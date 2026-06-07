@@ -8,7 +8,7 @@
 import { TelemetryActions, TelemetryViews } from "../../../../../sharedInterfaces/telemetry";
 import { WebviewTelemetryActionEvent } from "../../../../../sharedInterfaces/webview";
 import { deepClone } from "../../../../common/utils";
-import { QueryResultReactProvider } from "../../queryResultStateProvider";
+import type { QueryResultReactProvider } from "../../queryResultStateProvider";
 import { mixin } from "../objects";
 import { MAX_COLUMN_WIDTH_PX, MIN_COLUMN_WIDTH_PX } from "../table";
 
@@ -39,7 +39,7 @@ export class AutoColumnSize<T extends Slick.SlickData> implements Slick.Plugin<T
 
     constructor(
         options: IAutoColumnSizeOptions = defaultOptions,
-        private _qrContext: QueryResultReactProvider,
+        private _qrContext?: Pick<QueryResultReactProvider, "sendActionEvent">,
     ) {
         this._options = mixin(options, defaultOptions, false);
     }
@@ -383,7 +383,7 @@ export class AutoColumnSize<T extends Slick.SlickData> implements Slick.Plugin<T
                 columns: numColumns,
             },
         };
-        this._qrContext.sendActionEvent(telemetryEvent);
+        this._qrContext?.sendActionEvent(telemetryEvent);
         return maxTemplate!;
     }
 

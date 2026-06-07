@@ -29,9 +29,8 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: ./.github/actions/setup-node
         with:
-          node-version: "24"
           cache: npm
           cache-dependency-path: package-lock.json
 
@@ -70,7 +69,7 @@ jobs:
           find ./extensions/mssql -maxdepth 1 -name "*.vsix" -print | sort
 
       - name: MSSQL - Upload VSIX files
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: mssql-offline-vsix
           path: ./extensions/mssql/*.vsix
@@ -106,9 +105,8 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: ./.github/actions/setup-node
         with:
-          node-version: "24"
           cache: npm
           cache-dependency-path: extensions/mssql/package-lock.json
 
@@ -117,7 +115,7 @@ jobs:
         run: npm ci
 
       - name: Download MSSQL VSIX files
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           name: mssql-offline-vsix
           path: ./extensions/mssql
@@ -159,7 +157,7 @@ jobs:
 
       - name: MSSQL - Upload launch test artifacts
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: mssql-vsix-launch-test-artifacts-${{ matrix.platform }}
           path: |

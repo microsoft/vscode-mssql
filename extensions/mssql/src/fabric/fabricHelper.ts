@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 import {
-    FabricSqlDbInfo,
+    SqlDbInfo,
     IWorkspace,
     IFabricError,
     ICapacity,
@@ -13,6 +13,7 @@ import {
     IOperationStatus,
     ISqlDbArtifact,
     ISqlEndpointArtifact,
+    IWarehouseArtifact,
     IWorkspaceRoleAssignment,
 } from "../sharedInterfaces/fabric";
 import { HttpClient } from "../http/httpClient";
@@ -20,8 +21,8 @@ import { AxiosResponse } from "axios";
 import { getErrorMessage } from "../utils/utils";
 import { Fabric as Loc } from "../constants/locConstants";
 import { getCloudProviderSettings } from "../azure/providerSettings";
-import { Logger } from "../models/logger";
-import VscodeWrapper from "../controllers/vscodeWrapper";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger } from "../models/logger";
 
 export class FabricHelper {
     static getFabricApiUriBase(): vscode.Uri {
@@ -59,9 +60,8 @@ export class FabricHelper {
     static readonly defaultScope = ".default";
     constructor() {}
 
-    static getFabricLogger(): Logger {
-        const vscodeWrapper = new VscodeWrapper();
-        return Logger.create(vscodeWrapper.outputChannel, "Fabric Requests");
+    static getFabricLogger(): ILogger {
+        return logger.withPrefix("Fabric Requests");
     }
 
     public static async getFabricCapacities(tenantId: string): Promise<ICapacity[]> {
@@ -110,14 +110,14 @@ export class FabricHelper {
      *
      * @param workspace The workspace object or workspace ID for which to fetch databases.
      * @param tenantId Optional tenant ID for scoping the request.
-     * @returns A promise that resolves to an array of `FabricSqlDbInfo` objects
+     * @returns A promise that resolves to an array of `SqlDbInfo` objects
      * @throws {Error} Throws an error if the underlying Fabric API request fails or if database
      *         processing encounters an error.
      */
     public static async getFabricDatabases(
         workspace: IWorkspace | string,
         tenantId?: string,
-    ): Promise<FabricSqlDbInfo[]> {
+    ): Promise<SqlDbInfo[]> {
         const workspacePromise =
             typeof workspace === "string"
                 ? this.getFabricWorkspace(workspace, tenantId)
@@ -125,7 +125,7 @@ export class FabricHelper {
 
         const workspaceId = typeof workspace === "string" ? workspace : workspace.id;
 
-        const result: FabricSqlDbInfo[] = [];
+        const result: SqlDbInfo[] = [];
 
         try {
             const response = await this.fetchFromFabric<{ value: ISqlDbArtifact[] }>(
@@ -142,14 +142,19 @@ export class FabricHelper {
                         id: db.id,
                         server: db.properties.serverFqdn,
                         displayName: db.displayName,
-                        database: db.properties.databaseName,
-                        workspaceName: resolvedWorkspace.displayName,
+                        databases: [db.properties.databaseName],
+                        collectionId: workspaceId,
+                        collectionName: resolvedWorkspace.displayName,
+                        tenantId: tenantId ?? "",
                         type: db.type,
-                    } as FabricSqlDbInfo;
+                    } as SqlDbInfo;
                 }),
             );
         } catch (error) {
-            console.error("Error processing Fabric databases:", error);
+            this.getFabricLogger().error(
+                "Error processing Fabric databases",
+                getErrorMessage(error),
+            );
             throw error;
         }
 
@@ -161,7 +166,7 @@ export class FabricHelper {
      *
      * @param workspace The workspace object or workspace ID to fetch SQL endpoints from.
      * @param tenantId Optional tenant ID for scoping the request.
-     * @returns A promise that resolves to an array of `FabricSqlDbInfo` objects.
+     * @returns A promise that resolves to an array of `SqlDbInfo` objects.
      */
     public static async getFabricSqlEndpoints(workspace: IWorkspace | string, tenantId?: string) {
         const workspacePromise =
@@ -171,7 +176,7 @@ export class FabricHelper {
 
         const workspaceId = typeof workspace === "string" ? workspace : workspace.id;
 
-        const result: FabricSqlDbInfo[] = [];
+        const result: SqlDbInfo[] = [];
 
         try {
             const response = await this.fetchFromFabric<{ value: ISqlEndpointArtifact[] }>(
@@ -188,14 +193,70 @@ export class FabricHelper {
                         id: endpoint.id,
                         server: undefined, // requires a second Fabric API call to populate; fill later to avoid rate-limiting (50/API/user/minute)
                         displayName: endpoint.displayName,
-                        database: undefined,
-                        workspaceName: resolvedWorkspace.displayName,
+                        databases: [] as string[],
+                        collectionId: workspaceId,
+                        collectionName: resolvedWorkspace.displayName,
+                        tenantId: tenantId ?? "",
                         type: endpoint.type,
-                    } as FabricSqlDbInfo;
+                    } as SqlDbInfo;
                 }),
             );
         } catch (error) {
-            console.error("Error processing Fabric SQL Endpoints:", error);
+            this.getFabricLogger().error(
+                "Error processing Fabric SQL Endpoints",
+                getErrorMessage(error),
+            );
+            throw error;
+        }
+
+        return result;
+    }
+
+    /**
+     * Retrieves the list of Fabric Warehouses for a given workspace.
+     *
+     * @param workspace The workspace object or workspace ID to fetch warehouses from.
+     * @param tenantId Optional tenant ID for scoping the request.
+     * @returns A promise that resolves to an array of `SqlDbInfo` objects.
+     */
+    public static async getFabricWarehouses(workspace: IWorkspace | string, tenantId?: string) {
+        const workspacePromise =
+            typeof workspace === "string"
+                ? this.getFabricWorkspace(workspace, tenantId)
+                : workspace;
+
+        const workspaceId = typeof workspace === "string" ? workspace : workspace.id;
+
+        const result: SqlDbInfo[] = [];
+
+        try {
+            const response = await this.fetchFromFabric<{ value: IWarehouseArtifact[] }>(
+                `workspaces/${workspaceId}/warehouses`,
+                Loc.listingWarehousesForWorkspace(workspaceId),
+                tenantId,
+            );
+
+            const resolvedWorkspace = await workspacePromise;
+
+            result.push(
+                ...response.value.map((warehouse) => {
+                    return {
+                        id: warehouse.id,
+                        server: warehouse.properties.connectionString,
+                        displayName: warehouse.displayName,
+                        databases: [] as string[],
+                        collectionId: workspaceId,
+                        collectionName: resolvedWorkspace.displayName,
+                        tenantId: tenantId ?? "",
+                        type: warehouse.type,
+                    } as SqlDbInfo;
+                }),
+            );
+        } catch (error) {
+            this.getFabricLogger().error(
+                "Error processing Fabric Warehouses",
+                getErrorMessage(error),
+            );
             throw error;
         }
 
@@ -219,7 +280,9 @@ export class FabricHelper {
             // Server URL is returned as the connectionString field.
             return connectionStringResponse.connectionString;
         } catch (error) {
-            console.error(`Error fetching server URL for SQL Endpoints: ${getErrorMessage(error)}`);
+            this.getFabricLogger().error(
+                `Error fetching server URL for SQL Endpoints: ${getErrorMessage(error)}`,
+            );
             throw error;
         }
     }
@@ -236,7 +299,10 @@ export class FabricHelper {
             );
             return response.value;
         } catch (err) {
-            console.error(err);
+            this.getFabricLogger().error(
+                "Error fetching roles for Fabric workspace",
+                getErrorMessage(err),
+            );
         }
     }
 
@@ -315,10 +381,10 @@ export class FabricHelper {
         const result = response.data;
 
         if (isFabricError(result)) {
-            fabricLogger.verbose(`Fabric API error: ${result.errorCode} - ${result.message}`);
+            fabricLogger.debug(`Fabric API error: ${result.errorCode} - ${result.message}`);
             throw new Error(Loc.fabricApiError(result.errorCode, result.message));
         }
-        fabricLogger.verbose(`Fabric fetch API call successful: ${api}`);
+        fabricLogger.debug(`Fabric fetch API call successful: ${api}`);
 
         return result;
     }
@@ -344,7 +410,7 @@ export class FabricHelper {
         );
 
         if (response.status === this.longRunningOperationCode) {
-            fabricLogger.verbose(`Handling long-running Fabric operation for API: ${api}`);
+            fabricLogger.debug(`Handling long-running Fabric operation for API: ${api}`);
             response = await this.handleLongRunningOperation(
                 response.headers["retry-after"] as string,
                 response.headers["location"],
@@ -356,11 +422,11 @@ export class FabricHelper {
 
         const result = response.data;
         if (isFabricError(result)) {
-            fabricLogger.verbose(`Fabric API error: ${result.errorCode} - ${result.message}`);
+            fabricLogger.debug(`Fabric API error: ${result.errorCode} - ${result.message}`);
             throw new Error(Loc.fabricApiError(result.errorCode, result.message));
         }
 
-        fabricLogger.verbose(`Fabric post API call successful: ${api}`);
+        fabricLogger.debug(`Fabric post API call successful: ${api}`);
         return result;
     }
 
@@ -371,7 +437,7 @@ export class FabricHelper {
         retryAfter: string,
         location: string,
         httpHelper: HttpClient,
-        fabricLogger: Logger,
+        fabricLogger: ILogger,
         token?: string,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ): Promise<AxiosResponse<TResponse, any>> {
@@ -383,7 +449,7 @@ export class FabricHelper {
             longRunningResponse.data.status === IOperationStatus.Running ||
             longRunningResponse.data.status === IOperationStatus.NotStarted
         ) {
-            fabricLogger.verbose(
+            fabricLogger.debug(
                 `Long-running operation in progress. Waiting ${retryAfterInMs} seconds before next poll...`,
             );
             await new Promise((resolve) => setTimeout(resolve, retryAfterInMs * 1000));
@@ -391,7 +457,7 @@ export class FabricHelper {
         }
 
         if (longRunningResponse.data.status === IOperationStatus.Failed) {
-            fabricLogger.verbose(`Long-running operation failed`);
+            fabricLogger.debug(`Long-running operation failed`);
             throw new Error(
                 Loc.fabricLongRunningApiError(
                     longRunningResponse.status.toString(),
@@ -400,7 +466,7 @@ export class FabricHelper {
             );
         }
 
-        fabricLogger.verbose(
+        fabricLogger.debug(
             `Long-running operation completed successfully. Fetching final result...`,
         );
 

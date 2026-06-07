@@ -48,7 +48,6 @@ export class NotebookHeaderMenu<T extends Slick.SlickData> {
         handler: EventListenerOrEventListenerObject;
     }[] = [];
     private _outsideClickHandler: ((e: MouseEvent) => void) | null = null;
-    private _escapeHandler: ((e: KeyboardEvent) => void) | null = null;
 
     public init(grid: Slick.Grid<T>): void {
         this._grid = grid;
@@ -266,6 +265,15 @@ export class NotebookHeaderMenu<T extends Slick.SlickData> {
 
         const popup = this.createFilterPopup(items, currentFilterValues, column);
 
+        popup.addEventListener("keydown", (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                e.preventDefault();
+                this.dismissPopup();
+                this._grid.focus();
+            }
+            e.stopPropagation();
+        });
+
         // Position below the anchor button, clamped to viewport
         const rect = anchorEl.getBoundingClientRect();
         const popupWidth = 220;
@@ -295,16 +303,6 @@ export class NotebookHeaderMenu<T extends Slick.SlickData> {
                 document.addEventListener("mousedown", this._outsideClickHandler, true);
             }
         }, 0);
-
-        // Dismiss on Escape
-        this._escapeHandler = (e: KeyboardEvent) => {
-            if (e.key === "Escape") {
-                e.preventDefault();
-                this.dismissPopup();
-                this._grid.focus();
-            }
-        };
-        document.addEventListener("keydown", this._escapeHandler);
     }
 
     private buildFilterItems(rawValues: FilterValue[]): FilterListItem[] {
@@ -550,10 +548,6 @@ export class NotebookHeaderMenu<T extends Slick.SlickData> {
         if (this._outsideClickHandler) {
             document.removeEventListener("mousedown", this._outsideClickHandler, true);
             this._outsideClickHandler = null;
-        }
-        if (this._escapeHandler) {
-            document.removeEventListener("keydown", this._escapeHandler);
-            this._escapeHandler = null;
         }
         this._activeColumnId = null;
     }

@@ -11,6 +11,9 @@ import * as Interfaces from "./interfaces";
 import { getCloudProviderSettings } from "../azure/providerSettings";
 import { getErrorMessage } from "../utils/utils";
 import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
+import { getLogger } from "./logger";
+
+const logger = getLogger("ConnectionInfo");
 
 /**
  * Sets sensible defaults for key connection properties, especially
@@ -144,7 +147,7 @@ export function getPicklistDescription(connCreds: IConnectionInfo): string {
  * @param connCreds connection
  * @returns details
  */
-export function getPicklistDetails(connCreds: IConnectionInfo): string {
+export function getPicklistDetails(_connCreds: IConnectionInfo): string {
     // In the current spec this is left empty intentionally. Leaving the method as this may change in the future
     return undefined;
 }
@@ -345,7 +348,7 @@ export function getServerTypes(connection: IConnectionInfo, account?: IAccount):
             }
         }
     } catch (error) {
-        console.error("Error checking server types:", getErrorMessage(error));
+        logger.error(`Error checking server types: ${getErrorMessage(error)}`);
     }
 
     // check if it's a local connection

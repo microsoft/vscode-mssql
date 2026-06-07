@@ -16,6 +16,7 @@ import { getCloudProviderSettings } from "./providerSettings";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ConnectionProfile } from "../models/connectionProfile";
 import { AzureAuthType, IAADResource, IAccount, ITenant, IToken } from "../models/contracts/azure";
+import { ILogger } from "../sharedInterfaces/logger";
 import { Logger } from "../models/logger";
 import { INameValueChoice, IPrompter, IQuestion, QuestionTypes } from "../prompts/question";
 import { AccountStore } from "./accountStore";
@@ -24,7 +25,7 @@ import { ICredentialStore } from "../credentialstore/icredentialstore";
 export abstract class AzureController {
     protected _vscodeWrapper: VscodeWrapper;
     protected _credentialStoreInitialized = false;
-    protected logger: Logger;
+    protected logger: ILogger;
 
     constructor(
         protected context: vscode.ExtensionContext,
@@ -36,12 +37,10 @@ export abstract class AzureController {
             this._vscodeWrapper = new VscodeWrapper();
         }
 
-        // Setup Logger
-
-        let channel = this._vscodeWrapper.createOutputChannel(
+        this.logger = Logger.forChannelName(
             LocalizedConstants.azureLogChannelName,
+            "AzureController",
         );
-        this.logger = Logger.create(channel);
 
         vscode.workspace.onDidChangeConfiguration((changeEvent) => {
             const impactsProvider = changeEvent.affectsConfiguration(
@@ -88,7 +87,7 @@ export abstract class AzureController {
         let config = azureUtils.getAzureActiveDirectoryConfig();
         let account = await this.login(config!);
         await accountStore.addAccount(account!);
-        this.logger.verbose("Account added successfully.");
+        this.logger.debug("Account added successfully.");
         return account;
     }
 
@@ -96,14 +95,14 @@ export abstract class AzureController {
         profile,
         accountStore,
         accountAnswer,
-        settings: IAADResource,
+        _settings: IAADResource,
     ): Promise<ConnectionProfile | undefined> {
         let account = accountStore.getAccount(accountAnswer.key.id);
         if (!account) {
             await this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgAccountNotFound);
             throw new Error(LocalizedConstants.msgAccountNotFound);
         }
-        this.logger.verbose(
+        this.logger.debug(
             "Account found and SQL Authentication Provider is enabled, access token will not be refreshed by extension.",
         );
         return profile;
@@ -162,11 +161,9 @@ export abstract class AzureController {
                 getCloudProviderSettings(session.account.key.providerId).settings.armResource,
             );
             session.token = token!;
-            this.logger.verbose(`Access Token refreshed for account: ${session?.account?.key.id}`);
+            this.logger.debug("Access token refreshed for Azure account.");
         } else {
-            this.logger.verbose(
-                `Access Token not refreshed for account: ${session?.account?.key.id}`,
-            );
+            this.logger.debug("Access token not refreshed for Azure account.");
         }
     }
 
@@ -209,7 +206,8 @@ export abstract class AzureController {
             name: LocalizedConstants.tenant,
             message: LocalizedConstants.azureChooseTenant,
             choices: tenantChoices,
-            shouldPrompt: (answers) => profile.isAzureActiveDirectory() && tenantChoices.length > 1,
+            shouldPrompt: (_answers) =>
+                profile.isAzureActiveDirectory() && tenantChoices.length > 1,
             onAnswered: (value: ITenant) => {
                 profile.tenantId = value.id;
             },
@@ -241,7 +239,7 @@ export abstract class AzureController {
             }
         }
 
-        this.logger.log("Initialized vscode-mssql storage.");
+        this.logger.trace("Initialized vscode-mssql storage.");
         return storagePath;
     }
 

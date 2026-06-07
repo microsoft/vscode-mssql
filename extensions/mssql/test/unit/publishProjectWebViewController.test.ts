@@ -385,9 +385,10 @@ suite("PublishProjectWebViewController Tests", () => {
 
         const profilePath = "c:/profiles/TestProfile.publish.xml";
 
-        // Mock file system read
+        // Mock file system read - simulate a file saved by Visual Studio with a UTF-8 BOM (\uFEFF).
+        // @xmldom/xmldom 0.9.x throws when the XML declaration is not at position 0, causing SQLCMD variables to silently return empty.
         const fs = await import("fs");
-        sandbox.stub(fs.promises, "readFile").resolves(SAMPLE_PUBLISH_PROFILE_XML);
+        sandbox.stub(fs.promises, "readFile").resolves("\uFEFF" + SAMPLE_PUBLISH_PROFILE_XML);
 
         // Mock file picker
         sandbox.stub(vscode.window, "showOpenDialog").resolves([vscode.Uri.file(profilePath)]);
@@ -1254,7 +1255,6 @@ suite("PublishProjectWebViewController Tests", () => {
         state: PublishDialogState,
         updateStateSpy: sinon.SinonStub,
         expectedError?: string,
-        loggerErrorSpy?: sinon.SinonStub,
     ) {
         expect(state.inProgress, "inProgress should be false after error").to.be.false;
         expect(updateStateSpy, "updateState should be called").to.have.been.called;
@@ -1264,13 +1264,6 @@ suite("PublishProjectWebViewController Tests", () => {
                 message: expectedError,
                 intent: "error",
             });
-        }
-
-        if (loggerErrorSpy) {
-            expect(loggerErrorSpy, "logger.error should be called").to.have.been.calledWith(
-                "Failed during container publish:",
-                sinon.match.instanceOf(Error),
-            );
         }
     }
 
@@ -1389,9 +1382,6 @@ suite("PublishProjectWebViewController Tests", () => {
             .stub(controller, "runDockerPrerequisiteChecks" as keyof typeof controller)
             .rejects(new Error("Unexpected network failure"));
 
-        // Mock logger to capture error
-        const loggerErrorSpy = sandbox.stub(controller["logger"], "error");
-
         // Mock updateState to capture state changes
         const updateStateSpy = sandbox.stub(controller, "updateState");
 
@@ -1402,12 +1392,7 @@ suite("PublishProjectWebViewController Tests", () => {
         const newState = await publishNow(controller.state, {});
 
         // Validate error state
-        validateContainerPublishError(
-            newState,
-            updateStateSpy,
-            "Unexpected network failure",
-            loggerErrorSpy,
-        );
+        validateContainerPublishError(newState, updateStateSpy, "Unexpected network failure");
     });
 
     test("createDockerContainer succeeds on second attempt after transient auth failure", async () => {

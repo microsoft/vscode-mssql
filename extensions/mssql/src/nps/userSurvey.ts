@@ -15,6 +15,10 @@ import { WebviewPanelController } from "../controllers/webviewPanelController";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { previewService } from "../previews/previewService";
 import VscodeWrapper from "../controllers/vscodeWrapper";
+import { getLogger } from "../models/logger";
+import { getErrorMessage } from "../utils/utils";
+
+const logger = getLogger("UserSurvey");
 
 /** Likelihood that a user is prompted to take the survey, after they've already passed all other checks */
 export const SELECTION_PROBABILITY = 0.15;
@@ -58,7 +62,7 @@ export class UserSurvey {
     public promptUserForNPSFeedback(surveySource: string): void {
         void this.promptUserForNPSFeedbackAsync(surveySource).catch((err) => {
             // Handle any errors that occur during the prompt and not throwing them in order to not break the calling function
-            console.error("Error prompting for NPS feedback:", err);
+            logger.error(`Error prompting for NPS feedback: ${getErrorMessage(err)}`);
         });
     }
 
@@ -67,7 +71,7 @@ export class UserSurvey {
      */
     public launchSurvey(surveyId: string, survey: UserSurveyState, surveySource?: string): void {
         void this.launchSurveyAsync(surveyId, survey, surveySource).catch((err) => {
-            console.error("Error launching survey:", err);
+            logger.error(`Error launching survey: ${getErrorMessage(err)}`);
         });
     }
 

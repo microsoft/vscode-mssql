@@ -6,6 +6,7 @@
 import { DeploymentReducers, DeploymentWebviewState } from "../../../sharedInterfaces/deployment";
 import { FabricProvisioningState } from "../../../sharedInterfaces/fabricProvisioning";
 import { LocalContainersState } from "../../../sharedInterfaces/localContainers";
+import { AzureSqlDatabaseState } from "../../../sharedInterfaces/azureSqlDatabase";
 import { useVscodeSelector } from "../../common/useVscodeSelector";
 
 export function useDeploymentSelector<T>(
@@ -31,6 +32,16 @@ export function useFabricDeploymentSelector<T>(
 ) {
     return useDeploymentSelector(
         (state) => selector(state.deploymentTypeState as FabricProvisioningState),
+        equals,
+    );
+}
+
+export function useAzureSqlDatabaseDeploymentSelector<T>(
+    selector: (state: AzureSqlDatabaseState) => T,
+    equals?: (a: T, b: T) => boolean,
+) {
+    return useDeploymentSelector(
+        (state) => selector(state.deploymentTypeState as AzureSqlDatabaseState),
         equals,
     );
 }

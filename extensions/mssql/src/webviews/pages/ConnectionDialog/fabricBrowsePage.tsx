@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect } from "react";
+import { useContext } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { useConnectionDialogSelector } from "./connectionDialogSelector";
 import { Label, makeStyles } from "@fluentui/react-components";
@@ -16,16 +16,12 @@ import {
     ConnectionInputMode,
     IConnectionDialogProfile,
 } from "../../../sharedInterfaces/connectionDialog";
-import {
-    FabricSqlDbInfo,
-    FabricWorkspaceInfo,
-    SqlArtifactTypes,
-} from "../../../sharedInterfaces/fabric";
+import { SqlDbInfo, SqlCollectionInfo, SqlArtifactTypes } from "../../../sharedInterfaces/fabric";
 import { locConstants as Loc } from "../../common/locConstants";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import EntraSignInEmpty from "./components/entraSignInEmpty.component";
-import { FabricExplorer } from "./components/fabric/fabricExplorer.component";
-import { getTypeDisplayName } from "./components/fabric/fabricWorkspaceContentsList.component";
+import { SqlExplorer } from "./components/fabric/sqlExplorer.component";
+import { getTypeDisplayName } from "./components/fabric/sqlCollectionContentsList.component";
 
 export const FabricBrowsePage = () => {
     const context = useContext(ConnectionDialogContext);
@@ -33,7 +29,9 @@ export const FabricBrowsePage = () => {
         (s) => s.loadingAzureAccountsStatus,
     );
     const azureAccounts = useConnectionDialogSelector((s) => s.azureAccounts);
-    const selectedAccountId = useConnectionDialogSelector((s) => s.selectedAccountId);
+    const favoritedFabricWorkspaceIds = useConnectionDialogSelector(
+        (s) => s.favoritedFabricWorkspaceIds,
+    );
     const formState = useConnectionDialogSelector((s) => s.formState);
     const mainOptions = useConnectionDialogSelector((s) => s.connectionComponents.mainOptions);
     const formComponents = useConnectionDialogSelector((s) => s.formComponents);
@@ -41,20 +39,8 @@ export const FabricBrowsePage = () => {
         return undefined;
     }
 
+    const log = context.log;
     const styles = useStyles();
-
-    useEffect(() => {
-        if (
-            loadingAzureAccountsStatus === ApiStatus.Loaded &&
-            azureAccounts &&
-            !selectedAccountId
-        ) {
-            const firstAccount = azureAccounts[0];
-            if (firstAccount) {
-                context.selectAzureAccount(firstAccount.id);
-            }
-        }
-    }, [loadingAzureAccountsStatus, azureAccounts]);
 
     function setConnectionProperty(propertyName: keyof IConnectionDialogProfile, value: string) {
         context!.formAction({ propertyName, value, isAction: false });
@@ -69,14 +55,14 @@ export const FabricBrowsePage = () => {
     }
 
     function handleSelectTenantId(tenantId: string) {
-        context!.selectAzureTenant(tenantId);
+        context!.setSelectedTenantId(tenantId);
     }
 
-    function handleSelectWorkspace(workspace: FabricWorkspaceInfo) {
-        context!.selectFabricWorkspace(workspace.id);
+    function handleSelectWorkspace(collection: SqlCollectionInfo) {
+        context!.selectSqlCollection(collection.id);
     }
 
-    async function handleDatabaseSelected(database: FabricSqlDbInfo) {
+    async function handleDatabaseSelected(database: SqlDbInfo) {
         switch (database.type) {
             case SqlArtifactTypes.SqlAnalyticsEndpoint: {
                 const serverUrl = await context!.getSqlAnalyticsEndpointUriFromFabric(database);
@@ -88,13 +74,20 @@ export const FabricBrowsePage = () => {
             }
             case SqlArtifactTypes.SqlDatabase:
                 setConnectionProperty("server", database.server);
-                setConnectionProperty("database", database.database);
+                setConnectionProperty("database", database.databases[0]);
+                setConnectionProperty("profileName", generateProfileName(database));
+                setConnectionProperty("authenticationType", AuthenticationType.AzureMFA);
+
+                return;
+            case SqlArtifactTypes.Warehouse:
+                setConnectionProperty("server", database.server);
+                setConnectionProperty("database", database.displayName);
                 setConnectionProperty("profileName", generateProfileName(database));
                 setConnectionProperty("authenticationType", AuthenticationType.AzureMFA);
 
                 return;
             default:
-                context!.log("Unknown server type selected.", "error");
+                log.error("Unknown server type selected.");
         }
     }
 
@@ -115,18 +108,40 @@ export const FabricBrowsePage = () => {
             />
             {loadingAzureAccountsStatus === ApiStatus.Loaded && hasAccounts && (
                 <>
-                    <div className={styles.componentGroupHeader}>
-                        <Label>{Loc.connectionDialog.fabricWorkspaces}</Label>
-                    </div>
-                    <div className={styles.componentGroupContainer}>
-                        <FabricExplorer
-                            onSignIntoMicrosoftAccount={handleSignIntoMicrosoftAccount}
-                            onSelectAccountId={handleSelectAccountId}
-                            onSelectTenantId={handleSelectTenantId}
-                            onSelectWorkspace={handleSelectWorkspace}
-                            onSelectDatabase={handleDatabaseSelected}
-                        />
-                    </div>
+                    <SqlExplorer
+                        strings={{
+                            title: Loc.connectionDialog.fabricDatabases,
+                            collectionListLabel: Loc.connectionDialog.fabricWorkspaces,
+                            collectionSearchPlaceholder:
+                                Loc.connectionDialog.searchFabricWorkspaces,
+                            noCollectionsFoundMessage: Loc.connectionDialog.noFabricWorkspacesFound,
+                            selectCollectionMessage:
+                                Loc.connectionDialog.selectAFabricWorkspaceToViewDatabases,
+                            loadingCollectionsMessage: Loc.connectionDialog.loadingFabricWorkspaces,
+                            errorLoadingCollectionsMessage:
+                                Loc.connectionDialog.errorLoadingFabricWorkspaces,
+                            loadingDatabasesMessage:
+                                Loc.connectionDialog.loadingFabricWorkspaceDatabases,
+                            errorLoadingDatabasesMessage:
+                                Loc.connectionDialog.errorLoadingFabricWorkspaceDatabases,
+                            noDatabasesInCollectionMessage:
+                                Loc.connectionDialog.noDatabasesFoundInFabricWorkspace,
+                            collapseCollectionListLabel:
+                                Loc.connectionDialog.collapseFabricWorkspaceExplorer,
+                            expandCollectionListLabel:
+                                Loc.connectionDialog.expandFabricWorkspaceExplorer,
+                        }}
+                        onSignIntoMicrosoftAccount={handleSignIntoMicrosoftAccount}
+                        onSelectAccountId={handleSelectAccountId}
+                        onSelectTenantId={handleSelectTenantId}
+                        onSelectCollection={handleSelectWorkspace}
+                        onSelectDatabase={handleDatabaseSelected}
+                        favoritedIds={favoritedFabricWorkspaceIds}
+                        onToggleFavorite={(id) =>
+                            context.toggleFavoriteCollection(id, ConnectionInputMode.FabricBrowse)
+                        }
+                        onSignIntoTenant={() => context.signIntoTenantForBrowse()}
+                    />
 
                     {formState.server && (
                         <>
@@ -211,6 +226,6 @@ const fabricAuthOptions: (keyof IConnectionDialogProfile)[] = [
     "tenantId",
 ];
 
-function generateProfileName(database: FabricSqlDbInfo) {
+function generateProfileName(database: SqlDbInfo) {
     return `${database.displayName} (${getTypeDisplayName(database.type)})`;
 }

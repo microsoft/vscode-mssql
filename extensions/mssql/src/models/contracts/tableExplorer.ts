@@ -12,7 +12,6 @@ export namespace EditInitializeRequest {
     export const type = new RequestType<
         tableExplorer.EditInitializeParams,
         tableExplorer.EditInitializeResult,
-        void,
         void
     >("edit/initialize");
 }
@@ -22,7 +21,7 @@ export namespace EditInitializeRequest {
 //#region edit/sessionReady
 
 export namespace EditSessionReadyNotification {
-    export const type = new NotificationType<tableExplorer.EditSessionReadyParams, void>(
+    export const type = new NotificationType<tableExplorer.EditSessionReadyParams>(
         "edit/sessionReady",
     );
 }
@@ -35,7 +34,6 @@ export namespace EditSubsetRequest {
     export const type = new RequestType<
         tableExplorer.EditSubsetParams,
         tableExplorer.EditSubsetResult,
-        void,
         void
     >("edit/subset");
 }
@@ -47,7 +45,6 @@ export namespace EditCommitRequest {
     export const type = new RequestType<
         tableExplorer.EditCommitParams,
         tableExplorer.EditCommitResult,
-        void,
         void
     >("edit/commit");
 }
@@ -60,7 +57,6 @@ export namespace EditCreateRowRequest {
     export const type = new RequestType<
         tableExplorer.EditCreateRowParams,
         tableExplorer.EditCreateRowResult,
-        void,
         void
     >("edit/createRow");
 }
@@ -73,7 +69,6 @@ export namespace EditDeleteRowRequest {
     export const type = new RequestType<
         tableExplorer.EditDeleteRowParams,
         tableExplorer.EditDeleteRowResult,
-        void,
         void
     >("edit/deleteRow");
 }
@@ -86,7 +81,6 @@ export namespace EditRevertRowRequest {
     export const type = new RequestType<
         tableExplorer.EditRevertRowParams,
         tableExplorer.EditRevertRowResult,
-        void,
         void
     >("edit/revertRow");
 }
@@ -99,7 +93,6 @@ export namespace EditUpdateCellRequest {
     export const type = new RequestType<
         tableExplorer.EditUpdateCellParams,
         tableExplorer.EditUpdateCellResult,
-        void,
         void
     >("edit/updateCell");
 }
@@ -112,7 +105,6 @@ export namespace EditRevertCellRequest {
     export const type = new RequestType<
         tableExplorer.EditRevertCellParams,
         tableExplorer.EditRevertCellResult,
-        void,
         void
     >("edit/revertCell");
 }
@@ -125,7 +117,6 @@ export namespace EditDisposeRequest {
     export const type = new RequestType<
         tableExplorer.EditDisposeParams,
         tableExplorer.EditDisposeResult,
-        void,
         void
     >("edit/dispose");
 }
@@ -138,7 +129,6 @@ export namespace EditScriptRequest {
     export const type = new RequestType<
         tableExplorer.EditScriptParams,
         tableExplorer.EditScriptResult,
-        void,
         void
     >("edit/script");
 }

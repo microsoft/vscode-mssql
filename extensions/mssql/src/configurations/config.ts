@@ -7,7 +7,7 @@ export const config = {
     service: {
         downloadUrl:
             "https://github.com/Microsoft/sqltoolsservice/releases/download/{#version#}/microsoft.sqltools.servicelayer-{#fileName#}",
-        version: "6.0.20260507.1",
+        version: "6.0.20260605.1",
         downloadFileNames: {
             Windows_64: "win-x64-net10.0.zip",
             Windows_ARM64: "win-arm64-net10.0.zip",
@@ -18,6 +18,20 @@ export const config = {
             Portable: "portable-net10.0.zip",
         },
         installDir: "./sqltoolsservice/{#version#}/{#platform#}",
+    },
+    sqlToolsMcp: {
+        packageId: "Microsoft.SqlServer.SQLtools.MCPserver",
+        version: "2.0.24",
+        installDir: "./sqltools-mcp/{#version#}/{#platform#}",
+        packageRuntimeIds: {
+            Windows_64: "win-x64",
+            Windows_ARM64: "win-arm64",
+            OSX: "osx-x64",
+            OSX_ARM64: "osx-arm64",
+            Linux: "linux-x64",
+            Linux_ARM64: "linux-arm64",
+            Portable: "any",
+        },
     },
 };
 

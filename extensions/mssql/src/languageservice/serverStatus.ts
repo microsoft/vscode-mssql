@@ -86,12 +86,12 @@ export class ServerStatusView implements IStatusView, vscode.Disposable {
         }
     }
 
-    private onDidChangeActiveTextEditor(editor: vscode.TextEditor): void {
+    private onDidChangeActiveTextEditor(_editor: vscode.TextEditor): void {
         // Hide the most recently shown status bar
         this.hideLastShownStatusBar();
     }
 
-    private onDidCloseTextDocument(doc: vscode.TextDocument): void {
+    private onDidCloseTextDocument(_doc: vscode.TextDocument): void {
         // Remove the status bar associated with the document
         this.destroyStatusBar();
     }

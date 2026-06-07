@@ -9,8 +9,8 @@ import { FirewallRuleSpec } from "./firewallRule";
 import { ApiStatus, Status } from "./webview";
 import { AddFirewallRuleState } from "./addFirewallRule";
 import { ConnectionGroupSpec, ConnectionGroupState } from "./connectionGroup";
-import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
-import { FabricSqlDbInfo, FabricWorkspaceInfo } from "./fabric";
+import { NotificationType, RequestType } from "vscode-jsonrpc";
+import { SqlDbInfo, SqlCollectionInfo } from "./fabric";
 import { ChangePasswordResult, ChangePasswordWebviewState } from "./changePassword";
 import { DialogMessageSpec } from "./dialogMessage";
 
@@ -43,13 +43,15 @@ export class ConnectionDialogWebviewState
     public azureAccounts: IAzureAccount[] = [];
     public loadingAzureAccountsStatus: ApiStatus = ApiStatus.NotStarted;
     public loadingAzureTenantsStatus: ApiStatus = ApiStatus.NotStarted;
+    /**
+     * The Azure subscriptions available to browse. Each subscription's `databases` array is
+     * populated with the SQL servers (and their databases) in that subscription as they are
+     * loaded by `BrowseProvider.loadCollectionContents`.
+     */
     public azureSubscriptions: AzureSubscriptionInfo[] = [];
-    public loadingAzureSubscriptionsStatus: ApiStatus = ApiStatus.NotStarted;
-    public azureServers: AzureSqlServerInfo[] = [];
-    public loadingAzureServersStatus: ApiStatus = ApiStatus.NotStarted;
+    public azureSubscriptionsLoadStatus: Status = { status: ApiStatus.NotStarted };
     public unauthenticatedAzureTenants: IUnauthenticatedAzureTenant[] = [];
     public azureTenantStatus: IAzureTenantStatus[] = [];
-    public azureTenantSignInCounts: IAzureTenantSignInStatus | undefined;
     public savedConnections: IConnectionDialogProfile[] = [];
     public recentConnections: IConnectionDialogProfile[] = [];
     public isEditingConnection: boolean = false;
@@ -65,7 +67,10 @@ export class ConnectionDialogWebviewState
     public azureTenants: IAzureTenant[] = [];
     public selectedTenantId: string | undefined;
     public fabricWorkspacesLoadStatus: Status = { status: ApiStatus.NotStarted };
-    public fabricWorkspaces: FabricWorkspaceInfo[] = [];
+    public fabricWorkspaces: SqlCollectionInfo[] = [];
+    public favoritedAzureSubscriptionIds: string[] = [];
+    public favoritedFabricWorkspaceIds: string[] = [];
+    public notSignedInTenant: { id: string; name: string } | undefined;
 
     constructor(params?: Partial<ConnectionDialogWebviewState>) {
         for (const key in params) {
@@ -86,6 +91,7 @@ export interface IAzureAccount {
 export interface IAzureTenant {
     id: string;
     name: string;
+    isSignedIn: boolean;
 }
 
 export interface IUnauthenticatedAzureTenant {
@@ -141,20 +147,11 @@ export interface CreateConnectionGroupDialogProps extends IDialogProps {
     props: ConnectionGroupState;
 }
 
-export interface AzureSubscriptionInfo {
-    name: string;
-    id: string;
-    loaded: boolean;
-}
+/** @see SqlCollectionInfo */
+export type AzureSubscriptionInfo = SqlCollectionInfo;
 
-export interface AzureSqlServerInfo {
-    server: string;
-    databases: string[];
-    location: string;
-    resourceGroup: string;
-    subscription: string;
-    uri: string;
-}
+/** @see SqlDbInfo */
+export type AzureSqlServerInfo = SqlDbInfo;
 
 export interface ConnectionComponentsInfo {
     mainOptions: (keyof IConnectionDialogProfile)[];
@@ -221,6 +218,10 @@ export enum AuthenticationType {
      */
     AzureMFAAndUser = "AzureMFAAndUser",
     /**
+     * Microsoft Entra Id - Service Principal (client ID + client secret)
+     */
+    ActiveDirectoryServicePrincipal = "ActiveDirectoryServicePrincipal",
+    /**
      * Datacenter Security Token Service Authentication
      */
     DSTSAuth = "dstsAuth",
@@ -239,13 +240,11 @@ export interface ConnectionDialogContextProps extends FormContextProps<IConnecti
     testConnection: () => void;
     saveWithoutConnecting: () => void;
     retryLastSubmitAction: () => void;
-    loadAzureServers: (subscriptionId: string) => void;
     closeDialog: () => void;
     closeMessage: () => void;
     addFirewallRule: (firewallRuleSpec: FirewallRuleSpec) => void;
     openCreateConnectionGroupDialog: () => void;
     createConnectionGroup: (connectionGroupSpec: ConnectionGroupSpec) => void;
-    filterAzureSubscriptions: () => void;
     refreshConnectionsList: () => void;
     deleteSavedConnection(connection: IConnectionDialogProfile): void;
     removeRecentConnection(connection: IConnectionDialogProfile): void;
@@ -255,15 +254,16 @@ export interface ConnectionDialogContextProps extends FormContextProps<IConnecti
     signIntoAzureForBrowse: (
         browseTarget: ConnectionInputMode.AzureBrowse | ConnectionInputMode.FabricBrowse,
     ) => void;
-    signIntoAzureTenantForBrowse: () => void;
     selectAzureAccount: (accountId: string) => void;
-    selectAzureTenant: (tenantId: string) => void;
-    selectFabricWorkspace: (workspaceId: string) => void;
+    setSelectedTenantId: (tenantId: string) => void;
+    selectSqlCollection: (collectionId: string) => void;
+    toggleFavoriteCollection: (collectionId: string, inputMode: ConnectionInputMode) => void;
+    signIntoTenantForBrowse: () => void;
     messageButtonClicked: (buttonId: string) => void;
 
     // Request handlers
     getConnectionDisplayName: (connection: IConnectionDialogProfile) => Promise<string>;
-    getSqlAnalyticsEndpointUriFromFabric: (sqlEndpoint: FabricSqlDbInfo) => Promise<string>;
+    getSqlAnalyticsEndpointUriFromFabric: (sqlEndpoint: SqlDbInfo) => Promise<string>;
     changePassword: (newPassword: string) => Promise<ChangePasswordResult>;
 }
 
@@ -281,9 +281,6 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     testConnection: {};
     saveWithoutConnecting: {};
     retryLastSubmitAction: {};
-    loadAzureServers: {
-        subscriptionId: string;
-    };
     addFirewallRule: {
         firewallRuleSpec: FirewallRuleSpec;
     };
@@ -293,7 +290,6 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     openCreateConnectionGroupDialog: {};
     closeDialog: {};
     closeMessage: {};
-    filterAzureSubscriptions: {};
     refreshConnectionsList: {};
     deleteSavedConnection: {
         connection: IConnectionDialogProfile;
@@ -307,10 +303,11 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     signIntoAzureForBrowse: {
         browseTarget: ConnectionInputMode.AzureBrowse | ConnectionInputMode.FabricBrowse;
     };
-    signIntoAzureTenantForBrowse: {};
     selectAzureAccount: { accountId: string };
-    selectAzureTenant: { tenantId: string };
-    selectFabricWorkspace: { workspaceId: string };
+    setSelectedTenantId: { tenantId: string };
+    selectSqlCollection: { collectionId: string };
+    toggleFavoriteCollection: { collectionId: string; inputMode: ConnectionInputMode };
+    signIntoTenantForBrowse: {};
     messageButtonClicked: { buttonId: string };
 }
 
@@ -327,7 +324,7 @@ export namespace GetConnectionDisplayNameRequest {
 }
 
 export namespace GetSqlAnalyticsEndpointUriFromFabricRequest {
-    export const type = new RequestType<FabricSqlDbInfo, string, void>(
+    export const type = new RequestType<SqlDbInfo, string, void>(
         "getSqlAnalyticsEndpointUriFromFabric",
     );
 }

@@ -13,7 +13,7 @@ import DecompressProvider from "../../src/languageservice/decompressProvider";
 import ConfigUtils from "../../src/configurations/configUtils";
 import { Runtime } from "../../src/models/platform";
 import * as path from "path";
-import { Logger } from "../../src/models/logger";
+import { ILogger } from "../../src/sharedInterfaces/logger";
 import * as fs from "fs/promises";
 import { expect } from "chai";
 import { ServerStatusView } from "../../src/languageservice/serverStatus";
@@ -55,7 +55,7 @@ suite("ServiceDownloadProvider Tests", () => {
     let statusView: sinon.SinonStubbedInstance<IStatusView>;
     let testDownloadHelper: sinon.SinonStubbedInstance<DownloadHelper>;
     let testDecompressProvider: sinon.SinonStubbedInstance<DecompressProvider>;
-    let testLogger: sinon.SinonStubbedInstance<Logger>;
+    let testLogger: sinon.SinonStubbedInstance<ILogger>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
@@ -224,8 +224,8 @@ suite("ServiceDownloadProvider Tests", () => {
         config.getSqlToolsConfigValue.withArgs("downloadFileNames").returns(fileNamesJson);
         config.getSqlToolsServiceDownloadUrl.returns(baseDownloadUrl);
         config.getSqlToolsPackageVersion.returns(version);
-        testLogger.append.returns();
-        testLogger.appendLine.returns();
+        testLogger.trace.returns();
+        testLogger.info.returns();
 
         testDecompressProvider.decompress.callsFake(() => {
             return fixture.decompressResult;

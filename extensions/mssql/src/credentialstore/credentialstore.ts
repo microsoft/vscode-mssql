@@ -5,7 +5,8 @@
 
 import * as vscode from "vscode";
 import { ICredentialStore, Credential } from "./icredentialstore";
-import { Logger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger } from "../models/logger";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 
 /**
@@ -14,14 +15,14 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
  */
 export class CredentialStore implements ICredentialStore {
     private _secretStorage: vscode.SecretStorage;
-    private _logger: Logger;
+    private _logger: ILogger;
 
     constructor(
         private _context: vscode.ExtensionContext,
-        private _vscodeWrapper: VscodeWrapper,
+        _vscodeWrapper: VscodeWrapper,
     ) {
         this._secretStorage = this._context.secrets;
-        this._logger = Logger.create(this._vscodeWrapper.outputChannel, "CredentialStore");
+        this._logger = logger.withPrefix("CredentialStore");
     }
 
     /**

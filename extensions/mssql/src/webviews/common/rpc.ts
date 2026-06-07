@@ -5,7 +5,12 @@
 
 import { WebviewApi } from "vscode-webview";
 import {
-    LoggerLevel,
+    LoggerMethod,
+    ILogger,
+    LogEvent,
+    LoggerMessageMethod,
+} from "../../sharedInterfaces/logger";
+import {
     LogNotification,
     ReducerRequest,
     SendActionEventNotification,
@@ -26,62 +31,10 @@ import {
     MessageReader,
     MessageWriter,
     NotificationType,
-    RAL,
+    type RequestParam,
     RequestHandler,
     RequestType,
 } from "vscode-jsonrpc/browser";
-
-/**
- * Chromium throttles setTimeout(0) when a webview is hidden which in turn stalls
- * vscode-jsonrpc's internal queue. Replace the runtime's setImmediate shim with
- * a MessageChannel based microtask so responses resolve immediately regardless
- * of visibility.
- * Upstream vscode-jsonrpc issue: https://github.com/microsoft/vscode-languageserver-node/issues/1692
- */
-const fixSetImmediate = (() => {
-    let patched = false;
-    return () => {
-        if (patched) {
-            return;
-        }
-        const ral = RAL();
-
-        const callbacks = new Map<number, () => void>();
-        const runCallback = (id: number) => {
-            const callback = callbacks.get(id);
-            callbacks.delete(id);
-            callback?.();
-        };
-        const schedule = (() => {
-            if (typeof queueMicrotask === "function") {
-                return (id: number) => queueMicrotask(() => runCallback(id));
-            }
-            return undefined;
-        })();
-        if (!schedule) {
-            return;
-        }
-        let handleId = 0;
-        const patchedTimer = {
-            ...ral.timer, // Keep existing timer methods.
-            setImmediate: (callback: (...args: unknown[]) => void, ...args: unknown[]) => {
-                const id = ++handleId;
-                callbacks.set(id, () => callback(...args));
-                schedule(id);
-                return {
-                    dispose: () => callbacks.delete(id),
-                };
-            },
-        };
-        RAL.install({
-            ...ral,
-            timer: patchedTimer,
-        });
-        patched = true;
-    };
-})();
-
-fixSetImmediate();
 
 class WebviewRpcMessageReader extends AbstractMessageReader implements MessageReader {
     private _onData: Emitter<Message>;
@@ -108,12 +61,75 @@ class WebviewRpcMessageWriter extends AbstractMessageWriter implements MessageWr
     end(): void {}
 }
 
+class WebviewLogger implements ILogger {
+    constructor(
+        private readonly _sendLogEvent: (event: LogEvent) => void,
+        private readonly _prefix?: string,
+    ) {}
+
+    public trace(message: string, ...args: unknown[]): void {
+        this.log(LoggerMethod.Trace, message, ...args);
+    }
+
+    public debug(message: string, ...args: unknown[]): void {
+        this.log(LoggerMethod.Debug, message, ...args);
+    }
+
+    public info(message: string, ...args: unknown[]): void {
+        this.log(LoggerMethod.Info, message, ...args);
+    }
+
+    public warn(message: string, ...args: unknown[]): void {
+        this.log(LoggerMethod.Warn, message, ...args);
+    }
+
+    public error(message: string, ...args: unknown[]): void {
+        this.log(LoggerMethod.Error, message, ...args);
+    }
+
+    public piiSanitized(
+        msg: unknown,
+        objsToSanitize: { name: string; objOrArray: unknown | unknown[] }[],
+        stringsToShorten: { name: string; value: string }[],
+        ...vals: unknown[]
+    ): void {
+        this._sendLogEvent({
+            method: LoggerMethod.PiiSanitized,
+            msg,
+            objsToSanitize,
+            stringsToShorten,
+            vals,
+            prefix: this._prefix,
+        });
+    }
+
+    public show(preserveFocus?: boolean): void {
+        this._sendLogEvent({ method: LoggerMethod.Show, preserveFocus, prefix: this._prefix });
+    }
+
+    public withPrefix(prefix: string): ILogger {
+        return new WebviewLogger(
+            this._sendLogEvent,
+            this._prefix ? `${this._prefix}.${prefix}` : prefix,
+        );
+    }
+
+    public dispose(): void {
+        this._sendLogEvent({ method: LoggerMethod.Dispose, prefix: this._prefix });
+    }
+
+    private log(method: LoggerMessageMethod, message: string, ...args: unknown[]): void {
+        this._sendLogEvent({ method, message, args, prefix: this._prefix });
+    }
+}
+
 /**
  * RPC to communicate with the extension.
  * @template Reducers interface that contains definitions for all reducers and their payloads.
  */
 export class WebviewRpc<Reducers> {
     public connection: MessageConnection;
+    public readonly log: ILogger;
 
     /**
      * Singleton instance of the WebviewRpc class.
@@ -142,12 +158,16 @@ export class WebviewRpc<Reducers> {
             new WebviewRpcMessageWriter(_vscodeApi),
         );
 
+        this.log = new WebviewLogger((event) => {
+            void this.sendNotification(LogNotification.type, event);
+        });
+
         this.connection.onError((error) => {
-            console.error("WebviewRpc connection error:", error);
+            this.log.error("WebviewRpc connection error", error);
         });
 
         this.connection.onClose(() => {
-            console.warn("WebviewRpc connection closed");
+            this.log.warn("WebviewRpc connection closed");
         });
 
         this.connection.listen();
@@ -184,10 +204,6 @@ export class WebviewRpc<Reducers> {
         void this.sendNotification(SendErrorEventNotification.type, event);
     }
 
-    public log(message: string, level?: LoggerLevel) {
-        void this.sendNotification(LogNotification.type, { message, level });
-    }
-
     public onRequest<P, R, E>(type: RequestType<P, R, E>, handler: RequestHandler<P, R, E>): void {
         this.connection.onRequest(type, handler);
     }
@@ -197,11 +213,11 @@ export class WebviewRpc<Reducers> {
         params?: P,
         token?: CancellationToken,
     ): Promise<R> {
-        return this.connection.sendRequest(type, params, token);
+        return this.connection.sendRequest(type, params as RequestParam<P>, token);
     }
 
     public async sendNotification<P>(type: NotificationType<P>, params?: P): Promise<void> {
-        return this.connection.sendNotification(type, params);
+        return this.connection.sendNotification(type, params as RequestParam<P>);
     }
 
     public onNotification<P>(type: NotificationType<P>, handler: (params: P) => void): void {

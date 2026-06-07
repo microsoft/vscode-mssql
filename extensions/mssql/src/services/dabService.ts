@@ -15,7 +15,6 @@ import {
     dockerLogger,
     getEngineErrorLink,
     getEngineErrorLinkText,
-    sanitizeContainerInput,
     startDocker,
 } from "../docker/dockerUtils";
 import {
@@ -34,6 +33,8 @@ import { getErrorMessage, uuid } from "../utils/utils";
  * Localhost addresses that need to be transformed for Docker container access
  */
 const LOCALHOST_ADDRESSES = ["localhost", "127.0.0.1", "(local)", "."];
+const SQL_SERVER_CONNECTION_PROPERTY_PATTERN =
+    /((?:Server|Data Source)\s*=\s*)("[^"]*"|'[^']*'|[^;]+)/i;
 
 export class DabService implements Dab.IDabService {
     private _configFileBuilder = new DabConfigFileBuilder();
@@ -292,7 +293,7 @@ export class DabService implements Dab.IDabService {
             encoding: "utf8",
             mode: 0o600,
         });
-        dockerLogger.appendLine(`DAB config written to: ${configFilePath}`);
+        dockerLogger.info(`DAB config written to: ${configFilePath}`);
 
         return configFilePath;
     }
@@ -313,9 +314,9 @@ export class DabService implements Dab.IDabService {
                 await fs.promises.rmdir(configDir);
             }
 
-            dockerLogger.appendLine(`Cleaned up DAB config: ${configFilePath}`);
+            dockerLogger.info(`Cleaned up DAB config: ${configFilePath}`);
         } catch (e) {
-            dockerLogger.appendLine(`Failed to cleanup DAB config file: ${getErrorMessage(e)}`);
+            dockerLogger.warn(`Failed to cleanup DAB config file: ${getErrorMessage(e)}`);
         }
     }
 
@@ -330,14 +331,15 @@ export class DabService implements Dab.IDabService {
     ): Dab.DabConnectionInfo {
         const { connectionString, sqlServerContainerName } = connectionInfo;
 
-        // Parse the server/data source from the connection string
-        // Supports both "Server=" and "Data Source=" formats
-        const serverMatch = connectionString.match(/(?:Server|Data Source)\s*=\s*([^;]+)/i);
+        // Parse the server/data source from the connection string.
+        // Supports both "Server=" and "Data Source=" formats, including quoted values.
+        const serverMatch = connectionString.match(SQL_SERVER_CONNECTION_PROPERTY_PATTERN);
         if (!serverMatch) {
             return connectionInfo;
         }
 
-        const serverValue = serverMatch[1].trim();
+        const serverPropertyPrefix = serverMatch[1];
+        const serverValue = this.stripConnectionStringValueQuotes(serverMatch[2].trim());
 
         // Parse the server address to check if it's localhost
         const host = this.parseHostFromServerValue(serverValue);
@@ -347,25 +349,21 @@ export class DabService implements Dab.IDabService {
             return connectionInfo;
         }
 
-        // Build the new server value:
-        // - Always use host.docker.internal to reach services on the host machine.
-        // - For containerized SQL Server, replace host and any instance name with
-        //   host.docker.internal\<container-name>, preserving only the port.
-        //   Containerized SQL Server does not use named instances.
-        // - For host SQL Server, replace only the host, preserving instance name and port.
-        let newServerValue: string;
         const hasPort = serverValue.includes(",");
+        let newServerValue = serverValue.replace(
+            new RegExp(`^${this.escapeRegex(host)}`, "i"),
+            "host.docker.internal",
+        );
+        newServerValue = this.normalizeSqlServerPortSpacing(newServerValue);
+
         if (sqlServerContainerName) {
-            // Extract port if present (comma-separated), discard any instance name
+            // SQL Server containers created by the extension expose SQL Server through
+            // a host port. DAB runs in a separate container, so it must connect to that
+            // published port through host.docker.internal instead of treating the
+            // container name as a SQL Server named instance.
             const commaIndex = serverValue.indexOf(",");
-            const port = commaIndex !== -1 ? serverValue.substring(commaIndex) : "";
-            newServerValue = `host.docker.internal\\${sanitizeContainerInput(sqlServerContainerName)}${port}`;
-        } else {
-            // Replace only the host portion, preserving instance name and port
-            newServerValue = serverValue.replace(
-                new RegExp(`^${this.escapeRegex(host)}`, "i"),
-                "host.docker.internal",
-            );
+            const port = commaIndex !== -1 ? this.normalizeSqlServerPort(serverValue) : "";
+            newServerValue = `host.docker.internal${port}`;
         }
 
         // DAB does not infer the default SQL Server port, so explicitly add it
@@ -376,11 +374,11 @@ export class DabService implements Dab.IDabService {
 
         // Replace in connection string
         const transformedConnectionString = connectionString.replace(
-            /(?:Server|Data Source)\s*=\s*[^;]+/i,
-            `Server=${newServerValue}`,
+            SQL_SERVER_CONNECTION_PROPERTY_PATTERN,
+            `${serverPropertyPrefix}${newServerValue}`,
         );
 
-        dockerLogger.appendLine(
+        dockerLogger.info(
             `Transformed connection string server for DAB: ${serverValue} -> ${newServerValue}`,
         );
 
@@ -410,6 +408,38 @@ export class DabService implements Dab.IDabService {
         }
 
         return host;
+    }
+
+    private stripConnectionStringValueQuotes(value: string): string {
+        const trimmedValue = value.trim();
+        if (
+            trimmedValue.length >= 2 &&
+            ((trimmedValue.startsWith('"') && trimmedValue.endsWith('"')) ||
+                (trimmedValue.startsWith("'") && trimmedValue.endsWith("'")))
+        ) {
+            return trimmedValue.substring(1, trimmedValue.length - 1).trim();
+        }
+
+        return trimmedValue;
+    }
+
+    private normalizeSqlServerPort(serverValue: string): string {
+        const commaIndex = serverValue.indexOf(",");
+        if (commaIndex === -1) {
+            return "";
+        }
+
+        const port = serverValue.substring(commaIndex + 1).trim();
+        return port ? `,${port}` : "";
+    }
+
+    private normalizeSqlServerPortSpacing(serverValue: string): string {
+        const commaIndex = serverValue.indexOf(",");
+        if (commaIndex === -1) {
+            return serverValue;
+        }
+
+        return `${serverValue.substring(0, commaIndex)},${serverValue.substring(commaIndex + 1).trim()}`;
     }
 
     /**

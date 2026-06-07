@@ -88,7 +88,7 @@ export const useFormStyles = makeStyles({
     labelDecoration: {
         display: "inline-flex",
         alignItems: "center",
-        columnGap: "0px",
+        gap: "4px",
     },
 });
 
@@ -215,7 +215,7 @@ export const FormField = <
     componentProps?: any; // any because we don't know what the component will be
 }) => {
     if (!component) {
-        console.error("Form component is undefined");
+        context.log.error("Form component is undefined");
         return undefined;
     }
 

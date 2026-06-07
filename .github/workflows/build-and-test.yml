@@ -45,7 +45,7 @@ jobs:
       - name: Download baseline sizes
         if: env.should_compare_baseline == 'true'
         continue-on-error: true
-        uses: dawidd6/action-download-artifact@v6
+        uses: dawidd6/action-download-artifact@v21
         with:
           workflow: publish-baseline.yml
           branch: ${{ github.event.pull_request.base.ref }}
@@ -54,9 +54,7 @@ jobs:
           if_no_artifact_found: warn
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: "24"
+        uses: ./.github/actions/setup-node
 
       - name: Setup .NET Core # Required to execute ReportGenerator
         uses: actions/setup-dotnet@v5
@@ -89,25 +87,25 @@ jobs:
           npm run package
 
       - name: MSSQL - Upload VSIX files
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: mssql-vsix
           path: ./extensions/mssql/*.vsix
 
       - name: SqlProj - Upload VSIX files
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: sql-database-projects-vsix
           path: ./extensions/sql-database-projects/*.vsix
 
       - name: DataWorkspace - Upload VSIX files
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: data-workspace-vsix
           path: ./extensions/data-workspace/*.vsix
 
       - name: Keymap - Upload VSIX files
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: keymap-vsix
           path: ./extensions/database-management-keymap/*.vsix
@@ -288,7 +286,7 @@ jobs:
           echo "mssql_unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
 
       - name: MSSQL - Unit Test Report
-        uses: dorny/test-reporter@v2
+        uses: dorny/test-reporter@v3
         if: success() || failure()
         with:
           name: "Unit Test Report"
@@ -350,14 +348,14 @@ jobs:
           echo "mssql_smoke_tests_pr_exit_code=$SMOKE_EXIT_CODE" >> $GITHUB_ENV
 
       - name: Upload Smoke Test Screenshots and Videos
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: smoke-test-failure-screenshots
           path: ./extensions/mssql/test-results/**/
           retention-days: 7
 
       - name: Smoke Test Report
-        uses: dorny/test-reporter@v2
+        uses: dorny/test-reporter@v3
         if: success() || failure()
         with:
           name: "Smoke Test Report"
@@ -376,7 +374,7 @@ jobs:
           fi
 
       - name: Generate Coverage Report
-        uses: danielpalme/ReportGenerator-GitHub-Action@5.4.4
+        uses: danielpalme/ReportGenerator-GitHub-Action@v5
         with:
           reports: "./extensions/mssql/coverage/cobertura-coverage.xml"
           targetdir: "coveragereport"
@@ -384,13 +382,13 @@ jobs:
           toolpath: "reportgeneratortool"
 
       - name: Upload coverage report artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: CoverageReport
           path: coveragereport
 
       - name: MSSQL - Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./extensions/mssql/coverage/cobertura-coverage.xml
@@ -408,7 +406,7 @@ jobs:
           echo "| keymap VSIX                 | ${{ env.keymap_target_vsix_size }} KB | ${{ env.keymap_pr_vsix_size }} KB | ${{ env.keymap_vsix_change_icon }} ${{ env.keymap_vsix_size_diff }} KB ( ${{ env.keymap_vsix_percentage_change }}% ) |" >> results.md
 
       - name: Find comment
-        uses: peter-evans/find-comment@v3
+        uses: peter-evans/find-comment@v4
         if: env.should_compare_baseline == 'true'
         id: fc
         with:
@@ -418,7 +416,7 @@ jobs:
             ### PR Changes
 
       - name: Create or update comment
-        uses: peter-evans/create-or-update-comment@v4
+        uses: peter-evans/create-or-update-comment@v5
         if: env.should_compare_baseline == 'true'
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -436,7 +434,7 @@ jobs:
           echo "sqlproj_unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
 
       - name: SqlProj - Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./extensions/sql-database-projects/coverage/cobertura-coverage.xml
@@ -451,7 +449,7 @@ jobs:
           echo "dataworkspace_unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
 
       - name: DataWorkspace - Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./extensions/data-workspace/coverage/cobertura-coverage.xml
@@ -504,7 +502,7 @@ jobs:
           fi
 
       - name: Find comment
-        uses: peter-evans/find-comment@v3
+        uses: peter-evans/find-comment@v4
         if: github.event_name == 'pull_request'
         id: loc-comment
         with:
@@ -515,7 +513,7 @@ jobs:
 
       - name: Create or update comment
         if: github.event_name == 'pull_request' && env.loc_update_required == 'true'
-        uses: peter-evans/create-or-update-comment@v4
+        uses: peter-evans/create-or-update-comment@v5
         with:
           comment-id: ${{ steps.loc-comment.outputs.comment-id }}
           token: ${{ secrets.GITHUB_TOKEN }}

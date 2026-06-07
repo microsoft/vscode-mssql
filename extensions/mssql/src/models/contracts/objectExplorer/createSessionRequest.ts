@@ -11,7 +11,7 @@ import { NodeInfo } from "./nodeInfo";
 
 // Create session request message callback declaration
 export namespace CreateSessionRequest {
-    export const type = new RequestType<ConnectionDetails, CreateSessionResponse, void, void>(
+    export const type = new RequestType<ConnectionDetails, CreateSessionResponse, void>(
         "objectexplorer/createsession",
     );
 }
@@ -69,7 +69,7 @@ export class SessionCreatedParameters {
  * Connection complete event callback declaration.
  */
 export namespace CreateSessionCompleteNotification {
-    export const type = new NotificationType<SessionCreatedParameters, void>(
+    export const type = new NotificationType<SessionCreatedParameters>(
         "objectexplorer/sessioncreated",
     );
 }

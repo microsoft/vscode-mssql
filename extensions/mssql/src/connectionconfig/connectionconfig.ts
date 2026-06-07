@@ -6,6 +6,7 @@
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import * as Utils from "../models/utils";
+import * as vscode from "vscode";
 import { uuid } from "../utils/utils";
 import { IConnectionGroup, IConnectionProfile } from "../models/interfaces";
 import { IConnectionConfig } from "./iconnectionconfig";
@@ -13,7 +14,8 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ConnectionProfile } from "../models/connectionProfile";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 import { Deferred } from "../protocol";
-import { Logger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger } from "../models/logger";
 import { ConfigurationTarget } from "vscode";
 
 export type ConfigTarget = ConfigurationTarget.Global | ConfigurationTarget.Workspace;
@@ -22,13 +24,14 @@ export type ConfigTarget = ConfigurationTarget.Global | ConfigurationTarget.Work
  * Implements connection profile file storage.
  */
 export class ConnectionConfig implements IConnectionConfig {
-    protected _logger: Logger;
+    protected _logger: ILogger;
     public initialized: Deferred<void> = new Deferred<void>();
 
     /** Root group ID and name */
     static readonly ROOT_GROUP_ID: string = "ROOT";
     private _hasDisplayedGroupParentWarning: boolean = false;
     private _hasDisplayedOrphanedConnectionWarning: boolean = false;
+    private _hasDisplayedDefaultConnectionIdWarning: boolean = false;
 
     /**
      * Constructor
@@ -38,7 +41,7 @@ export class ConnectionConfig implements IConnectionConfig {
             this._vscodeWrapper = new VscodeWrapper();
         }
 
-        this._logger = Logger.create(this._vscodeWrapper.outputChannel, "ConnectionConfig");
+        this._logger = logger.withPrefix("ConnectionConfig");
         void this.initialize();
     }
 
@@ -48,6 +51,122 @@ export class ConnectionConfig implements IConnectionConfig {
         await this.assignConnectionMissingIds();
 
         this.initialized.resolve();
+
+        // Must come after `initialized` is resolved because it calls methods that await `initialized`.
+        // Since this is only meant to show a warning if the default connection ID is misconfigured, and not a data consistency check,
+        // this can run asynchronously and doesn't need to block initialization.
+        void this.validateDefaultConnectionId();
+    }
+
+    /**
+     * Validates the defaultConnectionId setting if newEditorConnectionBehavior is 'defaultConnection'.
+     * When the configuration is invalid (ID missing or not found), prompts the user to either select
+     * a saved connection or change the behavior setting.
+     */
+    private async validateDefaultConnectionId(): Promise<void> {
+        const behavior = this._vscodeWrapper
+            .getConfiguration()
+            .get<string>(Constants.configNewEditorConnectionBehavior);
+
+        if (behavior !== Constants.NewEditorConnectionBehavior.DefaultConnection) {
+            return;
+        }
+
+        const defaultId = this._vscodeWrapper
+            .getConfiguration()
+            .get<string>(Constants.configDefaultConnectionId);
+
+        let warningMessage: string;
+
+        if (!defaultId) {
+            warningMessage = LocalizedConstants.Connection.defaultConnectionIdNotSetWarning;
+        } else {
+            const match = await this.getConnectionById(defaultId);
+            if (match) {
+                return; // valid — nothing to do
+            }
+            warningMessage =
+                LocalizedConstants.Connection.defaultConnectionIdNotFoundWarning(defaultId);
+        }
+
+        if (this._hasDisplayedDefaultConnectionIdWarning) {
+            return;
+        }
+        this._hasDisplayedDefaultConnectionIdWarning = true;
+
+        const choice = await this._vscodeWrapper.showWarningMessageAdvanced(warningMessage, {}, [
+            LocalizedConstants.Connection.defaultConnectionSelectConnection,
+            LocalizedConstants.Connection.defaultConnectionChangeSetting,
+        ]);
+
+        if (choice === LocalizedConstants.Connection.defaultConnectionSelectConnection) {
+            await this.promptSelectDefaultConnection();
+        } else if (choice === LocalizedConstants.Connection.defaultConnectionChangeSetting) {
+            await this.promptChangeEditorConnectionBehavior();
+        }
+    }
+
+    /** Shows a QuickPick of saved connections (not MRU) and saves the chosen ID as defaultConnectionId. */
+    private async promptSelectDefaultConnection(): Promise<void> {
+        const connections = await this.getConnections();
+
+        if (connections.length === 0) {
+            return;
+        }
+
+        interface ConnectionQuickPickItem extends vscode.QuickPickItem {
+            profile: IConnectionProfile;
+        }
+
+        const items: ConnectionQuickPickItem[] = connections.map((profile) => ({
+            label: profile.profileName || profile.server,
+            description: profile.profileName ? profile.server : undefined,
+            profile,
+        }));
+
+        const selected = await this._vscodeWrapper.showQuickPick<ConnectionQuickPickItem>(items, {
+            placeHolder: LocalizedConstants.Connection.defaultConnectionSelectConnectionPlaceholder,
+        });
+
+        if (selected) {
+            await this._vscodeWrapper.setConfiguration(
+                Constants.extensionName,
+                "defaultConnectionId",
+                selected.profile.id,
+                vscode.ConfigurationTarget.Global,
+            );
+        }
+    }
+
+    /** Shows a QuickPick to switch newEditorConnectionBehavior away from 'defaultConnection'. */
+    private async promptChangeEditorConnectionBehavior(): Promise<void> {
+        interface BehaviorQuickPickItem extends vscode.QuickPickItem {
+            value: string;
+        }
+
+        const items: BehaviorQuickPickItem[] = [
+            {
+                label: LocalizedConstants.Connection.defaultConnectionBehaviorTransferActive,
+                value: Constants.NewEditorConnectionBehavior.TransferActive,
+            },
+            {
+                label: LocalizedConstants.Connection.defaultConnectionBehaviorNone,
+                value: Constants.NewEditorConnectionBehavior.None,
+            },
+        ];
+
+        const selected = await this._vscodeWrapper.showQuickPick<BehaviorQuickPickItem>(items, {
+            placeHolder: LocalizedConstants.Connection.defaultConnectionChangeSettingPlaceholder,
+        });
+
+        if (selected) {
+            await this._vscodeWrapper.setConfiguration(
+                Constants.extensionName,
+                "newEditorConnectionBehavior",
+                selected.value,
+                vscode.ConfigurationTarget.Global,
+            );
+        }
     }
 
     //#region Connection Profiles
@@ -257,7 +376,7 @@ export class ConnectionConfig implements IConnectionConfig {
             // Remove all connections in the groups being removed
             remainingConnections = connections.filter((conn) => {
                 if (groupsToRemove.has(conn.groupId)) {
-                    this._logger.verbose(
+                    this._logger.debug(
                         `Removing connection '${conn.id}' because its group '${conn.groupId}' was removed`,
                     );
                     connectionModified = true;
@@ -272,7 +391,7 @@ export class ConnectionConfig implements IConnectionConfig {
             // Move immediate child connections to root
             remainingConnections = connections.map((conn) => {
                 if (conn.groupId === id) {
-                    this._logger.verbose(
+                    this._logger.debug(
                         `Moving connection '${conn.id}' to root group because its immediate parent group '${id}' was removed`,
                     );
                     connectionModified = true;
@@ -287,7 +406,7 @@ export class ConnectionConfig implements IConnectionConfig {
             // Then reparent immediate children to root
             remainingGroups = remainingGroups.map((g) => {
                 if (g.parentId === id) {
-                    this._logger.verbose(
+                    this._logger.debug(
                         `Moving group '${g.id}' to root group because its immediate parent group '${id}' was removed`,
                     );
                     return { ...g, parentId: rootGroup.id };
@@ -428,7 +547,7 @@ export class ConnectionConfig implements IConnectionConfig {
                 if (group.parentId === legacyRootId) {
                     group.parentId = ConnectionConfig.ROOT_GROUP_ID;
                     madeGroupChanges = true;
-                    this._logger.verbose(
+                    this._logger.debug(
                         `Updating parentId for group '${group.name}' (${group.id}) to '${ConnectionConfig.ROOT_GROUP_ID}'`,
                     );
                 }
@@ -440,7 +559,7 @@ export class ConnectionConfig implements IConnectionConfig {
                 if (profile.groupId === legacyRootId) {
                     profile.groupId = ConnectionConfig.ROOT_GROUP_ID;
                     connectionsChanged = true;
-                    this._logger.verbose(
+                    this._logger.debug(
                         `Updating groupId for connection '${getConnectionDisplayName(profile)}' to '${ConnectionConfig.ROOT_GROUP_ID}'`,
                     );
                 }
@@ -477,20 +596,20 @@ export class ConnectionConfig implements IConnectionConfig {
             if (!group.id) {
                 group.id = uuid();
                 madeGroupChanges = true;
-                this._logger.logDebug(`Adding missing ID to connection group '${group.name}'`);
+                this._logger.debug(`Adding missing ID to connection group '${group.name}'`);
             }
 
             // ensure each group is in a group
             if (!group.parentId) {
                 group.parentId = ConnectionConfig.ROOT_GROUP_ID;
                 madeGroupChanges = true;
-                this._logger.logDebug(`Adding missing parentId to connection '${group.name}'`);
+                this._logger.debug(`Adding missing parentId to connection '${group.name}'`);
             }
         }
 
         // Save the changes to settings
         if (madeGroupChanges) {
-            this._logger.logDebug(
+            this._logger.debug(
                 `Updates made to connection groups.  Writing all ${groups.length} group(s) to settings.`,
             );
 
@@ -507,7 +626,7 @@ export class ConnectionConfig implements IConnectionConfig {
         for (const profile of profiles) {
             if (this.populateMissingConnectionMetadata(profile)) {
                 madeChanges = true;
-                this._logger.logDebug(
+                this._logger.debug(
                     `Adding missing group ID or connection ID to connection '${getConnectionDisplayName(profile)}' from ${ConfigurationTarget[profile.configSource]}`,
                 );
             }
@@ -515,7 +634,7 @@ export class ConnectionConfig implements IConnectionConfig {
 
         // Save the changes to settings
         if (madeChanges) {
-            this._logger.logDebug(
+            this._logger.debug(
                 `Updates made to connection profiles.  Writing all ${profiles.length} profile(s) to settings.`,
             );
 

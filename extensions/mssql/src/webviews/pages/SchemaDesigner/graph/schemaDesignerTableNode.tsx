@@ -40,7 +40,6 @@ import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import eventBus from "../schemaDesignerEvents";
 import { NODE_WIDTH } from "../model";
-import * as l10n from "@vscode/l10n";
 import { ForeignKeyIcon } from "../../../common/icons/foreignKey";
 import { PrimaryKeyIcon } from "../../../common/icons/primaryKey";
 import { mergeColumnsWithDeleted } from "../diff/deletedVisualUtils";
@@ -354,6 +353,7 @@ const TableHeader = ({ table }: { table: SchemaDesigner.TableWithDeletedFlag }) 
     const styles = useStyles();
     const context = useContext(SchemaDesignerContext);
     const changeContext = useSchemaDesignerChangeContext();
+    const isReadOnly = useSchemaDesignerSelector((s) => s?.isReadOnly) ?? false;
     const isDeletedTable = table.isDeleted === true;
     const tableHighlight = changeContext.modifiedTableHighlights.get(table.id);
     const showQualifiedDiff =
@@ -431,7 +431,9 @@ const TableHeader = ({ table }: { table: SchemaDesigner.TableWithDeletedFlag }) 
                         )}
                     </Text>
                 </ConditionalTooltip>
-                {!context.isExporting && !isDeletedTable && <TableHeaderActions table={table} />}
+                {!context.isExporting && !isDeletedTable && !isReadOnly && (
+                    <TableHeaderActions table={table} />
+                )}
             </div>
             <div className={styles.tableSubtitle}>
                 {locConstants.schemaDesigner.tableNodeSubText(table.columns.length)}
@@ -729,8 +731,8 @@ const TableColumns = ({
     const hiddenColumns = isCollapsedView ? mergedColumns.slice(10) : [];
     const hiddenHandleColumns = hiddenColumns;
 
-    const EXPAND = l10n.t("Expand");
-    const COLLAPSE = l10n.t("Collapse");
+    const EXPAND = locConstants.common.expand;
+    const COLLAPSE = locConstants.common.collapse;
 
     return (
         <div style={{ position: "relative" }}>

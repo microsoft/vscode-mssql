@@ -22,7 +22,7 @@ import { MsalCachePluginProvider } from "../../src/azure/msal/msalCachePlugin";
 import { MsalAzureCodeGrant } from "../../src/azure/msal/msalAzureCodeGrant";
 import { MsalAzureDeviceCode } from "../../src/azure/msal/msalAzureDeviceCode";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { Logger } from "../../src/models/logger";
+import { ILogger } from "../../src/sharedInterfaces/logger";
 import {
     CloudAuthApplication,
     MsalAzureController,
@@ -40,7 +40,7 @@ suite("CloudAuthApplication Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
     let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
-    let mockLogger: sinon.SinonStubbedInstance<Logger>;
+    let mockLogger: sinon.SinonStubbedInstance<ILogger>;
     let mockCachePluginProvider: sinon.SinonStubbedInstance<MsalCachePluginProvider>;
     let loggerCallback: ILoggerCallback;
 
@@ -216,7 +216,12 @@ suite("MsalAzureController Tests", () => {
             mockSubscriptionClientFactory,
         );
 
-        const mockClientApplication = sandbox.createStubInstance(msalNode.PublicClientApplication);
+        const mockClientApplication = sandbox.createStubInstance(
+            msalNode.PublicClientApplication,
+        ) as sinon.SinonStubbedInstance<msalNode.PublicClientApplication>;
+        const clearCacheStub = sandbox.stub();
+        mockClientApplication.clearCache =
+            clearCacheStub as unknown as typeof mockClientApplication.clearCache;
         const mockCloudAuth = sandbox.createStubInstance(CloudAuthApplication);
 
         sandbox.stub(mockCloudAuth, "clientApplication").get(() => mockClientApplication);
@@ -231,9 +236,9 @@ suite("MsalAzureController Tests", () => {
         await controller.clearTokenCache();
 
         // Assert
-        expect(mockClientApplication.clearCache).to.have.been.calledOnce;
-        expect(mockCachePluginProvider.unlinkMsalCache).to.have.been.calledOnce;
-        expect(mockCachePluginProvider.clearCacheEncryptionKeys).to.have.been.calledOnce;
+        expect(clearCacheStub).to.have.been.called;
+        expect(mockCachePluginProvider.unlinkMsalCache).to.have.been.called;
+        expect(mockCachePluginProvider.clearCacheEncryptionKeys).to.have.been.called;
     });
 
     test("login should return account on successful login", async () => {

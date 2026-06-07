@@ -11,7 +11,8 @@ import { IConnectionProfile } from "../models/interfaces";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import { RequestType } from "vscode-languageclient";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import { Logger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger } from "../models/logger";
 import * as Constants from "../constants/constants";
 import { ScriptingService } from "../scripting/scriptingService";
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
@@ -48,15 +49,15 @@ export class ConnectionSharingError extends Error {
 }
 
 export class ConnectionSharingService implements mssql.IConnectionSharingService {
-    private _logger: Logger;
+    private _logger: ILogger;
     constructor(
         private readonly _context: vscode.ExtensionContext,
         private readonly _client: SqlToolsServiceClient,
         private readonly _connectionManager: ConnectionManager,
-        private readonly _vscodeWrapper: VscodeWrapper,
+        _vscodeWrapper: VscodeWrapper,
         private readonly _scriptingService: ScriptingService,
     ) {
-        this._logger = Logger.create(this._vscodeWrapper.outputChannel, "ConnectionSharingService");
+        this._logger = logger.withPrefix("ConnectionSharingService");
         this.registerCommands();
     }
 
@@ -438,7 +439,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
                 connectionId,
             );
         }
-        this._logger.info(
+        this._logger.debug(
             `Successfully connected to database with ID "${connectionId}" for extension "${extensionId}".`,
         );
         return connectionUri; // Return the connection URI
@@ -466,7 +467,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         queryString: string,
     ): Promise<mssql.SimpleExecuteResult> {
         if (!connectionUri) {
-            this._logger.error("Invalid connection URI provided for query execution.");
+            this._logger.warn("Invalid connection URI provided for query execution.");
             throw new ConnectionSharingError(
                 ConnectionSharingErrorCode.INVALID_CONNECTION_URI,
                 LocalizedConstants.ConnectionSharing.invalidConnectionUri,
@@ -484,7 +485,6 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             new RequestType<
                 { ownerUri: string; queryString: string },
                 mssql.SimpleExecuteResult,
-                void,
                 void
             >("query/simpleexecute"),
             {
@@ -505,14 +505,14 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
     }
 
     public getServerInfo(connectionUri: string): mssql.IServerInfo {
-        this._logger.info(`Retrieving server info for connection URI: ${connectionUri}`);
+        this._logger.debug(`Retrieving server info for connection URI: ${connectionUri}`);
         this.validateConnection(connectionUri);
         const connectionDetails = this._connectionManager.getConnectionInfoFromUri(connectionUri);
         return this._connectionManager.getServerInfo(connectionDetails);
     }
 
     public async listDatabases(connectionUri: string): Promise<string[]> {
-        this._logger.info(`Listing databases for connection URI: ${connectionUri}`);
+        this._logger.debug(`Listing databases for connection URI: ${connectionUri}`);
         this.validateConnection(connectionUri);
         return await this._connectionManager.listDatabases(connectionUri);
     }
@@ -522,7 +522,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         operation: ScriptOperation,
         scriptingObject: mssql.IScriptingObject,
     ) {
-        this._logger.info(
+        this._logger.debug(
             `Executing script operation "${operation}" for connection URI: ${connectionUri}`,
         );
         this.validateConnection(connectionUri);
@@ -545,7 +545,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             `Editing connection sharing permissions for extension: ${extensionId ?? "not specified"}`,
         );
         if (!extensionId) {
-            this._logger.info("No extension ID provided, prompting user to select an extension.");
+            this._logger.debug("No extension ID provided, prompting user to select an extension.");
             const extensionQuickPickItems: vscode.QuickPickItem[] = vscode.extensions.all
                 .filter((ext) => ext.id !== Constants.extensionId) // Exclude self
                 .map((extension) => ({
@@ -561,17 +561,17 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             });
 
             if (!selectedExtension?.detail) {
-                this._logger.info("User cancelled the extension selection.");
+                this._logger.debug("User cancelled the extension selection.");
                 return undefined; // User cancelled selection
             }
-            this._logger.info(`User selected extension: ${selectedExtension.detail}`);
+            this._logger.debug(`User selected extension: ${selectedExtension.detail}`);
             extensionId = selectedExtension.detail;
         }
 
         const currentPermission = await this.getExtensionPermission(extensionId);
         const extensionDisplayName = this.getExtensionDisplayName(extensionId);
 
-        this._logger.info(
+        this._logger.debug(
             `Current permission for extension "${extensionDisplayName}" (${extensionId}): ${currentPermission}`,
         );
 
@@ -604,7 +604,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             },
         );
 
-        this._logger.info(`User selected new permission: ${newPermission?.detail}`);
+        this._logger.debug(`User selected new permission: ${newPermission?.detail}`);
 
         if (!newPermission) {
             return; // User canceled the selection
@@ -648,7 +648,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             false, // do not include appName
         );
 
-        this._logger.info(
+        this._logger.debug(
             `Retrieved connection string for connection ID "${connectionId}" for extension "${extensionId}".`,
         );
         return connectionString;

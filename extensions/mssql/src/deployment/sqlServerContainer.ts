@@ -216,7 +216,7 @@ export async function startSqlServerDockerContainer(
 
         const container = await dockerClient.createContainer(createContainerOptions);
         await container.start();
-        dockerLogger.append(`SQL Server container ${containerName} started on port ${port}.`);
+        dockerLogger.trace(`SQL Server container ${containerName} started on port ${port}.`);
         return {
             success: true,
             port,
@@ -261,14 +261,14 @@ export async function restartSqlServerContainer(
     if (isContainerRunning) return true; // Container is already running
     containerNode.loadingLabel = LocalContainers.startingContainerLoadingLabel;
     await objectExplorerService.setLoadingUiForNode(containerNode);
-    dockerLogger.appendLine(`Restarting container: ${containerName}`);
+    dockerLogger.info(`Restarting container: ${containerName}`);
     const container = await getContainerByName(containerName);
     if (!container) {
         throw new Error(`Container ${containerName} does not exist.`);
     }
     await container.start();
 
-    dockerLogger.appendLine(`Container ${containerName} restarted successfully.`);
+    dockerLogger.info(`Container ${containerName} restarted successfully.`);
     containerNode.loadingLabel = LocalContainers.readyingContainerLoadingLabel;
     await objectExplorerService.setLoadingUiForNode(containerNode);
 
@@ -303,7 +303,7 @@ export async function checkIfSqlServerContainerIsReadyForConnections(
     const timeoutMs = 300_000; // 5 minutes
     const readyMessage = SQL_SERVER_COMMANDS.CHECK_CONTAINER_READY;
 
-    dockerLogger.appendLine(`Checking if container ${containerName} is ready for connections...`);
+    dockerLogger.info(`Checking if container ${containerName} is ready for connections...`);
 
     try {
         const container = await getContainerByName(containerName);
@@ -328,11 +328,11 @@ export async function checkIfSqlServerContainerIsReadyForConnections(
             logMonitor.dispose();
         }
         if (isReady) {
-            dockerLogger.appendLine(`${containerName} is ready for connections!`);
+            dockerLogger.info(`${containerName} is ready for connections!`);
             return { success: true };
         }
     } catch (e) {
-        dockerLogger.appendLine(
+        dockerLogger.info(
             `Error while checking readiness for ${containerName}: ${getErrorMessage(e)}`,
         );
     }
@@ -355,7 +355,7 @@ export async function getAllSqlServerContainerTags(): Promise<string[]> {
         const parsed = JSON.parse(stdout);
         return (parsed.tags ?? []).filter((tag: string) => tag);
     } catch (e) {
-        dockerLogger.appendLine(`Error fetching SQL Server container tags: ${getErrorMessage(e)}`);
+        dockerLogger.error(`Error fetching SQL Server container tags: ${getErrorMessage(e)}`);
         return [];
     }
 }
@@ -386,9 +386,7 @@ export async function getSqlServerContainerVersions(): Promise<FormItemOptions[]
                 value: year,
             }));
     } catch (e) {
-        dockerLogger.appendLine(
-            `Error parsing SQL Server container versions: ${getErrorMessage(e)}`,
-        );
+        dockerLogger.error(`Error parsing SQL Server container versions: ${getErrorMessage(e)}`);
         return [];
     }
 }

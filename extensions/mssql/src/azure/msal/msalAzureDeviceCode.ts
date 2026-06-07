@@ -9,7 +9,7 @@ import * as LocalizedConstants from "../../constants/locConstants";
 import VscodeWrapper from "../../controllers/vscodeWrapper";
 import { AzureAuthType, IProviderSettings, ITenant } from "../../models/contracts/azure";
 import { IDeferred } from "../../models/interfaces";
-import { Logger } from "../../models/logger";
+import { ILogger } from "../../sharedInterfaces/logger";
 import { MsalAzureAuth } from "./msalAzureAuth";
 
 export class MsalAzureDeviceCode extends MsalAzureAuth {
@@ -18,7 +18,7 @@ export class MsalAzureDeviceCode extends MsalAzureAuth {
         protected readonly context: vscode.ExtensionContext,
         protected clientApplication: PublicClientApplication,
         protected readonly vscodeWrapper: VscodeWrapper,
-        protected readonly logger: Logger,
+        protected readonly logger: ILogger,
     ) {
         super(
             providerSettings,
@@ -30,7 +30,10 @@ export class MsalAzureDeviceCode extends MsalAzureAuth {
         );
     }
 
-    protected async login(tenant: ITenant): Promise<{
+    protected async login(
+        tenant: ITenant,
+        scopes?: string[],
+    ): Promise<{
         response: AuthenticationResult;
         authComplete: IDeferred<void, Error>;
     }> {
@@ -42,8 +45,10 @@ export class MsalAzureDeviceCode extends MsalAzureAuth {
         let authority = this.loginEndpointUrl + tenant.id;
         this.logger.info(`Authority URL set to: ${authority}`);
 
+        const effectiveScopes = scopes ?? this.scopes;
+
         const deviceCodeRequest: DeviceCodeRequest = {
-            scopes: this.scopes,
+            scopes: effectiveScopes,
             authority: authority,
             deviceCodeCallback: async (response) => {
                 await this.displayDeviceCodeScreen(
@@ -55,10 +60,14 @@ export class MsalAzureDeviceCode extends MsalAzureAuth {
         };
 
         const authResult = await this.clientApplication.acquireTokenByDeviceCode(deviceCodeRequest);
-        this.logger.pii(
+        this.logger.piiSanitized(
             `Authentication completed for account: ${authResult?.account!.name}, tenant: ${authResult?.tenantId}`,
+            [],
+            [],
         );
-        this.closeOnceComplete(authCompletePromise).catch(this.logger.error);
+        this.closeOnceComplete(authCompletePromise).catch((error) =>
+            this.logger.error("Error waiting for device code auth completion", error),
+        );
 
         return {
             response: authResult!,
@@ -83,9 +92,7 @@ export class MsalAzureDeviceCode extends MsalAzureAuth {
         if (selection === LocalizedConstants.msgCopyAndOpenWebpage) {
             this.vscodeWrapper.clipboardWriteText(userCode);
             await vscode.env.openExternal(vscode.Uri.parse(verificationUrl));
-            console.log(msg);
-            console.log(userCode);
-            console.log(verificationUrl);
+            this.logger.debug("Opened device code verification URL.");
         }
         return;
     }
