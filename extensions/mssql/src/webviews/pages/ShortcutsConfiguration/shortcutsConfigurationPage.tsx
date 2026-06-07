@@ -607,34 +607,8 @@ const styles = `
     color: var(--mssql-config-success);
 }
 
-.mssql-config-link-button {
-    background: none;
-    border: none;
-    color: var(--mssql-config-accent-text);
-    cursor: pointer;
-    font: inherit;
-    padding: 0;
-    text-decoration: underline;
-}
-
 .mssql-config-tabs {
     display: flex;
-    gap: 0;
-}
-
-.mssql-config-tabs button {
-    background: none;
-    border: none;
-    border-bottom: 2px solid transparent;
-    color: var(--mssql-config-muted);
-    cursor: pointer;
-    font-family: var(--mssql-config-font);
-    font-size: 13px;
-    padding: 7px 18px;
-}
-
-.mssql-config-tabs button:hover {
-    color: var(--mssql-config-fg);
 }
 
 .mssql-config-help-text {
@@ -830,11 +804,12 @@ const styles = `
 
 .mssql-config-shortcut-display {
     align-items: center;
-    background: var(--mssql-config-input);
-    border: 1px solid var(--mssql-config-border-md);
-    border-radius: 5px;
+    background: var(--vscode-settings-textInputBackground, var(--vscode-input-background));
+    border: 1px solid
+        var(--vscode-settings-textInputBorder, var(--vscode-input-border, transparent));
+    border-radius: 2px;
     box-sizing: border-box;
-    color: var(--mssql-config-fg);
+    color: var(--vscode-settings-textInputForeground, var(--vscode-input-foreground));
     display: flex;
     font-family: var(--mssql-config-mono);
     font-size: 12px;
@@ -903,37 +878,34 @@ const styles = `
 }
 
 .mssql-config-recorder {
-    background: var(--mssql-config-surface);
-    border: 1px solid var(--mssql-config-border-md);
-    border-radius: 12px;
-    box-shadow: 0 24px 80px rgba(0,0,0,0.7);
-    overflow: hidden;
-    width: 360px;
+    width: 420px;
+    max-width: 100%;
 }
 
 .mssql-config-recorder-subtitle {
     color: var(--mssql-config-muted);
     font-size: 12px;
-    margin-top: 3px;
+    margin-top: 4px;
 }
 
 .mssql-config-recorder-body {
     align-items: center;
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    padding: 28px 20px;
+    gap: 12px;
+    padding: 20px 0 4px;
 }
 
 .mssql-config-key-display {
     align-items: center;
-    background: var(--mssql-config-raised);
-    border: 2px solid var(--mssql-config-border-md);
-    border-radius: 8px;
+    background: var(--vscode-settings-textInputBackground, var(--vscode-input-background));
+    border: 1px solid
+        var(--vscode-settings-textInputBorder, var(--vscode-input-border, transparent));
+    border-radius: 2px;
     display: flex;
-    height: 64px;
+    height: 56px;
     justify-content: center;
-    transition: border-color 0.2s;
+    transition: border-color 0.1s ease-in-out;
     width: 100%;
 }
 
@@ -953,24 +925,11 @@ const styles = `
     gap: 8px;
 }
 
-.mssql-config-pulse {
-    animation: mssql-config-pulse 1s ease-in-out infinite;
-    background: var(--mssql-config-accent);
-    border-radius: 50%;
-    height: 8px;
-    width: 8px;
-}
-
 .mssql-config-shortcut-preview {
     color: var(--mssql-config-fg);
     font-family: var(--mssql-config-mono);
-    font-size: 20px;
-    font-weight: 700;
-}
-
-@keyframes mssql-config-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
+    font-size: 18px;
+    font-weight: 600;
 }
 
 @media (max-width: 640px) {

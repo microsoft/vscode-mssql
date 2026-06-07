@@ -14,6 +14,7 @@ import {
     DialogTitle,
     Field,
     Input,
+    Link,
     Spinner,
     Tooltip,
 } from "@fluentui/react-components";
@@ -129,7 +130,7 @@ export const ShortcutRecorder = ({
                                 }`}>
                                 {recording ? (
                                     <div className="mssql-config-recording-copy">
-                                        <span className="mssql-config-pulse" />
+                                        <Spinner size="tiny" />
                                         <span>
                                             {locConstants.shortcutsConfiguration.recordingShortcut}
                                         </span>
@@ -145,15 +146,14 @@ export const ShortcutRecorder = ({
                                 )}
                             </div>
                             {hasPreview && !recording && (
-                                <Button
-                                    appearance="transparent"
-                                    className="mssql-config-link-button"
+                                <Link
+                                    as="button"
                                     onClick={() => {
                                         setPreview("");
                                         setRecording(true);
                                     }}>
                                     {locConstants.shortcutsConfiguration.rerecord}
-                                </Button>
+                                </Link>
                             )}
                         </div>
                     </DialogContent>
@@ -173,6 +173,7 @@ export const ShortcutRecorder = ({
                         ) : (
                             <Button
                                 appearance="secondary"
+                                style={{ whiteSpace: "nowrap" }}
                                 onClick={() => {
                                     onSave("");
                                     onClose();
