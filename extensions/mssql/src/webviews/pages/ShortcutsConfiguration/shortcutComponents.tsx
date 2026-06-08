@@ -358,7 +358,7 @@ export const SaveIndicator = ({ state }: { state: SaveState }) => {
     const classes = useStyles();
 
     if (state === "idle") {
-        return undefined;
+        return null;
     }
 
     return (

@@ -938,7 +938,7 @@ export const ShortcutsConfigurationPage = () => {
     }, [classes, loc, updateQuickQuery]);
 
     if (!context) {
-        return undefined;
+        return null;
     }
 
     const renderQueries = () => {
