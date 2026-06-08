@@ -1118,6 +1118,9 @@
     <trans-unit id="++CODE++9d57c82931ed2fcf9bbbc9dbc259e850c0c2b7d57b06e24b627597e60019bc6a">
       <source xml:lang="en">Clear quick filter and all column filters</source>
     </trans-unit>
+    <trans-unit id="++CODE++7e5fa0501c8d13caadebe4371667523cdf75b44f5bade77031f13b1af442cbc7">
+      <source xml:lang="en">Clear this Quick Query</source>
+    </trans-unit>
     <trans-unit id="++CODE++524ed5b794acd857648e76bead9db5ba131ebcb17f3a92d98ece51db61e65dbf">
       <source xml:lang="en">Clear token cache</source>
     </trans-unit>

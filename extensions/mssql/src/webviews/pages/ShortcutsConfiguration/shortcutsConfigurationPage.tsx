@@ -408,6 +408,10 @@ const useStyles = makeStyles({
             color: "var(--vscode-disabledForeground)",
             cursor: "default",
         },
+        "& svg": {
+            height: "20px",
+            width: "20px",
+        },
     },
     shortcutGroups: {
         display: "flex",
@@ -1022,8 +1026,8 @@ export const ShortcutsConfigurationPage = () => {
                     button.type = "button";
                     button.className = classes.quickQueryClearButton;
                     button.disabled = isEmpty;
-                    button.title = loc.clearQuickQuery;
-                    button.setAttribute("aria-label", `${loc.clearQuickQuery}: ${row.name}`);
+                    button.title = loc.clearQuickQueryTooltip;
+                    button.setAttribute("aria-label", `${loc.clearQuickQueryTooltip}: ${row.name}`);
                     button.innerHTML = clearIconMarkup;
                     button.addEventListener("mousedown", (event) => event.stopPropagation());
                     button.addEventListener("click", (event) => {

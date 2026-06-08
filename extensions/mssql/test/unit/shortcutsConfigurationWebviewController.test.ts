@@ -34,6 +34,7 @@ suite("shortcutsConfiguration Webview Controller", () => {
     let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let updateConfigurationStub: sinon.SinonStub;
     let keybindingsText: string;
+    let keybindingsFilePath: string;
     let tempUserDataPath: string;
     let quickQueriesSetting: unknown;
     let webviewShortcutsSetting: Record<string, string>;
@@ -54,15 +55,8 @@ suite("shortcutsConfiguration Webview Controller", () => {
         tempUserDataPath = fs.mkdtempSync(path.join(os.tmpdir(), "mssql-config-test-"));
         const globalStoragePath = path.join(tempUserDataPath, "globalStorage", "ms-mssql.mssql");
         fs.mkdirSync(globalStoragePath, { recursive: true });
-        sandbox.stub(vscode.workspace, "fs").value({
-            ...vscode.workspace.fs,
-            readFile: sandbox
-                .stub()
-                .callsFake(async () => new TextEncoder().encode(keybindingsText)),
-            writeFile: sandbox.stub().callsFake(async (_uri, content) => {
-                keybindingsText = new TextDecoder("utf-8").decode(content);
-            }),
-        } as unknown as typeof vscode.workspace.fs);
+        keybindingsFilePath = path.join(tempUserDataPath, "keybindings.json");
+        fs.writeFileSync(keybindingsFilePath, keybindingsText);
 
         quickQueriesSetting = normalizeQuickQueries(undefined);
         webviewShortcutsSetting = {};
@@ -162,6 +156,7 @@ suite("shortcutsConfiguration Webview Controller", () => {
             vscode.ConfigurationTarget.Global,
         );
         const quickQueries = normalizeQuickQueries(quickQueriesSetting);
+        keybindingsText = fs.readFileSync(keybindingsFilePath, "utf-8");
         expect(quickQueries[0]).to.deep.equal({
             name: "Health Check",
             query: "select 1",
@@ -191,6 +186,7 @@ suite("shortcutsConfiguration Webview Controller", () => {
         "command": "workbench.action.keep"
     }
 ]`;
+        fs.writeFileSync(keybindingsFilePath, keybindingsText);
         const reducer = getReducer("saveConfiguration");
 
         const result = await reducer(controller.state, {
@@ -207,6 +203,7 @@ suite("shortcutsConfiguration Webview Controller", () => {
         expect(result.webviewShortcuts).to.deep.equal({
             [WebviewAction.ResultGridCopySelection]: "ctrl+c",
         });
+        keybindingsText = fs.readFileSync(keybindingsFilePath, "utf-8");
         expect(parseKeybindingsText(keybindingsText)).to.deep.equal([
             {
                 key: "ctrl+k",

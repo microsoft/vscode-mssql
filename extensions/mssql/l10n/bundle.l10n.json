@@ -2418,6 +2418,7 @@
     "Shortcut": "Shortcut",
     "Auto-execute": "Auto-execute",
     "Clear Quick Query": "Clear Quick Query",
+    "Clear this Quick Query": "Clear this Quick Query",
     "{0} query/{0} is the Quick Query shortcut name": {
         "message": "{0} query",
         "comment": ["{0} is the Quick Query shortcut name"]

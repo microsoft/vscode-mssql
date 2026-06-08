@@ -132,7 +132,9 @@ suite("Keybindings Service", () => {
             ...vscode.workspace.fs,
             readFile: sandbox.stub().rejects(error),
         } as unknown as typeof vscode.workspace.fs);
-        const service = new KeybindingsService({} as vscode.ExtensionContext);
+        const service = new KeybindingsService({
+            globalStorageUri: vscode.Uri.file("/missing/globalStorage/ms-mssql.mssql"),
+        } as vscode.ExtensionContext);
 
         const result = await service.getCommandKeybindings(["mssql.quickQueries.run1"]);
 

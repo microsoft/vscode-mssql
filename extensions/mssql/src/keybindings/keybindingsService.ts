@@ -24,10 +24,6 @@ export interface CommandKeybindingUpdate {
 }
 
 const defaultKeybindingsText = "[\n]\n";
-const keybindingsUri = vscode.Uri.from({
-    scheme: "vscode-userdata",
-    path: "/User/keybindings.json",
-});
 
 function getPlatformKeybinding(rule: KeybindingRule): string | undefined {
     const platformKey =
@@ -163,7 +159,7 @@ export function updateKeybindingsText(text: string, updates: CommandKeybindingUp
 }
 
 export class KeybindingsService {
-    constructor(_context: vscode.ExtensionContext) {}
+    constructor(private readonly context: vscode.ExtensionContext) {}
 
     public async getCommandKeybindings(commandIds: string[]): Promise<Record<string, string>> {
         const rules = parseKeybindingsText(await this.readKeybindingsText());
@@ -183,16 +179,24 @@ export class KeybindingsService {
     public async updateCommandKeybindings(updates: CommandKeybindingUpdate[]): Promise<void> {
         const text = await this.readKeybindingsText();
         const updatedText = updateKeybindingsText(text, updates);
-        await vscode.workspace.fs.writeFile(keybindingsUri, new TextEncoder().encode(updatedText));
+        await this.writeKeybindingsText(updatedText);
     }
 
     public async openKeybindingsFile(): Promise<void> {
         await vscode.commands.executeCommand("workbench.action.openGlobalKeybindingsFile");
     }
 
+    private get userDataUri(): vscode.Uri {
+        return vscode.Uri.joinPath(this.context.globalStorageUri, "..", "..");
+    }
+
+    private get keybindingsUri(): vscode.Uri {
+        return vscode.Uri.joinPath(this.userDataUri, "keybindings.json");
+    }
+
     private async readKeybindingsText(): Promise<string> {
         try {
-            const bytes = await vscode.workspace.fs.readFile(keybindingsUri);
+            const bytes = await vscode.workspace.fs.readFile(this.keybindingsUri);
             return new TextDecoder("utf-8").decode(bytes);
         } catch (error) {
             if ((error as { code?: string }).code === "FileNotFound") {
@@ -200,5 +204,10 @@ export class KeybindingsService {
             }
             throw error;
         }
+    }
+
+    private async writeKeybindingsText(text: string): Promise<void> {
+        await vscode.workspace.fs.createDirectory(this.userDataUri);
+        await vscode.workspace.fs.writeFile(this.keybindingsUri, new TextEncoder().encode(text));
     }
 }
