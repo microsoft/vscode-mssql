@@ -364,6 +364,7 @@ export class LocConstants {
             query: l10n.t("Query"),
             shortcut: l10n.t("Shortcut"),
             autoExecute: l10n.t("Auto-execute"),
+            clearQuickQuery: l10n.t("Clear Quick Query"),
             queryDialogTitle: (name: string) =>
                 l10n.t({
                     message: "{0} query",

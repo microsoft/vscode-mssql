@@ -15,7 +15,12 @@ import {
     TabList,
     tokens,
 } from "@fluentui/react-components";
-import { Keyboard16Regular, Search16Regular, Settings24Regular } from "@fluentui/react-icons";
+import {
+    Dismiss16Regular,
+    Keyboard16Regular,
+    Search16Regular,
+    Settings24Regular,
+} from "@fluentui/react-icons";
 import {
     type Editor,
     type EditorArguments,
@@ -62,6 +67,7 @@ type ConfigurationTab = "queries" | "shortcuts";
 const quickQueryGridContainerId = "shortcutsQuickQueriesGridContainer";
 const quickQueryGridId = "shortcutsQuickQueriesGrid";
 const shortcutKeyboardIconMarkup = renderToStaticMarkup(<Keyboard16Regular aria-hidden />);
+const clearIconMarkup = renderToStaticMarkup(<Dismiss16Regular aria-hidden />);
 
 interface QuickQueryGridRow {
     id: number;
@@ -375,6 +381,33 @@ const useStyles = makeStyles({
         overflow: "hidden",
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
+    },
+    quickQueryClearButton: {
+        alignItems: "center",
+        backgroundColor: "transparent",
+        border: "none",
+        borderRadius: "2px",
+        color: "var(--vscode-icon-foreground)",
+        cursor: "pointer",
+        display: "inline-flex",
+        height: "24px",
+        justifyContent: "center",
+        padding: 0,
+        width: "24px",
+        ":hover": {
+            backgroundColor: "var(--vscode-toolbar-hoverBackground)",
+        },
+        ":focus": {
+            outlineColor: "var(--vscode-focusBorder)",
+            outlineOffset: "2px",
+            outlineStyle: "solid",
+            outlineWidth: "1px",
+        },
+        ":disabled": {
+            backgroundColor: "transparent",
+            color: "var(--vscode-disabledForeground)",
+            cursor: "default",
+        },
     },
     shortcutGroups: {
         display: "flex",
@@ -731,6 +764,42 @@ export const ShortcutsConfigurationPage = () => {
         [quickQueries, quickQueryKeybindings, saveWith, webviewShortcuts],
     );
 
+    const clearQuickQueryValues = useCallback(
+        (row: QuickQueryGridRow) => {
+            const hasValues =
+                row.query.trim().length > 0 ||
+                row.shortcut.trim().length > 0 ||
+                row.slot.executionMode !== QuickQueryExecutionMode.Open;
+            if (!hasValues) {
+                return;
+            }
+
+            const nextQuickQueries = quickQueries.map((slot, index) =>
+                index === row.index
+                    ? {
+                          ...slot,
+                          query: "",
+                          executionMode: QuickQueryExecutionMode.Open,
+                      }
+                    : slot,
+            );
+            const nextKeybindings = {
+                ...quickQueryKeybindings,
+                [row.commandId]: "",
+            };
+
+            setQuickQueries(nextQuickQueries);
+            setQuickQueryKeybindings(nextKeybindings);
+            localChangeVersionRef.current += 1;
+            hasLocalChangesRef.current = true;
+            saveWith(nextQuickQueries, nextKeybindings, webviewShortcuts, {
+                quickQueries: true,
+                quickQueryKeybindings: true,
+            });
+        },
+        [quickQueries, quickQueryKeybindings, saveWith, webviewShortcuts],
+    );
+
     const updateWebviewShortcut = useCallback(
         (action: WebviewAction, value: string) => {
             const nextShortcuts = {
@@ -934,8 +1003,40 @@ export const ShortcutsConfigurationPage = () => {
                     return cell;
                 },
             },
+            {
+                id: "clear",
+                name: loc.clearQuickQuery,
+                field: "id",
+                cssClass: classes.quickQueryCenteredCell,
+                excludeFromColumnPicker: true,
+                maxWidth: 46,
+                minWidth: 42,
+                width: 44,
+                formatter: (_row, _cell, _value, _column, row) => {
+                    const cell = createCell(classes.quickQueryCenteredCell);
+                    const button = document.createElement("button");
+                    const isEmpty =
+                        row.query.trim().length === 0 &&
+                        row.shortcut.trim().length === 0 &&
+                        row.slot.executionMode === QuickQueryExecutionMode.Open;
+                    button.type = "button";
+                    button.className = classes.quickQueryClearButton;
+                    button.disabled = isEmpty;
+                    button.title = loc.clearQuickQuery;
+                    button.setAttribute("aria-label", `${loc.clearQuickQuery}: ${row.name}`);
+                    button.innerHTML = clearIconMarkup;
+                    button.addEventListener("mousedown", (event) => event.stopPropagation());
+                    button.addEventListener("click", (event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        clearQuickQueryValues(row);
+                    });
+                    cell.append(button);
+                    return cell;
+                },
+            },
         ];
-    }, [classes, loc, updateQuickQuery]);
+    }, [classes, clearQuickQueryValues, loc, updateQuickQuery]);
 
     if (!context) {
         return null;

@@ -1073,6 +1073,9 @@
     <trans-unit id="++CODE++5776503c1a52f4fa028ff4c82b779bde7010023e3ae9f877c88156b673212e2e">
       <source xml:lang="en">Clear Filters</source>
     </trans-unit>
+    <trans-unit id="++CODE++fd72e4ccf0cf3552624160111216203503c35e6eed3088c3336018cc3f6c8df0">
+      <source xml:lang="en">Clear Quick Query</source>
+    </trans-unit>
     <trans-unit id="++CODE++08e2c4e53c4b3b6008b7bc4d82eb29ab933d3b6c08b34eda0637fbf148fb1529">
       <source xml:lang="en">Clear Recent Connections List</source>
     </trans-unit>
