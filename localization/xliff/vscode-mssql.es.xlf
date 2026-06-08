@@ -7656,6 +7656,10 @@ Consulta: {2}</target>
         <note>{0} is the SQL Server version</note>
         <target state="translated">SQL Server {0}: más reciente</target>
       </trans-unit>
+      <trans-unit id="++CODE++6a6bf6063fe6e46acf60d08c0ba2dba1d05dd22efb279588eeca536a4850299b">
+        <source xml:lang="en">SQL Tools (MSSQL)</source>
+        <target state="translated">Herramientas de SQL (MSSQL)</target>
+      </trans-unit>
       <trans-unit id="++CODE++9ae793c44500f6cd1d15d751baaa468f9cf94715473c5cab3bb2603f3c80e942">
         <source xml:lang="en">SQL database in Fabric</source>
         <target state="translated">Base de datos SQL en Fabric</target>
@@ -11212,6 +11216,10 @@ Empiece haciendo clic en el botón de filtro situado junto a la mayoría de las 
       <trans-unit id="mssql.profiler.xelEditorDisplayName">
         <source xml:lang="en">SQL Server Extended Events Log</source>
         <target state="translated">Registro de eventos extendidos de SQL Server</target>
+      </trans-unit>
+      <trans-unit id="mssql.sqlToolsMcp.serverLabel">
+        <source xml:lang="en">SQL Tools (MSSQL)</source>
+        <target state="translated">Herramientas de SQL (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.scriptAlter">
         <source xml:lang="en">Script as Alter</source>

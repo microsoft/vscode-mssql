@@ -20,7 +20,7 @@ export class MetadataQueryResult {
 // ------------------------------- < Metadata Events > ------------------------------------
 
 export namespace MetadataQueryRequest {
-    export const type = new RequestType<MetadataQueryParams, MetadataQueryResult, void, void>(
+    export const type = new RequestType<MetadataQueryParams, MetadataQueryResult, void>(
         "metadata/list",
     );
 }

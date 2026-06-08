@@ -4,16 +4,19 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import { LanguageClient, ServerOptions, TransportKind } from "vscode-languageclient/node";
 import {
-    LanguageClient,
+    type CloseHandlerResult,
     LanguageClientOptions,
-    ServerOptions,
-    TransportKind,
     RequestType,
     NotificationType,
     NotificationHandler,
+    type RequestHandler,
+    type RequestParam,
     ErrorAction,
+    type ErrorHandlerResult,
     CloseAction,
+    type Message,
 } from "vscode-languageclient";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as Utils from "../models/utils";
@@ -48,13 +51,6 @@ type ServiceLaunchType =
     | "portableInstalled"
     | "portableDownloaded"
     | "platformDownloaded";
-
-/**
- * @interface IMessage
- */
-interface IMessage {
-    jsonrpc: string;
-}
 
 /**
  * Handle Language Service client errors
@@ -96,12 +92,16 @@ export class LanguageClientErrorHandler {
      *
      * @memberOf LanguageClientErrorHandler
      */
-    error(error: Error, _message: IMessage, _count: number): ErrorAction {
+    error(
+        error: Error,
+        _message: Message | undefined,
+        _count: number | undefined,
+    ): ErrorHandlerResult {
         this.showOnErrorPrompt(getErrorMessage(error));
 
         // we don't retry running the service since crashes leave the extension
         // in a bad, unrecovered state
-        return ErrorAction.Shutdown;
+        return { action: ErrorAction.Shutdown, handled: true };
     }
 
     /**
@@ -111,12 +111,12 @@ export class LanguageClientErrorHandler {
      *
      * @memberOf LanguageClientErrorHandler
      */
-    closed(): CloseAction {
+    closed(): CloseHandlerResult {
         this.showOnErrorPrompt("The service process was unexpectedly closed.");
 
         // we don't retry running the service since crashes leave the extension
         // in a bad, unrecovered state
-        return CloseAction.DoNotRestart;
+        return { action: CloseAction.DoNotRestart, handled: true };
     }
 }
 
@@ -215,7 +215,6 @@ export default class SqlToolsServiceClient {
         const launchServer = async (serverInstallFolder: string, runtime: Runtime) => {
             this._sqlToolsServicePath = serverInstallFolder;
             await this.initializeLanguageClient(serverInstallFolder, runtime, context);
-            await this._client.onReady();
         };
 
         /**
@@ -392,16 +391,22 @@ export default class SqlToolsServiceClient {
         this._resourceClient = await this.createResourceClient(resourceProviderServicePath);
 
         if (context !== undefined) {
-            // Create the language client and start the client.
-            let disposable = this.client.start();
-
-            // Start the resource client
-            let resourceDisposable = this._resourceClient.start();
+            // Create the language clients and start them.
+            await this.client.start();
+            await this._resourceClient.start();
 
             // Push the disposable to the context's subscriptions so that the
             // client can be deactivated on extension deactivation
-            context.subscriptions.push(disposable);
-            context.subscriptions.push(resourceDisposable);
+            context.subscriptions.push({
+                dispose: () => {
+                    void this.client.stop();
+                },
+            });
+            context.subscriptions.push({
+                dispose: () => {
+                    void this._resourceClient.stop();
+                },
+            });
         }
     }
 
@@ -446,12 +451,10 @@ export default class SqlToolsServiceClient {
             serverOptions,
             clientOptions,
         );
-        void client.onReady().then(() => {
-            client.onNotification(
-                LanguageServiceContracts.StatusChangedNotification.type,
-                this.handleLanguageServiceStatusNotification(),
-            );
-        });
+        client.onNotification(
+            LanguageServiceContracts.StatusChangedNotification.type,
+            this.handleLanguageServiceStatusNotification(),
+        );
 
         return client;
     }
@@ -646,10 +649,13 @@ export default class SqlToolsServiceClient {
      * @param params The params to pass with the request
      * @returns A thenable object for when the request receives a response
      */
-    public sendRequest<P, R, E, R0>(type: RequestType<P, R, E, R0>, params?: P): Thenable<R> {
+    public sendRequest<P, R, E>(type: RequestType<P, R, E>, params?: P): Thenable<R> {
         if (this.client !== undefined) {
-            return this.client.sendRequest(type, params);
+            return this.client.sendRequest(type, params as RequestParam<P>);
         }
+        return Promise.reject(
+            new Error("Cannot send request before the language client is initialized"),
+        );
     }
 
     /**
@@ -658,13 +664,13 @@ export default class SqlToolsServiceClient {
      * @param params The params to pass with the request
      * @returns A thenable object for when the request receives a response
      */
-    public sendResourceRequest<P, R, E, R0>(
-        type: RequestType<P, R, E, R0>,
-        params?: P,
-    ): Thenable<R> {
+    public sendResourceRequest<P, R, E>(type: RequestType<P, R, E>, params?: P): Thenable<R> {
         if (this._resourceClient !== undefined) {
-            return this._resourceClient.sendRequest(type, params);
+            return this._resourceClient.sendRequest(type, params as RequestParam<P>);
         }
+        return Promise.reject(
+            new Error("Cannot send resource request before the resource client is initialized"),
+        );
     }
 
     /**
@@ -672,10 +678,13 @@ export default class SqlToolsServiceClient {
      * @param type The notification type to send
      * @param params The params to pass with the notification
      */
-    public sendNotification<P, R0>(type: NotificationType<P, R0>, params?: P): void {
+    public sendNotification<P>(type: NotificationType<P>, params?: P): Thenable<void> {
         if (this.client !== undefined) {
-            this.client.sendNotification(type, params);
+            return this.client.sendNotification(type, params as RequestParam<P>);
         }
+        return Promise.reject(
+            new Error("Cannot send notification before the language client is initialized"),
+        );
     }
 
     /**
@@ -683,13 +692,14 @@ export default class SqlToolsServiceClient {
      * @param type The notification type to register the handler for
      * @param handler The handler to register
      */
-    public onNotification<P, R0>(
-        type: NotificationType<P, R0>,
+    public onNotification<P>(
+        type: NotificationType<P>,
         handler: NotificationHandler<P>,
-    ): void {
+    ): vscode.Disposable {
         if (this._client !== undefined) {
             return this.client.onNotification(type, handler);
         }
+        return { dispose: () => {} };
     }
 
     /**
@@ -698,12 +708,13 @@ export default class SqlToolsServiceClient {
      * @param handler The handler to register
      * @returns void
      */
-    public onRequest<P, R, E, R0>(
-        type: RequestType<P, R, E, R0>,
+    public onRequest<P, R, E>(
+        type: RequestType<P, R, E>,
         handler: (params: P) => Thenable<R> | R,
-    ): void {
+    ): vscode.Disposable {
         if (this._client !== undefined) {
-            return this.client.onRequest(type, handler);
+            return this.client.onRequest(type, handler as RequestHandler<P, R, E>);
         }
+        return { dispose: () => {} };
     }
 }

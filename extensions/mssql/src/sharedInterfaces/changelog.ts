@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { RequestType } from "vscode-jsonrpc/browser";
+import { RequestType } from "vscode-jsonrpc";
 import { Icons } from "./icons";
 
 export interface ChangelogWebviewState {
