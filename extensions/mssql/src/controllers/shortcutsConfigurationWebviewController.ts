@@ -11,10 +11,12 @@ import { KeybindingsService } from "../keybindings/keybindingsService";
 import { WebviewAction } from "../sharedInterfaces/webview";
 import {
     getQuickQueryCommandId,
+    ReadClipboardTextRequest,
     ShortcutsConfigurationReducers,
     ShortcutsConfigurationWebviewState,
     normalizeQuickQueries,
     quickQueryCount,
+    WriteClipboardTextRequest,
 } from "../sharedInterfaces/shortcutsConfiguration";
 import { WebviewPanelController } from "./webviewPanelController";
 import VscodeWrapper from "./vscodeWrapper";
@@ -90,6 +92,14 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
                 this.panel.dispose();
             }
             return nextState;
+        });
+
+        this.onRequest(ReadClipboardTextRequest.type, async () => {
+            return await vscode.env.clipboard.readText();
+        });
+
+        this.onRequest(WriteClipboardTextRequest.type, async (text) => {
+            await vscode.env.clipboard.writeText(text);
         });
     }
 

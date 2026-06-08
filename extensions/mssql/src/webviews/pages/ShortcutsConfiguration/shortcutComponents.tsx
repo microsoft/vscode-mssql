@@ -3,7 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useEffect, useRef, useState } from "react";
+import {
+    type ClipboardEvent as ReactClipboardEvent,
+    type KeyboardEvent as ReactKeyboardEvent,
+    useCallback,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
 import {
     Button,
     Dialog,
@@ -14,21 +21,20 @@ import {
     DialogTitle,
     Field,
     Input,
-    Link,
+    makeStyles,
+    mergeClasses,
+    MessageBar,
+    MessageBarBody,
     Spinner,
+    Text,
     Tooltip,
+    tokens,
 } from "@fluentui/react-components";
-import { Checkmark12Regular, Keyboard24Regular } from "@fluentui/react-icons";
-import { CollapsibleSection } from "../../common/collapsibleSection";
+import { Checkmark12Regular, Keyboard16Regular } from "@fluentui/react-icons";
 import { locConstants } from "../../common/locConstants";
-import { SegmentedControl } from "../../common/segmentedControl";
 import { VscodeEditor } from "../../common/vscodeMonaco";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
-import {
-    QuickQueryConnectionMode,
-    QuickQueryExecutionMode,
-    QuickQuerySlot,
-} from "../../../sharedInterfaces/shortcutsConfiguration";
+import { QuickQuerySlot } from "../../../sharedInterfaces/shortcutsConfiguration";
 import { ShortcutItem } from "./shortcutDefinitions";
 import {
     formatShortcut,
@@ -38,23 +44,316 @@ import {
 
 export type SaveState = "idle" | "saving" | "saved";
 
-const executionOptions = [
-    { value: QuickQueryExecutionMode.Open, labelKey: "openOnly" },
-    { value: QuickQueryExecutionMode.OpenAndRun, labelKey: "openAndRun" },
-] as const;
+const controlHeight = "30px";
+const monoFont = "var(--vscode-editor-font-family, 'Cascadia Code', 'Fira Code', monospace)";
+type MonacoEditor = import("monaco-editor").editor.IStandaloneCodeEditor;
+type MonacoRange = import("monaco-editor").IRange;
 
-const connectionOptions = [
-    { value: QuickQueryConnectionMode.Prompt, labelKey: "prompt" },
-    { value: QuickQueryConnectionMode.ActiveOrPrompt, labelKey: "activeOrPrompt" },
-] as const;
+interface CutEdit {
+    range: MonacoRange;
+    clipboardText: string;
+}
+
+function isPasteShortcut(event: ReactKeyboardEvent<HTMLElement>): boolean {
+    return (event.metaKey || event.ctrlKey) && !event.altKey && event.key.toLowerCase() === "v";
+}
+
+function isCutShortcut(event: ReactKeyboardEvent<HTMLElement>): boolean {
+    return (event.metaKey || event.ctrlKey) && !event.altKey && event.key.toLowerCase() === "x";
+}
+
+function insertTextIntoEditor(editor: MonacoEditor, text: string): void {
+    if (!text) {
+        return;
+    }
+
+    const selections = editor.getSelections();
+    if (!selections?.length) {
+        return;
+    }
+
+    editor.pushUndoStop();
+    editor.executeEdits(
+        "shortcutsConfigurationPaste",
+        selections.map((range) => ({
+            range,
+            text,
+            forceMoveMarkers: true,
+        })),
+    );
+    editor.pushUndoStop();
+}
+
+function getCutEdits(editor: MonacoEditor): CutEdit[] {
+    const model = editor.getModel();
+    const selections = editor.getSelections();
+    if (!model || !selections?.length) {
+        return [];
+    }
+
+    return selections.flatMap((selection) => {
+        if (!selection.isEmpty()) {
+            return [
+                {
+                    range: selection,
+                    clipboardText: model.getValueInRange(selection),
+                },
+            ];
+        }
+
+        const lineNumber = selection.startLineNumber;
+        const lineCount = model.getLineCount();
+        if (lineNumber < lineCount) {
+            const range = {
+                startLineNumber: lineNumber,
+                startColumn: 1,
+                endLineNumber: lineNumber + 1,
+                endColumn: 1,
+            };
+            return [
+                {
+                    range,
+                    clipboardText: model.getValueInRange(range),
+                },
+            ];
+        }
+
+        const lineMaxColumn = model.getLineMaxColumn(lineNumber);
+        const clipboardText =
+            lineCount > 1
+                ? `${model.getLineContent(lineNumber)}${model.getEOL()}`
+                : model.getValue();
+        const range =
+            lineNumber > 1
+                ? {
+                      startLineNumber: lineNumber - 1,
+                      startColumn: model.getLineMaxColumn(lineNumber - 1),
+                      endLineNumber: lineNumber,
+                      endColumn: lineMaxColumn,
+                  }
+                : {
+                      startLineNumber: lineNumber,
+                      startColumn: 1,
+                      endLineNumber: lineNumber,
+                      endColumn: lineMaxColumn,
+                  };
+
+        return [
+            {
+                range,
+                clipboardText,
+            },
+        ];
+    });
+}
+
+function deleteCutEdits(editor: MonacoEditor, edits: CutEdit[]): void {
+    if (edits.length === 0) {
+        return;
+    }
+
+    editor.pushUndoStop();
+    editor.executeEdits(
+        "shortcutsConfigurationCut",
+        edits.map((edit) => ({
+            range: edit.range,
+            text: "",
+            forceMoveMarkers: true,
+        })),
+    );
+    editor.pushUndoStop();
+}
+
+const useStyles = makeStyles({
+    saveIndicator: {
+        alignItems: "center",
+        color: "var(--vscode-descriptionForeground)",
+        display: "flex",
+        fontSize: tokens.fontSizeBase100,
+        gap: "6px",
+    },
+    saveIndicatorSaved: {
+        color: "var(--vscode-testing-iconPassed, var(--vscode-charts-green))",
+    },
+    queryDialog: {
+        maxWidth: "calc(100vw - 64px)",
+        outlineStyle: "none",
+        width: "900px",
+        "@media (max-width: 640px)": {
+            maxWidth: "calc(100vw - 24px)",
+        },
+    },
+    queryDialogContent: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+        width: "100%",
+    },
+    field: {
+        color: "var(--vscode-descriptionForeground)",
+        display: "flex",
+        flexDirection: "column",
+        fontSize: tokens.fontSizeBase100,
+        fontWeight: tokens.fontWeightSemibold,
+        gap: "5px",
+        minWidth: 0,
+    },
+    monacoShell: {
+        border: "1px solid var(--vscode-input-border, var(--vscode-editorGroup-border))",
+        borderRadius: "6px",
+        height: "420px",
+        overflow: "hidden",
+        ":focus-within": {
+            borderBottomColor: "var(--vscode-focusBorder)",
+            borderLeftColor: "var(--vscode-focusBorder)",
+            borderRightColor: "var(--vscode-focusBorder)",
+            borderTopColor: "var(--vscode-focusBorder)",
+        },
+    },
+    shortcutInput: {
+        cursor: "pointer",
+        height: controlHeight,
+        maxWidth: "260px",
+        minWidth: "190px",
+        width: "232px",
+        "& input": {
+            cursor: "pointer",
+            fontFamily: monoFont,
+            userSelect: "none",
+        },
+    },
+    shortcutInputEmpty: {
+        "& input": {
+            color: "var(--vscode-disabledForeground)",
+        },
+    },
+    shortcutInputIcon: {
+        color: "var(--vscode-descriptionForeground)",
+        display: "flex",
+    },
+    webviewShortcutRow: {
+        alignItems: "center",
+        borderBottom: "1px solid var(--vscode-editorGroup-border)",
+        display: "grid",
+        gap: "20px",
+        gridTemplateColumns: "minmax(0, 1fr) auto",
+        padding: "10px 0",
+        ":last-child": {
+            borderBottom: "none",
+        },
+        "@media (max-width: 640px)": {
+            gridTemplateColumns: "1fr",
+        },
+    },
+    rowLabel: {
+        color: "var(--vscode-foreground)",
+        display: "block",
+        fontSize: tokens.fontSizeBase200,
+        fontWeight: tokens.fontWeightSemibold,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+    },
+    rowDescription: {
+        color: "var(--vscode-descriptionForeground)",
+        display: "block",
+        fontSize: tokens.fontSizeBase200,
+        lineHeight: tokens.lineHeightBase300,
+    },
+    recorder: {
+        maxWidth: "100%",
+        outlineStyle: "none",
+        width: "420px",
+    },
+    recorderSubtitle: {
+        color: "var(--vscode-descriptionForeground)",
+        fontSize: tokens.fontSizeBase200,
+        lineHeight: tokens.lineHeightBase300,
+        marginTop: "4px",
+    },
+    recorderBody: {
+        alignItems: "center",
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+        padding: "20px 0 4px",
+    },
+    keyInput: {
+        alignItems: "center",
+        backgroundColor:
+            "var(--vscode-settings-textInputBackground, var(--vscode-input-background))",
+        border: "1px solid var(--vscode-settings-textInputBorder, var(--vscode-input-border, transparent))",
+        borderRadius: "2px",
+        boxSizing: "border-box",
+        display: "flex",
+        justifyContent: "center",
+        minHeight: controlHeight,
+        padding: "4px 10px",
+        position: "relative",
+        transitionProperty: "border-color",
+        transitionDuration: "0.1s",
+        transitionTimingFunction: "ease-in-out",
+        width: "100%",
+    },
+    keyInputContent: {
+        alignItems: "center",
+        display: "flex",
+        justifyContent: "center",
+        minWidth: 0,
+        paddingLeft: controlHeight,
+        paddingRight: controlHeight,
+        width: "100%",
+    },
+    keyInputRecording: {
+        borderBottomColor: "var(--vscode-focusBorder)",
+        borderLeftColor: "var(--vscode-focusBorder)",
+        borderRightColor: "var(--vscode-focusBorder)",
+        borderTopColor: "var(--vscode-focusBorder)",
+    },
+    keyCaret: {
+        backgroundColor: "var(--vscode-editorCursor-foreground, var(--vscode-foreground))",
+        display: "inline-block",
+        height: "18px",
+        width: "2px",
+    },
+    keyBadges: {
+        alignItems: "center",
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "4px",
+        justifyContent: "center",
+    },
+    keyBadge: {
+        backgroundColor: "var(--vscode-keybindingLabel-background, var(--vscode-badge-background))",
+        border: "1px solid var(--vscode-keybindingLabel-border, transparent)",
+        borderBottomColor:
+            "var(--vscode-keybindingLabel-bottomBorder, var(--vscode-keybindingLabel-border, transparent))",
+        borderRadius: "3px",
+        boxShadow: "inset 0 -1px 0 var(--vscode-keybindingLabel-bottomBorder, transparent)",
+        color: "var(--vscode-keybindingLabel-foreground, var(--vscode-foreground))",
+        fontFamily: "inherit",
+        fontSize: tokens.fontSizeBase100,
+        lineHeight: "1",
+        padding: "3px 6px",
+    },
+    warning: {
+        width: "100%",
+    },
+});
 
 export const SaveIndicator = ({ state }: { state: SaveState }) => {
+    const classes = useStyles();
+
     if (state === "idle") {
-        return null;
+        return undefined;
     }
 
     return (
-        <div className="mssql-config-save-indicator">
+        <div
+            className={mergeClasses(
+                classes.saveIndicator,
+                state === "saved" && classes.saveIndicatorSaved,
+            )}>
             {state === "saving" ? (
                 <>
                     <Spinner size="tiny" />
@@ -70,129 +369,147 @@ export const SaveIndicator = ({ state }: { state: SaveState }) => {
     );
 };
 
+function readModifiers(event: KeyboardEvent): string[] {
+    const parts: string[] = [];
+    if (event.ctrlKey) {
+        parts.push("ctrl");
+    }
+    if (event.metaKey) {
+        parts.push("cmd");
+    }
+    if (event.altKey) {
+        parts.push("alt");
+    }
+    if (event.shiftKey) {
+        parts.push("shift");
+    }
+    return parts;
+}
+
 export const ShortcutRecorder = ({
-    current,
     onSave,
     onClose,
+    findConflict,
 }: {
-    current: string;
     onSave: (value: string) => void;
     onClose: () => void;
+    findConflict?: (value: string) => string | undefined;
 }) => {
-    const [recording, setRecording] = useState(true);
+    const classes = useStyles();
     const [preview, setPreview] = useState("");
+    const [liveModifiers, setLiveModifiers] = useState<string[]>([]);
+    const surfaceRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
-        if (!recording) {
-            return undefined;
-        }
+        surfaceRef.current?.focus();
+    }, []);
 
-        const onKeyDown = (event: KeyboardEvent) => {
+    const onKeyDownCapture = useCallback(
+        (event: ReactKeyboardEvent<HTMLDivElement>) => {
             event.preventDefault();
             event.stopPropagation();
 
-            if (event.key === "Escape") {
-                setRecording(false);
-                setPreview(current);
+            if (event.key === "Enter") {
+                if (!preview.trim() || !findConflict?.(preview)) {
+                    onSave(preview);
+                    onClose();
+                }
                 return;
             }
 
-            const shortcut = shortcutFromKeyboardEvent(event);
+            if (event.key === "Escape") {
+                if (!preview.trim() && liveModifiers.length === 0) {
+                    onClose();
+                    return;
+                }
+
+                setPreview("");
+                setLiveModifiers([]);
+                return;
+            }
+
+            setLiveModifiers(readModifiers(event.nativeEvent));
+
+            const shortcut = shortcutFromKeyboardEvent(event.nativeEvent);
             if (shortcut) {
                 setPreview(shortcut);
-                setRecording(false);
+                setLiveModifiers([]);
             }
-        };
+        },
+        [findConflict, liveModifiers.length, onClose, onSave, preview],
+    );
 
-        window.addEventListener("keydown", onKeyDown, true);
-        return () => window.removeEventListener("keydown", onKeyDown, true);
-    }, [current, recording]);
+    const onKeyUpCapture = useCallback((event: ReactKeyboardEvent<HTMLDivElement>) => {
+        setLiveModifiers(readModifiers(event.nativeEvent));
+    }, []);
 
     const hasPreview = preview.trim().length > 0;
+    const displayValue = preview || liveModifiers.join("+");
+    const tokens = formatShortcut(displayValue)
+        .split("+")
+        .map((token) => token.trim())
+        .filter((token) => token.length > 0);
+    const conflictTarget = hasPreview ? findConflict?.(preview) : undefined;
 
     return (
         <Dialog open modalType="modal">
-            <DialogSurface className="mssql-config-recorder">
+            <DialogSurface
+                ref={surfaceRef}
+                className={classes.recorder}
+                aria-label={locConstants.shortcutsConfiguration.recordShortcut}
+                tabIndex={-1}
+                onKeyDownCapture={onKeyDownCapture}
+                onKeyUpCapture={onKeyUpCapture}>
                 <DialogBody>
-                    <DialogTitle>{locConstants.shortcutsConfiguration.recordShortcut}</DialogTitle>
                     <DialogContent>
-                        <div className="mssql-config-recorder-subtitle">
+                        <Text size={200} className={classes.recorderSubtitle}>
                             {locConstants.shortcutsConfiguration.recordShortcutDescription}
-                        </div>
-                        <div className="mssql-config-recorder-body">
+                        </Text>
+                        <div className={classes.recorderBody}>
                             <div
-                                className={`mssql-config-key-display ${
-                                    recording
-                                        ? "mssql-config-key-display-recording"
-                                        : hasPreview
-                                          ? "mssql-config-key-display-done"
-                                          : ""
-                                }`}>
-                                {recording ? (
-                                    <div className="mssql-config-recording-copy">
-                                        <Spinner size="tiny" />
-                                        <span>
-                                            {locConstants.shortcutsConfiguration.recordingShortcut}
-                                        </span>
-                                    </div>
-                                ) : hasPreview ? (
-                                    <span className="mssql-config-shortcut-preview">
-                                        {formatShortcut(preview)}
-                                    </span>
-                                ) : (
-                                    <span className="mssql-config-empty">
-                                        {locConstants.shortcutsConfiguration.noShortcut}
-                                    </span>
-                                )}
+                                className={mergeClasses(
+                                    classes.keyInput,
+                                    classes.keyInputRecording,
+                                )}>
+                                <div className={classes.keyInputContent}>
+                                    {tokens.length > 0 ? (
+                                        <div className={classes.keyBadges}>
+                                            {tokens.map((token, index) => (
+                                                <kbd
+                                                    key={`${token}-${index}`}
+                                                    className={classes.keyBadge}>
+                                                    {token}
+                                                </kbd>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <span
+                                            className={classes.keyCaret}
+                                            role="img"
+                                            aria-label={
+                                                locConstants.shortcutsConfiguration
+                                                    .recordingShortcut
+                                            }
+                                        />
+                                    )}
+                                </div>
                             </div>
-                            {hasPreview && !recording && (
-                                <Link
-                                    as="button"
-                                    onClick={() => {
-                                        setPreview("");
-                                        setRecording(true);
-                                    }}>
-                                    {locConstants.shortcutsConfiguration.rerecord}
-                                </Link>
+                            {conflictTarget && (
+                                <MessageBar intent="warning" className={classes.warning}>
+                                    <MessageBarBody>
+                                        {locConstants.shortcutsConfiguration.shortcutConflict(
+                                            conflictTarget,
+                                        )}
+                                    </MessageBarBody>
+                                </MessageBar>
                             )}
                         </div>
                     </DialogContent>
-                    <DialogActions>
-                        <Button appearance="secondary" onClick={onClose}>
-                            {locConstants.common.cancel}
-                        </Button>
-                        {hasPreview ? (
-                            <Button
-                                appearance="primary"
-                                onClick={() => {
-                                    onSave(preview);
-                                    onClose();
-                                }}>
-                                {locConstants.common.save}
-                            </Button>
-                        ) : (
-                            <Button
-                                appearance="secondary"
-                                style={{ whiteSpace: "nowrap" }}
-                                onClick={() => {
-                                    onSave("");
-                                    onClose();
-                                }}>
-                                {locConstants.shortcutsConfiguration.clearShortcut}
-                            </Button>
-                        )}
-                    </DialogActions>
                 </DialogBody>
             </DialogSurface>
         </Dialog>
     );
 };
-
-export const ShortcutDisplay = ({ value }: { value: string }) => (
-    <div className={`mssql-config-shortcut-display ${value ? "" : "mssql-config-empty"}`}>
-        {formatShortcut(value) || locConstants.shortcutsConfiguration.noShortcut}
-    </div>
-);
 
 export const ShortcutChip = ({
     value,
@@ -202,160 +519,264 @@ export const ShortcutChip = ({
     value: string;
     onRecord: () => void;
     recordLabel: string;
-}) => (
-    <div className="mssql-config-shortcut-chip-row">
-        <ShortcutDisplay value={value} />
+}) => {
+    const classes = useStyles();
+    const displayValue = formatShortcut(value) || locConstants.shortcutsConfiguration.noShortcut;
+
+    const onKeyDown = useCallback(
+        (event: ReactKeyboardEvent<HTMLInputElement>) => {
+            if (event.key !== "Enter" && event.key !== " ") {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+            onRecord();
+        },
+        [onRecord],
+    );
+
+    return (
         <Tooltip content={recordLabel} relationship="label">
-            <Button
-                appearance="secondary"
-                icon={<Keyboard24Regular />}
+            <Input
                 aria-label={recordLabel}
+                className={mergeClasses(
+                    classes.shortcutInput,
+                    !value && classes.shortcutInputEmpty,
+                )}
+                contentAfter={
+                    <Keyboard16Regular aria-hidden className={classes.shortcutInputIcon} />
+                }
+                readOnly
+                title={displayValue}
+                value={displayValue}
                 onClick={onRecord}
+                onKeyDown={onKeyDown}
             />
         </Tooltip>
-    </div>
-);
+    );
+};
 
-export const QuickQueryRow = ({
+export const QuickQueryEditorDialog = ({
     slot,
-    shortcut,
-    expanded,
-    onToggle,
-    onChange,
-    onRecord,
+    open,
+    onClose,
+    onSave,
+    readClipboardText,
+    writeClipboardText,
     themeKind,
     loc,
 }: {
     slot: QuickQuerySlot;
-    shortcut: string;
-    expanded: boolean;
-    onToggle: () => void;
-    onChange: (value: QuickQuerySlot, shouldSave?: boolean) => void;
-    onRecord: () => void;
+    open: boolean;
+    onClose: () => void;
+    onSave: (query: string) => void;
+    readClipboardText: () => Promise<string>;
+    writeClipboardText: (text: string) => Promise<void>;
     themeKind: ColorThemeKind;
     loc: typeof locConstants.shortcutsConfiguration;
 }) => {
-    const slotRef = useRef(slot);
-    const onChangeRef = useRef(onChange);
-    slotRef.current = slot;
-    onChangeRef.current = onChange;
+    const classes = useStyles();
+    const draftRef = useRef(slot.query);
+    const editorRef = useRef<MonacoEditor | null>(null);
 
-    const query = slot.query.trim();
-    const preview = query.length > 60 ? `${query.slice(0, 60)}...` : query;
+    useEffect(() => {
+        if (open) {
+            draftRef.current = slot.query;
+            editorRef.current?.setValue(slot.query);
+            window.requestAnimationFrame(() => editorRef.current?.focus());
+        }
+    }, [open, slot.query]);
+
+    const pasteIntoEditor = useCallback(async () => {
+        const editor = editorRef.current;
+        if (!editor) {
+            return;
+        }
+
+        let clipboardText = "";
+        try {
+            clipboardText = await readClipboardText();
+        } catch {
+            try {
+                clipboardText = await navigator.clipboard.readText();
+            } catch {
+                clipboardText = "";
+            }
+        }
+
+        insertTextIntoEditor(editor, clipboardText);
+        draftRef.current = editor.getValue();
+        editor.focus();
+    }, [readClipboardText]);
+
+    const cutFromEditor = useCallback(async () => {
+        const editor = editorRef.current;
+        if (!editor) {
+            return;
+        }
+
+        const edits = getCutEdits(editor);
+        const clipboardText = edits.map((edit) => edit.clipboardText).join("");
+        if (!clipboardText) {
+            return;
+        }
+
+        try {
+            await writeClipboardText(clipboardText);
+        } catch {
+            try {
+                await navigator.clipboard.writeText(clipboardText);
+            } catch {
+                return;
+            }
+        }
+
+        deleteCutEdits(editor, edits);
+        draftRef.current = editor.getValue();
+        editor.focus();
+    }, [writeClipboardText]);
+
+    const onEditorKeyDownCapture = useCallback(
+        (event: ReactKeyboardEvent<HTMLDivElement>) => {
+            if (!isPasteShortcut(event) && !isCutShortcut(event)) {
+                return;
+            }
+
+            const editor = editorRef.current;
+            if (!editor?.hasTextFocus()) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+            if (isPasteShortcut(event)) {
+                void pasteIntoEditor();
+            } else {
+                void cutFromEditor();
+            }
+        },
+        [cutFromEditor, pasteIntoEditor],
+    );
+
+    const onEditorPasteCapture = useCallback((event: ReactClipboardEvent<HTMLDivElement>) => {
+        const editor = editorRef.current;
+        if (!editor?.hasTextFocus()) {
+            return;
+        }
+
+        const clipboardText = event.clipboardData.getData("text/plain");
+        if (!clipboardText) {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+        insertTextIntoEditor(editor, clipboardText);
+        draftRef.current = editor.getValue();
+        editor.focus();
+    }, []);
+
+    const onEditorCutCapture = useCallback(
+        (event: ReactClipboardEvent<HTMLDivElement>) => {
+            const editor = editorRef.current;
+            if (!editor?.hasTextFocus()) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+            void cutFromEditor();
+        },
+        [cutFromEditor],
+    );
 
     return (
-        <CollapsibleSection
-            className="mssql-config-query-row"
-            buttonClassName="mssql-config-query-summary"
-            panelClassName="mssql-config-query-editor"
-            open={expanded}
-            onOpenChange={onToggle}
-            title={
-                <span className="mssql-config-query-summary-content">
-                    <span className="mssql-config-query-title">
-                        <span>{slot.name}</span>
-                        {preview ? (
-                            <span className="mssql-config-query-preview">{preview}</span>
-                        ) : (
-                            <span className="mssql-config-query-empty">{loc.noQuerySet}</span>
-                        )}
-                    </span>
-                    <ShortcutDisplay value={shortcut} />
-                </span>
-            }>
-            <Field className="mssql-config-field mssql-config-name-field" label={loc.name}>
-                <Input
-                    value={slot.name}
-                    onChange={(_event, data) =>
-                        onChange({
-                            ...slot,
-                            name: data.value,
-                        })
-                    }
-                />
-            </Field>
-            <div className="mssql-config-controls-row">
-                <Field
-                    className="mssql-config-field mssql-config-shortcut-field"
-                    label={loc.shortcut}>
-                    <ShortcutChip
-                        value={shortcut}
-                        onRecord={onRecord}
-                        recordLabel={`${loc.recordShortcut}: ${slot.name}`}
-                    />
-                </Field>
-                <Field className="mssql-config-field" label={loc.execution}>
-                    <SegmentedControl<QuickQueryExecutionMode>
-                        className="mssql-config-segmented-control"
-                        value={slot.executionMode}
-                        ariaLabel={loc.execution}
-                        options={executionOptions.map((option) => ({
-                            value: option.value,
-                            label: loc[option.labelKey],
-                        }))}
-                        onValueChange={(value) =>
-                            onChange({
-                                ...slot,
-                                executionMode: value,
-                            })
-                        }
-                    />
-                </Field>
-                <Field className="mssql-config-field" label={loc.connection}>
-                    <SegmentedControl<QuickQueryConnectionMode>
-                        className="mssql-config-segmented-control"
-                        value={slot.connectionMode}
-                        ariaLabel={loc.connection}
-                        options={connectionOptions.map((option) => ({
-                            value: option.value,
-                            label: loc[option.labelKey],
-                        }))}
-                        onValueChange={(value) =>
-                            onChange({
-                                ...slot,
-                                connectionMode: value,
-                            })
-                        }
-                    />
-                </Field>
-            </div>
-            <Field className="mssql-config-field" label={loc.query}>
-                <div className="mssql-config-monaco-shell">
-                    <VscodeEditor
-                        height="100%"
-                        width="100%"
-                        language="sql"
-                        themeKind={themeKind}
-                        value={slot.query}
-                        options={{
-                            minimap: { enabled: false },
-                            scrollBeyondLastLine: false,
-                            wordWrap: "on",
-                            lineNumbers: "on",
-                            glyphMargin: false,
-                            folding: false,
-                            lineDecorationsWidth: 8,
-                            overviewRulerLanes: 0,
-                            renderLineHighlight: "line",
-                            automaticLayout: true,
-                        }}
-                        onChange={(value) => onChange({ ...slot, query: value ?? "" }, false)}
-                        onMount={(editor) => {
-                            const disposable = editor.onDidBlurEditorWidget(() => {
-                                onChangeRef.current(
-                                    {
-                                        ...slotRef.current,
-                                        query: editor.getValue(),
-                                    },
-                                    true,
-                                );
-                            });
-                            editor.onDidDispose(() => disposable.dispose());
-                        }}
-                    />
-                </div>
-            </Field>
-        </CollapsibleSection>
+        <Dialog
+            open={open}
+            modalType="modal"
+            onOpenChange={(_event, data) => {
+                if (!data.open) {
+                    onClose();
+                }
+            }}>
+            <DialogSurface className={classes.queryDialog}>
+                <DialogBody>
+                    <DialogTitle>{loc.queryDialogTitle(slot.name)}</DialogTitle>
+                    <DialogContent className={classes.queryDialogContent}>
+                        <Field className={classes.field} label={loc.query}>
+                            <div
+                                className={classes.monacoShell}
+                                onKeyDownCapture={onEditorKeyDownCapture}
+                                onCutCapture={onEditorCutCapture}
+                                onPasteCapture={onEditorPasteCapture}
+                                data-tabster='{"focusable": {"ignoreKeydown": {"Tab": true}}, "uncontrolled": {}}'>
+                                <VscodeEditor
+                                    height="100%"
+                                    width="100%"
+                                    language="sql"
+                                    themeKind={themeKind}
+                                    defaultValue={slot.query}
+                                    options={{
+                                        minimap: { enabled: false },
+                                        scrollBeyondLastLine: false,
+                                        wordWrap: "on",
+                                        lineNumbers: "on",
+                                        glyphMargin: false,
+                                        folding: true,
+                                        lineDecorationsWidth: 8,
+                                        overviewRulerLanes: 0,
+                                        renderLineHighlight: "line",
+                                        automaticLayout: true,
+                                        pasteAs: { enabled: false },
+                                        dropIntoEditor: { enabled: false },
+                                        tabFocusMode: false,
+                                        ariaLabel: loc.queryEditorAriaLabel(slot.name),
+                                    }}
+                                    onChange={(value) => {
+                                        draftRef.current = value ?? "";
+                                    }}
+                                    onMount={(editor, monaco) => {
+                                        editor.addCommand(
+                                            monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyV,
+                                            () => {
+                                                void pasteIntoEditor();
+                                            },
+                                        );
+                                        editor.addCommand(
+                                            monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyX,
+                                            () => {
+                                                void cutFromEditor();
+                                            },
+                                        );
+                                        editorRef.current = editor;
+                                        draftRef.current = editor.getValue();
+                                        editor.focus();
+                                        editor.onDidDispose(() => {
+                                            if (editorRef.current === editor) {
+                                                editorRef.current = null;
+                                            }
+                                        });
+                                    }}
+                                />
+                            </div>
+                        </Field>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button appearance="secondary" onClick={onClose}>
+                            {locConstants.common.cancel}
+                        </Button>
+                        <Button
+                            appearance="primary"
+                            onClick={() =>
+                                onSave(editorRef.current?.getValue() ?? draftRef.current)
+                            }>
+                            {locConstants.common.save}
+                        </Button>
+                    </DialogActions>
+                </DialogBody>
+            </DialogSurface>
+        </Dialog>
     );
 };
 
@@ -371,26 +792,30 @@ export const WebviewShortcutRow = ({
     onRecord: () => void;
     loc: typeof locConstants.shortcutsConfiguration;
     searchTerm: string;
-}) => (
-    <div className="mssql-config-webview-shortcut-row">
-        <div>
-            <div className="mssql-config-row-label">
-                <HighlightedText
-                    text={loc.webviewShortcutLabels[item.action]}
-                    searchTerm={searchTerm}
-                />
+}) => {
+    const classes = useStyles();
+
+    return (
+        <div className={classes.webviewShortcutRow}>
+            <div>
+                <Text className={classes.rowLabel}>
+                    <HighlightedText
+                        text={loc.webviewShortcutLabels[item.action]}
+                        searchTerm={searchTerm}
+                    />
+                </Text>
+                <Text className={classes.rowDescription}>
+                    <HighlightedText
+                        text={loc.webviewShortcutDescriptions[item.action]}
+                        searchTerm={searchTerm}
+                    />
+                </Text>
             </div>
-            <div className="mssql-config-row-description">
-                <HighlightedText
-                    text={loc.webviewShortcutDescriptions[item.action]}
-                    searchTerm={searchTerm}
-                />
-            </div>
+            <ShortcutChip
+                value={value}
+                onRecord={onRecord}
+                recordLabel={`${loc.recordShortcut}: ${loc.webviewShortcutLabels[item.action]}`}
+            />
         </div>
-        <ShortcutChip
-            value={value}
-            onRecord={onRecord}
-            recordLabel={`${loc.recordShortcut}: ${loc.webviewShortcutLabels[item.action]}`}
-        />
-    </div>
-);
+    );
+};

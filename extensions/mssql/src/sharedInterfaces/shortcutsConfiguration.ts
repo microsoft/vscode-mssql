@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { RequestType } from "vscode-jsonrpc";
 import { CoreRPCs } from "./webview";
 
 export const quickQueryCount = 10;
@@ -13,16 +14,10 @@ export enum QuickQueryExecutionMode {
     OpenAndRun = "openAndRun",
 }
 
-export enum QuickQueryConnectionMode {
-    ActiveOrPrompt = "activeOrPrompt",
-    Prompt = "prompt",
-}
-
 export interface QuickQuerySlot {
     name: string;
     query: string;
     executionMode: QuickQueryExecutionMode;
-    connectionMode: QuickQueryConnectionMode;
 }
 
 export type QuickQueryKeybindings = Record<string, string>;
@@ -57,10 +52,24 @@ export interface ShortcutsConfigurationReducers {
     closeDialog: {};
 }
 
+export namespace ReadClipboardTextRequest {
+    export const type = new RequestType<void, string, void>(
+        "shortcutsConfiguration/readClipboardText",
+    );
+}
+
+export namespace WriteClipboardTextRequest {
+    export const type = new RequestType<string, void, void>(
+        "shortcutsConfiguration/writeClipboardText",
+    );
+}
+
 export interface ShortcutsConfigurationContextProps extends CoreRPCs {
     saveConfiguration: (payload: SaveShortcutsConfigurationPayload) => Promise<void>;
     saveAndCloseConfiguration: (payload: SaveShortcutsConfigurationPayload) => Promise<void>;
     closeDialog: () => Promise<void>;
+    readClipboardText: () => Promise<string>;
+    writeClipboardText: (text: string) => Promise<void>;
 }
 
 export function getQuickQueryCommandId(slotNumber: number): string {
@@ -68,18 +77,11 @@ export function getQuickQueryCommandId(slotNumber: number): string {
 }
 
 export function getQuickQuerySlotName(slotNumber: number): string {
-    return `Quick Query ${slotNumber}`;
+    return `Query ${slotNumber}`;
 }
 
 function isQuickQueryExecutionMode(value: unknown): value is QuickQueryExecutionMode {
     return value === QuickQueryExecutionMode.Open || value === QuickQueryExecutionMode.OpenAndRun;
-}
-
-function isQuickQueryConnectionMode(value: unknown): value is QuickQueryConnectionMode {
-    return (
-        value === QuickQueryConnectionMode.ActiveOrPrompt ||
-        value === QuickQueryConnectionMode.Prompt
-    );
 }
 
 export function createDefaultQuickQuerySlot(slotNumber: number): QuickQuerySlot {
@@ -87,7 +89,6 @@ export function createDefaultQuickQuerySlot(slotNumber: number): QuickQuerySlot 
         name: getQuickQuerySlotName(slotNumber),
         query: "",
         executionMode: QuickQueryExecutionMode.Open,
-        connectionMode: QuickQueryConnectionMode.Prompt,
     };
 }
 
@@ -98,17 +99,13 @@ export function normalizeQuickQuerySlot(value: unknown, slotNumber: number): Qui
     }
 
     const candidate = value as Partial<QuickQuerySlot>;
-    const name = typeof candidate.name === "string" ? candidate.name.trim() : "";
 
     return {
-        name: name || defaults.name,
+        name: defaults.name,
         query: typeof candidate.query === "string" ? candidate.query : defaults.query,
         executionMode: isQuickQueryExecutionMode(candidate.executionMode)
             ? candidate.executionMode
             : defaults.executionMode,
-        connectionMode: isQuickQueryConnectionMode(candidate.connectionMode)
-            ? candidate.connectionMode
-            : defaults.connectionMode,
     };
 }
 

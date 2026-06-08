@@ -2416,19 +2416,25 @@
     "Configure shortcuts that are handled inside MSSQL views.": "Configure shortcuts that are handled inside MSSQL views.",
     "Query": "Query",
     "Shortcut": "Shortcut",
-    "Execution": "Execution",
-    "Connection": "Connection",
-    "Open and run": "Open and run",
-    "Active or prompt": "Active or prompt",
-    "Prompt": "Prompt",
+    "Auto-execute": "Auto-execute",
+    "{0} query/{0} is the Quick Query shortcut name": {
+        "message": "{0} query",
+        "comment": ["{0} is the Quick Query shortcut name"]
+    },
+    "Query editor for {0}/{0} is the Quick Query shortcut name": {
+        "message": "Query editor for {0}",
+        "comment": ["{0} is the Quick Query shortcut name"]
+    },
     "No shortcut": "No shortcut",
     "No query set": "No query set",
     "Search in-app shortcuts": "Search in-app shortcuts",
     "Record shortcut": "Record shortcut",
-    "Press a key combination with Ctrl, Alt, Shift, or a function key.": "Press a key combination with Ctrl, Alt, Shift, or a function key.",
-    "Press keys... (Esc to cancel)": "Press keys... (Esc to cancel)",
-    "Re-record": "Re-record",
-    "Clear shortcut": "Clear shortcut",
+    "Press desired key combination and then press ENTER.": "Press desired key combination and then press ENTER.",
+    "Recording shortcut": "Recording shortcut",
+    "Already used by {0}/{0} is the name of the command that already uses this shortcut": {
+        "message": "Already used by {0}",
+        "comment": ["{0} is the name of the command that already uses this shortcut"]
+    },
     "Saving...": "Saving...",
     "Saved": "Saved",
     "Navigation": "Navigation",

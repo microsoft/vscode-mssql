@@ -3,11 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { expect } from "chai";
+import * as chai from "chai";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import * as sinon from "sinon";
+import sinonChai from "sinon-chai";
 import * as vscode from "vscode";
 import * as utils from "../../src/utils/utils";
 import * as Constants from "../../src/constants/constants";
@@ -19,11 +20,13 @@ import {
     ShortcutsConfigurationReducers,
     ShortcutsConfigurationWebviewState,
     normalizeQuickQueries,
-    QuickQueryConnectionMode,
     QuickQueryExecutionMode,
 } from "../../src/sharedInterfaces/shortcutsConfiguration";
 import { WebviewAction } from "../../src/sharedInterfaces/webview";
 import { stubTelemetry, stubVscodeWrapper, stubWebviewPanel } from "./utils";
+
+const { expect } = chai;
+chai.use(sinonChai);
 
 suite("shortcutsConfiguration Webview Controller", () => {
     let sandbox: sinon.SinonSandbox;
@@ -132,7 +135,6 @@ suite("shortcutsConfiguration Webview Controller", () => {
                     name: "  Health Check  ",
                     query: "select 1",
                     executionMode: QuickQueryExecutionMode.Open,
-                    connectionMode: QuickQueryConnectionMode.Prompt,
                 },
             ],
             quickQueryKeybindings: {
@@ -157,10 +159,9 @@ suite("shortcutsConfiguration Webview Controller", () => {
 
         const quickQueries = normalizeQuickQueries(quickQueriesSetting);
         expect(quickQueries[0]).to.deep.equal({
-            name: "Health Check",
+            name: "Query 1",
             query: "select 1",
             executionMode: QuickQueryExecutionMode.Open,
-            connectionMode: QuickQueryConnectionMode.Prompt,
         });
         expect(result.message).to.equal("Configuration saved.");
         expect(result.webviewShortcuts).to.deep.equal({

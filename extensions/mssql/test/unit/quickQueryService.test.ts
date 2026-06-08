@@ -3,16 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { expect } from "chai";
+import * as chai from "chai";
 import * as fs from "fs";
 import * as path from "path";
 import * as sinon from "sinon";
+import sinonChai from "sinon-chai";
 import * as vscode from "vscode";
-import type { IConnectionInfo } from "vscode-mssql";
 import {
     getQuickQueryCommandId,
+    getQuickQuerySlotName,
     normalizeQuickQueries,
-    QuickQueryConnectionMode,
     QuickQueryExecutionMode,
     QuickQuerySlot,
     quickQueryCount,
@@ -23,6 +23,9 @@ import {
     resolveQuickQueryConnectionOptions,
 } from "../../src/quickQueries/quickQueryService";
 import { ConnectionStrategy, NewQueryOptions } from "../../src/controllers/sqlDocumentService";
+
+const { expect } = chai;
+chai.use(sinonChai);
 
 suite("Quick Query Service", () => {
     let sandbox: sinon.SinonSandbox;
@@ -47,7 +50,6 @@ suite("Quick Query Service", () => {
                 name: "  Health Check  ",
                 query: "select 1",
                 executionMode: QuickQueryExecutionMode.Open,
-                connectionMode: QuickQueryConnectionMode.Prompt,
             },
             {
                 name: "",
@@ -59,47 +61,37 @@ suite("Quick Query Service", () => {
 
         expect(quickQueries).to.have.length(10);
         expect(quickQueries[0]).to.deep.equal({
-            name: "Health Check",
+            name: "Query 1",
             query: "select 1",
             executionMode: QuickQueryExecutionMode.Open,
-            connectionMode: QuickQueryConnectionMode.Prompt,
         });
         expect(quickQueries[1]).to.deep.equal({
-            name: "Quick Query 2",
+            name: "Query 2",
             query: "",
             executionMode: QuickQueryExecutionMode.Open,
-            connectionMode: QuickQueryConnectionMode.Prompt,
         });
-        expect(quickQueries[9].name).to.equal("Quick Query 10");
+        expect(quickQueries[9].name).to.equal("Query 10");
     });
 
-    test("uses active connection when configured for activeOrPrompt", () => {
-        const slot: QuickQuerySlot = {
-            ...normalizeQuickQueries(undefined)[0],
-            connectionMode: QuickQueryConnectionMode.ActiveOrPrompt,
-        };
-        const connectionInfo = { server: "localhost" };
+    test("normalizes legacy connectionMode out of Quick Query config", () => {
+        const quickQueries = normalizeQuickQueries([
+            {
+                name: "Legacy Active",
+                query: "select 1",
+                executionMode: QuickQueryExecutionMode.Open,
+                connectionMode: "activeOrPrompt",
+            },
+        ]);
 
-        const result = resolveQuickQueryConnectionOptions(
-            slot,
-            connectionInfo as unknown as IConnectionInfo,
-        );
-
-        expect(result).to.deep.equal({
-            connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
-            connectionInfo,
+        expect(quickQueries[0]).to.deep.equal({
+            name: "Query 1",
+            query: "select 1",
+            executionMode: QuickQueryExecutionMode.Open,
         });
     });
 
-    test("uses prompt connection strategy when configured for prompt", () => {
-        const slot: QuickQuerySlot = {
-            ...normalizeQuickQueries(undefined)[0],
-            connectionMode: QuickQueryConnectionMode.Prompt,
-        };
-
-        const result = resolveQuickQueryConnectionOptions(slot, {
-            server: "localhost",
-        } as unknown as IConnectionInfo);
+    test("uses prompt connection strategy", () => {
+        const result = resolveQuickQueryConnectionOptions();
 
         expect(result).to.deep.equal({
             connectionStrategy: ConnectionStrategy.PromptForConnection,
@@ -111,7 +103,6 @@ suite("Quick Query Service", () => {
         const service = new QuickQueryService({
             readQuickQueries: () => normalizeQuickQueries(undefined),
             openConfiguration,
-            getActiveSqlEditorConnectionInfo: sandbox.stub(),
             createSqlEditor: sandbox.stub(),
             isSqlEditorConnected: sandbox.stub(),
             runSqlEditorQuery: sandbox.stub(),
@@ -133,12 +124,10 @@ suite("Quick Query Service", () => {
                         name: "Open Only",
                         query: "select 1",
                         executionMode: QuickQueryExecutionMode.Open,
-                        connectionMode: QuickQueryConnectionMode.ActiveOrPrompt,
+                        connectionMode: "activeOrPrompt",
                     },
                 ]),
             openConfiguration: sandbox.stub(),
-            getActiveSqlEditorConnectionInfo: () =>
-                ({ server: "localhost" }) as unknown as IConnectionInfo,
             createSqlEditor,
             isSqlEditorConnected: sandbox.stub().returns(true),
             runSqlEditorQuery,
@@ -148,7 +137,7 @@ suite("Quick Query Service", () => {
         const options = createSqlEditor.firstCall.args[0] as NewQueryOptions;
 
         expect(result).to.equal(QuickQueryRunResult.Opened);
-        expect(options.connectionStrategy).to.equal(ConnectionStrategy.CopyConnectionFromInfo);
+        expect(options.connectionStrategy).to.equal(ConnectionStrategy.PromptForConnection);
         expect(runSqlEditorQuery.notCalled).to.equal(true);
     });
 
@@ -161,12 +150,9 @@ suite("Quick Query Service", () => {
                         name: "Run",
                         query: "select 1",
                         executionMode: QuickQueryExecutionMode.OpenAndRun,
-                        connectionMode: QuickQueryConnectionMode.Prompt,
                     },
                 ]),
             openConfiguration: sandbox.stub(),
-            getActiveSqlEditorConnectionInfo: () =>
-                ({ server: "localhost" }) as unknown as IConnectionInfo,
             createSqlEditor: sandbox.stub().resolves(editor),
             isSqlEditorConnected: sandbox.stub().returns(true),
             runSqlEditorQuery,
@@ -197,5 +183,10 @@ suite("Quick Query Service", () => {
         const quickQueryDefaults =
             packageJson.contributes.configuration.properties["mssql.quickQueries"].default;
         expect(quickQueryDefaults).to.have.length(quickQueryCount);
+        for (let slotNumber = 1; slotNumber <= quickQueryCount; slotNumber++) {
+            expect(quickQueryDefaults[slotNumber - 1].name).to.equal(
+                getQuickQuerySlotName(slotNumber),
+            );
+        }
     });
 });

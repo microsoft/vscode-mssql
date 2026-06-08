@@ -4,17 +4,40 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import debounce from "lodash/debounce";
-import { Button, Input, Tab, TabList } from "@fluentui/react-components";
-import { Search16Regular, Settings24Regular } from "@fluentui/react-icons";
+import {
+    Button,
+    Input,
+    makeStyles,
+    mergeClasses,
+    Tab,
+    TabList,
+    tokens,
+} from "@fluentui/react-components";
+import { Keyboard16Regular, Search16Regular, Settings24Regular } from "@fluentui/react-icons";
+import {
+    CheckboxEditor,
+    type Editor,
+    type EditorArguments,
+    type EditorValidationResult,
+} from "@slickgrid-universal/common";
+import { type Column, type GridOption } from "slickgrid-react";
 import { CollapsibleSection } from "../../common/collapsibleSection";
 import { DialogPageShell } from "../../common/dialogPageShell";
+import {
+    baseFluentReadOnlyGridOption,
+    createFluentAutoResizeOptions,
+    FluentSlickGrid,
+} from "../../common/FluentSlickGrid/FluentSlickGrid";
 import { locConstants } from "../../common/locConstants";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { WebviewAction } from "../../../sharedInterfaces/webview";
 import {
     getQuickQueryCommandId,
+    getQuickQuerySlotName,
     normalizeQuickQueries,
+    QuickQueryExecutionMode,
     QuickQuerySlot,
     quickQueryCount,
     SaveShortcutsConfigurationChangedSections,
@@ -28,15 +51,392 @@ import {
     shortcutGroups,
 } from "./shortcutDefinitions";
 import {
-    QuickQueryRow,
+    QuickQueryEditorDialog,
     SaveIndicator,
     SaveState,
     ShortcutRecorder,
     WebviewShortcutRow,
 } from "./shortcutComponents";
-import { HighlightedText, textMatchesSearch } from "./shortcutKeyboardUtils";
+import { formatShortcut, HighlightedText, textMatchesSearch } from "./shortcutKeyboardUtils";
 
 type ConfigurationTab = "queries" | "shortcuts";
+const quickQueryGridContainerId = "shortcutsQuickQueriesGridContainer";
+const quickQueryGridId = "shortcutsQuickQueriesGrid";
+const shortcutKeyboardIconMarkup = renderToStaticMarkup(<Keyboard16Regular aria-hidden />);
+
+interface QuickQueryGridRow {
+    id: number;
+    index: number;
+    commandId: string;
+    slot: QuickQuerySlot;
+    name: string;
+    query: string;
+    shortcut: string;
+    autoExecute: boolean;
+}
+
+class AutoCommitCheckboxEditor extends CheckboxEditor {
+    override preClick(): void {
+        super.preClick();
+        window.setTimeout(() => this.save(), 0);
+    }
+}
+
+function createDialogEditor(openDialog: (row: QuickQueryGridRow) => void) {
+    return class DialogEditor implements Editor {
+        static suppressClearOnEdit = true;
+        dataContext?: QuickQueryGridRow;
+
+        constructor(private readonly args: EditorArguments) {
+            this.dataContext = args.item as QuickQueryGridRow;
+            this.init();
+        }
+
+        init(): void {
+            window.setTimeout(() => {
+                this.args.cancelChanges();
+                openDialog(this.dataContext!);
+            }, 0);
+        }
+
+        destroy(): void {}
+
+        focus(): void {}
+
+        loadValue(): void {}
+
+        applyValue(): void {}
+
+        serializeValue(): string {
+            return "";
+        }
+
+        isValueChanged(): boolean {
+            return false;
+        }
+
+        validate(): EditorValidationResult {
+            return { valid: true, msg: null };
+        }
+    };
+}
+
+const useStyles = makeStyles({
+    page: {
+        color: "var(--vscode-foreground)",
+        display: "flex",
+        flexDirection: "column",
+        fontFamily: "'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif",
+        gap: "16px",
+        minWidth: 0,
+    },
+    tabs: {
+        display: "flex",
+    },
+    helpText: {
+        color: "var(--vscode-descriptionForeground)",
+        fontSize: tokens.fontSizeBase200,
+        lineHeight: tokens.lineHeightBase300,
+    },
+    card: {
+        backgroundColor: "var(--vscode-editor-background)",
+        border: "1px solid var(--vscode-input-border, var(--vscode-editorGroup-border))",
+        borderRadius: "8px",
+        overflow: "hidden",
+    },
+    quickQueryGridCard: {
+        borderRadius: 0,
+        height: "calc(100vh - 260px)",
+        minHeight: "360px",
+        width: "100%",
+    },
+    quickQueryGridScroller: {
+        height: "100%",
+        overflowX: "auto",
+    },
+    quickQueryGridContainer: {
+        "--slick-border-color": "var(--vscode-editorWidget-border)",
+        "--slick-canvas-bg-color": "var(--vscode-editor-background)",
+        "--slick-cell-border-bottom": "1px solid var(--vscode-editorWidget-border)",
+        "--slick-cell-border-left": "0",
+        "--slick-cell-border-right": "1px solid var(--vscode-editorWidget-border)",
+        "--slick-cell-border-top": "1px solid var(--vscode-editorWidget-border)",
+        "--slick-cell-box-shadow": "none",
+        "--slick-cell-even-background-color": "var(--vscode-editor-background)",
+        "--slick-cell-odd-background-color": "var(--vscode-editor-background)",
+        "--slick-cell-selected-color": "var(--vscode-list-activeSelectionBackground)",
+        "--slick-cell-text-color": "var(--vscode-foreground)",
+        "--slick-container-border-bottom": "1px solid var(--vscode-editorWidget-border)",
+        "--slick-container-border-top": "1px solid var(--vscode-editorWidget-border)",
+        "--slick-grid-border-color": "var(--vscode-editorWidget-border)",
+        "--slick-grid-header-background": "var(--vscode-keybindingTable-headerBackground)",
+        "--slick-header-background-color": "var(--vscode-keybindingTable-headerBackground)",
+        "--slick-header-column-background-active": "var(--vscode-keybindingTable-headerBackground)",
+        "--slick-header-column-height": "28px",
+        "--slick-header-font-size": "12px",
+        "--slick-header-row-count": "1",
+        "--slick-header-text-color": "var(--vscode-editor-foreground)",
+        "--slick-row-mouse-hover-color": "var(--vscode-list-hoverBackground)",
+        "--slick-row-selected-color": "var(--vscode-list-activeSelectionBackground)",
+        "--slick-scrollbar-color":
+            "var(--vscode-scrollbarSlider-background) var(--vscode-editor-background)",
+        backgroundColor: "var(--vscode-editor-background)",
+        color: "var(--vscode-foreground)",
+        height: "100%",
+        minWidth: "760px",
+        width: "100%",
+        "& .grid-pane, & .slickgrid-container, & .slick-viewport, & .slick-pane, & .slick-pane-top, & .slick-pane-bottom, & .slick-pane-left, & .slick-pane-right, & .slick-canvas":
+            {
+                backgroundColor: "var(--vscode-editor-background)",
+                borderRadius: 0,
+                color: "var(--vscode-foreground)",
+            },
+        "& .slick-header, & .slick-header-columns, & .slick-header-column": {
+            backgroundColor: "var(--vscode-keybindingTable-headerBackground) !important",
+            borderBottomColor: "var(--vscode-editorWidget-border) !important",
+            borderLeftColor: "var(--vscode-editorWidget-border) !important",
+            borderRightColor: "var(--vscode-editorWidget-border) !important",
+            borderRadius: "0 !important",
+            borderTopColor: "var(--vscode-editorWidget-border) !important",
+            color: "var(--vscode-editor-foreground) !important",
+        },
+        "& .slick-header-columns": {
+            height: "28px !important",
+        },
+        "& .slick-header-column, & .slick-header-column.ui-state-default, & .slick-header-column.slick-state-default":
+            {
+                boxSizing: "border-box",
+                float: "left",
+                height: "28px !important",
+                lineHeight: "16px !important",
+                margin: 0,
+                overflow: "hidden",
+                padding: "4px !important",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+            },
+        "& .slick-header-column .slick-column-name": {
+            lineHeight: "16px",
+            margin: 0,
+        },
+        "& .slick-row, & .slick-cell": {
+            backgroundColor: "var(--vscode-editor-background)",
+            color: "var(--vscode-foreground)",
+        },
+        "& .slick-row.odd .slick-cell, & .slick-row.even .slick-cell": {
+            backgroundColor: "var(--vscode-editor-background)",
+        },
+        "& .slick-row:hover .slick-cell": {
+            backgroundColor: "var(--vscode-list-hoverBackground)",
+        },
+        "& .slick-row.active .slick-cell, & .slick-row.selected .slick-cell": {
+            backgroundColor: "var(--vscode-list-activeSelectionBackground)",
+            color: "var(--vscode-list-activeSelectionForeground)",
+        },
+        "& .slick-cell": {
+            alignItems: "center",
+            display: "flex",
+            paddingBottom: "4px",
+            paddingLeft: "8px",
+            paddingRight: "8px",
+            paddingTop: "4px",
+        },
+        "& .slick-cell.editable": {
+            paddingBottom: "4px",
+            paddingLeft: "8px",
+            paddingRight: "8px",
+            paddingTop: "4px",
+        },
+        "& .editor-text": {
+            backgroundColor:
+                "var(--vscode-settings-textInputBackground, var(--vscode-input-background))",
+            border: "1px solid var(--vscode-settings-textInputBorder, var(--vscode-input-border, transparent))",
+            borderRadius: "2px",
+            boxSizing: "border-box",
+            color: "var(--vscode-settings-textInputForeground, var(--vscode-input-foreground))",
+            font: "inherit",
+            height: "26px",
+            minWidth: 0,
+            padding: "2px 6px",
+            width: "100%",
+        },
+        "& .editor-text:focus": {
+            outlineColor: "var(--vscode-focusBorder)",
+            outlineOffset: "-1px",
+            outlineStyle: "solid",
+            outlineWidth: "1px",
+        },
+        "& .editor-checkbox:focus": {
+            outlineColor: "var(--vscode-focusBorder)",
+            outlineOffset: "2px",
+            outlineStyle: "solid",
+            outlineWidth: "1px",
+        },
+    },
+    quickQueryCell: {
+        alignItems: "center",
+        display: "flex",
+        height: "100%",
+        minWidth: 0,
+        width: "100%",
+    },
+    quickQueryCenteredCell: {
+        justifyContent: "center",
+    },
+    quickQueryTextDisplay: {
+        boxSizing: "border-box",
+        color: "var(--vscode-foreground)",
+        display: "block",
+        fontWeight: tokens.fontWeightSemibold,
+        lineHeight: "18px",
+        minWidth: 0,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        userSelect: "none",
+        whiteSpace: "nowrap",
+        width: "100%",
+    },
+    quickQueryCheckboxInput: {
+        height: "16px",
+        margin: 0,
+        pointerEvents: "none",
+        width: "16px",
+    },
+    quickQueryShortcutCell: {
+        alignItems: "center",
+        cursor: "pointer",
+        display: "flex",
+        minWidth: 0,
+        width: "100%",
+        ":focus": {
+            outlineColor: "var(--vscode-focusBorder)",
+            outlineOffset: "-2px",
+            outlineStyle: "solid",
+            outlineWidth: "1px",
+        },
+    },
+    quickQueryShortcutDisplay: {
+        alignItems: "center",
+        color: "var(--vscode-descriptionForeground)",
+        display: "flex",
+        gap: "6px",
+        fontFamily: "var(--vscode-editor-font-family, 'Cascadia Code', 'Fira Code', monospace)",
+        fontSize: "11.5px",
+        justifyContent: "space-between",
+        minWidth: 0,
+        overflow: "hidden",
+        userSelect: "none",
+        whiteSpace: "nowrap",
+        width: "100%",
+    },
+    quickQueryShortcutIcon: {
+        color: "inherit",
+        display: "inline-flex",
+        flex: "0 0 auto",
+        height: "16px",
+        width: "16px",
+    },
+    quickQueryShortcutText: {
+        minWidth: 0,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+    },
+    quickQueryEmpty: {
+        color: "var(--vscode-disabledForeground)",
+    },
+    quickQueryQueryCell: {
+        alignItems: "center",
+        cursor: "pointer",
+        display: "flex",
+        gap: "10px",
+        minWidth: 0,
+        width: "100%",
+        ":focus": {
+            outlineColor: "var(--vscode-focusBorder)",
+            outlineOffset: "-2px",
+            outlineStyle: "solid",
+            outlineWidth: "1px",
+        },
+    },
+    quickQueryPreview: {
+        color: "var(--vscode-descriptionForeground)",
+        fontFamily: "var(--vscode-editor-font-family, 'Cascadia Code', 'Fira Code', monospace)",
+        fontSize: "11.5px",
+        minWidth: 0,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+    },
+    quickQueryNoQuery: {
+        color: "var(--vscode-disabledForeground)",
+        fontSize: "11.5px",
+        fontStyle: "italic",
+        minWidth: 0,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+    },
+    shortcutGroups: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "4px",
+    },
+    shortcutGroup: {
+        borderRadius: "8px",
+    },
+    searchInput: {
+        maxWidth: "360px",
+        width: "100%",
+    },
+    groupHeader: {
+        alignItems: "center",
+        backgroundColor:
+            "var(--vscode-sideBarSectionHeader-background, var(--vscode-editorWidget-background))",
+        border: "none",
+        color: "inherit",
+        display: "grid",
+        fontFamily: "inherit",
+        gap: "10px",
+        gridTemplateColumns: "auto minmax(0, 1fr)",
+        padding: "11px 16px",
+        textAlign: "left",
+        width: "100%",
+        ":focus-visible": {
+            outline: "1px solid var(--vscode-focusBorder)",
+            outlineOffset: "-2px",
+        },
+        ":hover": {
+            backgroundColor: "var(--vscode-list-hoverBackground)",
+        },
+        "& > span:last-child": {
+            minWidth: 0,
+            width: "100%",
+        },
+    },
+    groupTitle: {
+        display: "flex",
+        flex: 1,
+        flexDirection: "column",
+        minWidth: 0,
+    },
+    groupTitleLabel: {
+        color: "var(--vscode-foreground)",
+        fontSize: tokens.fontSizeBase200,
+        fontWeight: tokens.fontWeightSemibold,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+    },
+    groupTitleDescription: {
+        color: "var(--vscode-descriptionForeground)",
+        fontSize: tokens.fontSizeBase200,
+        lineHeight: tokens.lineHeightBase300,
+    },
+    webviewShortcuts: {
+        padding: "0 16px",
+    },
+});
 
 function buildPayload(
     quickQueries: QuickQuerySlot[],
@@ -69,6 +469,7 @@ function getPayloadDataKey(payload: SaveShortcutsConfigurationPayload): string {
 }
 
 export const ShortcutsConfigurationPage = () => {
+    const classes = useStyles();
     const loc = locConstants.shortcutsConfiguration;
     const common = locConstants.common;
     const context = useContext(ShortcutsConfigurationContext);
@@ -95,7 +496,7 @@ export const ShortcutsConfigurationPage = () => {
     const [webviewShortcuts, setWebviewShortcuts] = useState<Record<string, string>>(
         stateWebviewShortcuts ?? {},
     );
-    const [openQueryItems, setOpenQueryItems] = useState<number[]>([]);
+    const [editingQueryIndex, setEditingQueryIndex] = useState<number | undefined>(undefined);
     const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
     const [shortcutSearch, setShortcutSearch] = useState("");
     const [recording, setRecording] = useState<
@@ -111,23 +512,8 @@ export const ShortcutsConfigurationPage = () => {
     const localChangeVersionRef = useRef(0);
     const scheduledPayloadRef = useRef<SaveShortcutsConfigurationPayload | undefined>(undefined);
     const activeSaveRef = useRef<Promise<void> | undefined>(undefined);
-    const pendingQuickQueryEditsRef = useRef<Map<number, QuickQuerySlot>>(new Map());
-    const quickQueriesRef = useRef(quickQueries);
-    const quickQueryKeybindingsRef = useRef(quickQueryKeybindings);
-    const webviewShortcutsRef = useRef(webviewShortcuts);
     const hasLocalChangesRef = useRef(false);
-
-    useEffect(() => {
-        quickQueriesRef.current = quickQueries;
-    }, [quickQueries]);
-
-    useEffect(() => {
-        quickQueryKeybindingsRef.current = quickQueryKeybindings;
-    }, [quickQueryKeybindings]);
-
-    useEffect(() => {
-        webviewShortcutsRef.current = webviewShortcuts;
-    }, [webviewShortcuts]);
+    const handledFocusNonceRef = useRef<number | undefined>(undefined);
 
     useEffect(() => {
         if (stateIsSaving) {
@@ -187,21 +573,20 @@ export const ShortcutsConfigurationPage = () => {
 
     useEffect(() => {
         const focusedQuickQuerySlot = stateFocusedQuickQuerySlot;
+        if (stateFocusNonce !== undefined && handledFocusNonceRef.current === stateFocusNonce) {
+            return;
+        }
+
         if (
             focusedQuickQuerySlot &&
             focusedQuickQuerySlot >= 1 &&
             focusedQuickQuerySlot <= quickQueryCount
         ) {
+            handledFocusNonceRef.current = stateFocusNonce;
             setActiveTab("queries");
-            if (quickQueries[focusedQuickQuerySlot - 1]) {
-                setOpenQueryItems((current) =>
-                    current.includes(focusedQuickQuerySlot)
-                        ? current
-                        : [...current, focusedQuickQuerySlot],
-                );
-            }
+            setEditingQueryIndex(focusedQuickQuerySlot - 1);
         }
-    }, [quickQueries, stateFocusedQuickQuerySlot, stateFocusNonce]);
+    }, [stateFocusedQuickQuerySlot, stateFocusNonce]);
 
     const dispatchSave = useCallback(
         async (payload: SaveShortcutsConfigurationPayload, payloadDataKey: string) => {
@@ -234,29 +619,7 @@ export const ShortcutsConfigurationPage = () => {
         [dispatchSave],
     );
 
-    const flushUnsavedQueryEdits = useCallback(() => {
-        if (pendingQuickQueryEditsRef.current.size === 0) {
-            return;
-        }
-
-        const nextQuickQueries = quickQueriesRef.current.map(
-            (slot, index) => pendingQuickQueryEditsRef.current.get(index) ?? slot,
-        );
-        pendingQuickQueryEditsRef.current.clear();
-        quickQueriesRef.current = nextQuickQueries;
-        setQuickQueries(nextQuickQueries);
-        scheduledPayloadRef.current = buildPayload(
-            nextQuickQueries,
-            quickQueryKeybindingsRef.current,
-            webviewShortcutsRef.current,
-            {
-                quickQueries: true,
-            },
-        );
-    }, []);
-
     const flushPendingSave = useCallback(async () => {
-        flushUnsavedQueryEdits();
         if (!scheduledPayloadRef.current || !context) {
             return;
         }
@@ -265,10 +628,9 @@ export const ShortcutsConfigurationPage = () => {
         scheduledPayloadRef.current = undefined;
         debouncedDispatchSave.cancel();
         await dispatchSave(payload, getPayloadDataKey(payload));
-    }, [context, debouncedDispatchSave, dispatchSave, flushUnsavedQueryEdits]);
+    }, [context, debouncedDispatchSave, dispatchSave]);
 
     const saveAndClose = useCallback(async () => {
-        flushUnsavedQueryEdits();
         debouncedDispatchSave.cancel();
 
         const payload = scheduledPayloadRef.current;
@@ -284,7 +646,7 @@ export const ShortcutsConfigurationPage = () => {
         pendingChangedSectionsRef.current = payload.changedSections;
         pendingSaveVersionRef.current = localChangeVersionRef.current;
         await context.saveAndCloseConfiguration(payload);
-    }, [context, debouncedDispatchSave, flushUnsavedQueryEdits]);
+    }, [context, debouncedDispatchSave]);
 
     useEffect(
         () => () => {
@@ -337,102 +699,277 @@ export const ShortcutsConfigurationPage = () => {
         [quickQueries, quickQueryKeybindings, scheduleSave, webviewShortcuts],
     );
 
+    const updateQuickQuery = useCallback(
+        (index: number, value: QuickQuerySlot) => {
+            const nextQuickQueries = quickQueries.map((slot, slotIndex) =>
+                slotIndex === index ? value : slot,
+            );
+            setQuickQueries(nextQuickQueries);
+            localChangeVersionRef.current += 1;
+            hasLocalChangesRef.current = true;
+            saveWith(nextQuickQueries, quickQueryKeybindings, webviewShortcuts, {
+                quickQueries: true,
+            });
+        },
+        [quickQueries, quickQueryKeybindings, saveWith, webviewShortcuts],
+    );
+
+    const updateQuickQueryShortcut = useCallback(
+        (commandId: string, value: string) => {
+            const nextKeybindings = {
+                ...quickQueryKeybindings,
+                [commandId]: value,
+            };
+            setQuickQueryKeybindings(nextKeybindings);
+            localChangeVersionRef.current += 1;
+            hasLocalChangesRef.current = true;
+            saveWith(quickQueries, nextKeybindings, webviewShortcuts, {
+                quickQueryKeybindings: true,
+            });
+        },
+        [quickQueries, quickQueryKeybindings, saveWith, webviewShortcuts],
+    );
+
+    const updateWebviewShortcut = useCallback(
+        (action: WebviewAction, value: string) => {
+            const nextShortcuts = {
+                ...webviewShortcuts,
+                [action]: value,
+            };
+            setWebviewShortcuts(nextShortcuts);
+            localChangeVersionRef.current += 1;
+            hasLocalChangesRef.current = true;
+            saveWith(quickQueries, quickQueryKeybindings, nextShortcuts, {
+                webviewShortcuts: true,
+            });
+        },
+        [quickQueries, quickQueryKeybindings, saveWith, webviewShortcuts],
+    );
+
+    const quickQueryRows = useMemo<QuickQueryGridRow[]>(
+        () =>
+            quickQueries.map((slot, index) => {
+                const commandId = getQuickQueryCommandId(index + 1);
+                return {
+                    id: index + 1,
+                    index,
+                    commandId,
+                    slot,
+                    name: getQuickQuerySlotName(index + 1),
+                    query: slot.query,
+                    shortcut: quickQueryKeybindings[commandId] ?? "",
+                    autoExecute: slot.executionMode === QuickQueryExecutionMode.OpenAndRun,
+                };
+            }),
+        [quickQueries, quickQueryKeybindings],
+    );
+
+    const quickQueryGridOptions = useMemo<GridOption>(
+        () => ({
+            ...baseFluentReadOnlyGridOption,
+            autoCommitEdit: true,
+            autoResize: createFluentAutoResizeOptions(`#${quickQueryGridContainerId}`),
+            autoEdit: true,
+            autoEditByKeypress: true,
+            editable: true,
+            enableCellNavigation: true,
+            enableColumnReorder: false,
+            enableExcelCopyBuffer: false,
+            enableTextSelectionOnCells: false,
+            forceFitColumns: true,
+            rowHeight: 40,
+        }),
+        [],
+    );
+
+    const quickQueryColumns = useMemo<Column<QuickQueryGridRow>[]>(() => {
+        const ShortcutDialogEditor = createDialogEditor((row) =>
+            setRecording({
+                kind: "quickQuery",
+                commandId: row.commandId,
+            }),
+        );
+        const QueryDialogEditor = createDialogEditor((row) => setEditingQueryIndex(row.index));
+
+        const createCell = (className?: string) => {
+            const cell = document.createElement("div");
+            cell.className = mergeClasses(classes.quickQueryCell, className);
+            return cell;
+        };
+
+        return [
+            {
+                id: "name",
+                name: loc.name,
+                field: "name",
+                minWidth: 140,
+                width: 170,
+                formatter: (_row, _cell, _value, _column, row) => {
+                    const cell = createCell();
+                    const display = document.createElement("span");
+                    display.className = classes.quickQueryTextDisplay;
+                    display.textContent = row.name;
+                    display.title = row.name;
+                    cell.append(display);
+                    return cell;
+                },
+            },
+            {
+                id: "autoExecute",
+                name: loc.autoExecute,
+                field: "autoExecute",
+                cssClass: classes.quickQueryCenteredCell,
+                editor: {
+                    model: AutoCommitCheckboxEditor,
+                    ariaLabel: loc.autoExecute,
+                },
+                maxWidth: 115,
+                minWidth: 105,
+                width: 110,
+                formatter: (_row, _cell, _value, _column, row) => {
+                    const cell = createCell(classes.quickQueryCenteredCell);
+                    cell.classList.add("slick-edit-preclick");
+                    const checkbox = document.createElement("input");
+                    checkbox.type = "checkbox";
+                    checkbox.checked = row.autoExecute;
+                    checkbox.className = mergeClasses(
+                        classes.quickQueryCheckboxInput,
+                        "slick-edit-preclick",
+                    );
+                    checkbox.setAttribute("aria-hidden", "true");
+                    checkbox.tabIndex = -1;
+                    cell.append(checkbox);
+                    return cell;
+                },
+                onCellChange: (_event, args) => {
+                    const row = args.dataContext as QuickQueryGridRow;
+                    const executionMode = row.autoExecute
+                        ? QuickQueryExecutionMode.OpenAndRun
+                        : QuickQueryExecutionMode.Open;
+                    if (executionMode !== row.slot.executionMode) {
+                        updateQuickQuery(row.index, {
+                            ...row.slot,
+                            executionMode,
+                        });
+                    }
+                },
+            },
+            {
+                id: "shortcut",
+                name: loc.shortcut,
+                field: "shortcut",
+                editor: {
+                    model: ShortcutDialogEditor,
+                    ariaLabel: loc.recordShortcut,
+                },
+                minWidth: 205,
+                width: 230,
+                formatter: (_row, _cell, _value, _column, row) => {
+                    const cell = createCell(classes.quickQueryShortcutCell);
+                    const displayValue = formatShortcut(row.shortcut) || loc.noShortcut;
+                    const display = document.createElement("span");
+                    display.className = mergeClasses(
+                        classes.quickQueryShortcutDisplay,
+                        !row.shortcut && classes.quickQueryEmpty,
+                    );
+                    display.title = displayValue;
+                    const icon = document.createElement("span");
+                    icon.className = classes.quickQueryShortcutIcon;
+                    icon.innerHTML = shortcutKeyboardIconMarkup;
+                    const text = document.createElement("span");
+                    text.className = classes.quickQueryShortcutText;
+                    text.textContent = displayValue;
+                    display.append(text, icon);
+                    cell.append(display);
+                    return cell;
+                },
+            },
+            {
+                id: "query",
+                name: loc.query,
+                field: "query",
+                editor: {
+                    model: QueryDialogEditor,
+                    ariaLabel: loc.query,
+                },
+                minWidth: 260,
+                width: 420,
+                formatter: (_row, _cell, _value, _column, row) => {
+                    const cell = createCell(classes.quickQueryQueryCell);
+                    const query = row.query.trim().replace(/\s+/g, " ");
+                    const preview = query.length > 90 ? `${query.slice(0, 90)}...` : query;
+                    const previewElement = document.createElement("span");
+                    previewElement.className = preview
+                        ? classes.quickQueryPreview
+                        : classes.quickQueryNoQuery;
+                    previewElement.textContent = preview || loc.noQuerySet;
+                    previewElement.title = preview || loc.noQuerySet;
+                    cell.append(previewElement);
+                    return cell;
+                },
+            },
+        ];
+    }, [classes, loc, updateQuickQuery]);
+
     if (!context) {
         return undefined;
     }
 
-    const updateQuickQuery = (index: number, value: QuickQuerySlot, shouldSave = true) => {
-        const nextQuickQueries = quickQueries.map((slot, slotIndex) =>
-            slotIndex === index ? value : slot,
+    const renderQueries = () => {
+        const editingQuery =
+            editingQueryIndex !== undefined ? quickQueries[editingQueryIndex] : undefined;
+
+        return (
+            <>
+                <div className={classes.helpText}>{loc.quickQueriesDescription}</div>
+                <div className={mergeClasses(classes.card, classes.quickQueryGridCard)}>
+                    <div className={classes.quickQueryGridScroller}>
+                        <div
+                            id={quickQueryGridContainerId}
+                            className={classes.quickQueryGridContainer}>
+                            <FluentSlickGrid
+                                gridId={quickQueryGridId}
+                                columns={quickQueryColumns}
+                                options={quickQueryGridOptions}
+                                dataset={quickQueryRows}
+                            />
+                        </div>
+                    </div>
+                </div>
+                {editingQuery && editingQueryIndex !== undefined && (
+                    <QuickQueryEditorDialog
+                        slot={editingQuery}
+                        open
+                        onClose={() => setEditingQueryIndex(undefined)}
+                        onSave={(query) => {
+                            updateQuickQuery(editingQueryIndex, {
+                                ...editingQuery,
+                                query,
+                            });
+                            setEditingQueryIndex(undefined);
+                        }}
+                        readClipboardText={context.readClipboardText}
+                        writeClipboardText={context.writeClipboardText}
+                        themeKind={themeKind}
+                        loc={loc}
+                    />
+                )}
+            </>
         );
-        setQuickQueries(nextQuickQueries);
-        quickQueriesRef.current = nextQuickQueries;
-        localChangeVersionRef.current += 1;
-        hasLocalChangesRef.current = true;
-        if (shouldSave) {
-            pendingQuickQueryEditsRef.current.delete(index);
-            saveWith(nextQuickQueries, quickQueryKeybindings, webviewShortcuts, {
-                quickQueries: true,
-            });
-        } else {
-            pendingQuickQueryEditsRef.current.set(index, value);
-        }
     };
-
-    const updateQuickQueryShortcut = (commandId: string, value: string) => {
-        const nextKeybindings = {
-            ...quickQueryKeybindings,
-            [commandId]: value,
-        };
-        setQuickQueryKeybindings(nextKeybindings);
-        quickQueryKeybindingsRef.current = nextKeybindings;
-        localChangeVersionRef.current += 1;
-        hasLocalChangesRef.current = true;
-        saveWith(quickQueries, nextKeybindings, webviewShortcuts, {
-            quickQueryKeybindings: true,
-        });
-    };
-
-    const updateWebviewShortcut = (action: WebviewAction, value: string) => {
-        const nextShortcuts = {
-            ...webviewShortcuts,
-            [action]: value,
-        };
-        setWebviewShortcuts(nextShortcuts);
-        webviewShortcutsRef.current = nextShortcuts;
-        localChangeVersionRef.current += 1;
-        hasLocalChangesRef.current = true;
-        saveWith(quickQueries, quickQueryKeybindings, nextShortcuts, {
-            webviewShortcuts: true,
-        });
-    };
-
-    const renderQueries = () => (
-        <>
-            <div className="mssql-config-help-text">{loc.quickQueriesDescription}</div>
-            <div className="mssql-config-card">
-                {quickQueries.map((slot, index) => {
-                    const commandId = getQuickQueryCommandId(index + 1);
-                    const slotNumber = index + 1;
-                    const expanded = openQueryItems.includes(slotNumber);
-                    return (
-                        <QuickQueryRow
-                            key={commandId}
-                            slot={slot}
-                            shortcut={quickQueryKeybindings[commandId] ?? ""}
-                            expanded={expanded}
-                            onToggle={() =>
-                                setOpenQueryItems((current) =>
-                                    expanded
-                                        ? current.filter((item) => item !== slotNumber)
-                                        : [...current, slotNumber],
-                                )
-                            }
-                            onChange={(value, shouldSave) =>
-                                updateQuickQuery(index, value, shouldSave)
-                            }
-                            onRecord={() => setRecording({ kind: "quickQuery", commandId })}
-                            themeKind={themeKind}
-                            loc={loc}
-                        />
-                    );
-                })}
-            </div>
-        </>
-    );
 
     const renderShortcuts = () => (
         <>
-            <div className="mssql-config-help-text">{loc.webviewShortcutsDescription}</div>
+            <div className={classes.helpText}>{loc.webviewShortcutsDescription}</div>
             <Input
-                className="mssql-config-search-input"
+                className={classes.searchInput}
                 contentBefore={<Search16Regular />}
                 value={shortcutSearch}
                 placeholder={loc.searchWebviewShortcuts}
                 aria-label={loc.searchWebviewShortcuts}
                 onChange={(_event, data) => setShortcutSearch(data.value)}
             />
-            <div className="mssql-config-shortcut-groups">
+            <div className={classes.shortcutGroups}>
                 {shortcutGroups.map((group) => {
                     const searchTerm = shortcutSearch.trim();
                     const groupLabel = getShortcutGroupLabel(group.id, loc);
@@ -456,15 +993,15 @@ export const ShortcutsConfigurationPage = () => {
                     });
 
                     if (searchTerm && visibleItems.length === 0) {
-                        return null;
+                        return undefined;
                     }
 
                     return (
                         <CollapsibleSection
                             key={group.id}
-                            className="mssql-config-card mssql-config-shortcut-group"
-                            buttonClassName="mssql-config-group-header"
-                            panelClassName="mssql-config-webview-shortcuts"
+                            className={mergeClasses(classes.card, classes.shortcutGroup)}
+                            buttonClassName={classes.groupHeader}
+                            panelClassName={classes.webviewShortcuts}
                             open={searchTerm ? true : !collapsedGroups[group.id]}
                             onOpenChange={(open) =>
                                 setCollapsedGroups((current) => ({
@@ -473,14 +1010,14 @@ export const ShortcutsConfigurationPage = () => {
                                 }))
                             }
                             title={
-                                <span className="mssql-config-group-title">
-                                    <span>
+                                <span className={classes.groupTitle}>
+                                    <span className={classes.groupTitleLabel}>
                                         <HighlightedText
                                             text={groupLabel}
                                             searchTerm={searchTerm}
                                         />
                                     </span>
-                                    <span>
+                                    <span className={classes.groupTitleDescription}>
                                         <HighlightedText
                                             text={groupDescription}
                                             searchTerm={searchTerm}
@@ -510,12 +1047,35 @@ export const ShortcutsConfigurationPage = () => {
         </>
     );
 
-    const recorderValue =
-        recording?.kind === "quickQuery"
-            ? (quickQueryKeybindings[recording.commandId] ?? "")
-            : recording?.kind === "webview"
-              ? (webviewShortcuts[recording.action] ?? "")
-              : "";
+    const findShortcutConflict = (value: string): string | undefined => {
+        const normalized = value.trim().toLowerCase();
+        if (!normalized || !recording) {
+            return undefined;
+        }
+
+        for (let index = 0; index < quickQueries.length; index++) {
+            const commandId = getQuickQueryCommandId(index + 1);
+            if (recording.kind === "quickQuery" && recording.commandId === commandId) {
+                continue;
+            }
+            if ((quickQueryKeybindings[commandId] ?? "").trim().toLowerCase() === normalized) {
+                return quickQueries[index].name || loc.quickQueries;
+            }
+        }
+
+        for (const group of shortcutGroups) {
+            for (const item of group.items) {
+                if (recording.kind === "webview" && recording.action === item.action) {
+                    continue;
+                }
+                if ((webviewShortcuts[item.action] ?? "").trim().toLowerCase() === normalized) {
+                    return loc.webviewShortcutLabels[item.action];
+                }
+            }
+        }
+
+        return undefined;
+    };
 
     return (
         <DialogPageShell
@@ -535,10 +1095,9 @@ export const ShortcutsConfigurationPage = () => {
                     {common.close}
                 </Button>
             }>
-            <style>{styles}</style>
-            <div className="mssql-config-page" aria-label={loc.pageAriaLabel}>
+            <div className={classes.page} aria-label={loc.pageAriaLabel}>
                 <TabList
-                    className="mssql-config-tabs"
+                    className={classes.tabs}
                     selectedValue={activeTab}
                     onTabSelect={(_event, data) => setActiveTab(data.value as ConfigurationTab)}
                     aria-label={loc.configurationSections}>
@@ -549,7 +1108,7 @@ export const ShortcutsConfigurationPage = () => {
             </div>
             {recording && (
                 <ShortcutRecorder
-                    current={recorderValue}
+                    findConflict={findShortcutConflict}
                     onClose={() => setRecording(undefined)}
                     onSave={(value) => {
                         if (recording.kind === "quickQuery") {
@@ -563,392 +1122,3 @@ export const ShortcutsConfigurationPage = () => {
         </DialogPageShell>
     );
 };
-
-const styles = `
-:root {
-    --mssql-config-control-height: 30px;
-    --mssql-config-surface: var(--vscode-editor-background);
-    --mssql-config-raised: var(--vscode-sideBarSectionHeader-background, var(--vscode-editorWidget-background));
-    --mssql-config-input: var(--vscode-input-background);
-    --mssql-config-border: var(--vscode-editorGroup-border);
-    --mssql-config-border-md: var(--vscode-input-border, var(--vscode-editorGroup-border));
-    --mssql-config-border-hi: var(--vscode-focusBorder);
-    --mssql-config-fg: var(--vscode-foreground);
-    --mssql-config-muted: var(--vscode-descriptionForeground);
-    --mssql-config-dim: var(--vscode-disabledForeground);
-    --mssql-config-hover: var(--vscode-list-hoverBackground);
-    --mssql-config-accent: var(--vscode-focusBorder);
-    --mssql-config-accent-dim: var(--vscode-list-activeSelectionBackground);
-    --mssql-config-accent-text: var(--vscode-textLink-foreground);
-    --mssql-config-success: var(--vscode-testing-iconPassed, var(--vscode-charts-green));
-    --mssql-config-danger: var(--vscode-errorForeground);
-    --mssql-config-font: 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
-    --mssql-config-mono: 'Cascadia Code', 'Fira Code', monospace;
-}
-
-.mssql-config-page {
-    color: var(--mssql-config-fg);
-    display: flex;
-    flex-direction: column;
-    font-family: var(--mssql-config-font);
-    gap: 16px;
-    min-width: 0;
-}
-
-.mssql-config-save-indicator {
-    align-items: center;
-    color: var(--mssql-config-muted);
-    display: flex;
-    font-size: 12px;
-    gap: 6px;
-}
-
-.mssql-config-save-indicator:has(svg) {
-    color: var(--mssql-config-success);
-}
-
-.mssql-config-tabs {
-    display: flex;
-}
-
-.mssql-config-help-text {
-    color: var(--mssql-config-muted);
-    font-size: 12px;
-    line-height: 1.6;
-}
-
-.mssql-config-card {
-    background: var(--mssql-config-surface);
-    border: 1px solid var(--mssql-config-border-md);
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.mssql-config-query-row {
-    border: none;
-    border-radius: 0;
-    border-bottom: 1px solid var(--mssql-config-border);
-}
-
-.mssql-config-query-row:last-child {
-    border-bottom: none;
-}
-
-.mssql-config-query-summary,
-.mssql-config-group-header {
-    align-items: center;
-    background: transparent;
-    border: none;
-    color: inherit;
-    display: grid;
-    font-family: var(--mssql-config-font);
-    gap: 12px;
-    grid-template-columns: auto minmax(0, 1fr);
-    padding: 12px 16px;
-    text-align: left;
-    width: 100%;
-}
-
-.mssql-config-shortcut-group {
-    border-radius: 8px;
-}
-
-.mssql-config-query-summary {
-    box-sizing: border-box;
-    cursor: pointer;
-    min-height: 68px;
-}
-
-.mssql-config-query-summary > span:last-child {
-    min-width: 0;
-    width: 100%;
-}
-
-.mssql-config-group-header > span:last-child {
-    min-width: 0;
-    width: 100%;
-}
-
-.mssql-config-query-summary-content {
-    align-items: center;
-    display: grid;
-    gap: 12px;
-    grid-template-columns: minmax(0, 1fr) auto;
-    min-width: 0;
-    width: 100%;
-}
-
-.mssql-config-query-summary:focus-visible {
-    outline: 1px solid var(--mssql-config-accent);
-    outline-offset: -2px;
-}
-
-.mssql-config-query-summary:hover,
-.mssql-config-group-header:hover {
-    background: var(--mssql-config-hover);
-}
-
-.mssql-config-query-title,
-.mssql-config-group-title {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    min-width: 0;
-}
-
-.mssql-config-chevron {
-    align-items: center;
-    color: var(--mssql-config-muted);
-    display: flex;
-    height: 16px;
-    justify-content: center;
-    width: 16px;
-}
-
-.mssql-config-query-title > span:first-child,
-.mssql-config-group-title > span:first-child,
-.mssql-config-row-label {
-    color: var(--mssql-config-fg);
-    font-size: 13px;
-    font-weight: 500;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.mssql-config-query-preview {
-    color: var(--mssql-config-muted);
-    font-family: var(--mssql-config-mono);
-    font-size: 11.5px;
-    margin-top: 1px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.mssql-config-query-empty {
-    color: var(--mssql-config-dim);
-    font-size: 11.5px;
-    font-style: italic;
-    margin-top: 1px;
-}
-
-.mssql-config-query-editor {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 16px 16px 16px 40px;
-}
-
-.mssql-config-controls-row {
-    align-items: end;
-    display: grid;
-    column-gap: 24px;
-    grid-template-columns: max-content max-content max-content;
-    row-gap: 12px;
-}
-
-.mssql-config-controls-row .mssql-config-field {
-    width: max-content;
-}
-
-.mssql-config-field {
-    color: var(--mssql-config-muted);
-    display: flex;
-    flex-direction: column;
-    font-size: 11px;
-    font-weight: 500;
-    gap: 5px;
-    min-width: 0;
-}
-
-.mssql-config-shortcut-field {
-    min-width: 176px;
-}
-
-.mssql-config-segmented-control {
-    min-height: var(--mssql-config-control-height);
-    width: fit-content;
-}
-
-.mssql-config-segmented-control button {
-    height: var(--mssql-config-control-height);
-    min-height: var(--mssql-config-control-height);
-    min-width: 82px;
-}
-
-.mssql-config-monaco-shell {
-    border: 1px solid var(--mssql-config-border-md);
-    border-radius: 6px;
-    height: 140px;
-    overflow: hidden;
-}
-
-.mssql-config-monaco-shell:focus-within {
-    border-color: var(--mssql-config-accent);
-}
-
-.mssql-config-shortcut-chip-row {
-    align-items: center;
-    display: flex;
-    gap: 6px;
-    justify-content: flex-end;
-    min-width: 0;
-}
-
-.mssql-config-shortcut-chip-row button {
-    height: var(--mssql-config-control-height);
-    min-height: var(--mssql-config-control-height);
-    min-width: var(--mssql-config-control-height);
-}
-
-.mssql-config-shortcut-display {
-    align-items: center;
-    background: var(--vscode-settings-textInputBackground, var(--vscode-input-background));
-    border: 1px solid
-        var(--vscode-settings-textInputBorder, var(--vscode-input-border, transparent));
-    border-radius: 2px;
-    box-sizing: border-box;
-    color: var(--vscode-settings-textInputForeground, var(--vscode-input-foreground));
-    display: flex;
-    font-family: var(--mssql-config-mono);
-    font-size: 12px;
-    height: var(--mssql-config-control-height);
-    min-width: 140px;
-    overflow: hidden;
-    padding: 5px 10px;
-    text-align: left;
-    text-overflow: ellipsis;
-    user-select: none;
-    white-space: nowrap;
-}
-
-.mssql-config-empty,
-.mssql-config-muted {
-    color: var(--mssql-config-dim) !important;
-}
-
-.mssql-config-shortcut-groups {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.mssql-config-search-input {
-    max-width: 360px;
-    width: 100%;
-}
-
-.mssql-config-search-match {
-    background: var(--vscode-editor-findMatchHighlightBackground, rgba(255, 196, 0, 0.35));
-    border-radius: 2px;
-    color: inherit;
-    padding: 0 1px;
-}
-
-.mssql-config-group-header {
-    background: var(--mssql-config-raised);
-    gap: 10px;
-    grid-template-columns: auto minmax(0, 1fr);
-    padding: 11px 16px;
-}
-
-.mssql-config-group-title > span:last-child,
-.mssql-config-row-description {
-    color: var(--mssql-config-muted);
-    font-size: 11.5px;
-    line-height: 1.5;
-}
-
-.mssql-config-webview-shortcuts {
-    padding: 0 16px;
-}
-
-.mssql-config-webview-shortcut-row {
-    align-items: center;
-    border-bottom: 1px solid var(--mssql-config-border);
-    display: grid;
-    gap: 20px;
-    grid-template-columns: minmax(0, 1fr) auto;
-    padding: 10px 0;
-}
-
-.mssql-config-webview-shortcut-row:last-child {
-    border-bottom: none;
-}
-
-.mssql-config-recorder {
-    width: 420px;
-    max-width: 100%;
-}
-
-.mssql-config-recorder-subtitle {
-    color: var(--mssql-config-muted);
-    font-size: 12px;
-    margin-top: 4px;
-}
-
-.mssql-config-recorder-body {
-    align-items: center;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 20px 0 4px;
-}
-
-.mssql-config-key-display {
-    align-items: center;
-    background: var(--vscode-settings-textInputBackground, var(--vscode-input-background));
-    border: 1px solid
-        var(--vscode-settings-textInputBorder, var(--vscode-input-border, transparent));
-    border-radius: 2px;
-    display: flex;
-    height: 56px;
-    justify-content: center;
-    transition: border-color 0.1s ease-in-out;
-    width: 100%;
-}
-
-.mssql-config-key-display-recording {
-    border-color: var(--mssql-config-accent);
-}
-
-.mssql-config-key-display-done {
-    border-color: var(--mssql-config-success);
-}
-
-.mssql-config-recording-copy {
-    align-items: center;
-    color: var(--mssql-config-accent-text);
-    display: flex;
-    font-size: 13px;
-    gap: 8px;
-}
-
-.mssql-config-shortcut-preview {
-    color: var(--mssql-config-fg);
-    font-family: var(--mssql-config-mono);
-    font-size: 18px;
-    font-weight: 600;
-}
-
-@media (max-width: 640px) {
-    .mssql-config-controls-row,
-    .mssql-config-webview-shortcut-row {
-        grid-template-columns: 1fr;
-    }
-
-    .mssql-config-query-summary {
-        align-items: flex-start;
-        grid-template-columns: auto minmax(0, 1fr);
-    }
-
-    .mssql-config-query-summary-content {
-        grid-template-columns: 1fr;
-    }
-
-    .mssql-config-query-editor {
-        padding-left: 16px;
-    }
-}
-`;

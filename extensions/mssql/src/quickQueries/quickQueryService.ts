@@ -4,11 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as vscodeMssql from "vscode-mssql";
 import {
     normalizeQuickQueries,
     quickQueryCount,
-    QuickQueryConnectionMode,
     QuickQueryExecutionMode,
     QuickQuerySlot,
 } from "../sharedInterfaces/shortcutsConfiguration";
@@ -24,7 +22,6 @@ export enum QuickQueryRunResult {
 export interface QuickQueryExecutionDependencies {
     readQuickQueries: () => QuickQuerySlot[];
     openConfiguration: (focusedQuickQuerySlot?: number) => void;
-    getActiveSqlEditorConnectionInfo: () => vscodeMssql.IConnectionInfo | undefined;
     createSqlEditor: (options: NewQueryOptions) => Promise<vscode.TextEditor>;
     isSqlEditorConnected: (editor: vscode.TextEditor) => boolean;
     runSqlEditorQuery: (editor: vscode.TextEditor) => Promise<void>;
@@ -34,20 +31,10 @@ export function getQuickQuerySlot(slots: QuickQuerySlot[], slotNumber: number): 
     return normalizeQuickQueries(slots)[slotNumber - 1];
 }
 
-export function resolveQuickQueryConnectionOptions(
-    slot: QuickQuerySlot,
-    activeConnectionInfo: vscodeMssql.IConnectionInfo | undefined,
-): Pick<NewQueryOptions, "connectionStrategy" | "connectionInfo"> {
-    if (
-        slot.connectionMode === QuickQueryConnectionMode.ActiveOrPrompt &&
-        activeConnectionInfo !== undefined
-    ) {
-        return {
-            connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
-            connectionInfo: activeConnectionInfo,
-        };
-    }
-
+export function resolveQuickQueryConnectionOptions(): Pick<
+    NewQueryOptions,
+    "connectionStrategy" | "connectionInfo"
+> {
     return {
         connectionStrategy: ConnectionStrategy.PromptForConnection,
     };
@@ -67,10 +54,9 @@ export class QuickQueryService {
             return QuickQueryRunResult.OpenedConfiguration;
         }
 
-        const activeConnectionInfo = this.dependencies.getActiveSqlEditorConnectionInfo();
         const editor = await this.dependencies.createSqlEditor({
             content: slot.query,
-            ...resolveQuickQueryConnectionOptions(slot, activeConnectionInfo),
+            ...resolveQuickQueryConnectionOptions(),
         });
 
         if (slot.executionMode === QuickQueryExecutionMode.Open) {

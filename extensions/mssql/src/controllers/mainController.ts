@@ -2961,19 +2961,6 @@ export default class MainController implements vscode.Disposable {
                 ),
             openConfiguration: (focusedQuickQuerySlot) =>
                 this.openShortcutsConfiguration(focusedQuickQuerySlot),
-            getActiveSqlEditorConnectionInfo: () => {
-                const activeEditor = vscode.window.activeTextEditor;
-                if (!activeEditor || activeEditor.document.languageId !== Constants.languageId) {
-                    return undefined;
-                }
-
-                const uri = getUriKey(activeEditor.document.uri);
-                if (!this._connectionMgr.isConnected(uri)) {
-                    return undefined;
-                }
-
-                return this._connectionMgr.getConnectionInfoFromUri(uri);
-            },
             createSqlEditor: async (options) => await this.sqlDocumentService.newQuery(options),
             isSqlEditorConnected: (editor) =>
                 this._connectionMgr.isConnected(getUriKey(editor.document.uri)),

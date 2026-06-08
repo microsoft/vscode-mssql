@@ -363,22 +363,33 @@ export class LocConstants {
             name: l10n.t("Name"),
             query: l10n.t("Query"),
             shortcut: l10n.t("Shortcut"),
-            execution: l10n.t("Execution"),
-            connection: l10n.t("Connection"),
-            openOnly: l10n.t("Open"),
-            openAndRun: l10n.t("Open and run"),
-            activeOrPrompt: l10n.t("Active or prompt"),
-            prompt: l10n.t("Prompt"),
+            autoExecute: l10n.t("Auto-execute"),
+            queryDialogTitle: (name: string) =>
+                l10n.t({
+                    message: "{0} query",
+                    args: [name],
+                    comment: ["{0} is the Quick Query shortcut name"],
+                }),
+            queryEditorAriaLabel: (name: string) =>
+                l10n.t({
+                    message: "Query editor for {0}",
+                    args: [name],
+                    comment: ["{0} is the Quick Query shortcut name"],
+                }),
             noShortcut: l10n.t("No shortcut"),
             noQuerySet: l10n.t("No query set"),
             searchWebviewShortcuts: l10n.t("Search in-app shortcuts"),
             recordShortcut: l10n.t("Record shortcut"),
             recordShortcutDescription: l10n.t(
-                "Press a key combination with Ctrl, Alt, Shift, or a function key.",
+                "Press desired key combination and then press ENTER.",
             ),
-            recordingShortcut: l10n.t("Press keys... (Esc to cancel)"),
-            rerecord: l10n.t("Re-record"),
-            clearShortcut: l10n.t("Clear shortcut"),
+            recordingShortcut: l10n.t("Recording shortcut"),
+            shortcutConflict: (target: string) =>
+                l10n.t({
+                    message: "Already used by {0}",
+                    args: [target],
+                    comment: ["{0} is the name of the command that already uses this shortcut"],
+                }),
             saving: l10n.t("Saving..."),
             saved: l10n.t("Saved"),
             shortcutGroupNavigation: l10n.t("Navigation"),

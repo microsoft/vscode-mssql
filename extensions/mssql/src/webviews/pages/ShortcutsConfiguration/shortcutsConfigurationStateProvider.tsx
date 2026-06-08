@@ -5,10 +5,12 @@
 
 import { createContext, ReactNode, useMemo } from "react";
 import {
+    ReadClipboardTextRequest,
     ShortcutsConfigurationContextProps,
     ShortcutsConfigurationReducers,
     ShortcutsConfigurationWebviewState,
     SaveShortcutsConfigurationPayload,
+    WriteClipboardTextRequest,
 } from "../../../sharedInterfaces/shortcutsConfiguration";
 import { getCoreRPCs } from "../../common/utils";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
@@ -34,6 +36,12 @@ const ShortcutsConfigurationStateProvider = ({ children }: { children: ReactNode
             },
             closeDialog: async () => {
                 await extensionRpc.actionRequest("closeDialog", {});
+            },
+            readClipboardText: async () => {
+                return await extensionRpc.sendRequest(ReadClipboardTextRequest.type);
+            },
+            writeClipboardText: async (text: string) => {
+                await extensionRpc.sendRequest(WriteClipboardTextRequest.type, text);
             },
         }),
         [extensionRpc],

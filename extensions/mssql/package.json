@@ -2105,64 +2105,54 @@
                     "description": "%mssql.quickQueries%",
                     "default": [
                         {
-                            "name": "Quick Query 1",
+                            "name": "Query 1",
                             "query": "",
-                            "executionMode": "open",
-                            "connectionMode": "prompt"
+                            "executionMode": "open"
                         },
                         {
-                            "name": "Quick Query 2",
+                            "name": "Query 2",
                             "query": "",
-                            "executionMode": "open",
-                            "connectionMode": "prompt"
+                            "executionMode": "open"
                         },
                         {
-                            "name": "Quick Query 3",
+                            "name": "Query 3",
                             "query": "",
-                            "executionMode": "open",
-                            "connectionMode": "prompt"
+                            "executionMode": "open"
                         },
                         {
-                            "name": "Quick Query 4",
+                            "name": "Query 4",
                             "query": "",
-                            "executionMode": "open",
-                            "connectionMode": "prompt"
+                            "executionMode": "open"
                         },
                         {
-                            "name": "Quick Query 5",
+                            "name": "Query 5",
                             "query": "",
-                            "executionMode": "open",
-                            "connectionMode": "prompt"
+                            "executionMode": "open"
                         },
                         {
-                            "name": "Quick Query 6",
+                            "name": "Query 6",
                             "query": "",
-                            "executionMode": "open",
-                            "connectionMode": "prompt"
+                            "executionMode": "open"
                         },
                         {
-                            "name": "Quick Query 7",
+                            "name": "Query 7",
                             "query": "",
-                            "executionMode": "open",
-                            "connectionMode": "prompt"
+                            "executionMode": "open"
                         },
                         {
-                            "name": "Quick Query 8",
+                            "name": "Query 8",
                             "query": "",
-                            "executionMode": "open",
-                            "connectionMode": "prompt"
+                            "executionMode": "open"
                         },
                         {
-                            "name": "Quick Query 9",
+                            "name": "Query 9",
                             "query": "",
-                            "executionMode": "open",
-                            "connectionMode": "prompt"
+                            "executionMode": "open"
                         },
                         {
-                            "name": "Quick Query 10",
+                            "name": "Query 10",
                             "query": "",
-                            "executionMode": "open",
-                            "connectionMode": "prompt"
+                            "executionMode": "open"
                         }
                     ],
                     "minItems": 0,
@@ -2190,18 +2180,6 @@
                                     "%mssql.quickQueries.executionMode.openAndRun%"
                                 ],
                                 "description": "%mssql.quickQueries.executionMode%"
-                            },
-                            "connectionMode": {
-                                "type": "string",
-                                "enum": [
-                                    "activeOrPrompt",
-                                    "prompt"
-                                ],
-                                "enumDescriptions": [
-                                    "%mssql.quickQueries.connectionMode.activeOrPrompt%",
-                                    "%mssql.quickQueries.connectionMode.prompt%"
-                                ],
-                                "description": "%mssql.quickQueries.connectionMode%"
                             }
                         }
                     },

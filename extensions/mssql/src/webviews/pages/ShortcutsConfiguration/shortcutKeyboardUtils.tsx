@@ -4,22 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { isMac } from "../../common/utils";
+import { makeStyles } from "@fluentui/react-components";
 
 const modifierKeys = new Set(["Control", "Alt", "Shift", "Meta", "CapsLock", "Tab", "Escape"]);
-const keysAllowedWithoutModifier = new Set([
-    "F1",
-    "F2",
-    "F3",
-    "F4",
-    "F5",
-    "F6",
-    "F7",
-    "F8",
-    "F9",
-    "F10",
-    "F11",
-    "F12",
-]);
 
 function normalizeRecordedKey(event: KeyboardEvent): string {
     const codeMap: Record<string, string> = {
@@ -76,11 +63,6 @@ function normalizeRecordedKey(event: KeyboardEvent): string {
 
 export function shortcutFromKeyboardEvent(event: KeyboardEvent): string | undefined {
     if (modifierKeys.has(event.key)) {
-        return undefined;
-    }
-
-    const hasModifier = event.ctrlKey || event.metaKey || event.altKey || event.shiftKey;
-    if (!hasModifier && !keysAllowedWithoutModifier.has(event.key)) {
         return undefined;
     }
 
@@ -163,7 +145,18 @@ export function textMatchesSearch(text: string, searchTerm: string): boolean {
     return text.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase());
 }
 
+const useHighlightedTextStyles = makeStyles({
+    match: {
+        backgroundColor:
+            "var(--vscode-editor-findMatchHighlightBackground, rgba(255, 196, 0, 0.35))",
+        borderRadius: "2px",
+        color: "inherit",
+        padding: "0 1px",
+    },
+});
+
 export const HighlightedText = ({ text, searchTerm }: { text: string; searchTerm: string }) => {
+    const classes = useHighlightedTextStyles();
     const term = searchTerm.trim();
     if (!term) {
         return <>{text}</>;
@@ -174,7 +167,7 @@ export const HighlightedText = ({ text, searchTerm }: { text: string; searchTerm
         <>
             {parts.map((part, index) =>
                 part.toLocaleLowerCase() === term.toLocaleLowerCase() ? (
-                    <mark key={`${part}-${index}`} className="mssql-config-search-match">
+                    <mark key={`${part}-${index}`} className={classes.match}>
                         {part}
                     </mark>
                 ) : (

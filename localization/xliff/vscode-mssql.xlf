@@ -170,9 +170,6 @@
     <trans-unit id="++CODE++2c599b85806c57eccd08af9ac2bfb4a6f1f81b2ea125bdca3fdb22dc902695e3">
       <source xml:lang="en">Active filters:</source>
     </trans-unit>
-    <trans-unit id="++CODE++3c3a36043dbcbc1a8e9693bcabdac976a69574c8a3f0163b3d9f3470449012e7">
-      <source xml:lang="en">Active or prompt</source>
-    </trans-unit>
     <trans-unit id="++CODE++0fee17081211a1d4460499aa376fa2a12beb83c33a43e14f1832a72901f3ed1c">
       <source xml:lang="en">Actual Elapsed CPU Time</source>
     </trans-unit>
@@ -335,6 +332,10 @@
     </trans-unit>
     <trans-unit id="++CODE++a49d631f8c6cf6fb1660fb5229dfa0c08b55727549c0e48cc0cef1f7770ba0e2">
       <source xml:lang="en">Alphabetical</source>
+    </trans-unit>
+    <trans-unit id="++CODE++93bf77241a758da927077de735ca027835f02556f4b104f28537449e10314fe4">
+      <source xml:lang="en">Already used by {0}</source>
+      <note>{0} is the name of the command that already uses this shortcut</note>
     </trans-unit>
     <trans-unit id="++CODE++482b98e1609bd828db30a1c85f78a5e6e6ee55dcfb01db094432c1db2c1ae168">
       <source xml:lang="en">Alter</source>
@@ -527,6 +528,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a27adfa57c8938761efd3fc482ea8e81fc898b286f29d04c783c9d3b60b22824">
       <source xml:lang="en">Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you&apos;ve created will be lost. Do you want to proceed with auto-arranging your schema diagram?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++762d2d8d0f231dc362dd18f8ee3ef0adc4b55beff276a917db60b3432e2cf8ae">
+      <source xml:lang="en">Auto-execute</source>
     </trans-unit>
     <trans-unit id="++CODE++4c5540399ea50cb52c6ca24ab5aebf272d0e39920af434bec1fa87fa821f1bbd">
       <source xml:lang="en">Auto-pause</source>
@@ -1111,9 +1115,6 @@
     <trans-unit id="++CODE++9d57c82931ed2fcf9bbbc9dbc259e850c0c2b7d57b06e24b627597e60019bc6a">
       <source xml:lang="en">Clear quick filter and all column filters</source>
     </trans-unit>
-    <trans-unit id="++CODE++b22b0b3873a155de2e4f74d9198bf07b8818adc5bf6ed476a1d5ad6c16f9d798">
-      <source xml:lang="en">Clear shortcut</source>
-    </trans-unit>
     <trans-unit id="++CODE++524ed5b794acd857648e76bead9db5ba131ebcb17f3a92d98ece51db61e65dbf">
       <source xml:lang="en">Clear token cache</source>
     </trans-unit>
@@ -1468,9 +1469,6 @@
     </trans-unit>
     <trans-unit id="++CODE++5f04ae9ed6a865bb382c66ef4bd4e57df4ce19d4142b8c87ac40d65ae54d278f">
       <source xml:lang="en">Connecting...</source>
-    </trans-unit>
-    <trans-unit id="++CODE++639a40e82b9a96f0cbeed5f006cf5634c8d1b990b3c83753c00a910fc268d2a6">
-      <source xml:lang="en">Connection</source>
     </trans-unit>
     <trans-unit id="++CODE++6c916d6a3ffb6e0c85ad115ae2e1f277af1bc76f11a7267fd818b798a796b26a">
       <source xml:lang="en">Connection Authentication</source>
@@ -2779,9 +2777,6 @@
     </trans-unit>
     <trans-unit id="++CODE++0a716f1cfed3e0da68a8eee920bd5ca51a470c790800d878429da7ab9ecf0d56">
       <source xml:lang="en">Executing query...</source>
-    </trans-unit>
-    <trans-unit id="++CODE++a45cd4bd0998e5683cdf4839b883fc0c77599eecfa9c7b658b32dbbd499a8039">
-      <source xml:lang="en">Execution</source>
     </trans-unit>
     <trans-unit id="++CODE++bd705ebabe1919a636a0e09b2ee27d43a5aba05d645cc0339451e54b37f42bd6">
       <source xml:lang="en">Execution Plan</source>
@@ -5146,9 +5141,6 @@
     <trans-unit id="++CODE++36eaf70bf802c56bb84c14fb713ba56b41a28ba07a5a6cdab3fedd21146ff274">
       <source xml:lang="en">Open a new bug</source>
     </trans-unit>
-    <trans-unit id="++CODE++a15ea4c1f063595ecd5508dd1e4a59f9a3cdf9f6a7b89f0e600094fdafc7fac2">
-      <source xml:lang="en">Open and run</source>
-    </trans-unit>
     <trans-unit id="++CODE++0ff35606d4c615fdb3160459aad9f61192a9321945983e2559c2175dd96b3f8f">
       <source xml:lang="en">Open column menu</source>
     </trans-unit>
@@ -5398,11 +5390,8 @@
     <trans-unit id="++CODE++3b91294fe7a573ba168c7b5c23b3fc93126ad6a222949deda1e517bc3a335519">
       <source xml:lang="en">Preserve the replication settings</source>
     </trans-unit>
-    <trans-unit id="++CODE++b9902ec9201ec41d03ec906eea5fe72aa23ba6e95aaf620c72d158b2c329118f">
-      <source xml:lang="en">Press a key combination with Ctrl, Alt, Shift, or a function key.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++3bf0505016f1c2c1cf6ff88d7fd58de040b6f96d534037d572cbc440fba5c8a5">
-      <source xml:lang="en">Press keys... (Esc to cancel)</source>
+    <trans-unit id="++CODE++8e8d85ec52b9705310156eb6f67d11bb6b6b2220e47b0e2f337dd3bdfbfa002a">
+      <source xml:lang="en">Press desired key combination and then press ENTER.</source>
     </trans-unit>
     <trans-unit id="++CODE++324b134f57c70c729ae3dc4d298bb451656717d70523e942c1ce667b8024ea07">
       <source xml:lang="en">Preview</source>
@@ -5503,9 +5492,6 @@
       <source xml:lang="en">Profiler session &apos;{0}&apos; started successfully.</source>
       <note>{0} is the session name</note>
     </trans-unit>
-    <trans-unit id="++CODE++5c39123805ffb4e2f01ba096f17a5b18afb43c4f223afa4ba2d5a3f31cf74e09">
-      <source xml:lang="en">Prompt</source>
-    </trans-unit>
     <trans-unit id="++CODE++ae43692b2a310b8ed2443d2b7d2a3e4cf0b6d73115badd72831b3d22381f235f">
       <source xml:lang="en">Properties</source>
     </trans-unit>
@@ -5595,6 +5581,10 @@
       <source xml:lang="en">Query Profiler: {0}</source>
       <note>{0} is the file name or session name</note>
     </trans-unit>
+    <trans-unit id="++CODE++3dd2984885ceb7c9591c74b48a11baafda636d82b815b8dd6b6ea010633eb5a5">
+      <source xml:lang="en">Query editor for {0}</source>
+      <note>{0} is the Quick Query shortcut name</note>
+    </trans-unit>
     <trans-unit id="++CODE++9e83dc6d2db272ac27cc875b994f834b62b7202a49b69e885f8f4e8f9c29a452">
       <source xml:lang="en">Query executed</source>
     </trans-unit>
@@ -5636,9 +5626,6 @@
     <trans-unit id="++CODE++581627cba40f213340516f0d39805addaf361c69917155ec912ee6ec7b272a18">
       <source xml:lang="en">RESTORE WITH STANDBY</source>
     </trans-unit>
-    <trans-unit id="++CODE++f3d3dfc9551c4e1685e162daf78193f63aada046940e348cd27d04235418ae23">
-      <source xml:lang="en">Re-record</source>
-    </trans-unit>
     <trans-unit id="++CODE++9b9a8d05a7ec353bda84f9c1bb3178c299de3001b5e970508ddc889c487f92ca">
       <source xml:lang="en">Read</source>
     </trans-unit>
@@ -5678,6 +5665,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8cb3da9c49a18274300475b2f9dbf9edd0a194821a1ce05c7d8351ffee8abdaa">
       <source xml:lang="en">Record shortcut</source>
+    </trans-unit>
+    <trans-unit id="++CODE++69762f2ef1c8cba117041b8880a33b5ac1862bbcbe41df7463dbc36d93666e06">
+      <source xml:lang="en">Recording shortcut</source>
     </trans-unit>
     <trans-unit id="++CODE++85a3403bf7f8754b479e80917b7d779d63640b98e77450fe47ae7303ca7e9d03">
       <source xml:lang="en">Recovery Model</source>
@@ -8165,6 +8155,10 @@
       <source xml:lang="en">{0} properties</source>
       <note>{0} is the object type</note>
     </trans-unit>
+    <trans-unit id="++CODE++5cfce2c8b0bf6572d859afa030e35d76e8740a8750643214bd34c31876496f67">
+      <source xml:lang="en">{0} query</source>
+      <note>{0} is the Quick Query shortcut name</note>
+    </trans-unit>
     <trans-unit id="++CODE++2bd22e3b4b0281a2ffa3bc8bdd3e1f2b49dedcdde97d4cc83fdf598d1208d103">
       <source xml:lang="en">{0} rows selected, click to load summary</source>
       <note>{0} is the number of rows to fetch summary statistics for</note>
@@ -8430,9 +8424,6 @@
     </trans-unit>
     <trans-unit id="mssql.newEditorConnectionBehavior.description">
       <source xml:lang="en">Controls how new SQL editor windows and opened SQL files are automatically connected.</source>
-    </trans-unit>
-    <trans-unit id="mssql.quickQueries.connectionMode">
-      <source xml:lang="en">Controls how this Quick Query chooses a SQL connection.</source>
     </trans-unit>
     <trans-unit id="mssql.resultsGrid.inMemoryDataProcessingThreshold">
       <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>
@@ -8770,9 +8761,6 @@
     <trans-unit id="mssql.preventAutoExecuteScript">
       <source xml:lang="en">Prevent automatic execution of scripts (e.g., &apos;Select Top 1000&apos;). When enabled, scripts will not be automatically executed upon generation.</source>
     </trans-unit>
-    <trans-unit id="mssql.quickQueries.connectionMode.prompt">
-      <source xml:lang="en">Prompt for a connection.</source>
-    </trans-unit>
     <trans-unit id="mssql.authCodeGrant.description">
       <source xml:lang="en">Prompts users to sign in using their browser.</source>
     </trans-unit>
@@ -9075,9 +9063,6 @@
     </trans-unit>
     <trans-unit id="mssql.resultsGrid.useDataOnlyEnumDescription">
       <source xml:lang="en">Use only row data to size columns automatically</source>
-    </trans-unit>
-    <trans-unit id="mssql.quickQueries.connectionMode.activeOrPrompt">
-      <source xml:lang="en">Use the active SQL editor connection when one is available; otherwise prompt for a connection.</source>
     </trans-unit>
     <trans-unit id="mssql.preview.useVscodeAccountsForEntraMFA.description">
       <source xml:lang="en">Uses VS Code signed-in accounts for Microsoft Entra ID MFA authentication to SQL. Restart Visual Studio Code after changing this setting.</source>
