@@ -3,9 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
 import * as vscode from "vscode";
 import * as path from "path";
 import SqlToolsServerClient from "./serviceclient";
@@ -107,7 +104,12 @@ export class SqlSymbolRenameProvider implements vscode.RenameProvider {
             if (!wordRange) {
                 throw new Error(loc.noRenameableSymbolAtCursor);
             }
-            workspaceEdit.replace(document.uri, wordRange, newName);
+            const originalText = document.getText(wordRange);
+            const finalName =
+                originalText.startsWith("[") && originalText.endsWith("]")
+                    ? `[${newName}]`
+                    : newName;
+            workspaceEdit.replace(document.uri, wordRange, finalName);
             return workspaceEdit;
         }
 

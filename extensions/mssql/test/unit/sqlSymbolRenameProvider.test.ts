@@ -40,10 +40,7 @@ function makeDocument(
     const wordText = opts.wordText ?? "MyTable";
 
     const doc = {
-        uri: {
-            fsPath,
-            toString: () => uriString,
-        } as unknown as vscode.Uri,
+        uri: Object.assign(vscode.Uri.file(fsPath), { toString: () => uriString }),
         getText: (_r?: vscode.Range) => wordText,
         getWordRangeAtPosition: sandbox.stub().returns(range),
         languageId: "sql",
