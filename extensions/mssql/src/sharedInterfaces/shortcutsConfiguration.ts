@@ -99,9 +99,13 @@ export function normalizeQuickQuerySlot(value: unknown, slotNumber: number): Qui
     }
 
     const candidate = value as Partial<QuickQuerySlot>;
+    const name =
+        typeof candidate.name === "string" && candidate.name.trim().length > 0
+            ? candidate.name.trim()
+            : defaults.name;
 
     return {
-        name: defaults.name,
+        name,
         query: typeof candidate.query === "string" ? candidate.query : defaults.query,
         executionMode: isQuickQueryExecutionMode(candidate.executionMode)
             ? candidate.executionMode

@@ -71,7 +71,7 @@ export function shortcutFromKeyboardEvent(event: KeyboardEvent): string | undefi
         parts.push("ctrl");
     }
     if (event.metaKey) {
-        parts.push("cmd");
+        parts.push(isMac() ? "cmd" : "meta");
     }
     if (event.altKey) {
         parts.push("alt");

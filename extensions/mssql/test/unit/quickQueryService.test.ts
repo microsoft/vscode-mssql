@@ -22,7 +22,7 @@ import {
     QuickQueryService,
     resolveQuickQueryConnectionOptions,
 } from "../../src/quickQueries/quickQueryService";
-import { ConnectionStrategy, NewQueryOptions } from "../../src/controllers/sqlDocumentService";
+import { ConnectionStrategy } from "../../src/controllers/sqlDocumentService";
 
 const { expect } = chai;
 chai.use(sinonChai);
@@ -61,7 +61,7 @@ suite("Quick Query Service", () => {
 
         expect(quickQueries).to.have.length(10);
         expect(quickQueries[0]).to.deep.equal({
-            name: "Query 1",
+            name: "Health Check",
             query: "select 1",
             executionMode: QuickQueryExecutionMode.Open,
         });
@@ -84,7 +84,7 @@ suite("Quick Query Service", () => {
         ]);
 
         expect(quickQueries[0]).to.deep.equal({
-            name: "Query 1",
+            name: "Legacy Active",
             query: "select 1",
             executionMode: QuickQueryExecutionMode.Open,
         });
@@ -134,11 +134,12 @@ suite("Quick Query Service", () => {
         });
 
         const result = await service.run(1);
-        const options = createSqlEditor.firstCall.args[0] as NewQueryOptions;
 
         expect(result).to.equal(QuickQueryRunResult.Opened);
-        expect(options.connectionStrategy).to.equal(ConnectionStrategy.PromptForConnection);
-        expect(runSqlEditorQuery.notCalled).to.equal(true);
+        expect(createSqlEditor).to.have.been.calledWithMatch({
+            connectionStrategy: ConnectionStrategy.PromptForConnection,
+        });
+        expect(runSqlEditorQuery).to.not.have.been.called;
     });
 
     test("runs when execution mode is openAndRun and editor is connected", async () => {

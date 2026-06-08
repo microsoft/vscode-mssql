@@ -78,6 +78,7 @@ function createDialogEditor(openDialog: (row: QuickQueryGridRow) => void) {
     return class DialogEditor implements Editor {
         static suppressClearOnEdit = true;
         dataContext?: QuickQueryGridRow;
+        private animationFrame: number | undefined;
 
         constructor(private readonly args: EditorArguments) {
             this.dataContext = args.item as QuickQueryGridRow;
@@ -85,13 +86,19 @@ function createDialogEditor(openDialog: (row: QuickQueryGridRow) => void) {
         }
 
         init(): void {
-            window.setTimeout(() => {
+            this.animationFrame = window.requestAnimationFrame(() => {
+                this.animationFrame = undefined;
                 this.args.cancelChanges();
                 openDialog(this.dataContext!);
-            }, 0);
+            });
         }
 
-        destroy(): void {}
+        destroy(): void {
+            if (this.animationFrame !== undefined) {
+                window.cancelAnimationFrame(this.animationFrame);
+                this.animationFrame = undefined;
+            }
+        }
 
         focus(): void {}
 

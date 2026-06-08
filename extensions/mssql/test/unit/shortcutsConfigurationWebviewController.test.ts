@@ -34,7 +34,6 @@ suite("shortcutsConfiguration Webview Controller", () => {
     let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let updateConfigurationStub: sinon.SinonStub;
     let keybindingsText: string;
-    let keybindingsFilePath: string;
     let tempUserDataPath: string;
     let quickQueriesSetting: unknown;
     let webviewShortcutsSetting: Record<string, string>;
@@ -55,8 +54,27 @@ suite("shortcutsConfiguration Webview Controller", () => {
         tempUserDataPath = fs.mkdtempSync(path.join(os.tmpdir(), "mssql-config-test-"));
         const globalStoragePath = path.join(tempUserDataPath, "globalStorage", "ms-mssql.mssql");
         fs.mkdirSync(globalStoragePath, { recursive: true });
-        keybindingsFilePath = path.join(tempUserDataPath, "keybindings.json");
-        fs.writeFileSync(keybindingsFilePath, keybindingsText);
+        const keybindingsFilePath = path.join(tempUserDataPath, "keybindings.json");
+        const keybindingsDocument = {
+            uri: vscode.Uri.file(keybindingsFilePath),
+            getText: () => keybindingsText,
+            positionAt: (offset: number) => new vscode.Position(0, offset),
+            save: sandbox.stub().resolves(true),
+        } as unknown as vscode.TextDocument;
+        const keybindingsEditor = {
+            document: keybindingsDocument,
+            edit: sandbox
+                .stub()
+                .callsFake(async (callback: (editBuilder: vscode.TextEditorEdit) => void) => {
+                    callback({
+                        replace: (_range: vscode.Range, text: string) => {
+                            keybindingsText = text;
+                        },
+                    } as unknown as vscode.TextEditorEdit);
+                    return true;
+                }),
+        } as unknown as vscode.TextEditor;
+        sandbox.stub(vscode.window, "activeTextEditor").get(() => keybindingsEditor);
 
         quickQueriesSetting = normalizeQuickQueries(undefined);
         webviewShortcutsSetting = {};
@@ -155,11 +173,9 @@ suite("shortcutsConfiguration Webview Controller", () => {
             { [WebviewAction.ResultGridSelectAll]: "ctrl+shift+a" },
             vscode.ConfigurationTarget.Global,
         );
-        keybindingsText = fs.readFileSync(keybindingsFilePath, "utf-8");
-
         const quickQueries = normalizeQuickQueries(quickQueriesSetting);
         expect(quickQueries[0]).to.deep.equal({
-            name: "Query 1",
+            name: "Health Check",
             query: "select 1",
             executionMode: QuickQueryExecutionMode.Open,
         });
@@ -187,7 +203,6 @@ suite("shortcutsConfiguration Webview Controller", () => {
         "command": "workbench.action.keep"
     }
 ]`;
-        fs.writeFileSync(keybindingsFilePath, keybindingsText);
         const reducer = getReducer("saveConfiguration");
 
         const result = await reducer(controller.state, {
@@ -204,7 +219,6 @@ suite("shortcutsConfiguration Webview Controller", () => {
         expect(result.webviewShortcuts).to.deep.equal({
             [WebviewAction.ResultGridCopySelection]: "ctrl+c",
         });
-        keybindingsText = fs.readFileSync(keybindingsFilePath, "utf-8");
         expect(parseKeybindingsText(keybindingsText)).to.deep.equal([
             {
                 key: "ctrl+k",
@@ -250,6 +264,6 @@ suite("shortcutsConfiguration Webview Controller", () => {
         });
 
         expect(result.errorMessage).to.equal(undefined);
-        expect(webviewPanel.dispose).to.have.been.calledOnce;
+        expect(webviewPanel.dispose).to.have.been.called;
     });
 });

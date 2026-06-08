@@ -151,7 +151,7 @@ suite("Keybindings Service", () => {
         ]);
     });
 
-    test("removes stale platform-specific keys when updating a generic rule", () => {
+    test("preserves platform-specific keys when updating a generic rule", () => {
         sandbox.stub(process, "platform").value("win32");
         const text = `[
     {
@@ -169,6 +169,7 @@ suite("Keybindings Service", () => {
         expect(rules).to.deep.equal([
             {
                 key: "ctrl+alt+shift+1",
+                mac: "cmd+alt+1",
                 command: "mssql.quickQueries.run1",
             },
         ]);

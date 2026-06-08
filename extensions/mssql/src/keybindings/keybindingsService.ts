@@ -54,14 +54,6 @@ function getFormattingOptions(text: string) {
     };
 }
 
-function clearPlatformSpecificKeys(rule: KeybindingRule): KeybindingRule {
-    const result = { ...rule };
-    delete result.mac;
-    delete result.win;
-    delete result.linux;
-    return result;
-}
-
 function normalizeKeybindingsText(text: string): string {
     return text.trim().length === 0 ? defaultKeybindingsText : text;
 }
@@ -131,7 +123,7 @@ export function updateKeybindingsText(text: string, updates: CommandKeybindingUp
                           [platformKeyProperty]: key,
                       }
                     : {
-                          ...clearPlatformSpecificKeys(existingRule),
+                          ...existingRule,
                           key,
                       };
 
@@ -167,10 +159,11 @@ export function updateKeybindingsText(text: string, updates: CommandKeybindingUp
 }
 
 export class KeybindingsService {
-    constructor(private readonly context: vscode.ExtensionContext) {}
+    constructor(_context: vscode.ExtensionContext) {}
 
     public async getCommandKeybindings(commandIds: string[]): Promise<Record<string, string>> {
-        const rules = parseKeybindingsText(await this.readKeybindingsText());
+        const editor = await this.openKeybindingsEditor();
+        const rules = parseKeybindingsText(editor.document.getText());
         const result: Record<string, string> = {};
 
         for (const commandId of commandIds) {
@@ -185,37 +178,33 @@ export class KeybindingsService {
     }
 
     public async updateCommandKeybindings(updates: CommandKeybindingUpdate[]): Promise<void> {
-        const text = await this.readKeybindingsText();
+        const editor = await this.openKeybindingsEditor();
+        const document = editor.document;
+        const text = document.getText();
         const updatedText = updateKeybindingsText(text, updates);
-        await this.writeKeybindingsText(updatedText);
+        const fullRange = new vscode.Range(
+            document.positionAt(0),
+            document.positionAt(text.length),
+        );
+        const applied = await editor.edit((editBuilder) => {
+            editBuilder.replace(fullRange, updatedText);
+        });
+        if (!applied) {
+            throw new Error("Could not update keybindings.json.");
+        }
+        await document.save();
     }
 
     public async openKeybindingsFile(): Promise<void> {
         await vscode.commands.executeCommand("workbench.action.openGlobalKeybindingsFile");
     }
 
-    private get userDataUri(): vscode.Uri {
-        return vscode.Uri.joinPath(this.context.globalStorageUri, "..", "..");
-    }
-
-    private get keybindingsUri(): vscode.Uri {
-        return vscode.Uri.joinPath(this.userDataUri, "keybindings.json");
-    }
-
-    private async readKeybindingsText(): Promise<string> {
-        try {
-            const bytes = await vscode.workspace.fs.readFile(this.keybindingsUri);
-            return new TextDecoder("utf-8").decode(bytes);
-        } catch (error) {
-            if ((error as { code?: string }).code === "FileNotFound") {
-                return defaultKeybindingsText;
-            }
-            throw error;
+    private async openKeybindingsEditor(): Promise<vscode.TextEditor> {
+        await this.openKeybindingsFile();
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            throw new Error("Could not open keybindings.json.");
         }
-    }
-
-    private async writeKeybindingsText(text: string): Promise<void> {
-        await vscode.workspace.fs.createDirectory(this.userDataUri);
-        await vscode.workspace.fs.writeFile(this.keybindingsUri, new TextEncoder().encode(text));
+        return editor;
     }
 }

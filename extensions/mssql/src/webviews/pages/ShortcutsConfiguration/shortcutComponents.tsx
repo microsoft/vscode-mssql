@@ -33,6 +33,7 @@ import {
 } from "@fluentui/react-components";
 import { Checkmark12Regular, Keyboard16Regular } from "@fluentui/react-icons";
 import { locConstants } from "../../common/locConstants";
+import { isMac } from "../../common/utils";
 import { VscodeEditor } from "../../common/vscodeMonaco";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { QuickQuerySlot } from "../../../sharedInterfaces/shortcutsConfiguration";
@@ -387,7 +388,7 @@ function readModifiers(event: KeyboardEvent): string[] {
         parts.push("ctrl");
     }
     if (event.metaKey) {
-        parts.push("cmd");
+        parts.push(isMac() ? "cmd" : "meta");
     }
     if (event.altKey) {
         parts.push("alt");
