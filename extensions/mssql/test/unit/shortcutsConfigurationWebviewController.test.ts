@@ -54,27 +54,22 @@ suite("shortcutsConfiguration Webview Controller", () => {
         tempUserDataPath = fs.mkdtempSync(path.join(os.tmpdir(), "mssql-config-test-"));
         const globalStoragePath = path.join(tempUserDataPath, "globalStorage", "ms-mssql.mssql");
         fs.mkdirSync(globalStoragePath, { recursive: true });
-        const keybindingsFilePath = path.join(tempUserDataPath, "keybindings.json");
         const keybindingsDocument = {
-            uri: vscode.Uri.file(keybindingsFilePath),
+            uri: vscode.Uri.parse("vscode-userdata:/User/keybindings.json"),
             getText: () => keybindingsText,
             positionAt: (offset: number) => new vscode.Position(0, offset),
             save: sandbox.stub().resolves(true),
         } as unknown as vscode.TextDocument;
-        const keybindingsEditor = {
-            document: keybindingsDocument,
-            edit: sandbox
-                .stub()
-                .callsFake(async (callback: (editBuilder: vscode.TextEditorEdit) => void) => {
-                    callback({
-                        replace: (_range: vscode.Range, text: string) => {
-                            keybindingsText = text;
-                        },
-                    } as unknown as vscode.TextEditorEdit);
-                    return true;
-                }),
-        } as unknown as vscode.TextEditor;
-        sandbox.stub(vscode.window, "activeTextEditor").get(() => keybindingsEditor);
+        sandbox.stub(vscode.workspace, "openTextDocument").resolves(keybindingsDocument);
+        sandbox
+            .stub(vscode.workspace, "applyEdit")
+            .callsFake(async (edit: vscode.WorkspaceEdit) => {
+                const textEdit = edit.entries()[0]?.[1][0];
+                if (textEdit) {
+                    keybindingsText = textEdit.newText;
+                }
+                return true;
+            });
 
         quickQueriesSetting = normalizeQuickQueries(undefined);
         webviewShortcutsSetting = {};

@@ -24,6 +24,10 @@ export interface CommandKeybindingUpdate {
 }
 
 const defaultKeybindingsText = "[\n]\n";
+const keybindingsUri = vscode.Uri.from({
+    scheme: "vscode-userdata",
+    path: "/User/keybindings.json",
+});
 
 function getPlatformKeybinding(rule: KeybindingRule): string | undefined {
     const platformKey =
@@ -162,8 +166,8 @@ export class KeybindingsService {
     constructor(_context: vscode.ExtensionContext) {}
 
     public async getCommandKeybindings(commandIds: string[]): Promise<Record<string, string>> {
-        const editor = await this.openKeybindingsEditor();
-        const rules = parseKeybindingsText(editor.document.getText());
+        const document = await this.openKeybindingsDocument();
+        const rules = parseKeybindingsText(document.getText());
         const result: Record<string, string> = {};
 
         for (const commandId of commandIds) {
@@ -178,17 +182,16 @@ export class KeybindingsService {
     }
 
     public async updateCommandKeybindings(updates: CommandKeybindingUpdate[]): Promise<void> {
-        const editor = await this.openKeybindingsEditor();
-        const document = editor.document;
+        const document = await this.openKeybindingsDocument();
         const text = document.getText();
         const updatedText = updateKeybindingsText(text, updates);
         const fullRange = new vscode.Range(
             document.positionAt(0),
             document.positionAt(text.length),
         );
-        const applied = await editor.edit((editBuilder) => {
-            editBuilder.replace(fullRange, updatedText);
-        });
+        const workspaceEdit = new vscode.WorkspaceEdit();
+        workspaceEdit.replace(document.uri, fullRange, updatedText);
+        const applied = await vscode.workspace.applyEdit(workspaceEdit);
         if (!applied) {
             throw new Error("Could not update keybindings.json.");
         }
@@ -199,12 +202,7 @@ export class KeybindingsService {
         await vscode.commands.executeCommand("workbench.action.openGlobalKeybindingsFile");
     }
 
-    private async openKeybindingsEditor(): Promise<vscode.TextEditor> {
-        await this.openKeybindingsFile();
-        const editor = vscode.window.activeTextEditor;
-        if (!editor) {
-            throw new Error("Could not open keybindings.json.");
-        }
-        return editor;
+    private async openKeybindingsDocument(): Promise<vscode.TextDocument> {
+        return vscode.workspace.openTextDocument(keybindingsUri);
     }
 }
