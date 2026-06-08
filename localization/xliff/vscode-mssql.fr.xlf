@@ -7658,7 +7658,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++6a6bf6063fe6e46acf60d08c0ba2dba1d05dd22efb279588eeca536a4850299b">
         <source xml:lang="en">SQL Tools (MSSQL)</source>
-        <target state="new">SQL Tools (MSSQL)</target>
+        <target state="translated">Outils SQL (MSSQL)</target>
       </trans-unit>
       <trans-unit id="++CODE++9ae793c44500f6cd1d15d751baaa468f9cf94715473c5cab3bb2603f3c80e942">
         <source xml:lang="en">SQL database in Fabric</source>
@@ -11219,7 +11219,7 @@ Commencez par cliquer sur le bouton de filtre à côté de la plupart des dossie
       </trans-unit>
       <trans-unit id="mssql.sqlToolsMcp.serverLabel">
         <source xml:lang="en">SQL Tools (MSSQL)</source>
-        <target state="new">SQL Tools (MSSQL)</target>
+        <target state="translated">Outils SQL (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.scriptAlter">
         <source xml:lang="en">Script as Alter</source>
