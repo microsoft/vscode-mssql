@@ -13,7 +13,6 @@ export namespace GenerateSqlPackageCommandRequest {
     export const type = new RequestType<
         mssql.SqlPackageCommandParams,
         mssql.SqlPackageCommandResult,
-        void,
         void
     >("sqlpackage/generateCommand");
 }

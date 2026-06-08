@@ -16,7 +16,7 @@ import { ILogger } from "../sharedInterfaces/logger";
 import { Logger } from "../models/logger";
 import { NotebookConnectionManager } from "./notebookConnectionManager";
 import { NotebookCodeLensProvider } from "./notebookCodeLensProvider";
-import { NotebookBatchResult } from "./notebookQueryExecutor";
+import { HeadlessBatchResult } from "../queryExecution/headlessQueryExecutor";
 import * as formatter from "./resultFormatter";
 import type {
     NotebookQueryResultBlock,
@@ -723,7 +723,7 @@ export class SqlNotebookController implements vscode.Disposable {
     }
 
     private buildBatchOutputs(
-        batches: NotebookBatchResult[],
+        batches: HeadlessBatchResult[],
         includeExecutionTime = true,
     ): vscode.NotebookCellOutput[] {
         const blocks = this.buildBatchOutputBlocks(batches, includeExecutionTime);
@@ -739,7 +739,7 @@ export class SqlNotebookController implements vscode.Disposable {
     }
 
     private buildBatchOutputBlocks(
-        batches: NotebookBatchResult[],
+        batches: HeadlessBatchResult[],
         includeExecutionTime: boolean,
     ): NotebookQueryResultBlock[] {
         const blocks: NotebookQueryResultBlock[] = [];
@@ -858,7 +858,7 @@ export class SqlNotebookController implements vscode.Disposable {
 
     private appendExecutionTimeOutput(
         outputs: vscode.NotebookCellOutput[],
-        batches: NotebookBatchResult[],
+        batches: HeadlessBatchResult[],
     ): void {
         const executionTimeLine = this.getExecutionTimeLine(batches);
         if (!executionTimeLine) {
@@ -876,13 +876,13 @@ export class SqlNotebookController implements vscode.Disposable {
         );
     }
 
-    private getExecutionTimeLine(batches: NotebookBatchResult[]): string | undefined {
+    private getExecutionTimeLine(batches: HeadlessBatchResult[]): string | undefined {
         const executionElapsed = this.getExecutionElapsed(batches);
         return executionElapsed ? LocalizedConstants.elapsedTimeLabel(executionElapsed) : undefined;
     }
 
     private hasExecutionTimeMessage(
-        batches: NotebookBatchResult[],
+        batches: HeadlessBatchResult[],
         executionTimeLine: string,
     ): boolean {
         return batches.some((batch) =>
@@ -890,7 +890,7 @@ export class SqlNotebookController implements vscode.Disposable {
         );
     }
 
-    private getExecutionElapsed(batches: NotebookBatchResult[]): string | undefined {
+    private getExecutionElapsed(batches: HeadlessBatchResult[]): string | undefined {
         const batchExecutionElapsed = batches
             .map((batch) => batch.batchSummary.executionElapsed)
             .filter((elapsedTime): elapsedTime is string => !!elapsedTime);

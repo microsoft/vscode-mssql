@@ -43,12 +43,13 @@ import {
     Emitter,
     Message,
     MessageConnection,
+    MessageReader,
     MessageWriter,
     NotificationType,
+    type RequestParam,
     RequestHandler,
     RequestType,
 } from "vscode-jsonrpc/node";
-import { MessageReader } from "vscode-languageclient";
 import { Deferred } from "../protocol";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
@@ -447,7 +448,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
      */
     public onRequest<TParam, TResult, TError>(
         type: RequestType<TParam, TResult, TError>,
-        handler: RequestHandler<TParam, TResult, TError>,
+        handler: (params: TParam, token: CancellationToken) => TResult | Promise<TResult>,
     ): void {
         if (!this.connection) {
             return;
@@ -455,10 +456,10 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         if (this._isDisposed) {
             throw new Error("Cannot register request handler on disposed controller");
         }
-        const handlerWrap: RequestHandler<TParam, TResult, TError> = (
+        const handlerWrap = (
             params: TParam,
             token: CancellationToken,
-        ) => {
+        ): TResult | Promise<TResult> => {
             this.logger.debug(`Request received from webview: ${type.method}`);
             const handlerActivity = startActivity(
                 TelemetryViews.WebviewController,
@@ -501,7 +502,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
                 throw error;
             }
         };
-        this.connection.onRequest(type, handlerWrap);
+        this.connection.onRequest(type, handlerWrap as RequestHandler<TParam, TResult, TError>);
     }
 
     /**
@@ -518,7 +519,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         if (this._isDisposed) {
             return Promise.reject(new Error("Cannot send request on disposed controller"));
         }
-        return this.connection.sendRequest(type, params, token);
+        return this.connection.sendRequest(type, params as RequestParam<TParam>, token);
     }
 
     /**
@@ -548,7 +549,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             undefined,
             true, // include call stack
         );
-        return this.connection.sendNotification(type, params);
+        return this.connection.sendNotification(type, params as RequestParam<TParams>);
     }
 
     /**

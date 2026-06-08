@@ -31,62 +31,10 @@ import {
     MessageReader,
     MessageWriter,
     NotificationType,
-    RAL,
+    type RequestParam,
     RequestHandler,
     RequestType,
 } from "vscode-jsonrpc/browser";
-
-/**
- * Chromium throttles setTimeout(0) when a webview is hidden which in turn stalls
- * vscode-jsonrpc's internal queue. Replace the runtime's setImmediate shim with
- * a MessageChannel based microtask so responses resolve immediately regardless
- * of visibility.
- * Upstream vscode-jsonrpc issue: https://github.com/microsoft/vscode-languageserver-node/issues/1692
- */
-const fixSetImmediate = (() => {
-    let patched = false;
-    return () => {
-        if (patched) {
-            return;
-        }
-        const ral = RAL();
-
-        const callbacks = new Map<number, () => void>();
-        const runCallback = (id: number) => {
-            const callback = callbacks.get(id);
-            callbacks.delete(id);
-            callback?.();
-        };
-        const schedule = (() => {
-            if (typeof queueMicrotask === "function") {
-                return (id: number) => queueMicrotask(() => runCallback(id));
-            }
-            return undefined;
-        })();
-        if (!schedule) {
-            return;
-        }
-        let handleId = 0;
-        const patchedTimer = {
-            ...ral.timer, // Keep existing timer methods.
-            setImmediate: (callback: (...args: unknown[]) => void, ...args: unknown[]) => {
-                const id = ++handleId;
-                callbacks.set(id, () => callback(...args));
-                schedule(id);
-                return {
-                    dispose: () => callbacks.delete(id),
-                };
-            },
-        };
-        RAL.install({
-            ...ral,
-            timer: patchedTimer,
-        });
-        patched = true;
-    };
-})();
-
-fixSetImmediate();
 
 class WebviewRpcMessageReader extends AbstractMessageReader implements MessageReader {
     private _onData: Emitter<Message>;
@@ -258,11 +206,11 @@ export class WebviewRpc<Reducers> {
         params?: P,
         token?: CancellationToken,
     ): Promise<R> {
-        return this.connection.sendRequest(type, params, token);
+        return this.connection.sendRequest(type, params as RequestParam<P>, token);
     }
 
     public async sendNotification<P>(type: NotificationType<P>, params?: P): Promise<void> {
-        return this.connection.sendNotification(type, params);
+        return this.connection.sendNotification(type, params as RequestParam<P>);
     }
 
     public onNotification<P>(type: NotificationType<P>, handler: (params: P) => void): void {

@@ -43,6 +43,7 @@ suite("ProfilerService Tests", () => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (type: { method: string }, handler: (params: any) => void) => {
                 notificationHandlers.set(type.method, handler);
+                return { dispose: sandbox.stub() };
             },
         );
 

@@ -16,13 +16,13 @@ import * as LocalizedConstants from "../../../src/constants/locConstants";
 import { SqlNotebookController } from "../../../src/notebooks/sqlNotebookController";
 import ConnectionManager from "../../../src/controllers/connectionManager";
 import { ConnectionSharingService } from "../../../src/connectionSharing/connectionSharingService";
-import type { NotebookQueryResult } from "../../../src/notebooks/notebookQueryExecutor";
+import type { HeadlessQueryResult } from "../../../src/queryExecution/headlessQueryExecutor";
 import { NotebookConnectionManager } from "../../../src/notebooks/notebookConnectionManager";
 import { IDbColumn } from "../../../src/models/interfaces";
 import { BatchSummary } from "../../../src/models/contracts/queryExecute";
 import type { NotebookQueryResultOutputData } from "../../../src/sharedInterfaces/notebookQueryResult";
 
-function makeQueryResult(overrides?: Partial<NotebookQueryResult>): NotebookQueryResult {
+function makeQueryResult(overrides?: Partial<HeadlessQueryResult>): HeadlessQueryResult {
     return {
         batches: [],
         canceled: false,
@@ -469,7 +469,7 @@ suite("SqlNotebookController", () => {
             const executionTimeBlock = output.blocks[2];
             expect(executionTimeBlock).to.deep.equal({
                 type: "text",
-                text: LocalizedConstants.elapsedTimeLabel("00:00:02"),
+                text: LocalizedConstants.elapsedTimeLabel("00:00:02.000"),
             });
         });
 
