@@ -6,6 +6,7 @@
 import {
     type ClipboardEvent as ReactClipboardEvent,
     type KeyboardEvent as ReactKeyboardEvent,
+    type MouseEvent as ReactMouseEvent,
     useCallback,
     useEffect,
     useRef,
@@ -230,6 +231,17 @@ const useStyles = makeStyles({
     shortcutInputIcon: {
         color: "var(--vscode-descriptionForeground)",
         display: "flex",
+    },
+    shortcutInputIconButton: {
+        alignItems: "center",
+        borderRadius: "2px",
+        cursor: "pointer",
+        display: "inline-flex",
+        justifyContent: "center",
+        padding: "2px",
+        ":hover": {
+            color: "var(--vscode-foreground)",
+        },
     },
     webviewShortcutRow: {
         alignItems: "center",
@@ -535,6 +547,17 @@ export const ShortcutChip = ({
         },
         [onRecord],
     );
+    const onIconMouseDown = useCallback((event: ReactMouseEvent<HTMLSpanElement>) => {
+        event.preventDefault();
+    }, []);
+    const onIconClick = useCallback(
+        (event: ReactMouseEvent<HTMLSpanElement>) => {
+            event.preventDefault();
+            event.stopPropagation();
+            onRecord();
+        },
+        [onRecord],
+    );
 
     return (
         <Tooltip content={recordLabel} relationship="label">
@@ -545,7 +568,12 @@ export const ShortcutChip = ({
                     !value && classes.shortcutInputEmpty,
                 )}
                 contentAfter={
-                    <Keyboard16Regular aria-hidden className={classes.shortcutInputIcon} />
+                    <span
+                        className={classes.shortcutInputIconButton}
+                        onClick={onIconClick}
+                        onMouseDown={onIconMouseDown}>
+                        <Keyboard16Regular aria-hidden className={classes.shortcutInputIcon} />
+                    </span>
                 }
                 readOnly
                 title={displayValue}

@@ -17,12 +17,11 @@ import {
 } from "@fluentui/react-components";
 import { Keyboard16Regular, Search16Regular, Settings24Regular } from "@fluentui/react-icons";
 import {
-    CheckboxEditor,
     type Editor,
     type EditorArguments,
     type EditorValidationResult,
 } from "@slickgrid-universal/common";
-import { type Column, type GridOption } from "slickgrid-react";
+import { type Column, type GridOption, type SlickgridReactInstance } from "slickgrid-react";
 import { CollapsibleSection } from "../../common/collapsibleSection";
 import { DialogPageShell } from "../../common/dialogPageShell";
 import {
@@ -73,13 +72,6 @@ interface QuickQueryGridRow {
     query: string;
     shortcut: string;
     autoExecute: boolean;
-}
-
-class AutoCommitCheckboxEditor extends CheckboxEditor {
-    override preClick(): void {
-        super.preClick();
-        window.setTimeout(() => this.save(), 0);
-    }
 }
 
 function createDialogEditor(openDialog: (row: QuickQueryGridRow) => void) {
@@ -297,9 +289,9 @@ const useStyles = makeStyles({
         width: "100%",
     },
     quickQueryCheckboxInput: {
+        cursor: "pointer",
         height: "16px",
         margin: 0,
-        pointerEvents: "none",
         width: "16px",
     },
     quickQueryShortcutCell: {
@@ -512,6 +504,8 @@ export const ShortcutsConfigurationPage = () => {
     const localChangeVersionRef = useRef(0);
     const scheduledPayloadRef = useRef<SaveShortcutsConfigurationPayload | undefined>(undefined);
     const activeSaveRef = useRef<Promise<void> | undefined>(undefined);
+    const quickQueryGridRef = useRef<SlickgridReactInstance | undefined>(undefined);
+    const quickQueryRowsRef = useRef<QuickQueryGridRow[]>([]);
     const hasLocalChangesRef = useRef(false);
     const handledFocusNonceRef = useRef<number | undefined>(undefined);
 
@@ -763,6 +757,29 @@ export const ShortcutsConfigurationPage = () => {
             }),
         [quickQueries, quickQueryKeybindings],
     );
+    const syncQuickQueryGridRows = useCallback((rows: QuickQueryGridRow[]) => {
+        const reactGrid = quickQueryGridRef.current;
+        if (!reactGrid?.dataView || !reactGrid.slickGrid) {
+            return;
+        }
+
+        reactGrid.dataView.setItems(rows);
+        reactGrid.slickGrid.invalidateAllRows();
+        reactGrid.slickGrid.render();
+    }, []);
+
+    useEffect(() => {
+        quickQueryRowsRef.current = quickQueryRows;
+        syncQuickQueryGridRows(quickQueryRows);
+    }, [quickQueryRows, syncQuickQueryGridRows]);
+
+    const handleQuickQueryGridCreated = useCallback(
+        (event: CustomEvent<SlickgridReactInstance>) => {
+            quickQueryGridRef.current = event.detail;
+            syncQuickQueryGridRows(quickQueryRowsRef.current);
+        },
+        [syncQuickQueryGridRows],
+    );
 
     const quickQueryGridOptions = useMemo<GridOption>(
         () => ({
@@ -819,39 +836,41 @@ export const ShortcutsConfigurationPage = () => {
                 name: loc.autoExecute,
                 field: "autoExecute",
                 cssClass: classes.quickQueryCenteredCell,
-                editor: {
-                    model: AutoCommitCheckboxEditor,
-                    ariaLabel: loc.autoExecute,
-                },
                 maxWidth: 115,
                 minWidth: 105,
                 width: 110,
                 formatter: (_row, _cell, _value, _column, row) => {
                     const cell = createCell(classes.quickQueryCenteredCell);
-                    cell.classList.add("slick-edit-preclick");
+                    const setAutoExecute = (autoExecute: boolean) => {
+                        const executionMode = autoExecute
+                            ? QuickQueryExecutionMode.OpenAndRun
+                            : QuickQueryExecutionMode.Open;
+                        if (executionMode !== row.slot.executionMode) {
+                            updateQuickQuery(row.index, {
+                                ...row.slot,
+                                executionMode,
+                            });
+                        }
+                    };
+                    cell.addEventListener("mousedown", (event) => event.stopPropagation());
+                    cell.addEventListener("click", (event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        setAutoExecute(!row.autoExecute);
+                    });
                     const checkbox = document.createElement("input");
                     checkbox.type = "checkbox";
                     checkbox.checked = row.autoExecute;
-                    checkbox.className = mergeClasses(
-                        classes.quickQueryCheckboxInput,
-                        "slick-edit-preclick",
-                    );
-                    checkbox.setAttribute("aria-hidden", "true");
+                    checkbox.className = classes.quickQueryCheckboxInput;
+                    checkbox.setAttribute("aria-label", `${loc.autoExecute}: ${row.name}`);
                     checkbox.tabIndex = -1;
+                    checkbox.addEventListener("mousedown", (event) => event.stopPropagation());
+                    checkbox.addEventListener("click", (event) => {
+                        event.stopPropagation();
+                        setAutoExecute((event.currentTarget as HTMLInputElement).checked);
+                    });
                     cell.append(checkbox);
                     return cell;
-                },
-                onCellChange: (_event, args) => {
-                    const row = args.dataContext as QuickQueryGridRow;
-                    const executionMode = row.autoExecute
-                        ? QuickQueryExecutionMode.OpenAndRun
-                        : QuickQueryExecutionMode.Open;
-                    if (executionMode !== row.slot.executionMode) {
-                        updateQuickQuery(row.index, {
-                            ...row.slot,
-                            executionMode,
-                        });
-                    }
                 },
             },
             {
@@ -932,6 +951,7 @@ export const ShortcutsConfigurationPage = () => {
                                 columns={quickQueryColumns}
                                 options={quickQueryGridOptions}
                                 dataset={quickQueryRows}
+                                onReactGridCreated={handleQuickQueryGridCreated}
                             />
                         </div>
                     </div>
