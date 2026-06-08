@@ -6,6 +6,10 @@ _The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-06-03
+
+- Fixed an issue where SQL Database projects would fail when being built into a dacpac
+
 ## [1.6.0] - 2026-06-02
 
 - Improved Publish Project dialog performance for faster initial loading, and improved port number validation in Publish Project dialog to correctly show available port.
