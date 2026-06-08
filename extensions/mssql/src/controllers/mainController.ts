@@ -298,6 +298,9 @@ export default class MainController implements vscode.Disposable {
                 const commandId = getQuickQueryCommandId(slotNumber);
                 this.registerCommand(commandId);
                 this._event.on(commandId, () => {
+                    if (!this.isShortcutsConfigurationEnabled()) {
+                        return;
+                    }
                     void this.runAndLogErrors(this.createQuickQueryService().run(slotNumber));
                 });
             }
@@ -2930,6 +2933,9 @@ export default class MainController implements vscode.Disposable {
     }
 
     public openShortcutsConfiguration(focusedQuickQuerySlot?: number): void {
+        if (!this.isShortcutsConfigurationEnabled()) {
+            return;
+        }
         if (
             this._shortcutsConfigurationController &&
             !this._shortcutsConfigurationController.isDisposed
@@ -2951,6 +2957,14 @@ export default class MainController implements vscode.Disposable {
         });
         this._shortcutsConfigurationController = controller;
         controller.revealToForeground();
+    }
+
+    private isShortcutsConfigurationEnabled(): boolean {
+        return (
+            vscode.workspace
+                .getConfiguration()
+                .get<boolean>(Constants.configEnableShortcutsConfiguration) === true
+        );
     }
 
     private createQuickQueryService(): QuickQueryService {
