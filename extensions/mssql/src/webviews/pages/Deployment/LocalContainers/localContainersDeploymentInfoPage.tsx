@@ -118,6 +118,10 @@ export const LocalContainersDeploymentInfoPage: React.FC = () => {
             href: "https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-docker-container-configure",
             label: locConstants.localContainers.configureAndCustomizeSqlServer,
         },
+        {
+            href: "https://learn.microsoft.com/en-us/azure/container-registry/container-registry-tutorial-sign-trusted-ca#verify-a-container-image-by-using-the-notation-cli",
+            label: locConstants.localContainers.verifyContainerImageNotationCli,
+        },
     ];
 
     return (
