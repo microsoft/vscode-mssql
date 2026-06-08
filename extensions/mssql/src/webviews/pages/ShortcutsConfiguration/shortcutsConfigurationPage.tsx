@@ -16,7 +16,7 @@ import {
     tokens,
 } from "@fluentui/react-components";
 import {
-    Dismiss16Regular,
+    EraserRegular,
     Keyboard16Regular,
     Search16Regular,
     Settings24Regular,
@@ -67,7 +67,7 @@ type ConfigurationTab = "queries" | "shortcuts";
 const quickQueryGridContainerId = "shortcutsQuickQueriesGridContainer";
 const quickQueryGridId = "shortcutsQuickQueriesGrid";
 const shortcutKeyboardIconMarkup = renderToStaticMarkup(<Keyboard16Regular aria-hidden />);
-const clearIconMarkup = renderToStaticMarkup(<Dismiss16Regular aria-hidden />);
+const clearIconMarkup = renderToStaticMarkup(<EraserRegular aria-hidden />);
 
 interface QuickQueryGridRow {
     id: number;
@@ -1005,7 +1005,7 @@ export const ShortcutsConfigurationPage = () => {
             },
             {
                 id: "clear",
-                name: loc.clearQuickQuery,
+                name: "",
                 field: "id",
                 cssClass: classes.quickQueryCenteredCell,
                 excludeFromColumnPicker: true,

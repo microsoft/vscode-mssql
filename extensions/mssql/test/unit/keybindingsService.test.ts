@@ -5,7 +5,9 @@
 
 import { expect } from "chai";
 import * as sinon from "sinon";
+import * as vscode from "vscode";
 import {
+    KeybindingsService,
     parseKeybindingsText,
     updateKeybindingsText,
 } from "../../src/keybindings/keybindingsService";
@@ -121,6 +123,20 @@ suite("Keybindings Service", () => {
 
     test("throws when keybindings root is not an array", () => {
         expect(() => parseKeybindingsText("{}")).to.throw("root value must be an array");
+    });
+
+    test("treats a missing keybindings file as empty", async () => {
+        const error = new Error("File not found") as Error & { code: string };
+        error.code = "FileNotFound";
+        sandbox.stub(vscode.workspace, "fs").value({
+            ...vscode.workspace.fs,
+            readFile: sandbox.stub().rejects(error),
+        } as unknown as typeof vscode.workspace.fs);
+        const service = new KeybindingsService({} as vscode.ExtensionContext);
+
+        const result = await service.getCommandKeybindings(["mssql.quickQueries.run1"]);
+
+        expect(result).to.deep.equal({ "mssql.quickQueries.run1": "" });
     });
 
     test("updates the current platform key when an existing rule uses platform-specific keys", () => {

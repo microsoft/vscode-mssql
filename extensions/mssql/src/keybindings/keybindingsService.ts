@@ -166,8 +166,7 @@ export class KeybindingsService {
     constructor(_context: vscode.ExtensionContext) {}
 
     public async getCommandKeybindings(commandIds: string[]): Promise<Record<string, string>> {
-        const document = await this.openKeybindingsDocument();
-        const rules = parseKeybindingsText(document.getText());
+        const rules = parseKeybindingsText(await this.readKeybindingsText());
         const result: Record<string, string> = {};
 
         for (const commandId of commandIds) {
@@ -182,27 +181,24 @@ export class KeybindingsService {
     }
 
     public async updateCommandKeybindings(updates: CommandKeybindingUpdate[]): Promise<void> {
-        const document = await this.openKeybindingsDocument();
-        const text = document.getText();
+        const text = await this.readKeybindingsText();
         const updatedText = updateKeybindingsText(text, updates);
-        const fullRange = new vscode.Range(
-            document.positionAt(0),
-            document.positionAt(text.length),
-        );
-        const workspaceEdit = new vscode.WorkspaceEdit();
-        workspaceEdit.replace(document.uri, fullRange, updatedText);
-        const applied = await vscode.workspace.applyEdit(workspaceEdit);
-        if (!applied) {
-            throw new Error("Could not update keybindings.json.");
-        }
-        await document.save();
+        await vscode.workspace.fs.writeFile(keybindingsUri, new TextEncoder().encode(updatedText));
     }
 
     public async openKeybindingsFile(): Promise<void> {
         await vscode.commands.executeCommand("workbench.action.openGlobalKeybindingsFile");
     }
 
-    private async openKeybindingsDocument(): Promise<vscode.TextDocument> {
-        return vscode.workspace.openTextDocument(keybindingsUri);
+    private async readKeybindingsText(): Promise<string> {
+        try {
+            const bytes = await vscode.workspace.fs.readFile(keybindingsUri);
+            return new TextDecoder("utf-8").decode(bytes);
+        } catch (error) {
+            if ((error as { code?: string }).code === "FileNotFound") {
+                return defaultKeybindingsText;
+            }
+            throw error;
+        }
     }
 }
