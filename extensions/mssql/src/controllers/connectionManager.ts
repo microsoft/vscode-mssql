@@ -1255,8 +1255,9 @@ export default class ConnectionManager {
                     connectionInfo.expiresOn,
                 )
             ) {
+                const expiry = Utils.epochToDisplay(connectionInfo.expiresOn * 1000);
                 this._logger?.debug(
-                    `Entra token for account ${connectionInfo.user} (${connectionInfo.email}) is still valid until ${connectionInfo.expiresOn}. No refresh needed.`,
+                    `Entra token for account ${connectionInfo.user} (${connectionInfo.email}) is still valid until ${connectionInfo.expiresOn} (${expiry.iso}, ${expiry.relative}). No refresh needed.`,
                 );
                 return;
             }
@@ -2241,8 +2242,11 @@ export default class ConnectionManager {
      *
      * 1. **Entra MFA via VS Code accounts** (`params.accountId` present): STS is running in
      *    `--request-mfa-token-from-client` mode (`useVscodeAccountsForEntraMFA` enabled) and
-     *    needs a SQL access token for the given Entra account + tenant. Returns a token acquired
-     *    from VS Code's authentication provider for `https://database.windows.net/`.
+     *    needs an access token for the given Entra account + tenant. The target audience comes
+     *    from `params.resource` (populated by STS from
+     *    `SqlAuthenticationParameters.Resource`, e.g. `https://database.windows.net/` for
+     *    Azure SQL or `https://<org>.crm.dynamics.com/` for a Dataverse TDS endpoint) and
+     *    falls back to the SQL resource for backward compatibility with older STS builds.
      *
      * 2. **Always Encrypted / Azure Key Vault** (`params.accountId` absent): STS needs a token
      *    for `https://vault.azure.net/` to decrypt a Column Encryption Key protected by an
@@ -2255,14 +2259,24 @@ export default class ConnectionManager {
         params: RequestSecurityTokenParams,
     ): Promise<RequestSecurityTokenResponse> {
         if (params.accountId) {
-            this._logger.debug("VS Code accounts token request received");
+            this._logger.info(
+                `VS Code accounts token request received for ${params.resource} with accountId '${params.accountId}' and tenantId '${params.tenantId}'`,
+            );
             try {
+                const resourceEndpoint = params.resource || getCloudResourceEndpoint("sqlResource");
                 const tokenInfo = await acquireTokenFromVscodeAccountForResource(
-                    getCloudResourceEndpoint("sqlResource"),
+                    resourceEndpoint,
                     params.accountId,
                     params.tenantId,
                 );
-                this._logger.debug("VS Code accounts token acquired successfully");
+
+                const expiry = Utils.epochToDisplay(
+                    tokenInfo.token.expiresOn ? tokenInfo.token.expiresOn * 1000 : undefined,
+                );
+                this._logger.info(
+                    `VS Code accounts token acquired successfully for ${resourceEndpoint} with accountId '${params.accountId}' and tenantId '${params.tenantId}'; expires on ${tokenInfo.token.expiresOn} (${expiry.iso}, ${expiry.relative})`,
+                );
+
                 return {
                     accountKey: params.accountId,
                     token: tokenInfo.token.token,
