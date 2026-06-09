@@ -45,6 +45,8 @@ export const SchemaComparePage = () => {
     const context = useContext(schemaCompareContext);
     const schemaCompareResult = useSchemaCompareSelector((s) => s.schemaCompareResult);
     const isComparisonInProgress = useSchemaCompareSelector((s) => s.isComparisonInProgress);
+    const isApplyInProgress = useSchemaCompareSelector((s) => s.isApplyInProgress);
+    const applyFailed = useSchemaCompareSelector((s) => s.applyFailed);
     const [selectedDiffId, setSelectedDiffId] = useState(0);
     const [showDrawer, setShowDrawer] = useState(false);
     const [showOptionsDrawer, setShowOptionsDrawer] = useState(false);
@@ -81,7 +83,13 @@ export const SchemaComparePage = () => {
     };
 
     const showMessage = () => {
-        if (!schemaCompareResult || schemaCompareResult.areEqual || isComparisonInProgress) {
+        if (
+            !schemaCompareResult ||
+            schemaCompareResult.areEqual ||
+            isComparisonInProgress ||
+            isApplyInProgress ||
+            applyFailed
+        ) {
             return true;
         }
 
