@@ -1,5 +1,14 @@
 # Change Log
 
+## Version 1.44.0
+
+- Release date: July 15, 2026
+- Release status: GA
+
+### What's new in 1.44.0
+
+- Fixed an issue in Schema Compare where controls remained enabled and stale diff results stayed visible after apply, which could cause subsequent apply attempts to fail, and added a loading indicator during the apply operation
+
 ## Version 1.43.0
 
 - Release date: June 2, 2026
