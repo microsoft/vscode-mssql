@@ -26,10 +26,10 @@ const Message = () => {
     const classes = useStyles();
 
     let message = "";
-    let isSpinner = false;
+    let showSpinner = false;
     if (isApplyInProgress) {
         message = loc.schemaCompare.applyingChanges;
-        isSpinner = true;
+        showSpinner = true;
     } else if (applySucceeded) {
         message = loc.schemaCompare.applySucceededRunAgain;
     } else if (applyFailed) {
@@ -38,7 +38,7 @@ const Message = () => {
         message = loc.schemaCompare.noDifferences;
     } else if (isComparisonInProgress) {
         message = loc.schemaCompare.initializingComparison;
-        isSpinner = true;
+        showSpinner = true;
     } else if (!isComparisonInProgress && !schemaCompareResult) {
         message = loc.schemaCompare.intro;
     }
@@ -49,9 +49,9 @@ const Message = () => {
 
     return (
         <div className={classes.container}>
-            {isSpinner && <Spinner labelPosition="below" label={message} />}
+            {showSpinner && <Spinner labelPosition="below" label={message} />}
 
-            {!isSpinner && (
+            {!showSpinner && (
                 <Text size={400} align="center">
                     {message}
                 </Text>
