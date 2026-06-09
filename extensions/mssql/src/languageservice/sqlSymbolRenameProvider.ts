@@ -34,8 +34,9 @@ export class SqlSymbolRenameProvider implements vscode.RenameProvider {
         return sqlprojFiles.some((projUri) => {
             const projDir = path.normalize(path.dirname(projUri.fsPath));
             const rel = path.relative(projDir, normalizedFile);
-            // File is inside projDir when the relative path doesn't escape upward
-            return !rel.startsWith("..") && !path.isAbsolute(rel);
+            // File is inside projDir when the relative path doesn't escape upward.
+            // Use an exact check so files named e.g. "..foo.sql" aren't falsely rejected.
+            return !(rel === ".." || rel.startsWith(".." + path.sep)) && !path.isAbsolute(rel);
         });
     }
 
@@ -115,6 +116,7 @@ export class SqlSymbolRenameProvider implements vscode.RenameProvider {
 
         const changes = response.changes as Record<string, SqlSymbolRenameTextEdit[]>;
         for (const [uriStr, textEdits] of Object.entries(changes)) {
+            if (textEdits.length === 0) continue; // skip no-op entries to avoid phantom files in preview
             const fileUri = vscode.Uri.parse(uriStr);
             const vsEdits = textEdits.map(
                 (e) =>
