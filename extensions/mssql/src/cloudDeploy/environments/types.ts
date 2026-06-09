@@ -30,6 +30,7 @@
  * surface small without precluding that.
  */
 export enum ValidationType {
+    Connectivity = "connectivity",
     StaticAnalysis = "static-analysis",
     UnitTests = "unit-tests",
     WorkloadPlayback = "workload-playback",
@@ -67,6 +68,10 @@ export type SourceOfTruth =
  * each validation is implemented. Keeping them as named interfaces (rather
  * than `Record<string, unknown>`) gives us type-safety as soon as fields land.
  */
+export interface ConnectivitySettings {
+    // populated when connectivity gains real options (e.g., custom probe query, retry policy)
+}
+
 export interface StaticAnalysisSettings {
     // populated when static analysis is implemented (e.g., enabled rule ids, severity overrides)
 }
@@ -76,7 +81,42 @@ export interface UnitTestsSettings {
 }
 
 export interface WorkloadPlaybackSettings {
-    // populated when workload playback is implemented (e.g., baseline artifact ref, regression threshold)
+    /**
+     * Captured-workload artifact location consumed by the replay tool.
+     * In Scope 1 this is an absolute or workspace-relative local file path
+     * (resolved by the host); a future `GitHubArtifactProvider` reuses the
+     * same field with a `gh://` URI.
+     */
+    workloadUri?: string;
+    /**
+     * Baseline-metrics artifact the replay's observed metrics are compared
+     * against. Same uri semantics as `workloadUri`.
+     */
+    baselineUri?: string;
+    /**
+     * Replay tool command. Defaults to `"sql-workload-replay"` when omitted;
+     * the service layer may pin an absolute path the same way it does for
+     * `sqlpackage`.
+     */
+    replayCommand?: string;
+    /**
+     * Latency-regression threshold expressed as a fraction of the baseline
+     * (e.g. `0.25` flags any step whose observed latency is more than 25 %
+     * higher than baseline). Defaults applied by the validator.
+     */
+    latencyRegressionThreshold?: number;
+    /**
+     * Throughput-regression threshold expressed as a fraction of the baseline
+     * (e.g. `0.25` flags any step whose observed throughput drops by more
+     * than 25 %).
+     */
+    throughputRegressionThreshold?: number;
+    /**
+     * Error-rate-increase threshold expressed as an absolute delta (e.g.
+     * `0.05` flags any step whose observed error rate is more than five
+     * percentage points above baseline).
+     */
+    errorRateThreshold?: number;
 }
 
 /**
@@ -84,6 +124,7 @@ export interface WorkloadPlaybackSettings {
  * validation's `settings` is correctly typed.
  */
 export type ValidationConfig =
+    | { type: ValidationType.Connectivity; enabled: boolean; settings: ConnectivitySettings }
     | { type: ValidationType.StaticAnalysis; enabled: boolean; settings: StaticAnalysisSettings }
     | { type: ValidationType.UnitTests; enabled: boolean; settings: UnitTestsSettings }
     | {

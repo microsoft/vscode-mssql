@@ -159,6 +159,7 @@ export const cmdNotebooksCreate = "mssql.notebooks.createNotebook";
 export const cmdNotebooksChangeDatabase = "mssql.notebooks.changeDatabase";
 export const cmdNotebooksChangeConnection = "mssql.notebooks.changeConnection";
 export const cmdNotebooksCopyCellMessages = "mssql.notebooks.copyCellMessages";
+export const cmdCloudDeployValidate = "mssql.cloudDeploy.validateEnvironment";
 
 export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";

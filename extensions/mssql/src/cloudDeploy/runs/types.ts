@@ -40,10 +40,16 @@ export const RUN_RECORD_SCHEMA_VERSION = 1 as const;
 /**
  * Overall status of a run, computed by collapsing all per-validation statuses
  * via `RUN_STATUS_PRIORITY` (worst wins). Listed least- to most-severe.
+ *
+ * `Cancelled` was added in D2: user-cancelled and timed-out runs surface a
+ * real status arm instead of a string-matched `errorMessage`. Ranked between
+ * `Skipped` and `Warning` — worse than skipping intentionally, better than
+ * finding a real warning.
  */
 export enum RunStatus {
     Passed = "passed",
     Skipped = "skipped",
+    Cancelled = "cancelled",
     Warning = "warning",
     Failed = "failed",
     Errored = "errored",
@@ -60,19 +66,29 @@ export enum RunStatus {
 export const RUN_STATUS_PRIORITY: Readonly<Record<RunStatus, number>> = Object.freeze({
     [RunStatus.Passed]: 0,
     [RunStatus.Skipped]: 1,
-    [RunStatus.Warning]: 2,
-    [RunStatus.Failed]: 3,
-    [RunStatus.Errored]: 4,
+    [RunStatus.Cancelled]: 2,
+    [RunStatus.Warning]: 3,
+    [RunStatus.Failed]: 4,
+    [RunStatus.Errored]: 5,
 });
 
 /** Status of a single validation execution. Mirrors `RunStatus` semantics. */
 export enum ValidationStatus {
     Passed = "passed",
     Skipped = "skipped",
+    Cancelled = "cancelled",
     Warning = "warning",
     Failed = "failed",
     Errored = "errored",
 }
+
+/**
+ * Why a validation (or run) was cancelled. `"user"` covers explicit
+ * user-initiated cancellation; `"timeout"` covers runner-level deadline
+ * expiry. Stored on `ValidationResult.cancellationReason` and required
+ * whenever the corresponding status is `Cancelled` (enforced in Zod).
+ */
+export type CancellationReason = "user" | "timeout";
 
 // =============================================================================
 // Runner identity
@@ -102,7 +118,31 @@ export interface RunnerIdentity {
  * inside a unit-test run is `UnitTestFinding`, not a generic message blob.
  * That gives the renderer a typed surface without inspecting magic strings.
  */
-export type Finding = StaticAnalysisFinding | UnitTestFinding | WorkloadRegressionFinding;
+export type Finding =
+    | ConnectivityFinding
+    | StaticAnalysisFinding
+    | UnitTestFinding
+    | WorkloadRegressionFinding;
+
+export interface ConnectivityFinding {
+    readonly kind: "connectivity";
+    /**
+     * Closed enum of the connection failure modes the connectivity validator
+     * surfaces. New modes ride the same arm — additive. `"reachable"` is the
+     * success marker (the one finding emitted on a green connection).
+     */
+    readonly outcome:
+        | "reachable"
+        | "connection-refused"
+        | "auth-failed"
+        | "host-unreachable"
+        | "timeout"
+        | "unknown";
+    /** Severity within the validator's vocabulary. `"reachable"` is `"info"`; failures are `"error"`. */
+    readonly severity: "info" | "warning" | "error";
+    /** Human-readable description; not localized — emitted by the validator. */
+    readonly message: string;
+}
 
 export interface StaticAnalysisFinding {
     readonly kind: "static-analysis";
@@ -153,7 +193,25 @@ export interface WorkloadRegressionFinding {
  * a single `ValidationResult.payload` be exhaustively narrowed without
  * runtime type checks.
  */
-export type ValidationPayload = StaticAnalysisPayload | UnitTestsPayload | WorkloadPlaybackPayload;
+export type ValidationPayload =
+    | ConnectivityPayload
+    | StaticAnalysisPayload
+    | UnitTestsPayload
+    | WorkloadPlaybackPayload;
+
+export interface ConnectivityPayload {
+    readonly validationType: ValidationType.Connectivity;
+    readonly findings: readonly ConnectivityFinding[];
+    /**
+     * `serverVersion` is captured on a successful probe so the UI can render
+     * "connected to SQL Server 2022 (16.0.x)" without re-querying. Absent on
+     * failure paths.
+     */
+    readonly summary: {
+        readonly reachable: boolean;
+        readonly serverVersion?: string;
+    };
+}
 
 export interface StaticAnalysisPayload {
     readonly validationType: ValidationType.StaticAnalysis;
@@ -213,6 +271,12 @@ export interface ValidationResult {
      * not "the validation found N problems".
      */
     readonly errorMessage?: string;
+    /**
+     * Why this validation was cancelled. Required whenever
+     * `status === ValidationStatus.Cancelled` and forbidden otherwise
+     * (enforced by the Zod schema's `superRefine` cross-field check).
+     */
+    readonly cancellationReason?: CancellationReason;
 }
 
 // =============================================================================

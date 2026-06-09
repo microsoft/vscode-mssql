@@ -3907,3 +3907,78 @@ export class CloudDeployRuns {
         });
     }
 }
+
+export class CloudDeployValidation {
+    public static commandTitle = l10n.t("Cloud Deploy: Validate environment");
+
+    public static noEnvironmentsDeclared = l10n.t(
+        "No Cloud Deploy environments are declared in this workspace. Add one to .mssql/environments.json before running validation.",
+    );
+
+    public static noWorkspaceFolder = l10n.t(
+        "Cloud Deploy validation requires an open workspace folder.",
+    );
+
+    public static pickEnvironmentPlaceholder = l10n.t("Select an environment to validate");
+
+    public static progressTitle = (envName: string): string =>
+        l10n.t({
+            message: "Validating environment '{0}'",
+            args: [envName],
+            comment: ["{0} is the user-facing environment name"],
+        });
+
+    public static runPassed = (envName: string): string =>
+        l10n.t({
+            message: "Validation passed for '{0}'.",
+            args: [envName],
+            comment: ["{0} is the user-facing environment name"],
+        });
+
+    public static runWarning = (envName: string): string =>
+        l10n.t({
+            message: "Validation finished with warnings for '{0}'.",
+            args: [envName],
+            comment: ["{0} is the user-facing environment name"],
+        });
+
+    public static runFailed = (envName: string): string =>
+        l10n.t({
+            message: "Validation failed for '{0}'.",
+            args: [envName],
+            comment: ["{0} is the user-facing environment name"],
+        });
+
+    public static runErrored = (envName: string, message: string): string =>
+        l10n.t({
+            message: "Validation runner crashed for '{0}': {1}",
+            args: [envName, message],
+            comment: [
+                "{0} is the user-facing environment name",
+                "{1} is the underlying error message",
+            ],
+        });
+
+    public static runCancelled = (envName: string): string =>
+        l10n.t({
+            message: "Validation cancelled for '{0}'.",
+            args: [envName],
+            comment: ["{0} is the user-facing environment name"],
+        });
+
+    public static runSkipped = (envName: string): string =>
+        l10n.t({
+            message: "No validations were declared on '{0}'.",
+            args: [envName],
+            comment: ["{0} is the user-facing environment name"],
+        });
+
+    public static showOutputChannelAction = l10n.t("Show output");
+
+    public static persistFailed = (message: string): string =>
+        l10n.t({
+            message: "Validation finished but the run artifact could not be saved: {0}",
+            args: [message],
+            comment: ["{0} is the underlying I/O error message"],
+        });
+}

@@ -104,6 +104,22 @@ const ValidationStatusSchema = z.nativeEnum(ValidationStatus);
 // Finding schemas
 // -----------------------------------------------------------------------------
 
+const ConnectivityFindingSchema = z
+    .object({
+        kind: z.literal("connectivity"),
+        outcome: z.enum([
+            "reachable",
+            "connection-refused",
+            "auth-failed",
+            "host-unreachable",
+            "timeout",
+            "unknown",
+        ]),
+        severity: z.enum(["info", "warning", "error"]),
+        message: z.string(),
+    })
+    .passthrough();
+
 const StaticAnalysisFindingSchema = z
     .object({
         kind: z.literal("static-analysis"),
@@ -144,6 +160,19 @@ const WorkloadRegressionFindingSchema = z
 // -----------------------------------------------------------------------------
 // Payload schemas
 // -----------------------------------------------------------------------------
+
+const ConnectivityPayloadSchema = z
+    .object({
+        validationType: z.literal(ValidationType.Connectivity),
+        findings: z.array(ConnectivityFindingSchema),
+        summary: z
+            .object({
+                reachable: z.boolean(),
+                serverVersion: z.string().min(1).optional(),
+            })
+            .passthrough(),
+    })
+    .passthrough();
 
 const StaticAnalysisPayloadSchema = z
     .object({
@@ -189,6 +218,7 @@ const WorkloadPlaybackPayloadSchema = z
     .passthrough();
 
 const ValidationPayloadSchema = z.discriminatedUnion("validationType", [
+    ConnectivityPayloadSchema,
     StaticAnalysisPayloadSchema,
     UnitTestsPayloadSchema,
     WorkloadPlaybackPayloadSchema,
@@ -207,8 +237,25 @@ const ValidationResultSchema = z
         endedAtMs: z.number().int().nonnegative(),
         payload: ValidationPayloadSchema,
         errorMessage: z.string().optional(),
+        cancellationReason: z.enum(["user", "timeout"]).optional(),
     })
-    .passthrough();
+    .passthrough()
+    .superRefine((res, ctx) => {
+        if (res.status === ValidationStatus.Cancelled && res.cancellationReason === undefined) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "cancellationReason is required when status is 'cancelled'.",
+                path: ["cancellationReason"],
+            });
+        }
+        if (res.status !== ValidationStatus.Cancelled && res.cancellationReason !== undefined) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "cancellationReason must be omitted unless status is 'cancelled'.",
+                path: ["cancellationReason"],
+            });
+        }
+    });
 
 const RunRecordSchema = z
     .object({

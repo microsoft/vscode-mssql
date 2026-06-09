@@ -3927,6 +3927,46 @@
             "{1} is the underlying I/O error message"
         ]
     },
+    "Cloud Deploy: Validate environment": "Cloud Deploy: Validate environment",
+    "No Cloud Deploy environments are declared in this workspace. Add one to .mssql/environments.json before running validation.": "No Cloud Deploy environments are declared in this workspace. Add one to .mssql/environments.json before running validation.",
+    "Cloud Deploy validation requires an open workspace folder.": "Cloud Deploy validation requires an open workspace folder.",
+    "Select an environment to validate": "Select an environment to validate",
+    "Validating environment '{0}'/{0} is the user-facing environment name": {
+        "message": "Validating environment '{0}'",
+        "comment": ["{0} is the user-facing environment name"]
+    },
+    "Validation passed for '{0}'./{0} is the user-facing environment name": {
+        "message": "Validation passed for '{0}'.",
+        "comment": ["{0} is the user-facing environment name"]
+    },
+    "Validation finished with warnings for '{0}'./{0} is the user-facing environment name": {
+        "message": "Validation finished with warnings for '{0}'.",
+        "comment": ["{0} is the user-facing environment name"]
+    },
+    "Validation failed for '{0}'./{0} is the user-facing environment name": {
+        "message": "Validation failed for '{0}'.",
+        "comment": ["{0} is the user-facing environment name"]
+    },
+    "Validation runner crashed for '{0}': {1}/{0} is the user-facing environment name{1} is the underlying error message": {
+        "message": "Validation runner crashed for '{0}': {1}",
+        "comment": [
+            "{0} is the user-facing environment name",
+            "{1} is the underlying error message"
+        ]
+    },
+    "Validation cancelled for '{0}'./{0} is the user-facing environment name": {
+        "message": "Validation cancelled for '{0}'.",
+        "comment": ["{0} is the user-facing environment name"]
+    },
+    "No validations were declared on '{0}'./{0} is the user-facing environment name": {
+        "message": "No validations were declared on '{0}'.",
+        "comment": ["{0} is the user-facing environment name"]
+    },
+    "Show output": "Show output",
+    "Validation finished but the run artifact could not be saved: {0}/{0} is the underlying I/O error message": {
+        "message": "Validation finished but the run artifact could not be saved: {0}",
+        "comment": ["{0} is the underlying I/O error message"]
+    },
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
