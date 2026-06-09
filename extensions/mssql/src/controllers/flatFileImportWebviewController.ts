@@ -427,12 +427,9 @@ export class FlatFileImportWebviewController extends FormWebviewController<
             ORDER BY name
             `;
         const result = await this.client.sendRequest(
-            new RequestType<
-                { ownerUri: string; queryString: string },
-                SimpleExecuteResult,
-                void,
-                void
-            >("query/simpleexecute"),
+            new RequestType<{ ownerUri: string; queryString: string }, SimpleExecuteResult, void>(
+                "query/simpleexecute",
+            ),
             {
                 ownerUri: this.ownerUri,
                 queryString: getSchemaQuery,

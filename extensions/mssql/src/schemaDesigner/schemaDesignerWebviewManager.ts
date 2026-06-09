@@ -205,7 +205,7 @@ export class SchemaDesignerWebviewManager {
                 // Ignoring errors here as we don't want to block the disposal process
                 try {
                     if (cacheItem?.schemaDesignerDetails?.sessionId) {
-                        schemaDesignerService.disposeSession({
+                        await schemaDesignerService.disposeSession({
                             sessionId: cacheItem.schemaDesignerDetails.sessionId,
                         });
                     }
