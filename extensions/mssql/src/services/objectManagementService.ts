@@ -39,6 +39,9 @@ import {
     RestoreResponse,
 } from "../sharedInterfaces/restore";
 import { TaskExecutionMode } from "../enums";
+import { getLogger } from "../models/logger";
+
+const logger = getLogger("ObjectManagementService");
 
 export class ObjectManagementService {
     constructor(private _client: SqlToolsServiceClient) {}
@@ -132,7 +135,7 @@ export class ObjectManagementService {
             };
             return await this._client.sendRequest(BackupConfigInfoRequest.type, params);
         } catch (e) {
-            this._client.logger.error(e);
+            logger.error("Failed to get backup config info", e);
             throw e;
         }
     }
@@ -150,7 +153,7 @@ export class ObjectManagementService {
             };
             return await this._client.sendRequest(BackupRequest.type, params);
         } catch (e) {
-            this._client.logger.error(e);
+            logger.error("Failed to backup database", e);
             throw e;
         }
     }
@@ -162,7 +165,7 @@ export class ObjectManagementService {
             };
             return await this._client.sendRequest(RestoreConfigInfoRequest.type, params);
         } catch (e) {
-            this._client.logger.error(e);
+            logger.error("Failed to get restore config info", e);
             throw e;
         }
     }
@@ -171,7 +174,7 @@ export class ObjectManagementService {
         try {
             return await this._client.sendRequest(RestorePlanRequest.type, restoreParams);
         } catch (e) {
-            this._client.logger.error(e);
+            logger.error("Failed to get restore plan", e);
             throw e;
         }
     }
@@ -180,7 +183,7 @@ export class ObjectManagementService {
         try {
             return await this._client.sendRequest(CancelRestorePlanRequest.type, restoreParams);
         } catch (e) {
-            this._client.logger.error(e);
+            logger.error("Failed to cancel restore plan", e);
             throw e;
         }
     }
@@ -189,7 +192,7 @@ export class ObjectManagementService {
         try {
             return await this._client.sendRequest(RestoreRequest.type, restoreParams);
         } catch (e) {
-            this._client.logger.error(e);
+            logger.error("Failed to restore database", e);
             throw e;
         }
     }

@@ -22,7 +22,8 @@ import { ICredentialStore, Credential } from "../credentialstore/icredentialstor
 import { ConnectionConfig } from "../connectionconfig/connectionconfig";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { IConnectionInfo } from "vscode-mssql";
-import { ILogger, logger } from "./logger";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger } from "./logger";
 import { Deferred } from "../protocol";
 import { ConnectionMatcher, MatchScore } from "./utils";
 import { sendActionEvent } from "../telemetry/telemetry";

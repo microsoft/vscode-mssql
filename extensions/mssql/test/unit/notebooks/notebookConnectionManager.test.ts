@@ -12,7 +12,7 @@ import type { IConnectionInfo, ConnectionDetails } from "vscode-mssql";
 chai.use(sinonChai);
 
 import { NotebookConnectionManager } from "../../../src/notebooks/notebookConnectionManager";
-import { ILogger } from "../../../src/models/logger";
+import { ILogger } from "../../../src/sharedInterfaces/logger";
 import ConnectionManager from "../../../src/controllers/connectionManager";
 import { ConnectionSharingService } from "../../../src/connectionSharing/connectionSharingService";
 import { ConnectionStore } from "../../../src/models/connectionStore";
@@ -126,7 +126,7 @@ suite("NotebookConnectionManager", () => {
         sharingService = sandbox.createStubInstance(ConnectionSharingService);
         sharingService.isConnected.returns(false);
 
-        // --- STS client & notification handler (for NotebookQueryExecutor) ---
+        // --- STS client & notification handler (for HeadlessQueryExecutor) ---
         mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
         mockClient.sendRequest.resolves({});
         mockNotificationHandler = sandbox.createStubInstance(QueryNotificationHandler);
@@ -497,7 +497,7 @@ suite("NotebookConnectionManager", () => {
         test("delegates to query executor when connected", async () => {
             await mgr.connectWith(makeConnectionInfo());
 
-            // The NotebookQueryExecutor registers a handler via notificationHandler,
+            // The HeadlessQueryExecutor registers a handler via notificationHandler,
             // sends an executeString request via the STS client, and waits for completion.
             // Simulate the full batch lifecycle so the promise resolves.
             mockClient.sendRequest.callsFake(() => {

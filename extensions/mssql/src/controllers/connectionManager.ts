@@ -53,7 +53,8 @@ import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { changeLanguageServiceForFile } from "../languageservice/utils";
 import { AddFirewallRuleWebviewController } from "./addFirewallRuleWebviewController";
 import { getErrorMessage, uuid } from "../utils/utils";
-import { ILogger, logger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger } from "../models/logger";
 import { getServerTypes } from "../models/connectionInfo";
 import * as AzureConstants from "../azure/constants";
 import { ChangePasswordService } from "../services/changePasswordService";
@@ -486,10 +487,7 @@ export default class ConnectionManager {
      * @param params The params to pass with the request
      * @returns A promise object for when the request receives a response
      */
-    public async sendRequest<P, R, E, R0>(
-        requestType: RequestType<P, R, E, R0>,
-        params?: P,
-    ): Promise<R> {
+    public async sendRequest<P, R, E>(requestType: RequestType<P, R, E>, params?: P): Promise<R> {
         return await this.client.sendRequest(requestType, params);
     }
 
@@ -611,7 +609,7 @@ export default class ConnectionManager {
                     event.ownerUri,
                 );
 
-                self.vscodeWrapper.logToOutputChannel(logMessage);
+                self._logger.info(logMessage);
             }
         };
     }
@@ -994,7 +992,7 @@ export default class ConnectionManager {
             result.databaseNames,
         );
         if (newDatabaseCredentials) {
-            this.vscodeWrapper.logToOutputChannel(
+            this._logger.info(
                 LocalizedConstants.msgChangingDatabase(
                     newDatabaseCredentials.database,
                     newDatabaseCredentials.server,
@@ -1003,7 +1001,7 @@ export default class ConnectionManager {
             );
             await this.disconnect(fileUri);
             await this.connect(fileUri, newDatabaseCredentials);
-            this.vscodeWrapper.logToOutputChannel(
+            this._logger.info(
                 LocalizedConstants.msgChangedDatabase(
                     newDatabaseCredentials.database,
                     newDatabaseCredentials.server,
@@ -1041,7 +1039,7 @@ export default class ConnectionManager {
         }
         await this.disconnect(fileUri);
         await this.connect(fileUri, newDatabaseCredentials);
-        this.vscodeWrapper.logToOutputChannel(
+        this._logger.info(
             LocalizedConstants.msgChangedDatabase(
                 newDatabaseCredentials.database,
                 newDatabaseCredentials.server,
@@ -1111,7 +1109,7 @@ export default class ConnectionManager {
                 this.statusView.setNotConnected(fileUri);
             }
             if (result) {
-                this.vscodeWrapper.logToOutputChannel(LocalizedConstants.msgDisconnected(fileUri));
+                this._logger.info(LocalizedConstants.msgDisconnected(fileUri));
             }
 
             this.removeActiveConnection(fileUri);
@@ -1454,9 +1452,7 @@ export default class ConnectionManager {
             this.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
         }
 
-        this.vscodeWrapper.logToOutputChannel(
-            LocalizedConstants.msgConnecting(credentials.server, fileUri),
-        );
+        this._logger.info(LocalizedConstants.msgConnecting(credentials.server, fileUri));
 
         // Create connection request params
         const connectionDetails = ConnectionCredentials.createConnectionDetails(credentials);
@@ -1575,7 +1571,7 @@ export default class ConnectionManager {
             connectionInfo.connecting = false;
 
             this.statusView.setConnectionError(fileUri, connectionInfo.credentials, result);
-            this.vscodeWrapper.logToOutputChannel(
+            this._logger.error(
                 LocalizedConstants.msgConnectionFailed(
                     connectionInfo.credentials.server,
                     result.errorMessage ? result.errorMessage : result.messages,
@@ -1732,7 +1728,7 @@ export default class ConnectionManager {
             fileUri: fileUri,
         });
 
-        this._vscodeWrapper.logToOutputChannel(
+        this._logger.info(
             LocalizedConstants.msgConnectedServerInfo(
                 connectionInfo?.credentials?.server,
                 fileUri,

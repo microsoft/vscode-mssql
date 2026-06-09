@@ -33,19 +33,15 @@ import {
     EditSubsetResult,
     EditUpdateCellResult,
 } from "../../src/sharedInterfaces/tableExplorer";
-import { ILogger } from "../../src/models/logger";
-import { stubLoggerGetter } from "./utils";
 
 suite("TableExplorerService Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
-    let mockLogger: sinon.SinonStubbedInstance<ILogger>;
     let tableExplorerService: TableExplorerService;
 
     setup(() => {
         sandbox = sinon.createSandbox();
         mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
-        mockLogger = stubLoggerGetter(sandbox, mockClient);
 
         tableExplorerService = new TableExplorerService(mockClient);
     });
@@ -148,7 +144,7 @@ suite("TableExplorerService Tests", () => {
             expect((callArgs[1] as any).queryString).to.be.undefined;
         });
 
-        test("should handle initialization error and log it", async () => {
+        test("should rethrow initialization errors", async () => {
             const error = new Error("Initialization failed");
             mockClient.sendRequest
                 .withArgs(EditInitializeRequest.type, sinon.match.any)
@@ -166,7 +162,6 @@ suite("TableExplorerService Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error).to.have.been.calledWith("Initialization failed");
             }
         });
     });
@@ -240,7 +235,7 @@ suite("TableExplorerService Tests", () => {
             expect((callArgs[1] as any).rowCount).to.equal(25);
         });
 
-        test("should handle subset error and log it", async () => {
+        test("should rethrow subset errors", async () => {
             const error = new Error("Subset request failed");
             mockClient.sendRequest.withArgs(EditSubsetRequest.type, sinon.match.any).rejects(error);
 
@@ -249,7 +244,6 @@ suite("TableExplorerService Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error).to.have.been.calledWith("Subset request failed");
             }
         });
     });
@@ -276,7 +270,7 @@ suite("TableExplorerService Tests", () => {
             });
         });
 
-        test("should handle commit error and log it", async () => {
+        test("should rethrow commit errors", async () => {
             const error = new Error("Commit failed");
             mockClient.sendRequest.withArgs(EditCommitRequest.type, sinon.match.any).rejects(error);
 
@@ -285,7 +279,6 @@ suite("TableExplorerService Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error).to.have.been.calledWith("Commit failed");
             }
         });
     });
@@ -332,7 +325,7 @@ suite("TableExplorerService Tests", () => {
             });
         });
 
-        test("should handle createRow error and log it", async () => {
+        test("should rethrow createRow errors", async () => {
             const error = new Error("Create row failed");
             mockClient.sendRequest
                 .withArgs(EditCreateRowRequest.type, sinon.match.any)
@@ -343,7 +336,6 @@ suite("TableExplorerService Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error).to.have.been.calledWith("Create row failed");
             }
         });
     });
@@ -384,7 +376,7 @@ suite("TableExplorerService Tests", () => {
             expect((callArgs[1] as any).rowId).to.equal(999);
         });
 
-        test("should handle deleteRow error and log it", async () => {
+        test("should rethrow deleteRow errors", async () => {
             const error = new Error("Delete row failed");
             mockClient.sendRequest
                 .withArgs(EditDeleteRowRequest.type, sinon.match.any)
@@ -395,7 +387,6 @@ suite("TableExplorerService Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error).to.have.been.calledWith("Delete row failed");
             }
         });
     });
@@ -437,7 +428,7 @@ suite("TableExplorerService Tests", () => {
             });
         });
 
-        test("should handle revertRow error and log it", async () => {
+        test("should rethrow revertRow errors", async () => {
             const error = new Error("Revert row failed");
             mockClient.sendRequest
                 .withArgs(EditRevertRowRequest.type, sinon.match.any)
@@ -448,7 +439,6 @@ suite("TableExplorerService Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error).to.have.been.calledWith("Revert row failed");
             }
         });
     });
@@ -517,7 +507,7 @@ suite("TableExplorerService Tests", () => {
             expect((callArgs[1] as any).newValue).to.equal("");
         });
 
-        test("should handle updateCell error and log it", async () => {
+        test("should rethrow updateCell errors", async () => {
             const error = new Error("Update cell failed");
             mockClient.sendRequest
                 .withArgs(EditUpdateCellRequest.type, sinon.match.any)
@@ -528,7 +518,6 @@ suite("TableExplorerService Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error).to.have.been.calledWith("Update cell failed");
             }
         });
     });
@@ -589,7 +578,7 @@ suite("TableExplorerService Tests", () => {
             expect((callArgs[1] as any).columnId).to.equal(5);
         });
 
-        test("should handle revertCell error and log it", async () => {
+        test("should rethrow revertCell errors", async () => {
             const error = new Error("Revert cell failed");
             mockClient.sendRequest
                 .withArgs(EditRevertCellRequest.type, sinon.match.any)
@@ -600,7 +589,6 @@ suite("TableExplorerService Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error).to.have.been.calledWith("Revert cell failed");
             }
         });
     });
@@ -627,7 +615,7 @@ suite("TableExplorerService Tests", () => {
             });
         });
 
-        test("should handle dispose error and log it", async () => {
+        test("should rethrow dispose errors", async () => {
             const error = new Error("Dispose failed");
             mockClient.sendRequest
                 .withArgs(EditDisposeRequest.type, sinon.match.any)
@@ -638,7 +626,6 @@ suite("TableExplorerService Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error).to.have.been.calledWith("Dispose failed");
             }
         });
     });
@@ -681,7 +668,7 @@ suite("TableExplorerService Tests", () => {
             expect(result.scripts).to.deep.equal([]);
         });
 
-        test("should handle generateScripts error and log it", async () => {
+        test("should rethrow generateScripts errors", async () => {
             const error = new Error("Generate scripts failed");
             mockClient.sendRequest.withArgs(EditScriptRequest.type, sinon.match.any).rejects(error);
 
@@ -690,7 +677,6 @@ suite("TableExplorerService Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error).to.have.been.calledWith("Generate scripts failed");
             }
         });
     });
@@ -854,7 +840,7 @@ suite("TableExplorerService Tests", () => {
             expect(result.messages).to.equal("Failed to write file");
         });
 
-        test("should handle serializeData error and log it", async () => {
+        test("should rethrow serializeData errors", async () => {
             const error = new Error("Serialization failed");
             mockClient.sendRequest
                 .withArgs(SerializeStartRequest.type, sinon.match.any)
@@ -865,9 +851,6 @@ suite("TableExplorerService Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error, "Error should be logged").to.have.been.calledWith(
-                    "Serialization failed",
-                );
             }
         });
 
@@ -909,33 +892,29 @@ suite("TableExplorerService Tests", () => {
     });
 
     suite("error handling", () => {
-        test("should log error with proper message format", async () => {
-            const errorMessage = "Connection timeout";
-            const error = new Error(errorMessage);
+        test("should rethrow Error objects", async () => {
+            const error = new Error("Connection timeout");
             mockClient.sendRequest.rejects(error);
 
             try {
                 await tableExplorerService.initialize("uri", "table", "schema", "type", undefined);
                 expect.fail("Should have thrown an error");
-            } catch {
-                expect(mockLogger.error, "Error should be logged").to.have.been.calledWithMatch(
-                    sinon.match(
-                        (value: unknown) =>
-                            typeof value === "string" && value.includes(errorMessage),
-                    ),
-                );
+            } catch (err) {
+                expect(err).to.equal(error);
             }
         });
 
         test("should handle non-Error objects thrown", async () => {
             const errorString = "String error";
-            mockClient.sendRequest.rejects(errorString);
+            mockClient.sendRequest.callsFake(async () => {
+                throw errorString;
+            });
 
             try {
                 await tableExplorerService.commit("uri");
                 expect.fail("Should have thrown an error");
-            } catch {
-                expect(mockLogger.error, "Error should be logged").to.have.been.called;
+            } catch (err) {
+                expect(err).to.equal(errorString);
             }
         });
     });

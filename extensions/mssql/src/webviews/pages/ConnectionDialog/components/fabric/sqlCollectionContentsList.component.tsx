@@ -575,7 +575,6 @@ export const SqlCollectionContentsList = ({
             case "AzureSynapseAnalytics":
                 return sqlAnalyticsEndpointIcon(theme);
             default:
-                console.error(`Unknown artifact type for getItemIcon(): ${artifactType}`);
                 return sqlDatabaseIcon(theme);
         }
     }
@@ -627,7 +626,6 @@ export function getTypeDisplayName(artifactType: string): string {
         case "AzureSynapseAnalytics":
             return Loc.connectionDialog.azureSynapseAnalytics;
         default:
-            console.error(`Unknown artifact type for getTypeDisplayName(): ${artifactType}`);
             return artifactType;
     }
 }

@@ -41,7 +41,7 @@ export interface ProseDiscoveryResponse {
 }
 
 export namespace ProseDiscoveryRequest {
-    export const type = new RequestType<ProseDiscoveryParams, ProseDiscoveryResponse, void, void>(
+    export const type = new RequestType<ProseDiscoveryParams, ProseDiscoveryResponse, void>(
         "flatfile/proseDiscovery",
     );
 }
@@ -66,7 +66,6 @@ export namespace ChangeColumnSettingsRequest {
     export const type = new RequestType<
         ChangeColumnSettingsParams,
         ChangeColumnSettingsResponse,
-        void,
         void
     >("flatfile/changeColumnSettings");
 }
@@ -82,7 +81,7 @@ export interface InsertDataParams {
 }
 
 export namespace InsertDataRequest {
-    export const type = new RequestType<InsertDataParams, InsertDataResponse, void, void>(
+    export const type = new RequestType<InsertDataParams, InsertDataResponse, void>(
         "flatfile/insertData",
     );
 }
@@ -100,7 +99,7 @@ export interface DisposeSessionResponse {
 }
 
 export namespace DisposeSessionRequest {
-    export const type = new RequestType<DisposeSessionParams, DisposeSessionResponse, void, void>(
+    export const type = new RequestType<DisposeSessionParams, DisposeSessionResponse, void>(
         "flatfile/disposeSession",
     );
 }

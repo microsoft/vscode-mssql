@@ -51,7 +51,6 @@ export class GetNextMessageRequest {
     public static readonly type = new RequestType<
         GetNextMessageParams,
         GetNextMessageResponse,
-        void,
         void
     >("copilot/getnextmessage");
 }
@@ -71,7 +70,6 @@ export class StartConversationRequest {
     public static readonly type = new RequestType<
         StartConversationParams,
         StartConversationResponse,
-        void,
         void
     >("copilot/startconversation");
 }

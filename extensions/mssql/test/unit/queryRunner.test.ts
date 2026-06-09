@@ -79,7 +79,6 @@ suite("Query Runner tests", () => {
         );
         (testVscodeWrapper.showErrorMessage as sinon.SinonStub).returns(undefined);
         (testVscodeWrapper.showInformationMessage as sinon.SinonStub).returns(undefined);
-        (testVscodeWrapper.logToOutputChannel as sinon.SinonStub).returns(undefined);
         (testVscodeWrapper.openTextDocument as sinon.SinonStub).resolves({} as vscode.TextDocument);
         (testVscodeWrapper.showTextDocument as sinon.SinonStub).resolves({} as vscode.TextEditor);
         (testVscodeWrapper.getConfiguration as sinon.SinonStub).returns(
@@ -127,7 +126,6 @@ suite("Query Runner tests", () => {
 
         // ... The VS Code status should be updated
         expect(testStatusView.executingQuery).to.have.been.calledOnceWithExactly(standardUri);
-        expect(testVscodeWrapper.logToOutputChannel as sinon.SinonStub).to.have.been.calledOnce;
 
         // ... The query runner should indicate that it is running a query and elapsed time should be set to 0
         expect(queryRunner.isExecutingQuery).to.equal(true);
@@ -167,7 +165,6 @@ suite("Query Runner tests", () => {
         } catch {
             // Then:
             // ... The view status should have started and stopped
-            expect(testVscodeWrapper.logToOutputChannel as sinon.SinonStub).to.have.been.calledOnce;
             expect(testStatusView.executingQuery).to.have.been.calledOnceWithExactly(standardUri);
             expect(testStatusView.executedQuery).to.have.been.called;
             // ... The query runner should not be running a query
@@ -245,8 +242,8 @@ suite("Query Runner tests", () => {
         setupWorkspaceConfig(configResult);
 
         let dateNow = new Date();
-        let fiveSecondsAgo = new Date(dateNow.getTime() - 5000);
-        let elapsedTimeString = Utils.parseNumAsTimeString(5000);
+        let fiveSecondsAgo = new Date(dateNow.getTime() - 5_000);
+        let elapsedTimeString = Utils.durationToDisplay(5_000, { format: "clock" });
         let batchComplete: QueryExecuteBatchNotificationParams = {
             ownerUri: "uri",
             batchSummary: {

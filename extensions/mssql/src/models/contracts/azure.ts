@@ -256,7 +256,6 @@ export namespace SecurityTokenRequest {
     export const type = new RequestType<
         RequestSecurityTokenParams,
         RequestSecurityTokenResponse,
-        void,
         void
     >("account/securityTokenRequest");
 }

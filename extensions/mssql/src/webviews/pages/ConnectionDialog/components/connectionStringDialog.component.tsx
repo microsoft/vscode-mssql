@@ -17,6 +17,7 @@ export const ConnectionStringDialog = ({
     dialogProps: ConnectionStringDialogProps;
 }) => {
     const context = useContext(ConnectionDialogContext)!;
+    const log = context.log;
     const dialog = useConnectionDialogSelector((s) => s.dialog);
     const [connectionString, setConnectionString] = useState(dialogProps.connectionString || "");
 
@@ -28,7 +29,7 @@ export const ConnectionStringDialog = ({
         try {
             await navigator.clipboard.writeText(connectionString);
         } catch (error) {
-            console.error("Failed to copy connection string:", error);
+            log.error("Failed to copy connection string", error);
         }
     };
 
@@ -37,7 +38,7 @@ export const ConnectionStringDialog = ({
             const text = await navigator.clipboard.readText();
             setConnectionString(text);
         } catch (error) {
-            console.error("Failed to paste connection string:", error);
+            log.error("Failed to paste connection string", error);
         }
     };
 

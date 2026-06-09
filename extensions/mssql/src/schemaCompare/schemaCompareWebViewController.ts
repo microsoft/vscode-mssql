@@ -571,7 +571,6 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 this.logger.error(
                     `Error listing databases: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
                 );
-                console.error("Error listing databases:", error);
 
                 endActivity.endFailed(
                     new Error(
@@ -2254,8 +2253,8 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         });
     }
 
-    private formatEntryName(nameParts: string[]): string {
-        if (!nameParts || nameParts.length === 0) {
+    private formatEntryName(nameParts: string[] | undefined | null): string {
+        if (nameParts === undefined || nameParts === null || nameParts.length === 0) {
             return "";
         }
         return nameParts.join(".");

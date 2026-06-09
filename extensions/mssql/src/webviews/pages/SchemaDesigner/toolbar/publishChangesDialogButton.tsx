@@ -128,26 +128,29 @@ export function PublishChangesDialogButton() {
                         });
                         setPublishButtonDisabled(true);
                         const getReportResponse = await context.getReport();
-                        if (getReportResponse?.error) {
+                        const report = getReportResponse?.report;
+                        if (getReportResponse?.error || !report) {
                             setState({
                                 ...state,
                                 currentStage: PublishDialogStages.ReportError,
-                                reportError: getReportResponse.error,
+                                reportError:
+                                    getReportResponse?.error ??
+                                    schemaDesignerPublishErrorFallbackDetails,
                             });
                         } else {
-                            if (!getReportResponse?.report.hasSchemaChanged) {
+                            if (!report.hasSchemaChanged) {
                                 setState({
                                     ...state,
                                     currentStage: PublishDialogStages.ReportSuccessNoChanges,
                                     reportError: undefined,
-                                    report: getReportResponse?.report,
+                                    report,
                                 });
                             } else {
                                 setState({
                                     ...state,
                                     currentStage: PublishDialogStages.ReportSuccessWithChanges,
                                     reportError: undefined,
-                                    report: getReportResponse.report,
+                                    report,
                                     isConfirmationChecked: false,
                                 });
                             }

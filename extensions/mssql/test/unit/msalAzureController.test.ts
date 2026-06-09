@@ -22,7 +22,7 @@ import { MsalCachePluginProvider } from "../../src/azure/msal/msalCachePlugin";
 import { MsalAzureCodeGrant } from "../../src/azure/msal/msalAzureCodeGrant";
 import { MsalAzureDeviceCode } from "../../src/azure/msal/msalAzureDeviceCode";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { ILogger } from "../../src/models/logger";
+import { ILogger } from "../../src/sharedInterfaces/logger";
 import {
     CloudAuthApplication,
     MsalAzureController,

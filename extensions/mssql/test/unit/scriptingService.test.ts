@@ -29,9 +29,7 @@ import * as telemetry from "../../src/telemetry/telemetry";
 import * as Constants from "../../src/constants/constants";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import { ActivityObject, ActivityStatus } from "../../src/sharedInterfaces/telemetry";
-import { ILogger } from "../../src/models/logger";
 import {
-    stubLogger,
     stubExtensionContext,
     initializeIconUtils,
     stubUserSurvey,
@@ -66,7 +64,6 @@ suite("Scripting Service", () => {
     let configurationGetStub: sinon.SinonStub;
     let registerCommandStub: sinon.SinonStub;
     let sendRequestStub: sinon.SinonStub;
-    let loggerStub: sinon.SinonStubbedInstance<ILogger>;
     let objectExplorerTree: { selection: TreeNodeInfo[] };
     let scriptingProgressHandler: ProgressHandler | undefined;
     let scriptingCompleteHandler: ProgressHandler | undefined;
@@ -216,9 +213,6 @@ suite("Scripting Service", () => {
             telemetryActivities.push(activity);
             return activity;
         });
-
-        loggerStub = stubLogger(sandbox);
-
         connectionManager = sandbox.createStubInstance(ConnectionManager);
         client = sandbox.createStubInstance(SqlToolsServiceClient);
         connectionManager.client = client;
@@ -329,7 +323,6 @@ suite("Scripting Service", () => {
             expect(sqlOutputContentProvider.runQuery).to.have.been.calledOnce;
             expect(removeRecentlyUsedStub).to.have.been.calledOnce;
             expect(updateTokenStub).to.have.been.called;
-            expect(loggerStub.error).to.not.have.been.called;
             expect(telemetryActivities[0].end).to.have.been.calledWithExactly(
                 ActivityStatus.Succeeded,
             );
@@ -380,14 +373,13 @@ suite("Scripting Service", () => {
             expect(connectionManager.connect).to.have.been.calledOnce;
             expect(sqlDocumentService.newQuery).to.not.have.been.called;
             expect(sqlOutputContentProvider.runQuery).to.not.have.been.called;
-            expect(loggerStub.error).to.have.been.called;
             expect(telemetryActivities[0].endFailed).to.have.been.called;
         } finally {
             scriptTreeStub.restore();
         }
     });
 
-    test("scriptNode logs error when scripting object is missing", async () => {
+    test("scriptNode fails when scripting object is missing", async () => {
         const node = new TreeNodeInfo(
             "invalid",
             undefined,
@@ -408,11 +400,10 @@ suite("Scripting Service", () => {
         await scriptingService.scriptNode(node, ScriptOperation.Select);
 
         expect(sqlDocumentService.newQuery).to.not.have.been.called;
-        expect(loggerStub.error).to.have.been.called;
         expect(telemetryActivities[0].endFailed).to.have.been.called;
     });
 
-    test("scriptNode logs error when no script is returned", async () => {
+    test("scriptNode fails when no script is returned", async () => {
         const node = createTableNode();
         applyConnectionProfile(node);
         sandbox.stub(node, "updateEntraTokenInfo");
@@ -425,7 +416,6 @@ suite("Scripting Service", () => {
 
         expect(sqlDocumentService.newQuery).to.not.have.been.called;
         expect(sqlOutputContentProvider.runQuery).to.not.have.been.called;
-        expect(loggerStub.error).to.have.been.called;
         expect(telemetryActivities[0].endFailed).to.have.been.called;
         scriptTreeStub.restore();
     });
@@ -605,7 +595,6 @@ suite("Scripting Service", () => {
         expect(showErrorMessageStub).to.have.been.calledWithExactly(
             LocalizedConstants.msgScriptingOperationFailed("script failed"),
         );
-        expect(loggerStub.error).to.have.been.calledWithMatch("Scripting error details:");
         expect(telemetryActivities[0].endFailed).to.have.been.called;
     });
 

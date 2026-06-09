@@ -54,7 +54,6 @@ export class ListTablesTool extends ToolBase<ListTablesToolParams> {
                 new RequestType<
                     { ownerUri: string; queryString: string },
                     SimpleExecuteResult,
-                    void,
                     void
                 >("query/simpleexecute"),
                 {
