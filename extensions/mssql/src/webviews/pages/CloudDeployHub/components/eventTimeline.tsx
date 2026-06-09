@@ -7,32 +7,41 @@ import { makeStyles, Text, tokens } from "@fluentui/react-components";
 import * as React from "react";
 import { DiagnosticEvent } from "../../../../cloudDeploy/diagnostics/types";
 import { locConstants } from "../../../common/locConstants";
+import { describeEvent } from "./humanize";
 
 const useStyles = makeStyles({
     table: {
         width: "100%",
         borderCollapse: "collapse",
-        fontSize: "12px",
+        fontSize: "13px",
     },
     th: {
         textAlign: "left",
-        padding: "4px 8px",
+        padding: "5px 10px",
         borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
         color: tokens.colorNeutralForeground3,
         fontWeight: 600,
+        fontSize: "11px",
+        textTransform: "uppercase",
+        letterSpacing: "0.04em",
     },
     td: {
-        padding: "4px 8px",
+        padding: "6px 10px",
         borderBottom: `1px solid ${tokens.colorNeutralStroke3}`,
-        verticalAlign: "top",
+        verticalAlign: "middle",
     },
-    mono: {
+    time: {
         fontFamily: "var(--vscode-editor-font-family), monospace",
         whiteSpace: "nowrap",
+        color: tokens.colorNeutralForeground3,
     },
-    details: {
-        fontFamily: "var(--vscode-editor-font-family), monospace",
-        wordBreak: "break-all",
+    marker: {
+        display: "inline-block",
+        width: "8px",
+        height: "8px",
+        borderRadius: "50%",
+        marginRight: "8px",
+        verticalAlign: "middle",
     },
     empty: {
         color: tokens.colorNeutralForeground3,
@@ -41,9 +50,32 @@ const useStyles = makeStyles({
 });
 
 /**
- * Renders the diagnostic events captured in a run's artifact as a chronological
- * table. Resolves D3-Part-2 feature B (event timeline / replay). Times are
- * shown relative to the first event so the reader sees how the run unfolded.
+ * Color for the timeline dot, keyed off the event's outcome where it carries
+ * one, so a reader can scan the column and spot the failure at a glance.
+ */
+function markerColor(event: DiagnosticEvent): string {
+    const status = (event as { readonly payload?: { status?: string } }).payload?.status;
+    switch (status) {
+        case "passed":
+            return tokens.colorPaletteGreenForeground1;
+        case "failed":
+        case "errored":
+            return tokens.colorPaletteRedForeground1;
+        case "warning":
+            return tokens.colorPaletteYellowForeground1;
+        case "skipped":
+        case "cancelled":
+            return tokens.colorNeutralForeground4;
+        default:
+            return tokens.colorBrandForeground1;
+    }
+}
+
+/**
+ * Renders the diagnostic events captured in a run's artifact as a chronological,
+ * plain-English timeline. Times are shown relative to the first event so the
+ * reader sees how the run unfolded, and each row reads like a sentence rather
+ * than a raw event type plus a key=value bag.
  */
 export const EventTimeline: React.FC<{ events: readonly DiagnosticEvent[] }> = ({ events }) => {
     const classes = useStyles();
@@ -60,21 +92,21 @@ export const EventTimeline: React.FC<{ events: readonly DiagnosticEvent[] }> = (
             <thead>
                 <tr>
                     <th className={classes.th}>{strings.timelineColTime}</th>
-                    <th className={classes.th}>{strings.timelineColCategory}</th>
-                    <th className={classes.th}>{strings.timelineColType}</th>
-                    <th className={classes.th}>{strings.timelineColDetails}</th>
+                    <th className={classes.th}>{strings.timelineColEvent}</th>
                 </tr>
             </thead>
             <tbody>
                 {events.map((event) => (
                     <tr key={event.id}>
-                        <td className={`${classes.td} ${classes.mono}`}>
+                        <td className={`${classes.td} ${classes.time}`}>
                             {strings.timelineRelativeMs(Math.max(0, event.timestampMs - baseMs))}
                         </td>
-                        <td className={classes.td}>{event.source}</td>
-                        <td className={classes.td}>{event.type}</td>
-                        <td className={`${classes.td} ${classes.details}`}>
-                            {summarizePayload(event)}
+                        <td className={classes.td}>
+                            <span
+                                className={classes.marker}
+                                style={{ backgroundColor: markerColor(event) }}
+                            />
+                            {describeEvent(event)}
                         </td>
                     </tr>
                 ))}
@@ -82,28 +114,3 @@ export const EventTimeline: React.FC<{ events: readonly DiagnosticEvent[] }> = (
         </table>
     );
 };
-
-/**
- * Renders an event's payload as a compact `key=value` string. Diagnostic
- * payloads are flat id/count bags, so a shallow projection reads cleanly
- * without a per-event-type renderer.
- */
-function summarizePayload(event: DiagnosticEvent): string {
-    const payload = (event as { readonly payload?: Record<string, unknown> }).payload;
-    if (payload === undefined || payload === null) {
-        return "";
-    }
-    return Object.entries(payload)
-        .map(([key, value]) => `${key}=${formatValue(value)}`)
-        .join("  ");
-}
-
-function formatValue(value: unknown): string {
-    if (Array.isArray(value)) {
-        return `[${value.length}]`;
-    }
-    if (typeof value === "object" && value !== null) {
-        return JSON.stringify(value);
-    }
-    return String(value);
-}

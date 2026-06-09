@@ -192,6 +192,32 @@ suite("CloudDeploy CloudDeployTreeProvider", () => {
         ]);
     });
 
+    test("an environment node is expandable and leads with its source of truth", () => {
+        envStore.envs = [makeEnvironment({ id: "dev", name: "Dev" })];
+        const envSection = provider.getChildren()[0];
+        const envNode = provider.getChildren(envSection)[0];
+        const item = provider.getTreeItem(envNode);
+        expect(item.collapsibleState).to.equal(vscode.TreeItemCollapsibleState.Collapsed);
+        const children = provider.getChildren(envNode);
+        expect(children[0].kind).to.equal("source");
+    });
+
+    test("environment children nest that environment's runs beneath the source", async () => {
+        envStore.envs = [makeEnvironment({ id: "dev", name: "Dev" })];
+        await seedRun("r-old", "dev", "Dev", 1_000);
+        await seedRun("r-new", "dev", "Dev", 5_000);
+        await runStore.scan();
+
+        const envSection = provider.getChildren()[0];
+        const envNode = provider.getChildren(envSection)[0];
+        const children = provider.getChildren(envNode);
+        expect(children[0].kind).to.equal("source");
+        const runIds = children
+            .filter((c) => c.kind === "run")
+            .map((c) => (c.kind === "run" ? c.entry.runId : "?"));
+        expect(runIds).to.deep.equal(["r-new", "r-old"]);
+    });
+
     test("runs section is empty before any scan", () => {
         const roots = provider.getChildren();
         const runSection = roots.find((n) => n.kind === "section" && n.id === "runs");

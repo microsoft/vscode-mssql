@@ -4105,6 +4105,24 @@ export class CloudDeployDashboard {
         });
 
     public static compareLoadFailed = l10n.t("Failed to load one or both runs for comparison.");
+
+    public static noRunsYet = l10n.t("No runs yet");
+
+    public static sourceLabel = (kind: string): string =>
+        l10n.t({
+            message: "Source: {0}",
+            args: [kind],
+            comment: ["{0} is the friendly source-of-truth kind name"],
+        });
+
+    public static sourceKindSqlProj = l10n.t("SQL project");
+
+    public static sourceKindDacpac = l10n.t("Dacpac (pre-built)");
+
+    public static sourceKindContainer = l10n.t("Live database");
+
+    /** Public friendly status name, reused by the tree's environment rows. */
+    public static statusName = (status: RunStatus): string => statusLabel(status);
 }
 
 function statusLabel(status: RunStatus): string {

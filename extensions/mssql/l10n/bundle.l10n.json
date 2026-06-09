@@ -1911,6 +1911,47 @@
     "Reveal artifact": "Reveal artifact",
     "All runs": "All runs",
     "No runs yet. Run a validation against an environment to see it here.": "No runs yet. Run a validation against an environment to see it here.",
+    "recent": "recent",
+    "{0} runs/{0} is the number of runs in an environment group": {
+        "message": "{0} runs",
+        "comment": ["{0} is the number of runs in an environment group"]
+    },
+    "Other runs": "Other runs",
+    "Show {0} more/{0} is the number of additional runs hidden in the group": {
+        "message": "Show {0} more",
+        "comment": ["{0} is the number of additional runs hidden in the group"]
+    },
+    "Show fewer": "Show fewer",
+    "Connectivity": "Connectivity",
+    "Static Analysis": "Static Analysis",
+    "Unit Tests": "Unit Tests",
+    "Workload Playback": "Workload Playback",
+    "SQL project": "SQL project",
+    "Dacpac (pre-built)": "Dacpac (pre-built)",
+    "Live database": "Live database",
+    "Run started": "Run started",
+    "{0} started/{0} is a validation name like Static Analysis": {
+        "message": "{0} started",
+        "comment": ["{0} is a validation name like Static Analysis"]
+    },
+    "{0} in progress/{0} is a validation name like Static Analysis": {
+        "message": "{0} in progress",
+        "comment": ["{0} is a validation name like Static Analysis"]
+    },
+    "{0} finished — {1} ({2} findings)/{0} is a validation name{1} is the outcome like Passed/Failed{2} is the number of findings": {
+        "message": "{0} finished — {1} ({2} findings)",
+        "comment": [
+            "{0} is a validation name",
+            "{1} is the outcome like Passed/Failed",
+            "{2} is the number of findings"
+        ]
+    },
+    "Run finished — {0} ({1} validations)/{0} is the overall run outcome{1} is the number of validations that ran": {
+        "message": "Run finished — {0} ({1} validations)",
+        "comment": ["{0} is the overall run outcome", "{1} is the number of validations that ran"]
+    },
+    "Run saved": "Run saved",
+    "Run could not be saved": "Run could not be saved",
     "Run id": "Run id",
     "Environment": "Environment",
     "Started": "Started",
@@ -1953,9 +1994,10 @@
     "Step": "Step",
     "Regression": "Regression",
     "Delta": "Delta",
-    "Reachable": "Reachable",
     "Errors": "Errors",
     "Info": "Info",
+    "No findings match this filter.": "No findings match this filter.",
+    "Reachable": "Reachable",
     "Passed": "Passed",
     "Failed": "Failed",
     "Skipped": "Skipped",
@@ -1972,6 +2014,7 @@
     "Event timeline": "Event timeline",
     "This run captured no diagnostic events.": "This run captured no diagnostic events.",
     "Time": "Time",
+    "Event": "Event",
     "+{0}ms/{0} is milliseconds elapsed since the first event": {
         "message": "+{0}ms",
         "comment": ["{0} is milliseconds elapsed since the first event"]
@@ -4121,6 +4164,11 @@
         "comment": ["{0} is the underlying error message"]
     },
     "Failed to load one or both runs for comparison.": "Failed to load one or both runs for comparison.",
+    "No runs yet": "No runs yet",
+    "Source: {0}/{0} is the friendly source-of-truth kind name": {
+        "message": "Source: {0}",
+        "comment": ["{0} is the friendly source-of-truth kind name"]
+    },
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

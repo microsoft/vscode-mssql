@@ -3022,6 +3022,62 @@ export class LocConstants {
             runListEmpty: l10n.t(
                 "No runs yet. Run a validation against an environment to see it here.",
             ),
+            recentTrendLabel: l10n.t("recent"),
+            runCountLabel: (count: number) =>
+                l10n.t({
+                    message: "{0} runs",
+                    args: [count],
+                    comment: ["{0} is the number of runs in an environment group"],
+                }),
+            ungroupedRunsLabel: l10n.t("Other runs"),
+            showMoreRuns: (count: number) =>
+                l10n.t({
+                    message: "Show {0} more",
+                    args: [count],
+                    comment: ["{0} is the number of additional runs hidden in the group"],
+                }),
+            showFewerRuns: l10n.t("Show fewer"),
+            validationConnectivity: l10n.t("Connectivity"),
+            validationStaticAnalysis: l10n.t("Static Analysis"),
+            validationUnitTests: l10n.t("Unit Tests"),
+            validationWorkloadPlayback: l10n.t("Workload Playback"),
+            sourceKindSqlProj: l10n.t("SQL project"),
+            sourceKindDacpac: l10n.t("Dacpac (pre-built)"),
+            sourceKindContainer: l10n.t("Live database"),
+            eventRunStarted: l10n.t("Run started"),
+            eventValidationStarted: (name: string) =>
+                l10n.t({
+                    message: "{0} started",
+                    args: [name],
+                    comment: ["{0} is a validation name like Static Analysis"],
+                }),
+            eventValidationProgress: (name: string) =>
+                l10n.t({
+                    message: "{0} in progress",
+                    args: [name],
+                    comment: ["{0} is a validation name like Static Analysis"],
+                }),
+            eventValidationFinished: (name: string, status: string, findings: number) =>
+                l10n.t({
+                    message: "{0} finished — {1} ({2} findings)",
+                    args: [name, status, findings],
+                    comment: [
+                        "{0} is a validation name",
+                        "{1} is the outcome like Passed/Failed",
+                        "{2} is the number of findings",
+                    ],
+                }),
+            eventRunFinished: (status: string, count: number) =>
+                l10n.t({
+                    message: "Run finished — {0} ({1} validations)",
+                    args: [status, count],
+                    comment: [
+                        "{0} is the overall run outcome",
+                        "{1} is the number of validations that ran",
+                    ],
+                }),
+            eventRunSaved: l10n.t("Run saved"),
+            eventRunSaveFailed: l10n.t("Run could not be saved"),
             columnRunId: l10n.t("Run id"),
             columnEnvironment: l10n.t("Environment"),
             columnStatus: l10n.t("Status"),
@@ -3085,6 +3141,15 @@ export class LocConstants {
             colStep: l10n.t("Step"),
             colRegression: l10n.t("Regression"),
             colDelta: l10n.t("Delta"),
+            filterAll: l10n.t("All"),
+            filterErrors: l10n.t("Errors"),
+            filterWarnings: l10n.t("Warnings"),
+            filterInfo: l10n.t("Info"),
+            sortLabel: l10n.t("Sort"),
+            sortBySeverity: l10n.t("Severity"),
+            sortByRule: l10n.t("Rule"),
+            sortByLocation: l10n.t("Location"),
+            findingsNoneForFilter: l10n.t("No findings match this filter."),
             summaryReachable: l10n.t("Reachable"),
             summaryServerVersion: l10n.t("Server"),
             summaryError: l10n.t("Errors"),
@@ -3119,6 +3184,7 @@ export class LocConstants {
             timelineColCategory: l10n.t("Category"),
             timelineColType: l10n.t("Type"),
             timelineColDetails: l10n.t("Details"),
+            timelineColEvent: l10n.t("Event"),
             timelineRelativeMs: (ms: number) =>
                 l10n.t({
                     message: "+{0}ms",

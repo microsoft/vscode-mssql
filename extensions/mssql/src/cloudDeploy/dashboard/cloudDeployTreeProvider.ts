@@ -35,7 +35,7 @@ import * as vscode from "vscode";
 
 import { CloudDeployDashboard } from "../../constants/locConstants";
 import { EnvironmentStore } from "../environments/environmentStore";
-import { Environment } from "../environments/types";
+import { Environment, SourceOfTruth, SourceOfTruthKind } from "../environments/types";
 import { RunListEntry, RunStore } from "../runs/runStore";
 import { RunStatus } from "../runs/types";
 
@@ -46,6 +46,9 @@ import { RunStatus } from "../runs/types";
 /** Cap on the "Recent Runs" section. Keeps the tree readable on busy workspaces. */
 const RECENT_RUNS_LIMIT = 10;
 
+/** Cap on the runs shown nested under a single environment in the tree. */
+const RUNS_PER_ENVIRONMENT = 5;
+
 /** Unique view id contributed via `package.json` `contributes.views`. */
 export const CLOUD_DEPLOY_VIEW_ID = "mssqlCloudDeploy";
 
@@ -53,7 +56,7 @@ export const CLOUD_DEPLOY_VIEW_ID = "mssqlCloudDeploy";
 // Tree node types
 // =============================================================================
 
-type TreeNode = SectionNode | EnvironmentNode | RunNode | EmptyNode;
+type TreeNode = SectionNode | EnvironmentNode | SourceNode | RunNode | EmptyNode;
 
 interface SectionNode {
     readonly kind: "section";
@@ -68,9 +71,18 @@ export interface EnvironmentNode {
     readonly isDefault: boolean;
 }
 
+/** Detail leaf shown under an expanded environment: its source of truth. */
+interface SourceNode {
+    readonly kind: "source";
+    readonly env: Environment;
+}
+
 interface RunNode {
     readonly kind: "run";
     readonly entry: RunListEntry;
+    /** When true, the run sits under its environment, so the env name is
+     *  redundant and the leaf labels itself by run id instead. */
+    readonly nested?: boolean;
 }
 
 interface EmptyNode {
@@ -134,6 +146,8 @@ export class CloudDeployTreeProvider
                 return makeSectionItem(element);
             case "environment":
                 return makeEnvironmentItem(element);
+            case "source":
+                return makeSourceItem(element);
             case "run":
                 return makeRunItem(element);
             case "empty":
@@ -157,7 +171,23 @@ export class CloudDeployTreeProvider
                 ? this._environmentChildren()
                 : this._runChildren();
         }
+        if (element.kind === "environment") {
+            return this._environmentDetailChildren(element.env);
+        }
         return [];
+    }
+
+    /**
+     * Children of an expanded environment: a source-of-truth detail leaf, then
+     * the environment's most recent runs nested directly beneath it.
+     */
+    private _environmentDetailChildren(env: Environment): TreeNode[] {
+        const children: TreeNode[] = [{ kind: "source", env }];
+        const runs = this._runStore?.list(env.id) ?? [];
+        for (const entry of runs.slice(0, RUNS_PER_ENVIRONMENT)) {
+            children.push({ kind: "run", entry, nested: true });
+        }
+        return children;
     }
 
     private _environmentChildren(): TreeNode[] {
@@ -229,11 +259,11 @@ function makeSectionItem(node: SectionNode): vscode.TreeItem {
 }
 
 function makeEnvironmentItem(node: EnvironmentNode): vscode.TreeItem {
-    const item = new vscode.TreeItem(node.env.name, vscode.TreeItemCollapsibleState.None);
-    const baseDescription = node.env.description ?? node.env.sourceOfTruth.kind;
-    item.description = node.isDefault
-        ? CloudDeployDashboard.defaultEnvironmentDescription(baseDescription)
-        : baseDescription;
+    const item = new vscode.TreeItem(node.env.name, vscode.TreeItemCollapsibleState.Collapsed);
+    const baseDescription = node.isDefault
+        ? CloudDeployDashboard.defaultEnvironmentDescription(statusText(node.latestStatus))
+        : statusText(node.latestStatus);
+    item.description = baseDescription;
     item.tooltip = CloudDeployDashboard.environmentTooltip(node.env.id);
     item.contextValue = "cloudDeploy.environment";
     item.iconPath = iconForStatus(node.latestStatus);
@@ -245,9 +275,30 @@ function makeEnvironmentItem(node: EnvironmentNode): vscode.TreeItem {
     return item;
 }
 
+/**
+ * The source-of-truth detail leaf shown directly under an expanded
+ * environment, e.g. "Source: SQL project" with the path/profile as its
+ * description.
+ */
+function makeSourceItem(node: SourceNode): vscode.TreeItem {
+    const sot = node.env.sourceOfTruth;
+    const item = new vscode.TreeItem(
+        CloudDeployDashboard.sourceLabel(sourceKindText(sot.kind)),
+        vscode.TreeItemCollapsibleState.None,
+    );
+    item.description = sourceDetailText(sot);
+    item.contextValue = "cloudDeploy.source";
+    item.iconPath = new vscode.ThemeIcon(sourceKindIcon(sot.kind));
+    return item;
+}
+
 function makeRunItem(node: RunNode): vscode.TreeItem {
     const { entry } = node;
-    const item = new vscode.TreeItem(entry.envDisplayName, vscode.TreeItemCollapsibleState.None);
+    // Nested under its environment, the run labels itself by short id (the env
+    // name would be redundant). In the flat Recent Runs section it leads with
+    // the environment name so cross-env runs are distinguishable.
+    const label = node.nested ? entry.runId.slice(0, 8) : entry.envDisplayName;
+    const item = new vscode.TreeItem(label, vscode.TreeItemCollapsibleState.None);
     item.description = formatRunDescription(entry);
     item.tooltip = CloudDeployDashboard.runTooltip(entry.runId, entry.artifactPath);
     item.contextValue = "cloudDeploy.run";
@@ -325,4 +376,44 @@ function formatRunDescription(entry: RunListEntry): string {
     const elapsedMs = Math.max(0, entry.endedAtMs - entry.startedAtMs);
     const seconds = Math.round(elapsedMs / 1000);
     return CloudDeployDashboard.runDescription(entry.status, seconds);
+}
+
+// =============================================================================
+// Human-readable text helpers
+// =============================================================================
+
+/** Friendly latest-run text for an environment row, e.g. "Passed" / "No runs yet". */
+function statusText(status: RunStatus | undefined): string {
+    return status === undefined
+        ? CloudDeployDashboard.noRunsYet
+        : CloudDeployDashboard.statusName(status);
+}
+
+/** Friendly name for a source-of-truth kind, e.g. "SQL project" / "Live database". */
+function sourceKindText(kind: SourceOfTruthKind): string {
+    switch (kind) {
+        case SourceOfTruthKind.SqlProj:
+            return CloudDeployDashboard.sourceKindSqlProj;
+        case SourceOfTruthKind.Dacpac:
+            return CloudDeployDashboard.sourceKindDacpac;
+        case SourceOfTruthKind.Container:
+            return CloudDeployDashboard.sourceKindContainer;
+    }
+}
+
+/** The path or connection profile behind a source of truth, shown as detail text. */
+function sourceDetailText(sot: SourceOfTruth): string {
+    return sot.kind === SourceOfTruthKind.Container ? sot.connectionProfileId : sot.path;
+}
+
+/** Theme icon id for a source-of-truth kind. */
+function sourceKindIcon(kind: SourceOfTruthKind): string {
+    switch (kind) {
+        case SourceOfTruthKind.SqlProj:
+            return "project";
+        case SourceOfTruthKind.Dacpac:
+            return "package";
+        case SourceOfTruthKind.Container:
+            return "database";
+    }
 }

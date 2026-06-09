@@ -3,11 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Badge, makeStyles, Text, tokens } from "@fluentui/react-components";
+import { Badge, Button, makeStyles, Text, tokens } from "@fluentui/react-components";
+import { ChevronDownRegular, ChevronRightRegular } from "@fluentui/react-icons";
 import * as React from "react";
 import { RunStatus } from "../../../../cloudDeploy/runs/types";
 import { locConstants } from "../../../common/locConstants";
 import { StatusBadge } from "./statusBadge";
+import { validationTypeLabel } from "./humanize";
 
 // Mirrors the structural shapes from `cloudDeploy/runs/types.ts`. We keep a
 // local structural duplicate here so this file does not import the host-only
@@ -83,6 +85,13 @@ const useStyles = makeStyles({
         alignItems: "center",
         gap: "10px",
         marginBottom: "8px",
+        cursor: "pointer",
+    },
+    chevron: {
+        display: "flex",
+        alignItems: "center",
+        color: tokens.colorNeutralForeground3,
+        flexShrink: 0,
     },
     title: {
         fontWeight: 600,
@@ -134,6 +143,49 @@ const useStyles = makeStyles({
         fontSize: "12px",
         fontStyle: "italic",
     },
+    metricRow: {
+        display: "flex",
+        gap: "8px",
+        marginBottom: "10px",
+        flexWrap: "wrap",
+    },
+    metricPill: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "2px",
+        padding: "5px 10px",
+        minWidth: "52px",
+        borderRadius: "4px",
+        backgroundColor: tokens.colorNeutralBackground3,
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
+    },
+    metricLabel: {
+        fontSize: "9px",
+        textTransform: "uppercase",
+        letterSpacing: "0.04em",
+        color: tokens.colorNeutralForeground3,
+    },
+    metricValue: {
+        fontSize: "16px",
+        fontWeight: 700,
+    },
+    findingsToolbar: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "10px",
+        marginBottom: "8px",
+        flexWrap: "wrap",
+    },
+    toolbarGroup: {
+        display: "flex",
+        alignItems: "center",
+        gap: "4px",
+    },
+    toolbarLabel: {
+        fontSize: "10px",
+        color: tokens.colorNeutralForeground3,
+    },
 });
 
 const SEVERITY_COLOR: Record<
@@ -149,16 +201,48 @@ interface ValidationCardProps {
     readonly validation: ValidationLike;
 }
 
+/**
+ * Whether a validation card should start expanded. Passing/skipped/cancelled
+ * results collapse by default to keep the run summary scannable; outcomes that
+ * need attention (warning / failed / errored) open automatically so their
+ * findings are visible without a click.
+ */
+function shouldExpandByDefault(status: string): boolean {
+    return (
+        status === RunStatus.Warning || status === RunStatus.Failed || status === RunStatus.Errored
+    );
+}
+
 export const ValidationCard: React.FC<ValidationCardProps> = ({ validation }) => {
     const classes = useStyles();
     const findings = validation.payload?.findings ?? [];
+    const [expanded, setExpanded] = React.useState(shouldExpandByDefault(validation.status));
 
     return (
         <div className={classes.card}>
-            <div className={classes.header}>
+            <div
+                className={classes.header}
+                role="button"
+                tabIndex={0}
+                onClick={() => setExpanded((e) => !e)}
+                onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setExpanded((prev) => !prev);
+                    }
+                }}>
+                <span className={classes.chevron}>
+                    {expanded ? (
+                        <ChevronDownRegular fontSize={16} />
+                    ) : (
+                        <ChevronRightRegular fontSize={16} />
+                    )}
+                </span>
                 <Text className={classes.title}>{validation.displayName}</Text>
                 <StatusBadge status={validation.status as RunStatus} />
-                <span className={classes.typeTag}>{validation.payload?.validationType}</span>
+                <span className={classes.typeTag}>
+                    {validationTypeLabel(validation.payload?.validationType)}
+                </span>
                 <span
                     style={{
                         marginLeft: "auto",
@@ -169,19 +253,23 @@ export const ValidationCard: React.FC<ValidationCardProps> = ({ validation }) =>
                 </span>
             </div>
 
-            <SummaryRow validation={validation} />
+            {expanded ? (
+                <>
+                    <SummaryRow validation={validation} />
 
-            {validation.errorMessage ? (
-                <div className={classes.error}>{validation.errorMessage}</div>
+                    {validation.errorMessage ? (
+                        <div className={classes.error}>{validation.errorMessage}</div>
+                    ) : null}
+
+                    {findings.length === 0 ? (
+                        <Text className={classes.empty}>
+                            {noFindingsText(validation.payload?.validationType)}
+                        </Text>
+                    ) : (
+                        <FindingsTable findings={findings} classes={classes} />
+                    )}
+                </>
             ) : null}
-
-            {findings.length === 0 ? (
-                <Text className={classes.empty}>
-                    {noFindingsText(validation.payload?.validationType)}
-                </Text>
-            ) : (
-                <FindingsTable findings={findings} classes={classes} />
-            )}
         </div>
     );
 };
@@ -270,6 +358,186 @@ const SummaryRow: React.FC<{ validation: ValidationLike }> = ({ validation }) =>
     );
 };
 
+type SeverityFilter = "all" | Severity;
+type StaticSortKey = "severity" | "rule" | "location";
+
+const SEVERITY_RANK: Record<Severity, number> = { error: 0, warning: 1, info: 2 };
+
+function locationLabel(location: StaticAnalysisFindingShape["location"]): string {
+    if (!location) {
+        return "";
+    }
+    const line = location.line !== undefined ? `:${location.line}` : "";
+    const column = location.column !== undefined ? `:${location.column}` : "";
+    return `${location.file}${line}${column}`;
+}
+
+const MetricPill: React.FC<{
+    label: string;
+    value: number;
+    color?: "danger" | "warning";
+    classes: ReturnType<typeof useStyles>;
+}> = ({ label, value, color, classes }) => {
+    const valueColor =
+        color === "danger"
+            ? tokens.colorPaletteRedForeground1
+            : color === "warning"
+              ? tokens.colorPaletteYellowForeground1
+              : tokens.colorNeutralForeground1;
+    return (
+        <div className={classes.metricPill}>
+            <span className={classes.metricLabel}>{label}</span>
+            <span className={classes.metricValue} style={{ color: valueColor }}>
+                {value}
+            </span>
+        </div>
+    );
+};
+
+/**
+ * Static-analysis findings with metric pills (errors / warnings / info / total),
+ * a severity filter, and a sort control. Findings can run long on a real build,
+ * so the controls let the reader focus on what matters (e.g. errors first, or
+ * grouped by rule / file) instead of scrolling a flat list.
+ */
+const StaticAnalysisFindings: React.FC<{
+    findings: readonly StaticAnalysisFindingShape[];
+    classes: ReturnType<typeof useStyles>;
+}> = ({ findings, classes }) => {
+    const strings = locConstants.cloudDeployHub;
+    const [severityFilter, setSeverityFilter] = React.useState<SeverityFilter>("all");
+    const [sortKey, setSortKey] = React.useState<StaticSortKey>("severity");
+
+    const counts = React.useMemo(() => {
+        let error = 0;
+        let warning = 0;
+        let info = 0;
+        for (const f of findings) {
+            if (f.severity === "error") {
+                error++;
+            } else if (f.severity === "warning") {
+                warning++;
+            } else {
+                info++;
+            }
+        }
+        return { error, warning, info, total: findings.length };
+    }, [findings]);
+
+    const visible = React.useMemo(() => {
+        const filtered =
+            severityFilter === "all"
+                ? findings
+                : findings.filter((f) => f.severity === severityFilter);
+        return [...filtered].sort((a, b) => {
+            if (sortKey === "severity") {
+                return SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity];
+            }
+            if (sortKey === "rule") {
+                return a.ruleId.localeCompare(b.ruleId);
+            }
+            return locationLabel(a.location).localeCompare(locationLabel(b.location));
+        });
+    }, [findings, severityFilter, sortKey]);
+
+    const filterButtons: Array<{ key: SeverityFilter; label: string; count: number }> = [
+        { key: "all", label: strings.filterAll, count: counts.total },
+        { key: "error", label: strings.filterErrors, count: counts.error },
+        { key: "warning", label: strings.filterWarnings, count: counts.warning },
+        { key: "info", label: strings.filterInfo, count: counts.info },
+    ];
+
+    const sortButtons: Array<{ key: StaticSortKey; label: string }> = [
+        { key: "severity", label: strings.sortBySeverity },
+        { key: "rule", label: strings.sortByRule },
+        { key: "location", label: strings.sortByLocation },
+    ];
+
+    return (
+        <div>
+            <div className={classes.metricRow}>
+                <MetricPill
+                    label={strings.summaryError}
+                    value={counts.error}
+                    color={counts.error > 0 ? "danger" : undefined}
+                    classes={classes}
+                />
+                <MetricPill
+                    label={strings.summaryWarning}
+                    value={counts.warning}
+                    color={counts.warning > 0 ? "warning" : undefined}
+                    classes={classes}
+                />
+                <MetricPill label={strings.summaryInfo} value={counts.info} classes={classes} />
+                <MetricPill label={strings.summaryTotal} value={counts.total} classes={classes} />
+            </div>
+
+            <div className={classes.findingsToolbar}>
+                <div className={classes.toolbarGroup}>
+                    {filterButtons.map((b) => (
+                        <Button
+                            key={b.key}
+                            size="small"
+                            appearance={severityFilter === b.key ? "primary" : "subtle"}
+                            onClick={() => setSeverityFilter(b.key)}>
+                            {`${b.label} (${b.count})`}
+                        </Button>
+                    ))}
+                </div>
+                <div className={classes.toolbarGroup}>
+                    <span className={classes.toolbarLabel}>{strings.sortLabel}:</span>
+                    {sortButtons.map((b) => (
+                        <Button
+                            key={b.key}
+                            size="small"
+                            appearance={sortKey === b.key ? "primary" : "subtle"}
+                            onClick={() => setSortKey(b.key)}>
+                            {b.label}
+                        </Button>
+                    ))}
+                </div>
+            </div>
+
+            {visible.length === 0 ? (
+                <Text className={classes.empty}>{strings.findingsNoneForFilter}</Text>
+            ) : (
+                <table className={classes.findingsTable}>
+                    <thead>
+                        <tr>
+                            <th className={classes.th}>{strings.colSeverity}</th>
+                            <th className={classes.th}>{strings.colRule}</th>
+                            <th className={classes.th}>{strings.colMessage}</th>
+                            <th className={classes.th}>{strings.colLocation}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {visible.map((f, idx) => (
+                            <tr key={idx}>
+                                <td className={classes.td}>
+                                    <Badge appearance="filled" color={SEVERITY_COLOR[f.severity]}>
+                                        {f.severity}
+                                    </Badge>
+                                </td>
+                                <td className={classes.td}>{f.ruleId}</td>
+                                <td className={classes.td}>{f.message}</td>
+                                <td className={classes.td}>
+                                    {f.location ? (
+                                        <span className={classes.location}>
+                                            {locationLabel(f.location)}
+                                        </span>
+                                    ) : (
+                                        "—"
+                                    )}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            )}
+        </div>
+    );
+};
+
 const FindingsTable: React.FC<{
     findings: readonly FindingShape[];
     classes: ReturnType<typeof useStyles>;
@@ -304,42 +572,10 @@ const FindingsTable: React.FC<{
     }
     if (kind === "static-analysis") {
         return (
-            <table className={classes.findingsTable}>
-                <thead>
-                    <tr>
-                        <th className={classes.th}>{strings.colSeverity}</th>
-                        <th className={classes.th}>{strings.colRule}</th>
-                        <th className={classes.th}>{strings.colMessage}</th>
-                        <th className={classes.th}>{strings.colLocation}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {(findings as readonly StaticAnalysisFindingShape[]).map((f, idx) => (
-                        <tr key={idx}>
-                            <td className={classes.td}>
-                                <Badge appearance="filled" color={SEVERITY_COLOR[f.severity]}>
-                                    {f.severity}
-                                </Badge>
-                            </td>
-                            <td className={classes.td}>{f.ruleId}</td>
-                            <td className={classes.td}>{f.message}</td>
-                            <td className={classes.td}>
-                                {f.location ? (
-                                    <span className={classes.location}>
-                                        {f.location.file}
-                                        {f.location.line !== undefined ? `:${f.location.line}` : ""}
-                                        {f.location.column !== undefined
-                                            ? `:${f.location.column}`
-                                            : ""}
-                                    </span>
-                                ) : (
-                                    "—"
-                                )}
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            <StaticAnalysisFindings
+                findings={findings as readonly StaticAnalysisFindingShape[]}
+                classes={classes}
+            />
         );
     }
     if (kind === "unit-tests") {

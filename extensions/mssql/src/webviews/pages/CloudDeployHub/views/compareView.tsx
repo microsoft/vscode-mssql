@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, makeStyles, Text, tokens } from "@fluentui/react-components";
-import { ArrowLeftRegular } from "@fluentui/react-icons";
+import { Badge, Button, makeStyles, Text, tokens } from "@fluentui/react-components";
+import { ArrowLeftRegular, ArrowRightRegular } from "@fluentui/react-icons";
 import * as React from "react";
 import { ValidationDelta } from "../../../../cloudDeploy/runs/runComparison";
 import { locConstants } from "../../../common/locConstants";
@@ -47,6 +47,30 @@ const useStyles = makeStyles({
     changed: {
         color: tokens.colorPaletteYellowForeground1,
         fontWeight: 600,
+    },
+    changedRow: {
+        backgroundColor: tokens.colorNeutralBackground2,
+    },
+    statusCell: {
+        display: "flex",
+        alignItems: "center",
+        gap: "6px",
+    },
+    arrow: {
+        display: "flex",
+        alignItems: "center",
+        color: tokens.colorNeutralForeground3,
+    },
+    deltaUp: {
+        color: tokens.colorPaletteRedForeground1,
+        fontWeight: 600,
+    },
+    deltaDown: {
+        color: tokens.colorPaletteGreenForeground1,
+        fontWeight: 600,
+    },
+    deltaSame: {
+        color: tokens.colorNeutralForeground3,
     },
     onlyOne: {
         color: tokens.colorNeutralForeground3,
@@ -115,6 +139,7 @@ export const CompareView: React.FC = () => {
                         <th className={classes.th}>{strings.compareColRunB}</th>
                         <th className={classes.th}>{strings.compareColFindings}</th>
                         <th className={classes.th}>{strings.compareColDuration}</th>
+                        <th className={classes.th}></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -151,8 +176,17 @@ const CompareRow: React.FC<{ delta: ValidationDelta }> = ({ delta }) => {
     const findingsNode =
         delta.presence === "both" ? (
             <span>
-                {delta.findingCountA} → {delta.findingCountB} (
-                {formatDelta(delta.findingCountDelta)})
+                {delta.findingCountA} <ArrowRightRegular fontSize={12} /> {delta.findingCountB}{" "}
+                <span
+                    className={
+                        delta.findingCountDelta > 0
+                            ? classes.deltaUp
+                            : delta.findingCountDelta < 0
+                              ? classes.deltaDown
+                              : classes.deltaSame
+                    }>
+                    ({formatDelta(delta.findingCountDelta)})
+                </span>
             </span>
         ) : delta.presence === "only-a" ? (
             <span className={classes.onlyOne}>{strings.compareOnlyA}</span>
@@ -167,13 +201,24 @@ const CompareRow: React.FC<{ delta: ValidationDelta }> = ({ delta }) => {
             <span className={classes.onlyOne}>{PRESENCE_DASH}</span>
         );
 
+    const changeBadge = delta.statusChanged ? (
+        <Badge appearance="filled" color="warning">
+            {strings.compareChanged}
+        </Badge>
+    ) : delta.presence === "both" ? (
+        <Badge appearance="outline" color="informative">
+            {strings.compareUnchanged}
+        </Badge>
+    ) : null;
+
     return (
-        <tr>
+        <tr className={delta.statusChanged ? classes.changedRow : undefined}>
             <td className={classes.td}>{delta.displayName}</td>
             <td className={classes.td}>{statusANode}</td>
             <td className={classes.td}>{statusBNode}</td>
             <td className={classes.td}>{findingsNode}</td>
             <td className={classes.td}>{durationNode}</td>
+            <td className={classes.td}>{changeBadge}</td>
         </tr>
     );
 };

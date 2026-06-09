@@ -11,6 +11,9 @@ import { locConstants } from "../../../common/locConstants";
 import { useCloudDeployHubContext } from "../cloudDeployHubStateProvider";
 import { useCloudDeployHubSelector } from "../cloudDeployHubSelector";
 import { StatusBadge } from "../components/statusBadge";
+import { StatusSparkline } from "../components/statusSparkline";
+import { sourceKindLabel, validationTypeLabel } from "../components/humanize";
+import { formatStartedShort } from "./formatUtils";
 
 const useStyles = makeStyles({
     backRow: {
@@ -193,11 +196,21 @@ export const EnvironmentView: React.FC = () => {
                             : strings.statCardNoRuns}
                     </span>
                 </div>
+                <div className={classes.statCard}>
+                    <span className={classes.statLabel}>{strings.recentTrendLabel}</span>
+                    <span className={classes.statValue}>
+                        {envRuns.length > 0 ? (
+                            <StatusSparkline statuses={envRuns.map((r) => r.status).reverse()} />
+                        ) : (
+                            strings.statCardNoRuns
+                        )}
+                    </span>
+                </div>
             </div>
 
             <div className={classes.metaGrid}>
                 <span className={classes.metaLabel}>{strings.environmentSourceLabel}</span>
-                <span>{env.sourceOfTruth.kind}</span>
+                <span>{sourceKindLabel(env.sourceOfTruth.kind)}</span>
             </div>
 
             <div className={classes.sectionHeading}>{strings.environmentValidationsLabel}</div>
@@ -207,7 +220,7 @@ export const EnvironmentView: React.FC = () => {
                 <ul className={classes.list}>
                     {env.validations.map((v, idx) => (
                         <li key={`${v.type}-${idx}`}>
-                            {v.type}
+                            {validationTypeLabel(v.type)}
                             {v.enabled ? "" : " (disabled)"}
                         </li>
                     ))}
@@ -228,7 +241,7 @@ export const EnvironmentView: React.FC = () => {
                             </Link>
                             <StatusBadge status={run.status} />
                             <span style={{ color: tokens.colorNeutralForeground3 }}>
-                                {new Date(run.startedAtMs).toLocaleString()}
+                                {formatStartedShort(run.startedAtMs)}
                             </span>
                         </div>
                     ))}

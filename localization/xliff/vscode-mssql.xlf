@@ -1588,6 +1588,9 @@
     <trans-unit id="++CODE++1a801115b9a0d4c2fd181f8d8e7daaccd3defe421a8b586592134cf4c1c47c94">
       <source xml:lang="en">Connections to import</source>
     </trans-unit>
+    <trans-unit id="++CODE++5479401fc08bffe134c0091b1ba42474739fbae17592cda5a01375f9f40ae7e4">
+      <source xml:lang="en">Connectivity</source>
+    </trans-unit>
     <trans-unit id="++CODE++917801babf61b34ef1c1d96e3219bc6ba28693c81f2c5af5cc00a31d0793a317">
       <source xml:lang="en">Consider adding a name for this foreign key</source>
     </trans-unit>
@@ -1928,6 +1931,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7ca6d6b94c100c4f405187f90cd8ed2b66402f6b47804856b75931feccf9b9f4">
       <source xml:lang="en">DacFx service is not available. Publish and generate script operations cannot be performed.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2311cdd71a93426b0dd6e14c5348bad5071fcd17998f932088654a964188fbdc">
+      <source xml:lang="en">Dacpac (pre-built)</source>
     </trans-unit>
     <trans-unit id="++CODE++dcae6c28f812fc336c88e1a1bfe5cbd8f60eab3a61864135ef5bd04af45ce283">
       <source xml:lang="en">Data API builder</source>
@@ -2730,6 +2736,9 @@
     </trans-unit>
     <trans-unit id="++CODE++905e3218067c7ad96983b2efa72f292627a8b7e1a2c7865613379b01da57c2fb">
       <source xml:lang="en">Estimated Subtree Cost</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4e1f49a9c8ae8a158434e647c0c410352d718984a4fcd144d26cca3c394caa02">
+      <source xml:lang="en">Event</source>
     </trans-unit>
     <trans-unit id="++CODE++78a29ce83e3977fe87ff0803011049b4b74865dbd3eb76a25129d66b0b44512e">
       <source xml:lang="en">Event details for {0}</source>
@@ -4121,6 +4130,9 @@
       <note>{0} is the connection display name
 {1} is the connection ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++8c65fd97ac392221774a817a1b3c64998062706a570495780bb3f0bf3e1545e9">
+      <source xml:lang="en">Live database</source>
+    </trans-unit>
     <trans-unit id="++CODE++8a6bdb6b18da586fe7f2acbd8f1055533f2cd97a3681b3652bcd712224df45c3">
       <source xml:lang="en">Load</source>
     </trans-unit>
@@ -4820,6 +4832,9 @@
     <trans-unit id="++CODE++0b6ccfdcffbebddf187dbda4178da2bd0a4889bdb715df0d62ea75774aebfad4">
       <source xml:lang="en">No filter is currently active</source>
     </trans-unit>
+    <trans-unit id="++CODE++1a918fa69f960c149ddc3ab5922f58a7867948020b2ab645b549c1bac150a44e">
+      <source xml:lang="en">No findings match this filter.</source>
+    </trans-unit>
     <trans-unit id="++CODE++2557f6e38ead83874f9694ea4332f459014b6921de5a7e153be890185da08ef5">
       <source xml:lang="en">No findings.</source>
     </trans-unit>
@@ -4883,6 +4898,9 @@
     </trans-unit>
     <trans-unit id="++CODE++cfe172461963af4b1b33a4c79659b0950a135f1924b7e332f822e16c981e1c02">
       <source xml:lang="en">No runs against this environment yet.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++306b45db20163464c2774564e0d61aaabdcf961067fcddb3a14cbc29e65fd0f7">
+      <source xml:lang="en">No runs yet</source>
     </trans-unit>
     <trans-unit id="++CODE++4963e9a013775fb19d28d4d4a49d2988c50b03c119900bb73c5b764ea611d419">
       <source xml:lang="en">No runs yet. Run a validation against an environment to see it here.</source>
@@ -5195,6 +5213,9 @@
     </trans-unit>
     <trans-unit id="++CODE++110b7288ee54432862487c6ca5ea2579493dc3b078d51218ff4e2bfdcac4986c">
       <source xml:lang="en">Original file name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4f659f9146b5b2014fc7d00f9200c67eb1a3efc19a6d59f7334bfa215ebc768c">
+      <source xml:lang="en">Other runs</source>
     </trans-unit>
     <trans-unit id="++CODE++4e80abb5b14656d4eed8fd93705fd4c774d7653b05162763770bd23f1755db1a">
       <source xml:lang="en">Outcome</source>
@@ -5967,6 +5988,14 @@
       <source xml:lang="en">Run artifact at {0} is not a valid zip archive.</source>
       <note>{0} is the absolute file path of the run artifact</note>
     </trans-unit>
+    <trans-unit id="++CODE++e4fa42050904b7067514202b5d3ab85a349f3662504ac735290d73a4d4e4ca95">
+      <source xml:lang="en">Run could not be saved</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a2829b833a34e69dc52f68256330cbadc663f08cb5fa2db4564eb5019d17d65e">
+      <source xml:lang="en">Run finished — {0} ({1} validations)</source>
+      <note>{0} is the overall run outcome
+{1} is the number of validations that ran</note>
+    </trans-unit>
     <trans-unit id="++CODE++d7c9ae603e3bdb97d99feb92bcf883c53ec87c2ef28d523860eefa84728eb0e2">
       <source xml:lang="en">Run id</source>
     </trans-unit>
@@ -5975,6 +6004,12 @@
       <note>{0} is the connection display name
 {1} is the connection ID
 {2} is the SQL query</note>
+    </trans-unit>
+    <trans-unit id="++CODE++a959c68cd30442a5f25ce7890232d8c30df0b9d621b2dba69b39fa9ff4a61c08">
+      <source xml:lang="en">Run saved</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0bb43be2d4b5a10d04de1439c92968ebc323efc0faef8b7c61c0ad1156fea828">
+      <source xml:lang="en">Run started</source>
     </trans-unit>
     <trans-unit id="++CODE++130a7bb7480903aa657d66811314bfa32a017dbf544e878a32ef5dc0c3b4657e">
       <source xml:lang="en">Run validation</source>
@@ -6052,6 +6087,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9ae793c44500f6cd1d15d751baaa468f9cf94715473c5cab3bb2603f3c80e942">
       <source xml:lang="en">SQL database in Fabric</source>
+    </trans-unit>
+    <trans-unit id="++CODE++46042ef5951b967a74cf53659705dc0fc9e48df450674efd191a0b394f9c49f5">
+      <source xml:lang="en">SQL project</source>
     </trans-unit>
     <trans-unit id="++CODE++dd0804b065a533eb0198e076460421ada3d861683b408ef39daea67e9aad46a6">
       <source xml:lang="en">SQLAlchemy</source>
@@ -6681,6 +6719,9 @@
     <trans-unit id="++CODE++d5b86c663921b26f8c3dbd292279ef1d0a13da517c5c5bdf53097cfc17aada03">
       <source xml:lang="en">Show a random table definition</source>
     </trans-unit>
+    <trans-unit id="++CODE++255beb6510e7827d37ec1cd22d080f910888ae00f29374dd9545c8b3d1fce43a">
+      <source xml:lang="en">Show fewer</source>
+    </trans-unit>
     <trans-unit id="++CODE++7f642b55cbf51cf21e5b6a0861e2a93abf8fbe5a8b5d04a9ed9d7a97040549d1">
       <source xml:lang="en">Show full error message</source>
     </trans-unit>
@@ -6703,6 +6744,10 @@
     </trans-unit>
     <trans-unit id="++CODE++21f4e12097fa6a8459168abdff5195a6e91816c15089049ccd0742dd17f28c67">
       <source xml:lang="en">Show unmasked command (reveals sensitive information)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++be85bb858f6fc1111c50029ae9ccf91e6440257702fbef30b432936455dffa32">
+      <source xml:lang="en">Show {0} more</source>
+      <note>{0} is the number of additional runs hidden in the group</note>
     </trans-unit>
     <trans-unit id="++CODE++4ff3ea0e75d3a3da8e4fa737a7fce0eab8b7622e0cd027dd575c297724032694">
       <source xml:lang="en">Showing schema for connection &apos;{0}&apos; (ID: {1})</source>
@@ -6811,6 +6856,10 @@
     <trans-unit id="++CODE++7e28e1d334b1039ec7c365d65e5aa000ebd7d41676a6481187c609b8866cd104">
       <source xml:lang="en">Source of truth</source>
     </trans-unit>
+    <trans-unit id="++CODE++20c9528b14f9358754fcece30f1310c0f7e5c7a1aece4243e68b067e9549cb2a">
+      <source xml:lang="en">Source: {0}</source>
+      <note>{0} is the friendly source-of-truth kind name</note>
+    </trans-unit>
     <trans-unit id="++CODE++30ecb608c5cff9e821a41d28312d0070cbeb3901bc8e32ecefd17171f87dc53a">
       <source xml:lang="en">Source: {0}</source>
       <note>{0} is the task source</note>
@@ -6887,6 +6936,9 @@
     </trans-unit>
     <trans-unit id="++CODE++03277ef8ef2700bf566e0e716f248ba484a8f29a4294785424aceef734714ac0">
       <source xml:lang="en">Starts with</source>
+    </trans-unit>
+    <trans-unit id="++CODE++97fd6f7d5b28510882a812a162b668f33bca802f7fc7321ccbe244fb8d0b3afc">
+      <source xml:lang="en">Static Analysis</source>
     </trans-unit>
     <trans-unit id="++CODE++920e413c7d411b61ef3e8c63b1cb6ad058d5f95f8b481dbafe60248387d8c355">
       <source xml:lang="en">Status</source>
@@ -7504,6 +7556,9 @@
     <trans-unit id="++CODE++1ebcd18ec5b7a5eccd5f9487c9802a107114658c58a9efdb016830f644d20f0d">
       <source xml:lang="en">Unfreeze columns/rows</source>
     </trans-unit>
+    <trans-unit id="++CODE++dada9f6298aed180b5ce45b9bb0ab312cd65211f52f74e7c23a48ffb56f3bf31">
+      <source xml:lang="en">Unit Tests</source>
+    </trans-unit>
     <trans-unit id="++CODE++b764cdc0eab7137467211272fa539f1260d1bf2e71bcf6ff3bdc960f5c16aa14">
       <source xml:lang="en">Unknown</source>
     </trans-unit>
@@ -7825,6 +7880,9 @@
     <trans-unit id="++CODE++8746aa4543652187c8719dbebc36f0609e31bbc53b14ed2ca12b0207c9e79345">
       <source xml:lang="en">Windows Authentication</source>
     </trans-unit>
+    <trans-unit id="++CODE++0e14e48dda16f20d1551a391c68a23717dcc93fe8dad4a07976504c9be27dfb0">
+      <source xml:lang="en">Workload Playback</source>
+    </trans-unit>
     <trans-unit id="++CODE++4c10fe506dfba55de4429a653b9f4b726797e9f52677db4e54d590165b8767e9">
       <source xml:lang="en">Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.</source>
     </trans-unit>
@@ -8019,6 +8077,9 @@
     <trans-unit id="++CODE++738dce14f9c7825c6601ed72dce22b095491c097fc1c76d6352399229c9262f8">
       <source xml:lang="en">profiler_events</source>
     </trans-unit>
+    <trans-unit id="++CODE++034a7e52c5c9534b709dc1dba403868399b0949f7c1933a67325c22077ffc221">
+      <source xml:lang="en">recent</source>
+    </trans-unit>
     <trans-unit id="++CODE++35a1031e991d85c2d12e5768b98c031dcc6394f3ccfb766314b8a3d0ab2242db">
       <source xml:lang="en">resource group</source>
     </trans-unit>
@@ -8135,9 +8196,19 @@
       <source xml:lang="en">{0} events</source>
       <note>{0} is the number of events</note>
     </trans-unit>
+    <trans-unit id="++CODE++f773e02e2dc604dd8eb4369d1b21ffa01865334f79cef1eb006ccd5d45ed7511">
+      <source xml:lang="en">{0} finished — {1} ({2} findings)</source>
+      <note>{0} is a validation name
+{1} is the outcome like Passed/Failed
+{2} is the number of findings</note>
+    </trans-unit>
     <trans-unit id="++CODE++16885df9a4767fe04d26b997deabc5a36f96f34bf58bbed4b4a87d029f25209b">
       <source xml:lang="en">{0} has been closed. Would you like to restore it?</source>
       <note>{0} is the webview name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++9ec5952269d343245af1c7d426e1ab627f0f8d8ac1495216795500dca9a9869f">
+      <source xml:lang="en">{0} in progress</source>
+      <note>{0} is a validation name like Static Analysis</note>
     </trans-unit>
     <trans-unit id="++CODE++dde734013704b68f0d2d57a1385773d7e4bfbae374a67c150f3f06d8abb95f9d">
       <source xml:lang="en">{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again.</source>
@@ -8215,6 +8286,10 @@
       <source xml:lang="en">{0} running</source>
       <note>{0} is the number of in-flight runs</note>
     </trans-unit>
+    <trans-unit id="++CODE++eb594dc61325e6e6de5003e154ed1b257f04c4a29b700755f9bf81583880fb47">
+      <source xml:lang="en">{0} runs</source>
+      <note>{0} is the number of runs in an environment group</note>
+    </trans-unit>
     <trans-unit id="++CODE++0d43a65b231aab5ce9c1a1fcaa614526a6c2cefb7137de400a2a1feae95e1156">
       <source xml:lang="en">{0} selected</source>
       <note>{0} is the number of selected filter values</note>
@@ -8230,6 +8305,10 @@
     <trans-unit id="++CODE++1584d81edbc3268202b85c3d1099fa195053084671c03e5070a2bdfdc0ede242">
       <source xml:lang="en">{0} settings imported</source>
       <note>{0} is the number of settings imported (plural)</note>
+    </trans-unit>
+    <trans-unit id="++CODE++5121cff8d166b1ca936742e4566ad2c4bb5596e3a9c9bb6d9999ff577f372235">
+      <source xml:lang="en">{0} started</source>
+      <note>{0} is a validation name like Static Analysis</note>
     </trans-unit>
     <trans-unit id="++CODE++e92744f747f8adbd4eb748f272e3c3f3542a48f35b35134f2f2adf89758e2310">
       <source xml:lang="en">{0} started successfully.</source>
