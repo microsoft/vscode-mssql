@@ -902,7 +902,7 @@ export class SqlNotebookController implements vscode.Disposable {
             const parsedElapsed = Utils.parseTimeString(elapsedTime);
             return total + (typeof parsedElapsed === "number" ? parsedElapsed : 0);
         }, 0);
-        return Utils.parseNumAsTimeString(totalMilliseconds);
+        return Utils.durationToDisplay(totalMilliseconds, { format: "clock" });
     }
 
     private async handleMagic(

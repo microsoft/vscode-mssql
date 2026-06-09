@@ -242,8 +242,8 @@ suite("Query Runner tests", () => {
         setupWorkspaceConfig(configResult);
 
         let dateNow = new Date();
-        let fiveSecondsAgo = new Date(dateNow.getTime() - 5000);
-        let elapsedTimeString = Utils.parseNumAsTimeString(5000);
+        let fiveSecondsAgo = new Date(dateNow.getTime() - 5_000);
+        let elapsedTimeString = Utils.durationToDisplay(5_000, { format: "clock" });
         let batchComplete: QueryExecuteBatchNotificationParams = {
             ownerUri: "uri",
             batchSummary: {
