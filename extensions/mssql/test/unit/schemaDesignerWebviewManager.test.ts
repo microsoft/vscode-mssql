@@ -54,10 +54,11 @@ suite("SchemaDesignerWebviewManager tests", () => {
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        mockContext = stubExtensionContext(sandbox);
+        mockContext = stubExtensionContext(sandbox, { name: "mssql", version: "1.0.0" });
         stubUserSurvey(sandbox);
 
         mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+        sandbox.stub(mockVscodeWrapper, "outputChannel").get(() => ({ name: "MSSQL" }) as any);
         mockMainController = sandbox.createStubInstance(MainController);
         mockSchemaDesignerService = {
             createSession: sandbox.stub().resolves(mockCreateSessionResponse),
@@ -66,6 +67,10 @@ suite("SchemaDesignerWebviewManager tests", () => {
             getDefinition: sandbox.stub().resolves({ script: "" }),
             generateScript: sandbox.stub().resolves({ script: "" }),
             getReport: sandbox.stub().resolves(),
+            onProgress: sandbox.stub(),
+            removeProgressListener: sandbox.stub(),
+            onMessage: sandbox.stub(),
+            removeMessageListener: sandbox.stub(),
             onSchemaReady: sandbox.stub(),
         } as any;
 
@@ -83,7 +88,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
         treeNode.updateConnectionProfile = sandbox.stub();
 
         mockMainController.connectionManager = {
-            createConnectionDetails: sandbox.stub().resolves({
+            createConnectionDetails: sandbox.stub().returns({
                 server: "localhost",
                 database: databaseName,
             }),
@@ -150,6 +155,20 @@ suite("SchemaDesignerWebviewManager tests", () => {
                 .calledOnce;
         });
 
+        test("should give controller the mode-qualified cache key", async () => {
+            const designer = await manager.getSchemaDesigner(
+                mockContext,
+                mockVscodeWrapper,
+                mockMainController,
+                mockSchemaDesignerService,
+                databaseName,
+                treeNode,
+                undefined,
+            );
+
+            expect(designer.designerKey).to.equal(`${connectionString}-${databaseName}-rw`);
+        });
+
         test("should update connection profile with database name", async () => {
             await manager.getSchemaDesigner(
                 mockContext,
@@ -182,8 +201,22 @@ suite("SchemaDesignerWebviewManager tests", () => {
                 connectionUri,
             );
             expect(
+                mockMainController.connectionManager.createConnectionDetails,
+            ).to.have.been.calledWithMatch({
+                server: "localhost",
+                database: databaseName,
+                azureAccountToken: "token-from-uri",
+            });
+            expect(
                 mockMainController.connectionManager.getConnectionString,
-            ).to.have.been.calledWith(connectionUri, true, true);
+            ).to.have.been.calledWithMatch(
+                {
+                    server: "localhost",
+                    database: databaseName,
+                },
+                true,
+                true,
+            );
         });
 
         test("should use azureAccountToken from connection URI", async () => {
@@ -293,7 +326,14 @@ suite("SchemaDesignerWebviewManager tests", () => {
 
             const getConnectionStringStub = mockMainController.connectionManager
                 .getConnectionString as sinon.SinonStub;
-            expect(getConnectionStringStub).to.have.been.calledWith(connectionUri, true, true);
+            expect(getConnectionStringStub).to.have.been.calledWithMatch(
+                {
+                    server: "localhost",
+                    database: databaseName,
+                },
+                true,
+                true,
+            );
         });
     });
 
@@ -310,7 +350,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
             );
 
             // Simulate some work that marks cache as dirty
-            const key = `${connectionString}-${databaseName}`;
+            const key = `${connectionString}-${databaseName}-rw`;
             (manager as any).schemaDesignerCache.set(key, {
                 schemaDesignerDetails: mockCreateSessionResponse,
                 isDirty: true,
@@ -417,7 +457,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
             const error = new Error("Connection failed");
             (
                 mockMainController.connectionManager.createConnectionDetails as sinon.SinonStub
-            ).rejects(error);
+            ).throws(error);
 
             try {
                 await manager.getSchemaDesigner(
@@ -470,7 +510,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
                 undefined,
             );
 
-            const key = `${connectionString}-${databaseName}`;
+            const key = `${connectionString}-${databaseName}-rw`;
             expect((manager as any).schemaDesigners.has(key)).to.be.true;
 
             // Set cache as not dirty
@@ -499,7 +539,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
                 undefined,
             );
 
-            const key = `${connectionString}-${databaseName}`;
+            const key = `${connectionString}-${databaseName}-rw`;
 
             // Set cache as dirty
             (manager as any).schemaDesignerCache.set(key, {
@@ -530,7 +570,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
                 undefined,
             );
 
-            const key = `${connectionString}-${databaseName}`;
+            const key = `${connectionString}-${databaseName}-rw`;
 
             (manager as any).schemaDesignerCache.set(key, {
                 schemaDesignerDetails: mockCreateSessionResponse,
@@ -558,7 +598,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
                 undefined,
             );
 
-            const key = `${connectionString}-${databaseName}`;
+            const key = `${connectionString}-${databaseName}-rw`;
 
             // Set cache as dirty
             (manager as any).schemaDesignerCache.set(key, {
@@ -588,7 +628,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
                 undefined,
             );
 
-            const key = `${connectionString}-${databaseName}`;
+            const key = `${connectionString}-${databaseName}-rw`;
             const sessionId = "test-session-id";
 
             // Set cache with session
@@ -622,7 +662,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
                 undefined,
             );
 
-            const key = `${connectionString}-${databaseName}`;
+            const key = `${connectionString}-${databaseName}-rw`;
 
             // Set cache as dirty
             (manager as any).schemaDesignerCache.set(key, {
@@ -655,7 +695,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
                 undefined,
             );
 
-            const key = `${connectionString}-${databaseName}`;
+            const key = `${connectionString}-${databaseName}-rw`;
             const sessionId = "test-session-id";
 
             // Set cache

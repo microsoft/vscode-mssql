@@ -1,5 +1,53 @@
 # Change Log
 
+## Version 1.44.0
+
+- Release date: July 15, 2026
+- Release status: GA
+
+### What's new in 1.44.0
+
+- Fixed an issue in Schema Compare where controls remained enabled and stale diff results stayed visible after apply, which could cause subsequent apply attempts to fail, and added a loading indicator during the apply operation
+
+## Version 1.43.0
+
+- Release date: June 2, 2026
+- Release status: GA
+
+### What's new in 1.43.0
+
+- Released SQL Notebooks, and Data API builder and Schema Designer with GitHub Copilot integration as generally available (GA)
+- Introduced Azure SQL Database provisioning (Public Preview) for easily creating new free tier Azure SQL databases
+- Added support for including and excluding columns to Data API builder, and ORM-based migrations to Schema Designer
+- Added query result export options for SQL Notebooks
+- Fixed SQL notebook keyboard shortcuts, save behavior, and issues related to message output
+- Added support for Microsoft Entra ID Service Principal authentication
+- Added an option to specify how newly-opened .SQL files or query editors should connect via `mssql.newEditorConnectionBehavior`
+- Added query-level filtering for Edit Data so filters apply across the full result set, not only the visible rows
+- Added detailed loading progress for Table Designer and Schema Designer
+- Rebuilt the experience for browsing Azure databases in the Connection Dialog to be more intuitive and familiar
+- Improved Microsoft Entra ID MFA token refresh and reauthentication handling to reduce stale token loops and connection failures
+- Fixed issues where Execute Current Statement selection behavior and line numbers in query error messages may not be aligned
+
+## Version 1.42.2
+
+- Release date: May 4, 2026
+- Release status: GA
+
+### What's new in 1.42.2
+
+- Fixed an issue where the extension may not launch for some users in proxy or offline environments
+
+## Version 1.42.1
+
+- Release date: April 28, 2026
+- Release status: GA
+
+### What's new in 1.42.1
+
+- Fixed an issue where the Object Explorer Filter dialog sometimes would not render immediately
+- Fixed an issue where the platform-specific VSIX files for offline installation (posted on the GitHub releases page) would not be able to launch on macOS. Installations from the VS Code marketplace were unaffected.
+
 ## Version 1.42.0
 
 - Release date: April 22, 2026
@@ -7,10 +55,12 @@
 
 ### What's new in 1.42.0
 
-- Released Backup Database, Restore Database, Flat File Import, and Create/Rename/Drop Database dialogs as generally available (GA)
+- Released Backup Database, Restore Database, Flat File Import, Create/Rename/Drop Database, Global Search, and Query Profiler dialogs as generally available (GA)
 - Added Active Directory Default authentication support in the Connection Dialog, enabling passwordless authentication using the currently signed-in Windows identity
-- Added the ability to use VS Code accounts for Entra MFA authentication (preview). Enable by setting either `mssql.enableExperimentalFeatures` or `mssql.preview.useVscodeAccountsForEntraMFA`. Users will need to re-sign into Entra ID accounts that existing connections use for authentication.
-- Optimized Microsoft Entra sign-in flows to reduce repeated authentication prompts.
+- Added the ability to use VS Code accounts for Microsoft Entra ID MFA authentication (preview). Enable by setting either `mssql.enableExperimentalFeatures` or `mssql.preview.useVscodeAccountsForEntraMFA`. Users will need to re-sign into Microsoft Entra ID accounts that existing connections use for authentication.
+- Improved the Connection Dialog to distinguish between editing an existing connection and creating a new one, with the ability to modify connection parameters and test the connection before saving
+- Optimized Microsoft Entra ID sign-in flows to reduce repeated authentication prompts.
+- Added a View Table Diagram action to the Edit Data toolbar, opening the selected table and its relationships directly in Schema Designer so you can review and evolve the database schema if needed
 - Added a new background task panel in the SQL Server activity bar to display active and completed deployment tasks (SQL container provisioning, SQL database in Fabric deployments) with real-time progress
 - Improved SQL Notebooks to display SQL Server error messages inline in cell output, improved cell output formatting and spacing, and set the MSSQL kernel as the default when creating a new notebook
 - Fixed several Query Results Grid issues with VECTOR, JSON, and XML data types including incorrect rendering as hyperlinks and values

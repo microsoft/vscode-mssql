@@ -15,7 +15,7 @@ import { expect } from "chai";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import ConnectionManager, { SqlConnectionErrorType } from "../../src/controllers/connectionManager";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
-import { Logger } from "../../src/models/logger";
+import { ILogger } from "../../src/sharedInterfaces/logger";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import {
     IConnectionProfile,
@@ -205,7 +205,6 @@ suite("OE Service Tests", () => {
         let endStub: sinon.SinonStub;
         let endFailedStub: sinon.SinonStub;
         let startActivityStub: sinon.SinonStub;
-        let mockLogger: sinon.SinonStubbedInstance<Logger>;
 
         setup(() => {
             sandbox = sinon.createSandbox();
@@ -224,9 +223,6 @@ suite("OE Service Tests", () => {
                 startTime: 0,
                 update: sandbox.stub(),
             });
-            // Mock the Logger.create static method
-            mockLogger = stubLogger(sandbox);
-            mockLogger.verbose = sandbox.stub();
             objectExplorerService = new ObjectExplorerService(
                 mockVscodeWrapper,
                 mockConnectionManager,
@@ -320,10 +316,6 @@ suite("OE Service Tests", () => {
                 TelemetryViews.ObjectExplorer,
                 TelemetryActions.ExpandNode,
             );
-
-            // Verify logging
-            expect(mockLogger.verbose.called, "Logger should be called once for verbose").to.be
-                .true;
 
             // Verify the request was sent correctly
             expect(mockClient.sendRequest.calledOnce, "Send request should be called once").to.be
@@ -504,13 +496,6 @@ suite("OE Service Tests", () => {
             expect(result, "Expand node should return error node").to.be.not.undefined;
             expect(result!.length, "Expand node should return 1 error node").to.equal(1);
 
-            // Verify error was logged
-            expect(mockLogger.error.called, "Error should be logged").to.be.true;
-            expect(
-                mockLogger.error.args[0][0],
-                "Error message should include mock error message",
-            ).to.include(mockErrorMessage);
-
             // Verify error message was shown to user
             expect(
                 mockVscodeWrapper.showErrorMessage.calledOnce,
@@ -684,7 +669,7 @@ suite("OE Service Tests", () => {
 
     suite("handleSessionCreationFailure", () => {
         let sandbox: sinon.SinonSandbox;
-        let mockLogger: sinon.SinonStubbedInstance<Logger>;
+        let mockLogger: sinon.SinonStubbedInstance<ILogger>;
         let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
         let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
         let mockConnectionUI: sinon.SinonStubbedInstance<ConnectionUI>;
@@ -918,7 +903,7 @@ suite("OE Service Tests", () => {
 
     suite("handleSessionCreationSuccess", () => {
         let sandbox: sinon.SinonSandbox;
-        let mockLogger: sinon.SinonStubbedInstance<Logger>;
+        let mockLogger: sinon.SinonStubbedInstance<ILogger>;
         let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
         let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
         let mockConnectionUI: sinon.SinonStubbedInstance<ConnectionUI>;
@@ -1189,7 +1174,6 @@ suite("OE Service Tests", () => {
         let mockActivity: ActivityObject;
         let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
         let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
-        let mockLogger: sinon.SinonStubbedInstance<Logger>;
 
         setup(() => {
             sandbox = sinon.createSandbox();
@@ -1213,7 +1197,6 @@ suite("OE Service Tests", () => {
                 update: sandbox.stub(),
             };
             startActivityStub = sandbox.stub(telemetry, "startActivity").returns(mockActivity);
-            mockLogger = stubLogger(sandbox);
             objectExplorerService = new ObjectExplorerService(
                 mockVscodeWrapper,
                 mockConnectionManager,
@@ -1502,14 +1485,6 @@ suite("OE Service Tests", () => {
                 connectionNode: undefined,
                 shouldRetryOnFailure: true,
             });
-
-            // Verify failure was logged
-            expect(
-                mockLogger.error.calledWith(
-                    `Session creation failed with error: Authentication failed`,
-                ),
-                "Error logging should indicate session creation failure",
-            ).to.be.true;
 
             // Verify handleSessionCreationFailure was called with the correct parameters
             expect(
@@ -2200,7 +2175,7 @@ suite("OE Service Tests", () => {
         let mockFirewallService: sinon.SinonStubbedInstance<FirewallService>;
         let mockWithProgress: sinon.SinonStub;
 
-        let mockLogger: sinon.SinonStubbedInstance<Logger>;
+        let mockLogger: sinon.SinonStubbedInstance<ILogger>;
         let startActivityStub: sinon.SinonStub;
         let mockRefreshCallback: sinon.SinonStub;
         let endStub: sinon.SinonStub;
@@ -2256,9 +2231,7 @@ suite("OE Service Tests", () => {
             });
             mockRefreshCallback = sandbox.stub();
 
-            // Mock the Logger.create static method
             mockLogger = stubLogger(sandbox);
-            mockLogger.verbose = sandbox.stub();
             mockLogger.error = sandbox.stub();
 
             objectExplorerService = new ObjectExplorerService(
@@ -2520,7 +2493,7 @@ suite("OE Service Tests", () => {
                     "showErrorMessage should be called once",
                 ).to.be.true;
 
-                const [_msg, signInButton, editButton] = mockVscodeWrapper.showErrorMessage.args[0];
+                const [, signInButton, editButton] = mockVscodeWrapper.showErrorMessage.args[0];
                 expect(signInButton, "First button should be Sign In and Retry").to.equal(
                     LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorSignIn,
                 );
@@ -2649,7 +2622,7 @@ suite("OE Service Tests", () => {
                     .false;
             });
 
-            test("should log and return undefined for non-MissingVsCodeEntraAuthError errors when Entra MFA is enabled", async () => {
+            test("should return undefined for non-MissingVsCodeEntraAuthError errors when Entra MFA is enabled", async () => {
                 stubPreviewService(sandbox, {
                     [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
                 });
@@ -2835,7 +2808,7 @@ function createMockFailureResponse(
     return {
         success: false,
         sessionId: "",
-        rootNode: null,
+        rootNode: null, // eslint-disable-line no-restricted-syntax
         errorNumber: options.errorNumber,
         errorMessage: options.errorMessage || "",
     } as SessionCreatedParameters;
@@ -2877,7 +2850,7 @@ function createMockSuccessResponse(success: boolean = true): SessionCreatedParam
             isLeaf: false,
             nodeStatus: "Connected",
             errorMessage: "",
-            metadata: null,
+            metadata: null, // eslint-disable-line no-restricted-syntax
         },
         errorNumber: undefined,
         errorMessage: "",

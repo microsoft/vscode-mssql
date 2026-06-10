@@ -326,7 +326,10 @@ export class FlatFileImportWebviewController extends FormWebviewController<
         return Object.keys(state.formComponents) as (keyof FlatFileImportFormState)[];
     }
 
-    async afterSetFormProperty(propertyName: keyof FlatFileImportFormState): Promise<void> {
+    async afterSetFormProperty(
+        propertyName: keyof FlatFileImportFormState,
+        _isBlur: boolean,
+    ): Promise<void> {
         if (propertyName === "databaseName") {
             void this.handleLoadSchemas();
         }
@@ -424,12 +427,9 @@ export class FlatFileImportWebviewController extends FormWebviewController<
             ORDER BY name
             `;
         const result = await this.client.sendRequest(
-            new RequestType<
-                { ownerUri: string; queryString: string },
-                SimpleExecuteResult,
-                void,
-                void
-            >("query/simpleexecute"),
+            new RequestType<{ ownerUri: string; queryString: string }, SimpleExecuteResult, void>(
+                "query/simpleexecute",
+            ),
             {
                 ownerUri: this.ownerUri,
                 queryString: getSchemaQuery,

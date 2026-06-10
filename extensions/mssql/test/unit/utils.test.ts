@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
+import * as sinon from "sinon";
 import * as Utils from "../../src/models/utils";
 import * as Constants from "../../src/constants/constants";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
@@ -11,7 +12,7 @@ import { IConnectionProfile, IConnectionProfileWithSource } from "../../src/mode
 import * as utilUtils from "../../src/utils/utils";
 import * as vscode from "vscode";
 
-suite("Utility Tests - parseTimeString", () => {
+suite("Utility Tests - Timestamp handling", () => {
     test("should return false if nothing passed", () => {
         expect(Utils.parseTimeString(undefined)).to.equal(false);
         expect(Utils.parseTimeString("")).to.equal(false);
@@ -33,14 +34,175 @@ suite("Utility Tests - parseTimeString", () => {
         // Allow time without milliseconds
         expect(Utils.parseTimeString("2:13:30")).to.equal(8010000);
     });
-});
 
-suite("Utility Tests - parseNumAsTimeString", () => {
-    test("returns the correct value", () => {
-        expect(Utils.parseNumAsTimeString(8010000)).to.equal("02:13:30");
-        expect(Utils.parseNumAsTimeString(220)).to.equal("00:00:00.220");
-        expect(Utils.parseNumAsTimeString(0)).to.equal("00:00:00");
-        expect(Utils.parseNumAsTimeString(5002)).to.equal("00:00:05.002");
+    suite("durationToDisplay", () => {
+        test("human format with milliseconds", () => {
+            // Defaults to "human" format with milliseconds always shown.
+            expect(Utils.durationToDisplay(0)).to.equal("0s 0ms");
+            expect(Utils.durationToDisplay(220)).to.equal("0s 220ms");
+            expect(Utils.durationToDisplay(1000)).to.equal("1s 0ms");
+            expect(Utils.durationToDisplay(59_000)).to.equal("59s 0ms");
+            expect(Utils.durationToDisplay(60_000)).to.equal("1m 0s 0ms");
+            expect(Utils.durationToDisplay(61_500)).to.equal("1m 1s 500ms");
+            expect(Utils.durationToDisplay(3_599_999)).to.equal("59m 59s 999ms");
+            expect(Utils.durationToDisplay(3_600_000)).to.equal("1h 0m 0s 0ms");
+            expect(Utils.durationToDisplay(3_661_500)).to.equal("1h 1m 1s 500ms");
+            expect(Utils.durationToDisplay(7_497_123)).to.equal("2h 4m 57s 123ms");
+        });
+
+        test("human format without milliseconds", () => {
+            expect(Utils.durationToDisplay(0, { includeMilliseconds: false })).to.equal("0s");
+            expect(Utils.durationToDisplay(61_500, { includeMilliseconds: false })).to.equal(
+                "1m 1s",
+            );
+            expect(Utils.durationToDisplay(3_661_999, { includeMilliseconds: false })).to.equal(
+                "1h 1m 1s",
+            );
+        });
+
+        test("durationToDisplay - clock format with milliseconds", () => {
+            expect(Utils.durationToDisplay(8_010_000, { format: "clock" })).to.equal(
+                "02:13:30.000",
+            );
+            expect(Utils.durationToDisplay(220, { format: "clock" })).to.equal("00:00:00.220");
+            expect(Utils.durationToDisplay(0, { format: "clock" })).to.equal("00:00:00.000");
+            expect(Utils.durationToDisplay(5_002, { format: "clock" })).to.equal("00:00:05.002");
+        });
+
+        test("durationToDisplay - clock format without milliseconds", () => {
+            expect(
+                Utils.durationToDisplay(8_010_000, { format: "clock", includeMilliseconds: false }),
+            ).to.equal("02:13:30");
+            expect(
+                Utils.durationToDisplay(0, { format: "clock", includeMilliseconds: false }),
+            ).to.equal("00:00:00");
+        });
+
+        test("negative durations", () => {
+            expect(
+                Utils.durationToDisplay(-5_002, {
+                    format: "clock",
+                    includeSign: true,
+                }),
+            ).to.equal("-00:00:05.002");
+
+            expect(
+                Utils.durationToDisplay(-3_661_000, {
+                    format: "human",
+                    includeSign: true,
+                }),
+            ).to.equal("-1h 1m 1s 0ms");
+        });
+    });
+
+    suite("epochToDisplay", () => {
+        // Fixed instant the fake clock will report as "now" for every test in
+        // this suite. Chosen to be in the user's local-timezone past so we can
+        // assert against an exact, deterministic ISO string regardless of where
+        // the test runs.
+        const MOCK_NOW_EPOCH_MS = 1_700_000_000_000; // 2023-11-14T22:13:20.000Z
+        let sandbox: sinon.SinonSandbox;
+
+        setup(() => {
+            sandbox = sinon.createSandbox();
+            sandbox.useFakeTimers(MOCK_NOW_EPOCH_MS);
+        });
+
+        teardown(() => {
+            sandbox.restore();
+        });
+
+        /**
+         * Builds the ISO string the helper should produce for `epochMs`. We
+         * compute it from `Date` rather than hardcoding so the test stays valid
+         * across timezones. The helper format is
+         * `YYYY-MM-DDTHH:mm:ss[.fff][±HH:MM]`.
+         */
+        function expectedIso(
+            epochMs: number,
+            includeTimezone: boolean,
+            includeMilliseconds: boolean,
+        ): string {
+            const date = new Date(epochMs);
+            const pad = (n: number, width = 2) => String(n).padStart(width, "0");
+            let iso =
+                `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
+                `T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+            if (includeMilliseconds) {
+                iso += `.${pad(date.getMilliseconds(), 3)}`;
+            }
+            if (includeTimezone) {
+                const offsetTotal = -date.getTimezoneOffset();
+                const sign = offsetTotal >= 0 ? "+" : "-";
+                const absMinutes = Math.abs(offsetTotal);
+                iso += `${sign}${pad(Math.floor(absMinutes / 60))}:${pad(absMinutes % 60)}`;
+            }
+            return iso;
+        }
+
+        test('returns "now" relative when input equals current time or is omitted', () => {
+            let result = Utils.epochToDisplay(MOCK_NOW_EPOCH_MS);
+            expect(result).to.deep.equal({
+                epochMilliseconds: MOCK_NOW_EPOCH_MS,
+                iso: expectedIso(MOCK_NOW_EPOCH_MS, false, true),
+                relative: "now",
+            });
+
+            result = Utils.epochToDisplay();
+            expect(result).to.deep.equal({
+                epochMilliseconds: MOCK_NOW_EPOCH_MS,
+                iso: expectedIso(MOCK_NOW_EPOCH_MS, false, true),
+                relative: "now",
+            });
+        });
+
+        test("renders future timestamps as 'in <duration>'", () => {
+            // 4 minutes 57 seconds 250 ms in the future
+            const future = MOCK_NOW_EPOCH_MS + (4 * 60 + 57) * 1000 + 250;
+            const result = Utils.epochToDisplay(future);
+            expect(result).to.deep.equal({
+                epochMilliseconds: future,
+                iso: expectedIso(future, false, true),
+                relative: "in 4m 57s 250ms",
+            });
+        });
+
+        test("renders past timestamps as '<duration> ago'", () => {
+            // 3 hours 12 minutes 4 seconds ago (no ms component)
+            const past = MOCK_NOW_EPOCH_MS - (3 * 3600 + 12 * 60 + 4) * 1000;
+            const result = Utils.epochToDisplay(past);
+            expect(result).to.deep.equal({
+                epochMilliseconds: past,
+                iso: expectedIso(past, false, true),
+                relative: "3h 12m 4s 0ms ago",
+            });
+        });
+
+        test("includes a timezone offset suffix in the ISO when includeTimezone is true", () => {
+            const future = MOCK_NOW_EPOCH_MS + 30_000;
+            const result = Utils.epochToDisplay(future, { includeTimezone: true });
+            expect(result.iso).to.equal(expectedIso(future, true, true));
+            // Offset must appear after the ms component, format /[+-]\d\d:\d\d$/
+            expect(result.iso).to.match(/\.\d{3}[+-]\d{2}:\d{2}$/);
+            expect(result.epochMilliseconds).to.equal(future);
+            expect(result.relative).to.equal("in 30s 0ms");
+        });
+
+        test("omits the timezone offset from the ISO when includeTimezone is false (default)", () => {
+            const result = Utils.epochToDisplay(MOCK_NOW_EPOCH_MS);
+            // No trailing offset and no trailing "Z" should appear when omitted.
+            expect(result.iso).to.not.match(/[+-]\d{2}:\d{2}$/);
+            expect(result.iso).to.not.match(/Z$/);
+        });
+
+        test("omits milliseconds from both ISO and relative when includeMilliseconds is false", () => {
+            // 4 minutes 57 seconds + 250 ms — the ms portion should be dropped from both pieces.
+            const future = MOCK_NOW_EPOCH_MS + (4 * 60 + 57) * 1000 + 250;
+            const result = Utils.epochToDisplay(future, { includeMilliseconds: false });
+            expect(result.iso).to.equal(expectedIso(future, false, false));
+            expect(result.iso).to.not.match(/\.\d{3}/);
+            expect(result.relative).to.equal("in 4m 57s");
+        });
     });
 });
 
@@ -123,7 +285,7 @@ suite.skip("Utility tests - Timer Class", () => {
     let timer = new Utils.Timer();
 
     test("timer should start when initiated", (done) => {
-        let p = new Promise<void>((resolve, reject) => {
+        let p = new Promise<void>((resolve, _reject) => {
             setTimeout(() => {
                 let duration = timer.getDuration();
                 expect(duration).to.be.greaterThan(0);
@@ -136,7 +298,7 @@ suite.skip("Utility tests - Timer Class", () => {
     test("timer should end when ended", (done) => {
         let duration = timer.getDuration();
         timer.end();
-        let p = new Promise<void>((resolve, reject) => {
+        let p = new Promise<void>((resolve, _reject) => {
             setTimeout(() => {
                 let newDuration = timer.getDuration();
                 expect(duration).to.not.equal(newDuration);
@@ -462,6 +624,37 @@ suite("decodeQueryResultLinkFragment", () => {
         encoded = encodeURIComponent(original);
         result = utilUtils.decodeQueryResultLinkFragment(encoded);
         expect(result).to.equal(original);
+    });
+});
+
+suite("Utility Tests - bracketEscapeSqlIdentifier", () => {
+    test("wraps identifier in brackets by default", () => {
+        expect(Utils.bracketEscapeSqlIdentifier("mytable")).to.equal("[mytable]");
+    });
+
+    test("escapes closing brackets within the identifier", () => {
+        expect(Utils.bracketEscapeSqlIdentifier("my]table")).to.equal("[my]]table]");
+    });
+
+    test("escapes multiple closing brackets within the identifier", () => {
+        expect(Utils.bracketEscapeSqlIdentifier("my]weird]name")).to.equal("[my]]weird]]name]");
+    });
+
+    test("does not wrap in brackets when includeSurroundingBrackets is false", () => {
+        expect(Utils.bracketEscapeSqlIdentifier("mytable", false)).to.equal("mytable");
+    });
+
+    test("escapes closing brackets but does not wrap when includeSurroundingBrackets is false", () => {
+        expect(Utils.bracketEscapeSqlIdentifier("my]table", false)).to.equal("my]]table");
+    });
+
+    test("handles empty string", () => {
+        expect(Utils.bracketEscapeSqlIdentifier("")).to.equal("[]");
+        expect(Utils.bracketEscapeSqlIdentifier("", false)).to.equal("");
+    });
+
+    test("does not escape opening brackets", () => {
+        expect(Utils.bracketEscapeSqlIdentifier("my[table")).to.equal("[my[table]");
     });
 });
 

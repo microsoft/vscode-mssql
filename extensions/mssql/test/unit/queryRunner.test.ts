@@ -23,6 +23,7 @@ import {
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import StatusView from "../../src/views/statusView";
 import * as Constants from "../../src/constants/constants";
+import * as LocalizedConstants from "../../src/constants/locConstants";
 import * as QueryExecuteContracts from "../../src/models/contracts/queryExecute";
 import * as QueryDisposeContracts from "../../src/models/contracts/queryDispose";
 import { ISelectionData } from "../../src/models/interfaces";
@@ -78,9 +79,11 @@ suite("Query Runner tests", () => {
         );
         (testVscodeWrapper.showErrorMessage as sinon.SinonStub).returns(undefined);
         (testVscodeWrapper.showInformationMessage as sinon.SinonStub).returns(undefined);
-        (testVscodeWrapper.logToOutputChannel as sinon.SinonStub).returns(undefined);
         (testVscodeWrapper.openTextDocument as sinon.SinonStub).resolves({} as vscode.TextDocument);
         (testVscodeWrapper.showTextDocument as sinon.SinonStub).resolves({} as vscode.TextEditor);
+        (testVscodeWrapper.getConfiguration as sinon.SinonStub).returns(
+            stubs.createWorkspaceConfiguration({}),
+        );
     });
 
     teardown(() => {
@@ -123,7 +126,6 @@ suite("Query Runner tests", () => {
 
         // ... The VS Code status should be updated
         expect(testStatusView.executingQuery).to.have.been.calledOnceWithExactly(standardUri);
-        expect(testVscodeWrapper.logToOutputChannel as sinon.SinonStub).to.have.been.calledOnce;
 
         // ... The query runner should indicate that it is running a query and elapsed time should be set to 0
         expect(queryRunner.isExecutingQuery).to.equal(true);
@@ -160,10 +162,9 @@ suite("Query Runner tests", () => {
             await queryRunner.runQuery(standardSelection);
             // If we reach here, the test should fail because we expected an error
             expect.fail("Expected runQuery to throw an error");
-        } catch (error) {
+        } catch {
             // Then:
             // ... The view status should have started and stopped
-            expect(testVscodeWrapper.logToOutputChannel as sinon.SinonStub).to.have.been.calledOnce;
             expect(testStatusView.executingQuery).to.have.been.calledOnceWithExactly(standardUri);
             expect(testStatusView.executedQuery).to.have.been.called;
             // ... The query runner should not be running a query
@@ -201,6 +202,39 @@ suite("Query Runner tests", () => {
         expect(queryRunner.batchSetMessages[batchStart.batchSummary.id]).to.be.ok;
     });
 
+    test("Notification - Batch Start preserves absolute selection from service", () => {
+        let batchStart: QueryExecuteBatchNotificationParams = {
+            ownerUri: "uri",
+            batchSummary: {
+                executionElapsed: null,
+                executionEnd: null,
+                executionStart: new Date().toISOString(),
+                hasError: false,
+                id: 0,
+                selection: {
+                    startLine: 5,
+                    endLine: 7,
+                    startColumn: 2,
+                    endColumn: 4,
+                },
+                resultSetSummaries: null,
+            },
+        };
+
+        let queryRunner = createQueryRunner("", "");
+        queryRunner.setupQueryExecution({
+            startLine: 20,
+            endLine: 20,
+            startColumn: 0,
+            endColumn: 0,
+        });
+
+        queryRunner.handleBatchStart(batchStart);
+
+        expect(queryRunner.batchSets[0].selection.startLine).to.equal(5);
+        expect(queryRunner.batchSets[0].selection.endLine).to.equal(7);
+    });
+
     function testBatchCompleteNotification(sendBatchTime: boolean): void {
         // Setup: Create a batch completion result
         let configResult: { [key: string]: any } = {};
@@ -208,8 +242,8 @@ suite("Query Runner tests", () => {
         setupWorkspaceConfig(configResult);
 
         let dateNow = new Date();
-        let fiveSecondsAgo = new Date(dateNow.getTime() - 5000);
-        let elapsedTimeString = Utils.parseNumAsTimeString(5000);
+        let fiveSecondsAgo = new Date(dateNow.getTime() - 5_000);
+        let elapsedTimeString = Utils.durationToDisplay(5_000, { format: "clock" });
         let batchComplete: QueryExecuteBatchNotificationParams = {
             ownerUri: "uri",
             batchSummary: {
@@ -430,6 +464,41 @@ suite("Query Runner tests", () => {
         // ... The state of the query runner has been updated
         expect(queryRunner.batchSets.length).to.equal(1);
         expect(queryRunner.isExecutingQuery).to.equal(false);
+    });
+
+    test("Notification - Query complete preserves absolute batch selection from service", () => {
+        let result: QueryExecuteCompleteNotificationResult = {
+            ownerUri: "uri",
+            batchSummaries: [
+                {
+                    hasError: false,
+                    id: 0,
+                    selection: {
+                        startLine: 8,
+                        endLine: 9,
+                        startColumn: 1,
+                        endColumn: 6,
+                    },
+                    resultSetSummaries: [],
+                    executionElapsed: undefined,
+                    executionStart: new Date().toISOString(),
+                    executionEnd: new Date().toISOString(),
+                },
+            ],
+        };
+
+        let queryRunner = createQueryRunner();
+        queryRunner.setupQueryExecution({
+            startLine: 30,
+            endLine: 30,
+            startColumn: 0,
+            endColumn: 0,
+        });
+
+        queryRunner.handleQueryComplete(result);
+
+        expect(queryRunner.batchSets[0].selection.startLine).to.equal(8);
+        expect(queryRunner.batchSets[0].selection.endLine).to.equal(9);
     });
 
     test("Correctly handles subset", async () => {
@@ -685,6 +754,7 @@ suite("Query Runner tests", () => {
                 const tokenSource = new vscode.CancellationTokenSource();
                 await task(progress, tokenSource.token);
             });
+            sandbox.stub(vscode.window, "showInformationMessage").resolves(undefined);
         });
 
         test("copyResults calls copyResults2 with correct CopyType", async () => {
@@ -721,6 +791,39 @@ suite("Query Runner tests", () => {
             await queryRunner.copyResults(selection, 0, 0, false);
 
             expect(testVscodeWrapper.clipboardWriteText).to.have.been.calledWith(expectedContent);
+        });
+
+        test("copyResults shows notification by default", async () => {
+            const queryRunner = createQueryRunner();
+            const selection = [{ fromRow: 0, toRow: 1, fromCell: 0, toCell: 1 }];
+
+            testSqlToolsServerClient.sendRequest
+                .withArgs(CopyResults2Request.type, sinon.match.object)
+                .resolves({ content: "copied" });
+
+            await queryRunner.copyResults(selection, 0, 0, false);
+
+            expect(vscode.window.showInformationMessage).to.have.been.calledOnceWith(
+                LocalizedConstants.resultsCopiedToClipboard,
+            );
+        });
+
+        test("copyResults does not show notification when setting is disabled", async () => {
+            const queryRunner = createQueryRunner();
+            const selection = [{ fromRow: 0, toRow: 1, fromCell: 0, toCell: 1 }];
+            (testVscodeWrapper.getConfiguration as sinon.SinonStub).returns(
+                stubs.createWorkspaceConfiguration({
+                    [Constants.configResultsShowCopyNotification]: false,
+                }),
+            );
+
+            testSqlToolsServerClient.sendRequest
+                .withArgs(CopyResults2Request.type, sinon.match.object)
+                .resolves({ content: "copied" });
+
+            await queryRunner.copyResults(selection, 0, 0, false);
+
+            expect(vscode.window.showInformationMessage).to.not.have.been.called;
         });
 
         test("copyResults does not call clipboard fallback when content is not returned", async () => {

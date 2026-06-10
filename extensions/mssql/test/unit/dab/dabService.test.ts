@@ -24,6 +24,7 @@ function createTestEntity(overrides?: Partial<Dab.DabEntityConfig>): Dab.DabEnti
             Dab.EntityAction.Update,
             Dab.EntityAction.Delete,
         ],
+        columns: [],
         advancedSettings: {
             entityName: "Users",
             authorizationRole: Dab.AuthorizationRole.Anonymous,
@@ -185,7 +186,7 @@ suite("DabService Tests", () => {
         suite("should handle Data Source format", () => {
             test("Data Source=localhost with port", () => {
                 const result = transform("Data Source=localhost,1433;Database=TestDb;");
-                expect(result.connectionString).to.include("Server=host.docker.internal,1433");
+                expect(result.connectionString).to.include("Data Source=host.docker.internal,1433");
             });
 
             test("case-insensitive data source", () => {
@@ -193,34 +194,43 @@ suite("DabService Tests", () => {
                 expect(result.connectionString).to.include("host.docker.internal");
                 expect(result.connectionString).to.not.include("127.0.0.1");
             });
+
+            test("quoted Data Source=localhost with spaced port", () => {
+                const result = transform('Data Source="localhost, 1433";Database=TestDb;');
+                expect(result.connectionString).to.include("Data Source=host.docker.internal,1433");
+                expect(result.connectionString).to.not.include('"localhost');
+            });
+
+            test("single-quoted Server=localhost with spaced port", () => {
+                const result = transform("Server='localhost, 1433';Database=TestDb;");
+                expect(result.connectionString).to.include("Server=host.docker.internal,1433");
+                expect(result.connectionString).to.not.include("'localhost");
+            });
         });
 
         // --- Containerized SQL Server (with container name) ---
 
-        suite("should use host.docker.internal\\containerName for containerized SQL Server", () => {
-            test("localhost with container name", () => {
+        suite("should use host.docker.internal for containerized SQL Server", () => {
+            test("localhost with container name discards container name", () => {
                 const result = transform("Server=localhost;Database=TestDb;", "my-sql-container");
-                expect(result.connectionString).to.include(
-                    "Server=host.docker.internal\\my-sql-container",
-                );
+                expect(result.connectionString).to.include("Server=host.docker.internal");
+                expect(result.connectionString).to.not.include("my-sql-container");
                 expect(result.connectionString).to.not.include("localhost");
             });
 
-            test("localhost with container name and port", () => {
+            test("localhost with container name and port preserves port", () => {
                 const result = transform(
                     "Server=localhost,1433;Database=TestDb;",
                     "my-sql-container",
                 );
-                expect(result.connectionString).to.include(
-                    "Server=host.docker.internal\\my-sql-container,1433",
-                );
+                expect(result.connectionString).to.include("Server=host.docker.internal,1433");
+                expect(result.connectionString).to.not.include("my-sql-container");
             });
 
-            test("127.0.0.1 with container name and port", () => {
+            test("127.0.0.1 with container name and port preserves port", () => {
                 const result = transform("Server=127.0.0.1,1434;Database=TestDb;", "sql-dev");
-                expect(result.connectionString).to.include(
-                    "Server=host.docker.internal\\sql-dev,1434",
-                );
+                expect(result.connectionString).to.include("Server=host.docker.internal,1434");
+                expect(result.connectionString).to.not.include("sql-dev");
             });
 
             test("should not add container name when server is not localhost", () => {
@@ -232,26 +242,24 @@ suite("DabService Tests", () => {
                 expect(result.connectionString).to.not.include("host.docker.internal");
             });
 
-            test("should replace existing instance name with container name", () => {
+            test("should discard existing instance name for containerized SQL Server", () => {
                 const result = transform(
                     "Server=localhost\\SQLEXPRESS;Database=TestDb;",
                     "my-container",
                 );
-                expect(result.connectionString).to.include(
-                    "Server=host.docker.internal\\my-container",
-                );
+                expect(result.connectionString).to.include("Server=host.docker.internal");
                 expect(result.connectionString).to.not.include("SQLEXPRESS");
+                expect(result.connectionString).to.not.include("my-container");
             });
 
-            test("should replace existing instance name with container name and preserve port", () => {
+            test("should discard existing instance name and preserve port", () => {
                 const result = transform(
                     "Server=localhost\\SQLEXPRESS,1433;Database=TestDb;",
                     "my-container",
                 );
-                expect(result.connectionString).to.include(
-                    "Server=host.docker.internal\\my-container,1433",
-                );
+                expect(result.connectionString).to.include("Server=host.docker.internal,1433");
                 expect(result.connectionString).to.not.include("SQLEXPRESS");
+                expect(result.connectionString).to.not.include("my-container");
             });
         });
 
@@ -282,7 +290,7 @@ suite("DabService Tests", () => {
             test("localhost with container name but no port gets default port", () => {
                 const result = transform("Server=localhost;Database=TestDb;", "my-sql-container");
                 expect(result.connectionString).to.include(
-                    `Server=host.docker.internal\\my-sql-container,${DefaultSqlPortNumber}`,
+                    `Server=host.docker.internal,${DefaultSqlPortNumber}`,
                 );
             });
 
@@ -363,7 +371,8 @@ suite("DabService Tests", () => {
             });
             expect(result.success).to.be.true;
             const connStr = getConnectionStringFromConfig(result.configContent);
-            expect(connStr).to.include("host.docker.internal\\my-sql,1433");
+            expect(connStr).to.include("host.docker.internal,1433");
+            expect(connStr).to.not.include("my-sql");
         });
 
         test("should not transform remote server in generated config", () => {

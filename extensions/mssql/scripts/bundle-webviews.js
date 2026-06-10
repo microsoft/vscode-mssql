@@ -34,6 +34,7 @@ const config = {
         changePassword: "src/webviews/pages/ChangePassword/index.tsx",
         createDatabaseDialog: "src/webviews/pages/ObjectManagement/createDatabaseIndex.tsx",
         dropDatabaseDialog: "src/webviews/pages/ObjectManagement/dropDatabaseIndex.tsx",
+        renameDatabaseDialog: "src/webviews/pages/ObjectManagement/renameDatabaseIndex.tsx",
         publishProject: "src/webviews/pages/PublishProject/index.tsx",
         codeAnalysis: "src/webviews/pages/CodeAnalysis/index.tsx",
         tableExplorer: "src/webviews/pages/TableExplorer/index.tsx",

@@ -32,6 +32,7 @@ export enum AuthenticationTypes {
     SqlLogin = 2,
     AzureMFA = 3,
     ActiveDirectoryDefault = 4,
+    ActiveDirectoryServicePrincipal = 5,
 }
 
 export enum EncryptOptions {
@@ -171,24 +172,6 @@ export interface IResultsConfig {
     messagesDefaultOpen: boolean;
     resultsFontSize: number;
     resultsFontFamily: string;
-}
-
-export interface ILogger {
-    logDebug(message: string): void;
-    verbose(msg: any, ...vals: any[]): void;
-    warn(msg: any, ...vals: any[]): void;
-    error(msg: any, ...vals: any[]): void;
-    piiSanitized(
-        msg: any,
-        objsToSanitize: { name: string; objOrArray: any | any[] }[],
-        stringsToShorten: { name: string; value: string }[],
-        ...vals: any[]
-    ): void;
-    increaseIndent(): void;
-    decreaseIndent(): void;
-    append(message?: string): void;
-    appendLine(message?: string): void;
-    info(msg: any, ...vals: any[]): void;
 }
 
 export interface IAzureSignInQuickPickItem extends vscode.QuickPickItem {

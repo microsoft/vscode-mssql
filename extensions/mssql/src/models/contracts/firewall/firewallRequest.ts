@@ -11,7 +11,6 @@ export namespace CreateFirewallRuleRequest {
     export const type = new RequestType<
         ICreateFirewallRuleParams,
         ICreateFirewallRuleResponse,
-        void,
         void
     >("resource/createFirewallRule");
 }
@@ -20,7 +19,6 @@ export namespace HandleFirewallRuleRequest {
     export const type = new RequestType<
         IHandleFirewallRuleParams,
         IHandleFirewallRuleResponse,
-        void,
         void
     >("resource/handleFirewallRule");
 }

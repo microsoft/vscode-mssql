@@ -156,7 +156,7 @@ suite("Query Result Selection Stats", () => {
     test("Grid cell is missing: should skip without crashing", async () => {
         const gridWithMissingCells = {
             getColumns: () => [{ id: "col1" }, { id: "col2" }],
-            getCellNode: (row: number, col: number) => undefined,
+            getCellNode: (_row: number, _col: number) => undefined,
         };
 
         const range = createRange(0, 1, 0, 0);

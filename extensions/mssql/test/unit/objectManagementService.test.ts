@@ -13,33 +13,22 @@ import {
     ScriptObjectRequest,
     DisposeViewRequest,
     RenameObjectRequest,
+    RenameDatabaseRequest,
     DropDatabaseRequest,
     ObjectManagementSqlObject,
     BackupConfigInfoRequest,
 } from "../../src/models/contracts/objectManagement";
 import { RestoreParams } from "../../src/sharedInterfaces/restore";
-import { Logger } from "../../src/models/logger";
 
 suite("ObjectManagementService Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let objectManagementService: ObjectManagementService;
     let sqlToolsClientStub: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
-    let loggerStub: sinon.SinonStubbedInstance<Logger>; // Add this
 
     setup(() => {
         sandbox = sinon.createSandbox();
 
-        // Create logger stub
-        loggerStub = {
-            error: sinon.stub(),
-            info: sinon.stub(),
-            warn: sinon.stub(),
-            debug: sinon.stub(),
-            // Add any other logger methods your code uses
-        } as any;
-
         sqlToolsClientStub = sandbox.createStubInstance(SqlToolsServiceClient);
-        sandbox.stub(sqlToolsClientStub, "logger").get(() => loggerStub);
 
         objectManagementService = new ObjectManagementService(sqlToolsClientStub);
     });
@@ -79,10 +68,11 @@ suite("ObjectManagementService Tests", () => {
 
     test("save should send correct request", async () => {
         const object: ObjectManagementSqlObject = { name: "test-object" };
-        sqlToolsClientStub.sendRequest.resolves();
+        sqlToolsClientStub.sendRequest.resolves({ taskId: "save-task-id" });
 
-        await objectManagementService.save("context-id", object);
+        const result = await objectManagementService.save("context-id", object);
 
+        expect(result).to.deep.equal({ taskId: "save-task-id" });
         expect(sqlToolsClientStub.sendRequest.calledOnce).to.be.true;
         const [type, params] = sqlToolsClientStub.sendRequest.firstCall.args;
         expect(type).to.equal(SaveObjectRequest.type);
@@ -143,8 +133,37 @@ suite("ObjectManagementService Tests", () => {
         });
     });
 
+    test("renameDatabase should send correct request", async () => {
+        sqlToolsClientStub.sendRequest.resolves({
+            script: "ALTER DATABASE [db] MODIFY NAME = [db2]",
+        });
+
+        const result = await objectManagementService.renameDatabase(
+            "connection-uri",
+            "database-name",
+            "new-database-name",
+            true,
+            true,
+        );
+
+        expect(result).to.deep.equal({
+            script: "ALTER DATABASE [db] MODIFY NAME = [db2]",
+        });
+        expect(
+            sqlToolsClientStub.sendRequest.calledWith(RenameDatabaseRequest.type, {
+                connectionUri: "connection-uri",
+                database: "database-name",
+                newName: "new-database-name",
+                dropConnections: true,
+                generateScript: true,
+            }),
+        ).to.be.true;
+    });
+
     test("dropDatabase should send correct request", async () => {
-        sqlToolsClientStub.sendRequest.resolves("script");
+        sqlToolsClientStub.sendRequest.resolves({
+            script: "script",
+        });
 
         const result = await objectManagementService.dropDatabase(
             "connection-uri",
@@ -154,7 +173,9 @@ suite("ObjectManagementService Tests", () => {
             true,
         );
 
-        expect(result).to.equal("script");
+        expect(result).to.deep.equal({
+            script: "script",
+        });
         expect(sqlToolsClientStub.sendRequest.calledOnce).to.be.true;
         const [type, params] = sqlToolsClientStub.sendRequest.firstCall.args;
         expect(type).to.equal(DropDatabaseRequest.type);

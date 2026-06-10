@@ -266,7 +266,7 @@ suite("Extension API Tests", () => {
     test("sendRequest", async () => {
         type TestParams = { testParam: string };
         type TestResponse = { success: boolean };
-        const mockRequestType = {} as RequestType<TestParams, TestResponse, void, void>;
+        const mockRequestType = {} as RequestType<TestParams, TestResponse, void>;
         const mockParams: TestParams = { testParam: "testValue" };
         const mockResponse: TestResponse = { success: true };
 

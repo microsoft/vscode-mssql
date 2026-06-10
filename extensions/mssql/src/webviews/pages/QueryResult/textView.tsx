@@ -40,6 +40,7 @@ const useStyles = makeStyles({
 export const TextView = () => {
     const classes = useStyles();
     const context = useContext(QueryResultCommandsContext);
+    const log = context?.log;
 
     const uri = useQueryResultSelector((state) => state.uri);
     const resultSetSummaries = useQueryResultSelector((state) => state.resultSetSummaries);
@@ -204,7 +205,7 @@ export const TextView = () => {
                 }
             } catch (error) {
                 content = locConstants.queryResult.errorGeneratingTextView;
-                context?.log(`Error generating text view: ${error}`, "error");
+                log?.error("Error generating text view", error);
             }
 
             setTextContent(content);
@@ -212,7 +213,7 @@ export const TextView = () => {
         };
 
         void generateTextView();
-    }, [uri, resultSetSummaries]);
+    }, [log, uri, resultSetSummaries]);
 
     if (loading) {
         return <div className={classes.noResults}>{locConstants.queryResult.loadingTextView}</div>;

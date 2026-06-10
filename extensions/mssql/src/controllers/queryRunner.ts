@@ -59,6 +59,8 @@ import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { SelectionSummary } from "../sharedInterfaces/queryResult";
 import { bucketizeRowCount, getInMemoryGridDataProcessingThreshold } from "../queryResult/utils";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger } from "../models/logger";
 
 export interface IResultSet {
     columns: string[];
@@ -96,7 +98,6 @@ export default class QueryRunner {
     private _batchSets: BatchSummary[] = [];
     private _batchSetMessages: { [batchId: number]: IResultMessage[] } = {};
     private _isExecuting: boolean;
-    private _resultLineOffset: number;
     private _totalElapsedMilliseconds: number;
     private _hasCompleted: boolean;
     private _isSqlCmd: boolean = false;
@@ -148,6 +149,7 @@ export default class QueryRunner {
     private _onSummaryChangedEmitter: vscode.EventEmitter<SummaryChanged> =
         new vscode.EventEmitter<SummaryChanged>();
     public onSummaryChanged: vscode.Event<SummaryChanged> = this._onSummaryChangedEmitter.event;
+    private _logger: ILogger = logger.withPrefix("QueryRunner");
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
 
@@ -425,12 +427,8 @@ export default class QueryRunner {
         }
     }
 
-    public setupQueryExecution(selection: ISelectionData): void {
-        this._vscodeWrapper.logToOutputChannel(
-            LocalizedConstants.msgStartedExecute(this._ownerUri),
-        );
-        // Store the line offset for the query text
-        this._resultLineOffset = selection ? selection.startLine : 0;
+    public setupQueryExecution(_selection: ISelectionData): void {
+        this._logger.info(LocalizedConstants.msgStartedExecute(this._ownerUri));
         this._isExecuting = true;
         this._totalElapsedMilliseconds = 0;
         // Update the status view to show that we're executing
@@ -443,21 +441,12 @@ export default class QueryRunner {
 
     // handle the result of the notification
     public handleQueryComplete(result: QueryExecuteCompleteNotificationResult): void {
-        this._vscodeWrapper.logToOutputChannel(
-            LocalizedConstants.msgFinishedExecute(this._ownerUri),
-        );
+        this._logger.info(LocalizedConstants.msgFinishedExecute(this._ownerUri));
 
         // Store the batch sets we got back as a source of "truth"
         this._isExecuting = false;
         this._hasCompleted = true;
         this._batchSets = result.batchSummaries;
-
-        this._batchSets.map((batch) => {
-            if (batch.selection) {
-                batch.selection.startLine = batch.selection.startLine + this._resultLineOffset;
-                batch.selection.endLine = batch.selection.endLine + this._resultLineOffset;
-            }
-        });
 
         // We're done with this query so shut down any waiting mechanisms
         const promise = this._uriToQueryPromiseMap.get(result.ownerUri);
@@ -468,13 +457,15 @@ export default class QueryRunner {
         this._statusView.executedQuery(result.ownerUri);
         this._statusView.setExecutionTime(
             result.ownerUri,
-            Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
+            Utils.durationToDisplay(this._totalElapsedMilliseconds, { format: "clock" }),
         );
         let hasError = this._batchSets.some((batch) => batch.hasError === true);
         this.removeRunningQuery();
         this.unregisterAllNotificationUris();
         this._completeEmitter.fire({
-            totalMilliseconds: Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
+            totalMilliseconds: Utils.durationToDisplay(this._totalElapsedMilliseconds, {
+                format: "clock",
+            }),
             hasError,
         });
         sendActionEvent(
@@ -486,12 +477,6 @@ export default class QueryRunner {
 
     public handleBatchStart(result: QueryExecuteBatchNotificationParams): void {
         let batch = result.batchSummary;
-
-        // Recalculate the start and end lines, relative to the result line offset
-        if (batch.selection) {
-            batch.selection.startLine += this._resultLineOffset;
-            batch.selection.endLine += this._resultLineOffset;
-        }
 
         // Set the result sets as an empty array so that as result sets complete we can add to the list
         batch.resultSetSummaries = [];
@@ -513,7 +498,10 @@ export default class QueryRunner {
         this._totalElapsedMilliseconds += executionTime;
         if (executionTime > 0) {
             // send a time message in the format used for query complete
-            this.sendBatchTimeMessage(batch.id, Utils.parseNumAsTimeString(executionTime));
+            this.sendBatchTimeMessage(
+                batch.id,
+                Utils.durationToDisplay(executionTime, { format: "clock" }),
+            );
         }
         this._batchCompleteEmitter.fire(batch);
     }
@@ -593,7 +581,7 @@ export default class QueryRunner {
         disposeDetails.ownerUri = this.uri;
         try {
             await this._client.sendRequest(QueryDisposeRequest.type, disposeDetails);
-        } catch (_error) {
+        } catch {
             // Do not show error message if dispose fails as it normally means the query is already disposed
             this._handleQueryCleanup();
             return;
@@ -622,7 +610,9 @@ export default class QueryRunner {
         }
 
         this._completeEmitter.fire({
-            totalMilliseconds: Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
+            totalMilliseconds: Utils.durationToDisplay(this._totalElapsedMilliseconds, {
+                format: "clock",
+            }),
             hasError: !!error,
         });
         this._statusView.executedQuery(this._ownerUri);
@@ -860,9 +850,11 @@ export default class QueryRunner {
                         await this.writeStringToClipboard(result.content);
                     }
 
-                    vscode.window.showInformationMessage(
-                        LocalizedConstants.resultsCopiedToClipboard,
-                    );
+                    if (this.shouldShowCopyNotification()) {
+                        vscode.window.showInformationMessage(
+                            LocalizedConstants.resultsCopiedToClipboard,
+                        );
+                    }
                     resolve();
                 } catch (error) {
                     // Don't show error if cancelled
@@ -1008,6 +1000,15 @@ export default class QueryRunner {
 
     private _requestID: string;
     private _cancelConfirmation: Deferred<void>;
+
+    private shouldShowCopyNotification(): boolean {
+        const config = this._vscodeWrapper.getConfiguration(
+            Constants.extensionConfigSectionName,
+            this.uri,
+        );
+        return config.get<boolean>(Constants.configResultsShowCopyNotification, true);
+    }
+
     public async generateSelectionSummaryData(
         selections: ISlickRange[],
         batchId: number,

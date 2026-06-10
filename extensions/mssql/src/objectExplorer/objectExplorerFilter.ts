@@ -3,15 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as LocalizedConstants from "../constants/locConstants";
 import * as vscode from "vscode";
 import * as vscodeMssql from "vscode-mssql";
-
 import {
     ObjectExplorerFilterState,
     ObjectExplorerReducers,
 } from "../sharedInterfaces/objectExplorerFilter";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-
 import { WebviewPanelController } from "../controllers/webviewPanelController";
 import { TreeNodeInfo } from "./nodes/treeNodeInfo";
 import { randomUUID } from "crypto";
@@ -46,8 +45,8 @@ export class ObjectExplorerFilterWebviewController extends WebviewPanelControlle
                 nodePath: "",
             },
             {
-                title: vscode.l10n.t("Object Explorer Filter"),
-                viewColumn: vscode.ViewColumn.Beside,
+                title: LocalizedConstants.objectExplorerFilter,
+                viewColumn: vscode.ViewColumn.One,
                 iconPath: {
                     dark: vscode.Uri.joinPath(context.extensionUri, "media", "filter_dark.svg"),
                     light: vscode.Uri.joinPath(context.extensionUri, "media", "filter_light.svg"),
@@ -86,30 +85,31 @@ export class ObjectExplorerFilter {
         vscodeWrapper: VscodeWrapper,
         treeNode: TreeNodeInfo,
     ): Promise<vscodeMssql.NodeFilter[] | undefined> {
-        return await new Promise((resolve, _reject) => {
-            const correlationId = randomUUID();
-            sendActionEvent(TelemetryViews.ObjectExplorerFilter, TelemetryActions.Open, {
-                nodeType: treeNode.nodeType,
-                correlationId,
-            });
-            if (!this._filterWebviewController || this._filterWebviewController.isDisposed) {
-                this._filterWebviewController = new ObjectExplorerFilterWebviewController(
-                    context,
-                    vscodeWrapper,
-                    {
-                        filterProperties: treeNode.filterableProperties,
-                        existingFilters: treeNode.filters,
-                        nodePath: treeNode.nodePath,
-                    },
-                );
-            } else {
-                this._filterWebviewController.loadData({
+        const correlationId = randomUUID();
+        sendActionEvent(TelemetryViews.ObjectExplorerFilter, TelemetryActions.Open, {
+            nodeType: treeNode.nodeType,
+            correlationId,
+        });
+        if (!this._filterWebviewController || this._filterWebviewController.isDisposed) {
+            this._filterWebviewController = new ObjectExplorerFilterWebviewController(
+                context,
+                vscodeWrapper,
+                {
                     filterProperties: treeNode.filterableProperties,
                     existingFilters: treeNode.filters,
                     nodePath: treeNode.nodePath,
-                });
-            }
-            this._filterWebviewController.revealToForeground();
+                },
+            );
+        } else {
+            this._filterWebviewController.loadData({
+                filterProperties: treeNode.filterableProperties,
+                existingFilters: treeNode.filters,
+                nodePath: treeNode.nodePath,
+            });
+        }
+        await this._filterWebviewController.whenWebviewReady();
+        this._filterWebviewController.revealToForeground();
+        return await new Promise((resolve, _reject) => {
             this._filterWebviewController.onSubmit((e) => {
                 if (e) {
                     sendActionEvent(

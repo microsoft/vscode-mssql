@@ -769,7 +769,6 @@ export enum DatabaseProjectItemType {
     folder = "databaseProject.itemType.folder",
     file = "databaseProject.itemType.file",
     externalStreamingJob = "databaseProject.itemType.file.externalStreamingJob",
-    table = "databaseProject.itemType.file.table",
     referencesRoot = "databaseProject.itemType.referencesRoot",
     reference = "databaseProject.itemType.reference",
     sqlProjectReference = "databaseProject.itemType.reference.sqlProject",
@@ -981,3 +980,25 @@ export const tasksJsonInvalidTasksArrayError = l10n.t(
 );
 
 //#endregion
+
+export function loc0ErroredOut1(arg0: string | number | boolean, arg1: string | number | boolean) {
+    return l10n.t("\t>>> {0}   … errored out: {1}", arg0, arg1);
+}
+
+export function loc0ExitedWithCode1(
+    arg0: string | number | boolean,
+    arg1: string | number | boolean,
+) {
+    return l10n.t("    >>> {0}    … exited with code: {1}", arg0, arg1);
+}
+
+export function loc0ExitedWithSignal1(
+    arg0: string | number | boolean,
+    arg1: string | number | boolean | null,
+) {
+    return l10n.t("    >>> {0}   … exited with signal: {1}", arg0, arg1);
+}
+
+export const stdout = l10n.t("    stdout: ");
+
+export const stderr = l10n.t("    stderr: ");

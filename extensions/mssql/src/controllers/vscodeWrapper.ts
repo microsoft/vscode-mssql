@@ -107,7 +107,7 @@ export default class VscodeWrapper {
         if (typeof resource === "string") {
             try {
                 resource = this.parseUri(resource);
-            } catch (e) {
+            } catch {
                 resource = undefined;
             }
         }
@@ -174,24 +174,6 @@ export default class VscodeWrapper {
     public async openTextDocument(uri: vscode.Uri): Promise<vscode.TextDocument> {
         const doc = await vscode.workspace.openTextDocument(uri);
         return doc;
-    }
-
-    /**
-     * Helper to log messages to "MSSQL" output channel.
-     */
-    public logToOutputChannel(msg: any): void {
-        let date: Date = new Date();
-        if (msg instanceof Array) {
-            msg.forEach((element) => {
-                VscodeWrapper._outputChannel.appendLine(
-                    "[" + date.toLocaleTimeString() + "] " + element.toString(),
-                );
-            });
-        } else {
-            VscodeWrapper._outputChannel.appendLine(
-                "[" + date.toLocaleTimeString() + "] " + msg.toString(),
-            );
-        }
     }
 
     /**

@@ -22,7 +22,8 @@ import { ICredentialStore, Credential } from "../credentialstore/icredentialstor
 import { ConnectionConfig } from "../connectionconfig/connectionconfig";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { IConnectionInfo } from "vscode-mssql";
-import { Logger } from "./logger";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger } from "./logger";
 import { Deferred } from "../protocol";
 import { ConnectionMatcher, MatchScore } from "./utils";
 import { sendActionEvent } from "../telemetry/telemetry";
@@ -44,7 +45,7 @@ export class ConnectionStore {
     constructor(
         private _context: vscode.ExtensionContext,
         private _credentialStore: ICredentialStore,
-        private _logger?: Logger,
+        private _logger?: ILogger,
         private _connectionConfig?: ConnectionConfig,
         private _vscodeWrapper?: VscodeWrapper,
     ) {
@@ -53,7 +54,7 @@ export class ConnectionStore {
         }
 
         if (!this._logger) {
-            this._logger = Logger.create(this.vscodeWrapper.outputChannel, "ConnectionStore");
+            this._logger = logger.withPrefix("ConnectionStore");
         }
 
         if (!this._connectionConfig) {
@@ -393,13 +394,18 @@ export class ConnectionStore {
      *
      * @returns the array of connections, empty if none are found
      */
-    public getRecentlyUsedConnections(): IConnectionInfo[] {
+    public getRecentlyUsedConnections(limit?: number): IConnectionInfo[] {
         let configValues = this._context.globalState.get<IConnectionInfo[]>(
             Constants.configRecentConnections,
         );
         if (!configValues) {
             configValues = [];
         }
+
+        if (limit && limit > 0) {
+            return configValues.slice(0, limit);
+        }
+
         return configValues;
     }
 
@@ -420,7 +426,10 @@ export class ConnectionStore {
             // Remove the connection from the list if it already exists
             configValues = configValues.filter(
                 (value) =>
-                    !Utils.isSameProfile(<IConnectionProfile>value, <IConnectionProfile>conn),
+                    !self.isSameRecentConnectionEntry(
+                        value as IConnectionProfile,
+                        conn as IConnectionProfile,
+                    ),
             );
 
             // Add the connection to the front of the list, taking care to clear out the password field
@@ -469,7 +478,9 @@ export class ConnectionStore {
                 await this._credentialStore.deleteCredential(credentialId);
             } catch (err) {
                 deleteCredentialSuccess = false;
-                this._logger.log(LocalizedConstants.deleteCredentialError, credentialId, err);
+                this._logger.trace(
+                    LocalizedConstants.deleteCredentialError(credentialId, String(err)),
+                );
             }
         }
         // Update the MRU list to be empty
@@ -493,7 +504,7 @@ export class ConnectionStore {
 
             // Remove the connection from the list if it already exists
             configValues = configValues.filter(
-                (value) => !Utils.isSameProfile(<IConnectionProfile>value, conn),
+                (value) => !self.isSameRecentConnectionEntry(value as IConnectionProfile, conn),
             );
 
             // Remove any saved password
@@ -665,6 +676,7 @@ export class ConnectionStore {
 
     public async readAllConnections(
         includeRecentConnections: boolean = false,
+        recentConnectionsLimit?: number,
     ): Promise<IConnectionProfileWithSource[]> {
         let connResults: IConnectionProfileWithSource[] = [];
 
@@ -680,36 +692,51 @@ export class ConnectionStore {
 
         // Include recent connections, if specified
         if (includeRecentConnections) {
-            const recentConnections = this.getRecentlyUsedConnections().map((c) => {
-                const conn = c as IConnectionProfileWithSource;
-                conn.profileSource = CredentialsQuickPickItemType.Mru;
-                return conn;
-            });
+            const recentConnections = this.getRecentlyUsedConnections(recentConnectionsLimit).map(
+                (c) => {
+                    const conn = c as IConnectionProfileWithSource;
+                    conn.profileSource = CredentialsQuickPickItemType.Mru;
+                    return conn;
+                },
+            );
 
             connResults = connResults.concat(recentConnections);
         }
 
-        // Deduplicate connections by ID
-        const uniqueConnections = new Map<string, IConnectionProfileWithSource>();
+        // Deduplicate connections within the same source while allowing the same connection
+        // to appear in both the saved and MRU lists.
+        const uniqueConnections: IConnectionProfileWithSource[] = [];
         let dupeCount = 0;
 
         for (const conn of connResults) {
-            if (!uniqueConnections.has(conn.id)) {
-                uniqueConnections.set(conn.id, conn);
+            const isDuplicate = uniqueConnections.some(
+                (existingConn) =>
+                    existingConn.profileSource === conn.profileSource &&
+                    (conn.profileSource === CredentialsQuickPickItemType.Mru
+                        ? this.isSameRecentConnectionEntry(existingConn, conn)
+                        : Utils.isSameProfile(existingConn, conn)),
+            );
+
+            if (!isDuplicate) {
+                uniqueConnections.push(conn);
             } else {
                 dupeCount++;
-                this._logger.verbose(
+                this._logger.debug(
                     `Duplicate connection ID found: ${conn.id}. Ignoring duplicate connection.`,
                 );
             }
         }
 
-        connResults = Array.from(uniqueConnections.values());
+        connResults = uniqueConnections;
 
         let logMessage = `readAllConnections(): ${connResults.length} connections found`;
 
         if (includeRecentConnections) {
             logMessage += ` (${configConnections.length} from config, ${connResults.length - configConnections.length} from recent)`;
+
+            if (typeof recentConnectionsLimit === "number" && recentConnectionsLimit > 0) {
+                logMessage += `; recent limit ${recentConnectionsLimit}`;
+            }
         } else {
             logMessage += "; excluded recent";
         }
@@ -718,7 +745,7 @@ export class ConnectionStore {
             logMessage += `; ${dupeCount} duplicate connections ignored`;
         }
 
-        this._logger.logDebug(logMessage);
+        this._logger.debug(logMessage);
 
         return connResults;
     }
@@ -738,9 +765,13 @@ export class ConnectionStore {
 
     public async getConnectionQuickpickItems(
         includeRecentConnections: boolean = false,
+        recentConnectionsLimit?: number,
     ): Promise<IConnectionCredentialsQuickPickItem[]> {
         let output: IConnectionCredentialsQuickPickItem[] = [];
-        const connections = await this.readAllConnections(includeRecentConnections);
+        const connections = await this.readAllConnections(
+            includeRecentConnections,
+            recentConnectionsLimit,
+        );
 
         output = connections.map((c) => {
             return this.createQuickPickItem(c, c.profileSource);
@@ -757,7 +788,7 @@ export class ConnectionStore {
         return quickPickItems;
     }
 
-    private getMaxRecentConnectionsCount(): number {
+    public getMaxRecentConnectionsCount(): number {
         let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
 
         let maxConnections: number = config[Constants.configMaxRecentConnections];
@@ -765,5 +796,23 @@ export class ConnectionStore {
             maxConnections = 5;
         }
         return maxConnections;
+    }
+
+    private isSameRecentConnectionEntry(
+        currentProfile: IConnectionProfile,
+        expectedProfile: IConnectionProfile,
+    ): boolean {
+        const currentRecentProfile = {
+            ...currentProfile,
+            id: undefined,
+            profileName: undefined,
+        } as IConnectionProfile;
+        const expectedRecentProfile = {
+            ...expectedProfile,
+            id: undefined,
+            profileName: undefined,
+        } as IConnectionProfile;
+
+        return Utils.isSameProfile(currentRecentProfile, expectedRecentProfile);
     }
 }

@@ -18,7 +18,6 @@ import {
     GetThemeRequest,
     KeyBindingsChangeNotification,
     LoadStatsNotification,
-    LogEvent,
     LogNotification,
     ReducerRequest,
     SendActionEventNotification,
@@ -31,7 +30,8 @@ import {
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 
 import { getEditorEOL, getErrorMessage, getNonce } from "../utils/utils";
-import { Logger } from "../models/logger";
+import { LoggerMethod, ILogger, LogEvent } from "../sharedInterfaces/logger";
+import { logger } from "../models/logger";
 import VscodeWrapper from "./vscodeWrapper";
 import {
     AbstractMessageReader,
@@ -43,12 +43,13 @@ import {
     Emitter,
     Message,
     MessageConnection,
+    MessageReader,
     MessageWriter,
     NotificationType,
+    type RequestParam,
     RequestHandler,
     RequestType,
 } from "vscode-jsonrpc/node";
-import { MessageReader } from "vscode-languageclient";
 import { Deferred } from "../protocol";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
@@ -87,7 +88,7 @@ class WebviewControllerMessageReader extends AbstractMessageReader implements Me
 
 class WebviewControllerMessageWriter extends AbstractMessageWriter implements MessageWriter {
     private _webview: vscode.Webview;
-    constructor(private logger: Logger) {
+    constructor(private logger: ILogger) {
         super();
     }
     updateWebview(webview: vscode.Webview) {
@@ -140,7 +141,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         (state: State, payload: Reducers[keyof Reducers]) => ReducerResponse<State>
     >();
 
-    protected logger: Logger;
+    protected logger: ILogger;
 
     /**
      * Creates a new WebviewPanelController
@@ -159,7 +160,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             vscodeWrapper = new VscodeWrapper();
         }
 
-        this.logger = Logger.create(vscodeWrapper.outputChannel, viewId);
+        this.logger = logger.withPrefix(viewId ?? "WebviewBaseController");
 
         this._connectionReader = new WebviewControllerMessageReader();
         this._connectionWriter = new WebviewControllerMessageWriter(this.logger);
@@ -296,7 +297,28 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         );
 
         this.onNotification(LogNotification.type, async (message: LogEvent) => {
-            this.logger[message.level ?? "log"](message.message);
+            const targetLogger = message.prefix
+                ? this.logger.withPrefix(message.prefix)
+                : this.logger;
+            switch (message.method) {
+                case LoggerMethod.PiiSanitized:
+                    targetLogger.piiSanitized(
+                        message.msg,
+                        message.objsToSanitize,
+                        message.stringsToShorten,
+                        ...(message.vals ?? []),
+                    );
+                    break;
+                case LoggerMethod.Show:
+                    targetLogger.show(message.preserveFocus);
+                    break;
+                case LoggerMethod.Dispose:
+                    targetLogger.dispose();
+                    break;
+                default:
+                    targetLogger[message.method](message.message, ...(message.args ?? []));
+                    break;
+            }
         });
 
         this.onNotification(LoadStatsNotification.type, (message) => {
@@ -314,7 +336,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
                 }
                 this._webviewReady.resolve();
 
-                console.log(
+                this.logger.trace(
                     `Load stats for ${this._sourceFile}` + "\n" + `Total time: ${timeToLoad} ms`,
                 );
                 this._endLoadActivity.end(ActivityStatus.Succeeded, {
@@ -350,7 +372,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
 
         this.onRequest(ExecuteCommandRequest.type, async (params: ExecuteCommandParams) => {
             if (!params?.command) {
-                this.logger.log("No command provided to execute");
+                this.logger.trace("No command provided to execute");
                 return;
             }
             const args = params?.args ?? [];
@@ -362,7 +384,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         });
 
         this.onRequest(ReducerRequest.type<Reducers>(), async (action) => {
-            this.logger.verbose(`Reducer action received from webview: ${action.type as string}`);
+            this.logger.debug(`Reducer action received from webview: ${action.type as string}`);
             const reducerActivity = startActivity(
                 TelemetryViews.WebviewController,
                 TelemetryActions.Reducer,
@@ -380,7 +402,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             if (reducer) {
                 try {
                     this.state = await reducer(this.state, action.payload);
-                    this.logger.verbose(`Reducer action succeeded: ${action.type as string}`);
+                    this.logger.debug(`Reducer action succeeded: ${action.type as string}`);
                     reducerActivity.end(ActivityStatus.Succeeded);
                 } catch (error) {
                     this.logger.error(
@@ -426,7 +448,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
      */
     public onRequest<TParam, TResult, TError>(
         type: RequestType<TParam, TResult, TError>,
-        handler: RequestHandler<TParam, TResult, TError>,
+        handler: (params: TParam, token: CancellationToken) => TResult | Promise<TResult>,
     ): void {
         if (!this.connection) {
             return;
@@ -434,11 +456,11 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         if (this._isDisposed) {
             throw new Error("Cannot register request handler on disposed controller");
         }
-        const handlerWrap: RequestHandler<TParam, TResult, TError> = (
+        const handlerWrap = (
             params: TParam,
             token: CancellationToken,
-        ) => {
-            this.logger.verbose(`Request received from webview: ${type.method}`);
+        ): TResult | Promise<TResult> => {
+            this.logger.debug(`Request received from webview: ${type.method}`);
             const handlerActivity = startActivity(
                 TelemetryViews.WebviewController,
                 TelemetryActions.OnRequest,
@@ -457,7 +479,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
                 if (result instanceof Promise) {
                     return result.then(
                         (res) => {
-                            this.logger.verbose(`Request succeeded: ${type.method}`);
+                            this.logger.debug(`Request succeeded: ${type.method}`);
                             handlerActivity.end(ActivityStatus.Succeeded);
                             return res;
                         },
@@ -470,7 +492,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
                         },
                     );
                 } else {
-                    this.logger.verbose(`Request succeeded: ${type.method}`);
+                    this.logger.debug(`Request succeeded: ${type.method}`);
                     handlerActivity.end(ActivityStatus.Succeeded);
                     return result;
                 }
@@ -480,7 +502,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
                 throw error;
             }
         };
-        this.connection.onRequest(type, handlerWrap);
+        this.connection.onRequest(type, handlerWrap as RequestHandler<TParam, TResult, TError>);
     }
 
     /**
@@ -497,7 +519,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         if (this._isDisposed) {
             return Promise.reject(new Error("Cannot send request on disposed controller"));
         }
-        return this.connection.sendRequest(type, params, token);
+        return this.connection.sendRequest(type, params as RequestParam<TParam>, token);
     }
 
     /**
@@ -527,7 +549,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             undefined,
             true, // include call stack
         );
-        return this.connection.sendNotification(type, params);
+        return this.connection.sendNotification(type, params as RequestParam<TParams>);
     }
 
     /**

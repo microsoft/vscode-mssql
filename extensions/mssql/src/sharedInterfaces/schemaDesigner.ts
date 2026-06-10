@@ -3,8 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
+import { NotificationType, RequestType } from "vscode-jsonrpc";
 import { CopilotChat } from "./copilotChat";
+import { Dab } from "./dab";
 
 export namespace SchemaDesigner {
     /**
@@ -147,6 +148,16 @@ export namespace SchemaDesigner {
         Dab = "dab",
     }
 
+    export enum DefinitionKind {
+        Sql = "sql",
+        Prisma = "prisma",
+        Sequelize = "sequelize",
+        TypeOrm = "typeorm",
+        Drizzle = "drizzle",
+        SqlAlchemy = "sqlalchemy",
+        EfCore = "efcore",
+    }
+
     /**
      * Schema designer model ready event
      * This event is sent when the schema designer model is ready
@@ -162,6 +173,10 @@ export namespace SchemaDesigner {
      * Request parameters for creating a schema designer session
      */
     export interface CreateSessionRequest {
+        /**
+         * Session id for the schema designer session
+         */
+        sessionId: string;
         /**
          * Connection URI which is used to connect to the database
          */
@@ -284,6 +299,46 @@ export namespace SchemaDesigner {
         sessionId: string;
     }
 
+    export enum DesignerOperation {
+        Initialize = "Initialize",
+        LoadSimpleSchema = "LoadSimpleSchema",
+        GenerateReport = "GenerateReport",
+        Publish = "Publish",
+    }
+
+    export enum DesignerMessageType {
+        Message = "Message",
+        Warning = "Warning",
+        Error = "Error",
+    }
+
+    export enum DesignerProgressStatus {
+        NotStarted = "NotStarted",
+        InProgress = "InProgress",
+        Succeeded = "Succeeded",
+        Failed = "Failed",
+        Canceled = "Canceled",
+    }
+
+    export interface SchemaDesignerProgressNotificationParams {
+        sessionId: string;
+        operation: DesignerOperation;
+        status: DesignerProgressStatus;
+        message: string;
+    }
+
+    export interface SchemaDesignerMessageNotificationParams {
+        sessionId: string;
+        operation: DesignerOperation;
+        messageType: DesignerMessageType;
+        message: string;
+        number: number;
+        prefix?: string | null;
+        progress?: number | null;
+        schemaName?: string | null;
+        tableName?: string | null;
+    }
+
     export interface ISchemaDesignerService {
         /**
          * Creates a schema designer session
@@ -323,6 +378,18 @@ export namespace SchemaDesigner {
          */
         getReport(request: GetReportRequest): Thenable<GetReportResponse>;
 
+        onProgress(listener: (progress: SchemaDesignerProgressNotificationParams) => void): void;
+
+        removeProgressListener(
+            listener: (progress: SchemaDesignerProgressNotificationParams) => void,
+        ): void;
+
+        onMessage(listener: (message: SchemaDesignerMessageNotificationParams) => void): void;
+
+        removeMessageListener(
+            listener: (message: SchemaDesignerMessageNotificationParams) => void,
+        ): void;
+
         /**
          * Callback for when the schema designer model is ready
          * @param listener - Callback function that is called when the schema designer model is ready
@@ -338,6 +405,11 @@ export namespace SchemaDesigner {
         isDabDeploymentSupported?: boolean;
         initialFilterTables?: string[];
         currentFilteredTables?: string[];
+        // When true, the Schema Designer renders as a read-only diagram —
+        // toolbar reduced to Show Definition + Export, no editing affordances
+        // on the graph or table nodes, no editor drawer. Used by Table
+        // Explorer's "View Table Diagram" entry point.
+        isReadOnly?: boolean;
     }
 
     export interface ExportFileOptions {
@@ -356,11 +428,21 @@ export namespace SchemaDesigner {
     }
 
     export interface CopyToClipboardOptions {
-        text: string;
+        text?: string;
+        updatedSchema?: Schema;
+        definitionKind?: DefinitionKind;
     }
 
     export interface OpenInEditorOptions {
-        text: string;
+        text?: string;
+        language?: string;
+        updatedSchema?: Schema;
+        definitionKind?: DefinitionKind;
+    }
+
+    export interface AddDefinitionToWorkspaceOptions {
+        updatedSchema: Schema;
+        definitionKind: DefinitionKind;
     }
 
     export interface SchemaDesignerReducers {
@@ -379,6 +461,10 @@ export namespace SchemaDesigner {
          * Used as the baseline for diffing against current edits.
          */
         baselineSchema: Schema;
+        /**
+         * Cached Data API builder configuration for the active designer session.
+         */
+        dabConfig?: Dab.DabConfig;
         isDirty: boolean;
     }
 
@@ -388,7 +474,7 @@ export namespace SchemaDesigner {
     export interface PublishSessionResponse {
         success: boolean;
         error: string | undefined;
-        updatedSchema: Schema;
+        updatedSchema?: Schema;
     }
     export namespace PublishSessionRequest {
         export const type = new RequestType<PublishSessionParams, PublishSessionResponse, void>(
@@ -399,10 +485,6 @@ export namespace SchemaDesigner {
     export namespace CloseSchemaDesignerNotification {
         export const type = new NotificationType<void>("closeDesigner");
     }
-    export interface OpenInEditorParams {
-        text: string;
-    }
-
     export namespace OpenInEditorWithConnectionNotification {
         export const type = new NotificationType<void>("openInEditorWithConnection");
     }
@@ -410,15 +492,21 @@ export namespace SchemaDesigner {
         export const type = new NotificationType<OpenInEditorOptions>("openInEditor");
     }
 
+    export namespace AddDefinitionToWorkspaceNotification {
+        export const type = new NotificationType<AddDefinitionToWorkspaceOptions>(
+            "addDefinitionToWorkspace",
+        );
+    }
+
     export namespace CopyToClipboardNotification {
-        export const type = new NotificationType<OpenInEditorParams>("copyToClipboard");
+        export const type = new NotificationType<CopyToClipboardOptions>("copyToClipboard");
     }
 
     export interface UpdatedSchemaParams {
         updatedSchema: Schema;
     }
     export interface GetReportWebviewResponse {
-        report: GetReportResponse;
+        report?: GetReportResponse;
         error?: string;
     }
     export namespace GetReportWebviewRequest {
@@ -458,6 +546,18 @@ export namespace SchemaDesigner {
 
     export namespace GetBaselineSchemaRequest {
         export const type = new RequestType<void, Schema, void>("getBaselineSchema");
+    }
+
+    export namespace SchemaDesignerProgressNotification {
+        export const type = new NotificationType<SchemaDesignerProgressNotificationParams>(
+            "schemaDesigner/progress",
+        );
+    }
+
+    export namespace SchemaDesignerMessageNotification {
+        export const type = new NotificationType<SchemaDesignerMessageNotificationParams>(
+            "schemaDesigner/message",
+        );
     }
 
     // Types with isDeleted flag for tracking deletions in the UI

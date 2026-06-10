@@ -27,21 +27,17 @@ import {
     TableMetadataResult,
     ViewMetadataResult,
 } from "../../src/sharedInterfaces/metadata";
-import { Logger } from "../../src/models/logger";
-import { stubLoggerGetter } from "./utils";
 
 chai.use(sinonChai);
 
 suite("Metadata Service Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
-    let mockLogger: sinon.SinonStubbedInstance<Logger>;
     let metadataService: MetadataService;
 
     setup(() => {
         sandbox = sinon.createSandbox();
         mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
-        mockLogger = stubLoggerGetter(sandbox, mockClient);
 
         metadataService = new MetadataService(mockClient);
     });
@@ -122,7 +118,7 @@ suite("Metadata Service Tests", () => {
             expect(result).to.deep.equal([]);
         });
 
-        test("should handle getMetadata error and log it", async () => {
+        test("should rethrow getMetadata errors", async () => {
             const error = new Error("Failed to retrieve metadata");
             mockClient.sendRequest
                 .withArgs(MetadataListRequest.type, sinon.match.any)
@@ -133,7 +129,6 @@ suite("Metadata Service Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error).to.have.been.calledWith("Failed to retrieve metadata");
             }
         });
     });
@@ -235,7 +230,7 @@ suite("Metadata Service Tests", () => {
             expect(result).to.deep.equal([]);
         });
 
-        test("should handle getTableInfo error and log it", async () => {
+        test("should rethrow getTableInfo errors", async () => {
             const error = new Error("Table not found");
             mockClient.sendRequest
                 .withArgs(TableMetadataRequest.type, sinon.match.any)
@@ -246,7 +241,6 @@ suite("Metadata Service Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error).to.have.been.calledWith("Table not found");
             }
         });
     });
@@ -302,7 +296,7 @@ suite("Metadata Service Tests", () => {
             });
         });
 
-        test("should handle getViewInfo error and log it", async () => {
+        test("should rethrow getViewInfo errors", async () => {
             const error = new Error("View not found");
             mockClient.sendRequest
                 .withArgs(ViewMetadataRequest.type, sinon.match.any)
@@ -313,7 +307,6 @@ suite("Metadata Service Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error).to.have.been.calledWith("View not found");
             }
         });
     });
@@ -424,7 +417,7 @@ suite("Metadata Service Tests", () => {
             expect((callArgs[1] as any).includeDetails).to.equal(false);
         });
 
-        test("should handle getDatabases error and log it", async () => {
+        test("should rethrow getDatabases errors", async () => {
             const error = new Error("Failed to list databases");
             mockClient.sendRequest
                 .withArgs(ListDatabasesRequest.type, sinon.match.any)
@@ -435,7 +428,6 @@ suite("Metadata Service Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error).to.have.been.calledWith("Failed to list databases");
             }
         });
     });
@@ -498,7 +490,7 @@ suite("Metadata Service Tests", () => {
             expect((callArgs[1] as any).databaseName).to.equal("TestDB");
         });
 
-        test("should handle getServerContext error and log it", async () => {
+        test("should rethrow getServerContext errors", async () => {
             const error = new Error("Failed to generate context");
             mockClient.sendRequest
                 .withArgs(GetServerContextualizationRequest.type, sinon.match.any)
@@ -509,13 +501,12 @@ suite("Metadata Service Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error).to.have.been.calledWith("Failed to generate context");
             }
         });
     });
 
     suite("error handling", () => {
-        test("should log error with proper message format", async () => {
+        test("should rethrow Error objects", async () => {
             const errorMessage = "Connection timeout";
             const error = new Error(errorMessage);
             mockClient.sendRequest.rejects(error);
@@ -524,24 +515,21 @@ suite("Metadata Service Tests", () => {
                 await metadataService.getMetadata("uri");
                 expect.fail("Should have thrown an error");
             } catch (err) {
-                expect(mockLogger.error).to.have.been.calledWithMatch(
-                    sinon.match(
-                        (value: unknown) =>
-                            typeof value === "string" && value.includes(errorMessage),
-                    ),
-                );
+                expect(err).to.equal(error);
             }
         });
 
         test("should handle non-Error objects thrown", async () => {
             const errorString = "String error";
-            mockClient.sendRequest.rejects(errorString);
+            mockClient.sendRequest.callsFake(async () => {
+                throw errorString;
+            });
 
             try {
                 await metadataService.getDatabases("uri");
                 expect.fail("Should have thrown an error");
             } catch (err) {
-                expect(mockLogger.error).to.have.been.called;
+                expect(err).to.equal(errorString);
             }
         });
     });

@@ -14,8 +14,11 @@ import { AzureAuthType, IToken, UserGroup } from "../models/contracts/azure";
 import * as Constants from "./constants";
 import { TokenCredentialWrapper } from "./credentialWrapper";
 import { HttpClient } from "../http/httpClient";
+import { getLogger } from "../models/logger";
+import { getErrorMessage } from "../utils/utils";
 
 const configAzureAD = "azureActiveDirectory";
+const logger = getLogger("AzureUtils");
 
 /**
  * Helper method to convert azure results that comes as pages to an array
@@ -146,7 +149,7 @@ export async function fetchUserGroups(userId: string): Promise<UserGroup[]> {
             // Update nextUrl for the next iteration
             nextUrl = response.data["@odata.nextLink"];
         } catch (error) {
-            console.error("Error fetching user groups:", error);
+            logger.error(`Error fetching user groups: ${getErrorMessage(error)}`);
             break; // Exit the loop on error
         }
     }

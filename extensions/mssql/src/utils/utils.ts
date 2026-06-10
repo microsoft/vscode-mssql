@@ -28,7 +28,7 @@ export async function exists(path: string, uri?: vscode.Uri): Promise<boolean> {
         try {
             await fs.access(path);
             return true;
-        } catch (e) {
+        } catch {
             return false;
         }
     }
@@ -231,12 +231,4 @@ export function decodeQueryResultLinkFragment(fragment: string): string {
         // If decoding fails, return the raw fragment as a fallback.  Some characters (like '%') can cause decodeURIComponent to throw an error.
         return fragment;
     }
-}
-
-export function formatEpochSecondsForDisplay(epochSeconds: number | undefined): string {
-    if (epochSeconds === undefined) {
-        return "unknown";
-    }
-
-    return new Date(epochSeconds * 1000).toISOString();
 }

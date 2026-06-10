@@ -26,7 +26,7 @@ import {
     LoginResult,
 } from "../../models/contracts/azure";
 import { IDeferred } from "../../models/interfaces";
-import { Logger } from "../../models/logger";
+import { ILogger } from "../../sharedInterfaces/logger";
 import { AzureAuthError } from "../azureAuthError";
 import * as Constants from "../constants";
 import { ErrorResponseBody } from "@azure/arm-subscriptions";
@@ -53,7 +53,7 @@ export abstract class MsalAzureAuth {
         protected clientApplication: PublicClientApplication,
         protected readonly authType: AzureAuthType,
         protected readonly vscodeWrapper: VscodeWrapper,
-        protected readonly logger: Logger,
+        protected readonly logger: ILogger,
     ) {
         this.loginEndpointUrl =
             this.providerSettings.loginEndpoint ?? "https://login.microsoftonline.com/";
@@ -68,7 +68,7 @@ export abstract class MsalAzureAuth {
     public async startLogin(): Promise<LoginResult> {
         let loginComplete: IDeferred<void, Error> | undefined = undefined;
         try {
-            this.logger.verbose("Starting login");
+            this.logger.debug("Starting login");
             if (!this.providerSettings.settings.windowsManagementResource) {
                 throw new Error(
                     LocalizedConstants.azureNoMicrosoftResource(this.providerSettings.displayName),
@@ -106,13 +106,13 @@ export abstract class MsalAzureAuth {
             if (ex instanceof AzureAuthError) {
                 if (loginComplete) {
                     loginComplete.reject(ex);
-                    this.logger.error(ex);
+                    this.logger.error(ex.message);
                 } else {
                     void vscode.window.showErrorMessage(ex.message);
                     this.logger.error(ex.originalMessageAndException);
                 }
             } else {
-                this.logger.error(ex);
+                this.logger.error(String(ex));
             }
             return {
                 success: false,
@@ -131,7 +131,10 @@ export abstract class MsalAzureAuth {
         return account;
     }
 
-    protected abstract login(tenant: ITenant): Promise<{
+    protected abstract login(
+        tenant: ITenant,
+        scopes?: string[],
+    ): Promise<{
         response: AuthenticationResult | null;
         authComplete: IDeferred<void, Error>;
     }>;
@@ -207,7 +210,7 @@ export abstract class MsalAzureAuth {
                 };
                 return this.handleInteractionRequired(tenant, settings);
             } else if (e.name === "ClientAuthError") {
-                this.logger.verbose("[ClientAuthError] Failed to silently acquire token");
+                this.logger.debug("[ClientAuthError] Failed to silently acquire token");
             }
 
             this.logger.error(
@@ -227,7 +230,8 @@ export abstract class MsalAzureAuth {
             error instanceof InteractionRequiredAuthError ||
             error.errorMessage.includes(Constants.AADSTS70043) ||
             error.errorMessage.includes(Constants.AADSTS50020) ||
-            error.errorMessage.includes(Constants.AADSTS50173)
+            error.errorMessage.includes(Constants.AADSTS50173) ||
+            error.errorMessage.includes(Constants.AADSTS50078)
         );
     }
 
@@ -254,7 +258,9 @@ export abstract class MsalAzureAuth {
                     key: tokenResult.account!.homeAccountId,
                     token: tokenResult.accessToken,
                     tokenType: tokenResult.tokenType,
-                    expiresOn: tokenResult.account!.idTokenClaims!.exp,
+                    expiresOn: tokenResult.expiresOn
+                        ? Math.floor(tokenResult.expiresOn.getTime() / 1000)
+                        : undefined,
                 };
 
                 return await this.hydrateAccount(token, tokenClaims);
@@ -302,7 +308,7 @@ export abstract class MsalAzureAuth {
             "tenants?api-version=2019-11-01",
         );
         try {
-            this.logger.verbose("Fetching tenants with uri {0}", tenantUri);
+            this.logger.debug("Fetching tenants with uri {0}", tenantUri);
             let tenantList: string[] = [];
             const tenantResponse = await this._httpHelper.makeGetRequest<GetTenantsResponseData>(
                 tenantUri,
@@ -331,7 +337,7 @@ export abstract class MsalAzureAuth {
                     tenantCategory: tenantInfo.tenantCategory,
                 } as ITenant;
             });
-            this.logger.verbose(`Tenants: ${tenantList}`);
+            this.logger.debug(`Tenants: ${tenantList}`);
             const homeTenantIndex = tenants.findIndex(
                 (tenant) => tenant.tenantCategory === Constants.homeCategory,
             );
@@ -340,7 +346,7 @@ export abstract class MsalAzureAuth {
                 const homeTenant = tenants.splice(homeTenantIndex, 1);
                 tenants.unshift(homeTenant[0]);
             }
-            this.logger.verbose(`Filtered Tenants: ${tenantList}`);
+            this.logger.debug(`Filtered Tenants: ${tenantList}`);
             return tenants;
         } catch (ex) {
             this.logger.error(`Error fetching tenants :${ex}`);
@@ -358,16 +364,32 @@ export abstract class MsalAzureAuth {
         settings: IAADResource,
         promptUser: boolean = true,
     ): Promise<AuthenticationResult | null> {
+        // Compute the correct scopes for the target resource so that
+        // re-auth acquires a token for the right audience.  Using the
+        // default this.scopes (ARM-only for the public cloud) when the
+        // caller needs a SQL token causes Error 18456 in multi-tenant
+        // scenarios.
+        const endpoint = settings.endpoint.endsWith("/")
+            ? settings.endpoint
+            : settings.endpoint + "/";
+        const resourceScopes =
+            settings.id === this.providerSettings.settings.windowsManagementResource.id
+                ? [`${endpoint}user_impersonation`]
+                : [`${endpoint}.default`];
+        // Always include OpenID Connect scopes so the login result
+        // contains an id_token that can be used for account hydration.
+        const loginScopes = [...resourceScopes, "openid", "email", "profile", "offline_access"];
+
         let shouldOpen: boolean;
         if (promptUser) {
             shouldOpen = await this.askUserForInteraction(tenant, settings);
             if (shouldOpen) {
-                const result = await this.login(tenant);
+                const result = await this.login(tenant, loginScopes);
                 result?.authComplete?.resolve();
                 return result?.response;
             }
         } else {
-            const result = await this.login(tenant);
+            const result = await this.login(tenant, loginScopes);
             result?.authComplete?.resolve();
             return result?.response;
         }
@@ -420,9 +442,9 @@ export abstract class MsalAzureAuth {
     //#region data modeling
 
     public createAccount(tokenClaims: ITokenClaims, key: string, tenants: ITenant[]): IAccount {
-        this.logger.verbose(`Token Claims acccount: ${tokenClaims.name}, TID: ${tokenClaims.tid}`);
+        this.logger.debug(`Token Claims acccount: ${tokenClaims.name}, TID: ${tokenClaims.tid}`);
         tenants.forEach((tenant) => {
-            this.logger.verbose(`Tenant ID: ${tenant.id}, Tenant Name: ${tenant.displayName}`);
+            this.logger.debug(`Tenant ID: ${tenant.id}, Tenant Name: ${tenant.displayName}`);
         });
 
         // Determine if this is a microsoft account

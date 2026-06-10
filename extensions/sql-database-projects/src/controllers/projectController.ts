@@ -626,7 +626,7 @@ export class ProjectsController {
      */
     public async schemaCompare(
         source: dataworkspace.WorkspaceTreeItem,
-        targetParam: any = undefined,
+        _targetParam: any = undefined,
     ): Promise<void> {
         try {
             // check if schema compare service is available
@@ -644,7 +644,7 @@ export class ProjectsController {
                         undefined,
                         undefined,
                     );
-                } catch (e) {
+                } catch {
                     throw new Error(constants.buildFailedCannotStartSchemaCompare);
                 }
             } else {
@@ -1109,7 +1109,6 @@ export class ProjectsController {
 
             switch (node.type) {
                 case constants.DatabaseProjectItemType.sqlObjectScript:
-                case constants.DatabaseProjectItemType.table:
                 case constants.DatabaseProjectItemType.externalStreamingJob:
                     await project.excludeSqlObjectScript(node.entryKey);
                     break;
@@ -1184,7 +1183,6 @@ export class ProjectsController {
             } else if (node instanceof FileNode) {
                 switch (node.type) {
                     case constants.DatabaseProjectItemType.sqlObjectScript:
-                    case constants.DatabaseProjectItemType.table:
                     case constants.DatabaseProjectItemType.externalStreamingJob:
                         await project.deleteSqlObjectScript(node.entryKey);
                         break;

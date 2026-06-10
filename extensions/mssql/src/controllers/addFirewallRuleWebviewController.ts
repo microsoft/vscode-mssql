@@ -16,7 +16,10 @@ import { Deferred } from "../protocol";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import * as Loc from "../constants/locConstants";
 import { VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
-import { MssqlVSCodeAzureSubscriptionProvider } from "../azure/MssqlVSCodeAzureSubscriptionProvider";
+import { VSCodeAzureSubscriptionProvider } from "@microsoft/vscode-azext-azureauth";
+import { getLogger } from "../models/logger";
+
+const logger = getLogger("AddFirewallRule");
 
 /**
  * Controller for the Add Firewall Rule dialog
@@ -193,12 +196,12 @@ export async function populateAzureAccountInfo(
     state: AddFirewallRuleState,
     forceSignInPrompt: boolean,
 ): Promise<void> {
-    let auth: MssqlVSCodeAzureSubscriptionProvider;
+    let auth: VSCodeAzureSubscriptionProvider;
 
     try {
-        auth = await VsCodeAzureHelper.signIn(forceSignInPrompt);
+        auth = (await VsCodeAzureHelper.signIn(forceSignInPrompt)).auth;
     } catch (error) {
-        console.error(`Error signing into Azure: ${getErrorMessage(error)}`);
+        logger.error(`Error signing into Azure: ${getErrorMessage(error)}`);
         return;
     }
 

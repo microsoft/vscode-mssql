@@ -22,11 +22,13 @@ interface DabContextProps {
     updateDabApiTypes: (apiTypes: Dab.ApiType[]) => void;
     toggleDabEntity: (entityId: string, isEnabled: boolean) => void;
     toggleDabEntityAction: (entityId: string, action: Dab.EntityAction, isEnabled: boolean) => void;
+    toggleDabColumnExposure: (entityId: string, columnId: string, isExposed: boolean) => void;
     updateDabEntitySettings: (entityId: string, settings: Dab.EntityAdvancedSettings) => void;
     dabTextFilter: string;
     setDabTextFilter: (text: string) => void;
     dabConfigTextFileContent: string;
     openDabConfigInEditor: (configContent: string) => void;
+    addDabConfigToWorkspace: (configContent: string) => void;
     dabDeploymentState: Dab.DabDeploymentState;
     openDabDeploymentDialog: () => void;
     closeDabDeploymentDialog: () => void;
@@ -81,25 +83,45 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
             isInitializedRef,
             waitForInitialization,
             getCurrentDabConfig: () => dabConfigRef.current,
-            getCurrentSchemaTables: () => extractSchemaRef.current().tables,
+            getCurrentSourceObjects: () =>
+                extractSchemaRef
+                    .current()
+                    .tables.map((table) => Dab.createSourceObjectFromTable(table)),
             commitDabConfig: (config) => {
+                dabConfigRef.current = config;
                 setDabConfig(config);
             },
         });
     }, [extensionRpc, waitForInitialization]);
 
     const initializeDabConfig = useCallback(() => {
-        const schema = extractSchema();
-        const config = Dab.createDefaultConfig(schema.tables);
-        setDabConfig(config);
-    }, [extractSchema]);
+        void extensionRpc
+            .sendRequest(Dab.GetCachedConfigRequest.type)
+            .then((response) => {
+                const schema = extractSchema();
+                const sourceObjects = schema.tables.map((table) =>
+                    Dab.createSourceObjectFromTable(table),
+                );
+                const baseConfig =
+                    response.config ?? Dab.createDefaultConfigFromSources(sourceObjects);
+                const synced = Dab.syncConfigWithSources(baseConfig, sourceObjects);
+                setDabConfig(synced.config);
+            })
+            .catch((error) => {
+                extensionRpc.log.error("Failed to initialize DAB config from cache", error);
+                const schema = extractSchema();
+                setDabConfig(Dab.createDefaultConfig(schema.tables));
+            });
+    }, [extensionRpc, extractSchema]);
 
     const syncDabConfigWithSchema = useCallback(() => {
         if (!dabConfig) {
             return;
         }
 
-        const synced = Dab.syncConfigWithSchema(dabConfig, extractSchema().tables);
+        const schema = extractSchema();
+        const sourceObjects = schema.tables.map((table) => Dab.createSourceObjectFromTable(table));
+        const synced = Dab.syncConfigWithSources(dabConfig, sourceObjects);
         if (synced.changed) {
             setDabConfig(synced.config);
         }
@@ -124,7 +146,20 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
             }
             return {
                 ...prev,
-                entities: prev.entities.map((e) => (e.id === entityId ? { ...e, isEnabled } : e)),
+                entities: prev.entities.map((entity) => {
+                    if (entity.id !== entityId) {
+                        return entity;
+                    }
+
+                    return {
+                        ...entity,
+                        isEnabled,
+                        columns: entity.columns.map((column) => ({
+                            ...column,
+                            isExposed: isEnabled,
+                        })),
+                    };
+                }),
             };
         });
     }, []);
@@ -135,17 +170,57 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 if (!prev) {
                     return prev;
                 }
+
+                let didChange = false;
+                const entities = prev.entities.map((e) => {
+                    if (e.id !== entityId) {
+                        return e;
+                    }
+
+                    const hasActionEnabled = e.enabledActions.includes(action);
+                    if (hasActionEnabled === isEnabled) {
+                        return e;
+                    }
+
+                    didChange = true;
+                    const enabledActions = isEnabled
+                        ? [...e.enabledActions, action]
+                        : e.enabledActions.filter((a) => a !== action);
+                    return { ...e, enabledActions };
+                });
+
+                if (!didChange) {
+                    return prev;
+                }
+
                 return {
                     ...prev,
-                    entities: prev.entities.map((e) => {
-                        if (e.id !== entityId) {
-                            return e;
-                        }
-                        const enabledActions = isEnabled
-                            ? [...e.enabledActions, action]
-                            : e.enabledActions.filter((a) => a !== action);
-                        return { ...e, enabledActions };
-                    }),
+                    entities,
+                };
+            });
+        },
+        [],
+    );
+
+    const toggleDabColumnExposure = useCallback(
+        (entityId: string, columnId: string, isExposed: boolean) => {
+            setDabConfig((prev) => {
+                if (!prev) {
+                    return prev;
+                }
+
+                return {
+                    ...prev,
+                    entities: prev.entities.map((entity) =>
+                        entity.id === entityId
+                            ? {
+                                  ...entity,
+                                  columns: entity.columns.map((column) =>
+                                      column.id === columnId ? { ...column, isExposed } : column,
+                                  ),
+                              }
+                            : entity,
+                    ),
                 };
             });
         },
@@ -174,17 +249,22 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         if (!dabConfig) {
             return;
         }
+
+        void extensionRpc.sendNotification(Dab.CacheConfigNotification.type, {
+            config: dabConfig,
+        });
+
         void extensionRpc
             .sendRequest(Dab.GenerateConfigRequest.type, { config: dabConfig })
             .then((response) => {
                 if (response.success) {
                     setDabConfigTextFileContent(response.configContent);
                 } else {
-                    console.error("Failed to generate DAB config:", response.error);
+                    extensionRpc.log.error("Failed to generate DAB config", response.error);
                 }
             })
             .catch((error) => {
-                console.error("Failed to generate DAB config:", error);
+                extensionRpc.log.error("Failed to generate DAB config", error);
             });
     }, [dabConfig, extensionRpc]);
 
@@ -208,6 +288,15 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
     const openDabConfigInEditor = useCallback(
         (configContent: string) => {
             void extensionRpc.sendNotification(Dab.OpenConfigInEditorNotification.type, {
+                configContent,
+            });
+        },
+        [extensionRpc],
+    );
+
+    const addDabConfigToWorkspace = useCallback(
+        (configContent: string) => {
+            void extensionRpc.sendNotification(Dab.AddConfigToWorkspaceNotification.type, {
                 configContent,
             });
         },
@@ -366,7 +455,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 containerName: dabDeploymentState.params.containerName,
             });
         } catch (error) {
-            console.error("Failed to clean up DAB container before retry:", error);
+            extensionRpc.log.error("Failed to clean up DAB container before retry", error);
         }
 
         setDabDeploymentState((prev) => ({
@@ -415,11 +504,13 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 updateDabApiTypes,
                 toggleDabEntity,
                 toggleDabEntityAction,
+                toggleDabColumnExposure,
                 updateDabEntitySettings,
                 dabTextFilter,
                 setDabTextFilter,
                 dabConfigTextFileContent,
                 openDabConfigInEditor,
+                addDabConfigToWorkspace,
                 dabDeploymentState,
                 openDabDeploymentDialog,
                 closeDabDeploymentDialog,

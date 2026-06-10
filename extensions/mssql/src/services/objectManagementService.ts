@@ -6,12 +6,16 @@
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import {
     DropDatabaseRequest,
+    DropDatabaseResponse,
     InitializeViewRequest,
     InitializeViewRequestParams,
     ObjectManagementSqlObject,
     ObjectManagementViewInfo,
+    RenameDatabaseResponse,
     RenameObjectRequest,
+    RenameDatabaseRequest,
     SaveObjectRequest,
+    SaveObjectRequestResponse,
     ScriptObjectRequest,
     DisposeViewRequest,
     BackupConfigInfoRequest,
@@ -35,6 +39,9 @@ import {
     RestoreResponse,
 } from "../sharedInterfaces/restore";
 import { TaskExecutionMode } from "../enums";
+import { getLogger } from "../models/logger";
+
+const logger = getLogger("ObjectManagementService");
 
 export class ObjectManagementService {
     constructor(private _client: SqlToolsServiceClient) {}
@@ -46,7 +53,7 @@ export class ObjectManagementService {
         database: string,
         isNewObject: boolean,
         parentUrn: string,
-        objectUrn: string,
+        objectUrn?: string,
     ): Promise<ObjectManagementViewInfo<ObjectManagementSqlObject>> {
         const params: InitializeViewRequestParams = {
             connectionUri,
@@ -60,7 +67,10 @@ export class ObjectManagementService {
         return this._client.sendRequest(InitializeViewRequest.type, params);
     }
 
-    public async save(contextId: string, object: ObjectManagementSqlObject): Promise<void> {
+    public async save(
+        contextId: string,
+        object: ObjectManagementSqlObject,
+    ): Promise<SaveObjectRequestResponse> {
         return this._client.sendRequest(SaveObjectRequest.type, { contextId, object });
     }
 
@@ -86,13 +96,29 @@ export class ObjectManagementService {
         });
     }
 
+    public async renameDatabase(
+        connectionUri: string,
+        database: string,
+        newName: string,
+        dropConnections: boolean,
+        generateScript: boolean,
+    ): Promise<RenameDatabaseResponse> {
+        return this._client.sendRequest(RenameDatabaseRequest.type, {
+            connectionUri,
+            database,
+            newName,
+            dropConnections,
+            generateScript,
+        });
+    }
+
     public async dropDatabase(
         connectionUri: string,
         database: string,
         dropConnections: boolean,
         deleteBackupHistory: boolean,
         generateScript: boolean,
-    ): Promise<string> {
+    ): Promise<DropDatabaseResponse> {
         return this._client.sendRequest(DropDatabaseRequest.type, {
             connectionUri,
             database,
@@ -109,7 +135,7 @@ export class ObjectManagementService {
             };
             return await this._client.sendRequest(BackupConfigInfoRequest.type, params);
         } catch (e) {
-            this._client.logger.error(e);
+            logger.error("Failed to get backup config info", e);
             throw e;
         }
     }
@@ -127,7 +153,7 @@ export class ObjectManagementService {
             };
             return await this._client.sendRequest(BackupRequest.type, params);
         } catch (e) {
-            this._client.logger.error(e);
+            logger.error("Failed to backup database", e);
             throw e;
         }
     }
@@ -139,7 +165,7 @@ export class ObjectManagementService {
             };
             return await this._client.sendRequest(RestoreConfigInfoRequest.type, params);
         } catch (e) {
-            this._client.logger.error(e);
+            logger.error("Failed to get restore config info", e);
             throw e;
         }
     }
@@ -148,7 +174,7 @@ export class ObjectManagementService {
         try {
             return await this._client.sendRequest(RestorePlanRequest.type, restoreParams);
         } catch (e) {
-            this._client.logger.error(e);
+            logger.error("Failed to get restore plan", e);
             throw e;
         }
     }
@@ -157,7 +183,7 @@ export class ObjectManagementService {
         try {
             return await this._client.sendRequest(CancelRestorePlanRequest.type, restoreParams);
         } catch (e) {
-            this._client.logger.error(e);
+            logger.error("Failed to cancel restore plan", e);
             throw e;
         }
     }
@@ -166,7 +192,7 @@ export class ObjectManagementService {
         try {
             return await this._client.sendRequest(RestoreRequest.type, restoreParams);
         } catch (e) {
-            this._client.logger.error(e);
+            logger.error("Failed to restore database", e);
             throw e;
         }
     }

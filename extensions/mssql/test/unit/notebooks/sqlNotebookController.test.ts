@@ -16,13 +16,13 @@ import * as LocalizedConstants from "../../../src/constants/locConstants";
 import { SqlNotebookController } from "../../../src/notebooks/sqlNotebookController";
 import ConnectionManager from "../../../src/controllers/connectionManager";
 import { ConnectionSharingService } from "../../../src/connectionSharing/connectionSharingService";
-import type { NotebookQueryResult } from "../../../src/notebooks/notebookQueryExecutor";
+import type { HeadlessQueryResult } from "../../../src/queryExecution/headlessQueryExecutor";
 import { NotebookConnectionManager } from "../../../src/notebooks/notebookConnectionManager";
 import { IDbColumn } from "../../../src/models/interfaces";
 import { BatchSummary } from "../../../src/models/contracts/queryExecute";
 import type { NotebookQueryResultOutputData } from "../../../src/sharedInterfaces/notebookQueryResult";
 
-function makeQueryResult(overrides?: Partial<NotebookQueryResult>): NotebookQueryResult {
+function makeQueryResult(overrides?: Partial<HeadlessQueryResult>): HeadlessQueryResult {
     return {
         batches: [],
         canceled: false,
@@ -87,13 +87,11 @@ suite("SqlNotebookController", () => {
         supportedLanguages: string[] | undefined;
         supportsExecutionOrder: boolean | undefined;
         description: string | undefined;
-        executeHandler:
-            | ((
-                  cells: vscode.NotebookCell[],
-                  notebook: vscode.NotebookDocument,
-                  controller: vscode.NotebookController,
-              ) => void | Thenable<void>)
-            | undefined;
+        executeHandler: (
+            cells: vscode.NotebookCell[],
+            notebook: vscode.NotebookDocument,
+            controller: vscode.NotebookController,
+        ) => void | Thenable<void>;
         updateNotebookAffinity: sinon.SinonStub;
         createNotebookCellExecution: sinon.SinonStub;
         onDidChangeSelectedNotebooks: sinon.SinonStub;
@@ -151,6 +149,10 @@ suite("SqlNotebookController", () => {
         sb.stub(vscode.notebooks, "createNotebookController").returns(
             mockController as unknown as vscode.NotebookController,
         );
+        sb.stub(vscode.notebooks, "createRendererMessaging").returns({
+            onDidReceiveMessage: sb.stub().returns({ dispose: sb.stub() }),
+            postMessage: sb.stub().resolves(true),
+        } as unknown as vscode.NotebookRendererMessaging);
         sb.stub(vscode.window, "createStatusBarItem").returns(
             mockStatusBarItem as unknown as vscode.StatusBarItem,
         );
@@ -212,7 +214,7 @@ suite("SqlNotebookController", () => {
             supportedLanguages: undefined,
             supportsExecutionOrder: undefined,
             description: undefined,
-            executeHandler: undefined,
+            executeHandler: sandbox.stub(),
             updateNotebookAffinity: sandbox.stub(),
             createNotebookCellExecution: sandbox.stub().returns(mockExecution),
             onDidChangeSelectedNotebooks: sandbox.stub().returns({ dispose: sandbox.stub() }),
@@ -467,7 +469,7 @@ suite("SqlNotebookController", () => {
             const executionTimeBlock = output.blocks[2];
             expect(executionTimeBlock).to.deep.equal({
                 type: "text",
-                text: LocalizedConstants.elapsedTimeLabel("00:00:02"),
+                text: LocalizedConstants.elapsedTimeLabel("00:00:02.000"),
             });
         });
 
@@ -858,7 +860,7 @@ suite("SqlNotebookController", () => {
             sandbox = sinon.createSandbox();
 
             const mockNotebook = makeNotebook([], {
-                kernelspec: { name: "sql", display_name: "SQL" },
+                metadata: { kernelspec: { name: "sql", display_name: "SQL" } },
             });
 
             // Re-stub everything
@@ -869,7 +871,7 @@ suite("SqlNotebookController", () => {
                 supportedLanguages: undefined,
                 supportsExecutionOrder: undefined,
                 description: undefined,
-                executeHandler: undefined,
+                executeHandler: sandbox.stub(),
                 updateNotebookAffinity: sandbox.stub(),
                 createNotebookCellExecution: sandbox.stub().returns(mockExecution),
                 onDidChangeSelectedNotebooks: sandbox.stub().returns({ dispose: sandbox.stub() }),
@@ -878,6 +880,10 @@ suite("SqlNotebookController", () => {
             sandbox
                 .stub(vscode.notebooks, "createNotebookController")
                 .returns(mockController as unknown as vscode.NotebookController);
+            sandbox.stub(vscode.notebooks, "createRendererMessaging").returns({
+                onDidReceiveMessage: sandbox.stub().returns({ dispose: sandbox.stub() }),
+                postMessage: sandbox.stub().resolves(true),
+            } as unknown as vscode.NotebookRendererMessaging);
             sandbox
                 .stub(vscode.window, "createStatusBarItem")
                 .returns(mockStatusBarItem as unknown as vscode.StatusBarItem);
@@ -934,7 +940,21 @@ suite("SqlNotebookController", () => {
 
             await controller.createNotebookWithConnection();
 
-            expect(vscode.workspace.openNotebookDocument).to.have.been.calledOnce;
+            expect(vscode.workspace.openNotebookDocument).to.have.been.calledWithMatch(
+                "jupyter-notebook",
+                sinon.match({
+                    metadata: {
+                        metadata: {
+                            kernelspec: {
+                                name: "sql-notebook",
+                                display_name: "SQL",
+                                language: "sql",
+                            },
+                            language_info: { name: "sql" },
+                        },
+                    },
+                }),
+            );
             expect(mockController.updateNotebookAffinity).to.have.been.calledWith(
                 mockNotebook,
                 vscode.NotebookControllerAffinity.Preferred,

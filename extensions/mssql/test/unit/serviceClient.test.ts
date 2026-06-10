@@ -13,12 +13,11 @@ import { ServiceClient as ServiceClientLoc } from "../../src/constants/locConsta
 import ServerProvider from "../../src/languageservice/server";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import DotnetRuntimeProvider from "../../src/languageservice/dotnetRuntimeProvider";
-import { Logger } from "../../src/models/logger";
 import { PlatformInformation, Runtime } from "../../src/models/platform";
 import StatusView from "../../src/views/statusView";
 import * as LanguageServiceContracts from "../../src/models/contracts/languageService";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { createStubLogger, stubTelemetry, stubVscodeWrapper } from "./utils";
+import { stubTelemetry, stubVscodeWrapper } from "./utils";
 
 chai.use(sinonChai);
 
@@ -39,7 +38,6 @@ interface ILaunchAttempt {
 suite("Service Client tests", () => {
     let sandbox: sinon.SinonSandbox;
     let testServiceProvider: sinon.SinonStubbedInstance<ServerProvider>;
-    let logger: sinon.SinonStubbedInstance<Logger>;
     let testStatusView: sinon.SinonStubbedInstance<StatusView>;
     let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let dotnetRuntimeProvider: sinon.SinonStubbedInstance<DotnetRuntimeProvider>;
@@ -48,7 +46,6 @@ suite("Service Client tests", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
         testServiceProvider = sandbox.createStubInstance(ServerProvider);
-        logger = createStubLogger(sandbox);
         testStatusView = sandbox.createStubInstance(StatusView);
         vscodeWrapper = stubVscodeWrapper(sandbox);
         dotnetRuntimeProvider = sandbox.createStubInstance(DotnetRuntimeProvider);
@@ -69,7 +66,6 @@ suite("Service Client tests", () => {
     function createServiceClient(): SqlToolsServiceClient {
         return new SqlToolsServiceClient(
             testServiceProvider,
-            logger,
             testStatusView,
             vscodeWrapper,
             dotnetRuntimeProvider,
@@ -371,6 +367,9 @@ suite("Service Client tests", () => {
                 command: "/usr/local/bin/dotnet",
                 args: ["MicrosoftSqlToolsServiceLayer.dll"],
             });
+            expect(dotnetRuntimeProvider.acquireDotnetRuntime).to.have.been.calledWith(
+                "MicrosoftSqlToolsServiceLayer.runtimeconfig.json",
+            );
         });
 
         test("uses the executable path directly for self-contained services", async () => {

@@ -14,7 +14,11 @@ import { generateQueryUri } from "../models/utils";
 import * as LocalizedConstants from "../constants/locConstants";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions, ActivityStatus } from "../sharedInterfaces/telemetry";
-import { NotebookQueryExecutor, NotebookQueryResult } from "./notebookQueryExecutor";
+import { ILogger } from "../sharedInterfaces/logger";
+import {
+    HeadlessQueryExecutor,
+    HeadlessQueryResult,
+} from "../queryExecution/headlessQueryExecutor";
 
 /**
  * Manages the active database connection for a notebook.
@@ -37,8 +41,21 @@ export class NotebookConnectionManager implements vscode.Disposable {
     private connectionUri: string | undefined;
     private connectionInfo: IConnectionInfo | undefined;
     private connectionLabel: string = "";
-    private log: vscode.LogOutputChannel;
-    private readonly queryExecutor: NotebookQueryExecutor;
+    private log: ILogger;
+    private readonly queryExecutor: HeadlessQueryExecutor;
+
+    /**
+     * Cell document URIs already registered with STS for IntelliSense against
+     * the current connectionUri. Cleared whenever the connection changes so
+     * cells get re-registered against the new connection.
+     *
+     * Without this, every executeCell re-fires a `connection/connect` RPC per
+     * cell, and those serialize ahead of `query/executeString` on the STS
+     * JSON-RPC channel — adding seconds of latency on slow connections.
+     */
+    private registeredCellUris: Set<string> = new Set();
+
+    private connectionGeneration = 0;
 
     /**
      * Saved reconnection context from notebook metadata.
@@ -51,14 +68,15 @@ export class NotebookConnectionManager implements vscode.Disposable {
     constructor(
         private connectionMgr: ConnectionManager,
         private connectionSharingService: ConnectionSharingService,
-        log: vscode.LogOutputChannel,
+        log: ILogger,
         client?: SqlToolsServiceClient,
         notificationHandler?: QueryNotificationHandler,
     ) {
         this.log = log;
-        this.queryExecutor = new NotebookQueryExecutor(
+        this.queryExecutor = new HeadlessQueryExecutor(
             client ?? SqlToolsServiceClient.instance,
             notificationHandler ?? QueryNotificationHandler.instance,
+            log,
         );
     }
 
@@ -89,9 +107,27 @@ export class NotebookConnectionManager implements vscode.Disposable {
      */
     private async connectInternal(connectionInfo: IConnectionInfo): Promise<string> {
         const uri = generateQueryUri().toString();
-        const success = await this.connectionMgr.connect(uri, connectionInfo, {
-            connectionSource: "sqlNotebooks",
-        });
+        this.log.debug(
+            `[connectInternal] begin adhocUri=${uri} ` +
+                `server=${connectionInfo.server} database=${connectionInfo.database ?? "(default)"}`,
+        );
+        const started = Date.now();
+        let success: boolean;
+        try {
+            success = await this.connectionMgr.connect(uri, connectionInfo, {
+                connectionSource: "sqlNotebooks",
+            });
+        } catch (err: any) {
+            this.log.error(
+                `[connectInternal] connect threw after ${Date.now() - started}ms ` +
+                    `uri=${uri} msg=${err?.message ?? "(no message)"}`,
+            );
+            throw err;
+        }
+        this.log.debug(
+            `[connectInternal] connect returned success=${success} ` +
+                `after ${Date.now() - started}ms uri=${uri}`,
+        );
         if (!success) {
             throw new Error(LocalizedConstants.Notebooks.connectionFailed);
         }
@@ -103,14 +139,21 @@ export class NotebookConnectionManager implements vscode.Disposable {
      * otherwise prompts the user to pick one.
      */
     async ensureConnection(): Promise<string> {
+        this.log.debug(
+            `[ensureConnection] begin currentUri=${this.connectionUri ?? "none"} ` +
+                `hasStoredInfo=${!!this.connectionInfo}`,
+        );
         if (this.connectionUri) {
-            if (this.connectionSharingService.isConnected(this.connectionUri)) {
+            const alive = this.connectionSharingService.isConnected(this.connectionUri);
+            this.log.debug(`[ensureConnection] existing uri alive=${alive}`);
+            if (alive) {
                 return this.connectionUri;
             }
             // Connection went stale
             this.log.info(`[ensureConnection] Connection stale, clearing: ${this.connectionUri}`);
             this.connectionUri = undefined;
             this.connectionLabel = "";
+            this.invalidateCellRegistrations();
         }
 
         // Try reconnecting with stored connection info (within-session stale connection)
@@ -119,6 +162,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
             try {
                 const uri = await this.connectInternal(this.connectionInfo);
                 this.connectionUri = uri;
+                this.invalidateCellRegistrations();
                 const actualDb = this.getActualDatabase(uri);
                 this.connectionLabel = formatConnectionLabel(this.connectionInfo.server, actualDb);
                 return uri;
@@ -177,6 +221,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
 
             this.connectionUri = uri;
             this.connectionInfo = connectionInfo;
+            this.invalidateCellRegistrations();
             activity.end(ActivityStatus.Succeeded);
             return uri;
         } catch (err) {
@@ -210,6 +255,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
             this.connectionUri = uri;
             this.connectionInfo = { ...connectionInfo, database: actualDb || database };
             this.connectionLabel = formatConnectionLabel(server, actualDb || database);
+            this.invalidateCellRegistrations();
             activity.end(ActivityStatus.Succeeded);
             return uri;
         } catch (err) {
@@ -258,6 +304,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
         this.connectionUri = uri;
         this.connectionInfo = newInfo;
         this.connectionLabel = formatConnectionLabel(newInfo.server, actualDb);
+        this.invalidateCellRegistrations();
     }
 
     getCurrentDatabase(): string {
@@ -267,10 +314,16 @@ export class NotebookConnectionManager implements vscode.Disposable {
     async executeQueryString(
         sql: string,
         cancellationToken?: vscode.CancellationToken,
-    ): Promise<NotebookQueryResult> {
+    ): Promise<HeadlessQueryResult> {
         if (!this.connectionUri) {
+            this.log.warn(`[executeQueryString] no active connection`);
             throw new Error(LocalizedConstants.Notebooks.noActiveConnection);
         }
+        const alive = this.connectionSharingService.isConnected(this.connectionUri);
+        this.log.debug(
+            `[executeQueryString] dispatch uri=${this.connectionUri} ` +
+                `aliveAtDispatch=${alive} sqlLen=${sql.length}`,
+        );
         return this.queryExecutor.execute(this.connectionUri, sql, cancellationToken);
     }
 
@@ -290,6 +343,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
         this.connectionUri = undefined;
         this.connectionInfo = undefined;
         this.connectionLabel = "";
+        this.invalidateCellRegistrations();
     }
 
     /**
@@ -315,6 +369,17 @@ export class NotebookConnectionManager implements vscode.Disposable {
     }
 
     /**
+     * Reset the IntelliSense cell registration cache. Called whenever the
+     * connection identity changes so cells get re-registered against the new
+     * connection. Bumping the generation lets in-flight cell registrations
+     * detect that they're stale and skip writing back into the cache.
+     */
+    private invalidateCellRegistrations(): void {
+        this.connectionGeneration++;
+        this.registeredCellUris.clear();
+    }
+
+    /**
      * Register a cell document URI with STS so IntelliSense
      * (completions, hover, diagnostics) works for notebook cells.
      *
@@ -322,21 +387,48 @@ export class NotebookConnectionManager implements vscode.Disposable {
      * document URI as ownerUri and the notebook's connection details.
      * STS shares metadata caches across connections with the same
      * server/database/auth, so this doesn't cause redundant queries.
+     *
+     * Memoized per connection: subsequent calls for the same cell URI
+     * are no-ops until the connection changes. This prevents redundant
+     * connect RPCs from queuing ahead of query execution on the STS
+     * JSON-RPC channel when re-running cells in a notebook.
      */
     async connectCellForIntellisense(cellDocumentUri: string): Promise<void> {
         if (!this.connectionInfo) {
+            this.log.debug(
+                `[connectCellForIntellisense] Skipped (no connectionInfo) cell=${cellDocumentUri}`,
+            );
             return;
         }
+
+        if (this.registeredCellUris.has(cellDocumentUri)) {
+            return;
+        }
+
+        const generation = this.connectionGeneration;
 
         let connectionDetails: ConnectionDetails;
         try {
             connectionDetails = this.connectionMgr.createConnectionDetails(this.connectionInfo);
         } catch (err: any) {
             this.log.warn(
-                `[connectCellForIntellisense] createConnectionDetails failed: ${err.message}`,
+                `[connectCellForIntellisense] createConnectionDetails failed: ${err.message} cell=${cellDocumentUri}`,
             );
             return;
         }
+
+        let cellUriScheme = "unknown";
+        try {
+            cellUriScheme = vscode.Uri.parse(cellDocumentUri).scheme;
+        } catch {
+            // ignore parse errors
+        }
+        const authType = connectionDetails.options?.authenticationType ?? "unknown";
+        this.log.debug(
+            `[connectCellForIntellisense] Sending connect request scheme=${cellUriScheme} server=${this.connectionInfo.server} database=${this.connectionInfo.database || "(default)"} auth=${authType} cell=${cellDocumentUri}`,
+        );
+
+        this.registeredCellUris.add(cellDocumentUri);
 
         try {
             const params: ConnectParams = {
@@ -344,11 +436,33 @@ export class NotebookConnectionManager implements vscode.Disposable {
                 connection: connectionDetails,
             };
 
-            await this.connectionMgr.sendRequest(ConnectionRequest.type, params);
+            const result = await this.connectionMgr.sendRequest(ConnectionRequest.type, params);
 
-            this.log.info(`[connectCellForIntellisense] Connected cell: ${cellDocumentUri}`);
+            if (generation !== this.connectionGeneration) {
+                this.log.debug(
+                    `[connectCellForIntellisense] connection changed mid-request (gen ${generation} → ${this.connectionGeneration}); dropping stale registration cell=${cellDocumentUri}`,
+                );
+                return;
+            }
+
+            if (result !== true) {
+                this.registeredCellUris.delete(cellDocumentUri);
+                this.log.warn(
+                    `[connectCellForIntellisense] STS connect did not succeed (result=${String(result)}) cell=${cellDocumentUri}`,
+                );
+                return;
+            }
+
+            this.log.debug(
+                `[connectCellForIntellisense] STS connect returned true cell=${cellDocumentUri}`,
+            );
         } catch (err: any) {
-            this.log.warn(`[connectCellForIntellisense] sendRequest failed: ${err.message}`);
+            if (generation === this.connectionGeneration) {
+                this.registeredCellUris.delete(cellDocumentUri);
+            }
+            this.log.warn(
+                `[connectCellForIntellisense] sendRequest failed: ${err.message} cell=${cellDocumentUri}`,
+            );
         }
     }
 

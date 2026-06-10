@@ -15,6 +15,8 @@ import { useSchemaCompareSelector } from "./schemaCompareSelector";
 import Message from "./components/Message";
 import { makeStyles } from "@fluentui/react-components";
 
+export type SchemaCompareGroupBy = "none" | "type" | "action" | "schema";
+
 const useStyles = makeStyles({
     container: {
         display: "flex",
@@ -43,10 +45,13 @@ export const SchemaComparePage = () => {
     const context = useContext(schemaCompareContext);
     const schemaCompareResult = useSchemaCompareSelector((s) => s.schemaCompareResult);
     const isComparisonInProgress = useSchemaCompareSelector((s) => s.isComparisonInProgress);
+    const isApplyInProgress = useSchemaCompareSelector((s) => s.isApplyInProgress);
+    const applyFailed = useSchemaCompareSelector((s) => s.applyFailed);
     const [selectedDiffId, setSelectedDiffId] = useState(0);
     const [showDrawer, setShowDrawer] = useState(false);
     const [showOptionsDrawer, setShowOptionsDrawer] = useState(false);
     const [endpointType, setEndpointType] = useState<"source" | "target">("source");
+    const [groupBy, setGroupBy] = useState<SchemaCompareGroupBy>("type");
 
     // Create refs for the resizable components
     const differencesRef = useRef<HTMLDivElement>(null);
@@ -78,7 +83,13 @@ export const SchemaComparePage = () => {
     };
 
     const showMessage = () => {
-        if (!schemaCompareResult || schemaCompareResult.areEqual || isComparisonInProgress) {
+        if (
+            !schemaCompareResult ||
+            schemaCompareResult.areEqual ||
+            isComparisonInProgress ||
+            isApplyInProgress ||
+            applyFailed
+        ) {
             return true;
         }
 
@@ -87,7 +98,11 @@ export const SchemaComparePage = () => {
 
     return (
         <div className={classes.container}>
-            <CompareActionBar onOptionsClicked={openOptionsDialog} />
+            <CompareActionBar
+                onOptionsClicked={openOptionsDialog}
+                groupBy={groupBy}
+                onGroupByChange={setGroupBy}
+            />
             <SelectSchemasPanel onSelectSchemaClicked={handleSelectSchemaClicked} />
 
             {showMessage() && <Message />}
@@ -100,6 +115,7 @@ export const SchemaComparePage = () => {
                             selectedDiffId={selectedDiffId}
                             onDiffSelected={handleDiffSelected}
                             siblingRef={diffEditorRef}
+                            groupBy={groupBy}
                         />
 
                         {selectedDiffId !== -1 && (

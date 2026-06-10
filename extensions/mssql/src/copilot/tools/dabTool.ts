@@ -44,18 +44,24 @@ type DabToolFailureReason =
     | "internal_error";
 
 interface DabToolChangeCounts {
+    add_entity_count: number;
+    remove_entity_count: number;
     set_api_types_count: number;
     set_entity_enabled_count: number;
     set_entity_actions_count: number;
+    set_column_exposed_count: number;
     patch_entity_settings_count: number;
     set_only_enabled_entities_count: number;
     set_all_entities_enabled_count: number;
 }
 
 interface DabToolReceipt {
+    addEntityCount: number;
+    removeEntityCount: number;
     setApiTypesCount: number;
     setEntityEnabledCount: number;
     setEntityActionsCount: number;
+    setColumnExposedCount: number;
     patchEntitySettingsCount: number;
     setOnlyEnabledEntitiesCount: number;
     setAllEntitiesEnabledCount: number;
@@ -140,9 +146,12 @@ export class DabTool extends ToolBase<DabToolParams> {
 
         const countChanges = (changes: Dab.DabToolChange[]): DabToolChangeCounts => {
             const counts: DabToolChangeCounts = {
+                add_entity_count: 0,
+                remove_entity_count: 0,
                 set_api_types_count: 0,
                 set_entity_enabled_count: 0,
                 set_entity_actions_count: 0,
+                set_column_exposed_count: 0,
                 patch_entity_settings_count: 0,
                 set_only_enabled_entities_count: 0,
                 set_all_entities_enabled_count: 0,
@@ -153,11 +162,20 @@ export class DabTool extends ToolBase<DabToolParams> {
                     case "set_api_types":
                         counts.set_api_types_count++;
                         break;
+                    case "add_entity":
+                        counts.add_entity_count++;
+                        break;
+                    case "remove_entity":
+                        counts.remove_entity_count++;
+                        break;
                     case "set_entity_enabled":
                         counts.set_entity_enabled_count++;
                         break;
                     case "set_entity_actions":
                         counts.set_entity_actions_count++;
+                        break;
+                    case "set_column_exposed":
+                        counts.set_column_exposed_count++;
                         break;
                     case "patch_entity_settings":
                         counts.patch_entity_settings_count++;
@@ -175,9 +193,12 @@ export class DabTool extends ToolBase<DabToolParams> {
         };
 
         const toReceipt = (counts: DabToolChangeCounts): DabToolReceipt => ({
+            addEntityCount: counts.add_entity_count,
+            removeEntityCount: counts.remove_entity_count,
             setApiTypesCount: counts.set_api_types_count,
             setEntityEnabledCount: counts.set_entity_enabled_count,
             setEntityActionsCount: counts.set_entity_actions_count,
+            setColumnExposedCount: counts.set_column_exposed_count,
             patchEntitySettingsCount: counts.patch_entity_settings_count,
             setOnlyEnabledEntitiesCount: counts.set_only_enabled_entities_count,
             setAllEntitiesEnabledCount: counts.set_all_entities_enabled_count,
@@ -395,7 +416,6 @@ export class DabTool extends ToolBase<DabToolParams> {
             return json(
                 withTarget(
                     {
-                        success: true,
                         ...successResult,
                         receipt: toReceipt(changeCounts),
                     },

@@ -13,7 +13,7 @@ import {
 } from "@azure/msal-node";
 import { ITenant, AzureAuthType, IProviderSettings } from "../../models/contracts/azure";
 import { IDeferred } from "../../models/interfaces";
-import { Logger } from "../../models/logger";
+import { ILogger } from "../../sharedInterfaces/logger";
 import { MsalAzureAuth } from "./msalAzureAuth";
 import { SimpleWebServer } from "../simpleWebServer";
 import { AzureAuthError } from "../azureAuthError";
@@ -40,7 +40,7 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
         protected readonly context: vscode.ExtensionContext,
         protected clientApplication: PublicClientApplication,
         protected readonly vscodeWrapper: VscodeWrapper,
-        protected readonly logger: Logger,
+        protected readonly logger: ILogger,
     ) {
         super(
             providerSettings,
@@ -59,7 +59,10 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
         };
     }
 
-    protected async login(tenant: ITenant): Promise<{
+    protected async login(
+        tenant: ITenant,
+        scopes?: string[],
+    ): Promise<{
         response: AuthenticationResult;
         authComplete: IDeferred<void, Error>;
     }> {
@@ -80,13 +83,15 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
         const state = `${serverPort},${this.pkceCodes.nonce}`;
         let authCodeRequest: AuthorizationCodeRequest;
 
+        const effectiveScopes = scopes ?? this.scopes;
+
         let authority = this.loginEndpointUrl + tenant.id;
         this.logger.info(`Authority URL set to: ${authority}`);
 
         try {
             let authUrlRequest: AuthorizationUrlRequest;
             authUrlRequest = {
-                scopes: this.scopes,
+                scopes: effectiveScopes,
                 redirectUri: `${this.redirectUri}:${serverPort}/redirect`,
                 codeChallenge: this.pkceCodes.codeChallenge,
                 codeChallengeMethod: this.pkceCodes.challengeMethod,
@@ -95,7 +100,7 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
                 state: state,
             };
             authCodeRequest = {
-                scopes: this.scopes,
+                scopes: effectiveScopes,
                 redirectUri: `${this.redirectUri}:${serverPort}/redirect`,
                 codeVerifier: this.pkceCodes.codeVerifier,
                 authority: authority,
@@ -239,7 +244,9 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
                             res,
                             path.join(mediaPath, "landing.html"),
                             "text/html; charset=utf-8",
-                        ).catch(console.error);
+                        ).catch((error) =>
+                            this.logger.error("Failed to send auth landing page", error),
+                        );
                     },
                     (ex: Error) => {
                         res.writeHead(400, { "content-type": "text/html" });

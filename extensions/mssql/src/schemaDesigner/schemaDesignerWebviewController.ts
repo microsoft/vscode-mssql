@@ -11,7 +11,7 @@ import * as LocConstants from "../constants/locConstants";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import MainController from "../controllers/mainController";
 import { homedir } from "os";
-import { getErrorMessage, getUniqueFilePath } from "../utils/utils";
+import { getErrorMessage, getUniqueFilePath, uuid } from "../utils/utils";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { configSchemaDesignerEnableExpandCollapseButtons } from "../constants/constants";
@@ -23,7 +23,10 @@ import { DabService } from "../services/dabService";
 import { Dab } from "../sharedInterfaces/dab";
 import { CopilotChat } from "../sharedInterfaces/copilotChat";
 import { addMcpServerToWorkspace } from "../copilot/copilotUtils";
-
+import {
+    getSchemaDesignerDefinitionOutput,
+    SchemaDesignerDefinitionOutput,
+} from "../sharedInterfaces/schemaDesignerDefinitionOutput";
 function isExpandCollapseButtonsEnabled(): boolean {
     return vscode.workspace
         .getConfiguration()
@@ -35,6 +38,31 @@ function isCopilotChatInstalled(): boolean {
 }
 
 const SCHEMA_DESIGNER_VIEW_ID = "schemaDesigner";
+const DAB_CONFIG_FILE_EXTENSION = "json";
+const DEFINITION_FILE_EXTENSION_BY_KIND: Record<SchemaDesigner.DefinitionKind, string> = {
+    [SchemaDesigner.DefinitionKind.Sql]: "sql",
+    [SchemaDesigner.DefinitionKind.Prisma]: "prisma",
+    [SchemaDesigner.DefinitionKind.Sequelize]: "ts",
+    [SchemaDesigner.DefinitionKind.TypeOrm]: "ts",
+    [SchemaDesigner.DefinitionKind.Drizzle]: "ts",
+    [SchemaDesigner.DefinitionKind.SqlAlchemy]: "py",
+    [SchemaDesigner.DefinitionKind.EfCore]: "cs",
+};
+
+function sanitizeFileNamePart(value: string): string {
+    const sanitized = value
+        .trim()
+        .replace(/[^A-Za-z0-9._-]+/g, "_")
+        .replace(/^_+|_+$/g, "");
+    return sanitized || "database";
+}
+
+function getDateFileNamePart(date = new Date()): string {
+    const year = date.getFullYear().toString();
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const day = date.getDate().toString().padStart(2, "0");
+    return `${year}${month}${day}`;
+}
 
 function getCopilotChatDiscoveryDismissedState(
     context: vscode.ExtensionContext,
@@ -48,6 +76,10 @@ function getCopilotChatDiscoveryDismissedState(
     };
 }
 
+function toError(error: unknown): Error {
+    return error instanceof Error ? error : new Error(getErrorMessage(error));
+}
+
 export class SchemaDesignerWebviewController extends WebviewPanelController<
     SchemaDesigner.SchemaDesignerWebviewState,
     SchemaDesigner.SchemaDesignerReducers
@@ -57,6 +89,12 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     private _serverName: string | undefined;
     private _sqlServerContainerName: string | undefined;
     private _dabService = new DabService();
+    private _progressListener:
+        | ((progress: SchemaDesigner.SchemaDesignerProgressNotificationParams) => void)
+        | undefined;
+    private _messageListener:
+        | ((message: SchemaDesigner.SchemaDesignerMessageNotificationParams) => void)
+        | undefined;
     public schemaDesignerDetails: SchemaDesigner.CreateSessionResponse | undefined = undefined;
     public baselineSchema: SchemaDesigner.Schema | undefined = undefined;
 
@@ -71,6 +109,8 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         private schemaDesignerCache: Map<string, SchemaDesigner.SchemaDesignerCacheItem>,
         private treeNode?: TreeNodeInfo,
         private connectionUri?: string,
+        isReadOnly: boolean = false,
+        cacheKey?: string,
     ) {
         super(
             context,
@@ -82,9 +122,12 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 isCopilotChatInstalled: isCopilotChatInstalled(),
                 copilotChatDiscoveryDismissed: getCopilotChatDiscoveryDismissedState(context),
                 activeView: SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner,
+                isReadOnly,
             },
             {
-                title: `${LocConstants.SchemaDesigner.PanelTitle} - ${databaseName}`,
+                title: isReadOnly
+                    ? `${LocConstants.SchemaDesigner.ReadOnlyPanelTitle} - ${databaseName}`
+                    : `${LocConstants.SchemaDesigner.PanelTitle} - ${databaseName}`,
                 viewColumn: vscode.ViewColumn.One,
                 iconPath: {
                     light: vscode.Uri.joinPath(
@@ -102,7 +145,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             },
         );
 
-        this._key = `${this.connectionString}-${this.databaseName}`;
+        this._key = cacheKey ?? `${this.connectionString}-${this.databaseName}`;
         this._serverName = this.resolveServerName();
         this._sqlServerContainerName = this.resolveSqlServerContainerName();
 
@@ -113,6 +156,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
 
         this.setupRequestHandlers();
         this.setupReducers();
+        this.setupSchemaDesignerProgressListeners();
         this.setupConfigurationListener();
     }
 
@@ -142,8 +186,13 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             );
             try {
                 let sessionResponse: SchemaDesigner.CreateSessionResponse;
-                if (!this.schemaDesignerCache.has(this._key)) {
+                const cacheItem = this.schemaDesignerCache.get(this._key);
+                const hasCachedSession = !!cacheItem?.schemaDesignerDetails?.sessionId;
+
+                if (!hasCachedSession) {
+                    this._sessionId = uuid();
                     sessionResponse = await this.schemaDesignerService.createSession({
+                        sessionId: this._sessionId,
                         connectionString: this.connectionString,
                         accessToken: this.accessToken,
                         databaseName: this.databaseName,
@@ -152,13 +201,15 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                     this.schemaDesignerCache.set(this._key, {
                         schemaDesignerDetails: sessionResponse,
                         baselineSchema: sessionResponse.schema,
-                        isDirty: false,
+                        dabConfig: cacheItem?.dabConfig,
+                        isDirty: cacheItem?.isDirty ?? false,
                     });
                 } else {
-                    const cacheItem = this.schemaDesignerCache.get(this._key)!;
                     sessionResponse = cacheItem.schemaDesignerDetails;
                     this.baselineSchema = cacheItem.baselineSchema;
+                    this._sessionId = sessionResponse.sessionId;
                 }
+
                 this.schemaDesignerDetails = sessionResponse;
                 this._sessionId = sessionResponse.sessionId;
                 schemaDesignerInitActivity.end(ActivityStatus.Succeeded, undefined, {
@@ -166,7 +217,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 });
                 return sessionResponse;
             } catch (error) {
-                schemaDesignerInitActivity.endFailed(error, false);
+                schemaDesignerInitActivity.endFailed(toError(error), false);
                 throw error;
             }
         });
@@ -201,24 +252,14 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 },
             );
             try {
-                const result = await vscode.window.withProgress(
-                    {
-                        location: vscode.ProgressLocation.Notification,
-                        title: LocConstants.SchemaDesigner.GeneratingReport,
-                        cancellable: false,
-                    },
-                    async () => {
-                        // Wait for the report to be generated
-                        const report = await this.schemaDesignerService.getReport({
-                            updatedSchema: payload.updatedSchema,
-                            sessionId: this._sessionId,
-                        });
-                        this.updateCacheItem(payload.updatedSchema);
-                        return {
-                            report,
-                        };
-                    },
-                );
+                const report = await this.schemaDesignerService.getReport({
+                    updatedSchema: payload.updatedSchema,
+                    sessionId: this._sessionId,
+                });
+                this.updateCacheItem(payload.updatedSchema);
+                const result = {
+                    report,
+                };
 
                 reportActivity.end(
                     ActivityStatus.Succeeded,
@@ -236,9 +277,9 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
 
                 return result;
             } catch (error) {
-                reportActivity.endFailed(error, false);
+                reportActivity.endFailed(toError(error), false);
                 return {
-                    error: error.toString(),
+                    error: getErrorMessage(error),
                 };
             }
         });
@@ -256,6 +297,9 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 publishActivity.end(ActivityStatus.Succeeded, undefined, {
                     tableCount: payload.schema?.tables?.length,
                 });
+                if (this.schemaDesignerDetails) {
+                    this.schemaDesignerDetails.schema = payload.schema;
+                }
                 this.updateCacheItem(undefined, false);
 
                 // After publishing, reset baseline to current (published) schema so change count clears.
@@ -276,11 +320,10 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                     updatedSchema: this.schemaDesignerDetails?.schema ?? payload.schema,
                 };
             } catch (error) {
-                publishActivity.endFailed(error, false);
+                publishActivity.endFailed(toError(error), false);
                 return {
                     success: false,
-                    error: error.toString(),
-                    updatedSchema: this.schemaDesignerDetails?.schema ?? payload.schema,
+                    error: getErrorMessage(error),
                 };
             }
         });
@@ -327,20 +370,57 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         });
 
         this.onNotification(SchemaDesigner.CopyToClipboardNotification.type, async (params) => {
-            await vscode.env.clipboard.writeText(params.text);
-            await vscode.window.showInformationMessage(LocConstants.scriptCopiedToClipboard);
+            try {
+                const definition = await this.createDefinitionOutput(params);
+                await vscode.env.clipboard.writeText(definition.text);
+                await vscode.window.showInformationMessage(LocConstants.copied);
+            } catch (error) {
+                await vscode.window.showErrorMessage(
+                    LocConstants.failedToCopyTextToClipboard(getErrorMessage(error)),
+                );
+            }
         });
 
-        this.onNotification(SchemaDesigner.OpenInEditorNotification.type, async () => {
-            const definition = await this.schemaDesignerService.getDefinition({
-                updatedSchema: this.schemaDesignerDetails!.schema,
-                sessionId: this._sessionId,
-            });
-            await this.mainController.sqlDocumentService.newQuery({
-                content: definition.script,
-                connectionStrategy: ConnectionStrategy.DoNotConnect,
-            });
+        this.onNotification(SchemaDesigner.OpenInEditorNotification.type, async (params) => {
+            try {
+                const definition = await this.createDefinitionOutput(params);
+
+                if (definition.language === "sql") {
+                    await this.mainController.sqlDocumentService.newQuery({
+                        content: definition.text,
+                        connectionStrategy: ConnectionStrategy.DoNotConnect,
+                    });
+                    return;
+                }
+
+                const document = await vscode.workspace.openTextDocument({
+                    content: definition.text,
+                    language: definition.language,
+                });
+                await vscode.window.showTextDocument(document, { preview: false });
+            } catch (error) {
+                await vscode.window.showErrorMessage(
+                    LocConstants.failedToOpenTextInEditor(getErrorMessage(error)),
+                );
+            }
         });
+
+        this.onNotification(
+            SchemaDesigner.AddDefinitionToWorkspaceNotification.type,
+            async (params) => {
+                try {
+                    const definition = await this.createDefinitionOutput(params);
+                    await this.addTextToWorkspace(
+                        definition.text,
+                        DEFINITION_FILE_EXTENSION_BY_KIND[params.definitionKind],
+                    );
+                } catch (error) {
+                    await vscode.window.showErrorMessage(
+                        LocConstants.failedToAddTextToWorkspace(getErrorMessage(error)),
+                    );
+                }
+            },
+        );
 
         this.onNotification(SchemaDesigner.OpenInEditorWithConnectionNotification.type, () => {
             const generateScriptActivity = startActivity(
@@ -366,7 +446,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                                 ? { scriptLength: result?.script?.length }
                                 : { scriptLength: 0 },
                         );
-                        let connectionCredentials: IConnectionInfo;
+                        let connectionCredentials: IConnectionInfo | undefined;
                         // Open the document in the editor with the connection
                         if (this.treeNode) {
                             connectionCredentials = this.treeNode.connectionProfile;
@@ -382,7 +462,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                             connectionInfo: connectionCredentials,
                         });
                     } catch (error) {
-                        generateScriptActivity.endFailed(error, false);
+                        generateScriptActivity.endFailed(toError(error), false);
                         vscode.window.showErrorMessage(
                             LocConstants.SchemaDesigner.PublishScriptFailed(getErrorMessage(error)),
                         );
@@ -432,6 +512,16 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             });
         });
 
+        this.onRequest(Dab.GetCachedConfigRequest.type, async () => {
+            return {
+                config: this.schemaDesignerCache.get(this._key)?.dabConfig,
+            };
+        });
+
+        this.onNotification(Dab.CacheConfigNotification.type, async (payload) => {
+            this.updateCacheItem(undefined, undefined, payload.config);
+        });
+
         this.onNotification(Dab.OpenConfigInEditorNotification.type, async (payload) => {
             const doc = await vscode.workspace.openTextDocument({
                 content: payload.configContent,
@@ -443,6 +533,21 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             });
 
             await vscode.window.showTextDocument(doc);
+        });
+
+        this.onNotification(Dab.AddConfigToWorkspaceNotification.type, async (payload) => {
+            try {
+                await this.addTextToWorkspace(payload.configContent, DAB_CONFIG_FILE_EXTENSION);
+
+                sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.ExportDabConfig, {
+                    language: "json",
+                    target: "workspace",
+                });
+            } catch (error) {
+                await vscode.window.showErrorMessage(
+                    LocConstants.failedToAddTextToWorkspace(getErrorMessage(error)),
+                );
+            }
         });
 
         this.onNotification(Dab.OpenLogsInNewTabNotification.type, async (payload) => {
@@ -578,6 +683,95 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         });
     }
 
+    private setupSchemaDesignerProgressListeners() {
+        this._progressListener = (progress) => {
+            if (progress.sessionId !== this._sessionId) {
+                return;
+            }
+
+            this.logger.info("Progress", progress);
+
+            try {
+                void this.sendNotification(
+                    SchemaDesigner.SchemaDesignerProgressNotification.type,
+                    progress,
+                );
+            } catch {
+                // Ignore notifications racing with webview disposal.
+            }
+        };
+
+        this._messageListener = (message) => {
+            if (message.sessionId !== this._sessionId) {
+                return;
+            }
+
+            this.logger.info("Message", message);
+
+            try {
+                void this.sendNotification(
+                    SchemaDesigner.SchemaDesignerMessageNotification.type,
+                    message,
+                );
+            } catch {
+                // Ignore notifications racing with webview disposal.
+            }
+        };
+
+        this.schemaDesignerService.onProgress(this._progressListener);
+        this.schemaDesignerService.onMessage(this._messageListener);
+    }
+
+    private async createDefinitionOutput(
+        params?: SchemaDesigner.OpenInEditorOptions | SchemaDesigner.CopyToClipboardOptions,
+    ): Promise<SchemaDesignerDefinitionOutput> {
+        if (params?.text !== undefined) {
+            return {
+                text: params.text,
+                language: "language" in params ? (params.language ?? "sql") : "sql",
+            };
+        }
+
+        const updatedSchema = params?.updatedSchema ?? this.schemaDesignerDetails?.schema;
+        if (!updatedSchema) {
+            throw new Error(LocConstants.schemaDesignerDetailsUnavailable);
+        }
+
+        this.updateCacheItem(updatedSchema);
+
+        const definitionKind = params?.definitionKind ?? SchemaDesigner.DefinitionKind.Sql;
+        if (definitionKind === SchemaDesigner.DefinitionKind.Sql) {
+            const definition = await this.schemaDesignerService.getDefinition({
+                updatedSchema,
+                sessionId: this._sessionId || this.schemaDesignerDetails?.sessionId || "",
+            });
+            return {
+                text: definition.script,
+                language: "sql",
+            };
+        }
+
+        return getSchemaDesignerDefinitionOutput(updatedSchema, definitionKind);
+    }
+
+    private async addTextToWorkspace(text: string, fileExtension: string): Promise<vscode.Uri> {
+        const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
+        if (!workspaceFolder) {
+            throw new Error(LocConstants.SchemaDesigner.noWorkspaceOpenForGeneratedFile);
+        }
+
+        const baseName = `${sanitizeFileNamePart(this.databaseName)}_${getDateFileNamePart()}`;
+        const outputUri = await getUniqueFilePath(workspaceFolder, baseName, fileExtension);
+        await vscode.workspace.fs.writeFile(outputUri, Buffer.from(text, "utf8"));
+
+        const document = await vscode.workspace.openTextDocument(outputUri);
+        await vscode.window.showTextDocument(document, { preview: false });
+        await vscode.window.showInformationMessage(
+            LocConstants.SchemaDesigner.generatedFileAddedToWorkspace(outputUri.fsPath),
+        );
+        return outputUri;
+    }
+
     private setupConfigurationListener() {
         const configChangeDisposable = vscode.workspace.onDidChangeConfiguration((e) => {
             if (e.affectsConfiguration(configSchemaDesignerEnableExpandCollapseButtons)) {
@@ -595,11 +789,44 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     private updateCacheItem(
         updatedSchema?: SchemaDesigner.Schema,
         isDirty?: boolean,
+        dabConfig?: Dab.DabConfig,
     ): SchemaDesigner.SchemaDesignerCacheItem {
-        let schemaDesignerCacheItem = this.schemaDesignerCache.get(this._key)!;
+        let schemaDesignerCacheItem = this.schemaDesignerCache.get(this._key);
+        if (!schemaDesignerCacheItem) {
+            if (this.schemaDesignerDetails) {
+                schemaDesignerCacheItem = {
+                    schemaDesignerDetails: this.schemaDesignerDetails,
+                    baselineSchema: this.baselineSchema ?? this.schemaDesignerDetails.schema,
+                    isDirty: false,
+                };
+            } else {
+                schemaDesignerCacheItem = {
+                    schemaDesignerDetails: {
+                        schema: { tables: [] },
+                        dataTypes: [],
+                        schemaNames: [],
+                        sessionId: "",
+                    },
+                    baselineSchema: this.baselineSchema ?? { tables: [] },
+                    isDirty: false,
+                };
+            }
+        }
+        if (
+            !this.schemaDesignerDetails &&
+            schemaDesignerCacheItem.schemaDesignerDetails.sessionId
+        ) {
+            this.schemaDesignerDetails = schemaDesignerCacheItem.schemaDesignerDetails;
+        }
         if (updatedSchema) {
+            if (!this.schemaDesignerDetails) {
+                throw new Error(LocConstants.schemaDesignerDetailsUnavailable);
+            }
             this.schemaDesignerDetails!.schema = updatedSchema;
             schemaDesignerCacheItem.schemaDesignerDetails.schema = updatedSchema;
+        }
+        if (dabConfig) {
+            schemaDesignerCacheItem.dabConfig = dabConfig;
         }
         // if isDirty is not provided, set it to schemaDesignerCacheItem.isDirty
         // else, set it to the provided value
@@ -609,6 +836,14 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     }
 
     override async dispose(): Promise<void> {
+        if (this._progressListener) {
+            this.schemaDesignerService.removeProgressListener(this._progressListener);
+            this._progressListener = undefined;
+        }
+        if (this._messageListener) {
+            this.schemaDesignerService.removeMessageListener(this._messageListener);
+            this._messageListener = undefined;
+        }
         if (this.schemaDesignerDetails) {
             this.updateCacheItem(this.schemaDesignerDetails!.schema);
         }
