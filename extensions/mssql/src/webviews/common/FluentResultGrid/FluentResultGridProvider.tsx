@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { FluentResultGridOverlayHost } from "./internal/FluentResultGridMenuOverlay";
 import type { FluentResultGridKeyBindingMap } from "./types/fluentResultGridCommands";
 import type {
     FluentResultGridActiveOverlayState,
@@ -77,6 +78,13 @@ export function FluentResultGridProvider({
     return (
         <FluentResultGridContext.Provider value={value}>
             {children}
+            <FluentResultGridOverlayHost
+                overlay={overlay}
+                closeOverlay={closeOverlay}
+                strings={strings}
+                keyBindings={keyBindings}
+                defaultCommands={defaultCommands}
+            />
         </FluentResultGridContext.Provider>
     );
 }

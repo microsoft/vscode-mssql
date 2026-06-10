@@ -4,10 +4,20 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { makeStyles } from "@fluentui/react-components";
-import { forwardRef, useImperativeHandle, useMemo, useRef } from "react";
+import {
+    forwardRef,
+    useCallback,
+    useImperativeHandle,
+    useMemo,
+    useRef,
+    type MouseEvent,
+} from "react";
 import { FluentResultGridToolbar } from "./FluentResultGridToolbar";
 import { useFluentResultGridProvider } from "./FluentResultGridProvider";
-import type { FluentResultGridCommandContext } from "./types/fluentResultGridCommands";
+import {
+    FluentResultGridCommandPlacement,
+    type FluentResultGridCommandContext,
+} from "./types/fluentResultGridCommands";
 import type { FluentResultGridDataSource } from "./types/fluentResultGridDataSource";
 import type { FluentResultGridHandle, FluentResultGridProps } from "./types/fluentResultGridProps";
 import type { FluentResultGridHeightMode } from "./types/fluentResultGridState";
@@ -69,7 +79,7 @@ export const FluentResultGrid = forwardRef<FluentResultGridHandle, FluentResultG
         ref,
     ) => {
         const classes = useStyles();
-        const { strings, theme } = useFluentResultGridProvider();
+        const { strings, theme, openOverlay } = useFluentResultGridProvider();
         const containerRef = useRef<HTMLDivElement>(null);
         const rowCount = getDataSourceRowCount(dataSource);
 
@@ -116,6 +126,24 @@ export const FluentResultGrid = forwardRef<FluentResultGridHandle, FluentResultG
                 viewMode,
             ],
         );
+        const handleGridBodyContextMenu = useCallback(
+            (event: MouseEvent<HTMLDivElement>) => {
+                event.preventDefault();
+                event.stopPropagation();
+
+                openOverlay({
+                    kind: "menu",
+                    gridId,
+                    placement: FluentResultGridCommandPlacement.CellContextMenu,
+                    x: event.clientX,
+                    y: event.clientY,
+                    commandContext,
+                    commands,
+                    onCommand,
+                });
+            },
+            [commandContext, commands, gridId, onCommand, openOverlay],
+        );
 
         return (
             <div
@@ -128,7 +156,11 @@ export const FluentResultGrid = forwardRef<FluentResultGridHandle, FluentResultG
                 data-fluent-result-grid="true"
                 data-grid-id={gridId}
                 data-row-count={rowCount}>
-                <div className={classes.gridBody} data-fluent-result-grid-body="true" />
+                <div
+                    className={classes.gridBody}
+                    data-fluent-result-grid-body="true"
+                    onContextMenu={handleGridBodyContextMenu}
+                />
                 <FluentResultGridToolbar
                     toolbar={toolbar}
                     commands={commands}

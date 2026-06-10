@@ -3,7 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { FluentResultGridCommandMenuPlacement } from "../types/fluentResultGridCommands";
+import type {
+    FluentResultGridCommandConfiguration,
+    FluentResultGridCommandContext,
+    FluentResultGridCommandEvent,
+    FluentResultGridCommandMenuPlacement,
+} from "../types/fluentResultGridCommands";
 import type { FluentResultGridCommandId } from "../types/fluentResultGridCommandIds";
 import type {
     FluentResultGridAnchorRect,
@@ -25,8 +30,10 @@ export interface FluentResultGridMenuOverlayState extends FluentResultGridPoint 
     kind: "menu";
     gridId: FluentResultGridId;
     placement: FluentResultGridCommandMenuPlacement;
+    commandContext: FluentResultGridCommandContext;
+    commands?: FluentResultGridCommandConfiguration;
     commandIds?: readonly FluentResultGridCommandId[];
-    onCommand: (commandId: FluentResultGridCommandId) => MaybePromise<void>;
+    onCommand?: (event: FluentResultGridCommandEvent) => MaybePromise<void>;
 }
 
 export interface FluentResultGridFilterOverlayState {

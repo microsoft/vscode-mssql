@@ -25,29 +25,26 @@ import {
     MoreVertical20Filled,
     TableRegular,
 } from "@fluentui/react-icons";
-import { isValidElement, useMemo, type KeyboardEvent, type ReactElement } from "react";
+import { useMemo, type KeyboardEvent, type ReactElement } from "react";
 import { useFluentResultGridProvider } from "./FluentResultGridProvider";
-import { builtInFluentResultGridCommands } from "./internal/fluentResultGridBuiltInCommands";
+import {
+    resolveFluentResultGridCommands,
+    toFluentResultGridReactElement,
+} from "./internal/fluentResultGridCommandResolution";
 import {
     FluentResultGridCommand,
-    type FluentResultGridBuiltInCommandId,
     type FluentResultGridCommandId,
 } from "./types/fluentResultGridCommandIds";
 import {
     FluentResultGridCommandPlacement,
-    getFluentResultGridCommandTooltip,
     type FluentResultGridCommandConfiguration,
     type FluentResultGridCommandContext,
-    type FluentResultGridCommandContribution,
     type FluentResultGridCommandEvent,
     type FluentResultGridKeyBindingMap,
     type FluentResultGridToolbarOptions,
 } from "./types/fluentResultGridCommands";
 import type { MaybePromise } from "./types/fluentResultGridPrimitives";
-import type {
-    FluentResultGridCommandDisplay,
-    FluentResultGridStrings,
-} from "./types/fluentResultGridStrings";
+import type { FluentResultGridStrings } from "./types/fluentResultGridStrings";
 import type { FluentResultGridTheme } from "./types/fluentResultGridTheme";
 
 const toolbarPlacement = FluentResultGridCommandPlacement.Toolbar;
@@ -134,14 +131,6 @@ function saveAsInsertIcon(kind: FluentResultGridTheme["kind"] | undefined) {
         : require("../../media/saveInsert_inverse.svg");
 }
 
-function isBuiltInCommandId(
-    commandId: FluentResultGridCommandId,
-): commandId is FluentResultGridBuiltInCommandId {
-    return Object.values(FluentResultGridCommand).includes(
-        commandId as FluentResultGridBuiltInCommandId,
-    );
-}
-
 function getBuiltInCommandIcon(
     commandId: FluentResultGridCommandId,
     themeKind: FluentResultGridTheme["kind"] | undefined,
@@ -169,102 +158,6 @@ function getBuiltInCommandIcon(
     }
 }
 
-function getCommandDisplay(
-    command: FluentResultGridCommandContribution,
-    strings: FluentResultGridStrings,
-): FluentResultGridCommandDisplay {
-    const stringDisplay = isBuiltInCommandId(command.id) ? strings.commands[command.id] : undefined;
-
-    return {
-        label: stringDisplay?.label || command.label || command.id,
-        tooltip: stringDisplay?.tooltip ?? command.tooltip,
-        ariaLabel: stringDisplay?.ariaLabel ?? command.ariaLabel,
-    };
-}
-
-function addCommandContributions(
-    commandById: Map<FluentResultGridCommandId, FluentResultGridCommandContribution>,
-    contributions: readonly FluentResultGridCommandContribution[] | undefined,
-) {
-    for (const contribution of contributions ?? []) {
-        const existing = commandById.get(contribution.id);
-        commandById.set(
-            contribution.id,
-            existing ? { ...existing, ...contribution } : contribution,
-        );
-    }
-}
-
-function getMergedCommandMap(
-    defaultCommands: FluentResultGridCommandConfiguration | undefined,
-    gridCommands: FluentResultGridCommandConfiguration | undefined,
-) {
-    const commandById = new Map<FluentResultGridCommandId, FluentResultGridCommandContribution>();
-
-    for (const command of builtInFluentResultGridCommands) {
-        commandById.set(command.id, command);
-    }
-
-    addCommandContributions(commandById, defaultCommands?.contributions);
-    addCommandContributions(commandById, gridCommands?.contributions);
-
-    return commandById;
-}
-
-function getConfiguredToolbarCommandIds(
-    defaultCommands: FluentResultGridCommandConfiguration | undefined,
-    gridCommands: FluentResultGridCommandConfiguration | undefined,
-    toolbar: FluentResultGridToolbarOptions | undefined,
-): readonly FluentResultGridCommandId[] | undefined {
-    return (
-        toolbar?.commandIds ??
-        gridCommands?.placements?.[toolbarPlacement] ??
-        defaultCommands?.placements?.[toolbarPlacement]
-    );
-}
-
-function getToolbarCommandContributions(
-    defaultCommands: FluentResultGridCommandConfiguration | undefined,
-    gridCommands: FluentResultGridCommandConfiguration | undefined,
-    toolbar: FluentResultGridToolbarOptions | undefined,
-) {
-    const commandById = getMergedCommandMap(defaultCommands, gridCommands);
-    const configuredCommandIds = getConfiguredToolbarCommandIds(
-        defaultCommands,
-        gridCommands,
-        toolbar,
-    );
-
-    if (configuredCommandIds) {
-        return configuredCommandIds.map(
-            (commandId) =>
-                commandById.get(commandId) ?? {
-                    id: commandId,
-                    label: commandId,
-                    placements: [toolbarPlacement],
-                },
-        );
-    }
-
-    return Array.from(commandById.values())
-        .filter((command) => command.placements.includes(toolbarPlacement))
-        .sort((left, right) => (left.order ?? 0) - (right.order ?? 0));
-}
-
-function getShortcutLabel(
-    keyBindings: FluentResultGridKeyBindingMap,
-    commandId: FluentResultGridCommandId,
-): string | undefined {
-    const keyBinding = keyBindings[commandId];
-    return keyBinding?.label ?? keyBinding?.keyCombination;
-}
-
-function toReactElement(
-    icon: FluentResultGridCommandContribution["icon"],
-): ReactElement | undefined {
-    return isValidElement(icon) ? icon : undefined;
-}
-
 function getToolbarActions({
     commandContext,
     commands,
@@ -286,40 +179,36 @@ function getToolbarActions({
     toolbar: FluentResultGridToolbarOptions | undefined;
     imageClassName: string;
 }): FluentResultGridToolbarAction[] {
-    return getToolbarCommandContributions(defaultCommands, commands, toolbar).flatMap((command) => {
-        if (command.isVisible?.(commandContext) === false) {
-            return [];
-        }
-
-        const display = getCommandDisplay(command, strings);
-        const shortcutLabel = getShortcutLabel(keyBindings, command.id);
-        const title = getFluentResultGridCommandTooltip(
-            display,
-            shortcutLabel,
-            strings.formatCommandTooltip,
-        );
-        const icon = toReactElement(command.icon) ??
+    return resolveFluentResultGridCommands({
+        placement: toolbarPlacement,
+        commandIds: toolbar?.commandIds,
+        defaultCommands,
+        gridCommands: commands,
+        commandContext,
+        keyBindings,
+        strings,
+    }).map((resolvedCommand) => {
+        const { command, display, title } = resolvedCommand;
+        const icon = toFluentResultGridReactElement(command.icon) ??
             getBuiltInCommandIcon(command.id, theme?.kind, imageClassName) ?? (
                 <DocumentTextRegular />
             );
 
-        return [
-            {
-                id: command.id,
-                groupId: command.groupId,
-                icon,
-                ariaLabel: display.ariaLabel ?? title,
-                title,
-                menuLabel: display.label,
-                disabled: !onCommand || command.isEnabled?.(commandContext) === false,
-                onClick: () => {
-                    void onCommand?.({
-                        ...commandContext,
-                        commandId: command.id,
-                    });
-                },
+        return {
+            id: command.id,
+            groupId: command.groupId,
+            icon,
+            ariaLabel: display.ariaLabel ?? title,
+            title,
+            menuLabel: display.label,
+            disabled: !onCommand || resolvedCommand.disabled,
+            onClick: () => {
+                void onCommand?.({
+                    ...commandContext,
+                    commandId: command.id,
+                });
             },
-        ];
+        };
     });
 }
 
