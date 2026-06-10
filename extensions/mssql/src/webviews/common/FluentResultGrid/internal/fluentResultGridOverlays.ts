@@ -54,6 +54,8 @@ export interface FluentResultGridResizeDialogOverlayState {
     columnId: FluentResultGridColumnId;
     columnName: string;
     initialWidth: number;
+    minWidth?: number;
+    maxWidth?: number;
     onSubmit: (width: number) => MaybePromise<void>;
     onDismiss: () => void;
 }

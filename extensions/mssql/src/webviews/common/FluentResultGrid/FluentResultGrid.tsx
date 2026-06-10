@@ -3,43 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { makeStyles } from "@fluentui/react-components";
-import {
-    forwardRef,
-    useCallback,
-    useImperativeHandle,
-    useMemo,
-    useRef,
-    type MouseEvent,
-} from "react";
+import { forwardRef, useImperativeHandle, useMemo, useRef } from "react";
+import { FluentSlickGrid } from "../FluentSlickGrid/FluentSlickGrid";
 import { FluentResultGridToolbar } from "./FluentResultGridToolbar";
 import { useFluentResultGridProvider } from "./FluentResultGridProvider";
-import {
-    FluentResultGridCommandPlacement,
-    type FluentResultGridCommandContext,
-} from "./types/fluentResultGridCommands";
-import type { FluentResultGridDataSource } from "./types/fluentResultGridDataSource";
+import { useFluentResultGridController } from "./internal/useFluentResultGridController";
 import type { FluentResultGridHandle, FluentResultGridProps } from "./types/fluentResultGridProps";
 import type { FluentResultGridHeightMode } from "./types/fluentResultGridState";
-
-const useStyles = makeStyles({
-    root: {
-        display: "flex",
-        minHeight: 0,
-        minWidth: 0,
-    },
-    gridBody: {
-        flexGrow: 1,
-        minHeight: 0,
-        minWidth: 0,
-    },
-});
-
-function getDataSourceRowCount(dataSource: FluentResultGridDataSource): number {
-    return dataSource.kind === "rows"
-        ? (dataSource.rowCount ?? dataSource.rows.length)
-        : dataSource.rowCount;
-}
+import "./FluentResultGrid.css";
 
 function getHeightModeStyle(heightMode: FluentResultGridHeightMode | undefined) {
     if (!heightMode || heightMode.kind === "fill") {
@@ -55,117 +26,99 @@ function getHeightModeStyle(heightMode: FluentResultGridHeightMode | undefined) 
 }
 
 /**
- * Reusable SQL result grid shell. It must be rendered inside FluentResultGridProvider so shared
- * strings, keybindings, theme metadata, and grid-owned overlays can be coordinated across grids.
+ * Reusable SQL result grid. It must be rendered inside FluentResultGridProvider so strings,
+ * keybindings, theme metadata, and provider-owned overlays can be coordinated across grids.
  */
 export const FluentResultGrid = forwardRef<FluentResultGridHandle, FluentResultGridProps>(
-    (
-        {
-            gridId,
-            resultSetSummary,
-            dataSource,
-            heightMode,
-            className,
-            style,
-            ariaLabel,
-            toolbar,
-            commands,
-            viewMode = "grid",
-            canToggleViewMode,
-            canToggleMaximize,
-            isMaximized,
-            onCommand,
-        },
-        ref,
-    ) => {
-        const classes = useStyles();
-        const { strings, theme, openOverlay } = useFluentResultGridProvider();
+    (props, ref) => {
+        const { strings, theme } = useFluentResultGridProvider();
         const containerRef = useRef<HTMLDivElement>(null);
-        const rowCount = getDataSourceRowCount(dataSource);
+        const controller = useFluentResultGridController({
+            ...props,
+            containerRef,
+        });
 
         useImperativeHandle(
             ref,
             () => ({
-                focusGrid: () => {
-                    containerRef.current?.focus();
-                },
+                focusGrid: controller.focusGrid,
             }),
-            [],
+            [controller.focusGrid],
         );
 
         const containerStyle = useMemo(
             () => ({
-                ...getHeightModeStyle(heightMode),
+                ...getHeightModeStyle(props.heightMode),
                 ...theme?.style,
-                ...style,
+                ...props.style,
+                "--results-row-padding": `${props.gridSettings?.rowPadding ?? 0}px`,
             }),
-            [heightMode, style, theme?.style],
+            [props.gridSettings?.rowPadding, props.heightMode, props.style, theme?.style],
         );
 
-        const classNames = [classes.root, theme?.className, className].filter(Boolean).join(" ");
+        const classNames = [
+            "fluent-result-grid",
+            controller.isGridFocused ? "focused" : "",
+            props.gridSettings?.alternatingRowColors ? "results-grid--alternating" : "",
+            theme?.className,
+            props.className,
+        ]
+            .filter(Boolean)
+            .join(" ");
         const label =
-            ariaLabel ??
-            strings.accessibility.gridAriaLabel(resultSetSummary.batchId, resultSetSummary.id);
-        const commandContext = useMemo<FluentResultGridCommandContext>(
-            () => ({
-                gridId,
-                batchId: resultSetSummary.batchId,
-                resultId: resultSetSummary.id,
-                viewMode,
-                canToggleViewMode,
-                canToggleMaximize,
-                isMaximized,
-            }),
-            [
-                canToggleMaximize,
-                canToggleViewMode,
-                gridId,
-                isMaximized,
-                resultSetSummary.batchId,
-                resultSetSummary.id,
-                viewMode,
-            ],
-        );
-        const handleGridBodyContextMenu = useCallback(
-            (event: MouseEvent<HTMLDivElement>) => {
-                event.preventDefault();
-                event.stopPropagation();
+            props.ariaLabel ??
+            strings.accessibility.gridAriaLabel(
+                props.resultSetSummary.batchId,
+                props.resultSetSummary.id,
+            );
 
-                openOverlay({
-                    kind: "menu",
-                    gridId,
-                    placement: FluentResultGridCommandPlacement.CellContextMenu,
-                    x: event.clientX,
-                    y: event.clientY,
-                    commandContext,
-                    commands,
-                    onCommand,
-                });
-            },
-            [commandContext, commands, gridId, onCommand, openOverlay],
-        );
+        if (controller.columns.length === 0) {
+            return null;
+        }
 
         return (
             <div
+                id={`fluent-result-grid-container-${props.gridId}`}
                 ref={containerRef}
-                className={classNames || undefined}
+                className={classNames}
                 style={containerStyle}
                 tabIndex={0}
                 role="region"
                 aria-label={label}
                 data-fluent-result-grid="true"
-                data-grid-id={gridId}
-                data-row-count={rowCount}>
+                data-grid-id={props.gridId}
+                data-row-count={controller.displayedRowCount}
+                onFocus={controller.handleGridContainerFocus}
+                onBlur={controller.handleGridContainerBlur}>
                 <div
-                    className={classes.gridBody}
-                    data-fluent-result-grid-body="true"
-                    onContextMenu={handleGridBodyContextMenu}
-                />
+                    id={`fluent-result-grid-body-${props.gridId}`}
+                    className="fluent-result-grid-body"
+                    data-fluent-result-grid-body="true">
+                    <FluentSlickGrid
+                        gridId={`fluent-result-grid-${props.gridId}`}
+                        columns={controller.columns}
+                        options={controller.gridOptions}
+                        dataset={controller.emptyDataset}
+                        customDataView={controller.dataView as any}
+                        onReactGridCreated={controller.handleReactGridCreated}
+                        onClick={controller.handleClick}
+                        onContextMenu={controller.handleContextMenu}
+                        onHeaderCellRendered={controller.handleHeaderCellRendered}
+                        onBeforeHeaderCellDestroy={controller.handleBeforeHeaderCellDestroy}
+                        onHeaderClick={controller.handleHeaderClick}
+                        onHeaderContextMenu={controller.handleHeaderContextMenu}
+                    />
+                    {controller.displayedRowCount <= 0 && (
+                        <div className="fluent-result-grid-empty-state" role="status">
+                            {strings.filter.noResultsToDisplay}
+                        </div>
+                    )}
+                </div>
                 <FluentResultGridToolbar
-                    toolbar={toolbar}
-                    commands={commands}
-                    commandContext={commandContext}
-                    onCommand={onCommand}
+                    toolbar={controller.toolbar}
+                    commands={controller.commands}
+                    commandContext={controller.commandContext}
+                    onCommand={controller.handleCommand}
                 />
             </div>
         );

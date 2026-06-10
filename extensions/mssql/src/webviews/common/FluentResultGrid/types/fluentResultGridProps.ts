@@ -35,6 +35,7 @@ export interface FluentResultGridBehaviorProps {
     autoSizeColumnsMode?: ResultsGridAutoSizeStyle;
     inMemoryDataProcessingThreshold?: number;
     gridSettings?: GridSettings;
+    rowHeight?: number;
     toolbar?: FluentResultGridToolbarOptions;
     commands?: FluentResultGridCommandConfiguration;
     viewMode?: FluentResultGridViewMode;
@@ -47,6 +48,7 @@ export interface FluentResultGridCallbackProps {
     onCommand?: (event: FluentResultGridCommandEvent) => MaybePromise<void>;
     onStateChange?: (state: FluentResultGridState) => void;
     onSelectionSummaryChange?: (selection: readonly ISlickRange[]) => MaybePromise<void>;
+    onInMemoryDataProcessingThresholdExceeded?: () => MaybePromise<void>;
 }
 
 export interface FluentResultGridProps

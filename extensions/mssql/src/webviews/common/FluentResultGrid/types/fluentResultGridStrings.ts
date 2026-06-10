@@ -33,6 +33,14 @@ export interface FluentResultGridFilterStrings {
     noResultsToDisplay: string;
 }
 
+export interface FluentResultGridResizeDialogStrings {
+    title: (columnName: string) => string;
+    widthLabel: string;
+    validationError: (minWidth: number, maxWidth: number) => string;
+    submit: string;
+    cancel: string;
+}
+
 export interface FluentResultGridAccessibilityStrings {
     selectedCount: (count: number) => string;
     gridAriaLabel: (batchId: number, resultId: number) => string;
@@ -43,6 +51,7 @@ export interface FluentResultGridStrings {
     commands: Partial<Record<FluentResultGridBuiltInCommandId, FluentResultGridCommandDisplay>>;
     menus: FluentResultGridMenuStrings;
     filter: FluentResultGridFilterStrings;
+    resizeDialog: FluentResultGridResizeDialogStrings;
     accessibility: FluentResultGridAccessibilityStrings;
     /**
      * Centralized formatting for command tooltips with shortcuts.
@@ -60,6 +69,7 @@ export interface FluentResultGridStringOverrides {
     >;
     menus?: Partial<FluentResultGridMenuStrings>;
     filter?: Partial<FluentResultGridFilterStrings>;
+    resizeDialog?: Partial<FluentResultGridResizeDialogStrings>;
     accessibility?: Partial<FluentResultGridAccessibilityStrings>;
     formatCommandTooltip?: (args: FluentResultGridCommandTooltipFormatArgs) => string;
 }
@@ -95,6 +105,10 @@ export function mergeFluentResultGridStrings(
         filter: {
             ...defaults.filter,
             ...overrides?.filter,
+        },
+        resizeDialog: {
+            ...defaults.resizeDialog,
+            ...overrides?.resizeDialog,
         },
         accessibility: {
             ...defaults.accessibility,

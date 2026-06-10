@@ -96,8 +96,17 @@ export function getFluentResultGridCommandTooltip(
     return shortcut ? `${text} (${shortcut})` : text;
 }
 
+export interface FluentResultGridKeyCombination {
+    key?: string;
+    code?: string;
+    ctrlKey?: boolean;
+    metaKey?: boolean;
+    altKey?: boolean;
+    shiftKey?: boolean;
+}
+
 export interface FluentResultGridKeyBinding {
-    keyCombination: string;
+    keyCombination: FluentResultGridKeyCombination | string;
     label?: string;
 }
 

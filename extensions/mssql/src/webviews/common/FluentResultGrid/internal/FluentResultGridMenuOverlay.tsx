@@ -19,6 +19,9 @@ import {
     toFluentResultGridReactElement,
     type FluentResultGridResolvedCommand,
 } from "./fluentResultGridCommandResolution";
+import { FluentResultGridResizeDialog } from "./FluentResultGridResizeDialog";
+import { FluentResultGridFilterOverlay } from "./FluentResultGridFilterOverlay";
+import type { FluentResultGridCloseOverlayOptions } from "./fluentResultGridProviderTypes";
 import type {
     FluentResultGridOverlayState,
     FluentResultGridMenuOverlayState,
@@ -47,7 +50,7 @@ const useStyles = makeStyles({
 
 export interface FluentResultGridOverlayHostProps {
     overlay: FluentResultGridOverlayState;
-    closeOverlay: () => void;
+    closeOverlay: (options?: FluentResultGridCloseOverlayOptions) => void;
     strings: FluentResultGridStrings;
     keyBindings: FluentResultGridKeyBindingMap;
     defaultCommands?: FluentResultGridCommandConfiguration;
@@ -274,17 +277,37 @@ export function FluentResultGridOverlayHost({
     keyBindings,
     defaultCommands,
 }: FluentResultGridOverlayHostProps) {
-    if (overlay.kind !== "menu") {
-        return null;
+    if (overlay.kind === "menu") {
+        return (
+            <FluentResultGridMenuOverlay
+                overlay={overlay}
+                closeOverlay={closeOverlay}
+                strings={strings}
+                keyBindings={keyBindings}
+                defaultCommands={defaultCommands}
+            />
+        );
     }
 
-    return (
-        <FluentResultGridMenuOverlay
-            overlay={overlay}
-            closeOverlay={closeOverlay}
-            strings={strings}
-            keyBindings={keyBindings}
-            defaultCommands={defaultCommands}
-        />
-    );
+    if (overlay.kind === "resizeDialog") {
+        return (
+            <FluentResultGridResizeDialog
+                overlay={overlay}
+                strings={strings}
+                closeOverlay={closeOverlay}
+            />
+        );
+    }
+
+    if (overlay.kind === "filterMenu") {
+        return (
+            <FluentResultGridFilterOverlay
+                overlay={overlay}
+                strings={strings}
+                closeOverlay={closeOverlay}
+            />
+        );
+    }
+
+    return null;
 }

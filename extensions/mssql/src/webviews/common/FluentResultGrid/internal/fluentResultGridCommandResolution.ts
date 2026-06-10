@@ -69,7 +69,13 @@ export function getFluentResultGridShortcutLabel(
     commandId: FluentResultGridCommandId,
 ): string | undefined {
     const keyBinding = keyBindings[commandId];
-    return keyBinding?.label ?? keyBinding?.keyCombination;
+    if (!keyBinding) {
+        return undefined;
+    }
+
+    return typeof keyBinding.keyCombination === "string"
+        ? (keyBinding.label ?? keyBinding.keyCombination)
+        : keyBinding.label;
 }
 
 export function toFluentResultGridReactElement(

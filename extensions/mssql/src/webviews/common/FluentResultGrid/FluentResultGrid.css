@@ -1,0 +1,383 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.fluent-result-grid {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: row;
+    font-family: inherit;
+    font-size: inherit;
+    position: relative;
+
+    --fluent-result-grid-list-focus-background: var(--vscode-list-focusBackground, #094771);
+    --fluent-result-grid-list-focus-foreground: var(--vscode-list-focusForeground, #ffffff);
+    --fluent-result-grid-list-active-selection-background: var(
+        --vscode-list-activeSelectionBackground,
+        #094771
+    );
+    --fluent-result-grid-list-active-selection-foreground: var(
+        --vscode-list-activeSelectionForeground,
+        #ffffff
+    );
+    --fluent-result-grid-list-inactive-selection-background: var(
+        --vscode-list-inactiveSelectionBackground,
+        var(--vscode-list-activeSelectionBackground, #094771)
+    );
+    --fluent-result-grid-list-inactive-selection-foreground: var(
+        --vscode-list-inactiveSelectionForeground,
+        var(--vscode-foreground, #cccccc)
+    );
+    --fluent-result-grid-list-hover-background: var(--vscode-list-hoverBackground, #2a2d2e);
+    --fluent-result-grid-list-hover-foreground: var(
+        --vscode-list-hoverForeground,
+        var(--vscode-foreground, #cccccc)
+    );
+    --fluent-result-grid-list-focus-outline: var(--vscode-contrastActiveBorder, #007fd4);
+    --fluent-result-grid-list-selection-outline: var(--vscode-contrastActiveBorder, #007fd4);
+    --fluent-result-grid-list-hover-outline: var(--vscode-contrastActiveBorder, transparent);
+    --fluent-result-grid-list-inactive-focus-outline: var(
+        --vscode-list-inactiveFocusOutline,
+        #999999
+    );
+    --fluent-result-grid-table-header-background: var(
+        --vscode-keybindingTable-headerBackground,
+        #3c3c3c
+    );
+    --fluent-result-grid-table-header-foreground: var(--vscode-editor-foreground, #cccccc);
+    --fluent-result-grid-null-cell-background: var(
+        --vscode-mssql-resultsGridNullBackground,
+        transparent
+    );
+    --fluent-result-grid-null-cell-foreground: var(
+        --vscode-mssql-resultsGridNullForeground,
+        var(--vscode-foreground, #cccccc)
+    );
+    --fluent-result-grid-row-even-background: var(--vscode-editor-background, #1e1e1e);
+    --fluent-result-grid-row-odd-background: var(--vscode-editor-background, #1e1e1e);
+
+    --slick-header-background-color: var(--fluent-result-grid-table-header-background);
+    --slick-grid-header-background: var(--fluent-result-grid-table-header-background);
+    --slick-header-text-color: var(--fluent-result-grid-table-header-foreground);
+    --slick-font-size-base: 1em;
+    --slick-header-font-size: 1em;
+    --slick-header-font-weight: normal;
+    --slick-header-column-background-hover: var(--vscode-list-hoverBackground, #2a2d2e);
+    --slick-header-column-background-active: var(--vscode-list-activeSelectionBackground, #094771);
+    --slick-header-row-border-color: var(--vscode-panel-border, #454545);
+    --slick-cell-even-background-color: var(--fluent-result-grid-row-even-background);
+    --slick-cell-odd-background-color: var(--fluent-result-grid-row-odd-background);
+    --slick-cell-text-color: var(--vscode-foreground, #cccccc);
+    --slick-canvas-bg-color: var(--vscode-editor-background, #1e1e1e);
+    --slick-row-mouse-hover-color: var(--vscode-list-hoverBackground, #2a2d2e);
+    --slick-row-selected-color: var(--vscode-list-activeSelectionBackground, #094771);
+    --slick-cell-selected-color: var(--vscode-list-activeSelectionBackground, #094771);
+    --slick-border-color: var(--vscode-editorWidget-border, #454545);
+    --slick-grid-border-color: var(--vscode-editorWidget-border, #454545);
+    --slick-cell-border-right: 1px solid var(--vscode-editorWidget-border, #454545);
+    --slick-cell-border-top: 1px solid var(--vscode-editorWidget-border, #454545);
+    --slick-cell-border-bottom: 1px solid var(--vscode-editorWidget-border, #454545);
+    --slick-cell-border-left: 0;
+    --slick-cell-box-shadow: none;
+    --slick-container-border-top: 1px solid var(--vscode-editorWidget-border, #454545);
+    --slick-container-border-bottom: 1px solid var(--vscode-editorWidget-border, #454545);
+    --slick-pane-top-border-top: none;
+}
+
+.results-grid--alternating .fluent-result-grid,
+.fluent-result-grid.results-grid--alternating {
+    --fluent-result-grid-row-even-background: var(
+        --vscode-list-alternatingBackground,
+        rgba(128, 128, 128, 0.05)
+    );
+}
+
+.fluent-result-grid-body {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+
+.fluent-result-grid .grid-pane {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    font-family: inherit;
+    font-size: inherit;
+}
+
+.fluent-result-grid .slickgrid-container {
+    flex: 1 1 auto;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    font-family: inherit;
+    font-size: inherit;
+}
+
+.fluent-result-grid .slickgrid-container .slick-row {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: normal;
+}
+
+.fluent-result-grid .slick-header,
+.fluent-result-grid .slick-header-columns {
+    background-color: var(--fluent-result-grid-table-header-background);
+    border-left: 0 !important;
+    height: 24px !important;
+    overflow: hidden;
+}
+
+.fluent-result-grid .slick-header-column,
+.fluent-result-grid .slickgrid-container .slick-header-column,
+.fluent-result-grid .slick-header-column.slick-state-default {
+    background-color: var(--fluent-result-grid-table-header-background) !important;
+    border-left: 0 !important;
+    border-right: 1px solid var(--vscode-panel-border, #454545);
+    border-top: 0 !important;
+    border-bottom: 1px solid var(--vscode-panel-border, #454545);
+    box-sizing: border-box !important;
+    color: var(--fluent-result-grid-table-header-foreground) !important;
+    float: left;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: normal;
+    height: 24px !important;
+    line-height: normal;
+    margin: 0;
+    overflow: hidden;
+    padding: 0 4px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fluent-result-grid .slick-header-column:hover,
+.fluent-result-grid .slick-header-column.slick-state-default:hover {
+    background-color: var(--vscode-list-hoverBackground, #2a2d2e);
+}
+
+.fluent-result-grid .slick-header-column .slick-column-name {
+    color: var(--fluent-result-grid-table-header-foreground) !important;
+    box-sizing: border-box;
+    display: block;
+    flex: 1 1 auto;
+    float: none;
+    height: 100%;
+    line-height: normal;
+    margin-bottom: 0;
+    max-width: 100%;
+    min-width: 0;
+    opacity: 1 !important;
+    overflow: hidden;
+    padding-right: 0;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: auto;
+}
+
+.fluent-result-grid .slick-header-column.slick-header-with-filter {
+    align-items: center;
+    display: flex;
+    gap: 1px;
+    justify-content: flex-start;
+    position: relative;
+    text-align: left;
+}
+
+.fluent-result-grid .slick-header-column.slick-header-with-filter .slick-column-name {
+    align-items: center;
+    display: flex;
+    min-width: 0;
+}
+
+.fluent-result-grid .slick-header-column .slick-header-sortbutton,
+.fluent-result-grid .slick-header-column .slick-header-filterbutton {
+    align-items: center;
+    box-sizing: border-box;
+    display: inline-flex;
+    flex: 0 0 16px;
+    float: none;
+    height: 16px;
+    justify-content: center;
+    line-height: 16px;
+    margin-bottom: 0;
+    min-width: 16px;
+    position: static;
+    transform: none;
+    vertical-align: middle;
+    width: 16px;
+    z-index: 3;
+}
+
+.fluent-result-grid .slick-header-column .slick-header-sortbutton {
+    margin: 0 1px 0 0;
+}
+
+.fluent-result-grid .slick-header-column .slick-header-filterbutton {
+    margin: 0;
+}
+
+.fluent-result-grid .slick-header-column .slick-sort-indicator,
+.fluent-result-grid .slick-header-column .slick-sort-indicator-numbered {
+    display: none !important;
+    height: 0 !important;
+    width: 0 !important;
+}
+
+.fluent-result-grid .slick-cell {
+    display: flex;
+    align-items: center;
+    background-color: inherit;
+    box-sizing: border-box;
+    color: var(--vscode-foreground, #cccccc);
+    font-family: inherit;
+    font-size: inherit;
+    padding-top: calc(1px + var(--results-row-padding, 0px));
+    padding-bottom: calc(2px + var(--results-row-padding, 0px));
+}
+
+.fluent-result-grid .slick-cell .grid-cell-value-container {
+    display: block;
+    font-family: inherit;
+    font-size: inherit;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fluent-result-grid .slick-cell a.grid-cell-value-container {
+    color: var(--vscode-textLink-foreground, #3794ff);
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.fluent-result-grid .slick-cell a.grid-cell-value-container:hover {
+    color: var(--vscode-textLink-activeForeground, #3794ff);
+}
+
+.fluent-result-grid .slick-cell .grid-cell-value-container.missing-value,
+.fluent-result-grid .slick-cell.cell-null .grid-cell-value-container {
+    font-style: italic;
+}
+
+.fluent-result-grid .slick-cell.cell-null {
+    background-color: var(--fluent-result-grid-null-cell-background);
+    color: var(--fluent-result-grid-null-cell-foreground);
+}
+
+.fluent-result-grid .slick-cell.selected {
+    background-color: var(--fluent-result-grid-list-inactive-selection-background);
+    color: var(--fluent-result-grid-list-inactive-selection-foreground);
+}
+
+.fluent-result-grid.focused .slick-cell.selected {
+    background-color: var(--fluent-result-grid-list-active-selection-background);
+    color: var(--fluent-result-grid-list-active-selection-foreground);
+}
+
+.fluent-result-grid .slick-cell.active {
+    outline: 1px dotted var(--fluent-result-grid-list-inactive-focus-outline);
+    outline-offset: -1px;
+}
+
+.fluent-result-grid.focused .slick-cell.active {
+    background-color: var(--fluent-result-grid-list-focus-background);
+    color: var(--fluent-result-grid-list-focus-foreground);
+}
+
+.fluent-result-grid .slick-cell.selected.active {
+    outline: 1px dotted var(--fluent-result-grid-list-selection-outline);
+    outline-offset: -1px;
+}
+
+.fluent-result-grid.focused .slick-cell.selected.active {
+    background-color: var(--fluent-result-grid-list-active-selection-background);
+    color: var(--fluent-result-grid-list-active-selection-foreground);
+    outline: 2px solid var(--fluent-result-grid-list-focus-outline);
+    outline-offset: -1px;
+}
+
+.fluent-result-grid .slick-row:hover .slick-cell:not(.selected):not(.active) {
+    background-color: var(--fluent-result-grid-list-hover-background);
+    color: var(--fluent-result-grid-list-hover-foreground);
+}
+
+.fluent-result-grid .slick-row:hover {
+    outline: 1px dashed var(--fluent-result-grid-list-hover-outline);
+    outline-offset: -1px;
+}
+
+.results-grid--gridlines-horizontal .fluent-result-grid .slick-cell {
+    border-right-color: transparent;
+    border-bottom-color: var(--vscode-panel-border, #454545);
+}
+
+.results-grid--gridlines-vertical .fluent-result-grid .slick-cell {
+    border-right-color: var(--vscode-panel-border, #454545);
+    border-bottom-color: transparent;
+}
+
+.results-grid--gridlines-none .fluent-result-grid .slick-cell {
+    border-right-color: transparent;
+    border-bottom-color: transparent;
+}
+
+.results-grid--gridlines-both .fluent-result-grid .slick-cell {
+    border-right-color: var(--vscode-panel-border, #454545);
+    border-bottom-color: var(--vscode-panel-border, #454545);
+}
+
+.fluent-result-grid .slick-cell.fluent-result-grid-row-number-cell {
+    background-color: var(--fluent-result-grid-row-odd-background);
+    color: var(--fluent-result-grid-table-header-foreground);
+    justify-content: flex-start;
+    min-width: 0;
+    overflow: hidden;
+    padding-left: 4px;
+    padding-right: 0;
+}
+
+.fluent-result-grid .slick-cell > .row-number.fluent-result-grid-row-number {
+    color: inherit;
+    display: block;
+    flex: 1 1 auto;
+    font-style: italic;
+    font-weight: lighter;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+}
+
+.fluent-result-grid-empty-state {
+    align-items: center;
+    background-color: var(--vscode-editor-background, transparent);
+    color: var(--vscode-descriptionForeground, var(--vscode-foreground, #cccccc));
+    display: flex;
+    font-style: italic;
+    inset: 24px 0 0 0;
+    justify-content: center;
+    min-height: 48px;
+    padding: 8px 12px;
+    pointer-events: none;
+    position: absolute;
+    text-align: center;
+    z-index: 2;
+}

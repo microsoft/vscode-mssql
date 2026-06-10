@@ -24,6 +24,7 @@ export type {
     FluentResultGridCommandPlacementMap,
     FluentResultGridKeyBinding,
     FluentResultGridKeyBindingMap,
+    FluentResultGridKeyCombination,
     FluentResultGridToolbarOptions,
 } from "./types/fluentResultGridCommands";
 
@@ -72,6 +73,7 @@ export type {
     FluentResultGridCommandTooltipFormatArgs,
     FluentResultGridFilterStrings,
     FluentResultGridMenuStrings,
+    FluentResultGridResizeDialogStrings,
     FluentResultGridStringOverrides,
     FluentResultGridStrings,
 } from "./types/fluentResultGridStrings";

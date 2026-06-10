@@ -12,6 +12,7 @@ import type {
     FluentResultGridOverlayState,
 } from "./internal/fluentResultGridOverlays";
 import type {
+    FluentResultGridCloseOverlayOptions,
     FluentResultGridProviderContextValue,
     FluentResultGridProviderProps,
 } from "./internal/fluentResultGridProviderTypes";
@@ -48,9 +49,11 @@ export function FluentResultGridProvider({
 }: FluentResultGridProviderProps) {
     const [overlay, setOverlay] = useState<FluentResultGridOverlayState>(noOverlay);
 
-    const closeOverlay = useCallback(() => {
+    const closeOverlay = useCallback((options?: FluentResultGridCloseOverlayOptions) => {
         setOverlay((current) => {
-            notifyOverlayDismiss(current);
+            if (options?.notifyDismiss !== false) {
+                notifyOverlayDismiss(current);
+            }
             return noOverlay;
         });
     }, []);

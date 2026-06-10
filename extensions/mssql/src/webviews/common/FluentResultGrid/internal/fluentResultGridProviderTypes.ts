@@ -15,6 +15,15 @@ import type {
     FluentResultGridOverlayState,
 } from "./fluentResultGridOverlays";
 
+export interface FluentResultGridCloseOverlayOptions {
+    /**
+     * Controls whether a dismissible overlay's onDismiss callback runs while closing.
+     *
+     * Successful submit paths usually close without dismiss notification.
+     */
+    notifyDismiss?: boolean;
+}
+
 export interface FluentResultGridProviderProps {
     children: ReactNode;
     strings: FluentResultGridStrings;
@@ -34,5 +43,5 @@ export interface FluentResultGridProviderContextValue {
     defaultCommands?: FluentResultGridCommandConfiguration;
     overlay: FluentResultGridOverlayState;
     openOverlay: (overlay: FluentResultGridActiveOverlayState) => void;
-    closeOverlay: () => void;
+    closeOverlay: (options?: FluentResultGridCloseOverlayOptions) => void;
 }
