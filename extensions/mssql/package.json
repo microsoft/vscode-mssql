@@ -373,20 +373,29 @@
                 ]
             }
         ],
-        "grammars": [
-            {
-                "language": "sql",
-                "scopeName": "source.sql",
-                "path": "./syntaxes/SQL.plist",
-                "unbalancedBracketScopes": [
-                    "constant.character.bracket.sql"
-                ]
-            }
-        ],
         "snippets": [
             {
                 "language": "sql",
                 "path": "./snippets/mssql.json"
+            }
+        ],
+        "semanticTokenScopes": [
+            {
+                "language": "sql",
+                "scopes": {
+                    "keyword": [
+                        "keyword.other.sql"
+                    ],
+                    "operator": [
+                        "keyword.operator.sql"
+                    ],
+                    "function": [
+                        "support.function.sql"
+                    ],
+                    "class": [
+                        "support.type.sql"
+                    ]
+                }
             }
         ],
         "configurationDefaults": {
