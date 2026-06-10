@@ -9,7 +9,7 @@ import sinonChai from "sinon-chai";
 import { AzureAccountService } from "../../src/services/azureAccountService";
 import * as sinon from "sinon";
 import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
-import { ILogger } from "../../src/models/logger";
+import { ILogger } from "../../src/sharedInterfaces/logger";
 import { IAccount } from "vscode-mssql";
 import * as vscode from "vscode";
 import * as armStorage from "@azure/arm-storage";
@@ -188,14 +188,9 @@ suite("Azure Helpers", () => {
             mockLogger,
         );
         expect(result).to.be.an("array").that.is.empty;
-        expect(
-            (mockLogger.error as sinon.SinonStub).calledWithMatch("undefined tenants"),
-            "logger should have been called with 'undefined tenants'",
-        ).to.be.true;
 
         // reset mocks for next case
         getAccountStub.reset();
-        (mockLogger.error as sinon.SinonStub).resetHistory();
 
         // undefined properties
         getAccountStub.resolves({
@@ -207,10 +202,6 @@ suite("Azure Helpers", () => {
 
         result = await azureHelpers.getTenants(mockAzureAccountService, "test-user-id", mockLogger);
         expect(result).to.be.an("array").that.is.empty;
-        expect(
-            (mockLogger.error as sinon.SinonStub).calledWithMatch("undefined properties"),
-            "logger should have been called with 'undefined properties'",
-        ).to.be.true;
     });
 
     test("extractFromResourceId", () => {

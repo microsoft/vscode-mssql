@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { NotificationType } from "vscode-jsonrpc/browser";
+import { NotificationType } from "vscode-jsonrpc";
 import { LoadingLogEntry } from "./webview";
 
 /**

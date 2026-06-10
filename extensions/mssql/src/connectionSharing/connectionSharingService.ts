@@ -11,7 +11,8 @@ import { IConnectionProfile } from "../models/interfaces";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import { RequestType } from "vscode-languageclient";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import { ILogger, logger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger } from "../models/logger";
 import * as Constants from "../constants/constants";
 import { ScriptingService } from "../scripting/scriptingService";
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
@@ -484,7 +485,6 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             new RequestType<
                 { ownerUri: string; queryString: string },
                 mssql.SimpleExecuteResult,
-                void,
                 void
             >("query/simpleexecute"),
             {

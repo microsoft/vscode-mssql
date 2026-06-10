@@ -568,6 +568,14 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Apply contextual suggestions for SQL syntax, relationships, and constraints</source>
         <target state="translated">SQL 구문, 관계, 제약 조건에 대한 상황별 제안을 적용하세요.</target>
       </trans-unit>
+      <trans-unit id="++CODE++b7a29a0664722b59ea2bc598ce82feac6ef017534cb0564b53d9b3189f7233ce">
+        <source xml:lang="en">Apply failed. Fix the error and retry, or run Schema Compare again.</source>
+        <target state="new">Apply failed. Fix the error and retry, or run Schema Compare again.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++65660be4b1aada743a043b8bfae0d7ab62971f6ef37c3e6860d6449dc85609e5">
+        <source xml:lang="en">Applying changes, this might take a while...</source>
+        <target state="new">Applying changes, this might take a while...</target>
+      </trans-unit>
       <trans-unit id="++CODE++6007acbe30b2cd98703e83350ea665c06009fcd51f26dd73b309294235f45f21">
         <source xml:lang="en">Approve</source>
         <target state="translated">승인</target>
@@ -1215,6 +1223,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Changes ({0})</source>
         <note>{0} is the number of schema changes</note>
         <target state="translated">변경 내용({0})</target>
+      </trans-unit>
+      <trans-unit id="++CODE++451c56077f521060be29b5df2ec0d863cdc0fcff4970e3ad7e5e44e7a780ae42">
+        <source xml:lang="en">Changes applied successfully. Run Schema Compare again to see updated differences.</source>
+        <target state="new">Changes applied successfully. Run Schema Compare again to see updated differences.</target>
       </trans-unit>
       <trans-unit id="++CODE++cf51bd8ae1e56e8e81b07f1e7f35e10d580788d9e0892a8a4896c2378227f4f0">
         <source xml:lang="en">Changes published successfully</source>
@@ -4116,7 +4128,7 @@ Error:
       <trans-unit id="++CODE++11167e57bf77932c07f42c4b2a08ba8428726757beb2f754ece1786e81ed0447">
         <source xml:lang="en">Failed to save results. {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to save results. {0}</target>
+        <target state="translated">결과를 저장하지 못했습니다. {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++295dc600027d16c46d0596df1afe12f2c8db841203c77f15207d06851c0d50ec">
         <source xml:lang="en">Failed to save results: {0}</source>
@@ -7656,6 +7668,10 @@ Query: {2}</source>
         <note>{0} is the SQL Server version</note>
         <target state="translated">SQL Server {0} - 최신</target>
       </trans-unit>
+      <trans-unit id="++CODE++6a6bf6063fe6e46acf60d08c0ba2dba1d05dd22efb279588eeca536a4850299b">
+        <source xml:lang="en">SQL Tools (MSSQL)</source>
+        <target state="translated">SQL 도구(MSSQL)</target>
+      </trans-unit>
       <trans-unit id="++CODE++9ae793c44500f6cd1d15d751baaa468f9cf94715473c5cab3bb2603f3c80e942">
         <source xml:lang="en">SQL database in Fabric</source>
         <target state="translated">패브릭의 SQL 데이터베이스</target>
@@ -8697,7 +8713,7 @@ Query: {2}</source>
       <trans-unit id="++CODE++b10574f779b09047bedf3228566923bf6ba89edd4f6f08ff15e9a9c0314cfbdb">
         <source xml:lang="en">Started saving results to {0}</source>
         <note>{0} is the file path</note>
-        <target state="new">Started saving results to {0}</target>
+        <target state="translated">결과를 {0}에 저장하기 시작했습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++7db6cebea8c95ec1db665d9ce39b1798388767fb2481b3f02548f4f008012631">
         <source xml:lang="en">Starting '{0}'...</source>
@@ -8844,7 +8860,7 @@ Query: {2}</source>
       <trans-unit id="++CODE++c36cade68fea2c699e5795c527fd1daf085d0b76a5a5bc35526765a1b5d5b974">
         <source xml:lang="en">Successfully saved results to {0}</source>
         <note>{0} is the file path</note>
-        <target state="new">Successfully saved results to {0}</target>
+        <target state="translated">{0}에 결과를 저장함</target>
       </trans-unit>
       <trans-unit id="++CODE++da099a63ce9b5fe688c4f5219cdd8614a27faa324bdd5c612dfab086630b346c">
         <source xml:lang="en">Sum: {0}</source>
@@ -11213,6 +11229,10 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">SQL Server Extended Events Log</source>
         <target state="translated">SQL Server 확장 이벤트 로그</target>
       </trans-unit>
+      <trans-unit id="mssql.sqlToolsMcp.serverLabel">
+        <source xml:lang="en">SQL Tools (MSSQL)</source>
+        <target state="translated">SQL 도구(MSSQL)</target>
+      </trans-unit>
       <trans-unit id="mssql.scriptAlter">
         <source xml:lang="en">Script as Alter</source>
         <target state="translated">Alter로 스크립트</target>
@@ -11513,7 +11533,7 @@ See the estimated plan without running the query, or view the actual query plan 
       </trans-unit>
       <trans-unit id="mssql.messages.copyIncludeTimestamps">
         <source xml:lang="en">When enabled, Copy All in the query result Messages pane includes message timestamps.</source>
-        <target state="new">When enabled, Copy All in the query result Messages pane includes message timestamps.</target>
+        <target state="translated">사용하도록 설정하면 쿼리 결과 메시지 창에서 [모두 복사]를 사용할 때 메시지 타임스탬프도 포함됩니다.</target>
       </trans-unit>
       <trans-unit id="mssql.transferActiveEditorConnections.description">
         <source xml:lang="en">When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.</source>
@@ -11533,7 +11553,7 @@ See the estimated plan without running the query, or view the actual query plan 
       </trans-unit>
       <trans-unit id="mssql.results.showCopyNotification">
         <source xml:lang="en">When enabled, show a notification after query results are copied to the clipboard.</source>
-        <target state="new">When enabled, show a notification after query results are copied to the clipboard.</target>
+        <target state="translated">사용하도록 설정하면 쿼리 결과를 클립보드에 복사한 후 알림이 표시됩니다.</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>

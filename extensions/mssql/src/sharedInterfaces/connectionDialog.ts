@@ -9,7 +9,7 @@ import { FirewallRuleSpec } from "./firewallRule";
 import { ApiStatus, Status } from "./webview";
 import { AddFirewallRuleState } from "./addFirewallRule";
 import { ConnectionGroupSpec, ConnectionGroupState } from "./connectionGroup";
-import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
+import { NotificationType, RequestType } from "vscode-jsonrpc";
 import { SqlDbInfo, SqlCollectionInfo } from "./fabric";
 import { ChangePasswordResult, ChangePasswordWebviewState } from "./changePassword";
 import { DialogMessageSpec } from "./dialogMessage";

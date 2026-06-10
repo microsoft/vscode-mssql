@@ -15,6 +15,9 @@ import { IConnectionProfile } from "../models/interfaces";
 import { getUriKey } from "../utils/utils";
 import { ConnectionInfo } from "../controllers/connectionManager";
 import { uriOwnershipCoordinator } from "../extension";
+import { getLogger } from "../models/logger";
+
+const logger = getLogger("StatusView");
 
 // Status bar element for each file in the editor
 class FileStatusBar {
@@ -443,7 +446,7 @@ export default class StatusView implements vscode.Disposable {
                 updateMessage("");
                 break;
             default:
-                Utils.logDebug(`Language service status changed. ${newStatus}`);
+                logger.debug(`Language service status changed. ${newStatus}`);
                 break;
         }
     }

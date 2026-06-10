@@ -93,6 +93,9 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             {
                 isSqlProjectExtensionInstalled: false,
                 isComparisonInProgress: false,
+                isApplyInProgress: false,
+                applySucceeded: false,
+                applyFailed: false,
                 isIncludeExcludeAllOperationInProgress: false,
                 activeServers: {},
                 databases: [],
@@ -568,7 +571,6 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 this.logger.error(
                     `Error listing databases: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
                 );
-                console.error("Error listing databases:", error);
 
                 endActivity.endFailed(
                     new Error(
@@ -1226,6 +1228,11 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 `Starting publish operation to ${getSchemaCompareEndpointTypeString(state.targetEndpointInfo.endpointType)} - OperationId: ${this.operationId}`,
             );
 
+            state.isApplyInProgress = true;
+            state.applySucceeded = false;
+            state.applyFailed = false;
+            this.updateState(state);
+
             let publishResult: mssql.ResultStatus | undefined = undefined;
 
             try {
@@ -1318,10 +1325,12 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     },
                 );
 
-                vscode.window.showErrorMessage(
+                void vscode.window.showErrorMessage(
                     locConstants.SchemaCompare.schemaCompareApplyFailed(getErrorMessage(error)),
                 );
-
+                state.isApplyInProgress = false;
+                state.applyFailed = true;
+                state.schemaCompareResult = undefined;
                 return state;
             }
 
@@ -1337,12 +1346,14 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     ),
                 });
 
-                vscode.window.showErrorMessage(
+                void vscode.window.showErrorMessage(
                     locConstants.SchemaCompare.schemaCompareApplyFailed(
-                        publishResult?.errorMessage,
+                        publishResult?.errorMessage ?? "",
                     ),
                 );
-
+                state.isApplyInProgress = false;
+                state.applyFailed = true;
+                state.schemaCompareResult = undefined;
                 return state;
             }
 
@@ -1356,6 +1367,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 ),
             });
 
+            state.isApplyInProgress = false;
+            state.applySucceeded = true;
+            state.applyFailed = false;
+            state.schemaCompareResult = undefined;
             return state;
         });
 
@@ -2238,8 +2253,8 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         });
     }
 
-    private formatEntryName(nameParts: string[]): string {
-        if (!nameParts || nameParts.length === 0) {
+    private formatEntryName(nameParts: string[] | undefined | null): string {
+        if (nameParts === undefined || nameParts === null || nameParts.length === 0) {
             return "";
         }
         return nameParts.join(".");
@@ -2407,6 +2422,8 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         );
 
         state.isComparisonInProgress = true;
+        state.applySucceeded = false;
+        state.applyFailed = false;
         this.updateState(state);
 
         const startTime = Date.now();

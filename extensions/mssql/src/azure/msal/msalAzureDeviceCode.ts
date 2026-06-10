@@ -9,7 +9,7 @@ import * as LocalizedConstants from "../../constants/locConstants";
 import VscodeWrapper from "../../controllers/vscodeWrapper";
 import { AzureAuthType, IProviderSettings, ITenant } from "../../models/contracts/azure";
 import { IDeferred } from "../../models/interfaces";
-import { ILogger } from "../../models/logger";
+import { ILogger } from "../../sharedInterfaces/logger";
 import { MsalAzureAuth } from "./msalAzureAuth";
 
 export class MsalAzureDeviceCode extends MsalAzureAuth {

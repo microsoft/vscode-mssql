@@ -9,7 +9,7 @@ import * as vscode from "vscode";
 import * as Constants from "../../src/constants/constants";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { CredentialStore } from "../../src/credentialstore/credentialstore";
-import { ILogger } from "../../src/models/logger";
+import { ILogger } from "../../src/sharedInterfaces/logger";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import {

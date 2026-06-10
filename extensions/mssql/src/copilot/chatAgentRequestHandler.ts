@@ -24,7 +24,8 @@ import {
 import { getErrorMessage, uuid } from "../utils/utils";
 import { MssqlChatAgent as loc } from "../constants/locConstants";
 import MainController from "../controllers/mainController";
-import { ILogger, logger as baseLogger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
+import { getLogger } from "../models/logger";
 import {
     handleChatCommand,
     commandSkipsConnectionLabels,
@@ -57,8 +58,8 @@ export const createSqlAgentRequestHandler = (
         return () => `conversationUri${idCounter++}`;
     })();
 
-    const getLogger = (() => {
-        const logger = baseLogger.withPrefix("MssqlCopilot");
+    const getRequestLogger = (() => {
+        const logger = getLogger("MssqlCopilot");
 
         return () => logger;
     })();
@@ -70,7 +71,7 @@ export const createSqlAgentRequestHandler = (
         token: vscode.CancellationToken,
     ): Promise<ISqlChatResult> => {
         const correlationId = uuid();
-        const logger = getLogger();
+        const logger = getRequestLogger();
         let conversationUri = getNextConversationUri();
         let connectionUri = vscodeWrapper.activeTextEditorUri;
         logger.debug("In handler");
@@ -680,7 +681,9 @@ export const createSqlAgentRequestHandler = (
                                     }
                                     return typeof fnResult === "string" ? fnResult : "";
                                 } catch (e) {
-                                    console.error("Error accessing response value:", e);
+                                    logger.error(
+                                        `Error accessing response value: ${getErrorMessage(e)}`,
+                                    );
                                     return "";
                                 }
                             }
@@ -1061,10 +1064,7 @@ export const createSqlAgentRequestHandler = (
                 },
             );
 
-            console.error("Unhandled Error:", {
-                message: err.message,
-                stack: err.stack,
-            });
+            logger.error(`Unhandled Error: ${getErrorMessage(err)}`);
 
             stream.markdown(loc.errorOccurredWith(err.message));
         } else {

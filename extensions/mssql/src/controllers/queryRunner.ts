@@ -59,6 +59,8 @@ import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { SelectionSummary } from "../sharedInterfaces/queryResult";
 import { bucketizeRowCount, getInMemoryGridDataProcessingThreshold } from "../queryResult/utils";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger } from "../models/logger";
 
 export interface IResultSet {
     columns: string[];
@@ -147,6 +149,7 @@ export default class QueryRunner {
     private _onSummaryChangedEmitter: vscode.EventEmitter<SummaryChanged> =
         new vscode.EventEmitter<SummaryChanged>();
     public onSummaryChanged: vscode.Event<SummaryChanged> = this._onSummaryChangedEmitter.event;
+    private _logger: ILogger = logger.withPrefix("QueryRunner");
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
 
@@ -425,9 +428,7 @@ export default class QueryRunner {
     }
 
     public setupQueryExecution(_selection: ISelectionData): void {
-        this._vscodeWrapper.logToOutputChannel(
-            LocalizedConstants.msgStartedExecute(this._ownerUri),
-        );
+        this._logger.info(LocalizedConstants.msgStartedExecute(this._ownerUri));
         this._isExecuting = true;
         this._totalElapsedMilliseconds = 0;
         // Update the status view to show that we're executing
@@ -440,9 +441,7 @@ export default class QueryRunner {
 
     // handle the result of the notification
     public handleQueryComplete(result: QueryExecuteCompleteNotificationResult): void {
-        this._vscodeWrapper.logToOutputChannel(
-            LocalizedConstants.msgFinishedExecute(this._ownerUri),
-        );
+        this._logger.info(LocalizedConstants.msgFinishedExecute(this._ownerUri));
 
         // Store the batch sets we got back as a source of "truth"
         this._isExecuting = false;
@@ -458,13 +457,15 @@ export default class QueryRunner {
         this._statusView.executedQuery(result.ownerUri);
         this._statusView.setExecutionTime(
             result.ownerUri,
-            Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
+            Utils.durationToDisplay(this._totalElapsedMilliseconds, { format: "clock" }),
         );
         let hasError = this._batchSets.some((batch) => batch.hasError === true);
         this.removeRunningQuery();
         this.unregisterAllNotificationUris();
         this._completeEmitter.fire({
-            totalMilliseconds: Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
+            totalMilliseconds: Utils.durationToDisplay(this._totalElapsedMilliseconds, {
+                format: "clock",
+            }),
             hasError,
         });
         sendActionEvent(
@@ -497,7 +498,10 @@ export default class QueryRunner {
         this._totalElapsedMilliseconds += executionTime;
         if (executionTime > 0) {
             // send a time message in the format used for query complete
-            this.sendBatchTimeMessage(batch.id, Utils.parseNumAsTimeString(executionTime));
+            this.sendBatchTimeMessage(
+                batch.id,
+                Utils.durationToDisplay(executionTime, { format: "clock" }),
+            );
         }
         this._batchCompleteEmitter.fire(batch);
     }
@@ -606,7 +610,9 @@ export default class QueryRunner {
         }
 
         this._completeEmitter.fire({
-            totalMilliseconds: Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
+            totalMilliseconds: Utils.durationToDisplay(this._totalElapsedMilliseconds, {
+                format: "clock",
+            }),
             hasError: !!error,
         });
         this._statusView.executedQuery(this._ownerUri);

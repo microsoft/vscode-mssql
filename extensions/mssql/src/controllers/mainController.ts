@@ -117,7 +117,8 @@ import { SearchDatabaseWebViewController } from "../searchDatabase/searchDatabas
 import { ChangelogWebviewController } from "./changelogWebviewController";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
 import { HttpClient } from "../http/httpClient";
-import { ILogger, logger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger } from "../models/logger";
 import { FileBrowserService } from "../services/fileBrowserService";
 import { BackupDatabaseWebviewController } from "./backupDatabaseWebviewController";
 import { AzureBlobService } from "../services/azureBlobService";
@@ -246,7 +247,7 @@ export default class MainController implements vscode.Disposable {
      * Deactivates the extension
      */
     public async deactivate(): Promise<void> {
-        Utils.logDebug("de-activated.");
+        this._logger.debug("Extension de-activated.");
         await this.onDisconnect();
         this._statusview.dispose();
     }
@@ -497,7 +498,7 @@ export default class MainController implements vscode.Disposable {
                             });
                         } else {
                             // The editor already contains text
-                            console.warn("Chat with database: unable to open editor");
+                            this._logger.warn("Chat with database: unable to open editor");
                         }
                     } else {
                         // The editor was somehow not created
@@ -1070,7 +1071,6 @@ export default class MainController implements vscode.Disposable {
         }
         await this.sanitizeConnectionProfiles();
         await this.loadTokenCache();
-        Utils.logDebug("activated.");
 
         // capture basic metadata
         sendActionEvent(TelemetryViews.General, TelemetryActions.Activated, {
@@ -2537,7 +2537,7 @@ export default class MainController implements vscode.Disposable {
             let uri = this._vscodeWrapper.activeTextEditorUri;
             await this._outputContentProvider.cancelQuery(uri);
         } catch (err) {
-            console.warn(`Unexpected error cancelling query : ${getErrorMessage(err)}`);
+            this._logger.warn(`Unexpected error cancelling query: ${getErrorMessage(err)}`);
         }
     }
 
@@ -2629,7 +2629,7 @@ export default class MainController implements vscode.Disposable {
                 try {
                     await this.createObjectExplorerSession(credentials);
                 } catch (error) {
-                    this._connectionMgr.client.logger.error(error);
+                    this._logger.error("Failed to create Object Explorer session", error);
                 }
                 return true;
             }
@@ -2837,7 +2837,9 @@ export default class MainController implements vscode.Disposable {
                 title,
             );
         } catch (err) {
-            console.warn(`Unexpected error running current statement : ${err}`);
+            self._logger.warn(
+                `Unexpected error running current statement: ${getErrorMessage(err)}`,
+            );
         }
     }
 
@@ -2902,7 +2904,7 @@ export default class MainController implements vscode.Disposable {
                 executionPlanOptions,
             );
         } catch (err) {
-            console.warn(`Unexpected error running query : ${err}`);
+            this._logger.warn(`Unexpected error running query: ${getErrorMessage(err)}`);
         }
     }
 
