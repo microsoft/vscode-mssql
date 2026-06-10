@@ -6,9 +6,6 @@
 /**
  * Generates SQL DDL files directly from an OpenAPI v2/v3 specification.
  *
- * Replaces the legacy AutoRest + autorest-sql-testing pipeline with a pure TypeScript
- * implementation — no external process, no Node.js installation required on the user's machine.
- *
  * Pipeline:
  *   OpenAPI spec (JSON/YAML)
  *     → parse schema definitions
@@ -26,18 +23,21 @@ import * as constants from "../common/constants";
 // Public interfaces
 // ---------------------------------------------------------------------------
 
+/** Primitive values that OpenAPI enum entries may contain. */
+export type OpenApiEnumValue = string | number | boolean;
+
 export interface SchemaProperty {
     type?: string;
     format?: string;
     $ref?: string;
     items?: SchemaProperty;
-    enum?: unknown[];
+    enum?: OpenApiEnumValue[];
 }
 
 export interface SchemaObject {
     type?: string;
     properties?: Record<string, SchemaProperty>;
-    enum?: unknown[];
+    enum?: OpenApiEnumValue[];
 }
 
 export interface OpenApiSpec {
@@ -122,8 +122,9 @@ export function buildCreateTableSql(
         if (!prop.type || prop.type === "object" || prop.type === "array" || prop.$ref) {
             continue; // no scalar SQL equivalent
         }
-        const sqlType = mapOpenApiTypeToSql(prop.type, prop.format);
-        columns.push(`    [${toSqlIdentifier(propName)}] ${sqlType}`);
+        columns.push(
+            `    [${toSqlIdentifier(propName)}] ${mapOpenApiTypeToSql(prop.type, prop.format)}`,
+        );
     }
 
     if (columns.length === 0) {
@@ -159,10 +160,9 @@ export function buildListTableSql(
     itemType: string,
     itemFormat?: string,
 ): string {
-    const sqlType = mapOpenApiTypeToSql(itemType, itemFormat);
     return (
         `CREATE TABLE [${toSqlIdentifier(schemaName)}].[${toSqlIdentifier(tableName)}]\n` +
-        `(\n    [Value] ${sqlType}\n);\n`
+        `(\n    [Value] ${mapOpenApiTypeToSql(itemType, itemFormat)}\n);\n`
     );
 }
 
@@ -188,6 +188,12 @@ export function buildJunctionTableSql(
 // ---------------------------------------------------------------------------
 // Main entry point
 // ---------------------------------------------------------------------------
+
+interface PendingWrite {
+    filePath: string;
+    content: string;
+    logLabel: string;
+}
 
 /**
  * Reads an OpenAPI v2/v3 spec file (JSON or YAML) and writes one `.sql` file
@@ -223,86 +229,115 @@ export async function generateSqlFilesFromSpec(
     const tablesFolder = path.join(outputFolder, "Tables");
     await fs.mkdir(tablesFolder, { recursive: true });
 
-    let filesWritten = 0;
+    const pendingWrites: PendingWrite[] = [];
     const enumInsertLines: string[] = [];
+    let mainTableCount = 0;
+    let enumTableCount = 0;
+    let listTableCount = 0;
+    let junctionTableCount = 0;
 
     for (const [name, schemaDef] of Object.entries(schemas)) {
         if (!schemaDef.properties) {
-            continue; // skip non-object schemas (scalars, arrays, etc.)
+            continue; // skip non-object schemas (scalars, plain arrays, etc.)
         }
 
-        // Main table: scalar columns only (enum/array/$ref handled as derived tables below)
+        // Main table: scalar columns only (array/$ref/enum handled as derived tables below)
         const tableSql = buildCreateTableSql(name, "dbo", schemaDef.properties);
         if (tableSql) {
-            const sqlFile = path.join(tablesFolder, `${toSafeFileName(name)}.sql`);
-            await fs.writeFile(sqlFile, tableSql, "utf-8");
-            filesWritten++;
-            log(`[sql-generator] Wrote Tables${path.sep}${toSafeFileName(name)}.sql`);
+            const fileName = `${toSafeFileName(name)}.sql`;
+            pendingWrites.push({
+                filePath: path.join(tablesFolder, fileName),
+                content: tableSql,
+                logLabel: `Tables${path.sep}${fileName}`,
+            });
+            mainTableCount++;
         } else {
             log(`[sql-generator] Skipped '${name}': no mappable scalar columns`);
         }
 
         // Derived tables for array and enum properties
         for (const [propName, prop] of Object.entries(schemaDef.properties)) {
-            const derivedName = `${name}${capitalize(propName)}`;
-
             if (prop.type === "array") {
                 if (prop.items?.$ref) {
                     // Array of $ref → junction table  e.g. Pet.tags: Tag[] → PetToTags
                     const refName = extractRefName(prop.items.$ref);
-                    const junctionName = `${name}To${capitalize(propName)}`;
-                    const junctionSql = buildJunctionTableSql(junctionName, "dbo", name, refName);
-                    const sqlFile = path.join(tablesFolder, `${toSafeFileName(junctionName)}.sql`);
-                    await fs.writeFile(sqlFile, junctionSql, "utf-8");
-                    filesWritten++;
-                    log(
-                        `[sql-generator] Wrote Tables${path.sep}${toSafeFileName(junctionName)}.sql`,
-                    );
+                    if (!refName) {
+                        log(
+                            `[sql-generator] Skipped junction for '${name}.${propName}': invalid $ref '${prop.items.$ref}'`,
+                        );
+                        continue;
+                    }
+                    const junctionName = toJunctionTableName(name, propName);
+                    const fileName = `${toSafeFileName(junctionName)}.sql`;
+                    pendingWrites.push({
+                        filePath: path.join(tablesFolder, fileName),
+                        content: buildJunctionTableSql(junctionName, "dbo", name, refName),
+                        logLabel: `Tables${path.sep}${fileName}`,
+                    });
+                    junctionTableCount++;
                 } else if (prop.items?.type) {
                     // Array of scalars → list table  e.g. Pet.photoUrls: string[] → PetPhotoUrls
-                    const listSql = buildListTableSql(
-                        derivedName,
-                        "dbo",
-                        prop.items.type,
-                        prop.items.format,
-                    );
-                    const sqlFile = path.join(tablesFolder, `${toSafeFileName(derivedName)}.sql`);
-                    await fs.writeFile(sqlFile, listSql, "utf-8");
-                    filesWritten++;
-                    log(
-                        `[sql-generator] Wrote Tables${path.sep}${toSafeFileName(derivedName)}.sql`,
-                    );
+                    const listName = toDerivedTableName(name, propName);
+                    const fileName = `${toSafeFileName(listName)}.sql`;
+                    pendingWrites.push({
+                        filePath: path.join(tablesFolder, fileName),
+                        content: buildListTableSql(
+                            listName,
+                            "dbo",
+                            prop.items.type,
+                            prop.items.format,
+                        ),
+                        logLabel: `Tables${path.sep}${fileName}`,
+                    });
+                    listTableCount++;
                 }
                 continue;
             }
 
             if (Array.isArray(prop.enum) && prop.enum.length > 0) {
                 // Enum property → lookup table  e.g. Pet.status enum → PetStatus table
-                const enumSql = buildEnumTableSql(derivedName, "dbo");
-                const sqlFile = path.join(tablesFolder, `${toSafeFileName(derivedName)}.sql`);
-                await fs.writeFile(sqlFile, enumSql, "utf-8");
-                filesWritten++;
-                log(`[sql-generator] Wrote Tables${path.sep}${toSafeFileName(derivedName)}.sql`);
+                const enumName = toDerivedTableName(name, propName);
+                const fileName = `${toSafeFileName(enumName)}.sql`;
+                pendingWrites.push({
+                    filePath: path.join(tablesFolder, fileName),
+                    content: buildEnumTableSql(enumName, "dbo"),
+                    logLabel: `Tables${path.sep}${fileName}`,
+                });
+                enumTableCount++;
 
                 const valueList = prop.enum
                     .map((v) => `('${String(v).replace(/'/g, "''")}')`)
                     .join(", ");
                 enumInsertLines.push(
-                    `INSERT INTO [dbo].[${toSqlIdentifier(derivedName)}] ([Value]) VALUES ${valueList};`,
+                    `INSERT INTO [dbo].[${toSqlIdentifier(enumName)}] ([Value]) VALUES ${valueList};`,
                 );
             }
         }
     }
 
     if (enumInsertLines.length > 0) {
-        const postDeployFile = path.join(outputFolder, constants.postDeploymentScriptName);
-        await fs.writeFile(postDeployFile, enumInsertLines.join("\n") + "\n", "utf-8");
-        filesWritten++;
-        log(`[sql-generator] Wrote ${constants.postDeploymentScriptName}`);
+        pendingWrites.push({
+            filePath: path.join(outputFolder, constants.postDeploymentScriptName),
+            content: enumInsertLines.join("\n") + "\n",
+            logLabel: constants.postDeploymentScriptName,
+        });
     }
 
+    // Write all files in parallel
+    await Promise.all(
+        pendingWrites.map(({ filePath, content }) => fs.writeFile(filePath, content, "utf-8")),
+    );
+
+    for (const { logLabel } of pendingWrites) {
+        log(`[sql-generator] Wrote ${logLabel}`);
+    }
+
+    const filesWritten = pendingWrites.length;
     const elapsedMs = Date.now() - startMs;
-    log(`[sql-generator] Done: ${filesWritten} file(s) written in ${elapsedMs}ms`);
+    log(
+        `[sql-generator] Done: ${filesWritten} file(s) written in ${elapsedMs}ms` +
+            ` (main: ${mainTableCount}, enum: ${enumTableCount}, list: ${listTableCount}, junction: ${junctionTableCount})`,
+    );
 
     return { filesWritten, logs };
 }
@@ -331,12 +366,22 @@ function toSafeFileName(name: string): string {
     return name.replace(/[^a-zA-Z0-9_]/g, "_");
 }
 
-/** Capitalizes the first character of a string (used to form derived table names). */
+/** Capitalizes the first character of a string. */
 function capitalize(name: string): string {
     return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
-/** Extracts the plain name from a $ref string.  '#/definitions/Tag' → 'Tag' */
+/** Derived table name for enum/list properties: `Pet` + `status` → `PetStatus`. */
+function toDerivedTableName(parentName: string, propName: string): string {
+    return `${parentName}${capitalize(propName)}`;
+}
+
+/** Junction table name for array-of-ref properties: `Pet` + `tags` → `PetToTags`. */
+function toJunctionTableName(parentName: string, propName: string): string {
+    return `${parentName}To${capitalize(propName)}`;
+}
+
+/** Extracts the plain name from a $ref string. Returns empty string for malformed refs. */
 function extractRefName(ref: string): string {
-    return ref.split("/").pop() ?? ref;
+    return ref.split("/").pop()?.trim() ?? "";
 }
