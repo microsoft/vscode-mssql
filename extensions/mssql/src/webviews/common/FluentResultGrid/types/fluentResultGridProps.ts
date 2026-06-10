@@ -11,9 +11,9 @@ import type {
     ResultsGridAutoSizeStyle,
 } from "../../../../sharedInterfaces/queryResult";
 import type {
-    FluentResultGridCommandBarOptions,
     FluentResultGridCommandConfiguration,
     FluentResultGridCommandEvent,
+    FluentResultGridToolbarOptions,
 } from "./fluentResultGridCommands";
 import type { FluentResultGridDataSource } from "./fluentResultGridDataSource";
 import type {
@@ -35,7 +35,7 @@ export interface FluentResultGridBehaviorProps {
     autoSizeColumnsMode?: ResultsGridAutoSizeStyle;
     inMemoryDataProcessingThreshold?: number;
     gridSettings?: GridSettings;
-    commandBar?: FluentResultGridCommandBarOptions;
+    toolbar?: FluentResultGridToolbarOptions;
     commands?: FluentResultGridCommandConfiguration;
     viewMode?: FluentResultGridViewMode;
     canToggleViewMode?: boolean;

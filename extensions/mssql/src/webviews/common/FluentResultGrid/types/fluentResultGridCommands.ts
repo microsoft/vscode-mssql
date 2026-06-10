@@ -24,7 +24,7 @@ export const FluentResultGridCommandPlacement = {
     CellContextMenu: "cellContextMenu",
     ColumnHeaderMenu: "columnHeaderMenu",
     GridMenu: "gridMenu",
-    CommandBar: "commandBar",
+    Toolbar: "toolbar",
     Keyboard: "keyboard",
 } as const;
 
@@ -123,12 +123,12 @@ export interface FluentResultGridCommandConfiguration {
     placements?: FluentResultGridCommandPlacementMap;
 }
 
-export interface FluentResultGridCommandBarOptions {
+export interface FluentResultGridToolbarOptions {
     visible?: boolean;
 
     /**
-     * Optional command-bar-specific override. When omitted, command configuration placements
-     * determine the command bar contents.
+     * Optional toolbar-specific override. When omitted, command configuration placements determine
+     * the toolbar contents.
      */
     commandIds?: readonly FluentResultGridCommandId[];
 }

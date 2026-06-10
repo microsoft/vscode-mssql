@@ -15,7 +15,6 @@ export type {
 } from "./types/fluentResultGridCommandIds";
 
 export type {
-    FluentResultGridCommandBarOptions,
     FluentResultGridCommandConfiguration,
     FluentResultGridCommandContext,
     FluentResultGridCommandContribution,
@@ -23,10 +22,12 @@ export type {
     FluentResultGridCommandHandlerOwner,
     FluentResultGridCommandMenuPlacement,
     FluentResultGridCommandPlacementMap,
-    getFluentResultGridCommandTooltip,
     FluentResultGridKeyBinding,
     FluentResultGridKeyBindingMap,
+    FluentResultGridToolbarOptions,
 } from "./types/fluentResultGridCommands";
+
+export { getFluentResultGridCommandTooltip } from "./types/fluentResultGridCommands";
 
 export type {
     FluentResultGridDataSource,

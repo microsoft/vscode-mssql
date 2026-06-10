@@ -92,7 +92,7 @@ export const builtInFluentResultGridCommands: readonly FluentResultGridBuiltInCo
         {
             id: FluentResultGridCommand.SaveAsCsv,
             label: "",
-            placements: [placement.CommandBar, placement.Keyboard],
+            placements: [placement.Toolbar, placement.Keyboard],
             groupId: "export",
             order: 300,
             handledBy: "host",
@@ -100,7 +100,7 @@ export const builtInFluentResultGridCommands: readonly FluentResultGridBuiltInCo
         {
             id: FluentResultGridCommand.SaveAsJson,
             label: "",
-            placements: [placement.CommandBar, placement.Keyboard],
+            placements: [placement.Toolbar, placement.Keyboard],
             groupId: "export",
             order: 310,
             handledBy: "host",
@@ -108,7 +108,7 @@ export const builtInFluentResultGridCommands: readonly FluentResultGridBuiltInCo
         {
             id: FluentResultGridCommand.SaveAsExcel,
             label: "",
-            placements: [placement.CommandBar, placement.Keyboard],
+            placements: [placement.Toolbar, placement.Keyboard],
             groupId: "export",
             order: 320,
             handledBy: "host",
@@ -116,7 +116,7 @@ export const builtInFluentResultGridCommands: readonly FluentResultGridBuiltInCo
         {
             id: FluentResultGridCommand.SaveAsInsert,
             label: "",
-            placements: [placement.CommandBar, placement.Keyboard],
+            placements: [placement.Toolbar, placement.Keyboard],
             groupId: "export",
             order: 330,
             handledBy: "host",
@@ -132,7 +132,7 @@ export const builtInFluentResultGridCommands: readonly FluentResultGridBuiltInCo
         {
             id: FluentResultGridCommand.SwitchToGridView,
             label: "",
-            placements: [placement.CommandBar],
+            placements: [placement.Toolbar],
             groupId: "view",
             order: 500,
             isVisible: (context) => !!context.canToggleViewMode && context.viewMode === "text",
@@ -141,7 +141,7 @@ export const builtInFluentResultGridCommands: readonly FluentResultGridBuiltInCo
         {
             id: FluentResultGridCommand.SwitchToTextView,
             label: "",
-            placements: [placement.CommandBar],
+            placements: [placement.Toolbar],
             groupId: "view",
             order: 510,
             isVisible: (context) => !!context.canToggleViewMode && context.viewMode !== "text",
@@ -150,7 +150,7 @@ export const builtInFluentResultGridCommands: readonly FluentResultGridBuiltInCo
         {
             id: FluentResultGridCommand.Maximize,
             label: "",
-            placements: [placement.CommandBar],
+            placements: [placement.Toolbar],
             groupId: "view",
             order: 520,
             isVisible: (context) => !!context.canToggleMaximize && !context.isMaximized,
@@ -159,7 +159,7 @@ export const builtInFluentResultGridCommands: readonly FluentResultGridBuiltInCo
         {
             id: FluentResultGridCommand.Restore,
             label: "",
-            placements: [placement.CommandBar],
+            placements: [placement.Toolbar],
             groupId: "view",
             order: 530,
             isVisible: (context) => !!context.canToggleMaximize && !!context.isMaximized,
@@ -315,8 +315,8 @@ export const builtInFluentResultGridCommandPlacements: FluentResultGridCommandPl
     [placement.GridMenu]: builtInFluentResultGridCommands
         .filter((command) => command.placements.includes(placement.GridMenu))
         .map((command) => command.id),
-    [placement.CommandBar]: builtInFluentResultGridCommands
-        .filter((command) => command.placements.includes(placement.CommandBar))
+    [placement.Toolbar]: builtInFluentResultGridCommands
+        .filter((command) => command.placements.includes(placement.Toolbar))
         .map((command) => command.id),
     [placement.Keyboard]: builtInFluentResultGridCommands
         .filter((command) => command.placements.includes(placement.Keyboard))

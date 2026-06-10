@@ -3,11 +3,27 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { makeStyles } from "@fluentui/react-components";
 import { forwardRef, useImperativeHandle, useMemo, useRef } from "react";
+import { FluentResultGridToolbar } from "./FluentResultGridToolbar";
 import { useFluentResultGridProvider } from "./FluentResultGridProvider";
+import type { FluentResultGridCommandContext } from "./types/fluentResultGridCommands";
 import type { FluentResultGridDataSource } from "./types/fluentResultGridDataSource";
 import type { FluentResultGridHandle, FluentResultGridProps } from "./types/fluentResultGridProps";
 import type { FluentResultGridHeightMode } from "./types/fluentResultGridState";
+
+const useStyles = makeStyles({
+    root: {
+        display: "flex",
+        minHeight: 0,
+        minWidth: 0,
+    },
+    gridBody: {
+        flexGrow: 1,
+        minHeight: 0,
+        minWidth: 0,
+    },
+});
 
 function getDataSourceRowCount(dataSource: FluentResultGridDataSource): number {
     return dataSource.kind === "rows"
@@ -33,7 +49,26 @@ function getHeightModeStyle(heightMode: FluentResultGridHeightMode | undefined) 
  * strings, keybindings, theme metadata, and grid-owned overlays can be coordinated across grids.
  */
 export const FluentResultGrid = forwardRef<FluentResultGridHandle, FluentResultGridProps>(
-    ({ gridId, resultSetSummary, dataSource, heightMode, className, style, ariaLabel }, ref) => {
+    (
+        {
+            gridId,
+            resultSetSummary,
+            dataSource,
+            heightMode,
+            className,
+            style,
+            ariaLabel,
+            toolbar,
+            commands,
+            viewMode = "grid",
+            canToggleViewMode,
+            canToggleMaximize,
+            isMaximized,
+            onCommand,
+        },
+        ref,
+    ) => {
+        const classes = useStyles();
         const { strings, theme } = useFluentResultGridProvider();
         const containerRef = useRef<HTMLDivElement>(null);
         const rowCount = getDataSourceRowCount(dataSource);
@@ -57,23 +92,50 @@ export const FluentResultGrid = forwardRef<FluentResultGridHandle, FluentResultG
             [heightMode, style, theme?.style],
         );
 
-        const classes = [theme?.className, className].filter(Boolean).join(" ");
+        const classNames = [classes.root, theme?.className, className].filter(Boolean).join(" ");
         const label =
             ariaLabel ??
             strings.accessibility.gridAriaLabel(resultSetSummary.batchId, resultSetSummary.id);
+        const commandContext = useMemo<FluentResultGridCommandContext>(
+            () => ({
+                gridId,
+                batchId: resultSetSummary.batchId,
+                resultId: resultSetSummary.id,
+                viewMode,
+                canToggleViewMode,
+                canToggleMaximize,
+                isMaximized,
+            }),
+            [
+                canToggleMaximize,
+                canToggleViewMode,
+                gridId,
+                isMaximized,
+                resultSetSummary.batchId,
+                resultSetSummary.id,
+                viewMode,
+            ],
+        );
 
         return (
             <div
                 ref={containerRef}
-                className={classes || undefined}
+                className={classNames || undefined}
                 style={containerStyle}
                 tabIndex={0}
                 role="region"
                 aria-label={label}
                 data-fluent-result-grid="true"
                 data-grid-id={gridId}
-                data-row-count={rowCount}
-            />
+                data-row-count={rowCount}>
+                <div className={classes.gridBody} data-fluent-result-grid-body="true" />
+                <FluentResultGridToolbar
+                    toolbar={toolbar}
+                    commands={commands}
+                    commandContext={commandContext}
+                    onCommand={onCommand}
+                />
+            </div>
         );
     },
 );

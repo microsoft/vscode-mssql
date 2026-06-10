@@ -36,6 +36,7 @@ export interface FluentResultGridFilterStrings {
 export interface FluentResultGridAccessibilityStrings {
     selectedCount: (count: number) => string;
     gridAriaLabel: (batchId: number, resultId: number) => string;
+    toolbarAriaLabel: string;
 }
 
 export interface FluentResultGridStrings {
