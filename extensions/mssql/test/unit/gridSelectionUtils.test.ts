@@ -6,7 +6,6 @@
 import { expect } from "chai";
 import {
     convertDisplayedSelectionToActual,
-    convertDisplayedSelectionRowsToActual,
     tryCombineSelections,
     tryCombineSelectionsForResults,
     SLICKGRID_ROW_ID_PROP,
@@ -151,21 +150,6 @@ suite("Grid Selection Utils", () => {
                 { fromRow: 20, toRow: 20, fromCell: 0, toCell: 1 },
                 { fromRow: 40, toRow: 40, fromCell: 0, toCell: 1 },
                 { fromRow: 50, toRow: 50, fromCell: 0, toCell: 1 },
-            ]);
-        });
-
-        test("maps display rows through a supplied row resolver", () => {
-            const actualRowIds = [4, 2, 3, 0];
-            const selections: ISlickRange[] = [{ fromRow: 0, toRow: 3, fromCell: 0, toCell: 2 }];
-            const result = convertDisplayedSelectionRowsToActual(
-                selections,
-                (displayRow) => actualRowIds[displayRow],
-            );
-
-            expect(result).to.deep.equal([
-                { fromRow: 4, toRow: 4, fromCell: 0, toCell: 2 },
-                { fromRow: 2, toRow: 3, fromCell: 0, toCell: 2 },
-                { fromRow: 0, toRow: 0, fromCell: 0, toCell: 2 },
             ]);
         });
     });

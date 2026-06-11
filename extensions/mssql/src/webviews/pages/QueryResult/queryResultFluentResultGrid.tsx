@@ -386,8 +386,10 @@ function getQueryResultFluentGridStrings(): FluentResultGridStrings {
             [FluentResultGridCommand.ToggleSort]: command(locConstants.queryResult.sort),
             [FluentResultGridCommand.OpenFilter]: command(locConstants.queryResult.filter),
             [FluentResultGridCommand.OpenResizeDialog]: command(locConstants.queryResult.resize),
-            [FluentResultGridCommand.FreezeColumn]: command("Freeze Columns"),
-            [FluentResultGridCommand.UnfreezeColumn]: command("Unfreeze Columns"),
+            [FluentResultGridCommand.FreezeColumn]: command(locConstants.slickGrid.freezeColumns),
+            [FluentResultGridCommand.UnfreezeColumn]: command(
+                locConstants.slickGrid.unfreezeColumns,
+            ),
             [FluentResultGridCommand.ClearAllFilters]: command(
                 locConstants.slickGrid.clearAllFilters,
             ),
