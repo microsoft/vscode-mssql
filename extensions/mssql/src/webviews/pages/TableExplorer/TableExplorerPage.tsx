@@ -283,13 +283,6 @@ export const TableExplorerPage: React.FC = () => {
         }
     }, [selectedRowIds]);
 
-    const handleShowSql = useCallback(() => {
-        const sql = gridRef.current?.getSqlForCurrentView();
-        if (sql) {
-            context?.showSql?.(sql);
-        }
-    }, [context]);
-
     // The edit session is bounded by the TOP N from the query that opened it,
     // so changing the toolbar row count requires re-initializing the session
     // with a freshly-built query. The default query shape is always
@@ -358,7 +351,6 @@ export const TableExplorerPage: React.FC = () => {
                             onExport={handleExport}
                             getDataColumns={handleGetDataColumns}
                             onSetColumnVisibility={handleSetColumnVisibility}
-                            onShowSql={handleShowSql}
                             selectedRowCount={selectedRowIds.length}
                             onDeleteSelected={handleDeleteSelected}
                             onToggleFilters={() => setFiltersOpen((prev) => !prev)}

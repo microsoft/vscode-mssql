@@ -27,7 +27,6 @@ import {
     ArrowDownloadRegular,
     ColumnRegular,
     DeleteRegular,
-    DocumentTextRegular,
     FilterRegular,
     Checkmark16Regular,
 } from "@fluentui/react-icons";
@@ -59,7 +58,6 @@ interface TableExplorerToolbarProps {
     onExport?: (format: "csv" | "excel" | "json") => void;
     getDataColumns?: () => DataColumnVisibility[];
     onSetColumnVisibility?: (id: string, visible: boolean) => void;
-    onShowSql?: () => void;
     selectedRowCount?: number;
     onDeleteSelected?: () => void;
     onToggleFilters?: () => void;
@@ -132,7 +130,6 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
     onExport,
     getDataColumns,
     onSetColumnVisibility,
-    onShowSql,
     selectedRowCount = 0,
     onDeleteSelected,
     onToggleFilters,
@@ -275,16 +272,6 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
                 disabled={isLoading}>
                 {loc.tableExplorer.viewTableDiagram}
             </ToolbarButton>
-            {onShowSql && (
-                <ToolbarButton
-                    aria-label={loc.tableExplorer.showSql}
-                    title={loc.tableExplorer.openSqlInEditor}
-                    icon={<DocumentTextRegular />}
-                    onClick={onShowSql}
-                    disabled={isLoading}>
-                    {loc.tableExplorer.showSql}
-                </ToolbarButton>
-            )}
             {onToggleFilters && (
                 <ToolbarButton
                     className={filtersOpen ? styles.filterButtonActive : undefined}
