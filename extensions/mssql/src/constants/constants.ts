@@ -36,6 +36,7 @@ export const database_red = "Database_red";
 export const cmdRunQuery = "mssql.runQuery";
 export const cmdRunQueryWithUriOwnership = "mssql.runQueryWithUriOwnership";
 export const cmdRunCurrentStatement = "mssql.runCurrentStatement";
+export const cmdOpenShortcutsConfiguration = "mssql.shortcutsConfiguration.open";
 export const cmdCancelQuery = "mssql.cancelQuery";
 export const cmdRevealQueryResult = "mssql.revealQueryResult";
 export const cmdToggleQueryResultPanel = "mssql.toggleQueryResultPanel";
@@ -317,6 +318,13 @@ export const configSavePasswordsUntilRestart =
 export const configAutoRevealResultsPanel = "mssql.autoRevealResultsPanel";
 export const configCustomEnvironment = "mssql.customEnvironment";
 export const configShortcuts = "mssql.shortcuts";
+export const configQuickQueries = "mssql.quickQueries";
+/**
+ * Undocumented opt-in flag that gates the Shortcuts Configuration feature (the
+ * configuration webview and Quick Queries commands). Not declared in
+ * package.json contributes.configuration; read at runtime only.
+ */
+export const configEnableShortcutsConfiguration = "mssql.enableShortcutsConfiguration";
 export const configShowChangelogOnUpdate = "mssql.showChangelogOnUpdate";
 /** @deprecated Use configNewEditorConnectionBehavior instead. */
 export const configTransferActiveEditorConnections = "mssql.transferActiveEditorConnections";

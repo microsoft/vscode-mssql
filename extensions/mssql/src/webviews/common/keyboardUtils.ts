@@ -113,6 +113,10 @@ const specialKeyMap: Record<string, KeyResolution> = {
     apostrophe: { key: "'", code: "Quote", display: "'" },
     backquote: { key: "`", code: "Backquote", display: "`" },
     backtick: { key: "`", code: "Backquote", display: "`" },
+    bracketleft: { key: "[", code: "BracketLeft", display: "[" },
+    leftbracket: { key: "[", code: "BracketLeft", display: "[" },
+    bracketright: { key: "]", code: "BracketRight", display: "]" },
+    rightbracket: { key: "]", code: "BracketRight", display: "]" },
 };
 
 const FUNCTION_KEY_REGEX = /^f([1-9]|1[0-2])$/;

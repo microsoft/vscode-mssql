@@ -30,6 +30,9 @@ const config = {
     tsconfig: "./tsconfig.extension.json",
     plugins: [esbuildProblemMatcherPlugin("extension")],
     nodePaths: ["./node_modules"],
+    alias: {
+        "jsonc-parser": path.resolve(__dirname, "../node_modules/jsonc-parser/lib/esm/main.js"),
+    },
     sourcemap: !isProd,
     sourcesContent: false,
     metafile: !isProd,
