@@ -36,15 +36,19 @@ function getActualRowIndex(grid: Slick.Grid<any>, displayRow: number): number | 
     return item[SLICKGRID_ROW_ID_PROP] as number;
 }
 
-export function convertDisplayedSelectionRowsToActual(
+export function convertDisplayedSelectionToActual(
+    grid: Slick.Grid<any>,
     selections: ISlickRange[],
-    getActualRowIndexForDisplayRow: (displayRow: number) => number | undefined,
 ): ISlickRange[] {
     if (selections.length === 0) {
         return selections;
     }
-
     const actualSelections: ISlickRange[] = [];
+    const shouldMapRows = hasSortOrFilterApplied(grid);
+
+    if (!shouldMapRows) {
+        return selections;
+    }
 
     // Normalize to top-left display order so copy output follows visual grid order,
     // regardless of the order ranges were added to the selection model.
@@ -68,7 +72,7 @@ export function convertDisplayedSelectionRowsToActual(
         const actualRowsInDisplayOrder: number[] = [];
 
         for (let displayRow = selection.fromRow; displayRow <= selection.toRow; displayRow++) {
-            const actualRow = getActualRowIndexForDisplayRow(displayRow);
+            const actualRow = getActualRowIndex(grid, displayRow);
             actualRowsInDisplayOrder.push(actualRow ?? displayRow);
         }
 
@@ -110,24 +114,6 @@ export function convertDisplayedSelectionRowsToActual(
     }
 
     return actualSelections;
-}
-
-export function convertDisplayedSelectionToActual(
-    grid: Slick.Grid<any>,
-    selections: ISlickRange[],
-): ISlickRange[] {
-    if (selections.length === 0) {
-        return selections;
-    }
-    const shouldMapRows = hasSortOrFilterApplied(grid);
-
-    if (!shouldMapRows) {
-        return selections;
-    }
-
-    return convertDisplayedSelectionRowsToActual(selections, (displayRow) =>
-        getActualRowIndex(grid, displayRow),
-    );
 }
 
 export interface RowRange {
