@@ -53,58 +53,16 @@ export interface FluentResultGridRowFactory<T extends Slick.SlickData> {
     createPlaceholderRow: (absoluteRowIndex: number, columnCount: number) => T;
 }
 
-export interface FluentResultGridWindowedRowStoreOptions {
-    /**
-     * Hard per-grid row-cache budget, expressed in pages. A page is `windowSize` rows.
-     *
-     * Default is 3: one visible page plus adjacent pages around it.
-     */
-    maxCachedPages?: number;
-
-    /**
-     * Pages to keep around the viewport when scroll direction is unknown.
-     */
-    basePrefetchPages?: number;
-
-    /**
-     * Extra pages to bias in the current scroll direction.
-     */
-    directionalPrefetchPages?: number;
-
-    /**
-     * Bounds background prefetch concurrency per grid. Visible range requests are not blocked by
-     * this value.
-     */
-    maxPendingPrefetchRequests?: number;
-
-    /**
-     * Maximum rows requested in one visible-priority load.
-     */
-    visibleLoadChunkSize?: number;
-
-    /**
-     * Maximum rows requested in one background prefetch load.
-     */
-    prefetchLoadChunkSize?: number;
-}
-
 export interface FluentResultGridDataViewOptions<T extends Slick.SlickData> {
     dataSource: FluentResultGridDataSource;
     columnCount: number;
     windowSize?: number;
     rowFactory?: FluentResultGridRowFactory<T>;
-    windowedStoreOptions?: FluentResultGridWindowedRowStoreOptions;
 }
 
 interface Range {
     start: number;
     end: number;
-}
-
-interface PendingRequest extends Range {
-    generation: number;
-    priority: boolean;
-    completion: Promise<void>;
 }
 
 const defaultWindowSize = 50;
@@ -124,10 +82,6 @@ function toPositiveInteger(value: number, fallback: number): number {
 
 function clamp(value: number, min: number, max: number): number {
     return Math.min(Math.max(value, min), max);
-}
-
-function rangesOverlap(left: Range, right: Range): boolean {
-    return left.start < right.end && right.start < left.end;
 }
 
 function getRange(startIndex: number, count: number): number[] {
@@ -256,35 +210,79 @@ class FluentResultGridInMemoryRowStore<T extends Slick.SlickData>
     }
 }
 
+class FluentResultGridDataWindow<T extends Slick.SlickData> {
+    private rows: T[] | undefined;
+    private length = 0;
+    private offset = -1;
+    private requestId = 0;
+
+    constructor(
+        private readonly loadRows: (offset: number, count: number) => MaybePromise<T[]>,
+        private readonly createPlaceholderRow: (index: number) => T,
+        private readonly loadCompleteCallback: (start: number, end: number) => void,
+    ) {}
+
+    public getStartIndex(): number {
+        return this.offset;
+    }
+
+    public getEndIndex(): number {
+        return this.offset + this.length;
+    }
+
+    public contains(index: number): boolean {
+        return index >= this.getStartIndex() && index < this.getEndIndex();
+    }
+
+    public getItem(index: number): T {
+        return this.rows?.[index - this.offset] ?? this.createPlaceholderRow(index);
+    }
+
+    public positionWindow(offset: number, length: number, totalItems: number): void {
+        const totalLength = toNonNegativeInteger(totalItems);
+        const nextOffset = clamp(toNonNegativeInteger(offset), 0, totalLength);
+        const nextLength = clamp(toNonNegativeInteger(length), 0, totalLength - nextOffset);
+
+        this.offset = nextOffset;
+        this.length = nextLength;
+        this.rows = undefined;
+
+        const currentRequestId = ++this.requestId;
+        if (nextLength === 0) {
+            return;
+        }
+
+        Promise.resolve(this.loadRows(nextOffset, nextLength)).then(
+            (rows) => {
+                if (currentRequestId !== this.requestId || !Array.isArray(rows)) {
+                    return;
+                }
+
+                this.rows = rows;
+                this.loadCompleteCallback(this.offset, this.offset + this.length);
+            },
+            () => undefined,
+        );
+    }
+
+    public dispose(): void {
+        this.rows = undefined;
+        this.length = 0;
+        this.offset = -1;
+        this.requestId++;
+    }
+}
+
 class FluentResultGridWindowedRowStore<T extends Slick.SlickData>
     implements FluentResultGridRowStore<T>
 {
-    private static readonly defaultMaxCachedPages = 3;
-    private static readonly defaultBasePrefetchPages = 1;
-    private static readonly defaultDirectionalPrefetchPages = 1;
-    private static readonly defaultMaxPendingPrefetchRequests = 2;
-
     public readonly isFullyInMemory = false;
-    private readonly pageSize: number;
-    private readonly maxCachedPages: number;
-    private readonly maxCachedRows: number;
-    private readonly basePrefetchPages: number;
-    private readonly directionalPrefetchPages: number;
-    private readonly maxPendingPrefetchRequests: number;
-    private readonly visibleLoadChunkSize: number;
-    private readonly prefetchLoadChunkSize: number;
-
-    private cache = new Map<number, T>();
-    private placeholderCache = new Map<number, T>();
-    private pendingRequests = new Map<string, PendingRequest>();
-    private pendingChangedRanges: Range[] = [];
-
-    private generation = 0;
+    private readonly windowSize: number;
+    private bufferWindowBefore: FluentResultGridDataWindow<T>;
+    private window: FluentResultGridDataWindow<T>;
+    private bufferWindowAfter: FluentResultGridDataWindow<T>;
+    private lengthChanged = true;
     private disposed = false;
-    private lastVisibleRange: Range = { start: 0, end: 0 };
-    private lastScrollStart: number | undefined;
-    private scrollDirection: -1 | 0 | 1 = 0;
-    private collectionChangedTimer: ReturnType<typeof setTimeout> | undefined;
     private collectionChangedCallback?: (startIndex: number, count: number) => void;
 
     constructor(
@@ -292,34 +290,28 @@ class FluentResultGridWindowedRowStore<T extends Slick.SlickData>
         private readonly createPlaceholderRow: (index: number) => T,
         private length: number,
         private readonly loadRows: (offset: number, count: number) => MaybePromise<T[]>,
-        options: FluentResultGridWindowedRowStoreOptions = {},
     ) {
-        this.pageSize = toPositiveInteger(windowSize, 1);
+        this.windowSize = toPositiveInteger(windowSize, 1);
+
+        const loadCompleteCallback = (start: number, end: number) => {
+            if (!this.disposed) {
+                this.collectionChangedCallback?.(start, end - start);
+            }
+        };
+
+        this.bufferWindowBefore = this.createDataWindow(loadCompleteCallback);
+        this.window = this.createDataWindow(loadCompleteCallback);
+        this.bufferWindowAfter = this.createDataWindow(loadCompleteCallback);
         this.length = toNonNegativeInteger(length);
-        this.maxCachedPages = toPositiveInteger(
-            options.maxCachedPages ?? FluentResultGridWindowedRowStore.defaultMaxCachedPages,
-            FluentResultGridWindowedRowStore.defaultMaxCachedPages,
-        );
-        this.maxCachedRows = this.pageSize * this.maxCachedPages;
-        this.basePrefetchPages = toNonNegativeInteger(
-            options.basePrefetchPages ?? FluentResultGridWindowedRowStore.defaultBasePrefetchPages,
-        );
-        this.directionalPrefetchPages = toNonNegativeInteger(
-            options.directionalPrefetchPages ??
-                FluentResultGridWindowedRowStore.defaultDirectionalPrefetchPages,
-        );
-        this.maxPendingPrefetchRequests = toPositiveInteger(
-            options.maxPendingPrefetchRequests ??
-                FluentResultGridWindowedRowStore.defaultMaxPendingPrefetchRequests,
-            FluentResultGridWindowedRowStore.defaultMaxPendingPrefetchRequests,
-        );
-        this.visibleLoadChunkSize = toPositiveInteger(
-            options.visibleLoadChunkSize ?? this.pageSize,
-            this.pageSize,
-        );
-        this.prefetchLoadChunkSize = toPositiveInteger(
-            options.prefetchLoadChunkSize ?? this.pageSize,
-            this.pageSize,
+    }
+
+    private createDataWindow(
+        loadCompleteCallback: (start: number, end: number) => void,
+    ): FluentResultGridDataWindow<T> {
+        return new FluentResultGridDataWindow(
+            this.loadRows,
+            this.createPlaceholderRow,
+            loadCompleteCallback,
         );
     }
 
@@ -335,21 +327,9 @@ class FluentResultGridWindowedRowStore<T extends Slick.SlickData>
 
     public setLength(length: number, resetData = true): void {
         const nextLength = toNonNegativeInteger(length);
-        const previousLength = this.length;
-        const lengthChanged = nextLength !== previousLength;
-
+        const shouldResetWindows = resetData || nextLength < this.length;
+        this.lengthChanged = this.lengthChanged || shouldResetWindows || nextLength !== this.length;
         this.length = nextLength;
-
-        if (resetData || nextLength < previousLength) {
-            this.invalidateCachedData(true);
-            return;
-        }
-
-        if (lengthChanged) {
-            this.removeCachedRowsAtOrAfter(nextLength);
-            this.removePendingRequestsOutsideLength();
-            this.trimCache();
-        }
     }
 
     public at(index: number): T {
@@ -359,10 +339,7 @@ class FluentResultGridWindowedRowStore<T extends Slick.SlickData>
             return this.createPlaceholderRow(normalizedIndex);
         }
 
-        return (
-            this.getRange(normalizedIndex, normalizedIndex + 1)[0] ??
-            this.createPlaceholderRow(normalizedIndex)
-        );
+        return this.getRange(normalizedIndex, normalizedIndex + 1)[0];
     }
 
     public getRange(start: number, end: number): T[] {
@@ -372,8 +349,45 @@ class FluentResultGridWindowedRowStore<T extends Slick.SlickData>
             return [];
         }
 
-        void this.onRangeRequested(range);
-        return this.readRangeFromCache(range);
+        const currentRows = this.getRangeFromCurrentWindows(range.start, range.end);
+
+        if (
+            this.lengthChanged ||
+            range.start < this.bufferWindowBefore.getStartIndex() ||
+            range.end > this.bufferWindowAfter.getEndIndex()
+        ) {
+            this.lengthChanged = false;
+            this.resetAroundIndex(range.start);
+        } else if (range.end <= this.bufferWindowBefore.getEndIndex()) {
+            const recycledWindow = this.bufferWindowAfter;
+            this.bufferWindowAfter = this.window;
+            this.window = this.bufferWindowBefore;
+            this.bufferWindowBefore = recycledWindow;
+
+            const windowOffset = Math.max(0, this.window.getStartIndex() - this.windowSize);
+            this.bufferWindowBefore.positionWindow(
+                windowOffset,
+                this.window.getStartIndex() - windowOffset,
+                this.length,
+            );
+        } else if (range.start >= this.bufferWindowAfter.getStartIndex()) {
+            const recycledWindow = this.bufferWindowBefore;
+            this.bufferWindowBefore = this.window;
+            this.window = this.bufferWindowAfter;
+            this.bufferWindowAfter = recycledWindow;
+
+            const windowOffset = Math.min(
+                this.window.getStartIndex() + this.windowSize,
+                this.length,
+            );
+            this.bufferWindowAfter.positionWindow(
+                windowOffset,
+                Math.min(this.length - windowOffset, this.windowSize),
+                this.length,
+            );
+        }
+
+        return currentRows;
     }
 
     public async getRangeAsync(start: number, end: number): Promise<T[]> {
@@ -383,24 +397,28 @@ class FluentResultGridWindowedRowStore<T extends Slick.SlickData>
             return [];
         }
 
-        const visibleLoads = this.onRangeRequested(range);
-        if (visibleLoads.length > 0) {
-            await Promise.all(visibleLoads.map((load) => load.catch(() => undefined)));
-        }
-
-        return this.readRangeFromCache(range);
+        const rows = await Promise.resolve(
+            this.loadRows(range.start, range.end - range.start),
+        ).catch(() => []);
+        return Array.from(
+            { length: range.end - range.start },
+            (_value, index) => rows[index] ?? this.createPlaceholderRow(range.start + index),
+        );
     }
 
     public resetAroundIndex(index: number): void {
-        const start = clamp(toNonNegativeInteger(index), 0, this.length);
-        const end = Math.min(start + this.pageSize, this.length);
+        const targetIndex = clamp(toNonNegativeInteger(index), 0, this.length);
+        const beforeStart = Math.max(0, targetIndex - this.windowSize * 1.5);
+        const beforeEnd = Math.max(0, targetIndex - this.windowSize / 2);
+        this.bufferWindowBefore.positionWindow(beforeStart, beforeEnd - beforeStart, this.length);
 
-        if (end <= start) {
-            this.trimCache();
-            return;
-        }
+        const windowStart = beforeEnd;
+        const windowEnd = Math.min(windowStart + this.windowSize, this.length);
+        this.window.positionWindow(windowStart, windowEnd - windowStart, this.length);
 
-        void this.onRangeRequested({ start, end });
+        const afterStart = windowEnd;
+        const afterEnd = Math.min(afterStart + this.windowSize, this.length);
+        this.bufferWindowAfter.positionWindow(afterStart, afterEnd - afterStart, this.length);
     }
 
     public getItems(): T[] {
@@ -409,499 +427,34 @@ class FluentResultGridWindowedRowStore<T extends Slick.SlickData>
 
     public dispose(): void {
         this.disposed = true;
-        this.generation++;
-        this.cache.clear();
-        this.placeholderCache.clear();
-        this.pendingRequests.clear();
-        this.pendingChangedRanges = [];
         this.collectionChangedCallback = undefined;
-
-        if (this.collectionChangedTimer !== undefined) {
-            clearTimeout(this.collectionChangedTimer);
-            this.collectionChangedTimer = undefined;
-        }
+        this.bufferWindowBefore.dispose();
+        this.window.dispose();
+        this.bufferWindowAfter.dispose();
     }
 
-    private onRangeRequested(range: Range): Promise<void>[] {
-        this.lastVisibleRange = range;
-        this.updateScrollDirection(range.start);
-        this.trimPendingRequests();
-
-        const visibleLoads = this.ensureRange(range.start, range.end, true);
-        this.prefetchAroundVisibleRange();
-        this.trimCache();
-
-        return visibleLoads;
-    }
-
-    private readRangeFromCache(range: Range): T[] {
-        const rows = new Array<T>(range.end - range.start);
-        for (let index = range.start; index < range.end; index++) {
-            rows[index - range.start] = this.getCachedRow(index) ?? this.getPlaceholderRow(index);
+    private getRangeFromCurrentWindows(start: number, end: number): T[] {
+        const rows: T[] = [];
+        for (let index = start; index < end; index++) {
+            rows.push(this.getDataFromCurrentWindows(index));
         }
-
-        this.trimCache();
         return rows;
     }
 
-    private updateScrollDirection(start: number): void {
-        if (this.lastScrollStart === undefined) {
-            this.lastScrollStart = start;
-            return;
+    private getDataFromCurrentWindows(index: number): T {
+        if (this.bufferWindowBefore.contains(index)) {
+            return this.bufferWindowBefore.getItem(index);
         }
 
-        if (start > this.lastScrollStart) {
-            this.scrollDirection = 1;
-        } else if (start < this.lastScrollStart) {
-            this.scrollDirection = -1;
-        } else {
-            this.scrollDirection = 0;
+        if (this.bufferWindowAfter.contains(index)) {
+            return this.bufferWindowAfter.getItem(index);
         }
 
-        this.lastScrollStart = start;
-    }
-
-    private prefetchAroundVisibleRange(): void {
-        const desiredRange = this.getDesiredCacheRange();
-        const visibleRange = normalizeRange(
-            this.lastVisibleRange.start,
-            this.lastVisibleRange.end,
-            this.length,
-        );
-
-        if (desiredRange.end <= desiredRange.start || visibleRange.end <= visibleRange.start) {
-            return;
+        if (this.window.contains(index)) {
+            return this.window.getItem(index);
         }
 
-        if (desiredRange.start < visibleRange.start) {
-            void this.ensureRange(desiredRange.start, visibleRange.start, false);
-        }
-
-        if (visibleRange.end < desiredRange.end) {
-            void this.ensureRange(visibleRange.end, desiredRange.end, false);
-        }
-    }
-
-    private ensureRange(start: number, end: number, priority: boolean): Promise<void>[] {
-        if (this.disposed || this.length <= 0 || end <= start) {
-            return [];
-        }
-
-        const range = normalizeRange(start, end, this.length);
-        if (range.end <= range.start) {
-            return [];
-        }
-
-        const chunkSize = priority ? this.visibleLoadChunkSize : this.prefetchLoadChunkSize;
-        return this.ensureMissingSegments(range.start, range.end, priority, chunkSize);
-    }
-
-    private ensureMissingSegments(
-        start: number,
-        end: number,
-        priority: boolean,
-        chunkSize: number,
-    ): Promise<void>[] {
-        const loads: Promise<void>[] = [];
-        const seenPendingLoads = new Set<Promise<void>>();
-        let index = start;
-
-        while (index < end) {
-            if (this.cache.has(index)) {
-                index++;
-                continue;
-            }
-
-            const pending = this.getPendingRequestCoveringIndex(index);
-            if (pending) {
-                if (priority) {
-                    pending.priority = true;
-                    if (!seenPendingLoads.has(pending.completion)) {
-                        seenPendingLoads.add(pending.completion);
-                        loads.push(pending.completion);
-                    }
-                }
-                index = Math.max(index + 1, Math.min(pending.end, end));
-                continue;
-            }
-
-            const segmentStart = index;
-            const segmentLimit = Math.min(end, segmentStart + chunkSize);
-            index++;
-
-            while (
-                index < segmentLimit &&
-                !this.cache.has(index) &&
-                !this.getPendingRequestCoveringIndex(index)
-            ) {
-                index++;
-            }
-
-            const load = this.requestRangeIfNeeded(segmentStart, index, priority);
-            if (load) {
-                loads.push(load);
-            }
-        }
-
-        return loads;
-    }
-
-    private requestRangeIfNeeded(
-        start: number,
-        end: number,
-        priority: boolean,
-    ): Promise<void> | undefined {
-        if (!priority && this.getPendingPrefetchRequestCount() >= this.maxPendingPrefetchRequests) {
-            return undefined;
-        }
-
-        if (!priority && !rangesOverlap({ start, end }, this.getDesiredCacheRange())) {
-            return undefined;
-        }
-
-        if (this.hasEveryRow(start, end)) {
-            return undefined;
-        }
-
-        const key = this.getRequestKey(start, end);
-        const pendingRequest = this.pendingRequests.get(key);
-        if (pendingRequest?.generation === this.generation) {
-            pendingRequest.priority = pendingRequest.priority || priority;
-            return pendingRequest.completion;
-        }
-
-        const request: PendingRequest = {
-            start,
-            end,
-            generation: this.generation,
-            priority,
-            completion: Promise.resolve(),
-        };
-
-        this.pendingRequests.set(key, request);
-
-        let promise: Promise<T[]>;
-        try {
-            promise = Promise.resolve(this.loadRows(start, end - start));
-        } catch {
-            this.pendingRequests.delete(key);
-            return Promise.resolve();
-        }
-
-        request.completion = promise.then(
-            (rows) => this.completeRowLoad(key, request, rows),
-            () => this.failRowLoad(key, request),
-        );
-
-        return request.completion;
-    }
-
-    private completeRowLoad(key: string, request: PendingRequest, rows: T[]): void {
-        const pendingRequest = this.pendingRequests.get(key);
-        // A request can be pruned from bookkeeping during a transient viewport change.
-        // Still accept it unless a newer request with the same key replaced it.
-        const replacedByNewerRequest = pendingRequest !== undefined && pendingRequest !== request;
-        if (
-            this.disposed ||
-            replacedByNewerRequest ||
-            request.generation !== this.generation ||
-            !Array.isArray(rows)
-        ) {
-            return;
-        }
-
-        this.pendingRequests.delete(key);
-
-        if (!request.priority && !rangesOverlap(request, this.getDesiredCacheRange())) {
-            return;
-        }
-
-        const maxRowsToApply = Math.min(
-            rows.length,
-            request.end - request.start,
-            this.length - request.start,
-        );
-        if (maxRowsToApply <= 0) {
-            return;
-        }
-
-        let changedStart = Number.POSITIVE_INFINITY;
-        let changedEnd = Number.NEGATIVE_INFINITY;
-
-        for (let offset = 0; offset < maxRowsToApply; offset++) {
-            const rowIndex = request.start + offset;
-            if (rowIndex < 0 || rowIndex >= this.length) {
-                continue;
-            }
-
-            this.cache.set(rowIndex, rows[offset]);
-            this.placeholderCache.delete(rowIndex);
-            changedStart = Math.min(changedStart, rowIndex);
-            changedEnd = Math.max(changedEnd, rowIndex + 1);
-        }
-
-        this.trimCache();
-
-        if (changedEnd > changedStart) {
-            this.queueCollectionChanged(changedStart, changedEnd);
-        }
-    }
-
-    private failRowLoad(key: string, request: PendingRequest): void {
-        if (this.pendingRequests.get(key) === request) {
-            this.pendingRequests.delete(key);
-        }
-    }
-
-    private getDesiredCacheRange(): Range {
-        const visibleRange = normalizeRange(
-            this.lastVisibleRange.start,
-            this.lastVisibleRange.end,
-            this.length,
-        );
-        if (visibleRange.end <= visibleRange.start || this.length <= 0) {
-            return { start: 0, end: 0 };
-        }
-
-        const visiblePageStart = this.getPageStart(visibleRange.start);
-        const lastVisibleIndex = Math.max(visibleRange.start, visibleRange.end - 1);
-        const visiblePageEnd = Math.min(
-            this.length,
-            this.getPageStart(lastVisibleIndex) + this.pageSize,
-        );
-        const visiblePages = Math.max(
-            1,
-            Math.ceil((visiblePageEnd - visiblePageStart) / this.pageSize),
-        );
-        const extraPageBudget = Math.max(0, this.maxCachedPages - visiblePages);
-
-        let beforePages = 0;
-        let afterPages = 0;
-
-        if (this.scrollDirection > 0) {
-            afterPages = Math.min(
-                extraPageBudget,
-                this.basePrefetchPages + this.directionalPrefetchPages,
-            );
-            beforePages = Math.min(extraPageBudget - afterPages, this.basePrefetchPages);
-        } else if (this.scrollDirection < 0) {
-            beforePages = Math.min(
-                extraPageBudget,
-                this.basePrefetchPages + this.directionalPrefetchPages,
-            );
-            afterPages = Math.min(extraPageBudget - beforePages, this.basePrefetchPages);
-        } else {
-            beforePages = Math.min(extraPageBudget, this.basePrefetchPages);
-            afterPages = Math.min(extraPageBudget - beforePages, this.basePrefetchPages);
-        }
-
-        return {
-            start: Math.max(0, visiblePageStart - beforePages * this.pageSize),
-            end: Math.min(this.length, visiblePageEnd + afterPages * this.pageSize),
-        };
-    }
-
-    private getCacheBudgetRows(): number {
-        const visibleCount = Math.max(0, this.lastVisibleRange.end - this.lastVisibleRange.start);
-        return Math.max(this.maxCachedRows, visibleCount);
-    }
-
-    private getPageStart(index: number): number {
-        return Math.floor(index / this.pageSize) * this.pageSize;
-    }
-
-    private getRequestKey(start: number, end: number): string {
-        return `${start}:${end}`;
-    }
-
-    private getPendingRequestCoveringIndex(index: number): PendingRequest | undefined {
-        for (const request of this.pendingRequests.values()) {
-            if (
-                request.generation === this.generation &&
-                index >= request.start &&
-                index < request.end
-            ) {
-                return request;
-            }
-        }
-
-        return undefined;
-    }
-
-    private getPendingPrefetchRequestCount(): number {
-        let count = 0;
-        for (const request of this.pendingRequests.values()) {
-            if (!request.priority) {
-                count++;
-            }
-        }
-        return count;
-    }
-
-    private trimPendingRequests(): void {
-        const desiredRange = this.getDesiredCacheRange();
-        for (const [key, request] of this.pendingRequests) {
-            // Keep visible-priority requests alive; their completion may be needed if SlickGrid
-            // restores the previous viewport without firing another load event.
-            if (
-                request.generation !== this.generation ||
-                (!request.priority && !rangesOverlap(request, desiredRange))
-            ) {
-                this.pendingRequests.delete(key);
-            }
-        }
-    }
-
-    private hasEveryRow(start: number, end: number): boolean {
-        for (let index = start; index < end; index++) {
-            if (!this.cache.has(index)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private getCachedRow(index: number): T | undefined {
-        if (!this.cache.has(index)) {
-            return undefined;
-        }
-
-        const row = this.cache.get(index)!;
-        this.cache.delete(index);
-        this.cache.set(index, row);
-
-        return row;
-    }
-
-    private getPlaceholderRow(index: number): T {
-        const cachedPlaceholder = this.placeholderCache.get(index);
-        if (cachedPlaceholder !== undefined) {
-            return cachedPlaceholder;
-        }
-
-        const placeholder = this.createPlaceholderRow(index);
-        this.placeholderCache.set(index, placeholder);
-        return placeholder;
-    }
-
-    private trimCache(): void {
-        const desiredRange = this.getDesiredCacheRange();
-        if (desiredRange.end <= desiredRange.start) {
-            this.placeholderCache.clear();
-            while (this.cache.size > this.maxCachedRows) {
-                const oldestRowIndex = this.cache.keys().next().value as number | undefined;
-                if (oldestRowIndex === undefined) {
-                    break;
-                }
-                this.cache.delete(oldestRowIndex);
-            }
-            return;
-        }
-
-        for (const index of this.cache.keys()) {
-            if (index < desiredRange.start || index >= desiredRange.end) {
-                this.cache.delete(index);
-            }
-        }
-
-        for (const index of this.placeholderCache.keys()) {
-            if (index < desiredRange.start || index >= desiredRange.end || this.cache.has(index)) {
-                this.placeholderCache.delete(index);
-            }
-        }
-
-        const budgetRows = this.getCacheBudgetRows();
-        if (this.cache.size <= budgetRows) {
-            return;
-        }
-
-        const visibleRange = normalizeRange(
-            this.lastVisibleRange.start,
-            this.lastVisibleRange.end,
-            this.length,
-        );
-
-        for (const index of this.cache.keys()) {
-            if (this.cache.size <= budgetRows) {
-                return;
-            }
-
-            if (index < visibleRange.start || index >= visibleRange.end) {
-                this.cache.delete(index);
-            }
-        }
-    }
-
-    private invalidateCachedData(notifyVisibleRange: boolean): void {
-        this.generation++;
-        this.cache.clear();
-        this.placeholderCache.clear();
-        this.pendingRequests.clear();
-
-        if (notifyVisibleRange) {
-            const visibleRange = normalizeRange(
-                this.lastVisibleRange.start,
-                this.lastVisibleRange.end,
-                this.length,
-            );
-            if (visibleRange.end > visibleRange.start) {
-                this.queueCollectionChanged(visibleRange.start, visibleRange.end);
-            }
-        }
-    }
-
-    private removeCachedRowsAtOrAfter(index: number): void {
-        for (const rowIndex of this.cache.keys()) {
-            if (rowIndex >= index) {
-                this.cache.delete(rowIndex);
-            }
-        }
-
-        for (const rowIndex of this.placeholderCache.keys()) {
-            if (rowIndex >= index) {
-                this.placeholderCache.delete(rowIndex);
-            }
-        }
-    }
-
-    private removePendingRequestsOutsideLength(): void {
-        for (const [key, request] of this.pendingRequests) {
-            if (request.start >= this.length) {
-                this.pendingRequests.delete(key);
-            }
-        }
-    }
-
-    private queueCollectionChanged(start: number, end: number): void {
-        if (this.disposed || end <= start) {
-            return;
-        }
-
-        this.pendingChangedRanges.push({ start, end });
-
-        if (this.collectionChangedTimer === undefined) {
-            this.collectionChangedTimer = setTimeout(() => this.flushCollectionChanged(), 0);
-        }
-    }
-
-    private flushCollectionChanged(): void {
-        this.collectionChangedTimer = undefined;
-
-        if (
-            this.disposed ||
-            !this.collectionChangedCallback ||
-            this.pendingChangedRanges.length === 0
-        ) {
-            this.pendingChangedRanges = [];
-            return;
-        }
-
-        const ranges = mergeRanges(this.pendingChangedRanges);
-        this.pendingChangedRanges = [];
-
-        for (const range of ranges) {
-            this.collectionChangedCallback(range.start, range.end - range.start);
-        }
+        return this.createPlaceholderRow(index);
     }
 }
 
@@ -1108,7 +661,6 @@ export function createFluentResultGridDataView<T extends Slick.SlickData = Fluen
                     rowFactory.createRow(row, offset + rowOffset, columnCount),
                 );
             },
-            options.windowedStoreOptions,
         ),
     );
 }
@@ -1118,20 +670,4 @@ function normalizeRange(start: number, end: number, length: number): Range {
     const normalizedStart = clamp(toNonNegativeInteger(start), 0, normalizedLength);
     const normalizedEnd = clamp(toNonNegativeInteger(end), normalizedStart, normalizedLength);
     return { start: normalizedStart, end: normalizedEnd };
-}
-
-function mergeRanges(ranges: Range[]): Range[] {
-    ranges.sort((left, right) => left.start - right.start || left.end - right.end);
-
-    const merged: Range[] = [];
-    for (const range of ranges) {
-        const previous = merged[merged.length - 1];
-        if (previous && range.start <= previous.end) {
-            previous.end = Math.max(previous.end, range.end);
-        } else {
-            merged.push({ start: range.start, end: range.end });
-        }
-    }
-
-    return merged;
 }

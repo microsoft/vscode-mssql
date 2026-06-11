@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { ReactNode } from "react";
+import type { HTMLAttributes, ReactNode } from "react";
 import type {
     FluentResultGridCommandConfiguration,
     FluentResultGridKeyBindingMap,
@@ -29,12 +29,20 @@ export interface FluentResultGridProviderProps {
     strings: FluentResultGridStrings;
     keyBindings?: FluentResultGridKeyBindingMap;
     theme?: FluentResultGridTheme;
+    /**
+     * Host-specific attributes applied to provider-owned overlay roots.
+     */
+    overlayRootProps?: FluentResultGridOverlayRootProps;
 
     /**
      * Defaults inherited by child grids.
      */
     defaultCommands?: FluentResultGridCommandConfiguration;
 }
+
+export type FluentResultGridOverlayRootProps = Omit<HTMLAttributes<HTMLDivElement>, "children"> & {
+    [dataAttribute: `data-${string}`]: string | number | boolean | undefined;
+};
 
 export interface FluentResultGridProviderContextValue {
     strings: FluentResultGridStrings;

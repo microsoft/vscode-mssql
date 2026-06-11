@@ -44,8 +44,8 @@
         #999999
     );
     --fluent-result-grid-table-header-background: var(
-        --vscode-keybindingTable-headerBackground,
-        #3c3c3c
+        --vscode-mssql-resultsGridHeaderBackground,
+        var(--vscode-editorWidget-background, var(--vscode-editor-background, #3c3c3c))
     );
     --fluent-result-grid-table-header-foreground: var(--vscode-editor-foreground, #cccccc);
     --fluent-result-grid-null-cell-background: var(
@@ -85,6 +85,8 @@
     --slick-container-border-top: 1px solid var(--vscode-editorWidget-border, #454545);
     --slick-container-border-bottom: 1px solid var(--vscode-editorWidget-border, #454545);
     --slick-pane-top-border-top: none;
+    --slick-scrollbar-color: var(--vscode-scrollbarSlider-background, rgba(121, 121, 121, 0.4))
+        var(--vscode-editor-background, #1e1e1e);
 }
 
 .results-grid--alternating .fluent-result-grid,
@@ -129,6 +131,42 @@
     font-family: inherit;
     font-size: inherit;
     line-height: normal;
+}
+
+.fluent-result-grid .slick-viewport,
+.fluent-result-grid .slick-header,
+.fluent-result-grid .slick-headerrow,
+.fluent-result-grid .slick-footerrow {
+    scrollbar-color: var(--slick-scrollbar-color);
+}
+
+.fluent-result-grid .slick-viewport::-webkit-scrollbar {
+    width: 14px;
+    height: 14px;
+    background-color: var(--vscode-editor-background, #1e1e1e);
+}
+
+.fluent-result-grid .slick-viewport::-webkit-scrollbar-track {
+    background-color: var(--vscode-editor-background, #1e1e1e);
+}
+
+.fluent-result-grid .slick-viewport::-webkit-scrollbar-thumb {
+    background-color: var(--vscode-scrollbarSlider-background, rgba(121, 121, 121, 0.4));
+    border: 3px solid var(--vscode-editor-background, #1e1e1e);
+    border-radius: 7px;
+    background-clip: padding-box;
+}
+
+.fluent-result-grid .slick-viewport::-webkit-scrollbar-thumb:hover {
+    background-color: var(--vscode-scrollbarSlider-hoverBackground, rgba(100, 100, 100, 0.7));
+}
+
+.fluent-result-grid .slick-viewport::-webkit-scrollbar-thumb:active {
+    background-color: var(--vscode-scrollbarSlider-activeBackground, rgba(191, 191, 191, 0.4));
+}
+
+.fluent-result-grid .slick-viewport::-webkit-scrollbar-corner {
+    background-color: var(--vscode-editor-background, #1e1e1e);
 }
 
 .fluent-result-grid .slick-header,
@@ -248,6 +286,24 @@
     padding-bottom: calc(2px + var(--results-row-padding, 0px));
 }
 
+.fluent-result-grid
+    .slickgrid-container
+    .slick-row.even
+    .slick-cell:where(
+        :not(.selected):not(.active):not(.cell-null):not(.fluent-result-grid-row-number-cell)
+    ) {
+    background-color: var(--fluent-result-grid-row-even-background);
+}
+
+.fluent-result-grid
+    .slickgrid-container
+    .slick-row.odd
+    .slick-cell:where(
+        :not(.selected):not(.active):not(.cell-null):not(.fluent-result-grid-row-number-cell)
+    ) {
+    background-color: var(--fluent-result-grid-row-odd-background);
+}
+
 .fluent-result-grid .slick-cell .grid-cell-value-container {
     display: block;
     font-family: inherit;
@@ -349,6 +405,20 @@
     overflow: hidden;
     padding-left: 4px;
     padding-right: 0;
+}
+
+.fluent-result-grid
+    .slickgrid-container
+    .slick-row.even
+    .slick-cell:where(.fluent-result-grid-row-number-cell) {
+    background-color: var(--fluent-result-grid-row-even-background);
+}
+
+.fluent-result-grid
+    .slickgrid-container
+    .slick-row.odd
+    .slick-cell:where(.fluent-result-grid-row-number-cell) {
+    background-color: var(--fluent-result-grid-row-odd-background);
 }
 
 .fluent-result-grid .slick-cell > .row-number.fluent-result-grid-row-number {

@@ -95,6 +95,7 @@ export const FluentResultGrid = forwardRef<FluentResultGridHandle, FluentResultG
                     className="fluent-result-grid-body"
                     data-fluent-result-grid-body="true">
                     <FluentSlickGrid
+                        key={controller.dataViewKey}
                         gridId={`fluent-result-grid-${props.gridId}`}
                         columns={controller.columns}
                         options={controller.gridOptions}

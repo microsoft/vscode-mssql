@@ -31,6 +31,9 @@ import type { ResultGridHandle, ResultGridProps } from "./resultGrid";
 
 const DEFAULT_FONT_SIZE = 12;
 const BASE_ROW_PADDING = 12;
+const vscodeOverlayRootProps = {
+    "data-vscode-context": JSON.stringify({ preventDefaultContextMenuItems: true }),
+};
 
 function normalizeRowPadding(rowPadding: number | null | undefined): number {
     return typeof rowPadding === "number" && Number.isFinite(rowPadding)
@@ -443,6 +446,42 @@ function getGridViewStateSignature(state: FluentResultGridState): string {
     });
 }
 
+function getResultSetSummaryColumnSignature(summary: qr.ResultSetSummary | undefined): string {
+    return (
+        summary?.columnInfo
+            .map((column) =>
+                [
+                    column.columnName,
+                    column.dataType,
+                    column.isXml ? "xml" : "",
+                    column.isJson ? "json" : "",
+                    column.isVector ? "vector" : "",
+                ].join(","),
+            )
+            .join("|") ?? ""
+    );
+}
+
+function areResultSetSummariesEquivalent(
+    left: qr.ResultSetSummary | undefined,
+    right: qr.ResultSetSummary | undefined,
+): boolean {
+    if (left === right) {
+        return true;
+    }
+
+    if (!left || !right) {
+        return false;
+    }
+
+    return (
+        left.batchId === right.batchId &&
+        left.id === right.id &&
+        left.rowCount === right.rowCount &&
+        getResultSetSummaryColumnSignature(left) === getResultSetSummaryColumnSignature(right)
+    );
+}
+
 const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props, ref) => {
     const context = useContext(QueryResultCommandsContext);
     const uri = useQueryResultSelector((state) => state.uri);
@@ -455,10 +494,10 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
         useQueryResultSelector((state) => state.inMemoryDataProcessingThreshold) ?? 5000;
     const resultSetSummary = useQueryResultSelector(
         (state) => state.resultSetSummaries[props.batchId]?.[props.resultId],
-        (a, b) => a?.rowCount === b?.rowCount,
+        areResultSetSummariesEquivalent,
     );
     const [initialState, setInitialState] = useState<FluentResultGridState | undefined>();
-    const [isInitialStateLoaded, setIsInitialStateLoaded] = useState(false);
+    const isInitialStateLoadedRef = useRef(false);
     const columnWidthsSignatureRef = useRef<string | undefined>(undefined);
     const filtersSignatureRef = useRef<string | undefined>(undefined);
     const gridViewStateSignatureRef = useRef<string | undefined>(undefined);
@@ -470,7 +509,7 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
         }
 
         let disposed = false;
-        setIsInitialStateLoaded(false);
+        isInitialStateLoadedRef.current = false;
         void (async () => {
             const [filters, columnWidths, gridViewState, scrollPosition] = await Promise.all([
                 context.extensionRpc.sendRequest(qr.GetFiltersRequest.type, {
@@ -507,7 +546,7 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
             gridViewStateSignatureRef.current = getGridViewStateSignature(nextInitialState);
             scrollPositionSignatureRef.current = JSON.stringify(scrollPosition ?? {});
             setInitialState(nextInitialState);
-            setIsInitialStateLoaded(true);
+            isInitialStateLoadedRef.current = true;
         })();
 
         return () => {
@@ -539,7 +578,7 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
 
     const handleStateChange = useCallback(
         (state: FluentResultGridState) => {
-            if (!context || !uri) {
+            if (!context || !uri || !isInitialStateLoadedRef.current) {
                 return;
             }
 
@@ -744,11 +783,11 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
     }, [context]);
 
     useEffect(() => {
-        setIsInitialStateLoaded(false);
+        isInitialStateLoadedRef.current = false;
         setInitialState(undefined);
     }, [props.gridId, uri]);
 
-    if (!context || !uri || !resultSetSummary || !isInitialStateLoaded) {
+    if (!context || !uri || !resultSetSummary) {
         return null;
     }
 
@@ -806,6 +845,7 @@ export function QueryResultFluentResultGridView() {
             strings={strings}
             keyBindings={providerKeyBindings}
             theme={theme}
+            overlayRootProps={vscodeOverlayRootProps}
             defaultCommands={defaultCommands}>
             <QueryResultsGridView
                 GridComponent={QueryResultFluentResultGrid}

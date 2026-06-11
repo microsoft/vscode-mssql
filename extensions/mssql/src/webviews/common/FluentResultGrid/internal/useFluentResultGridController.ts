@@ -209,6 +209,8 @@ export function useFluentResultGridController({
     const sortStateRef = useRef<FluentResultGridState["sort"] | undefined>(initialState?.sort);
     const activeFilterColumnRef = useRef<string | undefined>(undefined);
     const restoredStateRef = useRef(false);
+    const restoredInitialStateSignatureRef = useRef<string | undefined>(undefined);
+    const autoSizeRequestIdRef = useRef(0);
     const [frozenColumnIndex, setFrozenColumnIndex] = useState(
         () => initialState?.frozenColumnIndex ?? 0,
     );
@@ -234,20 +236,46 @@ export function useFluentResultGridController({
                 .join("|"),
         [resultSetSummary.columnInfo],
     );
+    const resultIdentitySignature = useMemo(
+        () =>
+            [
+                gridId,
+                resultSetSummary.batchId,
+                resultSetSummary.id,
+                resultSetSummary.rowCount,
+                columnSignature,
+            ].join("|"),
+        [
+            columnSignature,
+            gridId,
+            resultSetSummary.batchId,
+            resultSetSummary.id,
+            resultSetSummary.rowCount,
+        ],
+    );
+    const previousResultIdentitySignatureRef = useRef<string | undefined>(undefined);
+    const dataSourceRef = useRef(dataSource);
+    dataSourceRef.current = dataSource;
+    const rowsDataSource = dataSource.kind === "rows" ? dataSource : undefined;
+    const initialStateRestoreSignature = useMemo(
+        () => JSON.stringify(initialState ?? {}),
+        [initialState],
+    );
 
     const fetchRowsFromSource = useCallback(
         async (offset: number, count: number): Promise<SourceRow[]> => {
+            const currentDataSource = dataSourceRef.current;
             const rows =
-                dataSource.kind === "rows"
-                    ? dataSource.rows.slice(offset, offset + count)
-                    : await dataSource.getRows(offset, count);
+                currentDataSource.kind === "rows"
+                    ? currentDataSource.rows.slice(offset, offset + count)
+                    : await currentDataSource.getRows(offset, count);
 
             return rows.map((cells, rowOffset) => ({
                 rowId: offset + rowOffset,
                 cells,
             }));
         },
-        [dataSource],
+        [],
     );
 
     const fetchRows = useCallback(
@@ -262,20 +290,29 @@ export function useFluentResultGridController({
         [fetchRowsFromSource],
     );
 
-    const dataView = useMemo(
-        () =>
-            createFluentResultGridDataView({
-                dataSource: {
+    const dataView = useMemo(() => {
+        return createFluentResultGridDataView({
+            dataSource:
+                rowsDataSource ??
+                ({
                     kind: "windowed",
-                    rowCount: resultSetSummary.rowCount,
+                    rowCount:
+                        dataSourceRef.current.kind === "windowed"
+                            ? dataSourceRef.current.rowCount
+                            : 0,
                     getRows: fetchRows,
-                },
-                columnCount: resultSetSummary.columnInfo.length,
-                windowSize: FLUENT_RESULT_GRID_WINDOW_SIZE,
-            }),
-        [fetchRows, resultSetSummary.columnInfo.length, resultSetSummary.rowCount],
-    );
+                } as const),
+            columnCount: resultSetSummary.columnInfo.length,
+            windowSize: FLUENT_RESULT_GRID_WINDOW_SIZE,
+        });
+    }, [fetchRows, resultSetSummary.columnInfo.length, rowsDataSource]);
 
+    const dataViewKeyRef = useRef(0);
+    const previousDataViewRef = useRef(dataView);
+    if (previousDataViewRef.current !== dataView) {
+        previousDataViewRef.current = dataView;
+        dataViewKeyRef.current++;
+    }
     dataViewRef.current = dataView;
 
     useEffect(() => {
@@ -296,9 +333,16 @@ export function useFluentResultGridController({
     }, [dataView]);
 
     useEffect(() => {
-        dataView.setLength(resultSetSummary.rowCount);
+        const shouldResetData =
+            previousResultIdentitySignatureRef.current !== resultIdentitySignature;
+        previousResultIdentitySignatureRef.current = resultIdentitySignature;
+
+        dataView.setLength(resultSetSummary.rowCount, shouldResetData);
         setDisplayedRowCount(resultSetSummary.rowCount);
-    }, [dataView, resultSetSummary.rowCount]);
+        if (shouldResetData) {
+            dataView.refresh(0);
+        }
+    }, [dataView, resultIdentitySignature, resultSetSummary.rowCount]);
 
     useEffect(() => {
         allRowsCacheRef.current = undefined;
@@ -1579,89 +1623,113 @@ export function useFluentResultGridController({
     );
     handleKeyDownRef.current = handleKeyDown;
 
-    const applyAutoSizeColumns = useCallback(async () => {
-        const grid = reactGridRef.current?.slickGrid;
-        if (!grid || autoSizeColumnsMode === ResultsGridAutoSizeStyle.Off) {
-            return;
-        }
-
-        const includeHeaders =
-            autoSizeColumnsMode === ResultsGridAutoSizeStyle.HeadersAndData ||
-            autoSizeColumnsMode === ResultsGridAutoSizeStyle.HeaderOnly;
-        const includeData =
-            autoSizeColumnsMode === ResultsGridAutoSizeStyle.HeadersAndData ||
-            autoSizeColumnsMode === ResultsGridAutoSizeStyle.DataOnly;
-        if (!includeHeaders && !includeData) {
-            return;
-        }
-
-        const currentRowCount = latestRowCountRef.current;
-        const sampleRows =
-            includeData && currentRowCount > 0
-                ? await fetchRows(
-                      0,
-                      Math.min(FLUENT_RESULT_GRID_AUTO_SIZE_SAMPLE_ROWS, currentRowCount),
-                  )
-                : [];
-        const canvasContext = document.createElement("canvas").getContext("2d");
-        if (!canvasContext) {
-            return;
-        }
-
-        const computedStyle = containerRef.current
-            ? window.getComputedStyle(containerRef.current)
-            : undefined;
-        const fontSize =
-            parseInt(computedStyle?.fontSize ?? "", 10) || FLUENT_RESULT_GRID_DEFAULT_FONT_SIZE;
-        const fontFamily = computedStyle?.fontFamily ?? "monospace";
-        canvasContext.font = `${fontSize}px ${fontFamily}`;
-
-        const resizedColumns = grid.getColumns().map((column, columnIndex) => {
-            if (column.id === FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID || columnIndex === 0) {
-                return column;
+    const applyAutoSizeColumns = useCallback(
+        async (requestId?: number) => {
+            const grid = reactGridRef.current?.slickGrid;
+            if (!grid || autoSizeColumnsMode === ResultsGridAutoSizeStyle.Off) {
+                return;
             }
 
-            const headerWidth = includeHeaders
-                ? canvasContext.measureText(String(column.name ?? "")).width +
-                  FLUENT_RESULT_GRID_AUTO_SIZE_HEADER_EXTRA_WIDTH
-                : 0;
-            const dataWidth = includeData
-                ? sampleRows.reduce((maxWidth, row) => {
-                      const columnDataIndex = Number(column.field);
-                      const value = Number.isInteger(columnDataIndex)
-                          ? row[columnDataIndex]
-                          : undefined;
-                      const text = getFluentResultGridAutoSizeCellText(value);
-                      return Math.max(
-                          maxWidth,
-                          canvasContext.measureText(text).width +
-                              FLUENT_RESULT_GRID_AUTO_SIZE_CELL_PADDING_WIDTH,
-                      );
-                  }, 0)
-                : 0;
+            const includeHeaders =
+                autoSizeColumnsMode === ResultsGridAutoSizeStyle.HeadersAndData ||
+                autoSizeColumnsMode === ResultsGridAutoSizeStyle.HeaderOnly;
+            const includeData =
+                autoSizeColumnsMode === ResultsGridAutoSizeStyle.HeadersAndData ||
+                autoSizeColumnsMode === ResultsGridAutoSizeStyle.DataOnly;
+            if (!includeHeaders && !includeData) {
+                return;
+            }
 
-            return {
-                ...column,
-                width: Math.max(
-                    FLUENT_RESULT_GRID_MIN_COLUMN_WIDTH,
-                    Math.min(
-                        FLUENT_RESULT_GRID_MAX_COLUMN_WIDTH,
-                        Math.ceil(Math.max(headerWidth, dataWidth)) + 1,
+            const currentRowCount = latestRowCountRef.current;
+            const sampleRows =
+                includeData && currentRowCount > 0
+                    ? await fetchRows(
+                          0,
+                          Math.min(FLUENT_RESULT_GRID_AUTO_SIZE_SAMPLE_ROWS, currentRowCount),
+                      )
+                    : [];
+            if (requestId !== undefined && autoSizeRequestIdRef.current !== requestId) {
+                return;
+            }
+
+            const canvasContext = document.createElement("canvas").getContext("2d");
+            if (!canvasContext) {
+                return;
+            }
+
+            const computedStyle = containerRef.current
+                ? window.getComputedStyle(containerRef.current)
+                : undefined;
+            const fontSize =
+                parseInt(computedStyle?.fontSize ?? "", 10) || FLUENT_RESULT_GRID_DEFAULT_FONT_SIZE;
+            const fontFamily = computedStyle?.fontFamily ?? "monospace";
+            canvasContext.font = `${fontSize}px ${fontFamily}`;
+
+            const resizedColumns = grid.getColumns().map((column, columnIndex) => {
+                if (column.id === FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID || columnIndex === 0) {
+                    return column;
+                }
+
+                const headerWidth = includeHeaders
+                    ? canvasContext.measureText(String(column.name ?? "")).width +
+                      FLUENT_RESULT_GRID_AUTO_SIZE_HEADER_EXTRA_WIDTH
+                    : 0;
+                const dataWidth = includeData
+                    ? sampleRows.reduce((maxWidth, row) => {
+                          const columnDataIndex = Number(column.field);
+                          const value = Number.isInteger(columnDataIndex)
+                              ? row[columnDataIndex]
+                              : undefined;
+                          const text = getFluentResultGridAutoSizeCellText(value);
+                          return Math.max(
+                              maxWidth,
+                              canvasContext.measureText(text).width +
+                                  FLUENT_RESULT_GRID_AUTO_SIZE_CELL_PADDING_WIDTH,
+                          );
+                      }, 0)
+                    : 0;
+
+                return {
+                    ...column,
+                    width: Math.max(
+                        FLUENT_RESULT_GRID_MIN_COLUMN_WIDTH,
+                        Math.min(
+                            FLUENT_RESULT_GRID_MAX_COLUMN_WIDTH,
+                            Math.ceil(Math.max(headerWidth, dataWidth)) + 1,
+                        ),
                     ),
-                ),
-            };
-        });
+                };
+            });
 
-        grid.setColumns(resizedColumns);
-        grid.invalidate();
-        grid.render();
-    }, [autoSizeColumnsMode, containerRef, fetchRows]);
+            if (requestId !== undefined && autoSizeRequestIdRef.current !== requestId) {
+                return;
+            }
+
+            grid.setColumns(resizedColumns);
+            grid.invalidate();
+            grid.render();
+        },
+        [autoSizeColumnsMode, containerRef, fetchRows],
+    );
+
+    const scheduleAutoSizeColumns = useCallback(() => {
+        const requestId = ++autoSizeRequestIdRef.current;
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                if (autoSizeRequestIdRef.current === requestId) {
+                    void applyAutoSizeColumns(requestId);
+                }
+            });
+        });
+    }, [applyAutoSizeColumns]);
 
     const restoreInitialState = useCallback(
         async (grid: SlickGrid) => {
             restoredStateRef.current = false;
             try {
+                const shouldAutoSizeColumns = !initialState?.columnWidths?.length;
                 if (initialState?.columnWidths?.length) {
+                    autoSizeRequestIdRef.current++;
                     const restoredColumns = grid.getColumns().map((column) => {
                         if (column.id === FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID) {
                             return column;
@@ -1672,13 +1740,18 @@ export function useFluentResultGridController({
                         return typeof width === "number" ? { ...column, width } : column;
                     });
                     grid.setColumns(restoredColumns);
-                } else {
-                    await applyAutoSizeColumns();
                 }
 
                 filterStateRef.current = initialState?.filters ?? {};
                 sortStateRef.current = initialState?.sort;
-                await applyGridTransforms(grid);
+                if (hasActiveTransforms()) {
+                    await applyGridTransforms(grid);
+                } else {
+                    transformedRowsRef.current = undefined;
+                    dataView.setLength(latestRowCountRef.current, false);
+                    setDisplayedRowCount(latestRowCountRef.current);
+                    dataView.ensureViewportLoaded();
+                }
 
                 let restoredColumns = grid.getColumns() as Column<FluentResultGridDataRow>[];
                 if (Array.isArray(initialState?.hiddenColumnIds)) {
@@ -1732,19 +1805,41 @@ export function useFluentResultGridController({
                 updateHeaderButtonStates(grid);
                 grid.invalidate();
                 grid.render();
+                if (shouldAutoSizeColumns) {
+                    scheduleAutoSizeColumns();
+                }
             } finally {
                 restoredStateRef.current = true;
             }
         },
         [
-            applyAutoSizeColumns,
             applyFrozenColumnIndex,
             applyGridTransforms,
+            dataView,
+            hasActiveTransforms,
             initialState,
             restoreHorizontalScrollPosition,
+            scheduleAutoSizeColumns,
             updateHeaderButtonStates,
         ],
     );
+
+    const restoreCurrentInitialState = useCallback(
+        (grid: SlickGrid) => {
+            restoredInitialStateSignatureRef.current = initialStateRestoreSignature;
+            void restoreInitialState(grid);
+        },
+        [initialStateRestoreSignature, restoreInitialState],
+    );
+
+    useEffect(() => {
+        const grid = reactGridRef.current?.slickGrid;
+        if (!grid || restoredInitialStateSignatureRef.current === initialStateRestoreSignature) {
+            return;
+        }
+
+        restoreCurrentInitialState(grid);
+    }, [initialStateRestoreSignature, restoreCurrentInitialState]);
 
     const gridOptions = useMemo<GridOption>(
         () => ({
@@ -1898,14 +1993,14 @@ export function useFluentResultGridController({
 
             grid.updateRowCount();
             grid.render();
-            void restoreInitialState(grid);
+            restoreCurrentInitialState(grid);
         },
         [
             attachFrozenPaneWheelHandler,
             emitStateChange,
             onSelectionSummaryChange,
             persistScrollPosition,
-            restoreInitialState,
+            restoreCurrentInitialState,
         ],
     );
 
@@ -2196,6 +2291,7 @@ export function useFluentResultGridController({
         columns,
         commandContext,
         dataView,
+        dataViewKey: dataViewKeyRef.current,
         displayedRowCount,
         focusGrid,
         gridOptions,

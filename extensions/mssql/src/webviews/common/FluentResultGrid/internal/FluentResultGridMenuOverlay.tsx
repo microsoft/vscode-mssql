@@ -21,7 +21,10 @@ import {
 } from "./fluentResultGridCommandResolution";
 import { FluentResultGridResizeDialog } from "./FluentResultGridResizeDialog";
 import { FluentResultGridFilterOverlay } from "./FluentResultGridFilterOverlay";
-import type { FluentResultGridCloseOverlayOptions } from "./fluentResultGridProviderTypes";
+import type {
+    FluentResultGridCloseOverlayOptions,
+    FluentResultGridOverlayRootProps,
+} from "./fluentResultGridProviderTypes";
 import type {
     FluentResultGridOverlayState,
     FluentResultGridMenuOverlayState,
@@ -54,6 +57,7 @@ export interface FluentResultGridOverlayHostProps {
     strings: FluentResultGridStrings;
     keyBindings: FluentResultGridKeyBindingMap;
     defaultCommands?: FluentResultGridCommandConfiguration;
+    overlayRootProps?: FluentResultGridOverlayRootProps;
 }
 
 type FluentResultGridMenuEntry =
@@ -198,8 +202,10 @@ function FluentResultGridMenuOverlay({
     strings,
     keyBindings,
     defaultCommands,
+    overlayRootProps,
 }: FluentResultGridOverlayHostProps & { overlay: FluentResultGridMenuOverlayState }) {
     const classes = useStyles();
+    const { style: overlayRootStyle, onContextMenu, ...rootProps } = overlayRootProps ?? {};
     const virtualTarget = useMemo(
         () => createVirtualElement(overlay.x, overlay.y),
         [overlay.x, overlay.y],
@@ -225,11 +231,18 @@ function FluentResultGridMenuOverlay({
 
     return (
         <div
+            {...rootProps}
             onContextMenu={(event) => {
+                onContextMenu?.(event);
                 event.preventDefault();
                 event.stopPropagation();
             }}
-            style={{ position: "fixed", inset: 0, zIndex: overlayZIndex }}>
+            style={{
+                ...overlayRootStyle,
+                position: "fixed",
+                inset: 0,
+                zIndex: overlayZIndex,
+            }}>
             <Menu
                 open={true}
                 positioning={{
@@ -245,7 +258,12 @@ function FluentResultGridMenuOverlay({
                         closeOverlay();
                     }
                 }}>
-                <MenuPopover onClick={(event) => event.stopPropagation()}>
+                <MenuPopover
+                    onClick={(event) => event.stopPropagation()}
+                    onContextMenu={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }}>
                     <MenuList>
                         {entries.map((entry) =>
                             isCopyAsEntry(entry)
@@ -276,6 +294,7 @@ export function FluentResultGridOverlayHost({
     strings,
     keyBindings,
     defaultCommands,
+    overlayRootProps,
 }: FluentResultGridOverlayHostProps) {
     if (overlay.kind === "menu") {
         return (
@@ -285,6 +304,7 @@ export function FluentResultGridOverlayHost({
                 strings={strings}
                 keyBindings={keyBindings}
                 defaultCommands={defaultCommands}
+                overlayRootProps={overlayRootProps}
             />
         );
     }

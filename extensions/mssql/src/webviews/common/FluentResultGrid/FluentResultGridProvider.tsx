@@ -45,6 +45,7 @@ export function FluentResultGridProvider({
     strings,
     keyBindings = emptyKeyBindings,
     theme,
+    overlayRootProps,
     defaultCommands,
 }: FluentResultGridProviderProps) {
     const [overlay, setOverlay] = useState<FluentResultGridOverlayState>(noOverlay);
@@ -86,6 +87,7 @@ export function FluentResultGridProvider({
                 closeOverlay={closeOverlay}
                 strings={strings}
                 keyBindings={keyBindings}
+                overlayRootProps={overlayRootProps}
                 defaultCommands={defaultCommands}
             />
         </FluentResultGridContext.Provider>
