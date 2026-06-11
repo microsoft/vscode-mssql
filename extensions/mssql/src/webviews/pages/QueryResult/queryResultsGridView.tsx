@@ -477,6 +477,7 @@ export const QueryResultsGridView = ({
                                     : "var(--vscode-editor-font-family)",
                                 fontSize: `${fontSettings?.fontSize ?? 12}px`,
                                 height: isMaximized ? "100%" : `${gridHeight}px`,
+                                paddingRight: showExternalCommandBar ? undefined : 0,
                                 "--results-row-padding": `${gridSettings?.rowPadding ?? 0}px`,
                             } as React.CSSProperties
                         }>

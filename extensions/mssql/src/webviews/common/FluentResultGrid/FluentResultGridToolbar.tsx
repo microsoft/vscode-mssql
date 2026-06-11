@@ -48,7 +48,7 @@ import type { FluentResultGridStrings } from "./types/fluentResultGridStrings";
 import type { FluentResultGridTheme } from "./types/fluentResultGridTheme";
 
 const toolbarPlacement = FluentResultGridCommandPlacement.Toolbar;
-const toolbarWidthPx = 40;
+const toolbarWidthPx = 32;
 
 const useStyles = makeStyles({
     toolbarContainer: {
@@ -56,10 +56,11 @@ const useStyles = makeStyles({
         flexShrink: 0,
         overflow: "hidden",
         display: "flex",
-        paddingRight: "10px",
     },
     toolbar: {
         width: "100%",
+        paddingLeft: 0,
+        paddingRight: 0,
     },
     buttonImg: {
         display: "block",
