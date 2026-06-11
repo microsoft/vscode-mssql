@@ -119,7 +119,7 @@ export const LocalContainersDeploymentInfoPage: React.FC = () => {
             label: locConstants.localContainers.configureAndCustomizeSqlServer,
         },
         {
-            href: "https://learn.microsoft.com/en-us/azure/container-registry/container-registry-tutorial-sign-trusted-ca#verify-a-container-image-by-using-the-notation-cli",
+            href: "https://aka.ms/verify-a-container-image-by-using-the-notation-cli",
             label: locConstants.localContainers.verifyContainerImageNotationCli,
         },
     ];
