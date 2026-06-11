@@ -3323,6 +3323,7 @@
     "Learn more about SQL Server 2025 features": "Learn more about SQL Server 2025 features",
     "Compare SQL Server editions": "Compare SQL Server editions",
     "Configure and customize SQL Server containers": "Configure and customize SQL Server containers",
+    "Verify a container image by using the Notation CLI": "Verify a container image by using the Notation CLI",
     "Getting Docker Ready...": "Getting Docker Ready...",
     "Checking pre-requisites": "Checking pre-requisites",
     "Create Container": "Create Container",
