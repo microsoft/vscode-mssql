@@ -7,7 +7,9 @@ import { forwardRef, useCallback, useContext, useEffect, useMemo, useRef, useSta
 import {
     FluentResultGrid,
     FluentResultGridCommand,
+    FluentResultGridCommandPlacement,
     FluentResultGridProvider,
+    type FluentResultGridCommandConfiguration,
     type FluentResultGridCommandEvent,
     type FluentResultGridKeyBindingMap,
     type FluentResultGridState,
@@ -206,6 +208,138 @@ function getFluentResultGridKeyBindings(
             WebviewAction.ResultGridSelectRow,
         ),
     ]) as FluentResultGridKeyBindingMap;
+}
+
+function getQueryResultFluentGridCommandConfiguration(): FluentResultGridCommandConfiguration {
+    const placement = FluentResultGridCommandPlacement;
+
+    return {
+        contributions: [
+            {
+                id: FluentResultGridCommand.SelectAll,
+                label: "",
+                placements: [placement.CellContextMenu, placement.Keyboard],
+                groupId: "selection",
+                order: 100,
+            },
+            {
+                id: FluentResultGridCommand.CopySelection,
+                label: "",
+                placements: [placement.CellContextMenu, placement.Keyboard],
+                groupId: "clipboard",
+                order: 200,
+            },
+            {
+                id: FluentResultGridCommand.CopyWithHeaders,
+                label: "",
+                placements: [placement.CellContextMenu, placement.Keyboard],
+                groupId: "clipboard",
+                order: 210,
+            },
+            {
+                id: FluentResultGridCommand.CopyHeaders,
+                label: "",
+                placements: [placement.CellContextMenu],
+                groupId: "clipboard",
+                order: 220,
+            },
+            {
+                id: FluentResultGridCommand.CopyAsCsv,
+                label: "",
+                placements: [placement.CellContextMenu],
+                groupId: "copyAs",
+                order: 230,
+            },
+            {
+                id: FluentResultGridCommand.CopyAsJson,
+                label: "",
+                placements: [placement.CellContextMenu],
+                groupId: "copyAs",
+                order: 240,
+            },
+            {
+                id: FluentResultGridCommand.CopyAsInClause,
+                label: "",
+                placements: [placement.CellContextMenu],
+                groupId: "copyAs",
+                order: 250,
+            },
+            {
+                id: FluentResultGridCommand.CopyAsInsertInto,
+                label: "",
+                placements: [placement.CellContextMenu],
+                groupId: "copyAs",
+                order: 260,
+            },
+            {
+                id: FluentResultGridCommand.CopyColumnName,
+                label: "",
+                placements: [placement.ColumnHeaderMenu],
+                groupId: "clipboard",
+                order: 700,
+            },
+            {
+                id: FluentResultGridCommand.SaveAsCsv,
+                label: "",
+                placements: [placement.Toolbar, placement.Keyboard],
+                groupId: "export",
+                order: 300,
+            },
+            {
+                id: FluentResultGridCommand.SaveAsJson,
+                label: "",
+                placements: [placement.Toolbar, placement.Keyboard],
+                groupId: "export",
+                order: 310,
+            },
+            {
+                id: FluentResultGridCommand.SaveAsExcel,
+                label: "",
+                placements: [placement.Toolbar, placement.Keyboard],
+                groupId: "export",
+                order: 320,
+            },
+            {
+                id: FluentResultGridCommand.SaveAsInsert,
+                label: "",
+                placements: [placement.Toolbar, placement.Keyboard],
+                groupId: "export",
+                order: 330,
+            },
+            {
+                id: FluentResultGridCommand.SwitchToGridView,
+                label: "",
+                placements: [placement.Toolbar],
+                groupId: "view",
+                order: 500,
+                isVisible: (context) => !!context.canToggleViewMode && context.viewMode === "text",
+            },
+            {
+                id: FluentResultGridCommand.SwitchToTextView,
+                label: "",
+                placements: [placement.Toolbar],
+                groupId: "view",
+                order: 510,
+                isVisible: (context) => !!context.canToggleViewMode && context.viewMode !== "text",
+            },
+            {
+                id: FluentResultGridCommand.Maximize,
+                label: "",
+                placements: [placement.Toolbar],
+                groupId: "view",
+                order: 520,
+                isVisible: (context) => !!context.canToggleMaximize && !context.isMaximized,
+            },
+            {
+                id: FluentResultGridCommand.Restore,
+                label: "",
+                placements: [placement.Toolbar],
+                groupId: "view",
+                order: 530,
+                isVisible: (context) => !!context.canToggleMaximize && !!context.isMaximized,
+            },
+        ],
+    };
 }
 
 function getQueryResultFluentGridStrings(): FluentResultGridStrings {
@@ -659,6 +793,7 @@ export function QueryResultFluentResultGridView() {
         [keyBindings],
     );
     const strings = useMemo(() => getQueryResultFluentGridStrings(), []);
+    const defaultCommands = useMemo(() => getQueryResultFluentGridCommandConfiguration(), []);
     const theme = useMemo<FluentResultGridTheme>(
         () => ({
             kind: toFluentThemeKind(themeKind),
@@ -667,7 +802,11 @@ export function QueryResultFluentResultGridView() {
     );
 
     return (
-        <FluentResultGridProvider strings={strings} keyBindings={providerKeyBindings} theme={theme}>
+        <FluentResultGridProvider
+            strings={strings}
+            keyBindings={providerKeyBindings}
+            theme={theme}
+            defaultCommands={defaultCommands}>
             <QueryResultsGridView
                 GridComponent={QueryResultFluentResultGrid}
                 showExternalCommandBar={false}

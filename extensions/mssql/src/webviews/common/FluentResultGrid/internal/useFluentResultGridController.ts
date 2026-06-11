@@ -569,7 +569,7 @@ export function useFluentResultGridController({
 
             if (!hasActiveTransforms()) {
                 transformedRowsRef.current = undefined;
-                dataView.setLength(latestRowCountRef.current);
+                dataView.setLength(latestRowCountRef.current, true);
                 setDisplayedRowCount(latestRowCountRef.current);
                 const targetRow = Math.min(
                     preservedTopRow,
@@ -645,7 +645,7 @@ export function useFluentResultGridController({
             }
 
             transformedRowsRef.current = rows;
-            dataView.setLength(rows.length);
+            dataView.setLength(rows.length, true);
             setDisplayedRowCount(rows.length);
             const targetRow = Math.min(preservedTopRow, Math.max(0, rows.length - 1));
             dataView.refresh(targetRow);

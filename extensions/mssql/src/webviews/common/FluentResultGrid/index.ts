@@ -19,7 +19,6 @@ export type {
     FluentResultGridCommandContext,
     FluentResultGridCommandContribution,
     FluentResultGridCommandEvent,
-    FluentResultGridCommandHandlerOwner,
     FluentResultGridCommandMenuPlacement,
     FluentResultGridCommandPlacementMap,
     FluentResultGridKeyBinding,

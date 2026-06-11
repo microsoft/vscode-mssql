@@ -67,12 +67,9 @@ export interface FluentResultGridCommandContribution {
     isChecked?: (context: FluentResultGridCommandContext) => boolean;
 }
 
-export type FluentResultGridCommandHandlerOwner = "grid" | "host";
-
 export interface FluentResultGridBuiltInCommandContribution
     extends FluentResultGridCommandContribution {
     id: FluentResultGridBuiltInCommandId;
-    handledBy: FluentResultGridCommandHandlerOwner;
 }
 
 export interface FluentResultGridCommandEvent extends FluentResultGridCommandContext {

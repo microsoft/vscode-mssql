@@ -598,9 +598,12 @@ class FluentResultGridWindowedRowStore<T extends Slick.SlickData>
 
     private completeRowLoad(key: string, request: PendingRequest, rows: T[]): void {
         const pendingRequest = this.pendingRequests.get(key);
+        // A request can be pruned from bookkeeping during a transient viewport change.
+        // Still accept it unless a newer request with the same key replaced it.
+        const replacedByNewerRequest = pendingRequest !== undefined && pendingRequest !== request;
         if (
             this.disposed ||
-            pendingRequest !== request ||
+            replacedByNewerRequest ||
             request.generation !== this.generation ||
             !Array.isArray(rows)
         ) {
@@ -738,7 +741,12 @@ class FluentResultGridWindowedRowStore<T extends Slick.SlickData>
     private trimPendingRequests(): void {
         const desiredRange = this.getDesiredCacheRange();
         for (const [key, request] of this.pendingRequests) {
-            if (request.generation !== this.generation || !rangesOverlap(request, desiredRange)) {
+            // Keep visible-priority requests alive; their completion may be needed if SlickGrid
+            // restores the previous viewport without firing another load event.
+            if (
+                request.generation !== this.generation ||
+                (!request.priority && !rangesOverlap(request, desiredRange))
+            ) {
                 this.pendingRequests.delete(key);
             }
         }
@@ -985,19 +993,25 @@ export class FluentResultGridDataView<T extends Slick.SlickData> implements Cust
     public setLength(length: number, resetData = false): void {
         const previous = this.getLength();
         const nextLength = toNonNegativeInteger(length);
-        if (previous === nextLength) {
+        if (previous === nextLength && !resetData) {
             return;
         }
 
         this.rowStore.setLength(nextLength, resetData);
-        this.onRowCountChanged.notify({
-            previous,
-            current: nextLength,
-            itemCount: nextLength,
-            dataView: this as unknown as SlickDataView,
-            callingOnRowsChanged: false,
-        });
-        this.scheduleRowCountUpdate();
+        if (previous !== nextLength) {
+            this.onRowCountChanged.notify({
+                previous,
+                current: nextLength,
+                itemCount: nextLength,
+                dataView: this as unknown as SlickDataView,
+                callingOnRowsChanged: false,
+            });
+            this.scheduleRowCountUpdate();
+        } else {
+            this.grid?.invalidateAllRows();
+            this.scheduleRender();
+        }
+
         this.ensureViewportLoaded();
     }
 

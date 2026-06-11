@@ -64,7 +64,7 @@ const ROW_HEIGHT = 26;
 const HEADER = 30;
 export const MARGIN_BOTTOM = 10;
 const MIN_HORIZONTAL_SCROLLBAR_SPACE = 18; // Reserve space so short grids don't clip the scrollbar over rows
-const DEFAULT_INITIAL_MIN_NUMBER_OF_VISIBLE_ROWS = 8;
+const DEFAULT_NATURAL_VISIBLE_ROW_CAP = 8;
 const DEFAULT_FONT_SIZE = 12;
 const BASE_ROW_PADDING = 12;
 
@@ -119,8 +119,8 @@ export const QueryResultsGridView = ({
             (fontSettings?.fontSize ?? DEFAULT_FONT_SIZE) + BASE_ROW_PADDING + rowPadding * 2,
         );
         const visibleRows = Math.max(
-            DEFAULT_INITIAL_MIN_NUMBER_OF_VISIBLE_ROWS,
-            Math.min(rowCount === 0 ? 1 : rowCount, DEFAULT_INITIAL_MIN_NUMBER_OF_VISIBLE_ROWS),
+            1,
+            Math.min(rowCount === 0 ? 1 : rowCount, DEFAULT_NATURAL_VISIBLE_ROW_CAP),
         );
         return visibleRows * rowHeight + HEADER + MARGIN_BOTTOM + MIN_HORIZONTAL_SCROLLBAR_SPACE;
     }
@@ -137,22 +137,37 @@ export const QueryResultsGridView = ({
             return [gridViewContainerHeight];
         }
 
-        const preferredHeights = gridList.map((it) =>
-            naturalHeight(resultSetSummaries?.[it.batchId]?.[it.resultId]?.rowCount ?? 0),
+        const rowCounts = gridList.map(
+            (it) => resultSetSummaries?.[it.batchId]?.[it.resultId]?.rowCount ?? 0,
         );
+        const preferredHeights = rowCounts.map((rowCount) => naturalHeight(rowCount));
 
-        // Calculate total minimum height needed.
-        const totalMinHeight = preferredHeights.reduce((sum, h) => sum + h, 0);
+        // Calculate the content-sized height needed before any large grid absorbs extra space.
+        const totalPreferredHeight = preferredHeights.reduce((sum, h) => sum + h, 0);
 
-        // Calculate height adjustment if we have extra space to distribute evenly
+        if (gridViewContainerHeight <= totalPreferredHeight) {
+            return preferredHeights;
+        }
+
+        const canGrow = rowCounts.map((rowCount) => rowCount > DEFAULT_NATURAL_VISIBLE_ROW_CAP);
+        const growableGridCount = canGrow.filter(Boolean).length;
+        if (growableGridCount === 0) {
+            return preferredHeights;
+        }
+
         const heightAdjustment =
-            gridViewContainerHeight > totalMinHeight
-                ? (gridViewContainerHeight - totalMinHeight) / numGrids
-                : 0;
+            (gridViewContainerHeight - totalPreferredHeight) / growableGridCount;
 
-        // Distribute heights: preferred + proportional share of extra space
-        return preferredHeights.map((preferredHeight) => preferredHeight + heightAdjustment);
-    }, [fontSettings?.fontSize, gridList, gridSettings?.rowPadding, gridViewContainerHeight]);
+        return preferredHeights.map((preferredHeight, index) =>
+            canGrow[index] ? preferredHeight + heightAdjustment : preferredHeight,
+        );
+    }, [
+        fontSettings?.fontSize,
+        gridList,
+        gridSettings?.rowPadding,
+        gridViewContainerHeight,
+        resultSetSummaries,
+    ]);
 
     // Restore grid view container scroll position on mount
     useEffect(() => {
@@ -447,6 +462,8 @@ export const QueryResultsGridView = ({
                 ]
                     .filter(Boolean)
                     .join(" ");
+                const rowCount = resultSetSummaries?.[item.batchId]?.[item.resultId]?.rowCount ?? 0;
+                const gridHeight = gridHeights[index] ?? naturalHeight(rowCount);
 
                 return (
                     <div
@@ -459,7 +476,7 @@ export const QueryResultsGridView = ({
                                     ? fontSettings.fontFamily
                                     : "var(--vscode-editor-font-family)",
                                 fontSize: `${fontSettings?.fontSize ?? 12}px`,
-                                height: `${maximizedGridKey === gridKey ? `100%` : `${gridHeights[index]}px`}`,
+                                height: isMaximized ? "100%" : `${gridHeight}px`,
                                 "--results-row-padding": `${gridSettings?.rowPadding ?? 0}px`,
                             } as React.CSSProperties
                         }>
