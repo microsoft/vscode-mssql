@@ -330,7 +330,10 @@
     font-style: italic;
 }
 
-.fluent-result-grid .slick-cell.cell-null {
+.fluent-result-grid
+    .slickgrid-container
+    .slick-row:not(:hover)
+    .slick-cell.cell-null:not(.selected):not(.active) {
     background-color: var(--fluent-result-grid-null-cell-background);
     color: var(--fluent-result-grid-null-cell-foreground);
 }
