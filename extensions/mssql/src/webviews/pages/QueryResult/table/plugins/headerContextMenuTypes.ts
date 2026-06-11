@@ -8,6 +8,4 @@ export enum HeaderContextMenuAction {
     Filter = "filter",
     Resize = "resize",
     CopyColumnName = "copyColumnName",
-    FreezeColumn = "freezeColumn",
-    UnfreezeColumn = "unfreezeColumn",
 }
