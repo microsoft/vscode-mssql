@@ -96,6 +96,13 @@ const clearAllFiltersCommand = "fluent-result-grid-clear-all-filters";
 const clearSortCommand = "fluent-result-grid-clear-sort";
 const showAllColumnsCommand = "fluent-result-grid-show-all-columns";
 const defaultFrozenColumnIndex = 0;
+const gridMenuButtonSelector = ".slick-grid-menu-button";
+
+function makeFluentResultGridMenuButtonsUntabbable(containerNode: HTMLElement): void {
+    containerNode.querySelectorAll<HTMLElement>(gridMenuButtonSelector).forEach((button) => {
+        button.tabIndex = -1;
+    });
+}
 
 type SourceRow = {
     rowId: number;
@@ -204,6 +211,7 @@ export function useFluentResultGridController({
     const selectionEventHandlerRef = useRef<SlickEventHandler | undefined>(undefined);
     const gridStateEventHandlerRef = useRef<SlickEventHandler | undefined>(undefined);
     const keyboardEventHandlerRef = useRef<SlickEventHandler | undefined>(undefined);
+    const gridMenuObserverRef = useRef<MutationObserver | undefined>(undefined);
     const handleKeyDownRef = useRef<
         ((eventData: SlickEventData, args: { grid: SlickGrid }) => void) | undefined
     >(undefined);
@@ -329,6 +337,8 @@ export function useFluentResultGridController({
             gridStateEventHandlerRef.current = undefined;
             keyboardEventHandlerRef.current?.unsubscribeAll();
             keyboardEventHandlerRef.current = undefined;
+            gridMenuObserverRef.current?.disconnect();
+            gridMenuObserverRef.current = undefined;
             dataView.dispose();
             if (dataViewRef.current === dataView) {
                 dataViewRef.current = undefined;
@@ -1980,18 +1990,16 @@ export function useFluentResultGridController({
                 persistScrollPosition(grid);
             });
 
-            grid.getContainerNode()
-                .querySelectorAll<HTMLElement>(".slick-grid-menu-button")
-                .forEach((button) => {
-                    button.tabIndex = -1;
-                });
-            requestAnimationFrame(() => {
-                grid.getContainerNode()
-                    .querySelectorAll<HTMLElement>(".slick-grid-menu-button")
-                    .forEach((button) => {
-                        button.tabIndex = -1;
-                    });
+            const containerNode = grid.getContainerNode();
+            makeFluentResultGridMenuButtonsUntabbable(containerNode);
+            // The grid menu button is recreated by SlickGrid (e.g. on column changes) with a
+            // focusable tabIndex, so keep it untabbable whenever it is re-added to the DOM.
+            gridMenuObserverRef.current?.disconnect();
+            const gridMenuObserver = new MutationObserver(() => {
+                makeFluentResultGridMenuButtonsUntabbable(containerNode);
             });
+            gridMenuObserver.observe(containerNode, { childList: true, subtree: true });
+            gridMenuObserverRef.current = gridMenuObserver;
 
             grid.updateRowCount();
             grid.render();
