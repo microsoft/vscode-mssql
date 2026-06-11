@@ -17,6 +17,7 @@ export {
     type ValidationDelta,
     type ValidationPresence,
 } from "./runComparison";
+export { selectBaselineRun, type BaselineCandidate } from "./baselineSelector";
 export {
     RunArtifactParseError,
     type RunArtifactIssue,

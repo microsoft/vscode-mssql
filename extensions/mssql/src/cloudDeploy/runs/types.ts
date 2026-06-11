@@ -357,4 +357,11 @@ export interface RunListEntry {
     readonly startedAtMs: number;
     readonly endedAtMs: number;
     readonly artifactPath: string;
+    /**
+     * The schema content hash this run validated (Scope 2, decision D-A), when
+     * present. Surfaced on the summary so the auto-diff baseline selector can
+     * find the most recent earlier run with a different hash without re-reading
+     * every artifact. Absent for runs that predate source-version stamping.
+     */
+    readonly sourceVersionHash?: string;
 }

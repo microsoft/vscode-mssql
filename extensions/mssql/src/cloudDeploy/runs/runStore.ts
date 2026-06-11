@@ -281,5 +281,8 @@ function summarize(record: RunRecord, artifactPath: string): RunListEntry {
         startedAtMs: record.startedAtMs,
         endedAtMs: record.endedAtMs,
         artifactPath,
+        ...(record.sourceVersion !== undefined
+            ? { sourceVersionHash: record.sourceVersion.hash }
+            : {}),
     };
 }
